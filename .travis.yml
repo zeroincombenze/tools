@@ -10,8 +10,8 @@ python:
 env:
   - LINT_CHECK="1"
 
-virtualenv:
-  system_site_packages: true
+# virtualenv:
+#   system_site_packages: true
 
 install:
   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
@@ -21,7 +21,7 @@ install:
 
 script:
   - travis_run_tests
-#  - coverage run sample_db_list.py 
+  - coverage run os0/tests/all_tests 
 
 
 after_success:
