@@ -1,0 +1,29 @@
+# Config file .travis.yml
+
+sudo: required
+language: python
+
+
+python:
+  - "2.7"
+
+env:
+  - LINT_CHECK="1"
+
+virtualenv:
+  system_site_packages: true
+
+install:
+  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_nightly
+  - pip install coveralls
+
+script:
+  - travis_run_tests
+#  - coverage run sample_db_list.py 
+
+
+after_success:
+#  coveralls
+  coveralls debug
