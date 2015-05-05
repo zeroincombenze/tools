@@ -1,0 +1,38 @@
+#!/bin/bash
+# Regression tests for os0 module
+# Version running posix platform 
+#
+tf="os0_posix.rst"
+td="tests"
+if [ "$1" == "-h" -o "$1" == "--help" -o "$1" == "-?" ]
+then
+  echo "os0 tests based on doctest python module"
+  echo "Tests end without output; it means worked."
+  echo "Pass -v to the script for a detailed log" 
+  echo "To execute tests, from os0 directory, type:"
+  echo "> tests/all_tests [-v] [-V] [-h] [--version] [--help]"
+  echo " where"
+  echo " -h --help this help"
+  echo " -v verbose mode"
+  echo " -V --version show version"
+  echo "(C) SHS-AV s.r.l. - http://www.shs-av.com"
+  exit
+elif [ "$1" == "-V" -o "$1" == "--version" ]
+then
+  echo "Module os0 tests V1.2.1"
+  echo "os0" `grep "^version \=" os0.py`
+  exit
+fi
+if [ -f "$tf" ]
+then
+  cd ..
+fi
+if [ -f "$td/$tf" ]
+then
+  if [ `python -m doctest $1 $td/$tf` ]
+  then
+    python $td/os0_test.py
+  fi
+else
+  false
+fi
