@@ -8,7 +8,6 @@ python:
   - "2.7"
 
 env:
-  - LINT_CHECK="0"
   - VERSION="8.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0"
 
 virtualenv:
