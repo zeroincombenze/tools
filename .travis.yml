@@ -8,7 +8,7 @@ python:
   - "2.7"
 
 env:
-  - LINT_CHECK="1"
+  - LINT_CHECK="0"
 
 # virtualenv:
 #   system_site_packages: true
@@ -25,5 +25,5 @@ script:
 
 
 after_success:
-#  coveralls
+  coveralls
 #  coveralls debug
