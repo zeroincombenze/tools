@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 # Regression tests for os0 module
 # Version running posix platform 
 #

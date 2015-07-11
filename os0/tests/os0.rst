@@ -15,7 +15,7 @@ This module provides function to manage local filename, URI filename
 and conversions between both of them. 
 
 To use module os0 import it
-    >>> import os0
+    >>> from os0 import os0
 
 First method is set local filename of URI file.
 Set local filename of URI name is the same URI name

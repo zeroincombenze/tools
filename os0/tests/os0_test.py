@@ -35,13 +35,9 @@
 """
 
 import pdb
-from os import sys
 import os
 import os.path
-# Update python path to load os0 module
-p = os.path.abspath(os.path.join(__file__, '../..'))
-sys.path.insert(0, p)
-import os0
+from os0 import os0
 from sys import platform as _platform
 
 
@@ -52,7 +48,6 @@ class Test:
     # (Windows inherited filesystem from old PDP/VMS)
     # This program is tested on Linux, Windows and OpenVMS platform
     # in order to verify results (see above header)
-
 
     def test_path_splitdrive(self, txtid, fsrc, dtgt, ftgt):
         print("Test: {0} os.path.splitdrive({1}))->{2},{3}".
@@ -65,7 +60,7 @@ class Test:
             pdb.set_trace()
             raise Exception("Test failed!!!")
 
-
+#
     def test_path_linux(self):
         self.test_path_splitdrive("V0.10",
                                   "myFile.ext",
@@ -77,8 +72,7 @@ class Test:
                                   "//machine/usr1/lib/myFile.ext",
                                   "", "//machine/usr1/lib/myFile.ext")
 
-
-
+#
     def test_path_vms(self):
         self.test_path_splitdrive("V0.10",
                                   "myFile.ext",
@@ -99,8 +93,7 @@ class Test:
                                   "sys$sysdevice:[usr1.lib]myFile.ext",
                                   "sys$sysdevice:", "[usr1.lib]myFile.ext")
 
-
-
+#
     def test_path_win(self):
         self.test_path_splitdrive("V0.10", "myFile.ext",
                                   "", "myFile.ext")
@@ -116,8 +109,7 @@ class Test:
         self.test_path_splitdrive("V0.15", "c:\\usr1\\lib\\myFile.ext",
                                   "c:", "\\usr1\\lib\\myFile.ext")
 
-
-
+#
     def check_4_lfile(self, fsrc, ftgt):
         f = os0.setlfilename(fsrc, os0.LFN_FLAT)
         if f != ftgt:
@@ -125,7 +117,7 @@ class Test:
         else:
             return True
 
-
+#
     def check_4_lfile_exe(self, fsrc, ftgt):
         f = os0.setlfilename(fsrc, os0.LFN_EXE)
         if f != ftgt:
@@ -133,7 +125,7 @@ class Test:
         else:
             return True
 
-
+#
     def check_4_lfile_cmd(self, fsrc, ftgt):
         f = os0.setlfilename(fsrc, os0.LFN_CMD)
         if f != ftgt:
@@ -141,7 +133,7 @@ class Test:
         else:
             return True
 
-
+#
     def check_4_lfile_dir(self, fsrc, ftgt):
         f = os0.setlfilename(fsrc, os0.LFN_DIR)
         if f != ftgt:
@@ -149,7 +141,7 @@ class Test:
         else:
             return True
 
-
+#
     def test_fn(self, txtid, fsrc, ftgt):
         print("Test: {0} setlfilename({1})->{2}".format(txtid, fsrc, ftgt))
         if not self.check_4_lfile(fsrc, ftgt):
@@ -157,8 +149,7 @@ class Test:
             os0.wlog("Expected value {0}!".format(ftgt))
             raise Exception("Test failed!!!")
 
-
-
+#
     def test_fn_linux(self):
         os0.wlog("Specific test for Linux platform")
 
@@ -195,9 +186,7 @@ class Test:
 
         self.test_fn("1.30", "/dev/null", "/dev/null")
 
-
-
-
+#
     def test_fn_vms(self):
         os0.wlog("Specific test for OpenVMS platform")
 
@@ -239,7 +228,7 @@ class Test:
         self.test_fn("1.91", "/sys$sysdevice/usr1/myfile",
                      "sys$sysdevice:[usr1]myfile")
 
-
+#
     def test_fn_win(self):
         os0.wlog("Specific test for Windows platform")
 
@@ -260,7 +249,7 @@ class Test:
             os0.wlog("Test 1.04 failed")
             raise Exception("Test 1.04 failed: !!!")
 
-
+#
         self.test_fn("1.05", "myFile.py", "myFile.py")
         self.test_fn("1.06", "/root/myFile.py", "\\root\\myFile.py")
         self.test_fn("1.07", "/usr1/lib/myFile.py", "\\usr1\\lib\\myFile.py")
@@ -282,8 +271,7 @@ class Test:
         self.test_fn("1.90", "/c/myfile", "c:\\myfile")
         self.test_fn("1.91", "/c/usr1/myfile", "c:\\usr1\\myfile")
 
-
-
+#
     def check_4_tkn_in_stdout(self, token):
         # Now search for this program name in output;
         # if found muteshell worked right!
@@ -301,13 +289,15 @@ class Test:
             raise Exception("Test failed: muteshell did not work!!!")
 
 
+#
 class main:
     #
     # Run main if executed as a script
     if __name__ == "__main__":
-        title = "os0 (os platform indipendent) test. Version: V1.2.1"
+        title = "os0 (os platform indipendent) test. Version: V2.0.4"
+        if os0.version != "V2.0.4":
+            raise Exception("Test not executable: invalid os0 version")
         os0.wlog(title)
-#        os0.debug_mode = True
         os0.set_debug_mode(True)
         # Tracelog file
         os0.set_tlog_file("os0_test.log", new=True)
@@ -357,7 +347,11 @@ class main:
         elif fzero:
             raise Exception("Test failed: tracelog file is empty!!!")
 
-
+        print("Test 0.03: Check for unicode support")
+        wchar_string = u"Unicode string àèìòù"
+        os0.wlog(wchar_string)
+        x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
+        os0.wlog("Greek letters", x)
 #
 # Level 0 tests
         print("\nTest 0.xx: Level 0 tests")
