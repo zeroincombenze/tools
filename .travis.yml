@@ -21,9 +21,9 @@ install:
 
 script:
   - travis_run_tests
-  - coverage run os0/tests/all_tests 
+#  - coverage run os0/tests/all_tests 
 
 
 after_success:
 #  coveralls
-  coveralls debug
+#  coveralls debug
