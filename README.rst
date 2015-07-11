@@ -1,9 +1,6 @@
 |build status|_
 |coverage status|_
 
-[![Build Status](https://travis-ci.org/antoniov/tools.svg)](https://travis-ci.org/antoniov/tools)
-[![Coverage Status](https://coveralls.io/repos/antoniov/tools/badge.svg)](https://coveralls.io/r/antoniov/tools)
-
 Python tools
 ============
 
