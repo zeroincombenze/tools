@@ -6,9 +6,11 @@ Python tools
 
 Sparse python source code
 
-+-----+---------------------------------------------+
-| os0 | Simple os interface checked for OpenVMS too |
-+-----+---------------------------------------------+
++-------+---------------------------------------------+
+| os0   | Simple os interface checked for OpenVMS too |
++-------+---------------------------------------------+
+| pytok | Simple python token parser                  |
++-----+-----------------------------------------------+
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg
 .. _build status: https://travis-ci.org/antoniov/tools
