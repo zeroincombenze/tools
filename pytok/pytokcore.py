@@ -22,11 +22,11 @@
     python parser and tokenizer
 
 """
-# import pdb
+
 import re
 
 
-__version__ = "0.1.17"
+__version__ = "0.2.1"
 
 
 class Pytok():
@@ -762,7 +762,7 @@ class Pytok():
         return self.prm['tostring']
 
     @staticmethod
-    def open(self, file):
+    def open(file):
         """New instance of Pytok from python source file"""
         p = Pytok()
         return p._open(file)

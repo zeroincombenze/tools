@@ -10,7 +10,7 @@ Sparse python source code
 | os0   | Simple os interface checked for OpenVMS too |
 +-------+---------------------------------------------+
 | pytok | Simple python token parser                  |
-+-----+-----------------------------------------------+
++-------+---------------------------------------------+
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg
 .. _build status: https://travis-ci.org/antoniov/tools
@@ -20,5 +20,3 @@ Sparse python source code
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/antoniov/odoodevs
    :target: https://gitter.im/antoniov/odoodevs
-
-
