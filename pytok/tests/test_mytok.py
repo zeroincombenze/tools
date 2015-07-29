@@ -832,6 +832,7 @@ def nakedname(fn):
 
 def main():
     """Tool main."""
+    print "Pytok", pytok.version, "regression test"
     test_num = 0
     max_test_num = 12
     sts = 0

@@ -26,7 +26,7 @@
 import re
 
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 
 class Pytok():
@@ -42,6 +42,7 @@ class Pytok():
         self.prm['no_num_line'] = False
         self.prm['no_inherit'] = False
         self.prm['gap'] = 3
+        self.prm['decorator_names'] = []
 
     def switch_2_parent(self):
         self._close_remark()
@@ -115,7 +116,7 @@ class Pytok():
 
     @staticmethod
     def decorator_name(line):
-        """Return decoratore name(s) if decorator line"""
+        """Return decorator name(s) if decorator line"""
         i = line.find('@')
         if i >= 0:
             name = line[i + 1:].strip()
@@ -412,9 +413,10 @@ class Pytok():
                 x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
                 txt = txt + x.encode('utf-8')
         class_name, c, fun_name, f = self._set_names()
-        if self.prm['cur_file'] and self.prm['line'] == 1:
+        if self.prm['cur_file'] and not self.prm['hdrn']:
             x = self.hdr_fn(None)
             self.formatted_out(output, x, False)
+            self.prm['hdrn'] = True
         if class_name and\
                 class_name != self.prm['cur_class'] and\
                 not c:
@@ -670,6 +672,7 @@ class Pytok():
         self.prm['sym_fun'] = {}
         self.prm['sym_pub'] = {}
         self.prm['level'] = 0
+        self.prm['decorator_names'] = []
 
     def parse_src(self):
         """Parse source to search token(s) in instance"""
@@ -770,8 +773,6 @@ class Pytok():
     def tostring(self, output=None):
         """Output program as string source"""
         self.prm['hdrn'] = False
-        self.prm['hdrc'] = False
-        self.prm['hdrf'] = False
         self.prm['cur_fun'][0] = ''
         self.prm['cur_class'] = ''
         if output is None:
@@ -822,6 +823,11 @@ class Pytok():
         self.prm['cur_file'] = ''
         return self
 
+    @property
+    def version(self):
+        return __version__
+
 Pytok()
+
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
