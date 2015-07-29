@@ -20,4 +20,7 @@ To use:
     class myclass():
         def myfun(self):
             pass
-  
+
+
+For furthermore info see: http://wiki.zeroincombenze.org/it/Python/opt/pytok
+

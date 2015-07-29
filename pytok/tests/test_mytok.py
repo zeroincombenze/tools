@@ -30,20 +30,22 @@ from pytok import pytok
 
 
 test_ctr = 0
-max_tests = 31
+max_tests = 32
 gbl_test_num = -1
 wlog = None
 res = ""
 
 APPLY_CONF = True
 SRC_1 = """
+'''
+    Sample for pytok unit test
+'''
 
 import sys
 
 
 class Parent_Class(object):
     def __init__(self):
-        pass
         self.myvalue = 0
 
     def do_something(self):
@@ -106,6 +108,20 @@ class My_Child(Parent_Class):
         if v == 0:
             return self.universal_response()
 
+    def do_think_different(self, value):
+        if value > 0:
+            def _think_positive(value):
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+        else:
+            def _think_positive(value):
+                value += 1
+                return value
+        return _think_positive(value)
+
 
 def main():
     # tool main
@@ -117,10 +133,20 @@ def main():
         sts = Parent_Class().do_something()
     if sts == 0:
         sts = My_Child().do_something() - 42
+    if sts == 0:
+        M = My_Child()
+        sts = 1 - M.do_think_different(1)
+    if sts == 0:
+        sts = 1 - M.do_think_different(0)
+    if sts == 0:
+        sts = M.do_think_different(-1)
     return sts
+
 
 if __name__ == "__main__":
     sts = main()
+    if sts:
+        raise ValueError
     sys.exit(sts)
     """
 
@@ -154,9 +180,9 @@ def msg_new_test(test_num):
 
 def msg_test(newline, test_num):
     global test_ctr, max_tests, wlog
-    # if test_ctr >= 31 and test_ctr <= 31:  # debug
+    # if test_ctr >= 32 and test_ctr <= 33:  # debug
     #     import pdb
-    #    pdb.set_trace()
+    #     pdb.set_trace()
     txt = "Test {0:>2}){1:>3}/{2:3}".format(test_num,
                                             test_ctr,
                                             max_tests)
@@ -431,7 +457,6 @@ def test_04(test_num):
 
 class Parent_Class(object):
     def __init__(self):
-        pass
         self.myvalue = 0
 
     def do_something(self):
@@ -480,6 +505,20 @@ class My_Child(Parent_Class):
         v = super(My_Child, self).do_something()
         if v == 0:
             return self.universal_response()
+
+    def do_think_different(self, value):
+        if value > 0:
+            def _think_positive(value):
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+        else:
+            def _think_positive(value):
+                value += 1
+                return value
+        return _think_positive(value)
     """
 
     msg_new_test(test_num)
@@ -573,7 +612,6 @@ def test_07(test_num):
     TGT_7_1 = """
 class Parent_Class(object):
     def __init__(self):
-        pass
         self.myvalue = 0
 
     def do_something(self):
@@ -592,6 +630,20 @@ class My_Child(Parent_Class):
         v = super(My_Child, self).do_something()
         if v == 0:
             return self.universal_response()
+
+    def do_think_different(self, value):
+        if value > 0:
+            def _think_positive(value):
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+        else:
+            def _think_positive(value):
+                value += 1
+                return value
+        return _think_positive(value)
     """
 
     msg_new_test(test_num)
@@ -612,7 +664,6 @@ class My_Child(Parent_Class):
     TGT_7_2 = """
 class Parent_Class(object):
     def __init__(self):
-        pass
         self.myvalue = 0
 
     def do_something(self):
@@ -625,6 +676,20 @@ class My_Child(Parent_Class):
         v = super(My_Child, self).do_something()
         if v == 0:
             return self.universal_response()
+
+    def do_think_different(self, value):
+        if value > 0:
+            def _think_positive(value):
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+        else:
+            def _think_positive(value):
+                value += 1
+                return value
+        return _think_positive(value)
     """
 
     msg_new_test(test_num)
@@ -688,6 +753,14 @@ class dummy():
 class My_Child():
     def do_something():
             return self.universal_response()
+    def do_think_different():
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+                return value
+        return _think_positive(value)
     """
 
     msg_new_test(test_num)
@@ -760,7 +833,7 @@ def nakedname(fn):
 def main():
     """Tool main."""
     test_num = 0
-    max_test_num = 11
+    max_test_num = 12
     sts = 0
     for i in range(max_test_num):
         tname = "test_{0:02}".format(test_num)

@@ -26,7 +26,7 @@
 import re
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.4"
 
 
 class Pytok():
@@ -133,8 +133,8 @@ class Pytok():
             n = name[:i].strip()
             p = name[i + 1:j].strip()
         else:
-            n = name
-            p = deflt
+            n = name.strip()
+            p = deflt.strip()
         return n, p
 
     @staticmethod
@@ -186,31 +186,38 @@ class Pytok():
         else:
             is_public = False
         max_funlev = self.prm.get('max_funlev', 0)
-        full_fun_name = ''
-        lev = 2
-        while lev < level:
-            clev_fun = 'cur_fun' + str(lev)
-            full_fun_name += self.prm[clev_fun] + '.'
-            lev += 1
         if level > max_funlev:
             self.prm['max_funlev'] = level
-        full_fun_name += fun_name
-        clev_fun = 'cur_fun' + str(level)
         if self.prm['cur_class'] and is_public:
-            self.prm[clev_fun] = self.prm['cur_class'] + '.' + full_fun_name
+            full_fun_name = self.prm['cur_class'] + '.' + fun_name
         else:
-            self.prm[clev_fun] = full_fun_name
-        pub_fun = 'fun_pub' + str(level)
+            full_fun_name = ''
+            lev = level - 1
+            while lev > 0 and full_fun_name == '':
+                if lev in self.prm['cur_fun'] and\
+                        self.prm['cur_fun'][lev]:
+                    full_fun_name = self.prm['cur_fun'][lev] + '.'
+                lev -= 1
+            full_fun_name += fun_name
+        self.prm['cur_fun'][level] = full_fun_name
         if level == 1:
-            self.prm[pub_fun] = True
+            self.prm['fun_pub'][level] = True
         else:
-            self.prm[pub_fun] = is_public
-        cline_fun = 'fun_line' + str(level)
-        self.prm[cline_fun] = self._get_start_line()
-        if level > 1 and is_public:
-            self.prm['fun_pub1'] = True
-            self.prm['fun_line1'] = self.prm[cline_fun]
-            self.prm['cur_fun1'] = self.prm['cur_class'] + '.' + full_fun_name
+            self.prm['fun_pub'][level] = is_public
+        self.prm['fun_line'][level] = self._get_start_line()
+        if level == 1 or is_public:
+            if not self.prm['cur_fun'].get(0):
+                self.prm['cur_fun'][0] = {}
+            for n in ('fun_pub', 'fun_line', 'cur_fun'):
+                self.prm[n][0] = self.prm[n][level]
+
+    def _clr_lev(self, level):
+        for n in ('fun_pub', 'fun_line', 'cur_fun'):
+            if n in self.prm and self.prm[n].get(level):
+                if level <= 1:
+                    self.prm[n][0] = False
+                else:
+                    del self.prm[n][level]
 
     def _close_fun(self, level):
         if level == 0:
@@ -218,24 +225,28 @@ class Pytok():
             for lev in range(max_funlev):
                 self._close_fun(lev + 1)
             self.prm['max_funlev'] = 0
+            self._clr_lev(0)
             return
-        clev_fun = 'cur_fun' + str(level)
-        cline_fun = 'fun_line' + str(level)
         if level == 1:
             pub_fun = True
+        elif 'pub_fun' in self.prm:
+            pub_fun = self.prm['pub_fun'].get(level, False)
         else:
-            pub_fun = 'fun_pub' + str(level)
-            pub_fun = self.prm.get(pub_fun, False)
-        if clev_fun in self.prm:
-            nline_start = self.prm[cline_fun]
+            pub_fun = False
+        if 'fun_line' in self.prm and level in self.prm['fun_line']:
+            nline_start = self.prm['fun_line'][level]
             nline_stop = self._get_start_line()
             nline_stop -= 1
-            fun_name = self.prm[clev_fun]
+            fun_name = self.prm['cur_fun'][level]
             if not self.prm.get('t_range', False):
-                self.prm['sym_fun'][fun_name] = [nline_start, nline_stop]
+                if fun_name in self.prm['sym_fun']:
+                    self.prm['sym_fun'][fun_name] =\
+                        [self.prm['sym_fun'][fun_name],
+                         [nline_start, nline_stop]]
+                else:
+                    self.prm['sym_fun'][fun_name] = [nline_start, nline_stop]
             self.prm['sym_pub'][fun_name] = pub_fun
-        self.prm[clev_fun] = ""
-        self.prm[cline_fun] = 0
+        self._clr_lev(level)
 
     def _init_class(self):
         self.prm['cur_class'] = ""
@@ -296,21 +307,20 @@ class Pytok():
             return False
 
     def isinfun(self):
-        clev_fun = 'cur_fun' + str(1)
         if isinstance(self.prm['infun'], bool):
             return self.prm['infun']
-        elif clev_fun not in self.prm:
+        elif not self.prm['cur_fun'].get(0, ''):
             return False
         elif isinstance(self.prm['infun'], list):
             for i, v in enumerate(self.prm['infun']):
                 if self.op_comp(v,
                                 self.prm['infun_op'][i],
-                                self.extr_fun_name(self.prm[clev_fun])):
+                                self.extr_fun_name(self.prm['cur_fun'][0])):
                     return True
         else:
             if self.op_comp(self.prm['infun'],
                             self.prm['infun_op'],
-                            self.extr_fun_name(self.prm[clev_fun])):
+                            self.extr_fun_name(self.prm['cur_fun'][0])):
                 return True
         return False
 
@@ -383,7 +393,7 @@ class Pytok():
 
     def hdr_fun(self, name):
         if name is None:
-            name = self.prm['cur_fun']
+            name = self.prm['cur_fun'][0]
         x = "    def " + self.extr_fun_name(name) + "():"
         return x
 
@@ -412,11 +422,11 @@ class Pytok():
             self.formatted_out(output, x, False)
         self.prm['cur_class'] = class_name
         if fun_name and\
-                fun_name != self.prm['cur_fun'] and\
+                fun_name != self.prm['cur_fun'][0] and\
                 not f:
             x = self.hdr_fun(fun_name)
             self.formatted_out(output, x, False)
-        self.prm['cur_fun'] = fun_name
+        self.prm['cur_fun'][0] = fun_name
         self.formatted_out(output, txt, True)
 
     def formatted_out(self, output, txt, f):
@@ -449,13 +459,23 @@ class Pytok():
         found = False
         for fun_name in self.prm['sym_fun']:
             if fun_name:
-                start = self.prm['sym_fun'][fun_name][0]
-                stop = self.prm['sym_fun'][fun_name][1]
-                if numline >= start and numline <= stop:
-                    found = True
-                    if numline == start:
-                        f = True
-                    break
+                if isinstance([fun_name][0], list):
+                    for itm in [class_name]:
+                        start = itm[0]
+                        stop = itm[1]
+                        if numline >= start and numline <= stop:
+                            found = True
+                            if numline == start:
+                                f = True
+                            break
+                else:
+                    start = self.prm['sym_fun'][fun_name][0]
+                    stop = self.prm['sym_fun'][fun_name][1]
+                    if numline >= start and numline <= stop:
+                        found = True
+                        if numline == start:
+                            f = True
+                        break
         if not found:
             fun_name = ''
         return class_name, c, fun_name, f
@@ -626,21 +646,35 @@ class Pytok():
                 self._init_class()
             else:
                 self._close_fun(lev)
+            self.prm['level'] = lev
             tok = 'def'
             ln = self.line_wout_key(line, tok)
             fun_name, params = self.get_name_n_params(ln, None)
             self._open_fun(fun_name, params, lev)
             self.parse_line_type(line, tok)
         else:
+            i = 0
+            while line[i] == ' ':
+                i += 1
+            lev = int(i / 4) + 1
+            if lev < self.prm['level']:
+                self._close_fun(lev)
+                self.prm['level'] = lev
             self.parse_line_type(line, '')
 
-    def parse_src(self):
-        """Parse source to search token(s) in instance"""
-        self._init_class()
+    def init_parse(self):
         self.prm['line'] = 0
+        for n in ('fun_pub', 'fun_line', 'cur_fun'):
+            self.prm[n] = {}
         self.prm['sym_class'] = {}
         self.prm['sym_fun'] = {}
         self.prm['sym_pub'] = {}
+        self.prm['level'] = 0
+
+    def parse_src(self):
+        """Parse source to search token(s) in instance"""
+        self.init_parse()
+        self._init_class()
         for ix in range(len(self.src_txt)):
             numline = ix + 1
             self.parse_line(numline)
@@ -738,7 +772,7 @@ class Pytok():
         self.prm['hdrn'] = False
         self.prm['hdrc'] = False
         self.prm['hdrf'] = False
-        self.prm['cur_fun'] = ''
+        self.prm['cur_fun'][0] = ''
         self.prm['cur_class'] = ''
         if output is None:
             output = self.prm.get('output', None)
