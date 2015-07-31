@@ -3,12 +3,12 @@
 sudo: required
 language: python
 
-
 python:
   - "2.7"
 
 env:
-  - VERSION="8.0" ODOO_REPO="OCA/OCB" LINT_CHECK="0"
+  matrix:
+  - DEV_ENVIRONMENT="pytok" PYTOK_VERSION="0.2" TESTS="0" LINT_CHECK="1"
 
 virtualenv:
    system_site_packages: true
@@ -21,9 +21,8 @@ install:
 
 script:
   - travis_run_tests
-#  - coverage run os0/tests/all_tests 
-
+  - make travis
 
 after_success:
   coveralls
-#  coveralls debug
+
