@@ -1,14 +1,12 @@
-# Config file .coveragerc
-
-
 [report]
 include =
     *.py
 
-
 omit =
     */tests/*
-    *__init__.py
+    __init__.py
+    __main__.py
+    setup.py
 
 
 # Regexes for lines to exclude from consideration
@@ -18,3 +16,20 @@ exclude_lines =
 
     # Don't complain about null context checking
     if context is None:
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == "__main__":
+    if 0:
+    if False:
+
+    # Ignore unit test failure
+    return TEST_FAILED
+
