@@ -8,7 +8,7 @@ python:
 
 env:
   matrix:
-  - DEV_ENVIRONMENT="pytok" PYTOK_VERSION="0.2" TESTS="0" LINT_CHECK="1"
+  - DEV_ENVIRONMENT="pytok" PYTOK_VERSION="0.2" TESTS="0" LINT_CHECK="0"
 
 virtualenv:
    system_site_packages: true
