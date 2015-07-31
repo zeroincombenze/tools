@@ -55,9 +55,10 @@ coverage:
 	cd ./$(prjname)/; PYTHONPATH=$(PKGPATH)  coverage run --source $(prjname) $(TESTDIR)/test_pytok.py
 	cd ./$(prjname)/; coverage report
 
-travis:	check coverage
-
-
+travis:	check
+	cd ./$(prjname)/; coverage erase
+	cd ./$(prjname)/; DEV_ENVIRONMENT=$(prjname) PYTHONPATH=$(PKGPATH) coverage run --source $(prjname) __main__.py
+	cd ./$(prjname)/; coverage report
 
 annotate:
 	 cd ./$(prjname)/; PYTHONPATH=$(PKGPATH)  coverage annotate -d cover ./*

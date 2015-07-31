@@ -829,9 +829,4 @@ class Pytok():
 
 Pytok()
 
-
-if __name__ == "__main__":
-    pytok = Pytok()
-    print pytok.version
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

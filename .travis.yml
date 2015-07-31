@@ -21,7 +21,7 @@ install:
 
 script:
   - travis_run_tests
-  - make travis
+  - cd ./pytok/; make travis
 
 after_success:
   coveralls
