@@ -10,7 +10,13 @@ PWD=$(shell pwd)
 PKGPATH=$(PWD)
 TESTPATH=$(PKGPATH)/$(prjname)/$(TESTDIR)
 LGITPATH=/opt/odoo/tools
-
+# Local test use z0_travis_run_tests instead travis_run_tests
+x=$(echo ${HOSTNAME:0:6}|grep shs-av)
+ifeq ($(x),shs-av)
+	travis_ci=z0_travis_run_tests
+else
+	travis_ci=z0_travis_run_tests
+endif
 
 help:
 	@echo "Execucte action on project $(prjname) V$(prjversion) - use:"
@@ -43,7 +49,7 @@ version:
 	PYTHONPATH=$(PKGPATH) python $(prjname)
 
 check:
-	z0_travis_run_tests
+	$(travis_ci)
 
 test:
 	find . -name "$(prjname)*.log" -exec rm -f '{}' \;
