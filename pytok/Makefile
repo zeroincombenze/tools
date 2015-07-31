@@ -15,7 +15,7 @@ x=$(echo ${HOSTNAME:0:6}|grep shs-av)
 ifeq ($(x),shs-av)
 	travis_ci=z0_travis_run_tests
 else
-	travis_ci=z0_travis_run_tests
+	travis_ci=travis_run_tests
 endif
 
 help:
