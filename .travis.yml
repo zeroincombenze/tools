@@ -16,12 +16,16 @@ virtualenv:
 install:
   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  # Coverall works better with pip 7
+  - pip install --upgrade pip
   # - travis_install_nightly
+  # Python < 2.7.9 needs usrllib3
+  - pip install urllib3[secure]
   - pip install coveralls
 
 script:
   # - travis_run_tests
-  - cd ./pytok/; make travis
+  - cd ./pytok/; SHELL=/bin/bash make travis
 
 after_success:
   coveralls
