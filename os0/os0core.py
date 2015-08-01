@@ -19,7 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-# For software version see version below
 
 
 r"""OS routines for Linux, OpenVMS and Windows
@@ -88,10 +87,12 @@ from datetime import datetime
 # import types
 
 
+__version__ = "0.2.6"
+
+
 class Os0():
 
     def __init__(self):
-        self.version = "V2.0.5"
         self.LFN_FLAT = 0
         self.LFN_EXE = 1
         self.LFN_CMD = 2
@@ -345,3 +346,11 @@ class Os0():
             stdinp_fd.close()
             if not simulate and not keepout:
                 os.remove(self.bgout_fn)
+
+    @property
+    def version(self):
+        return __version__
+
+Os0()
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

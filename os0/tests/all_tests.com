@@ -37,7 +37,7 @@ $ endif
 $ if f$search(td+tf).nes.""
 $ then
 $   python -m doctest 'P1' 'td''tf'
-$   python 'td'os0_test.py
+$   python 'td'test_os0.py
 $ else
 $   echo "error"
 $ endif

@@ -31,5 +31,5 @@ find "version =" os0.py
 goto xit
 :xec
 python -m doctest %1 %td%\%tf%
-python %td%\os0_test.py
+python %td%\test_os0.py
 :xit

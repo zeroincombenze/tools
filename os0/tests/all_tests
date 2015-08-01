@@ -31,7 +31,7 @@ if [ -f "$td/$tf" ]
 then
   if [ `python -m doctest $1 $td/$tf` ]
   then
-    python $td/os0_test.py
+    python $td/test_os0.py
   fi
 else
   false
