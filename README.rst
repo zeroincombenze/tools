@@ -1,6 +1,6 @@
 |build status|_
 |coverage status|_
-|license_agpl|_
+|license agpl|_
 
 Python tools
 ============
@@ -17,8 +17,8 @@ Sparse python source code
 .. _build status: https://travis-ci.org/antoniov/tools
 .. |coverage status| image:: https://coveralls.io/repos/antoniov/tools/badge.svg?branch=master&service=github
 .. _coverage status: https://coveralls.io/github/antoniov/tools?branch=master
-.. |license_agpl| image:: Affero_GPL.svg
-.. _license_agpl: http://www.gnu.org/licenses/agpl-3.0.html
+.. |license agpl| image:: Affero_GPL.svg
+.. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
 
 .. image::  bottone_chat-verde2_en.png
    :alt: Join the chat at http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/
