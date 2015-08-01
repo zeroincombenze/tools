@@ -1,23 +1,25 @@
-# Makefile 0.1.6
+# Makefile 0.1.10
 default: check
 
-.PHONY: __init__ help test coverage annotate
+.PHONY: help test coverage annotate
 
-# Evaluate if runniong on local machine or on travis-ci environment
+# Evaluate if running on local machine or on travis-ci environment
 x=$(shell echo $${HOSTNAME:0:6}|grep shs-av)
 ifeq ($(x),shs-av)
 	travis_ci=z0_travis_run_tests
  	LGITPATH=/opt/odoo/tools
+	SETUP=../setup.py
 else
  	travis_ci=travis_run_tests
+	SETUP=setup.py
 endif
 PKGPATH=$(shell cd ..; pwd)
 pkgname=$(shell basename $$PWD)
-prjname=$(shell grep name setup.py|awk -F"'" '{print $$2}')
+prjname=$(shell grep name $(SETUP)|awk -F"'" '{print $$2}')
 ifneq ($(pkgname),$(prjname))
 	@echo "Warning: package name $(pkgname) and project name $((prjname) are different!"
 endif
-prjversion=$(shell grep version setup.py|awk -F"'" '{print $$2}')
+prjversion=$(shell grep version $(SETUP)|awk -F"'" '{print $$2}')
 PKGPATH=$(shell cd ..; pwd)
 PRJPATH=$(PKGPATH)/$(prjname)
 TESTDIR=tests
@@ -51,6 +53,8 @@ install: build
 	cd ..; python setup.py install
 
 version:
+	@# Follow line is just for internal use: it couldn't work outside Zeroincombenze(R) environment
+	@cd $(PKGPATH)/..; dist_pkg -- $(prjname)
 	@echo "Project $(prjname) V$(prjversion) [$(pkgname)] answer:"
 	@cd $(PKGPATH); PYTHONPATH=$(PKGPATH) python $(prjname)
 
@@ -58,11 +62,11 @@ check:
 	$(travis_ci)
 
 test:
-	find $(PKGPATH) -name "$(prjname)*.log" -exec rm -f '{}' \;
+	find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
 	cd $(TESTPATH); PYTHONPATH=$(PKGPATH) python test_pytok.py
 
 coverage:
-	find $(PKGPATH) -name "$(prjname)*.log" -exec rm -f '{}' \;
+	find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
 	cd $(PRJPATH); coverage erase
 	cd $(PRJPATH); PYTHONPATH=$(PKGPATH)  coverage run --source $(prjname) $(TESTDIR)/test_pytok.py
 	cd $(PRJPATH); coverage report
