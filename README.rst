@@ -27,4 +27,3 @@ Sparse python source code
 .. image::  Assosoftware.gif
    :alt: Join the chat at http://www.assosoftware.it/
    :target: http://www.assosoftware.it/
-
