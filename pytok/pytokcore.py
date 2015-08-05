@@ -26,7 +26,7 @@
 import re
 
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 
 class Pytok():
@@ -443,7 +443,8 @@ class Pytok():
                 else:
                     start = self.prm['sym_fun'][fun_name][0]
                     stop = self.prm['sym_fun'][fun_name][1]
-                    if isinstance(start, list):
+                    # TODO: remove this patchwork
+                    while isinstance(start, list):
                         stop = start[1]
                         start = start[0]
                     if numline in range(start, stop + 1):
@@ -717,7 +718,8 @@ class Pytok():
                 elif n == 'tokens':
                     self.decl_tokens_2_search(prm['tokens'])
                 elif n == 'model':
-                    self.decl_model_2_search(prm['model'])
+                    if prm['model']:
+                        self.decl_model_2_search(prm['model'])
                 else:
                     self.prm[n] = prm[n]
 
