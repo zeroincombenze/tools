@@ -74,7 +74,7 @@ or
 
 import os
 import sys
-from subprocess import call
+# from subprocess import call
 from os0 import os0
 
 if __name__ == "__main__":
@@ -84,7 +84,8 @@ if __name__ == "__main__":
     if 'DEV_ENVIRONMENT' in os.environ:
         if os.path.isdir('./tests'):
             os.chdir('./tests')
-            sts = call("all_tests")
+            # sts = call("all_tests")
+            sts = execfile("test_os0.py")
             sys.exit(sts)
 
     print os0.version

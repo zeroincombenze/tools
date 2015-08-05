@@ -30,7 +30,7 @@ from pytok import pytok
 
 
 test_ctr = 0
-max_tests = 32
+max_tests = 42
 gbl_test_num = -1
 wlog = None
 res = ""
@@ -182,7 +182,7 @@ def msg_new_test(test_num):
 
 def msg_test(newline, test_num):
     global test_ctr, max_tests, wlog
-    # if test_ctr >= 32 and test_ctr <= 33:  # debug
+    # if test_ctr >= 39 and test_ctr <= 40:  # debug
     #     import pdb
     #     pdb.set_trace()
     txt = "Test {0:>2}){1:>3}/{2:3}".format(test_num,
@@ -195,30 +195,44 @@ def msg_test(newline, test_num):
         wlog.debug(txt)
 
 
-def generic_test(o=None, c=None, d=None, t=None, m=None):
+def generic_test(o=None, c=None, d=None, t=None, m=None, h=None, i=None):
     """Call test with parameters
     o: output
     c: classes selection
     d: functions selection
     t: tokens selection
     m: module selection
+    h: no header
     """
-    global res
-    prm = {}
-    prm['output'] = lambda x: acquire(x)
+    global res, test_ctr
     src = pytok.new(text=SRC_1)
-    if o:
-        src.decl_options(no_num_line=True, output=prm['output'])
+    prm = {}
+    prm['no_num_line'] = True
+    if test_ctr % 2:
+        if c:
+            prm['inclass'] = c
+        if d:
+            prm['infun'] = d
+        if t:
+            prm['tokens'] = t
+        if m:
+            prm['model'] = m
     else:
-        src.decl_options(no_num_line=True)
-    if c:
-        src.decl_classes_2_search(c)
-    if d:
-        src.decl_funs_2_search(d)
-    if t:
-        src.decl_tokens_2_search(t)
-    if m:
-        src.decl_model_2_search(m)
+        if c:
+            src.decl_classes_2_search(c)
+        if d:
+            src.decl_funs_2_search(d)
+        if t:
+            src.decl_tokens_2_search(t)
+        if m:
+            src.decl_model_2_search(m)
+    if o:
+        prm['output'] = lambda x: acquire(x)
+    if h:
+        prm['no_header'] = h
+    if i:
+        prm['no_inherit'] = i
+    src.decl_options(prm)
     src.parse_src()
     if o:
         res = ""
@@ -319,6 +333,23 @@ def test_00(test_num):
     if reslines != tgtlines:
         return TEST_FAILED
 
+    msg_new_test(test_num)
+    prm = {}
+    prm['output'] = lambda x: acquire(x)
+    src = pytok.new(text=SRC_1)
+    srclines = 71, [76, 80], [84, 85], [71, 82]
+    tgtlines = [[71, 82], [84, 85]]
+    for grplines in srclines:
+        if isinstance(grplines, list):
+            start = grplines[0]
+            stop = grplines[1]
+            src.add_line_range(start, stop)
+        else:
+            src.add_line_range(grplines)
+    reslines = src.get_range()
+    if reslines != tgtlines:
+        return TEST_FAILED
+
     return TEST_SUCCESS
 
 
@@ -329,6 +360,13 @@ def test_01(test_num):
     res = generic_test(o=True)
     if res.strip() != SRC_1.strip():
         return TEST_FAILED
+
+    # Repeated test to check parameters supplied
+    msg_new_test(test_num)
+    res = generic_test(o=True)
+    if res.strip() != SRC_1.strip():
+        return TEST_FAILED
+
     return TEST_SUCCESS
 
 
@@ -705,22 +743,15 @@ def test_08(test_num):
     global SRC_1
 
     TGT_8_1 = """
-
-
 class My_Class():
     def __init__(self):
         pass
 
-My_Class()
-
 
 class My_Sub_Class(My_Class):
-    _inherit = 'res.partner'
 
     def __init__(self):
         pass
-
-My_Sub_Class()
     """
 
     msg_new_test(test_num)
@@ -745,21 +776,36 @@ def test_09(test_num):
     global SRC_1
 
     TGT_09_1 = """
-class Parent_Class():
-    def do_something():
+class Parent_Class(object):
+
+    def do_something(self):
         return self.myvalue
-class dummy():
+
+
+# Follow class is just to fill white paper!
+class dummy:    # no useful class
+
+    # Function without class call
+    @staticmethod
     def do_public():
         return 0
-class My_Child():
-    def do_something():
+
+
+class My_Child(Parent_Class):
+
+    def do_something(self):
             return self.universal_response()
-    def do_think_different():
+
+    def do_think_different(self, value):
+        if value > 0:
+            def _think_positive(value):
                 return value
         elif value < 0:
             def _think_negative(value):
                 return 0
             return _think_negative(value)
+        else:
+            def _think_positive(value):
                 return value
         return _think_positive(value)
     """
@@ -818,6 +864,108 @@ My_Sub_Class()
     if res.strip() != TGT_10_1.strip():
         return TEST_FAILED
 
+    # Repeated test to check parameters supplied
+    msg_new_test(test_num)
+    res = generic_test(m='res.partner')
+    if res.strip() != TGT_10_1.strip():
+        return TEST_FAILED
+
+    TGT_10_2 = """
+class Parent_Class(object):
+    def __init__(self):
+        self.myvalue = 0
+
+
+class My_Class():
+    def __init__(self):
+        pass
+
+
+class My_Sub_Class(My_Class):
+
+    def __init__(self):
+        pass
+    """
+
+    msg_new_test(test_num)
+    res = generic_test(d='__init__()')
+    if res.strip() != TGT_10_2.strip():
+        return TEST_FAILED
+
+    return TEST_SUCCESS
+
+
+def test_11(test_num):
+    global SRC_1
+
+    TGT_11_1 = """
+class My_Sub_Class(My_Class):
+
+    def __init__(self):
+        pass
+    """
+
+    msg_new_test(test_num)
+    res = generic_test(c='My_Sub_Class', d='__init__', i=True)
+    if res.strip() != TGT_11_1.strip():
+        return TEST_FAILED
+
+    msg_new_test(test_num)
+    res = generic_test(c='My_Sub_Class', d='__init', i=True)
+    if res.strip() != TGT_11_1.strip():
+        return TEST_FAILED
+
+    msg_new_test(test_num)
+    res = generic_test(c='My_Sub_Class', d='__init__()', i=True)
+    if res.strip() != TGT_11_1.strip():
+        return TEST_FAILED
+
+    TGT_11_2 = """
+class My_Sub_Class(My_Class):
+
+    def __init__(self):
+    """
+
+    msg_new_test(test_num)
+    res = generic_test(c='My_Sub_Class', t='__init__()', i=True)
+    if res.strip() != TGT_11_2.strip():
+        return TEST_FAILED
+
+    # Repeated test to check parameters supplied
+    msg_new_test(test_num)
+    res = generic_test(c='My_Sub_Class', t='__init__()', i=True)
+    if res.strip() != TGT_11_2.strip():
+        return TEST_FAILED
+
+    return TEST_SUCCESS
+
+
+def test_12(test_num):
+    global SRC_1
+
+    TGT_12_1 = """
+        return self.myvalue
+        return 0
+            return self.universal_response()
+                return value
+        elif value < 0:
+            def _think_negative(value):
+                return 0
+            return _think_negative(value)
+                return value
+        return _think_positive(value)
+    """
+
+    msg_new_test(test_num)
+    res = generic_test(c='Parent,dummy', d='__init__,do', t='return', h=True)
+    if res.strip() != TGT_12_1.strip():
+        return TEST_FAILED
+
+    msg_new_test(test_num)
+    res = generic_test(c='Parent,dummy', d='__init__,do', t='ret', h=True)
+    if res.strip() != TGT_12_1.strip():
+        return TEST_FAILED
+
     return TEST_SUCCESS
 
 
@@ -841,7 +989,7 @@ def main():
         return TEST_FAILED
     print "Pytok", pytok.version, "regression test"
     test_num = 0
-    max_test_num = 12
+    max_test_num = 13
     sts = 0
     for i in range(max_test_num):
         tname = "test_{0:02}".format(test_num)

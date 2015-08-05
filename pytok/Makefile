@@ -63,12 +63,12 @@ check:
 
 test:
 	find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
-	cd $(TESTPATH); PYTHONPATH=$(PKGPATH) python test_pytok.py
+	cd $(TESTPATH); PYTHONPATH=$(PKGPATH) python test_$(prjname).py
 
 coverage:
 	find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
 	cd $(PRJPATH); coverage erase
-	cd $(PRJPATH); PYTHONPATH=$(PKGPATH)  coverage run --source $(prjname) $(TESTDIR)/test_pytok.py
+	cd $(PRJPATH); PYTHONPATH=$(PKGPATH)  coverage run --source $(prjname) $(TESTDIR)/test_$(prjname).py
 	cd $(PRJPATH); coverage report
 
 travis:	check

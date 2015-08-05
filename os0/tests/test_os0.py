@@ -382,7 +382,10 @@ class main:
         os0.wlog("Level II tests")
 
         if os.path.dirname(__file__) == "":
-            cmd = "dir " + os0.setlfilename("./")
+            if __file__ == "__main__.py":
+                cmd = "dir " + os0.setlfilename("../")
+            else:
+                cmd = "dir " + os0.setlfilename("./")
         else:
             cmd = "dir " + os0.setlfilename(os.path.dirname(__file__))
         print "Test 2.01: exec->{0}".format(cmd)

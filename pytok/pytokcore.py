@@ -26,7 +26,7 @@
 import re
 
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 
 class Pytok():
@@ -40,6 +40,7 @@ class Pytok():
         self.prm['tokens'] = True
         self.prm['model'] = False
         self.prm['no_num_line'] = False
+        self.prm['no_header'] = False
         self.prm['no_inherit'] = False
         self.prm['gap'] = 3
         self.prm['decorator_names'] = []
@@ -171,11 +172,20 @@ class Pytok():
 
     def _get_start_line(self):
         numline = self.prm['line']
+        hdrline = numline
         if self.prm.get('rem_line', False):
             numline = min(numline, self.prm['rem_line'])
         if self.prm.get('decorator_line', False):
             numline = min(numline, self.prm['decorator_line'])
-        return numline
+        return numline, hdrline
+
+    def _clr_lev(self, level):
+        for n in ('fun_pub', 'fun_line', 'cur_fun', 'fun_hdrline'):
+            if n in self.prm and self.prm[n].get(level):
+                if level <= 1:
+                    self.prm[n][0] = False
+                else:
+                    del self.prm[n][level]
 
     def _open_fun(self, fun_name, params, level):
         if params[0:4] == 'self':
@@ -205,20 +215,13 @@ class Pytok():
             self.prm['fun_pub'][level] = True
         else:
             self.prm['fun_pub'][level] = is_public
-        self.prm['fun_line'][level] = self._get_start_line()
+        self.prm['fun_line'][level], self.prm['fun_hdrline'][level] =\
+            self._get_start_line()
         if level == 1 or is_public:
             if not self.prm['cur_fun'].get(0):
                 self.prm['cur_fun'][0] = {}
-            for n in ('fun_pub', 'fun_line', 'cur_fun'):
+            for n in ('fun_pub', 'fun_line', 'cur_fun', 'fun_hdrline'):
                 self.prm[n][0] = self.prm[n][level]
-
-    def _clr_lev(self, level):
-        for n in ('fun_pub', 'fun_line', 'cur_fun'):
-            if n in self.prm and self.prm[n].get(level):
-                if level <= 1:
-                    self.prm[n][0] = False
-                else:
-                    del self.prm[n][level]
 
     def _close_fun(self, level):
         if level == 0:
@@ -236,7 +239,7 @@ class Pytok():
             pub_fun = False
         if 'fun_line' in self.prm and level in self.prm['fun_line']:
             nline_start = self.prm['fun_line'][level]
-            nline_stop = self._get_start_line()
+            nline_stop, hdrline = self._get_start_line()
             nline_stop -= 1
             fun_name = self.prm['cur_fun'][level]
             if not self.prm.get('t_range', False):
@@ -246,6 +249,7 @@ class Pytok():
                          [nline_start, nline_stop]]
                 else:
                     self.prm['sym_fun'][fun_name] = [nline_start, nline_stop]
+            self.prm['hdr_fun'][fun_name] = self.prm['fun_hdrline'][level]
             self.prm['sym_pub'][fun_name] = pub_fun
         self._clr_lev(level)
 
@@ -253,6 +257,7 @@ class Pytok():
         self.prm['cur_class'] = ""
         self.prm['parent_class'] = []
         self.prm['class_line'] = 0
+        self.prm['class_hdrline'] = 0
         self.prm['found_model'] = False
         self._close_fun(0)
 
@@ -263,13 +268,15 @@ class Pytok():
             self.prm['parent_class'] = map(lambda x: x.strip() + '()',
                                            params.split(','))
         self.prm['cur_class'] = class_name
-        self.prm['class_line'] = self._get_start_line()
+        self.prm['class_line'], self.prm['class_hdrline'] =\
+            self._get_start_line()
 
     def _close_class(self, is_stmnt):
         self._close_fun(0)
         if self.prm['cur_class']:
             nline_start = self.prm['class_line']
             nline_stop = self.prm['line']
+            hdrline = self.prm['class_hdrline']
             # Auto close prior class: end line is previous
             if not is_stmnt:
                 if self.prm.get('rem_line', False):
@@ -280,6 +287,7 @@ class Pytok():
             class_name = self.prm['cur_class']
             if not self.prm.get('t_range', False):
                 self.prm['sym_class'][class_name] = [nline_start, nline_stop]
+                self.prm['hdr_class'][class_name] = hdrline
 
     def _close_super_class(self, close_class):
         if close_class:
@@ -300,7 +308,7 @@ class Pytok():
                 return True
             return False
         elif op == '(' or op == ':':
-            left = left + op
+            left = left + op + '.*)'
             if re.match(left, right):
                 return True
             return False
@@ -357,7 +365,8 @@ class Pytok():
 
     def isvalidline(self, type):
         if self.isinclass():
-            if type == 'class' or type == 'end' or self.isinfun():
+            # if type == 'class' or type == 'end' or self.isinfun():
+            if self.isinfun():
                 return True
         return False
 
@@ -386,18 +395,6 @@ class Pytok():
         x = "====" + self.prm['cur_file'] + "===="
         return x
 
-    def hdr_class(self, name):
-        if name is None:
-            name = self.prm['cur_class']
-        x = "class " + name + "():"
-        return x
-
-    def hdr_fun(self, name):
-        if name is None:
-            name = self.prm['cur_fun'][0]
-        x = "    def " + self.extr_fun_name(name) + "():"
-        return x
-
     def out_line(self, output, *args):
         """Output results"""
         txt = ''
@@ -412,23 +409,10 @@ class Pytok():
             except:
                 x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
                 txt = txt + x.encode('utf-8')
-        class_name, c, fun_name, f = self._set_names()
         if self.prm['cur_file'] and not self.prm['hdrn']:
             x = self.hdr_fn(None)
             self.formatted_out(output, x, False)
             self.prm['hdrn'] = True
-        if class_name and\
-                class_name != self.prm['cur_class'] and\
-                not c:
-            x = self.hdr_class(class_name)
-            self.formatted_out(output, x, False)
-        self.prm['cur_class'] = class_name
-        if fun_name and\
-                fun_name != self.prm['cur_fun'][0] and\
-                not f:
-            x = self.hdr_fun(fun_name)
-            self.formatted_out(output, x, False)
-        self.prm['cur_fun'][0] = fun_name
         self.formatted_out(output, txt, True)
 
     def formatted_out(self, output, txt, f):
@@ -443,44 +427,33 @@ class Pytok():
             txt = txt + '\n'
             self.prm['tostring'] += txt
 
-    def _set_names(self):
-        numline = self.prm['line']
-        c = False
-        found = False
-        for class_name in self.prm['sym_class']:
-            start = self.prm['sym_class'][class_name][0]
-            stop = self.prm['sym_class'][class_name][1]
-            if numline >= start and numline <= stop:
-                found = True
-                if numline == start:
-                    c = True
-                break
-        if not found:
-            class_name = ''
-        f = False
-        found = False
+    def _add_hdr_range(self, numline):
         for fun_name in self.prm['sym_fun']:
             if fun_name:
+                hdrline = self.prm['hdr_fun'][fun_name]
                 if isinstance([fun_name][0], list):
-                    for itm in [class_name]:
+                    for itm in [fun_name]:
                         start = itm[0]
                         stop = itm[1]
-                        if numline >= start and numline <= stop:
-                            found = True
-                            if numline == start:
-                                f = True
-                            break
+                        if isinstance(start, list):
+                            stop = start[1]
+                            start = start[0]
+                        if numline in range(start, stop + 1):
+                            self.add_line_range(start, hdrline)
                 else:
                     start = self.prm['sym_fun'][fun_name][0]
                     stop = self.prm['sym_fun'][fun_name][1]
-                    if numline >= start and numline <= stop:
-                        found = True
-                        if numline == start:
-                            f = True
-                        break
-        if not found:
-            fun_name = ''
-        return class_name, c, fun_name, f
+                    if isinstance(start, list):
+                        stop = start[1]
+                        start = start[0]
+                    if numline in range(start, stop + 1):
+                        self.add_line_range(start, hdrline)
+        for class_name in self.prm['sym_class']:
+            start = self.prm['sym_class'][class_name][0]
+            stop = self.prm['sym_class'][class_name][1]
+            hdrline = self.prm['hdr_class'][class_name]
+            if numline in range(start, stop + 1):
+                self.add_line_range(start, hdrline)
 
     def _add_parent_range(self, parent_class=None):
         if 'r_parent_class' not in self.prm:
@@ -564,6 +537,8 @@ class Pytok():
             if ix < 0:
                 self.prm[range_id].append([nline_start, nline_stop])
             elif found:
+                if nline_start >= range_start and nline_stop <= range_stop:
+                    return
                 while found:
                     del self.prm[range_id][ix]
                     nline_start = min(nline_start, range_start)
@@ -575,13 +550,23 @@ class Pytok():
                         if nline_start <= range_stop:
                             ix -= 1
                             found = True
+                found = True
+                while ix < len(self.prm[range_id]) and found:
+                    range_start, range_stop = self._get_ix_range(ix,
+                                                                 range_id)
+                    if nline_stop >= range_start:
+                        nline_start = min(nline_start, range_start)
+                        nline_stop = max(nline_stop, range_stop)
+                        del self.prm[range_id][ix]
+                    else:
+                        found = False
                 self.prm[range_id].insert(ix, [nline_start, nline_stop])
             else:
                 self.prm[range_id].insert(ix, [nline_start, nline_stop])
 
     def add_tok_range(self):
         nline_stop = self.prm['line']
-        nline_start = self._get_start_line()
+        nline_start, hdrline = self._get_start_line()
         self.add_line_range(nline_start, nline_stop)
 
     def search_tok(self, line):
@@ -619,6 +604,8 @@ class Pytok():
                         self.prm['found_model'] = True
                 else:
                     self.search_tok(line)
+        elif type == 'end' and self.isinclass():
+            self._add_parent_range()
         self._close_remark()
         self._close_decorator()
 
@@ -666,10 +653,12 @@ class Pytok():
 
     def init_parse(self):
         self.prm['line'] = 0
-        for n in ('fun_pub', 'fun_line', 'cur_fun'):
+        for n in ('fun_pub', 'fun_line', 'cur_fun', 'fun_hdrline'):
             self.prm[n] = {}
         self.prm['sym_class'] = {}
         self.prm['sym_fun'] = {}
+        self.prm['hdr_class'] = {}
+        self.prm['hdr_fun'] = {}
         self.prm['sym_pub'] = {}
         self.prm['level'] = 0
         self.prm['decorator_names'] = []
@@ -682,7 +671,7 @@ class Pytok():
             numline = ix + 1
             self.parse_line(numline)
         self._close_super_class(True)
-        if 'r_range' in self.prm:
+        if 'r_range' in self.prm and not self.prm['no_inherit']:
             self.prm['t_range'] = self.prm['r_range']
             self.switch_2_parent()
             for ix in self.prm['t_range']:
@@ -702,11 +691,35 @@ class Pytok():
             return []
         return self.prm['range']
 
-    def decl_options(self, output=None, no_num_line=None):
-        if output:
-            self.prm['output'] = output
-        if no_num_line:
-            self.prm['no_num_line'] = no_num_line
+    def decl_options(self, prm):
+        """Declare options
+        @prm['output']
+        @prm['no_num_line']
+        @prm['in_class']
+        @prm['infun']
+        @prm['tokens']
+        @prm['model']
+        @prm['no_header']
+        """
+        for n in prm:
+            if n in ('output',
+                     'no_num_line',
+                     'inclass',
+                     'infun',
+                     'tokens',
+                     'model',
+                     'no_header',
+                     'no_inherit'):
+                if n == 'inclass':
+                    self.decl_classes_2_search(prm['inclass'])
+                elif n == 'infun':
+                    self.decl_funs_2_search(prm['infun'])
+                elif n == 'tokens':
+                    self.decl_tokens_2_search(prm['tokens'])
+                elif n == 'model':
+                    self.decl_model_2_search(prm['model'])
+                else:
+                    self.prm[n] = prm[n]
 
     def decl_classes_2_search(self, classes):
         """Declare class(es) in instance (comma separated)
@@ -782,6 +795,18 @@ class Pytok():
         self.prm['tostring'] = ''
         self._init_class()
         if 'range' in self.prm:
+            if not self.prm['no_header']:
+                self.prm['r_range'] = self.prm['range']
+                for ix in self.prm['r_range']:
+                    if isinstance(ix, list):
+                        range_start = ix[0]
+                        range_stop = ix[1] + 1
+                        for numline in range(range_start, range_stop):
+                            self._add_hdr_range(numline)
+                    else:
+                        numline = ix
+                        self._add_hdr_range(numline)
+
             for ix in self.prm['range']:
                 if isinstance(ix, list):
                     range_start = ix[0]
