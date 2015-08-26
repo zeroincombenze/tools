@@ -78,25 +78,29 @@ Notes:
 import os
 import os.path
 import sys
+import logging
 import inspect
 from sys import platform as _platform
-# import platform
 from subprocess import call
-from datetime import datetime
-# import string
-# import types
+# from datetime import datetime
 
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 
 class Os0():
 
-    def __init__(self):
+    def __init__(self, doinit=False):
+        """Module initialization"""
         self.LFN_FLAT = 0
         self.LFN_EXE = 1
         self.LFN_CMD = 2
         self.LFN_DIR = 4
+        self.tlog_fn = None
+        if not hasattr(self, 'fh'):
+            self.fh = None
+        if not hasattr(self, 'ch'):
+            self.ch = None
 
         self.debug_mode = False
         self.homedir = os.path.expanduser("~")
@@ -107,7 +111,8 @@ class Os0():
         self.bgout_fn = self.homedir + "/" + bg + \
             "-{0:08x}".format(os.getpid())+".out"
         self.bginp_fn = os.devnull
-        self.tlog_fn = ""
+        if doinit:
+            self.set_logger("")
 
         self._xtl_dev_win = {'null:': 'nul'}
         self._xtl_dev_vms = {'null:': 'NL0:'}
@@ -115,8 +120,8 @@ class Os0():
         if _platform == "OpenVMS":
             self.bginp_fn = self.setlfilename("/dev/null", self.LFN_FLAT)
 
-    #
     def str2bool(self, t, dflt):
+        """Convert text to bool"""
         if isinstance(t, bool):
             return t
         elif t.lower() in ["true", "t", "1", "y", "yes", "on", "enabled"]:
@@ -126,8 +131,8 @@ class Os0():
         else:
             return dflt
 
-    #
     def extract_device(self, filename):
+        """Extract device name form path name (Windows and OpenVMS)"""
         if filename[0:5] == "/dev/":
             x = filename.split('/')
             dev = x[2] + ":"
@@ -158,9 +163,8 @@ class Os0():
             dev = ""
         return filename, dev
 
-    #
     def setlfn_win(self, filename, cnv_type):
-
+        """Windows local filename"""
         filename, dev = self.extract_device(filename)
         if dev in self._xtl_dev_win:
             dev = self._xtl_dev_win[dev]
@@ -175,14 +179,12 @@ class Os0():
         f = dev + filename
         return f
 
-    #
     def setlfn_linux(self, filename, cnv_type):
-
+        """Posix/Linux local filename"""
         return filename
 
-    #
     def setlfn_vms(self, filename, cnv_type):
-
+        """OpenVMs local filename"""
         filename, dev = self.extract_device(filename)
         if dev in self._xtl_dev_vms:
             dev = self._xtl_dev_vms[dev]
@@ -239,8 +241,8 @@ class Os0():
         f = dev + filename
         return f
 
-    #
     def setlfilename(self, filename, cnv_type=None):
+        """Convert URI name into local filename"""
         if cnv_type is None:
             cnv_type = self.LFN_FLAT
         # Translate Linux filename into local OS
@@ -250,44 +252,98 @@ class Os0():
             return (self.setlfn_vms(filename, cnv_type))
         return (self.setlfn_linux(filename, cnv_type))
 
-    #
-    def set_tlog_file(self, filename, new=False, dir4debug=None):
-        # Store tracelog filename
-        # If filename ha not path, path is /var/log for Linux otherwise homedir
-        # @filename:        filename with or w/o path
-        # @new:             if True, create a new empty tracelog file
-
-        p = os.path.dirname(filename)
-        fn = os.path.basename(filename)
-        if p == "~":
-            p = self.homedir
-        if p == "":
-            if dir4debug is None:
-                dir4debug = self.debug_mode
-            if dir4debug:
+    def set_tlog_file(self, filename, new=False, dir4debug=None, echo=False):
+        """Set tracelog filename
+        If filename has not path, path is set to
+        /var/log for Poisx/Linux, otherwise homedir
+        @filename:        filename with or w/o path
+        @new:             if True, create a new empty tracelog file
+        @echo:            echo message onto console
+        """
+        if filename:
+            p = os.path.dirname(filename)
+            fn = os.path.basename(filename)
+            if p == "~":
                 p = self.homedir
-            elif _platform == "linux" or _platform == "linux2":
-                p = "/var/log"
+            if p == "":
+                if dir4debug is None:
+                    dir4debug = self.debug_mode
+                if dir4debug:
+                    p = self.homedir
+                elif _platform == "linux" or _platform == "linux2":
+                    p = "/var/log"
+                else:
+                    p = self.homedir
+            file_log = p + os.sep + fn
+        else:
+            file_log = filename
+        self.set_logger(file_log, new=new, echo=echo)
+
+    def set_logger(self, file_log, new=False, echo=False):
+        """Set up python logger
+        @file_log:        filename with or w/o path
+        @new:             if True, create a new empty tracelog file
+        @echo:            echo message onto console
+        """
+        # import pdb
+        # pdb.set_trace()
+        if self.fh:
+            self.fh.flush()
+            self.fh.close()
+            if hasattr(self, '_logger'):
+                self._logger.removeHandler(self.fh)
+            self.fh = None
+        if self.ch:
+            self.ch.flush()
+            self.ch.close()
+            if hasattr(self, '_logger'):
+                self._logger.removeHandler(self.ch)
+            self.ch = None
+        self.tlog_fn = file_log
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.DEBUG)
+        if file_log:
+            if new:
+                fh = logging.FileHandler(file_log, 'w')
             else:
-                p = self.homedir
-        self.tlog_fn = p + os.sep + fn
-        if new:
-            tlog_fd = open(self.tlog_fn, 'w')
-            tlog_fd.close()
+                fh = logging.FileHandler(file_log)
+            if self.debug_mode:
+                fh.setLevel(logging.DEBUG)
+            else:
+                fh.setLevel(logging.INFO)
+            fh.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+            self._logger.addHandler(fh)
+            self.fh = fh
+        if not file_log or echo:
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.DEBUG)
+            if self.debug_mode:
+                ch.setLevel(logging.DEBUG)
+            else:
+                ch.setLevel(logging.INFO)
+            ch.setFormatter(logging.Formatter('%(message)s'))
+            self._logger.addHandler(ch)
+            self.ch = ch
 
-    #
     def set_debug_mode(self, dbg_mode=None):
-        # Set debug mode for tracelog
-
+        """Set debug mode for tracelog"""
         if dbg_mode is None:
             dbg_mode = True
         self.debug_mode = dbg_mode
+        if hasattr(self, 'fh') and self.fh:
+            if self.debug_mode:
+                self.fh.setLevel(logging.DEBUG)
+            else:
+                self.fh.setLevel(logging.INFO)
+        if hasattr(self, 'ch') and self.ch:
+            if self.debug_mode:
+                self.ch.setLevel(logging.DEBUG)
+            else:
+                self.ch.setLevel(logging.INFO)
 
-    #
     def wlog(self, *args):
-        # Write a log/debug message onto tracelog file
-
-        txt = datetime.now().strftime("%Y-%m-%d %H:%M:%S\t")
+        """Write a log/debug message onto tracelog file"""
+        txt = ""
         sp = ''
         for arg in args:
             try:
@@ -301,28 +357,55 @@ class Os0():
                 x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
                 txt = txt + sp + x.encode('utf-8')
             sp = ' '
-        if self.tlog_fn != "":
-            txt = txt + "\n"
-            log_fd = open(self.tlog_fn, "a")
-            log_fd.write(txt)
-            log_fd.close()
-        else:
-            print txt
+        self.trace_msg(txt, dbg_mode=False)
 
-    #
+    def wlog1(self, *args):
+        """Write a log/debug message onto tracelog file"""
+        txt = ""
+        for arg in args:
+            try:
+                if isinstance(arg, unicode):
+                    txt = txt + arg.encode('utf-8')
+                elif isinstance(arg, str):
+                    txt = txt + arg
+                else:
+                    txt = txt + str(arg).encode('utf-8')
+            except:
+                x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
+                txt = txt + x.encode('utf-8')
+        self.trace_msg(txt, dbg_mode=False)
+
     def trace_debug(self, *args):
-        # Write a log/debug message onto tracelog file
-        if self.debug_mode:
-            self.wlog(*args)
+        """Likw wlog but only if debug mode is active """
+        txt = ""
+        sp = ''
+        for arg in args:
+            try:
+                if isinstance(arg, unicode):
+                    txt = txt + sp + arg.encode('utf-8')
+                elif isinstance(arg, str):
+                    txt = txt + sp + arg
+                else:
+                    txt = txt + sp + str(arg).encode('utf-8')
+            except:
+                x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
+                txt = txt + sp + x.encode('utf-8')
+            sp = ' '
+        self.trace_msg(txt, dbg_mode=True)
 
-    #
+    def trace_msg(self, txt, dbg_mode=None):
+        if dbg_mode:
+            self._logger.debug(txt)
+        else:
+            self._logger.info(txt)
+
     def muteshell(self, cmd, simulate=False, tlog=False, keepout=False):
-        # Execute script file using OS shell and redirect output into file
-        # @simulate:        if true, simulate command without execute it
-        # @tlog:            class object with wlog method to trace; may be null
-        # @keepout:         if true, do not delete redirect output file
-        #                   (ignored if simulate)
-
+        """Execute script file using OS shell and redirect output into file
+        @simulate:        if true, simulate command without execute it
+        @tlog:            class object with wlog method to trace; may be null
+        @keepout:         if true, do not delete redirect output file
+                          (ignored if simulate)
+        """
         if tlog:
             self.wlog("> {0}".format(cmd))
         if _platform == "OpenVMS":

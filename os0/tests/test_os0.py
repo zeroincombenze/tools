@@ -34,7 +34,7 @@
 
 """
 
-import pdb
+# import pdb
 import os
 import os.path
 from os0 import os0
@@ -50,63 +50,61 @@ class Test:
     # in order to verify results (see above header)
 
     def test_path_splitdrive(self, txtid, fsrc, dtgt, ftgt):
-        print("Test: {0} os.path.splitdrive({1}))->{2},{3}".
-              format(txtid, fsrc, dtgt, ftgt))
+        os0.wlog1("Test ", txtid,
+                  ": os.path.splitdrive", dtgt,
+                  "->", ftgt)
         d, p = os.path.splitdrive(fsrc)
         if d != dtgt or p != ftgt:
             os0.wlog("Test {0} failed!!!".format(txtid))
             os0.wlog("Expected values {0}, {1}!".format(dtgt, ftgt))
-            print "Debug:{0}!={1},{2}!={1}!!".format(d, dtgt, p, ftgt)
-            pdb.set_trace()
             raise Exception("Test failed!!!")
 
-#
     def test_path_linux(self):
-        self.test_path_splitdrive("V0.10",
+        self.test_path_splitdrive("0.10",
                                   "myFile.ext",
                                   "", "myFile.ext")
-        self.test_path_splitdrive("V0.11",
+        self.test_path_splitdrive("0.11",
                                   "/usr1/lib/myFile.ext",
                                   "", "/usr1/lib/myFile.ext")
-        self.test_path_splitdrive("V0.13",
+        self.test_path_splitdrive("0.13",
                                   "//machine/usr1/lib/myFile.ext",
                                   "", "//machine/usr1/lib/myFile.ext")
 
 #
     def test_path_vms(self):
-        self.test_path_splitdrive("V0.10",
+        self.test_path_splitdrive("0.10",
                                   "myFile.ext",
                                   "", "myFile.ext")
-        self.test_path_splitdrive("V0.11",
+        self.test_path_splitdrive("0.11",
                                   "[usr1.lib]myFile.ext",
                                   "", "[usr1.lib]myFile.ext")
-        self.test_path_splitdrive("V0.12",
+        self.test_path_splitdrive("0.12",
                                   "/usr1/lib/myFile.ext",
                                   "", "/usr1/lib/myFile.ext")
-        self.test_path_splitdrive("V0.13",
+        self.test_path_splitdrive("0.13",
                                   "machine::[usr1.lib]myFile.ext",
                                   "", "machine::[usr1.lib]myFile.ext")
-        self.test_path_splitdrive("V0.14",
+        self.test_path_splitdrive("0.14",
                                   "//machine/usr1/lib/myFile.ext",
                                   "", "//machine/usr1/lib/myFile.ext")
-        self.test_path_splitdrive("V0.15",
+        self.test_path_splitdrive("0.15",
                                   "sys$sysdevice:[usr1.lib]myFile.ext",
                                   "sys$sysdevice:", "[usr1.lib]myFile.ext")
 
 #
     def test_path_win(self):
-        self.test_path_splitdrive("V0.10", "myFile.ext",
+        self.test_path_splitdrive("0.10", "myFile.ext",
                                   "", "myFile.ext")
-        self.test_path_splitdrive("V0.11", "\\usr1\\lib\\myFile.ext",
+        self.test_path_splitdrive("0.11", "\\usr1\\lib\\myFile.ext",
                                   "", "\\usr1\\lib\\myFile.ext")
-        self.test_path_splitdrive("V0.12", "/usr1/lib/myFile.ext",
+        self.test_path_splitdrive("0.12", "/usr1/lib/myFile.ext",
                                   "", "/usr1/lib/myFile.ext")
-        self.test_path_splitdrive("V0.13",
+        self.test_path_splitdrive("0.13",
                                   "\\\\machine\\usr1\\lib\\myFile.ext",
                                   "", "\\\\machine\\usr1\\lib\\myFile.ext")
-        self.test_path_splitdrive("V0.14", "//machine/usr1/lib/myFile.ext",
+        self.test_path_splitdrive("0.14", "//machine/usr1/lib/myFile.ext",
                                   "", "//machine/usr1/lib/myFile.ext")
-        self.test_path_splitdrive("V0.15", "c:\\usr1\\lib\\myFile.ext",
+        self.test_path_splitdrive("0.15", "c:\\usr1\\lib\\myFile.ext",
                                   "c:", "\\usr1\\lib\\myFile.ext")
 
 #
@@ -141,9 +139,8 @@ class Test:
         else:
             return True
 
-#
     def test_fn(self, txtid, fsrc, ftgt):
-        print("Test: {0} setlfilename({1})->{2}".format(txtid, fsrc, ftgt))
+        os0.wlog("Test {0} setlfilename({1})->{2}".format(txtid, fsrc, ftgt))
         if not self.check_4_lfile(fsrc, ftgt):
             os0.wlog("Test {0} failed!!!".format(txtid))
             os0.wlog("Expected value {0}!".format(ftgt))
@@ -151,19 +148,19 @@ class Test:
 
 #
     def test_fn_linux(self):
-        os0.wlog("Specific test for Linux platform")
+        os0.wlog("- Specific test for Linux platform")
 
         self.test_fn("1.01", "myFile", "myFile")
 
-        print("Test: 1.02 setlfilename(myFile, exe)")
+        os0.wlog("Test 1.02 setlfilename(myFile, exe)")
         if not self.check_4_lfile_exe("myFile", "myFile"):
             os0.wlog("Test 1.02 failed")
             raise Exception("Test 1.02 failed: !!!")
-        print("Test: 1.03 setlfilename(myFile, cmd)")
+        os0.wlog("Test 1.03 setlfilename(myFile, cmd)")
         if not self.check_4_lfile_cmd("myFile", "myFile"):
             os0.wlog("Test 1.03 failed")
             raise Exception("Test 1.03 failed: !!!")
-        print("Test: 1.04 setlfilename(myFile, dir)")
+        os0.wlog("Test 1.04 setlfilename(myFile, dir)")
         if not self.check_4_lfile_dir("myFile", "myFile"):
             os0.wlog("Test 1.04 failed")
             raise Exception("Test 1.04 failed: !!!")
@@ -188,19 +185,19 @@ class Test:
 
 #
     def test_fn_vms(self):
-        os0.wlog("Specific test for OpenVMS platform")
+        os0.wlog("- Specific test for OpenVMS platform")
 
         self.test_fn("1.01", "myFile", "myFile")
 
-        print("Test: 1.02 setlfilename(myFile, exe)")
+        os0.wlog("Test 1.02 setlfilename(myFile, exe)")
         if not self.check_4_lfile_exe("myFile", "myFile.exe"):
             os0.wlog("Test 1.02 failed")
             raise Exception("Test 1.02 failed: !!!")
-        print("Test: 1.03 setlfilename(myFile, cmd)")
+        os0.wlog("Test 1.03 setlfilename(myFile, cmd)")
         if not self.check_4_lfile_cmd("myFile", "myFile.com"):
             os0.wlog("Test 1.03 failed")
             raise Exception("Test 1.03 failed: !!!")
-        print("Test: 1.04 setlfilename(myFile, dir)")
+        os0.wlog("Test 1.04 setlfilename(myFile, dir)")
         if not self.check_4_lfile_dir("myFile", "myFile.DIR"):
             os0.wlog("Test 1.04 failed")
             raise Exception("Test 1.04 failed: !!!")
@@ -230,21 +227,21 @@ class Test:
 
 #
     def test_fn_win(self):
-        os0.wlog("Specific test for Windows platform")
+        os0.wlog("- Specific test for Windows platform")
 
-        print("Test: 1.01 setlfilename(myFile)")
+        os0.wlog("Test 1.01 setlfilename(myFile)")
         if not self.check_4_lfile("myFile", "myFile"):
             os0.wlog("Test 1.01 failed")
             raise Exception("Test 1.01 failed: !!!")
-        print("Test: 1.02 setlfilename(myFile, exe)")
+        os0.wlog("Test 1.02 setlfilename(myFile, exe)")
         if not self.check_4_lfile_exe("myFile", "myFile.exe"):
             os0.wlog("Test 1.02 failed")
             raise Exception("Test 1.02 failed: !!!")
-        print("Test: 1.03 setlfilename(myFile, cmd)")
+        os0.wlog("Test 1.03 setlfilename(myFile, cmd)")
         if not self.check_4_lfile_cmd("myFile", "myFile.bat"):
             os0.wlog("Test 1.03 failed")
             raise Exception("Test 1.03 failed: !!!")
-        print("Test: 1.04 setlfilename(myFile, dir)")
+        os0.wlog("Test 1.04 setlfilename(myFile, dir)")
         if not self.check_4_lfile_dir("myFile", "myFile"):
             os0.wlog("Test 1.04 failed")
             raise Exception("Test 1.04 failed: !!!")
@@ -294,18 +291,24 @@ class main:
     #
     # Run main if executed as a script
     if __name__ == "__main__":
-        title = "os0 (os platform indipendent) test. Version: V0.2.6"
-        if os0.version != "0.2.6":
-            raise Exception("Test not executable: invalid os0 version")
-        os0.wlog(title)
+        # Need debug mode to avoid security fault in Linux
         os0.set_debug_mode(True)
-        # Tracelog file
-        os0.set_tlog_file("os0_test.log", new=True)
-        print("Test 0.00: Initial checks")
-        print("Device null is {0}".format(os0.bginp_fn))
+        title = "os0 regression test. Version: V0.2.7"
+        if os0.version != "0.2.7":
+            raise Exception("Test not executable: invalid os0 version")
+        # Remove test log file if executed previous crashed test
+        tlog_fn = "os0_test.log"
+        os0.set_tlog_file(tlog_fn)
+        tlog_pathname = os0.tlog_fn
+        os0.set_tlog_file('', echo=True)
+        if os.path.isfile(tlog_pathname):
+            os.remove(tlog_pathname)
+        os0.wlog(title)
+        os0.wlog("Test 0.xx: Level", 0, "tests")
 #
 # Simple initial tests
-        print("Test 0.01: Check for empty tracelog")
+        os0.wlog("Test 0.01: Check for empty tracelog")
+        os0.set_tlog_file(tlog_fn, new=True, echo=True)
         fzero = False
         try:
             tlog_fd = open(os0.tlog_fn, 'r')
@@ -321,17 +324,18 @@ class main:
         elif not fzero:
             raise Exception("Test failed: tracelog file not empty!!!")
 
-        os0.trace_debug("Inititializing ...")
+        os0.wlog("- Device null is {0}".format(os0.bginp_fn))
+        os0.trace_debug("- Inititializing ...")
         os0.set_debug_mode(False)
         os0.trace_debug("TEST FAILED!!!!")
         os0.set_debug_mode(True)
-        os0.trace_debug("Inititializing (2) ...")
+        os0.trace_debug("- Inititializing (2) ...")
         os0.wlog(title)
-        os0.wlog("os0 version:", os0.version)
-        os0.wlog("platform:", _platform)
+        os0.wlog("- os0 version:", os0.version)
+        os0.wlog("- platform:", _platform)
 
-        print("Test 0.02: Check for tracelog size")
-        os0.set_tlog_file("os0_test.log")
+        os0.wlog("Test 0.02: Check for tracelog size")
+        os0.set_tlog_file("os0_test.log", echo=True)
         fzero = False
         try:
             tlog_fd = open(os0.tlog_fn, 'r')
@@ -347,14 +351,31 @@ class main:
         elif fzero:
             raise Exception("Test failed: tracelog file is empty!!!")
 
-        print("Test 0.03: Check for unicode support")
-        wchar_string = u"Unicode string àèìòù"
+        os0.wlog("Test 0.03: Check for unicode support")
+        wchar_string = u"- Unicode string àèìòù"
         os0.wlog(wchar_string)
         x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
-        os0.wlog("Greek letters", x)
+        os0.wlog("- Greek letters", x)
+
+        os0.wlog1("Test 0.04: str2bool(true)")
+        res = os0.str2bool('true', None)
+        if not res:
+            raise Exception("Test failed: str2bool")
+        os0.wlog1("Test 0.05: str2bool(0)")
+        res = os0.str2bool('0', None)
+        if res:
+            raise Exception("Test failed: str2bool")
+        os0.wlog1("Test 0.06: str2bool(0)")
+        res = os0.str2bool(False, None)
+        if res:
+            raise Exception("Test failed: str2bool")
+        os0.wlog1("Test 0.07: str2bool(0)")
+        res = os0.str2bool('invalid', False)
+        if res:
+            raise Exception("Test failed: str2bool")
+#
 #
 # Level 0 tests
-        print("\nTest 0.xx: Level 0 tests")
         T = Test()
         if _platform == "win32":
             T.test_path_win()
@@ -365,8 +386,7 @@ class main:
 
 #
 # Level I tests
-        print("\nTest 1.00: Level I tests")
-        os0.wlog("Level I tests")
+        os0.wlog("\nTest 1.00: Level I tests")
 
         if _platform == "win32":
             T.test_fn_win()
@@ -378,8 +398,7 @@ class main:
 
 #
 # Level II tests
-        print("\nTest 2.00: Level II tests")
-        os0.wlog("Level II tests")
+        os0.wlog("\nTest 2.00: Level II tests")
 
         if os.path.dirname(__file__) == "":
             if __file__ == "__main__.py":
@@ -388,7 +407,7 @@ class main:
                 cmd = "dir " + os0.setlfilename("./")
         else:
             cmd = "dir " + os0.setlfilename(os.path.dirname(__file__))
-        print "Test 2.01: exec->{0}".format(cmd)
+        os0.wlog("Test 2.01: exec->{0}".format(cmd))
         try:
             os.remove(os0.setlfilename(os0.bgout_fn))
         except:
@@ -396,9 +415,10 @@ class main:
         os0.muteshell(cmd, keepout=True)
 # Now search for this program name in output; if found muteshell worked right!
         T.check_4_tkn_in_stdout(os.path.basename(__file__))
-#
-        # pdb.set_trace()
-        print "Test 2.02: Simulate command"
+        if not os.path.isfile(os0.bgout_fn):
+            raise Exception("Test failed: output file")
+
+        os0.wlog("Test 2.02: Simulate command")
         if _platform == "win32":
             cmd = "del"
         elif _platform == "OpenVMS":
@@ -408,8 +428,16 @@ class main:
         cmd = cmd + " " + (os0.setlfilename(os0.bgout_fn))
         os0.muteshell(cmd, simulate=True, tlog=True)
         T.check_4_tkn_in_stdout(cmd)
+        if not os.path.isfile(os0.bgout_fn):
+            raise Exception("Test failed: output file")
+
+        os0.wlog("Test 2.03: Execute command")
+        cmd = "dir"
+        os0.muteshell(cmd)
+        if os.path.isfile(os0.bgout_fn):
+            raise Exception("Test failed: output file")
+
 #
 #
-        os0.wlog("Test successfully ended")
-        print("Test successfully ended. See {0} file".
-              format(os0.setlfilename(os0.tlog_fn)))
+        os0.wlog("Test successfully ended. See {0} file".
+                 format(os0.setlfilename(os0.tlog_fn)))
