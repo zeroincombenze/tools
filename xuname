@@ -14,13 +14,14 @@
 # - giuliano69 (https://github.com/Giuliano69/odoo_install/blob/master/odoo8_install.sh)
 #
 # Check history
-#    Date        Author      Result of xname -a
-#    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64)
-#    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64)
-#    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686)
+#    Date        Author      Result of xname -a -> xname -f
+#    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64) -> RH
+#    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64) -> RH
+#    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686) -> Debian
 
 function xuname {
 # Detects which OS informations as version, distribution, etc.
+# v0.1.5
 
   OS=`uname -s`
   REV=`uname -r`
@@ -29,6 +30,7 @@ function xuname {
   VER=""
   DIST=""
   ARCH=`uname -p`
+  FAMILY=""
 
   if [ "${OS}" = "SunOS" ]; then
     OS=Solaris
@@ -40,27 +42,63 @@ function xuname {
   elif [ "${OS}" = "Linux" ]; then
     KERNEL=`uname -r`
     PSUEDONAME=""
-    if [ -f /etc/centos-release ]; then
+    if [ -f /etc/vmware-release ]; then
+        DIST='VMWare'
+        PSUEDONAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
+        VER=`cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//`
+    elif [ -f /etc/centos-release ]; then
         DIST='CentOS'
         PSUEDONAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
+        FAMILY="RH"
+    elif [ -f /etc/gentoo-release ]; then
+        DIST='Gentoo'
+        PSUEDONAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
+        VER=`cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/redhat-release ]; then
         DIST='RedHat'
         PSUEDONAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
+        FAMILY="RH"
     elif [ -f /etc/SUSE-release ]; then
-        DIST=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
+        DIST="SuSE"
+        PSUEDONAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
         VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
+        FAMILY="RH"
+    elif [ -f /etc/SuSE-release ]; then
+        DIST="SuSE"
+        PSUEDONAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
+        VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
+        FAMILY="RH"
+    elif [ -f /etc/mandriva-release ]; then
+        DIST='Mandriva'
+        PSUEDONAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
+        VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
+        FAMILY="RH"
     elif [ -f /etc/mandrake-release ]; then
         DIST='Mandrake'
         PSUEDONAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//`
-    elif [ -f /etc/lsb-release ]; then
+    elif [ -f /etc/fedora-release ]; then
+        DIST="Fedora"
+        PSUEDONAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
+        VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
+        FAMILY="RH"
+    elif [ -f /etc/slackware-version ]; then
+        DIST="Slackware"
+        VER=""
+    elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
         DIST="Ubuntu"
         VER=$(lsb_release --release --short)
+        FAMILY="Debian"
     elif [ -f /etc/debian_version ]; then
         DIST="Debian"
         VER=$(lsb_release --release --short)
+        FAMILY="Debian"
+     elif [ -f /etc/os-release ]; then
+        DIST="Debian"
+        VER=$(lsb_release --release --short)
+        FAMILY="Debian"
     fi
     if [ -f /etc/UnitedLinux-release ]; then
         DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
@@ -69,6 +107,8 @@ function xuname {
   fi
   if [ "$1" == "-d" ]; then
     echo ${DIST}
+  elif [ "$1" == "-f" ]; then
+    echo ${FAMILY}
   elif [ "$1" == "-k" ]; then
     echo ${KERNEL}
   elif [ "$1" == "-m" -o  "$1" == "-i" ]; then
@@ -91,7 +131,7 @@ function xuname {
 # However, you can use this part to build a skeleton of script
 # like nay Linux Command
 
-__version__="0.1.3"
+__version__="0.1.5"
 opt_help=1
 opt_version=""
 opt_verbose=0
@@ -112,6 +152,10 @@ do
         opt_prm="-${o:k:1}"
         opt_help=0
       elif [ "${o:k:1}" == "d" ]    # -d Linux distribution
+      then
+        opt_prm="-${o:k:1}"
+        opt_help=0
+      elif [ "${o:k:1}" == "f" ]    # -f Linux family
       then
         opt_prm="-${o:k:1}"
         opt_help=0
@@ -159,11 +203,12 @@ fi
 if [ $opt_help -gt 0 ]
 then
   echo "Linux/Unix print system information V$__version__"
-  echo "$(basename $0) [-h] [-adkmprsvV]"
+  echo "$(basename $0) [-h] [-adfkmprsvV]"
   echo "  action maybe: install"
   echo "  -h        show this help"
   echo "  -a        print all"
   echo "  -d        print Linux distribution name (empty on Unix)"
+  echo "  -f        print Linux family (RH or Debian, empty on Unix)"
   echo "  -k        print Linux kernel release (on Unix same as -r)"
   echo "  -m        print machine hardware name"
   echo "  -p        print processor architecture"
