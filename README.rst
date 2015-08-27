@@ -7,11 +7,13 @@ Python tools
 
 Sparse python source code
 
-+-------+---------------------------------------------+
-| os0   | Simple os interface checked for OpenVMS too |
-+-------+---------------------------------------------+
-| pytok | Simple python token parser                  |
-+-------+---------------------------------------------+
++--------+-----------------------------------------------------------+
+| os0    | Simple os interface checked for OpenVMS too               |
++--------+-----------------------------------------------------------+
+| pytok  | Simple python token parser                                |
++--------+-----------------------------------------------------------+
+| xuname | Enhanced uname utility and function sample in bash script |
++--------+-----------------------------------------------------------+
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg
 .. _build status: https://travis-ci.org/antoniov/tools
