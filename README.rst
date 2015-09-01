@@ -26,6 +26,6 @@ Sparse python source code
    :alt: Join the chat at http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/
    :target: http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/
 
-.. image::  Assosoftware.gif
+.. image::  http://www.shs-av.com/wp-content/Assosoftware.gif
    :alt: Join the chat at http://www.assosoftware.it/
    :target: http://www.assosoftware.it/
