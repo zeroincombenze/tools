@@ -22,7 +22,7 @@ Sparse python source code
 .. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-green.svg
 .. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
 
-.. image::  bottone_chat-verde2_en.png
+.. image::  http://www.shs-av.com/wp-content/chat_with_us.png
    :alt: Join the chat at http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/
    :target: http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/
 
