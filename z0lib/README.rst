@@ -2,18 +2,22 @@
 |coverage status|_
 |license agpl|_
 
-Python tools
-============
+z0lib
+=====
 
-Sparse python source code
+Simple bash library
 
-+--------+-----------------------------------------------------------+
-| os0    | Simple os interface checked for OpenVMS too               |
-+--------+-----------------------------------------------------------+
-| pytok  | Simple python token parser                                |
-+--------+-----------------------------------------------------------+
-| z0lib  | Simple general purpose bash library                       |
-+--------+-----------------------------------------------------------+
++---------------+-----------------------------------------------------------+
+| xuname        | Detect and print more OS informations than uname command  |               |
++---------------+-----------------------------------------------------------+
+| parse_optargs | Parse command line arguments in a professional way        |                               |
++---------------+-----------------------------------------------------------+
+| print_help    | Print help for parse command line arguments               |
++---------------+-----------------------------------------------------------+
+
+You can find more info here:
+http://wiki.zeroincombenze.org/en/Linux/dev
+
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg
 .. _build status: https://travis-ci.org/antoniov/tools

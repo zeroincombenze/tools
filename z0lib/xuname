@@ -1,0 +1,43 @@
+#!/bin/bash
+. ~/z0librc
+
+# Detect and print more OS informations than uname command
+# Simple how to use z0librc library 
+# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# This software is free software under GNU Affero GPL3
+
+# Main program
+OPTOPTS=(h        a       d       f        i       k       m       p       r       s       v       V)
+OPTDEST=(opt_help opt_prm opt_prm opt_prm  opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_version)
+OPTACTI=(1        "*>"    "*>"    "*>"     "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>")
+OPTDEFL=(1        ""      ""      ""       ""      ""      ""      ""      ""      ""      ""      "")
+OPTMETA=("help"   "all"   "dist"  "family" "arch"  "kver"  "mach"  "arch"  "ver"   "kname" "ver"   "version")
+OPTHELP=("this help"\
+ "print all"\
+ "print Linux distribution name (empty on Unix)"\
+ "print Linux family (RH or Debian, empty on Unix)"\
+ "print architecture"\
+ "print Linux kernel release (on Unix same as -r)"\
+ "print machine hardware name"\
+ "print processor architecture"\
+ "print kernel release"\
+ "print kernel name"\
+ "print distribution version (only on Linux)"\
+ "show xuname version")
+OPTARGS=(src tgt)
+parseoptargs $@
+
+__version__="0.1.5"
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Print system information"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+xuname $opt_prm
+exit 0

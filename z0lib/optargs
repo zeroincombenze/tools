@@ -1,0 +1,59 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+. ~/z0librc
+
+##############################################################################
+#
+#    Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+#    All Rights Reserved
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either versiofn 3 of the
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+__version__=0.1.2
+OPTOPTS=(h        n            V           v           q           p        t)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_verbose opt_path opt_test)
+OPTACTI=(1        "1>"         "*>"        1           0           "=>"     0)
+OPTDEFL=(1        0            ""          0           0           ~/       0)
+OPTMETA=("help"   "do nothing" "version"   "verbose"   "silent"    "path"   "n/a")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode"\
+ "silent mode"\
+ "destination path"\
+ "N/A")
+OPTARGS=(src tgt)
+parseoptargs $@
+
+echo "help    = <$opt_help>"
+echo "dry_run = <$opt_dry_run>"
+echo "version = <$opt_version>"
+echo "verbose = <$opt_verbose>"
+echo "path    = <$opt_path>"
+echo ""
+echo "#1      = <$src>"
+echo "#2      = <$tgt>"
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Sample for optargs"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
