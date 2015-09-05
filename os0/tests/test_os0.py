@@ -293,9 +293,13 @@ class main:
     if __name__ == "__main__":
         # Need debug mode to avoid security fault in Linux
         os0.set_debug_mode(True)
-        title = "os0 regression test. Version: V0.2.7"
-        if os0.version != "0.2.7":
+        title = "os0 regression test. Version: V0.2.8"
+        if os0.version != "0.2.8":
             raise Exception("Test not executable: invalid os0 version")
+        if 'DEV_ENVIRONMENT' in os.environ:
+            LOCAL_ECHO = False
+        else:
+            LOCAL_ECHO = True
         # Remove test log file if executed previous crashed test
         tlog_fn = "os0_test.log"
         os0.set_tlog_file(tlog_fn)
@@ -308,7 +312,7 @@ class main:
 #
 # Simple initial tests
         os0.wlog("Test 0.01: Check for empty tracelog")
-        os0.set_tlog_file(tlog_fn, new=True, echo=True)
+        os0.set_tlog_file(tlog_fn, new=True, echo=LOCAL_ECHO)
         fzero = False
         try:
             tlog_fd = open(os0.tlog_fn, 'r')
@@ -335,7 +339,7 @@ class main:
         os0.wlog("- platform:", _platform)
 
         os0.wlog("Test 0.02: Check for tracelog size")
-        os0.set_tlog_file("os0_test.log", echo=True)
+        os0.set_tlog_file("os0_test.log", echo=LOCAL_ECHO)
         fzero = False
         try:
             tlog_fd = open(os0.tlog_fn, 'r')

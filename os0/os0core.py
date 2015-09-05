@@ -85,7 +85,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.7"
+__version__ = "0.2.8"
 
 
 class Os0():
@@ -109,7 +109,7 @@ class Os0():
         if i >= 0:
             bg = bg[0:i]
         self.bgout_fn = self.homedir + "/" + bg + \
-            "-{0:08x}".format(os.getpid())+".out"
+            "-{0:08x}".format(os.getpid()) + ".out"
         self.bginp_fn = os.devnull
         if doinit:
             self.set_logger("")
@@ -196,10 +196,10 @@ class Os0():
                 x[0] = "000000"
             else:
                 sep1 = "[."
-            fn = x[len(x)-1]
+            fn = x[len(x) - 1]
             sep = sep1
             p = ""
-            for i in range(0, len(x)-1):
+            for i in range(0, len(x) - 1):
                 if x[i] == "..":
                     p = p + sep + "-"
                 elif x[i] == ".":
@@ -220,14 +220,14 @@ class Os0():
             i = fn.rfind('.')
             if i >= 0:
                 left = fn[0:i].replace('.', "^.")
-                right = fn[i+1:]
+                right = fn[i + 1:]
                 fn = left + '.' + right
             filename = p + fn
         else:
             i = filename.rfind('.')
             if i >= 0:
                 left = filename[0:i].replace('.', "^.")
-                right = filename[i+1:]
+                right = filename[i + 1:]
                 filename = left + '.' + right
         if cnv_type == self.LFN_EXE:
             if filename[0: -4] != ".exe" and filename[0: -4] != ".EXE":

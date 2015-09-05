@@ -2,35 +2,44 @@
 # Regression tests for os0 module
 # Version running posix platform 
 #
+. ~/z0librc
+
+__version__=0.2.8
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "1>"         "*>"        1)
+OPTDEFL=(0        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode (detailed log)")
+OPTARGS=()
+parseoptargs $@
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Regression test of os0 package\nTests end without output; it means worked."\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Python/opt/os0\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
 tf="os0_posix.rst"
 td="tests"
-if [ "$1" == "-h" -o "$1" == "--help" -o "$1" == "-?" ]
-then
-  echo "os0 tests based on doctest python module"
-  echo "Tests end without output; it means worked."
-  echo "Pass -v to the script for a detailed log" 
-  echo "To execute tests, from os0 directory, type:"
-  echo "> tests/all_tests [-v] [-V] [-h] [--version] [--help]"
-  echo " where"
-  echo " -h --help this help"
-  echo " -v verbose mode"
-  echo " -V --version show version"
-  echo "(C) SHS-AV s.r.l. - http://www.shs-av.com"
-  exit
-elif [ "$1" == "-V" -o "$1" == "--version" ]
-then
-  echo "Module os0 tests V1.2.1"
-  echo "os0" `grep "^version \=" os0.py`
-  exit
-fi
 if [ -f "$tf" ]
 then
   cd ..
 fi
-if [ -f "$td/$tf" ]
-then
-  if [ `python -m doctest $1 $td/$tf` ]
-  then
+if [ $opt_dry_run -gt 0 ]; then
+  exit 0
+fi
+if [ -f "$td/$tf" ]; then
+  if [ `python -m doctest $1 $td/$tf` ]; then
     python $td/test_os0.py
   fi
 else
