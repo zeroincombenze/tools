@@ -1,6 +1,12 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
 . ~/z0librc
+else
+. /etc/z0librc
+fi
 
 ##############################################################################
 #
@@ -21,7 +27,7 @@
 #
 ##############################################################################
 
-__version__=0.1.2
+__version__=0.1.3
 OPTOPTS=(h        n            V           v           q           p        t)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_verbose opt_path opt_test)
 OPTACTI=(1        "1>"         "*>"        1           0           "=>"     0)

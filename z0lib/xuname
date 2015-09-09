@@ -1,5 +1,12 @@
 #!/bin/bash
+
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
 . ~/z0librc
+else
+. /etc/z0librc
+fi
 
 # Detect and print more OS informations than uname command
 # Simple how to use z0librc library 
@@ -27,7 +34,7 @@ OPTHELP=("this help"\
 OPTARGS=(src tgt)
 parseoptargs $@
 
-__version__="0.1.5"
+__version__="0.1.6"
 if [ "$opt_version" ]
 then
   echo "$__version__"
