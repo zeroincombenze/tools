@@ -14,13 +14,14 @@ fi
 # This software is free software under GNU Affero GPL3
 
 # Main program
-OPTOPTS=(h        a       d       f        i       k       m       p       r       s       v       V)
-OPTDEST=(opt_help opt_prm opt_prm opt_prm  opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_version)
-OPTACTI=(1        "*>"    "*>"    "*>"     "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>")
-OPTDEFL=(1        ""      ""      ""       ""      ""      ""      ""      ""      ""      ""      "")
-OPTMETA=("help"   "all"   "dist"  "family" "arch"  "kver"  "mach"  "arch"  "ver"   "kname" "ver"   "version")
+OPTOPTS=(h        a       c       d       f        i       k       m       p       r       s       v       V           x)
+OPTDEST=(opt_help opt_prm opt_prm opt_prm opt_prm  opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_prm opt_version opt_prm)
+OPTACTI=(1        "*>"    "*>"    "*>"    "*>"     "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"    "*>"        "*>")
+OPTDEFL=(1        ""      ""      ""      ""       ""      ""      ""      ""      ""      ""      ""      ""          "")
+OPTMETA=("help"   "all"   "code"  "dist"  "family" "arch"  "kver"  "mach"  "arch"  "ver"   "kname" "ver"   "version"   "xdes")
 OPTHELP=("this help"\
  "print all"\
+ "print Linux distribution codename (empty on Unix)"\
  "print Linux distribution name (empty on Unix)"\
  "print Linux family (RH or Debian, empty on Unix)"\
  "print architecture"\
@@ -30,11 +31,12 @@ OPTHELP=("this help"\
  "print kernel release"\
  "print kernel name"\
  "print distribution version (only on Linux)"\
- "show xuname version")
+ "show xuname version"\
+ "print Linux distribution description (empty on Unix)")
 OPTARGS=(src tgt)
 parseoptargs $@
 
-__version__="0.1.6"
+__version__="0.1.7"
 if [ "$opt_version" ]
 then
   echo "$__version__"

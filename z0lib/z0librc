@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.6
+#__version__=0.1.7
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -43,6 +43,7 @@ xuname () {
   DIST=""
   ARCH=`uname -p`
   FAMILY=""
+  XDES=""
 
   if [ "${OS}" = "SunOS" ]; then
     OS=Solaris
@@ -53,55 +54,61 @@ xuname () {
     OSSTR="${OS} `oslevel` (`oslevel -r`)"
   elif [ "${OS}" = "Linux" ]; then
     KERNEL=`uname -r`
-    PSUEDONAME=""
+    CODENAME=""
     if [ -f /etc/vmware-release ]; then
         DIST='VMWare'
-        PSUEDONAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/centos-release ]; then
         DIST='CentOS'
-        PSUEDONAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
+        XDES=$(cat /etc/centos-release|tr -d " \n")
+        CODENAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
         FAMILY="RH"
     elif [ -f /etc/gentoo-release ]; then
         DIST='Gentoo'
-        PSUEDONAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/redhat-release ]; then
         DIST='RedHat'
-        PSUEDONAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
         FAMILY="RH"
     elif [ -f /etc/SUSE-release ]; then
         DIST="SuSE"
-        PSUEDONAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
+        CODENAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
         VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
         FAMILY="RH"
     elif [ -f /etc/SuSE-release ]; then
         DIST="SuSE"
-        PSUEDONAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
+        CODENAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
         VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
         FAMILY="RH"
     elif [ -f /etc/mandriva-release ]; then
         DIST='Mandriva'
-        PSUEDONAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
         FAMILY="RH"
     elif [ -f /etc/mandrake-release ]; then
         DIST='Mandrake'
-        PSUEDONAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/fedora-release ]; then
         DIST="Fedora"
-        PSUEDONAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
+        CODENAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
         FAMILY="RH"
     elif [ -f /etc/slackware-version ]; then
         DIST="Slackware"
         VER=""
     elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-        DIST="Ubuntu"
-        VER=$(lsb_release --release --short)
+        DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+        if [ -z "$DIST" ]; then
+           DIST="Ubuntu"
+        fi
+        VER=$(grep "DISTRIB_RELEASE" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+        CODENAME=$(grep "DISTRIB_CODENAME" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+        XDES=$(grep "DISTRIB_DESCRIPTION" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
         FAMILY="Debian"
     elif [ -f /etc/debian_version ]; then
         DIST="Debian"
@@ -115,9 +122,11 @@ xuname () {
     if [ -f /etc/UnitedLinux-release ]; then
         DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
     fi
-    OSSTR="${OS} ${DIST} ${VER}(${PSUEDONAME} ${KERNEL} ${MACH})"
+    OSSTR="${OS} ${DIST} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
   fi
-  if [ "$1" == "-d" ]; then
+  if [ "$1" == "-c" ]; then
+    echo ${CODENAME}
+  elif [ "$1" == "-d" ]; then
     echo ${DIST}
   elif [ "$1" == "-f" ]; then
     echo ${FAMILY}
@@ -133,6 +142,8 @@ xuname () {
     echo ${REV}
   elif [ "$1" == "-v" ]; then
     echo ${VER}
+  elif [ "$1" == "-x" ]; then
+    echo ${XDES}
   else
     echo ${OSSTR}
   fi 
