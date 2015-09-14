@@ -1,0 +1,92 @@
+#! /bin/bash
+# Update xml file removing trailing spaces
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__=0.1.4
+
+# main
+OPTOPTS=(h        n            V           v           q           k)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_verbose opt_k)
+OPTACTI=(1        "1>"         "*>"        1           0           0)
+OPTDEFL=(1        0            ""          0           0           0)
+OPTMETA=("help"   "do nothing" "version"   "verbose"   "silent"    "compact")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode"\
+ "silent mode"\
+ "remove empty lines")
+OPTARGS=(pathname basename)
+
+parseoptargs $@
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Beautyful xml file\nfull path name maybe supplied as a single parameter\nor with two separated values (dir + basename)"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+p=$(dirname $pathname)
+if [ -z "$basename" ]; then
+  x=$(readlink -e $pathname)
+else
+  x=$(readlink -e $pathname/$basename)
+fi
+if [ -z "$x" ]; then
+  echo "File $pathname $basename not found!"
+  exit 1
+fi
+f=$(basename $x)
+p=$(dirname $x)
+echo "Reading $f in $p"
+HOMEDIR=$PWD
+cd $p
+if [ $opt_k -gt 0 ]; then
+  cat $f|sed 's/[ \t]*$//'|sed '/^$/d'>$f.new
+else
+  cat $f|sed 's/[ \t]*$//'>$f.new
+fi
+#py=beauty.py
+#echo "import lxml.etree as etree">$py
+#echo "x = etree.parse('$f.new')">>$py
+#echo "fd = open('$f.new', 'w')">>$py
+#echo "fd.write('<?xml version=\"1.0\" encoding=\"utf-8\"?>\n')">>$py
+#echo "fd.write(etree.tostring(x, pretty_print = True))">>$py
+#echo "fd.close()">>$py
+#python $py
+#rm -f $py
+d=$(diff -q $f $f.new)
+if [ ! -z "$d" ]; then
+  if [ $opt_dry_run -eq 0 ]; then
+    mv $f $f.bak
+    mv $f.new $f
+    if [ $opt_verbose -gt 0 ]
+    then
+      diff $f.bak $f
+    fi
+    echo "File $f converted"
+  else
+    if [ $opt_verbose -gt 0 ]
+    then
+      diff $f $f.new
+    fi
+    rm -f $f.new
+    echo "File $f should be converted"
+  fi
+else
+ rm -f $f.new
+fi
+exit 0

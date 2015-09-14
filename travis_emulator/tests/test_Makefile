@@ -1,0 +1,126 @@
+#!/bin/bash
+#__version__=0.1.49
+# set -x
+testpath () {
+  echo "****************************************************************"
+  echo "* $1"
+  cd $1
+  # echo "-->$(dir setup.py)"
+  make -f $MAKEF chkconfig
+  p=$(make -f $MAKEF chkconfig|grep "Hosted"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p" != "local" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Hosted<$p>!=<local>"
+     exit 1
+  fi
+  p2=$(make -f $MAKEF chkconfig|grep "Project name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p2" != "$2" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Project name<$p2>!=<$2>"
+     exit 1
+  fi
+  p3=$(make -f $MAKEF chkconfig|grep "Branch"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p3" != "$3" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Branch <$p3>!=<$3>"
+     exit 1
+  fi
+  p4=$(make -f $MAKEF chkconfig|grep "Package name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p4" != "$4" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Package name<$p4>!=<$4>"
+     exit 1
+  fi
+  p5=$(make -f $MAKEF chkconfig|grep "Version"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p5" != "$5" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Version <$p5>!=<$5>"
+     exit 1
+  fi
+  p6=$(make -f $MAKEF chkconfig|grep "Setup file"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p6" != "$6" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Setup file<$p6>!=<$6>"
+     exit 1
+  fi
+  p7=$(make -f $MAKEF chkconfig|grep "Project path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p7" != "$7" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Project path<$p7>!=<$7>"
+     exit 1
+  fi 
+  p8=$(make -f $MAKEF chkconfig|grep "Package path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+  if [ "$p8" != "$8" ]; then
+     echo "!!!!! Test failed!!!!!!!!!"
+     echo "Package path<$p8>!=<$8>"
+     exit 1
+  fi
+  read
+}
+
+MAKEF=/opt/openerp/pypi/travis_emulator/travis_emulator/Makefile
+OS_VER=0.2.10
+BB_VER=7.0.0.2
+echo "Warning: this unit test is not fully automatic, please take a look at test output"
+echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbbone is not $BB_VER"
+
+WD=/opt/openerp/7.0/zeroincombenze
+p2=Odoo
+p3=7.0
+p4=
+p5=$p3
+p6=__openerp__.py
+p7=/opt/openerp/7.0/zeroincombenze
+p8=$p7
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/openerp/7.0/zeroincombenze/l10n_it_bbone
+p2=Odoo
+p3=7.0
+p4=l10n_it_bbone
+p5=$BB_VER
+p6=__openerp__.py
+p7=/opt/openerp/7.0/zeroincombenze
+p8=$WD
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/8.0
+p2=Odoo
+p3=8.0
+p4=
+p5=$p3
+p6=__openerp__.py
+p7=$WD
+p8=$p7
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/7.0
+p2=Odoo
+p3=7.0
+p4=
+p5=$p3
+p6=__openerp__.py
+p7=$WD
+p8=$p7
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/openerp/pypi/os0
+p2=os0
+p3=
+p4=$p2
+p5=$OS_VER
+p6=setup.py
+p7=/opt/openerp/pypi/os0/os0
+p8=/opt/openerp/pypi/os0
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/openerp/pypi/os0/os0
+p2=os0
+p3=
+p4=$p2
+p5=$OS_VER
+p6=../setup.py
+p7=/opt/openerp/pypi/os0/os0
+p8=/opt/openerp/pypi/os0
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+

@@ -1,0 +1,63 @@
+#! /bin/bash
+
+# Temporary doc generators
+
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__="0.1.2"
+
+# main
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "1>"         "*>"        1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(module)
+
+parseoptargs $@
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Write module documentation\nTemporary: do not use in production!"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$module" ]; then
+  echo "Missing module"
+  exit 1
+fi
+if [ -f /opt/openerp/dev/wok_doc.py ]; then
+  WOK_DOC_PY=/opt/openerp/dev/wok_doc.py
+elif [ -f wok_doc.py ]; then
+  WOK_DOC_PY=wok_doc.py
+else
+  exit 1
+fi
+if [ $opt_dry_run -eq 0 ]; then
+  if [ -f wok_doc_tmp.py ]; then
+    rm -f wok_doc_tmp.py
+  fi
+  if [ -f ${module}_doc.txt ]; then
+    rm -f ${module}_doc.txt
+  fi
+  python $WOK_DOC_PY $module
+  echo -e "\n\n\n\n\n\n\nq"|python wok_doc_tmp.py>${module}_doc.txt
+fi
+if [ -f wok_doc_tmp.py ]; then
+  rm -f wok_doc_tmp.py
+fi
+if [ $opt_verbose -gt 0 ]; then
+  cat ${module}_doc.txt
+fi

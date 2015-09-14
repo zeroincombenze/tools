@@ -1,0 +1,9 @@
+Help on module travis_emulator:
+
+NAME
+    travis_emulator
+
+FILE
+    /opt/openerp/pypi/travis_emulator/travis_emulator/travis_emulator.py
+
+

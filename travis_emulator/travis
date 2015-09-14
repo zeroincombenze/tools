@@ -1,0 +1,93 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+# Travis-ci emulator
+# Emulate travis-ci on local machine, to test before upgrade git project
+# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# This software is free software under GNU Affero GPL3
+
+__version__=0.1.11
+OPTOPTS=(h        n            V           v           b)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
+OPTACTI=(1        "1>"         "*>"        1           "=")
+OPTDEFL=(1        0            ""          0           8.0)
+OPTMETA=("help"   "do nothing" "version"   "verbose"   "branch")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode",
+ "default branch (def 8.0)")
+OPTARGS=(repository action)
+parseoptargs $@
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Sample for optargs\nAction may be: check, test or all (default)"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ $opt_verbose -gt 0 ]; then
+  set -x
+fi
+DEVPATH=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
+if [ -d $DEVPATH/maintainer-quality-tools ]; then
+  TOOLS_PATH=$DEVPATH/maintainer-quality-tools
+  PATH=$TOOLS_PATH:$PATH
+else
+  unset -v TOOLS_PATH
+fi
+if [ -z "repository" ]; then repository=$(echo "local/$(basename $PWD)"); fi
+prjname=$(basename $repository)
+if [ -z "$action" ]; then action=all; fi
+if [ "$action" == "check" ]; then
+  export LINT_CHECK=1
+elif [ "$action" == "test" ]; then
+  export LINT_CHECK=0
+elif [ "$prjname" != "Odoo" ]; then 
+  export LINT_CHECK=1
+else
+  unset -v LINT_CHECK
+  find $PKGPATH -name "*~" -exec rm -vf '{}' \;
+  find $PKGPATH -name "*.bak" -exec rm -vf '{}' \;
+fi
+# Defalut value for local environment
+if [ -z $BRANCH ]; then
+  BRANCH=$opt_branch
+fi
+if [ -z $PKGPATH ]; then
+  PKGPATH=$PWD
+fi
+export VERSION=$BRANCH
+export TRAVIS_BUILD_DIR=$PKGPATH
+export ODOO_REPO=$repository
+# export INCLUDE=/opt/openerp/$BRANCH
+if [ "$TOOLS_PATH" ]; then
+  $TOOLS_PATH/travis_run_tests
+else
+  travis_run_tests
+fi
+if [ $? -eq 0 -a "$action" != "check" ]; then
+  if [ "$prjname" != "Odoo" ]; then
+    cd $PKGPATH/$prjname;
+    find . -name "*$prjname*.log" -exec rm -f '{}' \;
+    coverage erase
+    DEV_ENVIRONMENT=$prjname PYTHONPATH=$PKGPATH coverage run --source $prjname __main__.py
+    # PYTHONPATH=$PKGPATH coverage run --source $prjname $TESTDIR/test_$prjname.py
+  fi
+  echo ""
+  echo "The command \"travis_run_tests\" exited with 0."
+  echo "coveralls"
+  coverage report
+fi
