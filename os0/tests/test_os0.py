@@ -293,8 +293,8 @@ class main:
     if __name__ == "__main__":
         # Need debug mode to avoid security fault in Linux
         os0.set_debug_mode(True)
-        title = "os0 regression test. Version: V0.2.8"
-        if os0.version != "0.2.8":
+        title = "os0 regression test. Version: V0.2.10"
+        if os0.version != "0.2.10":
             raise Exception("Test not executable: invalid os0 version")
         if 'DEV_ENVIRONMENT' in os.environ:
             LOCAL_ECHO = False
@@ -377,7 +377,15 @@ class main:
         res = os0.str2bool('invalid', False)
         if res:
             raise Exception("Test failed: str2bool")
-#
+
+        os0.wlog1("Test 0.08: nakedname(myfile)")
+        res = os0.nakedname('myfile')
+        if res != 'myfile':
+            raise Exception("Test failed: nakedname")
+        os0.wlog1("Test 0.09: nakedname(myfile.py)")
+        res = os0.nakedname('myfile.py')
+        if res != 'myfile':
+            raise Exception("Test failed: nakedname")
 #
 # Level 0 tests
         T = Test()

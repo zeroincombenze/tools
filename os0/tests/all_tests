@@ -2,7 +2,13 @@
 # Regression tests for os0 module
 # Version running posix platform 
 #
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
 . ~/z0librc
+else
+. /etc/z0librc
+fi
 
 __version__=0.2.8
 OPTOPTS=(h        n            V           v)

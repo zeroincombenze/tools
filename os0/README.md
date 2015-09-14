@@ -1,3 +1,6 @@
+[![pypi](https://img.shields.io/pypi/v/os0.svg)](http://wiki.zeroincombenze.org/en/Python/opt/os0)
+[![agpl](https://img.shields.io/badge/licence-AGPL--3-green.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+
 Package os0
 ===========
 
@@ -22,3 +25,7 @@ See also
 --------
 
 For furthermore info see: http://wiki.zeroincombenze.org/it/Python/opt/os0
+
+
+[![chat_with_us](http://www.shs-av.com/wp-content/chat_with_us.png)](http://www.zeroincombenze.it/supporto-software-gestionale/live-chat-assistenza-online/)
+[![Assosoftware](http://www.shs-av.com/wp-content/Assosoftware.gif)](http://www.assosoftware.it/)

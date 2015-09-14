@@ -1,4 +1,4 @@
-# Makefile 0.1.44
+# Makefile 0.1.49
 
 .DEFAULT: check
 
@@ -96,6 +96,8 @@ help:
 	@echo "make replace  # copy files into git cloned dir to pubblish code"
 	@echo "make publish  # exec build + upload + publish on pypi"
 	@echo "make pep8     # do pep8 on all source python files"
+	@echo "make push     # copy file ot other directories"
+	@echo "make docs     # write module documentation"
 
 .PHONY: build
 build:
@@ -142,8 +144,8 @@ check:
 
 .PHONY: test
 test:
-	find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
-	if [ "$(prjname)" != "Odoo" ]; then \
+	@find $(PKGPATH) -name "*$(prjname)*.log" -exec rm -f '{}' \;
+	@if [ "$(prjname)" != "Odoo" ]; then \
 	  cd $(TESTPATH); PYTHONPATH=$(PKGPATH) $(TESTFILE);\
 	else\
 	  $(DEVPATH)/travis local/$(prjname) test;\
@@ -162,7 +164,7 @@ travis:
 
 .PHONY: annotate
 annotate:
-	 cd $(PRJPATH); PYTHONPATH=$(PKGPATH)  coverage annotate -d cover ./*
+	 cd $(PRJPATH); PYTHONPATH=$(PKGPATH) coverage annotate -d cover ./*
 
 .PHONY: pep8
 pep8:
@@ -173,4 +175,19 @@ pep8:
 .PHONY: replace
 replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
-	cd $(PKGPATH); $(DEVPATH)/dist_pkg -p $(LGITPATH) $(pkgname)
+	@if [ "$(prjname)" == "travis_emulator" ]; then\
+	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -p $(LGITPATH) $(pkgname);\
+	else\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -p $(LGITPATH) $(pkgname);\
+	fi
+
+.PHONY: push
+push:
+	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
+	cd $(PKGPATH); $(DEVPATH)/dist_pkg -c $(pkgname) $(prjname);
+
+.PHONY: docs
+docs:
+	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
+	cd $(PRJPATH); PYTHONPATH=$(PKGPATH) $(DEVPATH)/wok_doc -v $(pkgname)
+	# cd $(PRJPATH); PYTHONPATH=$(PKGPATH) ./wok_doc -v $(pkgname)

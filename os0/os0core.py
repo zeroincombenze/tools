@@ -19,8 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-
-
 r"""OS routines for Linux, OpenVMS and Windows
 
 This module expands standard os.py module.
@@ -85,7 +83,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.8"
+__version__ = "0.2.10"
 
 
 class Os0():
@@ -130,6 +128,15 @@ class Os0():
             return False
         else:
             return dflt
+
+    def nakedname(self, fn):
+        """Return nakedename (without extension)"""
+        i = fn.rfind('.')
+        if i >= 0:
+            j = len(fn) - i
+            if j <= 4:
+                fn = fn[:i]
+        return fn
 
     def extract_device(self, filename):
         """Extract device name form path name (Windows and OpenVMS)"""
