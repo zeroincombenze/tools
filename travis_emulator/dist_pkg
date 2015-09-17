@@ -13,21 +13,22 @@ else
 . /etc/z0librc
 fi
 
-__version__="0.1.25"
+__version__="0.1.28"
 
 # main
-OPTOPTS=(h        n            O                 p         V           c          -)
-OPTDEST=(opt_help opt_dry_run  opt_own           opt_dpath opt_version opt_commit opt_sync)
-OPTACTI=(1        1            "="               "=>"      "*"         "1>"       "1>")
-OPTDEFL=(1        0            "openerp:openerp" ""        ""          0          0)
-OPTMETA=("help"   "do nothing" "uid:gid"         "path"    "version"   "commit"   "sync")
+OPTOPTS=(h        n            O                 p         V           c          S        -)
+OPTDEST=(opt_help opt_dry_run  opt_own           opt_dpath opt_version opt_commit opt_sts  opt_sync)
+OPTACTI=(1        1            "="               "=>"      "*"         "1>"       "=>"     "1>")
+OPTDEFL=(1        0            "openerp:openerp" ""        ""          0          ""       0)
+OPTMETA=("help"   "do nothing" "uid:gid"         "path"    "version"   "commit"   "status" "sync")
 OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "set owner user:group (def openerp:openerp)"\
  "local path for git cloned project"\
  "show version"\
  "push commit to external projects"\
- "refresh info on distribution directory")
+ "set evelopment Status"\
+  "refresh info on distribution directory")
 OPTARGS=(pkg_path prjname)
 
 parseoptargs $@
@@ -40,11 +41,39 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+if [ "$opt_sts" ]; then
+  if [ "$opt_sts" == "0" ]; then
+    opt_sts=" 0 - WIP"
+  elif [ "$opt_sts" == "1" ]; then
+    opt_sts=" 1 - Planning"
+  elif [ "$opt_sts" == "2" ]; then
+    opt_sts=" 2 - Pre-Alpha"
+  elif [ "$opt_sts" == "3" ]; then
+    opt_sts=" 3 - Alpha"
+  elif [ "$opt_sts" == "4" ]; then
+    opt_sts=" 4 - Beta"
+  elif [ "$opt_sts" == "5" ]; then
+    opt_sts=" 5 - Production/Stable"
+  elif [ "$opt_sts" == "6" ]; then
+    opt_sts=" 5 - Production/Stable"
+  elif [ "$opt_sts" == "6" ]; then
+    opt_sts=" 6 - Mature"
+  elif [ "$opt_sts" == "7" ]; then
+    opt_sts=" 7 - Inactive"
+  else
+    echo "Invalid status:"
+    echo "use $(basename $0) -n -S n pkg_path"
+    echo "where n is 0..7 for more info about status"
+    exit 1
+  fi
+fi
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
     echo "$(basename $0) -n -- $pkg_path $prjname"
   elif [ $opt_commit -gt 0 ]; then
     echo "$(basename $0) -n -c $pkg_path $prjname"
+  elif [ "$opt_sts" ]; then
+    echo "$opt_sts"
   else
     echo "$(basename $0) -n -p \"$opt_dpath\" $pkg_path $prjname"
   fi
@@ -53,25 +82,67 @@ fi
 ODOO_SETUP=__openerp__.py
 MAKEF=/opt/openerp/dev/Makefile
 DIST_CONF=./conf/.friends.conf
-if [ "${pkg_path:0:1}" != "." -a "${pkg_path:0:1}" != "/" ]; then
+if [ -z "$pkg_path" ]; then
+  pkg_path=$PWD
+elif [ "${pkg_path:0:1}" != "." -a "${pkg_path:0:1}" != "/" ]; then
+  opkg_path="$pkg_path"
   x=$(readlink -e ../$pkg_path)
   if [ "$x" -a "$(basename $x)" == "$pkg_path" ]; then
     pkg_path=$x
     x=$(readlink -e $pkg_path/..)
-    if [ "$x" -a "$(basename $x)" == "$pkg_path" ]; then
+    if [ "$x" -a "$(basename $x)" == "$opkg_path" ]; then
       pkg_path=$x
     fi
   fi
 fi
 pkgname=$(basename $pkg_path)
-if [ -z "$prjname" ]; then
-  SETUP=$(if [ -f $ODOO_SETUP ]; then echo "$ODOO_SETUP"; else echo "setup.py"; fi)
-  if [ "$SETUP" == "$ODOO_SETUP" ]; then
+SETUP=$(if [ -f $ODOO_SETUP ]; then echo "$ODOO_SETUP"; elif [ -f setup.py ]; then echo "setup.py"; else echo "$ODOO_SETUP"; fi)
+if [ "$opt_sts" ]; then
+  devstatus="$opt_sts"
+else
+  devstatus=""
+fi
+if [ "$SETUP" == "$ODOO_SETUP" ]; then
+  if [ -z "$prjname" ]; then
     prjname="Odoo"
+  fi
+  if [ -f $ODOO_SETUP ]; then
     prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \n")
+    prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\n")
   else
-    prjname=$(grep name $SETUP|awk -F"'" '{print $2}')
-    prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    prjversion=""
+    prjdesc="Unrecognized Odoo module"
+  fi
+else
+  if [ -z "$prjname" ]; then
+    prjname=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    if [ "$prjname" == "odoo" ]; then
+      prjname=Odoo
+    fi
+  fi
+  prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+  if [ "$prjversion" == "version" ]; then
+    prjversion=""
+  fi
+  prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\n")
+  if [ "$prjdesc" == "description" ]; then
+    prjdesc="Unrecognized Odoo module"
+  fi
+fi
+if [ "$prjname" != "Odoo" ]; then
+  LSETUP=$pkg_path/$pkgname/setup.py 
+  DEVSSTS0=" 1 - Planning"
+  if [ -z "$devstatus" ]; then
+    devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
+  fi
+  if [ -z "$devstatus" ]; then
+    devstatus=$(if [ $(find . -executable -type f -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+  fi
+  if [ -z "$devstatus" ]; then
+    devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
+  fi
+  if [ -z "$devstatus" ]; then
+    devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\n")
   fi
 fi
 if [ $opt_commit -gt 0 ]; then
@@ -114,7 +185,11 @@ if [ "$prjname" != "Odoo" ]; then
       echo "from setuptools import setup">$pkg_path/$pkgname/setup.py
       echo "">>$pkg_path/$pkgname/setup.py
       echo "setup(name='$prjname',">>$pkg_path/$pkgname/setup.py
-      echo "      version='$prjversion')">>$pkg_path/$pkgname/setup.py
+      echo "      version='$prjversion',">>$pkg_path/$pkgname/setup.py
+      echo "      description='$prjdesc',">>$pkg_path/$pkgname/setup.py
+      echo "      classifiers=[">>$pkg_path/$pkgname/setup.py
+      echo "          'Development Status ::$devstatus',">>$pkg_path/$pkgname/setup.py
+      echo "      ])">>$pkg_path/$pkgname/setup.py
     fi
   fi
 fi
@@ -131,15 +206,17 @@ if [ "$prjname" == "travis_emulator" ]; then
      echo "Invalid package travis_emulator!"
      exit 1
   fi
-  for x in $RFLIST; do
-    if [ -f $pkg_path/$pkgname/$x ]; then
-      echo "cp $pkg_path/$pkgname/$x $XDPATH/$x"
-      (($opt_dry_run))||cp $pkg_path/$pkgname/$x $XDPATH/$x
-    fi
-  done
-  MAKEF=$pkg_path/$pkgname/Makefile
-  chown -R $opt_own $XDPATH
-  chmod -R u+rw,g+rw $XDPATH
+  if [ -z "$opt_sts" ]; then
+    for x in $RFLIST; do
+      if [ -f $pkg_path/$pkgname/$x ]; then
+        echo "cp $pkg_path/$pkgname/$x $XDPATH/$x"
+        (($opt_dry_run))||cp $pkg_path/$pkgname/$x $XDPATH/$x
+      fi
+    done
+    MAKEF=$pkg_path/$pkgname/Makefile
+    chown -R $opt_own $XDPATH
+    chmod -R u+rw,g+rw $XDPATH
+  fi
 fi
 dotmode=$(shopt -p dotglob)
 if [ $opt_dry_run -eq 0 ]; then
@@ -153,6 +230,9 @@ if [ $opt_dry_run -eq 0 ]; then
     chmod u+rw,g+rw $pkg_path/$pkgname
   fi
   $dotmode
+fi
+if [ "$opt_sts" ]; then
+  exit 0
 fi
 if [ $opt_sync -gt 0 ]; then
   exit 0
