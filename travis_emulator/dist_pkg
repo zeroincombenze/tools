@@ -13,21 +13,22 @@ else
 . /etc/z0librc
 fi
 
-__version__="0.1.28"
+__version__="0.1.29"
 
 # main
-OPTOPTS=(h        n            O                 p         V           c          S        -)
-OPTDEST=(opt_help opt_dry_run  opt_own           opt_dpath opt_version opt_commit opt_sts  opt_sync)
-OPTACTI=(1        1            "="               "=>"      "*"         "1>"       "=>"     "1>")
-OPTDEFL=(1        0            "openerp:openerp" ""        ""          0          ""       0)
-OPTMETA=("help"   "do nothing" "uid:gid"         "path"    "version"   "commit"   "status" "sync")
+OPTOPTS=(h        c          d        n            O                 p         S        V           -)
+OPTDEST=(opt_help opt_commit opt_diff opt_dry_run  opt_own           opt_dpath opt_sts  opt_version opt_sync)
+OPTACTI=(1        "1>"       1        1            "="               "=>"      "=>"     "*"         "1>")
+OPTDEFL=(1        0          0        0            "openerp:openerp" ""        ""       ""          0)
+OPTMETA=("help"   "commit"   "diff"   "do nothing" "uid:gid"         "path"    "status" "version"   "sync")
 OPTHELP=("this help"\
+ "push commit to external projects"\
+ "diff with distribution directory"\
  "do nothing (dry-run)"\
  "set owner user:group (def openerp:openerp)"\
  "local path for git cloned project"\
- "show version"\
- "push commit to external projects"\
  "set evelopment Status"\
+ "show version"\
   "refresh info on distribution directory")
 OPTARGS=(pkg_path prjname)
 
@@ -70,6 +71,8 @@ fi
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
     echo "$(basename $0) -n -- $pkg_path $prjname"
+  elif [ $opt_diff -gt 0 ]; then
+    echo "$(basename $0) -n -d -p \"$opt_dpath\" $pkg_path $prjname"
   elif [ $opt_commit -gt 0 ]; then
     echo "$(basename $0) -n -c $pkg_path $prjname"
   elif [ "$opt_sts" ]; then
@@ -107,24 +110,24 @@ if [ "$SETUP" == "$ODOO_SETUP" ]; then
     prjname="Odoo"
   fi
   if [ -f $ODOO_SETUP ]; then
-    prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \n")
-    prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\n")
+    prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \r\n")
+    prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
   else
     prjversion=""
     prjdesc="Unrecognized Odoo module"
   fi
 else
   if [ -z "$prjname" ]; then
-    prjname=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    prjname=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
     if [ "$prjname" == "odoo" ]; then
       prjname=Odoo
     fi
   fi
-  prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+  prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
   if [ "$prjversion" == "version" ]; then
     prjversion=""
   fi
-  prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\n")
+  prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
   if [ "$prjdesc" == "description" ]; then
     prjdesc="Unrecognized Odoo module"
   fi
@@ -142,21 +145,21 @@ if [ "$prjname" != "Odoo" ]; then
     devstatus=$(if [ $(find . -type f -name "*.py" -cnewer $LSETUP|head -n1) ]; then echo "$DEVSSTS0"; fi)
   fi
   if [ -z "$devstatus" ]; then
-    devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\n")
+    devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
   fi
 fi
 if [ $opt_commit -gt 0 ]; then
   if [ -f $DIST_CONF ]; then
     find $PWD -name "*.pyc" -exec rm -f '{}' \;
     f_done=0
-    tgt1path=$(grep "^tgt1path *=" $DIST_CONF 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    tgt1path=$(grep "^tgt1path *=" $DIST_CONF 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
     tgt1path=$(echo "$tgt1path"|sed s:\$name:$pkgname:)
     if [ "$tgt1path" ]; then
       echo "rsync -avzhe ssh $PWD/ $tgt1path"
       rsync -avzhe ssh $PWD $tgt1path
       f_done=1
     fi
-    tgt2path=$(grep "^tgt2path *=" $DIST_CONF 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \n")
+    tgt2path=$(grep "^tgt2path *=" $DIST_CONF 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
     tgt2path=$(echo "$tgt2path"|sed s:\$name:$pkgname:)
     if [ "$tgt2path" ]; then
       echo "rsync -avzhe ssh $PWD/ $tgt2path"
@@ -181,7 +184,7 @@ if [ "$prjname" != "Odoo" ]; then
   if [ "$pkgname" != "$prjname" ]; then
     echo "Warning: package name $pkgname and project name $prjname are different!"
   else
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then 
       echo "from setuptools import setup">$pkg_path/$pkgname/setup.py
       echo "">>$pkg_path/$pkgname/setup.py
       echo "setup(name='$prjname',">>$pkg_path/$pkgname/setup.py
@@ -209,17 +212,27 @@ if [ "$prjname" == "travis_emulator" ]; then
   if [ -z "$opt_sts" ]; then
     for x in $RFLIST; do
       if [ -f $pkg_path/$pkgname/$x ]; then
-        echo "cp $pkg_path/$pkgname/$x $XDPATH/$x"
-        (($opt_dry_run))||cp $pkg_path/$pkgname/$x $XDPATH/$x
+        if [ $opt_diff -gt 0 ]; then
+          if [ "$(diff -q $pkg_path/$pkgname/$x $XDPATH/$x)" ]; then
+            # echo -e "$pkg_path/$pkgname/$x\t$XDPATH/$x"
+            # diff -y --suppress-common-lines $pkg_path/$pkgname/$x $XDPATH/$x|less
+            diff $pkg_path/$pkgname/$x $XDPATH/$x|less
+          fi
+        else
+          echo "cp $pkg_path/$pkgname/$x $XDPATH/$x"
+          (($opt_dry_run))||cp $pkg_path/$pkgname/$x $XDPATH/$x
+        fi
       fi
     done
     MAKEF=$pkg_path/$pkgname/Makefile
-    chown -R $opt_own $XDPATH
-    chmod -R u+rw,g+rw $XDPATH
+    if [ $opt_diff -eq 0 ]; then
+      chown -R $opt_own $XDPATH
+      chmod -R u+rw,g+rw $XDPATH
+    fi
   fi
 fi
 dotmode=$(shopt -p dotglob)
-if [ $opt_dry_run -eq 0 ]; then
+if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
   if [ "$prjname" == "Odoo" ]; then
     chown -R $opt_own $pkg_path
     chmod -R u+rw,g+rw $pkg_path
@@ -235,6 +248,9 @@ if [ "$opt_sts" ]; then
   exit 0
 fi
 if [ $opt_sync -gt 0 ]; then
+  exit 0
+fi
+if [ $opt_diff -gt 0 ]; then
   exit 0
 fi
 if [ ! -d "$opt_dpath" ]; then

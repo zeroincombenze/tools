@@ -68,7 +68,7 @@ echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbbone is
 WD=/opt/openerp/7.0/zeroincombenze
 p2=Odoo
 p3=7.0
-p4=
+p4="()"
 p5=$p3
 p6=__openerp__.py
 p7=/opt/openerp/7.0/zeroincombenze
@@ -78,7 +78,7 @@ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 WD=/opt/openerp/7.0/zeroincombenze/l10n_it_bbone
 p2=Odoo
 p3=7.0
-p4=l10n_it_bbone
+p4="l10n_it_bbone(ItalianLocalization-Base)"
 p5=$BB_VER
 p6=__openerp__.py
 p7=/opt/openerp/7.0/zeroincombenze
@@ -88,7 +88,7 @@ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 WD=/opt/odoo/8.0
 p2=Odoo
 p3=8.0
-p4=
+p4="()"
 p5=$p3
 p6=__openerp__.py
 p7=$WD
@@ -98,7 +98,7 @@ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 WD=/opt/odoo/7.0
 p2=Odoo
 p3=7.0
-p4=
+p4="()"
 p5=$p3
 p6=__openerp__.py
 p7=$WD
@@ -108,7 +108,7 @@ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 WD=/opt/openerp/pypi/os0
 p2=os0
 p3=
-p4=$p2
+p4="$p2($p2)"
 p5=$OS_VER
 p6=setup.py
 p7=/opt/openerp/pypi/os0/os0
@@ -118,7 +118,7 @@ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 WD=/opt/openerp/pypi/os0/os0
 p2=os0
 p3=
-p4=$p2
+p4="$p2($p2)"
 p5=$OS_VER
 p6=../setup.py
 p7=/opt/openerp/pypi/os0/os0

@@ -13,7 +13,7 @@ fi
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 
-__version__=0.1.12
+__version__=0.1.14
 OPTOPTS=(h        n            V           v           b)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
 OPTACTI=(1        "1>"         "*>"        1           "=")
@@ -73,6 +73,9 @@ export VERSION=$BRANCH
 export TRAVIS_BUILD_DIR=$PKGPATH
 export ODOO_REPO=$repository
 # export INCLUDE=/opt/openerp/$BRANCH
+if [ "$prjname" == "Odoo" ]; then
+  dropdb  openerp_template 2>/dev/null||true
+fi
 if [ "$TOOLS_PATH" ]; then
   $TOOLS_PATH/travis_run_tests
 else

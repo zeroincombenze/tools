@@ -1,0 +1,56 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+##############################################################################
+#
+#    Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+#    All Rights Reserved
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either versiofn 3 of the
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+__version__=0.1.8
+
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "1>"         "*>"        1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(src tgt)
+
+parseoptargs $@
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "z0lib"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+exit 0
