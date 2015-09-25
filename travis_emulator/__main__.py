@@ -20,7 +20,7 @@
 ##############################################################################
 """travis emulator
 
-Travis-ci emulator for local develop environment
+Travis-ci emulator for local developer environment
 """
 
 import os

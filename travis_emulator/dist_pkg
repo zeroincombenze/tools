@@ -1,4 +1,5 @@
 #! /bin/bash
+# -*- coding: utf-8 -*-
 # Copy package for git push on github.com
 # Tool for internal use
 #
@@ -12,8 +13,10 @@ elif [ -f ~/z0librc ]; then
 else
 . /etc/z0librc
 fi
+MYDIR=$(echo $(readlink -f $(dirname $0)))
+. $MYDIR/travisrc
 
-__version__="0.1.29"
+__version__="0.1.31"
 
 # main
 OPTOPTS=(h        c          d        n            O                 p         S        V           -)
@@ -82,23 +85,11 @@ if [ $opt_dry_run -gt 0 ]; then
   fi
   # set -x  # debug
 fi
-ODOO_SETUP=__openerp__.py
-MAKEF=/opt/openerp/dev/Makefile
-DIST_CONF=./conf/.friends.conf
-if [ -z "$pkg_path" ]; then
-  pkg_path=$PWD
-elif [ "${pkg_path:0:1}" != "." -a "${pkg_path:0:1}" != "/" ]; then
-  opkg_path="$pkg_path"
-  x=$(readlink -e ../$pkg_path)
-  if [ "$x" -a "$(basename $x)" == "$pkg_path" ]; then
-    pkg_path=$x
-    x=$(readlink -e $pkg_path/..)
-    if [ "$x" -a "$(basename $x)" == "$opkg_path" ]; then
-      pkg_path=$x
-    fi
-  fi
+if [ "$pkg_path" ]; then
+  PKGPATH=$pkg_path
 fi
-pkgname=$(basename $pkg_path)
+PKGPATH=$(set_pkgpath "$PKGPATH")
+pkgname=$(basename $PKGPATH)
 SETUP=$(if [ -f $ODOO_SETUP ]; then echo "$ODOO_SETUP"; elif [ -f setup.py ]; then echo "setup.py"; else echo "$ODOO_SETUP"; fi)
 if [ "$opt_sts" ]; then
   devstatus="$opt_sts"
@@ -133,7 +124,7 @@ else
   fi
 fi
 if [ "$prjname" != "Odoo" ]; then
-  LSETUP=$pkg_path/$pkgname/setup.py 
+  LSETUP=$PKGPATH/$pkgname/setup.py 
   DEVSSTS0=" 1 - Planning"
   if [ -z "$devstatus" ]; then
     devstatus=$(if [ -f $LSETUP ]; then echo ""; else echo "$DEVSSTS0"; fi)
@@ -176,7 +167,7 @@ if [ $opt_commit -gt 0 ]; then
   fi
   exit 0
 fi
-if [ ! -d "$pkg_path" ]; then
+if [ ! -d "$PKGPATH" ]; then
   echo "Invalid package name $pkgname"
   exit 1
 fi
@@ -185,23 +176,23 @@ if [ "$prjname" != "Odoo" ]; then
     echo "Warning: package name $pkgname and project name $prjname are different!"
   else
     if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then 
-      echo "from setuptools import setup">$pkg_path/$pkgname/setup.py
-      echo "">>$pkg_path/$pkgname/setup.py
-      echo "setup(name='$prjname',">>$pkg_path/$pkgname/setup.py
-      echo "      version='$prjversion',">>$pkg_path/$pkgname/setup.py
-      echo "      description='$prjdesc',">>$pkg_path/$pkgname/setup.py
-      echo "      classifiers=[">>$pkg_path/$pkgname/setup.py
-      echo "          'Development Status ::$devstatus',">>$pkg_path/$pkgname/setup.py
-      echo "      ])">>$pkg_path/$pkgname/setup.py
+      echo "from setuptools import setup">$PKGPATH/$pkgname/setup.py
+      echo "">>$PKGPATH/$pkgname/setup.py
+      echo "setup(name='$prjname',">>$PKGPATH/$pkgname/setup.py
+      echo "      version='$prjversion',">>$PKGPATH/$pkgname/setup.py
+      echo "      description='$prjdesc',">>$PKGPATH/$pkgname/setup.py
+      echo "      classifiers=[">>$PKGPATH/$pkgname/setup.py
+      echo "          'Development Status ::$devstatus',">>$PKGPATH/$pkgname/setup.py
+      echo "      ])">>$PKGPATH/$pkgname/setup.py
     fi
   fi
 fi
 if [ "$prjname" == "travis_emulator" ]; then
   XDPATH=$(echo "$(dirname $MAKEF)")
-  RFLIST="beauty dist_pkg Makefile topep8 travis wok_doc wok_doc.py"
+  RFLIST="beauty dist_pkg Makefile topep8 travis travisrc wok_doc wok_doc.py"
   xvalid=1
   for x in $RFLIST; do
-    if [ ! -f $pkg_path/$pkgname/$x ]; then
+    if [ ! -f $PKGPATH/$pkgname/$x ]; then
       xvalid=0
     fi
   done
@@ -211,20 +202,20 @@ if [ "$prjname" == "travis_emulator" ]; then
   fi
   if [ -z "$opt_sts" ]; then
     for x in $RFLIST; do
-      if [ -f $pkg_path/$pkgname/$x ]; then
+      if [ -f $PKGPATH/$pkgname/$x ]; then
         if [ $opt_diff -gt 0 ]; then
-          if [ "$(diff -q $pkg_path/$pkgname/$x $XDPATH/$x)" ]; then
-            # echo -e "$pkg_path/$pkgname/$x\t$XDPATH/$x"
-            # diff -y --suppress-common-lines $pkg_path/$pkgname/$x $XDPATH/$x|less
-            diff $pkg_path/$pkgname/$x $XDPATH/$x|less
+          if [ "$(diff -q $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
+            # echo -e "$PKGPATH/$pkgname/$x\t$XDPATH/$x"
+            # diff -y --suppress-common-lines $PKGPATH/$pkgname/$x $XDPATH/$x|less
+            diff $PKGPATH/$pkgname/$x $XDPATH/$x|less
           fi
         else
-          echo "cp $pkg_path/$pkgname/$x $XDPATH/$x"
-          (($opt_dry_run))||cp $pkg_path/$pkgname/$x $XDPATH/$x
+          echo "cp $PKGPATH/$pkgname/$x $XDPATH/$x"
+          (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
         fi
       fi
     done
-    MAKEF=$pkg_path/$pkgname/Makefile
+    MAKEF=$PKGPATH/$pkgname/Makefile
     if [ $opt_diff -eq 0 ]; then
       chown -R $opt_own $XDPATH
       chmod -R u+rw,g+rw $XDPATH
@@ -234,13 +225,13 @@ fi
 dotmode=$(shopt -p dotglob)
 if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
   if [ "$prjname" == "Odoo" ]; then
-    chown -R $opt_own $pkg_path
-    chmod -R u+rw,g+rw $pkg_path
+    chown -R $opt_own $PKGPATH
+    chmod -R u+rw,g+rw $PKGPATH
   else
-    chown $opt_own $pkg_path
-    chmod u+rw,g+rw $pkg_path
-    chown $opt_own $pkg_path/$pkgname
-    chmod u+rw,g+rw $pkg_path/$pkgname
+    chown $opt_own $PKGPATH
+    chmod u+rw,g+rw $PKGPATH
+    chown $opt_own $PKGPATH/$pkgname
+    chmod u+rw,g+rw $PKGPATH/$pkgname
   fi
   $dotmode
 fi
@@ -266,11 +257,11 @@ if [ "$prjname" == "Odoo" ]; then
     exit 1
   fi
 fi
-if [ "$pkg_path" == "$opt_dpath" ]; then
+if [ "$PKGPATH" == "$opt_dpath" ]; then
   echo "Invalid package name $pkgname"
   exit 1
 fi
-for f in $(dir $pkg_path)
+for f in $(dir $PKGPATH)
 do
   if [ -d "$f" ]; then
     t="d"
@@ -299,20 +290,20 @@ do
   # if [ "${fn:l}" == ".bak" ]; then v=0; fi
   if [ $v -eq 1 ]; then
     if [ "$t" == "d" ]; then
-      # echo "cp -R $pkg_path/$f/ $opt_dpath/"
-      # (($opt_dry_run))||cp -R $pkg_path/$f/ $opt_dpath/
-      echo "rsync -a --del $pkg_path/$f/ $opt_dpath/$f/"
-      (($opt_dry_run))|| rsync -a --del --chmod=g+rw,o+rw $pkg_path/$f/ $opt_dpath/$f/
+      # echo "cp -R $PKGPATH/$f/ $opt_dpath/"
+      # (($opt_dry_run))||cp -R $PKGPATH/$f/ $opt_dpath/
+      echo "rsync -a --del $PKGPATH/$f/ $opt_dpath/$f/"
+      (($opt_dry_run))|| rsync -a --del --chmod=g+rw,o+rw $PKGPATH/$f/ $opt_dpath/$f/
     else
-      echo "cp $pkg_path/$f $opt_dpath/"
-      (($opt_dry_run))||cp $pkg_path/$f $opt_dpath/
+      echo "cp $PKGPATH/$f $opt_dpath/"
+      (($opt_dry_run))||cp $PKGPATH/$f $opt_dpath/
     fi
   elif [ $v -eq 2 ]; then
-    echo "cp $pkg_path/$f $dpath_child/$fn"
-    (($opt_dry_run))||cp $pkg_path/$f $dpath_child/$fn
+    echo "cp $PKGPATH/$f $dpath_child/$fn"
+    (($opt_dry_run))||cp $PKGPATH/$f $dpath_child/$fn
   elif [ $v -eq 3 ]; then
-    echo "cp $pkg_path/$pkgname/setup.py $dpath_child/$fn"
-    (($opt_dry_run))||cp $pkg_path/$pkgname/setup.py $dpath_child/$fn
+    echo "cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn"
+    (($opt_dry_run))||cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn
   elif [ $v -eq 4 ]; then
       echo "cp $MAKEF $opt_dpath/"
       (($opt_dry_run))||cp $MAKEF $opt_dpath/
@@ -322,9 +313,9 @@ do
   fi
 done
 if [ $opt_dry_run -eq 0 ]; then
-  if [ "$prjname" != "Odoo" -a -f $pkg_path/$pkgname/.coveragerc ]; then
-    echo "cp $pkg_path/$pkgname/.coveragerc $opt_dpath/.coveragerc"
-    cp $pkg_path/$pkgname/.coveragerc $opt_dpath/.coveragerc
+  if [ "$prjname" != "Odoo" -a -f $PKGPATH/$pkgname/.coveragerc ]; then
+    echo "cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc"
+    cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc
   fi
   for x in .pyc .log .bak; do
     find $dpath_child -name "*$x" -exec rm -f '{}' \;
@@ -345,7 +336,7 @@ if [ $opt_dry_run -eq 0 ]; then
     if [ -d $opt_dpath/$pkgname/cover ]; then
       rm -fR $opt_dpath/$pkgname/cover
     fi
-    if [ -f $pkg_path/$pkgname/Makefile ]; then
+    if [ -f $PKGPATH/$pkgname/Makefile ]; then
       echo "cp $MAKEF $dpath_child/Makefile"
       rm -f $dpath_child/Makefile
       (($opt_dry_run))||cp $MAKEF $dpath_child/Makefile
@@ -353,7 +344,7 @@ if [ $opt_dry_run -eq 0 ]; then
   fi
 fi
 # echo "Now remember:"
-# echo "$ cd $pkg_path"
+# echo "$ cd $PKGPATH"
 # echo "$ python setup.py register"
 # echo "$ python setup.py sdist"
 # echo "$ python setup.py register sdist upload"

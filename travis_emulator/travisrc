@@ -1,0 +1,26 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Common file for travi emulator scripts
+
+ODOO_SETUP=__openerp__.py
+MAKEF=/opt/openerp/dev/Makefile
+DIST_CONF=./conf/.friends.conf
+
+set_pkgpath () {
+    PKGPATH=$1
+	if [ -z "$PKGPATH" ]; then
+	  PKGPATH=$PWD
+	elif [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" ]; then
+	  oPKGPATH="$PKGPATH"
+	  x=$(readlink -e ../$PKGPATH)
+	  if [ "$x" -a "$(basename $x)" == "$PKGPATH" ]; then
+	    PKGPATH=$x
+	    x=$(readlink -e $PKGPATH/..)
+	    if [ "$x" -a "$(basename $x)" == "$oPKGPATH" ]; then
+	      PKGPATH=$x
+	    fi
+	  fi
+	fi
+	echo $PKGPATH
+}
