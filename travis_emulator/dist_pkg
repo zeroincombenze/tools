@@ -16,19 +16,19 @@ fi
 MYDIR=$(echo $(readlink -f $(dirname $0)))
 . $MYDIR/travisrc
 
-__version__="0.1.31"
+__version__="0.1.32"
 
 # main
-OPTOPTS=(h        c          d        n            O                 p         S        V           -)
-OPTDEST=(opt_help opt_commit opt_diff opt_dry_run  opt_own           opt_dpath opt_sts  opt_version opt_sync)
-OPTACTI=(1        "1>"       1        1            "="               "=>"      "=>"     "*"         "1>")
-OPTDEFL=(1        0          0        0            "openerp:openerp" ""        ""       ""          0)
-OPTMETA=("help"   "commit"   "diff"   "do nothing" "uid:gid"         "path"    "status" "version"   "sync")
+OPTOPTS=(h        c          d        n            O              p         S        V           -)
+OPTDEST=(opt_help opt_commit opt_diff opt_dry_run  opt_own        opt_dpath opt_sts  opt_version opt_sync)
+OPTACTI=(1        "1>"       1        1            "="            "=>"      "=>"     "*"         "1>")
+OPTDEFL=(1        0          0        0            "openerp:ERPs" ""        ""       ""          0)
+OPTMETA=("help"   "commit"   "diff"   "do nothing" "uid:gid"      "path"    "status" "version"   "sync")
 OPTHELP=("this help"\
  "push commit to external projects"\
  "diff with distribution directory"\
  "do nothing (dry-run)"\
- "set owner user:group (def openerp:openerp)"\
+ "set owner user:group (def openerp:ERPs)"\
  "local path for git cloned project"\
  "set evelopment Status"\
  "show version"\
@@ -329,7 +329,7 @@ if [ $opt_dry_run -eq 0 ]; then
     rm -f ~/*-*.out
   fi
   dotmode=$(shopt -p dotglob)
-  chown -R odoo:openerp $dpath_child
+  chown -R odoo:ERPs $dpath_child
   chmod -R u+rwX,g+rwX $dpath_child
   $dotmode
   if [ "$prjname" != "Odoo" ]; then

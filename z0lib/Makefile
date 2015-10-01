@@ -1,4 +1,4 @@
-# Makefile 0.1.56
+# Makefile 0.1.57
 
 .DEFAULT: check
 
@@ -9,7 +9,7 @@ ifeq ($(x),travis)
   HOSTENV=travis
 else
   HOSTENV=local
-  DEVPATH=$(shell if [ "$$PYTHONPATH" ]; then echo "$$PYTHONPATH"; elif [ -d $(HOME)/dev ]; then echo "$(HOME)/dev"; else echo "/opt/openerp/dev"; fi)
+  DEVPATH=$(shell if [ "$$PYTHONPATH" ]; then echo "$$PYTHONPATH"; elif [ -d $(HOME)/dev ]; then echo "$(HOME)/dev"; elif [ -d /opt/odoo/dev ]; then echo "/opt/odoo/dev"; else echo "/opt/openerp/dev"; fi)
 endif
 SETUP=$(shell if [ -f ../setup.py ]; then echo "../setup.py"; elif [ -f setup.py ]; then echo "setup.py"; else echo $(ODOO_SETUP); fi)
 prjname=$(shell grep "[^a-zA-Z0-9_]name *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")

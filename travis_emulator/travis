@@ -15,7 +15,7 @@ MYDIR=$(echo $(readlink -f $(dirname $0)))
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 
-__version__=0.1.17
+__version__=0.1.19
 OPTOPTS=(h        n            V           v           b)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
 OPTACTI=(1        "1>"         "*>"        1           "=")
@@ -51,15 +51,34 @@ if [ -f travis.conf ]; then
    fi
    BRANCH=$(grep "[^a-zA-Z0-9_]branch *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d ", \r\n")
 fi
+if [ "$repository" == "." ]; then repository=$(echo "local/$(basename $PWD)"); fi
+if [ -z "$repository" ]; then repository=$(echo "local/$(basename $PWD)"); fi
+prjname=$(basename $repository)
+if [ -z $PKGPATH ]; then
+  PKGPATH=$PWD
+fi
+PKGPATH=$(set_pkgpath "$PKGPATH")
 
 if [ -z "$DEV_PATH" ]; then
-  DEV_PATH=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
-fi
-if [ -z "$TOOLS_PATH" ]; then
-  if [ -d $DEV_PATH/maintainer-quality-tools/travis ]; then
-    TOOLS_PATH=$DEV_PATH/maintainer-quality-tools/travis
+  if [ "$prjname" == "travis_emulator" ]; then
+    DEV_PATH=$PKGPATH/$prjname/travis
+    if [ -z "$TOOLS_PATH" ]; then
+      devpath=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
+      if [ -d $devpath/maintainer-quality-tools/travis ]; then
+       TOOLS_PATH=$devpath/maintainer-quality-tools/travis
+      else
+       unset -v TOOLS_PATH
+     fi
+    fi
   else
-    unset -v TOOLS_PATH
+    DEV_PATH=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
+    if [ -z "$TOOLS_PATH" ]; then
+      if [ -d $DEV_PATH/maintainer-quality-tools/travis ]; then
+       TOOLS_PATH=$DEV_PATH/maintainer-quality-tools/travis
+      else
+       unset -v TOOLS_PATH
+     fi
+    fi
   fi
 fi
 if [ "$TOOLS_PATH" ]; then
@@ -67,13 +86,7 @@ if [ "$TOOLS_PATH" ]; then
     export PATH=$TOOLS_PATH:$PATH
   fi
 fi
-if [ -z $PKGPATH ]; then
-  PKGPATH=$PWD
-fi
-PKGPATH=$(set_pkgpath "$PKGPATH")
-if [ "$repository" == "." ]; then repository=$(echo "local/$(basename $PWD)"); fi
-if [ -z "$repository" ]; then repository=$(echo "local/$(basename $PWD)"); fi
-prjname=$(basename $repository)
+
 if [ -z "$action" ]; then action=all; fi
 export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
 if [ "$action" == "check" ]; then

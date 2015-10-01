@@ -1,7 +1,7 @@
 #!/bin/bash
 . ~/z0librc
 f=$(xuname "-f")
-if [ "$f" == "RH" ]; then
+if [ "$f" == "RHEL" ]; then
     echo "Found RedHat family OS"
 elif [ "$f" == "Debian" ]; then
     echo "Found Debian family OS"

@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.8
+#__version__=0.1.9
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -19,14 +19,14 @@
 #
 # Check history
 #    Date        Author      Result of xname -a -> xname -f
-#    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64) -> RH
-#    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64) -> RH
+#    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64) -> RHEL
+#    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64) -> RHEL
 #    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686) -> Debian
 #
 # Parameter $1:
 #   -a  print all
 #   -d  print Linux distribution name (empty on Unix)
-#   -f  print Linux family (RH or Debian, empty on Unix)
+#   -f  print Linux family (RHEL or Debian, empty on Unix)
 #   -k  print Linux kernel release (on Unix same as -r)
 #   -m  print machine hardware name
 #   -p  print processor architecture
@@ -64,7 +64,7 @@ xuname () {
         XDES=$(cat /etc/centos-release|tr -d " \n")
         CODENAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/gentoo-release ]; then
         DIST='Gentoo'
         CODENAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
@@ -73,22 +73,22 @@ xuname () {
         DIST='RedHat'
         CODENAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/SUSE-release ]; then
         DIST="SuSE"
         CODENAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
         VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/SuSE-release ]; then
         DIST="SuSE"
         CODENAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
         VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/mandriva-release ]; then
         DIST='Mandriva'
         CODENAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/mandrake-release ]; then
         DIST='Mandrake'
         CODENAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
@@ -97,7 +97,7 @@ xuname () {
         DIST="Fedora"
         CODENAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
         VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RH"
+        FAMILY="RHEL"
     elif [ -f /etc/slackware-version ]; then
         DIST="Slackware"
         VER=""
