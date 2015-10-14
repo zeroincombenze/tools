@@ -1,4 +1,4 @@
-# Makefile 0.1.57
+# Makefile 0.1.58
 
 .DEFAULT: check
 
@@ -219,6 +219,15 @@ replace:
 	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -p $(LGITPATH) $(pkgname);\
 	else\
 	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -p $(LGITPATH) $(pkgname);\
+	fi
+
+.PHONY: pull
+pull:
+	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
+	@if [ "$(prjname)" == "travis_emulator" ]; then\
+	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -f -p $(LGITPATH) $(pkgname);\
+	else\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -f -p $(LGITPATH) $(pkgname);\
 	fi
 
 .PHONY: diff

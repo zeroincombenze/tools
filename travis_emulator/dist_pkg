@@ -16,14 +16,14 @@ fi
 MYDIR=$(echo $(readlink -f $(dirname $0)))
 . $MYDIR/travisrc
 
-__version__="0.1.32"
+__version__="0.1.34"
 
 # main
-OPTOPTS=(h        c          d        n            O              p         S        V           -)
-OPTDEST=(opt_help opt_commit opt_diff opt_dry_run  opt_own        opt_dpath opt_sts  opt_version opt_sync)
-OPTACTI=(1        "1>"       1        1            "="            "=>"      "=>"     "*"         "1>")
-OPTDEFL=(1        0          0        0            "openerp:ERPs" ""        ""       ""          0)
-OPTMETA=("help"   "commit"   "diff"   "do nothing" "uid:gid"      "path"    "status" "version"   "sync")
+OPTOPTS=(h        c          d        f         n            O              p         S        V           -)
+OPTDEST=(opt_help opt_commit opt_diff opt_fetch opt_dry_run  opt_own        opt_dpath opt_sts  opt_version opt_sync)
+OPTACTI=(1        "1>"       1        1         1            "="            "=>"      "=>"     "*"         "1>")
+OPTDEFL=(1        0          0        0         0            "openerp:ERPs" ""        ""       ""          0)
+OPTMETA=("help"   "commit"   "diff"   "fetch"   "do nothing" "uid:gid"      "path"    "status" "version"   "sync")
 OPTHELP=("this help"\
  "push commit to external projects"\
  "diff with distribution directory"\
@@ -45,6 +45,111 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+
+robocopy () {
+    if [ -d "$f" ]; then
+      t="d"
+    else
+      t="f"
+    fi
+    fn=$(basename $f)
+    if [ "$prjname" == "Odoo" ]; then
+      v=1
+      if [ "$fn" == "Makefile" ]; then v=4; fi
+    else
+      v=0
+      if [ "$fn" == "Makefile" ]; then v=5; fi
+      if [ "$fn" == "README.rst" ]; then v=2; fi
+      if [ "$fn" == "README.md" ]; then v=2; fi
+      if [ "$fn" == "setup.py" ]; then v=3; fi
+      if [ "$fn" == "$pkgname" ]; then v=1; fi
+    fi
+    l=${#fn}
+    ((l=l-4))
+    for x in .pyc .log .bak; do
+      if [ "${fn:l}" == "$x" ]; then v=0; fi
+    done
+    if [ $v -eq 1 ]; then
+      if [ "$t" == "d" ]; then
+        if [ $opt_fetch -gt 0 ]; then
+          echo "rsync -ab --del --copy-links $X $opt_dpath/$f/ $PKGPATH/$f/"
+          rsync -ab --del --copy-links $X --chmod=g+rw,o+rw $opt_dpath/$f/ $PKGPATH/$f/
+        else
+          echo "rsync -ab --del --copy-links $X $PKGPATH/$f/ $opt_dpath/$f/"
+          rsync -ab --del --copy-links $X --chmod=g+rw,o+rw $PKGPATH/$f/ $opt_dpath/$f/
+        fi
+      else
+        if [ $opt_fetch -gt 0 ]; then
+          echo "cp $opt_dpath/$f $PKGPATH/"
+          (($opt_dry_run))||cp $opt_dpath/$f $PKGPATH/
+        else
+          echo "cp $PKGPATH/$f $opt_dpath/"
+          (($opt_dry_run))||cp $PKGPATH/$f $opt_dpath/
+        fi
+      fi
+    elif [ $v -eq 2 ]; then
+      if [ $opt_fetch -eq 0 ]; then
+        echo "cp $PKGPATH/$f $dpath_child/$fn"
+        (($opt_dry_run))||cp $PKGPATH/$f $dpath_child/$fn
+      fi
+    elif [ $v -eq 3 ]; then
+      if [ $opt_fetch -eq 0 ]; then
+         echo "cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn"
+        (($opt_dry_run))||cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn
+      fi
+    elif [ $v -eq 4 ]; then
+      if [ $opt_fetch -eq 0 ]; then
+        echo "cp $MAKEF $opt_dpath/"
+        (($opt_dry_run))||cp $MAKEF $opt_dpath/
+      fi
+    elif [ $v -eq 5 ]; then
+      if [ $opt_fetch -eq 0 ]; then
+        echo "cp $MAKEF $dpath_child/$fn"
+        (($opt_dry_run))||cp $MAKEF $dpath_child/$fn
+      fi
+    fi
+}
+
+roboown () {
+    if [ $opt_fetch -eq 0 ]; then
+      if [ "$prjname" != "Odoo" -a -f $PKGPATH/$pkgname/.coveragerc ]; then
+        echo "cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc"
+        (($opt_dry_run))||cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc
+      fi
+      if [ $opt_dry_run -eq 0 ]; then
+        for x in .pyc .log .bak; do
+          find $dpath_child -name "*$x" -exec rm -f '{}' \;
+        done
+        find $dpath_child -name ".coverage" -exec rm -f '{}' \;
+        if dir ~/*-*.out 1>/dev/null 2>&1
+        then
+          rm -f ~/*-*.out
+        fi
+      fi
+      if [ $opt_dry_run -eq 0 ]; then
+        dotmode=$(shopt -p dotglob)
+        chown -R odoo:ERPs $dpath_child
+        chmod -R u+rwX,g+rwX $dpath_child
+        $dotmode
+      else
+        echo "chown -R odoo:ERPs $dpath_child"
+        echo "chmod -R u+rwX,g+rwX $dpath_child"
+      fi
+      if [ "$prjname" != "Odoo" ]; then
+        if [ -d $opt_dpath/$pkgname/cover ]; then
+          if [ $opt_dry_run -eq 0 ]; then
+            rm -fR $opt_dpath/$pkgname/cover
+          fi
+        fi
+        if [ -h $PKGPATH/$pkgname/Makefile ]; then
+          echo "cp $MAKEF $dpath_child/Makefile"
+          (($opt_dry_run))||rm -f $dpath_child/Makefile
+          (($opt_dry_run))||cp $MAKEF $dpath_child/Makefile
+        fi
+      fi
+    fi
+}
+
 if [ "$opt_sts" ]; then
   if [ "$opt_sts" == "0" ]; then
     opt_sts=" 0 - WIP"
@@ -78,6 +183,8 @@ if [ $opt_dry_run -gt 0 ]; then
     echo "$(basename $0) -n -d -p \"$opt_dpath\" $pkg_path $prjname"
   elif [ $opt_commit -gt 0 ]; then
     echo "$(basename $0) -n -c $pkg_path $prjname"
+  elif [ $opt_fetch -gt 0 ]; then
+    echo "$(basename $0) -n -f -p \"$opt_dpath\" $pkg_path $prjname"
   elif [ "$opt_sts" ]; then
     echo "$opt_sts"
   else
@@ -204,11 +311,14 @@ if [ "$prjname" == "travis_emulator" ]; then
     for x in $RFLIST; do
       if [ -f $PKGPATH/$pkgname/$x ]; then
         if [ $opt_diff -gt 0 ]; then
-          if [ "$(diff -q $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
+          if [ "$(diff -rq -x '*.pyc' $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
             # echo -e "$PKGPATH/$pkgname/$x\t$XDPATH/$x"
             # diff -y --suppress-common-lines $PKGPATH/$pkgname/$x $XDPATH/$x|less
-            diff $PKGPATH/$pkgname/$x $XDPATH/$x|less
+            diff -rq -x '*.pyc' $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
+        elif [ $opt_fetch -gt 0 ]; then
+          echo "cp $XDPATH/$x $PKGPATH/$pkgname/$x"
+          (($opt_dry_run))||cp $XDPATH/$x $PKGPATH/$pkgname/$x
         else
           echo "cp $PKGPATH/$pkgname/$x $XDPATH/$x"
           (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
@@ -216,14 +326,14 @@ if [ "$prjname" == "travis_emulator" ]; then
       fi
     done
     MAKEF=$PKGPATH/$pkgname/Makefile
-    if [ $opt_diff -eq 0 ]; then
+    if [ $opt_diff -eq 0 -a $opt_fetch -eq 0 ]; then
       chown -R $opt_own $XDPATH
       chmod -R u+rw,g+rw $XDPATH
     fi
   fi
 fi
-dotmode=$(shopt -p dotglob)
-if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
+if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 -a $opt_fetch -eq 0 ]; then
+  dotmode=$(shopt -p dotglob)
   if [ "$prjname" == "Odoo" ]; then
     chown -R $opt_own $PKGPATH
     chmod -R u+rw,g+rw $PKGPATH
@@ -239,9 +349,6 @@ if [ "$opt_sts" ]; then
   exit 0
 fi
 if [ $opt_sync -gt 0 ]; then
-  exit 0
-fi
-if [ $opt_diff -gt 0 ]; then
   exit 0
 fi
 if [ ! -d "$opt_dpath" ]; then
@@ -261,88 +368,34 @@ if [ "$PKGPATH" == "$opt_dpath" ]; then
   echo "Invalid package name $pkgname"
   exit 1
 fi
-for f in $(dir $PKGPATH)
-do
-  if [ -d "$f" ]; then
-    t="d"
-  else
-    t="f"
+if [ $opt_diff -gt 0 ]; then
+  # echo "  diff -rq $PKGPATH/ $opt_dpath/"
+  diff -rq -x '*.pyc' $PKGPATH/ $opt_dpath/
+  if [ $? -eq 0 ]; then
+    echo "No difference found"
   fi
-  fn=$(basename $f)
-  if [ "$prjname" == "Odoo" ]; then
-    v=1
-    if [ "$fn" == "Makefile" ]; then v=4; fi
-  else
-    v=0
-    if [ "$fn" == "Makefile" ]; then v=5; fi
-    if [ "$fn" == "README.rst" ]; then v=2; fi
-    if [ "$fn" == "README.md" ]; then v=2; fi
-    if [ "$fn" == "setup.py" ]; then v=3; fi
-    if [ "$fn" == "$pkgname" ]; then v=1; fi
-  fi
-  l=${#fn}
-  ((l=l-4))
-  for x in .pyc .log .bak; do
-    if [ "${fn:l}" == "$x" ]; then v=0; fi
-  done
-  # if [ "${fn:l}" == ".pyc" ]; then v=0; fi
-  # if [ "${fn:l}" == ".log" ]; then v=0; fi
-  # if [ "${fn:l}" == ".bak" ]; then v=0; fi
-  if [ $v -eq 1 ]; then
-    if [ "$t" == "d" ]; then
-      # echo "cp -R $PKGPATH/$f/ $opt_dpath/"
-      # (($opt_dry_run))||cp -R $PKGPATH/$f/ $opt_dpath/
-      echo "rsync -a --del $PKGPATH/$f/ $opt_dpath/$f/"
-      (($opt_dry_run))|| rsync -a --del --chmod=g+rw,o+rw $PKGPATH/$f/ $opt_dpath/$f/
-    else
-      echo "cp $PKGPATH/$f $opt_dpath/"
-      (($opt_dry_run))||cp $PKGPATH/$f $opt_dpath/
-    fi
-  elif [ $v -eq 2 ]; then
-    echo "cp $PKGPATH/$f $dpath_child/$fn"
-    (($opt_dry_run))||cp $PKGPATH/$f $dpath_child/$fn
-  elif [ $v -eq 3 ]; then
-    echo "cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn"
-    (($opt_dry_run))||cp $PKGPATH/$pkgname/setup.py $dpath_child/$fn
-  elif [ $v -eq 4 ]; then
-      echo "cp $MAKEF $opt_dpath/"
-      (($opt_dry_run))||cp $MAKEF $opt_dpath/
-  elif [ $v -eq 5 ]; then
-    echo "cp $MAKEF $dpath_child/$fn"
-    (($opt_dry_run))||cp $MAKEF $dpath_child/$fn
-  fi
-done
-if [ $opt_dry_run -eq 0 ]; then
-  if [ "$prjname" != "Odoo" -a -f $PKGPATH/$pkgname/.coveragerc ]; then
-    echo "cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc"
-    cp $PKGPATH/$pkgname/.coveragerc $opt_dpath/.coveragerc
-  fi
-  for x in .pyc .log .bak; do
-    find $dpath_child -name "*$x" -exec rm -f '{}' \;
-  done
-  # find $dpath_child -name "*.log" -exec rm -f '{}' \;
-  # find $dpath_child -name "*.pyc" -exec rm -f '{}' \;
-  # find $dpath_child -name "*.bak" -exec rm -f '{}' \;
-  find $dpath_child -name ".coverage" -exec rm -f '{}' \;
-  if dir ~/*-*.out 1>/dev/null 2>&1
-  then
-    rm -f ~/*-*.out
-  fi
-  dotmode=$(shopt -p dotglob)
-  chown -R odoo:ERPs $dpath_child
-  chmod -R u+rwX,g+rwX $dpath_child
-  $dotmode
-  if [ "$prjname" != "Odoo" ]; then
-    if [ -d $opt_dpath/$pkgname/cover ]; then
-      rm -fR $opt_dpath/$pkgname/cover
-    fi
-    if [ -f $PKGPATH/$pkgname/Makefile ]; then
-      echo "cp $MAKEF $dpath_child/Makefile"
-      rm -f $dpath_child/Makefile
-      (($opt_dry_run))||cp $MAKEF $dpath_child/Makefile
-    fi
-  fi
+  exit 0
 fi
+if [ $opt_dry_run -eq 0 ]; then
+  X=
+else
+  X="--dry-run"
+fi
+for x in .pyc .log .bak build/ .coverage/ .git/; do
+    X="$X --exclude *$x"
+done
+if [ $opt_fetch -eq 0 ]; then
+  for f in $(dir $PKGPATH)
+  do
+    robocopy
+  done
+else
+  for f in $(dir $opt_dpath)
+  do
+    robocopy
+  done
+fi
+roboown
 # echo "Now remember:"
 # echo "$ cd $PKGPATH"
 # echo "$ python setup.py register"
