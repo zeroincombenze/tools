@@ -1,0 +1,1 @@
+../product -L ./product.log regression_test

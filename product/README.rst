@@ -2,20 +2,25 @@
 |coverage status|_
 |license agpl|_
 
-Python tools
-============
+product
+=======
 
-Sparse python source code
+Simple LAMP installer and manager
 
-+---------+----------------------------------------------------------+
-| os0     | Simple os interface checked for OpenVMS too              |
-+---------+----------------------------------------------------------+
-| product | Simple LAMP and odoo server installer                    |
-+---------+----------------------------------------------------------+
-| pytok   | Simple python token parser                               |
-+---------+----------------------------------------------------------+
-| z0lib   | Simple general purpose bash library                      |
-+---------+----------------------------------------------------------+
+product is an interactive tool to install, update, remove, query and manage software for building a complete LAMP server.
+LAMP means Linux Apache Mysql PHP; in recent times, Python and Postgresql were added.
+
+product is just a front-end for yum and apt-get commands, it is not a real package installer.
+It require yum on CentOS and Red Hat family distros, and apt-get on Ubuntu and debian family distros.
+It is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
+For every main package, may be managed some dependent package; i.e. openssh-server manages openssh-client too.
+
+All operations are logged in /var/log/product.log in order to trace operational flow.
+
+You can easily write portable script to install packages on every Linux distribution.
+
+You can find more info here:
+http://wiki.zeroincombenze.org/en/Linux/dev
 
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg

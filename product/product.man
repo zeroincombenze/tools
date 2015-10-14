@@ -1,0 +1,174 @@
+.\" Manpage for product.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH product 8
+.SH NAME
+product \- create and/or manage a LAMP server
+.SH SYNOPSIS
+product [options] action [package|LAMP]
+.SH DESCRIPTION
+\fBproduct\fR is an interactive tool to install, update, remove, query and manage software for building a complete LAMP server.
+LAMP means \fBLinux\fR \fIApache\fR \fIMysql\fR (now \fIMariadb\fR) \fIPHP\fR; in recent times, \fIPython\fR and \fIPostgresql\fR were added.
+Notice software name may be replaced, based on Linux distribution and version,  in order to manage LAMP server in standard way,
+everytime and everywhere; i.e. when you type \fIproduct install mysql\fR on CentOS 7, your command is replaced by
+\fIproduct install mariadb-server\fR because mysql-server is not yet avaiable on this version of Linux distribution.
+.br
+\fBproduct\fR is just a front-end for \fIyum\fR, \fIapt-get\fR and \fIpip\fR commands, it is not a real package installer.
+It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros, \fBapt-get\fR on Ubuntu and Debian family distros
+and \fBpip\fR on both distributions.
+\fBproduct\fR is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
+For every main package, may be managed some dependent package; i.e. openssh-server includes openssh-client.
+Type \fIproduct whatis\fR command to see how product manages and includes packages.
+.br
+All operations are logged in \fI/var/log/product.log\fR in order to trace operational flow; option -L can set another tracelog.
+.br
+You can easily write portable script to install packages on every Linux distribution.
+.br
+ 
+.br
+Action is one of:
+.br
+* help
+.br
+* install [package|LAMP]
+.br
+* update [package|LAMP]
+.br
+* config [package|LAMP]
+.br
+* remove package
+.br
+* status
+.br
+* version [package|LAMP]
+.br
+* whatis [package|LAMP]
+.br
+* prepare
+.br
+* export
+.br
+* import
+.br
+ 
+.br
+\fBinstall\fR
+.RS
+Install selected package; if no package name supplied or package is LAMP, install all packages to buil a complete LAMP server;
+if a package is already installed, is ignored and sub packages are not examined. To install package, \fBproduct\fR choices one
+of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
+If package name is product itself, it copies script to /usr/bin to permanent use.
+.RE
+.br
+ 
+.br
+\fBupdate\fR
+.RS
+Update/upgrade package(s) to last version; means \fIyum update\fR, \fIapt-get upgrade\fR or \fIpip install --upgrade\fR.
+Dependent sub packages will be updated/upgraded too, or installed if needed in order to align LAMP installation.
+.RE
+.br
+ 
+.br
+\fBconfig\fR
+.RS
+Config package(s) after installation or update. Configuration can issue interactive input request. 
+.RE
+.br
+ 
+.br
+\fBremove\fR
+.RS
+Remove a package and all dependent sub packages. Notice: it is not possible remove all LAMP packages together
+.RE
+.br
+ 
+.br
+\fBstatus\fR
+.RS
+Show installation status; display installed packages and packaged to be installed
+.RE
+.br
+ 
+.br
+\fBversion\fR
+.RS
+Show version of installed or selected package(s) and all its dependent packages
+.RE
+.br
+ 
+.br
+\fBwhatis\fR
+.RS
+Display main packages (identified by single hyphen) and dependent packages (with double hyphens) managed by \fBproduct\fR;
+with -w otion, display graphical interface packages too
+.RE
+.br
+ 
+.br
+\fBprepare\fR
+.RS
+Prepare installation files to duplicate this host configuration; users and groups will be exported.
+Notice: user with uid less than 400 are not exported.
+.RE
+.br
+ 
+.br
+\fBexport\fR
+.RS
+Export configuration files to destination host; require -H host option.
+Use scp to copy; openssh must be installed.
+.RE
+.br
+ 
+.br
+\fBimport\fR
+.RS
+Import configuration files to duplicate original host.
+.br
+Warning! This command add new users and groups into system
+.RE
+.SH OPTIONS
+.TP
+.BR \-H \fI[user@]host\fR
+Host and user where export config files.
+.TP
+.BR \-L \fIfilename\fR
+Trace file name. Default is /var/log/product.log if user is root, otherwise is ~/product.log
+.TP
+.BR \-n
+Do nothing (dry-run)
+.TP
+.BR \-O
+Include Odoo in LAMP software
+.TP
+.BR \-P \fIpassword\fR
+Default password for users, if added by import command.
+.TP
+.BR \-q
+Quiet mode
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.TP
+.BR \-w
+Manage graphical interface packages
+.TP
+.BR \-y
+assume yes
+.TP
+.BR \-1
+1st installation
+.SH EXAMPLES
+Install a new LAMP server, the 1st time, without ask confirmation
+.RS
+\fBproduct -y1 install LAMP\fR
+.RE
+.SH SEE ALSO
+apg-get, yum, pip
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)
