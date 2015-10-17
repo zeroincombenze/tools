@@ -1,0 +1,178 @@
+.\" Odoo tests.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH odoo_test 8
+.SH NAME
+odoo_test \- run odoo tests
+.SH SYNOPSIS
+odoo_test [options] action
+.SH DESCRIPTION
+\fBodoo_test\fR is an interactive tool to run Odoo tests. Do not use more instances concrurrently of this tool.
+.br
+ 
+.br
+Action is one of:
+.br
+* help
+.br
+* chkconfig
+.br
+* list
+.br
+* stat
+.br
+* test
+.br
+* update
+.br
+ 
+.br
+\fBchconfig\fR
+.RS
+Analyze system and display configuration parameters.
+.RE
+.br
+ 
+.br
+\fBlist\fR
+.RS
+Analyze system and display odoo module can be tested.
+.RE
+.br
+ 
+.br
+\fBstat\fR
+.RS
+Show test statistics.
+.RE
+.br
+ 
+.br
+\fBtest\fR
+.RS
+Execute odoo test.
+\fBWarning\fR execution test stops temporarily odoo service and restarts it after every test is terminated. Setting -Q option, service is restarted after all tests are terminated.
+Use option -a to avoid service halting
+.RE
+.br
+ 
+.br
+\fBupdate\fR
+.RS
+Not yet implemented
+.RE
+.br
+ 
+.br
+Canonical tree
+.RS.br
+ 
+.br
+Odoo files are searched in canonical tree. Option switches -c -F -O -r -S and -U can set different odoo tree. Canonical tree is:
+.br
+* configuration file is searched in \fI/etc/odoo\fR or \fI/etc/openerp\fR
+.br
+* odoo user is \fIodoo\fR or \fIopenerp\fR
+.br
+* odoo root directory is searched in home directory of user as \fI8.0\fR or \fI7.0\fR or \fIv8\fR or \fIv7\fR
+ i.e: canonical directroy is \fI/opt/odoo/8.0\fR
+.RE
+.SH OPTIONS
+.TP
+.BR \-A
+select all test execution in priority order (implies -y); test starts from base module.
+ Incompatible with -m and -p option switches.
+.TP
+.BR \-a
+use alternative configuration to run test with concurrently with odoo service (implies -Q).
+This option create a local configuration file and set odoo port service to 8089. Do not stop odoo-service.
+.TP
+.BR \-c \fIpathname\fR
+declare odoo config file; without this option, configuration file is searched in
+/etc/odoo and /etc/openerp with name odoo-config.conf or openerp-config.conf base on odoo version (see -O option)
+.TP
+.BR \-d \fIdatabase\fR
+select database for test (default test); \fBWarning\fR database is destroyed if exists.
+.TP
+.BR \-F \fIpathname\fR
+declare odoo script name to execution test; script is searched in user directory (see -c -O -r and -S options) for canonical odoo tree.
+If odoo configuration is not canonical, this option can set actual script name.
+.TP
+.BR \-m \fImodule\fR
+select specific module to test. Incompatible with -A and -p option switches.
+.TP
+.BR \-n
+Do nothing (dry-run)
+.TP
+.BR \-N
+create new log for test result; test results are stored in $HOME/testlog/result.log 
+.TP
+.BR \-O \fIversion\fR
+Select odoo version to test and for directory searching (see -c -r -F and -S options).
+This option is mandatory if both 7.0 and 8.0 odoo version are installed. 
+.TP
+.BR \-p \fIprio\fR
+select modules with specific priority. Incompatible with -A and -m option switches.
+.TP
+.BR \-P \fIport\fR
+Use service port for odoo. Default is 8069.
+.TP
+.BR \-q
+Quiet mode. Hide progress messages.
+.TP
+.BR \-Q
+Quick mode. Do not stop and restart odoo service after every test.
+This switch run odoo test more quick but stop odoo service until all tests are terminated.
+Without this option switch, user connected can be served (slowly). To avoid trouble to connected users, use -a option switch.
+.TP
+.BR \-r \fIdirectory\fR
+declare root directory of odoo server; without this option switch, directory is searched in user directory (see -c -F -O and -S options)
+ for canonical odoo tree. If odoo configuration is not canonical, this option can set actual odoo directory.
+.TP
+.BR \-S \fIservice\fR
+declare odoo service name. Without this option switch, service name odoo, odoo-server, openerp or openerp-server are searched
+in \fI/etc/init.d\fR
+.TP
+.BR \-t
+Show tracelog of every test to console. Tracelog are stored in $HOME/testlog/ directory 
+.TP
+.BR \-U \fIusername\fR
+Username to manage odoo service. Set current user if it is odoo or openerp; otherwise is used odoo or openerp. 
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.TP
+.BR \-x
+show statistics at the end
+.TP
+.BR \-y
+assume yes for ask confirmation
+.SH EXAMPLES
+Run odoo test; stop service before test and restart after all tests are terminated;
+clear previous statitics and display all messages to console and statistics at the end
+.RS
+\fBodoo_test -ANtvx test\fR
+.RE 
+.br
+ 
+.br
+Run odoo test concurrently with current odoo service; do not display anything, keep old stattistics
+clear previous statitics and display all messages to console
+.RS
+\fBodoo_test -Aaq test\fR
+.RE 
+.br
+ 
+.br
+Display odoo configuration
+.RS
+\fBodoo_test chkconfig\fR
+.RE
+.SH SEE ALSO
+service
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)

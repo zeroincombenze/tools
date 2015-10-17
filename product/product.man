@@ -56,6 +56,7 @@ Action is one of:
 Install selected package; if no package name supplied or package is LAMP, install all packages to buil a complete LAMP server;
 if a package is already installed, is ignored and sub packages are not examined. To install package, \fBproduct\fR choices one
 of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
+Optional switch -D and -w can include more packages to install.
 If package name is product itself, it copies script to /usr/bin to permanent use.
 .RE
 .br
@@ -65,6 +66,7 @@ If package name is product itself, it copies script to /usr/bin to permanent use
 .RS
 Update/upgrade package(s) to last version; means \fIyum update\fR, \fIapt-get upgrade\fR or \fIpip install --upgrade\fR.
 Dependent sub packages will be updated/upgraded too, or installed if needed in order to align LAMP installation.
+Optional switch -D and -w can include more packages to update.
 .RE
 .br
  
@@ -86,6 +88,7 @@ Remove a package and all dependent sub packages. Notice: it is not possible remo
 \fBstatus\fR
 .RS
 Show installation status; display installed packages and packaged to be installed
+Optional switch -D and -w can include more packages to check.
 .RE
 .br
  
@@ -93,6 +96,7 @@ Show installation status; display installed packages and packaged to be installe
 \fBversion\fR
 .RS
 Show version of installed or selected package(s) and all its dependent packages
+Optional switch -D and -w can include more packages.
 .RE
 .br
  
@@ -100,7 +104,8 @@ Show version of installed or selected package(s) and all its dependent packages
 \fBwhatis\fR
 .RS
 Display main packages (identified by single hyphen) and dependent packages (with double hyphens) managed by \fBproduct\fR;
-with -w otion, display graphical interface packages too
+Optional switch -D and -w can include development and graphical interface packages too.
+Special swith -E show list of other linux ditributions.
 .RE
 .br
  
@@ -128,6 +133,17 @@ Import configuration files to duplicate original host.
 Warning! This command add new users and groups into system
 .RE
 .SH OPTIONS
+.TP
+.BR \-D
+Manage development package(s) too. With this option, packages like pkg-dev or pkg-devel are included in list.
+Usage for deploy a development machine.
+.TP
+.BR \-E \fIlinux_disto\fR
+This option activate package(s) for selected Linux distribution. It is useful to see which are package name in other
+distribution. \fIlinux_disto\fR may be on of CentOS,CentOS7 or Ubuntu.
+\fBWarning!\fR Use this switch just with command \fIwhatis\fR.
+Do not use this switch in conjuntion of command \fIinstall\fR or \fIupdate\fR because
+operations will fail.
 .TP
 .BR \-H \fI[user@]host\fR
 Host and user where export config files.
