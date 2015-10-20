@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.9
+#__version__=0.1.10
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -155,7 +155,7 @@ export -f xuname
 
 ##############################################################################
 # Parse command line arguments in a professional way
-# __version__="0.1.7"
+# __version__="0.1.8"
 # You can define syntax rules declaring some array variables, before calling
 # this function. On exit, variable are set on appropriate way.
 # Global variables to declare
@@ -249,7 +249,7 @@ parseoptargs() {
 export -f parseoptargs
 
 # Print help for parse command line arguments 
-# __version__="0.1.7"
+# __version__="0.1.8"
 print_help () {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
@@ -269,7 +269,7 @@ print_help () {
           xx=""
           hlp+=" -${OPTOPTS[jy]}\t\t${OPTHELP[jy]}\n"
         elif [ "$a" == "=" ]; then
-          if [ -z "$xx" ]; then
+          if [ -z "$xx" -o "$xx" == "]" ]; then
             xx="][-"
           fi
           txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"

@@ -16,7 +16,7 @@ else
 fi
 
 
-__version__="0.2.6"
+__version__="0.2.7"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -37,7 +37,7 @@ fi
 _LAST_PKG=""
 _LAST_VER=""
 
-DEFPRM=( "NAME_Debian"\
+DEFPRM=("NAME_Debian"\
  "NAME_RHEL"\
  "LAMP__Debian"\
  "LAMP__RHEL"\
@@ -52,11 +52,13 @@ DEFPRM=( "NAME_Debian"\
  "SUB_python__RHEL"\
  "SUB_python__Debian_DEV"\
  "SUB_python__RHEL_DEV"\
+ "SUB_odoo__Debian"\
+ "SUB_odoo__RHEL"\
  "SUB_mariadb_server"\
  "SUB_openssh_server__RHEL"\
  "SUB_openssh_server__Debian"\
  "SUB_php5"\
- "SUB_PYTHON_DEVELOVER"\
+ "SUB_odoo_DEV"\
  "TCP_httpd"\
  "TCP_apache2"\
  "TCP_openssh_server"\
@@ -64,8 +66,8 @@ DEFPRM=( "NAME_Debian"\
  "$THIS_vfycmd")
 
 
-DEFVAL=( "apache2 postgresql mysql-server php5 python-dev zlib1g-dev"\
- "httpd postgresql-server mysql-server php python-devel zlib-devel"\
+DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6-dev"\
+ "httpd postgresql-server mysql-server php python-devel zlib-devel readline-devel"\
  "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python"\
  "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python"\
  "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb-server postgresql-server php python"\
@@ -75,20 +77,37 @@ DEFVAL=( "apache2 postgresql mysql-server php5 python-dev zlib1g-dev"\
  "ssh python"\
  "postgresql"\
  "postgresql"\
- "python-setuptools python-virtualenv virtualenv"\
-" libreadline6 python-libxslt1 python-psycopg2 python-simplejson pytz xlwt PyYAML"\
-" python-gdata python-ldap python-lxml ZSI pydot"\
- "setuptools python-virtualenv virtualenv bzip2-devel openssl-devel ncurses-devel"\
-" readline readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel"\
-" libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML"\
-" gdata python-ldap python-lxml ZSI postgresql-devel pydot"\
+ "python-setuptools python-virtualenv virtualenv\
+    libreadline6 python-libxslt1 python-psycopg2 python-simplejson pytz xlwt PyYAML\
+    python-gdata python-ldap python-lxml ZSI pydot"\
+ "setuptools python-virtualenv virtualenv readline\
+    libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
+    gdata python-ldap python-lxml ZSI pydot"\
  "python-dev zlib1g-dev libssl-dev libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev liblzma-dev"\
- "python-devel zlib-devel"\
+ "python-devel zlib-devel bzip2-devel openssl-devel ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel postgresql-devel"\
+ "ghostscript libart-2.0-2\
+    libcupsfilters1 libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0\
+    liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5\
+    libwebpmux1 poppler-data poppler-utils python-babel python-babel-localedata\
+    python-dateutil python-decorator python-docutils python-feedparser\
+    python-gevent python-greenlet python-imaging python-jinja2 python-mako\
+    python-markupsafe python-mock python-openid python-passlib python-pil\
+    python-psutil python-pybabel python-pychart python-pydot python-pygments\
+    python-pyinotify python-pyparsing python-pypdf python-renderpm\
+    python-reportlab python-reportlab-accel python-roman python-suds\
+    python-unittest2 python-utidylib python-vatnumber python-vobject\
+    python-werkzeug docutils-common docutils-doc unidecode"\
+ "Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
+    libjpeg-turbo libtiff libxml2-python libxslt-python libyaml\
+    pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
+    python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
+    python-psutil python-psycopg2 python-reportlab python-simplejson\
+    python-unittest2 python-urllib3 python-vobject python-werkzeug pytz unidecode"\
  "mariadb"\
  "openssh-clients"\
  "openssh-client"\
  "php5-mysql php5-common php5-xml"\
- "pep8 autopep8 flake8 pylint pcre"
+ "pcregrep oerplib os0 pytok"\
  "80 443"\
  "80 443"\
  "22"\
@@ -169,12 +188,12 @@ get_cfg_value() {
       elif [ "$2" == "SUB_odoo" ]; then
         if [ "$FH" == "RHEL" ]; then
           p="Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
-  jbigkit-libs libjpeg-turbo libtiff libwebp libxml2-python libxslt-python libyaml\
+  libjpeg-turbo libtiff libxml2-python libxslt-python libyaml\
   pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
-  python-ldap python-lxml python-mako python-markupsafe python-mock python-openid python-passlib python-paste\
-  python-pillow python-psutil python-psycopg2 python-reportlab python-requests python-simplejson python-six\
-  python-tempita python-unittest2 python-urllib3 python-vobject python-werkzeug pytz unidecode"
-# TODO remove: python-passlib python-paste python-pillow python-tempita python-urllib3
+  python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
+  python-psutil python-psycopg2 python-reportlab python-simplejson\
+  python-unittest2 python-urllib3 python-vobject python-werkzeug pytz unidecode"
+# TODO remove: python-passlib python-paste python-pillow python-tempita
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
         else
             p="ghostscript libart-2.0-2\
@@ -191,16 +210,8 @@ get_cfg_value() {
   python-werkzeug docutils-common docutils-doc unidecode"
 # antiword
         fi
-      # elif [ "$2" == "VFYLOW" ]; then
-      #   p="apachectl php php5"
-      # elif [ "$2" == "VFYUPP" ]; then
-      #   p="ssh"
-      # elif [ "$2" == "VFYE2NL" ]; then
-      #   p=""
-      # elif [ "$2" == "VFYERR" ]; then
-      #   p="ssh python"
       elif [ "$2" == "PIP_PKGS" ]; then
-        p="virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz ZSI gdata PyYAML xlwt unidecode"
+        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz ZSI gdata PyYAML xlwt unidecode python-urllib3"
       elif [ "$2" == "STD_PKGS" ]; then
         p="epel-release python-pip pip yum-utils openssh-server httpd mariadb-server postgresql-server php python"
         p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
@@ -212,10 +223,6 @@ get_cfg_value() {
         p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
         p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
         p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
-      # elif [ "$2" == "NAME_RHEL" ]; then
-      #   p="httpd postgresql-server mysql-server php"
-      # elif [ "$2" == "NAME_Debian" ]; then
-      #   p="apache2 postgresql mysql-server php5"
       elif [ "$2" == "NAME_ALIAS" ]; then
         if [ "$DISTO" == "CentOS7" ]; then
           p="mysql mysql-server pip pyopenssl"
@@ -303,7 +310,6 @@ init_cfg () {
     for pkgname in $iter; do
       realname=$(prod realname $pkgname)
       export SUB_${pkgname/-/_}="$(get_cfg_value $FCONF SUB_${pkgname/-/_})"
-      echo "    SUB_${pkgname/-/_}=$(get_cfg_value $FCONF SUB_${pkgname/-/_});">>~/product.his #debug
       export TCP_${pkgname/-/_}="$(get_cfg_value $FCONF TCP_${pkgname/-/_})"
     done
     NOINQ="$(get_cfg_value $FCONF NOINQ)"
@@ -473,7 +479,6 @@ get_pkg_ver_inq () {
       pkgversion=
       if [ "$vfycmd" ]; then
         x="$(echo "$vfycmd"|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-        # echo "    $x=(echo "$vfycmd"|awk -F\| '{print \$1}'|awk -F'2>' '{print \$1}'|awk -F'&>' '{print \$1}')">>~/product.his    #debug
         if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
           sts=0
         elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -491,17 +496,12 @@ get_pkg_ver_inq () {
         elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
           pkgversion=
         else
-          # echo "    if [ ''(echo \\''$VFYERR\\''|grep [[:space:]]$cmdname[[:space:]] 2>/dev/null)'']">>~/product.his    #debug
-          # echo "    elif [ ''(echo \\''$VFYE2NL\\''|grep [[:space:]]$cmdname[[:space:]] 2>/dev/null)'']">>~/product.his    #debug
           if [ "$(echo \\"$VFYERR\\"|grep [[:space:]]$cmdname[[:space:]] 2>/dev/null)" ]; then
             pkgversion="$($vfycmd &>~/tmp.log; cat ~/tmp.log|head -n1; rm -f ~/tmp.log)"
-            # echo "    $pkgversion=($vfycmd &>~/tmp.log; cat ~/tmp.log|head -n1; rm -f ~/tmp.log)">>~/product.his    #debug
           elif [ "$(echo \\"$VFYE2NL\\"|grep [[:space:]]$cmdname[[:space:]] 2>/dev/null)" ]; then
             pkgversion="$($vfycmd|head -n1)"
-            # echo "    $pkgversion=($vfycmd|head -n1)">>~/product.his    #debug
           else
             pkgversion="$($vfycmd 2>/dev/null|head -n1)"
-            # echo "    $pkgversion=($vfycmd 2>/dev/null|head -n1)">>~/product.his    #debug
           fi
         fi
         _LAST_VER="$pkgversion"
@@ -868,7 +868,6 @@ prod () {
       fi
     fi
     SUBlist="SUB_${pkgname/-/_}"
-    echo "    $SUBlist=${!SUBlist};">>~/product.his #debug
     if [ "${!SUBlist}" ]; then
       ((level++))
       for p in ${!SUBlist}; do
@@ -901,7 +900,6 @@ prod () {
     if [ $level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
       run_traced "apt-get autoremove"
     fi
-    echo "ret: pkg=$pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
     return $STS_SUCCESS
 }
 
@@ -1155,6 +1153,12 @@ post_config_mariadb-server () {
 }
 
 test_cfg_name () {
+    #local jy=0
+    #while ((jy<${#DEFPRM[*]})); do
+    #  echo "$jy) ${DEFPRM[jy]}:=${DEFVAL[jy]};"
+    #  ((++jy))
+    #done
+    #exit 1
     if [ "$FH" == "RHEL" ]; then
        local TPRM=("." httpd_svcname httpd_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
     php_cmdname postgresql-server_cmdname openssh-server_svcname php_vfycmd openssh-server_cmdname python-pip_cmdname\
@@ -1280,16 +1284,16 @@ test_install () {
         echo "--> yum -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
         # echo "--> yum -y install zlib-devel">>$ftest
-        echo "--> yum -y install bzip2-devel">>$ftest
-        echo "--> yum -y install openssl-devel">>$ftest
-        echo "--> yum -y install ncurses-devel">>$ftest
+        # echo "--> yum -y install bzip2-devel">>$ftest
+        # echo "--> yum -y install openssl-devel">>$ftest
+        # echo "--> yum -y install ncurses-devel">>$ftest
         echo "--> yum -y update readline">>$ftest
-        echo "--> yum -y install readline-devel">>$ftest
-        echo "--> yum -y install sqlite-devel">>$ftest
-        echo "--> yum -y install tk-devel">>$ftest
-        echo "--> yum -y install gdbm-devel">>$ftest
-        echo "--> yum -y install libpcap-devel">>$ftest
-        echo "--> yum -y install xz-devel">>$ftest
+        # echo "--> yum -y install readline-devel">>$ftest
+        # echo "--> yum -y install sqlite-devel">>$ftest
+        # echo "--> yum -y install tk-devel">>$ftest
+        # echo "--> yum -y install gdbm-devel">>$ftest
+        # echo "--> yum -y install libpcap-devel">>$ftest
+        # echo "--> yum -y install xz-devel">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
@@ -1300,7 +1304,7 @@ test_install () {
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
         echo "--> pip  install ZSI">>$ftest
-        echo "--> yum -y install postgresql-devel">>$ftest
+        # echo "--> yum -y install postgresql-devel">>$ftest
         echo "--> yum -y install pydot">>$ftest
       else
         echo "--> apt-get -y install python">>$ftest
@@ -1342,10 +1346,10 @@ test_install () {
         echo "--> yum -y install dejavu-fonts-common">>$ftest
         echo "--> yum -y install dejavu-sans-fonts">>$ftest
         echo "--> yum -y install fontpackages-filesystem">>$ftest
-        echo "--> yum -y install jbigkit-libs">>$ftest
+        # echo "--> yum -y install jbigkit-libs">>$ftest
         echo "--> yum -y install libjpeg-turbo">>$ftest
         echo "--> yum -y install libtiff">>$ftest
-        echo "--> yum -y install libwebp">>$ftest
+        # echo "--> yum -y install libwebp">>$ftest
         echo "--> yum -y install libxml2-python">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
@@ -1364,18 +1368,18 @@ test_install () {
         echo "--> yum -y install python-markupsafe">>$ftest
         echo "--> yum -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        echo "--> yum -y install python-passlib">>$ftest
-        echo "--> yum -y install python-paste">>$ftest
-        echo "--> yum -y install python-pillow">>$ftest
+        # echo "--> yum -y install python-passlib">>$ftest
+        # echo "--> yum -y install python-paste">>$ftest
+        # echo "--> yum -y install python-pillow">>$ftest
         echo "--> yum -y install python-psutil">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y install python-reportlab">>$ftest
-        echo "--> yum -y install python-requests">>$ftest
+        # echo "--> yum -y install python-requests">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
-        echo "--> yum -y install python-six">>$ftest
-        echo "--> yum -y install python-tempita">>$ftest
+        # echo "--> yum -y install python-six">>$ftest
+        # echo "--> yum -y install python-tempita">>$ftest
         echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> yum -y install python-urllib3">>$ftest
+        echo "--> pip  install python-urllib3">>$ftest
         echo "--> yum -y install python-vobject">>$ftest
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
@@ -1527,16 +1531,16 @@ test_update () {
         echo "--> yum -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
         # echo "--> yum -y install zlib-devel">>$ftest
-        echo "--> yum -y install bzip2-devel">>$ftest
-        echo "--> yum -y install openssl-devel">>$ftest
-        echo "--> yum -y install ncurses-devel">>$ftest
+        # echo "--> yum -y install bzip2-devel">>$ftest
+        # echo "--> yum -y install openssl-devel">>$ftest
+        # echo "--> yum -y install ncurses-devel">>$ftest
         echo "--> yum -y update readline">>$ftest
-        echo "--> yum -y install readline-devel">>$ftest
-        echo "--> yum -y install sqlite-devel">>$ftest
-        echo "--> yum -y install tk-devel">>$ftest
-        echo "--> yum -y install gdbm-devel">>$ftest
-        echo "--> yum -y install libpcap-devel">>$ftest
-        echo "--> yum -y install xz-devel">>$ftest
+        # echo "--> yum -y install readline-devel">>$ftest
+        # echo "--> yum -y install sqlite-devel">>$ftest
+        # echo "--> yum -y install tk-devel">>$ftest
+        # echo "--> yum -y install gdbm-devel">>$ftest
+        # echo "--> yum -y install libpcap-devel">>$ftest
+        # echo "--> yum -y install xz-devel">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
@@ -1547,7 +1551,7 @@ test_update () {
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
         echo "--> pip  install ZSI">>$ftest
-        echo "--> yum -y install postgresql-devel">>$ftest
+        # echo "--> yum -y install postgresql-devel">>$ftest
         echo "--> yum -y install pydot">>$ftest
       else
         echo "--> apt-get -y update python">>$ftest
@@ -1589,10 +1593,10 @@ test_update () {
         echo "--> yum -y install dejavu-fonts-common">>$ftest
         echo "--> yum -y install dejavu-sans-fonts">>$ftest
         echo "--> yum -y install fontpackages-filesystem">>$ftest
-        echo "--> yum -y install jbigkit-libs">>$ftest
+        # echo "--> yum -y install jbigkit-libs">>$ftest
         echo "--> yum -y install libjpeg-turbo">>$ftest
         echo "--> yum -y install libtiff">>$ftest
-        echo "--> yum -y install libwebp">>$ftest
+        # echo "--> yum -y install libwebp">>$ftest
         echo "--> yum -y install libxml2-python">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
@@ -1611,18 +1615,18 @@ test_update () {
         echo "--> yum -y install python-markupsafe">>$ftest
         echo "--> yum -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        echo "--> yum -y install python-passlib">>$ftest
-        echo "--> yum -y install python-paste">>$ftest
-        echo "--> yum -y install python-pillow">>$ftest
+        # echo "--> yum -y install python-passlib">>$ftest
+        # echo "--> yum -y install python-paste">>$ftest
+        # echo "--> yum -y install python-pillow">>$ftest
         echo "--> yum -y install python-psutil">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y install python-reportlab">>$ftest
-        echo "--> yum -y install python-requests">>$ftest
+        # echo "--> yum -y install python-requests">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
-        echo "--> yum -y install python-six">>$ftest
-        echo "--> yum -y install python-tempita">>$ftest
+        # echo "--> yum -y install python-six">>$ftest
+        # echo "--> yum -y install python-tempita">>$ftest
         echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> yum -y install python-urllib3">>$ftest
+        echo "--> pip  install python-urllib3">>$ftest
         echo "--> yum -y install python-vobject">>$ftest
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
@@ -1835,7 +1839,7 @@ fi
 if [ "$opt_log" ]; then
   FLOG=$opt_log
 fi
-date >~/product.his    #debug
+# date >~/product.his    #debug
 if [ "$opt_osf" == "CentOS7" ]; then
   DISTO="CentOS"
   FH="RHEL"
@@ -2078,7 +2082,8 @@ elif [ "$action" == "regression_test" ]; then
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-gdata gdata python-ldap pytz xlwt ZSI"
   SAVE_SMLT_NO="$SAVE_SMLT_NO Babel python-dateutil python-docutils python-feedparser zlib-devel zlib1g-dev bzip2-devel openssl-devel"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-imaging python-jinja2 python-mako python-markupsafe python-mock python-openid python-psutil"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vatnumber python-vobject python-werkzeug"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vatnumber python-vobject python-werkzeug python-urllib3"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO libwebp5 libwebpmux1 python-passlib python-paste python-pillow python-requests python-six python-tempita"
   SAVE_SMLT_NO="$SAVE_SMLT_NO ncurses-devel sqlite-devel virtualenv pydot PyYAML python-libxslt1"
   SAVE_SMLT_NO="$SAVE_SMLT_NO docutils-common docutils-doc python-dev python-devel python-virtualenv libreadline libreadline6 "
   SAVE_SMLT_NO="$SAVE_SMLT_NO readline-devel tk-dev tk-devel gdbm-devel libgdbm-dev liblzma-dev"

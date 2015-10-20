@@ -3,9 +3,11 @@
 if [ -f z0librc ]; then
 . ./z0librc
 FINAL=./optargs
+TESTDIR=./tests
 elif [ -f ../z0librc ]; then
 . ../z0librc
 FINAL=../optargs
+TESTDIR=.
 fi
 
 test_result () {
@@ -15,7 +17,8 @@ test_result () {
   exit 1
 fi
 }
-
+FOUT=$TESTDIR/z0librc.out
+FTEST=$TESTDIR/z0librc.test
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -33,7 +36,19 @@ test_result "1.1" "$opt_help" "0"
 test_result "1.2" "$opt_version" "-V"
 test_result "1.3" "$opt_dry_run" "0"
 test_result "1.4" "$opt_verbose" "0"
-
+echo "Test: 1.5"
+echo "Usage: all_tests [-hnVv]">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -v             verbose mode">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+if [ "$(diff -qEbB $FOUT $FTEST)" ]; then
+  echo "Test Failed"
+  exit 1
+fi
 
 OPTOPTS=(h        n            V           p)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_path)
@@ -52,6 +67,19 @@ test_result "2.2" "$opt_version" ""
 test_result "2.3" "$opt_dry_run" "0"
 test_result "2.4" "$opt_path" "~/"
 test_result "2.5" "$tgt" "mytarget"
+echo "Test: 2.6"
+echo "Usage: all_tests [-hnV][-p path] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -p path        path">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+if [ "$(diff -qEbB $FOUT $FTEST)" ]; then
+  echo "Test Failed"
+  exit 1
+fi
 
 
 parseoptargs "-p" "./mypath" "yourtarget"
@@ -60,6 +88,57 @@ test_result "3.2" "$opt_version" ""
 test_result "3.3" "$opt_dry_run" "0"
 test_result "3.4" "$opt_path" "./mypath"
 test_result "3.5" "$tgt" "yourtarget"
+echo "Test: 3.6"
+echo "Usage: all_tests [-hnV][-p path] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -p path        path">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+if [ "$(diff -qEbB $FOUT $FTEST)" ]; then
+  echo "Test Failed"
+  exit 1
+fi
+
+
+OPTOPTS=(h        n            O       p        V)
+OPTDEST=(opt_help opt_dry_run  opt_own opt_path opt_version)
+OPTACTI=(1        "1>"         "="     "=>"     "*>")
+OPTDEFL=(1        0            "$USER" "~/"     "")
+OPTMETA=("help"   "do nothing" "own"   "path"   "version")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "owner username"\
+ "path"\
+ "show version")
+OPTARGS=(tgt)
+
+parseoptargs "mytarget"
+test_result "4.1" "$opt_help" "0"
+test_result "4.2" "$opt_version" ""
+test_result "4.3" "$opt_dry_run" "0"
+test_result "4.4" "$opt_path" "~/"
+test_result "4.5" "$opt_own" "$USER"
+test_result "4.6" "$tgt" "mytarget"
+echo "Test: 4.7"
+echo "Usage: all_tests [-hn][-O own][-p path][-V] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -O own owner username">>$FTEST
+echo " -p path        path">>$FTEST
+echo " -V             show version">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+if [ "$(diff -qEbB $FOUT $FTEST)" ]; then
+  echo "Test Failed"
+  exit 1
+fi
+
 
 $FINAL -p $PWD "Test" "Success!"
+if [ -f $FOUT ]; then rm -f $FOUT; fi
+if [ -f $FTEST ]; then rm -f $FTEST; fi
 exit 0
