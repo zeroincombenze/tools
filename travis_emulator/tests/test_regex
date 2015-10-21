@@ -1,0 +1,142 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f ./travisrc ]; then
+. ./travisrc
+TESTDIR=./tests
+elif [ -f ../travisrc ]; then
+. ../travisrc
+TESTDIR=.
+fi
+
+
+test_result_k () {
+    echo "Test $1"
+    local TRES=$(a_find "$2")
+    if [ "$TRES" != "$3" ]; then
+      echo "Test failed: for $2 expected '$3', found '$TRES'"
+      exit 1
+    fi
+}
+
+
+test_result_x () {
+    echo "Test $1"
+    if $(matches1of "$2" "$XRGI"); then
+      sts=1
+    else
+      matches1of "$2" "$XRGX"
+      sts=$?
+    fi
+    if [ $sts -eq $3 ]; then
+      return 0
+    else
+      echo "Test failed: for $2 expected '$3', found '$sts'"
+      exit 1
+    fi
+}
+
+
+test_result_cp () {
+    echo "Test $1"
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+}
+
+ctr=0
+a_append "--new"
+a_append "KEY_A" "aaa"
+a_append "KEY_B" "bbb"
+a_append "^KEY.*" "any"
+((ctr++))
+test_result_k "$ctr" "KEY_A" "aaa"
+((ctr++))
+test_result_k "$ctr" "KEY_B" "bbb"
+((ctr++))
+test_result_k "$ctr" "KEY_Z" "any"
+((ctr++))
+test_result_k "$ctr" "NOKEY" ""
+
+a_append "--new"
+a_append "/opt/odoo/dev/travis" "1"
+a_append "/opt/odoo/dev/travis/travis.pyc" "0"
+a_append "/opt/odoo/dev/travis/travis.log" "0"
+a_append "/opt/odoo/dev/travis/travis.bak" "0"
+a_append "/opt/odoo/dev/travis/build/travis.py" "0"
+a_append "/opt/odoo/dev/travis/dist/travis.py" "0"
+a_append "/opt/odoo/dev/travis/.coverage/result" "0"
+a_append "/opt/odoo/dev/travis/.git/travis" "0"
+a_append "/opt/odoo/dev/travis/conf/travis.conf" "0"
+a_append "/opt/odoo/dev/travis/travis" "1"
+a_append "/opt/odoo/dev/travis/travis/tests" "1"
+a_append "/opt/odoo/dev/travis/travis/tests/travis.log" "0"
+a_append "/opt/odoo/dev/travis/travis/tests/.logfile" "1"
+a_append "build/travis.py" "0"
+a_append ".coverage/result" "0"
+a_append ".git/travis" "0"
+a_append "conf/travis.conf" "0"
+a_append "conf/travis.conf.sample" "1"
+a_append "dist/travis.py" "0"
+
+for f in ${DEFPRM[*]}; do
+  TRES=$(a_find "$f")
+  ((ctr++))
+  # set -x
+  test_result_x "$ctr" "$f" "$TRES"
+  sts=$?
+  # set +x
+  if [ $sts -gt 0 ]; then
+    break
+  fi
+done
+
+MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
+
+opt_dry_run=1
+opts_dry_run="-n"
+opt_fetch=0
+
+robocopy_init "travis_emulator" "travis_emulator"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator.egg-info" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/build" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/dist" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.rst" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.rst /opt/odoo/tools/travis_emulator/travis_emulator/README.rst" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.md" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.md /opt/odoo/tools/travis_emulator/travis_emulator/README.md" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/setup.py" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf/conf.sample" "/opt/odoo/tools/travis_emulator")
+test_result_cp "$ctr" "" "$TRES"
+
+robocopy_init "Odoo" "zeroincombenze"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py" "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal")
+test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+test_result_cp "$ctr" "" "$TRES"
+((ctr++))
+TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+test_result_cp "$ctr" "1||cp -L /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data" "$TRES"
+

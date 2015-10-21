@@ -1,2 +1,23 @@
 #! /bin/bash
-./test_Makefile
+# -*- coding: utf-8 -*-
+if [ -f ./travisrc ]; then
+. ./travisrc
+TESTDIR=./tests
+elif [ -f ../travisrc ]; then
+. ../travisrc
+TESTDIR=.
+fi
+
+
+$TESTDIR/test_regex
+sts=$?
+if [ $sts -eq 0 ]; then
+  $TESTDIR//test_Makefile
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
+  echo "Test successfully terminated"
+else
+  echo "Test failed!"
+fi
+exit $sts

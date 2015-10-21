@@ -15,7 +15,7 @@ MYDIR=$(echo $(readlink -f $(dirname $0)))
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 
-__version__=0.1.20
+__version__=0.1.21
 OPTOPTS=(h        n            V           v           b)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
 OPTACTI=(1        "1>"         "*>"        1           "=")
@@ -93,7 +93,7 @@ if [ "$action" == "check" ]; then
   export LINT_CHECK=1
 elif [ "$action" == "test" ]; then
   export LINT_CHECK=0
-elif [ "$prjname" != "Odoo" ]; then 
+elif [ "$prjname" != "Odoo" ]; then
   export LINT_CHECK=1
 else
   unset -v LINT_CHECK
@@ -113,7 +113,7 @@ export ODOO_REPO=$repository
 if [ ! -d $PKGPATH/$prjname ]; then
   echo "Invalid repository"
   exit 1
-fi    
+fi
 if [ "$prjname" == "Odoo" ]; then
   if [ $opt_dry_run -eq 0 ]; then
     dropdb  openerp_template 2>/dev/null||true

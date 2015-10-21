@@ -78,7 +78,7 @@ else
   pkgname=$(shell basename $$PWD)
   pkgids=$(shell grep "[^a-zA-Z0-9_]packages *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "[]\"', \r\n")
   PRJPATH=$(PKGPATH)/$(prjname)
-  LGITPATH=/opt/odoo/tools
+  LGITPATH=/opt/odoo/tools/$(prjname)
   BRANCH=""
   TESTDIR=tests
   TESTPATH=$(PRJPATH)/$(TESTDIR)
