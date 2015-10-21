@@ -4,7 +4,36 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.10
+#__version__=0.1.11
+
+
+##############################################################################
+# Install this lib file in /etc
+_install_z0librc () {
+    local tgt=/etc/z0librc
+    local src=./z0librc
+    local xtl=0
+    if [ -f $src ]; then
+      if [ -f $tgt ]; then
+        local xtlver=$(grep "#__version__" $tgt|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+        local newver=$(grep "#__version__" $src|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+        if [ $newver -gt $xtlver ]; then
+          xtl=1
+        fi
+      else
+        xtl=1
+      fi
+      if [ $xtl -gt 0 ]; then
+        if [ "$1" == "-n" ]; then
+          echo "cp $src $tgt"
+        elif [ $EUID -eq 0 ]; then
+          cp $src $tgt
+        fi
+      fi
+    fi
+}
+export -f _install_z0librc
+
 
 ##############################################################################
 # Detect and print more OS informations than uname command
@@ -22,6 +51,7 @@
 #    2015-08-27  antoniov    Linux CentOS 6.7(Final 2.6.32-504.16.2.el6.x86_64 x86_64) -> RHEL
 #    2015-08-27  antoniov    Linux CentOS 7.1.1503(Core 3.10.0-229.1.2.el7.x86_64 x86_64) -> RHEL
 #    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686) -> Debian
+#    2015-09-15  antoniov    Linux Ubuntu 14.04( 3.13.0-32-generic i686) -> Debian
 #
 # Parameter $1:
 #   -a  print all
@@ -293,3 +323,58 @@ print_help () {
       echo -e $txt
 }
 export -f print_help
+
+
+
+
+
+
+
+
+##############################################################################
+# Parse directory to search a file
+# __version__="0.1.1"
+# Search a file o directory of a list.
+# This function is used to find where is an application.
+#
+# Parameter $1:
+#    File/directory to search (if null is searched for directory)
+#  Parameter $2:
+#    Directory list (space separated) where file could be found (mandatory)
+#  Parameter $3:
+#    Subdirectory list (space separated) where file could be found (meby be empty)
+parsewhich() {
+   local p2=
+   local p3=
+   local result=
+   for p2 in $2; do
+     if [ -z "$3" ]; then
+       if [ -z "$1" ]; then
+         if [ -d $p2 ]; then
+           result=$(readlink -e $p2)
+           break
+         fi
+       else
+         if [ -e $p2/$1 ]; then
+           result=$(readlink -e $p2/$1)
+           break
+         fi
+       fi
+     else
+       for p3 in $3; do
+         if [ -z "$1" ]; then
+           if [ -d $p2/$p3 ]; then
+             result=$(readlink -e $p2/$p3)
+             break
+           fi
+         else
+           if [ -e $p2/$p3/$1 ]; then
+             result=$(readlink -e $p2/$p3/$1)
+             break
+           fi
+         fi
+       done
+     fi
+   done
+   echo "$result"
+}

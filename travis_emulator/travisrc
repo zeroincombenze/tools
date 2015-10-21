@@ -4,7 +4,7 @@
 # Common file for travi emulator scripts
 
 ODOO_SETUP=__openerp__.py
-MAKEF=/opt/openerp/dev/Makefile
+MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.friends.conf
 XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/"
 XRGI="^(.*\/|)conf\/.*sample$"

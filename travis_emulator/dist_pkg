@@ -16,7 +16,7 @@ fi
 TDIR=$(echo $(readlink -f $(dirname $0)))
 . $TDIR/travisrc
 
-__version__="0.1.36"
+__version__="0.1.37"
 
 # main
 OPTOPTS=(h        c          d        f         n            O              p         S        V           -)
