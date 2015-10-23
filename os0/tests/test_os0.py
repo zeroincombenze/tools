@@ -20,8 +20,6 @@
 #
 ##############################################################################
 # For software version see main
-
-
 """
      Test module os0
      This module provide OS indipendent interface
