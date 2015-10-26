@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(name='z0lib',
-      version='0.1.10',
+      version='0.1.14',
       description='Bash zeroincombenze lib',
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 1 - Planning',
       ])

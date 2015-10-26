@@ -16,16 +16,29 @@ elif [ -f ../z0librc ]; then
   cd $CWD
 fi
 if [ "$OK" != "cp ./z0librc /etc/z0librc" ]; then
-  echo "Invalid library to test"
+  echo "Invalid library to test!!!"
   exit 1
 fi
 
-$TESTDIR/test_parseoptargs
+
+export ctr=0
+$TESTDIR/test_wlog
 sts=$?
+# Test log file successfully ended; set log file to next tests
+set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
 if [ $sts -eq 0 ]; then
-  $TESTDIR/test_parsewhich
+  $TESTDIR/test_findpkg
   sts=$?
 fi
+if [ $sts -eq 0 ]; then
+  $TESTDIR/test_parseoptargs
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
+  $TESTDIR/test_dict
+  sts=$?
+fi
+exit 0
 if [ $sts -eq 0 ]; then
   $FINAL -p $PWD "Test" "Success!"
 else

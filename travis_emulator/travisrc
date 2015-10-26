@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travi emulator scripts
+#__version__=0.1.4
 
 ODOO_SETUP=__openerp__.py
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.friends.conf
-XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/"
+XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.cover\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/"
 XRGI="^(.*\/|)conf\/.*sample$"
-XXXX=".pyc .log .bak .out build/ dist/ conf/ .coverage/ .git/"
+XXXX=".pyc .log .bak .out build/ dist/ conf/ .cover/ .coverage/ .git/"
 XLFS=
 for x in $XXXX;do
   XLFS="$XLFS --exclude *$x"
@@ -54,7 +55,7 @@ a_append () {
 
 
 a_find () {
-# a_append (key)::DEFPRM,DEFVAL
+# a_find (key)::DEFPRM,DEFVAL
 # return:value,sts
     local jy=0
     local p=""
@@ -66,12 +67,10 @@ a_find () {
           sts=1
           break
         fi
-      else
-        if [[ "$1" == "${DEFPRM[jy]}" ]]; then
-          p="${DEFVAL[jy]}"
-          sts=1
-          break
-        fi
+      elif [[ "$1" == "${DEFPRM[jy]}" ]]; then
+         p="${DEFVAL[jy]}"
+         sts=1
+         break
       fi
       ((jy++))
     done
@@ -108,15 +107,17 @@ robocopy_init () {
       a_append "$2" "/"
       a_append "conf" "/"
       if [ $opt_fetch -eq 0 ]; then
-        a_append "README.rst" "/$2/README.rst"
-        a_append "README.md" "/$2/README.md"
+      #   a_append "README.rst" "/$2/README.rst"
+      #   a_append "README.md" "/$2/README.md"
+         a_append "README.rst" "/"
+         a_append "README.md" "/"
       fi
       a_append "^.*" ""
     fi
 }
 
 robocopy () {
-# robocopy (srcfname, tgtpath, prjname)::opt_dry_run,opts_dry_run,XRGX,XRGI,XLFS
+# robocopy (srcfname, tgtpath)::opt_dry_run,opts_dry_run,XRGX,XRGI,XLFS
 # return:
     # set -x  #debug
     if [ -d "$1" ]; then

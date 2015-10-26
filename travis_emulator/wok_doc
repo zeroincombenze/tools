@@ -1,16 +1,21 @@
 #! /bin/bash
+# -*- coding: utf-8 -*-
+# Temporary documentation generator
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
-# Temporary doc generators
-
-if [ -f z0librc ]; then
+if [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
 fi
+TDIR=$(echo $(readlink -f $(dirname $0)))
 
-__version__="0.1.2"
+__version__="0.1.4"
 
 # main
 OPTOPTS=(h        n            V           v)
@@ -38,8 +43,8 @@ if [ -z "$module" ]; then
   echo "Missing module"
   exit 1
 fi
-if [ -f /opt/openerp/dev/wok_doc.py ]; then
-  WOK_DOC_PY=/opt/openerp/dev/wok_doc.py
+if [ -f $TDIR/wok_doc.py ]; then
+  WOK_DOC_PY=$TDIR/wok_doc.py
 elif [ -f wok_doc.py ]; then
   WOK_DOC_PY=wok_doc.py
 else
@@ -52,12 +57,24 @@ if [ $opt_dry_run -eq 0 ]; then
   if [ -f ${module}_doc.txt ]; then
     rm -f ${module}_doc.txt
   fi
-  python $WOK_DOC_PY $module
-  echo -e "\n\n\n\n\n\n\nq"|python wok_doc_tmp.py>${module}_doc.txt
+  mkdir -p ./docs
+  for f in $(dir *.py); do
+    let l=${#f}-3
+    fn=${f:0:l}
+    if [ "$fn" == "__main__" ]; then
+      PAGER=cat pydoc $fn &>./docs/${fn}_doc.txt
+    elif [[ "$fn" =~ ${module} ]]; then
+      PAGER=cat pydoc $fn &>./docs/${fn}_doc.txt
+    fi
+  done
 fi
 if [ -f wok_doc_tmp.py ]; then
   rm -f wok_doc_tmp.py
 fi
 if [ $opt_verbose -gt 0 ]; then
-  cat ${module}_doc.txt
+  if [ -f ./docs/main_doc.txt ]; then
+    cat ./docs/main_doc.txt
+  fi
+  cat ./docs/${module}*_doc.txt
 fi
+

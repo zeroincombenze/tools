@@ -1,12 +1,16 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-if [ -f z0librc ]; then
+if [ -f ./z0librc ]; then
 . ./z0librc
+  IDIR=.
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
+  IDIR=~
 else
 . /etc/z0librc
+  IDIR=/etc
 fi
+
 
 ##############################################################################
 #
@@ -27,7 +31,8 @@ fi
 #
 ##############################################################################
 
-__version__=0.1.10
+__version__=0.1.14
+__version__=$(grep "#__version__" $IDIR/z0librc|head -n1|awk -F\= '{print $2}')
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)

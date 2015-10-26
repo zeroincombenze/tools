@@ -100,7 +100,7 @@ opt_fetch=0
 robocopy_init "travis_emulator" "travis_emulator"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator" "/opt/odoo/tools/travis_emulator")
-test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
+test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.cover/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator.egg-info" "/opt/odoo/tools/travis_emulator")
 test_result_cp "$ctr" "" "$TRES"
@@ -112,10 +112,10 @@ TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/dist" "/opt/odoo/tools/travi
 test_result_cp "$ctr" "" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.rst" "/opt/odoo/tools/travis_emulator")
-test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.rst /opt/odoo/tools/travis_emulator/travis_emulator/README.rst" "$TRES"
+test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.rst /opt/odoo/tools/travis_emulator/" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.md" "/opt/odoo/tools/travis_emulator")
-test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.md /opt/odoo/tools/travis_emulator/travis_emulator/README.md" "$TRES"
+test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.md /opt/odoo/tools/travis_emulator/" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/setup.py" "/opt/odoo/tools/travis_emulator")
 test_result_cp "$ctr" "" "$TRES"
@@ -132,7 +132,7 @@ TRES=$(robocopy "/opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py" "/
 test_result_cp "$ctr" "1||cp -L /opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
-test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
+test_result_cp "$ctr" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.cover/ --exclude *.coverage/ --exclude *.git/ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
 ((ctr++))
 TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
 test_result_cp "$ctr" "" "$TRES"

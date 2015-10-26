@@ -15,7 +15,7 @@ MYDIR=$(echo $(readlink -f $(dirname $0)))
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 
-__version__=0.1.21
+__version__=0.1.22
 OPTOPTS=(h        n            V           v           b)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
 OPTACTI=(1        "1>"         "*>"        1           "=")
