@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.15
+#__version__=0.1.16
 
 
 ##############################################################################
@@ -429,7 +429,8 @@ export -f findpkg
 
 ##############################################################################
 # Create empty dictionary (based on associative array)
-# __version__="0.1.1"
+# Must be called twice, before as 'a_new', then as 'a_active'
+# __version__="0.1.5"
 # Return:
 #   DEFDICT global dictionary based on unique key (associative array)
 #   DEFRULE global dictionary based on regex (associative array)
@@ -438,23 +439,26 @@ export -f findpkg
 # Parameter $1:
 #    Id of table for access
 a_new () {
-    #unset DEFDICT
-    # declare -A DEFDICT
-    #unset DEFRULE
-    # declare -A DEFRULE
+    cmd="unset DEFDICT$1 DEFRULE$1"
+    echo "$cmd"
+}
+export -f a_new
+a_active () {
     FH=$(xuname "-f")
     local x=$(xuname "-v")
     DISTO=$(xuname "-d")${x:0:1}
+    cmd="declare -A DEFDICT$1 DEFRULE$1"
+    echo "$cmd"
 }
-export -f a_new
+export -f a_active
 
 
 ##############################################################################
 # Add key and value to dictionary (associative array)
 # key may be regex to match multiple values
 # It's a ugly solution but currently works
-# __version__="0.1.1"
-# Global variables declared by a_new
+# __version__="0.1.5"
+# Global variables declared by a_active
 #   DEFDICT global dictionary based on unique key (associative array)
 #   DEFRULE global dictionary based on regex (associative array)
 #   DISTO   contains distribution id (to search key of specific Linux Distribution)
@@ -515,7 +519,7 @@ export -f a_add
 ##############################################################################
 # Find value in associative array
 # It's a ugly solution but currently works
-# __version__="0.1.1"
+# __version__="0.1.5"
 # Global variables create by a_append
 #   DEFDICT global dictionary based on unique key (associative array)
 #   DEFRULE global dictionary based on regex (associative array)
@@ -657,3 +661,54 @@ a_find () {
     return $sts
 }
 export -f a_find
+
+
+##############################################################################
+# get value from config file
+# if file does not exist, or parameter does not exist, return default value
+# __version__="0.1.1"
+# Require a_find
+#   DEFDICT global dictionary based on unique key (associative array)
+#   DEFRULE global dictionary based on regex (associative array)
+#   DISTO   contains distribution id (to search key of specific Linux Distribution)
+#   FH      contains Linux Family id (see xuname)
+# Parameter $1:
+#    Config file name
+# Parameter $2:
+#    Paramater key to search
+# Return:
+#    parameter value
+get_cfg_value() {
+    local p
+    if [ -z "$1" -o -z $2 ]; then
+      p=
+      echo $p
+      return
+    elif [ -f $1 ]; then
+      p=$(grep "^$2 *=.*" $1 2>/dev/null|awk -F\= '{print $2}')
+      p=$(echo $p|tr -d "\"'")
+    else
+      p=
+    fi
+    if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
+      p=$(a_find "0" "$2")
+    fi
+    echo "$p"
+}
+export -f get_cfg_value
+
+init_cfg() {
+  echo $(a_new "0")
+  $(a_active "0")
+}
+export -f init_cfg
+active_cfg() {
+  echo $(a_active "0")
+}
+export -f active_cfg
+
+set_cfg_def() {
+  a_add "0" "$1" "$2"
+}
+export -f set_cfg_def
+

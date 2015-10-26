@@ -39,6 +39,10 @@ if [ $sts -eq 0 ]; then
   sts=$?
 fi
 if [ $sts -eq 0 ]; then
+  $TESTDIR/test_cfg
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
   $FINAL -p $PWD "Test" "Success!"
 else
   echo "Test failed!"
