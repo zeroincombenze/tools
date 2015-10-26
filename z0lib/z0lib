@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 if [ -f ./z0librc ]; then
 . ./z0librc
-  IDIR=.
+  ZDIR=.
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
-  IDIR=~
+  ZDIR=~
 else
 . /etc/z0librc
-  IDIR=/etc
+  ZDIR=/etc
 fi
 
 
@@ -32,15 +32,17 @@ fi
 ##############################################################################
 
 __version__=0.1.14
-__version__=$(grep "#__version__" $IDIR/z0librc|head -n1|awk -F\= '{print $2}')
+__version__=$(grep "#__version__" $ZDIR/z0librc|head -n1|awk -F\= '{print $2}')
 
-OPTOPTS=(h        n            V           v)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
-OPTACTI=(1        "1>"         "*>"        1)
-OPTDEFL=(1        0            ""          0)
-OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTOPTS=(h        i         n            t        V           v)
+OPTDEST=(opt_help opt_xtl   opt_dry_run  opt_test opt_version opt_verbose)
+OPTACTI=(1        "*>"      "1>"         "*>"     "*>"        1)
+OPTDEFL=(1        ""        0            ""       ""          0)
+OPTMETA=("help"   "install" "do nothing" "test"   "version"   "verbose")
 OPTHELP=("this help"\
+ "install z0librc library in (copy in /etc)"\
  "do nothing (dry-run)"\
+ "execute regression tests"\
  "show version"\
  "verbose mode")
 OPTARGS=(src tgt)
@@ -57,5 +59,15 @@ then
   print_help "z0lib"\
   "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
+fi
+if [ "$opt_xtl" ]; then
+  if [ $opt_dry_run -eq 0 -a $EUID -eq 0 ]; then
+    _install_z0librc
+    echo "Library z0librc V$__version__ installed"
+  else
+    echo "This command must be executed by root"
+  fi
+elif [ "opt_test" ]; then
+  ./tests/all_tests
 fi
 exit 0

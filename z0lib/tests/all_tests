@@ -38,7 +38,6 @@ if [ $sts -eq 0 ]; then
   $TESTDIR/test_dict
   sts=$?
 fi
-exit 0
 if [ $sts -eq 0 ]; then
   $FINAL -p $PWD "Test" "Success!"
 else
