@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.16
+#__version__=0.1.17
 
 
 ##############################################################################
@@ -678,14 +678,14 @@ export -f a_find
 #    Paramater key to search
 # Return:
 #    parameter value
-get_cfg_value() {
+get_cfg_value () {
     local p
-    if [ -z "$1" -o -z $2 ]; then
+    if [ -z "$FCONF" -o -z $2 ]; then
       p=
       echo $p
       return
-    elif [ -f $1 ]; then
-      p=$(grep "^$2 *=.*" $1 2>/dev/null|awk -F\= '{print $2}')
+    elif [ -f $FCONF ]; then
+      p=$(grep "^$2 *=.*" $FCONF 2>/dev/null|awk -F\= '{print $2}')
       p=$(echo $p|tr -d "\"'")
     else
       p=
@@ -697,18 +697,45 @@ get_cfg_value() {
 }
 export -f get_cfg_value
 
-init_cfg() {
-  echo $(a_new "0")
-  $(a_active "0")
+init_cfg () {
+    echo $(a_new "0")
+    $(a_active "0")
 }
 export -f init_cfg
-active_cfg() {
-  echo $(a_active "0")
+
+
+active_cfg () {
+    echo $(a_active "0")
 }
 export -f active_cfg
 
-set_cfg_def() {
-  a_add "0" "$1" "$2"
+set_cfg_def () {
+    a_add "0" "$1" "$2"
 }
 export -f set_cfg_def
 
+
+link_cfg () {
+    if [ "$1" ]; then
+      a_add "0" "CONFN" "$1"
+      FCONF=$1
+      if [ -z "$2" ]; then
+        local cfndef="$1.sample"
+      else
+        local cfndef="$2"
+      fi
+      if [ -f "$cfndef" ]; then
+        local key
+        local val
+        while IFS=\= read -r kk val; do
+          kk=$(echo $kk|tr -d "\"' ")
+          val=$(echo $val|tr -d "\"'")
+          if [ "${kk:0:1}" != "#" ]; then
+            a_add "0" "$kk" "$val"
+          fi
+        done < "$cfndef"
+      fi
+    fi
+}
+
+export -f link_cfg

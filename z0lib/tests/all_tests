@@ -43,7 +43,7 @@ if [ $sts -eq 0 ]; then
   sts=$?
 fi
 if [ $sts -eq 0 ]; then
-  $FINAL -p $PWD "Test" "Success!"
+  echo "Test successfully terminated"
 else
   echo "Test failed!"
 fi
