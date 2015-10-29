@@ -1,0 +1,145 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f ./z0librc ]; then
+. ./z0librc
+FINAL=./optargs
+TESTDIR=./tests
+elif [ -f ../z0librc ]; then
+. ../z0librc
+FINAL=../optargs
+TESTDIR=.
+fi
+
+test_result () {
+  ((ctr++))
+  if [ $ctr -gt 10 ]; then
+    wlog "Test $ctr: $1"
+  else
+    echo "Test $ctr: $1"
+  fi
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+# Previous test_wlog executed 18 unit test
+if [ ${ctr:-0} -eq 0 ]; then
+  ctr=18
+fi
+if [ -z "$FLOG" ]; then
+  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
+fi
+
+FOUT=$TESTDIR/z0librc.out
+FTEST=$TESTDIR/z0librc.test
+
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "1>"         "*>"        1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=()
+
+parseoptargs "-V"
+test_result "cmd -h" "$opt_help" "0"
+test_result "cmd -V" "$opt_version" "-V"
+test_result "cmd -n" "$opt_dry_run" "0"
+test_result "cmd -v" "$opt_verbose" "0"
+echo "Usage: test_parseoptargs [-hnVv]">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -v             verbose mode">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+OPTOPTS=(h        n            V           p)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_path)
+OPTACTI=(1        "1>"         "*>"        "=>")
+OPTDEFL=(1        0            ""          "~/")
+OPTMETA=("help"   "do nothing" "version"   "path")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "path")
+OPTARGS=(tgt)
+
+parseoptargs "mytarget"
+test_result "cmd -h mytarget" "$opt_help" "0"
+test_result "cmd -V mytarget" "$opt_version" ""
+test_result "cmd -n mytarget" "$opt_dry_run" "0"
+test_result "cmd -v mytarget" "$opt_path" "~/"
+echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -p path        path">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+parseoptargs "-p" "./mypath" "yourtarget"
+test_result "cmd -h ./mypath yourtarget" "$opt_help" "0"
+test_result "cmd -V ./mypath yourtarget" "$opt_version" ""
+test_result "cmd -n ./mypath yourtarget" "$opt_dry_run" "0"
+test_result "cmd -v ./mypath yourtarget" "$opt_path" "./mypath"
+test_result "cmd -v ./mypath yourtarget" "$tgt" "yourtarget"
+echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -V             show version">>$FTEST
+echo " -p path        path">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+
+OPTOPTS=(h        n            O       p        V)
+OPTDEST=(opt_help opt_dry_run  opt_own opt_path opt_version)
+OPTACTI=(1        "1>"         "="     "=>"     "*>")
+OPTDEFL=(1        0            "$USER" "~/"     "")
+OPTMETA=("help"   "do nothing" "own"   "path"   "version")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "owner username"\
+ "path"\
+ "show version")
+OPTARGS=(tgt)
+
+parseoptargs "mytarget"
+test_result "cmd -h mytarget" "$opt_help" "0"
+test_result "cmd -V mytarget" "$opt_version" ""
+test_result "cmd -n mytarget" "$opt_dry_run" "0"
+test_result "cmd -v mytarget" "$opt_path" "~/"
+test_result "cmd -v mytarget" "$opt_own" "$USER"
+test_result "cmd -v mytarget" "$tgt" "mytarget"
+echo "Usage: test_parseoptargs [-hn][-O own][-p path][-V] tgt">$FTEST
+echo "Unit test">>$FTEST
+echo " -h             this help">>$FTEST
+echo " -n             do nothing (dry-run)">>$FTEST
+echo " -O own owner username">>$FTEST
+echo " -p path        path">>$FTEST
+echo " -V             show version">>$FTEST
+print_help "Unit test"\
+  "">$FOUT
+test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+if [ -f $FOUT ]; then rm -f $FOUT; fi
+if [ -f $FTEST ]; then rm -f $FTEST; fi
+exit 0

@@ -1,0 +1,101 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+
+if [ -f ./z0librc ]; then
+. ./z0librc
+  TESTDIR=./tests
+elif [ -f ../z0librc ]; then
+. ../z0librc
+  TESTDIR=.
+fi
+
+
+test_result () {
+  ((ctr++))
+  if [ $ctr -gt 10 ]; then
+    wlog "Test $ctr: $1"
+  else
+    echo "Test $ctr: $1"
+  fi
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+# Previous test_wlog executed 127 unit test
+if [ ${ctr:-0} -eq 0 ]; then
+  ctr=127
+fi
+if [ -z "$FLOG" ]; then
+  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
+fi
+
+ $(init_cfg)
+ $(active_cfg)
+FCONF="$TESTDIR/test.conf"
+if [ -f $FCONF ]; then rm -f $FCONF; fi
+if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
+link_cfg $FCONF
+set_cfg_def "param1" "Value1"
+set_cfg_def "param2" "Value2"
+set_cfg_def "param3" "Value3"
+set_cfg_def "param4" "Value4"
+
+for i in 1 2 3 4; do
+  TRES=$(get_cfg_value "" "param$i")
+  test_result "find param$i" "Value$i" "$TRES"
+done
+
+echo "param1= VALUE1 ">$FCONF
+echo "param3=VALUE3">>$FCONF
+for i in 1 2 3 4; do
+  TRES=$(get_cfg_value "" "param$i")
+  if [ $i -eq 1 ]; then
+    test_result "find param$i" "VALUE$i" "$TRES"
+  elif [ $i -eq 3 ]; then
+    test_result "find param$i" "VALUE$i" "$TRES"
+  else
+    test_result "find param$i" "Value$i" "$TRES"
+  fi
+done
+echo "param4=\" VALUE4 \"">>$FCONF
+TRES=$(get_cfg_value "" "param4")
+test_result "find param4" " VALUE4 " "$TRES"
+
+
+ $(init_cfg)
+ $(active_cfg)
+FCONF="$TESTDIR/test.conf"
+if [ -f $FCONF ]; then rm -f $FCONF; fi
+echo "#param1=NOVALUE ">$FCONF.sample
+echo "param1= value1 ">>$FCONF.sample
+echo "param2=\"value2\"">>$FCONF.sample
+echo "param3=value3">>$FCONF.sample
+echo "param4= \"value4\" ">>$FCONF.sample
+link_cfg $FCONF
+
+for i in 1 2 3 4; do
+  TRES=$(get_cfg_value "" "param$i")
+  test_result "find param$i" "value$i" "$TRES"
+done
+echo "param1= VALUE1 ">$FCONF
+echo "param3=VALUE3">>$FCONF
+for i in 1 2 3 4; do
+  TRES=$(get_cfg_value "" "param$i")
+  if [ $i -eq 1 ]; then
+    test_result "find param$i" "VALUE$i" "$TRES"
+  elif [ $i -eq 3 ]; then
+    test_result "find param$i" "VALUE$i" "$TRES"
+  else
+    test_result "find param$i" "value$i" "$TRES"
+  fi
+done
+exit 0

@@ -1,0 +1,66 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+
+if [ -f ./z0librc ]; then
+. ./z0librc
+  TESTDIR=./tests
+elif [ -f ../z0librc ]; then
+. ../z0librc
+  TESTDIR=.
+fi
+
+test_result () {
+  ((ctr++))
+  if [ $ctr -gt 10 ]; then
+    wlog "Test $ctr: $1"
+  else
+    echo "Test $ctr: $1"
+  fi
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+
+ctr=0
+FLOG=
+set_tlog_file "test_z0librc.log"
+test_result "set logfile" "$HOME/test_z0librc.log" "$FLOG"
+test_result "set logfile" "#" "$FLOG_ECHO"
+
+touch $HOME/test_z0librc.log
+if [ ! -f $HOME/test_z0librc.log ]; then
+  echo "Test failed due internal error!!"
+  exit 1
+fi
+set_tlog_file "test_z0librc.log" "new"
+if [ -f $HOME/test_z0librc.log ]; then TRES="1"; else TRES="0"; fi
+test_result "rm logfile" "0" "$TRES"
+test_result "rm logfile" "#" "$FLOG_ECHO"
+
+set_tlog_file "./test_z0librc.log" "new"
+test_result "set logfile" "./test_z0librc.log" "$FLOG"
+test_result "set logfile" "#" "$FLOG_ECHO"
+
+set_tlog_file "$TESTDIR/test_z0librc.log" "new"
+test_result "set logfile" "$TESTDIR/test_z0librc.log" "$FLOG"
+test_result "set logfile" "#" "$FLOG_ECHO"
+
+set_tlog_file "$TESTDIR/test_z0librc.log" "new" "echo"
+test_result "set logfile" "$TESTDIR/test_z0librc.log" "$FLOG"
+test_result "set logfile" "echo" "$FLOG_ECHO"
+
+set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
+wlog "Since now, test messages are store in $FLOG"
+test_result "echoing with wlog" "$TESTDIR/test_z0librc.log" "$FLOG"
+test_result "echoing with wlog" "echo" "$FLOG_ECHO"
+
+exit 0

@@ -1,7 +1,8 @@
-# Makefile 0.1.58
+# Makefile 0.1.61
 
 .DEFAULT: check
 
+SHELL=/bin/bash
 ODOO_SETUP=__openerp__.py
 # Evaluate if running on local machine or on travis-ci environment
 x=$(shell A=$${PWD\#*/*/}; echo $${A%%/*})
@@ -82,7 +83,7 @@ else
   BRANCH=""
   TESTDIR=tests
   TESTPATH=$(PRJPATH)/$(TESTDIR)
-  TESTFILE=$(shell if [ -f $(TESTPATH)/all_tests ]; then echo "all_tests"; else echo "python test_$(prjname).py"; fi)
+  TESTFILE=$(shell if [ -f $(TESTPATH)/all_tests ]; then echo "./all_tests"; else echo "python test_$(prjname).py"; fi)
 endif
 ifeq ($(HOSTENV),local)
   export BRANCH
@@ -95,6 +96,7 @@ endif
 .PHONY: chkconfig
 chkconfig:
 	@echo "Project name   = \"$(prjname)\""
+	@echo "Tools path     = \"$(DEVPATH)\""
 	@if [ "$(prjname)" == "travis_emulator" ]; then \
 	  echo "Status         = \"$$(cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -n -S$(devstatus) $(pkgname))\""; \
 	else \
@@ -118,11 +120,14 @@ help:
 	@echo "make check    # run pep8 check"
 	@echo "make coverage # run coverage test"
 	@echo "make travis   # simulate travis-ci action (check + coverage)"
-	@echo "make diff     # diff files with git cloned dir"
-	@echo "make replace  # copy files into git cloned dir to pubblish code"
-	@echo "make publish  # exec build + upload + publish on pypi"
+	@echo "make annotate # annotate running coverage test"
+	@echo "make diff     # diff files with local git dir"
+	@echo "make replace  # copy files into local git dir to pubblish code"
+	@echo "make fetch    # copy files from local git dir and restore previous version"
+	@echo "make publish  # exec build + upload + publish (just for pypi projects)"
 	@echo "make pep8     # do pep8 on all source python files"
-	@echo "make push     # copy file ot other directories"
+	@echo "make push     # copy file to other directories"
+	@echo "make commit   # copy file to production dir/host"
 	@echo "make docs     # write module documentation"
 
 .PHONY: build
@@ -216,18 +221,18 @@ pep8:
 replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(prjname)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -p $(LGITPATH) $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -R -p $(LGITPATH) $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -p $(LGITPATH) $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -R -p $(LGITPATH) $(pkgname);\
 	fi
 
-.PHONY: pull
-pull:
+.PHONY: fetch
+fetch:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(prjname)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -f -p $(LGITPATH) $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -F -p $(LGITPATH) $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -f -p $(LGITPATH) $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -F -p $(LGITPATH) $(pkgname);\
 	fi
 
 .PHONY: diff
@@ -242,7 +247,20 @@ diff:
 .PHONY: push
 push:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
-	cd $(PKGPATH); $(DEVPATH)/dist_pkg -c $(pkgname) $(prjname);
+	@if [ "$(prjname)" == "travis_emulator" ]; then \
+	  cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -P $(pkgname) $(prjname); \
+	else \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -P $(pkgname) $(prjname); \
+	fi
+	
+.PHONY: commit
+commit:
+	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
+	@if [ "$(prjname)" == "travis_emulator" ]; then \
+	  cd $(PKGPATH); $(PKGPATH)/$(prjname)/dist_pkg -C $(pkgname) $(prjname); \
+	else \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -C $(pkgname) $(prjname); \
+	fi
 
 .PHONY: docs
 docs:

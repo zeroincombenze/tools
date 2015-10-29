@@ -1,18 +1,22 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# Common file for travi emulator scripts
-#__version__=0.1.4
+# Common file for travis emulator scripts
+#__version__=0.1.8
 
 ODOO_SETUP=__openerp__.py
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.friends.conf
-XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.cover\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/"
+XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^.*\.conf$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.cover\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/ ^.*~$"
 XRGI="^(.*\/|)conf\/.*sample$"
-XXXX=".pyc .log .bak .out build/ dist/ conf/ .cover/ .coverage/ .git/"
+XXXX=".pyc .log .bak .out .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 XLFS=
 for x in $XXXX;do
   XLFS="$XLFS --exclude *$x"
+done
+XLDF=
+for x in $XXXX;do
+  XLDF="$XLDF -x *$x"
 done
 
 
@@ -54,8 +58,8 @@ a_append () {
 }
 
 
-a_find () {
-# a_find (key)::DEFPRM,DEFVAL
+a_search () {
+# a_search (key)::DEFPRM,DEFVAL
 # return:value,sts
     local jy=0
     local p=""
@@ -117,9 +121,8 @@ robocopy_init () {
 }
 
 robocopy () {
-# robocopy (srcfname, tgtpath)::opt_dry_run,opts_dry_run,XRGX,XRGI,XLFS
+# robocopy (srcfname, tgtpath, sshopt)::opt_dry_run,opts_dry_run,XRGX,XRGI,XLFS
 # return:
-    # set -x  #debug
     if [ -d "$1" ]; then
       local t="d"
       local ff=$1/
@@ -129,22 +132,42 @@ robocopy () {
     fi
     local fn=$(basename $1)
     if $(matches1of "$ff" "$XRGI"); then
-      local v=$(a_find "$fn")
+      local v=$(a_search "$fn")
     elif $(matches1of "$ff" "$XRGX"); then
       local v=
     else
-      local v=$(a_find "$fn")
+      local v=$(a_search "$fn")
     fi
     if [ "${v:0:1}" == "/" ]; then
       if [ "$v" == "/" -a "$t" == "d" ]; then
-        echo "rsync $opts_dry_run -ab --del --copy-links $XLFS $ff $2$v"
-        rsync $opts_dry_run -ab --del --copy-links $XLFS $ff $2$v
-      else
-        if [ ! -d "$2" ]; then
-          local v=
+        if [ "${3:0:3}" == "ssh" ]; then
+          local optrsync="-abvzhe"
+          local optssh="$3"
+          if [ "$v" == "/" ]; then
+            v=/$fn/
+          else
+            v=$v/$fn/
+          fi
+          echo "rsync $opts_dry_run $optrsync \"$optssh\" --del --copy-links $XLFS $ff $2$v"
+          rsync $opts_dry_run $optrsync "$optssh" --del --copy-links $XLFS $ff $2$v
+        else
+          local optrsync="-ab"
+          local optssh=""
+          echo "rsync $opts_dry_run $optrsync --del --copy-links $XLFS $ff $2$v"
+          rsync $opts_dry_run $optrsync --del --copy-links $XLFS $ff $2$v
         fi
-        echo "$opt_dry_run||cp -L $ff $2$v"
-        (($opt_dry_run))||cp -L $ff $2$v
+      else
+        if [ "${3:0:3}" == "ssh" ]; then
+          local optssh="${3:3}"
+          echo "(($opt_dry_run))||scp -Bp $optssh $ff $2"
+          (($opt_dry_run))||scp -Bp $optssh $ff $2
+        else
+          if [ ! -d "$2" ]; then
+            local v=
+          fi
+          echo "$opt_dry_run||cp -L $ff $2$v"
+          (($opt_dry_run))||cp -L $ff $2$v
+        fi
       fi
     fi
 }

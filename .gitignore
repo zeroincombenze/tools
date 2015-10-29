@@ -4,3 +4,15 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Temporay files
+*.log
+*.bak
+*.out
+*.conf
+*~
+build/
+dist/
+conf/
+.cover/
+.coverage/

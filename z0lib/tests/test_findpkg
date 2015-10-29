@@ -1,0 +1,78 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+
+if [ -f ./z0librc ]; then
+. ./z0librc
+  TESTDIR=./tests
+elif [ -f ../z0librc ]; then
+. ../z0librc
+  TESTDIR=.
+fi
+
+test_result () {
+  ((ctr++))
+  if [ $ctr -gt 10 ]; then
+    wlog "Test $ctr: $1"
+  else
+    echo "Test $ctr: $1"
+  fi
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+# Previous test_wlog executed 12 unit test
+if [ ${ctr:-0} -eq 0 ]; then
+  ctr=12
+fi
+if [ -z "$FLOG" ]; then
+  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
+fi
+
+f=$(basename $0)
+p=$(dirname $0)
+result=$(findpkg "$f" "$p")
+TRES=$(readlink -e $0)
+test_result "find myself" "$TRES" "$result"
+
+f=""
+p="/etc /usr"
+result=$(findpkg "$f" "$p")
+TRES="/etc"
+test_result "find /etc dir" "$TRES" "$result"
+
+f=""
+p="./Non_Exists /etc /usr"
+result=$(findpkg "$f" "$p")
+TRES="/etc"
+test_result "find /etc dir" "$TRES" "$result"
+
+f="bash"
+p="./Non_Exists /etc /bin"
+result=$(findpkg "$f" "$p")
+TRES="/bin/bash"
+test_result "find $f" "$TRES" "$result"
+
+f="network"
+p="/usr /etc /bin"
+s="init hosts init.d"
+result=$(findpkg "$f" "$p" "$s")
+TRES="/etc/rc.d/init.d/network"
+test_result "find $f in $p" "$TRES" "$result"
+
+f="mail/"
+p="/var  /usr /etc /bin"
+s="spool mail log lib"
+result=$(findpkg "$f" "$p" "$s")
+TRES="/var/spool/mail"
+test_result "find $f in $p" "$TRES" "$result"
+
+exit 0

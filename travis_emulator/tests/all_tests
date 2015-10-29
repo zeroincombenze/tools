@@ -8,11 +8,12 @@ elif [ -f ../travisrc ]; then
 TESTDIR=.
 fi
 
-
+set_tlog_file "$TESTDIR/test_travis_em.log" "new" "echo"
+export ctr=0
 $TESTDIR/test_regex
 sts=$?
 if [ $sts -eq 0 ]; then
-  $TESTDIR//test_Makefile
+  $TESTDIR/test_Makefile
   sts=$?
 fi
 if [ $sts -eq 0 ]; then
