@@ -1,0 +1,89 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__=0.1.2
+OPTOPTS=(h        G         n            V           v)
+OPTDEST=(opt_help opt_group opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "="       "1>"         "*>"        1)
+OPTDEFL=(1        ""        0            ""          0)
+OPTMETA=("help"   "group"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "set group ownership"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(tgtpath)
+parseoptargs $@
+
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Set default protection of user root dir in order to run ssh"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ $opt_verbose -gt 0 ]; then
+  set -x
+fi
+if [ -z "$tgtpath" ]; then
+  echo "Invalid tgtpath"
+  exit 1
+fi
+tgtpath=$(readlink -e $tgtpath)
+if [ ! -d "$tgtpath" ]; then
+  echo "Invalid tgtpath"
+  exit 1
+fi
+if [ -z "$(grep :$tgtpath: /etc/passwd)" ]; then
+  echo "Invalid tgtpath"
+  exit 1
+fi
+user=$(grep \:$tgtpath\: /etc/passwd|awk -F\: '{print $1}')
+rgid=$(grep ^$user\: /etc/passwd|awk -F\: '{print $4}')
+rgroup=$(grep \:$rgid\: /etc/group|awk -F\: '{print $1}')
+if [ -z $opt_group ]; then
+  group=$rgroup
+else
+  group=$opt_group
+fi
+if [ $opt_dry_run -gt 0 ]; then
+  opts_dry_run=--dry-run
+else
+  opts_dry_run=
+fi
+echo "Set user=$user, group=$group/$rgroup"
+
+echo "<<${tgtpath:0:5}>>"
+if [ "${tgtpath:0:5}" == "/opt/" ]; then
+  echo "chown $opts_dry_run root:root /opt/"
+  (($opt_dry_run))||chown root:root /opt/
+  echo "chmod $opts_dry_run u=rwx,g=rx,o=rx /opt/"
+  (($opt_dry_run))||chmod u=rwx,g=rx,o=rx /opt/
+fi
+echo "chown $opts_dry_run $user:$group $tgtpath/"
+(($opt_dry_run))||chown $user:$group $tgtpath/
+echo "chmod $opts_dry_run u=rwx,g=rwx,o-rwx $tgtpath/"
+(($opt_dry_run))||chmod u=rwx,g=rwx,o-rwx $tgtpath/
+echo "chown $opts_dry_run $user:$rgroup $tgtpath/.ssh/"
+(($opt_dry_run))||chown $user:$rgroup $tgtpath/.ssh/
+echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath/.ssh/"
+(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath/.ssh/
+echo "chown $opts_dry_run $user:$rgroup $tgtpath/.ssh/*"
+(($opt_dry_run))||chown $user:$rgroup $tgtpath/.ssh/*
+echo "chmod $opts_dry_run u=r,g-rwx,o-rwx $tgtpath/.ssh/*"
+(($opt_dry_run))||chmod u=r,g-rwx,o-rwx $tgtpath/.ssh/*
+echo "chmod $opts_dry_run u=r,g=r,o=r $tgtpath/.ssh/*.pub"
+(($opt_dry_run))||chmod u=r,g=r,o=r $tgtpath/.ssh/*.pub
+
+dir -alhd $tgtpath/ $tgtpath/. $tgtpath/..
+dir -alh $tgtpath/.ssh
+exit 0

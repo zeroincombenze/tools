@@ -1,69 +1,73 @@
 #!/bin/bash
-#__version__=0.1.54
+# -*- coding: utf-8 -*-
+if [ -f ./z0librc ]; then
+. ./z0librc
+  TESTDIR=./tests
+elif [ -f ../z0librc ]; then
+. ../z0librc
+  TESTDIR=.
+fi
+#__version__=0.1.56
 # set -x
+TESTDIR=$(readlink -e $TESTDIR)
+
+
+test_result () {
+  ((ctr++))
+  wlog "Test $ctr: $1"
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+
 testpath () {
-  echo "****************************************************************"
-  echo "* $1"
+  echo "**************************************************************************************"
+  #echo "* $1"
   cd $1
   # echo "-->$(dir setup.py)"
-  make -f $MAKEF chkconfig
+  # make -f $MAKEF chkconfig
   p=$(make -f $MAKEF chkconfig|grep "Hosted"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p" != "local" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Hosted<$p>!=<local>"
-     exit 1
-  fi
+  test_result "$1: Hosted" "local" "$p"
   p2=$(make -f $MAKEF chkconfig|grep "Project name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p2" != "$2" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Project name<$p2>!=<$2>"
-     exit 1
-  fi
+  test_result "$1: Project name" "$2" "$p2"
   p3=$(make -f $MAKEF chkconfig|grep "Branch"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p3" != "$3" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Branch <$p3>!=<$3>"
-     exit 1
-  fi
+  test_result "$1: Branch" "$3" "$p3"
   p4=$(make -f $MAKEF chkconfig|grep "Package name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p4" != "$4" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Package name<$p4>!=<$4>"
-     exit 1
-  fi
+  test_result "$1: Package name" "$4" "$p4"
   p5=$(make -f $MAKEF chkconfig|grep "Version"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p5" != "$5" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Version <$p5>!=<$5>"
-     exit 1
-  fi
+  test_result "$1: Version" "$5" "$p5"
   p6=$(make -f $MAKEF chkconfig|grep "Setup file"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p6" != "$6" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Setup file<$p6>!=<$6>"
-     exit 1
-  fi
+  test_result "$1: Setup file" "$6" "$p6"
   p7=$(make -f $MAKEF chkconfig|grep "Project path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p7" != "$7" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Project path<$p7>!=<$7>"
-     exit 1
-  fi
+  test_result "$1: Project path" "$7" "$p7"
   p8=$(make -f $MAKEF chkconfig|grep "Package path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
-  if [ "$p8" != "$8" ]; then
-     echo "!!!!! Test failed!!!!!!!!!"
-     echo "Package path<$p8>!=<$8>"
-     exit 1
-  fi
+  test_result "$1: Package path" "$8" "$p8"
   # read
 }
+
+# Previous test_wlog executed 36 unit test
+#if [ ${ctr:-0} -eq 0 ]; then
+  ctr=36
+#fi
+if [ -z "$FLOG" ]; then
+  set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
+fi
 
 MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
 PYTHONPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
 OS_VER=0.2.10
 BB_VER=7.0.0.2
-echo "Warning: this unit test is not fully automatic, please take a look at test output"
-echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbbone is not $BB_VER"
+echo "**************************************************************************************"
+echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbone is not $BB_VER"
 
 WD=/opt/openerp/7.0/zeroincombenze
 p2=Odoo
@@ -125,3 +129,4 @@ p7=/opt/odoo/dev/pypi/os0/os0
 p8=/opt/odoo/dev/pypi/os0
 testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 
+echo "**************************************************************************************"

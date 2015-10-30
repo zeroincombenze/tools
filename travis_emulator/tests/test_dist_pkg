@@ -1,0 +1,62 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+if [ -f ./z0librc ]; then
+. ./z0librc
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -f ../z0librc ]; then
+. ../z0librc
+  TESTDIR=.
+  RUNDIR=../
+fi
+RUNDIR=$(readlink -e $RUNDIR)
+TESTDIR=$(readlink -e $TESTDIR)
+
+test_result () {
+  ((ctr++))
+  wlog "Test $ctr: $1"
+  if [ "$4" ]; then
+    if [ "$($4 $2 $3)" ]; then
+      echo "Test failed: $4 '$2' '$3'"
+      exit 1
+    fi
+  else
+    if [ "$2" != "$3" ]; then
+      echo "Test failed: expected '$2', found '$3'"
+      exit 1
+    fi
+  fi
+}
+
+
+# Previous test_wlog executed 84 unit test
+#if [ ${ctr:-0} -eq 0 ]; then
+  ctr=84
+#fi
+if [ -z "$FLOG" ]; then
+  set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
+fi
+
+echo "# Sample conf file for test">$TESTDIR/test_dist_pkg.conf
+echo "distpath=/opt/odoo/tools">>$TESTDIR/test_dist_pkg.conf
+echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_dist_pkg.conf
+echo "openerp_distpath=/opt/odoo/8.0">>$TESTDIR/test_dist_pkg.conf
+
+CWD=$PWD
+TRES=$($RUNDIR/dist_pkg -V)
+test_result "version" "0.1.42" "$TRES"
+cd $TESTDIR
+cd ..
+TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
+cd $CWD
+test_result "commit" "dist_pkg -n -C -p \"/opt/odoo/tools\"  travis_emulator" "$TRES"
+
+TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n2|tail -n1)
+test_result "commit odoo" "No configuration file ./conf/.friends.conf for distribution" "$TRES"
+
+cd /opt/odoo/7.0
+TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
+cd $CWD
+test_result "Version" "dist_pkg -n -C -p \"/opt/odoo/8.0\"  openerp" "$TRES"
+
+exit 0

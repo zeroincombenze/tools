@@ -14,6 +14,7 @@ elif [ -f ../travisrc ]; then
 . ../travisrc
 TESTDIR=.
 fi
+TESTDIR=$(readlink -e $TESTDIR)
 
 test_result () {
   ((ctr++))

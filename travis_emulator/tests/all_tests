@@ -17,6 +17,10 @@ if [ $sts -eq 0 ]; then
   sts=$?
 fi
 if [ $sts -eq 0 ]; then
+  $TESTDIR/test_dist_pkg
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
   echo "Test successfully terminated"
 else
   echo "Test failed!"

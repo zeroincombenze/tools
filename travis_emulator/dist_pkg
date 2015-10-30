@@ -18,7 +18,7 @@ TDIR=$(echo $(readlink -f $(dirname $0)))
 DIST_GCONF=$TDIR/$THIS.conf
 . $TDIR/travisrc
 
-__version__="0.1.41"
+__version__="0.1.42"
 
 # main
 OPTOPTS=(h        C         c        d        F         n            O              P         p         R         S        V           v           -)
@@ -93,11 +93,16 @@ else
     prjdesc="Unrecognized Odoo module"
   fi
 fi
-declare DPATH=$(grep "^distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+declare DPATH=$(grep "^${prjname}_distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+if [ -z "$DPATH" ]; then
+  declare DPATH=$(grep "^distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+fi
 if [ "$opt_dpath" ]; then
   DPATH="$opt_dpath"
 else
-  DPATH=$DPATH/$prjname
+  DPATH=${DPATH/\$\{pkgpath\}/$PKGPATH}
+  DPATH=${DPATH/\$\{pkgname\}/$pkgname}
+  DPATH=${DPATH/\$\{prjname\}/$prjname}
 fi
 if [ "$opt_sts" ]; then
   if [ "$opt_sts" == "0" ]; then
@@ -169,11 +174,11 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
     for ii in {1..9}; do
       declare x=tgt${ii}path
       declare y=tgt${ii}params
-      declare tgtpath=$(grep "^$x *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
-      declare tgtparm=$(grep "^$y *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+      declare tgtpath=$(grep "^$x *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
+      declare tgtparm=$(grep "^$y *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
       if [ -z "$tgtpath" ]; then
-        declare tgtpath=$(grep "^$x *=" $DIST_CONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
-        declare tgtparm=$(grep "^$y *=" $DIST_CONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+        declare tgtpath=$(grep "^$x *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
+        declare tgtparm=$(grep "^$y *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
       fi
       if [ "$tgtpath" ]; then
         declare z=tgt${ii}enable
