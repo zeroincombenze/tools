@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.8
+#__version__=0.1.9
 
 ODOO_SETUP=__openerp__.py
 MAKEF=/opt/odoo/dev/Makefile
@@ -18,6 +18,13 @@ XLDF=
 for x in $XXXX;do
   XLDF="$XLDF -x *$x"
 done
+
+
+expand_path () {
+# expand_path (path)
+# return:path
+    echo "$1"|sed s:\${pkgpath}:$PKGPATH:g|sed s:\${pkgname}:$pkgname:g|sed s:\${prjname}:$prjname:g
+}
 
 
 set_pkgpath () {

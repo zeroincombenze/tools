@@ -36,27 +36,39 @@ test_result () {
 if [ -z "$FLOG" ]; then
   set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
 fi
-
+if [ -f $TESTDIR/test_local_dist_pkg.conf ]; then
+  rm -f $TESTDIR/test_local_dist_pkg.conf
+fi
 echo "# Sample conf file for test">$TESTDIR/test_dist_pkg.conf
-echo "distpath=/opt/odoo/tools">>$TESTDIR/test_dist_pkg.conf
-echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_dist_pkg.conf
+echo "distpath=/opt/odoo/tools/\${prjname}">>$TESTDIR/test_dist_pkg.conf
+#echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_dist_pkg.conf
 echo "openerp_distpath=/opt/odoo/8.0">>$TESTDIR/test_dist_pkg.conf
+echo "pkg_distconf=$TESTDIR/test_local_dist_pkg.conf">>$TESTDIR/test_dist_pkg.conf
+
+echo "# Sample conf file for test">$TESTDIR/test_local_dist_pkg.conf
+echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_local_dist_pkg.conf
+
 
 CWD=$PWD
 TRES=$($RUNDIR/dist_pkg -V)
-test_result "version" "0.1.42" "$TRES"
+test_result "version" "0.1.43" "$TRES"
 cd $TESTDIR
 cd ..
 TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
 cd $CWD
-test_result "commit" "dist_pkg -n -C -p \"/opt/odoo/tools\"  travis_emulator" "$TRES"
+test_result "commit travis_emulator 1" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\"  travis_emulator" "$TRES"
 
+cd $TESTDIR
+cd ..
 TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n2|tail -n1)
-test_result "commit odoo" "No configuration file ./conf/.friends.conf for distribution" "$TRES"
+cd $CWD
+#test_result "commit odoo" "No configuration file /opt/odoo/dev/pypi/travis_emulator/travis_emulator/tests/test_local_dist_pkg.conf for distribution" "$TRES"
+test_result "commit travis_emulator 2" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\"  travis_emulator" "$TRES"
+
 
 cd /opt/odoo/7.0
 TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
 cd $CWD
-test_result "Version" "dist_pkg -n -C -p \"/opt/odoo/8.0\"  openerp" "$TRES"
+test_result "commit openerp" "dist_pkg -n -C -p \"/opt/odoo/8.0\"  openerp" "$TRES"
 
 exit 0

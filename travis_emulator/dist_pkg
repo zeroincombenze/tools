@@ -15,10 +15,10 @@ else
 fi
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
-DIST_GCONF=$TDIR/$THIS.conf
+DIST_GCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__="0.1.42"
+__version__="0.1.43"
 
 # main
 OPTOPTS=(h        C         c        d        F         n            O              P         p         R         S        V           v           -)
@@ -93,17 +93,22 @@ else
     prjdesc="Unrecognized Odoo module"
   fi
 fi
-declare DPATH=$(grep "^${prjname}_distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+declare DPATH=$(grep "^${prjname}_distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
 if [ -z "$DPATH" ]; then
-  declare DPATH=$(grep "^distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+  declare DPATH=$(grep "^distpath *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
 fi
 if [ "$opt_dpath" ]; then
   DPATH="$opt_dpath"
 else
-  DPATH=${DPATH/\$\{pkgpath\}/$PKGPATH}
-  DPATH=${DPATH/\$\{pkgname\}/$pkgname}
-  DPATH=${DPATH/\$\{prjname\}/$prjname}
+  DPATH=$(expand_path "$DPATH")
 fi
+x=$(grep "^odoo_setup *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
+if [ "$x" ]; then ODOO_SETUP=$x; fi
+x=$(grep "^root_Makefile *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
+if [ "$x" ]; then MAKEF=$x; fi
+x=$(grep "^pkg_distconf *=" $DIST_GCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
+if [ "$x" ]; then DIST_CONF=$x; fi
+
 if [ "$opt_sts" ]; then
   if [ "$opt_sts" == "0" ]; then
     opt_sts=" 0 - WIP"
@@ -181,8 +186,9 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
         declare tgtparm=$(grep "^$y *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
       fi
       if [ "$tgtpath" ]; then
+        tgtpath=$(expand_path "$tgtpath")
         declare z=tgt${ii}enable
-        declare enabled=$(grep "^$z *=" $DIST_CONF 2>/dev/null|awk -F"[a-z ]=" '{print $2}'|tr -d "\"', \r\n")
+        declare enabled=$(grep "^$z *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"', \r\n")
         if [ ${enabled:-0} -eq 2 ]; then
           if [ "$opt_cpush" != "-C" ]; then enabled=0; fi
         fi
