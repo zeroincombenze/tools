@@ -22,23 +22,25 @@ else
 . /etc/z0librc
 fi
 
-#__version__=0.1.19
+__version__=0.1.22
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
+yod=$(date +%Y)
 if [ "$PS1" ]; then
   set_tlog_file "~/$THIS.log" "" "echo"
-elif [ $dom -eq 15 ]; then
+elif [ $dom -eq 11 ]; then
   set_tlog_file "~/$THIS.log" "new"
 else
   set_tlog_file "~/$THIS.log"
 fi
-
+TCONF=$TDIR/.$THIS.conf
+# development host
+DEV_HOST=shsdev14
+# production host
+PRD_HOST=shsprd14
 
 wlog "Test nightly starting by $USER"
-wlog "> Upgrade z0librc"
-_install_z0librc
-
 
 test_pkg_pypi () {
 # test_pkg_pypi (name)
@@ -65,6 +67,8 @@ test_pkg_pypi () {
       cd ~/dev/pypi/$1/$1/tests
       python ~/dev/pypi/$1/$1/tests/test_$1.py &>/dev/null
       sts=$?
+    else
+      sts=1
     fi
     if [ $sts -eq 0 ]; then
       wlog "Package $1: test successfully terminated"
@@ -93,10 +97,10 @@ pkg_pypi_commit () {
     fi
     sts=0
     cd ~/dev/pypi/$1/$1
-    wlog "Make replace package $1!"
+    wlog "make replace $1!"
     make replace &>>~/$THIS.log
-      if [ "$HOSTNAME" == "shsdev14" -a $sts -eq 0 ]; then
-      wlog "Make commit package $1!"
+    if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
+      wlog "make commit $1!"
       make commit &>>~/$THIS.log
     fi
     return $sts
@@ -105,13 +109,46 @@ pkg_pypi_commit () {
 
 sts=0
 if [ $EUID -eq 0 ]; then
-  if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  wlog "> Upgrade z0librc"
+  _install_z0librc
+  if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
     if [ $dow -eq 3 ]; then
       wlog "> yum -y update"
       yum -y update
     fi
     src=/opt/odoo/tools/clodoo
     tgt=/opt/odoo/dev
+    f=test_nightly
+    if [ -f $src/$f -a -f $tgt/$f -a "$TDIR" == "$tgt" ]; then
+      diff -q $src/$f $tgt/$f
+      sts=$?
+      if [ $sts -gt 0 ]; then
+        wlog "Need upgrade $THIS $__version__ when is running!"
+        if [ "$THIS" == "$f" ]; then
+          wlog "Cloning $THIS $__version__ to $THIS.sh and run it!"
+          cp $0 $0.sh
+          $0.sh
+          exit 0
+        else
+          wlog "Upgrade $THIS $__version__ for next run!"
+          wlog "> cp $src/$f $tgt/$f"
+          cp -v $src/$f $tgt/$f
+          wlog "> chown odoo:ERPs $tgt/$f"
+          chown openerp:ERPs $tgt/$f
+          let l=${#0}-3
+          if [ "${0:l}" == ".sh" ]; then
+            new=${0:0:l}
+            wlog "Run $new after upgrade!"
+            $new
+            exit 0
+          fi
+        fi
+      fi
+    fi
+    if [ "$THIS" == "$f" -a -f $src/$f.sh ]; then
+      wlog "Remove old $THIS after upgraded itself, now is running $__version__"
+      rm -f $src/$f.sh
+    fi
     for f in clodoo.py; do
       wlog "> cp $src/$f $tgt/$f"
       cp -v $src/$f $tgt/$f
@@ -120,7 +157,7 @@ if [ $EUID -eq 0 ]; then
     done
     src=/opt/odoo/dev
     tgt=/opt/openerp/dev
-    for f in beauty cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc clodoo.py; do
+    for f in beauty cronow dist_pkg Makefile prjdiff topep8 travis travisrc clodoo.py; do
       wlog "> cp $src/$f $tgt/$f"
       cp -v $src/$f $tgt/$f
       wlog "> chown odoo:ERPs $tgt/$f"
@@ -129,35 +166,42 @@ if [ $EUID -eq 0 ]; then
   fi
 fi
 if [ "$USER" == "odoo" ]; then
+  if [ ! -d ~/dev/pypi ]; then
+    wlog "Invalid environment: missing ~/dev/pypi directory"
+    exit 1
+  fi
   if [ ! -d /opt/odoo/tools ]; then
-    mkdir -f /opt/odoo/tools
+    mkdir -p /opt/odoo/tools
   fi
   if [ ! -d /opt/odoo/tools/travis_emulator ]; then
-    mkdir -f /opt/odoo/tools/travis_emulator
+    mkdir -p /opt/odoo/tools/travis_emulator
   fi
   if [ ! -d /opt/odoo/7.0 ]; then
-    mkdir -f /opt/odoo/7.0
+    mkdir -p /opt/odoo/7.0
   fi
   if [ ! -d /opt/odoo/8.0 ]; then
-    mkdir -f /opt/odoo/8.0
+    mkdir -p /opt/odoo/8.0
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze
+    mkdir -p /opt/odoo/7.0/zeroincombenze
+    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
+    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
+    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
+    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
+    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
+    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
+    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
   fi
   if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
-    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
+    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
   fi
   cd ~/dev/pypi
   for pkgname in *; do
@@ -171,7 +215,7 @@ if [ "$USER" == "odoo" ]; then
       fi
     fi
   done
-  if [ "$HOSTNAME" == "shsdev14" -a $sts -eq 0 ]; then
+  if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
     wlog "cd ~/tools"
     cd ~/tools
     wlog "git commit -a -m '[RUN] nightly commit'"
