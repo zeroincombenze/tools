@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.26
+__version__=0.1.27
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -223,9 +223,9 @@ if [ "$USER" == "odoo" ]; then
   if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
     wlog "cd ~/tools"
     cd ~/tools
-    wlog "git commit -a -m '[RUN] nightly commit'"
+    wlog "> git commit -a -m '[RUN] nightly commit'"
     git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
-    wlog "git push"
+    wlog "> git push"
     git push &>>~/$THIS.log
   fi
 fi
