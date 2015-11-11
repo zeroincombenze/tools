@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.23
+__version__=0.1.25
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -40,6 +40,7 @@ DEV_HOST=shsdev14
 # production host
 PRD_HOST=shsprd14
 
+wlog "********************************************************"
 wlog "Test nightly starting by $USER"
 
 test_pkg_pypi () {
@@ -238,8 +239,8 @@ if [ "$USER" == "openerp" ]; then
   fi
 fi
 if [ $sts -eq 0 ]; then
-  echo "Test successfully terminated"
+  echo "Test $__version__ successfully terminated"
 else
-  echo "**** Test failed!!!! ****"
+  echo "?????????? Test $__version__ failed!!!! ??????????"
 fi
 exit $sts
