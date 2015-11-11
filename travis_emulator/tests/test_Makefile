@@ -21,7 +21,7 @@ fi
 RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
 
-#__version__=0.1.71
+#__version__=0.1.72
 # set -x
 
 
