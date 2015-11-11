@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.72
+# Makefile __version__=0.1.73
 
 .DEFAULT: check
 
@@ -211,7 +211,7 @@ coverage:
 
 .PHONY: travis
 travis:
-	if ["$HOSTENV" == "travis" ]; then
+	if ["$(HOSTENV)" == "travis" ]; then
 	  travis_run_tests
 	else
 	  $(DEVPATH)/travis local/$(PRJNAME)
