@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.25
+__version__=0.1.26
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -87,7 +87,7 @@ test_pkg_pypi () {
 pkg_pypi_commit () {
 # pkg_pypi_commit (name)
 # return: sts
-    wlog "Commit $1 package  ..."
+    wlog "Committing $1 package  ..."
     if [ ! -d ~/dev/pypi/$1 ]; then
       wlog "Package $1 not found!"
       exit 1
@@ -102,10 +102,10 @@ pkg_pypi_commit () {
     fi
     sts=0
     cd ~/dev/pypi/$1/$1
-    wlog "make replace $1!"
+    wlog "> make replace $1"
     make replace &>>~/$THIS.log
     if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
-      wlog "make commit $1!"
+      wlog "> make commit $1"
       make commit &>>~/$THIS.log
     fi
     return $sts
