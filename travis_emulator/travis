@@ -1,27 +1,37 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-if [ -f z0librc ]; then
+#
+# Travis-ci emulator
+# Emulate travis-ci on local machine, to test before upgrade git project
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -f $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
 fi
-MYDIR=$(echo $(readlink -f $(dirname $0)))
-. $MYDIR/travisrc
+. $TDIR/travisrc
+TCONF=$TDIR/.$THIS.conf
 
-# Travis-ci emulator
-# Emulate travis-ci on local machine, to test before upgrade git project
-# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
-# This software is free software under GNU Affero GPL3
+__version__=0.1.28
 
-__version__=0.1.23
-OPTOPTS=(h        n            V           v           b)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_branch)
-OPTACTI=(1        "1>"         "*>"        1           "=")
-OPTDEFL=(1        0            ""          0           8.0)
-OPTMETA=("help"   "do nothing" "version"   "verbose"   "branch")
+
+OPTOPTS=(h        c        n            V           v           b)
+OPTDEST=(opt_help opt_conf opt_dry_run  opt_version opt_verbose opt_branch)
+OPTACTI=(1        "="      "1>"         "*>"        1           "=")
+OPTDEFL=(1        ""       0            ""          0           8.0)
+OPTMETA=("help"   "file"   "do nothing" "version"   "verbose"   "branch")
 OPTHELP=("this help"\
+ "configuration file"\
  "do nothing (dry-run)"\
  "show version"\
  "verbose mode",
@@ -38,47 +48,41 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ $opt_verbose -gt 0 ]; then
-  set -x
-fi
-
-if [ -f travis.conf ]; then
-   SETUP=travis.conf
-   DEV_PATH=$(grep "[^a-zA-Z0-9_]devpath *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d ", \r\n")
-   TOOLS_PATH=$(grep "[^a-zA-Z0-9_]tools_path *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d ", \r\n")
-   if [ -z "repository" ]; then
-     repository=$(grep "[^a-zA-Z0-9_]odoo_repo *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d ", \r\n")
-   fi
-   BRANCH=$(grep "[^a-zA-Z0-9_]branch *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d ", \r\n")
+DEVPATH=$TDIR
+if [ "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
 fi
 if [ "$repository" == "." ]; then repository=$(echo "local/$(basename $PWD)"); fi
 if [ -z "$repository" ]; then repository=$(echo "local/$(basename $PWD)"); fi
-prjname=$(basename $repository)
 if [ -z $PKGPATH ]; then
   PKGPATH=$PWD
 fi
 PKGPATH=$(set_pkgpath "$PKGPATH")
+pkgname=$(basename $PKGPATH)
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $TCONF
+init_travis
+PRJNAME=$(basename $repository)
 
-if [ -z "$DEV_PATH" ]; then
-  if [ "$prjname" == "travis_emulator" ]; then
-    DEV_PATH=$PKGPATH/$prjname/travis
-    if [ -z "$TOOLS_PATH" ]; then
-      devpath=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
-      if [ -d $devpath/maintainer-quality-tools/travis ]; then
-       TOOLS_PATH=$devpath/maintainer-quality-tools/travis
-      else
-       unset -v TOOLS_PATH
-     fi
-    fi
+
+if [ $opt_verbose -eq 0 ]; then
+  opt_verbose=$(get_cfg_value "" "loglevel")
+fi
+if [ $opt_verbose -gt 1 ]; then
+  set -x
+fi
+
+if [ -z "$TOOLS_PATH" ]; then
+  if [ -d $DEVPATH/maintainer-quality-tools/travis ]; then
+    TOOLS_PATH=$DEVPATH/maintainer-quality-tools/travis
+  elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
+    TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
+  elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
+    TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
   else
-    DEV_PATH=$(if [ "$PYTHONPATH" ]; then echo "$PYTHONPATH"; elif [ -d $HOME/dev ]; then echo "$HOME/dev"; else echo "/opt/openerp/dev"; fi)
-    if [ -z "$TOOLS_PATH" ]; then
-      if [ -d $DEV_PATH/maintainer-quality-tools/travis ]; then
-       TOOLS_PATH=$DEV_PATH/maintainer-quality-tools/travis
-      else
-       unset -v TOOLS_PATH
-     fi
-    fi
+    unset -v TOOLS_PATH
   fi
 fi
 if [ "$TOOLS_PATH" ]; then
@@ -93,14 +97,10 @@ if [ "$action" == "check" ]; then
   export LINT_CHECK=1
 elif [ "$action" == "test" ]; then
   export LINT_CHECK=0
-elif [ "$prjname" != "Odoo" ]; then
+elif [ "$PRJNAME" != "Odoo" ]; then
   export LINT_CHECK=1
 else
   unset -v LINT_CHECK
-  if [ $opt_dry_run -eq 0 ]; then
-    find $PKGPATH -name "*~" -exec rm -vf '{}' \;
-    find $PKGPATH -name "*.bak" -exec rm -vf '{}' \;
-  fi
 fi
 # Default value for local environment
 if [ -z $BRANCH ]; then
@@ -109,38 +109,48 @@ fi
 export VERSION=$BRANCH
 export TRAVIS_BUILD_DIR=$PKGPATH
 export ODOO_REPO=$repository
-# export INCLUDE=/opt/openerp/$BRANCH
-if [ ! -d $PKGPATH/$prjname ]; then
-  echo "Invalid repository"
+export VERBOSE_MODE=$opt_verbose
+if [ ! -d $PKGPATH ]; then
+  echo "Invalid repository $PKGPATH"
   exit 1
+elif [ "$PRJNAME" != "Odoo" ]; then
+  if [ ! -d $PKGPATH/$pkgname ]; then
+    echo "Invalid repository $PKGPATH/$pkgname"
+    exit 1
+  fi
 fi
-if [ "$prjname" == "Odoo" ]; then
+if [ "$PRJNAME" == "Odoo" ]; then
   if [ $opt_dry_run -eq 0 ]; then
     dropdb  openerp_template 2>/dev/null||true
   fi
 fi
 if [ $opt_dry_run -eq 0 ]; then
   if [ "$TOOLS_PATH" ]; then
-    echo "$TOOLS_PATH/travis_run_tests"
+    if [ $opt_verbose -gt 0 ]; then
+      echo "$TOOLS_PATH/travis_run_tests"
+    fi
     $TOOLS_PATH/travis_run_tests
   else
-    echo "travis_run_tests"
+    if [ $opt_verbose -gt 0 ]; then
+      echo "travis_run_tests"
+    fi
     travis_run_tests
   fi
 fi
 if [ $? -eq 0 -a "$action" != "check" ]; then
-  if [ "$prjname" != "Odoo" ]; then
-    cd $PKGPATH/$prjname;
+  if [ "$PRJNAME" != "Odoo" ]; then
+    cd $PKGPATH/$PRJNAME;
     if [ $opt_dry_run -eq 0 ]; then
-      find . -name "*$prjname*.log" -exec rm -f '{}' \;
+      find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
       coverage erase
-      DEV_ENVIRONMENT=$prjname PYTHONPATH=$PKGPATH coverage run --source $prjname __main__.py
-      # PYTHONPATH=$PKGPATH coverage run --source $prjname $TESTDIR/test_$prjname.py
+      DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
     fi
   fi
-  echo ""
-  echo "The command \"travis_run_tests\" exited with 0."
-  echo "coveralls"
+  if [ $opt_verbose -gt 0 ]; then
+    echo ""
+    echo "The command \"travis_run_tests\" exited with 0."
+    echo "coveralls"
+  fi
   if [ $opt_dry_run -eq 0 ]; then
     coverage report
   fi

@@ -1,0 +1,197 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# test nightly Zeroincombenze sofware for continuous integration
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+
+if [ $EUID -eq 0 -a -d /opt/odoo/tools/z0lib ]; then
+  cd /opt/odoo/tools/z0lib
+fi
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -f $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -f ./z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+#__version__=0.1.19
+# set -x
+dom=$(date +%d)
+dow=$(date +%w)
+if [ "$PS1" ]; then
+  set_tlog_file "~/$THIS.log" "" "echo"
+elif [ $dom -eq 15 ]; then
+  set_tlog_file "~/$THIS.log" "new"
+else
+  set_tlog_file "~/$THIS.log"
+fi
+
+
+wlog "Test nightly starting by $USER"
+wlog "> Upgrade z0librc"
+_install_z0librc
+
+
+test_pkg_pypi () {
+# test_pkg_pypi (name)
+# return: sts
+    wlog "Required test for $1 package  ..."
+    if [ ! -d ~/dev/pypi/$1 ]; then
+      wlog "Package $1 not found!"
+      exit 1
+    fi
+    if [ ! -d ~/dev/pypi/$1/$1 ]; then
+      wlog "Invalid package $1!"
+      exit 1
+    fi
+    if [ ! -d ~/dev/pypi/$1/$1/tests ]; then
+      wlog "Unit test for package $1 not found"
+      exit 0
+    fi
+    sts=0
+    if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
+      cd ~/dev/pypi/$1/$1/tests
+      ./all_tests &>/dev/null
+      sts=$?
+    elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
+      cd ~/dev/pypi/$1/$1/tests
+      python ~/dev/pypi/$1/$1/tests/test_$1.py &>/dev/null
+      sts=$?
+    fi
+    if [ $sts -eq 0 ]; then
+      wlog "Package $1: test successfully terminated"
+    else
+      wlog "Package $1: test failed! See package log in ~/dev/pypi/$1/$1/tests!!!"
+    fi
+    return $sts
+}
+
+
+pkg_pypi_commit () {
+# pkg_pypi_commit (name)
+# return: sts
+    wlog "Commit $1 package  ..."
+    if [ ! -d ~/dev/pypi/$1 ]; then
+      wlog "Package $1 not found!"
+      exit 1
+    fi
+    if [ ! -d ~/dev/pypi/$1/$1 ]; then
+      wlog "Invalid package $1!"
+      exit 1
+    fi
+    if [ ! -d ~/dev/pypi/$1/$1/tests ]; then
+      wlog "Unit test for package $1 not found"
+      exit 0
+    fi
+    sts=0
+    cd ~/dev/pypi/$1/$1
+    wlog "Make replace package $1!"
+    make replace &>>~/$THIS.log
+      if [ "$HOSTNAME" == "shsdev14" -a $sts -eq 0 ]; then
+      wlog "Make commit package $1!"
+      make commit &>>~/$THIS.log
+    fi
+    return $sts
+}
+
+
+sts=0
+if [ $EUID -eq 0 ]; then
+  if [ "${HOSTNAME:0:3}" == "shs" ]; then
+    if [ $dow -eq 3 ]; then
+      wlog "> yum -y update"
+      yum -y update
+    fi
+    src=/opt/odoo/tools/clodoo
+    tgt=/opt/odoo/dev
+    for f in clodoo.py; do
+      wlog "> cp $src/$f $tgt/$f"
+      cp -v $src/$f $tgt/$f
+      wlog "> chown odoo:ERPs $tgt/$f"
+      chown odoo:ERPs $tgt/$f
+    done
+    src=/opt/odoo/dev
+    tgt=/opt/openerp/dev
+    for f in beauty cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc clodoo.py; do
+      wlog "> cp $src/$f $tgt/$f"
+      cp -v $src/$f $tgt/$f
+      wlog "> chown odoo:ERPs $tgt/$f"
+      chown openerp:ERPs $tgt/$f
+    done
+  fi
+fi
+if [ "$USER" == "odoo" ]; then
+  if [ ! -d /opt/odoo/tools ]; then
+    mkdir -f /opt/odoo/tools
+  fi
+  if [ ! -d /opt/odoo/tools/travis_emulator ]; then
+    mkdir -f /opt/odoo/tools/travis_emulator
+  fi
+  if [ ! -d /opt/odoo/7.0 ]; then
+    mkdir -f /opt/odoo/7.0
+  fi
+  if [ ! -d /opt/odoo/8.0 ]; then
+    mkdir -f /opt/odoo/8.0
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
+  fi
+  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
+    mkdir -f /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
+  fi
+  cd ~/dev/pypi
+  for pkgname in *; do
+    if [ $sts -eq 0 ]; then
+      if [ "$pkgname" == "os0" -o "$pkgname" == "pytok" -o "$pkgname" == "travis_emulator" -o "$pkgname" == "z0lib" ]; then
+        test_pkg_pypi $pkgname
+        sts=$?
+        if [ $sts -eq 0 ]; then
+          pkg_pypi_commit $pkgname
+        fi
+      fi
+    fi
+  done
+  if [ "$HOSTNAME" == "shsdev14" -a $sts -eq 0 ]; then
+    wlog "cd ~/tools"
+    cd ~/tools
+    wlog "git commit -a -m '[RUN] nightly commit'"
+    git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
+    wlog "git push"
+    git push &>>~/$THIS.log
+  fi
+fi
+if [ "$USER" == "openerp" ]; then
+  if [ $sts -eq 0 ]; then
+    if [ -f ./nightly.conf ]; then
+      /opt/odoo/dev/pypi/clodoo/clodoo/clodoo.py -c ./nightly.conf &>/dev/null
+      mv ./nightly.conf ./nightly.bak
+    fi
+    /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
+  fi
+fi
+if [ $sts -eq 0 ]; then
+  echo "Test successfully terminated"
+else
+  echo "**** Test failed!!!! ****"
+fi
+exit $sts

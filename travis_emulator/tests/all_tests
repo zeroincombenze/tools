@@ -1,23 +1,37 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+if [ -f ./z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
 if [ -f ./travisrc ]; then
 . ./travisrc
-TESTDIR=./tests
+  TESTDIR=./tests
+  RUNDIR=./
 elif [ -f ../travisrc ]; then
 . ../travisrc
-TESTDIR=.
+  TESTDIR=.
+  RUNDIR=../
 fi
+RUNDIR=$(readlink -e $RUNDIR)
+TESTDIR=$(readlink -e $TESTDIR)
+
+#__version__=0.1.59
+# set -x
 
 set_tlog_file "$TESTDIR/test_travis_em.log" "new" "echo"
 export ctr=0
 $TESTDIR/test_regex
 sts=$?
 if [ $sts -eq 0 ]; then
-  $TESTDIR/test_Makefile
+  $TESTDIR/test_dist_pkg
   sts=$?
 fi
 if [ $sts -eq 0 ]; then
-  $TESTDIR/test_dist_pkg
+  $TESTDIR/test_Makefile
   sts=$?
 fi
 if [ $sts -eq 0 ]; then

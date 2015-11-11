@@ -2,14 +2,25 @@
 # -*- coding: utf-8 -*-
 if [ -f ./z0librc ]; then
 . ./z0librc
-  TESTDIR=./tests
-elif [ -f ../z0librc ]; then
-. ../z0librc
-  TESTDIR=.
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
 fi
-#__version__=0.1.56
-# set -x
+if [ -f ./travisrc ]; then
+. ./travisrc
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -f ../travisrc ]; then
+. ../travisrc
+  TESTDIR=.
+  RUNDIR=../
+fi
+RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
+
+#__version__=0.1.70
+# set -x
 
 
 test_result () {
@@ -54,16 +65,17 @@ testpath () {
   # read
 }
 
-# Previous test_wlog executed 36 unit test
+# Previous test_wlog executed 49 unit test
 #if [ ${ctr:-0} -eq 0 ]; then
-  ctr=36
+  ctr=49
 #fi
 if [ -z "$FLOG" ]; then
   set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
 fi
 
 MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
-PYTHONPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
+# PYTHONPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
+export DEVPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
 OS_VER=0.2.10
 BB_VER=7.0.0.2
 echo "**************************************************************************************"
@@ -114,7 +126,7 @@ p2=os0
 p3=
 p4="$p2($p2)"
 p5=$OS_VER
-p6=setup.py
+p6=/opt/odoo/dev/pypi/os0/setup.py
 p7=/opt/odoo/dev/pypi/os0/os0
 p8=/opt/odoo/dev/pypi/os0
 testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
@@ -124,7 +136,7 @@ p2=os0
 p3=
 p4="$p2($p2)"
 p5=$OS_VER
-p6=../setup.py
+p6=/opt/odoo/dev/pypi/os0/setup.py
 p7=/opt/odoo/dev/pypi/os0/os0
 p8=/opt/odoo/dev/pypi/os0
 testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"

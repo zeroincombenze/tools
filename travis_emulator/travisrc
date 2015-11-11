@@ -2,51 +2,153 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.9
+#__version__=0.1.32
 
-ODOO_SETUP=__openerp__.py
 MAKEF=/opt/odoo/dev/Makefile
-DIST_CONF=./conf/.friends.conf
-XRGX="^.*\.pyc$ ^.*\.log$ ^.*\.bak$ ^.*\.out$ ^.*\.conf$ ^(.*\/|)build\/ ^(.*\/|)dist\/ ^(.*\/|)conf\/ ^(.*\/|)\.cover\/ ^(.*\/|)\.coverage\/ ^(.*\/|)\.git\/ ^.*~$"
+DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
 XXXX=".pyc .log .bak .out .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
-XLFS=
-for x in $XXXX;do
-  XLFS="$XLFS --exclude *$x"
-done
-XLDF=
-for x in $XXXX;do
-  XLDF="$XLDF -x *$x"
-done
+
+
+init_travis () {
+    if [ $opt_dry_run -gt 0 ]; then
+      opts_dry_run=-n
+    else
+      opts_dry_run=
+    fi
+    if [ ${opt_upd:-0} -gt 0 ]; then
+      opts_upd=-u
+    else
+      opts_upd=
+    fi
+    ODOO_SETUP=$(get_cfg_value "" "ODOO_SETUP")
+    if [ "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then
+      SETUP="$ODOO_SETUP";
+      REPOSNAME=$(basename $(readlink -e ..))
+      if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
+        REPOSNAME=
+      fi
+    elif [ -f $PKGPATH/setup.py ]; then
+      SETUP="$PKGPATH/setup.py";
+      REPOSNAME=$(basename $PKGPATH)
+    else
+       SETUP="$ODOO_SETUP";
+       REPOSNAME=
+    fi
+    if [ "$SETUP" == "$ODOO_SETUP" ]; then
+      if [ -z "$PRJNAME" ]; then
+        PRJNAME="Odoo"
+      fi
+      if [ -f $ODOO_SETUP ]; then
+        prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \r\n")
+        prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
+      else
+        prjversion=""
+        prjdesc="Unrecognized Odoo module"
+      fi
+    else
+      if [ "$SETUP" -a -f $SETUP ]; then
+        if [ -z "$PRJNAME" ]; then
+          PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+        fi
+        prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+        if [ "$prjversion" == "version" ]; then
+          prjversion=""
+        fi
+        prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
+        if [ "$prjdesc" == "description" ]; then
+          prjdesc="Unrecognized Odoo module"
+        fi
+      fi
+    fi
+    if [ "$PRJNAME" == "odoo" ]; then
+      PRJNAME=Odoo
+    fi
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [ -z "$prjversion" ]; then
+        prjversion=$(if $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      fi
+    fi
+}
+
+
+conf_default () {
+    set_cfg_def "loglevel" "0"
+    set_cfg_def "ODOO_SETUP" "__openerp__.py"
+}
 
 
 expand_path () {
 # expand_path (path)
 # return:path
-    echo "$1"|sed s:\${pkgpath}:$PKGPATH:g|sed s:\${pkgname}:$pkgname:g|sed s:\${prjname}:$prjname:g
+    echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g
 }
 
 
 set_pkgpath () {
 # set_pkgpath (pkgname)
 # return:pkgpath
-    PKGPATH=$1
+    PKGPATH="$1"
     if [ -z "$PKGPATH" ]; then
       PKGPATH=$PWD
-    elif [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" ]; then
-      local oPKGPATH="$PKGPATH"
+    fi
+    if [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" ]; then
       local x=$(readlink -e ../$PKGPATH)
       if [ "$x" -a "$(basename $x)" == "$PKGPATH" ]; then
         PKGPATH=$x
-        local x=$(readlink -e $PKGPATH/..)
-        if [ "$x" -a "$(basename $x)" == "$oPKGPATH" ]; then
-          PKGPATH=$x
-        fi
       fi
     fi
-    echo $PKGPATH
+    local x="$(readlink -e $PKGPATH/..)"
+    if [ "$x" ]; then
+      local d=
+      for d in tests build dist conf .cover .coverage; do
+        if [ "$(basename $PKGPATH)" == "$d" ]; then
+          PKGPATH="$x"
+          local x="$(readlink -e $PKGPATH/..)"
+          break
+        fi
+      done
+    fi
+    if [ "$x" -a "$(basename $x)" == "$(basename $PKGPATH)" -a -f "$x/setup.py" ]; then
+      PKGPATH="$x"
+    fi
+    echo "$PKGPATH"
 }
 
+
+update_dev_travis () {
+    XDPATH=$(echo "$(dirname $MAKEF)")
+    RFLIST="beauty cronow .dist_pkg.conf dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc wok_doc wok_doc.py"
+    xvalid=1
+    for x in $RFLIST; do
+      if [ ! -f $PKGPATH/$pkgname/$x ]; then
+        xvalid=0
+      fi
+    done
+    if [ $xvalid -eq 0 ]; then
+       echo "Invalid package travis_emulator!"
+       exit 1
+    fi
+    if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
+      for x in $RFLIST; do
+        if [ -f $PKGPATH/$pkgname/$x ]; then
+          if [ ${opt_diff:-0} -gt 0 ]; then
+            if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "> diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
+            fi
+          elif [ ${opt_fetch:-0} -gt 0 ]; then
+            if [ ${opt_verbose:-0} -gt 0 ]; then echo "> $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
+            (($opt_dry_run))||cp $XDPATH/$x $PKGPATH/$pkgname/$x
+          else
+            if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+            (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
+          fi
+        fi
+      done
+      MAKEF=$PKGPATH/$pkgname/Makefile
+    fi
+}
 
 a_append () {
 # a_append (key, values)::DEFPRM,DEFVAL
@@ -106,7 +208,7 @@ matches1of () {
 
 
 robocopy_init () {
-# robocopy_init (prjname, pkgname)::opt_fetch
+# robocopy_init (prjname, pkgname)::DIST_CONF,TCONF,opt_fetch,opt_verbose
 # return:
     a_append "--new"
     a_append "^.*\.egg-info$" ""
@@ -117,18 +219,64 @@ robocopy_init () {
       a_append "setup.py" ""
       a_append "$2" "/"
       a_append "conf" "/"
-      if [ $opt_fetch -eq 0 ]; then
-      #   a_append "README.rst" "/$2/README.rst"
-      #   a_append "README.md" "/$2/README.md"
+      if [ ${opt_fetch:-0} -eq 0 ]; then
          a_append "README.rst" "/"
          a_append "README.md" "/"
       fi
       a_append "^.*" ""
     fi
+    if [ "$DIST_CONF" ]; then
+      local xx=$(grep "^ignore *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+      local yy=$(grep "^ignorediff *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    fi
+    if [ -z "$xx" -a "$TCONF" ]; then
+      local xx=$(grep "^ignore *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+      local yy=$(grep "^ignorediff *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    fi
+    if [ -z "$xx" ]; then
+      # TODO: addons
+      local xx=".pyc .log .bak .out .conf build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
+      local yy=".po .pot"
+    fi
+    XRGX=
+    XLFS=
+    XLDF=
+    for x in $xx; do
+      local x1="${x:0:1}"
+      local l=
+      let l=${#x}-1
+      local x9="${x:l:1}"
+      if [ "$x9" == "/" ]; then
+         XRGX="$XRGX ^(.*\\/|)$x"
+         XLFS="$XLFS --exclude=$x"
+      elif [ "$x1" == "." -o "$x" == "~" ]; then
+         XRGX="$XRGX ^.*\\$x\$"
+         XLFS="$XLFS --exclude=*$x"
+      else
+         XRGX="$XRGX $x"
+         XLFS="$XLFS --exclude=*$x*"
+      fi
+      XLDF="$XLDF -x '*$x'"
+    done
+    XXDF=
+    for x in $yy; do
+      local x1="${x:0:1}"
+      local l=
+      let l=${#x}-1
+      local x9="${x:l:1}"
+      if [ "$x9" == "/" ]; then
+         XXDF="$XXDF ^(.*\\/|)$x"
+      elif [ "$x1" == "." -o "$x" == "~" ]; then
+         XXDF="$XXDF ^.*\\$x\$"
+      else
+         XXDF="$XXDF $x"
+      fi
+    done
 }
 
+
 robocopy () {
-# robocopy (srcfname, tgtpath, sshopt)::opt_dry_run,opts_dry_run,XRGX,XRGI,XLFS
+# robocopy (srcfname, tgtpath, sshopt)::opt_dry_run,opts_dry_run,opt_verbose,XRGX,XRGI,XLFS
 # return:
     if [ -d "$1" ]; then
       local t="d"
@@ -148,20 +296,23 @@ robocopy () {
     if [ "${v:0:1}" == "/" ]; then
       if [ "$v" == "/" -a "$t" == "d" ]; then
         if [ "${3:0:3}" == "ssh" ]; then
-          local optrsync="-abvzhe"
-          local optssh="$3"
-          if [ "$v" == "/" ]; then
-            v=/$fn/
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            local optrsync="-abvzhe"
           else
-            v=$v/$fn/
+            local optrsync="-abzhe"
           fi
-          echo "rsync $opts_dry_run $optrsync \"$optssh\" --del --copy-links $XLFS $ff $2$v"
-          rsync $opts_dry_run $optrsync "$optssh" --del --copy-links $XLFS $ff $2$v
+          local optssh="$3"
+          echo "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          rsync $opts_dry_run $optrsync "$optssh" $opts_upd --del --copy-links $XLFS $ff $2$v
         else
-          local optrsync="-ab"
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            local optrsync="-abv"
+          else
+            local optrsync="-ab"
+          fi
           local optssh=""
-          echo "rsync $opts_dry_run $optrsync --del --copy-links $XLFS $ff $2$v"
-          rsync $opts_dry_run $optrsync --del --copy-links $XLFS $ff $2$v
+          echo "rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
+          rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v
         fi
       else
         if [ "${3:0:3}" == "ssh" ]; then
@@ -172,8 +323,11 @@ robocopy () {
           if [ ! -d "$2" ]; then
             local v=
           fi
-          echo "$opt_dry_run||cp -L $ff $2$v"
-          (($opt_dry_run))||cp -L $ff $2$v
+          diff -q $ff $2$v &>/dev/null
+          if [ $? -ne 0 ]; then
+            echo "$opt_dry_run||cp -L $ff $2$v"
+            (($opt_dry_run))||cp -L $ff $2$v
+          fi
         fi
       fi
     fi
@@ -182,13 +336,13 @@ robocopy () {
 clean_dirs () {
 # clean_dirs (directory)::
 # return:
-    if [ $opt_dry_run -gt 0 ]; then
-      for x in $XXXX;do
-        find $1 -nowarn -type f -name "*$x" -exec echo "1||rm '{}'" \;
-      done
-    else
-      for x in $XXXX;do
-        find $1 -nowarn -type f -name "*$x" -exec rm -f '{}' \;
-      done
-    fi
+    for x in $XXXX;do
+      if [ "$x" != ".conf" ]; then
+        if [ $opt_dry_run -gt 0 ]; then
+          find $1 -nowarn -name "*$x" -exec echo "1||rm '{}'" \;
+        else
+          find $1 -nowarn -name "*$x" -exec rm -f '{}' \;
+        fi
+      fi
+    done
 }

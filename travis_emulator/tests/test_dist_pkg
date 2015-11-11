@@ -2,15 +2,26 @@
 # -*- coding: utf-8 -*-
 if [ -f ./z0librc ]; then
 . ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -f ./travisrc ]; then
+. ./travisrc
   TESTDIR=./tests
   RUNDIR=./
-elif [ -f ../z0librc ]; then
-. ../z0librc
+elif [ -f ../travisrc ]; then
+. ../travisrc
   TESTDIR=.
   RUNDIR=../
 fi
 RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
+
+
+__version__=0.1.64
+# set -x
 
 test_result () {
   ((ctr++))
@@ -29,46 +40,91 @@ test_result () {
 }
 
 
-# Previous test_wlog executed 84 unit test
+# Previous test_wlog executed 36 unit test
 #if [ ${ctr:-0} -eq 0 ]; then
-  ctr=84
+  ctr=36
 #fi
 if [ -z "$FLOG" ]; then
   set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
 fi
-if [ -f $TESTDIR/test_local_dist_pkg.conf ]; then
-  rm -f $TESTDIR/test_local_dist_pkg.conf
+TEST_GCONF=$TESTDIR/test_dist_pkg.conf
+TEST_LCONF=$TESTDIR/test_local_dist_pkg.conf
+if [ -f $TEST_LCONF ]; then
+  rm -f $TEST_LCONF
 fi
-echo "# Sample conf file for test">$TESTDIR/test_dist_pkg.conf
-echo "distpath=/opt/odoo/tools/\${prjname}">>$TESTDIR/test_dist_pkg.conf
-#echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_dist_pkg.conf
-echo "openerp_distpath=/opt/odoo/8.0">>$TESTDIR/test_dist_pkg.conf
-echo "pkg_distconf=$TESTDIR/test_local_dist_pkg.conf">>$TESTDIR/test_dist_pkg.conf
+echo "# Sample conf file for test">$TEST_GCONF
+echo "distpath=/opt/odoo/tools/\${prjname}">>$TEST_GCONF
+echo "openerp_distpath=/opt/odoo/8.0">>$TEST_GCONF
+echo "zeroincombenze_distpath=/opt/odoo/7.0/zeroincombenze">>$TEST_GCONF
+echo "CONFN=$TEST_LCONF">>$TEST_GCONF
 
-echo "# Sample conf file for test">$TESTDIR/test_local_dist_pkg.conf
-echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TESTDIR/test_local_dist_pkg.conf
+echo "# Sample conf file for test">$TEST_LCONF
+echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TEST_LCONF
 
 
 CWD=$PWD
+
 TRES=$($RUNDIR/dist_pkg -V)
-test_result "version" "0.1.43" "$TRES"
-cd $TESTDIR
-cd ..
-TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
+test_result "version" "$__version__" "$TRES"
+
+cd $RUNDIR
+TRES=$($RUNDIR/dist_pkg -W PKGPATH)
 cd $CWD
-test_result "commit travis_emulator 1" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\"  travis_emulator" "$TRES"
+test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+
+cd $RUNDIR
+cd ..
+TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+cd $CWD
+test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
 
 cd $TESTDIR
-cd ..
-TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n2|tail -n1)
+TRES=$($RUNDIR/dist_pkg -W PKGPATH)
 cd $CWD
-#test_result "commit odoo" "No configuration file /opt/odoo/dev/pypi/travis_emulator/travis_emulator/tests/test_local_dist_pkg.conf for distribution" "$TRES"
-test_result "commit travis_emulator 2" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\"  travis_emulator" "$TRES"
+test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
 
+TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/conf)
+test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+
+TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/travis_emulator/conf)
+test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+
+TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+test_result "param LGITPATH (travis)" "/opt/odoo/tools/travis_emulator" "$TRES"
 
 cd /opt/odoo/7.0
-TRES=$($RUNDIR/dist_pkg -nc $TESTDIR/test_dist_pkg.conf -C|head -n1)
+TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
 cd $CWD
-test_result "commit openerp" "dist_pkg -n -C -p \"/opt/odoo/8.0\"  openerp" "$TRES"
+test_result "param LGITPATH (odoo8)" "/opt/odoo/8.0" "$TRES"
+
+cd /opt/openerp/7.0/zeroincombenze/l10n_it_bbone
+TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+cd $CWD
+test_result "param LGITPATH (zeroincombenze)" "/opt/odoo/7.0/zeroincombenze" "$TRES"
+
+cd $TESTDIR
+TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+cd $CWD
+test_result "commit travis_emulator 1" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
+
+cd $TESTDIR
+cd ..
+TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+cd $CWD
+test_result "commit travis_emulator 2" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
+
+cd /opt/odoo/7.0
+TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+cd $CWD
+test_result "commit openerp" "dist_pkg -n -C -p \"/opt/odoo/8.0\" 7.0 openerp" "$TRES"
+
+echo "distpath=/opt/odoo">>$TEST_LCONF
+cd $TESTDIR
+TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+cd $CWD
+test_result "param LGITPATH (odoo)" "/opt/odoo" "$TRES"
+
+TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
+test_result "commit travis_emulator" "dist_pkg -n -C -p \"/opt/odoo\" travis_emulator travis_emulator" "$TRES"
 
 exit 0

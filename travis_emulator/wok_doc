@@ -6,16 +6,19 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
-if [ -f ./z0librc ]; then
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -f $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
 fi
-TDIR=$(echo $(readlink -f $(dirname $0)))
 
-__version__="0.1.4"
+__version__=0.1.5
 
 # main
 OPTOPTS=(h        n            V           v)

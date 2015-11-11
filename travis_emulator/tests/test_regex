@@ -2,19 +2,25 @@
 # -*- coding: utf-8 -*-
 if [ -f ./z0librc ]; then
 . ./z0librc
-  TESTDIR=./tests
-elif [ -f ../z0librc ]; then
-. ../z0librc
-  TESTDIR=.
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
 fi
 if [ -f ./travisrc ]; then
 . ./travisrc
-TESTDIR=./tests
+  TESTDIR=./tests
+  RUNDIR=./
 elif [ -f ../travisrc ]; then
 . ../travisrc
-TESTDIR=.
+  TESTDIR=.
+  RUNDIR=../
 fi
+RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
+
+#__version__=0.1.26
+# set -x
 
 test_result () {
   ((ctr++))
@@ -78,6 +84,17 @@ if [ -z "$FLOG" ]; then
   set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
 fi
 
+# TODO: integration with z0librc
+# $(init_cfg)
+# $(active_cfg)
+# FCONF="$TESTDIR/test_local.conf"
+# GCONF="$TESTDIR/test_glocal.conf"
+# if [ -f $FCONF ]; then rm -f $FCONF; fi
+# if [ -f $GCONF ]; then rm -f $GCONF; fi
+# link_cfg $FCONF $GCONF
+# set_cfg_def "ignore" ".pyc .log .bak .out .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
+
+robocopy_init
 a_append "--new"
 a_append "KEY_A" "aaa"
 a_append "KEY_B" "bbb"
@@ -128,7 +145,7 @@ opt_fetch=0
 
 robocopy_init "travis_emulator" "travis_emulator"
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy # rsync" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *.conf --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.cover/ --exclude *.coverage/ --exclude *.git/ --exclude *~ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
+test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator.egg-info" "/opt/odoo/tools/travis_emulator")
 test_result_cp "robocopy" "" "$TRES"
 TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/build" "/opt/odoo/tools/travis_emulator")
@@ -150,7 +167,7 @@ robocopy_init "Odoo" "zeroincombenze"
 TRES=$(robocopy "/opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py" "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal")
 test_result_cp "robocopy # odoo" "1||cp -L /opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/" "$TRES"
 TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
-test_result_cp "robocopy # rsync" "rsync -n -ab --del --copy-links  --exclude *.pyc --exclude *.log --exclude *.bak --exclude *.out --exclude *.conf --exclude *build/ --exclude *dist/ --exclude *conf/ --exclude *.cover/ --exclude *.coverage/ --exclude *.git/ --exclude *~ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
+test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
 TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
 test_result_cp "robocopy" "" "$TRES"
 TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
