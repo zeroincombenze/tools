@@ -6,6 +6,7 @@ import sys
 
 
 class Parent_Class(object):
+
     def __init__(self):
         self.myvalue = 0
 
@@ -14,6 +15,7 @@ class Parent_Class(object):
 
 
 class My_Class():
+
     def __init__(self):
         pass
 

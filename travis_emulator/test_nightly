@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.22
+__version__=0.1.23
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -59,6 +59,10 @@ test_pkg_pypi () {
       exit 0
     fi
     sts=0
+    if [ "$HOSTNAME" != "$DEV_HOST" ]; then
+      wlog "> make wep $1"
+      make wep $1
+    fi
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
       cd ~/dev/pypi/$1/$1/tests
       ./all_tests &>/dev/null

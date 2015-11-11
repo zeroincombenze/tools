@@ -19,11 +19,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-r"""OS routines for Linux, OpenVMS and Windows
-
-This module expands standard os.py module.
-os0 is platform independent and can run on Linux, OpenVMS and Linux.
-See http://www.zeroincombenze.eu about os differences.
+"""@package docstring
+!OS routines for Linux, OpenVMS and Windows
+!
+!This module expands standard os.py module.
+!os0 is platform independent and can run on Linux, OpenVMS and Linux.
+!See http://www.zeroincombenze.eu about os differences.
 
 This exports:
   - osx.setlfilename set local filename from URI (linux) filename

@@ -181,7 +181,6 @@ def msg_new_test(test_num):
 
 
 def msg_test(newline, test_num):
-    global test_ctr, max_tests, wlog
     # if test_ctr >= 39 and test_ctr <= 40:  # debug
     #     import pdb
     #     pdb.set_trace()
