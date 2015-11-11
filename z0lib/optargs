@@ -71,13 +71,11 @@ echo ""
 echo "#1      = <$src>"
 echo "#2      = <$tgt>"
 
-if [ "$opt_version" ]
-then
+if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-if [ $opt_help -gt 0 ]
-then
+if [ $opt_help -gt 0 ]; then
   print_help "Sample for optargs"\
   "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0

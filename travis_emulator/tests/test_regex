@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 if [ -f ./z0librc ]; then
 . ./z0librc
+elif [ -f ../z0librc ]; then
+. ../z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
 else
@@ -19,7 +21,7 @@ fi
 RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
 
-#__version__=0.1.26
+#__version__=0.1.27
 # set -x
 
 test_result () {

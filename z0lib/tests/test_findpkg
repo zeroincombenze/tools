@@ -61,18 +61,36 @@ result=$(findpkg "$f" "$p")
 TRES="/bin/bash"
 test_result "find $f" "$TRES" "$result"
 
-f="network"
 p="/usr /etc /bin"
 s="init hosts init.d"
-result=$(findpkg "$f" "$p" "$s")
-TRES="/etc/rc.d/init.d/network"
+if [ -h /etc/init.d ]; then
+  TRES=$(readlink -e /etc/init.d)
+else
+  TRES=/etc/init.d
+fi
+if [ -f $TRES/network ]; then
+  TRES=$TRES/network
+  f="network"
+  result=$(findpkg "$f" "$p" "$s")
+elif [ -f $TRES/networking ]; then
+  TRES=$TRES/networking
+  f="networking"
+  result=$(findpkg "$f" "$p" "$s")
+else
+  f=failed
+  result=$(findpkg "$f" "$p" "$s")
+fi
 test_result "find $f in $p" "$TRES" "$result"
 
 f="mail/"
 p="/var  /usr /etc /bin"
 s="spool mail log lib"
 result=$(findpkg "$f" "$p" "$s")
-TRES="/var/spool/mail"
+if [ -h  /var/spool/mail ]; then
+  TRES=$(readlink -e /var/spool/mail)
+else
+  TRES=/var/spool/mail
+fi
 test_result "find $f in $p" "$TRES" "$result"
 
 exit 0

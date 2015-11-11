@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.70
+# Makefile __version__=0.1.71
 
 .DEFAULT: check
 
@@ -232,36 +232,36 @@ pep8:
 replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vuR $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vR $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vuR $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vR $(pkgname);\
 	fi
 
 .PHONY: if-replace
 if-replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvuR $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvR $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvuR $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvR $(pkgname);\
 	fi
 
 .PHONY: fetch
 fetch:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vuF $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vF $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vuF $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vF $(pkgname);\
 	fi
 
 .PHONY: if-fetch
 if-fetch:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvuF $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvF $(pkgname);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvuF $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvF $(pkgname);\
 	fi
 
 .PHONY: diff
@@ -277,36 +277,36 @@ diff:
 push:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vuP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vP $(pkgname) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vuP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vP $(pkgname) $(PRJNAME); \
 	fi
 
 .PHONY: if-push
 if-push:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvuP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvP $(pkgname) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvuP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvP $(pkgname) $(PRJNAME); \
 	fi
 
 .PHONY: commit
 commit:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vuC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vC $(pkgname) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vuC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vC $(pkgname) $(PRJNAME); \
 	fi
 
 .PHONY: if-commit
 if-commit:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvuC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvC $(pkgname) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvuC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvC $(pkgname) $(PRJNAME); \
 	fi
 
 .PHONY: wep

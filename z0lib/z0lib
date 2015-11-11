@@ -1,6 +1,12 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-if [ -f ./z0librc ]; then
+
+THIS=$(basename $0)
+TDIR=$(echo $(readlink -f $(dirname $0)))
+if [ -f $TDIR/z0librc ]; then
+. $TDIR/z0librc
+  ZDIR=$TDIR
+elif [ -f ./z0librc ]; then
 . ./z0librc
   ZDIR=.
 elif [ -f ~/z0librc ]; then
@@ -31,7 +37,7 @@ fi
 #
 ##############################################################################
 
-__version__=0.1.14
+__version__=0.1.17
 __version__=$(grep "#__version__" $ZDIR/z0librc|head -n1|awk -F\= '{print $2}')
 
 OPTOPTS=(h        i         n            t        V           v)
