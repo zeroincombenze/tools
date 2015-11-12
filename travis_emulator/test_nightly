@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.29
+__version__=0.1.30
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -153,6 +153,10 @@ upgrade_myself () {
 check4env () {
     if [ ! -d ~/dev/pypi ]; then
       wlog "Invalid environment: missing ~/dev/pypi directory"
+      exit 1
+    fi
+    if [ ! -d ~/dev/travis ]; then
+      wlog "Invalid environment: missing ~/dev/travis directory"
       exit 1
     fi
     if [ ! -d /opt/odoo/tools ]; then

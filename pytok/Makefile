@@ -1,3 +1,4 @@
+# Makefile __version__=0.1.75
 
 .DEFAULT: check
 
@@ -210,7 +211,16 @@ coverage:
 
 .PHONY: travis
 travis:
-	travis_run_tests \
+	if [ "$(HOSTENV)" == "travis" ]; then \
+	  travis_run_tests \
+	else \
+	  $(DEVPATH)/travis local/$(PRJNAME) \
+	  @if [ "$(PRJNAME)" == "travis_emulator" ]; then \
+	    cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -S3 $(pkgname); \
+	  else \
+	    cd $(PKGPATH); $(DEVPATH)/dist_pkg -S3 $(pkgname); \
+	  fi \
+	fi
 
 .PHONY: annotate
 annotate:

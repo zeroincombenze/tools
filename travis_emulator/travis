@@ -3,6 +3,13 @@
 #
 # Travis-ci emulator
 # Emulate travis-ci on local machine, to test before upgrade git project
+# Deploy:
+# ~/dev                          -> this script
+# ~/dev/_travis                  -> default script (travis_install_pkgs, travis_runs_tests, travis_after_tests_success)
+# ~/dev/maintainer-quality-tools -> actual scripts, mainly for Odoo environment by OCA; thery replaces default scripts
+# When developping travis emulator itself, deployment is:
+# ~/dev/pypi/travis_em/travis_em -> this script
+# ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_install_pkgs, travis_runs_tests, travis_after_tests_success)
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -20,23 +27,42 @@ else
 . /etc/z0librc
 fi
 . $TDIR/travisrc
-TCONF=$TDIR/.$THIS.conf
 
-__version__=0.1.28
+__version__=0.1.30
 
 
-OPTOPTS=(h        c        n            V           v           b)
-OPTDEST=(opt_help opt_conf opt_dry_run  opt_version opt_verbose opt_branch)
-OPTACTI=(1        "="      "1>"         "*>"        1           "=")
-OPTDEFL=(1        ""       0            ""          0           8.0)
-OPTMETA=("help"   "file"   "do nothing" "version"   "verbose"   "branch")
+run_traced () {
+    # set -x  #debug
+    if [ $opt_r -eq 0 ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "$@"
+      fi
+      if [ $opt_dry_run -eq 0 ]; then
+        $@
+      fi
+    else
+      if [ $opt_verbose -gt 0 ]; then
+        echo "$1 $opts_dry_run $opts_verbose $PKGPATH $PRJNAME"
+      fi
+      $1 $opts_dry_run $opts_verbose $PKGPATH $PRJNAME
+    fi
+    # et +x  #debug
+}
+
+
+OPTOPTS=(h        c        n            r     V           v           b)
+OPTDEST=(opt_help opt_conf opt_dry_run  opt_r opt_version opt_verbose opt_branch)
+OPTACTI=(1        "="      "1>"         "1"   "*>"        1           "=")
+OPTDEFL=(1        ""       0            0     ""          0           8.0)
+OPTMETA=("help"   "file"   "do nothing" "res" "version"   "verbose"   "branch")
 OPTHELP=("this help"\
  "configuration file"\
  "do nothing (dry-run)"\
+ "run rescricted mode (w/o maintainer-quality-tools)"\
  "show version"\
  "verbose mode",
  "branch: must be 7.0 or 8.0 (def 8.0)")
-OPTARGS=(repository action)
+OPTARGS=(pkg_path action)
 parseoptargs $@
 
 if [ "$opt_version" ]; then
@@ -44,28 +70,31 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test or all (default)"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default) or setup"\
   "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 DEVPATH=$TDIR
 if [ "$opt_conf" -a -f "$opt_conf" ]; then
   TCONF=$opt_conf
+else
+  TCONF=$TDIR/.$THIS.conf
 fi
-if [ "$repository" == "." ]; then repository=$(echo "local/$(basename $PWD)"); fi
-if [ -z "$repository" ]; then repository=$(echo "local/$(basename $PWD)"); fi
-if [ -z $PKGPATH ]; then
+
+if [ "$pkg_path" ]; then
+  PKGPATH=$pkg_path
+else
   PKGPATH=$PWD
 fi
 PKGPATH=$(set_pkgpath "$PKGPATH")
 pkgname=$(basename $PKGPATH)
-$(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-PRJNAME=$(basename $repository)
-
+if [ -z "$PRJNAME" ]; then
+  PRJNAME=$(basename $PKGPATH)
+fi
 
 if [ $opt_verbose -eq 0 ]; then
   opt_verbose=$(get_cfg_value "" "loglevel")
@@ -73,6 +102,59 @@ fi
 if [ $opt_verbose -gt 1 ]; then
   set -x
 fi
+
+if [ "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
+fi
+
+if [ -z "$action" ]; then action=all; fi
+if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" ]; then
+  echo "Invalid action!"
+  echo "action should be one of check, test, all or setup"
+  exit 1
+fi
+
+if [ $opt_dry_run -ne 0 ]; then
+  opts_dry_run=-n
+else
+  opts_dry_run=
+fi
+if [ $opt_verbose -ne 0 ]; then
+  opts_verbose=-v
+else
+  opts_verbose=
+fi
+if [ "$action" == "setup" ]; then
+  opt_r=0
+  DEF_DEVPATH=$(readlink -f ~/dev)
+  if [ ! -d $DEF_DEVPATH ]; then
+    run_traced mkdir -p $DEF_DEVPATH
+  fi
+  if [ ! -d $DEF_DEVPATH/_travis ]; then
+    run_traced  mkdir -p $DEF_DEVPATH/_travis
+  fi
+  if [ ! -d $DEF_DEVPATH/_travis/cfg ]; then
+    run_traced mkdir -p $DEF_DEVPATH/_travis/cfg
+  fi
+  if [ "$TDIR" != $DEF_DEVPATH ]; then
+    run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
+    for f in travis_install_pkgs travis_run_tests travis_after_tests_success; do
+      run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
+    done
+  fi
+  exit 0
+fi
+
+if [ ! -d $PKGPATH ]; then
+  echo "Invalid package path $PKGPATH"
+  exit 1
+elif [ "$PRJNAME" != "Odoo" ]; then
+  if [ ! -d $PKGPATH/$pkgname ]; then
+    echo "Invalid package path $PKGPATH/$pkgname"
+    exit 1
+  fi
+fi
+repository=local/$pkgname
 
 if [ -z "$TOOLS_PATH" ]; then
   if [ -d $DEVPATH/maintainer-quality-tools/travis ]; then
@@ -85,14 +167,17 @@ if [ -z "$TOOLS_PATH" ]; then
     unset -v TOOLS_PATH
   fi
 fi
-if [ "$TOOLS_PATH" ]; then
+if [ -n "$TOOLS_PATH" -a $opt_r -eq 0 ]; then
   if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
     export PATH=$TOOLS_PATH:$PATH
   fi
+  export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
+else
+  TOOLS_PATH=$DEVPATH/_travis
+  opt_r=1
+  export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
 fi
 
-if [ -z "$action" ]; then action=all; fi
-export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
 if [ "$action" == "check" ]; then
   export LINT_CHECK=1
 elif [ "$action" == "test" ]; then
@@ -110,48 +195,26 @@ export VERSION=$BRANCH
 export TRAVIS_BUILD_DIR=$PKGPATH
 export ODOO_REPO=$repository
 export VERBOSE_MODE=$opt_verbose
-if [ ! -d $PKGPATH ]; then
-  echo "Invalid repository $PKGPATH"
-  exit 1
-elif [ "$PRJNAME" != "Odoo" ]; then
-  if [ ! -d $PKGPATH/$pkgname ]; then
-    echo "Invalid repository $PKGPATH/$pkgname"
-    exit 1
-  fi
+
+
+sts=0
+if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
+  run_traced $TOOLS_PATH/travis_install_pkgs
+  if [ $? -ne 0 ]; then sts=$?; fi
 fi
-if [ "$PRJNAME" == "Odoo" ]; then
-  if [ $opt_dry_run -eq 0 ]; then
-    dropdb  openerp_template 2>/dev/null||true
-  fi
-fi
-if [ $opt_dry_run -eq 0 ]; then
-  if [ "$TOOLS_PATH" ]; then
-    if [ $opt_verbose -gt 0 ]; then
-      echo "$TOOLS_PATH/travis_run_tests"
-    fi
-    $TOOLS_PATH/travis_run_tests
+if [ $sts -eq 0 ]; then
+  if [ $TOOLS_PATH/travis_run_tests ]; then
+    run_traced $TOOLS_PATH/travis_run_tests
+    if [ $? -ne 0 ]; then sts=$?; fi
   else
-    if [ $opt_verbose -gt 0 ]; then
-      echo "travis_run_tests"
-    fi
-    travis_run_tests
+    sts=127
   fi
 fi
-if [ $? -eq 0 -a "$action" != "check" ]; then
-  if [ "$PRJNAME" != "Odoo" ]; then
-    cd $PKGPATH/$PRJNAME;
-    if [ $opt_dry_run -eq 0 ]; then
-      find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
-      coverage erase
-      DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
-    fi
-  fi
-  if [ $opt_verbose -gt 0 ]; then
-    echo ""
-    echo "The command \"travis_run_tests\" exited with 0."
-    echo "coveralls"
-  fi
-  if [ $opt_dry_run -eq 0 ]; then
+if [ $sts -eq 0 -a "$action" != "check" ]; then
+  run_traced $TOOLS_PATH/travis_after_tests_success
+  if [ $? -ne 0 ]; then sts=$?; fi
+  if [ $sts -eq 0 ]; then
     coverage report
   fi
 fi
+exit $sts

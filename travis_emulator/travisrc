@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.32
+#__version__=0.1.33
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -94,9 +94,13 @@ set_pkgpath () {
     fi
     if [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" ]; then
       local x=$(readlink -e ../$PKGPATH)
-      if [ "$x" -a "$(basename $x)" == "$PKGPATH" ]; then
-        PKGPATH=$x
+      if [ "$x" ]; then
+        if [ "$(basename $x)" == "$PKGPATH" ]; then
+          PKGPATH=$x
+        fi
       fi
+    else
+      PKGPATH=$(readlink -e $PKGPATH)
     fi
     local x="$(readlink -e $PKGPATH/..)"
     if [ "$x" ]; then
@@ -109,8 +113,10 @@ set_pkgpath () {
         fi
       done
     fi
-    if [ "$x" -a "$(basename $x)" == "$(basename $PKGPATH)" -a -f "$x/setup.py" ]; then
-      PKGPATH="$x"
+    if [ "$x" ]; then
+      if [ "$(basename $x)" == "$(basename $PKGPATH)" -a -f "$x/setup.py" ]; then
+        PKGPATH="$x"
+      fi
     fi
     echo "$PKGPATH"
 }
