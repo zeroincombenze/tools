@@ -22,14 +22,15 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.27
+__version__=0.1.29
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
 yod=$(date +%Y)
-if [ "$PS1" ]; then
+#if [ "$PS1" ]; then
+if [[ -t 0 || -p /dev/stdin ]]; then
   set_tlog_file "~/$THIS.log" "" "echo"
-elif [ $dom -eq 11 ]; then
+elif [ $dom -eq 12 ]; then
   set_tlog_file "~/$THIS.log" "new"
 else
   set_tlog_file "~/$THIS.log"
@@ -42,10 +43,12 @@ PRD_HOST=shsprd14
 
 wlog "********************************************************"
 wlog "Test nightly starting by $USER"
+wlog "********************************************************"
 
 test_pkg_pypi () {
 # test_pkg_pypi (name)
 # return: sts
+    wlog "---------------------------------"
     wlog "Required test for $1 package  ..."
     if [ ! -d ~/dev/pypi/$1 ]; then
       wlog "Package $1 not found!"
@@ -60,10 +63,6 @@ test_pkg_pypi () {
       exit 0
     fi
     sts=0
-    if [ "$HOSTNAME" != "$DEV_HOST" ]; then
-      wlog "> make wep $1"
-      make wep $1
-    fi
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
       cd ~/dev/pypi/$1/$1/tests
       ./all_tests &>/dev/null
@@ -76,6 +75,8 @@ test_pkg_pypi () {
       sts=1
     fi
     if [ $sts -eq 0 ]; then
+      wlog "> make wep $1"
+      make wep $1
       wlog "Package $1: test successfully terminated"
     else
       wlog "Package $1: test failed! See package log in ~/dev/pypi/$1/$1/tests!!!"
@@ -112,16 +113,8 @@ pkg_pypi_commit () {
 }
 
 
-sts=0
-if [ $EUID -eq 0 ]; then
-  wlog "> Upgrade z0librc"
-  _install_z0librc
-  if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
-    if [ $dow -eq 3 ]; then
-      wlog "> yum -y update"
-      yum -y update
-    fi
-    src=/opt/odoo/tools/clodoo
+upgrade_myself () {
+    src=/opt/odoo/tools/travis_emulator
     tgt=/opt/odoo/dev
     f=test_nightly
     if [ -f $src/$f -a -f $tgt/$f -a "$TDIR" == "$tgt" ]; then
@@ -154,60 +147,79 @@ if [ $EUID -eq 0 ]; then
       wlog "Remove old $THIS after upgraded itself, now is running $__version__"
       rm -f $src/$f.sh
     fi
-    for f in clodoo.py; do
-      wlog "> cp $src/$f $tgt/$f"
-      cp -v $src/$f $tgt/$f
-      wlog "> chown odoo:ERPs $tgt/$f"
-      chown odoo:ERPs $tgt/$f
+}
+
+
+check4env () {
+    if [ ! -d ~/dev/pypi ]; then
+      wlog "Invalid environment: missing ~/dev/pypi directory"
+      exit 1
+    fi
+    if [ ! -d /opt/odoo/tools ]; then
+      mkdir -p /opt/odoo/tools
+    fi
+    if [ ! -d /opt/odoo/tools/travis_emulator ]; then
+      mkdir -p /opt/odoo/tools/travis_emulator
+    fi
+    if [ ! -d /opt/odoo/7.0 ]; then
+      mkdir -p /opt/odoo/7.0
+    fi
+    if [ ! -d /opt/odoo/8.0 ]; then
+      mkdir -p /opt/odoo/8.0
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze
+      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
+      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
+      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
+    fi
+    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
+      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
+    fi
+}
+
+
+cpfiles () {
+# srcpath, tgtpath, files, own
+    for f in $3; do
+      wlog "> cp $1/$f $2/$f"
+      cp -v $1/$f $2/$f
+      if [ $4 ]; then
+        wlog "> chown $4 $2/$f"
+        chown $4 $2/$f
+      fi
     done
-    src=/opt/odoo/dev
-    tgt=/opt/openerp/dev
-    for f in beauty cronow dist_pkg Makefile prjdiff topep8 travis travisrc clodoo.py; do
-      wlog "> cp $src/$f $tgt/$f"
-      cp -v $src/$f $tgt/$f
-      wlog "> chown odoo:ERPs $tgt/$f"
-      chown openerp:ERPs $tgt/$f
-    done
+}
+
+
+sts=0
+if [ $EUID -eq 0 ]; then
+  wlog "> Upgrade z0librc"
+  _install_z0librc
+  if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
+    if [ $dow -eq 4 ]; then
+      wlog "> yum -y update"
+      yum -y update
+    fi
+    cpfiles "/opt/odoo/tools/clodoo" "/opt/openerp/dev" "clodoo.py" "odoo:ERPs"
+    cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
   fi
 fi
 if [ "$USER" == "odoo" ]; then
-  if [ ! -d ~/dev/pypi ]; then
-    wlog "Invalid environment: missing ~/dev/pypi directory"
-    exit 1
-  fi
-  if [ ! -d /opt/odoo/tools ]; then
-    mkdir -p /opt/odoo/tools
-  fi
-  if [ ! -d /opt/odoo/tools/travis_emulator ]; then
-    mkdir -p /opt/odoo/tools/travis_emulator
-  fi
-  if [ ! -d /opt/odoo/7.0 ]; then
-    mkdir -p /opt/odoo/7.0
-  fi
-  if [ ! -d /opt/odoo/8.0 ]; then
-    mkdir -p /opt/odoo/8.0
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze
-    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
-    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
-    touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
-  fi
-  if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
-    mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
-  fi
+  upgrade_myself
+  check4env
   cd ~/dev/pypi
   for pkgname in *; do
     if [ $sts -eq 0 ]; then
@@ -228,6 +240,7 @@ if [ "$USER" == "odoo" ]; then
     wlog "> git push"
     git push &>>~/$THIS.log
   fi
+  cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
 fi
 if [ "$USER" == "openerp" ]; then
   if [ $sts -eq 0 ]; then
