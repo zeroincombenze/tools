@@ -210,16 +210,7 @@ coverage:
 
 .PHONY: travis
 travis:
-	if [ "$(HOSTENV)" == "travis" ]; then \
-	  travis_run_tests \
-	else \
-	  $(DEVPATH)/travis local/$(PRJNAME) \
-	  @if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	    cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -S3 $(pkgname); \
-	  else \
-	    cd $(PKGPATH); $(DEVPATH)/dist_pkg -S3 $(pkgname); \
-	  fi \
-	fi
+	travis_run_tests \
 
 .PHONY: annotate
 annotate:
