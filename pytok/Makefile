@@ -1,4 +1,3 @@
-# Makefile __version__=0.1.75
 
 .DEFAULT: check
 
