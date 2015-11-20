@@ -1,41 +1,31 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
 if [ -f ./z0librc ]; then
 . ./z0librc
+. ./z0testrc
   TESTDIR=./tests
+  RUNDIR=./
 elif [ -f ../z0librc ]; then
 . ../z0librc
+. ../z0testrc
   TESTDIR=.
+  RUNDIR=../
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
+else
+. /etc/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
 fi
-
-test_result () {
-  ((ctr++))
-  if [ $ctr -gt 10 ]; then
-    wlog "Test $ctr: $1"
-  else
-    echo "Test $ctr: $1"
-  fi
-  if [ "$4" ]; then
-    if [ "$($4 $2 $3)" ]; then
-      echo "Test failed: $4 '$2' '$3'"
-      exit 1
-    fi
-  else
-    if [ "$2" != "$3" ]; then
-      echo "Test failed: expected '$2', found '$3'"
-      exit 1
-    fi
-  fi
-}
-
-# Previous test_wlog executed 41 unit test
-if [ ${ctr:-0} -eq 0 ]; then
-  ctr=41
-fi
-if [ -z "$FLOG" ]; then
-  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
-fi
+RUNDIR=$(readlink -e $RUNDIR)
+TESTDIR=$(readlink -e $TESTDIR)
 
 base_test () {
     keys=(k01 k02 k03 k04 ^K.*)
@@ -45,7 +35,7 @@ base_test () {
     done
     for i in {0..3}; do
       TRES=$(a_find "0" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
 
     keys=(k11 k12 k13 k14 ^K.*)
@@ -55,12 +45,12 @@ base_test () {
     done
     for i in {0..3}; do
       TRES=$(a_find "1" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
     keys=(k01 k02 k03 k04)
     for i in {0..3}; do
       TRES=$(a_find "1" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      ci-test "find ${keys[i]}" "" "$TRES"
     done
 
     keys=(k21 k22 k23 k24 ^K.*)
@@ -70,17 +60,17 @@ base_test () {
     done
     for i in {0..3}; do
       TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
     keys=(k01 k02 k03 k04)
     for i in {0..3}; do
       TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      ci-test "find ${keys[i]}" "" "$TRES"
     done
     keys=(k11 k12 k13 k14)
     for i in {0..3}; do
       TRES=$(a_find "2" ${keys[i]})
-      test_result "find ${keys[i]}" "" "$TRES"
+      ci-test "find ${keys[i]}" "" "$TRES"
     done
 
     keys=(k31 k32 k33 k34 ^K.*)
@@ -90,9 +80,18 @@ base_test () {
     done
     for i in {0..3}; do
       TRES=$(a_find "3" ${keys[i]})
-      test_result "find ${keys[i]}" "${vals[i]}" "$TRES"
+      ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
 }
+
+
+__version__=0.1.23
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
 
 DEFDICT0="Dirty"
 DEFRULE0="Dirty!"
@@ -112,82 +111,82 @@ base_test
 keys=(k01 k02 k03 k04)
 for i in {0..3}; do
   TRES=$(a_find "3" ${keys[i]})
-  test_result "find ${keys[i]}" "" "$TRES"
+  ci-test "find ${keys[i]}" "" "$TRES"
 done
 keys=(k11 k12 k13 k14)
 for i in {0..3}; do
   TRES=$(a_find "3" ${keys[i]})
-  test_result "find ${keys[i]}" "" "$TRES"
+  ci-test "find ${keys[i]}" "" "$TRES"
 done
 keys=(k21 k22 k23 k24)
 for i in {0..3}; do
   TRES=$(a_find "3" ${keys[i]})
-  test_result "find ${keys[i]}" "" "$TRES"
+  ci-test "find ${keys[i]}" "" "$TRES"
 done
 
 TRES=$(a_find "0" "K9")
-test_result "find K9" "any" "$TRES"
+ci-test "find K9" "any" "$TRES"
 TRES=$(a_find "1" K9)
-test_result "find K9" "ANY" "$TRES"
+ci-test "find K9" "ANY" "$TRES"
 
 fh=$(xuname "-f")
 x=$(xuname "-v")
 disto=$(xuname "-d")${x:0:1}
 a_add "0" "k01" "global_a" "-f"
 TRES=$(a_find "0" "k01")
-test_result "find k01" "global_a" "$TRES"
+ci-test "find k01" "global_a" "$TRES"
 a_add "0" "k01" "local_a" "-d"
 TRES=$(a_find "0" "k01")
-test_result "find k01" "local_a" "$TRES"
+ci-test "find k01" "local_a" "$TRES"
 
 a_add "1" "k01" "global_A" "-f"
 TRES=$(a_find "1" "k01")
-test_result "find k01" "global_A" "$TRES"
+ci-test "find k01" "global_A" "$TRES"
 a_add "1" "k01" "local_A" "-d"
 TRES=$(a_find "1" "k01")
-test_result "find k01" "local_A" "$TRES"
+ci-test "find k01" "local_A" "$TRES"
 
 a_add "2" "k01" "Global_A" "-f"
 TRES=$(a_find "2" "k01")
-test_result "find k01" "Global_A" "$TRES"
+ci-test "find k01" "Global_A" "$TRES"
 a_add "2" "k01" "Local_A" "-d"
 TRES=$(a_find "2" "k01")
-test_result "find k01" "Local_A" "$TRES"
+ci-test "find k01" "Local_A" "$TRES"
 
 a_add "3" "k01" "GLobal_A" "-f"
 TRES=$(a_find "3" "k01")
-test_result "find k01" "GLobal_A" "$TRES"
+ci-test "find k01" "GLobal_A" "$TRES"
 a_add "3" "k01" "LOcal_A" "-d"
 TRES=$(a_find "3" "k01")
-test_result "find k01" "LOcal_A" "$TRES"
+ci-test "find k01" "LOcal_A" "$TRES"
 
 a_add "0" "^K.*" "global_any" "-f"
 TRES=$(a_find "0" "K9")
-test_result "find K9" "global_any" "$TRES"
+ci-test "find K9" "global_any" "$TRES"
 a_add "0" "^K.*" "local_any" "-d"
 TRES=$(a_find "0" "K9")
-test_result "find K9" "local_any" "$TRES"
+ci-test "find K9" "local_any" "$TRES"
 
 a_add "1" "^K.*" "global_ANY" "-f"
 TRES=$(a_find "1" "K9")
-test_result "find K9" "global_ANY" "$TRES"
+ci-test "find K9" "global_ANY" "$TRES"
 a_add "1" "^K.*" "local_ANY" "-d"
 TRES=$(a_find "1" "K9")
-test_result "find K9" "local_ANY" "$TRES"
+ci-test "find K9" "local_ANY" "$TRES"
 
 a_add "2" "^K.*" "Global_ANY" "-f"
 TRES=$(a_find "2" "K9")
-test_result "find K9" "Global_ANY" "$TRES"
+ci-test "find K9" "Global_ANY" "$TRES"
 a_add "2" "^K.*" "Local_ANY" "-d"
 TRES=$(a_find "2" "K9")
-test_result "find K9" "Local_ANY" "$TRES"
+ci-test "find K9" "Local_ANY" "$TRES"
 
 a_add "3" "^K.*" "GLobal_ANY" "-f"
 TRES=$(a_find "3" "K9")
-test_result "find K9" "GLobal_ANY" "$TRES"
+ci-test "find K9" "GLobal_ANY" "$TRES"
 a_add "3" "^K.*" "LOcal_ANY" "-d"
 TRES=$(a_find "3" "K9")
-test_result "find K9" "LOcal_ANY" "$TRES"
+ci-test "find K9" "LOcal_ANY" "$TRES"
 
 for i in {0..3}; do
   $(a_new "$i")
@@ -196,4 +195,7 @@ done
 
 base_test
 
-exit 0
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

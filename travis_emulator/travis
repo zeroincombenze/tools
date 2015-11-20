@@ -81,11 +81,11 @@ else
   TCONF=$TDIR/.$THIS.conf
 fi
 
-if [ "$pkg_path" ]; then
-  PKGPATH=$pkg_path
-else
+#if [ "$pkg_path" ]; then
+#  PKGPATH=$pkg_path
+#else
   PKGPATH=$PWD
-fi
+#fi
 PKGPATH=$(set_pkgpath "$PKGPATH")
 pkgname=$(basename $PKGPATH)
 $(active_cfg)

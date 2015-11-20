@@ -30,10 +30,10 @@ if [ $sts -eq 0 ]; then
   $TESTDIR/test_dist_pkg
   sts=$?
 fi
-if [ $sts -eq 0 ]; then
-  $TESTDIR/test_Makefile
-  sts=$?
-fi
+#if [ $sts -eq 0 ]; then
+#  $TESTDIR/test_Makefile
+#  sts=$?
+#fi
 if [ $sts -eq 0 ]; then
   echo "Test successfully terminated"
 else

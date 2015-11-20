@@ -1,42 +1,39 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
 if [ -f ./z0librc ]; then
 . ./z0librc
+. ./z0testrc
   TESTDIR=./tests
+  RUNDIR=./
 elif [ -f ../z0librc ]; then
 . ../z0librc
+. ../z0testrc
   TESTDIR=.
+  RUNDIR=../
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
+else
+. /etc/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
 fi
+RUNDIR=$(readlink -e $RUNDIR)
+TESTDIR=$(readlink -e $TESTDIR)
 
-
-test_result () {
-  ((ctr++))
-  if [ $ctr -gt 10 ]; then
-    wlog "Test $ctr: $1"
-  else
-    echo "Test $ctr: $1"
-  fi
-  if [ "$4" ]; then
-    if [ "$($4 $2 $3)" ]; then
-      echo "Test failed: $4 '$2' '$3'"
-      exit 1
-    fi
-  else
-    if [ "$2" != "$3" ]; then
-      echo "Test failed: expected '$2', found '$3'"
-      exit 1
-    fi
-  fi
-}
-
-# Previous test_wlog executed 127 unit test
-if [ ${ctr:-0} -eq 0 ]; then
-  ctr=127
+__version__=0.1.23
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
-if [ -z "$FLOG" ]; then
-  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
-fi
+sts=0
 
  $(init_cfg)
  $(active_cfg)
@@ -51,24 +48,26 @@ set_cfg_def "param4" "Value4"
 
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
-  test_result "find param$i" "Value$i" "$TRES"
+  ci-test "find param$i" "Value$i" "$TRES"
 done
 
 echo "param1= VALUE1 ">$FCONF
 echo "param3=VALUE3">>$FCONF
+link_cfg $FCONF
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   if [ $i -eq 1 ]; then
-    test_result "find param$i" "VALUE$i" "$TRES"
+    ci-test "find param$i" "VALUE$i" "$TRES"
   elif [ $i -eq 3 ]; then
-    test_result "find param$i" "VALUE$i" "$TRES"
+    ci-test "find param$i" "VALUE$i" "$TRES"
   else
-    test_result "find param$i" "Value$i" "$TRES"
+    ci-test "find param$i" "Value$i" "$TRES"
   fi
 done
 echo "param4=\" VALUE4 \"">>$FCONF
+link_cfg $FCONF
 TRES=$(get_cfg_value "" "param4")
-test_result "find param4" " VALUE4 " "$TRES"
+ci-test "find param4" " VALUE4 " "$TRES"
 
 
  $(init_cfg)
@@ -84,18 +83,48 @@ link_cfg $FCONF
 
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
-  test_result "find param$i" "value$i" "$TRES"
+  ci-test "find param$i" "value$i" "$TRES"
 done
 echo "param1= VALUE1 ">$FCONF
 echo "param3=VALUE3">>$FCONF
+link_cfg $FCONF
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   if [ $i -eq 1 ]; then
-    test_result "find param$i" "VALUE$i" "$TRES"
+    ci-test "find param$i" "VALUE$i" "$TRES"
   elif [ $i -eq 3 ]; then
-    test_result "find param$i" "VALUE$i" "$TRES"
+    ci-test "find param$i" "VALUE$i" "$TRES"
   else
-    test_result "find param$i" "value$i" "$TRES"
+    ci-test "find param$i" "value$i" "$TRES"
   fi
 done
-exit 0
+
+
+$(init_cfg)
+ $(active_cfg)
+FCONF="$TESTDIR/test.conf"
+if [ -f $FCONF ]; then rm -f $FCONF; fi
+set_cfg_def "param1" "defval1"
+set_cfg_def "param2" "defval2"
+set_cfg_def "param3" "defval3"
+set_cfg_def "param4" "defval4"
+echo "#param1=NOVALUE ">$FCONF.sample
+echo "param2=\"value2\"">>$FCONF.sample
+echo "param3=value3">>$FCONF.sample
+echo "param3= VALUE3 ">$FCONF
+echo "param4=None ">>$FCONF
+link_cfg $FCONF $FCONF.sample
+TRES=$(get_cfg_value "" "param1")
+ci-test "find param1" "defval1" "$TRES"
+TRES=$(get_cfg_value "" "param2")
+ci-test "find param2" "value2" "$TRES"
+TRES=$(get_cfg_value "" "param3")
+ci-test "find param3" "VALUE3" "$TRES"
+TRES=$(get_cfg_value "" "param4")
+ci-test "find param4" "" "$TRES"
+
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

@@ -1,21 +1,30 @@
-# Makefile __version__=0.1.75
+# Makefile __version__=0.1.77
 
 .DEFAULT: check
 
 SHELL=/bin/bash
 ODOO_SETUP=__openerp__.py
+XX=$(wildcard ../setup.py)
+ifeq ($(XX),)
+  XX:=$(wildcard ./setup.py)
+endif
+ifeq ($(XX),)
+  XX:=$(ODOO_SETUP)
+endif
+SETUP:=$(abspath $(XX))
+PKGPATH:=$(dir $(SETUP))
 # Evaluate if running on local machine or on travis-ci environment
 x=$(shell A=$${PWD\#*/*/}; echo $${A%%/*})
 ifeq ($(x),travis)
   HOSTENV=travis
-  SETUP=$(shell if [ -f ../setup.py ]; then echo "../setup.py"; elif [ -f setup.py ]; then echo "setup.py"; else echo $(ODOO_SETUP); fi)
 else
   HOSTENV=local
   ifeq ($(DEVPATH),)
-    DEVPATH=$(shell if [ -x ./dist_pkg ]; then echo "$$PWD"; elif [ "$$PYTHONPATH" ]; then echo "$$PYTHONPATH"; elif [ -d $(HOME)/dev ]; then echo "$(HOME)/dev"; elif [ -d /opt/odoo/dev ]; then echo "/opt/odoo/dev"; else echo "/opt/openerp/dev"; fi)
+    DEVPATH:=$(shell if [ -x ./dist_pkg ]; then echo "$$PWD"; else dirname $$(which dist_pkg); fi)
   endif
-  PKGPATH=$(shell $(DEVPATH)/dist_pkg -W PKGPATH)
-  SETUP=$(shell $(DEVPATH)/dist_pkg -W SETUP)
+  ifeq ($(DEVPATH),)
+    DEVPATH:=$(shell if [ "$$PYTHONPATH" ]; then echo "$$PYTHONPATH"; elif [ -d $(HOME)/dev ]; then echo "$(HOME)/dev"; elif [ -d /opt/odoo/dev ]; then echo "/opt/odoo/dev"; else echo "/opt/openerp/dev"; fi)
+  endif
 endif
 PRJNAME=$(shell grep "[^a-zA-Z0-9_]name *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
 prjversion=$(shell grep "[^a-zA-Z0-9_]version *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
@@ -29,7 +38,8 @@ ifeq ($(HOSTENV),local)
     PRJNAME=Odoo
   endif
   ifneq ($(PRJNAME),Odoo)
-    ifeq ($(SETUP),$(ODOO_SETUP))
+    BASESETUP=$(notdir $(SETUP))
+    ifeq ($(BASESETUP),$(ODOO_SETUP))
       PRJNAME=Odoo
     endif
   endif
@@ -59,10 +69,10 @@ ifeq ($(devstatus),)
   devstatus=$(DEVSSTS0)
 endif
 ifeq ($(PRJNAME),Odoo)
-  SETUP=$(ODOO_SETUP)
-  ifeq ($(PKGPATH),)
-    PKGPATH=$(shell pwd)
-  endif
+  SETUP:=$(ODOO_SETUP)
+  #ifeq ($(PKGPATH),)
+  #  PKGPATH=$(shell pwd)
+  #endif
   pkgname=$(shell if [ -f $(SETUP) ]; then basename $$PWD; else echo ""; fi)
   PRJPATH=$(shell if [ -f $(SETUP) ]; then cd ..; pwd; else pwd; fi)
   BRANCH=$(shell if $$(echo "$(PRJPATH)/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
@@ -75,20 +85,19 @@ ifeq ($(PRJNAME),Odoo)
   TESTPATH=$(PKGPATH)
   TESTFILE=$(DEVPATH)/travis local/$(PRJNAME) test
 else
-  ifeq ($(PKGPATH),)
-    ifeq ($(SETUP),setup.py)  
-      PKGPATH=$(shell pwd)
-    else
-      PKGPATH=$(shell cd ..; pwd)
-    endif
-  endif
+  #ifeq ($(PKGPATH),)
+  #  PKGPATH=$(dir $(SETUP))
+  #endif
   pkgname=$(shell basename $(PKGPATH))
   pkgids=$(shell grep "[^a-zA-Z0-9_]packages *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "[]\"', \r\n")
-  PRJPATH=$(PKGPATH)/$(PRJNAME)
+  PRJPATH=$(PKGPATH)$(PRJNAME)
   BRANCH=""
   TESTDIR=tests
   TESTPATH=$(PRJPATH)/$(TESTDIR)
-  TESTFILE=$(shell if [ -f $(TESTPATH)/all_tests ]; then echo "./all_tests"; else echo "python test_$(PRJNAME).py"; fi)
+  TESTFILE=$(shell if [ -f $(TESTPATH)/all_tests ]; then readlink -e $(TESTPATH)/all_tests; else echo "python test_$(PRJNAME).py"; fi)
+  ifeq ($(PRJNAME)",travis_emulator)
+    DEVPATH=$(shell if [ -x ./dist_pkg ]; then echo "$$PWD"; else echo "$$DEVPATH"; fi)
+  endif
 endif
 ifeq ($(HOSTENV),local)
   export LGITPATH=$(shell $(DEVPATH)/dist_pkg -W LGITPATH)
@@ -103,11 +112,7 @@ endif
 chkconfig:
 	@echo "Project name   = \"$(PRJNAME)\""
 	@echo "Tools path     = \"$(DEVPATH)\""
-	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  echo "Status         = \"$$(cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -n -S$(devstatus) $(pkgname))\""; \
-	else \
-	  echo "Status         = \"$$(cd $(PKGPATH); $(DEVPATH)/dist_pkg -n -S$(devstatus) $(pkgname))\""; \
-	fi
+	@echo "Status         = \"$$(cd $(PKGPATH); $(DEVPATH)/dist_pkg -n -S$(devstatus) $(pkgname))\""
 	@echo "Hosted         = \"$(HOSTENV)\""
 	@echo "Branch         = \"$(BRANCH)\""
 	@echo "Package name   = \"$(pkgname)\"($(pkgids))"
@@ -172,11 +177,7 @@ install: build
 .PHONY: version
 version:
 	@# Follow line is just for internal use: it couldn't work outside Zeroincombenze(R) environment
-	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -- $(pkgname) $(PRJNAME);\
-	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -- $(pkgname) $(PRJNAME);\
-	fi
+	@cd $(PKGPATH); $(DEVPATH)/dist_pkg -- $(pkgname) $(PRJNAME);
 	@if [ "$(PRJNAME)" != "Odoo" ]; then \
 	  echo "Project $(PRJNAME) V$(prjversion) [$(pkgname)] answer:"; \
 	  cd $(PKGPATH); PYTHONPATH=$(PKGPATH) python $(PRJNAME); \
@@ -186,11 +187,7 @@ version:
 
 .PHONY: check
 check:
-	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-       $(PKGPATH)/$(PRJNAME)/travis local/$(PRJNAME) check; \
-    else \
-      $(DEVPATH)/travis local/$(PRJNAME) check; \
-    fi
+	@$(DEVPATH)/travis local/$(PRJNAME) check;
 
 .PHONY: test
 test:

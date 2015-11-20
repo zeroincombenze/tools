@@ -1,5 +1,8 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
 if [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ../z0librc ]; then
@@ -8,6 +11,19 @@ elif [ -f ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
+fi
+if [ -f ./z0testrc ]; then
+. ./z0testrc
+  TESTDIR=./
+elif [ -f ../z0testrc ]; then
+. ../z0testrc
+  TESTDIR=./
+elif [ -f ./tests/z0librc ]; then
+. ./tests/z0testrc
+  TESTDIR=./tests
+else
+. ~/dev/z0testrc
+  TESTDIR=$TDIR
 fi
 if [ -f ./travisrc ]; then
 . ./travisrc
@@ -20,6 +36,14 @@ elif [ -f ../travisrc ]; then
 fi
 RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
+
+__version__=0.1.23
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
 
 
 __version__=0.1.66

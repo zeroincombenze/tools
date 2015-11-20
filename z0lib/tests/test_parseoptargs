@@ -1,42 +1,42 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
 if [ -f ./z0librc ]; then
 . ./z0librc
-FINAL=./optargs
-TESTDIR=./tests
+. ./z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
 elif [ -f ../z0librc ]; then
 . ../z0librc
-FINAL=../optargs
-TESTDIR=.
+. ../z0testrc
+  TESTDIR=.
+  RUNDIR=../
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
+else
+. /etc/z0librc
+. ~/dev/z0testrc
+  TESTDIR=./tests
+  RUNDIR=./
 fi
+RUNDIR=$(readlink -e $RUNDIR)
+TESTDIR=$(readlink -e $TESTDIR)
 
-test_result () {
-  ((ctr++))
-  if [ $ctr -gt 10 ]; then
-    wlog "Test $ctr: $1"
-  else
-    echo "Test $ctr: $1"
-  fi
-  if [ "$4" ]; then
-    if [ "$($4 $2 $3)" ]; then
-      echo "Test failed: $4 '$2' '$3'"
-      exit 1
-    fi
-  else
-    if [ "$2" != "$3" ]; then
-      echo "Test failed: expected '$2', found '$3'"
-      exit 1
-    fi
-  fi
-}
-
-# Previous test_wlog executed 18 unit test
-if [ ${ctr:-0} -eq 0 ]; then
-  ctr=18
+__version__=0.1.23
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
-if [ -z "$FLOG" ]; then
-  set_tlog_file "$TESTDIR/test_z0librc.log" "" "echo"
-fi
+sts=0
+# This test could fail because opt_dry_run is parsed by test
+# So opt_dry_run is saved and restored
+saved_opt_dry_run=$opt_dry_run
 
 FOUT=$TESTDIR/z0librc.out
 FTEST=$TESTDIR/z0librc.test
@@ -53,10 +53,12 @@ OPTHELP=("this help"\
 OPTARGS=()
 
 parseoptargs "-V"
-test_result "cmd -h" "$opt_help" "0"
-test_result "cmd -V" "$opt_version" "-V"
-test_result "cmd -n" "$opt_dry_run" "0"
-test_result "cmd -v" "$opt_verbose" "0"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -h" "$opt_help" "0"
+ci-test "cmd -V" "$opt_version" "-V"
+ci-test "cmd -n" "$tested_opt_dry_run" "0"
+ci-test "cmd -v" "$opt_verbose" "0"
 echo "Usage: test_parseoptargs [-hnVv]">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -65,7 +67,7 @@ echo " -V             show version">>$FTEST
 echo " -v             verbose mode">>$FTEST
 print_help "Unit test"\
   "">$FOUT
-test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 
 OPTOPTS=(h        n            V           p)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_path)
@@ -79,10 +81,12 @@ OPTHELP=("this help"\
 OPTARGS=(tgt)
 
 parseoptargs "mytarget"
-test_result "cmd -h mytarget" "$opt_help" "0"
-test_result "cmd -V mytarget" "$opt_version" ""
-test_result "cmd -n mytarget" "$opt_dry_run" "0"
-test_result "cmd -v mytarget" "$opt_path" "~/"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -h mytarget" "$opt_help" "0"
+ci-test "cmd -V mytarget" "$opt_version" ""
+ci-test "cmd -n mytarget" "$tested_opt_dry_run" "0"
+ci-test "cmd -v mytarget" "$opt_path" "~/"
 echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -91,14 +95,16 @@ echo " -V             show version">>$FTEST
 echo " -p path        path">>$FTEST
 print_help "Unit test"\
   "">$FOUT
-test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 
 parseoptargs "-p" "./mypath" "yourtarget"
-test_result "cmd -h ./mypath yourtarget" "$opt_help" "0"
-test_result "cmd -V ./mypath yourtarget" "$opt_version" ""
-test_result "cmd -n ./mypath yourtarget" "$opt_dry_run" "0"
-test_result "cmd -v ./mypath yourtarget" "$opt_path" "./mypath"
-test_result "cmd -v ./mypath yourtarget" "$tgt" "yourtarget"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -h ./mypath yourtarget" "$opt_help" "0"
+ci-test "cmd -V ./mypath yourtarget" "$opt_version" ""
+ci-test "cmd -n ./mypath yourtarget" "$tested_opt_dry_run" "0"
+ci-test "cmd -v ./mypath yourtarget" "$opt_path" "./mypath"
+ci-test "cmd -v ./mypath yourtarget" "$tgt" "yourtarget"
 echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -107,7 +113,7 @@ echo " -V             show version">>$FTEST
 echo " -p path        path">>$FTEST
 print_help "Unit test"\
   "">$FOUT
-test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 
 
 OPTOPTS=(h        n            O       p        V)
@@ -123,12 +129,14 @@ OPTHELP=("this help"\
 OPTARGS=(tgt)
 
 parseoptargs "mytarget"
-test_result "cmd -h mytarget" "$opt_help" "0"
-test_result "cmd -V mytarget" "$opt_version" ""
-test_result "cmd -n mytarget" "$opt_dry_run" "0"
-test_result "cmd -v mytarget" "$opt_path" "~/"
-test_result "cmd -v mytarget" "$opt_own" "$USER"
-test_result "cmd -v mytarget" "$tgt" "mytarget"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -h mytarget" "$opt_help" "0"
+ci-test "cmd -V mytarget" "$opt_version" ""
+ci-test "cmd -n mytarget" "$tested_opt_dry_run" "0"
+ci-test "cmd -v mytarget" "$opt_path" "~/"
+ci-test "cmd -v mytarget" "$opt_own" "$USER"
+ci-test "cmd -v mytarget" "$tgt" "mytarget"
 echo "Usage: test_parseoptargs [-hn][-O own][-p path][-V] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -138,8 +146,12 @@ echo " -p path        path">>$FTEST
 echo " -V             show version">>$FTEST
 print_help "Unit test"\
   "">$FOUT
-test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 
 if [ -f $FOUT ]; then rm -f $FOUT; fi
 if [ -f $FTEST ]; then rm -f $FTEST; fi
-exit 0
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

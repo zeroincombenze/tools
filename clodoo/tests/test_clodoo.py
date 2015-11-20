@@ -27,18 +27,18 @@ import os
 import sys
 from os0 import os0
 from datetime import date
-from ..clodoo import _import_file_model
-from ..clodoo import _get_model_code
-from ..clodoo import _get_model_name
-from ..clodoo import _import_file_dbtype
-from ..clodoo import _import_file_get_hdr
-from ..clodoo import _eval_value
-from ..clodoo import _get_query_id
-from ..clodoo import _get_model_bone
-from ..clodoo import create_act_list
-from ..clodoo import isaction
-from ..clodoo import check_4_actions
-from ..clodoo import do_action
+from clodoo.clodoo import _import_file_model
+from clodoo.clodoo import _get_model_code
+from clodoo.clodoo import _get_model_name
+from clodoo.clodoo import _import_file_dbtype
+from clodoo.clodoo import _import_file_get_hdr
+from clodoo.clodoo import _eval_value
+from clodoo.clodoo import _get_query_id
+from clodoo.clodoo import _get_model_bone
+from clodoo.clodoo import create_act_list
+from clodoo.clodoo import isaction
+from clodoo.clodoo import check_4_actions
+from clodoo.clodoo import do_action
 
 
 test_ctr = 0
@@ -67,7 +67,6 @@ def nakedname(fn):
 
 
 class Oerp():
-
     """oerplib simulator for test execution
     It simulate:
     - res.zero: model w/o company (key is name, 1 record)
@@ -186,7 +185,6 @@ Oerp()
 
 
 class Csv():
-
     """csv simulator for test execution"""
 
     def _init(self):
@@ -196,7 +194,6 @@ Csv()
 
 
 class Conf():
-
     """confparser simulator for test execution"""
 
     def _init(self):
@@ -847,9 +844,9 @@ def main():
             if sts:
                 break
     if sts == 0:
-        os0.wlog("Test successfully ended. See {0} file" % os0.tlog_fn)
+        os0.wlog("Test successfully ended. See %s file" % os0.tlog_fn)
     else:
-        os0.wlog("***** Test cloudoo failed ***** See {0} file" % os0.tlog_fn)
+        os0.wlog("***** Test cloudoo failed ***** See %s file" % os0.tlog_fn)
     return sts
 
 

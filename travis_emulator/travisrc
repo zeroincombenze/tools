@@ -122,9 +122,19 @@ set_pkgpath () {
 }
 
 
-update_dev_travis () {
+update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
-    RFLIST="beauty cronow .dist_pkg.conf dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc wok_doc wok_doc.py"
+    if [ "$1" == "travis_emulator" ]; then
+      RFLIST="beauty cronow .dist_pkg.conf dist_pkg prjdiff test_nightly topep8 travis travisrc wok_doc wok_doc.py"
+      RDLIST="_travis/"
+    elif [ "$1" == "z0lib" ]; then
+      set -x #debug
+      RFLIST="Makefile z0testrc"
+      RDLIST=""
+    else
+      RFLIST="nothing"
+      RDLIST=""
+    fi
     xvalid=1
     for x in $RFLIST; do
       if [ ! -f $PKGPATH/$pkgname/$x ]; then
@@ -132,7 +142,7 @@ update_dev_travis () {
       fi
     done
     if [ $xvalid -eq 0 ]; then
-       echo "Invalid package travis_emulator!"
+       echo "Invalid package $1!"
        exit 1
     fi
     if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
@@ -152,6 +162,17 @@ update_dev_travis () {
           fi
         fi
       done
+      if [ -n "$RDLIST" ]; then
+        for x in $RDLIST; do
+          if [ ${opt_diff:-0} -gt 0 ]; then
+             diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
+          elif [ ${opt_fetch:-0} -eq 0 ]; then
+             if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+             (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
+          fi
+        done
+      fi
+      set +x #debug
       MAKEF=$PKGPATH/$pkgname/Makefile
     fi
 }

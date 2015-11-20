@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.22
+#__version__=0.1.24
 
 
 ##############################################################################
@@ -692,14 +692,17 @@ get_cfg_value () {
       p=
       echo $p
       return
-    elif [ "$CONFN" -a -f $CONFN ]; then
-      p=$(grep "^$2 *=.*" $CONFN 2>/dev/null|awk -F\= '{print $2}')
-      p=$(echo $p|tr -d "\"'")
+    # elif [ "$CONFN" -a -f $CONFN ]; then
+    #   p=$(grep "^$2 *=.*" $CONFN 2>/dev/null|awk -F\= '{print $2}')
+    #   p=$(echo $p|tr -d "\"'")
     else
       p=
     fi
-    if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
+    if [ -z "$p" -o "$p" == "False" ]; then
       p=$(a_find "0" "$2")
+    fi
+    if [ "$p" == "None" ]; then
+      p=
     fi
     echo "$p"
 }
@@ -746,6 +749,17 @@ link_cfg () {
             fi
           fi
         done < "$cfndef"
+      fi
+      if [ -f "$CONFN" ]; then
+        local key
+        local val
+        while IFS=\= read -r kk val; do
+          kk=$(echo $kk|tr -d "\"' ")
+          val=$(echo $val|tr -d "\"'")
+          if [ "${kk:0:1}" != "#" ]; then
+            a_add "0" "$kk" "$val"
+          fi
+        done < "$CONFN"
       fi
     fi
 }

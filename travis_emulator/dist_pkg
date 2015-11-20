@@ -265,10 +265,10 @@ if [ "$opt_cpush" == "-w" ]; then
   exit 0
 fi
 if [ "$PRJNAME" == "travis_emulator" ]; then
-  update_dev_travis
-  if [ ! -d "$LGITPATH" ]; then
-    exit 0
-  fi
+update_dev "$PRJNAME"
+if [ ! -d "$LGITPATH" ]; then
+  exit 0
+fi
 fi
 if [ ! -d "$LGITPATH" ]; then
   echo "Invalid destination path $LGITPATH"

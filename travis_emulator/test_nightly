@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.30
+__version__=0.1.31
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -48,8 +48,8 @@ wlog "********************************************************"
 test_pkg_pypi () {
 # test_pkg_pypi (name)
 # return: sts
-    wlog "---------------------------------"
-    wlog "Required test for $1 package  ..."
+    wlog "------------------------------------"
+    wlog "Required test for $1 package ..."
     if [ ! -d ~/dev/pypi/$1 ]; then
       wlog "Package $1 not found!"
       exit 1
@@ -155,8 +155,8 @@ check4env () {
       wlog "Invalid environment: missing ~/dev/pypi directory"
       exit 1
     fi
-    if [ ! -d ~/dev/travis ]; then
-      wlog "Invalid environment: missing ~/dev/travis directory"
+    if [ ! -d ~/dev/_travis ]; then
+      wlog "Invalid environment: missing ~/dev/_travis directory"
       exit 1
     fi
     if [ ! -d /opt/odoo/tools ]; then
@@ -218,7 +218,7 @@ if [ $EUID -eq 0 ]; then
       yum -y update
     fi
     cpfiles "/opt/odoo/tools/clodoo" "/opt/openerp/dev" "clodoo.py" "odoo:ERPs"
-    cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
+    cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
   fi
 fi
 if [ "$USER" == "odoo" ]; then
