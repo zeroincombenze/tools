@@ -3,40 +3,80 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f ./z0librc ]; then
-. ./z0librc
-. ./z0testrc
-  xtlver=$(grep "#__version__" ./z0librc|head -n1|awk -F\= '{print $2}')
-  FINAL=./optargs
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
   TESTDIR=./tests
   RUNDIR=./
-  OK=$(_install_z0librc "-n")
-elif [ -f ../z0librc ]; then
-. ../z0librc
-. ../z0testrc
-  xtlver=$(grep "#__version__" ../z0librc|head -n1|awk -F\= '{print $2}')
-  FINAL=../optargs
-  TESTDIR=.
+elif [ -d ../tests ]; then
+  TESTDIR=./
   RUNDIR=../
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+  xtlver=$(grep "#__version__" $TDIR/z0librc|head -n1|awk -F\= '{print $2}')
+  CWD=$PWD
+  cd $TDIR
+  OK=$(_install_z0librc "-n")
+  cd $CWD
+elif [ -e ./z0librc ]; then
+. ./z0librc
+  xtlver=$(grep "#__version__" ./z0librc|head -n1|awk -F\= '{print $2}')
+  OK=$(_install_z0librc "-n")
+elif [ -e ../z0librc ]; then
+. ../z0librc
+  xtlver=$(grep "#__version__" ../z0librc|head -n1|awk -F\= '{print $2}')
   CWD=$PWD
   cd ..
   OK=$(_install_z0librc "-n")
   cd $CWD
-elif [ -f ~/z0librc ]; then
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-. ~/dev/z0testrc
   xtlver=$(grep "#__version__" ~/z0librc|head -n1|awk -F\= '{print $2}')
-  RUNDIR=./
+  CWD=$PWD
+  cd ~
+  OK=$(_install_z0librc "-n")
+  cd $CWD
 else
 . /etc/z0librc
-. ~/dev/z0testrc
-  xtlver=$(grep "#__version__" ~/z0librc|head -n1|awk -F\= '{print $2}')
-  RUNDIR=./
+  xtlver=$(grep "#__version__" /etc/z0librc|head -n1|awk -F\= '{print $2}')
+  CWD=$PWD
+  cd /etc
+  OK=$(_install_z0librc "-n")
+  cd $CWD
 fi
-RUNDIR=$(readlink -e $RUNDIR)
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
 TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.24
+__version__=0.1.25
 
 declare -a ctrs
 export WNoCtr=1

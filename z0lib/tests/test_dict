@@ -3,29 +3,57 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f ./z0librc ]; then
-. ./z0librc
-. ./z0testrc
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
   TESTDIR=./tests
   RUNDIR=./
-elif [ -f ../z0librc ]; then
-. ../z0librc
-. ../z0testrc
-  TESTDIR=.
+elif [ -d ../tests ]; then
+  TESTDIR=./
   RUNDIR=../
-elif [ -f ~/z0librc ]; then
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-. ~/dev/z0testrc
-  TESTDIR=./tests
-  RUNDIR=./
 else
 . /etc/z0librc
-. ~/dev/z0testrc
-  TESTDIR=./tests
-  RUNDIR=./
 fi
-RUNDIR=$(readlink -e $RUNDIR)
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
 TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
 
 base_test () {
     keys=(k01 k02 k03 k04 ^K.*)
