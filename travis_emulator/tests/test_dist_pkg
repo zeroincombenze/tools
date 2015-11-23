@@ -3,76 +3,65 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f ./z0librc ]; then
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ../z0librc ]; then
+elif [ -e ../z0librc ]; then
 . ../z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
 fi
-if [ -f ./z0testrc ]; then
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
 . ./z0testrc
-  TESTDIR=./
-elif [ -f ../z0testrc ]; then
+elif [ -e ../z0testrc ]; then
 . ../z0testrc
-  TESTDIR=./
-elif [ -f ./tests/z0librc ]; then
-. ./tests/z0testrc
-  TESTDIR=./tests
 else
 . ~/dev/z0testrc
-  TESTDIR=$TDIR
 fi
-if [ -f ./travisrc ]; then
-. ./travisrc
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -f ../travisrc ]; then
-. ../travisrc
-  TESTDIR=.
-  RUNDIR=../
-fi
-RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.23
-parseoptest -l$TESTDIR/test_z0librc.log $@
+__version__=0.1.68
+parseoptest -l$TESTDIR/test_travis_em.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
 sts=0
 
-
-__version__=0.1.66
-# set -x
-
-test_result () {
-  ((ctr++))
-  wlog "Test $ctr: $1"
-  if [ "$4" ]; then
-    if [ "$($4 $2 $3)" ]; then
-      echo "Test failed: $4 '$2' '$3'"
-      exit 1
-    fi
-  else
-    if [ "$2" != "$3" ]; then
-      echo "Test failed: expected '$2', found '$3'"
-      exit 1
-    fi
-  fi
-}
-
-
-# Previous test_wlog executed 36 unit test
-#if [ ${ctr:-0} -eq 0 ]; then
-  ctr=36
-#fi
-if [ -z "$FLOG" ]; then
-  set_tlog_file "$TESTDIR/test_travis_em.log" "" "echo"
-fi
 TEST_GCONF=$TESTDIR/test_dist_pkg.conf
 TEST_LCONF=$TESTDIR/test_local_dist_pkg.conf
 if [ -f $TEST_LCONF ]; then
@@ -161,4 +150,8 @@ test_result "param LGITPATH (odoo)" "/opt/odoo" "$TRES"
 TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
 test_result "commit travis_emulator" "dist_pkg -n -C -p \"/opt/odoo\" travis_emulator travis_emulator" "$TRES"
 
-exit 0
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

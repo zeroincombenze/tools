@@ -23,7 +23,7 @@ fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.66
+__version__=0.1.68
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -217,6 +217,7 @@ if [ ! -d "$PKGPATH" ]; then
   echo "Invalid package name $pkgname"
   exit 1
 fi
+install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
   if [ "$pkgname" != "$PRJNAME" ]; then
     echo "Warning: package name $pkgname and project name $PRJNAME are different!"
@@ -247,13 +248,11 @@ if [ "$opt_cpush" == "-w" ]; then
   else
     cd $PKGPATH/$pkgname
   fi
-  if [ "$PRJNAME" != "travis_emulator" ]; then
+  if [ "$PRJNAME" != "z0lib" ]; then
     if [ -f ./Makefile -a -f /opt/odoo/dev/Makefile ]; then
       rm -f ./Makefile
       ln -s /opt/odoo/dev/Makefile ./
     fi
-  fi
-  if [ "$PRJNAME" != "z0lib" ]; then
     if [ -f ./z0librc -a -f /etc/z0librc ]; then
       x=$(_install_z0librc -n)
       if [ -z "$x" ]; then
@@ -264,11 +263,11 @@ if [ "$opt_cpush" == "-w" ]; then
   fi
   exit 0
 fi
-if [ "$PRJNAME" == "travis_emulator" ]; then
 update_dev "$PRJNAME"
-if [ ! -d "$LGITPATH" ]; then
-  exit 0
-fi
+if [ "$PRJNAME" == "travis_emulator" ]; then
+  if [ ! -d "$LGITPATH" ]; then
+    exit 0
+  fi
 fi
 if [ ! -d "$LGITPATH" ]; then
   echo "Invalid destination path $LGITPATH"

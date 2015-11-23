@@ -25,7 +25,7 @@
 # .../pkg                   $RUNDIR - Package directory (may be pypi packge or Odoo module);
 # .../pkg/tests             $TESTDIR - Unit test directory (must contains one of 'all_tests' or 'test_PKG')
 # .../pkg/tests/z0testrc    This unit test bash script library (aim to set TESTDIR env var); usually does not exist
-#                           may be a real file (when is under test), or a link to ~/dev/; is not present is ~/dev/z0testrc
+#                           may be a real file (when is under test), or a link to ~/dev/;
 #                           on github must be a real file
 # .../pkg/z0librc           Local bash script library; usually does not exist
 #                           may be a real file (when is under test), or a link; is not present is /etc/z0librc
@@ -260,6 +260,7 @@ export -f exec_tests_4_count
 
 exec_all_tests () {
 # exec_all_tests (test_list)::sts,ctr,max_test,ix,opt_noctr,TESTDIR,opt4childs
+    if [ ${ctr:-0} -eq 0 ]; then ctr=0; fi
     local testname
     local s
     for testname in $1; do
