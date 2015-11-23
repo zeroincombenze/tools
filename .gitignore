@@ -14,5 +14,11 @@ __pycache__/
 build/
 dist/
 conf/
-.cover/
-.coverage/
+cover/
+**/.coverage
+.coveragerc
+clodoo/
+zar/
+latex/
+html/
+docs/

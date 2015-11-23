@@ -1,0 +1,178 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+## TODO: test TESTFILE and/or TESTPATH
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
+
+testpath () {
+  if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [ ${opt_verbose:-0} -gt 0 ]; then
+      echo "**************************************************************************************"
+    fi
+    cd $1
+    p=$(make -f $MAKEF chkconfig|grep "Hosted"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Hosted" "local" "$p"
+    p2=$(make -f $MAKEF chkconfig|grep "Project name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Project name" "$2" "$p2"
+    p3=$(make -f $MAKEF chkconfig|grep "Branch"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Branch" "$3" "$p3"
+    p4=$(make -f $MAKEF chkconfig|grep "Package name"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Package name" "$4" "$p4"
+    p5=$(make -f $MAKEF chkconfig|grep "Version"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Version" "$5" "$p5"
+    p6=$(make -f $MAKEF chkconfig|grep "Setup file"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Setup file" "$6" "$p6"
+    p7=$(make -f $MAKEF chkconfig|grep "Project path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Project path" "$7" "$p7"
+    p8=$(make -f $MAKEF chkconfig|grep "Package path"|awk -F"=" '{print $2}'|tr -d "\"', \r")
+    ci-test "$1: Package path" "$8" "$p8"
+  else
+    for i in {1..8}; do
+      ci-test "dry_run" "" ""
+   done
+  fi
+}
+
+
+__version__=0.1.78
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+
+MAKEF=/opt/odoo/dev/pypi/z0lib/z0lib/Makefile
+export DEVPATH=/opt/odoo/dev
+OS_VER=0.2.10
+BB_VER=7.0.0.2
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [ ${opt_verbose:-0} -gt 0 ]; then
+    echo "**************************************************************************************"
+    echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbone is not $BB_VER"
+  fi
+fi
+xtlver=$(grep "__version__" $MAKEF|head -n1|awk -F\= '{print $2}')
+ci-test "Makefile version" "$__version__" "$xtlver"
+
+WD=/opt/openerp/7.0/zeroincombenze
+p2=Odoo
+p3=7.0
+p4="()"
+p5=$p3
+p6=__openerp__.py
+p7=/opt/openerp/7.0/zeroincombenze
+p8=$p7/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/openerp/7.0/zeroincombenze/l10n_it_bbone
+p2=Odoo
+p3=7.0
+p4="l10n_it_bbone(ItalianLocalization-Base)"
+p5=$BB_VER
+p6=__openerp__.py
+p7=/opt/openerp/7.0/zeroincombenze
+p8=$WD/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/8.0
+p2=Odoo
+p3=8.0
+p4="()"
+p5=$p3
+p6=__openerp__.py
+p7=$WD
+p8=$p7/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/7.0
+p2=Odoo
+p3=7.0
+p4="()"
+p5=$p3
+p6=__openerp__.py
+p7=$WD
+p8=$p7/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/dev/pypi/os0
+p2=os0
+p3=
+p4="$p2($p2)"
+p5=$OS_VER
+p6=/opt/odoo/dev/pypi/os0/setup.py
+p7=/opt/odoo/dev/pypi/os0/os0
+p8=/opt/odoo/dev/pypi/os0/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/dev/pypi/os0/os0
+p2=os0
+p3=
+p4="$p2($p2)"
+p5=$OS_VER
+p6=/opt/odoo/dev/pypi/os0/setup.py
+p7=/opt/odoo/dev/pypi/os0/os0
+p8=/opt/odoo/dev/pypi/os0/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [ ${opt_verbose:-0} -gt 0 ]; then
+    echo "**************************************************************************************"
+  fi
+else
+  echo "$ctr"
+fi
+exit $sts

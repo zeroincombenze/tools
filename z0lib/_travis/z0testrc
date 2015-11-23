@@ -1,0 +1,210 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Unit test library for bash script
+# Unit test can run in package directory or in ./tests directory of package
+# Main unit test (all_tests script) calls sequentially all unit test scripts
+# Every unit test check for cmdline which is:
+# > unit_test [-n][-s number [-z number [-l logfile [-e|-q]]]][-V]
+# where:
+# -n display # of tests to execute (do no test, return success)
+# -s start test from number next to supplied (do run test, return test result)
+# -z set last test number
+# -l set log filename
+# -e set echo during test execution
+# -q disable echo during test execution
+# -V diplay version (do no test, return success); version on unit test should be the same of tested software
+# (no cmdline) do run test and return test result
+#
+# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# This software is free software under GNU Affero GPL3
+#
+
+export opt_dry_run
+export ctr
+export opt_verbose
+export max_test
+export opt_noctr
+export logfn
+export LNEW
+export LECHO
+
+parseoptest() {
+    if [[ -t 0 || -p /dev/stdin ]]; then
+      export LECHO=echo
+    else
+      export LECHO=
+    fi
+    OPTOPTS=(h        e        k       l      N       n           q        s        V           v           z        0)
+    OPTDEST=(opt_help opt_echo opt_new logfn  opt_new opt_dry_run opt_echo ctr      opt_version opt_verbose max_test opt_noctr)
+    OPTACTI=(1        1        0       "="    1       1           0        "=>"     "*>"        1           "=>"     1)
+    OPTDEFL=(0        -1       -1      ""     -1      0           -1       ""       ""          0           ""       0)
+    OPTMETA=("help"   "echo"   "keep"  "file" "new"   "count"     "quiet"  "number" "version"   "verbose"   "number" "no")
+    OPTHELP=("this help"\
+     "enable echoing even if not interactive tty"\
+     "keep current logfile"\
+     "set logfile name"\
+     "create new logfile"\
+     "count and display # unit tests"\
+     "run tests in quiet mode (no echo)"\
+     "count 1st test next to number"\
+     "show version"\
+      "verbose mode"\
+     "display total # tests when execute them"\
+     "no count # unit tests")
+    OPTARGS=()
+    parseoptargs $@
+    if [ "$opt_version" ]; then
+      echo "$__version__"
+      exit 0
+    elif [ $opt_help -gt 0 ]; then
+      print_help "Run unit test"\
+      "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+      exit 0
+    fi
+    if [ ${opt_echo:-1} -eq 0 ]; then
+      export LECHO=
+    elif [ ${opt_echo:-0} -eq 1 ]; then
+      export LECHO=echo
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ ${opt_new:-0} -eq 1 ]; then
+        export LNEW=new
+      elif [ ${opt_new:-0} -ne 0 -a ${ctr:-0} -eq 0 ]; then
+        export LNEW=new
+      else
+        export LNEW=
+      fi
+    else
+      export LNEW=
+    fi
+    if [ ${max_test:-0} -eq 0 -a ${opt_dry_run:-0} -eq 0 -a ${opt_noctr:-0} -eq 0 ]; then
+      if [ ${WNoCtr:-0} -eq 0 ]; then
+        max_test="$($0 -n)"
+      fi
+      unset WNoCtr
+    fi
+    if [ -z "$logfn" ]; then logfn="~/$(basename $0).log"; fi
+    logfn=$(readlink -f $logfn)
+    set_tlog_file "$logfn" "$LNEW" "$LECHO"
+    return 127
+}
+
+
+inherit_opts () {
+    if [ "$LECHO" == "echo" ]; then
+      params="-e"
+    else
+      params="-q"
+    fi
+    if [ ${opt_noctr:-0} -gt 0 ]; then
+      params="${params}0"
+    fi
+    if [ ${opt_verbose:-0} -gt 0 ]; then
+      params="${params}v"
+    fi
+    params="${params}kl$logfn"
+    echo "$params"
+}
+
+
+test_result () {
+# test_result (msg, testval, resval, cmd)::ctr,max_test
+  ((ctr++))
+  if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [ "$WLOGCMD" == "echo" ]; then
+      if [ ${max_test:-0} -gt 0 ]; then
+        echo "Test $ctr/$max_test: $1"
+      else
+        echo "Test $ctr: $1"
+      fi
+    elif [ "${WLOGCMD:0:5}" == "wecho" ]; then
+      local x="${WLOGCMD:6:1}"
+      if [ ${x:-0} -gt 0 ]; then
+        if [ ${max_test:-0} -gt 0 ]; then
+          echo "Test $ctr/$max_test: $1"
+        else
+          echo "Test $ctr: $1"
+        fi
+      fi
+    else
+      if [ ${max_test:-0} -gt 0 ]; then
+        wlog "Test $ctr/$max_test: $1"
+      else
+        wlog "Test $ctr: $1"
+      fi
+    fi
+    if [ "$4" ]; then
+      if [ "$($4 $2 $3)" ]; then
+        echo "Test failed: $4 '$2' '$3'"
+        exit 1
+      fi
+    else
+      if [ "$2" != "$3" ]; then
+        echo "Test failed: expected '$2', found '$3'"
+        exit 1
+      fi
+    fi
+  fi
+  return 0
+}
+export -f test_result
+
+
+ci-test () {
+    local s
+    if [ $sts -eq 0 ]; then
+      test_result "$1" "$2" "$3" "$4"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+export -f ci-test
+
+
+exec_tests_4_count () {
+# exec_tests_4_count (test_list, [#])::sts,ctrs,ctr,max_test,ix,opt_noctr,TESTDIR,opt4childs
+    local testname
+    for testname in $1; do
+      ((ix++))
+      if [ ${opt_noctr:-0} -gt 0 ]; then
+        ctrs[$ix]="0"
+      elif [ ${2:-0} -gt 0 ]; then
+        ctrs[$ix]="$2"
+      else
+        ctrs[$ix]="$($TESTDIR/$testname -n)"
+      fi
+      let max_test="${max_test:-0}"+"${ctrs[$ix]}"
+    done
+    return $sts
+}
+export -f exec_tests_4_count
+
+
+exec_all_tests () {
+# exec_all_tests (test_list)::sts,ctr,max_test,ix,opt_noctr,TESTDIR,opt4childs
+    local testname
+    local s
+    for testname in $1; do
+      if [ $sts -eq 0 ]; then
+        ((ix++))
+        if [ ${2:-0} -gt 0 ]; then
+          true
+        elif [ ${opt_noctr:-0} -gt 0 ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "> $TESTDIR/$testname $opt4childs"
+          fi
+          $TESTDIR/$testname $opt4childs
+        else
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "> $TESTDIR/$testname $opt4childs -s$ctr -z$max_test"
+          fi
+          $TESTDIR/$testname $opt4childs -s$ctr -z$max_test
+        fi
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        let ctr="$ctr"+"${ctrs[$ix]}"
+      fi
+    done
+    return $sts
+}
+export -f exec_all_tests
