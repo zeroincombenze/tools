@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.33
+__version__=0.1.34
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -250,7 +250,9 @@ if [ "$USER" == "openerp" ]; then
   if [ $sts -eq 0 ]; then
     cd ~/7.0/clodoo
     if [ -f ./nightly.conf ]; then
-      clodoo.py -c ./nightly.conf &>/dev/null
+      wlog "Starting clodoo operations"
+      # clodoo.py -c ./nightly.conf &>/dev/null
+      clodoo.py -c ./nightly.conf
       mv ./nightly.conf ./nightly.bak
     fi
     /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
