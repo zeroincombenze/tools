@@ -12,17 +12,40 @@ if [ $EUID -eq 0 -a -d /opt/odoo/tools/z0lib ]; then
 fi
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f $TDIR/z0librc ]; then
+if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
-elif [ -f ./z0librc ]; then
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
 else
 . /etc/z0librc
 fi
 
-__version__=0.1.37
+__version__=0.1.38
+# main
+OPTOPTS=(h        V)
+OPTDEST=(opt_help opt_version)
+OPTACTI=(1        "*>")
+OPTDEFL=(0        "")
+OPTMETA=("help"   "version")
+OPTHELP=("this help"\
+ "show version")
+ OPTARGS=()
+
+parseoptargs $@
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Test nightly"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -258,6 +281,7 @@ if [ "$USER" == "openerp" ]; then
       python ~/dev/clodoo.py -c ./nightly.conf
       mv ./nightly.conf ./nightly.bak
     fi
+    wlog "Odoo all tests"
     /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
   fi
 fi
