@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.36
+__version__=0.1.37
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -64,10 +64,12 @@ test_pkg_pypi () {
     fi
     sts=0
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
+      wlog "> make test  # $1"
       cd ~/dev/pypi/$1/$1/tests
       ./all_tests &>/dev/null
       sts=$?
     elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
+      wlog "> make test  # $1"
       cd ~/dev/pypi/$1/$1/tests
       python ~/dev/pypi/$1/$1/tests/test_$1.py &>/dev/null
       sts=$?
