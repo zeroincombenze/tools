@@ -24,7 +24,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.39
+__version__=0.1.40
 # main
 OPTOPTS=(h        A         C        V)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_version)
@@ -69,7 +69,7 @@ PRD_HOST=shsprd14
 ODOO_LTF=~/testlog/result.log
 
 wlog "********************************************************"
-wlog "Test nightly starting by $USER"
+wlog "Test nightly $__version__ starting by $USER"
 wlog "********************************************************"
 
 test_pkg_pypi () {
@@ -296,8 +296,8 @@ if [ "$USER" == "openerp" ]; then
   fi
 fi
 if [ $sts -eq 0 ]; then
-  echo "Test $__version__ successfully terminated"
+  wlog "Test $__version__ successfully terminated"
 else
-  echo "?????????? Test $__version__ failed!!!! ??????????"
+  wlog "?????????? Test $__version__ failed!!!! ??????????"
 fi
 exit $sts
