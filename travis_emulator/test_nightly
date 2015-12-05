@@ -26,12 +26,14 @@ fi
 
 __version__=0.1.38
 # main
-OPTOPTS=(h        V)
-OPTDEST=(opt_help opt_version)
-OPTACTI=(1        "*>")
-OPTDEFL=(0        "")
-OPTMETA=("help"   "version")
+OPTOPTS=(h        A         C        V)
+OPTDEST=(opt_help opt_nall  opt_ncld opt_version)
+OPTACTI=(1        "*>"      "*>"     "*>")
+OPTDEFL=(0        ""        ""       "")
+OPTMETA=("help"   "not_all" "nocld"  "version")
 OPTHELP=("this help"\
+ "do not execute all Odoo test"\
+ "do not execute clodoo statements"\
  "show version")
  OPTARGS=()
 
@@ -275,14 +277,16 @@ fi
 if [ "$USER" == "openerp" ]; then
   if [ $sts -eq 0 ]; then
     cd ~/7.0/clodoo
-    if [ -f ./nightly.conf ]; then
+    if [ -z "$opt_ncld" -a -f ./nightly.conf ]; then
       wlog "Starting clodoo operations"
       # clodoo.py -c ./nightly.conf &>/dev/null
       python ~/dev/clodoo.py -c ./nightly.conf
       mv ./nightly.conf ./nightly.bak
     fi
-    wlog "Odoo all tests"
-    /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
+    if [ -z "$opt_nall" ]; then
+      wlog "Odoo all tests"
+      /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
+    fi
   fi
 fi
 if [ $sts -eq 0 ]; then
