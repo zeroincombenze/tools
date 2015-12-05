@@ -24,7 +24,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.40
+__version__=0.1.41
 # main
 OPTOPTS=(h        A         C        V)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_version)
@@ -266,14 +266,14 @@ if [ "$USER" == "odoo" ]; then
       fi
     fi
   done
-  if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
-    wlog "cd ~/tools"
-    cd ~/tools
-    wlog "> git commit -a -m '[RUN] nightly commit'"
-    git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
-    wlog "> git push"
-    git push &>>~/$THIS.log
-  fi
+  # if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
+    # wlog "cd ~/tools"
+    # cd ~/tools
+    # wlog "> git commit -a -m '[RUN] nightly commit'"
+    # git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
+    # wlog "> git push"
+    # git push &>>~/$THIS.log
+  # fi
   cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
 fi
 if [ "$USER" == "openerp" ]; then
@@ -283,9 +283,12 @@ if [ "$USER" == "openerp" ]; then
       wlog "Starting clodoo operations"
       # clodoo.py -c ./nightly.conf &>/dev/null
       python ~/dev/clodoo.py -c ./nightly.conf
-      mv ./nightly.conf ./nightly.bak
+      sts=$?
+      if [ $sts -eq 0 ]; then
+        mv ./nightly.conf ./nightly.bak
+      fi
     fi
-    if [ -z "$opt_nall" ]; then
+    if [ $sts -eq 0 -a -z "$opt_nall" ]; then
       wlog "Odoo all tests"
       /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
       if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
