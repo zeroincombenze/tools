@@ -24,7 +24,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.38
+__version__=0.1.39
 # main
 OPTOPTS=(h        A         C        V)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_version)
@@ -52,6 +52,7 @@ fi
 dom=$(date +%d)
 dow=$(date +%w)
 yod=$(date +%Y)
+dt=$(date +%Y-%m-%d)
 #if [ "$PS1" ]; then
 if [[ -t 0 || -p /dev/stdin ]]; then
   set_tlog_file "~/$THIS.log" "" "echo"
@@ -65,6 +66,7 @@ TCONF=$TDIR/.$THIS.conf
 DEV_HOST=shsdev14
 # production host
 PRD_HOST=shsprd14
+ODOO_LTF=~/testlog/result.log
 
 wlog "********************************************************"
 wlog "Test nightly starting by $USER"
@@ -286,6 +288,10 @@ if [ "$USER" == "openerp" ]; then
     if [ -z "$opt_nall" ]; then
       wlog "Odoo all tests"
       /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
+      if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
+        sts=1
+        grep "$dt" $ODOO_LTF|grep FAIL
+      fi
     fi
   fi
 fi
