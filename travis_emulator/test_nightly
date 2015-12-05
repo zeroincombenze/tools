@@ -22,7 +22,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.35
+__version__=0.1.36
 # set -x
 dom=$(date +%d)
 dow=$(date +%w)
@@ -75,6 +75,7 @@ test_pkg_pypi () {
       sts=1
     fi
     if [ $sts -eq 0 ]; then
+      cd ~/dev/pypi/$1/$1
       wlog "> make wep  # $1"
       make wep
       wlog "Package $1: test successfully terminated"
