@@ -23,7 +23,7 @@ fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.68
+__version__=0.1.69
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -129,7 +129,7 @@ else
   devstatus=""
 fi
 if [ "$opt_whatis" ]; then
-  if [ "$opt_whatis" == "LGITPATH" -o "$opt_whatis" == "PKGPATH" -o "$opt_whatis" == "SETUP" -o "$opt_whatis" == "ODOO_SETUP" ]; then
+  if [ "$opt_whatis" == "LGITPATH" -o "$opt_whatis" == "PKGPATH" -o "$opt_whatis" == "SETUP" -o "$opt_whatis" == "ODOO_SETUP" -o "$opt_whatis" == "REPOSNAME" ]; then
     echo "${!opt_whatis}"
   else
     echo "Unknown!!"

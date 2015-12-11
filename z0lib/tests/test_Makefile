@@ -87,7 +87,7 @@ testpath () {
 }
 
 
-__version__=0.1.78
+__version__=0.1.79
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -166,6 +166,16 @@ p5=$OS_VER
 p6=/opt/odoo/dev/pypi/os0/setup.py
 p7=/opt/odoo/dev/pypi/os0/os0
 p8=/opt/odoo/dev/pypi/os0/
+testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+
+WD=/opt/odoo/7.0/openerp/workflow
+p2=Odoo
+p3=7.0
+p4="workflow()"
+p5=$p3
+p6=__openerp__.py
+p7=/opt/odoo/7.0/openerp
+p8=$p7/workflow/
 testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then

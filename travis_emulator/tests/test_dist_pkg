@@ -54,7 +54,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.68
+__version__=0.1.69
 parseoptest -l$TESTDIR/test_travis_em.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -71,6 +71,7 @@ echo "# Sample conf file for test">$TEST_GCONF
 echo "distpath=/opt/odoo/tools/\${prjname}">>$TEST_GCONF
 echo "openerp_distpath=/opt/odoo/8.0">>$TEST_GCONF
 echo "zeroincombenze_distpath=/opt/odoo/7.0/zeroincombenze">>$TEST_GCONF
+echo "server_distpath=/opt/odoo/7.0/server/openerp">>$TEST_GCONF
 echo "CONFN=$TEST_LCONF">>$TEST_GCONF
 
 echo "# Sample conf file for test">$TEST_LCONF
@@ -146,6 +147,13 @@ cd $TESTDIR
 TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
 cd $CWD
 test_result "param LGITPATH (odoo)" "/opt/odoo" "$TRES"
+
+
+cd /opt/openerp/7.0/server/openerp/workflow
+TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+cd $CWD
+test_result "param LGITPATH (workflow)" "/opt/odoo/7.0/server/openerp" "$TRES"
+
 
 TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
 test_result "commit travis_emulator" "dist_pkg -n -C -p \"/opt/odoo\" travis_emulator travis_emulator" "$TRES"

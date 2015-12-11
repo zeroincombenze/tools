@@ -28,6 +28,9 @@ init_travis () {
       if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
         REPOSNAME=
       fi
+    elif [ "$ODOO_SETUP" -a "$(basename $(readlink -e ../))" == "openerp" ]; then
+      SETUP="$ODOO_SETUP";
+      REPOSNAME=$(basename $(readlink -e ../..))
     elif [ -f $PKGPATH/setup.py ]; then
       SETUP="$PKGPATH/setup.py";
       REPOSNAME=$(basename $PKGPATH)

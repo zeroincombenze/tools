@@ -36,7 +36,7 @@ import re
 import csv
 
 
-__version__ = "0.2.50"
+__version__ = "0.2.55"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -229,6 +229,8 @@ def open_connection(prm):
 
 def do_login(oerp, prm):
     """Do a login into DB; try using more usernames and passwords"""
+    msg = "do_login()"
+    debug_msg_log(prm, 2, msg)
     userlist = prm['login2_user'].split(',')
     userlist.insert(0, prm['login_user'])
     pwdlist = prm['login2_pwd'].split(',')
@@ -308,8 +310,14 @@ def get_dblist(oerp):
 
 def get_userlist(oerp, prm):
     """Set parameter values for current company"""
+    msg = "get_userlist()"
+    debug_msg_log(prm, 2, msg)
     user_ids = oerp.search('res.users')
+    msg = "user_ids: %s" % str(user_ids)
+    debug_msg_log(prm, 2, msg)
     for u_id in sorted(user_ids):
+        msg = "res.users.browse()"
+        debug_msg_log(prm, 3, msg)
         user_obj = oerp.browse('res.users', u_id)
         msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
               u_id,
@@ -454,6 +462,8 @@ def do_group_action(oerp, prm, action):
 
 def db_actions(oerp, prm):
     """Do operations at DB level (no company)"""
+    msg = "db_actions()"
+    debug_msg_log(prm, 2, msg)
     if not prm['actions_db']:
         return 0
     actions_db = prm['actions_db'].split(',')
@@ -475,6 +485,8 @@ def db_actions(oerp, prm):
 
 def company_actions(oerp, prm):
     """"Do operations at company level"""
+    msg = "company_actions()"
+    debug_msg_log(prm, 2, msg)
     if not prm['actions_mc']:
         return 0
     actions_mc = prm['actions_mc'].split(',')
@@ -1394,6 +1406,7 @@ def import_file(oerp, prm, o_bones, csv_fn):
                                  dialect='odoo')
         for row in csv_obj:
             if not hdr_read:
+                # pdb.set_trace()
                 hdr_read = True
                 o_bones = _import_file_get_hdr(oerp,
                                                prm,
@@ -1442,7 +1455,9 @@ def import_file(oerp, prm, o_bones, csv_fn):
                                   n,
                                   row[n])
                 if val is not None:
-                    vals[n.split('/')[0]] = val
+                    x = n.split('/')[0]
+                    if x != 'fiscalcode' or val != '':
+                        vals[x] = val
                 msg = u"{0}={1}".format(n, tounicode(val))
                 debug_msg_log(prm, 6, msg)
                 if n == o_bones['name']:
@@ -1477,13 +1492,14 @@ def import_file(oerp, prm, o_bones, csv_fn):
                         del vals['id']
                     try:
                         id = oerp.create(o_bones['model'], vals)
+                        msg = u"creat id={0}, {1}={2}"\
+                              .format(id,
+                                      tounicode(o_bones['name']),
+                                      tounicode(name_new))
+                        msg_log(prm, 5, msg)
                     except:
                         id = None
-                    msg = u"creat id={0}, {1}={2}"\
-                          .format(id,
-                                  tounicode(o_bones['name']),
-                                  tounicode(name_new))
-                    msg_log(prm, 5, msg)
+                        os0.wlog(u"!!write error!")
         csv_fd.close()
         return 0
     else:
@@ -1906,7 +1922,7 @@ def parse_args(arguments, apply_conf=False):
             conf_obj, conf_fn = read_config(opt_obj, parser)
         opt_obj = parser.parse_args(arguments)
     prm = create_params_dict(opt_obj, conf_obj)
-    if 'conf_fn' in globals():
+    if 'conf_fn' in locals():
         prm['conf_fn'] = conf_fn
     return prm
 

@@ -24,16 +24,17 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.41
+__version__=0.1.46
 # main
-OPTOPTS=(h        A         C        V)
-OPTDEST=(opt_help opt_nall  opt_ncld opt_version)
-OPTACTI=(1        "*>"      "*>"     "*>")
-OPTDEFL=(0        ""        ""       "")
-OPTMETA=("help"   "not_all" "nocld"  "version")
+OPTOPTS=(h        A         C        K        V)
+OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_version)
+OPTACTI=(1        "*>"      "*>"     1        "*>")
+OPTDEFL=(0        ""        ""       0        "")
+OPTMETA=("help"   "not_all" "nocld"  "cron"   "version")
 OPTHELP=("this help"\
  "do not execute all Odoo test"\
  "do not execute clodoo statements"\
+ "run in cron environment"\
  "show version")
  OPTARGS=()
 
@@ -60,6 +61,15 @@ elif [ $dom -eq 12 ]; then
   set_tlog_file "~/$THIS.log" "new"
 else
   set_tlog_file "~/$THIS.log"
+fi
+if [ $opt_cron -gt 0 ]; then
+  wlog "Run cron mode"
+  if [ $(echo $PATH|grep -v "/dev/" 2>/dev/null) ]; then
+    export PATH=$PATH:~/dev
+  fi
+  /bin/bash -lc $0
+  sts=$?
+  exit $sts
 fi
 TCONF=$TDIR/.$THIS.conf
 # development host
@@ -247,8 +257,9 @@ if [ $EUID -eq 0 ]; then
       wlog "> yum -y update"
       yum -y update
     fi
-    cpfiles "/opt/odoo/tools/clodoo" "/opt/openerp/dev" "clodoo.py" "odoo:ERPs"
+    cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py" "odoo:ERPs"
     cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
+    cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar" "root:root"
   fi
 fi
 if [ "$USER" == "odoo" ]; then
@@ -257,7 +268,7 @@ if [ "$USER" == "odoo" ]; then
   cd ~/dev/pypi
   for pkgname in *; do
     if [ $sts -eq 0 ]; then
-      if [ "$pkgname" == "os0" -o "$pkgname" == "pytok" -o "$pkgname" == "travis_emulator" -o "$pkgname" == "z0lib" ]; then
+      if [ "$pkgname" == "os0" -o "$pkgname" == "pytok" -o "$pkgname" == "travis_emulator" -o "$pkgname" == "z0lib" -o "$pkgname" == "clodoo" ]; then
         test_pkg_pypi $pkgname
         sts=$?
         if [ $sts -eq 0 ]; then
