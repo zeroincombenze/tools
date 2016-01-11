@@ -23,7 +23,7 @@ All operations are logged in \fI/var/log/product.log\fR in order to trace operat
 .br
 You can easily write portable script to install packages on every Linux distribution.
 .br
- 
+
 .br
 Action is one of:
 .br
@@ -49,41 +49,60 @@ Action is one of:
 .br
 * import
 .br
- 
+
 .br
 \fBinstall\fR
 .RS
 Install selected package; if no package name supplied or package is LAMP, install all packages to buil a complete LAMP server;
 if a package is already installed, is ignored and sub packages are not examined. To install package, \fBproduct\fR choices one
 of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
-Optional switch -D and -w can include more packages to install.
-If package name is product itself, it copies script to /usr/bin to permanent use.
+To install \fBproduct\fR, download files in /tmp and type \fI./product install product\fR
+.br
+With optional switch -D and -w, more other packages are added to installation list.
+If package name is LAMP, \fBproduct\fR installes gcc compiler.
+.br
+When Odoo is required, \fBproduct\fR installes git and issue \fIgit clone\fR command from github.com
+in two ways:
+.br
+1. If -D switch is set (development environment), all Odoo versions are installed and
+deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR are 7.0, 8.0 and 9.0;
+.br
+2. If no development enviroment is set by -D switch, just the selected Odoo version (by -O switch)
+is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.0 or 8.0 or 9.0;
+.br
+The -e switch must be declared to select Odoo repository to clone (see -e option)
 .RE
 .br
- 
+
 .br
 \fBupdate\fR
 .RS
 Update/upgrade package(s) to last version; means \fIyum update\fR, \fIapt-get upgrade\fR or \fIpip install --upgrade\fR.
 Dependent sub packages will be updated/upgraded too, or installed if needed in order to align LAMP installation.
 Optional switch -D and -w can include more packages to update.
+.br
+This action may be also used to add development packages; i.e. after issued \fIproduct install LAMP\fR
+a full LAMP server is created without development packages. Typing \fIproduct -D update LAMP\fR adds
+develepment packages.
 .RE
 .br
- 
+
 .br
 \fBconfig\fR
 .RS
-Config package(s) after installation or update. Configuration can issue interactive input request. 
+Config package(s) after installation or update. Configuration can issue interactive input request.
 .RE
 .br
- 
+
 .br
 \fBremove\fR
 .RS
 Remove a package and all dependent sub packages. Notice: it is not possible remove all LAMP packages together
+.br
+Warning: this command can remove subpackages used by other software.
 .RE
 .br
- 
+
 .br
 \fBstatus\fR
 .RS
@@ -91,7 +110,7 @@ Show installation status; display installed packages and packaged to be installe
 Optional switch -D and -w can include more packages to check.
 .RE
 .br
- 
+
 .br
 \fBversion\fR
 .RS
@@ -99,7 +118,7 @@ Show version of installed or selected package(s) and all its dependent packages
 Optional switch -D and -w can include more packages.
 .RE
 .br
- 
+
 .br
 \fBwhatis\fR
 .RS
@@ -108,7 +127,7 @@ Optional switch -D and -w can include development and graphical interface packag
 Special swith -E show list of other linux ditributions.
 .RE
 .br
- 
+
 .br
 \fBprepare\fR
 .RS
@@ -116,7 +135,7 @@ Prepare installation files to duplicate this host configuration; users and group
 Notice: user with uid less than 400 are not exported.
 .RE
 .br
- 
+
 .br
 \fBexport\fR
 .RS
@@ -124,7 +143,7 @@ Export configuration files to destination host; require -H host option.
 Use scp to copy; openssh must be installed.
 .RE
 .br
- 
+
 .br
 \fBimport\fR
 .RS
@@ -137,6 +156,8 @@ Warning! This command add new users and groups into system
 .BR \-D
 Manage development package(s) too. With this option, packages like pkg-dev or pkg-devel are included in list.
 Usage for deploy a development machine.
+.br
+If LAMP installation is required, this switch installes gcc compiler
 .TP
 .BR \-E \fIlinux_disto\fR
 This option activate package(s) for selected Linux distribution. It is useful to see which are package name in other
@@ -144,6 +165,12 @@ distribution. \fIlinux_disto\fR may be on of CentOS,CentOS7 or Ubuntu.
 \fBWarning!\fR Use this switch just with command \fIwhatis\fR.
 Do not use this switch in conjuntion of command \fIinstall\fR or \fIupdate\fR because
 operations will fail.
+.TP
+.BR \-e \fIrepo\fR
+This option select Odoo repository from github.com; must be declared if -O switch
+is supplied or if odoo product is required.
+.br
+Value of \fIrepo\fR may be \fBodoo\fR,\fBoca\fR or \fBzeroincombenze\fR
 .TP
 .BR \-H \fI[user@]host\fR
 Host and user where export config files.
@@ -154,8 +181,9 @@ Trace file name. Default is /var/log/product.log if user is root, otherwise is ~
 .BR \-n
 Do nothing (dry-run)
 .TP
-.BR \-O
-Include Odoo in LAMP software
+.BR \-O \fIversion\fR
+Include Odoo in LAMP software; \fIversion\fR may be 7 or 8 or 9;
+for furthermore info about odoo installation see \fBinstall\fR command
 .TP
 .BR \-P \fIpassword\fR
 Default password for users, if added by import command.

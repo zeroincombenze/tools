@@ -1,5 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+# Regression tests for submodule of z0lib module
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -68,6 +69,36 @@ p=$(dirname $0)
 result=$(findpkg "$f" "$p")
 TRES=$(readlink -e $0)
 ci-test "find myself" "$TRES" "$result"
+
+p=$(readlink -e $p)
+Y1=pgsql
+Y2=postgresql
+mkdir -p $p/$Y1
+mkdir -p $p/$Y2
+mkdir -p $p/$Y2/9.1
+touch $p/$Y2/psql
+touch $p/$Y2/9.1/psql9
+
+# echo "findpkg <> <$p> <$Y1>"
+result=$(findpkg "" "$p" "$Y1")
+TRES=$(readlink -e $p/$Y1)
+ci-test "find myself ($Y1)" "$TRES" "$result"
+
+result=$(findpkg "" "$p" "$Y2")
+TRES=$(readlink -e $p/$Y2)
+ci-test "find myself ($Y2)" "$TRES" "$result"
+
+result=$(findpkg "" "$p" "$Y2 $Y1" "9.1")
+TRES=$(readlink -e $p/$Y2/9.1)
+ci-test "find myself ($Y2 $Y1)" "$TRES" "$result"
+
+result=$(findpkg "psql" "$p" "$Y1 $Y2" "9.1")
+TRES=$(readlink -e $p/$Y2/psql)
+ci-test "find myself ($Y2/psql)" "$TRES" "$result"
+
+result=$(findpkg "psql9" "$p" "$Y1 $Y2" "9.1")
+TRES=$(readlink -e $p/$Y2/9.1/psql9)
+ci-test "find myself ($Y2/psql9)" "$TRES" "$result"
 
 f=""
 p="/etc /usr"

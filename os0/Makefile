@@ -1,10 +1,10 @@
-# Makefile __version__=0.1.78
+# Makefile __version__=0.1.79
 
 .DEFAULT: check
 
 SHELL=/bin/bash
 ODOO_SETUP=__openerp__.py
-XX=$(wildcard ../setup.py)
+XX:=$(wildcard ../setup.py)
 ifeq ($(XX),)
   XX:=$(wildcard ./setup.py)
 endif
@@ -14,7 +14,7 @@ endif
 SETUP:=$(abspath $(XX))
 PKGPATH:=$(dir $(SETUP))
 # Evaluate if running on local machine or on travis-ci environment
-x=$(shell A=$${PWD\#*/*/}; echo $${A%%/*})
+x:=$(shell A=$${PWD\#*/*/}; echo $${A%%/*})
 ifeq ($(x),travis)
   HOSTENV=travis
 else
@@ -26,59 +26,59 @@ else
     DEVPATH:=$(shell if [ "$$PYTHONPATH" ]; then echo "$$PYTHONPATH"; elif [ -d $(HOME)/dev ]; then echo "$(HOME)/dev"; elif [ -d /opt/odoo/dev ]; then echo "/opt/odoo/dev"; else echo "/opt/openerp/dev"; fi)
   endif
 endif
-PRJNAME=$(shell grep "[^a-zA-Z0-9_]name *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
-prjversion=$(shell grep "[^a-zA-Z0-9_]version *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
+PRJNAME:=$(shell grep "[^a-zA-Z0-9_]name *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
+prjversion:=$(shell grep "[^a-zA-Z0-9_]version *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "\"', \r\n")
 pkgids=""
-devstatus=""
+devstatus:=""
 ifeq ($(HOSTENV),local)
   ifeq ($(PRJNAME),odoo)
-    PRJNAME=Odoo
+    PRJNAME:=Odoo
   endif
   ifeq ($(PRJNAME),openerp)
-    PRJNAME=Odoo
+    PRJNAME:=Odoo
   endif
   ifneq ($(PRJNAME),Odoo)
     BASESETUP=$(notdir $(SETUP))
     ifeq ($(BASESETUP),$(ODOO_SETUP))
-      PRJNAME=Odoo
+      PRJNAME:=Odoo
     endif
   endif
   ifeq ($(PRJNAME),Odoo)
     ifeq ($(prjversion),version)
-      prjversion=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
     endif
     ifeq ($(prjversion),)
-      prjversion=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
     endif
   endif
   DEVSSTS0="0"
-  devstatus=$(shell if [ -f setup.py ]; then echo ""; else echo "$(DEVSSTS0)"; fi)
+  devstatus:=$(shell if [ -f setup.py ]; then echo ""; else echo "$(DEVSSTS0)"; fi)
   ifneq ($(PRJNAME),Odoo)
     ifeq ($(devstatus),)
-      devstatus=$(shell if [ $$(find . -executable -type f -cnewer setup.py|head -n1) ]; then echo "$(DEVSSTS0)"; fi)
+      devstatus:=$(shell if [ $$(find . -executable -type f -cnewer setup.py|head -n1) ]; then echo "$(DEVSSTS0)"; fi)
     endif
     ifeq ($(devstatus),)
-      devstatus=$(shell if [ $$(find . -type f -name "*.py" -cnewer setup.py|head -n1) ]; then echo "$(DEVSSTS0)"; fi)
+      devstatus:=$(shell if [ $$(find . -type f -name "*.py" -cnewer setup.py|head -n1) ]; then echo "$(DEVSSTS0)"; fi)
     endif
     ifeq ($(devstatus),)
-      devstatus=$(shell grep " *'Development Status" setup.py 2>/dev/null|awk -F":" '{print $$3}'|awk -F"-" '{print $$1}'|tr -d "\"', \r\n")
+      devstatus:=$(shell grep " *'Development Status" setup.py 2>/dev/null|awk -F":" '{print $$3}'|awk -F"-" '{print $$1}'|tr -d "\"', \r\n")
     endif
   endif
 endif
 ifeq ($(devstatus),)
-  devstatus=$(DEVSSTS0)
+  devstatus:=$(DEVSSTS0)
 endif
 ifeq ($(PRJNAME),Odoo)
   SETUP:=$(ODOO_SETUP)
   #ifeq ($(PKGPATH),)
   #  PKGPATH=$(shell pwd)
   #endif
-  pkgname=$(shell if [ -f $(SETUP) ]; then basename $$PWD; else echo ""; fi)
-  PRJPATH=$(shell if [ -f $(SETUP) ]; then cd ..; pwd; else pwd; fi)
+  pkgname:=$(shell if [ -f $(SETUP) ]; then basename $$PWD; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then basename $$PWD; else echo ""; fi)
+  PRJPATH:=$(shell if [ -f $(SETUP) ]; then cd ..; pwd; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then cd ..; pwd; else pwd; fi)
   BRANCH=$(shell if $$(echo "$(PRJPATH)/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
   MODVER=$(shell grep "'version' *:" $(SETUP) 2>/dev/null|awk -F":" '{print $$2}'|tr -d "\"', \r\n")
   ifneq ($(MODVER),)
-     prjversion=$(BRANCH).$(MODVER)
+     prjversion:=$(BRANCH).$(MODVER)
   endif
   pkgids=$(shell grep "'name' *:" $(SETUP) 2>/dev/null|awk -F":" '{print $$2}'|tr -d "[]\"', \r\n")
   TESTDIR=$(PKGPATH)
@@ -88,9 +88,9 @@ else
   #ifeq ($(PKGPATH),)
   #  PKGPATH=$(dir $(SETUP))
   #endif
-  pkgname=$(shell basename $(PKGPATH))
+  pkgname:=$(shell basename $(PKGPATH))
   pkgids=$(shell grep "[^a-zA-Z0-9_]packages *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "[]\"', \r\n")
-  PRJPATH=$(PKGPATH)$(PRJNAME)
+  PRJPATH:=$(PKGPATH)$(PRJNAME)
   BRANCH=""
   TESTDIR=tests
   TESTPATH=$(PRJPATH)/$(TESTDIR)

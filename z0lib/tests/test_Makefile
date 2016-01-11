@@ -1,5 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+# Regression tests for submodule of z0lib module
 #
 ## TODO: test TESTFILE and/or TESTPATH
 #

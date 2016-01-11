@@ -117,7 +117,7 @@ parseoptest() {
      "set logfile name"\
      "create new logfile"\
      "count and display # unit tests"\
-     "run tests in quiet mode (no echo)"\
+     "run tests without output (quiet mode)"\
      "count 1st test next to number"\
      "show version"\
       "verbose mode"\

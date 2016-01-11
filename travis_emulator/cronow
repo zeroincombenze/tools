@@ -18,21 +18,28 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.9
+__version__=0.1.13
 
-OPTOPTS=(h        e          f         l          n            s       V           v)
-OPTDEST=(opt_help opt_action opt_force opt_action opt_dry_run  opt_sel opt_version opt_verbose)
-OPTACTI=(1        "*>"       1         "*>"       "1>"         "=>"    "*>"        1)
-OPTDEFL=(1        ""         0         ""         0            "^$"    ""          0)
-OPTMETA=("help"   "edit"     "force"   "list"     "do nothing" "regex" "version"   "verbose")
+CRONTAB_SAVED=~/$THIS.crontab
+CRONTAB_TMP=~/$THIS.crontab.tmp
+VIM_RC=~/$THIS.vim
+
+
+OPTOPTS=(h        e          f         l          n            R         s       V           v           w)
+OPTDEST=(opt_help opt_action opt_force opt_action opt_dry_run  opt_rback opt_sel opt_version opt_verbose opt_wait)
+OPTACTI=(1        "*>"       1         "*>"       "1>"         "1>"      "=>"    "*>"        1           1)
+OPTDEFL=(1        ""         0         ""         0            0         "^$"    ""          0           0  )
+OPTMETA=("help"   "edit"     "force"   "list"     "do nothing" "rollbck" "regex" "version"   "verbose"   "wait")
 OPTHELP=("this help"\
  "edit crontab after crash"\
  "force execution"\
  "list crontab entries"\
  "do nothing (dry-run)"\
+ "rollbak from cron execution (never use this option)"\
  "select statement to execute now"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "wait for job activation")
 OPTARGS=()
 
 parseoptargs $@
@@ -61,71 +68,12 @@ if [ "$opt_action" == "-e" ]; then
     rm -vf $VIM_RC
   fi
   exit 0
-fi
-if [ -f $CRONTAB_SAVED ]; then
-   if [ $opt_force -eq 0 ]; then
-     echo "$THIS already running or previous crashed execution"
-     echo "Use -f for run after previous crash"
-     exit 1
-   fi
-else
-  crontab -l >$CRONTAB_SAVED
-fi
-if [ "$opt_action" == "-l" ]; then
-    cat $CRONTAB_SAVED
-    rm -f $CRONTAB_SAVED
-    exit 0
-elif [ "$opt_sel" != "^\$" ]; then
-    cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
-    SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
-    SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
-    SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
-    smtline=
-    i=0
-    for i in {1..9}; do
-      # i++))
-      if [ $i -eq 1 ]; then
-        smtline="$SUBM_MM"
-      elif [ $i -eq 2 ]; then
-        smtline="$smtline $SUBM_HH"
-      else
-        p=$(echo "$cronline"|awk '{print $'$i'}')
-        smtline="$smtline $p"
-      fi
-    done
-    echo "crontab statement selected:"
-    echo "$cronline"
-    if [ $opt_dry_run -gt 0 ]; then
-      echo "crontab statement simulated by DRY_RUN"
-      REM="(DRY_RUN)"
-    else
-      echo "crontab statement added"
-      REM=""
-    fi
-    echo "$smtline"
-    echo "GA">$VIM_RC
-    echo -e "$smtline\e">>$VIM_RC
-    echo ":wq">>$VIM_RC
-    if [ $opt_dry_run -eq 0 ]; then
-      VISUAL="vim -s $VIM_RC" crontab -e
-    fi
-    executed=0
-    while [ $executed -eq 0 ]; do
-      NOW_TIME=$(date +"%H:%M")
-      NOW_HH=$(echo $NOW_TIME|awk -F\: '{print $1}')
-      NOW_MM=$(echo $NOW_TIME|awk -F\: '{print $2}')
-      if [ $NOW_HH$NOW_MM -gt $SUBM_HH$SUBM_MM ]; then
-        executed=1
-      else
-        echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
-        sleep 5
-      fi
-    done
-    echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
+elif [ $opt_rback -gt 0 ]; then
+  if [ -f $CRONTAB_SAVED ]; then
     echo "G">$VIM_RC
     echo "dd">>$VIM_RC
+    echo "dd">>$VIM_RC
     echo ":wq">>$VIM_RC
-    sleep 5
     if [ $opt_dry_run -eq 0 ]; then
       VISUAL="vim -s $VIM_RC" crontab -e
     fi
@@ -147,8 +95,83 @@ elif [ "$opt_sel" != "^\$" ]; then
       exit 1
     fi
     rm -f $VIM_RC
+  fi
+  exit 0
+fi
+if [ -f $CRONTAB_SAVED ]; then
+   if [ $opt_force -eq 0 ]; then
+     echo "$THIS already running or previous crashed execution"
+     echo "Use -f for run after previous crash"
+     exit 1
+   fi
+else
+  crontab -l >$CRONTAB_SAVED
+fi
+if [ "$opt_action" == "-l" ]; then
+    cat $CRONTAB_SAVED
+    rm -f $CRONTAB_SAVED
+    exit 0
+elif [ "$opt_sel" != "^\$" ]; then
+    cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
+    SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
+    SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
+    SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
+    smtline=
+    rbckline=
+    i=0
+    for i in {1..9}; do
+      if [ $i -eq 1 ]; then
+        smtline="$SUBM_MM"
+        rbckline="$SUBM_MM"
+      elif [ $i -eq 2 ]; then
+        smtline="$smtline $SUBM_HH"
+        rbckline="$rbckline $SUBM_HH"
+      else
+        p=$(echo "$cronline"|awk '{print $'$i'}')
+        smtline="$smtline $p"
+      fi
+    done
+    cmdR=$(readlink -f $0)
+    rbckline="$rbckline * * * SHELL=/bin/bash $cmdR -R"
+    if [ $opt_verbose -gt 0 ]; then
+      echo "crontab statement selected:"
+      echo "$cronline"
+      if [ $opt_dry_run -gt 0 ]; then
+        echo "crontab statement simulated by DRY_RUN"
+      else
+        echo "crontab statement added"
+      fi
+    fi
+    echo "$smtline"
+    echo "GA">$VIM_RC
+    echo "$rbckline">>$VIM_RC
+    echo -e "$smtline\e">>$VIM_RC
+    echo ":wq">>$VIM_RC
+    if [ $opt_dry_run -eq 0 ]; then
+      VISUAL="vim -s $VIM_RC" crontab -e
+    fi
+    if [ $opt_wait -gt 0 ]; then
+      executed=0
+      while [ $executed -eq 0 ]; do
+        NOW_TIME=$(date +"%H:%M")
+        NOW_HH=$(echo $NOW_TIME|awk -F\: '{print $1}')
+        NOW_MM=$(echo $NOW_TIME|awk -F\: '{print $2}')
+        if [ $NOW_HH$NOW_MM -gt $SUBM_HH$SUBM_MM ]; then
+          executed=1
+        else
+          echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
+          sleep 5
+        fi
+      done
+    # echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
+    # echo "G">$VIM_RC
+    # echo "dd">>$VIM_RC
+    # echo ":wq">>$VIM_RC
+      sleep 5
+    fi
     if [ $opt_dry_run -eq 0 ]; then
       echo "Statement at '$cronline' is being exceution"
+      crontab -l
     fi
     exit 0
 fi

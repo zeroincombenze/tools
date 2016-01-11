@@ -1,5 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+# Regression tests for z0lib module
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -76,7 +77,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.25
+__version__=0.1.26
 
 declare -a ctrs
 export WNoCtr=1

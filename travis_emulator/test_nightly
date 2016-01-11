@@ -24,18 +24,21 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.46
+__version__=0.1.60.1
 # main
-OPTOPTS=(h        A         C        K        V)
-OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_version)
-OPTACTI=(1        "*>"      "*>"     1        "*>")
-OPTDEFL=(0        ""        ""       0        "")
-OPTMETA=("help"   "not_all" "nocld"  "cron"   "version")
+OPTOPTS=(h        A         C        K        n           O        V           v)
+OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_version opt_verbose)
+OPTACTI=(1        "*>"      "*>"     1        1           "*>"     "*>"        1)
+OPTDEFL=(0        ""        ""       0        0           ""       ""          0)
+OPTMETA=("help"   "not_all" "nocld"  "cron"   "noop"      "odoo"   "version"   "verbose")
 OPTHELP=("this help"\
  "do not execute all Odoo test"\
  "do not execute clodoo statements"\
  "run in cron environment"\
- "show version")
+ "do nothing (dry-run)"\
+ "run odoo burst tests"\
+ "show version"\
+ "verbose mode"\)
  OPTARGS=()
 
 parseoptargs $@
@@ -49,38 +52,40 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-# set -x
-dom=$(date +%d)
-dow=$(date +%w)
-yod=$(date +%Y)
-dt=$(date +%Y-%m-%d)
-#if [ "$PS1" ]; then
-if [[ -t 0 || -p /dev/stdin ]]; then
-  set_tlog_file "~/$THIS.log" "" "echo"
-elif [ $dom -eq 12 ]; then
-  set_tlog_file "~/$THIS.log" "new"
-else
-  set_tlog_file "~/$THIS.log"
-fi
-if [ $opt_cron -gt 0 ]; then
-  wlog "Run cron mode"
-  if [ $(echo $PATH|grep -v "/dev/" 2>/dev/null) ]; then
-    export PATH=$PATH:~/dev
-  fi
-  /bin/bash -lc $0
-  sts=$?
-  exit $sts
-fi
-TCONF=$TDIR/.$THIS.conf
-# development host
-DEV_HOST=shsdev14
-# production host
-PRD_HOST=shsprd14
-ODOO_LTF=~/testlog/result.log
 
-wlog "********************************************************"
-wlog "Test nightly $__version__ starting by $USER"
-wlog "********************************************************"
+upgrade_myself () {
+    tgt=/opt/odoo/dev
+    if [ "$TDIR" == "/opt/odoo/dev" ]; then
+      src=/opt/odoo/tools/travis_emulator
+    elif [ "$TDIR" == "/opt/odoo/tools/travis_emulator" ]; then
+      src=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
+      tgt=/opt/odoo/tools/travis_emulator
+    else
+      src=
+    fi
+    f=test_nightly
+    if [ -f $src/$f -a -f $tgt/$f -a "$TDIR" == "$tgt" ]; then
+      wlog "Check for newest version to run"
+      diff -q $src/$f $tgt/$f
+      sts=$?
+      if [ $sts -gt 0 ]; then
+        wlog "Run newest version of $THIS $__version__"
+        if [ $opt_dry_run -eq 0 ]; then
+          /bin/bash -lc $src/$f -n
+          sts=$?
+        fi
+        if [ $sts -eq 0 ]; then
+           /bin/bash -lc $src/$f
+           sts=$?
+        fi
+        if [ $sts -eq 0 ]; then
+           exit $sts
+        fi
+        wlog "Newest version run failed! Run current version"
+      fi
+    fi
+}
+
 
 test_pkg_pypi () {
 # test_pkg_pypi (name)
@@ -103,23 +108,28 @@ test_pkg_pypi () {
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
       wlog "> make test  # $1"
       cd ~/dev/pypi/$1/$1/tests
-      ./all_tests &>/dev/null
-      sts=$?
+      if [ $opt_dry_run -eq 0 ]; then
+        ./all_tests &>/dev/null
+        sts=$?
+      fi
     elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
       wlog "> make test  # $1"
       cd ~/dev/pypi/$1/$1/tests
-      python ~/dev/pypi/$1/$1/tests/test_$1.py &>/dev/null
-      sts=$?
+      if [ $opt_dry_run -eq 0 ]; then
+        PYTHONPATH=~/dev/pypi/$1 python ~/dev/pypi/$1/$1/tests/test_$1.py &>/dev/null
+        sts=$?
+      fi
     else
-      sts=1
+      wlog "No unit test found!"
+      sts=127
     fi
     if [ $sts -eq 0 ]; then
       cd ~/dev/pypi/$1/$1
       wlog "> make wep  # $1"
-      make wep
+      (($opt_dry_run))||make wep
       wlog "Package $1: test successfully terminated"
     else
-      wlog "Package $1: test failed! See package log in ~/dev/pypi/$1/$1/tests!!!"
+      wlog "Package $1: test failed ($sts)! See package log in ~/dev/pypi/$1/$1/tests!!!"
     fi
     return $sts
 }
@@ -144,49 +154,76 @@ pkg_pypi_commit () {
     sts=0
     cd ~/dev/pypi/$1/$1
     wlog "> make replace  # $1"
-    make replace &>>~/$THIS.log
-    if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
-      wlog "> make commit # $1"
-      make commit &>>~/$THIS.log
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        make replace &>>~/$THIS.log
+      else
+        make replace &>/dev/null
+      fi
+      if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
+        wlog "> make commit # $1"
+        if [ $opt_verbose -gt 0 ]; then
+          make commit &>>~/$THIS.log
+        else
+          make commit &>/dev/null
+        fi
+      fi
     fi
     return $sts
 }
 
 
-upgrade_myself () {
-    src=/opt/odoo/tools/travis_emulator
-    tgt=/opt/odoo/dev
-    f=test_nightly
-    if [ -f $src/$f -a -f $tgt/$f -a "$TDIR" == "$tgt" ]; then
-      diff -q $src/$f $tgt/$f
+oe_upd_burst () {
+    if [ $EUID -eq 0 ]; then
+      wlog "service openerp restart"
+      service openerp restart
+      cd /opt/openerp/7.0/clodoo
+      PATH=$PATH:/opt/openerp/dev/
+    fi
+    if [ -f $1.conf ]; then
+      sleep 30
+      sts=0
+      wlog "clodoo.py -d demo -c $1.conf"
+      clodoo.py -d "demo" -c $1.conf
       sts=$?
-      if [ $sts -gt 0 ]; then
-        wlog "Need upgrade $THIS $__version__ when is running!"
-        if [ "$THIS" == "$f" ]; then
-          wlog "Cloning $THIS $__version__ to $THIS.sh and run it!"
-          cp $0 $0.sh
-          $0.sh
-          exit 0
-        else
-          wlog "Upgrade $THIS $__version__ for next run!"
-          wlog "> cp $src/$f $tgt/$f"
-          cp -v $src/$f $tgt/$f
-          wlog "> chown odoo:ERPs $tgt/$f"
-          chown openerp:ERPs $tgt/$f
-          let l=${#0}-3
-          if [ "${0:l}" == ".sh" ]; then
-            new=${0:0:l}
-            wlog "Run $new after upgrade!"
-            $new
-            exit 0
-          fi
-        fi
+      if [ $sts -eq 0 ]; then
+        sleep 30
+        wlog "clodoo.py -d zeroincombenze -c $1.conf"
+        clodoo.py -d "zeroincombenze" -c $1.conf
+        sts=$?
       fi
+      if [ $sts -eq 0 ]; then
+        for i in {0..11}; do
+          l=${#i}
+          ((l--))
+          n="0$i"
+          n=${n:l}
+          db="zi0001$n[0-9]{2}"
+          wlog "> clodoo.py -d $db -c $1.conf"
+          clodoo.py -d "$db" -c $1.conf
+          sts=$?
+          if [ $sts -gt 0 ]; then
+            break
+          fi
+          sleep 50
+          if [ $EUID -eq 0 ]; then
+            service openerp restart
+            sleep 10
+          else
+            sleep 40
+          fi
+        done
+      fi
+      if [ $sts -eq 0 ]; then
+        mv $1.conf $.conf.bak
+      fi
+    else
+      wlog "Nothing to do"
     fi
-    if [ "$THIS" == "$f" -a -f $src/$f.sh ]; then
-      wlog "Remove old $THIS after upgraded itself, now is running $__version__"
-      rm -f $src/$f.sh
+    if [ -f /var/log/$THIS.log ]; then
+      chmod +rw /var/log/$THIS.log
     fi
+    return $sts
 }
 
 
@@ -232,6 +269,9 @@ check4env () {
     if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
       mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
     fi
+    if [ ! -d /opt/odoo/7.0/openerp/workflow ]; then
+      mkdir -p /opt/odoo/7.0/openerp/workflow
+    fi
 }
 
 
@@ -239,41 +279,117 @@ cpfiles () {
 # srcpath, tgtpath, files, own
     for f in $3; do
       wlog "> cp $1/$f $2/$f"
-      cp -v $1/$f $2/$f
+      (($opt_dry_run))||cp -v $1/$f $2/$f
       if [ $4 ]; then
         wlog "> chown $4 $2/$f"
-        chown $4 $2/$f
+        (($opt_dry_run))||chown $4 $2/$f
       fi
     done
 }
 
 
+dom=$(date +%d)
+dow=$(date +%w)
+yod=$(date +%Y)
+dt=$(date +%Y-%m-%d)
+if [[ -t 0 || -p /dev/stdin ]]; then
+  set_tlog_file "~/$THIS.log" "" "echo"
+elif [ $dom -eq 12 ]; then
+  set_tlog_file "~/$THIS.log" "new"
+else
+  set_tlog_file "~/$THIS.log"
+fi
 sts=0
+if [ $opt_cron -gt 0 ]; then
+  wlog "Run cron mode"
+  if [ $(echo $PATH|grep -v "/dev/" 2>/dev/null) ]; then
+    export PATH=$PATH:~/dev
+  fi
+  if [ $opt_dry_run -eq 0 ]; then
+    fqcmd=$(readlink -f $0)
+    /bin/bash -lc $fqcmd
+    sts=$?
+  fi
+  exit $sts
+fi
+if [ "$USER" == "odoo" ]; then
+  set -x
+  upgrade_myself
+  set +x
+fi
+TCONF=$TDIR/.$THIS.conf
+# development host
+DEV_HOST=shsdev14
+# production host
+PRD_HOST=shsprd14
+ODOO_LTF=~/testlog/result.log
+
+wlog "********************************************************"
+wlog "Test nightly $__version__ starting by $USER"
+wlog "********************************************************"
 if [ $EUID -eq 0 ]; then
   wlog "> Upgrade z0librc"
   _install_z0librc
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
-    if [ $dow -eq 4 ]; then
+    valid=0
+    if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
+      valid=1
+    elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
+      valid=1
+    fi
+    if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
       wlog "> yum -y update"
       yum -y update
+      vmware-config-tools.pl --default
     fi
-    cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py" "odoo:ERPs"
     cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
     cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar" "root:root"
+    cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
+    # cpfiles "/opt/openerp/dev" "/root" "oe_upd_burst" "root:root"
+    if [ $opt_dry_run -eq 0 ]; then
+      python /opt/odoo/dev/z0testercode.py
+      sts=$?
+    fi
+    if [ $sts -eq 0]; then
+      opt_odoo="oe_upgrade"
+      XX=$(ps -ef|grep "clodoo\.py.*$opt_odoo.conf"|tail -n1)
+      if [ -z "$XX" ]; then
+        wlog "Begin all DB Odoo burst upgrade (-c $opt_odoo.conf)"
+        if [ $opt_dry_run -eq 0 ]; then
+          oe_upd_burst "$opt_odoo"
+          sts=$?
+        fi
+        wlog "All DB Odoo burst upgrade ended"
+      else
+        wlog "*** Odoo burst upgrade is already running ***"
+       sts=1
+     fi
+    fi
   fi
 fi
 if [ "$USER" == "odoo" ]; then
-  upgrade_myself
-  check4env
+  (($opt_dry_run))||check4env
   cd ~/dev/pypi
+  PRGMSLX="clodoo os0 product pytok travis_emulator wok_code wok_news z0lib z0tester zar"
+  # PRGMSLX="clodoo os0 pytok travis_emulator wok_code wok_news z0lib z0tester zar"
   for pkgname in *; do
     if [ $sts -eq 0 ]; then
-      if [ "$pkgname" == "os0" -o "$pkgname" == "pytok" -o "$pkgname" == "travis_emulator" -o "$pkgname" == "z0lib" -o "$pkgname" == "clodoo" ]; then
+      valid=0
+      for p in $PRGMSLX; do
+        if [ "$pkgname" == "$p" ]; then
+          valid=1
+          break
+        fi
+      done
+      if [ $valid -gt 0 ]; then
         test_pkg_pypi $pkgname
         sts=$?
         if [ $sts -eq 0 ]; then
           pkg_pypi_commit $pkgname
         fi
+      else
+        wlog "------------------------------------"
+        wlog "Module $pkgname uncertificated!"
       fi
     fi
   done
@@ -286,25 +402,34 @@ if [ "$USER" == "odoo" ]; then
     # git push &>>~/$THIS.log
   # fi
   cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
+  cpfiles "/opt/odoo/tools/z0tester" "/opt/odoo/dev" "z0testercode.py"
 fi
 if [ "$USER" == "openerp" ]; then
   if [ $sts -eq 0 ]; then
     cd ~/7.0/clodoo
-    if [ -z "$opt_ncld" -a -f ./nightly.conf ]; then
-      wlog "Starting clodoo operations"
-      # clodoo.py -c ./nightly.conf &>/dev/null
-      python ~/dev/clodoo.py -c ./nightly.conf
-      sts=$?
-      if [ $sts -eq 0 ]; then
-        mv ./nightly.conf ./nightly.bak
+    (($opt_dry_run))||./makecommit
+    opt_odoo="nightly"
+    if [ -z "$opt_ncld" -a -f $opt_odoo.conf -a $opt_dry_run -eq 0 ]; then
+      echo "Analyzing if process running $opt_odoo.conf"
+      XX=$(ps -ef|grep "clodoo\.py.*$[- ]c *opt_odoo\.conf"|tail -n1)
+      if [ -z "$XX" ]; then
+        wlog "Starting clodoo operations (-c $opt_odoo.conf)"
+        oe_upd_burst "$opt_odoo"
+        sts=$?
+        wlog "All DB Odoo burst upgrade ended"
+      else
+        wlog "*** Odoo burst upgrade is already running ***"
+        sts=1
       fi
     fi
     if [ $sts -eq 0 -a -z "$opt_nall" ]; then
       wlog "Odoo all tests"
-      /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
-      if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
-        sts=1
-        grep "$dt" $ODOO_LTF|grep FAIL
+      if [ $opt_dry_run -eq 0 ]; then
+        /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
+        if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
+          sts=1
+          grep "$dt" $ODOO_LTF|grep FAIL
+        fi
       fi
     fi
   fi

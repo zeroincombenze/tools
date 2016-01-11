@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.25
+#__version__=0.1.26
 
 
 ##############################################################################
@@ -383,43 +383,58 @@ export -f print_help
 # This function is used to find where is an application.
 #
 # Parameter $1:
-#    File/directory to search (if null is searched for directory)
+#    File to search (if null is searched just for directory of $2 ...)
 # Parameter $2:
 #    Directory list (space separated) where file could be found (mandatory)
 # Parameter $3:
-#    Subdirectory list (space separated) where file could be found (meby be empty)
+#    Level 2 subdirectory list (space separated) where file could be found (mayby be empty)
+# Parameter $4:
+#    Level 3 subdirectory list (space separated) where file could be found (mayby be empty)
+# Parameter $5:
+#    Level 4 subdirectory list (space separated) where file could be found (mayby be empty)
+# Parameter $6:
+#    Level 5 subdirectory list (space separated) where file could be found (mayby be empty)
 findpkg() {
    local p2=
    local p3=
+   local p4=
+   local p5=
+   local p6=
+   local r2=
+   local r3=
+   local r4=
+   local r5=
+   local r6=
    local result=
-   for p2 in $2; do
-     if [ -z "$3" ]; then
-       if [ -z "$1" ]; then
-         if [ -d $p2 ]; then
-           result=$(readlink -e $p2)
-           break
-         fi
-       else
-         if [ -e $p2/$1 ]; then
-           result=$(readlink -e $p2/$1)
-           break
-         fi
-       fi
-     else
-       for p3 in $3; do
-         if [ -z "$1" ]; then
-           if [ -d $p2/$p3 ]; then
-             result=$(readlink -e $p2/$p3)
-             break
-           fi
-         else
-           if [ -e $p2/$p3/$1 ]; then
-             result=$(readlink -e $p2/$p3/$1)
-             break
-           fi
-         fi
+   for p2 in $2 .; do
+     if [ "$p2" == "." ]; then r2=; else r2=$p2; fi
+     for p3 in $3 .; do
+       if [ "$p3" == "." ]; then r3=; else r3=/$p3; fi
+       for p4 in $4 .; do
+         if [ "$p4" == "." ]; then r4=; else r4=/$p4; fi
+         for p5 in $5 .; do
+           if [ "$p5" == "." ]; then r5=; else r5=/$p5; fi
+           for p6 in $6 .; do
+             if [ "$p6" == "." ]; then r6=; else r6=/$p6; fi
+             if [ -z "$1" ]; then
+               if [ -d $r2$r3$r4$r5$r6 ]; then
+                 result=$(readlink -e $r2$r3$r4$r5$r6)
+                 break
+               fi
+             else
+               if [ -e $r2$r3$r4$5$r6/$1 ]; then
+                 result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                 break
+               fi
+             fi
+           done
+           if [ -n "$result" ]; then break; fi
+         done
+         if [ -n "$result" ]; then break; fi
        done
-     fi
+       if [ -n "$result" ]; then break; fi
+     done
+     if [ -n "$result" ]; then break; fi
    done
    echo "$result"
 }

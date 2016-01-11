@@ -41,6 +41,7 @@ from clodoo.clodoo import check_4_actions
 from clodoo.clodoo import do_action
 
 
+__version__ = "0.2.56"
 test_ctr = 0
 max_tests = 232
 gbl_test_num = 0
@@ -68,11 +69,11 @@ def nakedname(fn):
 
 class Oerp():
     """oerplib simulator for test execution
-    It simulate:
+    It simulates:
     - res.zero: model w/o company (key is name, 1 record)
-    - res.one: mode with company (key is name, 1 record)
+    - res.one: model with company (key is name, 1 record)
     - res.two: model w/o company (key is name, many records)
-    - res.three: mode with company (key is name, may records)
+    - res.three: model with company (key is name, may records)
     - res.four: model w/o company (key is other)
     - res.five: model with company (key is other)
     """
@@ -253,7 +254,7 @@ def init_test(model):
         prm['def_company_id'] = DEF_CID
         prm['company_id'] = CID
     else:
-        o_bones['hide_cid'] = True
+        o_bones['cid_type'] = True
     prm['def_partner_id'] = 2
     prm['def_user_id'] = 3
     prm['def_country_id'] = CTRY_IT
@@ -283,35 +284,35 @@ def init_test(model):
 def test_01(test_num):
     msg_new_test(test_num)
     oerp, prm, o_bones, csv_obj, csv_fn, row = init_test("res.zero")
-    model, hide_cid = _get_model_bone(None, o_bones)
+    model, cid_type = _get_model_bone(None, o_bones)
     if model != "res.zero":
         return 1
-    if not hide_cid:
+    if not cid_type:
         return 1
 
     msg_new_test(test_num)
     prm['model'] = 'res.one'
-    model, hide_cid = _get_model_bone(prm, o_bones)
+    model, cid_type = _get_model_bone(prm, o_bones)
     if model != "res.one":
         return 1
-    if hide_cid:
+    if cid_type:
         return 1
 
     for csv_fn in ('res_zero.csv', 'res-zero.csv', 'res.zero.csv'):
         msg_new_test(test_num)
         o_bones = {}
-        model, hide_cid = _import_file_model(o_bones, csv_fn)
+        model, cid_type = _import_file_model(o_bones, csv_fn)
         if model != "res.zero":
             return 1
-        if hide_cid:
+        if cid_type:
             return 1
 
         msg_new_test(test_num)
         o_bones['model'] = "res.one"
-        model, hide_cid = _import_file_model(o_bones, csv_fn)
+        model, cid_type = _import_file_model(o_bones, csv_fn)
         if model != "res.one":
             return 1
-        if 'hide_cid' in o_bones:
+        if 'cid_type' in o_bones:
             return 1
 
     return 0
@@ -403,7 +404,7 @@ def test_04(test_num):
 def test_05(test_num):
     msg_new_test(test_num)
     oerp, prm, o_bones, csv_obj, csv_fn, row = init_test("res.three")
-    if o_bones['hide_cid']:
+    if o_bones['cid_type']:
         return 1
 
     for name in ('db_type', 'id', 'name', 'code', 'my_name', u'other'):
@@ -518,7 +519,7 @@ def test_05(test_num):
 def test_06(test_num):
     msg_new_test(test_num)
     oerp, prm, o_bones, csv_obj, csv_fn, row = init_test(u"res.three")
-    if o_bones['hide_cid']:
+    if o_bones['cid_type']:
         return 1
 
     for name in (u'db_type', u'id', u'name', u'code', u'other'):
@@ -597,7 +598,7 @@ def test_06(test_num):
 def test_07(test_num):
     msg_new_test(test_num)
     oerp, prm, o_bones, csv_obj, csv_fn, row = init_test("res.zero")
-    if not o_bones['hide_cid']:
+    if not o_bones['cid_type']:
         return 1
     row['id'] = ''
     row['name'] = 'myname'
@@ -822,13 +823,15 @@ def test_10(test_num):
 
 def main():
     """Tool main."""
+    global test_ctr
     # Need debug mode to avoid security fault in Linux
     os0.set_debug_mode(True)
-    title = "clodoo regression tests. Version: 0.3.1"
+    title = "clodoo regression tests. Version: %s" % __version__
     if 'DEV_ENVIRONMENT' in os.environ:
         LOCAL_ECHO = False
     else:
         LOCAL_ECHO = True
+    LOCAL_ECHO = True   # debug
     tlog_fn = "./" + nakedname(os.path.basename(__file__)) + ".log"
     os0.set_tlog_file(tlog_fn, new=True, echo=LOCAL_ECHO)
     os0.wlog(title)
@@ -844,7 +847,8 @@ def main():
             if sts:
                 break
     if sts == 0:
-        os0.wlog("Test successfully ended. See %s file" % os0.tlog_fn)
+        os0.wlog("%s test successfully ended. See %s file" % (test_ctr,
+                                                              os0.tlog_fn))
     else:
         os0.wlog("***** Test cloudoo failed ***** See %s file" % os0.tlog_fn)
     return sts

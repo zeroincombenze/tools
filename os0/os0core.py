@@ -19,7 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-"""@package docstring
+r"""@package docstring
 !OS routines for Linux, OpenVMS and Windows
 !
 !This module expands standard os.py module.

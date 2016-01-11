@@ -36,7 +36,7 @@ import re
 import csv
 
 
-__version__ = "0.2.55"
+__version__ = "0.2.58"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -521,7 +521,7 @@ def create_local_parms(prm, action):
               'code',
               'name',
               'filename',
-              'hide_cid'):
+              'cid_type'):
         if conf_obj.has_option(action, p):
             lprm[p] = conf_obj.get(action, p)
         elif p in lprm:
@@ -531,7 +531,7 @@ def create_local_parms(prm, action):
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
-              'hide_cid'):
+              'cid_type'):
         if p in lprm:
             lprm[p] = os0.str2bool(lprm[p], lprm[p])
     return lprm
@@ -701,7 +701,7 @@ def act_import_file(oerp, prm):
     for p in ('model',
               'model_code',
               'model_name',
-              'hide_cid'):
+              'cid_type'):
         if p in prm:
             o_bones[p] = prm[p]
     if 'filename' in prm:
@@ -721,7 +721,7 @@ def act_setup_banks(oerp, prm):
     msg = u"Setup bank"
     msg_log(prm, 3, msg)
     o_bones = {}
-    o_bones['hide_cid'] = True
+    o_bones['cid_type'] = True
     csv_fn = "res-bank.csv"
     return import_file(oerp, prm, o_bones, csv_fn)
 
@@ -949,23 +949,23 @@ def act_check_balance(oerp, prm):
 def _get_model_bone(prm, o_bones):
     """Inherit model structure from a parent model"""
     model = None
-    hide_cid = False
+    cid_type = False
     if prm is not None:
         if 'model' in prm:
             model = prm['model']
             if model == '':
                 model = None
             else:
-                if 'hide_cid' in prm:
-                    hide_cid = prm['hide_cid']
+                if 'cid_type' in prm:
+                    cid_type = prm['cid_type']
     if model is None:
         if 'model' in o_bones:
             model = o_bones['model']
             if model == '':
                 model = None
-        if 'hide_cid' in o_bones:
-            hide_cid = o_bones['hide_cid']
-    return model, hide_cid
+        if 'cid_type' in o_bones:
+            cid_type = o_bones['cid_type']
+    return model, cid_type
 
 
 def _get_model_code(prm, o_bones):
@@ -1006,19 +1006,19 @@ def _get_model_name(prm, o_bones):
 
 def _get_model_parms(oerp, prm, o_bones, value):
     """Extract model parameters and pure value from value and structure"""
-    model, hide_cid = _get_model_bone(prm, o_bones)
+    model, cid_type = _get_model_bone(prm, o_bones)
     value, prefix, suffix = cleanvalue(value)
     sep = '::'
     name = 'name'
     fname = 'id'
     i = value.find(sep)
     if i >= 0:
-        hide_cid = False
+        cid_type = False
     else:
         sep = ':'
         i = value.find(sep)
         if i >= 0:
-            hide_cid = True
+            cid_type = True
     if i < 0:
         i = value.find('.') + 1
         if value[0:i] == "base.":
@@ -1026,7 +1026,7 @@ def _get_model_parms(oerp, prm, o_bones, value):
             model = "ir.model.data"
             name = ['module', 'name']
             value = [value[0:i], value[i + 1:]]
-            hide_cid = True
+            cid_type = True
         else:
             model = None
             try:
@@ -1046,15 +1046,15 @@ def _get_model_parms(oerp, prm, o_bones, value):
         if x.find(',') >= 0:
             name = x.split(',')
             value = value.split(',')
-    return model, name, value, hide_cid, fname
+    return model, name, value, cid_type, fname
 
 
 def _import_file_model(o_bones, csv_fn):
     """Get model name of import file"""
-    model, hide_cid = _get_model_bone(None, o_bones)
+    model, cid_type = _get_model_bone(None, o_bones)
     if model is None:
         model = nakedname(csv_fn).replace('-', '.').replace('_', '.')
-    return model, hide_cid
+    return model, cid_type
 
 
 def _import_file_dbtype(o_bones, fields, csv_fn):
@@ -1083,7 +1083,7 @@ def _import_file_get_hdr(oerp, prm, o_bones, csv_obj, csv_fn, row):
     for n in o_bones:
         o_skull[n] = o_bones[n]
     csv_obj.fieldnames = row['undef_name']
-    o_skull['model'], o_skull['hide_cid'] = _import_file_model(o_bones,
+    o_skull['model'], o_skull['cid_type'] = _import_file_model(o_bones,
                                                                csv_fn)
     o_skull['name'] = _get_model_name(csv_obj.fieldnames,
                                       o_bones)
@@ -1114,8 +1114,8 @@ def _get_query_id(oerp, prm, o_bones, row):
     msg = "_get_query_id()"
     debug_msg_log(prm, 6, msg)
     code = o_bones['code']
-    model, hide_cid = _get_model_bone(prm, o_bones)
-    msg += "model=%s, hide_company=%s" % (model, hide_cid)
+    model, cid_type = _get_model_bone(prm, o_bones)
+    msg += "model=%s, hide_company=%s" % (model, cid_type)
     value = row.get(code, '')
     value = _eval_value(oerp,
                         prm,
@@ -1130,7 +1130,7 @@ def _get_query_id(oerp, prm, o_bones, row):
                                 model,
                                 code,
                                 value,
-                                hide_cid)
+                                cid_type)
         if len(ids) == 0 and o_bones['repl_by_id'] and row['id']:
             o_skull = {}
             for n in o_bones:
@@ -1175,7 +1175,7 @@ def _eval_value(oerp, prm, o_bones, name, value):
 def _eval_subvalue(oerp, prm, o_bones, value):
     msg = "_eval_subvalue(value=%s)" % value
     debug_msg_log(prm, 6, msg)
-    model, name, value, hide_cid, fname = _get_model_parms(oerp,
+    model, name, value, cid_type, fname = _get_model_parms(oerp,
                                                            prm,
                                                            o_bones,
                                                            value)
@@ -1187,7 +1187,7 @@ def _eval_subvalue(oerp, prm, o_bones, value):
                                   model,
                                   name,
                                   value,
-                                  hide_cid)
+                                  cid_type)
     if isinstance(value, list):
         if len(value):
             value = value[0]
@@ -1199,7 +1199,7 @@ def _eval_subvalue(oerp, prm, o_bones, value):
     return value
 
 
-def _get_raw_query_id(oerp, prm, model, name, value, hide_cid):
+def _get_raw_query_id(oerp, prm, model, name, value, cid_type):
     """Execute a query to get id of selection field read form csv
     Do not expand value
     @ oerp:        oerplib object
@@ -1207,7 +1207,7 @@ def _get_raw_query_id(oerp, prm, model, name, value, hide_cid):
     @ model:       model name
     @ name:        field name
     @ value:       field value (just constant)
-    @ hide_cid:    hide company_id
+    @ cid_type:    hide company_id
     """
     msg = "_get_raw_query_id()"
     debug_msg_log(prm, 6, msg)
@@ -1219,11 +1219,11 @@ def _get_raw_query_id(oerp, prm, model, name, value, hide_cid):
                                    model,
                                    name,
                                    value,
-                                   hide_cid)
+                                   cid_type)
     return ids
 
 
-def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
+def _get_simple_query_id(oerp, prm, model, code, value, cid_type):
     """Execute a simple query to get id of selection field read form csv
     Do not expand value
     @ oerp:        oerplib object
@@ -1231,9 +1231,9 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
     @ model:       model name
     @ code:        field name
     @ value:       field value (just constant)
-    @ hide_cid:    hide company_id
+    @ cid_type:    hide company_id
     """
-    if not hide_cid and 'company_id' in prm:
+    if not cid_type and 'company_id' in prm:
         company_id = prm['company_id']
     else:
         company_id = None
@@ -1418,7 +1418,7 @@ def import_file(oerp, prm, o_bones, csv_fn):
                     .format(o_bones['model'],
                             tounicode(o_bones['code']),
                             tounicode(o_bones['name']),
-                            o_bones.get('hide_cid', False))
+                            o_bones.get('cid_type', False))
                 debug_msg_log(prm, 5, msg)
                 if o_bones['name'] and o_bones['code']:
                     continue
@@ -1486,7 +1486,7 @@ def import_file(oerp, prm, o_bones, csv_fn):
                 msg = u"insert " + name_new.decode('utf-8')
                 debug_msg_log(prm, 5, msg)
                 if not prm['simulate']:
-                    if not o_bones.get('hide_cid', False):
+                    if o_bones.get('cid_type', False):
                         vals['company_id'] = prm['company_id']
                     if 'id' in vals:
                         del vals['id']

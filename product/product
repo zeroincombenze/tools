@@ -7,6 +7,11 @@
 # (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 
+# TODO remove: python-paste python-pillow python-tempita
+#  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
+#  sudo yum groupinstall "Development tools"
+#  ZSI
+
 if [ -f z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
@@ -16,7 +21,7 @@ else
 fi
 
 
-__version__="0.2.7"
+__version__="0.2.9.21"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -37,6 +42,7 @@ fi
 _LAST_PKG=""
 _LAST_VER=""
 
+
 DEFPRM=("NAME_Debian"\
  "NAME_RHEL"\
  "LAMP__Debian"\
@@ -54,6 +60,8 @@ DEFPRM=("NAME_Debian"\
  "SUB_python__RHEL_DEV"\
  "SUB_odoo__Debian"\
  "SUB_odoo__RHEL"\
+ "SUB_odoo__Debian_DEV"\
+ "SUB_odoo__RHEL_DEV"\
  "SUB_mariadb_server"\
  "SUB_openssh_server__RHEL"\
  "SUB_openssh_server__Debian"\
@@ -77,43 +85,45 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
  "ssh python"\
  "postgresql"\
  "postgresql"\
- "python-setuptools python-virtualenv virtualenv\
-    libreadline6 python-libxslt1 python-psycopg2 python-simplejson pytz xlwt PyYAML\
-    python-gdata python-ldap python-lxml ZSI pydot"\
+ "setuptools python-virtualenv virtualenv\
+    libreadline6 libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
+    python-gdata python-ldap python-lxml pydot"\
  "setuptools python-virtualenv virtualenv readline\
     libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
-    gdata python-ldap python-lxml ZSI pydot"\
- "python-dev zlib1g-dev libssl-dev libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev liblzma-dev"\
- "python-devel zlib-devel bzip2-devel openssl-devel ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel postgresql-devel"\
+    gdata python-ldap python-lxml pydot"\
+ "python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev liblzma-dev python-libxml2"\
+ "python-devel openldap-devel zlib-devel bzip2-devel openssl-devel ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel postgresql-devel libxml2 libxml2-devel libxml2-python libxslt-devel"\
  "ghostscript libart-2.0-2\
     libcupsfilters1 libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0\
     liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5\
     libwebpmux1 poppler-data poppler-utils python-babel python-babel-localedata\
     python-dateutil python-decorator python-docutils python-feedparser\
     python-gevent python-greenlet python-imaging python-jinja2 python-mako\
-    python-markupsafe python-mock python-openid python-passlib python-pil\
+    python-markupsafe python-mock python-openid passlib python-pil\
     python-psutil python-pybabel python-pychart python-pydot python-pygments\
     python-pyinotify python-pyparsing python-pypdf python-renderpm\
     python-reportlab python-reportlab-accel python-roman python-suds\
     python-unittest2 python-utidylib python-vatnumber python-vobject\
-    python-werkzeug docutils-common docutils-doc unidecode"\
+    python-werkzeug docutils-common docutils-doc unidecode wkhtmltopdf"\
  "Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
-    libjpeg-turbo libtiff libxml2-python libxslt-python libyaml\
+    libjpeg-turbo libtiff libyaml\
     pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
     python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
     python-psutil python-psycopg2 python-reportlab python-simplejson\
-    python-unittest2 python-urllib3 python-vobject python-werkzeug pytz unidecode"\
+    python-unittest2 urllib3 python-vobject python-werkzeug pytz unidecode wkhtmltopdf"\
+ ""\
+ "libjpeg-turbo-devel"\
  "mariadb"\
- "openssh-clients"\
- "openssh-client"\
+ "openssh-clients telnet"\
+ "openssh-client telnet"\
  "php5-mysql php5-common php5-xml"\
  "pcregrep oerplib os0 pytok"\
  "80 443"\
  "80 443"\
  "22"\
- "ghostscript"\
+ "ghostscript odoo"\
  "/usr/bin/$THIS -V")
- 
+
 get_cfg_value() {
 # get_cfg_value (confname prmname)::DEF*
 # return: prmvalue; -> disco, vist
@@ -133,13 +143,9 @@ get_cfg_value() {
       p=""
       while ((jy<${#DEFPRM[*]})); do
         if [ "${2}__${DISTO}" == "${DEFPRM[jy]}" -o "${2}__${FH}" == "${DEFPRM[jy]}" ]; then
-          # echo "if [${2}__${DISTO}==${DEFPRM[jy]} -o ${2}__${FH}==${DEFPRM[jy]}];">>~/product.his    #debug
-          # echo "p=${DEFVAL[jy]};">>~/product.his    #debug
           p="${DEFVAL[jy]}"
           break
         elif [ "$2" == "${DEFPRM[jy]}" ]; then
-          # echo "elif [$2== ${DEFPRM[jy]}];">>~/product.his    #debug
-          # echo "p=${DEFVAL[jy]};">>~/product.his    #debug
           p="${DEFVAL[jy]}"
           break
         fi
@@ -161,12 +167,12 @@ get_cfg_value() {
       if [ "$2" == "SUB_LAMP_security" ]; then
         if [ "$FH" == "RHEL" ]; then
           if [ "$DISTO" == "CentOS7" ]; then
-            p="pyOpenSSL pyasn1 ndg-httpsclient"
+            p="libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
           else
             p="openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
           fi
         else
-          p="libssl-dev python-openssl build-essential"
+          p="libffi-dev libssl-dev python-openssl build-essential"
         fi
       elif [ "$2" == "SUB_mysql_server" ]; then
         if [ "$FH" == "Debian" ]; then
@@ -184,34 +190,9 @@ get_cfg_value() {
         p="postgresql-client-common postgresql-contrib"
         if [ $opt_win -gt 0 ]; then
           p="$p pgadmin3"
-         fi
-      elif [ "$2" == "SUB_odoo" ]; then
-        if [ "$FH" == "RHEL" ]; then
-          p="Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
-  libjpeg-turbo libtiff libxml2-python libxslt-python libyaml\
-  pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
-  python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
-  python-psutil python-psycopg2 python-reportlab python-simplejson\
-  python-unittest2 python-urllib3 python-vobject python-werkzeug pytz unidecode"
-# TODO remove: python-passlib python-paste python-pillow python-tempita
-#  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
-        else
-            p="ghostscript libart-2.0-2\
-  libcupsfilters1 libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0\
-  liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5\
-  libwebpmux1 poppler-data poppler-utils python-babel python-babel-localedata\
-  python-dateutil python-decorator python-docutils python-feedparser\
-  python-gevent python-greenlet python-imaging python-jinja2 python-mako\
-  python-markupsafe python-mock python-openid python-passlib python-pil\
-  python-psutil python-pybabel python-pychart python-pydot python-pygments\
-  python-pyinotify python-pyparsing python-pypdf python-renderpm\
-  python-reportlab python-reportlab-accel python-roman python-suds\
-  python-unittest2 python-utidylib python-vatnumber python-vobject\
-  python-werkzeug docutils-common docutils-doc unidecode"
-# antiword
         fi
       elif [ "$2" == "PIP_PKGS" ]; then
-        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz ZSI gdata PyYAML xlwt unidecode python-urllib3"
+        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf"
       elif [ "$2" == "STD_PKGS" ]; then
         p="epel-release python-pip pip yum-utils openssh-server httpd mariadb-server postgresql-server php python"
         p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
@@ -219,7 +200,7 @@ get_cfg_value() {
         p="$p antiword docutils-common docutils-doc libart-2.0-2 libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
         p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1"
         p="$p poppler-data poppler-utils python-babel python-babel-localedata python-decorator python-docutils python-feedparser"
-        p="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako python-markupsafe python-mock python-passlib"
+        p="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako python-markupsafe python-mock"
         p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
         p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
         p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
@@ -242,12 +223,12 @@ get_cfg_value() {
         fi
         p="$p Babel"
       elif [ "$2" == "NAME_VIRTUAL" ]; then
-        p="LAMP_security PYTHON_DEVELOVER"
+        p="LAMP LAMP_security PYTHON_DEVELOVER"
       elif [ "$2" == "apache2_cmdname" -o  "$2" == "httpd_cmdname" ]; then
         p="apachectl"
       elif [ "$2" == "postgresql_cmdname" -o  "$2" == "postgresql-server_cmdname" ]; then
         p="psql"
-      elif [ "$2" == "apache2_svcname" -o "$2" == "httpd_svcname" -o "$2" == "mariadb-server" ]; then
+      elif [ "$2" == "apache2_svcname" -o "$2" == "httpd_svcname" -o "$2" == "mariadb_svcname" ]; then
         let l=${#2}-8
         p="${2:0:l}"
       elif [ "$2" == "openssh-server_svcname" ]; then
@@ -260,6 +241,9 @@ get_cfg_value() {
         let l=${#2}-15
         if [ "$FH" == "RHEL" ]; then
           p="${2:0:l}d"
+          if [ "$p" == "mariadbd" ]; then
+            p="mariadb"
+          fi
         else
           p="${2:0:l}"
         fi
@@ -302,8 +286,10 @@ init_cfg () {
 # init_cfg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
     # echo "init_cfg  ('$1')::$FCONF($FH)=$p;;">>~/product.his    #debug
+    $(a_new "3")
+    $(a_active "3")
     LAMP=$(get_cfg_value $FCONF "LAMP")
-    if [ $opt_odoo -gt 0 ]; then
+    if [ -n "$opt_odoo" ]; then
       LAMP="$LAMP odoo"
     fi
     iter=$(set_iter $1)
@@ -336,25 +322,22 @@ set_iter () {
 # set_iter (pkgname)
 # return: <pkg_list>
   if [ -z "$1" ]; then
-    echo $LAMP
+    local iter="$LAMP"
   elif [ "${!1}" ]; then
-    echo ${!1}
+    local iter="${!1}"
   else
-    echo $1
+    local iter="$1"
   fi
-}
-
-wlog () {
-    dt=$(date +"%F %H:%M:%S")
-    echo "$dt $1 $2 $3 $4 $5 $6 $7 $8 $9">>$FLOG
-    if [ $opt_quiet -eq 0 ]; then
-      echo "$1 $2 $3 $4 $5 $6 $7 $8 $9"
+  if $(is_virtualname $1); then
+    if [ -z "$(echo \" $iter \"|grep [[:space:]]$1[[:space:]] 2>/dev/null)" ]; then
+      local iter="$1 $iter"
     fi
+  fi
+  echo "$iter"
 }
 
 wecho () {
-    dt=$(date +"%F %H:%M:%S")
-    echo "$dt $1 $2 $3 $4">>$FLOG
+    wlog "$1 $2 $3 $4"
     echo "$1 $2 $3 $4"
 }
 
@@ -471,10 +454,24 @@ get_pkg_ver_inq () {
     # echo "get_pkg_ver_inq ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
     local pkgname="$1"
     local vfycmd="$3"
-    if [ "$pkgname" == "$_LAST_PKG" ]; then
+    if [ "$pkgname" == "odoo" ]; then
+      pkgversion=
+      if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
+        local ov_iter="9 8 7"
+      else
+        local ov_iter=$opt_odoo
+      fi
+      for ov in $ov_iter; do
+        if [ -d /opt/odoo/$ov.0 ]; then
+          if [ -f /opt/odoo/$ov.0/openerp-server ]; then
+            pkgversion=$ov.0
+          fi
+        fi
+      done
+    elif [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
     elif $(is_virtualname $pkgname); then
-        pkgversion=    
+        pkgversion=
     else
       pkgversion=
       if [ "$vfycmd" ]; then
@@ -528,17 +525,10 @@ get_pkg_ver_pip () {
       elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
         pkgversion=
       else
-        # if [ ! -f $TMP_LIS_PIP ]; then
-        #   $stscmd list 2>/dev/null > $TMP_LIS_PIP
-        #   echo "$stscmd list 2>/dev/null > $TMP_LIS_PIP">>~/product.his    #debug
-        # fi
         if [ -f $TMP_LIS_PIP ]; then
-          # cat $TMP_LIS_PIP|grep $pkgname 2>/dev/null|awk '{print $2}'|tr -d ', \r\n\(\)'>>~/product.his    #debug
           pkgversion="$(cat $TMP_LIS_PIP|grep $pkgname 2>/dev/null|awk '{print $2}'|tr -d ', \r\n\(\)')"
-          # echo "$pkgversion=(cat $TMP_LIS_PIP|grep $pkgname 2>/dev/null|awk '{print \$2}'|tr -d ', \r\n\(\)')">>~/product.his    #debug
         else
           pkgversion="$($stscmd list 2>/dev/null|grep $pkgname 2>/dev/null|awk '{print $2}'|tr -d ', \r\n\(\)')"
-          # echo "$pkgversion=($stscmd list 2>/dev/null|grep $pkgname 2>/dev/null|awk '{print \$2}'|tr -d ', \r\n\(\)')">>~/product.his    #debug
         fi
       fi
       if [ "$pkgversion" ]; then
@@ -546,7 +536,6 @@ get_pkg_ver_pip () {
         _LAST_PKG="$pkgname"
       fi
     fi
-    # echo "ret:$pkgversion;;">>~/product.his    #debug
 }
 
 get_pkg_ver_rpm () {
@@ -575,7 +564,6 @@ get_pkg_ver_rpm () {
         _LAST_PKG="$pkgname"
       fi
     fi
-    # echo "ret:$pkgversion;;">>~/product.his    #debug
 }
 
 get_pkg_ver_dpkg () {
@@ -607,7 +595,6 @@ get_pkg_ver_dpkg () {
         _LAST_PKG="$pkgname"
       fi
     fi
-    # echo "ret:$pkgversion;;">>~/product.his    #debug
 }
 
 get_pkg_ver () {
@@ -657,7 +644,7 @@ set_xtlcmds () {
 # return: -> xtlcmd, stscmd, vfycmd, 'OPTS'
     if $(is_virtualname $pkgname); then
       xtlcmd="product"
-      stscmd="product"    
+      stscmd="product"
     elif [ "$FH" == "RHEL" ]; then
       xtlcmd="yum"
       stscmd="rpm"
@@ -684,32 +671,31 @@ set_installcmd () {
 # set_installcmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
     local INSTALLcmd="product_$1_$pkgname"
-    if $(is_virtualname $pkgname); then
-      cmd="# $INSTALLcmd (VIRTUALNAME)"
-    elif [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $INSTALLcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_INSTALL_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $INSTALLcmd (FAIL)"
     elif [ "$(type -t $INSTALLcmd)" == "function" ]; then
       cmd="$INSTALLcmd $OPTS install $pkgname"
+    elif $(is_virtualname $pkgname); then
+      cmd="# $INSTALLcmd (VIRTUALNAME)"
     else
       cmd="$xtlcmd $OPTS install $pkgname"
     fi
-    # echo "  install:$cmd;;">>~/product.his #debug
 }
 
 set_updatecmd () {
 # set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
     local UPDATEcmd="product_$1_$pkgname"
-    if $(is_virtualname $pkgname); then
-      cmd="# $UPDATEcmd (VIRTUALNAME)"
-    elif [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $UPDATEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_UPDATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $UPDATEcmd (FAIL)"
     elif [ "$(type -t $UPDATEcmd)" == "function" ]; then
       cmd="$UPDATEcmd $OPTS update $pkgname"
+    elif $(is_virtualname $pkgname); then
+      cmd="# $UPDATEcmd (VIRTUALNAME)"
     elif [ "$pkgname" == "python-pip" ]; then
       cmd="pip install --upgrade pip"
     elif [ "$xtlcmd" == "pip" ]; then
@@ -720,187 +706,36 @@ set_updatecmd () {
       cmd0="$xtlcmd $OPTS update $pkgname"
       cmd="$xtlcmd $OPTS upgrade $pkgname"
     fi
-    # echo "  update:$cmd;;">>~/product.his #debug
 }
 
 set_removecmd () {
 # set_removecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
     local REMOVEcmd="product_$1_$pkgname"
-    if $(is_virtualname $pkgname); then
-      cmd="# $REMOVEcmd (VIRTUALNAME)"
-    elif [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $REMOVEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_REMOVE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $REMOVEcmd (FAIL)"
     elif [ "$(type -t $REMOVEcmd)" == "function" ]; then
       cmd="$REMOVEcmd $OPTS update $pkgname"
+    elif $(is_virtualname $pkgname); then
+      cmd="# $REMOVEcmd (VIRTUALNAME)"
     elif [ "$xtlcmd" == "pip" ]; then
        cmd="$xtlcmd $OPTS uninstall $pkgname"
     else
        cmd="$xtlcmd $OPTS remove $pkgname"
     fi
-    # echo "  REMOVE:$cmd;;">>~/product.his #debug
 }
 
-prod () {
-# prod (action pkgname -q level)
-# return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
-# TODO [Debian] aptitude search 'pkgname'
-# TODO [RHEL] yum search 'pkgname'
-    echo "prod ('$1' '$2' '$3' '$4')">>~/product.his    #debug
-    pkgname=$(get_realname "$2")
-    set_xtlcmds
-    svcname=$(get_cfg_value $FCONF "${pkgname}_svcname")
-    cmdname=$(get_cfg_value $FCONF "${pkgname}_cmdname")
-    vfycmd=$(get_cfg_value $FCONF "${cmdname}_vfycmd")
-    cmd0=""
-    if [ -z "$4" ]; then
-      level=0
-      local lm=
+set_configcmd () {
+# set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+# return: -> cmd, cmd0
+    local CFGcmd="product_$1_$pkgname"
+    if [ "$(type -t $CFGcmd)" == "function" ]; then
+      cmd="$CFGcmd $OPTS config $pkgname"
     else
-      level=$4
-      let x=$level*2
-      local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+      cmd="# $CFGcmd"
     fi
-    # echo "$pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
-    if [ "$1" == "realname" ]; then
-      echo "$pkgname"
-      return $STS_SUCCESS
-    elif [ "$1" == "installer" ]; then
-      echo "$xtlcmd"
-      return $STS_SUCCESS
-    elif [ "$1" == "vfycmd" ]; then
-      echo "$vfycmd"
-      return $STS_SUCCESS
-    elif [ "$1" == "install" ]; then
-      set_installcmd $1
-    elif [ "$1" == "update" ]; then
-      set_updatecmd $1
-    elif [ "$1" == "remove" ]; then
-      set_removecmd $1
-    elif [ "$1" == "config" ]; then
-      cmd="# $OPTS config $pkgname"
-    elif [ "$1" == "status" ]; then
-      get_pkg_ver "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
-      [ -n "$pkgversion" ]
-      sts=$?
-      if [ "$3" == "-q" ]; then
-        return $sts
-      elif [ $sts -eq 0 ]; then
-         cmd="wlog $lm $pkgname: installed by $xtlcmd"
-      else
-         cmd="wlog $lm $pkgname could be installed by $xtlcmd"
-      fi
-    elif [ "$1" == "version" ]; then
-      get_pkg_ver "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
-      if [ -z "$pkgversion" ]; then
-        pkgversion="$pkgname: unknown version"
-      fi
-      if [ $opt_quiet -gt 0 ]; then
-        cmd="wlog $pkgversion"
-      else
-        cmd="wlog $lm $pkgname: $pkgversion"
-      fi
-    else
-      return $STS_FAILED
-    fi
-    PREcmd="pre_$1_$pkgname"
-    if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
-      run_traced "# $PREcmd succesfully ended"
-    elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
-      run_traced "# $PREcmd failed"
-    elif [ "$(type -t $PREcmd)" == "function" ]; then
-      $PREcmd "$svcname" "$cmdname" "$vfycmd"
-    elif [ "$1" == "remove" -a "$svcname" ]; then
-      run_traced "service $svcname stop"
-      run_traced "sleep 3"
-    fi
-    if [ "$cmd0" ]; then
-      x=$(echo "$cmd"|awk '{print $1}')
-      if [ "$(type -t $x)" == "function" ]; then
-        $cmd0
-      else
-        run_traced "$cmd0"
-      fi
-    fi
-    x=$(echo "$cmd"|awk '{print $1}')
-    if [ "$(type -t $x)" == "function" ]; then
-      $cmd
-    else
-      run_traced "$cmd"
-    fi
-    POSTcmd="post_$1_$pkgname"
-    if [ "$(type -t $POSTcmd)" == "function" ]; then
-      $POSTcmd "$svcname" "$cmdname" "$vfycmd"
-    elif [ "$1" == "install" -a "$svcname" ]; then
-      run_traced "service $svcname start"
-      run_traced "sleep 3"
-    elif [ "$1" == "update" -a "$svcname" ]; then
-      run_traced "service $svcname restart"
-      run_traced "sleep 3"
-    elif [ "$1" == "config" -a "$svcname" ]; then
-      run_traced "service $svcname restart"
-      run_traced "sleep 3"
-    fi
-    local X="TCP_${pkgname/-/_}"
-    if [ "${!X}" ]; then
-      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-         for port in ${!X}; do
-           enable_port $port tcp
-         done
-      elif [ "$1" == "remove" ]; then
-         for port in ${!X}; do
-           disable_port $port tcp
-         done
-      fi
-    fi
-    X="UDP_${pkgname/-/_}"
-    if [ "${!X}" ]; then
-      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-         for port in ${!X}; do
-           enable_port $port udp
-         done
-      elif [ "$1" == "remove" ]; then
-         for port in ${!X}; do
-           disable_port $port tcp
-         done
-      fi
-    fi
-    SUBlist="SUB_${pkgname/-/_}"
-    if [ "${!SUBlist}" ]; then
-      ((level++))
-      for p in ${!SUBlist}; do
-        realname=$(prod realname $p)
-        if [ $opt_verbose -gt 0 ]; then
-          echo "Analyzing $realname"
-        fi
-        if [ "$1" == "install" ]; then
-          if $(prod status $realname "-q" $level); then
-            prod update $realname "" $level
-          else
-            prod $1 $realname "" $level
-          fi
-        elif [ "$1" == "update" ]; then
-          if $(prod status $realname "-q" $level); then
-            prod $1 $realname "" $level
-          else
-            prod install $realname "" $level
-          fi
-        elif [ "$1" == "remove" ]; then
-          if $(prod status $realname "-q" $level); then
-            prod $1 $realname "" $level
-          fi
-        else
-          prod $1 $realname "" $level
-        fi
-      done
-      ((level--)) #?
-    fi
-    if [ $level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
-      run_traced "apt-get autoremove"
-    fi
-    return $STS_SUCCESS
 }
 
 build_groups_list () {
@@ -984,7 +819,7 @@ add_users () {
           if [ $opt_dry_run -eq 0 ]; then
             $cmd
             if [ "$opt_pwd" ]; then
-              echo $opt_pwd|passwd $user
+              echo $opt_pwd|passwd --stdin $user
             fi
           fi
         fi
@@ -994,28 +829,205 @@ add_users () {
     fi
 }
 
+prod_install_if () {
+# prod (pkgname)
+# return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
+    if $(prod status $1 "-q"); then
+      return $STS_SUCCESS
+    fi
+    prod "install" "$1" "-q"
+    return $STS_SUCCESS
+}
+
+prod () {
+# prod (action pkgname -q level)
+# return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
+# TODO [Debian] aptitude search 'pkgname'
+# TODO [RHEL] yum search 'pkgname'
+    # echo "prod ('$1' '$2' '$3' '$4')">>~/product.his    #debug
+    pkgname=$(get_realname "$2")
+    set_xtlcmds
+    svcname=$(get_cfg_value $FCONF "${pkgname}_svcname")
+    cmdname=$(get_cfg_value $FCONF "${pkgname}_cmdname")
+    vfycmd=$(get_cfg_value $FCONF "${cmdname}_vfycmd")
+    cmd0=""
+    if [ -z "$4" ]; then
+      level=0
+      local lm=
+    else
+      level=$4
+      let x=$level*2
+      local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    fi
+    # echo "$pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
+    if [ "$1" == "realname" ]; then
+      echo "$pkgname"
+      return $STS_SUCCESS
+    elif [ "$1" == "installer" ]; then
+      echo "$xtlcmd"
+      return $STS_SUCCESS
+    elif [ "$1" == "vfycmd" ]; then
+      echo "$vfycmd"
+      return $STS_SUCCESS
+    elif [ "$1" == "install" ]; then
+      set_installcmd $1
+    elif [ "$1" == "update" ]; then
+      set_updatecmd $1
+    elif [ "$1" == "remove" ]; then
+      set_removecmd $1
+    elif [ "$1" == "config" ]; then
+      set_configcmd $1
+    elif [ "$1" == "status" ]; then
+      get_pkg_ver "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
+      [ -n "$pkgversion" ]
+      sts=$?
+      if [ "$3" == "-q" ]; then
+        return $sts
+      elif [ $sts -eq 0 ]; then
+         cmd="wlog $lm $pkgname: installed by $xtlcmd"
+      else
+         cmd="wlog $lm $pkgname could be installed by $xtlcmd"
+      fi
+    elif [ "$1" == "version" ]; then
+      get_pkg_ver "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
+      if [ -z "$pkgversion" ]; then
+        pkgversion="$pkgname: unknown version"
+      fi
+      if [ $opt_quiet -gt 0 ]; then
+        cmd="wlog $pkgversion"
+      else
+        cmd="wlog $lm $pkgname: $pkgversion"
+      fi
+    else
+      return $STS_FAILED
+    fi
+    PREcmd="pre_$1_$pkgname"
+    if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      run_traced "# $PREcmd succesfully ended"
+    elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      run_traced "# $PREcmd failed"
+    elif [ "$(type -t $PREcmd)" == "function" ]; then
+      $PREcmd "$svcname" "$cmdname" "$vfycmd"
+    elif [ "$1" == "remove" -a "$svcname" ]; then
+      run_traced "service $svcname stop"
+      run_traced "sleep 3"
+    fi
+    if [ "$cmd0" ]; then
+      x=$(echo "$cmd"|awk '{print $1}')
+      if [ "$(type -t $x)" == "function" ]; then
+        $cmd0
+      else
+        run_traced "$cmd0"
+      fi
+    fi
+    x=$(echo "$cmd"|awk '{print $1}')
+    if [ "$(type -t $x)" == "function" ]; then
+      $cmd
+    else
+      run_traced "$cmd"
+    fi
+    POSTcmd="post_$1_$pkgname"
+    if [ "$(type -t $POSTcmd)" == "function" ]; then
+      $POSTcmd "$svcname" "$cmdname" "$vfycmd"
+    elif [ "$1" == "install" -a "$svcname" ]; then
+      run_traced "service $svcname start"
+      run_traced "sleep 3"
+    elif [ "$1" == "update" -a "$svcname" ]; then
+      run_traced "service $svcname restart"
+      run_traced "sleep 3"
+    elif [ "$1" == "config" -a "$svcname" ]; then
+      run_traced "service $svcname restart"
+      run_traced "sleep 3"
+    fi
+    if [ "$3" == "-q" ]; then
+      return $STS_SUCCESS
+    fi
+    local X="TCP_${pkgname/-/_}"
+    if [ "${!X}" ]; then
+      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
+         for port in ${!X}; do
+           enable_port $port tcp
+         done
+      elif [ "$1" == "remove" ]; then
+         for port in ${!X}; do
+           disable_port $port tcp
+         done
+      fi
+    fi
+    X="UDP_${pkgname/-/_}"
+    if [ "${!X}" ]; then
+      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
+         for port in ${!X}; do
+           enable_port $port udp
+         done
+      elif [ "$1" == "remove" ]; then
+         for port in ${!X}; do
+           disable_port $port tcp
+         done
+      fi
+    fi
+    SUBlist="SUB_${pkgname/-/_}"
+    if [ "${!SUBlist}" ]; then
+      ((level++))
+      for p in ${!SUBlist}; do
+        realname=$(prod realname $p)
+        if [ $opt_verbose -gt 0 ]; then
+          echo "Analyzing $realname"
+        fi
+        if [ "$1" == "install" ]; then
+          if $(prod status $realname "-q" $level); then
+            prod update $realname "" $level
+          else
+            prod $1 $realname "" $level
+          fi
+        elif [ "$1" == "update" ]; then
+          if $(prod status $realname "-q" $level); then
+            prod $1 $realname "" $level
+          else
+            prod install $realname "" $level
+          fi
+        elif [ "$1" == "remove" ]; then
+          if $(prod status $realname "-q" $level); then
+            prod $1 $realname "" $level
+          fi
+        else
+          prod $1 $realname "" $level
+        fi
+      done
+      ((level--)) #?
+    fi
+    if [ $level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
+      run_traced "apt-get autoremove"
+    fi
+    return $STS_SUCCESS
+}
+
 product_install_product () {
 # product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+    if [ "opt_if" ]; then
+      SCP="scp -oIdentityFile=$opt_if"
+    else
+      SCP="scp"
+    fi
     if [ -z "$opt_host" ]; then
       if [ "$TDIR" != "/usr/bin" ]; then
         run_traced "mkdir -p /etc/$THIS"
-        run_traced "cp $TDIR/$pkgname /usr/bin"
-        run_traced "cp $TDIR/${pkgname}.man /usr/bin"
+        run_traced "mv $TDIR/$pkgname /usr/bin"
+        run_traced "mv $TDIR/${pkgname}.man /usr/bin"
         run_traced "chmod +x /usr/bin/$pkgname*"
         if [ -f $TDIR/${pkgname}.conf ]; then
           run_traced "cp $TDIR/${pkgname}.conf /etc/$THIS"
         fi
-        run_traced "cp $TDIR/z0librc /etc/z0librc"
-        run_traced "chmod +r /etc/z0librc"
+        run_traced "_install_z0librc"
       fi
     else
       wlog "Copying config files to host $opt_host"
       if [ -f z0_x_*.txt ]; then
-        run_traced "scp z0_x_*.txt $opt_host:~/"
+        run_traced "$SCP z0_x_*.txt $opt_host:~/"
       fi
-      run_traced "scp $TDIR/$pkgname $opt_host:~/"
-      run_traced "scp $TDIR/${pkgname}.* $opt_host:~/"
-      run_traced "scp  /etc/z0librc $opt_host:~/"
+      run_traced "$SCP $TDIR/$pkgname $opt_host:~/"
+      run_traced "$SCP $TDIR/${pkgname}.* $opt_host:~/"
+      run_traced "$SCP /etc/z0librc $opt_host:~/"
     fi
 }
 
@@ -1027,6 +1039,147 @@ product_update_product () {
 product_remove_product () {
     run_traced "rm /usr/bin/$pkgname"
     run_traced "rm /usr/bin/${pkgname}.*"
+}
+
+pre_install_LAMP () {
+    if [ $opt_dev -gt 0 ]; then
+      prod_install_if "gcc"
+      if [ "$FH" == "RHEL" ]; then
+        run_traced "yum $opt_yes groupinstall \"Development tools\""
+      fi
+    fi
+}
+
+pre_update_LAMP () {
+    pre_install_LAMP
+}
+
+product_install_odoo () {
+# product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+    if [ ! -d /opt/odoo ]; then
+      run_traced "mkdir -p /opt/odoo"
+    fi
+    if [ "$opt_oed" == "odoo" ]; then
+      gitrep="odoo/odoo"
+    elif [ "$opt_oed" == "oca" ]; then
+      gitrep="OCA/OCB"
+    else
+      gitrep="zeroincombenze/OCB"
+    fi
+    git_opts=""
+    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
+      local ov_iter="9 8 7"
+    else
+      local ov_iter=$opt_odoo
+      git_opts="--single-branch"
+    fi
+    if [ $opt_dev -eq 0 ]; then
+      git_opts="--depth 1 $git_opts"
+    fi
+    for ov in $ov_iter; do
+      local xtl=1
+      if [ -d /opt/odoo/$ov ]; then
+        cd /opt/odoo/$ov
+        git status &>/dev/null
+        if [ $? -eq 0 ]; then xtl=0; fi
+      fi
+      run_traced "cd /opt/odoo"
+      if [ $xtl -gt 0 ]; then
+        run_traced "git clone https://github.com/$gitrep.git $ov.0 -b $ov.0 $git_opts"
+      fi
+      run_traced "chown -R odoo:odoo $ov.0/"
+      run_traced "cd /opt/odoo/$ov.0"
+      run_traced "git checkout $ov.0"
+      if [ -f /opt/odoo/$ov.0/requirements.txt ]; then
+        local f=/opt/odoo/9.0/requirements.txt
+        local p n v r
+        while IFS=\= read p n v; do
+          r=$(product -q version $p)
+          r=$(echo $r)
+          if [ "$r" == "$v" ]; then
+            wecho "Package $p $r already installed"
+          else
+            r=$(product -q status $p|grep "could be")
+            if [ -z "$r" ]; then
+              run_traced "pip install $p --upgrade"
+            else
+              run_traced "pip install $p"
+            fi
+            r=$(product -q version $p)
+            r=$(echo $r)
+            if [ "$r" != "$v" ]; then
+              wlog "Package $p has invalid version $r: required $v"
+            fi
+          fi
+        done < $f
+      fi
+    done
+}
+
+product_update_odoo () {
+# product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+    if [ "$FH" == "RHEL" ]; then
+      run_traced "yum $opt_yes update odoo"
+    else
+      run_traced "apt-get $opt_yes update odoo"
+      run_traced "apt-get $opt_yes upgrade odoo"
+    fi
+}
+
+product_config_odoo () {
+    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
+      local ov_iter="9 8 7"
+    else
+      local ov_iter=$opt_odoo
+    fi
+    local userhome=$(sudo -u postgres -i eval 'echo "$HOME"')
+    if [ -z "$userhome" ]; then
+      userhome=$(grep postgres /etc/passwd|awk -F":" '{print $6}')
+    fi
+    if [ -f $userhome/.pgpass ]; then
+      local pwd=$(grep odoo $userhome/.pgpass|awk -F: '{ print $5 }'|head -n1)
+    else
+      local pwd=
+      while [ -z "$pwd" ]; do
+        read -rsp"Type password for postgresql user access (no echo)>" pwd
+        echo -e "\n"
+        read -rsp"Retype password for validation>" pwd1
+        echo -e "\n"
+        if [ "$pwd" != "$pwd1" ]; then
+          local pwd=
+        fi
+      done
+    fi
+    echo "*:*:*:odoo:$pwd">$userhome/.pgpass
+    chown postgres:postgres $userhome/.pgpass
+    chmod u=rw,g=,o= $userhome/.pgpass
+    for ov in $ov_iter; do
+      if [ $opt_dev -gt 0 ]; then
+        uu="odoo$ov"
+        echo "*:*:*:$uu:$pwd">>$userhome/.pgpass
+      else
+        uu=odoo
+      fi
+      local x=$(sudo -iupostgres psql -c \\dg|grep " $uu ")
+      if [ -z "$x" ]; then
+        echo "Create account $uu for postgres access by odoo"
+        echo "Warning: store password you type in odoo config file"
+        run_traced "sudo -iupostgres createuser --createdb --username postgres --no-createrole --no-superuser --no-password $uu"
+      fi
+      echo "Running odoo $ov to configure"
+      cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
+      cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
+      cmd="$cmd -s --stop-after-init"
+      cmd="$cmd --pidfile=/var/run/odoo/$uu.pid"
+      cmd="$cmd --logfile=/var/log/odoo/${uu}-server.log"
+      cmd="$cmd --db_host=localhost"
+      cmd="$cmd --db_user=$uu"
+      cmd="$cmd --db_password=$pwd"
+      run_traced "$cmd"
+      run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
+      run_traced "chown odoo:odoo /etc/odoo/${uu}-server.conf"
+      run_traced "chmod u+rw,g+r,o+r /etc/odoo/${uu}-server.conf"
+    done
 }
 
 pre_config_odoo () {
@@ -1088,12 +1241,13 @@ pre_config_odoo () {
 }
 
 pre_install_odoo () {
+    prod_install_if "git"
     if [ "$FH" == "RHEL" ]; then
       if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
         run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
       fi
     elif [ "$FH" == "Debian" ]; then
-       if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
+      if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
         run_traced "wget -O - https://nightly.odoo.com/odoo.key | apt-key add -"
       fi
       if [ -z "$(cat /etc/apt/sources.list|grep 'nightly.odoo.com' 2>/dev/null)" ]; then
@@ -1103,76 +1257,100 @@ pre_install_odoo () {
     pre_config_odoo
 }
 
+post_install_odoo () {
+    local p
+    p=etc
+    run_traced "mkdir -p /$p/odoo"
+    run_traced "chown odoo:odoo /$p/odoo"
+    run_traced "chmod -R u+rw,g+r,o+r /$p/odoo"
+    for p in log lib run; do
+      run_traced "mkdir -p /var/$p/odoo"
+      run_traced "chown odoo:odoo /var/$p/odoo"
+      run_traced "chmod -R u+rw,g+r,o+r /var/$p/odoo"
+    done
+}
+
+post_update_odoo () {
+    post_install_odoo
+}
+
+# product_install_wkhtmltopdf () {
+## product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+#}
+
 post_install_apache2_httpd () {
      if [ ! -d /var/www ]; then
       run_traced "mkdir -p /var/www"
       run_traced "chmod u+rwx,g=rx,o=rx /var/www"
-  	fi
-  	if [ ! -d /var/www/html ]; then
+      fi
+      if [ ! -d /var/www/html ]; then
       run_traced "mkdir -p /var/www/html"
       run_traced "chmod u+rwx,g=rx,o=rx /var/www/html"
-  	fi
+      fi
 }
 
 post_install_apache2 () {
-  	run_traced "service apache2 start"
-  	run_traced "sleep 3"
+      run_traced "service apache2 start"
+      run_traced "sleep 3"
     run_traced "chkconfig apache2 on"
-  	post_install_apache2_httpd
+      post_install_apache2_httpd
 }
 
 post_install_httpd () {
-  	run_traced "service httpd start"
-  	run_traced "sleep 3"
-	run_traced "chkconfig --levels 235 httpd on"
-  	post_install_apache2_httpd
+      run_traced "service httpd start"
+      run_traced "sleep 3"
+    run_traced "chkconfig --levels 235 httpd on"
+      post_install_apache2_httpd
 }
 
 post_config_postgresql () {
-	run_traced "service $1 initdb"
+    run_traced "service $1 initdb"
+    run_traced "chkconfig $1 on"
 }
 
 post_config_postgresql-server () {
-    run_traced "service $1 initdb"
+    if [ "$DISTO" == "CentOS7" ]; then
+      run_traced "postgresql-setup initdb"
+    else
+      run_traced "service $1 initdb"
+    fi
+    run_traced "chkconfig $1 on"
 }
 
 post_config_mysql-server () {
     if [ "$FH" == "RHEL" ]; then
       run_traced "mysql_secure_installation"
+      run_traced "chkconfig mysqld on"
     else
       for cmd in mysql_install_db mysql_secure_installation; do
         run_traced "$cmd"
-   	  done
-   	fi
+      done
+      run_traced "chkconfig mysql on"
+    fi
 }
 
 post_config_mariadb-server () {
     if [ "$FH" == "RHEL" ]; then
       run_traced "mysql_secure_installation"
-   	fi
+    fi
+    run_traced "chkconfig mariadb on"
 }
 
 test_cfg_name () {
-    #local jy=0
-    #while ((jy<${#DEFPRM[*]})); do
-    #  echo "$jy) ${DEFPRM[jy]}:=${DEFVAL[jy]};"
-    #  ((++jy))
-    #done
-    #exit 1
     if [ "$FH" == "RHEL" ]; then
        local TPRM=("." httpd_svcname httpd_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
     php_cmdname postgresql-server_cmdname openssh-server_svcname php_vfycmd openssh-server_cmdname python-pip_cmdname\
     SUB_mariadb_server SUB_openssh_server)
        local TRES=("." "httpd" "apachectl" "apachectl -v" "postgresql" "mysqld"\
     "php" "psql" "sshd" "php -v" "" "pip"\
-    " mariadb " " openssh-clients ")
+    " mariadb " " openssh-clients telnet ")
     else
        local TPRM=("." apache2_svcname apache2_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
     php5_cmdname postgresql_cmdname openssh-server_svcname php5_vfycmd openssh-server_cmdname  python-pip_cmdname\
     SUB_openssh_server)
        local TRES=("." "apache2" "apachectl" "apachectl -v" "postgresql" "mysql"\
     "php5" "psql" "ssh" "php5 -v" "" "pip"\
-    " openssh-client ")
+    " openssh-client telnet ")
     fi
     local jj=0
     while ((jj<${#TPRM[*]})); do
@@ -1226,14 +1404,13 @@ test_install () {
     wecho "Test $tst_ctr [$FH]: prod install '$p'"
     if [ "$p" == "$THIS" ]; then
       echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> cp $TDIR/$p /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> mv $TDIR/$p /usr/bin">>$ftest
+      echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
       if [ -f $TDIR/${p}.conf ]; then
         echo "--> cp $TDIR/${p}.conf /etc/$THIS">>$ftest
       fi
-      echo "--> cp $TDIR/z0librc /etc/z0librc">>$ftest
-      echo "--> chmod +r /etc/z0librc">>$ftest
+      echo "--> _install_z0librc">>$ftest
     elif [ "$p" == "python-pip" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y install python-pip">>$ftest
@@ -1270,11 +1447,13 @@ test_install () {
         echo "--> service sshd start">>$ftest
         echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
         echo "--> yum -y install openssh-clients">>$ftest
+        echo "--> yum -y install telnet">>$ftest
       else
         echo "--> apt-get -y install openssh-server">>$ftest
         echo "--> service ssh start">>$ftest
         echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
         echo "--> apt-get -y install openssh-client">>$ftest
+        echo "--> apt-get -y install telnet">>$ftest
       fi
     elif [ "$p" == "python" ]; then
       if [ "$FH" == "RHEL" ]; then
@@ -1303,14 +1482,14 @@ test_install () {
         echo "--> pip  install gdata">>$ftest
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
-        echo "--> pip  install ZSI">>$ftest
+        # echo "--> pip  install ZSI">>$ftest
         # echo "--> yum -y install postgresql-devel">>$ftest
         echo "--> yum -y install pydot">>$ftest
       else
         echo "--> apt-get -y install python">>$ftest
         # echo "--> apt-get -y install python-dev">>$ftest
-        echo "--> apt-get -y update python-setuptools">>$ftest
-        echo "--> apt-get -y upgrade python-setuptools">>$ftest
+        echo "--> apt-get -y update setuptools">>$ftest
+        echo "--> apt-get -y upgrade setuptools">>$ftest
         echo "--> apt-get -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
         # echo "--> apt-get -y install zlib1g-dev">>$ftest
@@ -1323,7 +1502,7 @@ test_install () {
         # echo "--> apt-get -y install libgdbm-dev">>$ftest
         # echo "--> apt-get -y install libpcap-dev">>$ftest
         # echo "--> apt-get -y install liblzma-dev">>$ftest
-        echo "--> apt-get -y install python-libxslt1">>$ftest
+        echo "--> apt-get -y install libxslt-python">>$ftest
         echo "--> apt-get -y update python-psycopg2">>$ftest
         echo "--> apt-get -y upgrade python-psycopg2">>$ftest
         echo "--> apt-get -y update python-simplejson">>$ftest
@@ -1335,13 +1514,29 @@ test_install () {
         echo "--> pip  install python-ldap">>$ftest
         echo "--> apt-get -y update python-lxml">>$ftest
         echo "--> apt-get -y upgrade python-lxml">>$ftest
-        echo "--> pip  install ZSI">>$ftest
+        # echo "--> pip  install ZSI">>$ftest
         echo "--> apt-get -y install pydot">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> # pre_install_odoo failed">>$ftest
-        echo "--> yum -y install odoo">>$ftest
+        echo "--> cd /opt/odoo">>$ftest
+        echo "--> git clone https://github.com/odoo/odoo.git 9.0 -b 9.0 --depth 1 --single-branch">>$ftest
+        echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
+        echo "--> cd /opt/odoo/9.0">>$ftest
+        echo "--> git checkout 9.0">>$ftest
+        echo "--> mkdir -p /etc/odoo">>$ftest
+        echo "--> chown odoo:odoo /etc/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
+        echo "--> mkdir -p /var/log/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
+        echo "--> mkdir -p /var/lib/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
+        echo "--> mkdir -p /var/run/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
         echo "--> pip  install Babel">>$ftest
         echo "--> yum -y install dejavu-fonts-common">>$ftest
         echo "--> yum -y install dejavu-sans-fonts">>$ftest
@@ -1350,8 +1545,8 @@ test_install () {
         echo "--> yum -y install libjpeg-turbo">>$ftest
         echo "--> yum -y install libtiff">>$ftest
         # echo "--> yum -y install libwebp">>$ftest
-        echo "--> yum -y install libxml2-python">>$ftest
-        echo "--> yum -y install libxslt-python">>$ftest
+        # echo "--> yum -y install libxml2-python">>$ftest
+        # echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
         echo "--> yum -y install pyOpenSSL">>$ftest
         echo "--> yum -y install pychart">>$ftest
@@ -1368,7 +1563,7 @@ test_install () {
         echo "--> yum -y install python-markupsafe">>$ftest
         echo "--> yum -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        # echo "--> yum -y install python-passlib">>$ftest
+        ## echo "--> pip  install passlib">>$ftest
         # echo "--> yum -y install python-paste">>$ftest
         # echo "--> yum -y install python-pillow">>$ftest
         echo "--> yum -y install python-psutil">>$ftest
@@ -1379,16 +1574,34 @@ test_install () {
         # echo "--> yum -y install python-six">>$ftest
         # echo "--> yum -y install python-tempita">>$ftest
         echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> pip  install python-urllib3">>$ftest
+        echo "--> pip  install urllib3">>$ftest
         echo "--> yum -y install python-vobject">>$ftest
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
         echo "--> pip  install unidecode">>$ftest
+        echo "--> pip  install wkhtmltopdf">>$ftest
       else
         echo "--> # pre_install_odoo failed">>$ftest
-        echo "--> apt-get -y install odoo">>$ftest
+        echo "--> cd /opt/odoo">>$ftest
+        echo "--> git clone https://github.com/odoo/odoo.git 9.0 -b 9.0 --depth 1 --single-branch">>$ftest
+        echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
+        echo "--> cd /opt/odoo/9.0">>$ftest
+        echo "--> git checkout 9.0">>$ftest
+        echo "--> mkdir -p /etc/odoo">>$ftest
+        echo "--> chown odoo:odoo /etc/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
+        echo "--> mkdir -p /var/log/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
+        echo "--> mkdir -p /var/lib/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
+        echo "--> mkdir -p /var/run/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
         echo "--> apt-get -y install ghostscript">>$ftest
         echo "--> apt-get -y install libart-2.0-2">>$ftest
+        # echo "--> apt-get -y install python-libxml2">>$ftest
         echo "--> apt-get -y install libcupsfilters1">>$ftest
         echo "--> apt-get -y install libcupsimage2">>$ftest
         echo "--> apt-get -y install libgs9">>$ftest
@@ -1419,7 +1632,7 @@ test_install () {
         echo "--> apt-get -y install python-markupsafe">>$ftest
         echo "--> apt-get -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        echo "--> apt-get -y install python-passlib">>$ftest
+        echo "--> pip  install passlib">>$ftest
         echo "--> apt-get -y install python-pil">>$ftest
         echo "--> apt-get -y install python-psutil">>$ftest
         echo "--> apt-get -y install python-pybabel">>$ftest
@@ -1442,6 +1655,7 @@ test_install () {
         echo "--> apt-get -y install docutils-common">>$ftest
         echo "--> apt-get -y install docutils-doc">>$ftest
         echo "--> pip  install unidecode">>$ftest
+        echo "--> pip  install wkhtmltopdf">>$ftest
       fi
     fi
     if [ "$p" ]; then
@@ -1476,14 +1690,13 @@ test_update () {
       fi
     elif [ "$p" == "$THIS" ]; then
       echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> cp $TDIR/$p /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> mv $TDIR/$p /usr/bin">>$ftest
+      echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
       if [ -f $TDIR/${p}.conf ]; then
         echo "--> cp $TDIR/${p}.conf /etc/$THIS">>$ftest
       fi
-      echo "--> cp $TDIR/z0librc /etc/z0librc">>$ftest
-      echo "--> chmod +r /etc/z0librc">>$ftest
+      echo "--> _install_z0librc">>$ftest
     elif [ "$p" == "python-pip" ]; then
       echo "--> pip install --upgrade pip">>$ftest
     elif [ "$p" == "apache2" -o "$p" == "httpd" ]; then
@@ -1516,12 +1729,14 @@ test_update () {
         echo "--> service sshd restart">>$ftest
         echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
         echo "--> yum -y install openssh-clients">>$ftest
+        echo "--> yum -y install telnet">>$ftest
       else
         echo "--> apt-get -y update openssh-server">>$ftest
         echo "--> apt-get -y upgrade openssh-server">>$ftest
         echo "--> service ssh restart">>$ftest
         echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
         echo "--> apt-get -y install openssh-client">>$ftest
+        echo "--> apt-get -y install telnet">>$ftest
       fi
     elif [ "$p" == "python" ]; then
       if [ "$FH" == "RHEL" ]; then
@@ -1550,15 +1765,15 @@ test_update () {
         echo "--> pip  install gdata">>$ftest
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
-        echo "--> pip  install ZSI">>$ftest
+        # echo "--> pip  install ZSI">>$ftest
         # echo "--> yum -y install postgresql-devel">>$ftest
         echo "--> yum -y install pydot">>$ftest
       else
         echo "--> apt-get -y update python">>$ftest
         echo "--> apt-get -y upgrade python">>$ftest
         # echo "--> apt-get -y install python-dev">>$ftest
-        echo "--> apt-get -y update python-setuptools">>$ftest
-        echo "--> apt-get -y upgrade python-setuptools">>$ftest
+        echo "--> apt-get -y update setuptools">>$ftest
+        echo "--> apt-get -y upgrade setuptools">>$ftest
         echo "--> apt-get -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
         # echo "--> apt-get -y install zlib1g-dev">>$ftest
@@ -1571,7 +1786,7 @@ test_update () {
         # echo "--> apt-get -y install libgdbm-dev">>$ftest
         # echo "--> apt-get -y install libpcap-dev">>$ftest
         # echo "--> apt-get -y install liblzma-dev">>$ftest
-        echo "--> apt-get -y install python-libxslt1">>$ftest
+        echo "--> apt-get -y install libxslt-python">>$ftest
         echo "--> apt-get -y update python-psycopg2">>$ftest
         echo "--> apt-get -y upgrade python-psycopg2">>$ftest
         echo "--> apt-get -y update python-simplejson">>$ftest
@@ -1583,12 +1798,24 @@ test_update () {
         echo "--> pip  install python-ldap">>$ftest
         echo "--> apt-get -y update python-lxml">>$ftest
         echo "--> apt-get -y upgrade python-lxml">>$ftest
-        echo "--> pip  install ZSI">>$ftest
+        # echo "--> pip  install ZSI">>$ftest
         echo "--> apt-get -y install pydot">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y update odoo">>$ftest
+        echo "--> mkdir -p /etc/odoo">>$ftest
+        echo "--> chown odoo:odoo /etc/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
+        echo "--> mkdir -p /var/log/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
+        echo "--> mkdir -p /var/lib/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
+        echo "--> mkdir -p /var/run/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
         echo "--> pip  install Babel">>$ftest
         echo "--> yum -y install dejavu-fonts-common">>$ftest
         echo "--> yum -y install dejavu-sans-fonts">>$ftest
@@ -1597,8 +1824,8 @@ test_update () {
         echo "--> yum -y install libjpeg-turbo">>$ftest
         echo "--> yum -y install libtiff">>$ftest
         # echo "--> yum -y install libwebp">>$ftest
-        echo "--> yum -y install libxml2-python">>$ftest
-        echo "--> yum -y install libxslt-python">>$ftest
+        # echo "--> yum -y install libxml2-python">>$ftest
+        # echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
         echo "--> yum -y install pyOpenSSL">>$ftest
         echo "--> yum -y install pychart">>$ftest
@@ -1615,7 +1842,7 @@ test_update () {
         echo "--> yum -y install python-markupsafe">>$ftest
         echo "--> yum -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        # echo "--> yum -y install python-passlib">>$ftest
+        ## echo "--> pip  install passlib">>$ftest
         # echo "--> yum -y install python-paste">>$ftest
         # echo "--> yum -y install python-pillow">>$ftest
         echo "--> yum -y install python-psutil">>$ftest
@@ -1626,16 +1853,30 @@ test_update () {
         # echo "--> yum -y install python-six">>$ftest
         # echo "--> yum -y install python-tempita">>$ftest
         echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> pip  install python-urllib3">>$ftest
+        echo "--> pip  install urllib3">>$ftest
         echo "--> yum -y install python-vobject">>$ftest
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
         echo "--> pip  install unidecode">>$ftest
+        echo "--> pip  install wkhtmltopdf">>$ftest
       else
         echo "--> apt-get -y update odoo">>$ftest
         echo "--> apt-get -y upgrade odoo">>$ftest
+        echo "--> mkdir -p /etc/odoo">>$ftest
+        echo "--> chown odoo:odoo /etc/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
+        echo "--> mkdir -p /var/log/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
+        echo "--> mkdir -p /var/lib/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
+        echo "--> mkdir -p /var/run/odoo">>$ftest
+        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
+        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
         echo "--> apt-get -y install ghostscript">>$ftest
         echo "--> apt-get -y install libart-2.0-2">>$ftest
+        # echo "--> apt-get -y install python-libxml2">>$ftest
         echo "--> apt-get -y install libcupsfilters1">>$ftest
         echo "--> apt-get -y install libcupsimage2">>$ftest
         echo "--> apt-get -y install libgs9">>$ftest
@@ -1666,7 +1907,7 @@ test_update () {
         echo "--> apt-get -y install python-markupsafe">>$ftest
         echo "--> apt-get -y install python-mock">>$ftest
         echo "--> pip  install python-openid">>$ftest
-        echo "--> apt-get -y install python-passlib">>$ftest
+        echo "--> pip  install passlib">>$ftest
         echo "--> apt-get -y install python-pil">>$ftest
         echo "--> apt-get -y install python-psutil">>$ftest
         echo "--> apt-get -y install python-pybabel">>$ftest
@@ -1689,6 +1930,7 @@ test_update () {
         echo "--> apt-get -y install docutils-common">>$ftest
         echo "--> apt-get -y install docutils-doc">>$ftest
         echo "--> pip  install unidecode">>$ftest
+        echo "--> pip  install wkhtmltopdf">>$ftest
       fi
     fi
     prod update $p>$fout
@@ -1748,10 +1990,10 @@ test_remove () {
       fi
     elif [ "$p" == "openssh-server" ]; then
       if [ "$FH" == "RHEL" ]; then
-          echo "--> service sshd stop">>$ftest
+        echo "--> service sshd stop">>$ftest
         echo "--> yum -y remove openssh-server">>$ftest
       else
-          echo "--> service ssh stop">>$ftest
+        echo "--> service ssh stop">>$ftest
         echo "--> apt-get -y remove openssh-server">>$ftest
         echo "--> apt-get autoremove">>$ftest
       fi
@@ -1765,7 +2007,7 @@ test_remove () {
         echo "--> yum -y remove python-lxml">>$ftest
       else
         echo "--> apt-get -y remove python">>$ftest
-        echo "--> apt-get -y remove python-setuptools">>$ftest
+        echo "--> apt-get -y remove setuptools">>$ftest
         echo "--> apt-get -y remove libreadline6">>$ftest
         echo "--> apt-get -y remove python-psycopg2">>$ftest
         echo "--> apt-get -y remove python-simplejson">>$ftest
@@ -1804,16 +2046,19 @@ if [ $EUID -eq 0 ]; then
 else
   FLOG=~/$THIS.log
 fi
+set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       H        L         n           O        P          q         V           v           w       y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_host opt_log   opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="      "="       1           1        "="        1         "*"         1           1       "*"     1)
-OPTDEFL=(1        0       ""      ""       ""        0           0        ""         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "host"   "logfile" "noop"      "odoo"   "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
+OPTOPTS=(h        D       E       e       H        i      L         n           O        P          q         V           v           w       y       1)
+OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
+OPTACTI=(1        1       "="     "="     "="      "="    "="       1           "="      "="        1         "*"         1           1       "*"     1)
+OPTDEFL=(1        0       ""      ""      ""       ""     ""        0           ""       ""         0         ""          0           0       ""      0)
+OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu,CentOS,CentOS7. Use carefully!"\
+ "select odoo distribution (with -O switch); may be odoo,oca,zeroincombenze"\
  "[user@]host to export config files"\
+ "use identity file (private key) for authentication"\
  "log file name (def /var/log/product.log)"\
  "do nothing (dry-run)"\
  "include odoo in LAMP software"\
@@ -1824,7 +2069,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "manage windows interface packages"\
  "assume yes"\
  "1st installation")
-OPTARGS=(action pkg)
+OPTARGS=(action pkg sub1 sub2)
 
 parseoptargs $@
 if [ "$opt_version" ]; then
@@ -1850,11 +2095,20 @@ elif [ "$opt_osf" == "Ubuntu" ]; then
   DISTO=$opt_osf
   FH="Debian"
 fi
-if [ $opt_odoo -eq 0 ]; then
+if [ -z "$opt_odoo" ]; then
   if [ "$action" == "version" -o "$action" == "status" ]; then
     if $(prod status odoo "-q"); then
-      opt_odoo=1
+      opt_odoo="9"
     fi
+  fi
+fi
+if [ -n "$opt_odoo" ]; then
+  if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a $opt_odoo != "*" ]; then
+    echo "Invalid option value: use -O9 or -O8 or -O7 or -O*"
+    exit 1
+  fi
+  if [ "opt_oed" != "odoo" -a "opt_oed" != "oca" -a "opt_oed" != "zeroincombenze" ]; then
+    opt_oed="zeroincombenze"
   fi
 fi
 if [ "$action" == "regression_test" ]; then
@@ -1873,6 +2127,7 @@ wlog "Setup for $FH family"
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "whatis" ]; then
+  set_tlog_file "$FLOG" "" "echo"
   print_title "List managed packages"
   iter=$(set_iter $pkg)
   for pkgname in $iter; do
@@ -1906,6 +2161,7 @@ elif [ "$action" == "status" ]; then
     wecho "This command must be executed by root"
     exit 1
   fi
+  set_tlog_file "$FLOG" "" "echo"
   print_title "Check for installation status"
   iter=$(set_iter $pkg)
   for p in $iter; do
@@ -1918,6 +2174,7 @@ elif [ "$action" == "version" ]; then
     wecho "This command must be executed by root"
     exit 1
   fi
+  set_tlog_file "$FLOG" "" "echo"
   print_title "Show installed package version"
   iter=$(set_iter $pkg)
   for p in $iter; do
@@ -1967,7 +2224,7 @@ elif [ "$action" == "config" ]; then
       if [ "$SUBlist" ]; then
         for pkg in ${!SUBlist}; do
           p=$(prod realname $pkg)
-   	      if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
+             if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
             if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
               installer=$(prod installer $p)
               if [ "$installer" == "pip" ]; then
@@ -1983,7 +2240,9 @@ elif [ "$action" == "config" ]; then
   else
     for p in $iter; do
       realname=$(prod realname $p)
-      if $(prod status $realname "-q"); then
+      if $(is_virtualname $realname); then
+        prod $action $realname "-q"
+      elif $(prod status $realname "-q"); then
         wlog "- package $realname"
         prod $action $realname
       else
@@ -2005,7 +2264,9 @@ elif [ "$action" == "remove" ]; then
   iter=$(set_iter $pkg)
   for p in $iter; do
     realname=$(prod realname $p)
-    if $(prod status $realname "-q"); then
+    if $(is_virtualname $realname); then
+      prod $action $realname "-q"
+    elif $(prod status $realname "-q"); then
       wlog "- package $realname"
       prod $action $realname
     else
@@ -2014,10 +2275,10 @@ elif [ "$action" == "remove" ]; then
   done
   echo "See $FLOG for traced informations"
 elif [ "$action" == "install" ]; then
-  if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
-    exit 1
-  fi
+  #if [ $EUID -ne 0 ]; then
+  #  wecho "This command must be executed by root"
+  #  exit 1
+  #fi
   print_title "Install package(s)"
   if [ $opt_1st -gt 0 ]; then
     wlog "Setup for 1st installation"
@@ -2028,7 +2289,9 @@ elif [ "$action" == "install" ]; then
   iter=$(set_iter $pkg)
   for p in $iter; do
     realname=$(prod realname $p)
-    if $(prod status $p "-q"); then
+    if $(is_virtualname $realname); then
+      prod $action $realname "-q"
+    elif $(prod status $p "-q"); then
       wlog "Package $realname already installed"
     else
       wlog "- package $realname"
@@ -2047,10 +2310,10 @@ elif [ "$action" == "prepare" ]; then
   build_user_list
   echo "See $FLOG for traced informations"
 elif [ "$action" == "export" ]; then
-  if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
-    exit 1
-  fi
+  # if [ $EUID -ne 0 ]; then
+  #   wecho "This command must be executed by root"
+  #   exit 1
+  # fi
   if [ -z "$opt_host" ]; then
     wecho "Missing destination host name: use -H host option"
   else
@@ -2075,16 +2338,19 @@ elif [ "$action" == "regression_test" ]; then
   opt_win=1
   opt_quiet=0
   opt_verbose=0
-  opt_odoo=1
-  SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel python-setuptools setuptools readline libreadline6"
+  opt_odoo="9"
+  opt_dev=0
+  opt_oed="odoo"
+  SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"
+  # SAVE_SMLT_YES="$SAVE_SMLT_YES"
   SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
-  SAVE_SMLT_NO="openssh-clients openssh-client postgresql-client-common install postgresql-contrib pgadmin3"
+  SAVE_SMLT_NO="openssh-clients openssh-client telnet postgresql-client-common install postgresql-contrib pgadmin3"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-gdata gdata python-ldap pytz xlwt ZSI"
   SAVE_SMLT_NO="$SAVE_SMLT_NO Babel python-dateutil python-docutils python-feedparser zlib-devel zlib1g-dev bzip2-devel openssl-devel"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-imaging python-jinja2 python-mako python-markupsafe python-mock python-openid python-psutil"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vatnumber python-vobject python-werkzeug python-urllib3"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO libwebp5 libwebpmux1 python-passlib python-paste python-pillow python-requests python-six python-tempita"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO ncurses-devel sqlite-devel virtualenv pydot PyYAML python-libxslt1"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vatnumber python-vobject python-werkzeug urllib3"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO libwebp5 libwebpmux1 python-passlib passlib python-paste python-pillow python-requests python-six python-tempita"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO ncurses-devel sqlite-devel virtualenv pydot PyYAML libxslt-python python-libxml2 libxml2-python"
   SAVE_SMLT_NO="$SAVE_SMLT_NO docutils-common docutils-doc python-dev python-devel python-virtualenv libreadline libreadline6 "
   SAVE_SMLT_NO="$SAVE_SMLT_NO readline-devel tk-dev tk-devel gdbm-devel libgdbm-dev liblzma-dev"
   SAVE_SMLT_NO="$SAVE_SMLT_NO libpcap-dev libpcap-devel xz-devel postgresql-devel libssl-dev libreadline6-dev libsqlite3-dev unidecode"
