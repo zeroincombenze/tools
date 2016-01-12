@@ -16,12 +16,15 @@ if [ -f z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Libreria z0librc non trovata!"
+  exit 1
 fi
 
 
-__version__="0.2.9.21"
+__version__="0.2.10"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -34,7 +37,10 @@ fi
 FCONF=$CDIR/$THIS.conf
 FH=$(xuname "-f")
 x=$(xuname "-v")
-DISTO=$(xuname "-d")${x:0:1}
+v=$(echo $x|awk -F. '{print $1}')
+DISTO=$(xuname "-d")$v
+LXCORE=$(xuname "-c")
+MACHARCH=$(xuname "-m")
 TMP_LIS_PIP=~/${THIS}_pip.log
 if [ -f $TMP_LIS_PIP ]; then
   rm -f TMP_LIS_PIP
@@ -392,6 +398,30 @@ disable_port () {
     fi
 }
 
+get_arch () {
+    if [ "$1" == "CentOS7" -o "$1" == "CentOS" ]; then
+      DISTO="CentOS7"
+      FH="RHEL"
+      LXCORE=
+      MACHARCH="x86_64"
+    elif [ "$1" == "CentOS6" ]; then
+      DISTO="CentOS6"
+      FH="RHEL"
+      LXCORE=
+      MACHARCH="i686"
+    elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu" ]; then
+      DISTO="Ubuntu14"
+      FH="Debian"
+      LXCORE="trusty"
+      MACHARCH="x86_64"
+    elif [ "$1" == "Ubuntu12" ]; then
+      DISTO="Ubuntu12"
+      FH="Debian"
+      LXCORE="precise"
+      MACHARCH="i686"
+    fi
+}
+
 is_virtualname () {
     local pkgname=$1
     local sts=$STS_FAILED
@@ -670,7 +700,7 @@ set_xtlcmds () {
 set_installcmd () {
 # set_installcmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local INSTALLcmd="product_$1_$pkgname"
+    local INSTALLcmd="product_$1_${pkgname/-/_}"
     if [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $INSTALLcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_INSTALL_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -687,7 +717,7 @@ set_installcmd () {
 set_updatecmd () {
 # set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local UPDATEcmd="product_$1_$pkgname"
+    local UPDATEcmd="product_$1_${pkgname/-/_}"
     if [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $UPDATEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_UPDATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -711,7 +741,7 @@ set_updatecmd () {
 set_removecmd () {
 # set_removecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local REMOVEcmd="product_$1_$pkgname"
+    local REMOVEcmd="product_$1_${pkgname/-/_}"
     if [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $REMOVEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_REMOVE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -730,12 +760,40 @@ set_removecmd () {
 set_configcmd () {
 # set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local CFGcmd="product_$1_$pkgname"
+    local CFGcmd="product_$1_${pkgname/-/_}"
     if [ "$(type -t $CFGcmd)" == "function" ]; then
       cmd="$CFGcmd $OPTS config $pkgname"
     else
       cmd="# $CFGcmd"
     fi
+}
+
+update_hba_conf () {
+    local fnd_mrk=0
+    local eorem=0
+    local patched=0
+    local dt=$(date +%Y-%m-%d)
+    while IFS=~ read -r line; do
+      if [ "${line:0:11}" == "# [PRODUCT:" ]; then
+        fnd_mrk=1
+      elif [[ $line =~ ^[a-zA-Z_].*$ ]]; then
+        eorem=1
+      fi
+      if [ $eorem -eq 1 -a $patched -eq 0 -a $fnd_mrk -eq 0 ]; then
+         patched=1
+         echo "# [PRODUCT: $dt] Added access to Odoo">>$1.tmp
+         echo "host    all         odoo        127.0.0.1/32          md5">>$1.tmp
+         echo "host    all         odoo        ::1/128               md5">>$1.tmp
+         for ov in 7 8 9; do
+           echo "host    all         odoo$ov       127.0.0.1/32          trust">>$1.tmp
+           echo "host    all         odoo$ov       ::1/128               trust">>$1.tmp
+         done
+      fi
+      echo "$line">>$1.tmp
+    done < "$1"
+    [ -z "opt_yes" ] || vim $1.tmp
+    run_traced "mv $1 $1.bak"
+    run_traced "mv $1.tmp $1"
 }
 
 build_groups_list () {
@@ -1033,7 +1091,19 @@ product_install_product () {
 
 product_update_product () {
 # product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-    product_install_product
+    if [ "$TDIR" != "/usr/bin" ]; then
+      product_install_product
+    else
+      prod_install_if "git"
+      run_traced "cd /tmp"
+      if  [ -d /tmp/tools ]; then
+        rm -fR /tmp/tools
+      fi
+      run_traced "wget https://github.com/zeroincombenze/tools.git"
+      run_traced "cd /tmp/tools/product"
+      run_traced "exec ./product update product"
+      run_traced "rm -fR /tmp/tools"
+    fi
 }
 
 product_remove_product () {
@@ -1118,12 +1188,21 @@ product_install_odoo () {
 
 product_update_odoo () {
 # product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-    if [ "$FH" == "RHEL" ]; then
-      run_traced "yum $opt_yes update odoo"
-    else
-      run_traced "apt-get $opt_yes update odoo"
-      run_traced "apt-get $opt_yes upgrade odoo"
+    if [ ! -d /opt/odoo ]; then
+      run_traced "mkdir -p /opt/odoo"
     fi
+    for ov in $ov_iter; do
+      local xtl=0
+      if [ -d /opt/odoo/$ov ]; then
+        cd /opt/odoo/$ov
+        git status &>/dev/null
+        if [ $? -eq 0 ]; then xtl=1; fi
+        if [ $xtl -gt 0 ]; then
+          run_traced "git pull origin"
+        fi
+        run_traced "git checkout $ov.0"
+      fi
+    done
 }
 
 product_config_odoo () {
@@ -1153,6 +1232,10 @@ product_config_odoo () {
     echo "*:*:*:odoo:$pwd">$userhome/.pgpass
     chown postgres:postgres $userhome/.pgpass
     chmod u=rw,g=,o= $userhome/.pgpass
+    f_hba=$(findpkg "pg_hba.conf" "/var/lib /etc" "postgresql pgsql" "9.4 9.3 9.2 9.1 9.0 8.4" "data main")
+    if [ -n "$f_hba" ]; then
+      vi $f_hba
+    fi
     for ov in $ov_iter; do
       if [ $opt_dev -gt 0 ]; then
         uu="odoo$ov"
@@ -1240,6 +1323,11 @@ pre_config_odoo () {
     fi
 }
 
+post_config_odoo () {
+    local r="$(prod realname "postresql")"
+    run_traced "service $r restart"
+}
+
 pre_install_odoo () {
     prod_install_if "git"
     if [ "$FH" == "RHEL" ]; then
@@ -1274,9 +1362,105 @@ post_update_odoo () {
     post_install_odoo
 }
 
-# product_install_wkhtmltopdf () {
-## product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-#}
+product_install_python_dateutil () {
+    if [ "$DISTO" == "CentOS6" ]; then
+      run_traced "cd /tmp"
+      run_traced "wget https://pypi.python.org/packages/source/p/python-dateutil/python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5"
+      run_traced "pip install python-dateutil-1.5.tar.gz"
+      run_traced "rm -f python-dateutil-1.5.tar.gz"
+    else
+      run_traced "pip install python-dateutil"
+    fi
+}
+
+product_update_python_dateutil () {
+    if [ "$DISTO" == "CentOS6" ]; then
+      run_traced "cd /tmp"
+      run_traced "wget https://pypi.python.org/packages/source/p/python-dateutil/python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5"
+      run_traced "pip install python-dateutil-1.5.tar.gz --upgrade"
+      run_traced "rm -f python-dateutil-1.5.tar.gz"
+    else
+      run_traced "pip install python-dateutil --upgrade"
+    fi
+}
+
+get_wkhtmltopdf_URL () {
+    echo "http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
+}
+
+get_wkhtmltopdf_name () {
+    local pn=""
+    if [ "$DISTO" == "CentOS6" ]; then
+      if [ "$MACHARCH" == "x86_64" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-centos6-amd64.rpm"
+      elif [ "$MACHARCH" == "i686" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-centos6-i386.rpm"
+      fi
+    elif [ "$DISTO" == "CentOS7" ]; then
+      if [ "$MACHARCH" == "x86_64" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
+      elif [ "$MACHARCH" == "i686" ]; then
+        pn=""
+      fi
+    elif [ "$FH" == "Debian" ]; then
+      if [ "$LXCORE" == "trusty" -a "$MACHARCH" == "x86_64" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
+      elif [ "$LXCORE" == "trusty" -a "$MACHARCH" == "i686" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-trusty-i386.deb"
+      elif [ "$LXCORE" == "precise" -a "$MACHARCH" == "x86_64" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-precise-amd64.deb"
+      elif [ "$LXCORE" == "precise" -a "$MACHARCH" == "i686" ]; then
+        pn="wkhtmltox-0.12.2.1_linux-precise-i386.deb"
+      fi
+    fi
+    echo "$pn"
+}
+
+product_install_wkhtmltopdf () {
+    local pn=$(get_wkhtmltopdf_name)
+    local URL=$(get_wkhtmltopdf_URL)
+    if [ -z "$pn" ]; then
+      echo "*** Package wkhtmltopdf not found for this hardware"
+      wlog "*** Package wkhtmltopdf not found for this hardware"
+    else
+      if [ "$FH" == "RHEL" ]; then
+        xtlcmd="rpm"
+        run_traced "cd /tmp"
+        run_traced "wget $URL/$pn"
+        run_traced "$xtlcmd -i $pn"
+        run_traced "rm -f $pn"
+      elif [ "$FH" == "Debian" ]; then
+        xtlcmd="apt-get"
+        run_traced "cd /tmp"
+        run_traced "wget $URL/$pn"
+        run_traced "$xtlcmd install $pn"
+        run_traced "rm -f $pn"
+      fi
+    fi
+}
+
+product_update_wkhtmltopdf () {
+    local pn=$(get_wkhtmltopdf_name)
+    local URL=$(get_wkhtmltopdf_URL)
+    if [ -z "$pn" ]; then
+      echo "*** Package wkhtmltopdf not found for this hardware"
+    else
+      if [ "$FH" == "RHEL" ]; then
+        xtlcmd="rpm"
+        run_traced "cd /tmp"
+        run_traced "wget $URL/$pn"
+        run_traced "$xtlcmd -U $pn"
+        run_traced "rm -f $pn"
+      elif [ "$FH" == "Debian" ]; then
+        xtlcmd="apt-get"
+        run_traced "cd /tmp"
+        run_traced "wget $URL/$pn"
+        run_traced "$xtlcmd update $pn"
+        run_traced "$xtlcmd upgrade $pn"
+        run_traced "rm -f $pn"
+      fi
+    fi
+}
 
 post_install_apache2_httpd () {
      if [ ! -d /var/www ]; then
@@ -1553,7 +1737,7 @@ test_install () {
         echo "--> yum -y install pyparsing">>$ftest
         echo "--> yum -y update python-babel">>$ftest
         echo "--> yum -y install python-beaker">>$ftest
-        echo "--> pip  install python-dateutil">>$ftest
+        echo "--> pip install python-dateutil">>$ftest
         echo "--> yum -y install python-docutils">>$ftest
         echo "--> yum -y install python-feedparser">>$ftest
         echo "--> yum -y install python-jinja2">>$ftest
@@ -1579,7 +1763,12 @@ test_install () {
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
         echo "--> pip  install unidecode">>$ftest
-        echo "--> pip  install wkhtmltopdf">>$ftest
+        local pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
+        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
+        echo "--> cd /tmp">>$ftest
+        echo "--> wget $URL/$pn">>$ftest
+        echo "--> rpm -U $pn">>$ftest
+        echo "--> rm -f $pn">>$ftest
       else
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
@@ -1620,7 +1809,7 @@ test_install () {
         echo "--> apt-get -y update python-babel">>$ftest
         echo "--> apt-get -y upgrade python-babel">>$ftest
         echo "--> apt-get -y install python-babel-localedata">>$ftest
-        echo "--> pip  install python-dateutil">>$ftest
+        echo "--> pip install python-dateutil">>$ftest
         echo "--> apt-get -y install python-decorator">>$ftest
         echo "--> apt-get -y install python-docutils">>$ftest
         echo "--> apt-get -y install python-feedparser">>$ftest
@@ -1655,7 +1844,13 @@ test_install () {
         echo "--> apt-get -y install docutils-common">>$ftest
         echo "--> apt-get -y install docutils-doc">>$ftest
         echo "--> pip  install unidecode">>$ftest
-        echo "--> pip  install wkhtmltopdf">>$ftest
+        local pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
+        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
+        echo "--> cd /tmp">>$ftest
+        echo "--> wget $URL/$pn">>$ftest
+        echo "--> apt-get update $pn">>$ftest
+        echo "--> apt-get upgrade $pn">>$ftest
+        echo "--> rm -f $pn">>$ftest
       fi
     fi
     if [ "$p" ]; then
@@ -1803,7 +1998,7 @@ test_update () {
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y update odoo">>$ftest
+        # echo "--> yum -y update odoo">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -1832,7 +2027,7 @@ test_update () {
         echo "--> yum -y install pyparsing">>$ftest
         echo "--> yum -y update python-babel">>$ftest
         echo "--> yum -y install python-beaker">>$ftest
-        echo "--> pip  install python-dateutil">>$ftest
+        echo "--> pip install python-dateutil">>$ftest
         echo "--> yum -y install python-docutils">>$ftest
         echo "--> yum -y install python-feedparser">>$ftest
         echo "--> yum -y install python-jinja2">>$ftest
@@ -1858,10 +2053,15 @@ test_update () {
         echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
         echo "--> pip  install unidecode">>$ftest
-        echo "--> pip  install wkhtmltopdf">>$ftest
+        local pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
+        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
+        echo "--> cd /tmp">>$ftest
+        echo "--> wget $URL/$pn">>$ftest
+        echo "--> rpm -U $pn">>$ftest
+        echo "--> rm -f $pn">>$ftest
       else
-        echo "--> apt-get -y update odoo">>$ftest
-        echo "--> apt-get -y upgrade odoo">>$ftest
+        # echo "--> apt-get -y update odoo">>$ftest
+        # echo "--> apt-get -y upgrade odoo">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -1895,7 +2095,7 @@ test_update () {
         echo "--> apt-get -y update python-babel">>$ftest
         echo "--> apt-get -y upgrade python-babel">>$ftest
         echo "--> apt-get -y install python-babel-localedata">>$ftest
-        echo "--> pip  install python-dateutil">>$ftest
+        echo "--> pip install python-dateutil">>$ftest
         echo "--> apt-get -y install python-decorator">>$ftest
         echo "--> apt-get -y install python-docutils">>$ftest
         echo "--> apt-get -y install python-feedparser">>$ftest
@@ -1930,7 +2130,13 @@ test_update () {
         echo "--> apt-get -y install docutils-common">>$ftest
         echo "--> apt-get -y install docutils-doc">>$ftest
         echo "--> pip  install unidecode">>$ftest
-        echo "--> pip  install wkhtmltopdf">>$ftest
+        local pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
+        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
+        echo "--> cd /tmp">>$ftest
+        echo "--> wget $URL/$pn">>$ftest
+        echo "--> apt-get update $pn">>$ftest
+        echo "--> apt-get upgrade $pn">>$ftest
+        echo "--> rm -f $pn">>$ftest
       fi
     fi
     prod update $p>$fout
@@ -2021,9 +2227,11 @@ test_remove () {
         echo "--> yum -y remove python-lxml">>$ftest
         echo "--> yum -y remove python-psycopg2">>$ftest
         echo "--> yum -y remove python-simplejson">>$ftest
+        echo "--> pip  uninstall wkhtmltopdf">>$ftest
       else
         echo "--> apt-get -y remove odoo">>$ftest
         echo "--> apt-get -y remove python-babel">>$ftest
+        echo "--> pip  uninstall wkhtmltopdf">>$ftest
         echo "--> apt-get autoremove">>$ftest
       fi
     fi
@@ -2055,7 +2263,7 @@ OPTDEFL=(1        0       ""      ""      ""       ""     ""        0           
 OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
- "emulate Linux distribution; may be Ubuntu,CentOS,CentOS7. Use carefully!"\
+ "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
  "select odoo distribution (with -O switch); may be odoo,oca,zeroincombenze"\
  "[user@]host to export config files"\
  "use identity file (private key) for authentication"\
@@ -2085,15 +2293,8 @@ if [ "$opt_log" ]; then
   FLOG=$opt_log
 fi
 # date >~/product.his    #debug
-if [ "$opt_osf" == "CentOS7" ]; then
-  DISTO="CentOS"
-  FH="RHEL"
-elif [ "$opt_osf" == "CentOS" ]; then
-  DISTO=$opt_osf
-  FH="RHEL"
-elif [ "$opt_osf" == "Ubuntu" ]; then
-  DISTO=$opt_osf
-  FH="Debian"
+if [ -n "$opt_osf" ]; then
+  get_arch "$opt_osf"
 fi
 if [ -z "$opt_odoo" ]; then
   if [ "$action" == "version" -o "$action" == "status" ]; then
@@ -2342,7 +2543,7 @@ elif [ "$action" == "regression_test" ]; then
   opt_dev=0
   opt_oed="odoo"
   SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"
-  # SAVE_SMLT_YES="$SAVE_SMLT_YES"
+  SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf"
   SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
   SAVE_SMLT_NO="openssh-clients openssh-client telnet postgresql-client-common install postgresql-contrib pgadmin3"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-gdata gdata python-ldap pytz xlwt ZSI"
@@ -2358,33 +2559,21 @@ elif [ "$action" == "regression_test" ]; then
   SAVE_SMLT_NO="$SAVE_SMLT_NO pre_install_odoo"
   PNLX=("." $THIS python-pip apache2 httpd postgresql postgresql-server openssh-server python odoo)
 #
-  wecho "Regression test on Debian"
-  FH="Debian"
-  DISTO="Ubuntu"
-  init_cfg "LAMP"
-  SIMULATE_YES=". $SAVE_SMLT_YES ."
-  SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
-  test_cfg_name
-  test_realname
-  test_install
-  SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
-  SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
-  test_update
-  test_remove
-#
-  wecho "Regression test on RHEL"
-  FH="RHEL"
-  DISTO="CentOS7"
-  init_cfg "LAMP"
-  SIMULATE_YES=". $SAVE_SMLT_YES ."
-  SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
-  test_cfg_name
-  test_realname
-  test_install
-  SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
-  SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
-  test_update
-  test_remove
+  for aa in "Ubuntu14" "CentOS7"; do
+    wecho "Regression test on $aa"
+    get_arch "$aa"
+    init_cfg "LAMP"
+    SIMULATE_YES=". $SAVE_SMLT_YES ."
+    SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
+    test_cfg_name
+    test_realname
+    test_install
+    SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
+    SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
+    test_update
+    test_remove
+  done
+
   wecho "$tst_ctr regression test successfuly ended"
 else
   echo "No valid action $action!"

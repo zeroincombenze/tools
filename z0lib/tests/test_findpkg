@@ -100,6 +100,16 @@ result=$(findpkg "psql9" "$p" "$Y1 $Y2" "9.1")
 TRES=$(readlink -e $p/$Y2/9.1/psql9)
 ci-test "find myself ($Y2/psql9)" "$TRES" "$result"
 
+p1=$(basename $p)
+p=$(dirname $p)
+result=$(findpkg "psql9" "$p" "$p1" "$Y1 $Y2" "9.1")
+ci-test "find myself ($Y2/psql9 2)" "$TRES" "$result"
+
+p2=$(basename $p)
+p=$(dirname $p)
+result=$(findpkg "psql9" "$p" "$p2" "$p1" "$Y1 $Y2" "9.1")
+ci-test "find myself ($Y2/psql9 3)" "$TRES" "$result"
+
 f=""
 p="/etc /usr"
 result=$(findpkg "$f" "$p")
