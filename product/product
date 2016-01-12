@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.10"
+__version__="0.2.10.2"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1099,7 +1099,7 @@ product_update_product () {
       if  [ -d /tmp/tools ]; then
         rm -fR /tmp/tools
       fi
-      run_traced "wget https://github.com/zeroincombenze/tools.git"
+      run_traced "git clone https://github.com/zeroincombenze/tools.git"
       run_traced "cd /tmp/tools/product"
       run_traced "exec ./product update product"
       run_traced "rm -fR /tmp/tools"
@@ -1259,6 +1259,7 @@ product_config_odoo () {
       cmd="$cmd --db_user=$uu"
       cmd="$cmd --db_password=$pwd"
       run_traced "$cmd"
+      [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
       run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
       run_traced "chown odoo:odoo /etc/odoo/${uu}-server.conf"
       run_traced "chmod u+rw,g+r,o+r /etc/odoo/${uu}-server.conf"
@@ -2256,11 +2257,11 @@ else
 fi
 set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       e       H        i      L         n           O        P          q         V           v           w       y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="     "="      "="    "="       1           "="      "="        1         "*"         1           1       "*"     1)
-OPTDEFL=(1        0       ""      ""      ""       ""     ""        0           ""       ""         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
+OPTOPTS=(h        D       E       e       H        i      L         l          n           O        P          q         V           v           w       y       1)
+OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_locale opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
+OPTACTI=(1        1       "="     "="     "="      "="    "="       "="        1           "="      "="        1         "*"         1           1       "*"     1)
+OPTDEFL=(1        0       ""      ""      ""       ""     ""        ""         0           ""       ""         0         ""          0           0       ""      0)
+OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "locale"   "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
@@ -2268,6 +2269,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "[user@]host to export config files"\
  "use identity file (private key) for authentication"\
  "log file name (def /var/log/product.log)"\
+ "Undocumented"\
  "do nothing (dry-run)"\
  "include odoo in LAMP software"\
  "default for users, if added by import command"\
