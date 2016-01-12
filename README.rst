@@ -22,8 +22,8 @@ Sparse python source code
 +---------+------------------------------------------------------------+
 
 
-.. |build status| image:: https://travis-ci.org/antoniov/tools.svg
-.. _build status: https://travis-ci.org/antoniov/tools
+.. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg
+.. _build status: https://travis-ci.org/zeroincombenze/tools
 .. |coverage status| image:: https://coveralls.io/repos/antoniov/tools/badge.svg?branch=master&service=github
 .. _coverage status: https://coveralls.io/github/antoniov/tools?branch=master
 .. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-green.svg
