@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.10.2"
+__version__="0.2.11"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -420,6 +420,14 @@ get_arch () {
       LXCORE="precise"
       MACHARCH="i686"
     fi
+}
+
+get_locale_name () {
+    local pn=
+    if [ "$1" == "it" ]; then
+      pn="git@github.com:OCA/l10n-italy.git"
+    fi
+    echo "$pn"
 }
 
 is_virtualname () {
@@ -1156,6 +1164,18 @@ product_install_odoo () {
       run_traced "cd /opt/odoo"
       if [ $xtl -gt 0 ]; then
         run_traced "git clone https://github.com/$gitrep.git $ov.0 -b $ov.0 $git_opts"
+        if [ -n "$opt_locale" ]; then
+          pn=$(get_locale_name "$opt_locale")
+          if [ -z "$pn" ]; then
+            echo "Invalid locale $opt_locale selection"
+            wlog  "Invalid locale $opt_locale selection"
+          else
+            addons=$(echo $pn|awk -F/ '{print $2}')
+            run_traced "cd $ov.0"
+            run_traced "git submodule add $pn $ov.0 -b $addons $git_opts"
+            run_traced "cd .."
+         fi
+        fi
       fi
       run_traced "chown -R odoo:odoo $ov.0/"
       run_traced "cd /opt/odoo/$ov.0"
@@ -1199,6 +1219,22 @@ product_update_odoo () {
         if [ $? -eq 0 ]; then xtl=1; fi
         if [ $xtl -gt 0 ]; then
           run_traced "git pull origin"
+          if [ -n "$opt_locale" ]; then
+            pn=$(get_locale_name "$opt_locale")
+            if [ -z "$pn" ]; then
+              echo "Invalid locale $opt_locale selection"
+              wlog  "Invalid locale $opt_locale selection"
+            else
+              addons=$(echo $pn|awk -F/ '{print $2}')
+              if [ -d $addons ]; then
+                run_traced "cd $addons"
+                run_traced "git pull origin"
+                run_trace "cd .."
+              else
+                run_traced "git submodule add $pn $ov.0 -b $addons $git_opts"
+              fi
+            fi
+          fi
         fi
         run_traced "git checkout $ov.0"
       fi
@@ -2261,7 +2297,7 @@ OPTOPTS=(h        D       E       e       H        i      L         l          n
 OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_locale opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
 OPTACTI=(1        1       "="     "="     "="      "="    "="       "="        1           "="      "="        1         "*"         1           1       "*"     1)
 OPTDEFL=(1        0       ""      ""      ""       ""     ""        ""         0           ""       ""         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "locale"   "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
+OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "iso3166"  "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
@@ -2269,7 +2305,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "[user@]host to export config files"\
  "use identity file (private key) for authentication"\
  "log file name (def /var/log/product.log)"\
- "Undocumented"\
+ "Include localization module for odoo; use ISO3166 country code"\
  "do nothing (dry-run)"\
  "include odoo in LAMP software"\
  "default for users, if added by import command"\
