@@ -55,8 +55,8 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.23
-parseoptest -l$TESTDIR/test_z0librc.log $@
+__version__=0.1.24
+parseoptest -l$TESTDIR/test_z0librc.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
@@ -88,6 +88,7 @@ ci-test "rm logfile (2)" "#" "$FLOG_ECHO"
 
 FLOGTMP="./test_tmp.log"
 set_tlog_file "$FLOGTMP" "new"
+FLOGTMP=$(readlink -f $FLOGTMP)
 ci-test "set logfile (3)" "$FLOGTMP" "$FLOG"
 ci-test "set logfile (4)" "#" "$FLOG_ECHO"
 

@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.27
+#__version__=0.1.28
 
 
 ##############################################################################
@@ -39,14 +39,16 @@ _install_z0librc () {
 export -f _install_z0librc
 
 ##############################################################################
-# set tracelog filename
+# Set tracelog filename for wlog function
+# Log message may be echoed onto console ($3=echo)
+# log filename may be /dev/null
 #
 # Parameter $1:
 #    Filename to write (may be full pathname or just basename)
 # Parameter $2:
-#    "new" means create a new log, otherwise append to log
+#    "new" means create a new file log, otherwise append to existent file
 # Parameter $3:
-#    "echo" means wlog echo message onto console, against just log
+#    "echo" means wlog echoes message onto console when write log
 set_tlog_file () {
     #set -x
     local p=$(dirname "$1")
@@ -60,7 +62,7 @@ set_tlog_file () {
         p=$HOME
       fi
     fi
-    export FLOG="$p/$f"
+    export FLOG=$(readlink -f $p/$f)
     if [ "$2" == "new" ]; then
       if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
     fi
@@ -68,16 +70,30 @@ set_tlog_file () {
     #set +x
 }
 
+
 ##############################################################################
-# Write log on file $FLOG
+# Write log on file $FLOG: see set_tlog_file function
 wlog () {
     dt=$(date +"%F %H:%M:%S")
-    echo "$dt $1 $2 $3 $4 $5 $6 $7 $8 $9">>$FLOG
+    if [ -n "$FLOG" ]; then
+      echo $dt "$@">$FLOG
+    fi
     if [ "$FLOG_ECHO" == "echo" ]; then
-      $FLOG_ECHO -e "$1 $2 $3 $4 $5 $6 $7 $8 $9"
+      $FLOG_ECHO -e "$@"
     fi
 }
 export -f wlog
+
+
+##############################################################################
+# Echo meassge and write log on file $FLOG: see set_tlog_file function
+elog () {
+    wlog "$@"
+    if [ "$FLOG_ECHO" != "echo" ]; then
+      echo -e "$@"
+    fi
+}
+export -f elog
 
 
 
