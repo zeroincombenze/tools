@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.12"
+__version__="0.2.12.2"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -364,7 +364,7 @@ run_traced () {
         wlog "--> $xcmd"
       fi
       if [ "${1:0:1}" != "#" ]; then
-        $xmcd
+        eval "$xcmd"
       fi
     elif [ "${1:0:6}" != "sleep " ]; then
       echo "--> $xcmd"
@@ -1503,6 +1503,8 @@ product_install_wkhtmltopdf () {
       elog "*** Package wkhtmltopdf not found for this hardware"
     else
       if [ "$FH" == "RHEL" ]; then
+        run_traced "yum install xorg-x11-fonts-Type1"
+        run_traced "yum install xorg-x11-fonts-75dpi"
         xtlcmd="rpm"
         run_traced "cd /tmp"
         run_traced "wget $URL/$pn"
