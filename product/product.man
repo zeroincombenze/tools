@@ -12,7 +12,7 @@ Notice software name may be replaced, based on Linux distribution and version,  
 everytime and everywhere; i.e. when you type \fIproduct install mysql\fR on CentOS 7, your command is replaced by
 \fIproduct install mariadb-server\fR because mysql-server is not yet avaiable on this version of Linux distribution.
 .br
-\fBproduct\fR is just a front-end for \fIyum\fR, \fIapt-get\fR and \fIpip\fR commands, it is not a real package installer.
+\fBproduct\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR and \fIpip\fR commands, it is not a real package installer.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros, \fBapt-get\fR on Ubuntu and Debian family distros
 and \fBpip\fR on both distributions.
 \fBproduct\fR is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
@@ -97,7 +97,7 @@ Config package(s) after installation or update. Configuration can issue interact
 .br
 \fBremove\fR
 .RS
-Remove a package and all dependent sub packages. Notice: it is not possible remove all LAMP packages together
+Remove a package but not all dependent sub packages. Notice: it is not possible remove all LAMP packages together
 .br
 Warning: this command can remove subpackages used by other software.
 .RE
@@ -177,6 +177,13 @@ Host and user where export config files.
 .TP
 .BR \-L \fIfilename\fR
 Trace file name. Default is /var/log/product.log if user is root, otherwise is ~/product.log
+
+.TP
+.BR \-l \fIiso3166\fR
+This option select localization package to install with Odoo. It is ignored for all other packages.
+.br
+Value of \fIiso3166\fR may be one or more of \fBbe\fR, \fBch\fR, \fBes\fR,
+\fBfr\fR or \fBit\fR
 .TP
 .BR \-n
 Do nothing (dry-run)

@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.14"
+__version__="0.2.15"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1306,6 +1306,7 @@ product_config_odoo () {
     chown postgres:postgres $userhome/.pgpass
     chmod u=rw,g=,o= $userhome/.pgpass
     f_hba=$(findpkg "pg_hba.conf" "/var/lib /etc" "postgresql pgsql" "9.4 9.3 9.2 9.1 9.0 8.4" "data main")
+    update_hba_conf $f_hba
     if [ -n "$f_hba" ]; then
       vi $f_hba
     fi
@@ -1325,6 +1326,15 @@ product_config_odoo () {
       elog "Running odoo $ov to configure"
       cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
       cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
+      for iso in ${opt_locale/,/ }; do
+        pn=$(get_locale_name "$iso")
+        if [ -z "$pn" ]; then
+          elog  "Invalid $iso in -l $opt_locale switch"
+        else
+          addons=$(get_locale_dir "$pn")
+          cmd="$cmd,/opt/odoo/$ov.0/$addons"
+        fi
+      done
       cmd="$cmd -s --stop-after-init"
       cmd="$cmd --pidfile=/var/run/odoo/$uu.pid"
       cmd="$cmd --logfile=/var/log/odoo/${uu}-server.log"
@@ -2333,11 +2343,11 @@ else
 fi
 set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       e       H        i      L         l          n           O        P          q         V           v           w       y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_locale opt_dry_run opt_odoo opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="     "="      "="    "="       "="        1           "="      "="        1         "*"         1           1       "*"     1)
-OPTDEFL=(1        0       ""      ""      ""       ""     ""        ""         0           ""       ""         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "iso3166"  "noop"      "ver"    "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
+OPTOPTS=(h        D       E       e       H        i      L         l          n           O         P          q         V           v           w       y       1)
+OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_locale opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
+OPTACTI=(1        1       "="     "="     "="      "="    "="       "="        1           "="       "="        1         "*"         1           1       "*"     1)
+OPTDEFL=(1        0       ""      ""      ""       ""     ""        ""         0           ""        ""         0         ""          0           0       ""      0)
+OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "iso3166"  "noop"      "version" "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
@@ -2345,9 +2355,9 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "[user@]host to export config files"\
  "use identity file (private key) for authentication"\
  "log file name (def /var/log/product.log)"\
- "Include localization module for odoo; use ISO3166 country code"\
+ "include localization module for odoo; use ISO3166 country code"\
  "do nothing (dry-run)"\
- "include odoo in LAMP software"\
+ "select odoo version: may be 7, 8 or 9"\
  "default for users, if added by import command"\
  "quiet mode"\
  "show version"\
@@ -2653,6 +2663,16 @@ elif [ "$action" == "regression_test" ]; then
   done
 
   elog "$tst_ctr regression test successfuly ended"
+elif [ "$action" == "package" ]; then
+  package="product"
+  if [ -f $package.gz ]; then
+    rm -f $package.gz
+  fi
+  if [ -f $package -a -f $package.man -a -f z0librc ]; then
+    tar -cvf $package.gz $package $package.man z0librc
+    chown apache:apache $package.gz
+    mv $package.gz /var/www/html/mw/download/
+  fi
 else
   echo "No valid action $action!"
   exit 1
