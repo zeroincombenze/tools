@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.11.12"
+__version__="0.2.12"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -324,6 +324,12 @@ print_title () {
     fi
 }
 
+verbose_msg () {
+    if [ $opt_verbose -gt 0 ]; then
+      elog "$@"
+    fi
+}
+
 set_iter () {
 # set_iter (pkgname)
 # return: <pkg_list>
@@ -342,15 +348,11 @@ set_iter () {
   echo "$iter"
 }
 
-wecho () {
-    wlog "$1 $2 $3 $4"
-    echo "$1 $2 $3 $4"
-}
 
 run_traced () {
 # (cmd, user, login(0|1))
     local xcmd="$1"
-    if [ "$USER" != "$2" -a -n "$2" ]; then
+    if [ -n "$2" -a "$2" != "$USER" ]; then
       if [ ${3:-0} -gt 0 ]; then
         xcmd="sudo -iu$2 $1"
       else
@@ -434,13 +436,27 @@ get_arch () {
 get_locale_name () {
     local pn=
     if [ "$1" == "it" ]; then
-      pn="git@github.com:OCA/l10n-italy.git"
+      if [ "$opt_oed" == "odoo" -o "$opt_oed" == "oca" ]; then
+        pn="https://github.com/OCA/l10n-italy.git"
+      else
+        pn="https://github.com/zeroincombenze/l10n-italy.git"
+      fi
+    elif [ "$1" == "be" ]; then
+      pn="https://github.com/OCA/l10n-belgium.git"
+    elif [ "$1" == "ch" ]; then
+      pn="https://github.com/OCA/l10n-switzerland.git"
+    elif [ "$1" == "es" ]; then
+      pn="https://github.com/OCA/l10n-spain.git"
+    elif [ "$1" == "fr" ]; then
+      pn="https://github.com/OCA/l10n-france.git"
+    elif [ "$1" == "nl" ]; then
+      pn="https://github.com/OCA/l10n-netherlands.git"
     fi
     echo "$pn"
 }
 
 get_locale_dir () {
-    local addons=$(echo $1|awk -F/ '{print $2}'|awk -F. '{print $1}')
+    local addons=$(echo $1|awk -F/ '{print $5}'|awk -F. '{print $1}')
     echo "$addons"
 }
 
@@ -706,7 +722,7 @@ set_xtlcmds () {
     else
       xtlcmd="#"
       stscmd="#"
-      wecho "Invalid platform"
+      elog "Invalid platform"
     fi
     OPTS=$opt_yes
     if [ "$pkgname" -a -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -813,7 +829,9 @@ update_hba_conf () {
       fi
       echo "$line">>$1.tmp
     done < "$1"
-    [ -z "opt_yes" ] || vim $1.tmp
+    if [ $opt_dry_run -eq 0 ]; then
+      [ -z "opt_yes" ] || vim $1.tmp
+    fi
     run_traced "mv $1 $1.bak"
     run_traced "mv $1.tmp $1"
 }
@@ -1051,9 +1069,7 @@ prod () {
       ((level++))
       for p in ${!SUBlist}; do
         realname=$(prod realname $p)
-        if [ $opt_verbose -gt 0 ]; then
-          echo "Analyzing $realname"
-        fi
+        verbose_msg "Analyzing $realname"
         if [ "$1" == "install" ]; then
           if $(prod status $realname "-q" $level); then
             prod update $realname "" $level
@@ -1068,7 +1084,7 @@ prod () {
           fi
         elif [ "$1" == "remove" ]; then
           if $(prod status $realname "-q" $level); then
-            prod $1 $realname "" $level
+            elog "$realname should be removed"
           fi
         else
           prod $1 $realname "" $level
@@ -1183,16 +1199,17 @@ product_install_odoo () {
       if [ $xtl -gt 0 ]; then
         run_traced "git clone https://github.com/$gitrep.git $ov.0 -b $ov.0 $git_opts" "odoo"
         if [ -n "$opt_locale" ]; then
-          pn=$(get_locale_name "$opt_locale")
-          if [ -z "$pn" ]; then
-            echo "Invalid locale $opt_locale selection"
-            wlog  "Invalid locale $opt_locale selection"
-          else
-            addons=$(get_locale_dir "$pn")
-            run_traced "cd $ov.0"
-            run_traced "git submodule add $pn $addons -b $ov.0 -f $git_opts" "odoo"
-            run_traced "cd .."
-         fi
+          for iso in ${opt_locale/,/ }; do
+            pn=$(get_locale_name "$iso")
+            if [ -z "$pn" ]; then
+              elog  "Invalid $iso in -l $opt_locale switch"
+            else
+              addons=$(get_locale_dir "$pn")
+              run_traced "cd $ov.0"
+              run_traced "git submodule add $pn $addons -b $ov.0 -f $git_opts" "odoo"
+              run_traced "cd .."
+            fi
+          done
         fi
       fi
       run_traced "chown -R odoo:odoo $ov.0/"
@@ -1205,7 +1222,7 @@ product_install_odoo () {
           r=$(product -q version $p)
           r=$(echo $r)
           if [ "$r" == "$v" ]; then
-            wecho "Package $p $r already installed"
+            elog "Package $p $r already installed"
           else
             r=$(product -q status $p|grep "could be")
             if [ -z "$r" ]; then
@@ -1216,7 +1233,7 @@ product_install_odoo () {
             r=$(product -q version $p)
             r=$(echo $r)
             if [ "$r" != "$v" ]; then
-              wlog "Package $p has invalid version $r: required $v"
+              elog "Package $p has invalid version $r: required $v"
             fi
           fi
         done < $f
@@ -1243,20 +1260,21 @@ product_update_odoo () {
         if [ $xtl -gt 0 ]; then
           run_traced "git pull origin" "odoo"
           if [ -n "$opt_locale" ]; then
-            pn=$(get_locale_name "$opt_locale")
-            if [ -z "$pn" ]; then
-              echo "Invalid locale $opt_locale selection"
-              wlog  "Invalid locale $opt_locale selection"
-            else
-              addons=$(get_locale_dir "$pn")
-              if [ -d $addons ]; then
-                run_traced "cd $addons"
-                run_traced "git pull origin" "odoo"
-                run_traced "cd .."
+            for iso in ${opt_locale/,/ }; do
+              pn=$(get_locale_name "$iso")
+              if [ -z "$pn" ]; then
+                elog  "Invalid $iso in -l $opt_locale switch"
               else
-                run_traced "git submodule add $pn $addons -b $ov.0 -f $git_opts" "odoo"
+                addons=$(get_locale_dir "$pn")
+                if [ -d $addons ]; then
+                  run_traced "cd $addons"
+                  run_traced "git pull origin" "odoo"
+                  run_traced "cd .."
+                else
+                  run_traced "git submodule add $pn $addons -b $ov.0 -f $git_opts" "odoo"
+                fi
               fi
-            fi
+            done
           fi
         fi
         run_traced "git checkout $ov.0"
@@ -1304,11 +1322,11 @@ product_config_odoo () {
       fi
       local x=$(sudo -iupostgres psql -c \\dg|grep " $uu ")
       if [ -z "$x" ]; then
-        echo "Create account $uu for postgres access by odoo"
+        elog "Create account $uu for postgres access by odoo"
         echo "Warning: store password you type in odoo config file"
         run_traced "sudo -iupostgres createuser --createdb --username postgres --no-createrole --no-superuser --no-password $uu"
       fi
-      echo "Running odoo $ov to configure"
+      elog "Running odoo $ov to configure"
       cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
       cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
       cmd="$cmd -s --stop-after-init"
@@ -1318,7 +1336,9 @@ product_config_odoo () {
       cmd="$cmd --db_user=$uu"
       cmd="$cmd --db_password=$pwd"
       run_traced "$cmd"
-      [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
+      if [ $opt_dry_run -eq 0 ]; then
+        [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
+      fi
       run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
       run_traced "chown odoo:odoo /etc/odoo/${uu}-server.conf"
       run_traced "chmod u+rw,g+r,o+r /etc/odoo/${uu}-server.conf"
@@ -1480,8 +1500,7 @@ product_install_wkhtmltopdf () {
     local pn=$(get_wkhtmltopdf_name)
     local URL=$(get_wkhtmltopdf_URL)
     if [ -z "$pn" ]; then
-      echo "*** Package wkhtmltopdf not found for this hardware"
-      wlog "*** Package wkhtmltopdf not found for this hardware"
+      elog "*** Package wkhtmltopdf not found for this hardware"
     else
       if [ "$FH" == "RHEL" ]; then
         xtlcmd="rpm"
@@ -1503,7 +1522,7 @@ product_update_wkhtmltopdf () {
     local pn=$(get_wkhtmltopdf_name)
     local URL=$(get_wkhtmltopdf_URL)
     if [ -z "$pn" ]; then
-      echo "*** Package wkhtmltopdf not found for this hardware"
+      elog "*** Package wkhtmltopdf not found for this hardware"
     else
       if [ "$FH" == "RHEL" ]; then
         xtlcmd="rpm"
@@ -1604,9 +1623,9 @@ test_cfg_name () {
       local r="$(get_cfg_value "./$THIS.notexists" $p)"
       local t="${TRES[jj]}"
       if [ "$t" == "." ]; then t=; fi
-      wecho "Test $tst_ctr [$FH]: confg '$p'='$t'"
+      elog "Test $tst_ctr [$FH]: confg '$p'='$t'"
       if [ "$r" != "$t" ]; then
-        wecho "Test Failed: ($r)"
+        elog "Test Failed: ($r)"
         exit 1
       fi
       ((++jj))
@@ -1624,12 +1643,12 @@ test_realname () {
       local p="${PNLX[jj]}"
       if [ "$p" == "." ]; then p=; fi
       ((tst_ctr++))
-      wecho "Test $tst_ctr [$FH]: prod realname '$p'"
+      elog "Test $tst_ctr [$FH]: prod realname '$p'"
       local r="$(prod realname $p)"
       local t="${TRES[jj]}"
       if [ "$t" == "." ]; then t=; fi
       if [ "$r" != "$t" ]; then
-        wecho "Test Failed: ($r)"
+        elog "Test Failed: ($r)"
         exit 1
       fi
       ((++jj))
@@ -1645,7 +1664,7 @@ test_install () {
     p="${PNLX[jj]}"
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
-    wecho "Test $tst_ctr [$FH]: prod install '$p'"
+    elog "Test $tst_ctr [$FH]: prod install '$p'"
     if [ "$p" == "$THIS" ]; then
       echo "--> mkdir -p /etc/$p">>$ftest
       echo "--> mv $TDIR/$p /usr/bin">>$ftest
@@ -1916,7 +1935,7 @@ test_install () {
     if [ "$p" ]; then
       prod install $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
-        wecho "Test Failed"
+        elog "Test Failed"
         exit 1
       fi
     fi
@@ -1935,7 +1954,7 @@ test_update () {
     p="${PNLX[jj]}"
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
-    wecho "Test $tst_ctr [$FH]: 'prod update $p'"
+    elog "Test $tst_ctr [$FH]: 'prod update $p'"
     if [ -z "$p" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y update ">>$ftest
@@ -2201,7 +2220,7 @@ test_update () {
     fi
     prod update $p>$fout
     if [ "$(diff -q $fout $ftest)" ]; then
-      wecho "Test Failed"
+      elog "Test Failed"
       exit 1
     fi
     ((++jj))
@@ -2219,7 +2238,7 @@ test_remove () {
     p="${PNLX[jj]}"
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
-    wecho "Test $tst_ctr [$FH]: 'prod remove $p'"
+    elog "Test $tst_ctr [$FH]: 'prod remove $p'"
     if [ "$p" == "$THIS" ]; then
       echo "--> rm /usr/bin/$p">>$ftest
       echo "--> rm /usr/bin/${p}.*">>$ftest
@@ -2266,39 +2285,39 @@ test_remove () {
     elif [ "$p" == "python" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y remove python">>$ftest
-        echo "--> yum -y remove setuptools">>$ftest
-        echo "--> yum -y remove readline">>$ftest
-        echo "--> yum -y remove python-psycopg2">>$ftest
-        echo "--> yum -y remove python-simplejson">>$ftest
-        echo "--> yum -y remove python-lxml">>$ftest
+        echo "setuptools should be removed">>$ftest
+        echo "readline should be removed">>$ftest
+        echo "python-psycopg2 should be removed">>$ftest
+        echo "python-simplejson should be removed">>$ftest
+        echo "python-lxml should be removed">>$ftest
       else
         echo "--> apt-get -y remove python">>$ftest
-        echo "--> apt-get -y remove setuptools">>$ftest
-        echo "--> apt-get -y remove libreadline6">>$ftest
-        echo "--> apt-get -y remove python-psycopg2">>$ftest
-        echo "--> apt-get -y remove python-simplejson">>$ftest
-        echo "--> apt-get -y remove python-lxml">>$ftest
+        echo "setuptools should be removed">>$ftest
+        echo "libreadline6 should be removed">>$ftest
+        echo "python-psycopg2 should be removed">>$ftest
+        echo "python-simplejson should be removed">>$ftest
+        echo "python-lxml should be removed">>$ftest
         echo "--> apt-get autoremove">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y remove odoo">>$ftest
-        echo "--> yum -y remove python-babel">>$ftest
-        echo "--> yum -y remove python-lxml">>$ftest
-        echo "--> yum -y remove python-psycopg2">>$ftest
-        echo "--> yum -y remove python-simplejson">>$ftest
-        echo "--> pip  uninstall wkhtmltopdf">>$ftest
+        echo "python-babel should be removed">>$ftest
+        echo "python-lxml should be removed">>$ftest
+        echo "python-psycopg2 should be removed">>$ftest
+        echo "python-simplejson should be removed">>$ftest
+        echo "wkhtmltopdf should be removed">>$ftest
       else
         echo "--> apt-get -y remove odoo">>$ftest
-        echo "--> apt-get -y remove python-babel">>$ftest
-        echo "--> pip  uninstall wkhtmltopdf">>$ftest
+        echo "python-babel should be removed">>$ftest
+        echo "wkhtmltopdf should be removed">>$ftest
         echo "--> apt-get autoremove">>$ftest
       fi
     fi
     if [ "$p" ]; then
       prod remove $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
-        wecho "Test Failed"
+        elog "Test Failed"
         exit 1
       fi
     fi
@@ -2420,7 +2439,7 @@ elif [ "$action" == "whatis" ]; then
   done
 elif [ "$action" == "status" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   set_tlog_file "$FLOG" "" "echo"
@@ -2433,7 +2452,7 @@ elif [ "$action" == "status" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "version" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   set_tlog_file "$FLOG" "" "echo"
@@ -2447,7 +2466,7 @@ elif [ "$action" == "version" ]; then
   done
 elif [ "$action" == "update" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   print_title "Update/upgrade package(s)"
@@ -2464,7 +2483,7 @@ elif [ "$action" == "update" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "config" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   print_title "Config package(s)"
@@ -2486,7 +2505,7 @@ elif [ "$action" == "config" ]; then
       if [ "$SUBlist" ]; then
         for pkg in ${!SUBlist}; do
           p=$(prod realname $pkg)
-             if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
+          if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
             if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
               installer=$(prod installer $p)
               if [ "$installer" == "pip" ]; then
@@ -2515,7 +2534,7 @@ elif [ "$action" == "config" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "remove" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   if [ -z "$pkg" ]; then
@@ -2538,7 +2557,7 @@ elif [ "$action" == "remove" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "install" ]; then
   #if [ $EUID -ne 0 ]; then
-  #  wecho "This command must be executed by root"
+  #  elog "This command must be executed by root"
   #  exit 1
   #fi
   print_title "Install package(s)"
@@ -2563,7 +2582,7 @@ elif [ "$action" == "install" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "prepare" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   wlog "Preparining group list"
@@ -2573,18 +2592,18 @@ elif [ "$action" == "prepare" ]; then
   echo "See $FLOG for traced informations"
 elif [ "$action" == "export" ]; then
   # if [ $EUID -ne 0 ]; then
-  #   wecho "This command must be executed by root"
+  #   elog "This command must be executed by root"
   #   exit 1
   # fi
   if [ -z "$opt_host" ]; then
-    wecho "Missing destination host name: use -H host option"
+    elog "Missing destination host name: use -H host option"
   else
     prod install $THIS
   fi
   echo "See $FLOG for traced informations"
 elif [ "$action" == "import" ]; then
   if [ $EUID -ne 0 ]; then
-    wecho "This command must be executed by root"
+    elog "This command must be executed by root"
     exit 1
   fi
   wlog "Creating groups"
@@ -2621,7 +2640,7 @@ elif [ "$action" == "regression_test" ]; then
   PNLX=("." $THIS python-pip apache2 httpd postgresql postgresql-server openssh-server python odoo)
 #
   for aa in "Ubuntu14" "CentOS7"; do
-    wecho "Regression test on $aa"
+    elog "Regression test on $aa"
     get_arch "$aa"
     init_cfg "LAMP"
     SIMULATE_YES=". $SAVE_SMLT_YES ."
@@ -2635,7 +2654,7 @@ elif [ "$action" == "regression_test" ]; then
     test_remove
   done
 
-  wecho "$tst_ctr regression test successfuly ended"
+  elog "$tst_ctr regression test successfuly ended"
 else
   echo "No valid action $action!"
   exit 1
