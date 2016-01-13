@@ -24,7 +24,7 @@ else
 fi
 
 
-__version__="0.2.12.2"
+__version__="0.2.14"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1137,11 +1137,7 @@ product_update_product () {
       if  [ -d /tmp/tools ]; then
         rm -fR /tmp/tools
       fi
-      if [ "$USER" != "odoo" ]; then
-        run_traced "su - odoo git clone https://github.com/zeroincombenze/tools.git"
-      else
-        run_traced "git clone https://github.com/zeroincombenze/tools.git"
-      fi
+      run_traced "git clone https://github.com/zeroincombenze/tools.git" "odoo"
       run_traced "cd /tmp/tools/product"
       run_traced "exec ./product update product"
       run_traced "rm -fR /tmp/tools"
