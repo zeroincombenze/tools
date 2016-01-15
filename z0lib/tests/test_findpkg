@@ -55,8 +55,8 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.23
-parseoptest -l$TESTDIR/test_z0librc.log $@
+__version__=0.1.24
+parseoptest -l$TESTDIR/test_z0librc.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
@@ -125,7 +125,11 @@ ci-test "find /etc dir" "$TRES" "$result"
 f="bash"
 p="./Non_Exists /etc /bin"
 result=$(findpkg "$f" "$p")
-TRES="/bin/bash"
+if [ -s /bin ]; then
+  TRES=$(readlink -e /bin)/bash
+else
+  TRES="/bin/bash"
+fi
 ci-test "find $f" "$TRES" "$result"
 
 p="/usr /etc /bin"

@@ -24,7 +24,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.60.2
+__version__=0.1.60.3
 # main
 OPTOPTS=(h        A         C        K        n           O        V           v)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_version opt_verbose)
@@ -38,7 +38,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "run odoo burst tests"\
  "show version"\
- "verbose mode"\)
+ "verbose mode")
  OPTARGS=()
 
 parseoptargs $@
