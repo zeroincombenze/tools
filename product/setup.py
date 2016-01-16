@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(name='product',
-      version='0.2.11',
-      description='Build a LAMP server',
+      version='0.2.16',
+      description='Build a Odoo and LAMP server',
       classifiers=[
           'Development Status :: 1 - Planning',
       ])

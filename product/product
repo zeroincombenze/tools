@@ -4,13 +4,18 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 
 # TODO remove: python-paste python-pillow python-tempita
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
 #  sudo yum groupinstall "Development tools"
 #  ZSI
+# fiscalcode for italian localization
+# products?
+# .gitignore
+# hba_conf
+# oerplib
 
 if [ -f z0librc ]; then
 . ./z0librc
@@ -24,7 +29,7 @@ else
 fi
 
 
-__version__="0.2.15"
+__version__="0.2.16"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -301,8 +306,8 @@ init_cfg () {
     iter=$(set_iter $1)
     for pkgname in $iter; do
       realname=$(prod realname $pkgname)
-      export SUB_${pkgname/-/_}="$(get_cfg_value $FCONF SUB_${pkgname/-/_})"
-      export TCP_${pkgname/-/_}="$(get_cfg_value $FCONF TCP_${pkgname/-/_})"
+      export SUB_${pkgname//-/_}="$(get_cfg_value $FCONF SUB_${pkgname//-/_})"
+      export TCP_${pkgname//-/_}="$(get_cfg_value $FCONF TCP_${pkgname//-/_})"
     done
     NOINQ="$(get_cfg_value $FCONF NOINQ)"
     VFYLOW="$(get_cfg_value $FCONF VFYLOW)"
@@ -522,24 +527,31 @@ get_pkg_ver_inq () {
     # echo "get_pkg_ver_inq ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
     local pkgname="$1"
     local vfycmd="$3"
-    if [ "$pkgname" == "odoo" ]; then
-      pkgversion=
-      if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-        local ov_iter="9 8 7"
-      else
-        local ov_iter=$opt_odoo
-      fi
-      for ov in $ov_iter; do
-        if [ -d /opt/odoo/$ov.0 ]; then
-          if [ -f /opt/odoo/$ov.0/openerp-server ]; then
-            pkgversion=$ov.0
-          fi
-        fi
-      done
-    elif [ "$pkgname" == "$_LAST_PKG" ]; then
+    if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
     elif $(is_virtualname $pkgname); then
         pkgversion=
+	elif [ "$pkgname" == "odoo" ]; then
+	  pkgversion=
+      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        pkgversion=9.0
+      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        pkgversion=
+      else
+  	    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
+	      local ov_iter="9 8 7"
+	    else
+	      local ov_iter=$opt_odoo
+	    fi
+	    for ov in $ov_iter; do
+	      if [ -d /opt/odoo/$ov.0 ]; then
+	        if [ -f /opt/odoo/$ov.0/openerp-server ]; then
+	          pkgversion=$ov.0
+	          break
+	        fi
+	      fi
+	    done
+	  fi
     else
       pkgversion=
       if [ "$vfycmd" ]; then
@@ -677,13 +689,15 @@ get_pkg_ver () {
     if $(is_virtualname $pkgname); then
       pkgversion="N/A"
       vfycmd=
+    elif [ "$pkgname" == "odoo" ]; then
+      get_pkg_ver_inq "$1" "$2" "$3" "$4" "$5"
     elif [ "$stscmd" == "pip" ]; then
       pkgversion=
       vfycmd=
     else
       get_pkg_ver_inq "$1" "$2" "$3" "$4" "$5"
     fi
-    if [ -z "$pkgversion" ]; then
+    if [ -z "$pkgversion" -a "$pkgname" != "odoo" ]; then
       sts=$STS_FAILED
       if [ "${cmdname:0:1}" != "." -a "${cmdname:0:1}" != "/" ]; then
         if [ "$stscmd" == "rpm" ]; then
@@ -738,7 +752,7 @@ set_xtlcmds () {
 set_installcmd () {
 # set_installcmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local INSTALLcmd="product_$1_${pkgname/-/_}"
+    local INSTALLcmd="product_$1_${pkgname//-/_}"
     if [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $INSTALLcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_INSTALL_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -755,7 +769,7 @@ set_installcmd () {
 set_updatecmd () {
 # set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local UPDATEcmd="product_$1_${pkgname/-/_}"
+    local UPDATEcmd="product_$1_${pkgname//-/_}"
     if [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $UPDATEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_UPDATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -779,7 +793,7 @@ set_updatecmd () {
 set_removecmd () {
 # set_removecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local REMOVEcmd="product_$1_${pkgname/-/_}"
+    local REMOVEcmd="product_$1_${pkgname//-/_}"
     if [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       cmd="# $REMOVEcmd (SUCCESS)"
     elif [ "$(echo -e \\"$SIMULATE_REMOVE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
@@ -796,9 +810,9 @@ set_removecmd () {
 }
 
 set_configcmd () {
-# set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+# set_configcmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
 # return: -> cmd, cmd0
-    local CFGcmd="product_$1_${pkgname/-/_}"
+    local CFGcmd="product_$1_${pkgname//-/_}"
     if [ "$(type -t $CFGcmd)" == "function" ]; then
       cmd="$CFGcmd $OPTS config $pkgname"
     else
@@ -820,9 +834,15 @@ update_hba_conf () {
       if [ $eorem -eq 1 -a $patched -eq 0 -a $fnd_mrk -eq 0 ]; then
          patched=1
          echo "# [PRODUCT: $dt] Added access to Odoo">>$1.tmp
+         echo "# In order to use all odoo version, db access is done by virtual users odoo[7|8|9]">>$1.tmp
+         echo "# Because odoo[7|8|9] are not real username, trust method is used for them">>$1.tmp
+         echo "# When you connect to psql console do not forget dbname, type:">>$1.tmp
+         echo "# psql -Uodoo[7|8|9] postgres">>$1.tmp
+         echo "local   all         odoo                              trust">>$1.tmp
          echo "host    all         odoo        127.0.0.1/32          md5">>$1.tmp
          echo "host    all         odoo        ::1/128               md5">>$1.tmp
          for ov in 7 8 9; do
+           echo "local   all         odoo$ov                             trust">>$1.tmp
            echo "host    all         odoo$ov       127.0.0.1/32          trust">>$1.tmp
            echo "host    all         odoo$ov       ::1/128               trust">>$1.tmp
          done
@@ -1040,7 +1060,7 @@ prod () {
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
     fi
-    local X="TCP_${pkgname/-/_}"
+    local X="TCP_${pkgname//-/_}"
     if [ "${!X}" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
          for port in ${!X}; do
@@ -1052,7 +1072,7 @@ prod () {
          done
       fi
     fi
-    X="UDP_${pkgname/-/_}"
+    X="UDP_${pkgname//-/_}"
     if [ "${!X}" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
          for port in ${!X}; do
@@ -1064,7 +1084,7 @@ prod () {
          done
       fi
     fi
-    SUBlist="SUB_${pkgname/-/_}"
+    SUBlist="SUB_${pkgname//-/_}"
     if [ "${!SUBlist}" ]; then
       ((level++))
       for p in ${!SUBlist}; do
@@ -1164,7 +1184,7 @@ pre_update_LAMP () {
 
 product_install_odoo () {
 # product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-    if [ ! -d /opt/odoo ]; then
+    if [ $opt_dry_run -eq 0 -a ! -d /opt/odoo ]; then
       run_traced "mkdir -p /opt/odoo"
     fi
     if [ "$opt_oed" == "odoo" ]; then
@@ -1173,6 +1193,9 @@ product_install_odoo () {
       gitrep="OCA/OCB"
     else
       gitrep="zeroincombenze/OCB"
+    fi
+    if [ $opt_dev -eq 0 -a -z "$opt_odoo" ]; then
+      opt_odoo="*"
     fi
     git_opts=""
     if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
@@ -1186,7 +1209,8 @@ product_install_odoo () {
     fi
     for ov in $ov_iter; do
       local xtl=1
-      if [ -d /opt/odoo/$ov.0 ]; then
+      local v=$(get_pkg_ver_inq "odoo")
+      if [ -n "$v" -a -d /opt/odoo/$ov.0 ]; then
         cd /opt/odoo/$ov.0
         git status &>/dev/null
         if [ $? -ne 128 ]; then xtl=0; fi
@@ -1195,7 +1219,7 @@ product_install_odoo () {
       if [ $xtl -gt 0 ]; then
         run_traced "git clone https://github.com/$gitrep.git $ov.0 -b $ov.0 $git_opts" "odoo"
         if [ -n "$opt_locale" ]; then
-          for iso in ${opt_locale/,/ }; do
+          for iso in ${opt_locale//,/ }; do
             pn=$(get_locale_name "$iso")
             if [ -z "$pn" ]; then
               elog  "Invalid $iso in -l $opt_locale switch"
@@ -1211,7 +1235,7 @@ product_install_odoo () {
       run_traced "chown -R odoo:odoo $ov.0/"
       run_traced "cd /opt/odoo/$ov.0"
       run_traced "git checkout $ov.0"
-      if [ -f /opt/odoo/$ov.0/requirements.txt ]; then
+      if [ $test_mode -eq 0 -a -f /opt/odoo/$ov.0/requirements.txt ]; then
         local f=/opt/odoo/9.0/requirements.txt
         local p n v r
         while IFS=\= read p n v; do
@@ -1256,7 +1280,7 @@ product_update_odoo () {
         if [ $xtl -gt 0 ]; then
           run_traced "git pull origin" "odoo"
           if [ -n "$opt_locale" ]; then
-            for iso in ${opt_locale/,/ }; do
+            for iso in ${opt_locale//,/ }; do
               pn=$(get_locale_name "$iso")
               if [ -z "$pn" ]; then
                 elog  "Invalid $iso in -l $opt_locale switch"
@@ -1326,7 +1350,7 @@ product_config_odoo () {
       elog "Running odoo $ov to configure"
       cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
       cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
-      for iso in ${opt_locale/,/ }; do
+      for iso in ${opt_locale//,/ }; do
         pn=$(get_locale_name "$iso")
         if [ -z "$pn" ]; then
           elog  "Invalid $iso in -l $opt_locale switch"
@@ -2085,7 +2109,8 @@ test_update () {
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
-        # echo "--> yum -y update odoo">>$ftest
+        echo "--> cd /opt/odoo/9.0">>$ftest
+        echo "--> git checkout 9.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -2147,8 +2172,8 @@ test_update () {
         echo "--> rpm -U $pn">>$ftest
         echo "--> rm -f $pn">>$ftest
       else
-        # echo "--> apt-get -y update odoo">>$ftest
-        # echo "--> apt-get -y upgrade odoo">>$ftest
+        echo "--> cd /opt/odoo/9.0">>$ftest
+        echo "--> git checkout 9.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -2343,44 +2368,52 @@ else
 fi
 set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       e       H        i      L         l          n           O         P          q         V           v           w       y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_if opt_log   opt_locale opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_version opt_verbose opt_win opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="     "="      "="    "="       "="        1           "="       "="        1         "*"         1           1       "*"     1)
-OPTDEFL=(1        0       ""      ""      ""       ""     ""        ""         0           ""        ""         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "host"   "file" "logfile" "iso3166"  "noop"      "version" "password" "quiet"   "version"   "verbose"   "win"   "yes"   "first")
+OPTOPTS=(h        D       E       e       H        I        i      J        L         l          n           O         P          q         t         V           v           w       y       1)
+OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_dry_run opt_odoo  opt_pwd    opt_quiet test_mode opt_version opt_verbose opt_win opt_yes opt_1st)
+OPTACTI=(1        1       "="     "="     "="      "="      "="    "="      "="       "="        1           "="       "="        1         1         "*"         1           1       "*"     1)
+OPTDEFL=(1        0       ""      ""      ""       ""       ""     ""       ""        ""         0           ""        ""         0         0         ""          0           0       ""      0)
+OPTMETA=("help"   "dev"   "disto" "disto" "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "noop"      "version" "password" "quiet"   "teste"   "version"   "verbose"   "win"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
  "select odoo distribution (with -O switch); may be odoo,oca,zeroincombenze"\
  "[user@]host to export config files"\
+ "declare package(s) as installed"\
  "use identity file (private key) for authentication"\
+ "declare package(s) as uninstalled"\
  "log file name (def /var/log/product.log)"\
  "include localization module for odoo; use ISO3166 country code"\
  "do nothing (dry-run)"\
  "select odoo version: may be 7, 8 or 9"\
  "default for users, if added by import command"\
  "quiet mode"\
- "show version"\
+ "test mode (implies dry-run)"\
+ "show version end exit"\
  "verbose mode"\
- "manage windows interface packages"\
+ "add graphical interface package(s)"\
  "assume yes"\
  "1st installation")
 OPTARGS=(action pkg sub1 sub2)
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Build a LAMP server"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Build a Odoo or LAMP server"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
+fi
+if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
+  test_mode=1
+fi
+if [ $test_mode -gt 0 ]; then
+  opt_dry_run=1
 fi
 if [ "$opt_log" ]; then
   FLOG=$opt_log
 fi
-# date >~/product.his    #debug
 if [ -n "$opt_osf" ]; then
   get_arch "$opt_osf"
 fi
@@ -2400,6 +2433,12 @@ if [ -n "$opt_odoo" ]; then
     opt_oed="zeroincombenze"
   fi
 fi
+if [ -n "$opt_xtly" ]; then
+  SIMULATE_YES=" ${opt_xtly//,/ } "
+fi
+if [ -n "$opt_xtln" ]; then
+  SIMULATE_NO=" ${opt_xtln//,/ } "
+fi
 if [ "$action" == "regression_test" ]; then
   FCONF="./$THIS.notexists"
 else
@@ -2407,8 +2446,6 @@ else
 fi
 ODOO_UID=$(get_cfg_value $FCONF "ODOO_UID")
 ODOO_GID=$(get_cfg_value $FCONF "ODOO_GID")
-# ODOO_UID=497  #debug
-# ODOO_GID=498  #debug
 
 wlog "$THIS $__version__ running on $(xuname -a)"
 wlog "Setup for $FH family"
@@ -2428,17 +2465,17 @@ elif [ "$action" == "whatis" ]; then
     else
       wlog "- package $realname (by $installer)"
     fi
-    X="TCP_${realname/-/_}"
+    X="TCP_${realname//-/_}"
     if [ "${!X}" ]; then
       wlog " - TCP ports ${!X}"
     fi
-    SUBlist="SUB_${realname/-/_}"
+    SUBlist="SUB_${realname//-/_}"
     if [ "$SUBlist" ]; then
       for p in ${!SUBlist}; do
         r=$(prod realname $p)
         installer=$(prod installer $r)
         wlog "-- package $r (by $installer)"
-        X="TCP_${r/-/_}"
+        X="TCP_${r//-/_}"
         if [ "${!X}" ]; then
           wlog "  - TCP ports ${!X}"
         fi
@@ -2509,7 +2546,7 @@ elif [ "$action" == "config" ]; then
           fi
         fi
       fi
-      SUBlist="SUB_${realname/-/_}"
+      SUBlist="SUB_${realname//-/_}"
       if [ "$SUBlist" ]; then
         for pkg in ${!SUBlist}; do
           p=$(prod realname $pkg)
@@ -2620,6 +2657,8 @@ elif [ "$action" == "import" ]; then
   add_users
   echo "See $FLOG for traced informations"
 elif [ "$action" == "regression_test" ]; then
+  DEV_ENVIRONMENT="$THIS"
+  test_mode=1
   opt_dry_run=1
   tst_ctr=0
   opt_host=""
@@ -2634,7 +2673,7 @@ elif [ "$action" == "regression_test" ]; then
   SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf"
   SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
   SAVE_SMLT_NO="openssh-clients openssh-client telnet postgresql-client-common install postgresql-contrib pgadmin3"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO python-gdata gdata python-ldap pytz xlwt ZSI"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO odoo python-gdata gdata python-ldap pytz xlwt ZSI"
   SAVE_SMLT_NO="$SAVE_SMLT_NO Babel python-dateutil python-docutils python-feedparser zlib-devel zlib1g-dev bzip2-devel openssl-devel"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-imaging python-jinja2 python-mako python-markupsafe python-mock python-openid python-psutil"
   SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vatnumber python-vobject python-werkzeug urllib3"
@@ -2646,6 +2685,7 @@ elif [ "$action" == "regression_test" ]; then
   SAVE_SMLT_NO="$SAVE_SMLT_NO port_tcp_22"
   SAVE_SMLT_NO="$SAVE_SMLT_NO pre_install_odoo"
   PNLX=("." $THIS python-pip apache2 httpd postgresql postgresql-server openssh-server python odoo)
+  # PNLX=(odoo) #debug
 #
   for aa in "Ubuntu14" "CentOS7"; do
     elog "Regression test on $aa"
