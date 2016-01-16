@@ -21,7 +21,7 @@ fi
 RUNDIR=$(readlink -e $RUNDIR)
 TESTDIR=$(readlink -e $TESTDIR)
 
-#__version__=0.1.75
+#__version__=0.1.76
 # set -x
 
 
@@ -87,24 +87,28 @@ xtlver=$(grep "#__version__" $MAKEF|head -n1|awk -F\= '{print $2}')
 test_result "version" "$__version__" "$xtlver"
 
 WD=/opt/openerp/7.0/zeroincombenze
-p2=Odoo
-p3=7.0
-p4="()"
-p5=$p3
-p6=__openerp__.py
-p7=/opt/openerp/7.0/zeroincombenze
-p8=$p7
-testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+if [ -d "$WD" ]; then
+  p2=Odoo
+  p3=7.0
+  p4="()"
+  p5=$p3
+  p6=__openerp__.py
+  p7=/opt/openerp/7.0/zeroincombenze
+  p8=$p7
+  testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+fi
 
 WD=/opt/openerp/7.0/zeroincombenze/l10n_it_bbone
-p2=Odoo
-p3=7.0
-p4="l10n_it_bbone(ItalianLocalization-Base)"
-p5=$BB_VER
-p6=__openerp__.py
-p7=/opt/openerp/7.0/zeroincombenze
-p8=$WD
-testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+if [ -d "$WD" ]; then
+  p2=Odoo
+  p3=7.0
+  p4="l10n_it_bbone(ItalianLocalization-Base)"
+  p5=$BB_VER
+  p6=__openerp__.py
+  p7=/opt/openerp/7.0/zeroincombenze
+  p8=$WD
+ testpath "$WD" "$p2" "$p3" "$p4" "$p5" "$p6" "$p7" "$p8"
+fi
 
 WD=/opt/odoo/8.0
 p2=Odoo
