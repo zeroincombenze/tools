@@ -29,7 +29,7 @@ else
 fi
 
 
-__version__="0.2.16"
+__version__="0.2.16.3"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -415,7 +415,7 @@ disable_port () {
 }
 
 get_arch () {
-    if [ "$1" == "CentOS7" -o "$1" == "CentOS" ]; then
+    if [ "$1" == "CentOS7" -o "$1" == "CentOS" -o "$1" == "RHEL" ]; then
       DISTO="CentOS7"
       FH="RHEL"
       LXCORE=
@@ -425,7 +425,7 @@ get_arch () {
       FH="RHEL"
       LXCORE=
       MACHARCH="i686"
-    elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu" ]; then
+    elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu"  -o "$1" == "Debian" ]; then
       DISTO="Ubuntu14"
       FH="Debian"
       LXCORE="trusty"
@@ -531,27 +531,27 @@ get_pkg_ver_inq () {
       pkgversion="$_LAST_VER"
     elif $(is_virtualname $pkgname); then
         pkgversion=
-	elif [ "$pkgname" == "odoo" ]; then
-	  pkgversion=
+  elif [ "$pkgname" == "odoo" ]; then
+    pkgversion=
       if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
         pkgversion=9.0
       elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
         pkgversion=
       else
-  	    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-	      local ov_iter="9 8 7"
-	    else
-	      local ov_iter=$opt_odoo
-	    fi
-	    for ov in $ov_iter; do
-	      if [ -d /opt/odoo/$ov.0 ]; then
-	        if [ -f /opt/odoo/$ov.0/openerp-server ]; then
-	          pkgversion=$ov.0
-	          break
-	        fi
-	      fi
-	    done
-	  fi
+        if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
+        local ov_iter="9 8 7"
+      else
+        local ov_iter=$opt_odoo
+      fi
+      for ov in $ov_iter; do
+        if [ -d /opt/odoo/$ov.0 ]; then
+          if [ -f /opt/odoo/$ov.0/openerp-server ]; then
+            pkgversion=$ov.0
+            break
+          fi
+        fi
+      done
+    fi
     else
       pkgversion=
       if [ "$vfycmd" ]; then
@@ -1130,10 +1130,13 @@ product_install_product () {
         run_traced "mkdir -p /etc/$THIS"
         run_traced "mv $TDIR/$pkgname /usr/bin"
         run_traced "mv $TDIR/${pkgname}.man /usr/bin"
+        run_traced "mv $TDIR/${pkgname}_bld_ods /usr/bin"
         run_traced "chmod +x /usr/bin/$pkgname*"
-        if [ -f $TDIR/${pkgname}.conf ]; then
-          run_traced "cp $TDIR/${pkgname}.conf /etc/$THIS"
-        fi
+        for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+          if [ -f $TDIR/$f ]; then
+            run_traced "cp $TDIR/$f /etc/$THIS"
+          fi
+        done
         run_traced "_install_z0librc"
       fi
     else
@@ -1305,8 +1308,10 @@ product_update_odoo () {
 product_config_odoo () {
     if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
       local ov_iter="9 8 7"
+      local opt_multi="-m"
     else
       local ov_iter=$opt_odoo
+      local opt_multi=""
     fi
     local userhome=$(sudo -u postgres -i eval 'echo "$HOME"')
     if [ -z "$userhome" ]; then
@@ -1359,12 +1364,17 @@ product_config_odoo () {
           cmd="$cmd,/opt/odoo/$ov.0/$addons"
         fi
       done
+      local xtl_pidfile=/var/run/odoo/$uu.pid
+      local xtl_logfile=/var/log/odoo/${uu}-server.log
       cmd="$cmd -s --stop-after-init"
-      cmd="$cmd --pidfile=/var/run/odoo/$uu.pid"
-      cmd="$cmd --logfile=/var/log/odoo/${uu}-server.log"
+      cmd="$cmd --pidfile=$xtl_pidfile"
+      cmd="$cmd --logfile=$xtl_logfile"
       cmd="$cmd --db_host=localhost"
       cmd="$cmd --db_user=$uu"
       cmd="$cmd --db_password=$pwd"
+      if [ "$opt_multi" == "-m" ]; then
+        cmd="$cmd --xmlrpc-port=808$ov"
+      fi
       run_traced "$cmd"
       if [ $opt_dry_run -eq 0 ]; then
         [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
@@ -1372,6 +1382,9 @@ product_config_odoo () {
       run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
       run_traced "chown odoo:odoo /etc/odoo/${uu}-server.conf"
       run_traced "chmod u+rw,g+r,o+r /etc/odoo/${uu}-server.conf"
+      run_traced "$TDIR/product_bld_ods -E$FH -L$xtl_logfile -P$xtl_pidfile $opt_multi -O$ov ${uu}-server"
+      run_traced "chown odoo:odoo ${uu}-server"
+      run_traced "mv ${uu}-server /etc/init.d/"
     done
 }
 
@@ -1701,10 +1714,13 @@ test_install () {
       echo "--> mkdir -p /etc/$p">>$ftest
       echo "--> mv $TDIR/$p /usr/bin">>$ftest
       echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> mv $TDIR/${p}_bld_ods /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
-      if [ -f $TDIR/${p}.conf ]; then
-        echo "--> cp $TDIR/${p}.conf /etc/$THIS">>$ftest
-      fi
+      for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+        if [ -f $TDIR/$f ]; then
+          echo "--> cp $TDIR/$f /etc/$THIS">>$ftest
+        fi
+      done
       echo "--> _install_z0librc">>$ftest
     elif [ "$p" == "python-pip" ]; then
       if [ "$FH" == "RHEL" ]; then
@@ -1998,10 +2014,13 @@ test_update () {
       echo "--> mkdir -p /etc/$p">>$ftest
       echo "--> mv $TDIR/$p /usr/bin">>$ftest
       echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> mv $TDIR/${p}_bld_ods /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
-      if [ -f $TDIR/${p}.conf ]; then
-        echo "--> cp $TDIR/${p}.conf /etc/$THIS">>$ftest
-      fi
+      for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+        if [ -f $TDIR/$f ]; then
+          echo "--> cp $TDIR/$f /etc/$THIS">>$ftest
+        fi
+      done
       echo "--> _install_z0librc">>$ftest
     elif [ "$p" == "python-pip" ]; then
       echo "--> pip install --upgrade pip">>$ftest
