@@ -61,7 +61,7 @@ OPTHELP=("this help"\
  "destination path")
 OPTARGS=(src tgt)
 fi
-parseoptargs $@
+parseoptargs "$@"
 echo "help    = <$opt_help>"
 echo "dry_run = <$opt_dry_run>"
 echo "version = <$opt_version>"

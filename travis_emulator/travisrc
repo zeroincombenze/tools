@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.35
+#__version__=0.1.36
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -176,7 +176,7 @@ install_dev () {
 update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
     if [ "$1" == "travis_emulator" ]; then
-      RFLIST="beauty cronow .dist_pkg.conf dist_pkg prjdiff test_nightly topep8 travis travisrc wok_doc wok_doc.py"
+      RFLIST="beauty cronow .dist_pkg.conf dist_pkg prjdiff test_nightly topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
       RDLIST="_travis/"
     elif [ "$1" == "z0lib" ]; then
       # set -x #debug

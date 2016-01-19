@@ -1,0 +1,108 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Version file diff
+# Make copy of file to another Odoo version
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+if [ -f z0librc ]; then
+. ./z0librc
+elif [ -f ~/z0librc ]; then
+. ~/z0librc
+elif [ -f /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Libreria z0librc non trovata!"
+  exit 1
+fi
+
+__version__="0.1.2"
+
+
+get_cur_ver () {
+  local i=
+  local v=
+  for i in {2..4}; do
+    local t=$(echo "$PWD"|awk -F/ '{ print $'$i'}')
+    if [ -z "$t" ]; then
+      break
+    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" ]; then
+      local v=$t
+      break
+    fi
+  done
+  echo "$v"
+}
+
+get_path_ver () {
+  local p=
+  local i=
+  for i in {2..9}; do
+    local t=$(echo "$PWD"|awk -F/ '{ print $'$i'}')
+    if [ -z "$t" ]; then
+      break
+    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" ]; then
+      p="$p/$1"
+    else
+      p="$p/$t"
+    fi
+  done
+  echo "$p"
+}
+
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "1"          "*>"        1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(filename)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Copy file to another Odoo version"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+# set -x
+if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
+  odoo_ver="$odoo_ver.0"
+fi
+cv=$(get_cur_ver)
+if [ -n "$odoo_ver" ]; then
+  tgt=$(get_path_ver "$odoo_ver")
+  if [ $opt_verbose -gt 0 ]; then
+    echo "cp $filename $tgt/$filename"
+  fi
+  [ $opt_dry_run ] && cp $filename $tgt/$filename
+else
+  tgt1=
+  tgt2=
+  for v in 7.0 8.0 9.0; do
+    if [ "$v" != "$cv" ]; then
+      if [ -z "$tgt1" ]; then
+        tgt1=$(get_path_ver "$v")
+      else
+        tgt2=$(get_path_ver "$v")
+      fi
+    fi
+  done
+  if [ $opt_verbose -gt 0 ]; then
+    echo "cp $filename $tgt1/$filename"
+  fi
+  [ $opt_dry_run ] && cp $filename $tgt1/$filename
+  if [ $opt_verbose -gt 0 ]; then
+    echo "cp $filename $tgt2/$filename"
+  fi
+  [ $opt_dry_run ] && cp $filename $tgt2/$filename
+fi
