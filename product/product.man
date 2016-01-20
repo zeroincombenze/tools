@@ -2,7 +2,7 @@
 .\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
 .TH product 8
 .SH NAME
-product \- create and/or manage a LAMP server
+product \- create and/or manage a LAMP or Odoo server
 .SH SYNOPSIS
 product [options] action [package|LAMP]
 .SH DESCRIPTION
@@ -12,14 +12,15 @@ Notice software name may be replaced, based on Linux distribution and version,  
 everytime and everywhere; i.e. when you type \fIproduct install mysql\fR on CentOS 7, your command is replaced by
 \fIproduct install mariadb-server\fR because mysql-server is not yet avaiable on this version of Linux distribution.
 .br
-\fBproduct\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR and \fIpip\fR commands, it is not a real package installer.
+\fBproduct\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR, \fIpip\fR and \fIgit\fR commands, it is not a real package installer.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros, \fBapt-get\fR on Ubuntu and Debian family distros
-and \fBpip\fR on both distributions.
+and \fBpip\fR on both distributions; it may require \fBgit\fR for some package, i.e. Odoo.
 \fBproduct\fR is very useful to manage all the packages needed to build a complete LAMP server and to check the real server status.
 For every main package, may be managed some dependent package; i.e. openssh-server includes openssh-client.
 Type \fIproduct whatis\fR command to see how product manages and includes packages.
 .br
 All operations are logged in \fI/var/log/product.log\fR in order to trace operational flow; option -L can set another tracelog.
+So, using -n switch, you can simply use \fIproduct\fR just to see which command you should issue to manage software.
 .br
 You can easily write portable script to install packages on every Linux distribution.
 .br
@@ -56,7 +57,9 @@ Action is one of:
 Install selected package; if no package name supplied or package is LAMP, install all packages to buil a complete LAMP server;
 if a package is already installed, is ignored and sub packages are not examined. To install package, \fBproduct\fR choices one
 of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
-To install \fBproduct\fR, download files in /tmp and type \fI./product install product\fR
+To install \fBproduct\fR, for the first time download files in /tmp and type \fI./product install product\fR
+.br
+See http://wiki.zeroincombenze.org/en/Product page for furthermore informations.
 .br
 With optional switch -D and -w, more other packages are added to installation list.
 If package name is LAMP, \fBproduct\fR installes gcc compiler.
@@ -64,11 +67,13 @@ If package name is LAMP, \fBproduct\fR installes gcc compiler.
 When Odoo is required, \fBproduct\fR installes git and issue \fIgit clone\fR command from github.com
 in two ways:
 .br
-1. If -D switch is set (development environment), all Odoo versions are installed and
-deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR are 7.0, 8.0 and 9.0;
+1. If -D switch is set (development environment), Odoo is installed and
+deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is 7.0, 8.0 or 9.0;
 .br
-2. If no development enviroment is set by -D switch, just the selected Odoo version (by -O switch)
+2. If no development enviroment is set by -D switch, Odoo
 is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.0 or 8.0 or 9.0;
+.br
+The -O switch select just a specific version of Odoo or all versions (see -O option)
 .br
 The -e switch must be declared to select Odoo repository to clone (see -e option)
 .RE
@@ -84,6 +89,8 @@ Optional switch -D and -w can include more packages to update.
 This action may be also used to add development packages; i.e. after issued \fIproduct install LAMP\fR
 a full LAMP server is created without development packages. Typing \fIproduct -D update LAMP\fR adds
 develepment packages.
+.br
+When Odoo is required, \fBproduct\fR update issuing \fIgit pull origin\fR command from github.com
 .RE
 .br
 
@@ -124,7 +131,7 @@ Optional switch -D and -w can include more packages.
 .RS
 Display main packages (identified by single hyphen) and dependent packages (with double hyphens) managed by \fBproduct\fR;
 Optional switch -D and -w can include development and graphical interface packages too.
-Special swith -E show list of other linux ditributions.
+Special swith -E show list of other linux distributions.
 .RE
 .br
 
@@ -172,6 +179,9 @@ is supplied or if odoo product is required.
 .br
 Value of \fIrepo\fR may be \fBodoo\fR,\fBoca\fR or \fBzeroincombenze\fR
 .TP
+.BR \-g
+Manage graphical interface packages
+.TP
 .BR \-H \fI[user@]host\fR
 Host and user where export config files.
 .TP
@@ -189,7 +199,7 @@ Value of \fIiso3166\fR may be one or more of \fBbe\fR, \fBch\fR, \fBes\fR,
 Do nothing (dry-run)
 .TP
 .BR \-O \fIversion\fR
-Include Odoo in LAMP software; \fIversion\fR may be 7 or 8 or 9;
+Select specific Odoo version; \fIversion\fR may be 7 or 8 or 9 or * for all versions;
 for furthermore info about odoo installation see \fBinstall\fR command
 .TP
 .BR \-P \fIpassword\fR
@@ -204,9 +214,6 @@ Show version
 .BR \-v
 Verbose mode
 .TP
-.BR \-w
-Manage graphical interface packages
-.TP
 .BR \-y
 assume yes
 .TP
@@ -216,6 +223,10 @@ assume yes
 Install a new LAMP server, the 1st time, without ask confirmation
 .RS
 \fBproduct -y1 install LAMP\fR
+.RE
+Install Odoo 9 with Italian localization:
+.RS
+\fBproduct install odoo -O9 -lit\fR
 .RE
 .SH SEE ALSO
 apg-get, yum, pip

@@ -9,7 +9,6 @@
 
 # TODO remove: python-paste python-pillow python-tempita
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
-#  sudo yum groupinstall "Development tools"
 #  ZSI
 # fiscalcode for italian localization
 # products?
@@ -30,7 +29,7 @@ else
 fi
 
 
-__version__="0.2.17"
+__version__="0.2.18"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -193,14 +192,14 @@ get_cfg_value() {
       elif [ "$2" == "SUB_php" ]; then
         p="php-mysql php-common php-xml"
       elif [ "$2" == "SUB_postgresql_server" ]; then
-        if [ $opt_win -gt 0 ]; then
+        if [ $opt_grf -gt 0 ]; then
           p="pgadmin3"
         else
           p=""
          fi
       elif [ "$2" == "SUB_postgresql" ]; then
         p="postgresql-client-common postgresql-contrib"
-        if [ $opt_win -gt 0 ]; then
+        if [ $opt_grf -gt 0 ]; then
           p="$p pgadmin3"
         fi
       elif [ "$2" == "PIP_PKGS" ]; then
@@ -534,12 +533,12 @@ get_pkg_ver_inq () {
         pkgversion=
   elif [ "$pkgname" == "odoo" ]; then
     pkgversion=
-      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-        pkgversion=9.0
-      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-        pkgversion=
-      else
-        if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
+    if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      pkgversion=9.0
+    elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      pkgversion=
+    else
+      if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
         local ov_iter="9 8 7"
       else
         local ov_iter=$opt_odoo
@@ -1186,9 +1185,8 @@ pre_update_LAMP () {
     pre_install_LAMP
 }
 
-product_install_odoo () {
-# product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-    if [ $opt_dry_run -eq 0 -a ! -d /opt/odoo ]; then
+init_odoo_env () {
+    if [ ! -d /opt/odoo ]; then
       run_traced "mkdir -p /opt/odoo"
     fi
     if [ "$opt_oed" == "odoo" ]; then
@@ -1198,11 +1196,16 @@ product_install_odoo () {
     else
       gitrep="zeroincombenze/OCB"
     fi
-    if [ $opt_dev -eq 0 -a -z "$opt_odoo" ]; then
+    if [ -z "$opt_odoo" ]; then
       opt_odoo="*"
     fi
+}
+
+product_install_odoo () {
+# product_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+    init_odoo_env
     git_opts=""
-    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
+    if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
       local ov_iter="9 8 7"
     else
       local ov_iter=$opt_odoo
@@ -1267,10 +1270,8 @@ product_install_odoo () {
 
 product_update_odoo () {
 # product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
-    if [ ! -d /opt/odoo ]; then
-      run_traced "mkdir -p /opt/odoo"
-    fi
-    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
+    init_odoo_env
+    if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
       local ov_iter="9 8 7"
     else
       local ov_iter=$opt_odoo
@@ -1307,7 +1308,7 @@ product_update_odoo () {
 }
 
 product_config_odoo () {
-    if [ $opt_dev -gt 0 -o "$opt_odoo" == "*" ]; then
+    if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
       local ov_iter="9 8 7"
       local opt_multi="-m"
     else
@@ -1341,9 +1342,11 @@ product_config_odoo () {
       vi $f_hba
     fi
     for ov in $ov_iter; do
-      if [ $opt_dev -gt 0 ]; then
+      if [ -n "$opt_multi" ]; then
         uu="odoo$ov"
         echo "*:*:*:$uu:$pwd">>$userhome/.pgpass
+      elif [ "$ov" == "7" ]; then
+        uu=openerp
       else
         uu=odoo
       fi
@@ -2388,11 +2391,11 @@ else
 fi
 set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       e       H        I        i      J        L         l          n           O         P          q         t         V           v           w       y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_dry_run opt_odoo  opt_pwd    opt_quiet test_mode opt_version opt_verbose opt_win opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="     "="      "="      "="    "="      "="       "="        1           "="       "="        1         1         "*"         1           1       "*"     1)
-OPTDEFL=(1        0       ""      ""      ""       ""       ""     ""       ""        ""         0           ""        ""         0         0         ""          0           0       ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "noop"      "version" "password" "quiet"   "teste"   "version"   "verbose"   "win"   "yes"   "first")
+OPTOPTS=(h        D       E       e       g       H        I        i      J        L         l          n           O         P          q         t         V           v           y       1)
+OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_dry_run opt_odoo  opt_pwd    opt_quiet test_mode opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="     "="     1       "="      "="      "="    "="      "="       "="        1           "="       "="        1         1         "*"         1           "*"     1)
+OPTDEFL=(1        0       ""      ""      0       ""       ""       ""     ""       ""        ""         0           ""        ""         0         0         ""          0           ""      0)
+OPTMETA=("help"   "dev"   "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "noop"      "version" "password" "quiet"   "teste"   "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
@@ -2683,7 +2686,7 @@ elif [ "$action" == "regression_test" ]; then
   tst_ctr=0
   opt_host=""
   opt_yes="-y"
-  opt_win=1
+  opt_grf=1
   opt_quiet=0
   opt_verbose=0
   opt_odoo="9"
@@ -2725,13 +2728,40 @@ elif [ "$action" == "regression_test" ]; then
   elog "$tst_ctr regression test successfuly ended"
 elif [ "$action" == "package" ]; then
   package="product"
-  if [ -f $package.gz ]; then
-    rm -f $package.gz
-  fi
   if [ -f $package -a -f $package.man -a -f z0librc ]; then
-    tar -cvf $package.gz $package $package.man z0librc
+    if [ -f $package.gz ]; then
+      rm -f $package.gz
+    fi
+    tar -cvf $package.gz $package $package.man z0librc ${pkgname}_bld_ods
+    for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
+      if [ -f $f ]; then
+        tar -Avf $package.gz $f
+      fi
+    done
     chown apache:apache $package.gz
     mv $package.gz /var/www/html/mw/download/
+  else
+    cd /tmp
+    if [ -f ./$package ]; then
+      rm -f ./$package
+    elif [ -d ./$package ]; then
+      rm -fR ./$package
+    fi
+    mkdir ./$package
+    cd ./$package
+    cp /usr/bin/$package ./$package
+    cp /usr/bin/$package.man ./$package
+    cp /usr/bin/${pkgname}_bld_ods ./$package
+    cp /etc/z0librc ./$package
+    for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
+      if [ -f /usr/bin/$f ]; then
+        cp /usr/bin/$f ./$package
+      fi
+    done
+    tar -f $package.gz ./$package
+    chown apache:apache $package.gz
+    mv $package.gz /var/www/html/mw/download/
+    rm -fR ./$package
   fi
 else
   echo "No valid action $action!"
