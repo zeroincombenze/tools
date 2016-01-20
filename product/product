@@ -29,7 +29,7 @@ else
 fi
 
 
-__version__="0.2.18"
+__version__="0.2.21"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -825,7 +825,7 @@ update_hba_conf () {
     local eorem=0
     local patched=0
     local dt=$(date +%Y-%m-%d)
-    while IFS=~ read -r line; do
+    while IFS=\~ read -r line; do
       if [ "${line:0:11}" == "# [PRODUCT:" ]; then
         fnd_mrk=1
       elif [[ $line =~ ^[a-zA-Z_].*$ ]]; then
@@ -838,7 +838,11 @@ update_hba_conf () {
          echo "# Because odoo[7|8|9] are not real username, trust method is used for them">>$1.tmp
          echo "# When you connect to psql console do not forget dbname, type:">>$1.tmp
          echo "# psql -Uodoo[7|8|9] postgres">>$1.tmp
-         echo "local   all         odoo                              trust">>$1.tmp
+         echo "# User openerp is used by old installation schema of Odoo7 (formerly OpenERP)">>$1.tmp
+         echo "local   all         openerp                           peer">>$1.tmp
+         echo "host    all         openerp     127.0.0.1/32          md5">>$1.tmp
+         echo "host    all         openerp     ::1/128               md5">>$1.tmp
+         echo "local   all         odoo                              peer">>$1.tmp
          echo "host    all         odoo        127.0.0.1/32          md5">>$1.tmp
          echo "host    all         odoo        ::1/128               md5">>$1.tmp
          for ov in 7 8 9; do
@@ -846,14 +850,18 @@ update_hba_conf () {
            echo "host    all         odoo$ov       127.0.0.1/32          trust">>$1.tmp
            echo "host    all         odoo$ov       ::1/128               trust">>$1.tmp
          done
+         echo "# [PRODCUT: end automatic configuration]">>$1.tmp
       fi
       echo "$line">>$1.tmp
     done < "$1"
     if [ $opt_dry_run -eq 0 ]; then
       [ -z "opt_yes" ] || vim $1.tmp
+      run_traced "mv $1 $1.bak"
+      run_traced "mv $1.tmp $1"
+    else
+      vim $1.tmp
     fi
-    run_traced "mv $1 $1.bak"
-    run_traced "mv $1.tmp $1"
+
 }
 
 build_groups_list () {
@@ -2732,10 +2740,10 @@ elif [ "$action" == "package" ]; then
     if [ -f $package.gz ]; then
       rm -f $package.gz
     fi
-    tar -cvf $package.gz $package $package.man z0librc ${pkgname}_bld_ods
+    tar -cvf $package.gz $package $package.man z0librc ${package}_bld_ods
     for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
       if [ -f $f ]; then
-        tar -Avf $package.gz $f
+        tar -rvf $package.gz $f
       fi
     done
     chown apache:apache $package.gz
