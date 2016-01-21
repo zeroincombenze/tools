@@ -29,7 +29,7 @@ else
 fi
 
 
-__version__="0.2.21"
+__version__="0.2.22"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -2407,7 +2407,8 @@ OPTMETA=("help"   "dev"   "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
- "select odoo distribution (with -O switch); may be odoo,oca,zeroincombenze"\
+ "select odoo distribution; may be odoo,oca,zeroincombenze"\
+ "add graphical interface package(s)"\
  "[user@]host to export config files"\
  "declare package(s) as installed"\
  "use identity file (private key) for authentication"\
@@ -2421,7 +2422,6 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "test mode (implies dry-run)"\
  "show version end exit"\
  "verbose mode"\
- "add graphical interface package(s)"\
  "assume yes"\
  "1st installation")
 OPTARGS=(action pkg sub1 sub2)
