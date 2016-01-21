@@ -28,7 +28,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.30
+__version__=0.1.31
 
 
 run_traced () {
@@ -53,7 +53,7 @@ run_traced () {
 OPTOPTS=(h        c        n            r     V           v           b)
 OPTDEST=(opt_help opt_conf opt_dry_run  opt_r opt_version opt_verbose opt_branch)
 OPTACTI=(1        "="      "1>"         "1"   "*>"        1           "=")
-OPTDEFL=(1        ""       0            0     ""          0           8.0)
+OPTDEFL=(1        ""       0            0     ""          0           9.0)
 OPTMETA=("help"   "file"   "do nothing" "res" "version"   "verbose"   "branch")
 OPTHELP=("this help"\
  "configuration file"\
@@ -61,7 +61,7 @@ OPTHELP=("this help"\
  "run rescricted mode (w/o maintainer-quality-tools)"\
  "show version"\
  "verbose mode",
- "branch: must be 7.0 or 8.0 (def 8.0)")
+ "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)")
 OPTARGS=(pkg_path action)
 parseoptargs $@
 
