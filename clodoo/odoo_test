@@ -1,12 +1,12 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# Run Odoo V7 yaml tests
+# Run Odoo yaml tests
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-__version__=0.2.7
+__version__=0.2.9
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
 
@@ -86,7 +86,7 @@ wait4svcup() {
 # $3: service name (if $1 not null)
 kill_alls() {
   svc_port=""
-  if [ -e $2 ] 
+  if [ -e $2 ]
   then
     pid=`cat $2`
   else
@@ -97,7 +97,7 @@ kill_alls() {
     svc_port=$(get_cfg_value $1 "xmlrpc_port")
     if [ `service_sts "" "$1"` ]
     then
-       service $3 stop	
+       service $3 stop
     fi
   fi
   for p in `ps aux|grep "openerp[-]server .*conf"|awk '{print $2}'`
@@ -390,7 +390,7 @@ get_module_name() {
   if [ "$p" != "" ]
   then
     mpath="$p/openerp/addons $mpath"
-  fi 
+  fi
 
   for r in $mpath
   do
@@ -539,7 +539,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "action may be one of chkconfig,help,list,stat,test,update\nRun Odoo test"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$odoo_ver" == "7" ]; then
@@ -583,7 +583,7 @@ if [ "$opt_all" == "-A" ];then
   fi
 fi
 if [ "$opt_alt" == "-a" ];then
-  svc_port="8089"
+  svc_port="8079"
   opt_quick="-Q"
   if [ -z "$action" -o $opt_help -gt 0 ]; then
     action="test"
@@ -671,7 +671,7 @@ elif [ "$action" == "stat" ]; then
     opt_force="-y"
 fi
 if [ -z "$svc_root" ]
-then 
+then
   echo "Service root directory not found!!!"
   echo " try using -r"
   exit 1
@@ -720,7 +720,7 @@ fi
 if [ ! -e $userhome/testlog ]
 then
   mkdir -p $userhome/testlog
-  chown $opt_user:$opt_group $userhome/testlog 
+  chown $opt_user:$opt_group $userhome/testlog
   chmod a+rw $userhome/testlog
 fi
 if [ ! -d $userhome/testlog ]
@@ -765,7 +765,7 @@ then
   echo "    oerp.db.drop(\"$admpw\", \"$opt_db\")">>odoo_test_t.py
   echo "except:">>odoo_test_t.py
   echo "    pass">>odoo_test_t.py
-  echo "oerp.db.create(\"$admpw\", \"$opt_db\", True, \"en_US\", \"test2015\")">>odoo_test_t.py
+  echo "oerp.db.create(\"$admpw\", \"$opt_db\", True, \"en_US\", \"test2016\")">>odoo_test_t.py
   python odoo_test_t.py
   rm -f python odoo_test_t.py
 fi
@@ -801,7 +801,7 @@ then
           do
             if ! `echo "$prio_list"|grep "$x ">/dev/null`
             then
-              prio_list="$x $prio_list" 
+              prio_list="$x $prio_list"
             fi
             let prio_list_$x=prio_list_$x+1
           done

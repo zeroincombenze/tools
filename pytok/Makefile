@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.80
+# Makefile __version__=0.1.81
 
 .DEFAULT: check
 
@@ -45,10 +45,10 @@ ifeq ($(HOSTENV),local)
   endif
   ifeq ($(PRJNAME),Odoo)
     ifeq ($(prjversion),version)
-      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
     endif
     ifeq ($(prjversion),)
-      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      prjversion:=$(shell if $$(echo "$$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $$(echo "$$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
     endif
   endif
   DEVSSTS0="0"
@@ -75,7 +75,7 @@ ifeq ($(PRJNAME),Odoo)
   #endif
   pkgname:=$(shell if [ -f $(SETUP) ]; then basename $$PWD; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then basename $$PWD; else echo ""; fi)
   PRJPATH:=$(shell if [ -f $(SETUP) ]; then cd ..; pwd; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then cd ..; pwd; else pwd; fi)
-  BRANCH=$(shell if $$(echo "$(PRJPATH)/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+  BRANCH=$(shell if $$(echo "$(PRJPATH)/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $$(echo "$(PRJPATH)/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
   MODVER=$(shell grep "'version' *:" $(SETUP) 2>/dev/null|awk -F":" '{print $$2}'|tr -d "\"', \r\n")
   ifneq ($(MODVER),)
      prjversion:=$(BRANCH).$(MODVER)

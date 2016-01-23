@@ -1,1 +1,4 @@
+# for aa in "Ubuntu14" "CentOS7"; do
+#   ../product -L ./product.log -t whatis odoo
+# done
 ../product -L ./product.log regression_test

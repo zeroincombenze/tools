@@ -63,8 +63,8 @@ if [ $sts -ne 127 ]; then
 fi
 sts=0
 
- $(init_cfg)
- $(active_cfg)
+$(init_cfg)
+$(active_cfg)
 FCONF="$TESTDIR/test.conf"
 if [ -f $FCONF ]; then rm -f $FCONF; fi
 if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
