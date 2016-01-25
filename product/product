@@ -10,7 +10,7 @@
 # TODO remove: python-paste python-pillow python-tempita
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
 #  ZSI
-# fiscalcode for italian localization
+# codicefiscale and pyxb for italian localization
 # products?
 # oerplib
 # flake8, autopep8, pylint
@@ -38,7 +38,7 @@ else
 fi
 
 
-__version__="0.2.23"
+__version__="0.2.24"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1418,7 +1418,9 @@ product_config_odoo () {
           elog  "Invalid submodule name $iso"
         else
           addons=$(get_locale_dir "$pn")
-          cmd="$cmd,/opt/odoo/$ov.0/$addons"
+          if [ -d $addons ]; then
+            cmd="$cmd,/opt/odoo/$ov.0/$addons"
+          fi
         fi
       done
       for iso in ${opt_locale//,/ }; do
@@ -1427,7 +1429,9 @@ product_config_odoo () {
           elog  "Invalid $iso in -l $opt_locale switch"
         else
           addons=$(get_locale_dir "$pn")
-          cmd="$cmd,/opt/odoo/$ov.0/$addons"
+          if [ -d $addons ]; then
+            cmd="$cmd,/opt/odoo/$ov.0/$addons"
+          fi
         fi
       done
       local xtl_pidfile=/var/run/odoo/$uu.pid
@@ -1444,6 +1448,7 @@ product_config_odoo () {
       run_traced "$cmd"
       if [ -f /opt/odoo/.openerp_serverrc ]; then
         if [ $opt_dry_run -eq 0 ]; then
+          sed -i "s:^data_dir *=.*Odoo:&$ov:" /opt/odoo/.openerp_serverrc
           [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
         fi
         run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
@@ -1899,7 +1904,7 @@ test_install () {
         echo "--> apt-get -y install pydot">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
-      local opt_osub="account-invoicing account-payment partner-contact account-financial-tools knowledge bank-payment"
+      local opt_osub="account-invoicing account-payment partner-contact knowledge bank-payment"
       if [ "$FH" == "RHEL" ]; then
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
@@ -2535,7 +2540,7 @@ if [ -z "$opt_odoo" ]; then
   fi
 fi
 if [ -n "$opt_odoo" ]; then
-  if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a $opt_odoo != "*" ]; then
+  if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a "$opt_odoo" != "*" ]; then
     echo "Invalid option value: use -O9 or -O8 or -O7 or -O*"
     exit 1
   fi
@@ -2543,9 +2548,9 @@ if [ -n "$opt_odoo" ]; then
     opt_oed="zeroincombenze"
   fi
 fi
-opt_osub="account-invoicing account-payment partner-contact account-financial-tools knowledge bank-payment"
+opt_osub="account-invoicing account-payment partner-contact knowledge bank-payment"
 if [ $opt_dev -gt 0 ]; then
-  opt_osub="$opt_osub server-tools web website"
+  opt_osub="$opt_osub web website"
 fi
 # if [ "$opt_oed" =0 "zeroincombenze" ]; then
 #   opt_osub="$opt_osub zeroincombenze"
