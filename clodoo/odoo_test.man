@@ -6,9 +6,9 @@ odoo_test \- run odoo tests
 .SH SYNOPSIS
 odoo_test [options] action
 .SH DESCRIPTION
-\fBodoo_test\fR is an interactive tool to run Odoo tests. Do not use more instances concrurrently of this tool.
+\fBodoo_test\fR is an interactive tool to run Odoo tests. Do not use more concurrently instances of this tool.
 .br
- 
+
 .br
 Action is one of:
 .br
@@ -24,57 +24,67 @@ Action is one of:
 .br
 * update
 .br
- 
+
 .br
-\fBchconfig\fR
+\fBchkconfig\fR
 .RS
 Analyze system and display configuration parameters.
 .RE
 .br
- 
+
 .br
 \fBlist\fR
 .RS
 Analyze system and display odoo module can be tested.
 .RE
 .br
- 
+
 .br
 \fBstat\fR
 .RS
 Show test statistics.
 .RE
 .br
- 
+
 .br
 \fBtest\fR
 .RS
 Execute odoo test.
-\fBWarning\fR execution test stops temporarily odoo service and restarts it after every test is terminated. Setting -Q option, service is restarted after all tests are terminated.
-Use option -a to avoid service halting
+\fBWarning\fR execution test temporarily stops odoo service and restarts it after every test is terminated.
+The -Q switch restarts service after all tests are terminated.
+Then -a switch avoids service halt.
 .RE
 .br
- 
+
 .br
 \fBupdate\fR
 .RS
 Not yet implemented
 .RE
 .br
- 
+
 .br
 Canonical tree
 .RS.br
- 
+
 .br
-Odoo files are searched in canonical tree. Option switches -c -F -O -r -S and -U can set different odoo tree. Canonical tree is:
+Odoo files are searched in canonical tree. Option switches -c -F -I -O -r -S and -U can set different odoo tree. Canonical tree is:
 .br
-* configuration file is searched in \fI/etc/odoo\fR or \fI/etc/openerp\fR
+* {id-name} is set by -I switch, default is odoo; may be odoo or openerp
 .br
-* odoo user is \fIodoo\fR or \fIopenerp\fR
+odoo {version} is detected, if possible; use -O switch to set it
 .br
-* odoo root directory is searched in home directory of user as \fI8.0\fR or \fI7.0\fR or \fIv8\fR or \fIv7\fR
- i.e: canonical directroy is \fI/opt/odoo/8.0\fR
+* configuration file is searched in \fI/etc/{id-name}\fR or \fI/etc\fR
+with name {id-name}-server.conf or {id-name}.conf; use -c switch to set it
+.br
+* odoo user is \fIodoo\fR; may be \fIopenerp\fR for odoo 7.0; use -U switch to set it
+.br
+* odoo root directory is searched in home directory of user as \fI{version}\fR or \fIv[majorversion}\fR
+ i.e: canonical directory may be \fI/opt/odoo/9.0\fR
+.br
+See http://wiki.zeroincombenze.org/en/Odoo page about Odoo canonical tree.
+Use \fBproduct\fR command to install odoo in canonical tree.
+For info about \fBproduct\fR software see http://wiki.zeroincombenze.org/en/Product page
 .RE
 .SH OPTIONS
 .TP
@@ -84,18 +94,23 @@ select all test execution in priority order (implies -y); test starts from base 
 .TP
 .BR \-a
 use alternative configuration to run test with concurrently with odoo service (implies -Q).
-This option create a local configuration file and set odoo port service to 8089. Do not stop odoo-service.
+This option creates a local configuration file, set odoo port service to 8079 and does not stop odoo-service.
 .TP
 .BR \-c \fIpathname\fR
-declare odoo config file; without this option, configuration file is searched in
-/etc/odoo and /etc/openerp with name odoo-config.conf or openerp-config.conf base on odoo version (see -O option)
+declare odoo config file; without this option, configuration file is searched
+(see above canonical tree for furthermore information)
 .TP
 .BR \-d \fIdatabase\fR
-select database for test (default test); \fBWarning\fR database is destroyed if exists.
+select database for test (default name is \fBtest\fR); \fBWarning\fR database is destroyed if exists.
 .TP
 .BR \-F \fIpathname\fR
-declare odoo script name to execution test; script is searched in user directory (see -c -O -r and -S options) for canonical odoo tree.
+declare odoo script name to execution test; script is searched in user directory
+(see -c -I -O -r and -S options and above canonical tree for furthermore information)
 If odoo configuration is not canonical, this option can set actual script name.
+.TP
+.BR \-I \fIid-name\fR
+Set id-name for configuration and detection; id-name may be odoo or openerp (default is odoo)
+See above canonical tree for furthermore information.
 .TP
 .BR \-m \fImodule\fR
 select specific module to test. Incompatible with -A and -p option switches.
@@ -104,11 +119,12 @@ select specific module to test. Incompatible with -A and -p option switches.
 Do nothing (dry-run)
 .TP
 .BR \-N
-create new log for test result; test results are stored in $HOME/testlog/result.log 
+create new log for test result; test results are stored in $HOME/testlog/result.log
 .TP
 .BR \-O \fIversion\fR
-Select odoo version to test and for directory searching (see -c -r -F and -S options).
-This option is mandatory if both 7.0 and 8.0 odoo version are installed. 
+Select odoo version to test and detection
+(see -c -I -r -F and -S options and above canonical tree for furthermore information)).
+This option is mandatory multiple odoo version are installed.
 .TP
 .BR \-p \fIprio\fR
 select modules with specific priority. Incompatible with -A and -m option switches.
@@ -121,22 +137,23 @@ Quiet mode. Hide progress messages.
 .TP
 .BR \-Q
 Quick mode. Do not stop and restart odoo service after every test.
-This switch run odoo test more quick but stop odoo service until all tests are terminated.
-Without this option switch, user connected can be served (slowly). To avoid trouble to connected users, use -a option switch.
+This switch runs odoo test more quickly but stops odoo service until all tests are terminated.
+Without this option switch, user connected can be served (slowly).
+To avoid trouble to connected users, use -a option switch.
 .TP
 .BR \-r \fIdirectory\fR
-declare root directory of odoo server; without this option switch, directory is searched in user directory (see -c -F -O and -S options)
- for canonical odoo tree. If odoo configuration is not canonical, this option can set actual odoo directory.
+declare root directory of odoo server; without this option switch,
+directory is searched in user directory (see -c -F -O and -S options and above canonical tree for furthermore information)
+If odoo configuration is not canonical, this option can set actual odoo directory.
 .TP
 .BR \-S \fIservice\fR
-declare odoo service name. Without this option switch, service name odoo, odoo-server, openerp or openerp-server are searched
-in \fI/etc/init.d\fR
+declare odoo service name (see above canonical tree for furthermore information).
 .TP
 .BR \-t
-Show tracelog of every test to console. Tracelog are stored in $HOME/testlog/ directory 
+Show tracelog of every test to console. Tracelog are stored in $HOME/testlog/ directory
 .TP
 .BR \-U \fIusername\fR
-Username to manage odoo service. Set current user if it is odoo or openerp; otherwise is used odoo or openerp. 
+Username to manage odoo service. Set current user if it is odoo or openerp; otherwise is used odoo or openerp.
 .TP
 .BR \-V
 Show version
@@ -154,17 +171,17 @@ Run odoo test; stop service before test and restart after all tests are terminat
 clear previous statitics and display all messages to console and statistics at the end
 .RS
 \fBodoo_test -ANtvx test\fR
-.RE 
+.RE
 .br
- 
+
 .br
 Run odoo test concurrently with current odoo service; do not display anything, keep old stattistics
 clear previous statitics and display all messages to console
 .RS
 \fBodoo_test -Aaq test\fR
-.RE 
+.RE
 .br
- 
+
 .br
 Display odoo configuration
 .RS

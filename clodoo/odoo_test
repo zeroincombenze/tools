@@ -6,18 +6,21 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-__version__=0.2.9
-THIS=$(basename $0)
-TDIR=$(echo $(readlink -f $(dirname $0)))
 
 if [ -f z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit 1
 fi
 
+__version__=0.2.10
+THIS=$(basename $0)
+TDIR=$(echo $(readlink -f $(dirname $0)))
 
 
 # get value from odoo config file
@@ -30,14 +33,16 @@ get_cfg_value() {
   then
    if [ "$2" == "pidfile" ]
    then
-     if [ -d "/var/run/openerp" ]
-     then
+     p=$(findpkg "odoo-server.pid" "/var/run/odoo /var/run/openerp /var/run")
+     if [ -z "$p" ]; then
+       p=$(findpkg "openerp-server.pid" "/var/run/odoo /var/run/openerp /var/run")
+     fi
+     if [ -d "/var/run/openerp" ]; then
        p="/var/run/openerp/openerp-server.pid"
-     elif [ -d "/var/run/odoo" -a "$odoo_ver" != "7.0" ]
-     then
-       p="/var/run/odoo/openerp-server.pid"
+     elif [ -d "/var/run/odoo" ]; then
+       p="/var/run/odoo/odoo-server.pid"
      else
-       p="/var/run/openerp-server.pid"
+       p="/var/run/odoo-server.pid"
      fi
    elif [ "$2" == "xmlrpc_port" ]
    then
@@ -503,36 +508,37 @@ search4tests() {
 
 
 
-OPTOPTS=(h        A       a       c        d       F        m          n           N       O        p        P        Q         q         r        S        t         U        V            v           x         y)
-OPTDEST=(opt_help opt_all opt_alt ODOO_CFG opt_db  svc_file opt_module opt_dry_run opt_new odoo_ver opt_prio svc_port opt_quick opt_quiet svc_root svc_name opt_trace opt_user opt_version opt_verbose opt_stats opt_force)
-OPTACTI=(1        "*"     "*"     "="      "="     "="      "="        1           "*"     "="      "="      "="      "*"       1         "="      "="      "*"       "="      "*"          "*"          "*"      "*")
-OPTDEFL=(1        ""      ""      ""       "test"  ""       ""         0           ""      ""       ""       "8069"   ""        0         ""       ""       ""        ""       ""           ""           ""       "")
-OPTMETA=("help"   "all"   "alt"   "file"   "dbase" "file"   "name"     "noop"      "new"   "ver."   "prio"   "port"  "quick"    "quiet"   "dir"    "name"  "trace"    "user"   "version"    "verbose"    "stats"  "yes")
+OPTOPTS=(h        A       a       c        d       F        I         m          n           N       O        p        P        Q         q         r        S        t         U        V            v           x         y)
+OPTDEST=(opt_help opt_all opt_alt ODOO_CFG opt_db  svc_file opt_id    opt_module opt_dry_run opt_new odoo_ver opt_prio svc_port opt_quick opt_quiet svc_root svc_name opt_trace opt_user opt_version opt_verbose opt_stats opt_force)
+OPTACTI=(1        "*"     "*"     "="      "="     "="      "=>"      "="        1           "*"     "="      "="      "="      "*"       1         "="      "="      "*"       "="      "*"          "*"          "*"      "*")
+OPTDEFL=(1        ""      ""      ""       "test"  ""       "odoo"    ""         0           ""      ""       ""       "8069"   ""        0         ""       ""       ""        ""       ""           ""           ""       "")
+OPTMETA=("help"   "all"   "alt"   "file"   "dbase" "file"   "id-name" "name"     "noop"      "new"   "ver."   "prio"   "port"  "quick"    "quiet"   "dir"    "name"  "trace"    "user"   "version"    "verbose"    "stats"  "yes")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "execute all tests, priority order (implies -y)"\
  "run test concurrently with odoo service (implies -Q)"\
  "use odoo config file (default in /etc)"\
  "select database for test (default test)"\
  "odoo script filename (for test execution)"\
+ "set id name (odoo or openerp, default is odoo)"\
  "select specific module"\
  "do nothing (dry-run)"\
  "create new log for test result"\
- "select Odoo version (7 or 8)"\
+ "select Odoo version (7, 8 or 9)"\
  "select test with selected prio"\
  "odoo service port (default 8069)"\
  "quick mode: do not restart odoo after every test"\
  "silent mode"\
- "service root dir (def v7 or v8 or lp in home dir)"\
- "service name (default openerp)"\
+ "service root dir searched in user dir"\
+ "service name (default odoo-server)"\
  "output tracelog of yaml test during tests"\
- "service username (default openerp)"\
+ "service username (default odoo)"\
  "show version"\
  "verbose mode"\
  "show stats at the end"\
  "assume yes for ask confirmation")
 OPTARGS=(action)
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
@@ -542,12 +548,8 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ "$odoo_ver" == "7" ]; then
-  odoo_ver="7.0"
-elif [ "$odoo_ver" == "8" ]; then
-  odoo_ver="8.0"
-else
-  odoo_ver=""
+if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
+  odoo_ver="$odoo_ver.0"
 fi
 if [ -z "$opt_user" ]; then
   if [ "$USER" == "odoo" -o "$USER" == "openerp" ]; then
@@ -555,15 +557,15 @@ if [ -z "$opt_user" ]; then
     userhome=$HOME
     SU=
   else
-    if [ "$odoo_ver" != "7.0" ]; then
-      opt_user=odoo
-    else
+    if [ "$odoo_ver" == "7.0" -a -d /opt/openerp ]; then
       opt_user=openerp
+    else
+      opt_user=odoo
     fi
     SU="su -l $opt_user -c "
     if [ $EUID -ne 0 ]; then
       echo "This command must be executed by root"
-     exit 1
+      exit 1
     fi
     userhome=$(sudo -u $opt_user -i eval 'echo "$HOME"')
     if [ -z "$userhome" ]; then
@@ -589,78 +591,47 @@ if [ "$opt_alt" == "-a" ];then
     action="test"
   fi
 fi
+if [ -z "$svc_name" ]; then
+  svc_name=$(findpkg "${opt_id}-server" "/etc/init.d")
+  if [ -z "$svc_name" ]; then
+    svc_name=$(findpkg "${opt_id}" "/etc/init.d")
+  fi
+  if [ -n "$svc_name" ]; then
+    svc_name=$(basename "$svc_name")
+  fi
+fi
 base_path=""
 if [ "$svc_root" == "" -o "$svc_file" == "" ]
 then
-  if [ "$odoo_ver" == "7.0" ]; then
-    list="7.0 v7 ODOO-7.0 OCB-7.0 8.0 v8 ODOO-8.0 OCB-8.0 ."
-  else
-    list="8.0 v8 ODOO-8.0 OCB-8.0 7.0 v7 ODOO-7.0 OCB-7.0 ."
-  fi
-  for v in $list
-  do
-    if [ -d $userhome/$v ]
-    then
-      if [ -z "$svc_root" ]
-      then
-        if [ "$v" == "." ]
-        then
-          svc_root="$userhome"
-        else
-          svc_root="$userhome/$v"
+  if [ -z "$svc_file" ]; then
+    if [ -z $odoo_ver ]; then
+      for v in 9 8 7; do
+        vv="$v.0"
+        svc_file=$(findpkg "openerp-server" "$userhome/$vv $userhome/V$v $userhome/ODOO-$vv $userhome/OCA-$vv" ". server openerp odoo")
+        if [ -n "$svc_file" ]; then
+          break
         fi
-        break
-      fi
+      done
+    else
+      v="${odoo_ver:0:1}"
+      vv="$odoo_ver"
+      svc_file=$(findpkg "openerp-server" "$userhome/$vv $userhome/V$v $userhome/ODOO-$vv $userhome/OCA-$vv" ". server openerp odoo")
     fi
-  done
-  if [ "$svc_root" != "" ]
-  then
-    for s in . server openerp odoo
-    do
-      if [ -f $svc_root/$s/openerp-server -a -z "$svc_file" ]; then
-        svc_file=$(readlink -e $svc_root/$s/openerp-server)
-      fi
-      if [ -d $svc_root/$s -a -z "$base_path" ]
-      then
-        if [ -d $svc_root/$s/addons ]
-        then
-          base_path=$(readlink -e $svc_root/$s/addons)
-        elif [ -d $svc_root/$s/openerp ]
-        then
-          base_path=$(readlink -e $svc_root/$s/openerp/addons)
-        fi
-      fi
-    done
   fi
-fi
-if [ -z "$svc_name" ]; then
-  if [ "$odoo_ver" == "7.0" ]; then
-    list="openerp openerp-server odoo odoo-server"
-  else
-    list="odoo odoo-server openerp openerp-server"
+  if [ -n "$svc_file" -a -z "$svc_root" ]; then
+    svc_root=$(dirname $svc_file)
   fi
-  for f in $list; do
-    if [ -f "/etc/init.d/$f" ]; then
-      svc_name=$f
-      break
-    fi
-  done
+  if [ -d $svc_root/addons ]; then
+    base_path=$(readlink -e $svc_root/addons)
+  elif [ -d $svc_root/openerp ]; then
+    base_path=$(readlink -e $svc_root/openerp/addons)
+  fi
 fi
 if [ -z "$odoo_ver" -a "$svc_root" ]; then
-  odoo_ver=$(if $(echo "$svc_root/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+  odoo_ver=$(if $(echo "$svc_root/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$svc_root/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
 fi
 if [ -z "$ODOO_CFG" ]; then
-  if [ "$odoo_ver" == "7.0" ]; then
-    list="openerp/openerp-server.conf openerp-server.conf odoo/odoo-server.conf odoo-server.conf"
-  else
-    list="odoo/odoo-server.conf odoo-server.conf openerp/openerp-server.conf openerp-server.conf"
-  fi
-  for f in $list; do
-    if [ -f "/etc/$f" ]; then
-      ODOO_CFG=/etc/$f
-      break
-    fi
-  done
+  ODOO_CFG=$(findpkg "${opt_id}-server.conf" "/etc/${opt_id} /etc")
 fi
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
@@ -734,17 +705,17 @@ pidfile=$(get_cfg_value $ODOO_CFG "pidfile")
 odoo_port=$(get_cfg_value $ODOO_CFG "xmlrpc_port")
 if [ "$action" == "chkconfig" -o $opt_dry_run -gt 0 ]; then
   echo "Test Odoo $__version"
-  echo " version test = $odoo_ver"
-  echo " user         = $opt_user:$opt_group"
-  echo " user home    = $userhome"
-  echo " conf.file    = $ODOO_CFG"
-  echo " service root = $svc_root"
-  echo " service name = $svc_name"
-  echo " service file = $svc_file"
-  echo " service port = $svc_port"
-  echo " log dir      = $dir_tlog"
-  echo " pidfile      = $pidfile"
-  echo " select prio  = $opt_prio"
+  echo " version test -O $odoo_ver"
+  echo " user         -U $opt_user:$opt_group"
+  echo " conf.file    -c $ODOO_CFG"
+  echo " service root -r $svc_root"
+  echo " service name -S $svc_name"
+  echo " service file -F $svc_file"
+  echo " service port -P $svc_port"
+  echo " user home    -> $userhome"
+  echo " log dir      -> $dir_tlog"
+  echo " pidfile      -> $pidfile"
+  echo " select prio  -> $opt_prio"
   exit 0
 fi
 prm="$opt_user^$ODOO_CFG^$userhome^$svc_root^$dir_tlog^$svc_name^$svc_file^$svc_port"
@@ -753,21 +724,33 @@ if [ "$action" == "test" ]
 then
   # kill all duplicate odoo processes
   kill_alls "" "$pidfile"
-    if [ "$opt_verbose" == "-v" -o $opt_quiet -eq 0 ]
+  if [ "$opt_verbose" == "-v" -o $opt_quiet -eq 0 ]
   then
     echo "Creating empty $opt_db database"
+    OPT_ECHO=-e
+  else
+    OPT_ECHO=
   fi
-  echo "">odoo_test_t.py
-  echo "import oerplib">>odoo_test_t.py
-  admpw=$(get_cfg_value "$ODOO_CFG" "admin_passwd")
-  echo "oerp = oerplib.OERP('localhost', protocol='xmlrpc', port=$odoo_port)">>odoo_test_t.py
-  echo "try:">>odoo_test_t.py
-  echo "    oerp.db.drop(\"$admpw\", \"$opt_db\")">>odoo_test_t.py
-  echo "except:">>odoo_test_t.py
-  echo "    pass">>odoo_test_t.py
-  echo "oerp.db.create(\"$admpw\", \"$opt_db\", True, \"en_US\", \"test2016\")">>odoo_test_t.py
-  python odoo_test_t.py
-  rm -f python odoo_test_t.py
+  dbh=$(get_cfg_value "$ODOO_CFG" "db_host")
+  if [ "$dbh" == "localhost" -o "$dbh" == "127.0.0.1" ]; then
+    OPT_DB=
+  else
+    OPT_DB="-h $dbh"
+  fi
+  dbu=$(get_cfg_value "$ODOO_CFG" "db_user")
+  dropdb --if-exists $OPT_ECHO $OPT_DB -U $dbu -w $opt_db
+  createdb $OPT_ECHO $OPT_DB -O $dbu -U $dbu -w $opt_db
+  # echo "">odoo_test_t.py
+  # echo "import oerplib">>odoo_test_t.py
+  # admpw=$(get_cfg_value "$ODOO_CFG" "admin_passwd")
+  # echo "oerp = oerplib.OERP('localhost', protocol='xmlrpc', port=$odoo_port)">>odoo_test_t.py
+  # echo "try:">>odoo_test_t.py
+  # echo "    oerp.db.drop(\"$admpw\", \"$opt_db\")">>odoo_test_t.py
+  # echo "except:">>odoo_test_t.py
+  # echo "    pass">>odoo_test_t.py
+  # echo "oerp.db.create(\"$admpw\", \"$opt_db\", True, \"en_US\", \"$opt_db\")">>odoo_test_t.py
+  # python odoo_test_t.py
+  # rm -f python odoo_test_t.py
 fi
 if [ "$action" == "test" -o "action" == "update" -o "$action" == "list" ]
 then
@@ -779,104 +762,113 @@ then
   mpath=`echo ${mpath//,/ }`
   echo "">test_odoo.tmp
   prio_list=""
-  for r in $mpath
-  do
+  for r in $mpath; do
     if [ $opt_quiet -eq 0 ]; then
       echo "examing $r pathname ..."
     fi
-    for f in $(find $r -name "__openerp__.py")
-    do
-      p=$(dirname $f)
-      for f1 in `cat $f|tr -d '\n'|pcregrep -o "'depends'.*]"|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'`
-      do
-        x=$(echo $f1|tr -d "'"|tr -d "\"")
-        x=${x%%#*}
-        x=${x%%/*}
-        x=${x%%>*}
-        x=${x%%7.0*}
-        if [ "$x" != "" -a "${x:0:1}" != "#" -a "${x:0:4}" != "http" ]
-        then
-          xx=$(echo ${x//,/ })
-          for x in $xx
-          do
-            if ! `echo "$prio_list"|grep "$x ">/dev/null`
-            then
-              prio_list="$x $prio_list"
-            fi
-            let prio_list_$x=prio_list_$x+1
-          done
-        fi
-      done
-      for f1 in $(find $p -name "*.yml")
-      do
-        echo $p>>test_odoo.tmp
-      done
-      if [ -d $p/tests ]
-      then
-        for f1 in `find $p/tests -name "__init__.py" -exec grep -l "checks *= *\[\|fast_suite *= *\[" '{}' \;`
-        do
-          echo $p>>test_odoo.tmp
-        done
-      fi
+    for f in $(find $r -name "__openerp__.py"); do
+      m=$(get_module_name "$f" "$ODOO_CFG" "$r" "$svc_file")
+      yaml_test_list="$yaml_test_list,$m:5"
     done
   done
-  if [ $opt_quiet -eq 0 ]; then
-    echo "evaluate module priorities ..."
-  fi
-  m=0
-  n=99
-  for f in $prio_list
-  do
-    x=prio_list_$f
-    if [ ${!x} -lt 25 -a ${!x} -gt $m ]
-    then
-      m=${!x}
-    elif [ ${!x} -gt 2 -a ${!x} -lt $n ]
-    then
-      n=${!x}
-    fi
-  done
-  for f in $prio_list
-  do
-    x=prio_list_$f
-    l=${!x}
-    if [ ${!x} -gt 25 ]
-    then
-      let l="(($l-25)/2)+25"
-    elif [ ${!x} -ge 10 ]
-    then
-      let l="(($l-10)/2)+10"
-    else
-      let l="$l+1"
-    fi
-    let r="((($l*700)/($m-$n))/100)+2"
-    if [ $r -le 1 ]; then r=2; fi
-    if [ $r -gt 9 ]; then r=9; fi
-    if [ "$f" == "base" ]; then r=1; fi
-    let prio_list_$f=$r
-  done
-  if [ $opt_quiet -eq 0 ]; then
-    echo "sorting data ..."
-  fi
-  cat test_odoo.tmp|sort -u -o test_odoo.lst
-  rm -f test_odoo.tmp
-  for f in `cat test_odoo.lst`
-  do
-    p=$(dirname $f)
-    m=$(get_module_name "$f" "$ODOO_CFG" "$r" "$svc_file")
-    if [ "$m" != "" ]
-    then
-      prio=$(get_module_prio $f)
-      if [ "$opt_module" == "" -o "$opt_module" == "$m" ]
-      then
-        if ! `echo "$yaml_test_list"|grep ",$m:">/dev/null`
-        then
-          yaml_test_list="$yaml_test_list,$m:$prio"
-        fi
-      fi
-    fi
-  done
-  rm -f test_odoo.lst
+  # for r in $mpath
+  # do
+  #   if [ $opt_quiet -eq 0 ]; then
+  #     echo "examing $r pathname ..."
+  #   fi
+    # for f in $(find $r -name "__openerp__.py")
+    # do
+      p=$(dirname $f)
+      # for f1 in `cat $f|tr -d '\n'|pcregrep -o "'depends'.*]"|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'`
+      # do
+      #   x=$(echo $f1|tr -d "'"|tr -d "\"")
+      #   x=${x%%#*}
+      #   x=${x%%/*}
+      #   x=${x%%>*}
+      #   x=${x%%7.0*}
+      #   if [ "$x" != "" -a "${x:0:1}" != "#" -a "${x:0:4}" != "http" ]
+      #   then
+      #     xx=$(echo ${x//,/ })
+      #     for x in $xx
+      #     do
+      #       if ! `echo "$prio_list"|grep "$x ">/dev/null`
+      #       then
+      #         prio_list="$x $prio_list"
+      #       fi
+      #       let prio_list_$x=prio_list_$x+1
+      #     done
+      #   fi
+      # done
+      # for f1 in $(find $p -name "*.yml")
+      # do
+      #   echo $p>>test_odoo.tmp
+      # done
+      # if [ -d $p/tests ]
+      # then
+      #   for f1 in `find $p/tests -name "__init__.py" -exec grep -l "checks *= *\[\|fast_suite *= *\[" '{}' \;`
+      #   do
+      #     echo $p>>test_odoo.tmp
+      #   done
+      # fi
+    # done
+  # done
+  # if [ $opt_quiet -eq 0 ]; then
+  #   echo "evaluate module priorities ..."
+  # fi
+  # m=0
+  # n=99
+  # for f in $prio_list
+  # do
+  #   x=prio_list_$f
+  #   if [ ${!x} -lt 25 -a ${!x} -gt $m ]
+  #   then
+  #     m=${!x}
+  #   elif [ ${!x} -gt 2 -a ${!x} -lt $n ]
+  #   then
+  #     n=${!x}
+  #   fi
+  # done
+  # for f in $prio_list
+  # do
+  #   x=prio_list_$f
+  #   l=${!x}
+  #   if [ ${!x} -gt 25 ]
+  #   then
+  #     let l="(($l-25)/2)+25"
+  #   elif [ ${!x} -ge 10 ]
+  #   then
+  #     let l="(($l-10)/2)+10"
+  #   else
+  #     let l="$l+1"
+  #   fi
+  #   let r="((($l*700)/($m-$n))/100)+2"
+  #   if [ $r -le 1 ]; then r=2; fi
+  #   if [ $r -gt 9 ]; then r=9; fi
+  #   if [ "$f" == "base" ]; then r=1; fi
+  #   let prio_list_$f=$r
+  # done
+  # if [ $opt_quiet -eq 0 ]; then
+  #   echo "sorting data ..."
+  # fi
+  # cat test_odoo.tmp|sort -u -o test_odoo.lst
+  # rm -f test_odoo.tmp
+  # for f in `cat test_odoo.lst`
+  # do
+  #   p=$(dirname $f)
+  #   m=$(get_module_name "$f" "$ODOO_CFG" "$r" "$svc_file")
+  #   if [ "$m" != "" ]
+  #   then
+  #     prio=$(get_module_prio $f)
+  #     if [ "$opt_module" == "" -o "$opt_module" == "$m" ]
+  #     then
+  #       if ! `echo "$yaml_test_list"|grep ",$m:">/dev/null`
+  #       then
+  #         yaml_test_list="$yaml_test_list,$m:$prio"
+  #       fi
+  #     fi
+  #   fi
+  # done
+  # rm -f test_odoo.lst
   yaml_test_list=${yaml_test_list:1}
 fi
 if [ "$action" == "test" ]

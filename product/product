@@ -13,6 +13,7 @@
 # codicefiscale and pyxb for italian localization
 # products?
 # oerplib
+# wget
 # flake8, autopep8, pylint
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
@@ -38,7 +39,7 @@ else
 fi
 
 
-__version__="0.2.24"
+__version__="0.2.24.1"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)

@@ -18,7 +18,7 @@ else
   exit 1
 fi
 
-__version__="0.2.0"
+__version__="0.2.1"
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
 
@@ -230,6 +230,10 @@ if [ $opt_dry_run -eq 0 ]; then
   fi
   mv -f $script_name.tmp $script_name
   chmod +x $script_name
+  d=$(basename $script_name)
+  if [ "$d" != "/etc/init.d" ]; then
+    echo "To make active created script, you must type \"mv $script_name /etc/init.d\""
+  fi
 else
   echo "See $script_name.tmp to discover how to script works"
 fi
