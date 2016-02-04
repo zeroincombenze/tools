@@ -15,6 +15,7 @@
 # oerplib
 # wget
 # flake8, autopep8, pylint
+# yum install mod_ssl
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
 # yum -y install nodejs
@@ -39,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.24.1"
+__version__="0.2.24.4"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -591,7 +592,7 @@ get_pkg_ver_inq () {
   elif [ "$pkgname" == "odoo" ]; then
     pkgversion=
     if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-      pkgversion=9.0
+      pkgversion=7.0
     elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       pkgversion=
     else
@@ -1192,10 +1193,15 @@ product_install_product () {
     fi
     if [ -z "$opt_host" ]; then
       if [ "$TDIR" != "/usr/bin" ]; then
+        if [ "${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
+          local cmd="cp"
+        else
+          local cmd="mv"
+        fi
         run_traced "mkdir -p /etc/$THIS"
-        run_traced "mv $TDIR/$pkgname /usr/bin"
-        run_traced "mv $TDIR/${pkgname}.man /usr/bin"
-        run_traced "mv $TDIR/${pkgname}_bld_ods /usr/bin"
+        run_traced "$cmd $TDIR/$pkgname /usr/bin"
+        run_traced "$cmd $TDIR/${pkgname}.man /usr/bin"
+        run_traced "$cmd $TDIR/${pkgname}_bld_ods /usr/bin"
         run_traced "chmod +x /usr/bin/$pkgname*"
         for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
           if [ -f $TDIR/$f ]; then
@@ -1301,7 +1307,7 @@ product_install_odoo () {
       run_traced "cd /opt/odoo/$ov.0"
       run_traced "git checkout $ov.0"
       if [ $test_mode -eq 0 -a -f /opt/odoo/$ov.0/requirements.txt ]; then
-        local f=/opt/odoo/9.0/requirements.txt
+        local f=/opt/odoo/7.0/requirements.txt
         local p n v r
         while IFS=\= read p n v; do
           r=$(product -q version $p)
@@ -1788,9 +1794,9 @@ test_install () {
     elog "Test $tst_ctr [$FH]: prod install '$p'"
     if [ "$p" == "$THIS" ]; then
       echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> mv $TDIR/$p /usr/bin">>$ftest
-      echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
-      echo "--> mv $TDIR/${p}_bld_ods /usr/bin">>$ftest
+      echo "--> cp $TDIR/$p /usr/bin">>$ftest
+      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> cp $TDIR/${p}_bld_ods /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
       for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
         if [ -f $TDIR/$f ]; then
@@ -1909,18 +1915,18 @@ test_install () {
       if [ "$FH" == "RHEL" ]; then
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
-        echo "--> git clone https://github.com/odoo/odoo.git 9.0 -b 9.0 --depth 1 --single-branch">>$ftest
+        echo "--> git clone https://github.com/odoo/odoo.git 7.0 -b 7.0 --depth 1 --single-branch">>$ftest
         for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/9.0">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
           echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 9.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 9.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
+          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
+          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
           echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
-          echo "--> cd /opt/odoo/9.0">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
         done
         echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
-        echo "--> cd /opt/odoo/9.0">>$ftest
-        echo "--> git checkout 9.0">>$ftest
+        echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -1984,18 +1990,18 @@ test_install () {
       else
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
-        echo "--> git clone https://github.com/odoo/odoo.git 9.0 -b 9.0 --depth 1 --single-branch">>$ftest
+        echo "--> git clone https://github.com/odoo/odoo.git 7.0 -b 7.0 --depth 1 --single-branch">>$ftest
         for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/9.0">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
           echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 9.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 9.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
+          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
+          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
           echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
-          echo "--> cd /opt/odoo/9.0">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
         done
         echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
-        echo "--> cd /opt/odoo/9.0">>$ftest
-        echo "--> git checkout 9.0">>$ftest
+        echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -2105,9 +2111,9 @@ test_update () {
       fi
     elif [ "$p" == "$THIS" ]; then
       echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> mv $TDIR/$p /usr/bin">>$ftest
-      echo "--> mv $TDIR/${p}.man /usr/bin">>$ftest
-      echo "--> mv $TDIR/${p}_bld_ods /usr/bin">>$ftest
+      echo "--> cp $TDIR/$p /usr/bin">>$ftest
+      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
+      echo "--> cp $TDIR/${p}_bld_ods /usr/bin">>$ftest
       echo "--> chmod +x /usr/bin/$p*">>$ftest
       for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
         if [ -f $TDIR/$f ]; then
@@ -2221,8 +2227,8 @@ test_update () {
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
-        echo "--> cd /opt/odoo/9.0">>$ftest
-        echo "--> git checkout 9.0">>$ftest
+        echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -2284,8 +2290,8 @@ test_update () {
         echo "--> rpm -U $pn">>$ftest
         echo "--> rm -f $pn">>$ftest
       else
-        echo "--> cd /opt/odoo/9.0">>$ftest
-        echo "--> git checkout 9.0">>$ftest
+        echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
@@ -2800,7 +2806,7 @@ elif [ "$action" == "regression_test" ]; then
   opt_grf=1
   opt_quiet=0
   opt_verbose=0
-  opt_odoo="9"
+  opt_odoo="7"
   opt_dev=0
   opt_oed="odoo"
   SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"

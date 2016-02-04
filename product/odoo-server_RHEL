@@ -29,7 +29,7 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.2.1-RHEL
+# version: 0.2.2-RHEL
 # Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
@@ -110,7 +110,7 @@ checkpid() {
 
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
-    local PIDDIR=$(dirname PIDFILE)
+    local PIDDIR=$(dirname $PIDFILE)
     if [ ! -d $PIDDIR ]; then
       mkdir $PIDDIR
       chmod 0755 $PIDDIR

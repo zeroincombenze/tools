@@ -110,7 +110,7 @@ checkpid() {
 
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
-    local PIDDIR=$(dirname PIDFILE)
+    local PIDDIR=$(dirname $PIDFILE)
     if [ ! -d $PIDDIR ]; then
       mkdir $PIDDIR
       chmod 0755 $PIDDIR

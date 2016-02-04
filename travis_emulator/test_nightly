@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.62.4
+__version__=0.1.62.7
 # main
 OPTOPTS=(h        A         C        K        n           O        t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_test opt_version opt_verbose opt_8 opt_9)
@@ -63,10 +63,10 @@ fi
 upgrade_myself () {
 # THIS is developed on /opt/odoo/dev/pypi/travis_emulator/travis_emulator (DEV_DIR)
 # If regression test ends successfully, is copied to /opt/odoo/tools/travis_emulator (PRD_DIR)
-# Because THIS runs on ~/dev (RUN_DIR), is copied from /opt/odoo/tools/travis_emulator
+# Because THIS runs on ~/bin (RUN_DIR), is copied from /opt/odoo/tools/travis_emulator
 # after a short regression test
     local PRD_DIR=/opt/odoo/tools/travis_emulator
-    local RUN_DIR=$(readlink -f ~/dev)
+    local RUN_DIR=$(readlink -f ~/bin)
     local sts=0
     if [ "$USER" == "odoo" -a -f $DEV_DIR/$THIS -a "$TDIR" != "$DEV_DIR" ]; then
       elog "Check for newest version to run"
@@ -123,10 +123,12 @@ test_pkg_pypi () {
     wlog "Required test for $1 package ..."
     if [ ! -d ~/dev/pypi/$1 ]; then
       wlog "!? Package $1 not found!"
+      generate_svg "$USER" "FAIL" "$__version__"
       exit 1
     fi
     if [ ! -d ~/dev/pypi/$1/$1 ]; then
       wlog "!? Invalid package $1!"
+      generate_svg "$USER" "FAIL" "$__version__"
       exit 1
     fi
     if [ ! -d ~/dev/pypi/$1/$1/tests ]; then
@@ -457,6 +459,7 @@ for p in DEV_HOST MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM; do
   declare $p=$(get_cfg_value "" "$p")
   if [ -z "${!p}" ]; then
     elog "!? Invalid configuration parameter $p!!"
+    generate_svg "$USER" "FAIL" "$__version__"
     exit 1
   fi
 done
@@ -474,8 +477,10 @@ if [ $opt_8 -gt 0 ]; then
   fi
   if [ $sts -eq 0 ]; then
     wlog "Test $__version__ successfully terminated"
+    generate_svg "$USER" "OK" "$__version__"
   else
     wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
+    generate_svg "$USER" "FAIL" "$__version__"
   fi
   exit $sts
 fi
@@ -559,7 +564,10 @@ if [ $EUID -eq 0 ]; then
       [ $sts -eq 0 ]&&sts=$s
     fi
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff test_nightly topep8 travis travisrc" "odoo:ERPs"
+      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:ERPs"
+      s=$?
+      [ $sts -eq 0 ]&&sts=$s
+      cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:ERPs"
       s=$?
       [ $sts -eq 0 ]&&sts=$s
     fi
@@ -672,8 +680,10 @@ if [ $opt_9 -gt 0 ]; then
   sts=0
 fi
 if [ $sts -eq 0 ]; then
+  generate_svg "$USER" "OK" "$__version__"
   wlog "Test $__version__ successfully terminated"
 else
+  generate_svg "$USER" "FAIL" "$__version__"
   wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
 fi
 exit $sts

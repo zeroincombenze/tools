@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
@@ -17,13 +17,16 @@ elif [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit 1
 fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.70
+__version__=0.1.71
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -49,14 +52,14 @@ OPTHELP=("this help"\
  "refresh info for distribution")
 OPTARGS=(pkg_path PRJNAME)
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Copy package for distribution"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$opt_conf" -a -f "$opt_conf" ]; then
@@ -131,6 +134,8 @@ fi
 if [ "$opt_whatis" ]; then
   if [ "$opt_whatis" == "LGITPATH" -o "$opt_whatis" == "PKGPATH" -o "$opt_whatis" == "SETUP" -o "$opt_whatis" == "ODOO_SETUP" -o "$opt_whatis" == "REPOSNAME" ]; then
     echo "${!opt_whatis}"
+  elif [ "$opt_whatis" == "PRJVERSION" ]; then
+    echo "${prjversion}"
   else
     echo "Unknown!!"
   fi

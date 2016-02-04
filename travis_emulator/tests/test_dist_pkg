@@ -54,7 +54,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.70
+__version__=0.1.71
 parseoptest -l$TESTDIR/test_travis_em.log $@
 sts=$?
 if [ $sts -ne 127 ]; then

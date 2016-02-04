@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.38
+#__version__=0.1.41
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -175,8 +175,9 @@ install_dev () {
 
 update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
+    ME_BOS="test_nightly .test_nightly.conf.sample"
     if [ "$1" == "travis_emulator" ]; then
-      RFLIST="beauty cronow .dist_pkg.conf dist_pkg prjdiff test_nightly topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+      RFLIST="beauty .dist_pkg.conf dist_pkg prjdiff topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
       RDLIST="_travis/"
     elif [ "$1" == "z0lib" ]; then
       # set -x #debug
@@ -222,6 +223,23 @@ update_dev () {
           elif [ ${opt_fetch:-0} -eq 0 ]; then
              if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
              (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
+          fi
+        done
+      fi
+      if [ -n "$ME_BOS" ]; then
+        for x in $ME_BOS cronow; do
+          if [ -f $PKGPATH/$pkgname/$x ]; then
+            if [ ${opt_diff:-0} -gt 0 ]; then
+              if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x)" ]; then
+                if [ ${opt_verbose:-0} -gt 0 ]; then echo "> diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+                diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x
+              fi
+            elif [ ${opt_fetch:-0} -gt 0 ]; then
+              true
+            else
+              if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+              (($opt_dry_run))||cp $PKGPATH/$pkgname/$x ~/bin/$x
+            fi
           fi
         done
       fi
