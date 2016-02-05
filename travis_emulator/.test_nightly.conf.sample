@@ -10,7 +10,9 @@ SVG_TMPL_DIR=/var/www/svg-templates
 # SVG_TMPL_BTNM: Button OK/Fail name
 SVG_TMPL_BTNM=button-ci-ct.svg
 # PKGSLX: PYPI packages to test nightly
-PKGSLX="clodoo os0 product pytok travis_emulator wok_code wok_news z0lib z0tester zar"
-# PKGSLX="travis_emulator z0lib zar"
+PKGSLX=clodoo,os0,product,pytok,travis_emulator,wok_code,wok_news,z0lib,z0tester,zar
+# PKGSLX=travis_emulator,z0lib,zar
 # MYPKG: Package contains test_nightly itself
 MYPKG=travis_emulator
+# HTML_SVG_DIR: directory where http daemon searches SVG to publish
+HTML_SVG_DIR=/var/www/html/wp-zi/wp-content/uploads/ci-ct

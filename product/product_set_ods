@@ -1,0 +1,108 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# In Odoo multi-version installation set specific Odoo version as default
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+if [ -f z0librc ]; then
+  . ./z0librc
+elif [ -f ~/z0librc ]; then
+  . ~/z0librc
+elif [ -f /etc/z0librc ]; then
+  . /etc/z0librc
+else
+  echo "Libreria z0librc non trovata!"
+  exit 1
+fi
+
+__version__="0.1.2"
+THIS=$(basename $0)
+TDIR=$(echo $(readlink -f $(dirname $0)))
+
+
+
+OPTOPTS=(h        I         n            O         U        V           v)
+OPTDEST=(opt_help opt_id    opt_dry_run  odoo_ver  opt_usr opt_version opt_verbose)
+OPTACTI=(1        "="       1            "=>"      1       "*>"        1)
+OPTDEFL=(1        "odoo"    0            "9"       0       ""          0)
+OPTMETA=("help"   "id-name" "do nothing" "version" "usr"   "version"   "verbose")
+OPTHELP=("this help"\
+ "set id name (odoo or openerp, default is odoo)"\
+ "do nothing (dry-run)"\
+ "select odoo version: may be 7, 8 or 9"\
+ "change postgres user too"\
+ "show version"\
+ "verbose mode")
+OPTARGS=()
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Set a specific Odoo version as default\nSee product_bld_ods and product commands for furthermore info"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+
+cp_n_upd () {
+    local src="$1"
+    local tgt=$(echo "$src"|sed -e "s:odoo$odoo_ver:odoo:")
+    local tmp="$(basename $tgt).tmp"
+    local bak="$tgt.bak"
+	if [ ! -f $src ]; then
+	  echo "File $src not found!"
+	  exit 1
+	fi
+	if [ -f $tmp ]; then
+	  rm -f $tmp
+	fi
+	while IFS=\| read -r line; do
+	  if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
+	    line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo:")
+	  elif [[ $line =~ ^db_user[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
+	    if [ $opt_usr -gt 0 ]; then
+	      line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	    fi
+	  elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9]* ]]; then
+	    line="xmlrpc_port = 8069"
+	  elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  elif [[ $line =~ .*odoo$odoo_ver-server.conf.* ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  elif [[ $line =~ .*odoo$odoo_ver-server.pid.* ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  elif [[ $line =~ .*odoo$odoo_ver-server.log.* ]]; then
+	    line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo:")
+	  fi
+	  echo "$line">>$tmp
+	done < "$src"
+	if [ -x $src ]; then
+	  chmod +x $tmp
+	fi
+	if [ $opt_dry_run -eq 0 ]; then
+	  mv -f $tgt $bak
+	  mv -f $tmp $tgt
+	else
+	  echo "See $tmp to discover how to script works"
+	fi
+}
+
+if [ $opt_dry_run -eq 0 ]; then
+  service odoo-server restart
+fi
+for f in /etc/odoo/odoo${odoo_ver}-server.conf /etc/init.d/odoo${odoo_ver}-server; do
+  cp_n_upd "$f"
+done
+if [ $opt_dry_run -eq 0 ]; then
+  service odoo-server restart
+fi

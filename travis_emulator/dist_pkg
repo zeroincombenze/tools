@@ -26,7 +26,7 @@ fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.71
+__version__=0.1.72
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -256,7 +256,7 @@ if [ "$opt_cpush" == "-w" ]; then
   if [ "$PRJNAME" != "z0lib" ]; then
     if [ -f ./Makefile -a -f /opt/odoo/dev/Makefile ]; then
       rm -f ./Makefile
-      ln -s /opt/odoo/dev/Makefile ./
+      # ln -s /opt/odoo/dev/Makefile ./
     fi
     if [ -f ./z0librc -a -f /etc/z0librc ]; then
       x=$(_install_z0librc -n)

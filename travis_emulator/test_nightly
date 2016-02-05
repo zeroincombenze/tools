@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.62.7
+__version__=0.1.62.21
 # main
 OPTOPTS=(h        A         C        K        n           O        t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_test opt_version opt_verbose opt_8 opt_9)
@@ -122,18 +122,18 @@ test_pkg_pypi () {
     wlog "------------------------------------"
     wlog "Required test for $1 package ..."
     if [ ! -d ~/dev/pypi/$1 ]; then
+      generate_svg "$USER" "WARN" "$__version__"
       wlog "!? Package $1 not found!"
-      generate_svg "$USER" "FAIL" "$__version__"
       exit 1
     fi
     if [ ! -d ~/dev/pypi/$1/$1 ]; then
+      generate_svg "$USER" "WARN" "$__version__"
       wlog "!? Invalid package $1!"
-      generate_svg "$USER" "FAIL" "$__version__"
       exit 1
     fi
     if [ ! -d ~/dev/pypi/$1/$1/tests ]; then
+      generate_svg "$1" "WARN"
       wlog "!? Unit test for package $1 not found"
-      generate_svg "$1" "FAIL"
       exit 0
     fi
     sts=0
@@ -167,8 +167,8 @@ test_pkg_pypi () {
       fi
       generate_svg "$1" "OK" "$ver"
     else
-      wlog "!? Package $1: test failed ($sts)! See package log in ~/dev/pypi/$1/$1/tests!!!"
       generate_svg "$1" "FAIL"
+      wlog "!? Package $1: test failed ($sts)! See package log in ~/dev/pypi/$1/$1/tests!!!"
     fi
     return $sts
 }
@@ -201,11 +201,12 @@ pkg_pypi_commit () {
       fi
       if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
         wlog "> make commit # $1"
-        if [ $opt_verbose -gt 0 ]; then
-          make commit &>>~/$THIS.log
-        else
-          make commit &>/dev/null
-        fi
+        cd ~/dev/pypi/$1; dist_pkg -vC $1 $1; &>>~/$THIS.log
+        # if [ $opt_verbose -gt 0 ]; then
+        #   make commit &>>~/$THIS.log
+        # else
+        #   make commit &>/dev/null
+        # fi
       fi
     fi
     return $sts
@@ -330,7 +331,7 @@ cpfiles () {
     fi
     local CWD=$PWD
     local sts=0
-    if [ -d $1 ]; then
+    if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
         if [ -f $1/$f ]; then
@@ -363,7 +364,7 @@ scpfiles () {
     fi
     local CWD=$PWD
     local sts=0
-    if [ -d $1 ]; then
+    if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
         if [ -f $1/$f ]; then
@@ -392,7 +393,7 @@ mvfiles () {
     fi
     local CWD=$PWD
     local sts=0
-    if [ -d $1 ]; then
+    if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
         if [ -f $1/$f ]; then
@@ -433,8 +434,12 @@ generate_svg () {
     fi
     if [ "$2" == "OK" ]; then
       local color_result="#33a600"
-    else
+    elif [ "$2" == "FAIL" ]; then
       local color_result="#900404"
+    elif [ "$2" == "WARN" ]; then
+      local color_result="#ff8000"
+    else
+      local color_result="#8b8989"
     fi
     if [ -n "$tgt" ]; then
       cp $SVG_TMPL_DIR/$SVG_TMPL_BTNM ./$sw_id.svg
@@ -443,8 +448,34 @@ generate_svg () {
         sed -i "s:\${$t}:${!t}:g" ./$sw_id.svg
       done
       local d=$(readlink -f ~/dev/svg)
-      mvfiles "." "$d" "$sw_id.svg"
+      if [ -n "$d" ]; then
+        mvfiles "." "$d" "$sw_id.svg"
+      fi
     fi
+}
+
+publish_svg () {
+# publish_svg(src)
+    local sts=1
+    if  [ -n "$1" ]; then
+      if [ "$HOSTNAME" == "$PRD_HOST" ]; then
+        tgt="prd"
+      elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
+        tgt="dev"
+      else
+        tgt=""
+      fi
+      if [ -n "$tgt" ]; then
+        mvfiles "$1" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
+        local sts=$?
+        if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+          scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
+          local s=$?
+          [ $sts -eq 0 ]&&sts=$s
+        fi
+      fi
+    fi
+    return $sts
 }
 
 
@@ -454,12 +485,13 @@ a_add "0" "DEV_HOST" "shsdev16"
 a_add "0" "PRD_HOST" "shsprd14"
 a_add "0" "ME_BOS" "test_nightly .test_nightly.conf.sample"
 a_add "0" "MYPKG" "travis_emulator"
+a_add "0" "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
 link_cfg $FCONF
 for p in DEV_HOST MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM; do
   declare $p=$(get_cfg_value "" "$p")
   if [ -z "${!p}" ]; then
-    elog "!? Invalid configuration parameter $p!!"
     generate_svg "$USER" "FAIL" "$__version__"
+    elog "!? Invalid configuration parameter $p!!"
     exit 1
   fi
 done
@@ -468,6 +500,7 @@ for p in ME_BOS PKGSLX; do
   declare $p="$(get_cfg_value "" "$p")"
   declare $p="${!p//,/ }"
 done
+# PKGSLX="travis_emulator z0lib"  #debug
 if [ $opt_8 -gt 0 ]; then
   if [ "$TDIR" != "$tgt" ]; then
     cpfiles "$TDIR" "$tgt" "$ME_BOS"
@@ -476,11 +509,12 @@ if [ $opt_8 -gt 0 ]; then
     sts=0
   fi
   if [ $sts -eq 0 ]; then
-    wlog "Test $__version__ successfully terminated"
     generate_svg "$USER" "OK" "$__version__"
+    ssh $PRD_HOST "cronow -s $THIS"
+    wlog "Test $__version__ successfully terminated"
   else
-    wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
     generate_svg "$USER" "FAIL" "$__version__"
+    wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
   fi
   exit $sts
 fi
@@ -548,23 +582,10 @@ if [ $EUID -eq 0 ]; then
     fi
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
+    publish_svg "$d"
+    sts=$?
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      tgt="prd"
-    elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      tgt="dev"
-    else
-      tgt=""
-    fi
-    mvfiles "$d" "/var/www/html/wp-zi/wp-content/uploads/ci-ct/$tgt" "*.svg" "apache:apache"
-    s=$?
-    [ $sts -eq 0 ]&&sts=$s
-    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-       scpfiles "/var/www/html/wp-zi/wp-content/uploads/ci-ct/$tgt" "$PRD_HOST:/var/www/html/wp-zi/wp-content/uploads/ci-ct/$tgt" "*.svg"
-      s=$?
-      [ $sts -eq 0 ]&&sts=$s
-    fi
-    if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py cronow dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:ERPs"
+      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:ERPs"
       s=$?
       [ $sts -eq 0 ]&&sts=$s
       cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:ERPs"
@@ -575,6 +596,9 @@ if [ $EUID -eq 0 ]; then
     s=$?
     [ $sts -eq 0 ]&&sts=$s
     cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
+    s=$?
+    [ $sts -eq 0 ]&&sts=$s
+    cpfiles "/opt/odoo/tools/travis_emulator" "/root/bin" "cronow" "root:root"
     s=$?
     [ $sts -eq 0 ]&&sts=$s
     # cpfiles "/opt/openerp/dev" "/root" "oe_upd_burst" "root:root"
@@ -681,9 +705,16 @@ if [ $opt_9 -gt 0 ]; then
 fi
 if [ $sts -eq 0 ]; then
   generate_svg "$USER" "OK" "$__version__"
+  if [ $EUID -eq 0 ]; then
+    publish_svg "."
+  fi
+  ssh $PRD_HOST "cronow -s $THIS"
   wlog "Test $__version__ successfully terminated"
 else
   generate_svg "$USER" "FAIL" "$__version__"
+  if [ $EUID -eq 0 ]; then
+    publish_svg "."
+  fi
   wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
 fi
 exit $sts
