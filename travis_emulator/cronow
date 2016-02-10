@@ -4,7 +4,7 @@
 # Tool for test cron
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -18,7 +18,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.13
+__version__=0.1.14
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
@@ -42,14 +42,14 @@ OPTHELP=("this help"\
  "wait for job activation")
 OPTARGS=()
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run now a selected cron statement from crontab"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -75,7 +75,7 @@ elif [ $opt_rback -gt 0 ]; then
     echo "dd">>$VIM_RC
     echo ":wq">>$VIM_RC
     if [ $opt_dry_run -eq 0 ]; then
-      VISUAL="vim -s $VIM_RC" crontab -e
+      VISUAL="vim -s $VIM_RC" crontab -e &>/dev/null
     fi
     crontab -l >$CRONTAB_TMP
     diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
@@ -99,7 +99,10 @@ elif [ $opt_rback -gt 0 ]; then
   exit 0
 fi
 if [ -f $CRONTAB_SAVED ]; then
-   if [ $opt_force -eq 0 ]; then
+   if [ "$opt_action" == "-l" ]; then
+    cat $CRONTAB_SAVED
+    exit 0
+   elif [ $opt_force -eq 0 ]; then
      echo "$THIS already running or previous crashed execution"
      echo "Use -f for run after previous crash"
      exit 1

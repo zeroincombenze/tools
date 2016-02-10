@@ -15,7 +15,7 @@
 # oerplib
 # wget
 # flake8, autopep8, pylint
-# yum install mod_ssl
+# yum install mod_ssl mod_proxy_html iptables-services bind-utils
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
 # yum -y install nodejs
@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.24.4"
+__version__="0.2.24.5"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -892,23 +892,30 @@ update_hba_conf () {
       if [ $eorem -eq 1 -a $patched -eq 0 -a $fnd_mrk -eq 0 ]; then
          patched=1
          echo "# [PRODUCT: $dt] Added access to Odoo">>$1.tmp
-         echo "# In order to use all odoo version, db access is done by virtual users odoo[7|8|9]">>$1.tmp
-         echo "# Because odoo[7|8|9] are not real username, trust method is used for them">>$1.tmp
+         echo "# Where user were created, no password was issued, so this configuration uses trust method to connect">>$1.tmp
+         echo "# Warning! This method is unsecure for no local connection">>$1.tmp
+         echo "# In order to set postgresql secure you must:">>$1.tmp
+         echo "# 1. drop users automatically created; type >drop user odoo[7|8|9]">>$1.tmp
+         echo "# 2. recreate users">>$1.tmp
+         echo "#    type >createuser --createdb --username postgres --no-createrole --no-superuser --pwprompt odoo[7|8|9]">>$1.tmp
+         echo "#    Rememeber password you type, because you must insert it in odoo conf file">>$1.tmp
+         echo "# 3. Correct following lines, subst 'trust' by 'md5' for users odoo[7|8|9]">>$1.tmp
+         echo "# 4. Restart service postgresql">>$1.tmp
          echo "# When you connect to psql console do not forget dbname, type:">>$1.tmp
          echo "# psql -Uodoo[7|8|9] postgres">>$1.tmp
          echo "# User openerp is used by old installation schema of Odoo7 (formerly OpenERP)">>$1.tmp
          echo "local   all         openerp                           peer">>$1.tmp
-         echo "host    all         openerp     127.0.0.1/32          md5">>$1.tmp
-         echo "host    all         openerp     ::1/128               md5">>$1.tmp
+         echo "host    all         openerp     127.0.0.1/32          trust">>$1.tmp
+         echo "host    all         openerp     ::1/128               trust">>$1.tmp
          echo "local   all         odoo                              peer">>$1.tmp
-         echo "host    all         odoo        127.0.0.1/32          md5">>$1.tmp
-         echo "host    all         odoo        ::1/128               md5">>$1.tmp
+         echo "host    all         odoo        127.0.0.1/32          trust">>$1.tmp
+         echo "host    all         odoo        ::1/128               trust">>$1.tmp
          for ov in 7 8 9; do
            echo "local   all         odoo$ov                             trust">>$1.tmp
            echo "host    all         odoo$ov       127.0.0.1/32          trust">>$1.tmp
            echo "host    all         odoo$ov       ::1/128               trust">>$1.tmp
          done
-         echo "# [PRODCUT: end automatic configuration]">>$1.tmp
+         echo "# [PRODUCT: end automatic configuration]">>$1.tmp
       fi
       echo "$line">>$1.tmp
     done < "$1"
@@ -1450,7 +1457,7 @@ product_config_odoo () {
       cmd="$cmd --db_user=$uu"
       cmd="$cmd --db_password=$pwd"
       if [ "$opt_multi" == "-m" ]; then
-        cmd="$cmd --xmlrpc-port=808$ov"
+        cmd="$cmd --xmlrpc-port=816$ov"
       fi
       run_traced "$cmd"
       if [ -f /opt/odoo/.openerp_serverrc ]; then
@@ -2498,7 +2505,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add graphical interface package(s)"\
  "[user@]host to export config files"\
  "declare package(s) as installed"\
- "use identity file (private key) for authentication"\
+ "use identity file (private key) for remote authentication"\
  "declare package(s) as uninstalled"\
  "log file name (def /var/log/product.log)"\
  "include localization module for odoo; use ISO3166 country code"\

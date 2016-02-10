@@ -18,7 +18,7 @@ else
   exit 1
 fi
 
-__version__="0.2.1"
+__version__="0.2.2"
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
 
@@ -84,6 +84,12 @@ if [ -z "$opt_name" ]; then
   else
     opt_name=${opt_id}-server
   fi
+fi
+if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
+  odoo_fver="$odoo_ver.0"
+else
+  odoo_fver="$odoo_ver"
+  odoo_ver=$(if $(echo "/$odoo_ver/"|grep "/v9/\|9.0/">/dev/null); then echo "9"; elif $(echo "/$odoo_ver/"|grep "/v8/\|8.0/">/dev/null); then echo "8"; else echo "7"; fi)
 fi
 if [ -z "$opt_pid" ]; then
   if [ $opt_mult -gt 0 ]; then
@@ -201,7 +207,7 @@ while IFS=\| read -r line; do
     elif [ "$prm" == "xtl_altcfgfile" ]; then
       declare $prm="$opt_cfg2"
     elif [ "$prm" == "xtl_version" ]; then
-      declare $prm="$odoo_ver.0"
+      declare $prm="$odoo_fver"
     elif [ "$prm" == "xtl_user" ]; then
       declare $prm="$opt_user"
     elif [ "$prm" == "xtl_test" ]; then

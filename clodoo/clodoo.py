@@ -36,15 +36,20 @@ import re
 import csv
 
 
-__version__ = "0.2.58"
+__version__ = "0.2.59"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = False
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = "/etc/odoo-server.conf"
+ODOO_CONF = ["/etc/odoo/odoo-server.conf",
+             "/etc/odoo-server.conf",
+             "/etc/openerp/openerp-server.conf",
+             "/etc/openerp-server.conf",
+             "/etc/odoo/openerp-server.conf",
+             "/etc/openerp/odoo-server.conf"]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
-OE_CONF = "/etc/openerp-server.conf"
+OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
 LX_CFG_S = ('db_name',
@@ -1937,12 +1942,22 @@ def read_config(opt_obj, parser, conf_fn=None):
     d = default_conf()
     conf_obj = ConfigParser.SafeConfigParser(d)
     if ODOO_CONF:
-        if os.path.isfile(ODOO_CONF):
-            conf_fns = (ODOO_CONF, conf_fn)
-        elif os.path.isfile(OE_CONF):
-            conf_fns = (OE_CONF, conf_fn)
+        if isinstance(ODOO_CONF, list):
+            found = False
+            for f in ODOO_CONF:
+                if os.path.isfile(f):
+                    conf_fns = (f, conf_fn)
+                    found = True
+                    break
+            if not found:
+                conf_fns = conf_fn
         else:
-            conf_fns = conf_fn
+            if os.path.isfile(ODOO_CONF):
+                conf_fns = (ODOO_CONF, conf_fn)
+            elif os.path.isfile(OE_CONF):
+                conf_fns = (OE_CONF, conf_fn)
+            else:
+                conf_fns = conf_fn
     else:
         conf_fns = conf_fn
     conf_obj.read(conf_fns)

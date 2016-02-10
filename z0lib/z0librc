@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.30
+#__version__=0.1.31
 
 
 ##############################################################################
@@ -271,7 +271,7 @@ export -f xuname
 #      =    Set variable to following option value
 #      2.nd character:
 #      >    executive command (disable help and version)
-#   OPTDEFL  array with defalt values (matches one to one OPTOPTS)
+#   OPTDEFL  array with default values (matches one to one OPTOPTS)
 #   OPTMETA  array with meta help to build help (matches one to one OPTOPTS)
 #   OPTHELP  array with parameters description to build help (matches one to one OPTOPTS)
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
@@ -315,7 +315,7 @@ parseoptargs() {
                 ((++jj))
                 export ${OPTDEST[jy]}=${oo:jj}
                 a="${!OPTDEST[jy]}"
-                if [ "$a" ]
+                if [ -n "$a" ]
                 then
                   jj=${#oo}
                 else

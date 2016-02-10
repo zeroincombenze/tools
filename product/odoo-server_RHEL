@@ -29,7 +29,7 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.2.2-RHEL
+# version: 0.2.3-RHEL
 # Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
@@ -89,7 +89,11 @@ PIDFILE=${xtl_pidfile}
 LOCKFILE=/var/lock/subsys/${NAME}
 LOGFILE=${xtl_logfile}
 # Additional options that are passed to the Daemon.
-DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
+if [ "$DIST" == "Ubuntu" ]; then
+  DAEMON_OPTS="--logfile=$LOGFILE"
+else
+  DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
+fi
 # check if the ${xtl_name} conf file is present, then use it
 if [ -f $CONFIGFILE ]; then
     DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
