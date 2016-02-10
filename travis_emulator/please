@@ -1,0 +1,176 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# please
+# Developer shell
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+elif [ -f /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit 1
+fi
+. $TDIR/travisrc
+
+__version__="0.1.11"
+STS_FAILED=1
+STS_SUCCESS=0
+
+do_annotate () {
+  # set -x
+  trap - DEBUG
+  local fhist=$1.tracehistory
+  if [ -f $1 ]; then
+    mkdir -p ./cover
+    local ln=$(head -n1 $1)
+    if [ -n "$ln" -a "${ln:4:5}" == "trap" ]; then
+      tail -n+2 $1>$1.tmp
+      mv -f $1.tmp $1
+    fi
+    echo "trap \"echo [\$LINENO] \$BASH_COMMAND>>$fhist\" DEBUG">$fhist
+    cat $fhist $1>$1.sh
+    rm -f $fhist
+    chmod +x $1.sh
+    mv -f $1.sh $1
+    $1
+      tail -n+2 $1>$1.tmp
+      mv -f $1.tmp $1
+      chmod +x $1
+    fi
+    python $TDIR/$THIS.py $1
+    rm -f $fhist
+    # cat ./cover/$1,cover
+    return 0
+}
+
+do_check (){
+    travis local/"$1" check;
+    return 0
+}
+
+do_test () {
+    if [ $opt_verbose -gt 0 ]; then
+      set -x  #debug
+    fi
+    if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
+      if [ $opt_dprj -gt 0 ]; then
+        cd ~/dev/pypi/$1/$1
+        ./tests/all_tests
+      else
+        cd ~/dev/pypi/$1/$1/tests
+        ./all_tests
+      fi
+      sts=$?
+    elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
+      if [ $opt_dprj -gt 0 ]; then
+        cd ~/dev/pypi/$1/$1
+      else
+        cd ~/dev/pypi/$1/$1/tests
+      fi
+      PYTHONPATH=~/dev/pypi/$1 python ~/dev/pypi/$1/$1/tests/test_$1.py
+      sts=$?
+    else
+      sts=1
+    fi
+    # set +x #debug
+    return $sts
+}
+
+OPTOPTS=(h        b          c        j        L         n           p         q         r     t         V           v           y)
+OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r test_mode opt_version opt_verbose opt_yes)
+OPTACTI=(1        "="        "="      1        "="       1           "="       1         1     1         "*"         1           "*")
+OPTDEFL=(1        "9.0"      ""       0        ""        0           ""        0         0     0         ""          0           "")
+OPTMETA=("help"   "branch"   "file"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "test"    "version"   "verbose"   "yes")
+OPTHELP=("this help, type '$THIS help' for furthermore info"\
+ "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
+ "configuration file"\
+ "execute test from project dir (not in test dir)"\
+ "log file name (def /var/log/product.log)"\
+ "do nothing (dry-run)"\
+ "declare local git path"\
+ "quiet mode"\
+ "run rescricted mode (w/o maintainer-quality-tools)"\
+ "test mode (implies dry-run)"\
+ "show version end exit"\
+ "verbose mode"\
+ "assume yes")
+OPTARGS=(action pkg sub1 sub2)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Developer shell\nAction may be: check, test, all (default) or setup"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
+else
+  TCONF=$TDIR/.travis.conf
+fi
+$(init_cfg)
+$(active_cfg)
+a_add "0" "DEV_HOST" "shsdev16"
+a_add "0" "PRD_HOST" "shsprd14"
+a_add "0" "ODOO_SETUP" "__openerp__.py"
+link_cfg $TCONF
+if [ "$pkg" ]; then
+  PKGPATH=$pkg
+else
+  PKGPATH=$PWD
+fi
+PKGPATH=$(set_pkgpath "$PKGPATH")
+pkgname=$(basename $PKGPATH)
+init_travis
+if [ -z "$PRJNAME" ]; then
+  PRJNAME=$(basename $PKGPATH)
+fi
+if [ "$opt_dpath" ]; then
+  LGITPATH="$opt_dpath"
+else
+  if [ "$REPOSNAME" ]; then
+    declare LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+  else
+    declare LGITPATH=
+  fi
+  if [ -z "$LGITPATH" ]; then
+    declare LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+  fi
+  if [ -z "$LGITPATH" ]; then
+    LGITPATH=$(get_cfg_value "" "distpath")
+  fi
+fi
+LGITPATH=$(expand_path "$LGITPATH")
+
+
+sts=0
+if [ "$action" == "help" ]; then
+  man $TDIR/$THIS.man
+elif [ "$action" == "check" ]; then
+  do_check "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "test" ]; then
+  do_test "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "annotate" ]; then
+  do_annotate "$pkg" "$sub1" "$sub2"
+  sts=$?
+fi
+exit $sts

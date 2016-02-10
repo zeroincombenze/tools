@@ -1,0 +1,57 @@
+.\" Manpage for please.
+.\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
+.TH please 8
+.SH NAME
+please \- develeoper shell
+.SH SYNOPSIS
+please [options] action [package]
+.SH DESCRIPTION
+\fBplease\fR is an interactive developer shell aim to help development and testing software.
+.br
+
+.br
+Action is one of:
+.br
+* help
+.br
+* check
+.br
+* test
+.br
+.RE
+\fBcheck\fR
+.RS
+Check for syntax.
+.RE
+\ftest\fR
+.RS
+Run regression test.
+.RE
+.RE
+.SH OPTIONS
+.TP
+.BR \-L \fIfilename\fR
+Trace file name. Default is /var/log/product.log if user is root, otherwise is ~/product.log
+
+.TP
+.BR \-n
+Do nothing (dry-run)
+.TP
+.TP
+.BR \-q
+Quiet mode
+.TP
+.BR \-V
+Show version
+.TP
+.BR \-v
+Verbose mode
+.TP
+.BR \-y
+assume yes
+.SH EXAMPLES
+please test
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Antonio Maria Vigliotti (antoniomaria.vigliotti@gmail.com)
