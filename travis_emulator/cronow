@@ -18,7 +18,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.1.14
+__version__=0.1.15
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
@@ -31,7 +31,7 @@ OPTACTI=(1        "*>"       1         "*>"       "1>"         "1>"      "=>"   
 OPTDEFL=(1        ""         0         ""         0            0         "^$"    ""          0           0  )
 OPTMETA=("help"   "edit"     "force"   "list"     "do nothing" "rollbck" "regex" "version"   "verbose"   "wait")
 OPTHELP=("this help"\
- "edit crontab after crash"\
+ "edit crontab after selection or crash"\
  "force execution"\
  "list crontab entries"\
  "do nothing (dry-run)"\
@@ -56,7 +56,9 @@ fi
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
 VIM_RC=~/$THIS.vim
-if [ "$opt_action" == "-e" ]; then
+if [ "$opt_sel" != "^\$" ]; then
+  true  # disable edit
+elif [ "$opt_action" == "-e" ]; then
   crontab -e
   if [ -f $CRONTAB_SAVED ]; then
     rm -vf $CRONTAB_SAVED
@@ -149,7 +151,9 @@ elif [ "$opt_sel" != "^\$" ]; then
     echo "GA">$VIM_RC
     echo "$rbckline">>$VIM_RC
     echo -e "$smtline\e">>$VIM_RC
-    echo ":wq">>$VIM_RC
+    if [ "$opt_action" != "-e" ]; then
+      echo ":wq">>$VIM_RC
+    fi
     if [ $opt_dry_run -eq 0 ]; then
       VISUAL="vim -s $VIM_RC" crontab -e
     fi
@@ -166,10 +170,6 @@ elif [ "$opt_sel" != "^\$" ]; then
           sleep 5
         fi
       done
-    # echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
-    # echo "G">$VIM_RC
-    # echo "dd">>$VIM_RC
-    # echo ":wq">>$VIM_RC
       sleep 5
     fi
     if [ $opt_dry_run -eq 0 ]; then

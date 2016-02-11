@@ -26,35 +26,43 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.11"
+__version__="0.1.13"
 STS_FAILED=1
 STS_SUCCESS=0
 
-do_annotate () {
-  # set -x
-  trap - DEBUG
-  local fhist=$1.tracehistory
-  if [ -f $1 ]; then
-    mkdir -p ./cover
+ann_rm_trap () {
     local ln=$(head -n1 $1)
     if [ -n "$ln" -a "${ln:4:5}" == "trap" ]; then
       tail -n+2 $1>$1.tmp
       mv -f $1.tmp $1
     fi
+}
+
+ann_add_trap () {
+    ann_rm_trap "$1"
     echo "trap \"echo [\$LINENO] \$BASH_COMMAND>>$fhist\" DEBUG">$fhist
     cat $fhist $1>$1.sh
     rm -f $fhist
     chmod +x $1.sh
     mv -f $1.sh $1
+}
+
+do_annotate () {
+# do_annotate(script, include_list)
+  # set -x
+  trap - DEBUG
+  local fhist=$1.tracehistory
+  if [ -f $1 ]; then
+    mkdir -p ./cover
+    ann_add_trap "$1"
     $1
-      tail -n+2 $1>$1.tmp
-      mv -f $1.tmp $1
-      chmod +x $1
-    fi
+    ann_rm_trap "$1"
+    chmod +x $1
     python $TDIR/$THIS.py $1
     rm -f $fhist
     # cat ./cover/$1,cover
-    return 0
+  fi
+  return 0
 }
 
 do_check (){
@@ -90,20 +98,21 @@ do_test () {
     return $sts
 }
 
-OPTOPTS=(h        b          c        j        L         n           p         q         r     t         V           v           y)
-OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r test_mode opt_version opt_verbose opt_yes)
-OPTACTI=(1        "="        "="      1        "="       1           "="       1         1     1         "*"         1           "*")
-OPTDEFL=(1        "9.0"      ""       0        ""        0           ""        0         0     0         ""          0           "")
-OPTMETA=("help"   "branch"   "file"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "test"    "version"   "verbose"   "yes")
+OPTOPTS=(h        b          c        j        L         n           p         q         r     s        t         V           v           y)
+OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_version opt_verbose opt_yes)
+OPTACTI=(1        "="        "="      1        "="       1           "="       1         1     "="      1         "*"         1           "*")
+OPTDEFL=(1        "9.0"      ""       0        ""        0           ""        0         0     ""       0         ""          0           "")
+OPTMETA=("help"   "branch"   "file"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "version"   "verbose"   "yes")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
  "execute test from project dir (not in test dir)"\
- "log file name (def /var/log/product.log)"\
+ "log file name"\
  "do nothing (dry-run)"\
  "declare local git path"\
  "quiet mode"\
- "run rescricted mode (w/o maintainer-quality-tools)"\
+ "run restricted mode (w/o maintainer-quality-tools)"\
+ "files include in annotate test"\
  "test mode (implies dry-run)"\
  "show version end exit"\
  "verbose mode"\
@@ -170,7 +179,7 @@ elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "annotate" ]; then
-  do_annotate "$pkg" "$sub1" "$sub2"
+  do_annotate "$pkg" "$opt_srcs"
   sts=$?
 fi
 exit $sts

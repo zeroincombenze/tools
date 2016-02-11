@@ -14,7 +14,7 @@
 # products?
 # oerplib
 # wget
-# flake8, autopep8, pylint
+# flake8, autopep8, pylint, coverage
 # yum install mod_ssl mod_proxy_html iptables-services bind-utils
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
