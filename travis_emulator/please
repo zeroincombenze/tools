@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.14"
+__version__="0.1.15"
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -104,14 +104,15 @@ do_travis (){
 }
 
 
-OPTOPTS=(h        b          c        j        L         n           p         q         r     s        t         V           v           y)
-OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_version opt_verbose opt_yes)
-OPTACTI=(1        "="        "="      1        "="       1           "="       1         1     "="      1         "*"         1           "*")
-OPTDEFL=(1        "9.0"      ""       0        ""        0           ""        0         0     ""       0         ""          0           "")
-OPTMETA=("help"   "branch"   "file"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "version"   "verbose"   "yes")
+OPTOPTS=(h        b          c        d        j        L         n           p         q         r     s        t         u       V           v           y)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose opt_yes)
+OPTACTI=(1        "="        "="      1        1        "="       1           "="       1         1     "="      1         1       "*"         1           "*")
+OPTDEFL=(1        "9.0"      ""       0        0        ""        0           ""        0         0     ""       0         0       ""          0           "")
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose"   "yes")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
+ "do diff no real action"\
  "execute test from project dir (not in test dir)"\
  "log file name"\
  "do nothing (dry-run)"\
@@ -120,6 +121,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "run restricted mode (w/o maintainer-quality-tools)"\
  "files include in annotate test"\
  "test mode (implies dry-run)"\
+ "check for unary operator W503"\
  "show version end exit"\
  "verbose mode"\
  "assume yes")
@@ -181,6 +183,27 @@ if [ "$action" == "help" ]; then
 elif [ "$action" == "annotate" ]; then
   do_annotate "$pkg" "$opt_srcs"
   sts=$?
+elif [ "$action" == "autopep8" ]; then
+  opts=
+  if [ $opt_dry_run -gt 0 ]; then
+    opts="${opts}n"
+  fi
+  if [ $opt_verbose -gt 0 ]; then
+    opts="${opts}v"
+  fi
+  if [ $opt_diff -gt 0 ]; then
+    opts="${opts}d"
+  fi
+  if [ $opt_uop -gt 0 ]; then
+    opts="${opts}u"
+  fi
+  if [ -n "$opts" ]; then
+    opts="-${opts}"
+  fi
+  if [ $opt_verbose -gt 0 ]; then
+    echo "topep8 $PKGPATH $opts"
+  fi
+  topep8 "$PKGPATH" "$opts"
 elif [ "$action" == "check" ]; then
   do_check "$pkgname" "$sub1" "$sub2"
   sts=$?
@@ -190,5 +213,9 @@ elif [ "$action" == "test" ]; then
 elif [ "$action" == "travis" ]; then
   do_travis "$pkgname" "$sub1" "$sub2"
   sts=$?
+else
+  echo "Invalid action!"
+  echo "Use $THIS help|annotate|autopep8|check|test"
+  sts=1
 fi
 exit $sts

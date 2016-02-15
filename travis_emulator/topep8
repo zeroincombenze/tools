@@ -1,82 +1,105 @@
+trap "echo [$LINENO] $BASH_COMMAND>>./topep8.tracehistory" DEBUG
+trap "echo [$LINENO] $BASH_COMMAND>>./topep8.tracehistory" DEBUG
 #! /bin/bash
 # Update source python file to pep8 standard
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f $TDIR/z0librc ]; then
+FCONF=$TDIR/.$THIS.conf
+if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
-elif [ -f ./z0librc ]; then
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit 1
 fi
 
-__version__="0.1.7"
+__version__="0.1.9"
 
 # main
-OPTOPTS=(h        n            V           v           q)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose opt_verbose)
-OPTACTI=(1        "1>"         "*>"        1           0)
-OPTDEFL=(1        0            ""          0           0)
-OPTMETA=("help"   "do nothing" "version"   "verbose"   "silent")
+OPTOPTS=(h        d        n            u       V           v           q)
+OPTDEST=(opt_help opt_diff opt_dry_run  opt_uop opt_version opt_verbose opt_verbose)
+OPTACTI=(1        1        1            1       "*>"        1           0)
+OPTDEFL=(1        0        0            0       ""          0           0)
+OPTMETA=("help"   "diff"   "do nothing" "uop"   "version"   "verbose"   "silent")
 OPTHELP=("this help"\
+ "show diff"\
  "do nothing (dry-run)"\
+ "check for unary operator W503"\
  "show version"\
  "verbose mode"\
  "silent mode")
 OPTARGS=(pathname basename)
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "PEP8 source python file\nfull path name maybe supplied as a single parameter\nor with two separated values (dir + basename)"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-p=$(dirname $pathname)
-if [ -z "$basename" ]; then
-  x=$(readlink -e $pathname)
-else
-  x=$(readlink -e $pathname/$basename)
-fi
-if [ -z "$x" ]; then
-  echo "File $pathname $basename not found!"
-  exit 1
-fi
-f=$(basename $x)
-p=$(dirname $x)
-echo "Reading $f in $p"
-HOMEDIR=$PWD
-cd $p
-autopep8 $f|sed 's/ $/\n/'>$f.new
-d=$(diff -q $f $f.new)
-if [ ! -z "$d" ]; then
-  if [ $opt_dry_run -eq 0 ]; then
-    mv $f $f.bak
-    mv $f.new $f
-    if [ $opt_verbose -gt 0 ]
-    then
-      diff $f.bak $f
-    fi
-    echo "File $f converted"
+if [ -d "$pathname" ]; then
+  path=$(readlink -f $pathname)
+  if [ -z "$basename" ]; then
+    selfl="*.py"
   else
-    if [ $opt_verbose -gt 0 ]
-    then
-      diff $f $f.new
-    fi
-    rm -f $f.new
-    echo "File $f should be converted"
+    selfl="$basename"
   fi
 else
- rm -f $f.new
+  path=$(dirname $pathname)
+  path=$(readlink -f $path)
+  selfl=$(basename $pathname)
 fi
-exit 0
+sts=1
+HOMEDIR=$PWD
+for fl in $(find $path -type f -name "$selfl"); do
+  sts=0
+  p=$(dirname $fl)
+  f=$(basename $fl)
+  if [ $opt_verbose -gt 0 ]; then
+    echo "Reading $f in $p"
+  fi
+  cd $p
+  autopep8 $f|sed 's/ $/\n/'>$f.new
+  if [ $opt_uop -gt 0 ]; then
+    python $TDIR/autopep8_W503.py $f.new
+  fi
+  d=$(diff -q $f $f.new)
+  if [ -z "$d" ]; then
+    rm -f $f.new
+  else
+    if [ $opt_dry_run -eq 0 ]; then
+      mv $f $f.bak
+      mv $f.new $f
+      if [ $opt_diff -gt 0 ]; then
+        diff $f.bak $f
+      fi
+      echo "File $f in $p converted"
+    else
+      if [ $opt_diff -gt 0 ]; then
+        diff $f $f.new
+      fi
+      rm -f $f.new
+      echo "File $f in $p should be converted"
+    fi
+  fi
+done
+cd $HOMEDIR
+if [ $opt_verbose -gt 0 -a $sts -gt 0 ]; then
+  echo "No file found!"
+fi
+exit $sts

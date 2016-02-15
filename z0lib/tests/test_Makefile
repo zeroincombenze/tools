@@ -88,7 +88,7 @@ testpath () {
 }
 
 
-__version__=0.1.81
+__version__=0.1.82
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then

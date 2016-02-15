@@ -76,6 +76,10 @@ is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.
 The -O switch select just a specific version of Odoo or all versions (see -O option)
 .br
 The -e switch must be declared to select Odoo repository to clone (see -e option)
+.br
+The -l switch add localization module during installation; see -l option
+.br
+The -s switch add sub-module during installation; see -s option
 .RE
 .br
 
@@ -91,6 +95,8 @@ a full LAMP server is created without development packages. Typing \fIproduct -D
 develepment packages.
 .br
 When Odoo is required, \fBproduct\fR update issuing \fIgit pull origin\fR command from github.com
+.br
+To update submodules use -l and -s switches
 .RE
 .br
 
@@ -207,6 +213,23 @@ Default password for users, if added by import command.
 .TP
 .BR \-q
 Quiet mode
+.TP
+.BR \-s \fImodules\fR
+This option selects Odoo repositories to add during installation; repository name must be present in github.com;
+i.e. to install OCA/server-tools command line is like follow:
+.br
+\fBproduct install odoo -eOCA -sserver-tools\fR
+.br
+It is possible install more packages, name are comma separated (i.e. -sserver-tools,bank-payment)
+.br
+Sub modules must be all in the same main repository selected by -e switch. It is not possible mix submodules of
+different repositories.
+.br
+Follow submodules are added with OCA repository:
+.br
+account-invoicing account-payment partner-contact knowledge bank-payment
+.br
+This switch may be used with update command for install sub-module after Odoo installation
 .TP
 .BR \-V
 Show version

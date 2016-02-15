@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.25"
+__version__="0.2.27"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -392,6 +392,9 @@ run_traced () {
       fi
     elif [ "${1:0:6}" != "sleep " ]; then
       echo "--> $xcmd"
+      if [ "${1:0:3}" == "cd " ]; then
+        eval "$xcmd"
+      fi
     fi
 }
 
@@ -454,6 +457,8 @@ get_arch () {
       FH="Debian"
       LXCORE="precise"
       MACHARCH="i686"
+    else
+      echo "Invalid architecture"
     fi
 }
 
@@ -516,7 +521,9 @@ install_submodules () {
         else
           run_traced "git clone -b $ov.0 $pn $addons $git_opts" "odoo"
           run_traced "git submodule add -b $ov.0 -f $pn $addons" "odoo"
-          run_traced "git remote add upstream https://github.com/OCA/$addons.git" "odoo"
+          if [ "opt_oed" == "zeroincombenze" ]; then
+            run_traced "git remote add upstream https://github.com/OCA/$addons.git" "odoo"
+          fi
           run_traced "cd /opt/odoo/$ov.0"
         fi
       fi
@@ -1089,46 +1096,55 @@ prod () {
       else
         cmd="wlog $lm $pkgname: $pkgversion"
       fi
+    elif [ "$1" == "whatis" ]; then
+      if $(is_virtualname $pkgname); then
+        vfycmd=
+      fi
     else
       return $STS_FAILED
     fi
-    PREcmd="pre_$1_$pkgname"
-    if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
-      run_traced "# $PREcmd succesfully ended"
-    elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
-      run_traced "# $PREcmd failed"
-    elif [ "$(type -t $PREcmd)" == "function" ]; then
-      $PREcmd "$svcname" "$cmdname" "$vfycmd"
-    elif [ "$1" == "remove" -a "$svcname" ]; then
-      run_traced "service $svcname stop"
-      run_traced "sleep 3"
-    fi
-    if [ "$cmd0" ]; then
+    if [ "$1" == "whatis" ]; then
+       local msg="$lm$pkgname (by $xtlcmd)($vfycmd)"
+       test_msg "$msg"
+    else
+      PREcmd="pre_$1_$pkgname"
+      if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+        run_traced "# $PREcmd succesfully ended"
+      elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+        run_traced "# $PREcmd failed"
+      elif [ "$(type -t $PREcmd)" == "function" ]; then
+        $PREcmd "$svcname" "$cmdname" "$vfycmd"
+      elif [ "$1" == "remove" -a "$svcname" ]; then
+        run_traced "service $svcname stop"
+        run_traced "sleep 3"
+      fi
+      if [ "$cmd0" ]; then
+        x=$(echo "$cmd"|awk '{print $1}')
+        if [ "$(type -t $x)" == "function" ]; then
+          $cmd0
+        else
+          run_traced "$cmd0"
+        fi
+      fi
       x=$(echo "$cmd"|awk '{print $1}')
       if [ "$(type -t $x)" == "function" ]; then
-        $cmd0
+        $cmd
       else
-        run_traced "$cmd0"
+        run_traced "$cmd"
       fi
-    fi
-    x=$(echo "$cmd"|awk '{print $1}')
-    if [ "$(type -t $x)" == "function" ]; then
-      $cmd
-    else
-      run_traced "$cmd"
-    fi
-    POSTcmd="post_$1_$pkgname"
-    if [ "$(type -t $POSTcmd)" == "function" ]; then
-      $POSTcmd "$svcname" "$cmdname" "$vfycmd"
-    elif [ "$1" == "install" -a "$svcname" ]; then
-      run_traced "service $svcname start"
-      run_traced "sleep 3"
-    elif [ "$1" == "update" -a "$svcname" ]; then
-      run_traced "service $svcname restart"
-      run_traced "sleep 3"
-    elif [ "$1" == "config" -a "$svcname" ]; then
-      run_traced "service $svcname restart"
-      run_traced "sleep 3"
+      POSTcmd="post_$1_$pkgname"
+      if [ "$(type -t $POSTcmd)" == "function" ]; then
+        $POSTcmd "$svcname" "$cmdname" "$vfycmd"
+      elif [ "$1" == "install" -a "$svcname" ]; then
+        run_traced "service $svcname start"
+        run_traced "sleep 3"
+      elif [ "$1" == "update" -a "$svcname" ]; then
+        run_traced "service $svcname restart"
+        run_traced "sleep 3"
+      elif [ "$1" == "config" -a "$svcname" ]; then
+        run_traced "service $svcname restart"
+        run_traced "sleep 3"
+      fi
     fi
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
@@ -1136,29 +1152,37 @@ prod () {
     local X="TCP_${pkgname//-/_}"
     if [ "${!X}" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-         for port in ${!X}; do
-           enable_port $port tcp
-         done
+        for port in ${!X}; do
+          enable_port $port tcp
+        done
       elif [ "$1" == "remove" ]; then
-         for port in ${!X}; do
-           disable_port $port tcp
-         done
+        for port in ${!X}; do
+          disable_port $port tcp
+        done
+      elif [ "$1" == "whatis" ]; then
+        for port in ${!X}; do
+          test_msg "- TCP port $port"
+        done
       fi
     fi
     X="UDP_${pkgname//-/_}"
     if [ "${!X}" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-         for port in ${!X}; do
-           enable_port $port udp
-         done
+        for port in ${!X}; do
+          enable_port $port udp
+        done
       elif [ "$1" == "remove" ]; then
-         for port in ${!X}; do
-           disable_port $port tcp
-         done
+        for port in ${!X}; do
+          disable_port $port tcp
+        done
+      elif [ "$1" == "whatis" ]; then
+        for port in ${!X}; do
+          test_msg "- UDP port $port"
+        done
       fi
     fi
     SUBlist="SUB_${pkgname//-/_}"
-    if [ "${!SUBlist}" ]; then
+    if [ "${!SUBlist}" -a $level -lt $opt_depth ]; then
       ((level++))
       for p in ${!SUBlist}; do
         realname=$(prod realname $p)
@@ -1306,6 +1330,9 @@ product_install_odoo () {
         if [ -n "$opt_osub" ]; then
           install_submodules "$opt_osub" "$ov"
         fi
+        if [ -n "$opt_sub" ]; then
+          install_submodules "$opt_sub" "$ov"
+        fi
         if [ -n "$opt_locale" ]; then
           install_submodules "$opt_locale" "$ov"
         fi
@@ -1357,6 +1384,9 @@ product_update_odoo () {
           run_traced "git pull origin" "odoo"
           if [ -n "$opt_osub" ]; then
             install_submodules "$opt_osub" "$ov"
+          fi
+          if [ -n "$opt_sub" ]; then
+            install_submodules "$opt_sub" "$ov"
           fi
           if [ -n "$opt_locale" ]; then
             install_submodules "$opt_locale" "$ov"
@@ -1426,7 +1456,7 @@ product_config_odoo () {
       fi
       cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
       cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
-      for iso in ${opt_osub//,/ }; do
+      for iso in ${opt_osub//,/ } ${opt_sub//,/ }; do
         pn=$(get_locale_name "$iso")
         if [ -z "$pn" ]; then
           elog  "Invalid submodule name $iso"
@@ -1928,7 +1958,7 @@ test_install () {
           echo "--> echo \"$d/\">>.gitignore">>$ftest
           echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
           echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
+          # echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
           echo "--> cd /opt/odoo/7.0">>$ftest
         done
         echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
@@ -2003,7 +2033,7 @@ test_install () {
           echo "--> echo \"$d/\">>.gitignore">>$ftest
           echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
           echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
+          # echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
           echo "--> cd /opt/odoo/7.0">>$ftest
         done
         echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
@@ -2235,6 +2265,14 @@ test_update () {
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git pull origin">>$ftest
+        for d in ${opt_osub//,/ }; do
+          echo "--> cd /opt/odoo/7.0">>$ftest
+          echo "--> echo \"$d/\">>.gitignore">>$ftest
+          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
+          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
+        done
         echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
@@ -2298,6 +2336,14 @@ test_update () {
         echo "--> rm -f $pn">>$ftest
       else
         echo "--> cd /opt/odoo/7.0">>$ftest
+        echo "--> git pull origin">>$ftest
+        for d in ${opt_osub//,/ }; do
+          echo "--> cd /opt/odoo/7.0">>$ftest
+          echo "--> echo \"$d/\">>.gitignore">>$ftest
+          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
+          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
+          echo "--> cd /opt/odoo/7.0">>$ftest
+        done
         echo "--> git checkout 7.0">>$ftest
         echo "--> mkdir -p /etc/odoo">>$ftest
         echo "--> chown odoo:odoo /etc/odoo">>$ftest
@@ -2493,13 +2539,14 @@ else
 fi
 set_tlog_file "$FLOG"
 
-OPTOPTS=(h        D       E       e       g       H        I        i      J        L         l          m        n           O         P          q         t         V           v           y       1)
-OPTDEST=(opt_help opt_dev opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet test_mode opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         1         "*"         1           "*"     1)
-OPTDEFL=(1        0       ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         0         ""          0           ""      0)
-OPTMETA=("help"   "dev"   "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "version" "password" "quiet"   "teste"   "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        D       d         E       e       g       H        I        i      J        L         l          m        n           O         P          q         s         t         V           v           y       1)
+OPTDEST=(opt_help opt_dev opt_depth opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_sub   test_mode opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "*"         1           "*"     1)
+OPTDEFL=(1        0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         ""        0         ""          0           ""      0)
+OPTMETA=("help"   "dev"   "number"  "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "version" "password" "quiet"   "modules" "teste"   "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
+ "max depth level"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
  "select odoo distribution; may be odoo,oca,zeroincombenze"\
  "add graphical interface package(s)"\
@@ -2514,6 +2561,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "select odoo version: may be 7, 8 or 9"\
  "default for users, if added by import command"\
  "quiet mode"\
+ "install odoo submodules"\
  "test mode (implies dry-run)"\
  "show version end exit"\
  "verbose mode"\
@@ -2533,6 +2581,9 @@ if [ $opt_help -gt 0 ]; then
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
   test_mode=1
+fi
+if [ -z "$opt_depth" ]; then
+  opt_depth=999
 fi
 if [ $test_mode -gt 0 ]; then
   opt_dry_run=1
@@ -2589,45 +2640,12 @@ wlog "Setup for $FH family"
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "whatis" ]; then
-  set_tlog_file "$FLOG" "" "echo"
   if [ $test_mode -eq 0 ]; then
     print_title "List managed packages"
   fi
   iter=$(set_iter $pkg)
-  for pkgname in $iter; do
-    realname=$(prod realname $pkgname)
-    installer=$(prod installer $realname)
-    vc="$(prod vfycmd $realname)"
-    msg="- package $realname (by $installer) ($vc)"
-    test_msg "$msg"
-    X="TCP_${realname//-/_}"
-    if [ "${!X}" ]; then
-      if [ $test_mode -gt 0 ]; then
-        echo " - TCP ports ${!X}"
-      else
-        wlog " - TCP ports ${!X}"
-      fi
-    fi
-    SUBlist="SUB_${realname//-/_}"
-    if [ "$SUBlist" ]; then
-      for p in ${!SUBlist}; do
-        r=$(prod realname $p)
-        installer=$(prod installer $r)
-        if [ $test_mode -gt 0 ]; then
-          echo "- $pkgname=$realname"
-        else
-          wlog "-- package $r (by $installer)"
-        fi
-        X="TCP_${r//-/_}"
-        if [ "${!X}" ]; then
-          if [ $test_mode -gt 0 ]; then
-            echo "  - TCP ports ${!X}"
-          else
-            wlog "  - TCP ports ${!X}"
-          fi
-        fi
-      done
-    fi
+  for p in $iter; do
+    prod $action $p
   done
 elif [ "$action" == "status" ]; then
   if [ $EUID -ne 0 ]; then
@@ -2816,6 +2834,7 @@ elif [ "$action" == "regression_test" ]; then
   opt_odoo="7"
   opt_dev=0
   opt_oed="odoo"
+  opt_depth=999
   SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"
   SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf"
   SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
@@ -2900,7 +2919,7 @@ else
   echo "No valid action $action!"
   exit 1
 fi
-if [ -f $TMP_LIS_PIP ]; then
+if [ -f "$TMP_LIS_PIP" ]; then
   rm -f TMP_LIS_PIP
 fi
 exit 0

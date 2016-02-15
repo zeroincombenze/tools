@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.81
+# Makefile __version__=0.1.82
 
 .DEFAULT: check
 
@@ -225,7 +225,7 @@ annotate:
 .PHONY: pep8
 pep8:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
-	@find $(PKGPATH) -name "*.py" -exec $(DEVPATH)/topep8 '{}' \;
+	@$(DEVPATH)/topep8 $(PKGPATH)
 	@find $(PKGPATH) -name "*.xml" -exec $(DEVPATH)/beauty '{}' \;
 
 .PHONY: replace

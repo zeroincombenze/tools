@@ -26,7 +26,7 @@ fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.73
+__version__=0.1.74
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -310,10 +310,9 @@ if [ $opt_fetch -eq 0 ]; then
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
-  if [ "$PRJNAME" == "pytok" ]; then
-    if [ -f ../z0lib/Makefile ]; then
-      if [ $opt_verbose -gt 0 ]; then echo "> cp ../z0lib/Makefile $LGITPATH"; fi
-      cp ../z0lib/Makefile $LGITPATH
+  if [ ! -f ~/tools/pytok/Makefile ]; then
+      if [ $opt_verbose -gt 0 ]; then echo "> cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
+      cp /opt/odoo/dev/Makefile ~/tools/pytok
     fi
   fi
 else

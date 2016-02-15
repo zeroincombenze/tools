@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.64
+__version__=0.1.65
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
@@ -627,6 +627,7 @@ if [ $EUID -eq 0 ]; then
       yum -y update
       vmware-config-tools.pl --default
     fi
+    product update product
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
     publish_svg "$d"
@@ -642,7 +643,7 @@ if [ $EUID -eq 0 ]; then
       product package
     fi
     if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      local d=$(readlink -f ~/mySAP)
+      local d=$(readlink -f /opt/odoo/mySAP)
       if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
         cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
         s=$?
