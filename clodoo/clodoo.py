@@ -36,7 +36,7 @@ import re
 import csv
 
 
-__version__ = "0.2.59"
+__version__ = "0.2.61"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -395,12 +395,13 @@ def lexec_name(action):
 def add_on_account(acc_balance, level, code, credit, debit):
     if level not in acc_balance:
         acc_balance[level] = {}
-    if code in acc_balance[level]:
-        acc_balance[level][code] += credit
-        acc_balance[level][code] -= debit
-    else:
-        acc_balance[level][code] = credit
-        acc_balance[level][code] -= debit
+    if code:
+        if code in acc_balance[level]:
+            acc_balance[level][code] += credit
+            acc_balance[level][code] -= debit
+        else:
+            acc_balance[level][code] = credit
+            acc_balance[level][code] -= debit
 
 
 def act_name(lexec):
@@ -802,6 +803,8 @@ def act_check_balance(oerp, prm):
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         account_obj = move_line_obj.account_id
+        account_tax_obj = move_line_obj.account_tax_id
+        journal_obj = move_line_obj.journal_id
         acctype_id = account_obj.user_type.id
         acctype_obj = oerp.browse('account.account.type', acctype_id)
         if account_obj.parent_id:
@@ -809,13 +812,14 @@ def act_check_balance(oerp, prm):
             parent_acctype_id = parent_account_obj.user_type.id
             parent_acctype_obj = oerp.browse('account.account.type',
                                              parent_acctype_id)
+            parent_code = parent_account_obj.code
         else:
             parent_account_obj = None
             parent_acctype_id = 0
             parent_acctype_obj = None
+            parent_code = None
 
         code = account_obj.code
-        parent_code = parent_account_obj.code
         clf3 = acctype_obj.name.encode('utf-8')
         clf = acctype_obj.report_type
         if clf == "asset":
@@ -836,6 +840,18 @@ def act_check_balance(oerp, prm):
 
         if (account_obj.company_id.id != company_id):
             msg = u"Invalid company account {0} in {1:>6} {2}".format(
+                code,
+                move_line_id,
+                move_line_obj.ref)
+            msg_log(prm, 4, msg)
+        if (account_tax_obj and account_tax_obj.company_id.id != company_id):
+            msg = u"Invalid company account tax {0} in {1:>6} {2}".format(
+                code,
+                move_line_id,
+                move_line_obj.ref)
+            msg_log(prm, 4, msg)
+        if (journal_obj and journal_obj.company_id.id != company_id):
+            msg = u"Invalid company journal {0} in {1:>6} {2}".format(
                 code,
                 move_line_id,
                 move_line_obj.ref)

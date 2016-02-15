@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.13"
+__version__="0.1.14"
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -97,6 +97,12 @@ do_test () {
     # set +x #debug
     return $sts
 }
+
+do_travis (){
+    travis local/"$1";
+    return 0
+}
+
 
 OPTOPTS=(h        b          c        j        L         n           p         q         r     s        t         V           v           y)
 OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_version opt_verbose opt_yes)
@@ -172,14 +178,17 @@ LGITPATH=$(expand_path "$LGITPATH")
 sts=0
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
+elif [ "$action" == "annotate" ]; then
+  do_annotate "$pkg" "$opt_srcs"
+  sts=$?
 elif [ "$action" == "check" ]; then
   do_check "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
   sts=$?
-elif [ "$action" == "annotate" ]; then
-  do_annotate "$pkg" "$opt_srcs"
+elif [ "$action" == "travis" ]; then
+  do_travis "$pkgname" "$sub1" "$sub2"
   sts=$?
 fi
 exit $sts

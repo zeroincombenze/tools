@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.63.6
+__version__=0.1.64
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
@@ -542,6 +542,7 @@ a_add "0" "PRD_HOST" "shsprd14"
 a_add "0" "ME_BOS" "test_nightly .test_nightly.conf.sample"
 a_add "0" "MYPKG" "travis_emulator"
 a_add "0" "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
+a_add "0" "WWW_DWNLOAD_DIR" "/var/www/html/mw/download"
 link_cfg $FCONF
 for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM; do
   declare $p=$(get_cfg_value "" "$p")
@@ -568,7 +569,7 @@ if [ $opt_8 -gt 0 ]; then
   exit 1 # never should execute it!
 fi
 if [ $opt_test -gt 0 ]; then
-  for p in DEV_HOST PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM; do
+  for p in DEV_HOST PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR; do
     echo "$p=${!p}"
   done
   echo "Upgrade myself does .."
@@ -637,6 +638,16 @@ if [ $EUID -eq 0 ]; then
       cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:ERPs"
       s=$?
       [ $sts -eq 0 ]&&sts=$s
+      cd /opt/odoo/tools/product/
+      product package
+    fi
+    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      local d=$(readlink -f ~/mySAP)
+      if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
+        cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
+        s=$?
+        [ $sts -eq 0 ]&&sts=$s
+      fi
     fi
     cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar" "root:root"
     s=$?

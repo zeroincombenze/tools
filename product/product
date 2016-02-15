@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.24.5"
+__version__="0.2.25"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)

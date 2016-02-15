@@ -16,3 +16,5 @@ PKGSLX=clodoo,os0,product,pytok,travis_emulator,wok_code,wok_news,z0lib,z0tester
 MYPKG=travis_emulator
 # HTML_SVG_DIR: directory where http daemon searches SVG to publish
 HTML_SVG_DIR=/var/www/html/wp-zi/wp-content/uploads/ci-ct
+# WWW_DWNLOAD_DIR: directory for public download
+WWW_DWNLOAD_DIR=/var/www/html/mw/download
