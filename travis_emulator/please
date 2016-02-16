@@ -26,41 +26,80 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.15"
+__version__="0.1.16"
 STS_FAILED=1
 STS_SUCCESS=0
 
-ann_rm_trap () {
-    local ln=$(head -n1 $1)
-    if [ -n "$ln" -a "${ln:4:5}" == "trap" ]; then
-      tail -n+2 $1>$1.tmp
-      mv -f $1.tmp $1
+ant_rm_trap () {
+    if [ $opt_verbose -gt 0 ]; then
+      echo "... recover $1"
+    fi
+    local f1=$(readlink -f $1)
+    local fhist=$f1.tracehistory
+    local ln=$(head -n1 $f1)
+    if [ -n "$ln" -a "${ln:0:5}" == "trap " ]; then
+      tail -n+2 $f1>$f1.tmp
+      mv -f $f1.tmp $f1
     fi
 }
 
-ann_add_trap () {
-    ann_rm_trap "$1"
-    echo "trap \"echo [\$LINENO] \$BASH_COMMAND>>$fhist\" DEBUG">$fhist
-    cat $fhist $1>$1.sh
+ant_add_trap () {
+    if [ $opt_verbose -gt 0 ]; then
+      echo "... analyzing $1"
+    fi
+    local f1=$(readlink -f $1)
+    local fhist=$f1.tracehistory
+    ant_rm_trap "$f1"
+    echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$fhist\" DEBUG">$f1.sh
+    local line=
+    while IFS=\~ read -r line; do
+      echo "$line">>$f1.sh
+      if [ "${line:0:1}" == "." ]; then
+        local fn="${line:2}"
+        local p="$(dirname $fn)"
+        if [ "$p" == "." ]; then
+          if [ ! "$(echo " $FL_2_TEST "|grep [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
+            FL_2_TEST="$FL_2_TEST $fn"
+          fi
+        fi
+      fi
+    done < "$f1"
+    # cat $fhist $f1>$f1.sh
     rm -f $fhist
-    chmod +x $1.sh
-    mv -f $1.sh $1
+    chmod +x $f1.sh
+    mv -f $f1.sh $f1
 }
 
 do_annotate () {
 # do_annotate(script, include_list)
   # set -x
   trap - DEBUG
-  local fhist=$1.tracehistory
-  if [ -f $1 ]; then
+  FL_2_TEST=${2//,/ }
+  local f1=$(readlink -f $1)
+  local fhist=$f1.tracehistory
+  if [ -f $f1 ]; then
+    CWD=$PWD
     mkdir -p ./cover
-    ann_add_trap "$1"
-    $1
-    ann_rm_trap "$1"
-    chmod +x $1
-    python $TDIR/$THIS.py $1
+    ant_add_trap "$f1"
+    local fn
+    for fn in $FL_2_TEST; do
+      ant_add_trap $fn
+    done
+    $f1
+    cd $CWD
+    ant_rm_trap "$f1"
+    for fn in $FL_2_TEST; do
+      ant_rm_trap $fn
+    done
+    chmod +x $f1
+    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
+    python $TDIR/$THIS.py "$f1" "$opts_k"
     rm -f $fhist
-    # cat ./cover/$1,cover
+    for fn in $FL_2_TEST; do
+      fhist=$fn.tracehistory
+      python $TDIR/$THIS.py "$fn" "$opts_k"
+      rm -f $fhist
+    done
   fi
   return 0
 }
@@ -104,16 +143,17 @@ do_travis (){
 }
 
 
-OPTOPTS=(h        b          c        d        j        L         n           p         q         r     s        t         u       V           v           y)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose opt_yes)
-OPTACTI=(1        "="        "="      1        1        "="       1           "="       1         1     "="      1         1       "*"         1           "*")
-OPTDEFL=(1        "9.0"      ""       0        0        ""        0           ""        0         0     ""       0         0       ""          0           "")
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose"   "yes")
+OPTOPTS=(h        b          c        d        j        k        L         n           p         q         r     s        t         u       V           v           y)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose opt_yes)
+OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       1         1     "="      1         1       "*"         1           "*")
+OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        0         0     ""       0         0       ""          0           "")
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "kkep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose"   "yes")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
  "do diff no real action"\
  "execute test from project dir (not in test dir)"\
+ "keep coverage statistics in annotate test"\
  "log file name"\
  "do nothing (dry-run)"\
  "declare local git path"\
@@ -144,9 +184,7 @@ else
 fi
 $(init_cfg)
 $(active_cfg)
-a_add "0" "DEV_HOST" "shsdev16"
-a_add "0" "PRD_HOST" "shsprd14"
-a_add "0" "ODOO_SETUP" "__openerp__.py"
+conf_default
 link_cfg $TCONF
 if [ "$pkg" ]; then
   PKGPATH=$pkg
@@ -181,6 +219,9 @@ sts=0
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
+  if [ $opt_verbose -gt 0 ]; then
+    echo "do_annotate \"$pkg\" \"$opt_srcs\""
+  fi
   do_annotate "$pkg" "$opt_srcs"
   sts=$?
 elif [ "$action" == "autopep8" ]; then
@@ -213,9 +254,14 @@ elif [ "$action" == "test" ]; then
 elif [ "$action" == "travis" ]; then
   do_travis "$pkgname" "$sub1" "$sub2"
   sts=$?
+elif [ "$action" == "wep" ]; then
+  if [ $opt_verbose -gt 0 ]; then
+    echo "clean_dirs \"$PKGPATH\""
+  fi
+  clean_dirs "$PKGPATH"
 else
   echo "Invalid action!"
-  echo "Use $THIS help|annotate|autopep8|check|test"
+  echo "Use $THIS help|annotate|autopep8|check|test|wep"
   sts=1
 fi
 exit $sts

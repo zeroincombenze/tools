@@ -13,7 +13,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -28,8 +28,9 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.31
-
+__version__=0.1.31.1
+STS_FAILED=1
+STS_SUCCESS=0
 
 run_traced () {
     # set -x  #debug
@@ -63,15 +64,15 @@ OPTHELP=("this help"\
  "verbose mode",
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)")
 OPTARGS=(pkg_path action)
-parseoptargs $@
 
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default) or setup"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 DEVPATH=$TDIR
@@ -80,17 +81,15 @@ if [ "$opt_conf" -a -f "$opt_conf" ]; then
 else
   TCONF=$TDIR/.$THIS.conf
 fi
-
-#if [ "$pkg_path" ]; then
-#  PKGPATH=$pkg_path
-#else
-  PKGPATH=$PWD
-#fi
-PKGPATH=$(set_pkgpath "$PKGPATH")
-pkgname=$(basename $PKGPATH)
+$(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $TCONF
+
+PKGPATH=$PWD
+PKGPATH=$(set_pkgpath "$PKGPATH")
+pkgname=$(basename $PKGPATH)
+
 init_travis
 if [ -z "$PRJNAME" ]; then
   PRJNAME=$(basename $PKGPATH)
@@ -101,10 +100,6 @@ if [ $opt_verbose -eq 0 ]; then
 fi
 if [ $opt_verbose -gt 1 ]; then
   set -x
-fi
-
-if [ "$opt_conf" -a -f "$opt_conf" ]; then
-  TCONF=$opt_conf
 fi
 
 if [ -z "$action" ]; then action=all; fi

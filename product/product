@@ -14,7 +14,7 @@
 # products?
 # oerplib
 # wget
-# flake8, autopep8, pylint, coverage
+# flake8, autopep8, pylint, coverage, github3.py
 # yum install mod_ssl mod_proxy_html iptables-services bind-utils
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.27"
+__version__="0.2.27.3"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1378,10 +1378,17 @@ product_update_odoo () {
       local xtl=0
       if [ -d /opt/odoo/$ov.0 ]; then
         run_traced "cd /opt/odoo/$ov.0"
-        git status &>/dev/null
+        if [ $test_mode -gt 0 ]; then
+          true
+        else
+          git status &>/dev/null
+        fi
         if [ $? -ne 128 ]; then xtl=1; fi
         if [ $xtl -gt 0 ]; then
           run_traced "git pull origin" "odoo"
+          if [ $test_mode -eq 0 ]; then
+             opt_sub=$(grep "\[submodule" .gitmodules|awk '{print $2}'|tr -d "\"]"|tr "\n" " ")
+          fi
           if [ -n "$opt_osub" ]; then
             install_submodules "$opt_osub" "$ov"
           fi

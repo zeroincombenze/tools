@@ -26,7 +26,7 @@ fi
 TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.74
+__version__=0.1.74.2
 
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
@@ -62,8 +62,10 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ "$opt_conf" -a -f "$opt_conf" ]; then
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
   TCONF=$opt_conf
+else
+  TCONF=$TDIR/.dist_pkg.conf
 fi
 if [ "$pkg_path" ]; then
   PKGPATH=$pkg_path
@@ -72,10 +74,13 @@ else
 fi
 PKGPATH=$(set_pkgpath "$PKGPATH")
 pkgname=$(basename $PKGPATH)
+DIST_CONF=$(readlink -f $PKGPATH/.local_dist_pkg.conf)
+
 $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $DIST_CONF $TCONF
+
 init_travis
 if [ "$opt_dpath" ]; then
   LGITPATH="$opt_dpath"
@@ -93,12 +98,6 @@ else
   fi
 fi
 LGITPATH=$(expand_path "$LGITPATH")
-x=$(get_cfg_value "$1" "CONFN")
-if [ "$x" ]; then
-  DIST_CONF=$CONFN
-else
-  DIST_CONF=$(readlink -f $PKGPATH/$DIST_CONF)
-fi
 
 if [ "$opt_sts" ]; then
   if [ "$opt_sts" == "0" ]; then
@@ -311,9 +310,8 @@ if [ $opt_fetch -eq 0 ]; then
     done
   fi
   if [ ! -f ~/tools/pytok/Makefile ]; then
-      if [ $opt_verbose -gt 0 ]; then echo "> cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
-      cp /opt/odoo/dev/Makefile ~/tools/pytok
-    fi
+    if [ $opt_verbose -gt 0 ]; then echo "> cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
+    cp /opt/odoo/dev/Makefile ~/tools/pytok
   fi
 else
   if [ $LGITLEV -gt 0 ]; then

@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.65
+__version__=0.1.68
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
@@ -496,7 +496,7 @@ publish_svg () {
       if [ $opt_dry_run -eq 0 -a -n "$tgt" ]; then
         mvfiles "$1" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
         local sts=$?
-        if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+        if [ "$HOSTNAME" == "$DEV_HOST" -a "$1" == "." ]; then
           scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
           local s=$?
           [ $sts -eq 0 ]&&sts=$s
@@ -544,7 +544,7 @@ a_add "0" "MYPKG" "travis_emulator"
 a_add "0" "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
 a_add "0" "WWW_DWNLOAD_DIR" "/var/www/html/mw/download"
 link_cfg $FCONF
-for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM; do
+for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR; do
   declare $p=$(get_cfg_value "" "$p")
   if [ -z "${!p}" ]; then
     generate_svg "$USER" "FAIL" "$__version__"
@@ -627,7 +627,6 @@ if [ $EUID -eq 0 ]; then
       yum -y update
       vmware-config-tools.pl --default
     fi
-    product update product
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
     publish_svg "$d"
@@ -642,8 +641,9 @@ if [ $EUID -eq 0 ]; then
       cd /opt/odoo/tools/product/
       product package
     fi
+    product update product
     if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      local d=$(readlink -f /opt/odoo/mySAP)
+      d=$(readlink -f /opt/odoo/mySAP)
       if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
         cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
         s=$?
