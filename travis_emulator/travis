@@ -28,27 +28,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.31.1
-STS_FAILED=1
-STS_SUCCESS=0
-
-run_traced () {
-    # set -x  #debug
-    if [ $opt_r -eq 0 ]; then
-      if [ $opt_verbose -gt 0 ]; then
-        echo "$@"
-      fi
-      if [ $opt_dry_run -eq 0 ]; then
-        $@
-      fi
-    else
-      if [ $opt_verbose -gt 0 ]; then
-        echo "$1 $opts_dry_run $opts_verbose $PKGPATH $PRJNAME"
-      fi
-      $1 $opts_dry_run $opts_verbose $PKGPATH $PRJNAME
-    fi
-    # et +x  #debug
-}
+__version__=0.1.32
 
 
 OPTOPTS=(h        c        n            r     V           v           b)
@@ -63,50 +43,36 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode",
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)")
-OPTARGS=(pkg_path action)
+OPTARGS=(pkg action)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default) or setup"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default), setup or chkconfig"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit 0
+  exit $STS_SUCCESS
 fi
-DEVPATH=$TDIR
-if [ "$opt_conf" -a -f "$opt_conf" ]; then
-  TCONF=$opt_conf
-else
-  TCONF=$TDIR/.$THIS.conf
-fi
+
+opts_travis
 $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $TCONF
-
-PKGPATH=$PWD
-PKGPATH=$(set_pkgpath "$PKGPATH")
-pkgname=$(basename $PKGPATH)
-
 init_travis
-if [ -z "$PRJNAME" ]; then
-  PRJNAME=$(basename $PKGPATH)
-fi
-
-if [ $opt_verbose -eq 0 ]; then
-  opt_verbose=$(get_cfg_value "" "loglevel")
-fi
 if [ $opt_verbose -gt 1 ]; then
   set -x
 fi
+prepare_env_travis "$action"
+sts=$STS_SUCCESS
 
 if [ -z "$action" ]; then action=all; fi
-if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" ]; then
+if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" -a "$action" != "chkconfig" ]; then
   echo "Invalid action!"
-  echo "action should be one of check, test, all or setup"
-  exit 1
+  echo "action should be one of check, test, all, setup or chkconfig"
+  exit $STS_FAILED
 fi
 
 if [ "$action" == "setup" ]; then
@@ -127,78 +93,30 @@ if [ "$action" == "setup" ]; then
       run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
     done
   fi
-  exit 0
+  exit $STS_SUCCESS
+elif [ "$action" == "chkconfig" ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
 fi
 
-if [ ! -d $PKGPATH ]; then
-  echo "Invalid package path $PKGPATH"
-  exit 1
-elif [ "$PRJNAME" != "Odoo" ]; then
-  if [ ! -d $PKGPATH/$pkgname ]; then
-    echo "Invalid package path $PKGPATH/$pkgname"
-    exit 1
-  fi
-fi
-repository=local/$pkgname
-
-if [ -z "$TOOLS_PATH" ]; then
-  if [ -d $DEVPATH/maintainer-quality-tools/travis ]; then
-    TOOLS_PATH=$DEVPATH/maintainer-quality-tools/travis
-  elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
-    TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
-  elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
-    TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
-  else
-    unset -v TOOLS_PATH
-  fi
-fi
-if [ -n "$TOOLS_PATH" -a $opt_r -eq 0 ]; then
-  if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
-    export PATH=$TOOLS_PATH:$PATH
-  fi
-  export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
-else
-  TOOLS_PATH=$DEVPATH/_travis
-  opt_r=1
-  export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
-fi
-
-if [ "$action" == "check" ]; then
-  export LINT_CHECK=1
-elif [ "$action" == "test" ]; then
-  export LINT_CHECK=0
-elif [ "$PRJNAME" != "Odoo" ]; then
-  export LINT_CHECK=1
-else
-  unset -v LINT_CHECK
-fi
-# Default value for local environment
-if [ -z $BRANCH ]; then
-  BRANCH=$opt_branch
-fi
-export VERSION=$BRANCH
-export TRAVIS_BUILD_DIR=$PKGPATH
-export ODOO_REPO=$repository
-export VERBOSE_MODE=$opt_verbose
-
-
-sts=0
-if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
-  run_traced $TOOLS_PATH/travis_install_pkgs
-  if [ $? -ne 0 ]; then sts=$?; fi
-fi
-if [ $sts -eq 0 ]; then
+check_4_travis
+sts=$STS_SUCCESS
+#if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
+#  run_traced $TOOLS_PATH/travis_install_pkgs
+#  if [ $? -ne 0 ]; then sts=$?; fi
+#fi
+if [ $sts -eq $STS_SUCCESS ]; then
   if [ $TOOLS_PATH/travis_run_tests ]; then
-    run_traced $TOOLS_PATH/travis_run_tests
+    run_traced "$TOOLS_PATH/travis_run_tests $opts_dry_run$opts_verbose"
     if [ $? -ne 0 ]; then sts=$?; fi
   else
     sts=127
   fi
 fi
-if [ $sts -eq 0 -a "$action" != "check" ]; then
+if [ $sts -eq $STS_SUCCESS -a "$action" != "check" ]; then
   run_traced $TOOLS_PATH/travis_after_tests_success
   if [ $? -ne 0 ]; then sts=$?; fi
-  if [ $sts -eq 0 ]; then
+  if [ $sts -eq $STS_SUCCESS ]; then
     coverage report
   fi
 fi

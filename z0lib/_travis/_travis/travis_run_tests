@@ -7,7 +7,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -24,33 +24,16 @@ DEVPATH=$(readlink -f $TDIR/..)
 . $DEVPATH/travisrc
 TCONF=$TDIR/.$THIS.conf
 
-__version__=0.1.1
-
-
-run_traced () {
-    # set -x  #debug
-    if [ $opt_verbose -gt 0 ]; then
-      echo "$@"
-    fi
-    sts=0
-    if [ $opt_dry_run -eq 0 ]; then
-      $@
-      sts=$?
-    fi
-    # set +x  #debug
-    return $sts
-}
+__version__=0.1.2
 
 
 test_flake8 () {
     FLAKE8_CONFIG_DIR="$(dirname $0)/cfg"
-    run_traced flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
-    sts=$?
-    if [ $sts -eq 0 ]; then
-      run_traced flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
-      sts=$?
-    fi
-    return $sts
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+    local status1=$?
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+    local status2=$?
+    return $((${status1} || ${status2}))
 }
 
 test_pylint () {
@@ -58,18 +41,20 @@ test_pylint () {
     TRAVIS_BUILD_DIR=$PKGPATH
     MODULES_TO_TEST=$TRAVIS_BUILD_DIR
     PYLINT_CONFIG_DIR="$(dirname $0)/cfg"
-
-    # Fix pylint path. More info: https://www.mail-archive.com/code-quality@python.org/msg00294.html
+    if [ "$PRJNAME" == "Odoo" ]; then
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+    else
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+    fi
     export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
     if [ "$PRJNAME" == "Odoo" ]; then
       touch $MODULES_TO_TEST/__init__.py
-      VERSION=$BRANCH
     fi
     IFS="/" read -a REPO <<< "${ODOO_REPO}"
     export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
 
     #run pylint command
-    run_traced pylint --rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg ${MODULES_TO_TEST}
+    run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
     sts=$?
     return $sts
 }
@@ -95,7 +80,7 @@ run_regression_test () {
 OPTOPTS=(h        C         n            R        V           v)
 OPTDEST=(opt_help opt_check opt_dry_run  opt_regr opt_version opt_verbose)
 OPTACTI=(1        "1>"      "1>"         "1>"     "*>"        1)
-OPTDEFL=(1        0         0            0        ""          0)
+OPTDEFL=(0        0         0            0        ""          0)
 OPTMETA=("help"   "check"   "do nothing" "test"   "version"   "verbose")
 OPTHELP=("this help"\
  "do flake8 and pylint checks"\
@@ -104,15 +89,15 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode")
 OPTARGS=(pkg_path PRJNAME)
-parseoptargs $@
 
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run test in travis environment"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -151,11 +136,11 @@ fi
 if [ ${opt_regr:-0} -gt 0 -o "$LINT_CHECK" != "1" ]; then
   if [ $sts -eq 0 ]; then
     pkgname=$(basename $PKGPATH)
-    if [ $opt_verbose -gt 0 ]; then
-      echo "run_regression_test $pkgname"
-    fi
-    run_regression_test $pkgname
-    sts=$?
+    # if [ $opt_verbose -gt 0 ]; then
+    #   echo "run_regression_test $pkgname"
+    # fi
+    # run_regression_test $pkgname
+    #sts=$?
   fi
 fi
 exit $sts

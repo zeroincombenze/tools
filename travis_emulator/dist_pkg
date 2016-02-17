@@ -21,13 +21,13 @@ elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
 else
   echo "Library file z0librc not found!"
-  exit 1
+  exit $STS_FAILED
 fi
-TCONF=$TDIR/.$THIS.conf
 . $TDIR/travisrc
 
-__version__=0.1.74.2
+__version__=0.1.75
 
+TCONF=$TDIR/.$THIS.conf
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
 OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_dry_run  opt_cpush opt_dpath opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
@@ -50,54 +50,31 @@ OPTHELP=("this help"\
  "whatis param value?"\
  "wep directory"\
  "refresh info for distribution")
-OPTARGS=(pkg_path PRJNAME)
+OPTARGS=(pkg PRJNAME)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Copy package for distribution"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit 0
+  exit $STS_SUCCESS
 fi
-if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
-  TCONF=$opt_conf
-else
-  TCONF=$TDIR/.dist_pkg.conf
-fi
-if [ "$pkg_path" ]; then
-  PKGPATH=$pkg_path
-else
-  PKGPATH=$PWD
-fi
-PKGPATH=$(set_pkgpath "$PKGPATH")
-pkgname=$(basename $PKGPATH)
-DIST_CONF=$(readlink -f $PKGPATH/.local_dist_pkg.conf)
 
+opts_travis
+DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
 $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $DIST_CONF $TCONF
-
 init_travis
-if [ "$opt_dpath" ]; then
-  LGITPATH="$opt_dpath"
-else
-  if [ "$REPOSNAME" ]; then
-    declare LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-  else
-    declare LGITPATH=
-  fi
-  if [ -z "$LGITPATH" ]; then
-    declare LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-  fi
-  if [ -z "$LGITPATH" ]; then
-    LGITPATH=$(get_cfg_value "" "distpath")
-  fi
+if [ $opt_verbose -gt 1 ]; then
+  set -x
 fi
-LGITPATH=$(expand_path "$LGITPATH")
+prepare_env_travis ""
+sts=$STS_SUCCESS
 
 if [ "$opt_sts" ]; then
   if [ "$opt_sts" == "0" ]; then
@@ -122,7 +99,7 @@ if [ "$opt_sts" ]; then
     echo "Invalid status:"
     echo "use $(basename $0) -n -S n PKGPATH"
     echo "where n is 0..7 for more info about status"
-    exit 1
+    exit $STS_FAILED
   fi
 fi
 if [ "$opt_sts" ]; then
@@ -138,7 +115,7 @@ if [ "$opt_whatis" ]; then
   else
     echo "Unknown!!"
   fi
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
@@ -215,12 +192,9 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
     echo "No configuration file $DIST_CONF for distribution"
     echo "Nothing is done"
   fi
-  exit 0
+  exit $STS_SUCCESS
 fi
-if [ ! -d "$PKGPATH" ]; then
-  echo "Invalid package name $pkgname"
-  exit 1
-fi
+check_4_travis
 install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
   if [ "$pkgname" != "$PRJNAME" ]; then
@@ -240,10 +214,10 @@ if [ "$PRJNAME" != "Odoo" ]; then
   fi
 fi
 if [ "$opt_sts" ]; then
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ $opt_sync -gt 0 ]; then
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ "$opt_cpush" == "-w" ]; then
   clean_dirs "$PKGPATH"
@@ -265,17 +239,17 @@ if [ "$opt_cpush" == "-w" ]; then
       fi
     fi
   fi
-  exit 0
+  exit $STS_SUCCESS
 fi
 update_dev "$PRJNAME"
 if [ "$PRJNAME" == "travis_emulator" ]; then
   if [ ! -d "$LGITPATH" ]; then
-    exit 0
+    exit $STS_SUCCESS
   fi
 fi
 if [ ! -d "$LGITPATH" ]; then
   echo "Invalid destination path $LGITPATH"
-  exit 1
+  exit $STS_FAILED
 fi
 dpath_parent=$LGITPATH
 dpath_child=$LGITPATH/$pkgname
@@ -295,7 +269,7 @@ if [ $opt_diff -gt 0 ]; then
     if [ $opt_verbose -gt 0 ]; then echo "> diff $XLDF -rq $dpath_prj/ $LGITPATH/"; fi
     $TDIR/prjdiff $dpath_prj $LGITPATH
   fi
-  exit 0
+  exit $STS_SUCCESS
 fi
 if [ $opt_fetch -eq 0 ]; then
   if [ $LGITLEV -gt 0 ]; then
@@ -330,4 +304,4 @@ else
     done
   fi
 fi
-exit 0
+exit $STS_SUCCESS

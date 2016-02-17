@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.45.3
+#__version__=0.1.46
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -10,8 +10,53 @@ XRGI="^(.*\/|)conf\/.*sample$"
 XXXX=".pyc .log .bak .out .tmp .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 
 
+opts_travis () {
+    if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+      TCONF=$opt_conf
+    else
+      TCONF=$TDIR/.travis.conf
+    fi
+    if [ -n "$pkg" ]; then
+      if [ ${pkg:0:6} == "local/" ]; then
+        PKGPATH=${pkg:6}
+        repository="local/"
+      elif [ ${pkg:0:5} == "odoo/" -o ${pkg:0:5} == "ODOO/" ]; then
+        PKGPATH=${pkg:5}
+        repository="ODOO/"
+      elif [ ${pkg:0:4} == "oca/" -o ${pkg:0:4} == "OCA/" ]; then
+        PKGPATH=${pkg:4}
+        repository="OCA/"
+      else
+        PKGPATH=$pkg
+        repository="local/"
+      fi
+      if [ -z "$PKGPATH" ]; then
+        PKGPATH=$PWD
+      fi
+    else
+      PKGPATH=$PWD
+      repository="local/"
+    fi
+    PKGPATH=$(set_pkgpath "$PKGPATH")
+    pkgname=$(basename $PKGPATH)
+    PKGPATH=$(set_pkgpath "$PKGPATH")
+    pkgname=$(basename $PKGPATH)
+    if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
+      test_mode=1
+    fi
+    if [ ${test_mode:-0} -gt 0 ]; then
+      opt_dry_run=1
+    fi
+    local x=$(A=${PWD#*/*/}; echo ${A%%/*})
+    if [ "$x" == "travis" ]; then
+      HOSTENV=travis
+    else
+      HOSTENV=local
+    fi
+}
+
 init_travis () {
-    if [ $opt_dry_run -gt 0 ]; then
+    if [ ${opt_dry_run:-0} -gt 0 ]; then
       opts_dry_run=-n
     else
       opts_dry_run=
@@ -21,19 +66,22 @@ init_travis () {
     else
       opts_upd=
     fi
+    if [ ${opt_verbose:-0} -eq 0 ]; then
+      opt_verbose=$(get_cfg_value "" "loglevel")
+    fi
     if [ $opt_verbose -ne 0 ]; then
       opts_verbose=-v
     else
       opts_verbose=
     fi
     ODOO_SETUP=$(get_cfg_value "" "ODOO_SETUP")
-    if [ "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then
+    if [ -n "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then
       SETUP="$ODOO_SETUP";
       REPOSNAME=$(basename $(readlink -e ..))
       if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
         REPOSNAME=
       fi
-    elif [ "$ODOO_SETUP" -a "$(basename $(readlink -e ../))" == "openerp" ]; then
+    elif [ -n "$ODOO_SETUP" -a "$(basename $(readlink -e ../))" == "openerp" ]; then
       SETUP="$ODOO_SETUP";
       REPOSNAME=$(basename $(readlink -e ../..))
     elif [ -f $PKGPATH/setup.py ]; then
@@ -47,7 +95,7 @@ init_travis () {
       if [ -z "$PRJNAME" ]; then
         PRJNAME="Odoo"
       fi
-      if [ -f $ODOO_SETUP ]; then
+      if [ -f $SETUP ]; then
         prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \r\n")
         prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
       else
@@ -55,7 +103,7 @@ init_travis () {
         prjdesc="Unrecognized Odoo module"
       fi
     else
-      if [ "$SETUP" -a -f $SETUP ]; then
+      if [ -n "$SETUP" -a -f $SETUP ]; then
         if [ -z "$PRJNAME" ]; then
           PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
         fi
@@ -65,7 +113,7 @@ init_travis () {
         fi
         prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
         if [ "$prjdesc" == "description" ]; then
-          prjdesc="Unrecognized Odoo module"
+          prjdesc="Unrecognized package"
         fi
       fi
     fi
@@ -73,12 +121,114 @@ init_travis () {
       PRJNAME=Odoo
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
+      BRANCH=$(if $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
       if [ -z "$prjversion" ]; then
-        prjversion=$(if $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+        prjversion="$BRANCH"
+      else
+        local v
+        local x=1
+        for v in 7.0 8.0 9.0; do
+          if [ ${prjversion:0:3} == "$v" -a $prjversion != "$v" ]; then
+            x=0
+          fi
+        done
+        if [ $x -gt 0 ]; then
+          prjversion="$BRANCH.$prjversion"
+        fi
+      fi
+      PRJPATH=$PKGPATH
+    else
+      PRJPATH=$PKGPATH/$PRJNAME
+    fi
+
+    if [ -z "$TOOLS_PATH" ]; then
+      if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
+        TOOLS_PATH=$TDIR/_travis
+      elif [ -d $HOME/dev/_travis -a ${opt_r:-0} -gt 0 ]; then
+        TOOLS_PATH=$HOME/dev/_travis
+      elif [ -d $TDIR/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$TDIR/maintainer-quality-tools/travis
+      elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
+      elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
+      else
+        unset -v TOOLS_PATH
+      fi
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      echo "TOOLS_PATH=$TOOLS_PATH"
+    fi
+}
+
+prepare_env_travis () {
+    local action="$1"
+    if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
+      export PATH=$TOOLS_PATH:$PATH
+    fi
+    export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
+    export LINT_CHECK=1
+    export BRANCH
+    export VERSION=$BRANCH
+    export TRAVIS_BUILD_DIR=$PKGPATH
+    export VERBOSE_MODE=$opt_verbose
+    if [ "$action" == "check" ]; then
+      export LINT_CHECK=1
+    elif [ "$action" == "test" ]; then
+      export LINT_CHECK=0
+    elif [ "$PRJNAME" != "Odoo" ]; then
+      export LINT_CHECK=1
+    else
+      unset -v LINT_CHECK
+    fi
+    repository=$repository$pkgname
+    if [ "$PRJNAME" != "Odoo" ]; then
+      export ODOO_REPO=$repository
+    fi
+    if [ -n "$opt_dpath" ]; then
+      LGITPATH="$opt_dpath"
+    else
+      if [ -n "$REPOSNAME" ]; then
+        LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
+      else
+        LGITPATH=
+      fi
+      if [ -z "$LGITPATH" ]; then
+        LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
+      fi
+      if [ -z "$LGITPATH" ]; then
+        LGITPATH=$(get_cfg_value "" "distpath")
+      fi
+    fi
+    export LGITPATH=$(expand_path "$LGITPATH")
+    DEVPATH=$TDIR
+}
+
+check_4_travis () {
+    if [ ! -d $PKGPATH ]; then
+      echo "Invalid package path $PKGPATH"
+      exit $STS_FAILED
+    elif [ "$PRJNAME" != "Odoo" ]; then
+      if [ ! -d $PKGPATH/$pkgname ]; then
+        echo "Invalid package path $PKGPATH/$pkgname"
+        exit $STS_FAILED
       fi
     fi
 }
 
+do_chkconfig () {
+    echo "Project name   = \"$PRJNAME\""
+    echo "Tools path     = \"$DEVPATH\""
+    echo "Hosted         = \"$HOSTENV\""
+    echo "Branch         = \"$BRANCH\""
+    echo "Package name   = \"$pkgname\""
+    echo "Version        = \"$prjversion\""
+    echo "Setup file     = \"$SETUP\""
+    echo "Project path   = \"$PRJPATH\""
+    echo "Package path   = \"$PKGPATH\""
+    echo "Local git path = \"$LGITPATH\""
+    echo "Config file    = \"$TCONF\""
+}
 
 conf_default () {
     set_cfg_def "loglevel" "0"
@@ -184,10 +334,9 @@ update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
     ME_BOS="test_nightly .test_nightly.conf.sample"
     if [ "$1" == "travis_emulator" ]; then
-      RFLIST="autopep8_W503.py beauty .dist_pkg.conf dist_pkg please please.man please.py prjdiff topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+      RFLIST="autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff topep8 travis .travis.conf travisrc vfcp vfdiff wok_doc wok_doc.py"
       RDLIST="_travis/"
     elif [ "$1" == "z0lib" ]; then
-      # set -x #debug
       RFLIST="Makefile z0testrc"
       RDLIST=""
     else
@@ -204,7 +353,7 @@ update_dev () {
     fi
     if [ $xvalid -eq 0 ]; then
        echo "Invalid package $1!"
-       exit 1
+       exit $STS_FAILED
     fi
     if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
       for x in $RFLIST; do
@@ -450,4 +599,22 @@ clean_dirs () {
         fi
       fi
     done
+}
+
+
+do_summary () {
+    echo "+======================================="
+    echo "|  Tests summary:"
+    echo "|---------------------------------------"
+    if [ $1 -eq $STS_SUCCESS ]; then
+      echo "| test_flake8                 Success"
+    else
+      echo "| test_flake8                 FAIL"
+    fi
+    if [ $2 -eq $STS_SUCCESS ]; then
+      echo "| test_pylint                 Success"
+    else
+      echo "| test_pylint                 FAIL"
+    fi
+    echo "+======================================="
 }

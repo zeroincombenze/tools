@@ -7,76 +7,71 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f $TDIR/z0librc ]; then
+if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
-elif [ -f ./z0librc ]; then
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
 fi
-DEVPATH=$(readlink -f $TDIR/..)
-. $DEVPATH/travisrc
-TCONF=$TDIR/.$THIS.conf
+if [ -f $TDIR/travisrc ]; then
+. $TDIR/travisrc
+elif [ -f ./travisrc ]; then
+. ./travisrc
+elif [ -f ~/travisrc ]; then
+. ~/travisrc
+fi
 
-__version__=0.1.1
-
-
-run_traced () {
-    # set -x  #debug
-    if [ $opt_verbose -gt 0 ]; then
-      echo "$@"
-    fi
-    sts=0
-    if [ $opt_dry_run -eq 0 ]; then
-      $@
-      sts=$?
-    fi
-    # set +x  #debug
-    return $sts
-}
+__version__=0.1.4
 
 
 test_flake8 () {
+    echo "======== Testing test_flake8 ========"
     FLAKE8_CONFIG_DIR="$(dirname $0)/cfg"
-    run_traced flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
-    sts=$?
-    if [ $sts -eq 0 ]; then
-      run_traced flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
-      sts=$?
-    fi
-    return $sts
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+    local status1=$?
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+    local status2=$?
+    return $((${status1} || ${status2}))
 }
 
 test_pylint () {
-    sts=0
+    echo "======== Testing test_pylint ========"
+    sts=$STS_SUCCESS
     TRAVIS_BUILD_DIR=$PKGPATH
     MODULES_TO_TEST=$TRAVIS_BUILD_DIR
     PYLINT_CONFIG_DIR="$(dirname $0)/cfg"
-
-    # Fix pylint path. More info: https://www.mail-archive.com/code-quality@python.org/msg00294.html
+    if [ "$PRJNAME" == "Odoo" ]; then
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+    else
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+    fi
     export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
     if [ "$PRJNAME" == "Odoo" ]; then
       touch $MODULES_TO_TEST/__init__.py
-      VERSION=$BRANCH
     fi
     IFS="/" read -a REPO <<< "${ODOO_REPO}"
     export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
 
     #run pylint command
-    run_traced pylint --rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg ${MODULES_TO_TEST}
+    run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
     sts=$?
     return $sts
 }
 
 
 run_regression_test () {
-    #set -x  #debug
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
       cd ~/dev/pypi/$1/$1/tests
       ./all_tests
@@ -86,76 +81,78 @@ run_regression_test () {
       python ~/dev/pypi/$1/$1/tests/test_$1.py
       sts=$?
     else
-      sts=1
+      sts=$STS_FAILED
     fi
-    #set +x #debug
 }
 
 
-OPTOPTS=(h        C         n            R        V           v)
-OPTDEST=(opt_help opt_check opt_dry_run  opt_regr opt_version opt_verbose)
-OPTACTI=(1        "1>"      "1>"         "1>"     "*>"        1)
-OPTDEFL=(1        0         0            0        ""          0)
-OPTMETA=("help"   "check"   "do nothing" "test"   "version"   "verbose")
+OPTOPTS=(h        C         c        n            R        t         V           v)
+OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "1>"      "="      "1>"         "1>"     1         "*>"        1)
+OPTDEFL=(0        0         ""        0            0       0         ""          0)
+OPTMETA=("help"   "check"   "filr"   "do nothing" "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do flake8 and pylint checks"\
+ "configuration file"\
  "do nothing (dry-run)"\
  "do regression tests"\
+ "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
-OPTARGS=(pkg_path PRJNAME)
-parseoptargs $@
+OPTARGS=(pkg PRJNAME)
 
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run test in travis environment"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
-if [ "$pkg_path" ]; then
-  PKGPATH=$pkg_path
-else
-  PKGPATH=$PWD
+opts_travis
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $TCONF
+init_travis
+if [ $opt_verbose -gt 1 ]; then
+  set -x
 fi
-PKGPATH=$(set_pkgpath "$PKGPATH")
-if [ ! -d $PKGPATH ]; then
-  echo "Invalid path $PKGPATH"
-  exit 1
-elif [ "$PRJNAME" != "Odoo" ]; then
-  if [ ! -d $PKGPATH/$pkgname ]; then
-    echo "Invalid path $PKGPATH/$pkgname"
-    exit 1
-  fi
+prepare_env_travis ""
+sts=$STS_SUCCESS
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
 fi
+check_4_travis
 
 
-sts=0
+
 if [ $opt_verbose -gt 0 ]; then
   echo "if [ \${opt_check:-0} -gt 0 -o \"\${LINT_CHECK:-1}\" == \"1\" ]; then  #($opt_check,$LINT_CHECK)"
 fi
 if [ ${opt_check:-0} -gt 0 -o "${LINT_CHECK:-1}" == "1" ]; then
   test_flake8
-  sts=$?
-  if [ $sts -eq 0 ]; then
-    test_pylint
-    sts=$?
-  fi
+  sts_flake8=$?
+  test_pylint
+  sts_pylint=$?
+  do_summary "$sts_flake8" "$sts_pylint"
+  sts=$(($sts_flake8 || $sts_pylint))
 fi
 if [ $opt_verbose -gt 0 ]; then
   echo "if [ \${opt_regr:-0} -gt 0 -o \"\$LINT_CHECK\" != \"1\" ]; then  #($opt_regr,$LINT_CHECK)$sts"
 fi
 if [ ${opt_regr:-0} -gt 0 -o "$LINT_CHECK" != "1" ]; then
-  if [ $sts -eq 0 ]; then
+  if [ $sts -eq $STS_SUCCESS ]; then
     pkgname=$(basename $PKGPATH)
-    if [ $opt_verbose -gt 0 ]; then
-      echo "run_regression_test $pkgname"
-    fi
-    run_regression_test $pkgname
-    sts=$?
+    # if [ $opt_verbose -gt 0 ]; then
+    #   echo "run_regression_test $pkgname"
+    # fi
+    # run_regression_test $pkgname
+    #sts=$?
   fi
 fi
 exit $sts

@@ -24,20 +24,6 @@ __version__=0.1.1
 
 
 
-run_traced () {
-    # set -x  #debug
-    if [ $opt_verbose -gt 0 ]; then
-      echo "$@"
-    fi
-    sts=0
-    if [ $opt_dry_run -eq 0 ]; then
-      $@
-      sts=$?
-    fi
-    # set +x  #debug
-    return $sts
-}
-
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -49,8 +35,8 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode")
 OPTARGS=(PKGPATH PRJNAME)
-parseoptargs $@
 
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0

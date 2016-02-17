@@ -20,7 +20,7 @@ fi
 . $TDIR/travisrc
 TCONF=$TDIR/.$THIS.conf
 
-__version__=0.1.11
+__version__=0.1.12
 
 OPTOPTS=(h        c        n            s       V           v           0       1       2)
 OPTDEST=(opt_help opt_conf opt_dry_run  opt_sel opt_version opt_verbose opt_sts opt_sts opt_2nd)
@@ -38,7 +38,7 @@ OPTHELP=("this help"\
  "2nd level")
 OPTARGS=(left right)
 
-parseoptargs $@
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
@@ -49,14 +49,21 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+opts_travis
 $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-if [ "$opt_conf" -a -f "$opt_conf" ]; then
-  CONFN=$opt_conf
+if [ $opt_verbose -gt 1 ]; then
+  set -x
 fi
+prepare_env_travis ""
+sts=$STS_SUCCESS
+
+#if [ "$opt_conf" -a -f "$opt_conf" ]; then
+#  CONFN=$opt_conf
+#fi
 
 param=""
 if [ "$opt_sel" ]; then param="$param -s$opt_sel"; fi
@@ -79,7 +86,7 @@ if [ -d $left ]; then
     else
       $0 -$sts $param -2 $left/$f $right/$f
       if [ $? -gt 0 ]; then
-        sts=1
+        sts=$STS_FAILED
       fi
     fi
   done
@@ -90,12 +97,12 @@ if [ -d $left ]; then
       else
         if [ ! -e $left/$f ]; then
           echo "Only in $right: $f"
-          sts=1
+          sts=$STS_FAILED
         fi
       fi
     done
   fi
-  if [ $opt_2nd -eq 0 -a $sts -eq 0 ]; then
+  if [ $opt_2nd -eq 0 -a $sts -eq $STS_SUCCESS ]; then
      echo "No diff found"
   fi
 else
@@ -113,13 +120,13 @@ else
       fi
       if [ $? -gt 0 ]; then
         # echo "Files $left and $right differ"
-        sts=1
+        sts=$STS_FAILED
       fi
     elif [ ! -f $right ]; then
       fd=$(dirname $left)
       fb=$(basename $left)
       echo "Only in $fd: $fb"
-      sts=1
+      sts=$STS_FAILED
     fi
   fi
 fi

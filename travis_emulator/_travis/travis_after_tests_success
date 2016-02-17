@@ -5,81 +5,98 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f $TDIR/z0librc ]; then
+if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
-elif [ -f ./z0librc ]; then
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
 fi
-TCONF=$TDIR/.$THIS.conf
+if [ -f $TDIR/travisrc ]; then
+. $TDIR/travisrc
+elif [ -f ./travisrc ]; then
+. ./travisrc
+elif [ -f ~/travisrc ]; then
+. ~/travisrc
+fi
 
-__version__=0.1.1
-
-
-
-run_traced () {
-    # set -x  #debug
-    if [ $opt_verbose -gt 0 ]; then
-      echo "$@"
-    fi
-    sts=0
-    if [ $opt_dry_run -eq 0 ]; then
-      $@
-      sts=$?
-    fi
-    # set +x  #debug
-    return $sts
-}
+__version__=0.1.4
 
 
-OPTOPTS=(h        n            V           v)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
-OPTACTI=(1        "1>"         "*>"        1)
-OPTDEFL=(1        0            ""          0)
-OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTOPTS=(h        n            t         V           v)
+OPTDEST=(opt_help opt_dry_run  test_mode opt_version opt_verbose)
+OPTACTI=(1        "1>"         1         "*>"        1)
+OPTDEFL=(1        0            0         ""          0)
+OPTMETA=("help"   "do nothing" "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do nothing (dry-run)"\
+ "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
 OPTARGS=(PKGPATH PRJNAME)
-parseoptargs $@
 
+parseoptargs "$@"
 if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run coverall after successfull test"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
-if [ ! -d $PKGPATH ]; then
-  echo "Invalid path $PKGPATH"
-  exit 1
-elif [ "$PRJNAME" != "Odoo" ]; then
-  if [ ! -d $PKGPATH/$pkgname ]; then
-    echo "Invalid path $PKGPATH/$pkgname"
-    exit 1
-  fi
+opts_travis
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $TCONF
+init_travis
+if [ $opt_verbose -gt 1 ]; then
+  set -x
 fi
+prepare_env_travis "coverage"
+sts=$STS_SUCCESS
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
+fi
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
+fi
+check_4_travis
+
+
 if [ "$PRJNAME" != "Odoo" ]; then
-  cd $PKGPATH/$PRJNAME;
-  run_traced find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
-  run_traced coverage erase
-  if [ $opt_verbose -gt 0 ]; then
-    echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
+  run_traced "cd $PKGPATH/$PRJNAME"
+  run_traced "find . -name \"*$PRJNAME*.log\" -exec rm -f '{}' \;"
+  if [ -f ~/dev/pypi/$1/$1/__main__.py ]; then
+    run_traced "coverage erase"
+    if [ $opt_verbose -gt 0 ]; then
+      echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
+    fi
+    sts=0
+    if [ $opt_dry_run -eq 0 ]; then
+      DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
+      coverage report
+    fi
+    sts=$?
+  else
+    sts=$STS_FAILED
   fi
-  sts=0
-  if [ $opt_dry_run -eq 0 ]; then
-    DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
-  fi
+else
+  sts=$STS_FAILED
 fi
-exit 0
+exit $sts

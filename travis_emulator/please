@@ -22,13 +22,12 @@ elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
 else
   echo "Library file z0librc not found!"
-  exit 1
+  exit $STS_FAILED
 fi
 . $TDIR/travisrc
 
-__version__="0.1.16.1"
-STS_FAILED=1
-STS_SUCCESS=0
+__version__="0.1.17"
+
 
 ant_rm_trap () {
     if [ $opt_verbose -gt 0 ]; then
@@ -106,49 +105,20 @@ do_annotate () {
 
 
 do_check (){
-    if [ -z "$TOOLS_PATH" ]; then
-      if [ -d $TDIR/_travis -a $opt_r -gt 0 ]; then
-        TOOLS_PATH=$TDIR/_travis
-      elif [ -d $HOME/dev/_travis -a $opt_r -gt 0 ]; then
-        TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $TDIR/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$TDIR/maintainer-quality-tools/travis
-      elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
-      elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
-      else
-        unset -v TOOLS_PATH
-      fi
-    fi
-    if [ $opt_verbose -gt 0 ]; then
-      echo "TOOLS_PATH=$TOOLS_PATH"
-    fi
-    if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
-      export PATH=$TOOLS_PATH:$PATH
-    fi
-    export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
-    export LINT_CHECK=1
-    if [ -z $BRANCH ]; then
-      BRANCH=$opt_branch
-    fi
-    export VERSION=$BRANCH
-    export TRAVIS_BUILD_DIR=$PKGPATH
-    export ODOO_REPO=$repository
-    export VERBOSE_MODE=$opt_verbose
-    sts=0
+    prepare_env_travis "check"
     # if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
     #   run_traced $TOOLS_PATH/travis_install_pkgs
     #   if [ $? -ne 0 ]; then sts=$?; fi
     # fi
-    if [ $sts -eq 0 ]; then
+    if [ $sts -eq $STS_SUCCESS ]; then
       if [ $opt_r -gt 0 ]; then
+        cd $TOOLS_PATH
         test_flake8
-        sts=$?
-        if [ $sts -eq 0 ]; then
-          test_pylint
-          sts=$?
-        fi
+        sts_flake8=$?
+        test_pylint
+        sts_pylint=$?
+        do_summary "$sts_flake8" "$sts_pylint"
+        sts=$(($sts_flake8 || $sts_pylint))
       else
         if [ $TOOLS_PATH/travis_run_tests ]; then
           run_traced $TOOLS_PATH/travis_run_tests
@@ -162,42 +132,43 @@ do_check (){
 }
 
 test_flake8 () {
-    FLAKE8_CONFIG_DIR="$(dirname $0)/cfg"
+    echo "======== Testing test_flake8 ========"
+    FLAKE8_CONFIG_DIR="$PWD/cfg"
     run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
-    sts=$?
-    if [ $sts -eq 0 ]; then
-      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
-      sts=$?
-    fi
-    return $sts
+    local status1=$?
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+    local status2=$?
+    return $((${status1} || ${status2}))
 }
 
 test_pylint () {
-    sts=0
+    echo "======== Testing test_pylint ========"
+    sts=$STS_SUCCESS
     TRAVIS_BUILD_DIR=$PKGPATH
     MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-    PYLINT_CONFIG_DIR="$(dirname $0)/cfg"
+    PYLINT_CONFIG_DIR="$PWD/cfg"
+    if [ "$PRJNAME" == "Odoo" ]; then
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+    else
+      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+    fi
 
-    # Fix pylint path. More info: https://www.mail-archive.com/code-quality@python.org/msg00294.html
     export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
     if [ "$PRJNAME" == "Odoo" ]; then
       touch $MODULES_TO_TEST/__init__.py
-      VERSION=$BRANCH
     fi
     IFS="/" read -a REPO <<< "${ODOO_REPO}"
     export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
 
     #run pylint command
-    run_traced "pylint --rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg ${MODULES_TO_TEST}"
+    run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
     sts=$?
     return $sts
 }
 
 
 do_test () {
-    if [ $opt_verbose -gt 0 ]; then
-      set -x  #debug
-    fi
+    prepare_env_travis "test"
     if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
       if [ $opt_dprj -gt 0 ]; then
         cd ~/dev/pypi/$1/$1
@@ -216,11 +187,35 @@ do_test () {
       PYTHONPATH=~/dev/pypi/$1 python ~/dev/pypi/$1/$1/tests/test_$1.py
       sts=$?
     else
-      sts=1
+      sts=$STS_FAILED
     fi
     # set +x #debug
     return $sts
 }
+
+
+
+
+do_coverage () {
+    prepare_env_travis "coverage"
+    run_traced "find . -name \"*$PRJNAME*.log\" -exec rm -f '{}' \;"
+    if [ -f ~/dev/pypi/$1/$1/__main__.py ]; then
+      run_traced "coverage erase"
+      if [ $opt_verbose -gt 0 ]; then
+        echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
+      fi
+      sts=0
+      if [ $opt_dry_run -eq 0 ]; then
+        DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
+        coverage report
+      fi
+      sts=$?
+    else
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
 
 do_travis (){
     travis local/"$1";
@@ -243,7 +238,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "do nothing (dry-run)"\
  "declare local git path"\
  "quiet mode"\
- "run restricted mode (w/o maintainer-quality-tools)"\
+ "restricted mode, no maintainer-quality-tools (config is local)"\
  "files include in annotate test"\
  "test mode (implies dry-run)"\
  "check for unary operator W503"\
@@ -258,49 +253,22 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be: check, test, all (default) or setup"\
+  print_help "Developer shell\nAction may be: help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|wep"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
-  TCONF=$opt_conf
-else
-  TCONF=$TDIR/.travis.conf
-fi
+
+opts_travis
 $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $TCONF
-if [ "$pkg" ]; then
-  PKGPATH=$pkg
-else
-  PKGPATH=$PWD
-fi
-PKGPATH=$(set_pkgpath "$PKGPATH")
-pkgname=$(basename $PKGPATH)
 init_travis
-if [ -z "$PRJNAME" ]; then
-  PRJNAME=$(basename $PKGPATH)
+if [ $opt_verbose -gt 1 ]; then
+  set -x
 fi
-if [ "$opt_dpath" ]; then
-  LGITPATH="$opt_dpath"
-else
-  if [ "$REPOSNAME" ]; then
-    declare LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
-  else
-    declare LGITPATH=
-  fi
-  if [ -z "$LGITPATH" ]; then
-    declare LGITPATH=$(get_cfg_value "" "${PRJNAME}_distpath")
-  fi
-  if [ -z "$LGITPATH" ]; then
-    LGITPATH=$(get_cfg_value "" "distpath")
-  fi
-fi
-LGITPATH=$(expand_path "$LGITPATH")
-
-
-sts=0
+prepare_env_travis "$action"
+sts=$STS_SUCCESS
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
@@ -333,6 +301,20 @@ elif [ "$action" == "autopep8" ]; then
 elif [ "$action" == "check" ]; then
   do_check "$pkgname" "$sub1" "$sub2"
   sts=$?
+elif [ "$action" == "chkconfig" ]; then
+  do_chkconfig
+  sts=$STS_SUCCESS
+elif [ "$action" == "config" ]; then
+  if [ $opt_r -gt 0 ]; then
+    DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
+    vim $DIST_CONF
+  else
+    vim $TCONF
+  fi
+  sts=$STS_SUCCESS
+elif [ "$action" == "coverage" ]; then
+  do_coverage "$pkgname" "$sub1" "$sub2"
+  sts=$?
 elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
   sts=$?
@@ -346,7 +328,7 @@ elif [ "$action" == "wep" ]; then
   clean_dirs "$PKGPATH"
 else
   echo "Invalid action!"
-  echo "Use $THIS help|annotate|autopep8|check|test|wep"
-  sts=1
+  echo "Use $THIS help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|wep"
+  sts=$STS_FAILED
 fi
 exit $sts
