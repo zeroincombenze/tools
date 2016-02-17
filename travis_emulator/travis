@@ -109,16 +109,6 @@ if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$acti
   exit 1
 fi
 
-if [ $opt_dry_run -ne 0 ]; then
-  opts_dry_run=-n
-else
-  opts_dry_run=
-fi
-if [ $opt_verbose -ne 0 ]; then
-  opts_verbose=-v
-else
-  opts_verbose=
-fi
 if [ "$action" == "setup" ]; then
   opt_r=0
   DEF_DEVPATH=$(readlink -f ~/dev)

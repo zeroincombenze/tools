@@ -4,11 +4,13 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.31
-
+#__version__=0.1.32
+STS_FAILED=1
+STS_SUCCESS=0
 
 ##############################################################################
-# Install this lib file in /etc
+# Install this lib file in /etc if version is more recent
+# This must be in the same directory of caller script
 _install_z0librc () {
     local tgt=/etc/z0librc
     local src=./z0librc
@@ -38,71 +40,12 @@ _install_z0librc () {
 }
 export -f _install_z0librc
 
-##############################################################################
-# Set tracelog filename for wlog function
-# Log message may be echoed onto console ($3=echo)
-# log filename may be /dev/null
-#
-# Parameter $1:
-#    Filename to write (may be full pathname or just basename)
-# Parameter $2:
-#    "new" means create a new file log, otherwise append to existent file
-# Parameter $3:
-#    "echo" means wlog echoes message onto console when write log
-set_tlog_file () {
-    #set -x
-    local p=$(dirname "$1")
-    local f=$(basename "$1")
-    if [ "$p" == "~" ]; then p=$HOME; fi
-    if [ "$p" == "." -a "${1:0:2}" != "./" ]; then p=""; fi
-    if [ -z "$p" ]; then
-      if [ $EUID -eq 0 ]; then
-        p=/var/log
-      else
-        p=$HOME
-      fi
-    fi
-    export FLOG=$(readlink -f $p/$f)
-    if [ "$2" == "new" ]; then
-      if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
-    fi
-    export FLOG_ECHO=${3:-#}
-    #set +x
-}
-
-
-##############################################################################
-# Write log on file $FLOG: see set_tlog_file function
-wlog () {
-    dt=$(date +"%F %H:%M:%S")
-    if [ -n "$FLOG" ]; then
-      echo $dt "$@">>$FLOG
-    fi
-    if [ "$FLOG_ECHO" == "echo" ]; then
-      $FLOG_ECHO -e "$@"
-    fi
-}
-export -f wlog
-
-
-##############################################################################
-# Echo meassge and write log on file $FLOG: see set_tlog_file function
-elog () {
-    wlog "$@"
-    if [ "$FLOG_ECHO" != "echo" ]; then
-      echo -e "$@"
-    fi
-}
-export -f elog
-
-
-
 
 ##############################################################################
 # Detect and print more OS informations than uname command
 # __version__=0.1.6
-# Print Linux OS system information in same way of uname command but returns
-# more information.
+# Print Linux OS system information in same way of uname command
+# but returns more information.
 # Based on Novell article http://www.novell.com/coolsolutions/feature/11251.html
 # Credits:
 # - Arun Singh (Novell Senior Software Engineer)
@@ -389,6 +332,106 @@ print_help () {
 }
 export -f print_help
 
+
+
+##############################################################################
+# Set tracelog filename for wlog function
+# Log message may be echoed onto console ($3=echo)
+# log filename may be /dev/null
+#
+# Parameter $1:
+#    Filename to write (may be full pathname or just basename)
+# Parameter $2:
+#    "new" means create a new file log, otherwise append to existent file
+# Parameter $3:
+#    "echo" means wlog echoes message onto console when write log
+set_tlog_file () {
+    #set -x
+    local p=$(dirname "$1")
+    local f=$(basename "$1")
+    if [ "$p" == "~" ]; then p=$HOME; fi
+    if [ "$p" == "." -a "${1:0:2}" != "./" ]; then p=""; fi
+    if [ -z "$p" ]; then
+      if [ $EUID -eq 0 ]; then
+        p=/var/log
+      else
+        p=$HOME
+      fi
+    fi
+    export FLOG=$(readlink -f $p/$f)
+    if [ "$2" == "new" ]; then
+      if [ -f "$FLOG" ]; then rm -f "$FLOG"; fi
+    fi
+    export FLOG_ECHO=${3:-#}
+    #set +x
+}
+
+
+##############################################################################
+# Write log on file $FLOG: see set_tlog_file function
+wlog () {
+    dt=$(date +"%F %H:%M:%S")
+    if [ -n "$FLOG" ]; then
+      echo $dt "$@">>$FLOG
+    fi
+    if [ "$FLOG_ECHO" == "echo" ]; then
+      $FLOG_ECHO -e "$@"
+    fi
+}
+export -f wlog
+
+
+##############################################################################
+# Echo meassge and write log on file $FLOG: see set_tlog_file function
+elog () {
+    wlog "$@"
+    if [ "$FLOG_ECHO" != "echo" ]; then
+      echo -e "$@"
+    fi
+}
+export -f elog
+
+
+##############################################################################
+# Execute line commad and trace in tracelog
+#
+# Global variables to declare (base on parseoptargs):
+# - opt_dry_run (-n): if > 0 do not execute command, just log
+# - opt_verbose (-v): echo command line before execution
+# Parameter $1:
+#    command line with parameters; command may be a comment (beginning with '#')
+#    command 'cd ' is always executed, also if dry_run
+# Parameter $2:
+#    execute as user; user must be sudoer
+# Parameter $3:
+#    do login (1) if execute as user
+run_traced () {
+    local xcmd="$1"
+    if [ -n "$2" -a "$2" != "$USER" ]; then
+      if [ ${3:-0} -gt 0 ]; then
+        xcmd="sudo -iu$2 $1"
+      else
+        xcmd="sudo -u$2 $1"
+      fi
+    fi
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ "${1:0:5}" != "wlog " ];then
+        if [ $opt_verbose -gt 0 ]; then
+          elog "--> $xcmd"
+        else
+          wlog "--> $xcmd"
+        fi
+      fi
+      if [ "${1:0:1}" != "#" ]; then
+        eval "$xcmd"
+      fi
+    elif [ "${1:0:6}" != "sleep " ]; then
+      echo "--> $xcmd"
+      if [ "${1:0:3}" == "cd " ]; then
+        eval "$xcmd"
+      fi
+    fi
+}
 
 
 

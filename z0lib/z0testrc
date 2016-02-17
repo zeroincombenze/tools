@@ -1,3 +1,4 @@
+trap "echo [$LINENO] $0:$BASH_COMMAND>>/opt/odoo/dev/pypi/z0lib/z0lib/z0testrc.tracehistory" DEBUG
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #

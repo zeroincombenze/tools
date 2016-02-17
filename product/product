@@ -14,7 +14,7 @@
 # products?
 # oerplib
 # wget
-# flake8, autopep8, pylint, coverage, github3.py
+# flake8, autopep8, pylint, coverage, github3.py click
 # yum install mod_ssl mod_proxy_html iptables-services bind-utils
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.27.3"
+__version__="0.2.27.4"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)

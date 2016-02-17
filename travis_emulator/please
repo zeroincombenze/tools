@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.16"
+__version__="0.1.16.1"
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -58,7 +58,7 @@ ant_add_trap () {
         local fn="${line:2}"
         local p="$(dirname $fn)"
         if [ "$p" == "." ]; then
-          if [ ! "$(echo " $FL_2_TEST "|grep [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
+          if [ "$(echo " $FL_2_TEST "|grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
             FL_2_TEST="$FL_2_TEST $fn"
           fi
         fi
@@ -104,10 +104,95 @@ do_annotate () {
   return 0
 }
 
+
 do_check (){
-    travis local/"$1" check;
-    return 0
+    if [ -z "$TOOLS_PATH" ]; then
+      if [ -d $TDIR/_travis -a $opt_r -gt 0 ]; then
+        TOOLS_PATH=$TDIR/_travis
+      elif [ -d $HOME/dev/_travis -a $opt_r -gt 0 ]; then
+        TOOLS_PATH=$HOME/dev/_travis
+      elif [ -d $TDIR/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$TDIR/maintainer-quality-tools/travis
+      elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
+      elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
+      else
+        unset -v TOOLS_PATH
+      fi
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      echo "TOOLS_PATH=$TOOLS_PATH"
+    fi
+    if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
+      export PATH=$TOOLS_PATH:$PATH
+    fi
+    export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
+    export LINT_CHECK=1
+    if [ -z $BRANCH ]; then
+      BRANCH=$opt_branch
+    fi
+    export VERSION=$BRANCH
+    export TRAVIS_BUILD_DIR=$PKGPATH
+    export ODOO_REPO=$repository
+    export VERBOSE_MODE=$opt_verbose
+    sts=0
+    # if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
+    #   run_traced $TOOLS_PATH/travis_install_pkgs
+    #   if [ $? -ne 0 ]; then sts=$?; fi
+    # fi
+    if [ $sts -eq 0 ]; then
+      if [ $opt_r -gt 0 ]; then
+        test_flake8
+        sts=$?
+        if [ $sts -eq 0 ]; then
+          test_pylint
+          sts=$?
+        fi
+      else
+        if [ $TOOLS_PATH/travis_run_tests ]; then
+          run_traced $TOOLS_PATH/travis_run_tests
+          if [ $? -ne 0 ]; then sts=$?; fi
+        else
+          sts=127
+        fi
+      fi
+    fi
+    return $sts
 }
+
+test_flake8 () {
+    FLAKE8_CONFIG_DIR="$(dirname $0)/cfg"
+    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+    sts=$?
+    if [ $sts -eq 0 ]; then
+      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+      sts=$?
+    fi
+    return $sts
+}
+
+test_pylint () {
+    sts=0
+    TRAVIS_BUILD_DIR=$PKGPATH
+    MODULES_TO_TEST=$TRAVIS_BUILD_DIR
+    PYLINT_CONFIG_DIR="$(dirname $0)/cfg"
+
+    # Fix pylint path. More info: https://www.mail-archive.com/code-quality@python.org/msg00294.html
+    export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
+    if [ "$PRJNAME" == "Odoo" ]; then
+      touch $MODULES_TO_TEST/__init__.py
+      VERSION=$BRANCH
+    fi
+    IFS="/" read -a REPO <<< "${ODOO_REPO}"
+    export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
+
+    #run pylint command
+    run_traced "pylint --rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg ${MODULES_TO_TEST}"
+    sts=$?
+    return $sts
+}
+
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then

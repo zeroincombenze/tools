@@ -1,3 +1,4 @@
+trap "echo [$LINENO] $0:$BASH_COMMAND>>/opt/odoo/dev/pypi/z0lib/z0lib/tests/test_findpkg.tracehistory" DEBUG
 #! /bin/bash
 # -*- coding: utf-8 -*-
 # Regression tests for submodule of z0lib module

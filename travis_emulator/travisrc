@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.45.2
+#__version__=0.1.45.3
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -20,6 +20,11 @@ init_travis () {
       opts_upd=-u
     else
       opts_upd=
+    fi
+    if [ $opt_verbose -ne 0 ]; then
+      opts_verbose=-v
+    else
+      opts_verbose=
     fi
     ODOO_SETUP=$(get_cfg_value "" "ODOO_SETUP")
     if [ "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then

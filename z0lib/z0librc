@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.31.1
+#__version__=0.1.32
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -397,7 +397,7 @@ export -f elog
 #
 # Global variables to declare (base on parseoptargs):
 # - opt_dry_run (-n): if > 0 do not execute command, just log
-# -
+# - opt_verbose (-v): echo command line before execution
 # Parameter $1:
 #    command line with parameters; command may be a comment (beginning with '#')
 #    command 'cd ' is always executed, also if dry_run
@@ -416,7 +416,11 @@ run_traced () {
     fi
     if [ $opt_dry_run -eq 0 ]; then
       if [ "${1:0:5}" != "wlog " ];then
-        wlog "--> $xcmd"
+        if [ $opt_verbose -gt 0 ]; then
+          elog "--> $xcmd"
+        else
+          wlog "--> $xcmd"
+        fi
       fi
       if [ "${1:0:1}" != "#" ]; then
         eval "$xcmd"
