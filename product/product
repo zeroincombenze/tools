@@ -36,11 +36,11 @@ elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
 else
   echo "Library file z0librc not found!"
-  exit 1
+  exit $STS_FAILED
 fi
 
 
-__version__="0.2.27.5"
+__version__="0.2.27.6"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -622,7 +622,7 @@ get_pkg_ver_inq () {
       if [ "$vfycmd" ]; then
         x="$(echo "$vfycmd"|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
         if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-          sts=0
+          sts=$STS_SUCCESS
         elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
           sts=127
         else
@@ -700,7 +700,7 @@ get_pkg_ver_rpm () {
       else
         x=$($stscmd -q --qf '%{VERSION}' $pkgname 2>/dev/null)
         sts=$?
-        if [ $sts -eq 0 ]; then
+        if [ $sts -eq $STS_SUCCESS ]; then
           pkgversion="$x"
         fi
       fi
@@ -728,10 +728,10 @@ get_pkg_ver_dpkg () {
       else
         x="$($stscmd -f='${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
         sts=$?
-        if [ $sts -eq 0 -a "$x" != "installed" ]; then
-          sts=1
+        if [ $sts -eq $STS_SUCCESS -a "$x" != "installed" ]; then
+          sts=$STS_FAILED
         fi
-        if [ $sts -eq 0 ]; then
+        if [ $sts -eq $STS_SUCCESS ]; then
           pkgversion="$($stscmd -f='${Version}' -W $pkgname 2>/dev/null|awk -F\- '{print $1}')"
         fi
       fi
@@ -1081,7 +1081,7 @@ prod () {
       sts=$?
       if [ "$3" == "-q" ]; then
         return $sts
-      elif [ $sts -eq 0 ]; then
+      elif [ $sts -eq $STS_SUCCESS ]; then
          cmd="wlog $lm $pkgname: installed by $xtlcmd"
       else
          cmd="wlog $lm $pkgname could be installed by $xtlcmd"
@@ -1797,7 +1797,7 @@ test_cfg_name () {
       elog "Test $tst_ctr [$FH]: confg '$p'='$t'"
       if [ "$r" != "$t" ]; then
         elog "Test Failed: ($r)"
-        exit 1
+        exit $STS_FAILED
       fi
       ((++jj))
     done
@@ -1820,7 +1820,7 @@ test_realname () {
       if [ "$t" == "." ]; then t=; fi
       if [ "$r" != "$t" ]; then
         elog "Test Failed: ($r)"
-        exit 1
+        exit $STS_FAILED
       fi
       ((++jj))
     done
@@ -2127,7 +2127,7 @@ test_install () {
       prod install $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
         elog "Test Failed"
-        exit 1
+        exit $STS_FAILED
       fi
     fi
     ((++jj))
@@ -2432,7 +2432,7 @@ test_update () {
     prod update $p>$fout
     if [ "$(diff -q $fout $ftest)" ]; then
       elog "Test Failed"
-      exit 1
+      exit $STS_FAILED
     fi
     ((++jj))
   done
@@ -2529,7 +2529,7 @@ test_remove () {
       prod remove $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
         elog "Test Failed"
-        exit 1
+        exit $STS_FAILED
       fi
     fi
     ((++jj))
@@ -2614,7 +2614,7 @@ fi
 if [ -n "$opt_odoo" ]; then
   if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a "$opt_odoo" != "*" ]; then
     echo "Invalid option value: use -O9 or -O8 or -O7 or -O*"
-    exit 1
+    exit $STS_FAILED
   fi
   if [ "opt_oed" != "odoo" -a "opt_oed" != "oca" -a "opt_oed" != "zeroincombenze" ]; then
     opt_oed="zeroincombenze"
@@ -2657,7 +2657,7 @@ elif [ "$action" == "whatis" ]; then
 elif [ "$action" == "status" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   set_tlog_file "$FLOG" "" "echo"
   print_title "Check for installation status"
@@ -2670,7 +2670,7 @@ elif [ "$action" == "status" ]; then
 elif [ "$action" == "version" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   set_tlog_file "$FLOG" "" "echo"
   print_title "Show installed package version"
@@ -2684,7 +2684,7 @@ elif [ "$action" == "version" ]; then
 elif [ "$action" == "update" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   print_title "Update/upgrade package(s)"
   iter=$(set_iter $pkg)
@@ -2701,7 +2701,7 @@ elif [ "$action" == "update" ]; then
 elif [ "$action" == "config" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   print_title "Config package(s)"
   iter=$(set_iter $pkg)
@@ -2752,11 +2752,11 @@ elif [ "$action" == "config" ]; then
 elif [ "$action" == "remove" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   if [ -z "$pkg" ]; then
      echo "You must specify package to remove!"
-     exit 1
+     exit $STS_FAILED
   fi
   print_title "Remove package $pkg"
   iter=$(set_iter $pkg)
@@ -2775,7 +2775,7 @@ elif [ "$action" == "remove" ]; then
 elif [ "$action" == "install" ]; then
   #if [ $EUID -ne 0 ]; then
   #  elog "This command must be executed by root"
-  #  exit 1
+  #  exit $STS_FAILED
   #fi
   print_title "Install package(s)"
   if [ $opt_1st -gt 0 ]; then
@@ -2800,7 +2800,7 @@ elif [ "$action" == "install" ]; then
 elif [ "$action" == "prepare" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   wlog "Preparining group list"
   build_groups_list
@@ -2810,7 +2810,7 @@ elif [ "$action" == "prepare" ]; then
 elif [ "$action" == "export" ]; then
   # if [ $EUID -ne 0 ]; then
   #   elog "This command must be executed by root"
-  #   exit 1
+  #   exit $STS_FAILED
   # fi
   if [ -z "$opt_host" ]; then
     elog "Missing destination host name: use -H host option"
@@ -2821,7 +2821,7 @@ elif [ "$action" == "export" ]; then
 elif [ "$action" == "import" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
-    exit 1
+    exit $STS_FAILED
   fi
   wlog "Creating groups"
   add_groups
@@ -2924,7 +2924,7 @@ elif [ "$action" == "debug" ]; then
    done
 else
   echo "No valid action $action!"
-  exit 1
+  exit $STS_FAILED
 fi
 if [ -f "$TMP_LIS_PIP" ]; then
   rm -f TMP_LIS_PIP

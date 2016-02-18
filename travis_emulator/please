@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.17"
+__version__="0.1.18"
 
 
 ant_rm_trap () {
@@ -72,6 +72,9 @@ ant_add_trap () {
 do_annotate () {
 # do_annotate(script, include_list)
   # set -x
+  if [ $opt_verbose -gt 0 ]; then
+    echo "do_annotate \"$1\" \"$2\""
+  fi
   trap - DEBUG
   FL_2_TEST=${2//,/ }
   local f1=$(readlink -f $1)
@@ -105,6 +108,9 @@ do_annotate () {
 
 
 do_check (){
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_check \"$1\" \"$2\" \"$3\""
+    fi
     prepare_env_travis "check"
     # if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
     #   run_traced $TOOLS_PATH/travis_install_pkgs
@@ -194,9 +200,8 @@ do_test () {
 }
 
 
-
-
 do_coverage () {
+    run_traced "cd $PRJPATH"
     prepare_env_travis "coverage"
     run_traced "find . -name \"*$PRJNAME*.log\" -exec rm -f '{}' \;"
     if [ -f ~/dev/pypi/$1/$1/__main__.py ]; then
@@ -222,6 +227,16 @@ do_travis (){
     return 0
 }
 
+
+do_version () {
+    cd $PKGPATH; $DEVPATH/dist_pkg -- $pkgname $PRJNAME;
+    if [ "$PRJNAME" != "Odoo" ]; then
+      echo "Project $PRJNAME V$prjversion [$pkgname] answer:";
+      cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
+    else
+      echo "Project $PRJNAME V$BRANCH [$pkgname $prjversion]";
+    fi;
+}
 
 OPTOPTS=(h        b          c        d        j        k        L         n           p         q         r     s        t         u       V           v           y)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose opt_yes)
@@ -253,7 +268,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be: help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|wep"\
+  print_help "Developer shell\nAction may be: help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|version|wep"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -272,28 +287,10 @@ sts=$STS_SUCCESS
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
-  if [ $opt_verbose -gt 0 ]; then
-    echo "do_annotate \"$pkg\" \"$opt_srcs\""
-  fi
   do_annotate "$pkg" "$opt_srcs"
   sts=$?
 elif [ "$action" == "autopep8" ]; then
-  opts=
-  if [ $opt_dry_run -gt 0 ]; then
-    opts="${opts}n"
-  fi
-  if [ $opt_verbose -gt 0 ]; then
-    opts="${opts}v"
-  fi
-  if [ $opt_diff -gt 0 ]; then
-    opts="${opts}d"
-  fi
-  if [ $opt_uop -gt 0 ]; then
-    opts="${opts}u"
-  fi
-  if [ -n "$opts" ]; then
-    opts="-${opts}"
-  fi
+  opts=$(inherits_travis_opts "dnuv")
   if [ $opt_verbose -gt 0 ]; then
     echo "topep8 $PKGPATH $opts"
   fi
@@ -319,7 +316,27 @@ elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "travis" ]; then
-  do_travis "$pkgname" "$sub1" "$sub2"
+  if [ $opt_r -gt 0 ]; then
+    do_check "$pkgname" "$sub1" "$sub2"
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      do_test "$pkgname" "$sub1" "$sub2"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      do_coverage "$pkgname" "$sub1" "$sub2"
+      sts=$?
+    fi
+  else
+    opts=$(inherits_travis_opts "cnrv")
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_travis \"$opts\" \"$pkgname\" \"$sub1\" \"$sub2\""
+    fi
+    do_travis "$opts" "$pkgname" "$sub1" "$sub2"
+  fi
+  sts=$?
+elif [ "$action" == "version" ]; then
+  do_version "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "wep" ]; then
   if [ $opt_verbose -gt 0 ]; then

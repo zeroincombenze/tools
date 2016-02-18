@@ -1,5 +1,3 @@
-trap "echo [$LINENO] $BASH_COMMAND>>./topep8.tracehistory" DEBUG
-trap "echo [$LINENO] $BASH_COMMAND>>./topep8.tracehistory" DEBUG
 #! /bin/bash
 # Update source python file to pep8 standard
 # Tool for internal use

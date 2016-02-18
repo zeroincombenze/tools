@@ -37,9 +37,7 @@ import sys
 from pytok import pytok
 
 if __name__ == "__main__":
-    """
-    Check for developer environment
-    """
+    #    Check for developer environment
     if 'DEV_ENVIRONMENT' in os.environ:
         if os.path.isdir('./tests'):
             os.chdir('./tests')

@@ -458,8 +458,8 @@ def act_unit_test(oerp, prm):
 
 def act_run_unit_tests(oerp, prm):
     """"Run module unit test"""
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     sts = oerp.execute('ir.actions.server',
                        'Run Unit test',
                        'banking_export_pain')
@@ -1875,8 +1875,8 @@ def main():
     init()
     prm = parse_args(sys.argv[1:], apply_conf=APPLY_CONF)
     print_hdr_msg(prm)
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     if not check_4_actions(prm):
         return 1
     prm = create_act_list(prm)

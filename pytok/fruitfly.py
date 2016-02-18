@@ -31,7 +31,7 @@ import argparse
 from pytok import pytok
 
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -52,7 +52,7 @@ class File_System():
                         fn = os.path.join(root, f)
                         src = pytok.open(fn)
                         # if (prm['no_num_line'] or
-                        #         (prm['inclass'] and prm['inclass'] != '.*') or
+                        #       (prm['inclass'] and prm['inclass'] != '.*') or
                         #         (prm['infun'] and prm['infun'] != '.*') or
                         #         (prm['token'] and prm['token'] != '.*') or
                         #        prm['model']):
