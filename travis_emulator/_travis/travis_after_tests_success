@@ -31,7 +31,7 @@ elif [ -f ~/travisrc ]; then
 . ~/travisrc
 fi
 
-__version__=0.1.4
+__version__=0.1.4.1
 
 
 OPTOPTS=(h        n            t         V           v)
@@ -63,9 +63,7 @@ $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-if [ $opt_verbose -gt 1 ]; then
-  set -x
-fi
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis "coverage"
 sts=$STS_SUCCESS
 if [ $test_mode -gt 0 ]; then

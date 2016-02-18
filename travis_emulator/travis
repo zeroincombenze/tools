@@ -28,7 +28,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.32
+__version__=0.1.33
 
 
 OPTOPTS=(h        c        n            r     V           v           b)
@@ -62,9 +62,7 @@ $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-if [ $opt_verbose -gt 1 ]; then
-  set -x
-fi
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis "$action"
 sts=$STS_SUCCESS
 

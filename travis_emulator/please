@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.18"
+__version__="0.1.19"
 
 
 ant_rm_trap () {
@@ -118,12 +118,14 @@ do_check (){
     # fi
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ $opt_r -gt 0 ]; then
+        test_bash
+        sts_bash=$?
         cd $TOOLS_PATH
         test_flake8
         sts_flake8=$?
         test_pylint
         sts_pylint=$?
-        do_summary "$sts_flake8" "$sts_pylint"
+        do_summary "$sts_flake8" "$sts_pylint" "$sts_bash"
         sts=$(($sts_flake8 || $sts_pylint))
       else
         if [ $TOOLS_PATH/travis_run_tests ]; then
@@ -169,6 +171,22 @@ test_pylint () {
     #run pylint command
     run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
     sts=$?
+    return $sts
+}
+
+test_bash () {
+    echo "========= Testing test_bash ========="
+    sts=$STS_SUCCESS
+    local f
+    for f in $(find . -type f|tr "\n" " "); do
+      local x=$(head $f -n1)
+      if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
+        if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+          echo "Invalid statement 'set -x' in $f"
+          sts=$STS_FAILED
+        fi
+      fi
+    done
     return $sts
 }
 
@@ -279,9 +297,7 @@ $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-if [ $opt_verbose -gt 1 ]; then
-  set -x
-fi
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis "$action"
 sts=$STS_SUCCESS
 if [ "$action" == "help" ]; then

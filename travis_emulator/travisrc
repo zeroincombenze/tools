@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.47
+#__version__=0.1.49
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -180,7 +180,11 @@ init_travis () {
           prjversion="$BRANCH.$prjversion"
         fi
       fi
-      PRJPATH=$PKGPATH
+      if [ -f $ODOO_SETUP ]; then
+        PRJPATH=$(readlink -f $PKGPATH/..)
+      else
+        PRJPATH=$PKGPATH
+      fi
     else
       PRJPATH=$PKGPATH/$PRJNAME
     fi
@@ -650,6 +654,11 @@ do_summary () {
     echo "+======================================="
     echo "|  Tests summary:"
     echo "|---------------------------------------"
+    if [ $3 -eq $STS_SUCCESS ]; then
+      echo "| test_bash                   Success"
+    else
+      echo "| test_bash                   FAIL"
+    fi
     if [ $1 -eq $STS_SUCCESS ]; then
       echo "| test_flake8                 Success"
     else

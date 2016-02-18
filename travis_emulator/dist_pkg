@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.75
+__version__=0.1.76
 
 TCONF=$TDIR/.$THIS.conf
 # main
@@ -70,9 +70,7 @@ $(active_cfg)
 conf_default
 link_cfg $DIST_CONF $TCONF
 init_travis
-if [ $opt_verbose -gt 1 ]; then
-  set -x
-fi
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis ""
 sts=$STS_SUCCESS
 
