@@ -33,7 +33,30 @@ elif [ -f ~/travisrc ]; then
 . ~/travisrc
 fi
 
-__version__=0.1.4.1
+__version__=0.1.5
+
+
+test_bash () {
+    echo "======== Testing test_bash   ========"
+    sts=$STS_SUCCESS
+    local f
+    for f in $(find . -type f|tr "\n" " "); do
+      local x=$(head $f -n1)
+      if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
+        bash -n $f
+        local s=$?
+        if [ $sts -eq $STS_SUCCESS ]; then
+          if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+            echo "Invalid statement 'set -x' in $f"
+            sts=$STS_FAILED
+          fi
+        else
+          sts=$STS_FAILED
+        fi
+      fi
+    done
+    return $sts
+}
 
 
 test_flake8 () {
@@ -133,11 +156,17 @@ if [ $opt_verbose -gt 0 ]; then
   echo "if [ \${opt_check:-0} -gt 0 -o \"\${LINT_CHECK:-1}\" == \"1\" ]; then  #($opt_check,$LINT_CHECK)"
 fi
 if [ ${opt_check:-0} -gt 0 -o "${LINT_CHECK:-1}" == "1" ]; then
+  if [ "${BASH_CHECK:-1}" == "1" ]; then
+    test_bash
+    sts_bash=$?
+  else
+    sts=127
+  fi
   test_flake8
   sts_flake8=$?
   test_pylint
   sts_pylint=$?
-  do_summary "$sts_flake8" "$sts_pylint"
+  do_summary "$sts_flake8" "$sts_pylint" "$sts_bash"
   sts=$(($sts_flake8 || $sts_pylint))
 fi
 if [ $opt_verbose -gt 0 ]; then

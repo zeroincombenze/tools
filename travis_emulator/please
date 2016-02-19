@@ -26,7 +26,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__="0.1.19"
+__version__="0.1.20"
 
 
 ant_rm_trap () {
@@ -175,14 +175,20 @@ test_pylint () {
 }
 
 test_bash () {
-    echo "========= Testing test_bash ========="
+    echo "======== Testing test_bash   ========"
     sts=$STS_SUCCESS
     local f
     for f in $(find . -type f|tr "\n" " "); do
       local x=$(head $f -n1)
       if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
-        if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
-          echo "Invalid statement 'set -x' in $f"
+        bash -n $f
+        local s=$?
+        if [ $sts -eq $STS_SUCCESS ]; then
+          if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+            echo "Invalid statement 'set -x' in $f"
+            sts=$STS_FAILED
+          fi
+        else
           sts=$STS_FAILED
         fi
       fi
@@ -256,11 +262,11 @@ do_version () {
     fi;
 }
 
-OPTOPTS=(h        b          c        d        j        k        L         n           p         q         r     s        t         u       V           v           y)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose opt_yes)
-OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       1         1     "="      1         1       "*"         1           "*")
-OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        0         0     ""       0         0       ""          0           "")
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "kkep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose"   "yes")
+OPTOPTS=(h        b          c        d        j        k        L         n           p         q         r     s        t         u       V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       1         1     "="      1         1       "*"         1)
+OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        0         0     ""       0         0       ""          0)
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "kkep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
@@ -276,8 +282,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "test mode (implies dry-run)"\
  "check for unary operator W503"\
  "show version end exit"\
- "verbose mode"\
- "assume yes")
+ "verbose mode")
 OPTARGS=(action pkg sub1 sub2)
 
 parseoptargs "$@"

@@ -31,13 +31,13 @@ elif [ -f ~/travisrc ]; then
 . ~/travisrc
 fi
 
-__version__=0.1.4.1
+__version__=0.1.5
 
 
 OPTOPTS=(h        n            t         V           v)
 OPTDEST=(opt_help opt_dry_run  test_mode opt_version opt_verbose)
 OPTACTI=(1        "1>"         1         "*>"        1)
-OPTDEFL=(1        0            0         ""          0)
+OPTDEFL=(0        0            0         ""          0)
 OPTMETA=("help"   "do nothing" "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do nothing (dry-run)"\

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.49
+#__version__=0.1.50
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -654,7 +654,9 @@ do_summary () {
     echo "+======================================="
     echo "|  Tests summary:"
     echo "|---------------------------------------"
-    if [ $3 -eq $STS_SUCCESS ]; then
+    if [ $3 -eq 127 ]; then
+      true
+    elif [ $3 -eq $STS_SUCCESS ]; then
       echo "| test_bash                   Success"
     else
       echo "| test_bash                   FAIL"
