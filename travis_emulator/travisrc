@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.50
+#__version__=0.1.52
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
-XXXX=".pyc .log .bak .out .tmp .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
+XXXX=".pyc .log .bak .out .tmp .conf .tracehistory build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 
 
 opts_travis () {
@@ -63,34 +63,50 @@ inherits_travis_opts () {
   else
     local e=$1
   fi
-  if [[ $e =~ d ]]; then
-    if [ $opt_diff -gt 0 ]; then
-      opts="${opts}d"
+  if [ $(echo $TOOLS_PATH|grep -v "/maintainer-quality-tools/"  2>/dev/null) ]; then
+    if [[ $e =~ C ]]; then
+      opts="${opts}C"
     fi
-  fi
-  if [[ $e =~ n ]]; then
-    if [ $opt_dry_run -gt 0 ]; then
-      opts="${opts}n"
+    if [[ $e =~ R ]]; then
+      opts="${opts}R"
     fi
-  fi
-  if [[ $e =~ r ]]; then
-    if [ $opt_r -gt 0 ]; then
-      opts="${opts}r"
+    if [[ $e =~ d ]]; then
+      if [ $opt_diff -gt 0 ]; then
+        opts="${opts}d"
+      fi
     fi
-  fi
-  if [[ $e =~ u ]]; then
-    if [ $opt_uop -gt 0 ]; then
-      opts="${opts}u"
+    if [[ $e =~ n ]]; then
+      if [ $opt_dry_run -gt 0 ]; then
+        opts="${opts}n"
+      fi
     fi
-  fi
-  if [[ $e =~ v ]]; then
-    if [ $opt_verbose -gt 0 ]; then
-      opts="${opts}v"
+    if [[ $e =~ r ]]; then
+      if [ $opt_r -gt 0 ]; then
+        opts="${opts}r"
+      fi
     fi
-  fi
-  if [[ $e =~ c ]]; then
-    if [ -n "$opt_conf" ]; then
-     opts="${opts}c$TCONF"
+    if [[ $e =~ u ]]; then
+      if [ $opt_uop -gt 0 ]; then
+        opts="${opts}u"
+      fi
+    fi
+    if [[ $e =~ v ]]; then
+      if [ $opt_verbose -gt 0 ]; then
+        opts="${opts}v"
+      fi
+    fi
+    if [[ $e =~ c ]]; then
+      if [ -n "$opt_conf" ]; then
+        opts="${opts}c$TCONF"
+      fi
+    fi
+  else
+    if [[ $e =~ C ]]; then
+      export BASH_CHECK="1"
+      export LINT_CHECK="1"
+    fi
+    if [[ $e =~ R ]]; then
+      export TEST_CHECK="1"
     fi
   fi
   if [ -n "$opts" ]; then
@@ -112,6 +128,10 @@ init_travis () {
     fi
     if [ ${opt_verbose:-0} -eq 0 ]; then
       opt_verbose=$(get_cfg_value "" "loglevel")
+      if [ $opt_verbose -gt 0 ]; then opt_verbose=1; fi
+    elif [ ${opt_verbose:-0} -eq 1 ]; then
+      opt_verbose=$(get_cfg_value "" "loglevel")
+      if [ $opt_verbose -eq 0 ]; then opt_verbose=1; fi
     fi
     if [ $opt_verbose -ne 0 ]; then
       opts_verbose=-v
@@ -194,25 +214,42 @@ init_travis () {
         TOOLS_PATH=$TDIR/_travis
       elif [ -d $HOME/dev/_travis -a ${opt_r:-0} -gt 0 ]; then
         TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $TDIR/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$TDIR/maintainer-quality-tools/travis
+      elif [ -d $TDIR/_travis -a "$PRJNAME" != "Odoo" ]; then
+        TOOLS_PATH=$TDIR/_travis
+      elif [ -d $HOME/dev/_travis -a "$PRJNAME" != "Odoo" ]; then
+        TOOLS_PATH=$HOME/dev/_travis
       elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
-      elif [ -d /opt/odoo/dev/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=/opt/odoo/dev/maintainer-quality-tools/travis
+      elif [ -d $HOME/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$HOME/maintainer-quality-tools/travis
+      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       else
         unset -v TOOLS_PATH
       fi
-    fi
-    if [ $opt_verbose -gt 0 ]; then
-      echo "TOOLS_PATH=$TOOLS_PATH"
+      if [ $opt_verbose -gt 0 ]; then
+        echo "--> TOOLS_PATH=$TOOLS_PATH"
+      fi
+    else
+      if [ $opt_verbose -gt 0 ]; then
+        echo "TOOLS_PATH=$TOOLS_PATH"
+      fi
     fi
 }
 
 prepare_env_travis () {
     local action="$1"
-    if [ $(echo $PATH|grep -v "$TOOLS_PATH"  2>/dev/null) ]; then
+    if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "--> export PATH=$TOOLS_PATH:$PATH"
+      fi
       export PATH=$TOOLS_PATH:$PATH
+    fi
+    if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "--> export PATH=$DEVPATH:$PATH"
+      fi
+      export PATH=$DEVPATH:$PATH
     fi
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
     export LINT_CHECK=1
@@ -249,7 +286,11 @@ prepare_env_travis () {
       fi
     fi
     export LGITPATH=$(expand_path "$LGITPATH")
-    DEVPATH=$TDIR
+    if [ -x $TDIR/travis ]; then
+      export DEVPATH=$TDIR
+    else
+      export DEVPATH=$(readlink -f ~/dev)
+    fi
 }
 
 check_4_travis () {
@@ -266,7 +307,7 @@ check_4_travis () {
 
 do_chkconfig () {
     echo "Project name   = \"$PRJNAME\""
-    echo "Tools path     = \"$DEVPATH\""
+    echo "Tools path     = \"$TOOLS_PATH\" -r=\"$DEVPATH\""
     echo "Hosted         = \"$HOSTENV\""
     echo "Branch         = \"$BRANCH\""
     echo "Package name   = \"$pkgname\""
@@ -408,14 +449,14 @@ update_dev () {
         if [ -f $PKGPATH/$pkgname/$x ]; then
           if [ ${opt_diff:-0} -gt 0 ]; then
             if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "> diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
               diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
             fi
           elif [ ${opt_fetch:-0} -gt 0 ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then echo "> $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
+            if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
             (($opt_dry_run))||cp $XDPATH/$x $PKGPATH/$pkgname/$x
           else
-            if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+            if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
             (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
         fi
@@ -425,7 +466,7 @@ update_dev () {
           if [ ${opt_diff:-0} -gt 0 ]; then
              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
           elif [ ${opt_fetch:-0} -eq 0 ]; then
-             if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+             if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
              (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
         done
@@ -435,13 +476,13 @@ update_dev () {
           if [ -f $PKGPATH/$pkgname/$x ]; then
             if [ ${opt_diff:-0} -gt 0 ]; then
               if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x)" ]; then
-                if [ ${opt_verbose:-0} -gt 0 ]; then echo "> diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+                if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
                 diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x
               fi
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               true
             else
-              if [ $opt_verbose -gt 0 ]; then echo "> $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+              if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
               (($opt_dry_run))||cp $PKGPATH/$pkgname/$x ~/bin/$x
             fi
           fi
@@ -604,7 +645,7 @@ robocopy () {
             local optrsync="-abzhe"
           fi
           local optssh="$3"
-          echo "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          echo "--> rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
           rsync $opts_dry_run $optrsync "$optssh" $opts_upd --del --copy-links $XLFS $ff $2$v
         else
           if [ ${opt_verbose:-0} -gt 0 ]; then
@@ -613,7 +654,7 @@ robocopy () {
             local optrsync="-ab"
           fi
           local optssh=""
-          echo "rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
+          echo "--> rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
           rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v
         fi
       else
@@ -650,26 +691,177 @@ clean_dirs () {
 }
 
 
+please_test_bash () {
+    echo "======== Testing test_bash   ========"
+    sts=$STS_SUCCESS
+    if [ $opt_dry_run -eq 0 ]; then
+      local f
+      for f in $(find . -type f|tr "\n" " "); do
+        local x=$(head $f -n1)
+        if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
+          bash -n $f
+          local s=$?
+          if [ $sts -eq $STS_SUCCESS ]; then
+            if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+              echo "Invalid statement 'set -x' in $f"
+              sts=$STS_FAILED
+            fi
+          else
+            sts=$STS_FAILED
+          fi
+        fi
+      done
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_flake8 () {
+    echo "======== Testing test_flake8 ========"
+    if [ $opt_dry_run -eq 0 ]; then
+      FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
+      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+      local status1=$?
+      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+      local status2=$?
+      sts=$((${status1} || ${status2}))
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_pylint () {
+    echo "======== Testing test_pylint ========"
+    sts=$STS_SUCCESS
+    if [ $opt_dry_run -eq 0 ]; then
+      TRAVIS_BUILD_DIR=$PKGPATH
+      MODULES_TO_TEST=$TRAVIS_BUILD_DIR
+      PYLINT_CONFIG_DIR="$TOOLS_PATH/cfg"
+      if [ "$PRJNAME" == "Odoo" ]; then
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      else
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      fi
+      export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
+      if [ "$PRJNAME" == "Odoo" ]; then
+        touch $MODULES_TO_TEST/__init__.py
+      fi
+      IFS="/" read -a REPO <<< "${ODOO_REPO}"
+      export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
+      #run pylint command
+      run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
+      sts=$?
+    fi
+    return $sts
+}
+
 do_summary () {
+# do_summary(bash,flake8,pylint,test)
     echo "+======================================="
     echo "|  Tests summary:"
     echo "|---------------------------------------"
-    if [ $3 -eq 127 ]; then
-      true
-    elif [ $3 -eq $STS_SUCCESS ]; then
-      echo "| test_bash                   Success"
+    if [ "$PRJNAME" == "Odoo" ]; then
+      local des=("" "test_bash" "test_flake8" "test_pylint" "test_server.py")
     else
-      echo "| test_bash                   FAIL"
+      local des=("" "test_bash" "test_flake8" "test_pylint" "regression_test")
     fi
-    if [ $1 -eq $STS_SUCCESS ]; then
-      echo "| test_flake8                 Success"
-    else
-      echo "| test_flake8                 FAIL"
-    fi
-    if [ $2 -eq $STS_SUCCESS ]; then
-      echo "| test_pylint                 Success"
-    else
-      echo "| test_pylint                 FAIL"
-    fi
+    for i in {1..4};do
+      if [ -n "${!i}" ]; then
+        local x=$(printf "%-20.20s" "${des[$i]}")
+        if [ ${!i} -eq $STS_SUCCESS ]; then
+          echo "| $x        Success"
+        elif [ ${!i} -ne 127 ]; then
+          echo "| $x        FAIL"
+        fi
+      fi
+    done
     echo "+======================================="
+}
+
+run_regression_test () {
+    echo "======== Running regression_test ========"
+    cd $PRJPATH
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ -f ./tests/all_tests ]; then
+        if [ $opt_dprj -gt 0 ]; then
+          ./tests/all_tests
+        else
+          cd ./tests
+          ./all_tests
+        fi
+        sts=$?
+      elif [ -f ./tests/test_$PRJNAME.py ]; then
+        cd ./tests
+        python ./test_$PRJNAME.py
+        sts=$?
+      else
+        sts=$STS_FAILED
+      fi
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+run_coverage_test () {
+    cd $PRJPATH
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ "$PRJNAME" != "Odoo" ]; then
+        # find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
+        if [ -f ./__main__.py ]; then
+          coverage erase
+          if [ $opt_verbose -gt 0 ]; then
+            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
+          fi
+          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
+          coverage report
+          sts=$STS_SUCCESS
+        else
+          sts=$STS_FAILED
+        fi
+      else
+        sts=$STS_SUCCESS
+      fi
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+run_server_test () {
+  echo "======== Running server_test ========"
+  sts=$STS_FAILED
+  return $sts
+}
+
+please_run_tests () {
+    sts=$STS_SUCCESS
+    if [[ $1 =~ C ]]; then
+      please_test_bash
+      sts_bash=$?
+      cd $TOOLS_PATH
+      please_test_flake8
+      sts_flake8=$?
+      please_test_pylint
+      sts_pylint=$?
+      sts=$(($sts_flake8 || $sts_pylint))
+    fi
+    if [[ $1 =~ R ]]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        run_server_test
+      else
+        run_regression_test
+      fi
+      test_sts=$?
+      if [ $test_sts -ne $STS_SUCCESS ]; then
+        sts=$test_sts
+      fi
+    fi
+    do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
+    if [ $sts -eq $STS_SUCCESS ]; then
+      run_coverage_test
+    fi
+    return $sts
 }

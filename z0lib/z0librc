@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.32
+#__version__=0.1.33
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -72,6 +72,7 @@ export -f _install_z0librc
 xuname () {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
+  if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
   OS=`uname -s`
   REV=`uname -r`
   MACH=`uname -m`
@@ -184,6 +185,7 @@ xuname () {
   else
     echo ${OSSTR}
   fi
+  $SET_X
 }
 export -f xuname
 
@@ -406,6 +408,7 @@ export -f elog
 # Parameter $3:
 #    do login (1) if execute as user
 run_traced () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local xcmd="$1"
     if [ -n "$2" -a "$2" != "$USER" ]; then
       if [ ${3:-0} -gt 0 ]; then
@@ -431,6 +434,7 @@ run_traced () {
         eval "$xcmd"
       fi
     fi
+    $SET_X
 }
 
 
@@ -454,48 +458,50 @@ run_traced () {
 # Parameter $6:
 #    Level 5 subdirectory list (space separated) where file could be found (mayby be empty)
 findpkg() {
-   local p2=
-   local p3=
-   local p4=
-   local p5=
-   local p6=
-   local r2=
-   local r3=
-   local r4=
-   local r5=
-   local r6=
-   local result=
-   for p2 in $2; do
-     r2=$p2
-     for p3 in $3 .; do
-       if [ "$p3" == "." ]; then r3=; else r3=/$p3; fi
-       for p4 in $4 .; do
-         if [ "$p4" == "." ]; then r4=; else r4=/$p4; fi
-         for p5 in $5 .; do
-           if [ "$p5" == "." ]; then r5=; else r5=/$p5; fi
-           for p6 in $6 .; do
-             if [ "$p6" == "." ]; then r6=; else r6=/$p6; fi
-             if [ -z "$1" ]; then
-               if [ -d $r2$r3$r4$r5$r6 ]; then
-                 result=$(readlink -e $r2$r3$r4$r5$r6)
-                 break
-               fi
-             else
-               if [ -e $r2$r3$r4$r5$r6/$1 ]; then
-                 result=$(readlink -e $r2$r3$r4$r5$r6/$1)
-                 break
-               fi
-             fi
-           done
-           if [ -n "$result" ]; then break; fi
-         done
-         if [ -n "$result" ]; then break; fi
-       done
-       if [ -n "$result" ]; then break; fi
-     done
-     if [ -n "$result" ]; then break; fi
-   done
-   echo "$result"
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    local p2=
+    local p3=
+    local p4=
+    local p5=
+    local p6=
+    local r2=
+    local r3=
+    local r4=
+    local r5=
+    local r6=
+    local result=
+    for p2 in $2; do
+      r2=$p2
+      for p3 in $3 .; do
+        if [ "$p3" == "." ]; then r3=; else r3=/$p3; fi
+        for p4 in $4 .; do
+          if [ "$p4" == "." ]; then r4=; else r4=/$p4; fi
+          for p5 in $5 .; do
+            if [ "$p5" == "." ]; then r5=; else r5=/$p5; fi
+            for p6 in $6 .; do
+              if [ "$p6" == "." ]; then r6=; else r6=/$p6; fi
+              if [ -z "$1" ]; then
+                if [ -d $r2$r3$r4$r5$r6 ]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6)
+                  break
+                fi
+              else
+                if [ -e $r2$r3$r4$r5$r6/$1 ]; then
+                  result=$(readlink -e $r2$r3$r4$r5$r6/$1)
+                  break
+                fi
+              fi
+            done
+            if [ -n "$result" ]; then break; fi
+          done
+          if [ -n "$result" ]; then break; fi
+        done
+        if [ -n "$result" ]; then break; fi
+      done
+      if [ -n "$result" ]; then break; fi
+    done
+    echo "$result"
+    $SET_X
 }
 export -f findpkg
 
@@ -518,7 +524,9 @@ a_new () {
     echo "$cmd"
 }
 export -f a_new
+
 a_active () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$XU_FH" != "RHEL" -a "$XU_FH" != "Debian" ]; then
       XU_FH=$(xuname "-f")
       local x=$(xuname "-v")
@@ -532,6 +540,7 @@ a_active () {
     DISTO="$XU_DISTO"
     cmd="declare -A DEFDICT$1 DEFRULE$1"
     echo "$cmd"
+    $SET_X
 }
 export -f a_active
 
@@ -558,6 +567,7 @@ export -f a_active
 # Parameter $5:
 #    "-D"   key is specific for development environment
 a_add () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$2" ]; then
       if [ "$4" == "-d" ]; then
         local SFX="__$XU_DISTO"
@@ -595,6 +605,7 @@ a_add () {
         fi
       fi
     fi
+    $SET_X
 }
 export -f a_add
 
@@ -618,6 +629,7 @@ export -f a_add
 #    dictionary value to stdout
 #    status
 a_find () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
     local x
@@ -741,6 +753,7 @@ a_find () {
       fi
     fi
     echo "$p"
+    $SET_X
     return $sts
 }
 export -f a_find
@@ -762,6 +775,7 @@ export -f a_find
 # Return:
 #    parameter value
 get_cfg_value () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p
     if [ -z $2 ]; then
       p=
@@ -780,6 +794,7 @@ get_cfg_value () {
       p=
     fi
     echo "$p"
+    $SET_X
 }
 export -f get_cfg_value
 
@@ -802,6 +817,7 @@ export -f set_cfg_def
 
 
 link_cfg () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$1" ]; then
       a_add "0" "CONFN" "$1"
       CONFN="$1"
@@ -837,5 +853,6 @@ link_cfg () {
         done < "$CONFN"
       fi
     fi
+    $SET_X
 }
 export -f link_cfg

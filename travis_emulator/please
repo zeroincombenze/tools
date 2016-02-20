@@ -24,9 +24,20 @@ else
   echo "Library file z0librc not found!"
   exit $STS_FAILED
 fi
+if [ -f $TDIR/travisrc ]; then
 . $TDIR/travisrc
+elif [ -f $TDIR/../travisrc ]; then
+. $TDIR/../travisrc
+elif [ -f ./travisrc ]; then
+. ./travisrc
+elif [ -f ~/travisrc ]; then
+. ~/travisrc
+else
+  echo "Library file travisrc not found!"
+  exit $STS_FAILED
+fi
 
-__version__="0.1.20"
+__version__="0.1.21"
 
 
 ant_rm_trap () {
@@ -111,144 +122,65 @@ do_check (){
     if [ $opt_verbose -gt 0 ]; then
       echo "do_check \"$1\" \"$2\" \"$3\""
     fi
-    prepare_env_travis "check"
-    # if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
-    #   run_traced $TOOLS_PATH/travis_install_pkgs
-    #   if [ $? -ne 0 ]; then sts=$?; fi
-    # fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ $opt_r -gt 0 ]; then
-        test_bash
-        sts_bash=$?
-        cd $TOOLS_PATH
-        test_flake8
-        sts_flake8=$?
-        test_pylint
-        sts_pylint=$?
-        do_summary "$sts_flake8" "$sts_pylint" "$sts_bash"
-        sts=$(($sts_flake8 || $sts_pylint))
-      else
-        if [ $TOOLS_PATH/travis_run_tests ]; then
-          run_traced $TOOLS_PATH/travis_run_tests
-          if [ $? -ne 0 ]; then sts=$?; fi
-        else
-          sts=127
-        fi
-      fi
-    fi
-    return $sts
-}
-
-test_flake8 () {
-    echo "======== Testing test_flake8 ========"
-    FLAKE8_CONFIG_DIR="$PWD/cfg"
-    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
-    local status1=$?
-    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
-    local status2=$?
-    return $((${status1} || ${status2}))
-}
-
-test_pylint () {
-    echo "======== Testing test_pylint ========"
-    sts=$STS_SUCCESS
-    TRAVIS_BUILD_DIR=$PKGPATH
-    MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-    PYLINT_CONFIG_DIR="$PWD/cfg"
-    if [ "$PRJNAME" == "Odoo" ]; then
-      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+    if [ -x $TOOLS_PATH/travis_run_tests ]; then
+      opts=$(inherits_travis_opts "Cnrv")
+      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
+      if [ $? -ne 0 ]; then sts=$?; fi
+    elif [ $opt_r -gt 0 ]; then
+      please_run_tests "-C"
+      sts=$?
     else
-      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      sts=127
     fi
-
-    export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
-    if [ "$PRJNAME" == "Odoo" ]; then
-      touch $MODULES_TO_TEST/__init__.py
-    fi
-    IFS="/" read -a REPO <<< "${ODOO_REPO}"
-    export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
-
-    #run pylint command
-    run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
-    sts=$?
-    return $sts
-}
-
-test_bash () {
-    echo "======== Testing test_bash   ========"
-    sts=$STS_SUCCESS
-    local f
-    for f in $(find . -type f|tr "\n" " "); do
-      local x=$(head $f -n1)
-      if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
-        bash -n $f
-        local s=$?
-        if [ $sts -eq $STS_SUCCESS ]; then
-          if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
-            echo "Invalid statement 'set -x' in $f"
-            sts=$STS_FAILED
-          fi
-        else
-          sts=$STS_FAILED
-        fi
-      fi
-    done
     return $sts
 }
 
 
 do_test () {
-    prepare_env_travis "test"
-    if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
-      if [ $opt_dprj -gt 0 ]; then
-        cd ~/dev/pypi/$1/$1
-        ./tests/all_tests
-      else
-        cd ~/dev/pypi/$1/$1/tests
-        ./all_tests
-      fi
-      sts=$?
-    elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
-      if [ $opt_dprj -gt 0 ]; then
-        cd ~/dev/pypi/$1/$1
-      else
-        cd ~/dev/pypi/$1/$1/tests
-      fi
-      PYTHONPATH=~/dev/pypi/$1 python ~/dev/pypi/$1/$1/tests/test_$1.py
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_test \"$1\" \"$2\" \"$3\""
+    fi
+    if [ -x $TOOLS_PATH/travis_run_tests ]; then
+      opts=$(inherits_travis_opts "Rnrv")
+      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
+      if [ $? -ne 0 ]; then sts=$?; fi
+    elif [ $opt_r -gt 0 ]; then
+      please_run_tests "-R"
       sts=$?
     else
-      sts=$STS_FAILED
+      test_sts=$STS_FAILED
+      sts=$test_sts
     fi
-    # set +x #debug
     return $sts
 }
 
 
 do_coverage () {
-    run_traced "cd $PRJPATH"
-    prepare_env_travis "coverage"
-    run_traced "find . -name \"*$PRJNAME*.log\" -exec rm -f '{}' \;"
-    if [ -f ~/dev/pypi/$1/$1/__main__.py ]; then
-      run_traced "coverage erase"
-      if [ $opt_verbose -gt 0 ]; then
-        echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
-      fi
-      sts=0
-      if [ $opt_dry_run -eq 0 ]; then
-        DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
-        coverage report
-      fi
-      sts=$?
-    else
-      sts=$STS_FAILED
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_coverage \"$1\" \"$2\" \"$3\""
     fi
+    run_coverage_test
+    sts=$?
     return $sts
 }
 
 
 do_travis (){
-    travis local/"$1";
-    return 0
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_travis \"$1\" \"$2\" \"$3\""
+    fi
+    if [ $opt_r -gt 0 ]; then
+      please_run_tests "-CR"
+    else
+      opts=$(inherits_travis_opts "cnv")
+      if [ -n "$opts" ]; then
+        travis "$opts" "$@"
+      else
+        travis "$@"
+      fi
+    fi
+    sts=$?
+    return $sts
 }
 
 
@@ -266,7 +198,7 @@ OPTOPTS=(h        b          c        d        j        k        L         n    
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       1         1     "="      1         1       "*"         1)
 OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        0         0     ""       0         0       ""          0)
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "kkep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
@@ -305,6 +237,10 @@ init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis "$action"
 sts=$STS_SUCCESS
+sts_bash=127
+sts_flake8=127
+sts_pylint=127
+test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
@@ -337,24 +273,7 @@ elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "travis" ]; then
-  if [ $opt_r -gt 0 ]; then
-    do_check "$pkgname" "$sub1" "$sub2"
-    sts=$?
-    if [ $sts -eq $STS_SUCCESS ]; then
-      do_test "$pkgname" "$sub1" "$sub2"
-      sts=$?
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      do_coverage "$pkgname" "$sub1" "$sub2"
-      sts=$?
-    fi
-  else
-    opts=$(inherits_travis_opts "cnrv")
-    if [ $opt_verbose -gt 0 ]; then
-      echo "do_travis \"$opts\" \"$pkgname\" \"$sub1\" \"$sub2\""
-    fi
-    do_travis "$opts" "$pkgname" "$sub1" "$sub2"
-  fi
+  do_travis "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "version" ]; then
   do_version "$pkgname" "$sub1" "$sub2"

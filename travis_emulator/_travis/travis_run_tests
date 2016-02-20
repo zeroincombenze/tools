@@ -27,98 +27,44 @@ else
 fi
 if [ -f $TDIR/travisrc ]; then
 . $TDIR/travisrc
+elif [ -f $TDIR/../travisrc ]; then
+. $TDIR/../travisrc
 elif [ -f ./travisrc ]; then
 . ./travisrc
 elif [ -f ~/travisrc ]; then
 . ~/travisrc
+else
+  echo "Library file travisrc not found!"
+  exit $STS_FAILED
 fi
 
-__version__=0.1.5
+__version__=0.1.6
 
-
-test_bash () {
-    echo "======== Testing test_bash   ========"
-    sts=$STS_SUCCESS
-    local f
-    for f in $(find . -type f|tr "\n" " "); do
-      local x=$(head $f -n1)
-      if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
-        bash -n $f
-        local s=$?
-        if [ $sts -eq $STS_SUCCESS ]; then
-          if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
-            echo "Invalid statement 'set -x' in $f"
-            sts=$STS_FAILED
-          fi
-        else
-          sts=$STS_FAILED
-        fi
-      fi
-    done
-    return $sts
-}
-
-
-test_flake8 () {
-    echo "======== Testing test_flake8 ========"
-    FLAKE8_CONFIG_DIR="$(dirname $0)/cfg"
-    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
-    local status1=$?
-    run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
-    local status2=$?
-    return $((${status1} || ${status2}))
-}
-
-test_pylint () {
-    echo "======== Testing test_pylint ========"
-    sts=$STS_SUCCESS
-    TRAVIS_BUILD_DIR=$PKGPATH
-    MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-    PYLINT_CONFIG_DIR="$(dirname $0)/cfg"
+do_test () {
+    if [ $opt_verbose -gt 0 ]; then
+      echo "do_test \"$1\" \"$2\" \"$3\""
+    fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      run_server_test
     else
-      pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      run_regression_test
     fi
-    export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
-    if [ "$PRJNAME" == "Odoo" ]; then
-      touch $MODULES_TO_TEST/__init__.py
-    fi
-    IFS="/" read -a REPO <<< "${ODOO_REPO}"
-    export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
-
-    #run pylint command
-    run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
     sts=$?
     return $sts
 }
 
 
-run_regression_test () {
-    if [ -f ~/dev/pypi/$1/$1/tests/all_tests ]; then
-      cd ~/dev/pypi/$1/$1/tests
-      ./all_tests
-      sts=$?
-    elif [ -f ~/dev/pypi/$1/$1/tests/test_$1.py ]; then
-      cd ~/dev/pypi/$1/$1/tests
-      python ~/dev/pypi/$1/$1/tests/test_$1.py
-      sts=$?
-    else
-      sts=$STS_FAILED
-    fi
-}
-
-
-OPTOPTS=(h        C         c        n            R        t         V           v)
-OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        "1>"      "="      "1>"         "1>"     1         "*>"        1)
-OPTDEFL=(0        0         ""        0            0       0         ""          0)
-OPTMETA=("help"   "check"   "filr"   "do nothing" "test"   "test"    "version"   "verbose")
+OPTOPTS=(h        C         c        n            R        r     t         V           v)
+OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_regr opt_r test_mode opt_version opt_verbose)
+OPTACTI=(1        "1>"      "="      "1>"         "1>"     1     1         "*>"        1)
+OPTDEFL=(0        0         ""        0            0       0     0         ""          0)
+OPTMETA=("help"   "check"   "filr"   "do nothing" "test"   "rxt" "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do flake8 and pylint checks"\
  "configuration file"\
  "do nothing (dry-run)"\
  "do regression tests"\
+ "restricted mode, no maintainer-quality-tools (config is local)"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
@@ -150,36 +96,44 @@ if [ $test_mode -gt 0 ]; then
 fi
 check_4_travis
 
-
-
-if [ $opt_verbose -gt 0 ]; then
-  echo "if [ \${opt_check:-0} -gt 0 -o \"\${LINT_CHECK:-1}\" == \"1\" ]; then  #($opt_check,$LINT_CHECK)"
+if [ ${opt_regr:-0} -gt 0 ]; then
+  LINT_CHECK="0"
+  TEST_CHECK="1"
 fi
-if [ ${opt_check:-0} -gt 0 -o "${LINT_CHECK:-1}" == "1" ]; then
-  if [ "${BASH_CHECK:-1}" == "1" ]; then
-    test_bash
-    sts_bash=$?
-  else
-    sts=127
-  fi
-  test_flake8
+if [ ${opt_check:-0} -gt 0 ]; then
+  BASH_CHECK="1"
+  LINT_CHECK="1"
+fi
+if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+if [ "${TEST_CHECK:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+if [ -n "${TEST_CHECK}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+#echo "BASH_CHECK=$BASH_CHECK/LINT_CHECK=$LINT_CHECK/TEST_CHECK=$TEST_CHECK/"
+#echo "BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED/LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED/LINT_CHECK_DISABLED=$LINT_CHECK_DISABLED/TEST_CHECK_ENABLED=$TEST_CHECK_ENABLED/TESTS_UNSPECIFIED=$TESTS_UNSPECIFIED"
+if [ $BASH_CHECK_ENABLED -gt 0 ]; then
+  please_test_bash
+  sts_bash=$?
+else
+  sts_bash=127
+fi
+if [ $LINT_CHECK_DISABLED -eq 0 ]; then
+  please_test_flake8
   sts_flake8=$?
-  test_pylint
+  please_test_pylint
   sts_pylint=$?
-  do_summary "$sts_flake8" "$sts_pylint" "$sts_bash"
   sts=$(($sts_flake8 || $sts_pylint))
 fi
-if [ $opt_verbose -gt 0 ]; then
-  echo "if [ \${opt_regr:-0} -gt 0 -o \"\$LINT_CHECK\" != \"1\" ]; then  #($opt_regr,$LINT_CHECK)$sts"
-fi
-if [ ${opt_regr:-0} -gt 0 -o "$LINT_CHECK" != "1" ]; then
-  if [ $sts -eq $STS_SUCCESS ]; then
-    pkgname=$(basename $PKGPATH)
-    # if [ $opt_verbose -gt 0 ]; then
-    #   echo "run_regression_test $pkgname"
-    # fi
-    # run_regression_test $pkgname
-    #sts=$?
+if [ $sts -eq $STS_SUCCESS ]; then
+  if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
+    do_test
+    test_sts=$?
+  elif [ $TEST_CHECK_ENABLED -gt 0 ]; then
+    do_test
+    test_sts=$?
   fi
+  sts=$test_sts
 fi
+do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
 exit $sts

@@ -25,13 +25,18 @@ else
 fi
 if [ -f $TDIR/travisrc ]; then
 . $TDIR/travisrc
+elif [ -f $TDIR/../travisrc ]; then
+. $TDIR/../travisrc
 elif [ -f ./travisrc ]; then
 . ./travisrc
 elif [ -f ~/travisrc ]; then
 . ~/travisrc
+else
+  echo "Library file travisrc not found!"
+  exit $STS_FAILED
 fi
 
-__version__=0.1.5
+__version__=0.1.6
 
 
 OPTOPTS=(h        n            t         V           v)
@@ -70,31 +75,8 @@ if [ $test_mode -gt 0 ]; then
   do_chkconfig
   exit $STS_SUCCESS
 fi
-if [ $test_mode -gt 0 ]; then
-  do_chkconfig
-  exit $STS_SUCCESS
-fi
 check_4_travis
 
-
-if [ "$PRJNAME" != "Odoo" ]; then
-  run_traced "cd $PKGPATH/$PRJNAME"
-  run_traced "find . -name \"*$PRJNAME*.log\" -exec rm -f '{}' \;"
-  if [ -f ~/dev/pypi/$1/$1/__main__.py ]; then
-    run_traced "coverage erase"
-    if [ $opt_verbose -gt 0 ]; then
-      echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
-    fi
-    sts=0
-    if [ $opt_dry_run -eq 0 ]; then
-      DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
-      coverage report
-    fi
-    sts=$?
-  else
-    sts=$STS_FAILED
-  fi
-else
-  sts=$STS_FAILED
-fi
+run_coverage_test
+sts=$?
 exit $sts
