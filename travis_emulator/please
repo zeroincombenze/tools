@@ -37,13 +37,11 @@ else
   exit $STS_FAILED
 fi
 
-__version__="0.1.21"
+__version__="0.1.22"
 
 
 ant_rm_trap () {
-    if [ $opt_verbose -gt 0 ]; then
-      echo "... recover $1"
-    fi
+    wlog "... recover $1"
     local f1=$(readlink -f $1)
     local fhist=$f1.tracehistory
     local ln=$(head -n1 $f1)
@@ -54,9 +52,7 @@ ant_rm_trap () {
 }
 
 ant_add_trap () {
-    if [ $opt_verbose -gt 0 ]; then
-      echo "... analyzing $1"
-    fi
+    echo "... analyzing $1"
     local f1=$(readlink -f $1)
     local fhist=$f1.tracehistory
     ant_rm_trap "$f1"
@@ -83,9 +79,7 @@ ant_add_trap () {
 do_annotate () {
 # do_annotate(script, include_list)
   # set -x
-  if [ $opt_verbose -gt 0 ]; then
-    echo "do_annotate \"$1\" \"$2\""
-  fi
+  wlog "do_annotate \"$1\" \"$2\""
   trap - DEBUG
   FL_2_TEST=${2//,/ }
   local f1=$(readlink -f $1)
@@ -119,9 +113,7 @@ do_annotate () {
 
 
 do_check (){
-    if [ $opt_verbose -gt 0 ]; then
-      echo "do_check \"$1\" \"$2\" \"$3\""
-    fi
+    wlog "do_check \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
       opts=$(inherits_travis_opts "Cnrv")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
@@ -137,9 +129,7 @@ do_check (){
 
 
 do_test () {
-    if [ $opt_verbose -gt 0 ]; then
-      echo "do_test \"$1\" \"$2\" \"$3\""
-    fi
+    wlog "do_test \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
       opts=$(inherits_travis_opts "Rnrv")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
@@ -156,9 +146,7 @@ do_test () {
 
 
 do_coverage () {
-    if [ $opt_verbose -gt 0 ]; then
-      echo "do_coverage \"$1\" \"$2\" \"$3\""
-    fi
+    wlog "do_coverage \"$1\" \"$2\" \"$3\""
     run_coverage_test
     sts=$?
     return $sts
@@ -166,9 +154,7 @@ do_coverage () {
 
 
 do_travis (){
-    if [ $opt_verbose -gt 0 ]; then
-      echo "do_travis \"$1\" \"$2\" \"$3\""
-    fi
+    wlog "do_travis \"$1\" \"$2\" \"$3\""
     if [ $opt_r -gt 0 ]; then
       please_run_tests "-CR"
     else

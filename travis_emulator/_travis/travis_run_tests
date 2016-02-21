@@ -38,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.6
+__version__=0.1.7
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
@@ -98,7 +98,7 @@ check_4_travis
 
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
-  TEST_CHECK="1"
+  TESTS="1"
 fi
 if [ ${opt_check:-0} -gt 0 ]; then
   BASH_CHECK="1"
@@ -107,8 +107,8 @@ fi
 if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
 if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
 if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
-if [ "${TEST_CHECK:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
-if [ -n "${TEST_CHECK}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
 #echo "BASH_CHECK=$BASH_CHECK/LINT_CHECK=$LINT_CHECK/TEST_CHECK=$TEST_CHECK/"
 #echo "BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED/LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED/LINT_CHECK_DISABLED=$LINT_CHECK_DISABLED/TEST_CHECK_ENABLED=$TEST_CHECK_ENABLED/TESTS_UNSPECIFIED=$TESTS_UNSPECIFIED"

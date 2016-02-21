@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.35
+__version__=0.1.36
 
 
 process_local () {
@@ -132,14 +132,28 @@ process_yaml () {
         fi
       done < "$f1"
       sts=0
-      export $SET_GBLS
+      wlog "--> $SET_GBLS"
+      eval $SET_GBLS
+      if [ "$action" == "check" ]; then
+        export BASH_CHECK="1"
+        export LINT_CHECK="1"
+        export TESTS=
+      elif [ "$action" == "test" ]; then
+        export BASH_CHECK=
+        export LINT_CHECK="0"
+        export TESTS="1"
+      else
+        export BASH_CHECK="1"
+        export LINT_CHECK="1"
+        export TESTS="1"
+      fi
+      run_svr_test_init
       for ln in $SCRIPTS; do
         line=$(echo $ln)
-        if [ $opt_verbose -gt 0 ]; then
-          echo "TOOLS_PATH=$TOOLS_PATH LINT_CHECK="1" TESTS="1" $line"
-        fi
-        TOOLS_PATH=$TOOLS_PATH LINT_CHECK="1" TESTS="1" eval $line
+        wlog "TOOLS_PATH=$TOOLS_PATH LINT_CHECK=$LINT_CHECK TESTS=$TESTS $line"
+        TOOLS_PATH=$TOOLS_PATH LINT_CHECK=$LINT_CHECK TESTS=$TESTS eval $line
       done
+      run_svr_test_exit
     else
       process_local
       sts=$?
@@ -148,14 +162,15 @@ process_yaml () {
 }
 
 
-OPTOPTS=(h        b          c        n            r     V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_dry_run  opt_r opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "1>"         "1"   "*>"        1)
-OPTDEFL=(1        9.0        ""       0            0     ""          0)
-OPTMETA=("help"   "branch"   "file"   "do nothing" "res" "version"   "verbose")
+OPTOPTS=(h        b          c        j        n            r     V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_dry_run  opt_r opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        "1>"         "1"   "*>"        1)
+OPTDEFL=(1        9.0        ""       0        0            0     ""          0)
+OPTMETA=("help"   "branch"   "file"   "dprj"   "do nothing" "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
+ "execute test from project dir (not in test dir)"\
  "do nothing (dry-run)"\
  "run rescricted mode (w/o maintainer-quality-tools)"\
  "show version"\
@@ -222,9 +237,11 @@ sts=$STS_SUCCESS
 #fi
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then
+    wlog "=== Simulate YAML test ==="
     process_local
     sts=$?
   else
+    wlog "=== Process YAML file ==="
     process_yaml
     sts=$?
   fi

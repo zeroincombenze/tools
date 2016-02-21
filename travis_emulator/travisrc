@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.52
+#__version__=0.1.53
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -15,6 +15,11 @@ opts_travis () {
       TCONF=$opt_conf
     else
       TCONF=$TDIR/.travis.conf
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      export FLOG_ECHO=echo
+    else
+      export FLOG_ECHO=
     fi
     if [ -n "$pkg" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
@@ -135,8 +140,10 @@ init_travis () {
     fi
     if [ $opt_verbose -ne 0 ]; then
       opts_verbose=-v
+      export FLOG_ECHO=echo
     else
       opts_verbose=
+      export FLOG_ECHO=
     fi
     ODOO_SETUP=$(get_cfg_value "" "ODOO_SETUP")
     if [ -n "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then
@@ -227,32 +234,36 @@ init_travis () {
       else
         unset -v TOOLS_PATH
       fi
-      if [ $opt_verbose -gt 0 ]; then
-        echo "--> TOOLS_PATH=$TOOLS_PATH"
+      wlog "--> TOOLS_PATH=$TOOLS_PATH"
+      if [ "$PRJNAME" == "Odoo" ]; then
+        if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/dev/maintainer-quality-tools/travis
+        elif [ -d $HOME/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/maintainer-quality-tools/travis
+        elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+          MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
+        else
+          unset -v MQT_PATH
+        fi
+      else
+        unset -v MQT_PATH
       fi
     else
-      if [ $opt_verbose -gt 0 ]; then
-        echo "TOOLS_PATH=$TOOLS_PATH"
-      fi
+      wlog "TOOLS_PATH=$TOOLS_PATH"
     fi
 }
 
 prepare_env_travis () {
     local action="$1"
     if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-      if [ $opt_verbose -gt 0 ]; then
-        echo "--> export PATH=$TOOLS_PATH:$PATH"
-      fi
+      wlog "--> export PATH=$TOOLS_PATH:$PATH"
       export PATH=$TOOLS_PATH:$PATH
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      if [ $opt_verbose -gt 0 ]; then
-        echo "--> export PATH=$DEVPATH:$PATH"
-      fi
+      wlog "--> export PATH=$DEVPATH:$PATH"
       export PATH=$DEVPATH:$PATH
     fi
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
-    export LINT_CHECK=1
     export BRANCH
     export VERSION=$BRANCH
     export TRAVIS_BUILD_DIR=$PKGPATH
@@ -266,8 +277,8 @@ prepare_env_travis () {
     else
       unset -v LINT_CHECK
     fi
-    repository=$repository$pkgname
-    if [ "$PRJNAME" != "Odoo" ]; then
+    repository=$repository${PRJNAME,,}
+    if [ "$PRJNAME" == "Odoo" ]; then
       export ODOO_REPO=$repository
     fi
     if [ -n "$opt_dpath" ]; then
@@ -291,6 +302,16 @@ prepare_env_travis () {
     else
       export DEVPATH=$(readlink -f ~/dev)
     fi
+    export TOOLS_PATH
+    export MQT_PATH
+    export ODOO_SETUP
+    export REPOSNAME
+    export PRJNAME
+    export PRJPATH
+    export PKGPATH
+    export pkgname
+    export HOSTENV
+    export LGITPATH
 }
 
 check_4_travis () {
@@ -310,7 +331,7 @@ do_chkconfig () {
     echo "Tools path     = \"$TOOLS_PATH\" -r=\"$DEVPATH\""
     echo "Hosted         = \"$HOSTENV\""
     echo "Branch         = \"$BRANCH\""
-    echo "Package name   = \"$pkgname\""
+    echo "Package name   = \"$pkgname\" in \"$REPOSNAME\""
     echo "Version        = \"$prjversion\""
     echo "Setup file     = \"$SETUP\""
     echo "Project path   = \"$PRJPATH\""
@@ -324,13 +345,15 @@ conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
+    set_cfg_def "dbtemplate" "openerp_template"
+    set_cfg_def "UNBUFFER" "0"
 }
 
 
 expand_path () {
 # expand_path (path)
 # return:path
-    echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g
+    echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g  -e s:\${version}:$BRANCH:g
 }
 
 
@@ -785,7 +808,7 @@ run_regression_test () {
     cd $PRJPATH
     if [ $opt_dry_run -eq 0 ]; then
       if [ -f ./tests/all_tests ]; then
-        if [ $opt_dprj -gt 0 ]; then
+        if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests
         else
           cd ./tests
@@ -830,8 +853,91 @@ run_coverage_test () {
     return $sts
 }
 
+cp_n_upd () {
+    local src="$1"
+    local tgt=~/.openerp_serverrc
+    local odoo_ver=${VERSION:0:1}
+    if [ ! -f $src ]; then
+      echo "File $src not found!"
+      exit 1
+    fi
+    if [ -f $tgt ]; then
+      rm -f $tgt
+    fi
+    while IFS=\| read -r line; do
+      if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
+        line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
+        line=$(echo "logfile = False")
+      elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9]* ]]; then
+        line="xmlrpc_port = 8079"
+      elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*odoo$odoo_ver-server.conf.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*odoo$odoo_ver-server.pid.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*odoo$odoo_ver-server.log.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      fi
+      echo "$line">>$tgt
+    done < "$src"
+}
+
+run_svr_test_init () {
+    local i
+    local CMD
+    local n=$(get_cfg_value "" "dbtemplate")
+    wlog "--> dropdb $n"
+    dropdb $n
+    local n=$(get_cfg_value "" "UNBUFFER")
+    wlog "--> export UNBUFFER=$n"
+    export UNBUFFER=$n
+    wlog "--> cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
+    cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
+    if [ -n "$REPOSNAME" ]; then
+      wlog "--> export INCLUDE=$pkgname"
+      export INCLUDE=$pkgname
+    else
+    #   wlog "--> export INCLUDE=\$(python $MQT_PATH/getaddons.py -m $PRJPATH)"
+    #   export INCLUDE=$(python $MQT_PATH/getaddons.py -m $PRJPATH)
+      wlog "--> export INCLUDE="
+      export INCLUDE=
+    fi
+    local x=$(readlink -e $PRJPATH/..)
+    wlog "--> ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
+    ln -s $x ~/${ODOO_REPO#*/}-$VERSION
+    for i in {1..9}; do
+      CMD=$(get_cfg_value "" "yaml__init__$i")
+      if [ -n "$CMD" ]; then
+        CMD=$(expand_path "$CMD")
+        wlog "--> $CMD"
+        eval $CMD
+      fi
+    done
+}
+
+run_svr_test_exit () {
+    local i
+    local CMD
+    for i in {1..9}; do
+      CMD=$(get_cfg_value "" "yaml__exit__$i")
+      if [ -n "$CMD" ]; then
+        CMD=$(expand_path "$CMD")
+        wlog "--> $CMD"
+        eval $CMD
+      fi
+    done
+    wlog "--> if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
+    if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi
+}
+
 run_server_test () {
   echo "======== Running server_test ========"
+  run_svr_test_init
+  run_svr_test_exit
   sts=$STS_FAILED
   return $sts
 }
