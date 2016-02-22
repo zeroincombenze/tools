@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.36
+__version__=0.1.37
 
 
 process_local () {
@@ -74,16 +74,154 @@ process_local () {
     return $sts
 }
 
+process_yaml_init () {
+    YML_sect=
+    YML_sect0=
+    YML_env=
+    YML_global=
+    YML_matrix=
+    YML_addons=
+    YML_install=
+    YML_script=
+    YML_after=
+    for i in {1..9}; do
+      declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
+    done
+    FH=$(xuname -f)
+}
+
+
+process_yaml_unquote () {
+  ln="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
+  echo $ln
+}
+
+process_yaml_quote () {
+  ln="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
+  echo $ln
+}
+
+process_yaml_do () {
+    # echo "[$YML_sect]" #debug
+    local ln=
+    if [ "$YML_sect" == "python" ]; then
+      ln="#"
+    elif [ "$YML_sect" == "addons.apt.packages" ]; then
+      if [ "$FH" == "RHEL" ]; then
+        ln="# yum install $(echo $1)"
+      else
+        ln="# apt-get install $(echo $1)"
+      fi
+      ln=$(process_yaml_unquote "$ln")
+      YML_addons="$YML_addons $ln"
+    elif [ "$YML_sect" == "env" ]; then
+      ln=$(process_yaml_unquote "$1")
+      YML_env="$YML_env $ln"
+    elif [ "$YML_sect" == "env.global" ]; then
+      ln=$(process_yaml_unquote "$1")
+      if [ "${ln:0:7}" == "secure:" ]; then
+        ln="# $ln"
+      else
+        YML_global="$YML_global $ln"
+      fi
+    elif [ "$YML_sect" == "env.matrix" ]; then
+      ln=$(process_yaml_unquote "$1")
+      YML_matrix="$YML_matrix $ln"
+    elif [ "$YML_sect" == "install" ]; then
+      ln=$(process_yaml_unquote "$1")
+      YML_install="$YML_install #$ln"
+    elif [ "$YML_sect" == "script" ]; then
+      ln=$(process_yaml_unquote "$1")
+      YML_script="$YML_script $ln"
+    elif [ "$YML_sect" == "after_success" ]; then
+      ln=$(process_yaml_unquote "$1")
+      YML_after="$YML_after $ln"
+    else
+      local ln="$(echo $1)"
+    fi
+    # echo ">>> $ln" #debug
+}
+
+process_yaml_0 () {
+    if [ -n "$ln" ]; then
+      IFS=- read a b <<<"$ln"
+      if [ -n "$a" ]; then
+        IFS=: read a b <<<"$ln"
+        if [ -z "$b" ]; then
+          YML_sect0=$a
+          YML_sect="$YML_sect0"
+        else
+          YML_sect0=
+          YML_sect=
+          declare YML_$a="$(echo $b)"
+          #echo ">YML_$a=$(echo $b)" #debug
+        fi
+      else
+        process_yaml_do "$b"
+      fi
+    fi
+}
+
+process_yaml_1 () {
+    if [ -n "$ln" ]; then
+      IFS=- read a b <<<"$ln"
+      if [ -n "$a" ]; then
+        IFS=: read a b <<<"$ln"
+        if [ -z "$b" ]; then
+          YML_sect1=$a
+          YML_sect="$YML_sect0.$YML_sect1"
+        else
+          YML_sect1=
+          YML_sect="$YML_sect0"
+          declare ${YML_sect0}__$a="$(echo $b)"
+          #echo ">${YML_sect0}__$a=$(echo $b)" #debug
+        fi
+      else
+        process_yaml_do "$b"
+      fi
+    fi
+}
+
+process_yaml_2 () {
+    if [ -n "$ln" ]; then
+      IFS=- read a b <<<"$ln"
+      if [ -n "$a" ]; then
+        IFS=: read a b <<<"$ln"
+        if [ -z "$b" ]; then
+          YML_sect2=$a
+          YML_sect="$YML_sect0.$YML_sect1.$YML_sect2"
+        else
+          YML_sect2=
+          YML_sect="$YML_sect0.$$YML_sect1"
+          declare ${YML_sect0}__${YML_sect1}__$a="$(echo $b)"
+          #echo ">${YML_sect0}__${YML_sect1}__$a=$(echo $b)" #debug
+        fi
+      else
+        process_yaml_do "$b"
+      fi
+    fi
+}
+
+process_yaml_3 () {
+    if [ -n "$ln" ]; then
+      IFS=- read a b <<<"$ln"
+      if [ -z "$a" ]; then
+        process_yaml_do "$b"
+      fi
+    fi
+}
+
 process_yaml () {
     f1=$PRJPATH/.travis.yml
     if [ -f $f1 ]; then
-      local SCRIPTS=
-      local SET_GBLS="TOOLS_PATH=$TOOLS_PATH"
+      process_yaml_init
       local lev=0
       local ident=0
       local line=
       local ln=
-      local sect=
+      local line1=
+      local ln1=
+      local linex=
       local i
       local a
       local b
@@ -105,55 +243,97 @@ process_yaml () {
         fi
         ln=$(echo $line)
         if [ $lev -eq 0 ]; then
-          IFS=: read a b <<<"$ln"
-          if [ "$a" == "script" ]; then
-            sect=$a
-          elif [ "$a" == "env" ]; then
-            sect=$a
-          else
-            sect=
-          fi
+          process_yaml_0
         elif [ $lev -eq 1 ]; then
-          IFS=: read a b <<<"$ln"
-          if [ "$sect" == "env" ]; then
-            if [ "$a" == "global" ]; then
-              sect="$sect.$a"
-            fi
-          else
-            IFS=- read a b <<<"$ln"
-            if [ "$sect" == "script" ]; then
-              SCRIPTS="$SCRIPTS \"$(echo $b)\""
-            elif [ "$sect" == "env.global" ]; then
-              if [ "${b:0:8}" == " VERSION" ]; then
-                SET_GBLS="$SET_GBLS $(echo $b)"
-              fi
-            fi
-          fi
+          process_yaml_1
+        elif [ $lev -eq 2 ]; then
+          process_yaml_2
+        elif [ $lev -eq 3 ]; then
+          process_yaml_3
         fi
       done < "$f1"
       sts=0
-      wlog "--> $SET_GBLS"
-      eval $SET_GBLS
-      if [ "$action" == "check" ]; then
-        export BASH_CHECK="1"
-        export LINT_CHECK="1"
-        export TESTS=
-      elif [ "$action" == "test" ]; then
-        export BASH_CHECK=
-        export LINT_CHECK="0"
-        export TESTS="1"
-      else
-        export BASH_CHECK="1"
-        export LINT_CHECK="1"
-        export TESTS="1"
-      fi
+      for ln in $YML_addons; do
+        line=$(process_yaml_quote $ln)
+        wlog "--> $line"
+        eval $(process_yaml_quote $ln)
+      done
+      for ln in $YML_install; do
+        line=$(process_yaml_quote $ln)
+        wlog "--> $line"
+        eval $(process_yaml_quote $ln)
+      done
+      for ln in UNBUFFER; do
+        line=$(get_cfg_value "" "$ln")
+        if [ -n "$line" ]; then
+          wlog "--> export $ln=$line"
+          export export $ln=$line
+        fi
+      done
+      for ln in $YML_env; do
+        line=$(process_yaml_quote $ln)
+        wlog "--> $line"
+        eval $line
+      done
       run_svr_test_init
-      for ln in $SCRIPTS; do
-        line=$(echo $ln)
-        wlog "TOOLS_PATH=$TOOLS_PATH LINT_CHECK=$LINT_CHECK TESTS=$TESTS $line"
-        TOOLS_PATH=$TOOLS_PATH LINT_CHECK=$LINT_CHECK TESTS=$TESTS eval $line
+      for ln in $YML_matrix; do
+        line=$(process_yaml_quote $ln)
+        if [ "$action" == "check" ]; then
+          if [[ $line =~ LINT_CHECK=[\"]*0 ]]; then
+            line="# $line"
+          elif [[ $line =~ TESTS=[\"]*1 ]]; then
+            line="# $line"
+          fi
+        elif [ "$action" == "test" ]; then
+          if [[ $line =~ LINT_CHECK=[\"]*1 ]]; then
+            line="# $line"
+          elif [[ $line =~ TESTS=[\"]*0 ]]; then
+            line="# $line"
+          fi
+        else
+          true
+        fi
+        if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
+          line="# $line"
+        elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
+          line="# $line"
+        elif [[ $line =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
+          line="$(echo $line|sed -e s:OCA/OCB:local/odoo:g)"
+        fi
+        if [ "${line:0:1}" != "#" ]; then
+          for ln1 in $YML_global; do
+            line1="export $(process_yaml_quote $ln1)"
+            wlog "--> $line1"
+            eval $line1
+          done
+          for ln1 in $YML_script; do
+            line1=$(process_yaml_quote $ln1)
+            wlog "--> $line $line1"
+            eval $line $line1
+            a=$?
+            if [ $a -eq $STS_SUCCESS ]; then
+              linex="export $(process_yaml_quote $ln)"
+              wlog "--> $linex"
+              eval $linex
+            else
+              sts=$a
+            fi
+          done
+        else
+          wlog "--> $line"
+        fi
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
       done
       run_svr_test_exit
+      if [ $sts -eq $STS_SUCCESS ]; then
+        for ln in $YML_after; do
+          line=$(process_yaml_quote $ln)
+          wlog "--> $line"
+          eval $line
+        done
+      fi
     else
       process_local
       sts=$?
@@ -165,7 +345,7 @@ process_yaml () {
 OPTOPTS=(h        b          c        j        n            r     V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_dry_run  opt_r opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        "1>"         "1"   "*>"        1)
-OPTDEFL=(1        9.0        ""       0        0            0     ""          0)
+OPTDEFL=(0        9.0        ""       0        0            0     ""          0)
 OPTMETA=("help"   "branch"   "file"   "dprj"   "do nothing" "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
@@ -189,6 +369,7 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 if [ -z "$action" ]; then action=all; fi
+if [ -z $pkg ]; then pkg="."; fi
 opts_travis
 $(init_cfg)
 $(active_cfg)

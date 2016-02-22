@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.53
+#__version__=0.1.54
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -886,15 +886,23 @@ cp_n_upd () {
     done < "$src"
 }
 
+run_svr_test_rm_ln () {
+    wlog "--> if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi"
+    if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi
+    wlog "--> if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi"
+    if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi
+    wlog "--> if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
+    if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi
+}
+
 run_svr_test_init () {
     local i
     local CMD
     local n=$(get_cfg_value "" "dbtemplate")
     wlog "--> dropdb $n"
-    dropdb $n
-    local n=$(get_cfg_value "" "UNBUFFER")
-    wlog "--> export UNBUFFER=$n"
-    export UNBUFFER=$n
+    dropdb --if-exists $n
+    wlog "--> coverage erase"
+    coverage erase
     wlog "--> cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
     cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
     if [ -n "$REPOSNAME" ]; then
@@ -906,9 +914,14 @@ run_svr_test_init () {
       wlog "--> export INCLUDE="
       export INCLUDE=
     fi
+    run_svr_test_rm_ln
     local x=$(readlink -e $PRJPATH/..)
     wlog "--> ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
     ln -s $x ~/${ODOO_REPO#*/}-$VERSION
+    wlog "--> ln -s $PKGPATH ~/$pkgname-$VERSION"
+    ln -s $PKGPATH ~/$pkgname-$VERSION
+    wlog "--> ln -s ~/$VERSION/$REPOSNAME ~/dependencies"
+    ln -s ~/$VERSION/$REPOSNAME ~/dependencies
     for i in {1..9}; do
       CMD=$(get_cfg_value "" "yaml__init__$i")
       if [ -n "$CMD" ]; then
@@ -930,8 +943,7 @@ run_svr_test_exit () {
         eval $CMD
       fi
     done
-    wlog "--> if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
-    if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi
+    run_svr_test_rm_ln
 }
 
 run_server_test () {
