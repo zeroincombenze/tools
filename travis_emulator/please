@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="0.1.23"
+__version__="0.1.24"
 
 
 ant_rm_trap () {
@@ -145,6 +145,52 @@ do_test () {
 }
 
 
+do_diff () {
+    wlog "do_diff \"$1\" \"$2\" \"$3\""
+    opt_diff=1
+    opts=$(inherits_travis_opts "nvd")
+    dist_pkg $opts $pkgname;
+    sts=$?
+    return $sts
+}
+
+
+do_replace () {
+    wlog "do_replace \"$1\" \"$2\" \"$3\""
+    opts=$(inherits_travis_opts "nvR")
+    dist_pkg $opts $pkgname;
+    sts=$?
+    return $sts
+}
+
+
+do_commit () {
+    wlog "do_commit \"$1\" \"$2\" \"$3\""
+    opts=$(inherits_travis_opts "nvC")
+    dist_pkg $opts $pkgname;
+    sts=$?
+    return $sts
+}
+
+
+do_push () {
+    wlog "do_push \"$1\" \"$2\" \"$3\""
+    opts=$(inherits_travis_opts "nvP")
+    dist_pkg $opts $pkgname;
+    sts=$?
+    return $sts
+}
+
+
+do_fetch () {
+    wlog "do_fetch \"$1\" \"$2\" \"$3\""
+    opts=$(inherits_travis_opts "nvF")
+    dist_pkg $opts $pkgname;
+    sts=$?
+    return $sts
+}
+
+
 do_coverage () {
     wlog "do_coverage \"$1\" \"$2\" \"$3\""
     run_coverage_test
@@ -209,7 +255,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be: help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|version|wep"\
+  print_help "Developer shell\nAction may be on of:\nhelp|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -244,6 +290,13 @@ elif [ "$action" == "check" ]; then
 elif [ "$action" == "chkconfig" ]; then
   do_chkconfig
   sts=$STS_SUCCESS
+elif [ "$action" == "if-commit" ]; then
+  opt_dry_run=1
+  do_commit "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "commit" ]; then
+  do_commit "$pkgname" "$sub1" "$sub2"
+  sts=$?
 elif [ "$action" == "config" ]; then
   if [ $opt_r -gt 0 ]; then
     DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
@@ -254,6 +307,30 @@ elif [ "$action" == "config" ]; then
   sts=$STS_SUCCESS
 elif [ "$action" == "coverage" ]; then
   do_coverage "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "diff" ]; then
+  do_diff "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "if-fetch" ]; then
+  opt_dry_run=1
+  do_fetch "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "fetch" ]; then
+  do_fetch "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "if-push" ]; then
+  opt_dry_run=1
+  do_push "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "push" ]; then
+  do_push "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "if-replace" ]; then
+  opt_dry_run=1
+  do_replace "$pkgname" "$sub1" "$sub2"
+  sts=$?
+elif [ "$action" == "replace" ]; then
+  do_replace "$pkgname" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "test" ]; then
   do_test "$pkgname" "$sub1" "$sub2"
@@ -271,7 +348,7 @@ elif [ "$action" == "wep" ]; then
   clean_dirs "$PKGPATH"
 else
   echo "Invalid action!"
-  echo "Use $THIS help|annotate|autopep8|check|chkconfig|config|coverage|test|travis|wep"
+  echo "Use $THIS help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"
   sts=$STS_FAILED
 fi
 exit $sts

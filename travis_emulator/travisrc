@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.55
+#__version__=0.1.56
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -72,8 +72,14 @@ inherits_travis_opts () {
     if [[ $e =~ C ]]; then
       opts="${opts}C"
     fi
+    if [[ $e =~ F ]]; then
+      opts="${opts}F"
+    fi
     if [[ $e =~ R ]]; then
       opts="${opts}R"
+    fi
+    if [[ $e =~ P ]]; then
+      opts="${opts}P"
     fi
     if [[ $e =~ d ]]; then
       if [ $opt_diff -gt 0 ]; then
