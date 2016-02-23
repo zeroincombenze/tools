@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.37
+__version__=0.1.38
 
 
 process_local () {
@@ -92,61 +92,61 @@ process_yaml_init () {
 
 
 process_yaml_unquote () {
-  ln="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
-  echo $ln
+  lne="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
+  echo $lne
 }
 
 process_yaml_quote () {
-  ln="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
-  echo $ln
+  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
+  echo $lne
 }
 
 process_yaml_do () {
     # echo "[$YML_sect]" #debug
-    local ln=
+    local lne=
     if [ "$YML_sect" == "python" ]; then
-      ln="#"
+      lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
       if [ "$FH" == "RHEL" ]; then
-        ln="# yum install $(echo $1)"
+        lne="# yum install $(echo $1)"
       else
-        ln="# apt-get install $(echo $1)"
+        lne="# apt-get install $(echo $1)"
       fi
-      ln=$(process_yaml_unquote "$ln")
-      YML_addons="$YML_addons $ln"
+      lne=$(process_yaml_unquote "$lne")
+      YML_addons="$YML_addons $lne"
     elif [ "$YML_sect" == "env" ]; then
-      ln=$(process_yaml_unquote "$1")
-      YML_env="$YML_env $ln"
+      lne=$(process_yaml_unquote "$1")
+      YML_env="$YML_env $lne"
     elif [ "$YML_sect" == "env.global" ]; then
-      ln=$(process_yaml_unquote "$1")
-      if [ "${ln:0:7}" == "secure:" ]; then
-        ln="# $ln"
+      lne=$(process_yaml_unquote "$1")
+      if [ "${lne:0:7}" == "secure:" ]; then
+        lne="# $lne"
       else
-        YML_global="$YML_global $ln"
+        YML_global="$YML_global $lne"
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
-      ln=$(process_yaml_unquote "$1")
-      YML_matrix="$YML_matrix $ln"
+      lne=$(process_yaml_unquote "$1")
+      YML_matrix="$YML_matrix $lne"
     elif [ "$YML_sect" == "install" ]; then
-      ln=$(process_yaml_unquote "$1")
-      YML_install="$YML_install #$ln"
+      lne=$(process_yaml_unquote "$1")
+      YML_install="$YML_install #$lne"
     elif [ "$YML_sect" == "script" ]; then
-      ln=$(process_yaml_unquote "$1")
-      YML_script="$YML_script $ln"
+      lne=$(process_yaml_unquote "$1")
+      YML_script="$YML_script $lne"
     elif [ "$YML_sect" == "after_success" ]; then
-      ln=$(process_yaml_unquote "$1")
-      YML_after="$YML_after $ln"
+      lne=$(process_yaml_unquote "$1")
+      YML_after="$YML_after $lne"
     else
-      local ln="$(echo $1)"
+      local lne="$(echo $1)"
     fi
-    # echo ">>> $ln" #debug
+    # echo ">>> $lne" #debug
 }
 
 process_yaml_0 () {
-    if [ -n "$ln" ]; then
-      IFS=- read a b <<<"$ln"
+    if [ -n "$lne" ]; then
+      IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
-        IFS=: read a b <<<"$ln"
+        IFS=: read a b <<<"$lne"
         if [ -z "$b" ]; then
           YML_sect0=$a
           YML_sect="$YML_sect0"
@@ -163,10 +163,10 @@ process_yaml_0 () {
 }
 
 process_yaml_1 () {
-    if [ -n "$ln" ]; then
-      IFS=- read a b <<<"$ln"
+    if [ -n "$lne" ]; then
+      IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
-        IFS=: read a b <<<"$ln"
+        IFS=: read a b <<<"$lne"
         if [ -z "$b" ]; then
           YML_sect1=$a
           YML_sect="$YML_sect0.$YML_sect1"
@@ -183,10 +183,10 @@ process_yaml_1 () {
 }
 
 process_yaml_2 () {
-    if [ -n "$ln" ]; then
-      IFS=- read a b <<<"$ln"
+    if [ -n "$lne" ]; then
+      IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
-        IFS=: read a b <<<"$ln"
+        IFS=: read a b <<<"$lne"
         if [ -z "$b" ]; then
           YML_sect2=$a
           YML_sect="$YML_sect0.$YML_sect1.$YML_sect2"
@@ -203,8 +203,8 @@ process_yaml_2 () {
 }
 
 process_yaml_3 () {
-    if [ -n "$ln" ]; then
-      IFS=- read a b <<<"$ln"
+    if [ -n "$lne" ]; then
+      IFS=- read a b <<<"$lne"
       if [ -z "$a" ]; then
         process_yaml_do "$b"
       fi
@@ -218,9 +218,9 @@ process_yaml () {
       local lev=0
       local ident=0
       local line=
-      local ln=
+      local lne=
       local line1=
-      local ln1=
+      local lne1=
       local linex=
       local i
       local a
@@ -241,7 +241,7 @@ process_yaml () {
           lev=0
           ident=0
         fi
-        ln=$(echo $line)
+        lne=$(echo $line)
         if [ $lev -eq 0 ]; then
           process_yaml_0
         elif [ $lev -eq 1 ]; then
@@ -253,31 +253,31 @@ process_yaml () {
         fi
       done < "$f1"
       sts=0
-      for ln in $YML_addons; do
-        line=$(process_yaml_quote $ln)
+      for lne in $YML_addons; do
+        line=$(process_yaml_quote $lne)
         wlog "--> $line"
-        eval $(process_yaml_quote $ln)
+        eval $(process_yaml_quote $lne)
       done
-      for ln in $YML_install; do
-        line=$(process_yaml_quote $ln)
+      for lne in $YML_install; do
+        line=$(process_yaml_quote $lne)
         wlog "--> $line"
-        eval $(process_yaml_quote $ln)
+        eval $(process_yaml_quote $lne)
       done
-      for ln in UNBUFFER; do
-        line=$(get_cfg_value "" "$ln")
+      for lne in UNBUFFER; do
+        line=$(get_cfg_value "" "$lne")
         if [ -n "$line" ]; then
-          wlog "--> export $ln=$line"
-          export export $ln=$line
+          wlog "--> export $lne=$line"
+          export export $lne=$line
         fi
       done
-      for ln in $YML_env; do
-        line=$(process_yaml_quote $ln)
+      for lne in $YML_env; do
+        line=$(process_yaml_quote $lne)
         wlog "--> $line"
         eval $line
       done
       run_svr_test_init
-      for ln in $YML_matrix; do
-        line=$(process_yaml_quote $ln)
+      for lne in $YML_matrix; do
+        line=$(process_yaml_quote $lne)
         if [ "$action" == "check" ]; then
           if [[ $line =~ LINT_CHECK=[\"]*0 ]]; then
             line="# $line"
@@ -301,18 +301,18 @@ process_yaml () {
           line="$(echo $line|sed -e s:OCA/OCB:local/odoo:g)"
         fi
         if [ "${line:0:1}" != "#" ]; then
-          for ln1 in $YML_global; do
-            line1="export $(process_yaml_quote $ln1)"
+          for lne1 in $YML_global; do
+            line1="export $(process_yaml_quote $lne1)"
             wlog "--> $line1"
             eval $line1
           done
-          for ln1 in $YML_script; do
-            line1=$(process_yaml_quote $ln1)
+          for lne1 in $YML_script; do
+            line1=$(process_yaml_quote $lne1)
             wlog "--> $line $line1"
             eval $line $line1
             a=$?
             if [ $a -eq $STS_SUCCESS ]; then
-              linex="export $(process_yaml_quote $ln)"
+              linex="export $(process_yaml_quote $lne)"
               wlog "--> $linex"
               eval $linex
             else
@@ -328,8 +328,8 @@ process_yaml () {
       done
       run_svr_test_exit
       if [ $sts -eq $STS_SUCCESS ]; then
-        for ln in $YML_after; do
-          line=$(process_yaml_quote $ln)
+        for lne in $YML_after; do
+          line=$(process_yaml_quote $lne)
           wlog "--> $line"
           eval $line
         done

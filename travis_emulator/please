@@ -37,15 +37,15 @@ else
   exit $STS_FAILED
 fi
 
-__version__="0.1.22"
+__version__="0.1.23"
 
 
 ant_rm_trap () {
     wlog "... recover $1"
     local f1=$(readlink -f $1)
     local fhist=$f1.tracehistory
-    local ln=$(head -n1 $f1)
-    if [ -n "$ln" -a "${ln:0:5}" == "trap " ]; then
+    local lne=$(head -n1 $f1)
+    if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
       tail -n+2 $f1>$f1.tmp
       mv -f $f1.tmp $f1
     fi

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.54
+#__version__=0.1.55
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -916,11 +916,11 @@ run_svr_test_init () {
     fi
     run_svr_test_rm_ln
     local x=$(readlink -e $PRJPATH/..)
-    wlog "--> ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
+    wlog "--> ln $x ~/${ODOO_REPO#*/}-$VERSION"
     ln -s $x ~/${ODOO_REPO#*/}-$VERSION
-    wlog "--> ln -s $PKGPATH ~/$pkgname-$VERSION"
+    wlog "--> ln $PKGPATH ~/$pkgname-$VERSION"
     ln -s $PKGPATH ~/$pkgname-$VERSION
-    wlog "--> ln -s ~/$VERSION/$REPOSNAME ~/dependencies"
+    wlog "--> ln ~/$VERSION/$REPOSNAME ~/dependencies"
     ln -s ~/$VERSION/$REPOSNAME ~/dependencies
     for i in {1..9}; do
       CMD=$(get_cfg_value "" "yaml__init__$i")
