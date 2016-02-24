@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.56
+#__version__=0.1.57
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -240,7 +240,7 @@ init_travis () {
       else
         unset -v TOOLS_PATH
       fi
-      wlog "--> TOOLS_PATH=$TOOLS_PATH"
+      # wlog "\$ TOOLS_PATH=$TOOLS_PATH"
       if [ "$PRJNAME" == "Odoo" ]; then
         if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/dev/maintainer-quality-tools/travis
@@ -262,11 +262,11 @@ init_travis () {
 prepare_env_travis () {
     local action="$1"
     if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-      wlog "--> export PATH=$TOOLS_PATH:$PATH"
+      wlog "\$ export PATH=$TOOLS_PATH:$PATH"
       export PATH=$TOOLS_PATH:$PATH
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      wlog "--> export PATH=$DEVPATH:$PATH"
+      wlog "\$ export PATH=$DEVPATH:$PATH"
       export PATH=$DEVPATH:$PATH
     fi
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
@@ -352,6 +352,7 @@ conf_default () {
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
     set_cfg_def "dbtemplate" "openerp_template"
+    set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"
 }
 
@@ -478,14 +479,14 @@ update_dev () {
         if [ -f $PKGPATH/$pkgname/$x ]; then
           if [ ${opt_diff:-0} -gt 0 ]; then
             if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
               diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
             fi
           elif [ ${opt_fetch:-0} -gt 0 ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
+            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
             (($opt_dry_run))||cp $XDPATH/$x $PKGPATH/$pkgname/$x
           else
-            if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+            if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
             (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
         fi
@@ -495,7 +496,7 @@ update_dev () {
           if [ ${opt_diff:-0} -gt 0 ]; then
              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
           elif [ ${opt_fetch:-0} -eq 0 ]; then
-             if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+             if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
              (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
         done
@@ -505,13 +506,13 @@ update_dev () {
           if [ -f $PKGPATH/$pkgname/$x ]; then
             if [ ${opt_diff:-0} -gt 0 ]; then
               if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x)" ]; then
-                if [ ${opt_verbose:-0} -gt 0 ]; then echo "--> diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+                if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
                 diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x
               fi
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               true
             else
-              if [ $opt_verbose -gt 0 ]; then echo "--> $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+              if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
               (($opt_dry_run))||cp $PKGPATH/$pkgname/$x ~/bin/$x
             fi
           fi
@@ -674,7 +675,7 @@ robocopy () {
             local optrsync="-abzhe"
           fi
           local optssh="$3"
-          echo "--> rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          echo "\$ rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
           rsync $opts_dry_run $optrsync "$optssh" $opts_upd --del --copy-links $XLFS $ff $2$v
         else
           if [ ${opt_verbose:-0} -gt 0 ]; then
@@ -683,7 +684,7 @@ robocopy () {
             local optrsync="-ab"
           fi
           local optssh=""
-          echo "--> rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
+          echo "\$ rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
           rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v
         fi
       else
@@ -892,12 +893,60 @@ cp_n_upd () {
     done < "$src"
 }
 
+clone_1_dependence () {
+    if [ -d $1 ]; then
+      wlog "\$ ln -s $1 ~/dependencies/"
+      ln -s $1 ~/dependencies/
+    fi
+}
+
+clone_oca_dependencies () {
+    local f1=$1
+    local line
+    local p
+    if [ -f "$f1" ]; then
+      while IFS=\~ read -r line; do
+        p=$(find ~/$VERSION -type d -name "$line")
+        if [ -n "$p" ]; then
+          clone_1_dependence "$p"
+        else
+          elog "!????? Module $line not found!??????"
+        fi
+      done < "$f1"
+    fi
+}
+
+clone_dependencies () {
+    local p
+    if [ ! -d ~/dependencies ]; then
+      wlog "mkdir ~/dependencies"
+      mkdir ~/dependencies
+    fi
+    if [ -n "$REPOSNAME" ]; then
+      wlog "\$ export INCLUDE=$pkgname"
+      export INCLUDE=$pkgname
+      for p in ~/$VERSION/$REPOSNAME/*; do
+        clone_1_dependence "$p"
+      done
+      p=$(readlink -e ~/$VERSION/openerp)
+      clone_1_dependence "$p"
+      p=$(readlink -e ~/$VERSION/$REPOSNAME/)
+      clone_oca_dependencies "$p/oca_dependencies.txt"
+    else
+      wlog "\$ export INCLUDE="
+      export INCLUDE=
+      clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
+    fi
+}
+
 run_svr_test_rm_ln () {
-    wlog "--> if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi"
+    wlog "\$ if [ -d ~/dependencies ]; then rm -fR ~/dependencies; fi"
+    if [ -d ~/dependencies ]; then rm -fR ~/dependencies; fi
+    wlog "\$ if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi"
     if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi
-    wlog "--> if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi"
+    wlog "\$ if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi"
     if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi
-    wlog "--> if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
+    wlog "\$ if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
     if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi
 }
 
@@ -905,50 +954,25 @@ run_svr_test_init () {
     local i
     local CMD
     local n=$(get_cfg_value "" "dbtemplate")
-    wlog "--> dropdb $n"
+    wlog "\$ dropdb $n"
     dropdb --if-exists $n
-    wlog "--> coverage erase"
+    local n=$(get_cfg_value "" "dbname")
+    wlog "\$ dropdb $n"
+    dropdb --if-exists $n
+    wlog "\$ coverage erase"
     coverage erase
-    wlog "--> cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
+    wlog "\$ cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
     cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
-    if [ -n "$REPOSNAME" ]; then
-      wlog "--> export INCLUDE=$pkgname"
-      export INCLUDE=$pkgname
-    else
-    #   wlog "--> export INCLUDE=\$(python $MQT_PATH/getaddons.py -m $PRJPATH)"
-    #   export INCLUDE=$(python $MQT_PATH/getaddons.py -m $PRJPATH)
-      wlog "--> export INCLUDE="
-      export INCLUDE=
-    fi
     run_svr_test_rm_ln
+    clone_dependencies
     local x=$(readlink -e $PRJPATH/..)
-    wlog "--> ln $x ~/${ODOO_REPO#*/}-$VERSION"
-    ln -s $x ~/${ODOO_REPO#*/}-$VERSION
-    wlog "--> ln $PKGPATH ~/$pkgname-$VERSION"
+    wlog "\$ ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
+    ln $x -s ~/${ODOO_REPO#*/}-$VERSION
+    wlog "\$ ln -s $PKGPATH ~/$pkgname-$VERSION"
     ln -s $PKGPATH ~/$pkgname-$VERSION
-    wlog "--> ln ~/$VERSION/$REPOSNAME ~/dependencies"
-    ln -s ~/$VERSION/$REPOSNAME ~/dependencies
-    for i in {1..9}; do
-      CMD=$(get_cfg_value "" "yaml__init__$i")
-      if [ -n "$CMD" ]; then
-        CMD=$(expand_path "$CMD")
-        wlog "--> $CMD"
-        eval $CMD
-      fi
-    done
 }
 
 run_svr_test_exit () {
-    local i
-    local CMD
-    for i in {1..9}; do
-      CMD=$(get_cfg_value "" "yaml__exit__$i")
-      if [ -n "$CMD" ]; then
-        CMD=$(expand_path "$CMD")
-        wlog "--> $CMD"
-        eval $CMD
-      fi
-    done
     run_svr_test_rm_ln
 }
 
