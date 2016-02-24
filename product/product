@@ -40,7 +40,7 @@ else
 fi
 
 
-__version__="0.2.27.7"
+__version__="0.2.28"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -516,7 +516,7 @@ install_submodules () {
         fi
         if [ -d $addons -a $test_mode -eq 0 ]; then
           run_traced "cd $addons"
-          run_traced "git pull origin" "odoo"
+          run_traced "git pull origin $ov.0" "odoo"
           run_traced "cd /opt/odoo/$ov.0"
         else
           run_traced "git clone -b $ov.0 $pn $addons $git_opts" "odoo"
@@ -1385,7 +1385,7 @@ product_update_odoo () {
         fi
         if [ $? -ne 128 ]; then xtl=1; fi
         if [ $xtl -gt 0 ]; then
-          run_traced "git pull origin" "odoo"
+          run_traced "git pull origin $ov.0" "odoo"
           if [ $test_mode -eq 0 ]; then
              opt_sub=$(grep "\[submodule" .gitmodules|awk '{print $2}'|tr -d "\"]"|tr "\n" " ")
           fi
@@ -1955,7 +1955,7 @@ test_install () {
         echo "--> apt-get -y install pydot">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
-      local opt_osub="account-invoicing account-payment partner-contact knowledge bank-payment"
+      local opt_osub="account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
       if [ "$FH" == "RHEL" ]; then
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
@@ -2272,7 +2272,7 @@ test_update () {
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git pull origin">>$ftest
+        echo "--> git pull origin 7.0">>$ftest
         for d in ${opt_osub//,/ }; do
           echo "--> cd /opt/odoo/7.0">>$ftest
           echo "--> echo \"$d/\">>.gitignore">>$ftest
@@ -2343,7 +2343,7 @@ test_update () {
         echo "--> rm -f $pn">>$ftest
       else
         echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git pull origin">>$ftest
+        echo "--> git pull origin 7.0">>$ftest
         for d in ${opt_osub//,/ }; do
           echo "--> cd /opt/odoo/7.0">>$ftest
           echo "--> echo \"$d/\">>.gitignore">>$ftest
