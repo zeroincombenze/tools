@@ -1,0 +1,236 @@
+{{Template:Language_Toolbar}}
+{{Infobox|Title=Python|
+developer=Guido van Rossum|
+lastversion=3.3 e 2.7|dateversion=N/D|
+os=Linux, Windows, OpenVM|
+license=Python Software Foundation License<ref>Licenza Libera</ref>|
+website=http://www.python.org/}}
+'''Python (Software)'''
+
+Python è un linguaggio di scripting, divenuto un linguaggio programmazione ad alto livello, orientato agli oggetti e semi-interpretato (come Java). Fu ideato da Guido van Rossum all'inizio degli anni novanta. Il nome fu scelto per via della passione di van Rossum per i Monty Python e per la loro serie televisiva Monty Python's Flying Circus.
+
+
+
+==Versioni==
+<!-- <version>
+o~2.6~2.6.0~1 ottobre 2008~Ultima release: 2.6.9 del 23 ottobre 2013
+o~~2.6.6~24 agosto 2010~Versione standard su CentOS
+o~~2.6.9~23 ottobre 2013~
+o~2.7~2.7.0~4 luglio 2010~Ultime release: 2.7.9 del 10 dicembre 2014
+c~~2.7.9~10 dicembre 2014~
+c~3.0~3.0.0~3 dicembre 2008~Ultima release stabile 3.3.6 del 12 ottobre 2014
+</version> -->
+{| class="mw-collapsible mw-collapsed" style="width:100%"
+|-
+| [[File:H versioni.png|left]]
+! scope=col|Nome
+! scope=col|Versione
+! scope=col|Data di Lancio
+! scope=col|Note
+|-
+|
+! scope="row" style="vertical-align:top;"|2.6
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.0
+| style="white-space:nowrap;"|1 ottobre 2008
+| Ultima release: 2.6.9 del 23 ottobre 2013
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.6
+| style="white-space:nowrap;"|24 agosto 2010
+| Versione standard su CentOS
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.9
+| style="white-space:nowrap;"|23 ottobre 2013
+| 
+|-
+|
+! scope="row" style="vertical-align:top;"|2.7
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.7.0
+| style="white-space:nowrap;"|4 luglio 2010
+| Ultime release: 2.7.9 del 10 dicembre 2014
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|2.7.9
+| style="white-space:nowrap;"|10 dicembre 2014
+| 
+|-
+|
+! scope="row" style="vertical-align:top;"|3.0
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|3.0.0
+| style="white-space:nowrap;"|3 dicembre 2008
+| Ultima release stabile 3.3.6 del 12 ottobre 2014
+|-
+|
+| colpan="4"|&nbsp;
+|-
+|
+| scope="row" rowspan="5"|Legenda
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|
+|
+| Versione precedente
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#FEF8C6;"|
+|
+| Versione precedente, supportata
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|
+|
+| Versione stabile corrente
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#FED1A0;"|
+|
+| Ultima versione in beta
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#C1E6F5;"|
+|
+| Futura versione
+|}
+
+[[File:H storia.png|left]]
+==Storia==
+Python fu sviluppato negli anni novanta. La V2 è ancora una versione legacy anche se abbondantemente sviluppata in ambiente open-source, mentre dalla V3 il codice è legalmente e totalmente open-source.
+
+La V2 fu rilasciata a ottobre del 2000 ed è ancora oggi la versione più utilizzata.
+
+La V3, rilasciata in dicembre 2008 voleva essere un'evoluzione ma a causa di molte incompatibilità non ha ancora avuto il successo della V2. La maggior parte delle caratteristiche della V3 sono state riportate sulla V2 dalla V2.6 in poi.
+
+
+
+[[File:H caratteristiche.png|left]]
+==Caratteristiche==
+Linguaggio di scripting orientato agli oggetti, di conseguenza non dichiara le variabili prima dell'uso e utilizza il typing dinamico. Permette la programmazione strutturata. Ha integrato un garbace collector.
+
+La compilazione produce un codice intermedio eseguibile su qualsiasi macchine (come Java) ma esistono applicazioni come Py2exe o pyinstaller che permettono di generare un eseguibile.
+
+
+
+
+[[File:H vantaggi-svantaggi.png|left]]
+===Vantaggi e svantaggi===
+Vantaggi:
+* Molto potente
+* Estremamente stabile
+* Disponibile sua quasi tutte le piattaforme (non ufficialmente in OpenVMS)
+
+Svantaggi
+* Molti errori sono rilevati durante l'esecuzione invece che in pre-compilazione
+
+
+[[File:H distribuzione.png|left]]
+===Implementazioni e Distribuzioni===
+N/D
+
+
+[[File:H conccorenti.png|left]]
+===Concorrenti===
+N/D
+
+
+
+[[File:H guida all'uso.png|left]]
+==Guida all'uso==
+{|
+|La V2.6 non è documentata.
+|-
+|[[Python/man|Guida all'uso del linguaggio]]
+|-
+|[[Python/2.7/man|Guida all'uso della V2.7]]
+|-
+|[[Python/3.3/man|Guida all'uso della V3.3]]
+|-
+|[http://docs.python.it/html/tut/tut.html (it) Tutorial]
+|}
+
+
+
+
+[[File:H guida tecnica.png|left]]
+==Guida di riferimento tecnico==
+
+
+
+
+[[File:H installazione.png|left]]
+===Installazione===
+[[Python/install|Come installare python]]
+
+
+[[File:H aggiornamento.png|left]]
+===Aggiornamento===
+[[Python/upgrade|Come aggiornare python]]
+
+
+
+[[File:H faq.png|left]]
+===FAQ===
+[[Python/FAQ|Risposte a domande frequenti]]
+
+
+
+[[File:H troubleshooting.png|left]]
+===Troubleshooting===
+[[Python/Troubleshooting|Guida alla risoluzione dei problemi]]
+
+
+
+[[File:H sicurezza.png|left]]
+==Guida alla sicurezza==
+[[Python/security|Guida alla sicurezza]]
+
+
+
+
+
+[[File:H software.png|left]]
+==Sviluppo del codice==
+{{Template:Warning}}
+[[{{#var:softwname}}/dev|Documentazione riservata agli sviluppatori]]
+
+
+[[File:H libreria.png|left]]
+===Librerie e ambiente di sviluppo===
+Documentazione non prevista
+
+
+[[File:H programmi_complementari2.png|left]]
+===Programmi complementari===
+Python utilizza numerose package.
+
+[[Python/opt]]
+
+
+
+[[File:H notes.png|left]]
+
+==Note==
+<references/>
+
+
+
+[[File:H unit.png|left]]
+==Altre notizie==
+
+
+===Moduli aggiuntivi python per OpenERP===
+[[OpenERP]] richiede per funzionare, alcuni moduli [[Odoo/opt|aggiuntivi di Python]].
+
+
+
+[[File:H Collegamenti.png|left]]
+
+==Collegamenti esterni==
+* (en) [http://www.python.org/ Sito ufficiale di Python]
+* (en) [http://www.vmspython.org/ Sito per la versione OpenVMS Python]
+
+
+
+
+[[Category:Software]]

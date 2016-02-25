@@ -1,0 +1,266 @@
+{{Template:Language_Toolbar}}
+{{Infobox|Title=Python|
+developer=Guido van Rossum|
+lastversion=3.3 e 2.7|dateversion=N/D|
+os=Linux, Windows, OpenVMS|
+license=Python Software Foundation License<ref>Licenza Libera</ref>|
+website=http://www.python.org/}}
+'''Python (Software)'''
+
+Python is a high-level programming language object-oriented and semi-interpreted (such as Java). 
+
+==Versioni==
+<!-- <version>
+o~2.6~2.6.0~1 ottobre 2008~Ultima release: 2.6.9 del 23 ottobre 2013
+o~~2.6.6~24 agosto 2010~Versione standard su CentOS
+o~~2.6.9~23 ottobre 2013~
+o~2.7~2.7.0~4 luglio 2010~Ultime release: 2.7.9 del 10 dicembre 2014
+c~~2.7.9~10 dicembre 2014~
+c~3.0~3.0.0~3 dicembre 2008~Ultima release stabile 3.3.6 del 12 ottobre 2014
+</version> -->
+{| class="mw-collapsible mw-collapsed" style="width:100%"
+|-
+| [[File:H versioni.png|left]]
+! scope=col|Nome
+! scope=col|Versione
+! scope=col|Data di Lancio
+! scope=col|Note
+|-
+|
+! scope="row" style="vertical-align:top;"|2.6
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.0
+| style="white-space:nowrap;"|1 ottobre 2008
+| Ultima release: 2.6.9 del 23 ottobre 2013
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.6
+| style="white-space:nowrap;"|24 agosto 2010
+| Versione standard su CentOS
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.6.9
+| style="white-space:nowrap;"|23 ottobre 2013
+| 
+|-
+|
+! scope="row" style="vertical-align:top;"|2.7
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|2.7.0
+| style="white-space:nowrap;"|4 luglio 2010
+| Ultime release: 2.7.9 del 10 dicembre 2014
+|-
+|
+|
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|2.7.9
+| style="white-space:nowrap;"|10 dicembre 2014
+| 
+|-
+|
+! scope="row" style="vertical-align:top;"|3.0
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|3.0.0
+| style="white-space:nowrap;"|3 dicembre 2008
+| Ultima release stabile 3.3.6 del 12 ottobre 2014
+|-
+|
+| colpan="4"|&nbsp;
+|-
+|
+| scope="row" rowspan="5"|Legenda
+| style="white-space:nowrap; text-align:center; background-color:#FDB3AB;"|
+|
+| Versione precedente
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#FEF8C6;"|
+|
+| Versione precedente, supportata
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#D4F4B4;"|
+|
+| Versione stabile corrente
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#FED1A0;"|
+|
+| Ultima versione in beta
+|-
+|
+| style="white-space:nowrap; text-align:center; background-color:#C1E6F5;"|
+|
+| Futura versione
+|}
+
+[[File:H storia.png|left]]
+
+==History==
+Python was developed in the late nineties. The V2 is still a legacy version, while the V3 code is completely open-source.
+
+
+[[File:H caratteristiche.png|left]]
+==Features==
+Object-oriented scripting language, without the need to declare variables before use. The compilation produces an intermediate code which runs on any machine (like Java).
+
+
+===Advantages and disadvantages===
+Advantages:
+* Very powerful
+* Extremely stable
+* Available on almost all platforms (not officialy on OpenVMS)
+
+Disadvantages:
+* Many errors are detected during execution rather than during pre-compilation
+
+
+===Distributions===
+N/D
+
+
+===Competitors===
+N/D
+
+
+
+[[File:H guida all'uso.png|left]]
+==User's Guide==
+{|
+|V2.6 is not documented.
+|-
+|[[Python/man|Guide to langauage use]]
+|-
+|[[Python/2.7/man|V2.7 user's guide]]
+|-
+|[[Python/3.3/man|V3.3 user's guide]]
+|-
+|[http://docs.python.it/html/tut/tut.html (it) Tutorial]
+|}
+
+
+[[File:H guida tecnica.png|left]]
+
+==Technical Reference Guide==
+
+===Quick Guide===
+===Python functionality Check===
+A Python functional check can be done with following command
+ python -h
+
+===To display Python version===
+Python version can be displayed with the command
+ python -V
+
+
+
+
+===Installation===
+Most of Linux distributions have Python already installed and activated. To check, simply run the command
+ rpm -q python
+or
+ yum list python
+
+
+===Update===
+OpenERP uses python V2 and to this day (February 2014) it's not certified for V3. You must then download V2.7. Commands are:
+ cd /tmp
+ wget http://www.python.org/ftp/python/2.7.6/Python-2.7.6.tgz
+ tar -xvf Python-2.7.6.tgz
+
+This command downloads a compressed file from python official site and extracts in /tmp temporary directory. Pay attention to versions.
+
+===Post-installation checks===
+Check on modules can be execute with:
+ on - openerp -s /bin/bash
+ python
+ import pyparsing
+ import gdata
+ import setuptools
+
+
+
+[[File:H faq.png|left]]
+===FAQ===
+[[Python/FAQ|Answers to frequently asked questions]]
+
+
+[[File:H troubleshooting.png|left]]
+===Troubleshooting===
+[[Python/Troubleshooting|Troubleshooting Guide]]
+
+
+
+[[File:H software.png|left]]
+==Code development==
+
+===Rules for code development===
+Documentation not provided
+
+
+===Libraries and development environment===
+Documentation not provided
+
+
+
+===Complementary programms===
+Documentation not provided
+
+
+
+[[File:H sicurezza.png|left]]
+==Security Guide==
+[[Python/security|Security Guide]]
+
+
+
+[[File:h_notes.png|left]]
+==Notes==
+<references/>
+
+
+
+==Other news==
+
+===Additional python modules for OpenERP===
+[[OpenERP]] requires to function, some Python additional modules.
+
+
+Tjhe first module to download is pyparsing, the parsing modulewich allows you to create and execute simple grammars like lexx/yacc.
+Installed file should be in /usr/lib/python2.6/site-packages/pyparsing-2.0.1-py2.6.egg-info
+ 
+If necessary, download it, unzip it (be careful always to the versions, we are currently at 2.0 version) and run the setup. In the following sequence prefix sudo is not indicated; we recommend the use a privileged user in order to avoid sudo repetition. 
+ cd /opt/openerp
+ wget --no-check-certificate http://pypi.python.org/packages/source/p/pyparsing/pyparsing-2.0.1.tar.gz
+ tar -xvf pyparsing-2.0.1.tar.gz
+ cd pyparsing-2.0.1
+ python setup.py install
+More details are available on the page [https://pypi.python.org/pypi/pyparsing/2.0.1 pypi.python.org/pypi/pyparsing]
+
+
+
+Second module is Google data client which allows you to read and write data from web sites che permette di leggere e scirvere dati dai siti web for use of modules (f.e. VIES control) which rely on these functionalities (pay attention to versions). File is in /usr/lib/python2.6/site-packages/gdata-2.0.18-py2.6.egg-info, if it doesn't exist, work as follows:
+ cd /opt/openerp
+ wget http://gdata-python-client.googlecode.com/files/gdata-2.0.18.tar.gz
+ tar -xvf gdata-2.0.18.tar.gz
+ cd gdata-2.0.18
+ python setup.py install
+More details are available on the page 'http://code.google.com/p/gdata-python-client/'
+
+
+
+Third module is setuptools. It must exist in /usr/lib/python2.6/site-packages/setuptools-2.2-py2.6.egg otherwise even here download, decompression and setup:
+ cd /opt/openerp
+ wget --no-check-certificate http://pypi.python.org/packages/source/s/setuptools/setuptools-2.2.tar.gz
+ tar -xvf setuptools-2.2.tar.gz
+ cd setuptools-2.2
+ python setup.py install
+More details are available on pages [https://pypi.python.org/pypi/setuptools pypi.python.org/pypi/setuptools]
+
+
+
+[[File:h_collegamenti.png]]
+==External Links==
+* (en) [http://www.python.org/  Python official site]
+
+
+
+[[Category:Software]]

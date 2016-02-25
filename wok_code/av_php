@@ -1,0 +1,98 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__=0.1.6
+OPTOPTS=(h        l        n            R       V           v           p        s       z)
+OPTDEST=(opt_help opt_list opt_dry_run  opt_rev opt_version opt_verbose opt_path opt_sts opt_z)
+OPTACTI=(1        1        "1>"         1       "*>"        1           "=>"     1       1)
+OPTDEFL=(1        0        0            0       ""          0           ./       0       0)
+OPTMETA=("help"   "list"   "do nothing" "rev"   "version"   "verbose"   "path"   "sts"   "clean")
+OPTHELP=("this help"\
+ "list infected files, do nothing"\
+ "do nothing (dry-run)"\
+ "reverse mode"\
+ "show version"\
+ "verbose mode"\
+ "destination path"\
+ "return 0 if not virus found, 1 if found"\
+ "clean")
+OPTARGS=()
+parseoptargs $@
+
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Remove specific virus of php files"\
+  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+# set -x
+if [ $opt_list -gt 0 -o $opt_sts -gt 0 -o $opt_z -gt 0 ]; then
+  GREP_OPT=-l
+else
+  GREP_OPT=-H
+fi
+SIGNATURE="^..php *if *. *\!isset.*GLOBALS.*SERVER.*; .>"
+SIGNATURE1="^..php *if *. *\!isset.*GLOBALS.*SERVER.*fdtwltvfys-1; .>"
+SIGNATURE2="^..php *if *. *\!isset.*GLOBALS.*SERVER.*pfzwkeyboy-1; .>"
+SIGNATURE3="^..php *if *. *\!isset.*GLOBALS.*SERVER.*qpfxldnptu-1; .>"
+if [ $opt_z -gt 0 ]; then
+  if [ $opt_verbose -gt 0 ]; then echo "Analyzing"; fi
+  XX=$(find $opt_path -type f -name "*.php" -exec grep $GREP_OPT "$SIGNATURE1" '{}' \;)
+  for f in $XX; do
+    if [ $opt_verbose -gt 0 ]; then echo "cleaning $f"; fi
+    cat $f|sed -e"s:$SIGNATURE1::">$f.tmp
+    mv $f $f-virus
+    mv $f.tmp $f
+  done
+  XX=$(find $opt_path -type f -name "*.php" -exec grep $GREP_OPT "$SIGNATURE2" '{}' \;)
+  for f in $XX; do
+    if [ $opt_verbose -gt 0 ]; then echo "cleaning $f"; fi
+    cat $f|sed -e"s:$SIGNATURE2::">$f.tmp
+    mv $f $f-virus
+    mv $f.tmp $f
+  done
+  XX=$(find $opt_path -type f -name "*.php" -exec grep $GREP_OPT "$SIGNATURE3" '{}' \;)
+  for f in $XX; do
+    if [ $opt_verbose -gt 0 ]; then echo "cleaning $f"; fi
+    cat $f|sed -e"s:$SIGNATURE3::">$f.tmp
+    mv $f $f-virus
+    mv $f.tmp $f
+  done
+elif [ $opt_rev -gt 0 ]; then
+  if [ $opt_verbose -gt 0 ]; then echo "Analyzing"; fi
+  XX=$(find $opt_path -type f -name "*.php-virus")
+  for f in $XX; do
+    l=${#f}
+    let l="$l-6"
+    f1=${f:0:l}
+    if [ $opt_verbose -gt 0 ]; then echo "restoring $f1"; fi
+    mv $f $f1
+  done
+elif [ $opt_sts -gt 0 ]; then
+  XX=$(find $opt_path -type f -name "*.php" -exec grep $GREP_OPT "$SIGNATURE" '{}' \;|tail -n1)
+  if [ -z "$XX" ]; then
+    exit 0
+  else
+    exit 1
+  fi
+else
+  find $opt_path -type f -name "*.php" -exec grep $GREP_OPT "$SIGNATURE" '{}' \;
+fi

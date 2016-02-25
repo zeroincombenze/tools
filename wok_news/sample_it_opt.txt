@@ -1,0 +1,53 @@
+{{Template:Language_Toolbar}}
+
+
+==docutils==
+Il Package docutils gestisce la documentazione di python. In CentOS è fornita la V0.6. La versione più recente è la V0.12.
+
+Qui a seguito sono fornite le istruzioni per aggiornare docutils senza cancellare la versione preinstallata, per evitare problemi con yum.
+
+L'aggiornamento di docutils è necessario per utilizzare alcuni moduli di Odoo aggiornati.
+
+
+===Verifica installato===
+Per la versione visualizzare il contenuto della directory dei package di python, solitamente
+ dir -ld /usr/lib/python2.6/site-packages/docutil*
+correggendo in modo appropriato il nome della directory.
+
+Nella directory, se installato, è presente il file <code>docutils-n.n-py2.6.egg-info</code> o con nome similare, che identifica la versione installata.
+
+Se installato, vedere controlli post-installazione.
+
+
+===Sequenza operativa===
+
+====Download====
+
+{{Warning}} I comandi di download per CentOs sono necessari dopo [[Python/upgrade|l'aggiornamento di Python V2.7.9]].
+I comandi qui a seguito riportati nascondono la versione 0.6 di docutils (senza cancellarla), qualora fosse necessario ripristinare il package. Le istruzioni sono:
+ cd /tmp
+ # rinomimo versione attuale V0.6 di docutils
+ mv /usr/lib/python2.6/site-packages/docutils/ /usr/lib/python2.6/site-packages/docutils-0.6/
+ wget --no-check-certificate https://pypi.python.org/packages/source/d/docutils/docutils-0.12.tar.gz#md5=4622263b62c5c771c03502afa3157768
+ tar -xvf docutils-0.12.tar.gz -C /usr/lib/python2.6/site-packages/
+
+====Configurazione====
+
+Per installare e configurare docutils i comandi sono:
+ cd /usr/lib/python2.6/site-packages/docutils-0.12/
+ python setup.py install
+
+
+====Controlli Post-Installazione====
+
+I controlli post-installazione terminano con successo anche in caso di ripristino di Python V2.6.6
+ cd /usr/lib/python2.6/site-packages/docutils-0.12/test
+ ./alltests.py
+
+===Troubleshooting===
+N/D
+
+
+===Collegamenti esterni===
+* [https://pypi.python.org/pypi/docutils Package python docutils]
+* [http://docutils.sourceforge.net/README.html Documentazione docutils]

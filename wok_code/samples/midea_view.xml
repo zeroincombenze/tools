@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Menu tree -->
+        <menuitem id="menu_${module}" name="${module} main" parent="base.menu_custom" sequence="25"/>
+        <menuitem id="menu_${object}" name="${menutext}" parent="menu_${module}" sequence="25"/>
+
+
+        <!-- Tree view -->
+        <record model="ir.ui.view" id="${object}_tree_view">
+            <field name="name">${object_dot}.tree.view</field>
+            <field name="model">${model_dot}</field>
+            <field name="arch" type="xml">
+
+                <tree string="${title}" version="7.0">
+                    <field name="sequence"/>
+                    <field name="new_db_name"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <!-- Form view -->
+        <record model="ir.ui.view" id="${object}_form_view">
+            <field name="name">${object_dot}.form.view</field>
+            <field name="model">${model_dot}</field>
+            <field name="arch" type="xml">
+
+                <form string="${title}" version="7.0">
+                    <group string="New Database">
+                        <group>
+                            <field name="new_db_name"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+
+        <!-- Menu item -->
+        <record id="${object}_action" model="ir.actions.act_window">
+            <field name="name">${menutext}</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">${model_dot}</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="${object}_tree_view"/>
+            <field name="help"></field>
+        </record>
+
+
+        <!-- Menu action -->
+        <menuitem action="${object}_action"
+           id="menu_${module}_${menuitem}"
+           parent="menu_${object}"
+           sequence ="100"
+        />
+
+    </data>
+</openerp>

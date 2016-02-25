@@ -1,0 +1,177 @@
+${sect_hdr}
+
+==${PackageName}==
+${sect_Descrizione_Breve}
+
+
+===Versioni===
+${sect_Versioni}
+
+
+===Requisiti===
+I requisiti sono:
+* Python 2.6 o successive (soltanto python2)
+* Linux, Windows e OpenVMS
+
+===Verifica installato con comandi manuali (package python)===
+Eseguire i seguenti comandi, correggendo in modo appropriato il nome della directory<ref>scelta adatta soltanto ad utenti esperti</ref>:
+<syntaxhighlight lang="bash">
+# Setup package directory
+pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
+pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
+# If you do not know, use following statements
+python
+>>> import sys
+>>> print '\n'.join(sys.path)
+>>> exit()
+pypkg="..."  #  set right directory selected from above list
+dir -ld $pypkg/*${PackageName}*
+</syntaxhighlight>
+Nella directory, se installato, è presente un file con nome simile a <code>${PackageName}-n.n-py2.6.egg-info</code> che identifica anche la versione installata.
+
+
+==Gestione package python tramite pip (scelta consigliata se pip installato)==
+Tramite pip<ref>pip è package che richiede python</ref> è possibile gestire l'installazione in modo indipendente dal sistema operativo utilizzato.
+Le istruzioni sono valide sia per tutte le distribuzioni di Linux, per tutte le versioni di Windows.
+Potrebbe diventare disponibile anche su OpenVMS.
+Per maggiori dettagli vedere [[Python/opt/pip|pip]].
+
+===Verifica installato===
+<syntaxhighlight lang="bash">
+pip list|grep ${PackageName}
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+pip install ${PackageName}
+</syntaxhighlight>
+
+===Aggiornamento===
+<syntaxhighlight lang="bash">
+pip install ${PackageName} --upgrade
+</syntaxhighlight>
+
+
+==Gestione rpm su CentOS e famiglia RHEL==
+
+===Verifica installato===
+<ref>il comando yum info potrebbe richiedere un po' di tempo</ref>
+<syntaxhighlight lang="bash">
+rpm -q ${PackageName}
+# If info displayed, extract installed version
+yum info ${PackageName}|grep "[Vv]ersion"   
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+yum  [-y] install ${PackageName}
+</syntaxhighlight>  
+
+===Aggiornamento===
+<syntaxhighlight lang="bash">
+yum [-y] update ${PackageName}
+</syntaxhighlight>
+
+
+==Gestione package aptitude su Ubuntu e famiglia Debian==
+
+===Verifica installato===
+<syntaxhighlight lang="bash">
+dpkg-query -s ${PackageName}
+# If info displayed, extract installation status
+dpkg-query -s ${PackageName}|grep [Ss]tatus
+# If info displayed, extract installed version   
+dpkg-query -W ${PackageName}
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+apt-get [-y] install ${PackageName}
+</syntaxhighlight>  
+
+===Aggiornamento===
+<ref>il comando apt-get update potrebbe non essere necessario</ref>
+<syntaxhighlight lang="bash">
+apt-get [-y] update ${PackageName}
+apt-get [-y] upgrade ${PackageName}
+</syntaxhighlight>
+
+
+==Gestione sorgenti (con git clone)==
+
+===Verifica installato===
+Non esiste una verifica universale dell'installazione dei sorgenti.
+<ref>scelta adatta soltanto ad utenti esperti per lo sviluppo del codice</ref>
+Si può operare come segue:
+<syntaxhighlight lang="bash">
+find <directory-probabile> -type f -name ${PackageName}.py
+# as above list
+cd <directory of ${PackageName}.py>
+git status
+</syntaxhighlight>
+
+===Installazione===
+<syntaxhighlight lang="bash">
+# Setup source directory package
+pypkg="~/dev/${PackageName}"  # Esempio
+mkdir $pypkg 
+cd $pypkg
+git clone <https://github.com/${PackageName}.git> # Esempio da correggere
+python setup.py
+</syntaxhighlight>
+
+===Aggiornamento===
+<ref>per maggiori dettagli vedere [[Git]]</ref>
+<syntaxhighlight lang="bash">
+# Setup source directory package
+pypkg="~/dev/${PackageName}"  # Esempio
+cd $pypkg
+git fetch origin
+</syntaxhighlight>
+
+
+==Gestione file tar/gz/zip==
+<ref>scelta da usare soltanto se falliscono le opzioni precedenti</ref>
+
+===Installation===
+<syntaxhighlight lang="bash">
+cd /tmp
+# Impostare la directory dei package
+pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
+pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
+wget <https://pypi.python.org/packages/source/O/${PackageName}.tar.gz> # Esempio da correggere
+tar -xf ${PackageName}*.tar.gz -C $pypkg
+cd $pypkg/${PackageName}*
+python setup.py install
+</syntaxhighlight>
+
+
+==Post-installation/update checklist==
+
+===Visualizza versione===
+<syntaxhighlight lang="bash">
+${PackageName} -V --version
+</syntaxhighlight>
+
+===Configurazione===
+N/D
+
+===Troubleshooting===
+${sect_Troubleshooting}
+
+
+
+==Come fare==
+[[Python/opt/${PackageName}/help|Breve guida all'uso]]
+
+
+==Note==
+${sect_Note}
+
+
+==Collegamenti esterni==
+${sect_Collegamenti__esterni}
+* [http://${PackageName}.com Home page ${PackageName}]
+* [https://pypi.python.org/pypi/${PackageName}/ Package ${PackageName}]
+* [http://pythonhosted.org/${PackageName}/ Guida ${PackageName}]
+* [[Python/opt/${PackageName}/help|Guida all'uso]]

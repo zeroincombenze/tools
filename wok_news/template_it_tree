@@ -1,0 +1,13 @@
+
+{{Template:Warning}} Le istruzioni riportate in queste pagine, sono riferenti ad una installazione '''zeroincombenze® ''' con la seguente disposizione di directory:
+
+ {{Template:var Odoo home}}/
+     └─ {{Template:var Odoo lp}}/                    Nome completo: {{Template:var Odoo src}}/
+          ├─ addons/            Nome completo: {{Template:var Odoo src}}/addons/
+          ├─ {{Template:var Odoo svr}}/            Nome completo: {{Template:var Odoo src}}/{{Template:var Odoo svr}}/
+          └─ web/               Nome completo: {{Template:var Odoo src}}/web/     N.B. In alcune installazioni potrebbe essere accorpato ad addons
+
+Qualora il software fosse installato su percorsi diversi, porre estrema attenzione ai nomi file ed in particolare alle directory citate.
+
+Quando si riferisce al file di log il nome è
+ {{Template:var Odoo logfile}}

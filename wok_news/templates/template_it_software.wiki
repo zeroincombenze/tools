@@ -1,0 +1,108 @@
+${sect_hdr}
+
+
+==Versioni==
+${sect_Versioni}
+
+
+
+[[File:H caratteristiche.png|left]]
+==Caratteristiche==
+${sect_Caratteristiche}
+
+
+[[File:H vantaggi-svantaggi.png|left]]
+===Vantaggi e svantaggi===
+${sect_Vantaggi__e__svantaggi}
+
+
+[[File:H distribuzione.png|left]]
+===Implementazioni e Distribuzioni===
+${sect_Implementazioni__e__Distribuzioni}
+
+
+[[File:H concorrenti.png|left]]
+===Concorrenti===
+${sect_Concorrenti}
+
+
+
+[[File:H guida all'uso.png|left]]
+==Guida all'uso==
+${sect_Guida__all_Auso}
+
+
+
+
+[[File:H guida tecnica.png|left]]
+==Guida di riferimento tecnico==
+${sect_Guida__di__riferimento__tecnico}
+
+
+[[File:H installazione.png|left]]
+===Installazione===
+${sect_Installazione}
+
+
+[[File:H aggiornamento.png|left]]
+===Aggiornamento===
+${sect_Aggiornamento}
+
+
+[[File:H faq.png|left]]
+===FAQ===
+${sect_FAQ}
+
+
+[[File:H troubleshooting.png|left]]
+===Troubleshooting===
+${sect_Troubleshooting}
+
+
+
+[[File:H sicurezza.png|left]]
+==Guida alla sicurezza==
+${sect_Guida__alla__sicurezza}
+
+
+
+[[File:H software.png|left]]
+==Sviluppo del codice==
+${sect_Sviluppo__del__codice}
+
+
+[[File:H libreria.png|left]]
+===Librerie e ambiente di sviluppo===
+${sect_Librerie__e__ambiente__di__sviluppo}
+
+
+[[File:H programmi_complementari2.png|left]]
+===Programmi complementari===
+${sect_Programmi__complementari}
+
+
+
+[[File:H storia.png|left]]
+==Storia==
+${sect_Storia}
+
+
+
+[[File:H notes.png|left]]
+==Note==
+${sect_Note}
+
+
+
+[[File:H unit.png|left]]
+==Altre notizie==
+${sect_Altre__notizie}
+
+
+
+[[File:H Collegamenti.png|left]]
+==Collegamenti esterni==
+${sect_Collegamenti__esterni}
+
+
+[[Category:Software]]

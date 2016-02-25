@@ -1,0 +1,73 @@
+#open file
+module="zi_cliente_attivo"
+object=""
+title="Clienti attivi"
+menutext="DB Alignment"
+menuitem="zi_dbalign"
+parentmenu="uty_service_db"
+supermenu="base.menu_custom"
+model="res.cliente_attivo"
+sect_menutree=0
+sect_treeview=1
+sect_formview=1
+sect_menuitem=1
+sect_menuaction=1
+#
+#
+module_dot=${module//_/.}
+object_dot=${object//_/.}
+if [ -n "$object" ]; then object="_$object"; fi
+if [ -n "$object_dot" ]; then object_dot=".$object_dot"; fi
+if [ -z "$model" ]; then model="$module_dot"".""$object_dot"; fi
+#
+exec 3< ./mk_xml_view.sample
+exec 4> ./mk_xml_view.xml
+#read full file line by line
+#set -x
+IFS=
+exprdis=0
+while read -u 3 -r line
+do
+  echo $line|grep '<!-- Menu tree -->' >/dev/null
+  if [ "$?" -eq "0" ]
+  then
+     if [ "$sect_menutree" -gt 0 ]; then exprdis=0; else exprdis=1; fi
+  fi
+  echo $line|grep '<!-- Tree view -->' >/dev/null
+  if [ "$?" -eq "0" ]
+  then
+     if [ "$sect_treeview" -gt 0 ]; then exprdis=0; else exprdis=1; fi
+  fi
+  echo $line|grep '<!-- Form view -->' >/dev/null
+  if [ "$?" -eq "0" ]
+  then
+     if [ "$sect_formview" -gt 0 ]; then exprdis=0; else exprdis=1; fi
+  fi
+  echo $line|grep '<!-- Menu item -->' >/dev/null
+  if [ "$?" -eq "0" ]
+  then
+     if [ "$sect_menuitem" -gt 0 ]; then exprdis=0; else exprdis=1; fi
+  fi
+  echo $line|grep '<!-- Menu action -->'  >/dev/null
+  if [ "$?" -eq "0" ]
+  then
+     if [ "$sect_menuaction" -gt 0 ]; then exprdis=0; else exprdis=1; fi
+  fi
+#
+  echo $line|grep '</data>' >/dev/null
+  if [ "$?" -eq "0" ]; then exprdis=0; fi
+#
+  if [ $exprdis -eq 0 ]
+  then
+    for m in model module module_dot object object_dot title menutext menuitem parentmenu supermenu
+    do
+      x="${!m}"
+      line=${line//\$\{$m\}/$x}
+    done
+    echo "$line"
+    echo "$line" >&4
+  fi
+done
+# Close fd
+exec 3<&-
+exec 4>&-

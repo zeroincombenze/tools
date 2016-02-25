@@ -1,0 +1,19 @@
+exec 3< ./build.conf
+#read full file line by line
+IFS=
+while read -u 3 -r line
+do
+  if [ "${line:0:1}" != "#" ]
+  then
+    if [ -n "$line" ]
+    then
+      var=$(awk 'BEGIN{FS=OFS="="} {print $1}' <<< ${line})
+      val=$(awk 'BEGIN{FS=OFS="="} {print $2}' <<< ${line})
+    fi
+  else
+    echo "$line"
+  fi
+done
+exec 3<&-
+                                                       
+

@@ -1,0 +1,79 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests for submodule of product package
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
+__version__=0.1.1
+parseoptest -l$TESTDIR/test_product.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+
+
+TPRODUCT="$RUNDIR/product -L$TESTDIR/product.log -t"
+
+f=$(basename $0)
+p=$(dirname $0)
+result=$(findpkg "$f" "$p")
+TRES=$(readlink -e $0)
+ci-test "find myself" "$TRES" "$result"
+
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts
