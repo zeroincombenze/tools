@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.76
+__version__=0.1.76.1
 
 TCONF=$TDIR/.$THIS.conf
 # main
@@ -235,6 +235,10 @@ if [ "$opt_cpush" == "-w" ]; then
         rm -f ./z0librc
         ln -s /etc/z0librc ./
       fi
+    fi
+  elif [ "$PRJNAME" != "travis_emulator" ]; then
+    if [ -d ./_travis -a -d /opt/odoo/dev/_travis ]; then
+      rm -f ./_travis
     fi
   fi
   exit $STS_SUCCESS

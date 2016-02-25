@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.68
+__version__=0.1.68.2
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
@@ -709,13 +709,18 @@ if [ "$USER" == "odoo" ]; then
     fi
     cd ~/dev/pypi
   done
+  wlog "cd ~/tools"
+  cd ~/tools
+  wlog "> git commit -a -m '[RUN] nightly commit'"
+  git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
   # if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
-    # wlog "cd ~/tools"
-    # cd ~/tools
-    # wlog "> git commit -a -m '[RUN] nightly commit'"
-    # git commit -a -m "[RUN] nightly commit" &>>~/$THIS.log
     # wlog "> git push"
     # git push &>>~/$THIS.log
+  elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
+    # wlog "> git stash"
+    # git stash
+    wlog "> git pull origin"
+    git pull origin
   # fi
   if [ -d /opt/odoo/tools/clodoo ]; then
     cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"

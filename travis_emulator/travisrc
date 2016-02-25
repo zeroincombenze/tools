@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.57
+#__version__=0.1.57.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -590,6 +590,9 @@ robocopy_init () {
     else
       a_append "Makefile" "/"
       a_append "setup.py" ""
+      if [ "$1" != "travis_emulator" ]; then
+        a_append "_travis" ""
+      fi
       a_append "$2" "/"
       a_append "conf" "/"
       if [ ${opt_fetch:-0} -eq 0 ]; then
@@ -608,7 +611,7 @@ robocopy_init () {
     fi
     if [ -z "$xx" ]; then
       # TODO: addons
-      local xx=".pyc .log .bak .out .conf build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
+      local xx=".pyc .log .bak .out .tmp .conf build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
       local yy=".po .pot"
     fi
     XRGX=
