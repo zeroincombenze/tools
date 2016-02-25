@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.68.2
+__version__=0.1.69
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
 OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
