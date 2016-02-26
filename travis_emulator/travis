@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.39
+__version__=0.1.40
 
 
 process_local () {
@@ -115,8 +115,8 @@ process_yaml_quote_xtl () {
    lne="# $lne"
   elif [[ $lne =~ travis_install_nightly ]]; then
    lne="# $lne"
-  # elif [[ $lne =~ travis_run_tests ]]; then
-  #  lne="read #lne"
+  # elif [[ $lne =~ travis_run_tests ]]; then # debug
+  #   lne="read #lne"
   fi
   echo $lne
 }
