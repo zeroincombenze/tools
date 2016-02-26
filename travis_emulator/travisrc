@@ -262,7 +262,7 @@ init_travis () {
 prepare_env_travis () {
     local action="$1"
     if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-      wlog "\$ export PATH=$TOOLS_PATH:$PATH"
+      # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
       export PATH=$TOOLS_PATH:$PATH
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
