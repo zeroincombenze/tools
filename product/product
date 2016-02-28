@@ -8,15 +8,18 @@
 # This free software is released under GNU Affero GPL3
 
 # TODO remove: python-paste python-pillow python-tempita
-#  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-requests python-six
+#  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-six
 #  ZSI
-# codicefiscale and pyxb for italian localization
-# pip install unicodecsv
+# gcc always!
+# yum install python-requests
+# codicefiscale pyxb pypdf for italian localization
+# pip install unicodecsv pydot
 # products?
 # oerplib
 # wget
 # flake8, autopep8, pylint, pylint-mccabe, coverage, coveralls, github3.py click
 # yum install mod_ssl mod_proxy_html iptables-services bind-utils
+# setuptools
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
 # yum -y install nodejs
@@ -41,7 +44,7 @@ else
 fi
 
 
-__version__="0.2.28.1"
+__version__="0.2.28.2"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -129,7 +132,7 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
     python-unittest2 python-utidylib python-vatnumber python-vobject\
     python-werkzeug docutils-common docutils-doc unidecode wkhtmltopdf"\
  "Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
-    libjpeg-turbo libtiff libyaml\
+    libjpeg-turbo libtiff libyaml passlib\
     pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
     python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
     python-psutil python-psycopg2 python-reportlab python-simplejson\
