@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.59
+#__version__=0.1.60
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -254,8 +254,8 @@ init_travis () {
       else
         unset -v MQT_PATH
       fi
-    else
-      wlog "TOOLS_PATH=$TOOLS_PATH"
+    # else
+      # wlog "TOOLS_PATH=$TOOLS_PATH"
     fi
 }
 

@@ -3,8 +3,8 @@
 <img class="alignright wp-image-1740 size-medium"
  src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
  alt="scadenze fiscali ${cur_month} ${cur_year}" width="300" height="114" /></a>
-Zeroincombenze®, <strong>il software gestionale on line</strong> di riferimento in Italia, ricorda che, anche a ${cur_month}, ci sono numerose scadenze fiscali per le imprese italiane.
-  I clienti Zeroincombenze® posso facilmente risolvere in modo pratico tutte le incombenze fiscali come spiegato in questa pagina.
+Zeroincombenze®, <strong>il software gestionale on line</strong> di riferimento in Italia, anche a ${cur_month}, fornisce le informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
+  I clienti Zeroincombenze® possono facilmente risolvere in modo pratico tutte le scadenze fiscali come spiegato in questa pagina.
 <h3>${dayw_ivam} ${day_ivam} ${cur_month} ${cur_year}</h3>
 <h4>Adempimenti IVA</h4>
 <p>
