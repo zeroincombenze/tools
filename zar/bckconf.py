@@ -39,7 +39,7 @@ import platform
 from datetime import datetime
 
 
-__version__ = "2.1.16.12"
+__version__ = "2.1.16.15"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -325,7 +325,7 @@ class Backup_Mirror:
         dtc = datetime.today()
         self.ls_fd.write("# {0}\n".format(dtc.strftime("%Y%m%d")))
 
-    def add_2_ftp(self, fl):
+    def add_2_ftp(self, fl, alt=None):
         # Add filename to ftp file list
         lx = ("cldb",    "bckconf",
               "bckdb",   "bckdb.py",  "bckwww",
@@ -377,7 +377,13 @@ class Backup_Mirror:
         elif fn == "restconf.ini" or fn == "restconf-0.ini":
             self.ftp_fd.write("-rm {0}.bak\n".format(fn))
             self.ftp_fd.write("-rename {0} {0}.bak\n".format(fn))
-            self.ftp_fd.write("put {0}\n".format(fn))
+            if alt:
+                if fn == "restconf.ini":
+                    self.ftp_fd.write("put restconf-0.ini {0}\n".format(fn))
+                elif fn == "restconf-0.ini":
+                    self.ftp_fd.write("put restconf.ini {0}\n".format(fn))
+            else:
+                self.ftp_fd.write("put {0}\n".format(fn))
         else:
             self.ftp_fd.write("put {0} {0}.new\n".format(fn))
 
@@ -443,18 +449,18 @@ def main():
                      "restdb",   "restdb.py",   "restwww",
                      "ssl_certificate",         "statdb"]
     for fl in file_2_backup:
-        fn = fl
-        if fl == "restconf-0.ini":
+        msgalt = ""
+        if fl == "restconf-0.ini" or fl == "restconf.ini":
             cmd = "touch restconf-0.ini"
             os0.trace_debug("$ ", cmd)
             os0.muteshell(cmd)
+            msgalt = "(alt)"
+        if os.path.isfile(fl):
             if prm.get('alt', False):
-                fn = "restconf.ini"
-        elif fl == "restconf.ini" and prm.get('alt', False):
-            fn = "restconf-0.ini"
-        if os.path.isfile(fn):
-            os0.wlog(" ", fn)
-            BM.add_2_ftp(fn)
+                os0.wlog(" ", fl, msgalt)
+            else:
+                os0.wlog(" ", fl)
+            BM.add_2_ftp(fl, alt=prm.get('alt', False))
         else:
             os0.wlog("  file", fl, "not found!!!")
 # Backup configuration file for http server
