@@ -1,0 +1,29 @@
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__="2.1.21"
+
+LogResult () {
+    publog="/var/log/nightly.log"
+    set_tlog_file "$publog"
+    wlog "- $THIS - $1"
+}
+#
+# python ${0}.py
+# service postgresql restart
+python restdb.py
+
+LogResult "Ok!"
+exit 0

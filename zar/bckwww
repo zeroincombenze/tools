@@ -1,0 +1,130 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+
+__version__="1.7.22.1"
+
+LogResult () {
+    publog="/var/log/nightly.log"
+    set_tlog_file "$publog"
+    wlog "- $THIS - $1"
+}
+
+publog="/var/log/bckwww.log"
+set_tlog_file "$publog"
+opt_quiet=1
+wlog "$THIS $__version__"
+#
+ff="$HOME/bckwww.ftp"
+echo>$ff
+#
+excl="cpanel.shs-av.com/ test/ openerp/"
+hdp=/var/www
+bd=$hdp/backups
+htmd=$hdp/html
+./av_php -sp $htmd
+sts=$?
+if [ $sts -gt 0 ]; then
+  wlog "?????????????????????????????"
+  wlog "Virus found! Backup disabled!"
+  wlog "?????????????????????????????"
+  LogResult "FAILED!"
+  exit 1
+fi
+cd $htmd
+echo cd $bd>>$ff
+echo lcd $bd>>$ff
+flst="$HOME/tmp_www.lst"
+dir -1F >$flst
+exec 3< $flst
+# set -x
+while read -u 3 -r db
+do
+  xx=${db: -1}
+  x1=${db:0:1}
+  x2=${db: -2:1}
+  if [ "$xx" == "/" -a "$x1" != "_" -a "$x2" != "~" ]
+  then
+    Ok=1
+    if [ -n "$excl" ]
+    then
+      echo "$excl"|grep $db >/dev/null
+      if [ $? -eq 0 ]; then Ok=0; fi
+    fi
+    if [ $Ok -gt 0 ]
+    then
+      fn=`echo "$db"|awk -F"/"  '{print $1}'`
+
+      uu=`echo "$db"|awk -F"/"  '{print $1}'`
+      if [ "$uu" == "mw" -o "$uu" == "wp-zi" ]; then
+        uu="apache"
+      elif [ "${uu:0:5}" == "eu-zi" -o  "${uu:0:5}" == "wp-zi" ]; then
+        uu=`echo "$uu"|awk -F"."  '{print $2}'`
+        uu="zeroincombenze.$uu"
+      elif [ "${uu:0:4}" == "odoo" -o "${uu:0:3}" == "zi." -o "${uu:0:3}" == "mw-" ]; then
+        uu="zeroincombenze.org"
+      elif [ "${uu:0:3}" == "wp-" -o  "${uu:0:3}" == "mg-" ]; then
+        uu=${uu:3}
+      elif [ "${uu:0:3}" == "aaa" ]; then
+        uu="apache"
+      fi
+      uu=$(echo "$uu"|tr -d "~")
+
+      wlog "> chown $uu:apache $htmd/$db"
+      chown -R $uu:apache $htmd/$db
+      if [ "$uu" != "apache" ]; then
+        wlog "> setfacl -R -m u:apache:rwx $htmd/$db"
+        setfacl -R -m u:apache:rwx $htmd/$db
+        setfacl -R -m d:u:apache:rwx $htmd/$db
+      else
+        for usx in it biz com eu org; do
+          wlog "> setfacl -R -m u:zeroincombenze.$usx:rwx $htmd/$db"
+          setfacl -R -m u:zeroincombenze.$usx:rwx $htmd/$db
+          setfacl -R -m d:u:zeroincombenze.$usx:rwx $htmd/$db
+        done
+      fi
+      wlog "> chmod -R u+rxw,g+rwx,o-rwx $htmd/$db"
+      chmod -R u+rxw,g+rwx,o-rwx $htmd/$db
+      if [ "$db" == "alfaschool.ru/" ]; then
+        wlog "> chmod -R o+rwx $htmd/${db}wp-content/uploads/wp-google-maps/"
+        chmod -R o+rwx $htmd/${db}wp-content/uploads/wp-google-maps/
+      fi
+      setfacl -R -m u:apache:rwx $htmd/$db
+      setfacl -R -m d:u:apache:rwx $htmd/$db
+
+      wlog "> tar -cjf $bd/$fn.bz2 $db"
+      tar -cjf $bd/$fn.bz2 $db
+      echo put $fn.bz2>>$ff
+    fi
+  fi
+done
+exec 3<&-
+echo bye>>$ff
+
+if [ "$1" == "-A" ]; then
+  wlog "> sftp -b $ff root@shsprd16"
+  sftp -b $ff root@shsprd16
+  wlog "> ssh ssh root@shsprd16 'at -f ./restwww now'"
+  ssh root@shsprd16 "at -f ./restwww now"
+else
+  wlog "> sftp -b $ff root@shsdev16"
+  sftp -b $ff root@shsdev16
+  wlog "> ssh root@shsdev16 'at -f ./restwww now'"
+  ssh root@shsdev16 "at -f ./restwww now"
+fi
+
+wlog "All www dirs are backupped!"
+LogResult "Ok"
+exit 0

@@ -18,7 +18,6 @@ cover/
 **/.coverage
 .coveragerc
 clodoo/
-zar/
 latex/
 html/
 docs/

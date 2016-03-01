@@ -1,0 +1,15 @@
+if [ -f "zar.py" ]
+then
+  fzar="zar.py"
+else
+  if [ -f "../zar.py" ]
+  then
+    fzar="../zar.py"
+  else
+    echo "File zar.py to test not found"
+    exit 1
+  fi
+fi
+ttest=1
+
+if ! `$fzar -V`; then exit 1; fi
