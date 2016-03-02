@@ -54,6 +54,7 @@ class Test():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
+    # pdb.set_trace()
     Z = Z0test()
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())

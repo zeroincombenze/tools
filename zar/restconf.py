@@ -39,7 +39,7 @@ import string
 import re
 
 
-__version__ = "2.0.28.6"
+__version__ = "2.0.28.7"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -58,7 +58,7 @@ LX_CFG_SB = ()
 LX_CFG_B = ()
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'simulate')
+LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'dry_run')
 DEFDCT = {}
 
 
@@ -72,17 +72,22 @@ def version():
 def default_conf():
     """Default configuration values"""
     DEFDCT = {}
-    a = os.path.basename(__file__)
-    i = a.rfind('.py')
-    if i >= 0:
-        a = a[0:i]
-    # Restore command
+    a = os0.nakedname(os.path.basename(__file__))
     if a[0:4] == "rest":
         b = "bck" + a[4:]
-    else:
+    elif a[0:3] == "bck":
         b = a
+    else:
+        b = a + "_bck"
+    if a[0:3] == "bck":
+        r = "rest" + a[3:]
+    elif a[0:4] == "rest":
+        r = a
+    else:
+        r = a + "_rest"
     DEFDCT['appname'] = a
     DEFDCT['bckapp'] = b
+    DEFDCT['restapp'] = r
     return DEFDCT
 
 
@@ -91,8 +96,8 @@ def create_parser():
     Some options are standard:
     -c --config     set configuration file (conf_fn)
     -h --help       show help
+    -n --dry-run    simulation mode for test (dry_run)
     -q --quiet      quiet mode
-    -t --dry-run    simulation mode for test (simulate)
     -U --user       set username (user)
     -v --verbose    verbose mode (dbg_mode)
     -V --version    show version
@@ -125,7 +130,7 @@ def create_parser():
     parser.add_argument("-n", "--dry_run",
                         help="test execution mode",
                         action="store_true",
-                        dest="simulate",
+                        dest="dry_run",
                         default=False)
     parser.add_argument("-q", "--quiet",
                         help="run without output",
@@ -152,12 +157,12 @@ def create_parser():
 
 def create_params_dict(opt_obj, conf_obj):
     """Create all params dictionary"""
-    prm = create_def_params_dict(opt_obj, conf_obj)
+    ctx = create_def_params_dict(opt_obj, conf_obj)
     # s = "options"
 
-    prm['_conf_obj'] = conf_obj
-    prm['_opt_obj'] = opt_obj
-    return prm
+    ctx['_conf_obj'] = conf_obj
+    ctx['_opt_obj'] = opt_obj
+    return ctx
 
 
 #############################################################################
@@ -166,21 +171,21 @@ def create_params_dict(opt_obj, conf_obj):
 
 def create_def_params_dict(opt_obj, conf_obj):
     """Create default params dictionary"""
-    prm = {}
+    ctx = {}
     s = "options"
     if conf_obj:
         if not conf_obj.has_section(s):
             conf_obj.add_section(s)
         for p in LX_CFG_S:
-            prm[p] = conf_obj.get(s, p)
+            ctx[p] = conf_obj.get(s, p)
         for p in LX_CFG_B:
-            prm[p] = conf_obj.getboolean(s, p)
+            ctx[p] = conf_obj.getboolean(s, p)
     for p in LX_CFG_SB:
-        prm[p] = os0.str2bool(prm[p], prm[p])
+        ctx[p] = os0.str2bool(ctx[p], ctx[p])
     for p in LX_OPT_CFG_S:
         if hasattr(opt_obj, p):
-            prm[p] = getattr(opt_obj, p)
-    return prm
+            ctx[p] = getattr(opt_obj, p)
+    return ctx
 
 
 def docstring_summary(docstring):
@@ -191,7 +196,7 @@ def docstring_summary(docstring):
     return text.strip()
 
 
-def parse_args(arguments, apply_conf=False):
+def parse_args(arguments, apply_conf=False, version=None, tlog=None):
     """Parse command-line options."""
     parser = create_parser()
     opt_obj = parser.parse_args(arguments)
@@ -207,11 +212,11 @@ def parse_args(arguments, apply_conf=False):
         opt_obj = parser.parse_args(arguments)
     else:
         conf_obj = None
-    prm = create_params_dict(opt_obj, conf_obj)
+    ctx = create_params_dict(opt_obj, conf_obj)
     if 'conf_fns' in locals():
-        prm['conf_fn'] = conf_fns
-    prm['_parser'] = parser
-    return prm
+        ctx['conf_fn'] = conf_fns
+    ctx['_parser'] = parser
+    return ctx
 
 
 def read_config(opt_obj, parser, conf_fn=None):
@@ -238,17 +243,7 @@ def read_config(opt_obj, parser, conf_fn=None):
 class Restore_Image:
 
     def _init_conf(self):
-        a = os.path.basename(__file__)
-        i = a.rfind('.py')
-        if i >= 0:
-            a = a[0:i]
-        # Restore command
-        if a[0:4] == "rest":
-            b = "bck" + a[4:]
-        else:
-            b = a
-        cfg_obj = ConfigParser.SafeConfigParser({"appname": a,
-                                                 "bckapp": b})
+        cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
         cfg_obj.set(s, "production_host", "shsprd14")
@@ -258,6 +253,7 @@ class Restore_Image:
         cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
         cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
         cfg_obj.set(s, "data_translation", "restconf.ini")
+        cfg_obj.set(s, "no_translation", "restconf-0.ini")
         cfg_obj.set(s, "debug", "0")
         cfg_obj.read('zar.conf')
         return cfg_obj
@@ -275,8 +271,6 @@ class Restore_Image:
         self.devhost = cfg_obj.get(s, "development_host")
         # Mirror machine
         self.mirrorhost = cfg_obj.get(s, "mirror_host")
-        # PC for test & debug
-        self.PChost = "PC0004"
         homedir = os.path.expanduser("~")
         # Temporary ftp command script
         self.ftpcf = homedir + "/" + cfg_obj.get(s, "ftp_script")
@@ -288,7 +282,7 @@ class Restore_Image:
         # Log begin execution
         os0.wlog("Restore configuration files", __version__)
         # Simulate backup
-        self.simulate = True
+        self.dry_run = True
         if self.hostname == self.prodhost:
             os0.wlog("This command cannot run on production machine")
             # Restore onto prod machine
@@ -299,16 +293,12 @@ class Restore_Image:
             os0.wlog("Running on mirror machine")
             # Restore onto dev machine !?
             self.bck_host = "shsprd14"
-            self.simulate = False                               # Real restore
+            self.dry_run = False                               # Real restore
         elif self.hostname == self.devhost:
             os0.wlog("Running on development machine")
             # Restore onto dev machine !?
             self.bck_host = "shsprd14"
-            self.simulate = False                               # Real restore
-        elif self.hostname == self.PChost:
-            os0.wlog("Running on PC just for test")
-            # Backup onto dev machine (just for test)
-            self.bck_host = "95.110.187.135"
+            self.dry_run = False                               # Real restore
         else:
             os0.wlog("Unknown machine - Command aborted")
             raise Exception("Command aborted due unknown machine")
@@ -439,7 +429,7 @@ class Restore_Image:
             if fexts:
                 # Rename file -> file.bak
                 os.rename(f, fbak)
-            if not self.simulate:
+            if not self.dry_run:
                 # Rename file.tmp -> file
                 os.rename(ftmp, f)
 
@@ -459,8 +449,8 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    prm = parse_args(sys.argv[1:])
-    dbg_mode = prm['dbg_mode']
+    ctx = parse_args(sys.argv[1:])
+    dbg_mode = ctx['dbg_mode']
     RI = Restore_Image(dbg_mode)
     try:
         ls_fd = open(RI.flist, "r")
@@ -479,7 +469,8 @@ def main():
         fn = os.path.basename(fl)
         if fn != "restconf" \
                 and fn != "restconf.py" \
-                and fn != "restconf.ini":
+                and fn != "restconf.ini" \
+                and fn != "restconf-0.ini":
             f = "{0}.new".format(fl)
             if os.path.isfile(f):
                 RI.restore_file(fl)

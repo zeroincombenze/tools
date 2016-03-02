@@ -42,7 +42,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.14"
+__version__ = "2.1.21.15"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -75,17 +75,22 @@ def version():
 def default_conf():
     """Default configuration values"""
     DEFDCT = {}
-    a = os.path.basename(__file__)
-    i = a.rfind('.py')
-    if i >= 0:
-        a = a[0:i]
-    # Restore command
+    a = os0.nakedname(os.path.basename(__file__))
     if a[0:4] == "rest":
         b = "bck" + a[4:]
-    else:
+    elif a[0:3] == "bck":
         b = a
+    else:
+        b = a + "_bck"
+    if a[0:3] == "bck":
+        r = "rest" + a[3:]
+    elif a[0:4] == "rest":
+        r = a
+    else:
+        r = a + "_rest"
     DEFDCT['appname'] = a
     DEFDCT['bckapp'] = b
+    DEFDCT['restapp'] = r
     return DEFDCT
 
 
@@ -94,8 +99,8 @@ def create_parser():
     Some options are standard:
     -c --config     set configuration file (conf_fn)
     -h --help       show help
+    -n --dry-run    simulation mode for test (dry_run)
     -q --quiet      quiet mode
-    -t --dry-run    simulation mode for test (simulate)
     -U --user       set username (user)
     -v --verbose    verbose mode (dbg_mode)
     -V --version    show version
@@ -128,7 +133,7 @@ def create_parser():
     parser.add_argument("-n", "--dry_run",
                         help="test execution mode",
                         action="store_true",
-                        dest="simulate",
+                        dest="dry_run",
                         default=False)
     parser.add_argument("-q", "--quiet",
                         help="run without output",
@@ -155,12 +160,12 @@ def create_parser():
 
 def create_params_dict(opt_obj, conf_obj):
     """Create all params dictionary"""
-    prm = create_def_params_dict(opt_obj, conf_obj)
+    ctx = create_def_params_dict(opt_obj, conf_obj)
     # s = "options"
 
-    prm['_conf_obj'] = conf_obj
-    prm['_opt_obj'] = opt_obj
-    return prm
+    ctx['_conf_obj'] = conf_obj
+    ctx['_opt_obj'] = opt_obj
+    return ctx
 
 
 #############################################################################
@@ -169,21 +174,21 @@ def create_params_dict(opt_obj, conf_obj):
 
 def create_def_params_dict(opt_obj, conf_obj):
     """Create default params dictionary"""
-    prm = {}
+    ctx = {}
     s = "options"
     if conf_obj:
         if not conf_obj.has_section(s):
             conf_obj.add_section(s)
         for p in LX_CFG_S:
-            prm[p] = conf_obj.get(s, p)
+            ctx[p] = conf_obj.get(s, p)
         for p in LX_CFG_B:
-            prm[p] = conf_obj.getboolean(s, p)
+            ctx[p] = conf_obj.getboolean(s, p)
     for p in LX_CFG_SB:
-        prm[p] = os0.str2bool(prm[p], prm[p])
+        ctx[p] = os0.str2bool(ctx[p], ctx[p])
     for p in LX_OPT_CFG_S:
         if hasattr(opt_obj, p):
-            prm[p] = getattr(opt_obj, p)
-    return prm
+            ctx[p] = getattr(opt_obj, p)
+    return ctx
 
 
 def docstring_summary(docstring):
@@ -194,7 +199,7 @@ def docstring_summary(docstring):
     return text.strip()
 
 
-def parse_args(arguments, apply_conf=False):
+def parse_args(arguments, apply_conf=False, version=None, tlog=None):
     """Parse command-line options."""
     parser = create_parser()
     opt_obj = parser.parse_args(arguments)
@@ -210,11 +215,11 @@ def parse_args(arguments, apply_conf=False):
         opt_obj = parser.parse_args(arguments)
     else:
         conf_obj = None
-    prm = create_params_dict(opt_obj, conf_obj)
+    ctx = create_params_dict(opt_obj, conf_obj)
     if 'conf_fns' in locals():
-        prm['conf_fn'] = conf_fns
-    prm['_parser'] = parser
-    return prm
+        ctx['conf_fn'] = conf_fns
+    ctx['_parser'] = parser
+    return ctx
 
 
 def read_config(opt_obj, parser, conf_fn=None):
@@ -242,17 +247,7 @@ class Restore_Image:
 
     def _init_conf(self):
         # pdb.set_trace()
-        a = os.path.basename(__file__)
-        i = a.rfind('.py')
-        if i >= 0:
-            a = a[0:i]
-        # Restore command
-        if a[0:4] == "rest":
-            b = "bck" + a[4:]
-        else:
-            b = a
-        cfg_obj = ConfigParser.SafeConfigParser({"appname": a,
-                                                 "bckapp": b})
+        cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
         cfg_obj.set(s, "production_host", "shsprd14")
@@ -280,8 +275,6 @@ class Restore_Image:
         self.devhost = cfg_obj.get(s, "development_host")
         # Mirror machine
         self.mirrorhost = cfg_obj.get(s, "mirror_host")
-        # PC for test & debug
-        self.PChost = "PC0004"
         homedir = os.path.expanduser("~")
         # Temporary ftp command script
         self.ftpcf = homedir + "/" + cfg_obj.get(s, "ftp_script")
@@ -296,7 +289,7 @@ class Restore_Image:
         os0.wlog("Restore database files {0} ({1})".format(
             __version__, self.pid))
         # Simulate backup
-        self.simulate = True
+        self.dry_run = True
         if self.hostname == self.prodhost:
             os0.wlog("This command cannot run on production machine")
             # Restore onto prod machine
@@ -307,16 +300,12 @@ class Restore_Image:
             os0.wlog("Running on mirror machine")
             # Backup onto prod machine
             self.bck_host = "shsprd14"
-            self.simulate = False                               # Real restore
+            self.dry_run = False                               # Real restore
         elif self.hostname == self.devhost:
             os0.wlog("Running on development machine")
             # Restore onto dev machine !?
             self.bck_host = "shsprd14"
-            self.simulate = False                               # Real restore
-        elif self.hostname == self.PChost:
-            os0.wlog("Running on PC just for test")
-            # Backup onto dev machine (just for test)
-            self.bck_host = "95.110.187.135"
+            self.dry_run = False                               # Real restore
         else:
             os0.wlog("Unknown machine - Command aborted")
             raise Exception("Command aborted due unknown machine")
@@ -395,13 +384,13 @@ class Restore_Image:
                 cmd = "service postgresql restart"
                 os0.trace_debug(">", cmd)
                 os0.muteshell(cmd,
-                              simulate=self.simulate,
+                              dry_run=self.dry_run,
                               keepout=os0.debug_mode)
             elif dbtype == "mysql":
                 cmd = "service mysqld restart"
                 os0.trace_debug(">", cmd)
                 os0.muteshell(cmd,
-                              simulate=self.simulate,
+                              dry_run=self.dry_run,
                               keepout=os0.debug_mode)
         if p != self.ftp_dir:                                   # Change dir
             self.chdir(p)                                       # Set directory
@@ -417,17 +406,17 @@ class Restore_Image:
             os0.wlog("  file", f, "not found!!!")
 
     def get_params(self, f):
-        prm = {}
-        prm['prefix'] = ""
-        prm['siteURL'] = ""
-        prm['testURL'] = ""
-        prm['siteURI'] = ""
-        prm['testURI'] = ""
-        prm['admin_email'] = ""
-        prm['conf_file'] = ""
-        prm['conf_file2'] = ""
-        prm['conf_file3'] = ""
-        prm['index_html'] = ""
+        ctx = {}
+        ctx['prefix'] = ""
+        ctx['siteURL'] = ""
+        ctx['testURL'] = ""
+        ctx['siteURI'] = ""
+        ctx['testURI'] = ""
+        ctx['admin_email'] = ""
+        ctx['conf_file'] = ""
+        ctx['conf_file2'] = ""
+        ctx['conf_file3'] = ""
+        ctx['index_html'] = ""
         key_ids = self.search4item(f)
         if key_ids:
             # fxch = True
@@ -438,83 +427,83 @@ class Restore_Image:
                 tgt = self.xtl[key][1]
                 tgt = tgt.replace("\\b", " ")
                 if src == ".prefix":
-                    prm['prefix'] = tgt
+                    ctx['prefix'] = tgt
                 elif src == ".siteURL":
-                    prm['siteURL'] = tgt
-                    i = prm['siteURL'].find(".")
+                    ctx['siteURL'] = tgt
+                    i = ctx['siteURL'].find(".")
                     if i < 0:
-                        prm['siteURL'] = "http://www." + prm['siteURL']
-                    i = prm['siteURL'].find(":")
+                        ctx['siteURL'] = "http://www." + ctx['siteURL']
+                    i = ctx['siteURL'].find(":")
                     if i < 0:
-                        prm['siteURL'] = "http://" + prm['siteURL']
-                    i = prm['siteURL'].find(".")
-                    if prm['admin_email'] == "":
-                        prm['admin_email'] = "postmaster@" + \
-                            prm['siteURL'][i + 1:]
-                    if prm['testURL'] == "":
-                        prm['testURL'] = prm['siteURL'][0:i] + \
-                            "1" + prm['siteURL'][i:]
-                    if prm['siteURI'] == "":
-                        x = prm['siteURL'].split("://")
-                        prm['siteURI'] = x[1]
-                    if prm['testURI'] == "":
-                        x = prm['testURL'].split("://")
-                        prm['testURI'] = x[1]
+                        ctx['siteURL'] = "http://" + ctx['siteURL']
+                    i = ctx['siteURL'].find(".")
+                    if ctx['admin_email'] == "":
+                        ctx['admin_email'] = "postmaster@" + \
+                            ctx['siteURL'][i + 1:]
+                    if ctx['testURL'] == "":
+                        ctx['testURL'] = ctx['siteURL'][0:i] + \
+                            "1" + ctx['siteURL'][i:]
+                    if ctx['siteURI'] == "":
+                        x = ctx['siteURL'].split("://")
+                        ctx['siteURI'] = x[1]
+                    if ctx['testURI'] == "":
+                        x = ctx['testURL'].split("://")
+                        ctx['testURI'] = x[1]
                 elif src == ".testURL":
-                    prm['testURL'] = tgt
-                    x = prm['testURL'].split("://")
-                    prm['testURI'] = x[1]
+                    ctx['testURL'] = tgt
+                    x = ctx['testURL'].split("://")
+                    ctx['testURI'] = x[1]
                 elif src == ".siteURI":
-                    prm['siteURI'] = tgt
+                    ctx['siteURI'] = tgt
                 elif src == ".testURI":
-                    prm['testURI'] = tgt
+                    ctx['testURI'] = tgt
                 elif src == ".admin_email":
-                    prm['admin_email'] = tgt
+                    ctx['admin_email'] = tgt
                 elif src == ".conf_file":
-                    prm['conf_file'] = tgt
+                    ctx['conf_file'] = tgt
                 elif src == ".conf_file2":
-                    prm['conf_file2'] = tgt
+                    ctx['conf_file2'] = tgt
                 elif src == ".conf_file3":
-                    prm['conf_file3'] = tgt
+                    ctx['conf_file3'] = tgt
                 elif src == ".index_html":
-                    prm['index_html'] = tgt
+                    ctx['index_html'] = tgt
                 else:
                     raise ValueError('Invalid param {0}!'.format(src))
-        return prm
+        return ctx
 
-    def repl_data_wp(self, prm, fqn_str):
+    def repl_data_wp(self, ctx, fqn_str):
         os0.trace_debug(
             "> update URL (wp) {0}->{1}"
-            .format(prm['siteURL'], prm['testURL']))
+            .format(ctx['siteURL'], ctx['testURL']))
         stmt = "update {0}options set option_value='{1}'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], prm['testURL'], "siteurl")
+               .format(ctx['prefix'], ctx['testURL'], "siteurl")
         fqn_str = fqn_str + stmt + ";\n"
         stmt = "update {0}options set option_value='{1}'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], prm['testURL'], "home")
+               .format(ctx['prefix'], ctx['testURL'], "home")
         fqn_str = fqn_str + stmt + ";\n"
         stmt = "update {0}options set option_value='{1}/'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], prm['testURL'], "ga_default_domain")
+               .format(ctx['prefix'], ctx['testURL'], "ga_default_domain")
         fqn_str = fqn_str + stmt + ";\n"
         stmt = "update {0}options set option_value='{1}'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], prm['siteURI'], "ga_root_domain")
+               .format(ctx['prefix'], ctx['siteURI'], "ga_root_domain")
         fqn_str = fqn_str + stmt + ";\n"
         stmt = "update {0}options set option_value='{1}'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], prm['admin_email'], "admin_email")
+               .format(ctx['prefix'], ctx['admin_email'], "admin_email")
         fqn_str = fqn_str + stmt + ";\n"
         stmt = "update {0}options set option_value='{1}'"\
                " where option_name='{2}'"\
-               .format(prm['prefix'], "0", "blog_public")
+               .format(ctx['prefix'], "0", "blog_public")
         fqn_str = fqn_str + stmt + ";\n"
 
-        src_str = prm['siteURL']
+        src_str = ctx['siteURL']
         ix = fqn_str.find(src_str)
         while ix >= 0:
-            l = len(prm['siteURL'])
+            l = len(ctx['siteURL'])
             j = ix - 1
             sep = ' '
             while sep == ' ':
@@ -538,10 +527,10 @@ class Restore_Image:
                 n = fqn_str[j + 1:ix1]
                 i = int(n)
                 if i >= l:
-                    src = fqn_str[j + 1:ix] + prm['siteURL']
-                    j = len(prm['testURL'])
+                    src = fqn_str[j + 1:ix] + ctx['siteURL']
+                    j = len(ctx['testURL'])
                     n = str(i + j - l)
-                    tgt = n + fqn_str[ix1:ix] + prm['testURL']
+                    tgt = n + fqn_str[ix1:ix] + ctx['testURL']
                     os0.trace_debug(
                         "> sed|{0}|{1}|".format(src, tgt))
                     fqn_str = fqn_str.replace(src, tgt)
@@ -571,10 +560,10 @@ class Restore_Image:
 
             # Search for text substitution (Wordpress)
             f = dbname + "->wp"
-            prm = self.get_params(f)
-            if prm['prefix'] != "" and prm['siteURL'] != "":
+            ctx = self.get_params(f)
+            if ctx['prefix'] != "" and ctx['siteURL'] != "":
                 fxch = True
-                fqn_str = self.repl_data_wp(prm, fqn_str)
+                fqn_str = self.repl_data_wp(ctx, fqn_str)
 
             f = dbname + "/"
             # Search for text substitution
@@ -611,23 +600,23 @@ class Restore_Image:
                 fqn_fd.close()
 
             f = dbname + "->wiki"
-            prm = self.get_params(f)
-            if prm['siteURL'] != "":
-                fqns = prm['conf_file'].split(',')
+            ctx = self.get_params(f)
+            if ctx['siteURL'] != "":
+                fqns = ctx['conf_file'].split(',')
                 for fqn in fqns:
-                    self.replace_file(prm, f, fqn)
-                if prm['conf_file2']:
-                    fqns = prm['conf_file2'].split(',')
+                    self.replace_file(ctx, f, fqn)
+                if ctx['conf_file2']:
+                    fqns = ctx['conf_file2'].split(',')
                     for fqn in fqns:
-                        self.replace_file(prm, f, fqn)
-                if prm['conf_file3']:
-                    fqns = prm['conf_file3'].split(',')
+                        self.replace_file(ctx, f, fqn)
+                if ctx['conf_file3']:
+                    fqns = ctx['conf_file3'].split(',')
                     for fqn in fqns:
-                        self.replace_file(prm, f, fqn)
-                fqn = prm['index_html']
-                self.replace_file(prm, f, fqn)
+                        self.replace_file(ctx, f, fqn)
+                fqn = ctx['index_html']
+                self.replace_file(ctx, f, fqn)
 
-    def replace_file(self, prm, f, fqn):
+    def replace_file(self, ctx, f, fqn):
         os0.trace_debug(">>> replace file", fqn)
         try:
             fn_fd = open(fqn, 'r')
@@ -635,11 +624,11 @@ class Restore_Image:
             fn_fd.close()
             key_ids = self.search4item(f)
             if key_ids:
-                src = prm['siteURL']
-                tgt = prm['testURL']
+                src = ctx['siteURL']
+                tgt = ctx['testURL']
                 fn_str = fn_str.replace(src, tgt)
-                src = prm['siteURI']
-                tgt = prm['testURI']
+                src = ctx['siteURI']
+                tgt = ctx['testURI']
                 fn_str = fn_str.replace(src, tgt)
                 fn_fd = open(fqn, 'w')
                 fn_fd.write(fn_str)
@@ -685,22 +674,22 @@ class Restore_Image:
         elif dbtype == "mysql":
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + fqn
         os0.trace_debug(">", cmd)
-        os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+        os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
 
         sql_fn = homedir + "/restdb.sql"
         cmd = "cp " + fqn + " " + sql_fn
         os0.trace_debug(">", cmd)
-        os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+        os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         cmd = "sed -i -e \"s|Owner: openerp|Owner: odoo|g\""\
               " -e \"s|OWNER TO openerp|OWNER TO odoo|g\" ~/restdb.sql"
         os0.trace_debug(">", cmd)
-        os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+        os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         if dbtype == "psql":
             cmd = "chown " + self.psql_uu + ":" + self.psql_uu + " " + sql_fn
         elif dbtype == "mysql":
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + sql_fn
         os0.trace_debug(">", cmd)
-        os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+        os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         self.repl_data(dbname, sql_fn)
 
         psh_fn = homedir + "/restdb.psh"
@@ -721,7 +710,7 @@ class Restore_Image:
             cmd = "psql -f " + psh_fn + " -U" + user + " " + defdb
             psh_fd.close()
             os0.trace_debug(">", cmd)
-            os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+            os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         elif dbtype == "mysql":
             user = "root"
             pwd = "SHS13mgr"
@@ -740,10 +729,10 @@ class Restore_Image:
                 .format(user, sql_fn, dbname))
             psh_fd.close()
             cmd = "chmod +x " + psh_fn
-            os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+            os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
             cmd = psh_fn
             os0.trace_debug(">", cmd)
-            os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+            os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         else:
             os0.wlog("  unknown", dbname, "database type!!!")
             cmd = "echo Error"
@@ -756,11 +745,11 @@ class Restore_Image:
             elif dbtype == "mysql":
                 cmd = "chown " + self.mysql_uu + \
                     ":" + self.mysql_uu + " " + fzip_fn
-            os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
+            os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
 
             cmd = "tar --keep-newer-files -x" + tar_opt + "f " + fzip_fn
-            os0.muteshell(cmd, simulate=self.simulate, keepout=os0.debug_mode)
-            if not self.simulate:
+            os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
+            if not self.dry_run:
                 os.remove(fzip_fn)
 
         self.purge_db(dbtype, dbname)
@@ -783,7 +772,7 @@ class Restore_Image:
                 if os.path.isfile(ftmp):
                     try:
                         os0.wlog("$ mv", ftmp, fsql)
-                        if not self.simulate:
+                        if not self.dry_run:
                             # Rename old ext -> nex ext
                             os.rename(ftmp, fsql)
                         # Force change sql file extension
@@ -806,12 +795,12 @@ class Restore_Image:
         elif dbtype == "mysql":
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + fsql
         os0.trace_debug("$ ", cmd)
-        os0.muteshell(cmd, simulate=self.simulate)
+        os0.muteshell(cmd, simulate=self.dry_run)
 
         cmd = "tar --remove-files -c" + \
             self.tar_opt + "f " + fzip_fn + " " + fsql
         os0.trace_debug("$ ", cmd)
-        os0.muteshell(cmd, simulate=self.simulate)
+        os0.muteshell(cmd, simulate=self.dry_run)
 
         if dbtype == "psql":
             cmd = "chown " + self.psql_uu + ":" + self.psql_uu + " " + fzip_fn
@@ -819,7 +808,7 @@ class Restore_Image:
             cmd = "chown " + self.mysql_uu + \
                 ":" + self.mysql_uu + " " + fzip_fn
         os0.trace_debug("$ ", cmd)
-        os0.muteshell(cmd, simulate=self.simulate)
+        os0.muteshell(cmd, simulate=self.dry_run)
 
         os0.wlog("  removing archived files")
         fsql = f + "-????????" + self.sql_ext
@@ -839,7 +828,7 @@ class Restore_Image:
                 if os.path.isfile(ftmp):
                     try:
                         os0.wlog("$ mv", ftmp, fsql)
-                        if not self.simulate:
+                        if not self.dry_run:
                             # Rename old ext -> nex ext
                             os.rename(ftmp, fsql)
                     except:
@@ -850,7 +839,7 @@ class Restore_Image:
             fzip_fd = open(fsql, "r")
             fzip_fd.close()
             os0.trace_debug("$ rm", fsql)
-            if not self.simulate:
+            if not self.dry_run:
                 os.remove(fsql)
             sts = True
         except:
@@ -905,9 +894,9 @@ class Restore_Image:
                 cmd = "rm -f {2}; mv {0} {2}; mv {1} {0}".format(
                     self.flist, ftmp, fbak)
                 os0.trace_debug("$ ", cmd)
-                os0.muteshell(cmd, simulate=self.simulate)
+                os0.muteshell(cmd, simulate=self.dry_run)
             else:
-                if not self.simulate:
+                if not self.dry_run:
                     os.remove(ftmp)
 
     def chdir(self, path):
@@ -926,8 +915,8 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    prm = parse_args(sys.argv[1:])
-    dbg_mode = prm['dbg_mode']
+    ctx = parse_args(sys.argv[1:])
+    dbg_mode = ctx['dbg_mode']
     RI = Restore_Image(dbg_mode)
     # dbname="wp-zi-com"      ##debug
     # sql_fn="restdb.sql"     ##debug
