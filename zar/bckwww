@@ -14,18 +14,12 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.7.22.1"
-
-LogResult () {
-    publog="/var/log/nightly.log"
-    set_tlog_file "$publog"
-    wlog "- $THIS - $1"
-}
+__version__="1.7.22.2"
 
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
-wlog "$THIS $__version__"
+wlog "****** $THIS $__version__ ******"
 #
 ff="$HOME/bckwww.ftp"
 echo>$ff
@@ -40,7 +34,6 @@ if [ $sts -gt 0 ]; then
   wlog "?????????????????????????????"
   wlog "Virus found! Backup disabled!"
   wlog "?????????????????????????????"
-  LogResult "FAILED!"
   exit 1
 fi
 cd $htmd
@@ -126,5 +119,4 @@ else
 fi
 
 wlog "All www dirs are backupped!"
-LogResult "Ok"
 exit 0

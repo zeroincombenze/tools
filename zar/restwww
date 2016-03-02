@@ -14,18 +14,13 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.25.1"
+__version__="1.4.25.2"
 
-LogResult () {
-    publog="/var/log/nightly.log"
-    set_tlog_file "$publog"
-    wlog "- $THIS - $1"
-}
 # set -x
 publog="/var/log/restwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
-wlog "$THIS $__version__"
+wlog "****** $THIS $__version__ ******"
 # Creare file list
 dblist=""
 excl=""
@@ -37,7 +32,6 @@ sts=$?
 if [ $sts -gt 0 ]; then
   wlog "???????????????"
   wlog "No Files found!"
-  LogResult "FAILED!"
   exit 1
 fi
 cd $hdp/backups
@@ -100,6 +94,7 @@ do
       # wlog "$ rm -f $fqn"
       # rm -f $fqn
 
+      if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
       if [ "$db" == "mw-zi.org/" ]
       then
         wlog "Change local data for wiki site .."
@@ -138,7 +133,7 @@ sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/ht
         echo "User-agent: *">$hdp/html/${db}robots.txt
         echo "Disallow: /wiki/">>$hdp/html/${db}robots.txt
       fi
-    # fi
+      fi
 
     wlog "$ chown -R $uu:apache $hdp/html/$db"
     chown -R $uu:apache $hdp/html/$db
@@ -174,8 +169,7 @@ if [ $sts -gt 0 ]; then
   wlog "?????????????????????????????"
   wlog "Virus found in restored dirs!"
   wlog "?????????????????????????????"
-  LogResult "FAILED!"
   exit 1
 fi
-LogResult "Ok!"
+wlog "All www dirs are restored!"
 exit 0

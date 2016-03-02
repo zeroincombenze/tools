@@ -634,7 +634,6 @@ class Backup_Mirror:
                 self.set_chdir(lpath)                       # Set directory
                 self.ftp_dir = p                            # Remember subdir
         self.ls_fd.write("{0}\n".format(fqn))
-        # self.ftp_fd.write("put {0} {0}.new\n".format(fn))
         self.ftp_fd.write("put {0}\n".format(fn))
 
 

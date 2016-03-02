@@ -250,7 +250,6 @@ def read_config(opt_obj, parser, conf_fn=None):
 class Backup_Mirror:
 
     def _init_conf(self):
-        # pdb.set_trace()
         cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
@@ -259,8 +258,9 @@ class Backup_Mirror:
         cfg_obj.set(s, "mirror_host", "shsprd16")
         cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
         cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
-        cfg_obj.set(s, "tracelog", "%(appname)s.log")
+        cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
         cfg_obj.set(s, "data_translation", "restconf.ini")
+        cfg_obj.set(s, "no_translation", "restconf-0.ini")
         cfg_obj.set(s, "debug", "0")
         cfg_obj.read('zar.conf')
         return cfg_obj
@@ -289,19 +289,19 @@ class Backup_Mirror:
         self.dry_run = True
         if self.hostname == self.prodhost:
             os0.wlog("Running on production machine")
-            # Backup onto prod machine
-            self.bck_host = "shsdev16"
-            self.dry_run = False                               # Real backup
+            self.bck_host = self.devhost
+            self.dry_run = False
+            self.fconf = homedir + "/" + \
+                cfg_obj.get(s, "data_translation")
         elif self.hostname == self.mirrorhost:
             os0.wlog("Running on mirror machine")
-            # Backup onto prod machine
             self.bck_host = self.devhost
-#            raise Exception("Command aborted due development machine")
+            self.dry_run = False
+            self.fconf = homedir + "/" + \
+                cfg_obj.get(s, "no_translation")
         elif self.hostname == self.devhost:
             os0.wlog("This command cannot run on development machine")
-            # Backup onto dev machine !?
-            self.bck_host = "shsprd14"
-#            raise Exception("Command aborted due development machine")
+            self.bck_host = self.prodhost
         else:
             os0.wlog("Unknown machine - Command aborted")
             raise Exception("Command aborted due unknown machine")
@@ -314,7 +314,7 @@ class Backup_Mirror:
         dtc = datetime.today()
         self.ls_fd.write("# {0}\n".format(dtc.strftime("%Y%m%d")))
 
-    def add_2_ftp(self, fl, alt=None):
+    def add_2_ftp(self, fl):
         # Add filename to ftp file list
         lx = ("cldb",    "bckconf",
               "bckdb",   "bckdb.py",  "bckwww",
@@ -366,13 +366,7 @@ class Backup_Mirror:
         elif fn == "restconf.ini" or fn == "restconf-0.ini":
             self.ftp_fd.write("-rm {0}.bak\n".format(fn))
             self.ftp_fd.write("-rename {0} {0}.bak\n".format(fn))
-            if alt:
-                if fn == "restconf.ini":
-                    self.ftp_fd.write("put restconf-0.ini {0}\n".format(fn))
-                elif fn == "restconf-0.ini":
-                    self.ftp_fd.write("put restconf.ini {0}\n".format(fn))
-            else:
-                self.ftp_fd.write("put {0}\n".format(fn))
+            self.ftp_fd.write("put {0}\n".format(fn))
         else:
             self.ftp_fd.write("put {0} {0}.new\n".format(fn))
 
@@ -438,18 +432,9 @@ def main():
                      "restdb",   "restdb.py",   "restwww",
                      "ssl_certificate",         "statdb"]
     for fl in file_2_backup:
-        msgalt = ""
-        if fl == "restconf-0.ini" or fl == "restconf.ini":
-            cmd = "touch restconf-0.ini"
-            os0.trace_debug("$ ", cmd)
-            os0.muteshell(cmd)
-            msgalt = "(alt)"
         if os.path.isfile(fl):
-            if ctx.get('alt', False):
-                os0.wlog(" ", fl, msgalt)
-            else:
-                os0.wlog(" ", fl)
-            BM.add_2_ftp(fl, alt=ctx.get('alt', False))
+            os0.wlog(" ", fl)
+            BM.add_2_ftp(fl)
         else:
             os0.wlog("  file", fl, "not found!!!")
 # Backup configuration file for http server

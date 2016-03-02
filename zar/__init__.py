@@ -1,3 +1,3 @@
 from . import zarlib
 
-zar = zarlib.ZAR()
+Zar = zarlib.ZarLib()

@@ -112,6 +112,11 @@ def create_parser():
                         action="store_true",
                         dest="xtall",
                         default=False)
+    parser.add_argument("-A", "--alternate",
+                        help="backup on alternate host",
+                        action="store_true",
+                        dest="alt",
+                        default=False)
     parser.add_argument("-c", "--conf",
                         help="configuration file",
                         dest="conf_fn",
@@ -159,7 +164,9 @@ def create_params_dict(opt_obj, conf_obj):
     """Create all params dictionary"""
     ctx = create_def_params_dict(opt_obj, conf_obj)
     # s = "options"
-
+    for p in ('alt', ):
+        if hasattr(opt_obj, p):
+            ctx[p] = getattr(opt_obj, p)
     ctx['_conf_obj'] = conf_obj
     ctx['_opt_obj'] = opt_obj
     return ctx
@@ -273,32 +280,29 @@ class Restore_Image:
         self.mirrorhost = cfg_obj.get(s, "mirror_host")
         homedir = os.path.expanduser("~")
         # Temporary ftp command script
-        self.ftpcf = homedir + "/" + cfg_obj.get(s, "ftp_script")
+        self.ftp_cfn = homedir + "/" + cfg_obj.get(s, "ftp_script")
         self.flist = homedir + "/" + cfg_obj.get(s, "list_file")    # File list
-        os0.set_tlog_file(cfg_obj.get(s, "tracelog"))           # Tracelog file
-        self.fconf = homedir + "/" + \
-            cfg_obj.get(s, "data_translation")    # Translation file
-
+        os0.set_tlog_file(cfg_obj.get(s, "tracelog"))
         # Log begin execution
         os0.wlog("Restore configuration files", __version__)
         # Simulate backup
         self.dry_run = True
         if self.hostname == self.prodhost:
             os0.wlog("This command cannot run on production machine")
-            # Restore onto prod machine
-            self.bck_host = "shsdev16"
-            # Restore onto prod machine !?
+            self.bck_host = self.devhost
             raise Exception("Command aborted due production machine")
         elif self.hostname == self.mirrorhost:
             os0.wlog("Running on mirror machine")
-            # Restore onto dev machine !?
-            self.bck_host = "shsprd14"
-            self.dry_run = False                               # Real restore
+            self.bck_host = self.prodhost
+            self.dry_run = False
+            self.fconf = homedir + "/" + \
+                cfg_obj.get(s, "no_translation")
         elif self.hostname == self.devhost:
             os0.wlog("Running on development machine")
-            # Restore onto dev machine !?
-            self.bck_host = "shsprd14"
-            self.dry_run = False                               # Real restore
+            self.bck_host = self.prodhost
+            self.dry_run = False
+            self.fconf = homedir + "/" + \
+                cfg_obj.get(s, "data_translation")
         else:
             os0.wlog("Unknown machine - Command aborted")
             raise Exception("Command aborted due unknown machine")

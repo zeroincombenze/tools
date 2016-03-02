@@ -23,7 +23,7 @@
     Zeroincombenze® Archives Replica Regression Test Suite
 """
 
-import pdb
+# import pdb
 # import os.path
 import sys
 from z0testlib import Z0test
@@ -44,7 +44,6 @@ if __name__ == "__main__":
     Z = Z0test()
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    pdb.set_trace()
     sts = Z.main_file(ctx)
     exit(sts)
 

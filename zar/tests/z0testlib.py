@@ -86,6 +86,7 @@ opt_verbose:    From -v switch; show message during execution             "-v"
 logfn:          real trace log file name from switch                      "-l"
 qsanity:        True if required sanity check w/o echo                    "-x"
 run_daemon:     True if execution w/o tty as stdio
+run_tty:        Opposite of run_daemon
 tlog:           default tracelog file name
 _run_autotest:  True if running auto-test
 _parser:        parser
@@ -94,7 +95,7 @@ WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 Z0:             this library object
 """
 
-import pdb
+# import pdb
 import os
 import subprocess
 from subprocess import Popen, PIPE
@@ -176,6 +177,17 @@ class Test():
         if sts == TEST_SUCCESS:
             if os.isatty(0):
                 sts = self.Z.test_result(z0ctx,
+                                         "Opt -n (tty)",
+                                         True,
+                                         ctx['run_tty'])
+            else:
+                sts = self.Z.test_result(z0ctx,
+                                         "Opt -n (tty)",
+                                         False,
+                                         ctx['run_tty'])
+        if sts == TEST_SUCCESS:
+            if os.isatty(0):
+                sts = self.Z.test_result(z0ctx,
                                          "Opt -n (daemon)",
                                          False,
                                          ctx['run_daemon'])
@@ -188,12 +200,12 @@ class Test():
             if os.isatty(0):
                 sts = self.Z.test_result(z0ctx,
                                          "Opt -n (-e)",
-                                         False,
+                                         True,
                                          ctx['opt_echo'])
             else:
                 sts = self.Z.test_result(z0ctx,
                                          "Opt -n (-e)",
-                                         True,
+                                         False,
                                          ctx['opt_echo'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
@@ -327,6 +339,11 @@ class Test():
                                      0,
                                      ctx['ctr'])
         if sts == TEST_SUCCESS:
+            sts = self.Z.test_result(z0ctx,
+                                     "Opt -s 0 -N",
+                                     True,
+                                     ctx['opt_new'])
+        if sts == TEST_SUCCESS:
             opts = ['-s13']
             ctx = self.Z.parseoptest(opts)
             sts = self.Z.test_result(z0ctx,
@@ -335,22 +352,32 @@ class Test():
                                      ctx['ctr'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -q (-n)",
+                                     "Opt -s13 -n",
                                      False,
                                      ctx['dry_run'])
         if sts == TEST_SUCCESS:
-            opts = ['-s', '13']
+            sts = self.Z.test_result(z0ctx,
+                                     "Opt -q -N",
+                                     False,
+                                     ctx['opt_new'])
+        if sts == TEST_SUCCESS:
+            opts = ['-s', '13', '-N']
             ctx = self.Z.parseoptest(opts)
             sts = self.Z.test_result(z0ctx,
                                      "Opt -s 13",
                                      13,
                                      ctx['ctr'])
+        if sts == TEST_SUCCESS:
+            sts = self.Z.test_result(z0ctx,
+                                     "Opt -s 13 -N",
+                                     True,
+                                     ctx['opt_new'])
         return sts
 
     def test_07(self, z0ctx):
         """Sanity autotest #7"""
         # z0ctx = self.Z.clear_test_ctx(z0ctx)
-        pdb.set_trace()
+        # pdb.set_trace()
         opts = ['-s', '0', '-z', '13']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
@@ -359,9 +386,82 @@ class Test():
                                  ctx['ctr'])
         if sts == TEST_SUCCESS:
             sts = self.Z.test_result(z0ctx,
-                                     "Opt -s 0 (-z)",
+                                     "Opt -s 0 -z 13",
                                      13,
                                      ctx['max_test'])
+        return sts
+
+    def test_08(self, z0ctx):
+        """Sanity autotest #8"""
+        # z0ctx = self.Z.clear_test_ctx(z0ctx)
+        # pdb.set_trace()
+        opts = []
+        ctx = self.Z.parseoptest(opts)
+        sts = self.simulate_main(ctx, '3')
+        sts = self.Z.test_result(z0ctx,
+                                 "UT",
+                                 3,
+                                 ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-0']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -0",
+                                     0,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-n']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -n",
+                                     3,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-n', '-0']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -n -0",
+                                     0,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-z13', '-n']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -z13",
+                                     13,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-z13', '-0']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -z13 -0",
+                                     13,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            opts = ['-z13', '-0', '-n']
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            sts = self.Z.test_result(z0ctx,
+                                     "UT -z13 -0 -n",
+                                     13,
+                                     ctx['max_test'])
+        return sts
+
+    def simulate_main(self, ctx, action):
+        """Simulate test program"""
+        if action == '3':
+            tests = ['__test_01', '__test_02']
+        elif action == '2':
+            tests = ['__test_02']
+        else:
+            tests = ['__test_01']
+        self.Z.exec_tests_4_count(tests, ctx)
+        sts = TEST_SUCCESS
         return sts
 
 
@@ -446,7 +546,7 @@ class Z0test:
                             help="verbose mode",
                             action="store_true",
                             dest="opt_verbose",
-                            default=ctx['run_daemon'])
+                            default=ctx['run_tty'])
         parser.add_argument("-x", "--qsanity",
                             help="like -X but run silently",
                             action="store_true",
@@ -473,7 +573,7 @@ class Z0test:
         # conf_obj = ctx.get('_conf_obj', None)
         ctx = self.create_def_params_dict(ctx)
         if 'opt_echo' not in ctx or ctx['opt_echo'] is None:
-            ctx['opt_echo'] = ctx['run_daemon']
+            ctx['opt_echo'] = ctx['run_tty']
         if ctx['dry_run']:
             ctx['opt_new'] = False
         elif 'opt_new' not in ctx or ctx['opt_new'] is None:
@@ -556,6 +656,7 @@ class Z0test:
             ctx['run_daemon'] = False
         else:
             ctx['run_daemon'] = True
+        ctx['run_tty'] = os.isatty(0)
         if tlog:
             ctx['tlog'] = tlog
         else:
@@ -568,8 +669,6 @@ class Z0test:
         opt_obj = parser.parse_args(arguments)
         ctx['_opt_obj'] = opt_obj
         ctx = self.create_params_dict(ctx)
-        # if 'opt_echo' not in ctx or ctx['opt_echo'] is None:
-        #     ctx['opt_echo'] = ctx['run_daemon']
         if ctx['esanity']:
             exit(self.sanity_check('-e'))
         elif ctx['qsanity']:
@@ -626,10 +725,20 @@ class Z0test:
             ctx = self.save_opt(ctx, p)
         if TestCls:
             T = TestCls(self)
-        pdb.set_trace()
+        # pdb.set_trace()
         for testname in test_list:
-            # Check for internal test
-            if TestCls and hasattr(TestCls, testname):
+            if testname[0:6] == '__test':
+                # Execution only in sanity check
+                if ctx.get('opt_noctr', None):
+                    ctr = 0
+                elif ctx.get('test_ctr', None):
+                    ctr = ctx['test_ctr']
+                else:
+                    ctx['dry_run'] = True
+                    ctx['ctr'] = int(testname[7:9])
+                    ctr = ctx['ctr']
+                ctx['max_test'] += ctr
+            elif TestCls and hasattr(TestCls, testname):
                 if ctx.get('opt_noctr', None):
                     ctr = 0
                 elif ctx.get('test_ctr', None):
@@ -661,8 +770,6 @@ class Z0test:
         else:
             ctx['max_test'] += ctx['ctr']
         del ctx['save_max_test']
-        if ctx.get('opt_noctr', None):
-            ctx['max_test'] = 0
         ctx['_prior_msg'] = ''
 
     def exec_all_tests(self, test_list, ctx, TestCls=None):
@@ -677,12 +784,21 @@ class Z0test:
             if TestCls and hasattr(TestCls, testname):
                 sts = getattr(T, testname)(ctx)
             elif os0.nakedname(os.path.basename(testname)) != ctx['caller']:
-                if ctx.get('opt_noctr', None):
-                    test_w_args = ['python'] + [testname]
-                    sts = subprocess.call(test_w_args)
+                if os.path.basename(testname)[-3:] == '.py' or \
+                        os.path.basename(testname)[-4:] == '.pyc':
+                    if ctx.get('opt_noctr', None):
+                        test_w_args = ['python'] + [testname]
+                        sts = subprocess.call(test_w_args)
+                    else:
+                        test_w_args = ['python'] + [testname] + args
+                        sts = subprocess.call(test_w_args)
                 else:
-                    test_w_args = ['python'] + [testname] + args
-                    sts = subprocess.call(test_w_args)
+                    if ctx.get('opt_noctr', None):
+                        test_w_args = [testname]
+                        sts = subprocess.call(test_w_args)
+                    else:
+                        test_w_args = [testname] + args
+                        sts = subprocess.call(test_w_args)
             if sts:
                 break
         return sts
@@ -697,7 +813,11 @@ class Z0test:
                 test_list.append(tname)
             test_num += 1
         self.exec_tests_4_count(test_list, ctx, Test)
-        sts = self.exec_all_tests(test_list, ctx, Test)
+        if ctx.get('dry_run', False):
+            print ctx['max_test']
+            sts = TEST_SUCCESS
+        else:
+            sts = self.exec_all_tests(test_list, ctx, Test)
         return sts
 
     def main_file(self, ctx):

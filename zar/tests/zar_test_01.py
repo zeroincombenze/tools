@@ -50,7 +50,13 @@ class Test():
         sts = self.Z.test_result(ctx, msg, test_value, res_value)
         return sts
 
-
+    def test_02(self, ctx):
+        """Sanity autotest #1"""
+        msg = 'prova2'
+        test_value = True
+        res_value = True
+        sts = self.Z.test_result(ctx, msg, test_value, res_value)
+        return sts
 #
 # Run main if executed as a script
 if __name__ == "__main__":

@@ -356,7 +356,8 @@ class ZarLib:
         DEFDCT["hostname"] = platform.node()
         return DEFDCT
 
-    def __init__(self, dbg_mode):
+    def __init__(self):
+        dbg_mode = True
         os0.set_debug_mode(dbg_mode)
         self.hostname = platform.node()
         self.dbg_mode = dbg_mode
