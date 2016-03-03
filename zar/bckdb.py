@@ -40,7 +40,7 @@ from datetime import date, timedelta
 import re
 
 
-__version__ = "2.1.24.12"
+__version__ = "2.1.24.14"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -370,7 +370,7 @@ class Backup_Mirror:
         else:
             cmd = ""
             cmdlog = cmd
-        os0.trace_debug(">", cmdlog)
+        os0.trace_debug("$", cmdlog)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=True)
         stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
         line = stdinp_fd.readline()
@@ -384,13 +384,13 @@ class Backup_Mirror:
                         if re.match("z[ei].*|demo", dbname):
                             dblist.append(dbname)
                             if os0.debug_mode:
-                                os0.wlog("> dblist.append({0})".format(dbname))
+                                os0.wlog("$ dblist.append({0})".format(dbname))
                 elif dbtype == "mysql":
                     dbname = line.strip()
                     if re.match("w.*|mg.*|assioma.*", dbname):
                         dblist.append(dbname)
                         if os0.debug_mode:
-                            os0.wlog("> dblist.append({0})".format(dbname))
+                            os0.wlog("$ dblist.append({0})".format(dbname))
             line = stdinp_fd.readline()
         stdinp_fd.close()
 
@@ -435,7 +435,7 @@ class Backup_Mirror:
             # Compressed file found
             if fzip_fn != "":
                 cmd = "tar -x" + tar_opt + "f " + fzip_fn
-                os0.trace_debug(">", cmd)
+                os0.trace_debug("$", cmd)
                 os0.muteshell(cmd, simulate=self.dry_run)
                 if not self.dry_run:
                     os.remove(fzip_fn)
@@ -452,7 +452,7 @@ class Backup_Mirror:
             else:
                 cmd = ""
                 cmdlog = cmd
-            os0.trace_debug(">", cmdlog)
+            os0.trace_debug("$", cmdlog)
             os0.muteshell(cmd, simulate=self.dry_run)
 
             if os.path.isfile(fsql):

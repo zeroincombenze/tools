@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.7.22.2"
+__version__="1.7.22.3"
 
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
@@ -75,29 +75,29 @@ do
       fi
       uu=$(echo "$uu"|tr -d "~")
 
-      wlog "> chown $uu:apache $htmd/$db"
+      wlog "\$ chown $uu:apache $htmd/$db"
       chown -R $uu:apache $htmd/$db
       if [ "$uu" != "apache" ]; then
-        wlog "> setfacl -R -m u:apache:rwx $htmd/$db"
+        wlog "\$ setfacl -R -m u:apache:rwx $htmd/$db"
         setfacl -R -m u:apache:rwx $htmd/$db
         setfacl -R -m d:u:apache:rwx $htmd/$db
       else
         for usx in it biz com eu org; do
-          wlog "> setfacl -R -m u:zeroincombenze.$usx:rwx $htmd/$db"
+          wlog "\$ setfacl -R -m u:zeroincombenze.$usx:rwx $htmd/$db"
           setfacl -R -m u:zeroincombenze.$usx:rwx $htmd/$db
           setfacl -R -m d:u:zeroincombenze.$usx:rwx $htmd/$db
         done
       fi
-      wlog "> chmod -R u+rxw,g+rwx,o-rwx $htmd/$db"
+      wlog "\$ chmod -R u+rxw,g+rwx,o-rwx $htmd/$db"
       chmod -R u+rxw,g+rwx,o-rwx $htmd/$db
       if [ "$db" == "alfaschool.ru/" ]; then
-        wlog "> chmod -R o+rwx $htmd/${db}wp-content/uploads/wp-google-maps/"
+        wlog "\$ chmod -R o+rwx $htmd/${db}wp-content/uploads/wp-google-maps/"
         chmod -R o+rwx $htmd/${db}wp-content/uploads/wp-google-maps/
       fi
       setfacl -R -m u:apache:rwx $htmd/$db
       setfacl -R -m d:u:apache:rwx $htmd/$db
 
-      wlog "> tar -cjf $bd/$fn.bz2 $db"
+      wlog "\$ tar -cjf $bd/$fn.bz2 $db"
       tar -cjf $bd/$fn.bz2 $db
       echo put $fn.bz2>>$ff
     fi
@@ -107,14 +107,14 @@ exec 3<&-
 echo bye>>$ff
 
 if [ "$1" == "-A" ]; then
-  wlog "> sftp -b $ff root@shsprd16"
+  wlog "\$ sftp -b $ff root@shsprd16"
   sftp -b $ff root@shsprd16
-  wlog "> ssh ssh root@shsprd16 'at -f ./restwww now'"
+  wlog "\$ ssh ssh root@shsprd16 'at -f ./restwww now'"
   ssh root@shsprd16 "at -f ./restwww now"
 else
-  wlog "> sftp -b $ff root@shsdev16"
+  wlog "\$ sftp -b $ff root@shsdev16"
   sftp -b $ff root@shsdev16
-  wlog "> ssh root@shsdev16 'at -f ./restwww now'"
+  wlog "\$ ssh root@shsdev16 'at -f ./restwww now'"
   ssh root@shsdev16 "at -f ./restwww now"
 fi
 

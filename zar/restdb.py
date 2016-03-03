@@ -42,7 +42,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.15"
+__version__ = "2.1.21.18"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -382,15 +382,15 @@ class Restore_Image:
         if dbtype != self.dbtype:
             if dbtype == "psql":
                 cmd = "service postgresql restart"
-                os0.trace_debug(">", cmd)
+                os0.trace_debug("$", cmd)
                 os0.muteshell(cmd,
-                              dry_run=self.dry_run,
+                              simulate=self.dry_run,
                               keepout=os0.debug_mode)
             elif dbtype == "mysql":
                 cmd = "service mysqld restart"
-                os0.trace_debug(">", cmd)
+                os0.trace_debug("$", cmd)
                 os0.muteshell(cmd,
-                              dry_run=self.dry_run,
+                              simulate=self.dry_run,
                               keepout=os0.debug_mode)
         if p != self.ftp_dir:                                   # Change dir
             self.chdir(p)                                       # Set directory
@@ -617,7 +617,7 @@ class Restore_Image:
                 self.replace_file(ctx, f, fqn)
 
     def replace_file(self, ctx, f, fqn):
-        os0.trace_debug(">>> replace file", fqn)
+        os0.trace_debug("> replace file", fqn)
         try:
             fn_fd = open(fqn, 'r')
             fn_str = fn_fd.read()
@@ -673,22 +673,22 @@ class Restore_Image:
             cmd = "chown " + self.psql_uu + ":" + self.psql_uu + " " + fqn
         elif dbtype == "mysql":
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + fqn
-        os0.trace_debug(">", cmd)
+        os0.trace_debug("$", cmd)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
 
         sql_fn = homedir + "/restdb.sql"
         cmd = "cp " + fqn + " " + sql_fn
-        os0.trace_debug(">", cmd)
+        os0.trace_debug("$", cmd)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         cmd = "sed -i -e \"s|Owner: openerp|Owner: odoo|g\""\
               " -e \"s|OWNER TO openerp|OWNER TO odoo|g\" ~/restdb.sql"
-        os0.trace_debug(">", cmd)
+        os0.trace_debug("$", cmd)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         if dbtype == "psql":
             cmd = "chown " + self.psql_uu + ":" + self.psql_uu + " " + sql_fn
         elif dbtype == "mysql":
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + sql_fn
-        os0.trace_debug(">", cmd)
+        os0.trace_debug("$", cmd)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         self.repl_data(dbname, sql_fn)
 
@@ -709,7 +709,7 @@ class Restore_Image:
                 "ALTER DATABASE \"{0}\" OWNER TO odoo;\n".format(dbname))
             cmd = "psql -f " + psh_fn + " -U" + user + " " + defdb
             psh_fd.close()
-            os0.trace_debug(">", cmd)
+            os0.trace_debug("$", cmd)
             os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         elif dbtype == "mysql":
             user = "root"
@@ -731,7 +731,7 @@ class Restore_Image:
             cmd = "chmod +x " + psh_fn
             os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
             cmd = psh_fn
-            os0.trace_debug(">", cmd)
+            os0.trace_debug("$", cmd)
             os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         else:
             os0.wlog("  unknown", dbname, "database type!!!")

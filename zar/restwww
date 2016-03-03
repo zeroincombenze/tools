@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.25.2"
+__version__="1.4.25.3"
 
 # set -x
 publog="/var/log/restwww.log"
@@ -64,53 +64,53 @@ do
       if [ -e $hdp/html/$db ]
       then
         CWD=$PWD
-        wlog "$ cd $hdp/html"
+        wlog "\$ cd $hdp/html"
         cd $hdp/html
         fn=$(basename $fqn)
         wlog "Update tree $db"
         if [ -e $hdp/html/__old_$db ]
         then
-          wlog "$ rm -fR $hdp/html/__old_$db"
+          wlog "\$ rm -fR $hdp/html/__old_$db"
           rm -fR $hdp/html/__old_$db
         fi
-        wlog "$ tar -cjf $fn $db"
+        wlog "\$ tar -cjf $fn $db"
         tar -cjf $fn $db
-        wlog "chown $uu:apache $fn"
+        wlog "\$ chown $uu:apache $fn"
         chown -R $uu:apache $fn
-        wlog "$ rm -fR $hdp/html/$db"
+        wlog "\$ rm -fR $hdp/html/$db"
         rm -fR $hdp/html/$db
-        wlog "$ mkdir -p $hdp/html/$db"
+        wlog "\$ mkdir -p $hdp/html/$db"
         mkdir -p $hdp/html/$db
-        wlog "$ cd $CWD"
+        wlog "\$ cd $CWD"
         cd $CWD
       else
-        wlog "$ mkdir $hdp/html/$db"
+        wlog "\$ mkdir $hdp/html/$db"
         mkdir $hdp/html/$db
         wlog "New website $db found"
       fi
 
-      wlog "$ tar --overwrite -xjf $fqn -C $hdp/html/"
+      wlog "\$ tar --overwrite -xjf $fqn -C $hdp/html/"
       tar --overwrite -xjf $fqn -C $hdp/html/
-      # wlog "$ rm -f $fqn"
+      # wlog "\$ rm -f $fqn"
       # rm -f $fqn
 
       if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
       if [ "$db" == "mw-zi.org/" ]
       then
         wlog "Change local data for wiki site .."
-        wlog "$ mv $hdp/html/${db}lang-it/LocalSettings.php $hdp/html/${db}lang-it/__old_LocalSettings.php"
+        wlog "\$ mv $hdp/html/${db}lang-it/LocalSettings.php $hdp/html/${db}lang-it/__old_LocalSettings.php"
         mv $hdp/html/${db}lang-it/LocalSettings.php $hdp/html/${db}lang-it/__old_LocalSettings.php
-        wlog "$ cat $hdp/html/${db}lang-it/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+        wlog "\$ cat $hdp/html/${db}lang-it/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
         cat $hdp/html/${db}lang-it/__old_LocalSettings.php|\
 sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}lang-it/LocalSettings.php
-        wlog "$ mv $hdp/html/${db}lang-en/LocalSettings.php $hdp/html/${db}lang-en/__old_LocalSettings.php"
+        wlog "\$ mv $hdp/html/${db}lang-en/LocalSettings.php $hdp/html/${db}lang-en/__old_LocalSettings.php"
         mv $hdp/html/${db}lang-en/LocalSettings.php $hdp/html/${db}lang-en/__old_LocalSettings.php
-        wlog "$ cat $hdp/html/${db}lang-en/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+        wlog "\$ cat $hdp/html/${db}lang-en/__old_LocalSettings.php|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
         cat $hdp/html/${db}lang-en/__old_LocalSettings.php|\
 sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}lang-en/LocalSettings.php
-        wlog "$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
+        wlog "\$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
         mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html
-        wlog "$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
+        wlog "\$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g .."
         cat $hdp/html/${db}__old_index.html|\
 sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hdp/html/${db}index.html
         wlog "Recording robots.txt"
@@ -119,13 +119,13 @@ sed 's/http:\/\/wiki.zeroincombenze.org/http:\/\/wiki1.zeroincombenze.org/g'>$hd
       elif [ "$db" == "mw-zi.eu/" ]
       then
         wlog "Change local data for wiki site .."
-        wlog "$ mv $hdp/html/${db}mw/LocalSettings.php $hdp/html/${db}mw/__old_LocalSettings.php"
+        wlog "\$ mv $hdp/html/${db}mw/LocalSettings.php $hdp/html/${db}mw/__old_LocalSettings.php"
         mv $hdp/html/${db}mw/LocalSettings.php $hdp/html/${db}mw/__old_LocalSettings.php
-        wlog "$ cat $hdp/html/${db}mw/__old_LocalSettings.php|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
+        wlog "\$ cat $hdp/html/${db}mw/__old_LocalSettings.php|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
         cat $hdp/html/${db}mw/__old_LocalSettings.php|\
 sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/html/${db}mw/LocalSettings.php
-        wlog "$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
-        wlog "$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
+        wlog "\$ cat $hdp/html/${db}__old_index.html|sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g .."
+        wlog "\$ mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html"
         mv $hdp/html/${db}index.html $hdp/html/${db}__old_index.html
         cat $hdp/html/${db}__old_index.html|\
 sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/html/${db}index.html
@@ -135,25 +135,25 @@ sed 's/http:\/\/www.zeroincombenze.eu/http:\/\/www1.zeroincombenze.eu/g'>$hdp/ht
       fi
       fi
 
-    wlog "$ chown -R $uu:apache $hdp/html/$db"
+    wlog "\$ chown -R $uu:apache $hdp/html/$db"
     chown -R $uu:apache $hdp/html/$db
     if [ "$uu" != "apache" ]; then
-      wlog "$ setfacl -R -m u:apache:rwx $hdp/html/$db"
+      wlog "\$ setfacl -R -m u:apache:rwx $hdp/html/$db"
       setfacl -R -m u:apache:rwx $hdp/html/$db
       setfacl -R -m d:u:apache:rwx $hdp/html/$db
       chown $uu:apache $fqn
     else
       for usx in it biz com eu org; do
-        wlog "$ setfacl -R -m u:zeroincombenze.$usx:rwx $hdp/html/$db"
+        wlog "\$ setfacl -R -m u:zeroincombenze.$usx:rwx $hdp/html/$db"
         setfacl -R -m u:zeroincombenze.$usx:rwx $hdp/html/$db
         setfacl -R -m d:u:zeroincombenze.$usx:rwx $hdp/html/$db
       done
       chown $uu:apache $fqn
     fi
-    wlog "$ chmod -R u+rxw,g+rwx,o-rwx $hdp/html/$db"
+    wlog "\$ chmod -R u+rxw,g+rwx,o-rwx $hdp/html/$db"
     chmod -R u+rxw,g+rwx,o-rwx $hdp/html/$db
     if [ "$db" == "alfaschool.ru/" ]; then
-      wlog "$ chmod -R o+rwx $hdp/html/${db}wp-content/uploads/wp-google-maps/"
+      wlog "\$ chmod -R o+rwx $hdp/html/${db}wp-content/uploads/wp-google-maps/"
       chmod -R o+rwx $hdp/html/${db}wp-content/uploads/wp-google-maps/
     fi
   fi
