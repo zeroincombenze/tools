@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.70
+__version__=0.1.70.3
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -214,11 +214,11 @@ pkg_pypi_commit () {
     sts=0
     cd ~/dev/pypi/$1/$1
     if [ $opt_dry_run -eq 0 ]; then
-      wlog "$ please replace  # $1"
+      wlog "$ make replace  # $1"
       if [ $opt_verbose -gt 0 ]; then
-        please replace &>>~/$THIS.log
+        make replace &>>~/$THIS.log
       else
-        please replace &>/dev/null
+        make replace &>/dev/null
       fi
       if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
         wlog "$ make commit # $1"
@@ -539,7 +539,7 @@ exit_n_status () {
 $(init_cfg)
 $(active_cfg)
 a_add "0" "DEV_HOST" "shsdev16"
-a_add "0" "PRD_HOST" "shsprd14"
+a_add "0" "PRD_HOST" "shsprd16"
 a_add "0" "ME_BOS" "test_nightly .test_nightly.conf.sample"
 a_add "0" "MYPKG" "travis_emulator"
 a_add "0" "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
@@ -618,16 +618,16 @@ if [ $EUID -eq 0 ]; then
   _install_z0librc
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
     valid=0
-    if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
-      valid=1
-    elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
-      valid=1
-    fi
-    if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
-      wlog "> yum -y update"
-      yum -y update
-      vmware-config-tools.pl --default
-    fi
+    #if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
+    #  valid=1
+    #elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
+    #  valid=1
+    #fi
+    #if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
+    #  wlog "> yum -y update"
+    #  yum -y update
+    #  vmware-config-tools.pl --default
+    #fi
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
     publish_svg "$d"

@@ -42,7 +42,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.18"
+__version__ = "2.1.21.19"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)

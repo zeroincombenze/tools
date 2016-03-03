@@ -685,7 +685,7 @@ if __name__ == "__main__":
     #     dbg_mode = False
     # else:
     #     dbg_mode = True
-    dbg_mode = False
+    dbg_mode = True
     sts = main()
     sys.exit(sts)
 

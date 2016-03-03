@@ -39,7 +39,7 @@ import string
 import re
 
 
-__version__ = "2.0.28.7"
+__version__ = "2.0.28.10"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -253,16 +253,16 @@ class Restore_Image:
         cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
-        cfg_obj.set(s, "production_host", "shsprd14")
+        cfg_obj.set(s, "production_host", "shsprd16")
         cfg_obj.set(s, "development_host", "shsdev16")
-        cfg_obj.set(s, "mirror_host", "shsprd16")
+        cfg_obj.set(s, "mirror_host", "shsprd14")
         cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
         cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
         cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
         cfg_obj.set(s, "data_translation", "restconf.ini")
         cfg_obj.set(s, "no_translation", "restconf-0.ini")
         cfg_obj.set(s, "debug", "0")
-        cfg_obj.read('zar.conf')
+        cfg_obj.read('.zar.conf')
         return cfg_obj
 
     def __init__(self, dbg_mode):
@@ -385,6 +385,7 @@ class Restore_Image:
                     src = self.xtl[key][0]
                     tgt = self.xtl[key][1]
                     # print "[{0} >subst/{1}/{2}/".format(fqn, src, tgt)
+                    os0.wlog(" ", fqn, ":", src, "->", tgt)
                     # Substitute text in file
                     fn_str = fn_str.replace(src, tgt)
                 ftmp_fd = open(ftmp, 'w')
@@ -489,7 +490,7 @@ if __name__ == "__main__":
         dbg_mode = False
     else:
         dbg_mode = True
-    dbg_mode = False    # temporary
+    dbg_mode = True    # temporary
     sts = main()
     sys.exit(sts)
 

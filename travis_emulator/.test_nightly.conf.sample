@@ -2,7 +2,7 @@
 # DEV_HOST: Development Hostname; package successfully tested are copied to Production Hostname
 DEV_HOST=shsdev16
 # PRD_HOST: Production Hostname
-PRD_HOST=shsprd14
+PRD_HOST=shsprd16
 # ME_BOS: Myself Bill Of Software to update
 ME_BOS=test_nightly,.test_nightly.conf.sample
 # SVG_TMPL_DIR: SVG templates directory
