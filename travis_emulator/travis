@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.40
+__version__=0.1.41
 
 
 process_local () {
@@ -109,15 +109,29 @@ process_yaml_quote_xtl () {
    lne="# $lne"
   elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-lxml ]]; then
    lne="# $lne"
+  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-simplejson ]]; then
+   lne="# $lne"
+  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-serial ]]; then
+   lne="# $lne"
+  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-yaml ]]; then
+   lne="# $lne"
   elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
    lne="# $lne"
-  elif [[ $lne =~ PATH=\$\{*HOME\}*/maintainer-quality-tools/travis ]]; then
+  elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/zeroincombenze/tools.git ]]; then
    lne="# $lne"
+  # elif [[ $lne =~ PATH=\$\{*HOME\}/maintainer-quality-tools/travis ]]; then
+  #  lne="# $lne"
+  elif [[ $lne =~ PATH=\$\{*HOME\}/tools/travis_emulator/_travis ]]; then
+    if [ "$PRJNAME" == "travis_emulator" ]; then
+      lne="export PATH=${HOME}/dev/pypi/travis_emulator/travis_emulator/_travis:${PATH}"
+    fi
+    # lne="# $lne"
   elif [[ $lne =~ travis_install_nightly ]]; then
    lne="# $lne"
   # elif [[ $lne =~ travis_run_tests ]]; then # debug
   #   lne="read #lne"
   fi
+  lne=$(expand_path "$lne")
   echo $lne
 }
 
@@ -417,6 +431,9 @@ process_yaml () {
     local line1
     local lne1
     f1=$PRJPATH/.travis.yml
+    if [ ! -f $f1 ]; then
+      f1=$TOOLS_PATH/travis.yml
+    fi
     if [ -f $f1 ]; then
       process_yaml_file "$f1"
       sts=$STS_SUCCESS

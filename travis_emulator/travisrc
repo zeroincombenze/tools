@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.60
+#__version__=0.1.61
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -261,9 +261,11 @@ init_travis () {
 
 prepare_env_travis () {
     local action="$1"
-    if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-      # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
-      export PATH=$TOOLS_PATH:$PATH
+    if [ $opt_r -gt 0 ]; then
+      if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+        # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
+        export PATH=$TOOLS_PATH:$PATH
+      fi
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
       wlog "\$ export PATH=$DEVPATH:$PATH"
@@ -730,8 +732,14 @@ please_test_bash () {
     if [ $opt_dry_run -eq 0 ]; then
       local f
       for f in $(find . -type f|tr "\n" " "); do
+        #if [ $opt_verbose -gt 0 ]; then
+        #    echo ".. $f"
+        #fi
         local x=$(head $f -n1)
         if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
+          #if [ $opt_verbose -gt 0 ]; then
+          #  wlog "$ bash -n $f"
+          #fi
           bash -n $f
           local s=$?
           if [ $sts -eq $STS_SUCCESS ]; then
@@ -821,13 +829,11 @@ run_regression_test () {
         if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests
         else
-          cd ./tests
-          ./all_tests
+          cd ./tests; PYTHONPATH=$PKGPATH ./all_tests
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
-        cd ./tests
-        python ./test_$PRJNAME.py
+        cd ./tests; PYTHONPATH=$PKGPATH python ./test_$PRJNAME.py
         sts=$?
       else
         sts=$STS_FAILED
@@ -966,27 +972,33 @@ run_svr_test_rm_ln () {
 run_svr_test_init () {
     local i
     local CMD
-    local n=$(get_cfg_value "" "dbtemplate")
-    wlog "\$ dropdb $n"
-    dropdb --if-exists $n
-    local n=$(get_cfg_value "" "dbname")
-    wlog "\$ dropdb $n"
-    dropdb --if-exists $n
     wlog "\$ coverage erase"
     coverage erase
-    wlog "\$ cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
-    cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
-    run_svr_test_rm_ln
-    clone_dependencies
-    local x=$(readlink -e $PRJPATH/..)
-    wlog "\$ ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
-    ln $x -s ~/${ODOO_REPO#*/}-$VERSION
-    wlog "\$ ln -s $PKGPATH ~/$pkgname-$VERSION"
-    ln -s $PKGPATH ~/$pkgname-$VERSION
+    if [ "$PRJNAME" == "Odoo" ]; then
+      local n=$(get_cfg_value "" "dbtemplate")
+      wlog "\$ dropdb $n"
+      dropdb --if-exists $n
+      local n=$(get_cfg_value "" "dbname")
+      wlog "\$ dropdb $n"
+      dropdb --if-exists $n
+      wlog "\$ cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
+      cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
+      run_svr_test_rm_ln
+      clone_dependencies
+      local x=$(readlink -e $PRJPATH/..)
+      wlog "\$ ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
+      ln $x -s ~/${ODOO_REPO#*/}-$VERSION
+      wlog "\$ ln -s $PKGPATH ~/$pkgname-$VERSION"
+      ln -s $PKGPATH ~/$pkgname-$VERSION
+    else
+      local n
+    fi
 }
 
 run_svr_test_exit () {
-    run_svr_test_rm_ln
+    if [ "$PRJNAME" == "Odoo" ]; then
+      run_svr_test_rm_ln
+    fi
 }
 
 run_server_test () {
