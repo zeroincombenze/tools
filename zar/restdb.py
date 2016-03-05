@@ -19,7 +19,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-# For software version see Restore_Image.version
 """
      Restore database files from Production Machine to Development Machine
      Make 2 server quite identical, ready to use
@@ -42,7 +41,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.19"
+__version__ = "2.1.21.20"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -61,7 +60,7 @@ LX_CFG_SB = ()
 LX_CFG_B = ()
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_CFG_S = ('dbg_mode', 'db_name')
+LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'dry_run')
 DEFDCT = {}
 
 
@@ -115,6 +114,11 @@ def create_parser():
                         action="store_true",
                         dest="xtall",
                         default=False)
+    parser.add_argument("-A", "--alternate",
+                        help="backup on alternate host",
+                        action="store_true",
+                        dest="alt",
+                        default=False)
     parser.add_argument("-c", "--conf",
                         help="configuration file",
                         dest="conf_fn",
@@ -162,7 +166,9 @@ def create_params_dict(opt_obj, conf_obj):
     """Create all params dictionary"""
     ctx = create_def_params_dict(opt_obj, conf_obj)
     # s = "options"
-
+    for p in ('alt', ):
+        if hasattr(opt_obj, p):
+            ctx[p] = getattr(opt_obj, p)
     ctx['_conf_obj'] = conf_obj
     ctx['_opt_obj'] = opt_obj
     return ctx
@@ -246,19 +252,19 @@ def read_config(opt_obj, parser, conf_fn=None):
 class Restore_Image:
 
     def _init_conf(self):
-        # pdb.set_trace()
         cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
-        cfg_obj.set(s, "production_host", "shsprd14")
+        cfg_obj.set(s, "production_host", "shsprd16")
         cfg_obj.set(s, "development_host", "shsdev16")
-        cfg_obj.set(s, "mirror_host", "shsprd16")
+        cfg_obj.set(s, "mirror_host", "shsprd14")
         cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
         cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
         cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
         cfg_obj.set(s, "data_translation", "restconf.ini")
+        cfg_obj.set(s, "no_translation", "restconf-0.ini")
         cfg_obj.set(s, "debug", "0")
-        cfg_obj.read('zar.conf')
+        cfg_obj.read('.zar.conf')
         return cfg_obj
 
     def __init__(self, dbg_mode):

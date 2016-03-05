@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.61
+#__version__=0.1.61.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -261,7 +261,7 @@ init_travis () {
 
 prepare_env_travis () {
     local action="$1"
-    if [ $opt_r -gt 0 ]; then
+    if [ ${opt_r:-0} -gt 0 ]; then
       if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
         # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
         export PATH=$TOOLS_PATH:$PATH
@@ -498,7 +498,7 @@ update_dev () {
           if [ ${opt_diff:-0} -gt 0 ]; then
              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
           elif [ ${opt_fetch:-0} -eq 0 ]; then
-             if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+             if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
              (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
           fi
         done
@@ -779,7 +779,11 @@ please_test_pylint () {
     if [ $opt_dry_run -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-      PYLINT_CONFIG_DIR="$TOOLS_PATH/cfg"
+      if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/cfg ]; then
+        PYLINT_CONFIG_DIR="$PRJPATH/cfg"
+      else
+        PYLINT_CONFIG_DIR="$TOOLS_PATH/cfg"
+      fi
       if [ "$PRJNAME" == "Odoo" ]; then
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
       else

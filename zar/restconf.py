@@ -39,7 +39,7 @@ import string
 import re
 
 
-__version__ = "2.0.28.10"
+__version__ = "2.0.28.11"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -267,6 +267,7 @@ class Restore_Image:
 
     def __init__(self, dbg_mode):
         self.hostname = platform.node()                         # Get Hostname
+        self.pid = os.getpid()
         cfg_obj = self._init_conf()
         s = "Environment"
         if (dbg_mode is None):

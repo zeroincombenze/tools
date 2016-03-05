@@ -40,7 +40,7 @@ from datetime import date, timedelta
 import re
 
 
-__version__ = "2.1.24.14"
+__version__ = "2.1.24.16"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -59,7 +59,7 @@ LX_CFG_SB = ()
 LX_CFG_B = ()
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_CFG_S = ('dbg_mode', 'db_name')
+LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'dry_run')
 DEFDCT = {}
 
 
@@ -251,17 +251,17 @@ def read_config(opt_obj, parser, conf_fn=None):
 class Backup_Mirror:
 
     def _init_conf(self):
-        # pdb.set_trace()
         cfg_obj = ConfigParser.SafeConfigParser(default_conf())
         s = "Environment"
         cfg_obj.add_section(s)
-        cfg_obj.set(s, "production_host", "shsprd14")
+        cfg_obj.set(s, "production_host", "shsprd16")
         cfg_obj.set(s, "development_host", "shsdev16")
-        cfg_obj.set(s, "mirror_host", "shsprd16")
+        cfg_obj.set(s, "mirror_host", "shsprd14")
         cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
         cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
-        cfg_obj.set(s, "tracelog", "%(appname)s.log")
+        cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
         cfg_obj.set(s, "data_translation", "restconf.ini")
+        cfg_obj.set(s, "no_translation", "restconf-0.ini")
         cfg_obj.set(s, "debug", "0")
         found = False
         for fn in ("pgsql", "postgresql"):
@@ -384,13 +384,13 @@ class Backup_Mirror:
                         if re.match("z[ei].*|demo", dbname):
                             dblist.append(dbname)
                             if os0.debug_mode:
-                                os0.wlog("$ dblist.append({0})".format(dbname))
+                                os0.wlog("> dblist.append({0})".format(dbname))
                 elif dbtype == "mysql":
                     dbname = line.strip()
                     if re.match("w.*|mg.*|assioma.*", dbname):
                         dblist.append(dbname)
                         if os0.debug_mode:
-                            os0.wlog("$ dblist.append({0})".format(dbname))
+                            os0.wlog("> dblist.append({0})".format(dbname))
             line = stdinp_fd.readline()
         stdinp_fd.close()
 
