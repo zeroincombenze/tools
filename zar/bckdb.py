@@ -40,7 +40,7 @@ from datetime import date, timedelta
 import re
 
 
-__version__ = "2.1.24.16"
+__version__ = "2.1.24.17"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -650,7 +650,7 @@ def main():
 # Backup postgres database
     if BM.pgdir:
         BM.chdir(BM.pgdir)
-        dblist = BM.gen_db_list("psql", "openerp", "psql")
+        dblist = BM.gen_db_list("psql", "odoo", "psql")
         if ctx['db_name'] != "":
             if ctx['db_name'] in dblist:
                 dblist = []
@@ -659,7 +659,7 @@ def main():
                 dblist = []
         for db in dblist:
             BM.init_bck(BM.chdir(BM.pgdir))
-            BM.bck_db("psql", [db], "openerp", "pg_dump")
+            BM.bck_db("psql", [db], "odoo", "pg_dump")
             BM.exec_bck()
 #
 # Backup mysql database

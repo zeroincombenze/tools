@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.70.3
+__version__=0.1.70.6
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -267,7 +267,7 @@ oe_upd_burst () {
           n="0$i"
           n=${n:l}
           db="zi0001$n[0-9]{2}"
-          wlog "> clodoo.py -d $db -c $1.conf"
+          wlog "\$ clodoo.py -d $db -c $1.conf"
           clodoo.py -d "$db" -c $1.conf
           sts=$?
           if [ $sts -gt 0 ]; then
@@ -357,10 +357,10 @@ cpfiles () {
       for f in $l; do
         if [ -f $1/$f ]; then
           if [ $opt_dry_run -eq 0 ]; then
-            wlog "> cp $1/$f $2/$f"
+            wlog "\$ cp $1/$f $2/$f"
             cp $1/$f $2/$f
             if [ $4 ]; then
-              wlog "> chown $4 $2/$f"
+              wlog "\$ chown $4 $2/$f"
               chown $4 $2/$f
             fi
           fi
@@ -392,7 +392,7 @@ scpfiles () {
       for f in $l; do
         if [ -f $1/$f ]; then
           if [ $opt_dry_run -eq 0 ]; then
-            wlog "> scp $1/$f $2/$f"
+            wlog "\$ scp $1/$f $2/$f"
             scp $1/$f $2/$f
           fi
         else
@@ -423,10 +423,10 @@ mvfiles () {
       for f in $l; do
         if [ -f $1/$f ]; then
           if [ $opt_dry_run -eq 0 ]; then
-            wlog "> mv $1/$f $2/$f"
+            wlog "\$ mv $1/$f $2/$f"
             mv $1/$f $2/$f
             if [ $4 ]; then
-              wlog "> chown $4 $2/$f"
+              wlog "\$ chown $4 $2/$f"
               chown $4 $2/$f
             fi
           fi
@@ -575,11 +575,11 @@ if [ $opt_test -gt 0 ]; then
   done
   echo "Upgrade myself does .."
   for f in $ME_BOS; do
-     echo "> cp $TDIR/$f {tgt}/$f"
+     echo "\$ cp $TDIR/$f {tgt}/$f"
   done
   echo "Test list .."
   for f in $PKGSLX; do
-     echo "> please test # $f"
+     echo "\$ please test # $f"
   done
   exit 0
 fi
@@ -624,7 +624,7 @@ if [ $EUID -eq 0 ]; then
     #  valid=1
     #fi
     #if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
-    #  wlog "> yum -y update"
+    #  wlog "\$ yum -y update"
     #  yum -y update
     #  vmware-config-tools.pl --default
     #fi
@@ -633,10 +633,10 @@ if [ $EUID -eq 0 ]; then
     publish_svg "$d"
     sts=$?
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:ERPs"
+      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:odoo"
       s=$?
       [ $sts -eq 0 ]&&sts=$s
-      cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:ERPs"
+      cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:odoo"
       s=$?
       [ $sts -eq 0 ]&&sts=$s
       cd /opt/odoo/tools/product/

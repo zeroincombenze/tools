@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.61.2
+#__version__=0.1.61.8
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
-XXXX=".pyc .log .bak .out .tmp .conf .tracehistory build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
+XXXX=".pyc .log .bak .out .tmp .conf .tracehistory ,cover .coverage build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 
 
 opts_travis () {
@@ -426,27 +426,27 @@ install_dev () {
       if [ ! -d ~/8.0 ]; then
         mkdir -p ~/8.0
       fi
-      if [ ! -d ~/7.0/zeroincombenze ]; then
-        mkdir -p ~/7.0/zeroincombenze
-        touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
-      fi
-      if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone ]; then
-        mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone
-        touch -d $yod-01-01 ~/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
-      fi
-      if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
-        mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone/conf
-      fi
-      if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal ]; then
-        mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal
-        touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
-      fi
-      if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
-        mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/data
-      fi
-      if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
-        mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/conf
-      fi
+      # if [ ! -d ~/7.0/zeroincombenze ]; then
+      #   mkdir -p ~/7.0/zeroincombenze
+      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
+      # fi
+      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone ]; then
+      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone
+      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
+      # fi
+      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
+      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone/conf
+      # fi
+      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal ]; then
+      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal
+      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
+      # fi
+      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
+      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/data
+      # fi
+      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
+      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/conf
+      # fi
     fi
 }
 
@@ -486,10 +486,13 @@ update_dev () {
             fi
           elif [ ${opt_fetch:-0} -gt 0 ]; then
             if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
-            (($opt_dry_run))||cp $XDPATH/$x $PKGPATH/$pkgname/$x
+            (($opt_dry_run))||cp $opts_verbose $XDPATH/$x $PKGPATH/$pkgname/$x
           else
-            if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
-            (($opt_dry_run))||cp $PKGPATH/$pkgname/$x $XDPATH/$x
+            diff -q $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
+            if [ $? -ne 0 ]; then
+              if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              (($opt_dry_run))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
+            fi
           fi
         fi
       done
@@ -498,8 +501,11 @@ update_dev () {
           if [ ${opt_diff:-0} -gt 0 ]; then
              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
           elif [ ${opt_fetch:-0} -eq 0 ]; then
-             if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
-             (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/$x
+             diff -rq $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
+             if [ $? -ne 0 ]; then
+               if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
+               (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/
+             fi
           fi
         done
       fi
@@ -613,7 +619,7 @@ robocopy_init () {
     fi
     if [ -z "$xx" ]; then
       # TODO: addons
-      local xx=".pyc .log .bak .out .tmp .conf build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
+      local xx=".pyc .log .bak .out .tmp .conf .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
       local yy=".po .pot"
     fi
     XRGX=
@@ -627,7 +633,7 @@ robocopy_init () {
       if [ "$x9" == "/" ]; then
          XRGX="$XRGX ^(.*\\/|)$x"
          XLFS="$XLFS --exclude=$x"
-      elif [ "$x1" == "." -o "$x" == "~" ]; then
+      elif [ "$x1" == "." -o "$x1" == "," -o "$x" == "~" ]; then
          XRGX="$XRGX ^.*\\$x\$"
          XLFS="$XLFS --exclude=*$x"
       else

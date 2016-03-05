@@ -41,7 +41,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.20"
+__version__ = "2.1.21.21"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -686,10 +686,10 @@ class Restore_Image:
         cmd = "cp " + fqn + " " + sql_fn
         os0.trace_debug("$", cmd)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
-        cmd = "sed -i -e \"s|Owner: openerp|Owner: odoo|g\""\
-              " -e \"s|OWNER TO openerp|OWNER TO odoo|g\" ~/restdb.sql"
-        os0.trace_debug("$", cmd)
-        os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
+        # cmd = "sed -i -e \"s|Owner: openerp|Owner: odoo|g\""\
+        #       " -e \"s|OWNER TO openerp|OWNER TO odoo|g\" ~/restdb.sql"
+        # os0.trace_debug("$", cmd)
+        # os0.muteshell(cmd, simulate=self.dry_run, keepout=os0.debug_mode)
         if dbtype == "psql":
             cmd = "chown " + self.psql_uu + ":" + self.psql_uu + " " + sql_fn
         elif dbtype == "mysql":
