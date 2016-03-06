@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.70.6
+__version__=0.1.70.7
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -214,11 +214,11 @@ pkg_pypi_commit () {
     sts=0
     cd ~/dev/pypi/$1/$1
     if [ $opt_dry_run -eq 0 ]; then
-      wlog "$ make replace  # $1"
+      wlog "$ please replace  # $1"
       if [ $opt_verbose -gt 0 ]; then
-        make replace &>>~/$THIS.log
+        please replace $opts_verbose &>>~/$THIS.log
       else
-        make replace &>/dev/null
+        please replace &>/dev/null
       fi
       if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
         wlog "$ make commit # $1"

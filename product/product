@@ -11,9 +11,9 @@
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-six
 #  ZSI
 # gcc always!
-# yum install python-requests
+# yum install python-requests python-yaml
 # codicefiscale pyxb pypdf for italian localization
-# pip install unicodecsv pydot
+# pip install unicodecsv pydot vatnumber
 # products?
 # oerplib
 # wget
@@ -31,6 +31,9 @@
 # npm install -g less
 # npm install -g less-plugin-clean-css
 #[End]
+# per Kaspersky
+# yum install kernel-headers
+# yum install glibc.i686
 
 if [ -f z0librc ]; then
 . ./z0librc

@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.7.22.3"
+__version__="1.7.22.5"
 
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
@@ -36,6 +36,7 @@ if [ $sts -gt 0 ]; then
   wlog "?????????????????????????????"
   exit 1
 fi
+wlog "\$ cd $htmd"
 cd $htmd
 echo cd $bd>>$ff
 echo lcd $bd>>$ff
@@ -99,6 +100,7 @@ do
 
       wlog "\$ tar -cjf $bd/$fn.bz2 $db"
       tar -cjf $bd/$fn.bz2 $db
+      wlog "> put $fn.bz2"
       echo put $fn.bz2>>$ff
     fi
   fi

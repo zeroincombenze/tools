@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.61.8
+#__version__=0.1.61.9
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -87,7 +87,7 @@ inherits_travis_opts () {
       fi
     fi
     if [[ $e =~ n ]]; then
-      if [ $opt_dry_run -gt 0 ]; then
+      if [ ${opt_dry_run:-0} -gt 0 ]; then
         opts="${opts}n"
       fi
     fi
@@ -485,13 +485,13 @@ update_dev () {
               diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
             fi
           elif [ ${opt_fetch:-0} -gt 0 ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ $opt_dry_run||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
-            (($opt_dry_run))||cp $opts_verbose $XDPATH/$x $PKGPATH/$pkgname/$x
+            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
+            ((${opt_dry_run:-0}))||cp $opts_verbose $XDPATH/$x $PKGPATH/$pkgname/$x
           else
             diff -q $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
             if [ $? -ne 0 ]; then
-              if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
-              (($opt_dry_run))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
+              if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
             fi
           fi
         fi
@@ -503,8 +503,8 @@ update_dev () {
           elif [ ${opt_fetch:-0} -eq 0 ]; then
              diff -rq $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
              if [ $? -ne 0 ]; then
-               if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
-               (($opt_dry_run))||cp -R $PKGPATH/$pkgname/$x $XDPATH/
+               if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
+               ((${opt_dry_run:-0}))||cp -R $PKGPATH/$pkgname/$x $XDPATH/
              fi
           fi
         done
@@ -520,8 +520,8 @@ update_dev () {
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               true
             else
-              if [ $opt_verbose -gt 0 ]; then echo "\$ $opt_dry_run||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
-              (($opt_dry_run))||cp $PKGPATH/$pkgname/$x ~/bin/$x
+              if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+              ((${opt_dry_run:-0}))||cp $PKGPATH/$pkgname/$x ~/bin/$x
             fi
           fi
         done
@@ -701,16 +701,16 @@ robocopy () {
       else
         if [ "${3:0:3}" == "ssh" ]; then
           local optssh="${3:3}"
-          echo "(($opt_dry_run))||scp -Bp $optssh $ff $2"
-          (($opt_dry_run))||scp -Bp $optssh $ff $2
+          echo "((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2"
+          ((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2
         else
           if [ ! -d "$2" ]; then
             local v=
           fi
           diff -q $ff $2$v &>/dev/null
           if [ $? -ne 0 ]; then
-            echo "$opt_dry_run||cp -L $ff $2$v"
-            (($opt_dry_run))||cp -L $ff $2$v
+            echo "${opt_dry_run:-0}||cp -L $ff $2$v"
+            ((${opt_dry_run:-0}))||cp -L $ff $2$v
           fi
         fi
       fi
@@ -722,7 +722,7 @@ clean_dirs () {
 # return:
     for x in $XXXX;do
       if [ "$x" != ".conf" ]; then
-        if [ $opt_dry_run -gt 0 ]; then
+        if [ ${opt_dry_run:-0} -gt 0 ]; then
           find $1 -nowarn -name "*$x" -exec echo "1||rm '{}'" \;
         else
           find $1 -nowarn -name "*$x" -exec rm -f '{}' \;
@@ -735,7 +735,7 @@ clean_dirs () {
 please_test_bash () {
     echo "======== Testing test_bash   ========"
     sts=$STS_SUCCESS
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f
       for f in $(find . -type f|tr "\n" " "); do
         #if [ $opt_verbose -gt 0 ]; then
@@ -766,7 +766,7 @@ please_test_bash () {
 
 please_test_flake8 () {
     echo "======== Testing test_flake8 ========"
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
       run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
       local status1=$?
@@ -782,7 +782,7 @@ please_test_flake8 () {
 please_test_pylint () {
     echo "======== Testing test_pylint ========"
     sts=$STS_SUCCESS
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
       if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/cfg ]; then
@@ -834,7 +834,7 @@ do_summary () {
 run_regression_test () {
     echo "======== Running regression_test ========"
     cd $PRJPATH
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f ./tests/all_tests ]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests
@@ -856,7 +856,7 @@ run_regression_test () {
 
 run_coverage_test () {
     cd $PRJPATH
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ "$PRJNAME" != "Odoo" ]; then
         # find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
         if [ -f ./__main__.py ]; then

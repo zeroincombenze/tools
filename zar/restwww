@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.25.3"
+__version__="1.4.25.5"
 
 # set -x
 publog="/var/log/restwww.log"
@@ -66,7 +66,7 @@ do
         CWD=$PWD
         wlog "\$ cd $hdp/html"
         cd $hdp/html
-        fn=$(basename $fqn)
+        fn=__old_$(basename $fqn)
         wlog "Update tree $db"
         if [ -e $hdp/html/__old_$db ]
         then
@@ -77,6 +77,8 @@ do
         tar -cjf $fn $db
         wlog "\$ chown $uu:apache $fn"
         chown -R $uu:apache $fn
+        wlog "$ mv $fn $hdp/backups/"
+        mv $fn $hdp/backups/
         wlog "\$ rm -fR $hdp/html/$db"
         rm -fR $hdp/html/$db
         wlog "\$ mkdir -p $hdp/html/$db"

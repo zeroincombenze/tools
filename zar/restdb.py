@@ -41,7 +41,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.21"
+__version__ = "2.1.21.22"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -353,7 +353,7 @@ class Restore_Image:
                     self.add_dict_entr(f[0], f[1], f[2])
                 line = cnf_fd.readline()
         except:
-            pass
+            os0.wlog("No dictionary file", self.fconf, "found!")
 
     def add_dict_entr(self, name, src, tgt):
         self.seed = self.seed + 1
@@ -364,7 +364,7 @@ class Restore_Image:
         else:
             self.dict[name] = [key]
         self.xtl[key] = val
-        # print "[{0}] !{1}->{2}!".format(name, src, tgt)
+        os0.wlog("> s|{0}]|{1}|g {2}!".format(src, tgt, name))
 
     def search4item(self, item):
         if item in self.dict:
