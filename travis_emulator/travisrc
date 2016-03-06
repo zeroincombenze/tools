@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.61.9
+#__version__=0.1.61.10
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -16,7 +16,7 @@ opts_travis () {
     else
       TCONF=$TDIR/.travis.conf
     fi
-    if [ $opt_verbose -gt 0 ]; then
+    if [ ${opt_verbose:-0} -gt 0 ]; then
       export FLOG_ECHO=echo
     else
       export FLOG_ECHO=
@@ -102,7 +102,7 @@ inherits_travis_opts () {
       fi
     fi
     if [[ $e =~ v ]]; then
-      if [ $opt_verbose -gt 0 ]; then
+      if [ ${opt_verbose:-0} -gt 0 ]; then
         opts="${opts}v"
       fi
     fi
@@ -139,12 +139,12 @@ init_travis () {
     fi
     if [ ${opt_verbose:-0} -eq 0 ]; then
       opt_verbose=$(get_cfg_value "" "loglevel")
-      if [ $opt_verbose -gt 0 ]; then opt_verbose=1; fi
+      if [ ${opt_verbose:-0} -gt 0 ]; then opt_verbose=1; fi
     elif [ ${opt_verbose:-0} -eq 1 ]; then
       opt_verbose=$(get_cfg_value "" "loglevel")
-      if [ $opt_verbose -eq 0 ]; then opt_verbose=1; fi
+      if [ ${opt_verbose:-0} -eq 0 ]; then opt_verbose=1; fi
     fi
-    if [ $opt_verbose -ne 0 ]; then
+    if [ ${opt_verbose:-0} -ne 0 ]; then
       opts_verbose=-v
       export FLOG_ECHO=echo
     else
@@ -490,7 +490,7 @@ update_dev () {
           else
             diff -q $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
             if [ $? -ne 0 ]; then
-              if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
               ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
             fi
           fi
@@ -503,7 +503,7 @@ update_dev () {
           elif [ ${opt_fetch:-0} -eq 0 ]; then
              diff -rq $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
              if [ $? -ne 0 ]; then
-               if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
+               if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
                ((${opt_dry_run:-0}))||cp -R $PKGPATH/$pkgname/$x $XDPATH/
              fi
           fi
@@ -520,7 +520,7 @@ update_dev () {
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               true
             else
-              if [ $opt_verbose -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
               ((${opt_dry_run:-0}))||cp $PKGPATH/$pkgname/$x ~/bin/$x
             fi
           fi
@@ -738,14 +738,10 @@ please_test_bash () {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f
       for f in $(find . -type f|tr "\n" " "); do
-        #if [ $opt_verbose -gt 0 ]; then
-        #    echo ".. $f"
-        #fi
-        local x=$(head $f -n1)
-        if [ "$x" == "#!/bin/bash" -o "$x" == "#! /bin/bash" ]; then
-          #if [ $opt_verbose -gt 0 ]; then
-          #  wlog "$ bash -n $f"
-          #fi
+        if [ "$(head $f -n1|grep ^\#\![[:space:]]*/bin/bash 2>/dev/null)" ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            elog "$ bash -n $f"
+          fi
           bash -n $f
           local s=$?
           if [ $sts -eq $STS_SUCCESS ]; then
@@ -861,7 +857,7 @@ run_coverage_test () {
         # find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
         if [ -f ./__main__.py ]; then
           coverage erase
-          if [ $opt_verbose -gt 0 ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
             echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
           fi
           DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py

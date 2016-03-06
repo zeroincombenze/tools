@@ -38,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.7
+__version__=0.1.8
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
@@ -58,7 +58,7 @@ OPTOPTS=(h        C         c        n            R        r     t         V    
 OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_regr opt_r test_mode opt_version opt_verbose)
 OPTACTI=(1        "1>"      "="      "1>"         "1>"     1     1         "*>"        1)
 OPTDEFL=(0        0         ""        0            0       0     0         ""          0)
-OPTMETA=("help"   "check"   "filr"   "do nothing" "test"   "rxt" "test"    "version"   "verbose")
+OPTMETA=("help"   "check"   "file"   "do nothing" "test"   "rxt" "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do flake8 and pylint checks"\
  "configuration file"\

@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.70.7
+__version__=0.1.70.8
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -514,7 +514,7 @@ exit_n_status () {
       publish_svg "."
     fi
     if [ $opt_dry_run -eq 0 -a $opt_replica -gt 0 -a "$HOSTNAME" == "$DEV_HOST" ]; then
-      elog "ssh $PRD_HOST \"~/bin/cronow -s $THIS\""
+      elog "$ ssh $PRD_HOST \"~/bin/cronow -s $THIS\""
       ssh $PRD_HOST "~/bin/cronow -s $THIS"
     fi
     if [ $opt_dry_run -eq 0 ]; then
