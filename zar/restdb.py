@@ -41,7 +41,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.22"
+__version__ = "2.1.21.23"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -348,10 +348,11 @@ class Restore_Image:
                 i = line.rfind('\n')
                 if i >= 0 and line[0:1] != "#":
                     line = line.replace("\\ ", "\\b")
-                    line = re.sub('s+', ' ', line).strip()
+                    line = re.sub('\s+', ' ', line).strip()
                     f = string.split(line, ' ')
                     self.add_dict_entr(f[0], f[1], f[2])
                 line = cnf_fd.readline()
+            cnf_fd.close()
         except:
             os0.wlog("No dictionary file", self.fconf, "found!")
 

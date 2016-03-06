@@ -1,5 +1,5 @@
-# Config file travis.yml for local test
-# version 0.1.2
+# Config file travis.yml for no Odoo package test
+# version 0.1.3
 
 language: python
 sudo: false
