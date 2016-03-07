@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.41
+__version__=0.1.42
 
 
 process_local () {

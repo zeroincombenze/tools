@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.70.8
+__version__=0.1.71
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)

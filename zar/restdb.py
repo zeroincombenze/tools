@@ -19,10 +19,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-"""
-     Restore database files from Production Machine to Development Machine
-     Make 2 server quite identical, ready to use
-     May be used to create a mirror server of Zeroincombenze®
+"""Restore database files from Production Machine to Development Machine
+Make 2 server quite identical, ready to use
+May be used to create a mirror server of Zeroincombenze®
+Translation file rules (restconf.ini).
+every line ha follow format: filename \t src \t tgt
+where filename maybe:
+#
+    every line beginning with '#' ia a remark
+realfilename (i.e. http.conf)
+    every 'src' text is replaced by 'tgt' text
+sqlname->wp (ie. mysite.sql->wp)
+    every 'src' is wp param and 'tgt' is the its value
+sqlname->wiki (ie. mysite.sql->wiki)
+    every 'src' is wikimedia param and 'tgt' is the its value
+sqlname/ (ie mysite.sql/)
+    every line is an SQL statement to execute at the end;
+    spaces are written with escape \ character (ie. update\ table ...)
 """
 
 
@@ -41,7 +54,7 @@ import string
 import re
 
 
-__version__ = "2.1.21.23"
+__version__ = "2.1.22"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -365,7 +378,7 @@ class Restore_Image:
         else:
             self.dict[name] = [key]
         self.xtl[key] = val
-        os0.wlog("> s|{0}]|{1}|g {2}!".format(src, tgt, name))
+        # os0.wlog("> s|{0}|{1}|g {2}!".format(src, tgt, name))
 
     def search4item(self, item):
         if item in self.dict:
@@ -564,16 +577,14 @@ class Restore_Image:
             os0.wlog("  file", fqn, "empty!!!")
         else:
             fxch = False
-
             # Search for text substitution (Wordpress)
             f = dbname + "->wp"
             ctx = self.get_params(f)
             if ctx['prefix'] != "" and ctx['siteURL'] != "":
                 fxch = True
                 fqn_str = self.repl_data_wp(ctx, fqn_str)
-
+            # Search for sql command to append
             f = dbname + "/"
-            # Search for text substitution
             key_ids = self.search4item(f)
             if key_ids:
                 fxch = True
@@ -583,10 +594,10 @@ class Restore_Image:
                     src = src.replace("\\b", " ")
                     tgt = self.xtl[key][1]
                     tgt = tgt.replace("\\b", " ")
+                    os0.trace_debug(">", src, tgt, ";")
                     fqn_str = fqn_str + src + " " + tgt + ";\n"
-
+            # Search for text substitution in SQL statements
             f = dbname + self.sql_ext
-            # Search for text substitution
             key_ids = self.search4item(f)
             if key_ids:
                 fxch = True
@@ -597,12 +608,10 @@ class Restore_Image:
                     tgt = self.xtl[key][1]
                     tgt = tgt.replace("\\b", " ")
                     os0.trace_debug("> sed|{0}|{1}|".format(src, tgt))
-                    # Substitute text in file
                     fqn_str = fqn_str.replace(src, tgt)
 
             if fxch:
                 fqn_fd = open(fqn, 'w')
-                # write file with substitutions
                 fqn_fd.write(fqn_str)
                 fqn_fd.close()
 

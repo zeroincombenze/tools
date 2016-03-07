@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.25.5"
+__version__="1.4.26"
 
 # set -x
 publog="/var/log/restwww.log"

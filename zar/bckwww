@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.7.22.5"
+__version__="1.7.23"
 
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"

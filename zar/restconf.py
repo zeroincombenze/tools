@@ -39,7 +39,7 @@ import string
 import re
 
 
-__version__ = "2.0.28.11"
+__version__ = "2.0.29"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)

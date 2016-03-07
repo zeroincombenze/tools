@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="0.1.24"
+__version__="0.1.25"
 
 
 ant_rm_trap () {

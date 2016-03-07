@@ -40,7 +40,7 @@ from datetime import date, timedelta
 import re
 
 
-__version__ = "2.1.24.17"
+__version__ = "2.1.25"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)

@@ -39,7 +39,7 @@ import platform
 from datetime import datetime
 
 
-__version__ = "2.1.16.18"
+__version__ = "2.1.17"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
