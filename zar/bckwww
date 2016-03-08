@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.7.23"
+__version__="1.7.24"
 
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
@@ -51,7 +51,11 @@ do
   x2=${db: -2:1}
   if [ "$xx" == "/" -a "$x1" != "_" -a "$x2" != "~" ]
   then
-    Ok=1
+    if [ "$[db:0:6}" == "__old_" }; then
+      Ok=0
+    else
+      Ok=1
+    fi
     if [ -n "$excl" ]
     then
       echo "$excl"|grep $db >/dev/null
