@@ -1,5 +1,13 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+#
+# bckwww
+# backup apache public directories
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 if [ -e $TDIR/z0librc ]; then
@@ -10,12 +18,39 @@ elif [ -e ../z0librc ]; then
 . ../z0librc
 elif [ -e ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
 fi
 
-__version__="1.7.24"
+__version__="1.7.24.1"
 
+OPTOPTS=(h        V           v)
+OPTDEST=(opt_help opt_version opt_verbose)
+OPTACTI=(1        "*"         1)
+OPTDEFL=(0        ""          0)
+OPTMETA=("help"   "version"   "verbose")
+OPTHELP=("this help, type '$THIS help' for furthermore info"\
+ "show version end exit"\
+ "verbose mode")
+OPTARGS=(seldir)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Backup apache public directories"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+if [ -z "$seldir" ]; then
+  seldir="*"
+fi
 publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
@@ -41,7 +76,7 @@ cd $htmd
 echo cd $bd>>$ff
 echo lcd $bd>>$ff
 flst="$HOME/tmp_www.lst"
-dir -1F >$flst
+dir -1F $seldir>$flst
 exec 3< $flst
 # set -x
 while read -u 3 -r db
@@ -51,7 +86,7 @@ do
   x2=${db: -2:1}
   if [ "$xx" == "/" -a "$x1" != "_" -a "$x2" != "~" ]
   then
-    if [ "$[db:0:6}" == "__old_" }; then
+    if [ "${db:0:6}" == "__old_" ]; then
       Ok=0
     else
       Ok=1
