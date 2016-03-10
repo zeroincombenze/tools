@@ -25,7 +25,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.7.24.1"
+__version__="1.7.24.2"
 
 OPTOPTS=(h        V           v)
 OPTDEST=(opt_help opt_version opt_verbose)
@@ -76,7 +76,7 @@ cd $htmd
 echo cd $bd>>$ff
 echo lcd $bd>>$ff
 flst="$HOME/tmp_www.lst"
-dir -1F $seldir>$flst
+dir -1dF $seldir>$flst
 exec 3< $flst
 # set -x
 while read -u 3 -r db
