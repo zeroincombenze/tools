@@ -30,16 +30,13 @@
 import os
 import os.path
 import sys
-import ConfigParser
 from os0 import os0
-import platform
 from subprocess import call
 import string
 import re
-from zarlib import parse_args, read_config, default_conf
-from zarlib import create_params_dict
+from zarlib import parse_args, check_if_running
 
-__version__ = "2.0.29"
+__version__ = "2.0.29.1"
 
 
 def version():
@@ -48,66 +45,100 @@ def version():
 
 class Restore_Image:
 
-    def _init_conf(self):
-        cfg_obj = ConfigParser.SafeConfigParser(default_conf())
-        s = "Environment"
-        cfg_obj.add_section(s)
-        cfg_obj.set(s, "production_host", "shsprd16")
-        cfg_obj.set(s, "development_host", "shsdev16")
-        cfg_obj.set(s, "mirror_host", "shsprd14")
-        cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
-        cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
-        cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
-        cfg_obj.set(s, "data_translation", "restconf.ini")
-        cfg_obj.set(s, "no_translation", "restconf-0.ini")
-        cfg_obj.set(s, "debug", "0")
-        cfg_obj.read('.zar.conf')
-        return cfg_obj
-
-    def __init__(self, dbg_mode):
-        self.hostname = platform.node()                         # Get Hostname
-        self.pid = os.getpid()
-        cfg_obj = self._init_conf()
-        s = "Environment"
-        if (dbg_mode is None):
-            dbg_mode = cfg_obj.getboolean(s, "debug")
-        os0.set_debug_mode(dbg_mode)
-        # Production machine
-        self.prodhost = cfg_obj.get(s, "production_host")
-        # Development machine
-        self.devhost = cfg_obj.get(s, "development_host")
-        # Mirror machine
-        self.mirrorhost = cfg_obj.get(s, "mirror_host")
+    def __init__(self, ctx):
+        self.hostname = ctx['hostname']
+        os0.set_debug_mode(ctx['dbg_mode'])
+        self.prodhost = ctx['production_host']
+        self.devhost = ctx['development_host']
+        self.mirrorhost = ctx['mirror_host']
+        self.pgdir = ctx['pg_dir']
+        self.mysqldir = ctx['mysql_dir']
         homedir = os.path.expanduser("~")
-        # Temporary ftp command script
-        self.ftp_cfn = homedir + "/" + cfg_obj.get(s, "ftp_script")
-        self.flist = homedir + "/" + cfg_obj.get(s, "list_file")    # File list
-        os0.set_tlog_file(cfg_obj.get(s, "tracelog"))
+        self.ftp_cfn = homedir + "/" + ctx['ftp_script']
+        self.flist = homedir + "/" + ctx['list_file']
+        os0.set_tlog_file(ctx['logfn'])
         # Log begin execution
-        os0.wlog("Restore configuration files", __version__)
+        os0.wlog("Backup database files", __version__)
         # Simulate backup
-        self.dry_run = True
-        if self.hostname == self.prodhost:
-            os0.wlog("This command cannot run on production machine")
-            self.bck_host = self.devhost
-            raise Exception("Command aborted due production machine")
-        elif self.hostname == self.mirrorhost:
-            os0.wlog("Running on mirror machine")
-            self.bck_host = self.prodhost
-            self.dry_run = False
-            self.fconf = homedir + "/" + \
-                cfg_obj.get(s, "no_translation")
-        elif self.hostname == self.devhost:
-            os0.wlog("Running on development machine")
-            self.bck_host = self.prodhost
-            self.dry_run = False
-            self.fconf = homedir + "/" + \
-                cfg_obj.get(s, "data_translation")
-        else:
-            os0.wlog("Unknown machine - Command aborted")
-            raise Exception("Command aborted due unknown machine")
-
-        self.ftp_dir = ""                                       # No subdir
+        self.dry_run = ctx['dry_run']
+        if ctx['saveset'] == "bckdb" or \
+                ctx['saveset'] == "bckconf" or \
+                ctx['saveset'] == "bckwww":
+            if self.hostname == self.prodhost:
+                os0.wlog("Running on production machine")
+                if ctx['alt']:
+                    self.bck_host = self.mirrorhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.mirrorhost:
+                os0.wlog("Running on mirror machine")
+                if ctx['alt']:
+                    self.bck_host = self.prodhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.devhost:
+                os0.wlog("This command cannot run on development machine")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due invalid machine")
+            else:
+                os0.wlog("Unknown machine - Command aborted")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due unknown machine")
+        elif ctx['saveset'] == "restdb" or \
+                ctx['saveset'] == "restconf" or \
+                ctx['saveset'] == "restwww":
+            if self.hostname == self.prodhost:
+                os0.wlog("This command cannot run on production machine")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due production machine")
+            elif self.hostname == self.mirrorhost:
+                os0.wlog("Running on mirror machine")
+                if ctx['alt']:
+                    self.bck_host = self.prodhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.devhost:
+                os0.wlog("Running on development machine")
+                if ctx['alt']:
+                    self.bck_host = self.mirrorhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            else:
+                os0.wlog("Unknown machine - Command aborted")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due unknown machine")
+        # May be (.gz or .bz2)
+        self.tar_ext = ctx['tar_ext']
+        # May be (z or j)
+        self.tar_opt = ctx['tar_opt']
+        # May be (null or .sql)
+        self.pre_ext = ctx['pre_ext']
+        # May be (null or .sql)
+        self.sql_ext = ctx['sql_ext']
+        self.psql_uu = ctx['pgsql_user']
+        self.psql_db = ctx['pgsql_def_db']
+        self.mysql_uu = ctx['mysql_user']
+        self.mysql_db = ctx['mysql_def_db']
+        self.pid = os.getpid()
+        self.ftp_rootdir = ""
+        self.ftp_dir = ""
+        self.dbtype = ""
         self.create_dict()
 
     def create_dict(self):
@@ -254,9 +285,13 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    ctx = parse_args(sys.argv[1:])
-    dbg_mode = ctx['dbg_mode']
-    RI = Restore_Image(dbg_mode)
+    ctx = parse_args(sys.argv[1:],
+                     version=version(),
+                     doc=__doc__)
+    RI = Restore_Image(ctx)
+    f_alrdy_run = check_if_running(ctx, RI.pid)
+    if f_alrdy_run:
+        os0.wlog("({0}) ***Another instance is running!!!".format(RI.pid))
     try:
         ls_fd = open(RI.flist, "r")
     except:
@@ -285,12 +320,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # if running detached
-    if os.isatty(0):
-        dbg_mode = False
-    else:
-        dbg_mode = True
-    dbg_mode = True    # temporary
     sts = main()
     sys.exit(sts)
 

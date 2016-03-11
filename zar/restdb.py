@@ -19,7 +19,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-"""Restore database files from Production Machine to Development Machine
+r"""Restore database files from Production Machine to Development Machine
 Make 2 server quite identical, ready to use
 May be used to create a mirror server of Zeroincombenze®
 Translation file rules (restconf.ini).
@@ -43,19 +43,16 @@ sqlname/ (ie mysite.sql/)
 import os
 import os.path
 import sys
-import ConfigParser
 from os0 import os0
 import glob
-import platform
 from datetime import date, datetime, timedelta
 import time
 import string
 import re
-from zarlib import parse_args, read_config, default_conf
-from zarlib import create_params_dict
+from zarlib import parse_args, check_if_running
 
 
-__version__ = "2.1.22"
+__version__ = "2.1.22.1"
 
 
 def version():
@@ -64,89 +61,100 @@ def version():
 
 class Restore_Image:
 
-    def _init_conf(self):
-        cfg_obj = ConfigParser.SafeConfigParser(default_conf())
-        s = "Environment"
-        cfg_obj.add_section(s)
-        cfg_obj.set(s, "production_host", "shsprd16")
-        cfg_obj.set(s, "development_host", "shsdev16")
-        cfg_obj.set(s, "mirror_host", "shsprd14")
-        cfg_obj.set(s, "ftp_script", "%(appname)s.ftp")
-        cfg_obj.set(s, "list_file", "%(bckapp)s.ls")
-        cfg_obj.set(s, "tracelog", "/var/log/%(appname)s.log")
-        cfg_obj.set(s, "data_translation", "restconf.ini")
-        cfg_obj.set(s, "no_translation", "restconf-0.ini")
-        cfg_obj.set(s, "debug", "0")
-        cfg_obj.read('.zar.conf')
-        return cfg_obj
-
-    def __init__(self, dbg_mode):
-        self.hostname = platform.node()                         # Get Hostname
-        self.pid = os.getpid()
-        cfg_obj = self._init_conf()
-        s = "Environment"
-        if (dbg_mode is None):
-            dbg_mode = cfg_obj.getboolean(s, "debug")
-        os0.set_debug_mode(dbg_mode)
-        # Production machine
-        self.prodhost = cfg_obj.get(s, "production_host")
-        # Development machine
-        self.devhost = cfg_obj.get(s, "development_host")
-        # Mirror machine
-        self.mirrorhost = cfg_obj.get(s, "mirror_host")
+    def __init__(self, ctx):
+        self.hostname = ctx['hostname']
+        os0.set_debug_mode(ctx['dbg_mode'])
+        self.prodhost = ctx['production_host']
+        self.devhost = ctx['development_host']
+        self.mirrorhost = ctx['mirror_host']
+        self.pgdir = ctx['pg_dir']
+        self.mysqldir = ctx['mysql_dir']
         homedir = os.path.expanduser("~")
-        # Temporary ftp command script
-        self.ftpcf = homedir + "/" + cfg_obj.get(s, "ftp_script")
-        # File list
-        self.flist = homedir + "/" + cfg_obj.get(s, "list_file")
-        # Tracelog file
-        os0.set_tlog_file(cfg_obj.get(s, "tracelog"))
-        # Translation file
-        self.fconf = homedir + "/" + \
-            cfg_obj.get(s, "data_translation")
+        self.ftp_cfn = homedir + "/" + ctx['ftp_script']
+        self.flist = homedir + "/" + ctx['list_file']
+        os0.set_tlog_file(ctx['logfn'])
         # Log begin execution
-        os0.wlog("Restore database files {0} ({1})".format(
-            __version__, self.pid))
+        os0.wlog("Backup database files", __version__)
         # Simulate backup
-        self.dry_run = True
-        if self.hostname == self.prodhost:
-            os0.wlog("This command cannot run on production machine")
-            # Restore onto prod machine
-            self.bck_host = "shsdev16"
-            # Restore onto prod machine !?
-            raise Exception("Command aborted due production machine")
-        elif self.hostname == self.mirrorhost:
-            os0.wlog("Running on mirror machine")
-            # Backup onto prod machine
-            self.bck_host = "shsprd14"
-            self.dry_run = False                               # Real restore
-        elif self.hostname == self.devhost:
-            os0.wlog("Running on development machine")
-            # Restore onto dev machine !?
-            self.bck_host = "shsprd14"
-            self.dry_run = False                               # Real restore
-        else:
-            os0.wlog("Unknown machine - Command aborted")
-            raise Exception("Command aborted due unknown machine")
-
-        self.ftp_rootdir = ""                                   # No root dir
-        self.ftp_dir = ""                                       # No subdir
-
+        self.dry_run = ctx['dry_run']
+        if ctx['saveset'] == "bckdb" or \
+                ctx['saveset'] == "bckconf" or \
+                ctx['saveset'] == "bckwww":
+            if self.hostname == self.prodhost:
+                os0.wlog("Running on production machine")
+                if ctx['alt']:
+                    self.bck_host = self.mirrorhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.mirrorhost:
+                os0.wlog("Running on mirror machine")
+                if ctx['alt']:
+                    self.bck_host = self.prodhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.devhost:
+                os0.wlog("This command cannot run on development machine")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due invalid machine")
+            else:
+                os0.wlog("Unknown machine - Command aborted")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due unknown machine")
+        elif ctx['saveset'] == "restdb" or \
+                ctx['saveset'] == "restconf" or \
+                ctx['saveset'] == "restwww":
+            if self.hostname == self.prodhost:
+                os0.wlog("This command cannot run on production machine")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due production machine")
+            elif self.hostname == self.mirrorhost:
+                os0.wlog("Running on mirror machine")
+                if ctx['alt']:
+                    self.bck_host = self.prodhost
+                    self.fconf = homedir + "/" + \
+                        ctx['no_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            elif self.hostname == self.devhost:
+                os0.wlog("Running on development machine")
+                if ctx['alt']:
+                    self.bck_host = self.mirrorhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+                else:
+                    self.bck_host = self.devhost
+                    self.fconf = homedir + "/" + \
+                        ctx['data_translation']
+            else:
+                os0.wlog("Unknown machine - Command aborted")
+                if not ctx['dry_run']:
+                    raise Exception("Command aborted due unknown machine")
         # May be (.gz or .bz2)
-        self.tar_ext = ".gz"
+        self.tar_ext = ctx['tar_ext']
         # May be (z or j)
-        self.tar_opt = "z"
+        self.tar_opt = ctx['tar_opt']
         # May be (null or .sql)
-        self.pre_ext = ".sql"
+        self.pre_ext = ctx['pre_ext']
         # May be (null or .sql)
-        self.sql_ext = ".sql"
-
-        self.psql_uu = "postgres"                               # Postgres UID
-        self.psql_db = "postgres"                               # Default DB
-        self.mysql_uu = "mysql"                                 # Mysql UID
-        self.mysql_db = "mysql"                                 # Default DB
+        self.sql_ext = ctx['sql_ext']
+        self.psql_uu = ctx['pgsql_user']
+        self.psql_db = ctx['pgsql_def_db']
+        self.mysql_uu = ctx['mysql_user']
+        self.mysql_db = ctx['mysql_def_db']
+        self.pid = os.getpid()
+        self.ftp_rootdir = ""
+        self.ftp_dir = ""
         self.dbtype = ""
-
         self.create_dict()
 
     def create_dict(self):
@@ -161,7 +169,7 @@ class Restore_Image:
                 i = line.rfind('\n')
                 if i >= 0 and line[0:1] != "#":
                     line = line.replace("\\ ", "\\b")
-                    line = re.sub('\s+', ' ', line).strip()
+                    line = re.sub('\\s+', ' ', line).strip()
                     f = string.split(line, ' ')
                     self.add_dict_entr(f[0], f[1], f[2])
                 line = cnf_fd.readline()
@@ -731,30 +739,13 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    ctx = parse_args(sys.argv[1:])
-    dbg_mode = ctx['dbg_mode']
-    RI = Restore_Image(dbg_mode)
-    # dbname="wp-zi-com"      ##debug
-    # sql_fn="restdb.sql"     ##debug
-    # RI.repl_data(dbname, sql_fn)  ###debug
-    # exit    ##debug
-    # Check for another instance running
-    f_alrdy_run = False
-    cmd = "ps aux|grep restdb.py"
-    os0.muteshell(cmd, keepout=True)
-    stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
-    rxmatch = "root .* python .*restdb.py.*"
-    rxnmatch = "root .* {0} .*".format(RI.pid)
-    line = stdinp_fd.readline()
-    while line != "" and not f_alrdy_run:
-        i = line.rfind('\n')
-        if i >= 0:
-            if re.match(rxmatch, line) and not re.match(rxnmatch, line):
-                f_alrdy_run = True
-                os0.wlog("({0}) ***Another instance is running!!!"
-                         .format(RI.pid))
-        line = stdinp_fd.readline()
-    stdinp_fd.close()
+    ctx = parse_args(sys.argv[1:],
+                     version=version(),
+                     doc=__doc__)
+    RI = Restore_Image(ctx)
+    f_alrdy_run = check_if_running(ctx, RI.pid)
+    if f_alrdy_run:
+        os0.wlog("({0}) ***Another instance is running!!!".format(RI.pid))
     # Restore files
     file_r_ctr = 0
     file_u_ctr = 0
@@ -775,7 +766,7 @@ def main():
                 time.sleep(90)
                 fl = RI.extract_fn_2_restore()
                 os0.wlog("  found", fl, "?")
-    if not dbg_mode and os.path.isfile(os0.setlfilename(os0.bgout_fn)):
+    if not ctx['dbg_mode'] and os.path.isfile(os0.setlfilename(os0.bgout_fn)):
         os.remove(os0.setlfilename(os0.bgout_fn))
     if not f_alrdy_run:
         os0.wlog("Restore DB ended."
@@ -785,12 +776,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # if running detached
-    if os.isatty(0):
-        dbg_mode = False
-    else:
-        dbg_mode = True
-    dbg_mode = True     # debug
     sts = main()
     sys.exit(sts)
 
