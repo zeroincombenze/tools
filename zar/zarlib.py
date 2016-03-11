@@ -41,7 +41,8 @@ OE_CONF = False
 
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
-LX_CFG_S = ('hostname',
+LX_CFG_S = ('saveset_list',
+            'hostname',
             'production_host',
             'development_host',
             'mirror_host',
@@ -71,7 +72,7 @@ LX_CFG_B = ()
 # or else are just in line command
 LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'dry_run', 'saveset', 'logfn')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_CFG_B = ('alt', 'xtall')
+LX_OPT_CFG_B = ('alt', 'xtall', 'do_list')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_N = ()
 # list of opponent options
@@ -100,7 +101,7 @@ def default_conf(ctx):
         r = a
     else:
         r = a + "_rest"
-    DEFDCT = {"saveset_list": "",
+    DEFDCT = {"saveset_list": "bckdb,restdb,bckconf,restconf",
               "appname": a,
               "bckapp": b,
               "restapp": r,
@@ -154,7 +155,8 @@ def create_def_params_dict(ctx):
     """Create default params dictionary"""
     opt_obj = ctx.get('_opt_obj', None)
     conf_obj = ctx.get('_conf_obj', None)
-    s = "options"
+    # s = "options"
+    s = "Environment"
     if conf_obj:
         if not conf_obj.has_section(s):
             conf_obj.add_section(s)
@@ -207,6 +209,10 @@ def create_params_dict(ctx):
             ctx['logfn'] = ctx['tlog']
         else:
             ctx['logfn'] = "~/" + ctx['caller'] + ".log"
+    if saveset:
+        s = saveset.strip()
+        if conf_obj.has_section(s):
+            pass
     return ctx
 
 
@@ -293,7 +299,7 @@ def create_parser(version, doc, ctx):
     parser.add_argument("-L", "--list",
                         help="list configuration saveset names",
                         action="store_true",
-                        dest="list",
+                        dest="do_list",
                         default=False)
     parser.add_argument("-n", "--dry_run",
                         help="test execution mode",

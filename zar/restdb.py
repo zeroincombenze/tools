@@ -742,6 +742,9 @@ def main():
     ctx = parse_args(sys.argv[1:],
                      version=version(),
                      doc=__doc__)
+    if ctx['do_list']:
+        print ctx['saveset_list']
+        return sts
     RI = Restore_Image(ctx)
     f_alrdy_run = check_if_running(ctx, RI.pid)
     if f_alrdy_run:
