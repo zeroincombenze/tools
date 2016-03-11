@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.1"
+__version__ = "2.1.25.2"
 
 
 def version():
@@ -148,7 +148,7 @@ class Backup_Mirror:
         self.mysql_db = ctx['mysql_def_db']
         self.init_bck()
 
-    def gen_db_list(self, dbtype, user, sqlcmd):
+    def gen_db_list(self, dbtype, user, sqlcmd, cxt):
         # pdb.set_trace()
         dblist = []
         os0.wlog(" Creating", dbtype, "db list")
@@ -158,13 +158,20 @@ class Backup_Mirror:
             cmdlog = cmd
         elif dbtype == "mysql":
             cmd = sqlcmd + " -u " + user + \
-                " --password=SHS13mgr -e \"show databases;\" mysql"
+                " --password=" + ctx['mysql_pwd'] + \
+                "-e \"show databases;\" mysql"
             cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
         else:
             cmd = ""
             cmdlog = cmd
         os0.trace_debug("$", cmdlog)
         os0.muteshell(cmd, simulate=self.dry_run, keepout=True)
+        if ctx['db_name']:
+            sel_db = ctx['db_name']
+        else:
+            sel_db = '.*'
+        if os0.debug_mode:
+            os0.wlog("> deb selection", sel_db)
         stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
         line = stdinp_fd.readline()
         while line != "":
@@ -174,13 +181,15 @@ class Backup_Mirror:
                     if line[0:1] == ' ' and line[1:2] != ' ':
                         x = line.split('|')
                         dbname = x[0].strip()
-                        if re.match("z[ei].*|demo", dbname):
+                        if re.match("z[ei].*|demo.*", dbname) and \
+                                re.match(sel_db, dbname):
                             dblist.append(dbname)
                             if os0.debug_mode:
                                 os0.wlog("> dblist.append({0})".format(dbname))
                 elif dbtype == "mysql":
                     dbname = line.strip()
-                    if re.match("w.*|mg.*|assioma.*", dbname):
+                    if re.match("w.*|mg.*|assioma.*", dbname) and \
+                                re.match(sel_db, dbname):
                         dblist.append(dbname)
                         if os0.debug_mode:
                             os0.wlog("> dblist.append({0})".format(dbname))
@@ -442,13 +451,7 @@ def main():
 # Backup postgres database
     if BM.pgdir:
         BM.chdir(BM.pgdir)
-        dblist = BM.gen_db_list("psql", "odoo", "psql")
-        if ctx['db_name'] != "":
-            if ctx['db_name'] in dblist:
-                dblist = []
-                dblist.append(ctx['db_name'])
-            else:
-                dblist = []
+        dblist = BM.gen_db_list("psql", "odoo", "psql", ctx)
         for db in dblist:
             BM.init_bck(BM.chdir(BM.pgdir))
             BM.bck_db("psql", [db], "odoo", "pg_dump")
@@ -458,13 +461,7 @@ def main():
     if BM.mysqldir:
         BM.init_bck(BM.chdir(BM.mysqldir))
         # BM.chdir("/var/lib/mysql")
-        dblist = BM.gen_db_list("mysql", "root", "mysql")
-        if ctx['db_name'] != "":
-            if ctx['db_name'] in dblist:
-                dblist = []
-                dblist.append(ctx['db_name'])
-            else:
-                dblist = []
+        dblist = BM.gen_db_list("mysql", "root", "mysql", ctx)
         BM.bck_db("mysql", dblist,  "root", "mysqldump")
         BM.exec_bck()
 

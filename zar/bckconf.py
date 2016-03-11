@@ -37,7 +37,7 @@ from datetime import datetime
 from zarlib import parse_args
 
 
-__version__ = "2.1.17.1"
+__version__ = "2.1.17.2"
 
 
 def version():
@@ -259,7 +259,7 @@ def main():
                      "restconf.ini",            "restconf-0.ini",
                      "restdb",   "restdb.py",   "restwww",
                      "ssl_certificate",         "statdb",
-                     "zarlib"]
+                     "zarlib.py"]
     for fl in file_2_backup:
         if os.path.isfile(fl):
             os0.wlog(" ", fl)

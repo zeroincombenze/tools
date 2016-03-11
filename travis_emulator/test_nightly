@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.71.1
+__version__=0.1.71.2
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -656,7 +656,7 @@ if [ $EUID -eq 0 ]; then
         [ $sts -eq 0 ]&&sts=$s
       fi
     fi
-    cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib" "root:root"
+    cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py" "root:root"
     s=$?
     [ $sts -eq 0 ]&&sts=$s
     cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
