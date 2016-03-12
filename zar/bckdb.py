@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.5"
+__version__ = "2.1.25.6"
 
 
 def version():
@@ -160,8 +160,7 @@ class Backup_Mirror:
             cmd = sqlcmd + " -u " + user + \
                 " --password=" + ctx['mysql_pwd'] + \
                 "-e \"show databases;\" mysql"
-            #cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
-            cmdlog = cmd
+            cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
         else:
             cmd = ""
             cmdlog = cmd
@@ -176,6 +175,7 @@ class Backup_Mirror:
         stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
         line = stdinp_fd.readline()
         while line != "":
+            os0.trace_debug("<", line, ">") #debug
             i = line.rfind('\n')
             if i >= 0:
                 if dbtype == "psql":
@@ -198,7 +198,6 @@ class Backup_Mirror:
         stdinp_fd.close()
 
         if not os0.debug_mode and not self.dry_run and os0.bgout_fn != "":
-            # Delete files list
             os.remove(os0.setlfilename(os0.bgout_fn, 'r'))
 
         return dblist
@@ -454,7 +453,7 @@ def main():
 #
 # Backup postgres database
     if BM.pgdir:
-        BM.chdir(BM.pgdir)
+        # BM.chdir(BM.pgdir)
         dblist = BM.gen_db_list("psql", "odoo", "psql", ctx)
         for db in dblist:
             BM.init_bck(BM.chdir(BM.pgdir))
@@ -463,11 +462,12 @@ def main():
 #
 # Backup mysql database
     if BM.mysqldir:
-        BM.init_bck(BM.chdir(BM.mysqldir))
-        # BM.chdir("/var/lib/mysql")
+        # BM.chdir(BM.mysqldir)
         dblist = BM.gen_db_list("mysql", "root", "mysql", ctx)
-        BM.bck_db("mysql", dblist,  "root", "mysqldump")
-        BM.exec_bck()
+        for db in dblist:
+            BM.init_bck(BM.chdir(BM.mysqldir))
+            BM.bck_db("mysql", dblist,  "root", "mysqldump")
+            BM.exec_bck()
 
     os0.wlog("Backup DB ended.")
     return sts
