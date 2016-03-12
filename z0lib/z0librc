@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.34.1
+#__version__=0.1.35
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -224,29 +224,32 @@ export -f xuname
 parseoptargs() {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
-    jy=0
+    local jy=0
     while ((jy<${#OPTDEST[*]})); do
       export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
       ((++jy))
     done
-    jy=0
+    local jy=0
     while ((jy<${#OPTARGS[*]})); do
       export ${OPTARGS[jy]}=""
       ((++jy))
     done
-    kk=0
-    ii=1
+    local kk=0
+    local ii=1
+    local failed=0
     while ((ii<=$#)); do
-      oo="${!ii}"
+      local oo="${!ii}"
       if [ "${oo:0:1}" == "-" ]; then
-        jj=1
+        local jj=1
         while ((jj<${#oo})); do
           jy=0
+          local f=0
           while ((jy<${#OPTOPTS[*]})); do
             if [ "${oo:jj:1}" == ${OPTOPTS[jy]} ]; then
               # set -x
-              a=${OPTACTI[jy]}
-              b=${a:1:1}
+              f=1
+              local a=${OPTACTI[jy]}
+              local b=${a:1:1}
               if [ "$b" == ">" ]; then
                  export opt_help=0
                  export opt_version=""
@@ -273,6 +276,10 @@ parseoptargs() {
               ((++jy))
             fi
           done
+          if [ $f -eq 0 ]; then
+            local failed=1
+            break
+          fi
           ((++jj))
           # set +x
         done
@@ -284,6 +291,9 @@ parseoptargs() {
       fi
       ((++ii))
     done
+    if [ $failed -gt 0 ]; then
+      export opt_help=1
+    fi
 }
 export -f parseoptargs
 
@@ -420,7 +430,7 @@ run_traced () {
     fi
     if [ $opt_dry_run -eq 0 -o "${1:0:3}" == "cd " ]; then
       if [ "${1:0:5}" != "wlog " ];then
-        if [ $opt_verbose -gt 0 ]; then
+        if [ ${opt_verbose:-0} -gt 0 ]; then
           elog "\$ $xcmd"
         else
           wlog "\$ $xcmd"
@@ -431,7 +441,9 @@ run_traced () {
         sts=$?
       fi
     elif [ "${1:0:6}" != "sleep " ]; then
-      echo "--> $xcmd"
+      if [ ${opt_verbose:-0} -gt 0 ]; then
+        echo "> $xcmd"
+      fi
     fi
     $SET_X
     return $sts

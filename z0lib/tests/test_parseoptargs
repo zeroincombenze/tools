@@ -83,10 +83,10 @@ OPTARGS=()
 parseoptargs "-V"
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -h" "$opt_help" "0"
+ci-test "cmd -V [-h]" "$opt_help" "0"
 ci-test "cmd -V" "$opt_version" "-V"
-ci-test "cmd -n" "$tested_opt_dry_run" "0"
-ci-test "cmd -v" "$opt_verbose" "0"
+ci-test "cmd -V [-n]" "$tested_opt_dry_run" "0"
+ci-test "cmd _V [-v]" "$opt_verbose" "0"
 echo "Usage: test_parseoptargs [-hnVv]">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -111,10 +111,10 @@ OPTARGS=(tgt)
 parseoptargs "mytarget"
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -h mytarget" "$opt_help" "0"
-ci-test "cmd -V mytarget" "$opt_version" ""
-ci-test "cmd -n mytarget" "$tested_opt_dry_run" "0"
-ci-test "cmd -v mytarget" "$opt_path" "~/"
+ci-test "cmd mytarget [-h]" "$opt_help" "0"
+ci-test "cmd mytarget [-V]" "$opt_version" ""
+ci-test "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
+ci-test "cmd mytarget [-v]" "$opt_path" "~/"
 echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -128,11 +128,11 @@ ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 parseoptargs "-p" "./mypath" "yourtarget"
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -h ./mypath yourtarget" "$opt_help" "0"
-ci-test "cmd -V ./mypath yourtarget" "$opt_version" ""
-ci-test "cmd -n ./mypath yourtarget" "$tested_opt_dry_run" "0"
-ci-test "cmd -v ./mypath yourtarget" "$opt_path" "./mypath"
-ci-test "cmd -v ./mypath yourtarget" "$tgt" "yourtarget"
+ci-test "cmd -p ./mypath yourtarget [-h]" "$opt_help" "0"
+ci-test "cmd -p ./mypath yourtarget [-V]" "$opt_version" ""
+ci-test "cmd -p ./mypath yourtarget [-n]" "$tested_opt_dry_run" "0"
+ci-test "cmd -p ./mypath yourtarget [-p]" "$opt_path" "./mypath"
+ci-test "cmd -p ./mypath yourtarget [\$1]" "$tgt" "yourtarget"
 echo "Usage: test_parseoptargs [-hnV][-p path] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -159,12 +159,12 @@ OPTARGS=(tgt)
 parseoptargs "mytarget"
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -h mytarget" "$opt_help" "0"
-ci-test "cmd -V mytarget" "$opt_version" ""
-ci-test "cmd -n mytarget" "$tested_opt_dry_run" "0"
-ci-test "cmd -v mytarget" "$opt_path" "~/"
-ci-test "cmd -v mytarget" "$opt_own" "$USER"
-ci-test "cmd -v mytarget" "$tgt" "mytarget"
+ci-test "cmd mytarget [-h]" "$opt_help" "0"
+ci-test "cmd mytarget [-V]" "$opt_version" ""
+ci-test "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
+ci-test "cmd mytarget [-p]" "$opt_path" "~/"
+ci-test "cmd mytarget [-O]" "$opt_own" "$USER"
+ci-test "cmd mytarget [\$1]" "$tgt" "mytarget"
 echo "Usage: test_parseoptargs [-hn][-O own][-p path][-V] tgt">$FTEST
 echo "Unit test">>$FTEST
 echo " -h             this help">>$FTEST
@@ -176,8 +176,46 @@ print_help "Unit test"\
   "">$FOUT
 ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
 
+parseoptargs "mytarget" "-x"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -x mytarget [-h]" "$opt_help" "1"
+
 if [ -f $FOUT ]; then rm -f $FOUT; fi
 if [ -f $FTEST ]; then rm -f $FTEST; fi
+
+
+OPTOPTS=(h        a     b     c     d     e     f     g     i     j     k     l     V)
+OPTDEST=(opt_help opt_a opt_b opt_c opt_d opt_e opt_f opt_g opt_i opt_j opt_k opt_l opt_version)
+OPTACTI=(1        1     1     1     1     1     1     1     1     1     1     1     "*>")
+OPTDEFL=(0        0     0     0     0     0     0     0     0     0     0     0     "")
+OPTMETA=("help"   "o_a" "o_b" "o_c" "0_d" "o_e" "o_f" "o_g" "o_i" "o_j" "o_k" "o_l" "version")
+OPTHELP=("this help"\
+ "opt_a"\
+ "opt_b"\
+ "opt_c"\
+ "opt_d"\
+ "opt_e"\
+ "opt_f"\
+ "opt_g"\
+ "opt_i"\
+ "opt_j"\
+ "opt_k"\
+ "opt_l"\
+ "show version")
+OPTARGS=()
+
+parseoptargs "-a" "-b" "-c" "-d" "-e" "-f" "-g" "-i" "-j" "-k" "-l"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+for i in {a..l}; do
+  if [ "$i" == "h" ]; then
+    ci-test "cmd -a -b -c ... [-h]" "$opt_help" "0"
+  else
+    o="opt_$i"
+    ci-test "cmd -a -b -c ... [-$i]" "${!o}" "1"
+  fi
+done
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"

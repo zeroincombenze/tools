@@ -1,0 +1,112 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests for submodule of z0lib module
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
+__version__=0.1.1
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+
+test_run () {
+   # set -x
+   local SAVE_FLOG_ECHO=$FLOG_ECHO
+   local SAVE_FLOG=$FLOG
+   local SAVE_opt_verbose=$opt_verbose
+   FLOG_ECHO=
+   FLOG=
+   opt_verbose=
+   run_traced "$1"
+   local s=$?
+   opt_verbose=$SAVE_opt_verbose
+   FLOG=$SAVE_FLOG
+   FLOG_ECHO=$SAVE_FLOG_ECHO
+   # set +x
+   return $s
+}
+
+test_run "true"
+s=$?
+ci-test "run true" "$s" "$STS_SUCCESS"
+
+test_run "false"
+s=$?
+ci-test "run false" "$s" "$STS_FAILED"
+
+f="NOT_EXISTS"
+if [ -f $f ]; then rm -f $f; fi
+test_run "touch $f"
+s=$?
+if [ -f $f ]; then
+  ci-test "run touch $f" "$s" "$STS_SUCCESS"
+else
+  ci-test "run touch $f" "$s" "$STS_FAILED"
+fi
+
+test_run "rm -f $f"
+s=$?
+if [ -f $f ]; then
+  ci-test "rm -f $f" "$s" "$STS_FAILED"
+else
+  ci-test "rm -f $f" "$s" "$STS_SUCCESS"
+fi
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts
