@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.62.2
+#__version__=0.1.63
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -519,7 +519,7 @@ update_dev () {
         done
       fi
       if [ -n "$ME_BOS" ]; then
-        for x in $ME_BOS cronow; do
+        for x in $ME_BOS cronow replica.sh; do
           if [ -f $PKGPATH/$pkgname/$x ]; then
             if [ ${opt_diff:-0} -gt 0 ]; then
               if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x)" ]; then

@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.4"
+__version__ = "2.1.25.5"
 
 
 def version():
@@ -160,7 +160,8 @@ class Backup_Mirror:
             cmd = sqlcmd + " -u " + user + \
                 " --password=" + ctx['mysql_pwd'] + \
                 "-e \"show databases;\" mysql"
-            cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
+            #cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
+            cmdlog = cmd
         else:
             cmd = ""
             cmdlog = cmd
