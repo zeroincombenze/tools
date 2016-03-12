@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.6"
+__version__ = "2.1.25.7"
 
 
 def version():
@@ -435,8 +435,11 @@ class Backup_Mirror:
                 lpath = self.ftp_rootdir + '/' + p
                 self.set_chdir(lpath)                       # Set directory
                 self.ftp_dir = p                            # Remember subdir
-        self.ls_fd.write("{0}\n".format(fqn))
-        self.ftp_fd.write("put {0}\n".format(fn))
+        if fn == "wp-zi-it":
+            os0.wlog("DB {0} not replicated on dev host".format(fn))
+        else:
+            self.ls_fd.write("{0}\n".format(fqn))
+            self.ftp_fd.write("put {0}\n".format(fn))
 
 
 def main():
