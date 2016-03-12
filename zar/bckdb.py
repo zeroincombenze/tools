@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.2"
+__version__ = "2.1.25.4"
 
 
 def version():
@@ -148,7 +148,7 @@ class Backup_Mirror:
         self.mysql_db = ctx['mysql_def_db']
         self.init_bck()
 
-    def gen_db_list(self, dbtype, user, sqlcmd, cxt):
+    def gen_db_list(self, dbtype, user, sqlcmd, ctx):
         # pdb.set_trace()
         dblist = []
         os0.wlog(" Creating", dbtype, "db list")
@@ -171,7 +171,7 @@ class Backup_Mirror:
         else:
             sel_db = '.*'
         if os0.debug_mode:
-            os0.wlog("> deb selection", sel_db)
+            os0.wlog("> DB selection", sel_db)
         stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
         line = stdinp_fd.readline()
         while line != "":
@@ -189,7 +189,7 @@ class Backup_Mirror:
                 elif dbtype == "mysql":
                     dbname = line.strip()
                     if re.match("w.*|mg.*|assioma.*", dbname) and \
-                                re.match(sel_db, dbname):
+                            re.match(sel_db, dbname):
                         dblist.append(dbname)
                         if os0.debug_mode:
                             os0.wlog("> dblist.append({0})".format(dbname))

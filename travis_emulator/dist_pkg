@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.78
+__version__=0.1.78.1
 
 TCONF=$TDIR/.$THIS.conf
 # main
@@ -172,11 +172,11 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
         if [ ${enabled:-0} -gt 0 ]; then
           if [ "tgtparm" ]; then
             declare $y=$(echo "$tgtparm"|sed 's:\\::g')
-            if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PWD\" \"$tgtpath\" \"ssh $tgtparm\""; fi
-            robocopy "$PWD" "$tgtpath" "ssh $tgtparm"
+            if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""; fi
+            robocopy "$PKGPATH" "$tgtpath" "ssh $tgtparm"
           else
-           if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PWD\" \"$tgtpath\" \"ssh\""; fi
-            robocopy "$PWD" "$tgtpath" "ssh"
+           if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh\""; fi
+            robocopy "$PKGPATH" "$tgtpath" "ssh"
           fi
         fi
         f_done=1

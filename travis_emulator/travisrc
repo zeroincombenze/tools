@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.62
+#__version__=0.1.62.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -455,7 +455,7 @@ update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
     ME_BOS="test_nightly .test_nightly.conf.sample"
     if [ "$1" == "travis_emulator" ]; then
-      RFLIST="autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff topep8 travis .travis.conf travisrc vfcp vfdiff wok_doc wok_doc.py"
+      RFLIST="autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
       RDLIST="_travis/"
     elif [ "$1" == "z0lib" ]; then
       RFLIST="Makefile z0testrc"
@@ -464,7 +464,9 @@ update_dev () {
       RFLIST=""
       RDLIST=""
     fi
-    xvalid=1
+    local xvalid=1
+    local v1=
+    local v2=
     if [ -n "$RFLIST" ]; then
       for x in $RFLIST; do
         if [ ! -f $PKGPATH/$pkgname/$x ]; then
@@ -492,6 +494,13 @@ update_dev () {
             if [ $? -ne 0 ]; then
               if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
               ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
+              if [ -x $PKGPATH/$pkgname/$x ]; then
+                v1=$($PKGPATH/$pkgname/$x -V)
+                v2=$($XDPATH/$x -V)
+                if [ "$v1" != "$v2" }; then
+                  echo "!Copy of $x FAILED !!!"
+                fi
+              fi
             fi
           fi
         fi

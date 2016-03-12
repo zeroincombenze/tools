@@ -84,6 +84,8 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
+__version__ = "0.1.5"
+
 
 def default_conf(ctx):
     """Default configuration values"""
@@ -200,6 +202,7 @@ def create_def_params_dict(ctx):
 def create_params_dict(ctx):
     """Create all params dictionary"""
     ctx = create_def_params_dict(ctx)
+    conf_obj = ctx.get('_conf_obj', None)
     if ctx['dbg_mode'] is None:
         ctx['dbg_mode'] = ctx['run_daemon']
     if ctx['saveset'] is None:
@@ -209,8 +212,8 @@ def create_params_dict(ctx):
             ctx['logfn'] = ctx['tlog']
         else:
             ctx['logfn'] = "~/" + ctx['caller'] + ".log"
-    if saveset:
-        s = saveset.strip()
+    if ctx['saveset']:
+        s = ctx['saveset'].strip()
         if conf_obj.has_section(s):
             pass
     return ctx

@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.71.2
+__version__=0.1.71.3
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -633,12 +633,12 @@ if [ $EUID -eq 0 ]; then
     publish_svg "$d"
     sts=$?
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:odoo"
-      s=$?
-      [ $sts -eq 0 ]&&sts=$s
-      cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:odoo"
-      s=$?
-      [ $sts -eq 0 ]&&sts=$s
+      # cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:odoo"
+      #s=$?
+      #[ $sts -eq 0 ]&&sts=$s
+      #cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:odoo"
+      #s=$?
+      #[ $sts -eq 0 ]&&sts=$s
       cd /opt/odoo/tools/product/
       wlog "\$ product package"
       product package
