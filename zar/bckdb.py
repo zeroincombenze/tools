@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.7"
+__version__ = "2.1.25.10"
 
 
 def version():
@@ -159,7 +159,7 @@ class Backup_Mirror:
         elif dbtype == "mysql":
             cmd = sqlcmd + " -u " + user + \
                 " --password=" + ctx['mysql_pwd'] + \
-                "-e \"show databases;\" mysql"
+                " -e \"show databases;\" mysql"
             cmdlog = sqlcmd + " -u " + user + " -e \"show databases;\" mysql"
         else:
             cmd = ""
@@ -175,7 +175,6 @@ class Backup_Mirror:
         stdinp_fd = open(os0.setlfilename(os0.bgout_fn), 'r')
         line = stdinp_fd.readline()
         while line != "":
-            os0.trace_debug("<", line, ">") #debug
             i = line.rfind('\n')
             if i >= 0:
                 if dbtype == "psql":
@@ -202,7 +201,7 @@ class Backup_Mirror:
 
         return dblist
 
-    def bck_db(self, dbtype, dblist, user, sqlcmd):
+    def bck_db(self, dbtype, dblist, user, sqlcmd, ctx):
         # pdb.set_trace()
         # save_ftp_rootdir = self.ftp_rootdir
         p = "backups"
@@ -249,7 +248,8 @@ class Backup_Mirror:
                 cmdlog = cmd
             elif dbtype == "mysql":
                 cmd = sqlcmd + " -u " + user + \
-                    " --password=SHS13mgr " + f + " -r " + fsql
+                    " --password=" + ctx['mysql_pwd'] + " " + f + \
+                    " -r " + fsql
                 cmdlog = sqlcmd + " -u " + user + " " + f + " -r " + fsql
             else:
                 cmd = ""
@@ -259,7 +259,7 @@ class Backup_Mirror:
 
             if os.path.isfile(fsql):
                 os0.wlog(" ", fsql)
-                self.add_2_ftp(fsql)
+                self.add_2_ftp(fsql, ctx)
             else:
                 os0.wlog("  file", fsql, "not found!!!")
 
@@ -408,7 +408,7 @@ class Backup_Mirror:
             self.ftp_fd.write("lcd {0}\n".format(path))
             self.ftp_fd.write("cd {0}\n".format(path))
 
-    def add_2_ftp(self, fl):
+    def add_2_ftp(self, fl, ctx):
         # Add filename to ftp file list
         # Extract subdir if supplied
         p = os.path.dirname(fl)
@@ -435,7 +435,7 @@ class Backup_Mirror:
                 lpath = self.ftp_rootdir + '/' + p
                 self.set_chdir(lpath)                       # Set directory
                 self.ftp_dir = p                            # Remember subdir
-        if fn == "wp-zi-it":
+        if ctx['x_db_name'] and re.match(ctx['x_db_name'], fn):
             os0.wlog("DB {0} not replicated on dev host".format(fn))
         else:
             self.ls_fd.write("{0}\n".format(fqn))
@@ -460,7 +460,7 @@ def main():
         dblist = BM.gen_db_list("psql", "odoo", "psql", ctx)
         for db in dblist:
             BM.init_bck(BM.chdir(BM.pgdir))
-            BM.bck_db("psql", [db], "odoo", "pg_dump")
+            BM.bck_db("psql", [db], "odoo", "pg_dump", ctx)
             BM.exec_bck()
 #
 # Backup mysql database
@@ -469,7 +469,7 @@ def main():
         dblist = BM.gen_db_list("mysql", "root", "mysql", ctx)
         for db in dblist:
             BM.init_bck(BM.chdir(BM.mysqldir))
-            BM.bck_db("mysql", dblist,  "root", "mysqldump")
+            BM.bck_db("mysql", dblist,  "root", "mysqldump", ctx)
             BM.exec_bck()
 
     os0.wlog("Backup DB ended.")

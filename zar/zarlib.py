@@ -70,21 +70,21 @@ LX_CFG_SB = ()
 LX_CFG_B = ()
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_CFG_S = ('dbg_mode', 'db_name', 'dry_run', 'saveset', 'logfn')
+LX_OPT_S = ('dbg_mode', 'db_name', 'dry_run', 'saveset', 'logfn', 'x_db_name')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_CFG_B = ('alt', 'xtall', 'do_list')
+LX_OPT_B = ('alt', 'xtall', 'do_list')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
-LX_OPT_CFG_N = ()
+LX_OPT_N = ()
 # list of opponent options
 LX_OPT_OPPONENT = {'dbg_mode': 'verbose'}
 # List of string/boolean parameters; may be string or boolean value;
-# must be declared in LX_CFG_S or LX_OPT_CFG_S
+# must be declared in LX_CFG_S or LX_OPT_S
 LX_SB = ()
 # switch values of options
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 
 def default_conf(ctx):
@@ -175,7 +175,7 @@ def create_def_params_dict(ctx):
             if p in DEFDCT:
                 ctx[p] = DEFDCT[p]
     if opt_obj:
-        for p in LX_OPT_CFG_S:
+        for p in LX_OPT_S:
             if p in LX_OPT_OPPONENT:
                 a = LX_OPT_OPPONENT[p]
                 if hasattr(opt_obj, a) and \
@@ -188,10 +188,10 @@ def create_def_params_dict(ctx):
                     ctx[p] = None
             elif hasattr(opt_obj, p):
                 ctx[p] = getattr(opt_obj, p)
-        for p in LX_OPT_CFG_B:
+        for p in LX_OPT_B:
             if hasattr(opt_obj, p):
                 ctx[p] = os0.str2bool(getattr(opt_obj, p), None)
-        for p in LX_OPT_CFG_N:
+        for p in LX_OPT_N:
             if hasattr(opt_obj, p) and getattr(opt_obj, p):
                 ctx[p] = int(getattr(opt_obj, p))
     for p in LX_CFG_SB:
@@ -285,7 +285,7 @@ def create_parser(version, doc, ctx):
                         action="store_true",
                         dest="alt",
                         default=False)
-    parser.add_argument("-c", "--conf",
+    parser.add_argument("-c", "--config",
                         help="configuration file",
                         dest="conf_fn",
                         metavar="file",
@@ -327,6 +327,12 @@ def create_parser(version, doc, ctx):
     parser.add_argument("-V", "--version",
                         action="version",
                         version="%(prog)s " + version)
+    parser.add_argument("-x", "--exclude",
+                        help="exclude DB",
+                        dest="x_db_name",
+                        metavar="file",
+                        # default="")
+                        default="wp-zi-it")
     parser.add_argument("saveset",
                         help="saveset",
                         nargs='?')
