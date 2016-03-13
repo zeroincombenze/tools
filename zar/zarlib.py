@@ -84,7 +84,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 
 def default_conf(ctx):
@@ -331,8 +331,7 @@ def create_parser(version, doc, ctx):
                         help="exclude DB",
                         dest="x_db_name",
                         metavar="file",
-                        # default="")
-                        default="wp-zi-it")
+                        default="")
     parser.add_argument("saveset",
                         help="saveset",
                         nargs='?')
