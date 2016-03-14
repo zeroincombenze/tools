@@ -52,7 +52,7 @@ import re
 from zarlib import parse_args, check_if_running
 
 
-__version__ = "2.1.22.1"
+__version__ = "2.1.22.2"
 
 
 def version():
@@ -74,7 +74,7 @@ class Restore_Image:
         self.flist = homedir + "/" + ctx['list_file']
         os0.set_tlog_file(ctx['logfn'])
         # Log begin execution
-        os0.wlog("Backup database files", __version__)
+        os0.wlog("Restore database files", __version__)
         # Simulate backup
         self.dry_run = ctx['dry_run']
         if ctx['saveset'] == "bckdb" or \
