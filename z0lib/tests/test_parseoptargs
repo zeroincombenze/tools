@@ -55,7 +55,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.23
+__version__=0.1.24
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -216,6 +216,40 @@ for i in {a..l}; do
     ci-test "cmd -a -b -c ... [-$i]" "${!o}" "1"
   fi
 done
+
+
+OPTOPTS=(h        n            v           V)
+OPTDEST=(opt_help opt_dry_run  opt_verbose opt_version)
+OPTACTI=(1        "1>"         "+"         "*>")
+OPTDEFL=(0        0            0           "")
+OPTMETA=("help"   "do nothing" "verbose"   "version")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "verbose mode"\
+ "show version")
+OPTARGS=()
+
+parseoptargs "-v"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -v [-h]" "$opt_help" "0"
+ci-test "cmd -v" "$opt_verbose" "1"
+
+parseoptargs "-vv"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -vv" "$opt_verbose" "2"
+
+parseoptargs "-v" "-v"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -v -v" "$opt_verbose" "2"
+
+parseoptargs "-v" "-n" "-v"
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$saved_opt_dry_run
+ci-test "cmd -v -v" "$opt_verbose" "2"
+
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"
