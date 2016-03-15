@@ -31,7 +31,7 @@ from lxml import etree
 from struct import *
 
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 MODULE_ID = 'z0testercode'
@@ -111,8 +111,8 @@ class Z0tester_lxml(Z0tester):
             return TEST_FAILED
 
         root.append(etree.Element("child1"))
-        # child2 = etree.SubElement(root, "child2")
-        # child3 = etree.SubElement(root, "child3")
+        child2 = etree.SubElement(root, "child2")
+        child3 = etree.SubElement(root, "child3")
         TRES = etree.tostring(root, pretty_print=True)
         TVAL = """<root>
   <child1/>

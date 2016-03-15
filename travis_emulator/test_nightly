@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.73
+__version__=0.1.74
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -536,6 +536,20 @@ exit_n_status () {
   exit $sts
 }
 
+# This piece of code must be executed before any other
+if [ -f ~/test_nightly.log ]; then
+  logtm=$(stat -c %y ~/bckdb.ls|tr -d "\-\:\.\ ")
+else
+  logtm="20160101000000"
+fi
+logtm=${logtm:0:14}
+curtm=$(date +"%Y%m%d000000")
+if [ $curtm -gt $logtm ]; then
+  gblupd=1
+else
+  gblupd=0
+fi
+# End initiali piece of code
 $(init_cfg)
 $(active_cfg)
 a_add "0" "DEV_HOST" "shsdev16"
@@ -623,10 +637,14 @@ if [ $EUID -eq 0 ]; then
     elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
       valid=1
     fi
-    if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
+    if [ $gblupd -gt 0 -a $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
       wlog "\$ yum -y update"
       yum -y update
       vmware-config-tools.pl --default
+      pip install --upgrade pip
+      for f in $(pip list|awk '{print $1}'); do
+        pip install $f -upgrade
+      done
     fi
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
