@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.72
+__version__=0.1.73
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -618,16 +618,16 @@ if [ $EUID -eq 0 ]; then
   _install_z0librc
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
     valid=0
-    #if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
-    #  valid=1
-    #elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
-    #  valid=1
-    #fi
-    #if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
-    #  wlog "\$ yum -y update"
-    #  yum -y update
-    #  vmware-config-tools.pl --default
-    #fi
+    if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
+      valid=1
+    elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
+      valid=1
+    fi
+    if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
+      wlog "\$ yum -y update"
+      yum -y update
+      vmware-config-tools.pl --default
+    fi
     sts=0
     d=$(readlink -f /opt/odoo/dev/svg)
     publish_svg "$d"
