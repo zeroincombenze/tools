@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.74
+__version__=0.1.74.1
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -86,25 +86,25 @@ upgrade_myself () {
 # after a short regression test
     local PRD_DIR=/opt/odoo/tools/travis_emulator
     local RUN_DIR=$(readlink -f ~/bin)
-    local sts=0
+    local sts=$STS_SUCCESS
     if [ $opt_dry_run -eq 0 ]; then
       if [ "$USER" == "odoo" -a -f $DEV_DIR/$THIS -a "$TDIR" != "$DEV_DIR" ]; then
         elog "Check for newest version to run"
         diff -q $DEV_DIR/$THIS $TDIR/$THIS
         local sts=$?
-        if [ $sts -gt 0 ]; then
+        if [ $sts -ne $STS_SUCCESS ]; then
           elog "Found newest version of $THIS $__version__"
           test_pkg_pypi $MYPKG
           local sts=$?
-          if [ $sts -eq 0 ]; then
+          if [ $sts -ne $STS_SUCCESS ]; then
             $DEV_DIR/$THIS -n
             local sts=$?
           fi
-          if [ $sts -eq 0 ]; then
+          if [ $sts -ne $STS_SUCCESS ]; then
             $DEV_DIR/$THIS -9
             local sts=$?
           fi
-          if [ $sts -eq 0 ]; then
+          if [ $sts -ne $STS_SUCCESS ]; then
             elog "Upgrade myself ($DEV_DIR/$THIS -8 "$TDIR")!"
             exec $DEV_DIR/$THIS -8 "$TDIR"
             exit 1 # never should execute it!
@@ -117,13 +117,13 @@ upgrade_myself () {
           diff -q $PRD_DIR/$THIS $RUN_DIR/$THIS
           local sts=$?
         else
-          local sts=1
+          local sts=$STS_FAILED
         fi
-        if [ $sts -gt 0 ]; then
+        if [ $sts -ne $STS_SUCCESS ]; then
           elog "Found newest version of $THIS $__version__"
           $PRD_DIR/$THIS -9
           local sts=$?
-          if [ $sts -eq 0 ]; then
+          if [ $sts -eq $STS_SUCCESS ]; then
             elog "Upgrade myself ($PRD_DIR/$THIS -8 "$RUN_DIR")!"
             exec $PRD_DIR/$THIS -8 "$RUN_DIR"
             exit 1 # never should execute it!
@@ -164,14 +164,14 @@ test_pkg_pypi () {
       wlog "!? Unit test for package $1 not found"
       exit 0
     fi
-    sts=0
+    sts=$STS_SUCCESS
     cd ~/dev/pypi/$1/$1
     if [ $opt_dry_run -eq 0 ]; then
       wlog "\$ please test # $1"
       please test
     fi
     sts=$?
-    if [ $sts -eq 0 ]; then
+    if [ $sts -eq $STS_SUCCESS ]; then
       if [ $opt_dry_run -eq 0 ]; then
         wlog "\$ please wep  # $1"
         please wep
@@ -211,7 +211,7 @@ pkg_pypi_commit () {
       wlog "!? Unit test for package $1 not found"
       exit 0
     fi
-    sts=0
+    sts=$STS_SUCCESS
     cd ~/dev/pypi/$1/$1
     if [ $opt_dry_run -eq 0 ]; then
       wlog "$ please replace  # $1"
@@ -220,7 +220,7 @@ pkg_pypi_commit () {
       else
         please replace &>/dev/null
       fi
-      if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
+      if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq $STS_SUCCESS ]; then
         wlog "$ make commit # $1"
         # cd ~/dev/pypi/$1; dist_pkg -vC $1 $1; &>>~/$THIS.log
         if [ $opt_verbose -gt 0 ]; then
@@ -250,17 +250,17 @@ oe_upd_burst () {
     fi
     if [ -f $1.conf ]; then
       sleep 30
-      sts=0
+      sts=$STS_SUCCESS
       wlog "clodoo.py -d demo -c $1.conf"
       clodoo.py -d "demo" -c $1.conf
       sts=$?
-      if [ $sts -eq 0 ]; then
+      if [ $sts -eq $STS_SUCCESS ]; then
         sleep 30
         wlog "clodoo.py -d zeroincombenze -c $1.conf"
         clodoo.py -d "zeroincombenze" -c $1.conf
         sts=$?
       fi
-      if [ $sts -eq 0 ]; then
+      if [ $sts -eq $STS_SUCCESS ]; then
         for i in {0..11}; do
           l=${#i}
           ((l--))
@@ -270,7 +270,7 @@ oe_upd_burst () {
           wlog "\$ clodoo.py -d $db -c $1.conf"
           clodoo.py -d "$db" -c $1.conf
           sts=$?
-          if [ $sts -gt 0 ]; then
+          if [ $sts -ne $STS_SUCCESS ]; then
             break
           fi
           sleep 50
@@ -282,7 +282,7 @@ oe_upd_burst () {
           fi
         done
       fi
-      if [ $sts -eq 0 ]; then
+      if [ $sts -eq $STS_SUCCESS ]; then
         mv $1.conf $.conf.bak
       fi
     else
@@ -351,7 +351,7 @@ cpfiles () {
       local l="$3"
     fi
     local CWD=$PWD
-    local sts=0
+    local sts=$STS_SUCCESS
     if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
@@ -365,13 +365,13 @@ cpfiles () {
             fi
           fi
         else
-          wlog "! File $1/$f not found!!"
-          local sts=1
+          elog "! File $1/$f not found!!"
+          local sts=$STS_FAILED
         fi
       done
     else
-      wlog "! Directory $1 not found!!"
-      local sts=1
+      elog "! Directory $1 not found!!"
+      local sts=$STS_FAILED
     fi
     cd $CWD
     return $sts
@@ -386,7 +386,7 @@ scpfiles () {
       local l="$3"
     fi
     local CWD=$PWD
-    local sts=0
+    local sts=$STS_SUCCESS
     if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
@@ -396,13 +396,13 @@ scpfiles () {
             scp $1/$f $2/$f
           fi
         else
-          wlog "! File $1/$f not found!!"
-          local sts=1
+          elog "! File $1/$f not found!!"
+          local sts=$STS_FAILED
         fi
       done
     else
-      wlog "! Directory $1 not found!!"
-      local sts=1
+      elog "! Directory $1 not found!!"
+      local sts=$STS_FAILED
     fi
     cd $CWD
     return $sts
@@ -417,7 +417,7 @@ mvfiles () {
       local l="$3"
     fi
     local CWD=$PWD
-    local sts=0
+    local sts=$STS_SUCCESS
     if [ -d $1 -a -n "$2" ]; then
       cd $1
       for f in $l; do
@@ -431,13 +431,13 @@ mvfiles () {
             fi
           fi
         else
-          wlog "! File $1/$f not found!!"
-          local sts=1
+          elog "! File $1/$f not found!!"
+          local sts=$STS_FAILED
         fi
       done
     else
-      wlog "! Directory $1 not found!!"
-      local sts=1
+      elog "! Directory $1 not found!!"
+      local sts=$STS_FAILED
     fi
     cd $CWD
     return $sts
@@ -485,7 +485,7 @@ generate_svg () {
 
 publish_svg () {
 # publish_svg(src)
-    local sts=1
+    local sts=$STS_FAILED
     if  [ -n "$1" ]; then
       if [ "$HOSTNAME" == "$PRD_HOST" ]; then
         tgt="prd"
@@ -500,7 +500,7 @@ publish_svg () {
         if [ "$HOSTNAME" == "$DEV_HOST" -a "$1" == "." ]; then
           scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
           local s=$?
-          [ $sts -eq 0 ]&&sts=$s
+          [ $sts -eq $STS_SUCCESS ]&&sts=$s
         fi
       fi
     fi
@@ -508,7 +508,7 @@ publish_svg () {
 }
 
 exit_n_status () {
-  if [ $sts -eq 0 ]; then
+  if [ $sts -eq $STS_SUCCESS ]; then
     generate_svg "$USER" "OK" "$__version__"
     if [ $EUID -eq 0 ]; then
       publish_svg "."
@@ -530,7 +530,7 @@ exit_n_status () {
     if [ $opt_dry_run -eq 0 ]; then
       wlog "!?!?!?!? Test $__version__ failed!!!! !?!?!?!?"
     else
-      wlog "!?!?!?!? ++ This test $__version__ cannot be reaaly used!!!! !?!?!?!?"
+      wlog "!?!?!?!? ++ This test $__version__ cannot be really used!!!! !?!?!?!?"
     fi
   fi
   exit $sts
@@ -577,7 +577,7 @@ if [ $opt_8 -gt 0 ]; then
     cpfiles "$TDIR" "$tgt" "$ME_BOS"
     sts=$?
   else
-    sts=0
+    sts=$STS_SUCCESS
   fi
   opt_replica=1
   exit_n_status
@@ -609,7 +609,7 @@ elif [ $dom -eq 12 ]; then
 else
   set_tlog_file "~/$THIS.log"
 fi
-sts=0
+sts=$STS_SUCCESS
 if [ $opt_cron -gt 0 ]; then
   wlog "Run cron mode"
   detached_login "$@"
@@ -646,17 +646,20 @@ if [ $EUID -eq 0 ]; then
         pip install $f -upgrade
       done
     fi
-    sts=0
+    sts=$STS_SUCCESS
     d=$(readlink -f /opt/odoo/dev/svg)
     publish_svg "$d"
     sts=$?
+    if [ $sts -ne $STS_SUCCESS ]; then
+      elog "!unpublished svg!!"
+    fi
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
       # cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:odoo"
       #s=$?
-      #[ $sts -eq 0 ]&&sts=$s
+      #[ $sts -eq $STS_SUCCESS ]&&sts=$s
       #cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:odoo"
       #s=$?
-      #[ $sts -eq 0 ]&&sts=$s
+      #[ $sts -eq $STS_SUCCESS ]&&sts=$s
       cd /opt/odoo/tools/product/
       wlog "\$ product package"
       product package
@@ -671,25 +674,37 @@ if [ $EUID -eq 0 ]; then
       if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
         cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
         s=$?
-        [ $sts -eq 0 ]&&sts=$s
+        [ $sts -eq $STS_SUCCESS ]&&sts=$s
       fi
     fi
     cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py" "root:root"
     s=$?
-    [ $sts -eq 0 ]&&sts=$s
+    if [ $s -ne $STS_SUCCESS ]; then
+      elog "!unupdated zar tool!!"
+    fi
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
     cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
     s=$?
-    [ $sts -eq 0 ]&&sts=$s
+    if [ $s -ne $STS_SUCCESS ]; then
+      elog "!unupdated wok_code tool!!"
+    fi
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
     cpfiles "/opt/odoo/tools/travis_emulator" "/root/bin" "cronow" "root:root"
     s=$?
-    [ $sts -eq 0 ]&&sts=$s
+    if [ $s -ne $STS_SUCCESS ]; then
+      elog "!unupdated travis emulator!!"
+    fi
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
     # cpfiles "/opt/openerp/dev" "/root" "oe_upd_burst" "root:root"
     if [ $opt_dry_run -eq 0 ]; then
       python /opt/odoo/dev/z0testercode.py
       s=$?
-      [ $sts -eq 0 ]&&sts=$s
+      if [ $s -ne $STS_SUCCESS ]; then
+        elog "!Python regression test FAILED!!"
+      fi
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi
-    # if [ $sts -eq 0 ]; then
+    # if [ $sts -eq $STS_SUCCESS ]; then
     #   opt_odoo="oe_upgrade"
     #   XX=$(ps -ef|grep "clodoo\.py.*$opt_odoo.conf"|tail -n1)
     #   if [ -z "$XX" ]; then
@@ -701,7 +716,7 @@ if [ $EUID -eq 0 ]; then
     #     wlog "All DB Odoo burst upgrade ended"
     #   else
     #     wlog "*** Odoo burst upgrade is already running ***"
-    #    sts=1
+    #    sts=$STS_FAILED
     #   fi
     # fi
   fi
@@ -710,7 +725,7 @@ if [ "$USER" == "odoo" ]; then
   (($opt_dry_run))||check4env
   cd ~/dev/pypi
   for pkgname in *; do
-    if [ $sts -eq 0 ]; then
+    if [ $sts -eq $STS_SUCCESS ]; then
       valid=0
       if [ -d "$pkgname" ]; then
         for p in $PKGSLX; do
@@ -722,10 +737,10 @@ if [ "$USER" == "odoo" ]; then
         if [ $valid -gt 0 ]; then
           test_pkg_pypi $pkgname
           sts=$?
-          if [ $sts -eq 0 ]; then
+          if [ $sts -eq $STS_SUCCESS ]; then
             pkg_pypi_commit $pkgname
           fi
-        elif [ $opt_dry_run -eq 0 ]; then
+        elif [ $opt_dry_run -eq $STS_SUCCESS ]; then
           wlog "------------------------------------"
           wlog "Module $pkgname uncertificated ($sts)!"
         fi
@@ -744,7 +759,7 @@ if [ "$USER" == "odoo" ]; then
     fi
     wlog "$ git commit -am \"$cmsg\""
     git commit -am "$cmsg" &>>~/$THIS.log
-    if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq 0 ]; then
+    if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq $STS_SUCCESS ]; then
       wlog "$ git push"
       git push &>>~/$THIS.log
     elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
@@ -757,16 +772,16 @@ if [ "$USER" == "odoo" ]; then
   if [ -d /opt/odoo/tools/clodoo ]; then
     cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
     s=$?
-    [ $sts -eq 0 ]&&sts=$s
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
   fi
   if [ -d /opt/odoo/tools/z0tester ]; then
     cpfiles "/opt/odoo/tools/z0tester" "/opt/odoo/dev" "z0testercode.py"
     s=$?
-    [ $sts -eq 0 ]&&sts=$s
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
   fi
 fi
 if [ "$USER" == "openerp" ]; then
-  if [ $sts -eq 0 ]; then
+  if [ $sts -eq $STS_SUCCESS ]; then
     cd ~/7.0/clodoo
     (($opt_dry_run))||./makecommit
     opt_odoo="nightly"
@@ -780,15 +795,15 @@ if [ "$USER" == "openerp" ]; then
         wlog "All DB Odoo burst upgrade ended"
       else
         wlog "*** Odoo burst upgrade is already running ***"
-        sts=1
+        sts=$STS_FAILED
       fi
     fi
-    if [ $sts -eq 0 -a -z "$opt_nall" ]; then
+    if [ $sts -eq $STS_SUCCESS -a -z "$opt_nall" ]; then
       wlog "Odoo all tests"
       if [ $opt_dry_run -eq 0 ]; then
         /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
         if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
-          sts=1
+          sts=$STS_FAILED
           grep "$dt" $ODOO_LTF|grep FAIL
         fi
       fi
@@ -796,7 +811,7 @@ if [ "$USER" == "openerp" ]; then
   fi
 fi
 if [ $opt_9 -gt 0 ]; then
-  sts=0
+  sts=$STS_SUCCESS
 fi
 exit_n_status
 exit 1 # never should execute it!
