@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.43
+__version__=0.1.43.3
 
 
 process_local () {
@@ -116,7 +116,34 @@ process_yaml_quote_xtl () {
   elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-yaml ]]; then
    lne="# $lne"
   elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
-   lne="# $lne"
+    if [ ! -d $HOME/maintainer-quality-tools ]; then
+      dow=3
+    else
+      dow=$(date +%w)
+    fi
+    if [ $opt_dry_run -ne 0 -o $dow -ne 3 ]; then
+     lne="# $lne"
+    else
+      if [ ! -d $HOME/maintainer-quality-tools ]; then
+        local MQT_UPDT="2016-00-00"
+      else
+        local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+      fi
+      local curtm=$(date +"%Y-%m-%d")
+      if [ "$curtm" == "$MQT_UPDT" ]; then
+        lne="# $lne"
+      else
+        if [ -d $HOME/maintainer-quality-tools/ ]; then
+          wlog "\$ rm -fR $HOME/maintainer-quality-tools/"
+          rm -fR $HOME/maintainer-quality-tools/
+        fi
+        if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
+          sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+        else
+          echo "MQT_UPDT=$curtm">>$TCONF
+        fi
+      fi
+    fi
   elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/zeroincombenze/tools.git ]]; then
    lne="# $lne"
   # elif [[ $lne =~ PATH=\$\{*HOME\}/maintainer-quality-tools/travis ]]; then

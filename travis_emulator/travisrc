@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.63.1
+#__version__=0.1.63.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -356,13 +356,14 @@ conf_default () {
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"
+    set_cfg_def "MQT_UPDT" "2016-01-01"
 }
 
 
 expand_path () {
 # expand_path (path)
 # return:path
-    echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g  -e s:\${version}:$BRANCH:g
+    echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g  -e s:\${HOME}:$HOME:g
 }
 
 
