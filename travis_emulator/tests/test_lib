@@ -1,0 +1,124 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests for submodule of travisrc
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+elif [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/travisrc ]; then
+. $TDIR/travisrc
+elif [ -e ./travisrc ]; then
+. ./travisrc
+elif [ -e ../travisrc ]; then
+. ../travisrc
+elif [ -e ~/travisrc ]; then
+. ~/travisrc
+else
+  echo "No travisrc lib found!"
+  exit 1
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
+__version__=0.1.1
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+
+export opt_conf=$TESTDIR/test_travis.conf
+touch $opt_conf
+SAVE_opt_verbose=$opt_verbose
+SAVE_opt_dry_run=$opt_dry_run
+opt_verbose=1
+pkg=
+DEV_ENVIRONMENT=$THIS
+opts_travis
+tested_opt_verbose=$opt_verbose
+opt_verbose=$SAVE_opt_verbose
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$SAVE_opt_dry_run
+ci-test "echo \$TCONF" "$opt_conf" "$TCONF"
+
+ci-test "echo \$FLOG_ECHO" "echo" "$FLOG_ECHO"
+
+T=$(readlink -e $RUNDIR/..)
+ci-test "echo \$PKGPATH" "$T" "$PKGPATH"
+
+ci-test "echo \$repository" "local/" "$repository"
+
+ci-test "echo \$test_mode" "1" "$test_mode"
+
+ci-test "echo \$opt_dry_run" "1" "$tested_opt_dry_run"
+
+ci-test "echo \$HOSTENV" "local" "$HOSTENV"
+
+
+export opt_conf=$TESTDIR/test_travis.conf
+if [ -f $opt_conf ]; then rm -f $opt_conf; fi
+SAVE_opt_verbose=$opt_verbose
+SAVE_opt_dry_run=$opt_dry_run
+opt_verbose=1
+pkg=
+DEV_ENVIRONMENT=$THIS
+opts_travis
+tested_opt_verbose=$opt_verbose
+opt_verbose=$SAVE_opt_verbose
+tested_opt_dry_run=$opt_dry_run
+opt_dry_run=$SAVE_opt_dry_run
+ci-test "echo \$TCONF" "$TESTDIR/.travis.conf" "$TCONF"
+
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts
