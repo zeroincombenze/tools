@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.63
+#__version__=0.1.63.1
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -939,10 +939,13 @@ clone_oca_dependencies () {
       while IFS=\~ read -r line; do
         d=$(find ~/$VERSION -type d -name "$line")
         if [ -n "$d" ]; then
-          for p in $d/*; do
-            clone_1_dependence "$p"
-          done
-          clone_1_dependence "$p"
+          if [ -n "$REPOSNAME" ]; then
+            for p in $d/*; do
+              clone_1_dependence "$p"
+            done
+          else
+            clone_1_dependence "$d"
+          fi
         else
           elog "!????? Module $line not found!??????"
         fi
