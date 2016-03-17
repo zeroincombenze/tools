@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.36
+#__version__=0.1.38
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -216,7 +216,7 @@ export -f xuname
 #      =    Set variable to following option value
 #      2.nd character:
 #      >    executive command (disable help and version)
-#   OPTDEFL  array with default values (matches one to one OPTOPTS)
+#   OPTDEFL  array with default values, '#' means no defalt value (matches one to one OPTOPTS)
 #   OPTMETA  array with meta help to build help (matches one to one OPTOPTS)
 #   OPTHELP  array with parameters description to build help (matches one to one OPTOPTS)
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
@@ -226,7 +226,9 @@ parseoptargs() {
 # http://wiki.zeroincombenze.org/en/Linux/dev
     local jy=0
     while ((jy<${#OPTDEST[*]})); do
-      export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
+      if [ "${OPTDEFL[jy]}" != "#" ]; then
+        export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
+      fi
       ((++jy))
     done
     local jy=0
@@ -260,6 +262,7 @@ parseoptargs() {
               elif [ "$a" == "*" ]; then
                 export ${OPTDEST[jy]}="-${oo:jj:1}"
               elif [ "$a" == "+" ]; then
+                if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
                 ((${OPTDEST[jy]}++))
                 export ${OPTDEST[jy]}
               elif [ "$a" == "=" ]; then

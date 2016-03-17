@@ -67,7 +67,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.1
+__version__=0.1.2
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -79,43 +79,48 @@ export opt_conf=$TESTDIR/test_travis.conf
 touch $opt_conf
 SAVE_opt_verbose=$opt_verbose
 SAVE_opt_dry_run=$opt_dry_run
-opt_verbose=1
+opt_verbose=-1
 pkg=
 DEV_ENVIRONMENT=$THIS
 opts_travis
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $TCONF
+init_travis
 tested_opt_verbose=$opt_verbose
 opt_verbose=$SAVE_opt_verbose
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$SAVE_opt_dry_run
 ci-test "echo \$TCONF" "$opt_conf" "$TCONF"
-
 ci-test "echo \$FLOG_ECHO" "echo" "$FLOG_ECHO"
-
 T=$(readlink -e $RUNDIR/..)
 ci-test "echo \$PKGPATH" "$T" "$PKGPATH"
-
 ci-test "echo \$repository" "local/" "$repository"
-
 ci-test "echo \$test_mode" "1" "$test_mode"
-
 ci-test "echo \$opt_dry_run" "1" "$tested_opt_dry_run"
-
 ci-test "echo \$HOSTENV" "local" "$HOSTENV"
-
+ci-test "echo \$opt_verbose" "1" "$tested_opt_verbose"
 
 export opt_conf=$TESTDIR/test_travis.conf
 if [ -f $opt_conf ]; then rm -f $opt_conf; fi
 SAVE_opt_verbose=$opt_verbose
 SAVE_opt_dry_run=$opt_dry_run
-opt_verbose=1
+opt_verbose=2
 pkg=
 DEV_ENVIRONMENT=$THIS
 opts_travis
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $TCONF
+init_travis
 tested_opt_verbose=$opt_verbose
 opt_verbose=$SAVE_opt_verbose
 tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$SAVE_opt_dry_run
 ci-test "echo \$TCONF" "$TESTDIR/.travis.conf" "$TCONF"
+ci-test "echo \$opt_verbose" "2" "$tested_opt_verbose"
 
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then

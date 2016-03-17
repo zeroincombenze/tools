@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.74.3
+__version__=0.1.75
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -633,6 +633,8 @@ if [ $EUID -eq 0 ]; then
         vmware-config-tools.pl --default
         wlog "\$ pip install ---upgrade pip"
         pip install --upgrade pip
+        wlog "pip install --upgrade --pre pylint-odoo"
+        pip install --upgrade --pre pylint-odoo
         for f in $(pip list|awk '{print $1}'); do
           wlog "\$ pip install $f --upgrade"
           pip install $f --upgrade

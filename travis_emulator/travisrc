@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.63.3
+#__version__=0.1.64
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -15,11 +15,6 @@ opts_travis () {
       TCONF=$opt_conf
     else
       TCONF=$TDIR/.travis.conf
-    fi
-    if [ ${opt_verbose:-0} -gt 0 ]; then
-      export FLOG_ECHO=echo
-    else
-      export FLOG_ECHO=
     fi
     if [ -n "$pkg" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
@@ -137,12 +132,8 @@ init_travis () {
     else
       opts_upd=
     fi
-    if [ ${opt_verbose:-0} -eq 0 ]; then
+    if [ ${opt_verbose:-0} -eq -1 ]; then
       opt_verbose=$(get_cfg_value "" "loglevel")
-      if [ ${opt_verbose:-0} -gt 0 ]; then opt_verbose=1; fi
-    elif [ ${opt_verbose:-0} -eq 1 ]; then
-      opt_verbose=$(get_cfg_value "" "loglevel")
-      if [ ${opt_verbose:-0} -eq 0 ]; then opt_verbose=1; fi
     fi
     if [ ${opt_verbose:-0} -ne 0 ]; then
       opts_verbose=-v
@@ -264,12 +255,14 @@ prepare_env_travis () {
     if [ ${opt_r:-0} -gt 0 ]; then
       if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
         # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
-        export PATH=$TOOLS_PATH:$PATH
+        # export PATH=$TOOLS_PATH:$PATH
+        run_traced "export PATH=$TOOLS_PATH:$PATH"
       fi
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      wlog "\$ export PATH=$DEVPATH:$PATH"
-      export PATH=$DEVPATH:$PATH
+      # wlog "\$ export PATH=$DEVPATH:$PATH"
+      # export PATH=$DEVPATH:$PATH
+      run_traced "export PATH=$DEVPATH:$PATH"
     fi
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
     export BRANCH
@@ -349,7 +342,7 @@ do_chkconfig () {
 }
 
 conf_default () {
-    set_cfg_def "loglevel" "0"
+    set_cfg_def "loglevel" "1"
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
@@ -924,8 +917,9 @@ clone_1_dependence () {
     if [ -d $1 ]; then
       n=$(basename $1)
       if [ ! -d ~/dependencies/$n ]; then
-        wlog "\$ ln -s $1 ~/dependencies/"
-        ln -s $1 ~/dependencies/
+        # wlog "\$ ln -s $1 ~/dependencies/"
+        # ln -s $1 ~/dependencies/
+        run_traced "ln -s $1 ~/dependencies/"
       else
         wlog "Module $1 already cloned!"
       fi
@@ -958,12 +952,14 @@ clone_oca_dependencies () {
 clone_dependencies () {
     local p
     if [ ! -d ~/dependencies ]; then
-      wlog "mkdir ~/dependencies"
-      mkdir ~/dependencies
+      # wlog "mkdir ~/dependencies"
+      # mkdir ~/dependencies
+      run_traced "mkdir ~/dependencies"
     fi
     if [ -n "$REPOSNAME" ]; then
-      wlog "\$ export INCLUDE=$pkgname"
-      export INCLUDE=$pkgname
+      # wlog "\$ export INCLUDE=$pkgname"
+      # export INCLUDE=$pkgname
+      run_traced "export INCLUDE=$pkgname"
       for p in ~/$VERSION/$REPOSNAME/*; do
         clone_1_dependence "$p"
       done
@@ -972,8 +968,9 @@ clone_dependencies () {
       p=$(readlink -e ~/$VERSION/$REPOSNAME/)
       clone_oca_dependencies "$p/oca_dependencies.txt"
     else
-      wlog "\$ export INCLUDE="
-      export INCLUDE=
+      # wlog "\$ export INCLUDE="
+      # export INCLUDE=
+      run_traced "export INCLUDE="
       clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
     fi
 }
