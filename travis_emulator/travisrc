@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.64
+#__version__=0.1.64.4
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -70,11 +70,17 @@ inherits_travis_opts () {
     if [[ $e =~ F ]]; then
       opts="${opts}F"
     fi
+    if [[ $e =~ K ]]; then
+      opts="${opts}K"
+    fi
     if [[ $e =~ R ]]; then
       opts="${opts}R"
     fi
     if [[ $e =~ P ]]; then
       opts="${opts}P"
+    fi
+    if [[ $e =~ T ]]; then
+      opts="${opts}T"
     fi
     if [[ $e =~ d ]]; then
       if [ $opt_diff -gt 0 ]; then
@@ -84,6 +90,11 @@ inherits_travis_opts () {
     if [[ $e =~ n ]]; then
       if [ ${opt_dry_run:-0} -gt 0 ]; then
         opts="${opts}n"
+      fi
+    fi
+    if [[ $e =~ q ]]; then
+      if [ ${opt_verbose:-0} -eq 0 ]; then
+        opts="${opts}q"
       fi
     fi
     if [[ $e =~ r ]]; then
@@ -107,12 +118,27 @@ inherits_travis_opts () {
       fi
     fi
   else
-    if [[ $e =~ C ]]; then
+    if [[ $e =~ K ]]; then
       export BASH_CHECK="1"
       export LINT_CHECK="1"
     fi
-    if [[ $e =~ R ]]; then
+    if [[ $e =~ T ]]; then
       export TEST_CHECK="1"
+    fi
+    if [[ $e =~ n ]]; then
+      if [ ${opt_dry_run:-0} -gt 0 ]; then
+        export MQT_DRY_RUN="1"
+      fi
+    fi
+    if [[ $e =~ q ]]; then
+      if [ ${opt_verbose:-0} -eq 0 ]; then
+        export MQT_VERBOSE_MODE="0"
+      fi
+    fi
+    if [[ $e =~ v ]]; then
+      if [ ${opt_verbose:-0} -gt 0 ]; then
+        export MQT_VERBOSE_MODE="1"
+      fi
     fi
   fi
   if [ -n "$opts" ]; then
@@ -421,27 +447,6 @@ install_dev () {
       if [ ! -d ~/8.0 ]; then
         mkdir -p ~/8.0
       fi
-      # if [ ! -d ~/7.0/zeroincombenze ]; then
-      #   mkdir -p ~/7.0/zeroincombenze
-      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
-      # fi
-      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone ]; then
-      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone
-      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
-      # fi
-      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
-      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_bbone/conf
-      # fi
-      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal ]; then
-      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal
-      #   touch -d $yod-01-01 ~/7.0/zeroincombenze/__openerp__.py
-      # fi
-      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
-      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/data
-      # fi
-      # if [ ! -d ~/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
-      #   mkdir -p ~/7.0/zeroincombenze/l10n_it_fiscal/conf
-      # fi
     fi
 }
 
@@ -914,15 +919,39 @@ cp_n_upd () {
 
 clone_1_dependence () {
     local n
+    n=$(basename $1)
     if [ -d $1 ]; then
-      n=$(basename $1)
-      if [ ! -d ~/dependencies/$n ]; then
-        # wlog "\$ ln -s $1 ~/dependencies/"
-        # ln -s $1 ~/dependencies/
-        run_traced "ln -s $1 ~/dependencies/"
-      else
-        wlog "Module $1 already cloned!"
+      if [ "$n" != "__unported__" ]; then
+        if [ ! -d $HOME/dependencies/$n ]; then
+          run_traced "ln -s $1 $HOME/dependencies/"
+        else
+          wlog "Module $1 already cloned!"
+        fi
       fi
+    fi
+}
+
+clone_core_dependencies () {
+    local line
+    local p
+    local d
+    local CORE_MODULES=""
+    for line in $CORE_MODULES; do
+      d=$(find $HOME/$VERSION -type d -name "$line")
+      if [ -n "$d" ]; then
+        if [ -n "$REPOSNAME" ]; then
+          for p in $d/*; do
+            clone_1_dependence "$p"
+          done
+        else
+          clone_1_dependence "$d"
+        fi
+      else
+        elog "!????? Module $line not found!??????"
+      fi
+    done
+    if [ -n "$REPOSNAME" ]; then
+      clone_1_dependence "$HOME/$VERSION/addons"
     fi
 }
 
@@ -933,7 +962,7 @@ clone_oca_dependencies () {
     local d
     if [ -f "$f1" ]; then
       while IFS=\~ read -r line; do
-        d=$(find ~/$VERSION -type d -name "$line")
+        d=$(find $HOME/$VERSION -type d -name "$line")
         if [ -n "$d" ]; then
           if [ -n "$REPOSNAME" ]; then
             for p in $d/*; do
@@ -951,22 +980,23 @@ clone_oca_dependencies () {
 
 clone_dependencies () {
     local p
-    if [ ! -d ~/dependencies ]; then
-      # wlog "mkdir ~/dependencies"
-      # mkdir ~/dependencies
-      run_traced "mkdir ~/dependencies"
+    if [ ! -d $HOME/dependencies ]; then
+      # wlog "mkdir $HOME/dependencies"
+      # mkdir $HOME/dependencies
+      run_traced "mkdir $HOME/dependencies"
     fi
     if [ -n "$REPOSNAME" ]; then
       # wlog "\$ export INCLUDE=$pkgname"
       # export INCLUDE=$pkgname
       run_traced "export INCLUDE=$pkgname"
-      for p in ~/$VERSION/$REPOSNAME/*; do
+      for p in $HOME/$VERSION/$REPOSNAME/*; do
         clone_1_dependence "$p"
       done
-      p=$(readlink -e ~/$VERSION/openerp)
-      clone_1_dependence "$p"
-      p=$(readlink -e ~/$VERSION/$REPOSNAME/)
+      # p=$(readlink -e $HOME/$VERSION/openerp)
+      # clone_1_dependence "$p"
+      p=$(readlink -e $HOME/$VERSION/$REPOSNAME/)
       clone_oca_dependencies "$p/oca_dependencies.txt"
+      clone_core_dependencies
     else
       # wlog "\$ export INCLUDE="
       # export INCLUDE=
@@ -976,14 +1006,14 @@ clone_dependencies () {
 }
 
 run_svr_test_rm_ln () {
-    wlog "\$ if [ -d ~/dependencies ]; then rm -fR ~/dependencies; fi"
-    if [ -d ~/dependencies ]; then rm -fR ~/dependencies; fi
-    wlog "\$ if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi"
-    if [ -s ~/dependencies ]; then rm -f ~/dependencies; fi
-    wlog "\$ if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi"
-    if [ -s ~/$pkgname-$VERSION ]; then rm -f ~/$pkgname-$VERSION; fi
-    wlog "\$ if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi"
-    if [ -s ~/${ODOO_REPO#*/}-$VERSION ]; then rm -f ~/${ODOO_REPO#*/}-$VERSION; fi
+    wlog "\$ if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
+    if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi
+    wlog "\$ if [ -s $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
+    if [ -s $HOME/dependencies ]; then rm -f $HOME/dependencies; fi
+    wlog "\$ if [ -s $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
+    if [ -s $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi
+    wlog "\$ if [ -s $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
+    if [ -s $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi
 }
 
 run_svr_test_init () {
@@ -1003,10 +1033,10 @@ run_svr_test_init () {
       run_svr_test_rm_ln
       clone_dependencies
       local x=$(readlink -e $PRJPATH/..)
-      wlog "\$ ln -s $x ~/${ODOO_REPO#*/}-$VERSION"
-      ln $x -s ~/${ODOO_REPO#*/}-$VERSION
-      wlog "\$ ln -s $PKGPATH ~/$pkgname-$VERSION"
-      ln -s $PKGPATH ~/$pkgname-$VERSION
+      wlog "\$ ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+      ln $x -s $HOME/${ODOO_REPO#*/}-$VERSION
+      wlog "\$ ln -s $PKGPATH $HOME/$pkgname-$VERSION"
+      ln -s $PKGPATH $HOME/$pkgname-$VERSION
     else
       local n
     fi

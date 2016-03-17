@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="0.1.25"
+__version__=0.1.25.2
 
 
 ant_rm_trap () {
@@ -119,7 +119,7 @@ do_check (){
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-C"
+      please_run_tests "-K"
       sts=$?
     else
       sts=127
@@ -135,7 +135,7 @@ do_test () {
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-R"
+      please_run_tests "-T"
       sts=$?
     else
       test_sts=$STS_FAILED
@@ -176,7 +176,7 @@ do_commit () {
 do_push () {
     wlog "do_push \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvP")
-    dist_pkg $opts $pkgname;
+    wlog "dist_pkg $opts $pkgname"
     sts=$?
     return $sts
 }
@@ -202,7 +202,7 @@ do_coverage () {
 do_travis (){
     wlog "do_travis \"$1\" \"$2\" \"$3\""
     if [ $opt_r -gt 0 ]; then
-      please_run_tests "-CR"
+      please_run_tests "-KT"
     else
       opts=$(inherits_travis_opts "cnv")
       if [ -n "$opts" ]; then
@@ -226,11 +226,11 @@ do_version () {
     fi;
 }
 
-OPTOPTS=(h        b          c        d        j        k        L         n           p         q         r     s        t         u       V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_quiet opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       1         1     "="      1         1       "*"         1)
-OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        0         0     ""       0         0       ""          0)
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" "noop"      "path"    "quiet"   "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        b          c        d        j        k        L         n           p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        -1          0     ""       0         0       ""          -1)
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" "noop"      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file"\
@@ -240,7 +240,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "log file name"\
  "do nothing (dry-run)"\
  "declare local git path"\
- "quiet mode"\
+ "silent mode"\
  "restricted mode, no maintainer-quality-tools (config is local)"\
  "files include in annotate test"\
  "test mode (implies dry-run)"\

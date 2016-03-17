@@ -75,10 +75,12 @@ if [ $sts -ne 127 ]; then
 fi
 sts=0
 
-export opt_conf=$TESTDIR/test_travis.conf
-touch $opt_conf
 SAVE_opt_verbose=$opt_verbose
 SAVE_opt_dry_run=$opt_dry_run
+SAVE_TOOLS_PATH=$TOOLS_PATH
+
+export opt_conf=$TESTDIR/test_travis.conf
+touch $opt_conf
 opt_verbose=-1
 pkg=
 DEV_ENVIRONMENT=$THIS
@@ -104,8 +106,6 @@ ci-test "echo \$opt_verbose" "1" "$tested_opt_verbose"
 
 export opt_conf=$TESTDIR/test_travis.conf
 if [ -f $opt_conf ]; then rm -f $opt_conf; fi
-SAVE_opt_verbose=$opt_verbose
-SAVE_opt_dry_run=$opt_dry_run
 opt_verbose=2
 pkg=
 DEV_ENVIRONMENT=$THIS
@@ -121,6 +121,23 @@ tested_opt_dry_run=$opt_dry_run
 opt_dry_run=$SAVE_opt_dry_run
 ci-test "echo \$TCONF" "$TESTDIR/.travis.conf" "$TCONF"
 ci-test "echo \$opt_verbose" "2" "$tested_opt_verbose"
+
+
+TOOLS_PATH=~/dev/_travis
+opt_verbose=1
+opts=$(inherits_travis_opts "v")
+opt_verbose=$SAVE_opt_verbose
+TOOLS_PATH=$SAVE_TOOLS_PATH
+ci-test ". -v" "-v" "$opts"
+
+
+TOOLS_PATH=~/maintainer-quality-tools/travis
+opt_verbose=1
+MQT_VERBOSE_MODE=
+inherits_travis_opts "v"
+opt_verbose=$SAVE_opt_verbose
+TOOLS_PATH=$SAVE_TOOLS_PATH
+ci-test ". \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
 
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then

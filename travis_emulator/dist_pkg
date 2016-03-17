@@ -25,15 +25,15 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.79
+__version__=0.1.79.1
 
 TCONF=$TDIR/.$THIS.conf
 # main
-OPTOPTS=(h        C         c        d        F         n            P         p         R         S        u       V           v           W          w         -)
-OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_dry_run  opt_cpush opt_dpath opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(1        "*>"      "="      "1>"     "1>"      1             "*>"      "="       "*>"      "=>"    1       "*"         1           "=>"       "*>"      "1>")
-OPTDEFL=(1        ""        ""       0        0         0            ""        ""        ""        ""       0       ""          0           ""         ""        0)
-OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   "do nothing" "push"    "path"    "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
+OPTOPTS=(h        C         c        d        F         n            P         p         q           R         S        u       V           v           W          w         -)
+OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_dry_run  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
+OPTACTI=(1        "*>"      "="      "1>"     "1>"      1             "*>"      "="      0           "*>"      "=>"    1       "*"         "+"         "=>"       "*>"      "1>")
+OPTDEFL=(1        ""        ""       0        0         0            ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
+OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   "do nothing" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
  "commit and push to production paths"\
  "configuration file"\
@@ -42,6 +42,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "push to external projects"\
  "declare local git path"\
+ "silent mode"\
  "replace local git path"\
  "set development Status"\
  "do not update newer file (require -C -F -P or -R)"\

@@ -54,17 +54,18 @@ do_test () {
 }
 
 
-OPTOPTS=(h        C         c        n            R        r     t         V           v)
-OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_regr opt_r test_mode opt_version opt_verbose)
-OPTACTI=(1        "1>"      "="      "1>"         "1>"     1     1         "*>"        1)
-OPTDEFL=(0        0         ""        0            0       0     0         ""          0)
-OPTMETA=("help"   "check"   "file"   "do nothing" "test"   "rxt" "test"    "version"   "verbose")
+OPTOPTS=(h        K         c        n            q           r     T        t         V           v)
+OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "1>"      "="      "1>"         0           1     "1>"     1         "*>"        "+")
+OPTDEFL=(0        0         ""        0           -1          0      0       0         ""          -1)
+OPTMETA=("help"   "check"   "file"   "do nothing" "qiet"      "rxt"  "test"  "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "do flake8 and pylint checks"\
  "configuration file"\
  "do nothing (dry-run)"\
- "do regression tests"\
+ "silent mode"\
  "restricted mode, no maintainer-quality-tools (config is local)"\
+ "do regression tests"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
@@ -81,6 +82,9 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
+if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
+if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
 opts_travis
 $(init_cfg)
 $(active_cfg)
@@ -123,6 +127,10 @@ if [ $LINT_CHECK_DISABLED -eq 0 ]; then
   sts_flake8=$?
   please_test_pylint
   sts_pylint=$?
+fi
+if [ $sts_bash -ne 127 ]; then
+  sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+else
   sts=$(($sts_flake8 || $sts_pylint))
 fi
 if [ $sts -eq $STS_SUCCESS ]; then
