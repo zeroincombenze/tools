@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.25.2
+__version__=0.1.25.3
 
 
 ant_rm_trap () {
@@ -176,7 +176,7 @@ do_commit () {
 do_push () {
     wlog "do_push \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvP")
-    wlog "dist_pkg $opts $pkgname"
+    wlog "dist_pkg $opts $1"
     sts=$?
     return $sts
 }

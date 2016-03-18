@@ -507,6 +507,18 @@ publish_svg () {
     return $sts
 }
 
+synchronize_odoo () {
+    local VERSION=
+    for VERSION in 7.0 8.0 9.0; do
+      run_traced "cd $HOME/$VERSION"
+      for d in *; do
+        if [ -d $d ]; then
+          echo "$d"
+        fi
+      done
+    done
+}
+
 exit_n_status () {
   if [ $sts -eq $STS_SUCCESS ]; then
     generate_svg "$USER" "OK" "$__version__"
@@ -763,6 +775,10 @@ if [ "$USER" == "odoo" ]; then
       wlog "$ git pull origin"
       git pull origin
     fi
+  fi
+  tm=$(date +%H%M)
+  if [ $tm -gt 2000 -o $tm -lt 0600 ]; then
+    true
   fi
   if [ -d /opt/odoo/tools/clodoo ]; then
     cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
