@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.75
+__version__=0.1.75.1
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -509,11 +509,41 @@ publish_svg () {
 
 synchronize_odoo () {
     local VERSION=
+    local l=
+    local n=
     for VERSION in 7.0 8.0 9.0; do
-      run_traced "cd $HOME/$VERSION"
-      for d in *; do
+      for d in $HOME/$VERSION/*; do
         if [ -d $d ]; then
-          echo "$d"
+          if [ -d $d/.git ]; then
+            run_traced "cd $d"
+            l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
+            if [ "${l:0:19}" == "https://github.com/" ]; then
+              n="git@github.com:${l:19}"
+              run_traced "git remote set-url origin $n${l:19}"
+            # elif [ "${l:0:4}" == "git@" ]; then
+            #   echo "origin $l"
+            # else
+            #   echo "????"
+            fi
+            l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
+            if [ -z "$l" ]; then
+              l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
+              l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
+              run_traced "git remote add upstream $l"
+            elif [ "${l:0:19}" != "https://github.com/" ]; then
+              l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
+              l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
+              run_traced "git remote set-url upstream $l"
+            # else
+            #   echo "upstream $l"
+            fi
+            if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+              run_traced "git pull upstream $VERSION"
+              run_traced "git push"
+            elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
+              run_traced "git pull"
+            fi
+          fi
         fi
       done
     done
@@ -777,8 +807,9 @@ if [ "$USER" == "odoo" ]; then
     fi
   fi
   tm=$(date +%H%M)
-  if [ $tm -gt 2000 -o $tm -lt 0600 ]; then
-    true
+  # if [ $tm -gt 2100 -o $tm -lt 0300 ]; then
+  if [ $tm -gt 1500 -o $tm -lt 1700 ]; then
+    synchronize_odoo
   fi
   if [ -d /opt/odoo/tools/clodoo ]; then
     cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py"
