@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.64.6
+#__version__=0.1.64.8
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -287,21 +287,17 @@ prepare_env_travis () {
     local action="$1"
     if [ ${opt_r:-0} -gt 0 ]; then
       if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-        # wlog "\$ export PATH=$TOOLS_PATH:$PATH"
-        # export PATH=$TOOLS_PATH:$PATH
         run_traced "export PATH=$TOOLS_PATH:$PATH"
       fi
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      # wlog "\$ export PATH=$DEVPATH:$PATH"
-      # export PATH=$DEVPATH:$PATH
       run_traced "export PATH=$DEVPATH:$PATH"
     fi
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
     export BRANCH
     export VERSION=$BRANCH
     export TRAVIS_BUILD_DIR=$PKGPATH
-    export VERBOSE_MODE=$opt_verbose
+    # export VERBOSE_MODE=$opt_verbose
     if [ "$action" == "check" ]; then
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then
@@ -808,9 +804,9 @@ please_test_pylint () {
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
       fi
       export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
-      if [ "$PRJNAME" == "Odoo" ]; then
-        touch $MODULES_TO_TEST/__init__.py
-      fi
+      # if [ "$PRJNAME" == "Odoo" ]; then
+      #   touch $MODULES_TO_TEST/__init__.py
+      # fi
       IFS="/" read -a REPO <<< "${ODOO_REPO}"
       export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
       #run pylint command
@@ -851,11 +847,11 @@ run_regression_test () {
         if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests
         else
-          cd ./tests; PYTHONPATH=$PKGPATH ./all_tests
+          cd ./tests; PYTHONPATH=$PYTHONPATH:$PKGPATH ./all_tests
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
-        cd ./tests; PYTHONPATH=$PKGPATH python ./test_$PRJNAME.py
+        cd ./tests; PYTHONPATH=$PYTHONPATH:$PKGPATH python ./test_$PRJNAME.py
         sts=$?
       else
         sts=$STS_FAILED
@@ -874,9 +870,9 @@ run_coverage_test () {
         if [ -f ./__main__.py ]; then
           coverage erase
           if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py"
+            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py"
           fi
-          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PKGPATH coverage run --source $PRJNAME __main__.py
+          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py
           coverage report
           sts=$STS_SUCCESS
         else

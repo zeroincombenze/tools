@@ -1,4 +1,4 @@
-__version__=0.1.4
+__version__=0.1.5
 if [ "$1" == "-V" ]; then
   echo $__version__
   exit 0
@@ -32,13 +32,18 @@ else
   flt="$1"
 fi
 dir $cwd/$fls
-echo "> scp $cwd/$fls $tgthost:$cwd/$flt"
+if [ -d $cwd/$fls ]; then
+  opts=-r
+else
+  opts=
+fi
+echo "> scp $opts $cwd/$fls $tgthost:$cwd/$flt"
 dummy=
 while [ -z "$dummy" ]; do
   read -p "confirm copy (yes/no)?" dummy
   if [ "$dummy" == "yes" ]; then
-    echo "\$ scp $cwd/$fls $tgthost:$cwd/$flt"
-    scp $cwd/$fls $tgthost:$cwd/$flt
+    echo "\$ scp $opts $cwd/$fls $tgthost:$cwd/$flt"
+    scp $opts $cwd/$fls $tgthost:$cwd/$flt
   elif [ "$dummy" != "no" ]; then
     dummy=""
   fi

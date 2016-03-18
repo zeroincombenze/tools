@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.75.1
+__version__=0.1.76
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -807,8 +807,7 @@ if [ "$USER" == "odoo" ]; then
     fi
   fi
   tm=$(date +%H%M)
-  # if [ $tm -gt 2100 -o $tm -lt 0300 ]; then
-  if [ $tm -gt 1500 -o $tm -lt 1700 ]; then
+  if [ $tm -gt 2100 -o $tm -lt 0300 ]; then
     synchronize_odoo
   fi
   if [ -d /opt/odoo/tools/clodoo ]; then
