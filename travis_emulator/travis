@@ -530,9 +530,9 @@ $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis
-if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis "$action"
 sts=$STS_SUCCESS
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 
 if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" -a "$action" != "chkconfig" ]; then
   echo "Invalid action!"

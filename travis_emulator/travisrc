@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.64.4
+#__version__=0.1.64.6
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -160,6 +160,13 @@ init_travis () {
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
       opt_verbose=$(get_cfg_value "" "loglevel")
+    fi
+    if [ ${opt_verbose:-0} -eq -1 ]; then
+      if [[ -t 0 || -p /dev/stdin ]]; then
+        opt_verbose=0
+      else
+        opt_verbose=1
+      fi
     fi
     if [ ${opt_verbose:-0} -ne 0 ]; then
       opts_verbose=-v
@@ -981,62 +988,50 @@ clone_oca_dependencies () {
 clone_dependencies () {
     local p
     if [ ! -d $HOME/dependencies ]; then
-      # wlog "mkdir $HOME/dependencies"
-      # mkdir $HOME/dependencies
       run_traced "mkdir $HOME/dependencies"
     fi
     if [ -n "$REPOSNAME" ]; then
-      # wlog "\$ export INCLUDE=$pkgname"
-      # export INCLUDE=$pkgname
       run_traced "export INCLUDE=$pkgname"
       for p in $HOME/$VERSION/$REPOSNAME/*; do
         clone_1_dependence "$p"
       done
-      # p=$(readlink -e $HOME/$VERSION/openerp)
-      # clone_1_dependence "$p"
+      p=$(readlink -e $HOME/$VERSION/openerp)
+      if [ -n "$p" ]; then
+        clone_1_dependence "$p"
+      fi
       p=$(readlink -e $HOME/$VERSION/$REPOSNAME/)
-      clone_oca_dependencies "$p/oca_dependencies.txt"
+      if [ -n "$p" ]; then
+         clone_oca_dependencies "$p/oca_dependencies.txt"
+      fi
       clone_core_dependencies
     else
-      # wlog "\$ export INCLUDE="
-      # export INCLUDE=
       run_traced "export INCLUDE="
       clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
     fi
 }
 
 run_svr_test_rm_ln () {
-    wlog "\$ if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
-    if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi
-    wlog "\$ if [ -s $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
-    if [ -s $HOME/dependencies ]; then rm -f $HOME/dependencies; fi
-    wlog "\$ if [ -s $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
-    if [ -s $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi
-    wlog "\$ if [ -s $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
-    if [ -s $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi
+    run_traced "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
+    run_traced "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
+    run_traced "if [ -L $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
+    run_traced "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
 }
 
 run_svr_test_init () {
     local i
     local CMD
-    wlog "\$ coverage erase"
-    coverage erase
+    run_traced "coverage erase"
     if [ "$PRJNAME" == "Odoo" ]; then
       local n=$(get_cfg_value "" "dbtemplate")
-      wlog "\$ dropdb $n"
-      dropdb --if-exists $n
+      run_traced "dropdb --if-exists $n"
       local n=$(get_cfg_value "" "dbname")
-      wlog "\$ dropdb $n"
-      dropdb --if-exists $n
-      wlog "\$ cp_n_upd /etc/odoo/odoo${VERSION:0:1}-server.conf /.openerp_serverrc"
-      cp_n_upd "/etc/odoo/odoo${VERSION:0:1}-server.conf"
+      run_traced "dropdb --if-exists $n"
+      run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
       run_svr_test_rm_ln
       clone_dependencies
       local x=$(readlink -e $PRJPATH/..)
-      wlog "\$ ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-      ln $x -s $HOME/${ODOO_REPO#*/}-$VERSION
-      wlog "\$ ln -s $PKGPATH $HOME/$pkgname-$VERSION"
-      ln -s $PKGPATH $HOME/$pkgname-$VERSION
+      run_traced "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+      run_traced "ln -s $PKGPATH $HOME/$pkgname-$VERSION"
     else
       local n
     fi

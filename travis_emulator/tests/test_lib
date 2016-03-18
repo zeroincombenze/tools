@@ -78,6 +78,13 @@ sts=0
 SAVE_opt_verbose=$opt_verbose
 SAVE_opt_dry_run=$opt_dry_run
 SAVE_TOOLS_PATH=$TOOLS_PATH
+SAVE_PRJNAME=$PRJNAME
+SAVE_PRJPATH=$PRJPATH
+SAVE_PKGPATH=$PKGPATH
+SAVE_pkgname=$pkgname
+SAVE_REPOSNAME=$REPOSNAME
+SAVE_VERSION=$VERSION
+SAVE_ODOO_REPO=$ODOO_REPO
 
 export opt_conf=$TESTDIR/test_travis.conf
 touch $opt_conf
@@ -134,11 +141,54 @@ ci-test ". -v" "-v" "$opts"
 TOOLS_PATH=~/maintainer-quality-tools/travis
 opt_verbose=1
 MQT_VERBOSE_MODE=
-inherits_travis_opts "v"
+inherits_travis_opts "v" >/dev/null
 opt_verbose=$SAVE_opt_verbose
 TOOLS_PATH=$SAVE_TOOLS_PATH
 ci-test ". \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
 
+
+FOUT=$TESTDIR/test_lib.out
+FTEST=$TESTDIR/test_lib.test
+cat<<'EOF' >$FTEST
+> coverage erase
+> dropdb --if-exists openerp_template
+> dropdb --if-exists openerp_test
+> cp_n_upd "/etc/odoo/odooT-server.conf"
+> if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
+> if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
+> if [ -L /opt/odoo/l10n_it_base-T.0 ]; then rm -f /opt/odoo/l10n_it_base-T.0; fi
+> if [ -L /opt/odoo/odoo-T.0 ]; then rm -f /opt/odoo/odoo-T.0; fi
+> mkdir /opt/odoo/dependencies
+> export INCLUDE=l10n_it_base
+> ln -s /opt/odoo/odoo/T.0 /opt/odoo/odoo-T.0
+> ln -s /opt/odoo/dev/pypi/travis_emulator/l10n_it_base /opt/odoo/l10n_it_base-T.0
+EOF
+VERSION=T.0
+ODOO_REPO=local/odoo
+PRJNAME="Odoo"
+REPOSNAME=l10n_italy
+pkgname=l10n_it_base
+PRJPATH=~/odoo/$VERSION/$REPOSNAME
+PKGPATH=$PKGPATH/$pkgname
+mkdir -p ~/odoo/$VERSION
+mkdir -p $PRJPATH
+mkdir -p $PKGPATH
+opt_verbose=1
+opt_dry_run=1
+run_svr_test_init > $FOUT
+opt_verbose=$SAVE_opt_verbose
+opt_dry_run=$SAVE_opt_dry_run
+PRJNAME=$SAVE_PRJNAME
+PRJPATH=$SAVE_PRJPATH
+PKGPATH=$SAVE_PKGPATH
+pkgname=$SAVE_pkgname
+REPOSNAME=$SAVE_REPOSNAME
+VERSION=$SAVE_VERSION
+ODOO_REPO=$SAVE_ODOO_REPO
+ci-test "run_svr_test_ini" "$FOUT" "$FTEST" "diff -qEbB"
+
+if [ -f $FOUT ]; then rm -f $FOUT; fi
+if [ -f $FTEST ]; then rm -f $FTEST; fi
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"

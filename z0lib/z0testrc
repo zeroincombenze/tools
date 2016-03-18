@@ -14,10 +14,10 @@
 # -N             create new logfile
 # -n             count and display # unit tests (do no test, return success)
 # -q             run tests in quiet mode (no echo)
-# -s number      count 1st test next to number (do run test, return test result)
+# -s number      set last test number (do run test, return test result)
 # -V             show version (do no test, return success); version on unit test should be the same of tested software
 # -v             verbose mode
-# -z number      display total # tests when execute them
+# -z number      set total # in displayed tests
 # -0             no count # unit tests
 # (no cmdline) do run test and return test result
 #
@@ -89,7 +89,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 #
-#__version__=0.1.5
+#__version__=0.1.7
 
 export opt_dry_run
 export ctr
@@ -104,13 +104,15 @@ export _prior_msg=""
 parseoptest() {
     if [[ -t 0 || -p /dev/stdin ]]; then
       export LECHO=echo
+      local Z0=0
     else
       export LECHO=
+      local Z0=1
     fi
     OPTOPTS=(h        e        k       l      N       n           q        s        V           v           z        0)
     OPTDEST=(opt_help opt_echo opt_new logfn  opt_new opt_dry_run opt_echo ctr      opt_version opt_verbose max_test opt_noctr)
     OPTACTI=(1        1        0       "="    1       1           0        "=>"     "*>"        1           "=>"     1)
-    OPTDEFL=(0        -1       -1      ""     -1      0           -1       ""       ""          0           ""       0)
+    OPTDEFL=(0        -1       -1      ""     -1      0           -1       ""       ""          0           ""       $Z0)
     OPTMETA=("help"   "echo"   "keep"  "file" "new"   "count"     "quiet"  "number" "version"   "verbose"   "number" "no")
     OPTHELP=("this help"\
      "enable echoing even if not interactive tty"\
@@ -119,10 +121,10 @@ parseoptest() {
      "create new logfile"\
      "count and display # unit tests"\
      "run tests without output (quiet mode)"\
-     "count 1st test next to number"\
+     "set last test number"\
      "show version"\
       "verbose mode"\
-     "display total # tests when execute them"\
+     "set total # in displayed tests"\
      "no count # unit tests")
     OPTARGS=()
     parseoptargs $@
@@ -152,7 +154,7 @@ parseoptest() {
     fi
     if [ ${max_test:-0} -eq 0 -a ${opt_dry_run:-0} -eq 0 -a ${opt_noctr:-0} -eq 0 ]; then
       if [ ${WNoCtr:-0} -eq 0 ]; then
-        max_test="$($0 -n)"
+        max_test="$($0 -n|tr -d '\n')"
       fi
       unset WNoCtr
     fi
