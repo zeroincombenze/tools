@@ -42,7 +42,7 @@ __version__=0.1.8
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
-      echo "do_test \"$1\" \"$2\" \"$3\""
+      echo "\$ do_test"
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
       run_server_test
@@ -115,8 +115,6 @@ if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DI
 if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
-#echo "BASH_CHECK=$BASH_CHECK/LINT_CHECK=$LINT_CHECK/TEST_CHECK=$TEST_CHECK/"
-#echo "BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED/LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED/LINT_CHECK_DISABLED=$LINT_CHECK_DISABLED/TEST_CHECK_ENABLED=$TEST_CHECK_ENABLED/TESTS_UNSPECIFIED=$TESTS_UNSPECIFIED"
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
   please_test_bash
   sts_bash=$?
@@ -128,11 +126,13 @@ if [ $LINT_CHECK_DISABLED -eq 0 ]; then
   sts_flake8=$?
   please_test_pylint
   sts_pylint=$?
-fi
-if [ $sts_bash -ne 127 ]; then
-  sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+  if [ $sts_bash -ne 127 ]; then
+    sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+  else
+    sts=$(($sts_flake8 || $sts_pylint))
+  fi
 else
-  sts=$(($sts_flake8 || $sts_pylint))
+  sts=$STS_SUCCESS
 fi
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then

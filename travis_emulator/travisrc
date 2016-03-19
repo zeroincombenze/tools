@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.64.9
+#__version__=0.1.65
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -823,6 +823,9 @@ please_test_pylint () {
 
 do_summary () {
 # do_summary(bash,flake8,pylint,test)
+    local RED="\033[1;31m"
+    local GREEN="\033[1;32m"
+    local CLEAR="\033[0;m"
     echo "+======================================="
     echo "|  Tests summary:"
     echo "|---------------------------------------"
@@ -835,9 +838,9 @@ do_summary () {
       if [ -n "${!i}" ]; then
         local x=$(printf "%-20.20s" "${des[$i]}")
         if [ ${!i} -eq $STS_SUCCESS ]; then
-          echo "| $x        Success"
+          echo -e "| $x        ${GREEN}Success${CLEAR}"
         elif [ ${!i} -ne 127 ]; then
-          echo "| $x        FAIL"
+          echo -e "| $x        ${RED}FAIL${CLEAR}"
         fi
       fi
     done

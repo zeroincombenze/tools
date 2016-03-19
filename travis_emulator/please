@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.25.3
+__version__=0.1.26
 
 
 ant_rm_trap () {
@@ -115,7 +115,7 @@ do_annotate () {
 do_check (){
     wlog "do_check \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "Cnrv")
+      opts=$(inherits_travis_opts "Knrv")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -131,7 +131,7 @@ do_check (){
 do_test () {
     wlog "do_test \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "Rnrv")
+      opts=$(inherits_travis_opts "Tnrv")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -233,15 +233,15 @@ OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0    
 OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" "noop"      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
- "configuration file"\
+ "configuration file (def .travis.conf)"\
  "do diff no real action"\
- "execute test from project dir (not in test dir)"\
+ "execute tests in project dir rather in test dir"\
  "keep coverage statistics in annotate test"\
  "log file name"\
  "do nothing (dry-run)"\
  "declare local git path"\
  "silent mode"\
- "restricted mode, no maintainer-quality-tools (config is local)"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
  "files include in annotate test"\
  "test mode (implies dry-run)"\
  "check for unary operator W503"\

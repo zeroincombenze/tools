@@ -107,7 +107,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -468,7 +468,7 @@ class Test():
 class Z0test:
 
     def __init__(self, id=None):
-        caller_fqn = inspect.stack()[1][1]
+        caller_fqn = os.path.abspath(inspect.stack()[1][1])
         this_dir = os.path.dirname(caller_fqn)
         caller = os0.nakedname(os.path.basename(caller_fqn))
         if not id:
@@ -478,7 +478,7 @@ class Z0test:
                 id = caller
             if id[-3:] >= '_00' and id[-3:] <= '_99':
                 id = id[0:-3]
-            if id[-5:] >= '_test':
+            if id[-5:] == '_test':
                 id = id[0:-5]
         self.module_id = id
         self.this_dir = this_dir
@@ -648,7 +648,7 @@ class Z0test:
 
     def parseoptest(self, arguments, version=None, tlog=None):
         ctx = {}
-        caller_fqn = inspect.stack()[1][1]
+        caller_fqn = os.path.abspath(inspect.stack()[1][1])
         ctx['caller_fqn'] = caller_fqn
         caller = os0.nakedname(os.path.basename(caller_fqn))
         ctx['caller'] = caller
