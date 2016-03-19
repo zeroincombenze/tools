@@ -38,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.8
+__version__=0.1.9
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
@@ -143,6 +143,8 @@ if [ $sts -eq $STS_SUCCESS ]; then
     test_sts=$?
   fi
   sts=$test_sts
+else
+  test_sts=
 fi
 do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
 exit $sts

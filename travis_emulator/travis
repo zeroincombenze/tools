@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.45
+__version__=0.1.46
 
 
 process_local () {
@@ -52,7 +52,7 @@ process_local () {
         opts=$(inherits_travis_opts "KTnrv")
       fi
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
+      sts=$?
     elif [ $opt_r -gt 0 ]; then
       if [ "$action" == "test" ]; then
         please_run_tests "-T"
@@ -61,7 +61,7 @@ process_local () {
         please_run_tests "-K"
         sts=$?
       else
-        please_run_tests "-CR"
+        please_run_tests "-KT"
         sts=$?
       fi
     else

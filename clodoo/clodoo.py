@@ -1054,20 +1054,21 @@ def _get_model_parms(oerp, prm, o_bones, value):
                 value = eval(value, None, prm)
             except:
                 pass
-        if prefix or suffix:
-            if isinstance(value, basestring):
-                value = prefix + value + suffix
-            elif isinstance(value, (bool, int, long, float)):
-                value = prefix + str(value) + suffix
+        # if prefix or suffix:
+        #     if isinstance(value, basestring):
+        #         value = prefix + value + suffix
+        #     elif isinstance(value, (bool, int, long, float)):
+        #         value = prefix + str(value) + suffix
     else:
         model = value[:i]
-        value = prefix + value[i + len(sep):] + suffix
+        # value = prefix + value[i + len(sep):] + suffix
+        value = value[i + len(sep):]
         model, fname = _get_name_n_ix(model, fname)
         model, x = _get_name_n_params(model, name)
         if x.find(',') >= 0:
             name = x.split(',')
             value = value.split(',')
-    return model, name, value, cid_type, fname
+    return model, name, prefix, value, suffix, cid_type, fname
 
 
 def _import_file_model(o_bones, csv_fn):
@@ -1196,10 +1197,10 @@ def _eval_value(oerp, prm, o_bones, name, value):
 def _eval_subvalue(oerp, prm, o_bones, value):
     msg = "_eval_subvalue(value=%s)" % value
     debug_msg_log(prm, 6, msg)
-    model, name, value, cid_type, fname = _get_model_parms(oerp,
-                                                           prm,
-                                                           o_bones,
-                                                           value)
+    model, name, pfx, value, sfx, cid_type, fname = _get_model_parms(oerp,
+                                                    prm,
+                                                    o_bones,
+                                                    value)
     if model is None:
         value = expr(oerp, prm, model, name, value)
     else:
@@ -1217,6 +1218,11 @@ def _eval_subvalue(oerp, prm, o_bones, value):
                 value = getattr(o, fname)
         else:
             value = None
+    if value and (pfx or sfx):
+        if isinstance(value, (bool, int, long, float)):
+            value = pfx + str(value) + sfx
+        elif isinstance(value, basestring):
+            value = pfx + value + sfx
     return value
 
 
