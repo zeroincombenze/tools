@@ -36,16 +36,18 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.6
+__version__=0.1.8
 
 
-OPTOPTS=(h        n            t         V           v)
-OPTDEST=(opt_help opt_dry_run  test_mode opt_version opt_verbose)
-OPTACTI=(1        "1>"         1         "*>"        1)
-OPTDEFL=(0        0            0         ""          0)
-OPTMETA=("help"   "do nothing" "test"    "version"   "verbose")
+OPTOPTS=(h        j        n            q           t         V           v)
+OPTDEST=(opt_help opt_dprj opt_dry_run  opt_verbose test_mode opt_version opt_verbose)
+OPTACTI=(1        1        1            0           1         "*>"        "+")
+OPTDEFL=(0        0        0            -1          0         ""          -1)
+OPTMETA=("help"   "dprj"   "do nothing" "quiet"     "test"    "version"   "verbose")
 OPTHELP=("this help"\
+ "execute tests in project dir rather in test dir"\
  "do nothing (dry-run)"\
+ "silent mode"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.64.8
+#__version__=0.1.64.9
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -83,8 +83,13 @@ inherits_travis_opts () {
       opts="${opts}T"
     fi
     if [[ $e =~ d ]]; then
-      if [ $opt_diff -gt 0 ]; then
+      if [ ${opt_diff:-0} -gt 0 ]; then
         opts="${opts}d"
+      fi
+    fi
+    if [[ $e =~ j ]]; then
+      if [ ${opt_dprj:-0} -gt 0 ]; then
+        opts="${opts}j"
       fi
     fi
     if [[ $e =~ n ]]; then
@@ -98,12 +103,12 @@ inherits_travis_opts () {
       fi
     fi
     if [[ $e =~ r ]]; then
-      if [ $opt_r -gt 0 ]; then
+      if [ ${opt_r:-0} -gt 0 ]; then
         opts="${opts}r"
       fi
     fi
     if [[ $e =~ u ]]; then
-      if [ $opt_uop -gt 0 ]; then
+      if [ ${opt_uop:-0} -gt 0 ]; then
         opts="${opts}u"
       fi
     fi
@@ -875,6 +880,21 @@ run_coverage_test () {
           DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py
           coverage report
           sts=$STS_SUCCESS
+        elif [ -f ./tests/test_$PRJNAME.py ]; then
+          coverage erase
+          if [ ${opt_dprj:-0} -gt 0 ]; then
+            if [ ${opt_verbose:-0} -gt 0 ]; then
+              echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME ./tests/test_$PRJNAME.py"
+            fi
+            DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME ./tests/test_$PRJNAME.py
+          else
+            if [ ${opt_verbose:-0} -gt 0 ]; then
+              echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME test_$PRJNAME.py"
+            fi
+            cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME test_$PRJNAME.py
+          fi
+          coverage report
+          sts=$STS_SUCCESS
         else
           sts=$STS_FAILED
         fi
@@ -1049,7 +1069,7 @@ run_server_test () {
 
 please_run_tests () {
     sts=$STS_SUCCESS
-    if [[ $1 =~ C ]]; then
+    if [[ $1 =~ K ]]; then
       please_test_bash
       sts_bash=$?
       cd $TOOLS_PATH
@@ -1059,7 +1079,7 @@ please_run_tests () {
       sts_pylint=$?
       sts=$(($sts_flake8 || $sts_pylint))
     fi
-    if [[ $1 =~ R ]]; then
+    if [[ $1 =~ T ]]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         run_server_test
       else

@@ -54,17 +54,18 @@ do_test () {
 }
 
 
-OPTOPTS=(h        K         c        n            q           r     T        t         V           v)
-OPTDEST=(opt_help opt_check opt_conf opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        "1>"      "="      "1>"         0           1     "1>"     1         "*>"        "+")
-OPTDEFL=(0        0         ""        0           -1          0      0       0         ""          -1)
-OPTMETA=("help"   "check"   "file"   "do nothing" "qiet"      "rxt"  "test"  "test"    "version"   "verbose")
+OPTOPTS=(h        c        j        K         n            q           r     T        t         V           v)
+OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "="      1        1         1            0           1     1        1         "*>"        "+")
+OPTDEFL=(0        ""       0        0         0            -1          0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
- "do flake8 and pylint checks"\
- "configuration file"\
+ "configuration file (def .travis.conf)"\
+ "execute tests in project dir rather in test dir"\
+ "do bash, flake8 and pylint checks"\
  "do nothing (dry-run)"\
  "silent mode"\
- "restricted mode, no maintainer-quality-tools (config is local)"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
  "do regression tests"\
  "test mode (implies dry-run)"\
  "show version"\

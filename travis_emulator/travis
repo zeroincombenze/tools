@@ -39,26 +39,26 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.44
+__version__=0.1.44.1
 
 
 process_local () {
     if [ $TOOLS_PATH/travis_run_tests ]; then
       if [ "$action" == "check" ]; then
-        opts=$(inherits_travis_opts "Cnrv")
+        opts=$(inherits_travis_opts "Knrv")
       elif [ "$action" == "test" ]; then
-        opts=$(inherits_travis_opts "Rnrv")
+        opts=$(inherits_travis_opts "Tnrv")
       else
-        opts=$(inherits_travis_opts "CRnrv")
+        opts=$(inherits_travis_opts "KTnrv")
       fi
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
       if [ "$action" == "test" ]; then
-        please_run_tests "-R"
+        please_run_tests "-T"
         sts=$?
       elif [ "$action" == "check" ]; then
-        please_run_tests "-C"
+        please_run_tests "-K"
         sts=$?
       else
         please_run_tests "-CR"
@@ -68,7 +68,8 @@ process_local () {
       sts=127
     fi
     if [ $sts -eq $STS_SUCCESS -a "$action" != "check" -a "$action" != "test" ]; then
-      run_traced $TOOLS_PATH/travis_after_tests_success
+      opts=$(inherits_travis_opts "jnqv")
+      run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     fi
     return $sts
@@ -502,11 +503,11 @@ OPTDEFL=(0        9.0        ""       0        0            -1          0     ""
 OPTMETA=("help"   "branch"   "file"   "dprj"   "do nothing" "verbose"   "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
- "configuration file"\
- "execute test from project dir (not in test dir)"\
+ "configuration file (def .travis.conf)"\
+ "execute tests in project dir rather in test dir"\
  "do nothing (dry-run)"\
  "silent mode"\
- "run rescricted mode (w/o maintainer-quality-tools)"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
  "show version"\
  "verbose mode")
 OPTARGS=(pkg action)
