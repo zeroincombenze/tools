@@ -1028,10 +1028,10 @@ def _get_model_name(prm, o_bones):
 def _get_model_parms(oerp, prm, o_bones, value):
     """Extract model parameters and pure value from value and structure"""
     model, cid_type = _get_model_bone(prm, o_bones)
-    value, prefix, suffix = cleanvalue(value)
+    # value, prefix, suffix = cleanvalue(value)
     sep = '::'
     name = 'name'
-    fname = 'id'
+    fldname = 'id'
     i = value.find(sep)
     if i >= 0:
         cid_type = False
@@ -1041,12 +1041,11 @@ def _get_model_parms(oerp, prm, o_bones, value):
         if i >= 0:
             cid_type = True
     if i < 0:
-        i = value.find('.') + 1
-        if value[0:i] == "base.":
-            i -= 1
+        n, v = is_db_alias(value)
+        if n:
             model = "ir.model.data"
             name = ['module', 'name']
-            value = [value[0:i], value[i + 1:]]
+            value = v
             cid_type = True
         else:
             model = None
@@ -1063,12 +1062,12 @@ def _get_model_parms(oerp, prm, o_bones, value):
         model = value[:i]
         # value = prefix + value[i + len(sep):] + suffix
         value = value[i + len(sep):]
-        model, fname = _get_name_n_ix(model, fname)
+        model, fldname = _get_name_n_ix(model)
         model, x = _get_name_n_params(model, name)
         if x.find(',') >= 0:
             name = x.split(',')
             value = value.split(',')
-    return model, name, prefix, value, suffix, cid_type, fname
+    return model, name, value, cid_type, fldname
 
 
 def _import_file_model(o_bones, csv_fn):
@@ -1126,7 +1125,7 @@ def _import_file_get_hdr(oerp, prm, o_bones, csv_obj, csv_fn, row):
 # Field management and Queries
 #
 def _get_query_id(oerp, prm, o_bones, row):
-    """Execute a query to get id of selection field read form csv
+    """Execute a query to get ids of selection field read form csv
     Value may be expanded
     @ oerp:        oerplib object
     @ o_bones:     special names
@@ -1139,15 +1138,15 @@ def _get_query_id(oerp, prm, o_bones, row):
     model, cid_type = _get_model_bone(prm, o_bones)
     msg += "model=%s, hide_company=%s" % (model, cid_type)
     value = row.get(code, '')
-    value = _eval_value(oerp,
-                        prm,
-                        o_bones,
-                        code,
-                        value)
+    ## value = _eval_value(oerp,
+    ##                     prm,
+    ##                     o_bones,
+    ##                     code,
+    ##                     value)
     if model is None:
         ids = []
     else:
-        ids = _get_raw_query_id(oerp,
+        ids = _get_simple_query_id(oerp,
                                 prm,
                                 model,
                                 code,
@@ -1186,10 +1185,10 @@ def _eval_value(oerp, prm, o_bones, name, value):
         value = None
     elif isinstance(value, basestring):
         if value[0:1] == "=":
-            return _eval_subvalue(oerp, prm, o_bones, value)
+            return _eval_subvalue(oerp, prm, o_bones, value[1:])
         else:
-            i = value.find('.') + 1
-            if value[0:i] == "base.":
+            n, v = is_db_alias(value)
+            if n:
                 return _eval_subvalue(oerp, prm, o_bones, value)
     return value
 
@@ -1197,14 +1196,14 @@ def _eval_value(oerp, prm, o_bones, name, value):
 def _eval_subvalue(oerp, prm, o_bones, value):
     msg = "_eval_subvalue(value=%s)" % value
     debug_msg_log(prm, 6, msg)
-    model, name, pfx, value, sfx, cid_type, fname = _get_model_parms(oerp,
-                                                    prm,
-                                                    o_bones,
-                                                    value)
+    model, name, value, cid_type, fldname = _get_model_parms(oerp,
+                                                             prm,
+                                                             o_bones,
+                                                             value)
     if model is None:
         value = expr(oerp, prm, model, name, value)
     else:
-        value = _get_raw_query_id(oerp,
+        value = _get_simple_query_id(oerp,
                                   prm,
                                   model,
                                   name,
@@ -1213,41 +1212,44 @@ def _eval_subvalue(oerp, prm, o_bones, value):
     if isinstance(value, list):
         if len(value):
             value = value[0]
-            if fname != 'id':
+            if fldname != 'id':
                 o = oerp.browse(model, value)
-                value = getattr(o, fname)
+                value = getattr(o, fldname)
         else:
             value = None
     if value and (pfx or sfx):
         if isinstance(value, (bool, int, long, float)):
-            value = pfx + str(value) + sfx
-        elif isinstance(value, basestring):
-            value = pfx + value + sfx
+            value = str(value)
     return value
 
 
-def _get_raw_query_id(oerp, prm, model, name, value, cid_type):
-    """Execute a query to get id of selection field read form csv
-    Do not expand value
-    @ oerp:        oerplib object
-    @ prm:         global parameters
-    @ model:       model name
-    @ name:        field name
-    @ value:       field value (just constant)
-    @ cid_type:    hide company_id
-    """
-    msg = "_get_raw_query_id()"
-    debug_msg_log(prm, 6, msg)
-    if model is None:
-        return value
-    else:
-        ids = _get_simple_query_id(oerp,
-                                   prm,
-                                   model,
-                                   name,
-                                   value,
-                                   cid_type)
-    return ids
+# def _get_raw_query_id(oerp, prm, model, name, value, cid_type):
+#     """Execute a query to get id of selection field read form csv
+#     Do not expand value
+#     @ oerp:        oerplib object
+#     @ prm:         global parameters
+#     @ model:       model name
+#     @ name:        field name
+#     @ value:       field value (just constant)
+#     @ cid_type:    hide company_id
+#     """
+#     msg = "_get_raw_query_id()"
+#     debug_msg_log(prm, 6, msg)
+#     if model is None:
+#         value = _eval_value(oerp,
+#                             prm,
+#                             o_bones,
+#                             code,
+#                             value)
+#         return value
+#     else:
+#         ids = _get_simple_query_id(oerp,
+#                                    prm,
+#                                    model,
+#                                    name,
+#                                    value,
+#                                    cid_type)
+#     return ids
 
 
 def _get_simple_query_id(oerp, prm, model, code, value, cid_type):
@@ -1365,34 +1367,71 @@ def expr(oerp, prm, model, code, value):
     """Evaluate python expression value"""
     if isinstance(value, basestring):
         i = value.find("${")
-        j = value.rfind("}")
-        if i >= 0 and j >= 0:
-            o_bones = {}
-            o_bones['model'] = model
-            v = _eval_subvalue(oerp,
-                               prm,
-                               o_bones,
-                               value[i + 2:j])
-            if isinstance(v, (bool, int, long, float)):
-                v = str(v)
-            if isinstance(v, basestring):
-                value = value[:i] + v + value[j + 1:]
-            else:
-                value = value[:i] + value[j + 1:]
-            if value[0:1] == "=":
-                value = value[1:]
-            try:
-                value = eval(v, None, prm)
-            except:
-                pass
+        j = value.find("}")
+        if i >= 0 and j > i:
+            res = ""
+            while i >= 0 and j > i:
+                o_bones = {}
+                o_bones['model'] = model
+                v = _eval_subvalue(oerp,
+                                   prm,
+                                   o_bones,
+                                   value[i + 2:j])
+                if isinstance(v, (bool, int, long, float)):
+                    v = str(v)
+                try:
+                    v = eval(v, None, prm)
+                except:
+                    pass
+                res = res + value[:i] + v
+                value = value[j+1:]
+                i = value.find("${")
+                j = value.find("}")
+            value = res + value
+        if is_db_alias(value):
+            model, name, value, cid_type = get_model_alias(value)
+            ids = _get_simple_query_id(oerp,
+                                       prm,
+                                       model,
+                                       code,
+                                       value,
+                                       cid_type)
+            if isinstance(ids, list):
+                if len(ids):
+                    value = ids[0]
+                    if fldname != 'id':
+                        o = oerp.browse(model, value)
+                        value = getattr(o, fldname)
+                else:
+                    value = None
+
+
     return value
+
+
+def is_db_alias(value):
+    i = value.find('.') + 1
+    if value[0:i] == "base.":
+        True
+    return False, False
+
+
+def get_model_alias(value):
+    i = value.find('.') + 1
+    if value[0:i] == "base.":
+        model = "ir.model.data"
+        name = ['module', 'name']
+        value = [value[0:i], value[i + 1:]]
+        cid_type = True
+        return model, name, value, cid_type
+    return None, None, value, None
 
 
 def cleanvalue(value):
     """Return real value for evaluation"""
     i = value.find("${")
-    j = value.rfind("}")
-    if i >= 0 and j >= i:
+    j = value.find("}")
+    if i >= 0 and j > i:
         if value[0] == '=':
             return value[i + 2:j], value[1:i], value[j + 1:]
         else:
