@@ -7,19 +7,23 @@ Python tools
 
 Sparse python source code
 
-+---------+------------------------------------------------------------+
-| clodoo  | Massive operation in multiple DBs on odoo in cloud.        |
-|         | No (yet) documented                                        |
-|         | odoo massive test to check installation                    |
-+---------+------------------------------------------------------------+
-| os0     | Simple os interface checked for OpenVMS too                |
-+---------+------------------------------------------------------------+
-| product | Simple LAMP and odoo server installer                      |
-+---------+------------------------------------------------------------+
-| pytok   | Simple python token parser                                 |
-+---------+------------------------------------------------------------+
-| z0lib   | Simple general purpose bash library                        |
-+---------+------------------------------------------------------------+
++----------+-----------------------------------------------------------+
+| clodoo   | Massive operation in multiple DBs on odoo in cloud.       |
+|          | No (yet) documented                                       |
+|          | odoo massive test to check installation                   |
++----------+-----------------------------------------------------------+
+| os0      | Simple os interface checked for OpenVMS too               |
++----------+-----------------------------------------------------------+
+| product  | Simple LAMP and odoo server installer                     |
++----------+-----------------------------------------------------------+
+| pytok    | Simple python token parser                                |
++----------+-----------------------------------------------------------+
+| wok_code | Undocumented                                              |
++----------+-----------------------------------------------------------+
+| wok_news | Undocumented                                              |
++----------+-----------------------------------------------------------+
+| z0lib    | Simple general purpose bash library                       |
++----------+-----------------------------------------------------------+
 
 
 .. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg
