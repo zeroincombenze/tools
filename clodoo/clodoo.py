@@ -23,7 +23,7 @@
 
 """
 
-import pdb
+# import pdb
 import os.path
 import sys
 import argparse
@@ -1053,16 +1053,11 @@ def _get_model_parms(oerp, ctx, o_model, value):
                 value = eval(value, None, ctx)
             except:
                 pass
-        # if prefix or suffix:
-        #     if isinstance(value, basestring):
-        #         value = prefix + value + suffix
-        #     elif isinstance(value, (bool, int, long, float)):
-        #         value = prefix + str(value) + suffix
     else:
         model = value[:i]
         # value = prefix + value[i + len(sep):] + suffix
         value = value[i + len(sep):]
-        model, fldname = _get_name_n_ix(model)
+        model, fldname = _get_name_n_ix(model, deflt=fldname)
         model, x = _get_name_n_params(model, name)
         if x.find(',') >= 0:
             name = x.split(',')
@@ -1134,7 +1129,7 @@ def _get_query_id(oerp, ctx, o_model, row):
     """
     msg = "_get_query_id()"
     debug_msg_log(ctx, 6, msg)
-    pdb.set_trace()
+    # pdb.set_trace()
     code = o_model['code']
     model, cid_type = _get_model_bone(ctx, o_model)
     msg += "model=%s, hide_company=%s" % (model, cid_type)
@@ -1164,35 +1159,6 @@ def _get_query_id(oerp, ctx, o_model, row):
     return ids
 
 
-# def _get_raw_query_id(oerp, ctx, model, name, value, cid_type):
-#     """Execute a query to get id of selection field read form csv
-#     Do not expand value
-#     @ oerp:        oerplib object
-#     @ ctx:         global parameters
-#     @ model:       model name
-#     @ name:        field name
-#     @ value:       field value (just constant)
-#     @ cid_type:    hide company_id
-#     """
-#     msg = "_get_raw_query_id()"
-#     debug_msg_log(ctx, 6, msg)
-#     if model is None:
-#         value = _eval_value(oerp,
-#                             ctx,
-#                             o_model,
-#                             code,
-#                             value)
-#         return value
-#     else:
-#         ids = _get_simple_query_id(oerp,
-#                                    ctx,
-#                                    model,
-#                                    name,
-#                                    value,
-#                                    cid_type)
-#     return ids
-
-
 def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
     """Execute a simple query to get ids from selection field(s)
     Do not expand value
@@ -1203,6 +1169,27 @@ def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
     @ value:       field value (just constant)
     @ cid_type:    hide company_id
     """
+    ids = _get_raw_query_id(oerp, ctx, model, code, value, cid_type, '=')
+    if model == 'ir.model.data' and len(ids) == 1:
+        try:
+            o = oerp.browse('ir.model.data', ids[0])
+            ids = [o.res_id]
+        except:
+            ids = None
+    if ids is None:
+        return []
+    if len(ids) == 0:
+        ids = _get_raw_query_id(oerp,
+                                ctx,
+                                model,
+                                code,
+                                value,
+                                cid_type,
+                                'ilike')
+    return ids
+
+
+def _get_raw_query_id(oerp, ctx, model, code, value, cid_type, op):
     if not cid_type and 'company_id' in ctx:
         company_id = ctx['company_id']
     else:
@@ -1217,7 +1204,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
                                        c,
                                        value[i],
                                        where,
-                                       '=')
+                                       op)
             else:
                 where = append_2_where(oerp,
                                        ctx,
@@ -1225,7 +1212,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
                                        c,
                                        '',
                                        where,
-                                       '=')
+                                       op)
     else:
         where = append_2_where(oerp,
                                ctx,
@@ -1233,71 +1220,28 @@ def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
                                code,
                                value,
                                where,
-                               '=')
+                               op)
     if company_id is not None:
         where.append(('company_id', '=', company_id))
     try:
         ids = oerp.search(model, where)
     except:
         ids = None
-    if model == 'ir.model.data' and len(ids) == 1:
-        try:
-            o = oerp.browse('ir.model.data', ids[0])
-            ids = [o.res_id]
-        except:
-            ids = None
-    if ids is None:
-        return []
-    if len(ids) == 0:
-        where = []
-        if isinstance(code, list) and isinstance(value, list):
-            for i, c in enumerate(code):
-                if i < len(value):
-                    where = append_2_where(oerp,
-                                           ctx,
-                                           model,
-                                           c,
-                                           value[i],
-                                           where,
-                                           'ilike')
-                else:
-                    where = append_2_where(oerp,
-                                           ctx,
-                                           model,
-                                           c,
-                                           '',
-                                           where,
-                                           'ilike')
-        else:
-            where = append_2_where(oerp,
-                                   ctx,
-                                   model,
-                                   code,
-                                   value,
-                                   where,
-                                   'ilike')
-        if company_id is not None:
-            where.append(('company_id', '=', company_id))
-        try:
-            ids = oerp.search(model, where)
-        except:
-            ids = None
     return ids
 
 
 def append_2_where(oerp, ctx, model, code, value, where, op):
     if value is not None and value != "":
+        value = _eval_value(oerp, ctx, model, code, value)
         if isinstance(value, basestring) and value[0] == '~':
             where.append('|')
             where.append((code, op, value))
             where.append((code, op, value[1:]))
+        elif not isinstance(value, basestring) and \
+                op in ('like', 'ilike', '=like', '=ilike'):
+            where.append((code, '=', value))
         else:
-            value = _eval_value(oerp, ctx, model, code, value)
-            # expr(oerp, ctx, model, code, value)
-            if not isinstance(value, basestring) and op == 'ilike':
-                where.append((code, '=', value))
-            else:
-                where.append((code, op, value))
+            where.append((code, op, value))
     elif code == "country_id":
         where.append((code, '=', ctx['def_country_id']))
     elif code != "id" and code[-3:] == "_id":
@@ -1315,33 +1259,44 @@ def _eval_value(oerp, ctx, o_model, name, value):
     """
     msg = "_eval_value(name=%s, value=%s)" % (name, value)
     debug_msg_log(ctx, 6, msg)
-    pdb.set_trace()
     if isinstance(value, basestring):
-        """
-        if value[0:1] == "=":
-            res = ""
-            value = value[1:]
-            i = value.find("${")
-            j = value.find("}")
-            while i >= 0 and j > i:
-                o_model = {}
-                o_model['model'] = model
-                v = expr(oerp,
+        if is_db_alias(value):
+            value = expr(oerp,
                          ctx,
-                         model,
+                         o_model,
                          name,
-                         value[i + 2:j])
-                if isinstance(v, (bool, int, long, float)):
-                    v = str(v)
-                try:
-                    v = eval(v, None, ctx)
-                except:
-                    pass
-                res = res + value[:i] + v
+                         value)
+        elif value[0:1] == "=":
+            value = expr(oerp,
+                         ctx,
+                         o_model,
+                         name,
+                         value[1:])
+    return value
+
+
+def expr(oerp, ctx, o_model, code, value):
+    """Evaluate python expression value"""
+    if isinstance(value, basestring):
+        i = value.find("${")
+        j = value.find("}")
+        if i >= 0 and j > i:
+            res = value[:i]
+            while i >= 0 and j > i:
+                v = value[i+2:j]
+                if v.find(':') >= 0:
+                    v = _query_expr(oerp, ctx, o_model, code, v)
+                else:
+                    try:
+                        v = eval(v, None, ctx)
+                    except:
+                        pass
                 value = value[j+1:]
+                res = concat_res(res, v)
                 i = value.find("${")
                 j = value.find("}")
-            value = res + value
+            value = concat_res(res, value)
+    if isinstance(value, basestring):
         if is_db_alias(value):
             model, name, value, cid_type = get_model_alias(value)
             ids = _get_simple_query_id(oerp,
@@ -1352,62 +1307,7 @@ def _eval_value(oerp, ctx, o_model, name, value):
                                        cid_type)
             if isinstance(ids, list):
                 if len(ids):
-                    if name == 'id':
-                        value = ids[0]
-                    else:
-                        o = oerp.browse(model, ids[0])
-                        value = getattr(o, name)
-                else:
-                    value = None
-        """
-    return value
-
-
-# def _eval_subvalue(oerp, ctx, o_model, value):
-#     msg = "_eval_subvalue(value=%s)" % value
-#     debug_msg_log(ctx, 6, msg)
-#     model, name, value, cid_type, fldname = _get_model_parms(oerp,
-#                                                              ctx,
-#                                                              o_model,
-#                                                              value)
-#     if model is None:
-#         value = expr(oerp, ctx, model, name, value)
-#     else:
-#         value = _get_simple_query_id(oerp,
-#                                   ctx,
-#                                   model,
-#                                   name,
-#                                   value,
-#                                   cid_type)
-#     if isinstance(value, list):
-#         if len(value):
-#             value = value[0]
-#             if fldname != 'id':
-#                 o = oerp.browse(model, value)
-#                 value = getattr(o, fldname)
-#         else:
-#             value = None
-#     if value and (pfx or sfx):
-#         if isinstance(value, (bool, int, long, float)):
-#             value = str(value)
-#     return value
-
-
-def expr(oerp, ctx, model, code, value):
-    """Evaluate python expression value"""
-    if isinstance(value, basestring):
-
-        if is_db_alias(value):
-            model, name, value, cid_type = get_model_alias(value)
-            ids = _get_simple_query_id(oerp,
-                                       ctx,
-                                       model,
-                                       code,
-                                       value,
-                                       cid_type)
-            if isinstance(ids, list):
-                if len(ids):
-                    if name == 'id':
+                    if name == 'id' or isinstance(name, list):
                         value = ids[0]
                     else:
                         o = oerp.browse(model, ids[0])
@@ -1415,13 +1315,57 @@ def expr(oerp, ctx, model, code, value):
                 else:
                     value = None
     return value
+
+
+def _query_expr(oerp, ctx, o_model, code, value):
+    msg = "_quer_expr(value=%s)" % value
+    debug_msg_log(ctx, 6, msg)
+    model, name, value, cid_type, fldname = _get_model_parms(oerp,
+                                                             ctx,
+                                                             o_model,
+                                                             value)
+    if model:
+        if fldname == 'db_type':
+            value = o_model.get('db_type', '')
+        else:
+            value = _get_simple_query_id(oerp,
+                                         ctx,
+                                         model,
+                                         name,
+                                         value,
+                                         cid_type)
+            if isinstance(value, list):
+                if len(value):
+                    value = value[0]
+                    if fldname != 'id':
+                        o = oerp.browse(model, value)
+                        value = getattr(o, fldname)
+                else:
+                    value = None
+    return value
+
+
+def concat_res(res, value):
+    if isinstance(res, basestring) and res:
+        if isinstance(value, basestring):
+            res = res + value
+        elif isinstance(value, (bool, int, long, float)):
+            res = res + str(value)
+    elif isinstance(res, (bool, int, long, float)):
+        if isinstance(value, basestring) and value:
+            res = str(res) + value
+        elif isinstance(value, (bool, int, long, float)):
+            res = str(res) + str(value)
+    else:
+        res = value
+    return res
 
 
 def is_db_alias(value):
     i = value.find('.') + 1
     if value[0:i] == "base.":
-        True
-    return False, False
+        return True
+    return False
 
 
 def get_model_alias(value):
@@ -1429,6 +1373,7 @@ def get_model_alias(value):
     if value[0:i] == "base.":
         model = "ir.model.data"
         name = ['module', 'name']
+        i -= 1
         value = [value[0:i], value[i + 1:]]
         cid_type = True
         return model, name, value, cid_type
