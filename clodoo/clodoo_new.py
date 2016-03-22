@@ -24,14 +24,14 @@
 """
 
 # import pdb
-from os0 import os0
 import os.path
 import sys
+import argparse
+import ConfigParser
+from os0 import os0
 from datetime import date
 import time
 import oerplib
-import ConfigParser
-import argparse
 import re
 import csv
 
@@ -41,6 +41,13 @@ __version__ = "0.3.1"
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
 CONF_FN = False
+# Read Odoo configuration file (False or /etc/odoo-server.conf)
+ODOO_CONF = ["/etc/odoo/odoo-server.conf",
+             "/etc/odoo-server.conf",
+             "/etc/openerp/openerp-server.conf",
+             "/etc/openerp-server.conf",
+             "/etc/odoo/openerp-server.conf",
+             "/etc/openerp/odoo-server.conf"]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 ODOO_CONF = "/etc/openerp-server.conf"
 
@@ -77,17 +84,17 @@ def msg(level, text):
     print txt
 
 
-def msg_log(prm, level, text):
+def msg_log(ctx, level, text):
     """Log a message and show if needed"""
     ident = ' ' * level
-    if prm:
-        if 'test_unit_mode' in prm:
+    if ctx:
+        if 'test_unit_mode' in ctx:
             return
-        elif prm['simulate'] and level > 0:
+        elif ctx['simulate'] and level > 0:
             txt = u"{0}({1})".format(ident, tounicode(text))
         else:
             txt = u"{0}{1}".format(ident, tounicode(text))
-        if not prm['quiet_mode']:
+        if not ctx['quiet_mode']:
             print txt
     else:
         txt = u"{0}{1}".format(ident, tounicode(text))
@@ -95,13 +102,13 @@ def msg_log(prm, level, text):
     os0.wlog(txt)
 
 
-def debug_msg_log(prm, level, text):
+def debug_msg_log(ctx, level, text):
     """Log a debug message and show if needed"""
     ident = ' ' * level
-    if prm.get('dbg_mode', False):
-        if 'test_unit_mode' in prm:
+    if ctx.get('dbg_mode', False):
+        if 'test_unit_mode' in ctx:
             return
-        elif prm['simulate'] and level > 0:
+        elif ctx['simulate'] and level > 0:
             txt = u">{0}({1})".format(ident, tounicode(text))
         else:
             txt = u">{0}{1}".format(ident, tounicode(text))
@@ -109,11 +116,11 @@ def debug_msg_log(prm, level, text):
         os0.wlog(txt)
 
 
-def print_hdr_msg(prm):
+def print_hdr_msg(ctx):
     msg = u"Do massive operations V" + __version__
-    msg_log(prm, 0, msg)
-    msg = u"Configuration from " + prm.get('conf_fn', '')
-    msg_log(prm, 1, msg)
+    msg_log(ctx, 0, msg)
+    msg = u"Configuration from " + ctx.get('conf_fn', '')
+    msg_log(ctx, 1, msg)
 
 
 def ismbcs(t):
@@ -156,32 +163,34 @@ def tounicode(s):
 #############################################################################
 # Connection and database
 #
-def open_connection(prm):
+def open_connection(ctx):
     """Open connection to Odoo service"""
     try:
-        oerp = oerplib.OERP(server=prm['host'],
-                            protocol=prm['svc_protocol'],
-                            port=prm['svc_port'])
+        oerp = oerplib.OERP(server=ctx['host'],
+                            protocol=ctx['svc_protocol'],
+                            port=ctx['svc_port'])
     except:
         msg = u"!Odoo server is not running!"
-        msg_log(prm, 0, msg)
+        msg_log(ctx, 0, msg)
         raise ValueError(msg)
     return oerp
 
 
-def do_login(oerp, prm):
+def do_login(oerp, ctx):
     """Do a login into DB; try using more usernames and passwords"""
-    userlist = prm['login2_user'].split(',')
-    userlist.insert(0, prm['login_user'])
-    pwdlist = prm['login2_pwd'].split(',')
-    pwdlist.insert(0, prm['login_pwd'])
+    msg = "do_login()"
+    debug_msg_log(ctx, 2, msg)
+    userlist = ctx['login2_user'].split(',')
+    userlist.insert(0, ctx['login_user'])
+    pwdlist = ctx['login2_pwd'].split(',')
+    pwdlist.insert(0, ctx['login_pwd'])
     user_obj = False
     for username in userlist:
         for pwd in pwdlist:
             try:
                 user_obj = oerp.login(user=username,
                                       passwd=pwd,
-                                      database=prm['db_name'])
+                                      database=ctx['db_name'])
                 break
             except:
                 user_obj = False
@@ -190,35 +199,40 @@ def do_login(oerp, prm):
 
     if not user_obj:
         os0.wlog(u"!DB={0}: invalid user/pwd"
-                 .format(tounicode(prm['db_name'])))
+                 .format(tounicode(ctx['db_name'])))
         return
 
-    if prm['set_passepartout']:
+    if ctx['set_passepartout']:
         wrong = False
-        if username != prm['login_user']:
-            user_obj.login = prm['login_user']
+        if username != ctx['login_user']:
+            user_obj.login = ctx['login_user']
             wrong = True
-        if pwd != prm['login_pwd']:
-            user_obj.password = prm['login_pwd']
+        if pwd != ctx['login_pwd']:
+            user_obj.password = ctx['login_pwd']
             wrong = True
         if wrong:
-            oerp.write_record(user_obj)
-            os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
-                     .format(tounicode(prm['db_name']),
-                             tounicode(username),
-                             tounicode(prm['login_user'])))
-
-        if user_obj.email != prm['zeroadm_mail']:
-            user_obj.email = prm['zeroadm_mail']
-            oerp.write_record(user_obj)
-            os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
-                     .format(tounicode(prm['db_name']),
-                             tounicode(prm['login2_user']),
-                             tounicode(prm['login_user'])))
+            try:
+                oerp.write_record(user_obj)
+                os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
+                         .format(tounicode(ctx['db_name']),
+                                 tounicode(username),
+                                 tounicode(ctx['login_user'])))
+            except:
+                os0.wlog(u"!!write error!")
+        if user_obj.email != ctx['zeroadm_mail']:
+            user_obj.email = ctx['zeroadm_mail']
+            try:
+                oerp.write_record(user_obj)
+                os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
+                         .format(tounicode(ctx['db_name']),
+                                 tounicode(ctx['login2_user']),
+                                 tounicode(ctx['login_user'])))
+            except:
+                os0.wlog(u"!!write error!")
     return user_obj
 
 
-def init_prm(prm, db):
+def init_ctx(ctx, db):
     """"Clear company parameters"""
     for n in ('def_company_id',
               'def_company_name',
@@ -227,26 +241,32 @@ def init_prm(prm, db):
               'def_country_id',
               'company_id',
               'module_udpated'):
-        if n in prm:
-            del prm[n]
-    prm['db_name'] = db
-    if re.match(prm['dbfilterz'], prm['db_name']):
-        prm['db_type'] = "Z"  # Zeroincombenze
-    elif re.match(prm['dbfiltert'], prm['db_name']):
-        prm['db_type'] = "T"  # Test
+        if n in ctx:
+            del ctx[n]
+    ctx['db_name'] = db
+    if re.match(ctx['dbfilterz'], ctx['db_name']):
+        ctx['db_type'] = "Z"  # Zeroincombenze
+    elif re.match(ctx['dbfiltert'], ctx['db_name']):
+        ctx['db_type'] = "T"  # Test
     else:
-        prm['db_type'] = "C"  # Customer
-    return prm
+        ctx['db_type'] = "C"  # Customer
+    return ctx
 
 
 def get_dblist(oerp):
     return oerp.db.list()
 
 
-def get_userlist(oerp, prm):
+def get_userlist(oerp, ctx):
     """Set parameter values for current company"""
+    msg = "get_userlist()"
+    debug_msg_log(ctx, 2, msg)
     user_ids = oerp.search('res.users')
+    msg = "user_ids: %s" % str(user_ids)
+    debug_msg_log(ctx, 2, msg)
     for u_id in sorted(user_ids):
+        msg = "res.users.browse()"
+        debug_msg_log(ctx, 3, msg)
         user_obj = oerp.browse('res.users', u_id)
         msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
               u_id,
@@ -254,17 +274,17 @@ def get_userlist(oerp, prm):
               tounicode(user_obj.partner_id.name),
               tounicode(user_obj.partner_id.email),
               tounicode(user_obj.company_id.name))
-        msg_log(prm, 2, msg)
+        msg_log(ctx, 2, msg)
         if user_obj.login == "admin":
-            prm['def_company_id'] = user_obj.company_id.id
-            prm['def_company_name'] = user_obj.company_id.name
-            prm['def_partner_id'] = user_obj.partner_id.id
-            prm['def_user_id'] = u_id
+            ctx['def_company_id'] = user_obj.company_id.id
+            ctx['def_company_name'] = user_obj.company_id.name
+            ctx['def_partner_id'] = user_obj.partner_id.id
+            ctx['def_user_id'] = u_id
             if user_obj.company_id.country_id:
-                prm['def_country_id'] = user_obj.company_id.country_id.id
+                ctx['def_country_id'] = user_obj.company_id.country_id.id
             else:
-                prm['def_country_id'] = user_obj.partner_id.country_id.id
-    return prm
+                ctx['def_country_id'] = user_obj.partner_id.country_id.id
+    return ctx
 
 
 #############################################################################
@@ -299,9 +319,9 @@ def _get_name_n_ix(name, deflt=None):
     return n, x
 
 
-def isaction(oerp, prm, action):
+def isaction(oerp, ctx, action):
     """Return if valid action"""
-    lx_act = prm['_lx_act']
+    lx_act = ctx['_lx_act']
     if action == '' or action is False or action is None:
         return True
     elif action in lx_act:
@@ -316,7 +336,19 @@ def lexec_name(action):
     return act
 
 
-def action_name(lexec):
+def add_on_account(acc_balance, level, code, credit, debit):
+    if level not in acc_balance:
+        acc_balance[level] = {}
+    if code:
+        if code in acc_balance[level]:
+            acc_balance[level][code] += credit
+            acc_balance[level][code] -= debit
+        else:
+            acc_balance[level][code] = credit
+            acc_balance[level][code] -= debit
+
+
+def act_name(lexec):
     """Return action name from local executable function name"""
     if lexec[0:4] == 'act_':
         action_name = lexec[4:]
@@ -325,123 +357,123 @@ def action_name(lexec):
     return action_name
 
 
-def do_single_action(oerp, prm, action):
+def do_single_action(oerp, ctx, action):
     """Do single action (recursive)"""
-    if isaction(oerp, prm, action):
+    if isaction(oerp, ctx, action):
         if action == '' or action is False or action is None:
             return 0
         act = lexec_name(action)
         if act in list(globals()):
             if action == 'install_modules' and\
-                    not prm.get('module_udpated', False):
-                globals()[lexec_name('update_modules')](oerp, prm)
-                prm['module_udpated'] = True
-            return globals()[act](oerp, prm)
+                    not ctx.get('module_udpated', False):
+                globals()[lexec_name('update_modules')](oerp, ctx)
+                ctx['module_udpated'] = True
+            return globals()[act](oerp, ctx)
         else:
-            return do_group_action(oerp, prm, action)
+            return do_group_action(oerp, ctx, action)
     else:
         return 1
 
 
-def do_group_action(oerp, prm, action):
+def do_group_action(oerp, ctx, action):
     """Do group actions (recursive)"""
-    if 'test_unit_mode' not in prm:
+    if 'test_unit_mode' not in ctx:
         msg = u"Do group actions"
-        msg_log(prm, 3, msg)
-    conf_obj = prm['_conf_obj']
+        msg_log(ctx, 3, msg)
+    conf_obj = ctx['_conf_obj']
     sts = 0
     if conf_obj.has_option(action, 'actions'):
         # Local environment for group actions
-        lprm = create_local_parms(prm, action)
-        if not lprm['actions']:
+        lctx = create_local_parms(ctx, action)
+        if not lctx['actions']:
             return 1
-        actions = lprm['actions'].split(',')
+        actions = lctx['actions'].split(',')
         for act in actions:
-            if isaction(oerp, lprm, act):
+            if isaction(oerp, lctx, act):
                 if act == '' or act is False or act is None:
                     break
                 elif act == action:
                     msg = u"Recursive actions " + act
-                    msg_log(prm, 3, msg)
+                    msg_log(ctx, 3, msg)
                     sts = 1
                     break
-                sts = do_single_action(oerp, lprm, act)
+                sts = do_single_action(oerp, lctx, act)
             else:
                 msg = u"Invalid action " + act
-                msg_log(prm, 3, msg)
+                msg_log(ctx, 3, msg)
                 sts = 1
                 break
     else:
         msg = u"Undefined action"
-        msg_log(prm, 3, msg)
+        msg_log(ctx, 3, msg)
         sts = 1
     return sts
 
 
-def do_actions(oerp, prm):
+def do_actions(oerp, ctx):
     """Do root actions (recursive)"""
-    actions = prm.get('actions', None)
-    if not actions and 'actions_db' in prm:
+    actions = ctx.get('actions', None)
+    if not actions and 'actions_db' in ctx:
         actions = 'per_db'
-    elif not actions and 'actions_mc' in prm:
+    elif not actions and 'actions_mc' in ctx:
         actions = 'per_company'
-    elif not actions and 'actions_uu' in prm:
+    elif not actions and 'actions_uu' in ctx:
         actions = 'per_users'
     if not actions:
         return 1
     actions = actions.split(',')
     sts = 0
     for act in actions:
-        if isaction(oerp, prm, act):
-            sts = do_single_action(oerp, prm, act)
+        if isaction(oerp, ctx, act):
+            sts = do_single_action(oerp, ctx, act)
         else:
             sts = 1
         if sts > 0:
             break
     return sts
-    # debug_explore(oerp, prm)
-    # o_bones = {}
+    # debug_explore(oerp, ctx)
+    # o_model = {}
     # csv_fn = "user-config.csv"
-    # import_config_file(oerp, prm, o_bones, csv_fn)
+    # import_config_file(oerp, ctx, o_model, csv_fn)
 
 
-def create_local_parms(prm, action):
+def create_local_parms(ctx, action):
     """Create local params dictionary"""
-    conf_obj = prm['_conf_obj']
-    lprm = {}
-    for n in prm:
-        lprm[n] = prm[n]
+    conf_obj = ctx['_conf_obj']
+    lctx = {}
+    for n in ctx:
+        lctx[n] = ctx[n]
     for p in ('actions',
               'install_modules',
               'uninstall_modules',
               'upgrade_modules'):
         if conf_obj.has_option(action, p):
-            lprm[p] = conf_obj.get(action, p)
+            lctx[p] = conf_obj.get(action, p)
         else:
-            lprm[p] = False
+            lctx[p] = False
     for p in ('model',
               'model_code',
               'model_name',
               'code',
               'name',
               'filename',
-              'hide_cid'):
+              'cid_type'):
         if conf_obj.has_option(action, p):
-            lprm[p] = conf_obj.get(action, p)
-        elif p in lprm:
-            del lprm[p]
-    # lprm['actions_db'] = ''
-    # lprm['actions_mc'] = ''
+            lctx[p] = conf_obj.get(action, p)
+        elif p in lctx:
+            del lctx[p]
+    # lctx['actions_db'] = ''
+    # lctx['actions_mc'] = ''
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
-              'hide_cid'):
-        if p in lprm:
-            lprm[p] = os0.str2bool(lprm[p], lprm[p])
-    return lprm
+              'cid_type'):
+        if p in lctx:
+            lctx[p] = os0.str2bool(lctx[p], lctx[p])
+    return lctx
 
 
-def log_company(oerp, prm, c_id):
+def log_company(oerp, ctx, c_id):
     company_obj = oerp.browse('res.company', c_id)
     msg = u"Company {0:>3})\t'{1}'".format(c_id,
                                            tounicode(company_obj.name))
@@ -451,12 +483,12 @@ def log_company(oerp, prm, c_id):
 #############################################################################
 # Public actions
 #
-def act_unit_test(oerp, prm):
+def act_unit_test(oerp, ctx):
     """This function acts just for unit test"""
     return 0
 
 
-def act_run_unit_tests(oerp, prm):
+def act_run_unit_tests(oerp, ctx):
     """"Run module unit test"""
     # import pdb
     # pdb.set_trace()
@@ -466,90 +498,90 @@ def act_run_unit_tests(oerp, prm):
     return sts
 
 
-def act_per_db(oerp, prm):
+def act_per_db(oerp, ctx):
     """Iter action on DBs"""
     dblist = get_dblist(oerp)
     sts = 0
     for db in sorted(dblist):
-        if re.match(prm['dbfilter'], db):
-            prm = init_prm(prm, db)
-            msg = u"DB=" + db + " (" + prm.get('db_type', '') + ")"
-            msg_log(prm, 1, msg)
-            if prm['dbtypefilter']:
-                if prm['db_type'] != prm['dbtypefilter']:
+        if re.match(ctx['dbfilter'], db):
+            ctx = init_ctx(ctx, db)
+            msg = u"DB=" + db + " (" + ctx.get('db_type', '') + ")"
+            msg_log(ctx, 1, msg)
+            if ctx['dbtypefilter']:
+                if ctx['db_type'] != ctx['dbtypefilter']:
                     msg = u"DB skipped by invalid db_type"
-                    debug_msg_log(prm, 5, msg)
+                    debug_msg_log(ctx, 5, msg)
                     continue
-            if 'actions_db' not in prm:
-                prm['actions_db'] = prm['actions']
-            lgiuser = do_login(oerp, prm)
+            if 'actions_db' not in ctx:
+                ctx['actions_db'] = ctx['actions']
+            lgiuser = do_login(oerp, ctx)
             if lgiuser:
-                sts = do_actions(oerp, prm)
+                sts = do_actions(oerp, ctx)
                 if sts:
                     break
     return sts
 
 
-def act_per_company(oerp, prm):
+def act_per_company(oerp, ctx):
     """iter on companies"""
     company_ids = oerp.search('res.company')
     sts = 0
     for c_id in sorted(company_ids):
-        prm['company_id'] = c_id
+        ctx['company_id'] = c_id
         company_obj = oerp.browse('res.company', c_id)
-        if re.match(prm['companyfilter'], company_obj.name):
-            log_company(oerp, prm, c_id)
-            sts = do_actions(oerp, prm)
+        if re.match(ctx['companyfilter'], company_obj.name):
+            log_company(oerp, ctx, c_id)
+            sts = do_actions(oerp, ctx)
             if sts:
                 break
     return sts
 
 
-def act_per_user(oerp, prm):
+def act_per_user(oerp, ctx):
     """iter on users"""
     user_ids = oerp.search('res.users')
     sts = 0
     for u_id in sorted(user_ids):
         user_obj = oerp.browse('res.users', u_id)
-        if re.match(prm['userfilter'], user_obj.login):
+        if re.match(ctx['userfilter'], user_obj.login):
             msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
                 u_id,
                 tounicode(user_obj.login),
                 tounicode(user_obj.partner_id.name),
                 tounicode(user_obj.partner_id.email),
                 tounicode(user_obj.company_id.name))
-            msg_log(prm, 2, msg)
+            msg_log(ctx, 2, msg)
             if user_obj.login == "admin":
-                prm['def_company_id'] = user_obj.company_id.id
-                prm['def_company_name'] = user_obj.company_id.name
-                prm['def_partner_id'] = user_obj.partner_id.id
-                prm['def_user_id'] = u_id
+                ctx['def_company_id'] = user_obj.company_id.id
+                ctx['def_company_name'] = user_obj.company_id.name
+                ctx['def_partner_id'] = user_obj.partner_id.id
+                ctx['def_user_id'] = u_id
                 if user_obj.company_id.country_id:
-                    prm['def_country_id'] = user_obj.company_id.country_id.id
+                    ctx['def_country_id'] = user_obj.company_id.country_id.id
                 else:
-                    prm['def_country_id'] = user_obj.partner_id.country_id.id
-            sts = do_actions(oerp, prm)
+                    ctx['def_country_id'] = user_obj.partner_id.country_id.id
+            sts = do_actions(oerp, ctx)
             if sts:
                 break
     return sts
 
 
-def act_update_modules(oerp, prm):
+def act_update_modules(oerp, ctx):
     """Update module list on DB"""
     msg = u"Update module list"
-    msg_log(prm, 3, msg)
-    if not prm['simulate']:
+    msg_log(ctx, 3, msg)
+    if not ctx['simulate']:
         oerp.execute('base.module.update',
                      "update_module",
                      [])
     return 0
 
 
-def act_upgrade_modules(oerp, prm):
+def act_upgrade_modules(oerp, ctx):
     """Upgrade module from list"""
     msg = u"Upgrade modules"
-    msg_log(prm, 3, msg)
-    module_list = prm['upgrade_modules'].split(',')
+    msg_log(ctx, 3, msg)
+    module_list = ctx['upgrade_modules'].split(',')
     done = 0
     for m in module_list:
         if m == "":
@@ -557,21 +589,21 @@ def act_upgrade_modules(oerp, prm):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'installed')])
-        if not prm['simulate']:
+        if not ctx['simulate']:
             if len(ids):
                 try:
                     oerp.execute('ir.module.module',
                                  "button_immediate_upgrade",
                                  ids)
                     msg = "name={0}".format(m)
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
                     done += 1
                 except:
                     msg = "!Module {0} not upgradable!".format(m)
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
             else:
                 msg = "Module {0} not installed!".format(m)
-                msg_log(prm, 4, msg)
+                msg_log(ctx, 4, msg)
         else:
             msg = "name({0})".format(m)
             msg_log(False, 4, msg)
@@ -581,11 +613,11 @@ def act_upgrade_modules(oerp, prm):
     return 0
 
 
-def act_uninstall_modules(oerp, prm):
+def act_uninstall_modules(oerp, ctx):
     """Uninstall module from list"""
     msg = u"Uninstall unuseful modules"
-    msg_log(prm, 3, msg)
-    module_list = prm['uninstall_modules'].split(',')
+    msg_log(ctx, 3, msg)
+    module_list = ctx['uninstall_modules'].split(',')
     done = 0
     for m in module_list:
         if m == "":
@@ -593,7 +625,7 @@ def act_uninstall_modules(oerp, prm):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'installed')])
-        if not prm['simulate']:
+        if not ctx['simulate']:
             if len(ids):
                 if m != 'l10n_it_base':  # debug
                     try:
@@ -601,14 +633,14 @@ def act_uninstall_modules(oerp, prm):
                                      "button_immediate_uninstall",
                                      ids)
                         msg = "name={0}".format(m)
-                        msg_log(prm, 4, msg)
+                        msg_log(ctx, 4, msg)
                         done += 1
                     except:
                         msg = "!Module {0} not uninstallable!".format(m)
-                        msg_log(prm, 4, msg)
+                        msg_log(ctx, 4, msg)
             else:
                 msg = "Module {0} already uninstalled!".format(m)
-                msg_log(prm, 4, msg)
+                msg_log(ctx, 4, msg)
 
             ids = oerp.search('ir.module.module',
                               [('name', '=', m),
@@ -626,11 +658,11 @@ def act_uninstall_modules(oerp, prm):
     return 0
 
 
-def act_install_modules(oerp, prm):
+def act_install_modules(oerp, ctx):
     """Install modules from list"""
     msg = u"Install modules"
-    msg_log(prm, 3, msg)
-    module_list = prm['install_modules'].split(',')
+    msg_log(ctx, 3, msg)
+    module_list = ctx['install_modules'].split(',')
     done = 0
     for m in module_list:
         if m == "":
@@ -638,21 +670,26 @@ def act_install_modules(oerp, prm):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'uninstalled')])
-        if not prm['simulate']:
+        if not ctx['simulate']:
             if len(ids):
                 try:
                     oerp.execute('ir.module.module',
                                  "button_immediate_install",
                                  ids)
                     msg = "name={0}".format(m)
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
                     done += 1
                 except:
                     msg = "!Module {0} not installable!".format(m)
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
             else:
-                msg = "Module {0} already installed!".format(m)
-                msg_log(prm, 4, msg)
+                ids = oerp.search('ir.module.module',
+                                  [('name', '=', m)])
+                if len(ids):
+                    msg = "Module {0} already installed!".format(m)
+                else:
+                    msg = "!Module {0} does not exist!".format(m)
+                msg_log(ctx, 4, msg)
         else:
             msg = "name({0})".format(m)
             msg_log(False, 4, msg)
@@ -662,94 +699,94 @@ def act_install_modules(oerp, prm):
     return 0
 
 
-def act_import_file(oerp, prm):
-    o_bones = {}
+def act_import_file(oerp, ctx):
+    o_model = {}
     for p in ('model',
               'model_code',
               'model_name',
-              'hide_cid'):
-        if p in prm:
-            o_bones[p] = prm[p]
-    if 'filename' in prm:
-        csv_fn = prm['filename']
-    elif 'model' not in o_bones:
+              'cid_type'):
+        if p in ctx:
+            o_model[p] = ctx[p]
+    if 'filename' in ctx:
+        csv_fn = ctx['filename']
+    elif 'model' not in o_model:
         msg = u"!Wrong import file!"
-        msg_log(prm, 3, msg)
+        msg_log(ctx, 3, msg)
         return 1
     else:
-        csv_fn = o_bones['model'].replace('.', '_') + ".csv"
+        csv_fn = o_model['model'].replace('.', '_') + ".csv"
     msg = u"Import file " + csv_fn
-    msg_log(prm, 3, msg)
-    return import_file(oerp, prm, o_bones, csv_fn)
+    msg_log(ctx, 3, msg)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_setup_banks(oerp, prm):
+def act_setup_banks(oerp, ctx):
     msg = u"Setup bank"
-    msg_log(prm, 3, msg)
-    o_bones = {}
-    o_bones['hide_cid'] = True
+    msg_log(ctx, 3, msg)
+    o_model = {}
+    o_model['cid_type'] = True
     csv_fn = "res-bank.csv"
-    return import_file(oerp, prm, o_bones, csv_fn)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_setup_sequence(oerp, prm):
+def act_setup_sequence(oerp, ctx):
     msg = u"Setup sequence"
-    msg_log(prm, 3, msg)
-    o_bones = {}
-    o_bones['name'] = 'name'
-    o_bones['code'] = 'name'
+    msg_log(ctx, 3, msg)
+    o_model = {}
+    o_model['name'] = 'name'
+    o_model['code'] = 'name'
     csv_fn = "ir-sequence.csv"
-    return import_file(oerp, prm, o_bones, csv_fn)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_setup_account_journal(oerp, prm):
+def act_setup_account_journal(oerp, ctx):
     msg = u"Setup account journal"
-    msg_log(prm, 3, msg)
-    o_bones = {}
-    o_bones['name'] = 'name'
-    o_bones['code'] = 'name'
+    msg_log(ctx, 3, msg)
+    o_model = {}
+    o_model['name'] = 'name'
+    o_model['code'] = 'name'
     csv_fn = "account-journal.csv"
-    return import_file(oerp, prm, o_bones, csv_fn)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def setup_partner_banks(oerp, prm):
+def setup_partner_banks(oerp, ctx):
     msg = u"Setup partner bank"
-    msg_log(prm, 3, msg)
-    o_bones = {}
-    o_bones['name'] = 'bank_name'
+    msg_log(ctx, 3, msg)
+    o_model = {}
+    o_model['name'] = 'bank_name'
     csv_fn = "res-partner-bank.csv"
-    return import_file(oerp, prm, o_bones, csv_fn)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_setup_partners(oerp, prm):
+def act_setup_partners(oerp, ctx):
     msg = u"Setup partner"
-    msg_log(prm, 3, msg)
-    o_bones = {}
-    o_bones['code'] = 'vat'
+    msg_log(ctx, 3, msg)
+    o_model = {}
+    o_model['code'] = 'vat'
     csv_fn = "res-partner.csv"
-    return import_file(oerp, prm, o_bones, csv_fn)
+    return import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_check_config(oerp, prm):
-    if not prm['simulate'] and 'def_company_id' in prm:
-        if prm['def_company_id'] is not None:
+def act_check_config(oerp, ctx):
+    if not ctx['simulate'] and 'def_company_id' in ctx:
+        if ctx['def_company_id'] is not None:
             msg = u"Check config"
-            msg_log(prm, 3, msg)
+            msg_log(ctx, 3, msg)
 
-            o_bones = {}
+            o_model = {}
             csv_fn = "sale-shop.csv"
-            import_file(oerp, prm, o_bones, csv_fn)
+            import_file(oerp, ctx, o_model, csv_fn)
 
 
-def act_check_balance(oerp, prm):
+def act_check_balance(oerp, ctx):
     msg = u"Check for balance; period: " \
-        + prm['date_start'] + ".." + prm['date_stop']
-    msg_log(prm, 3, msg)
-    company_id = prm['company_id']
+        + ctx['date_start'] + ".." + ctx['date_stop']
+    msg_log(ctx, 3, msg)
+    company_id = ctx['company_id']
     period_ids = oerp.search('account.period',
                              [('company_id', '=', company_id),
-                              ('date_start', '>=', prm['date_start']),
-                              ('date_stop', '<=', prm['date_stop'])])
+                              ('date_start', '>=', ctx['date_start']),
+                              ('date_stop', '<=', ctx['date_stop'])])
     account_ctr = 0
     credit_amt = 0.0
     debit_amt = 0.0
@@ -758,7 +795,7 @@ def act_check_balance(oerp, prm):
                                 [('company_id', '=', company_id),
                                  ('period_id', 'in', period_ids),
                                  ('state', '=', 'valid')])
-    adm_uids = prm['adm_uids'].split(',')
+    adm_uids = ctx['adm_uids'].split(',')
     n = len(move_line_ids)
     i = 0
     for move_line_id in move_line_ids:
@@ -793,7 +830,7 @@ def act_check_balance(oerp, prm):
             print("Look carefully at ", move_line_id, " account record")
 
     msg = "Total balance {0:11.2f} {1:11.2f}".format(credit_amt, debit_amt)
-    msg_log(prm, 3, msg)
+    msg_log(ctx, 3, msg)
     bal_ep_s = {}
     bal_ep_s['_'] = 0.0
     for acctype_id in acc_amt_s:
@@ -819,7 +856,7 @@ def act_check_balance(oerp, prm):
               ep,
               acctype_obj.name,
               acc_amt_s[acctype_id])
-        msg_log(prm, 3, msg)
+        msg_log(ctx, 3, msg)
         if ep in bal_ep_s:
             bal_ep_s[ep] += acc_amt_s[acctype_id]
         else:
@@ -834,7 +871,7 @@ def act_check_balance(oerp, prm):
         msg = "({0:<12})={1:>11.2f}".format(ep,
                                             bal_ep_s[ep])
         if ep != "_" or bal_ep_s[ep] != 0.0:
-            msg_log(prm, 3, msg)
+            msg_log(ctx, 3, msg)
 
     if len(adm_uids):
         msg = "Account move ctr={0:>5}".format(account_ctr)
@@ -845,79 +882,79 @@ def act_check_balance(oerp, prm):
 #############################################################################
 # Models
 #
-def _get_model_bone(prm, o_bones):
+def _get_model_bone(ctx, o_model):
     """Inherit model structure from a parent model"""
     model = None
-    hide_cid = False
-    if prm is not None:
-        if 'model' in prm:
-            model = prm['model']
+    cid_type = False
+    if ctx is not None:
+        if 'model' in ctx:
+            model = ctx['model']
             if model == '':
                 model = None
             else:
-                if 'hide_cid' in prm:
-                    hide_cid = prm['hide_cid']
+                if 'cid_type' in ctx:
+                    cid_type = ctx['cid_type']
     if model is None:
-        if 'model' in o_bones:
-            model = o_bones['model']
+        if 'model' in o_model:
+            model = o_model['model']
             if model == '':
                 model = None
-        if 'hide_cid' in o_bones:
-            hide_cid = o_bones['hide_cid']
-    return model, hide_cid
+        if 'cid_type' in o_model:
+            cid_type = o_model['cid_type']
+    return model, cid_type
 
 
-def _get_model_code(prm, o_bones):
+def _get_model_code(ctx, o_model):
     """Get key field(s) name of  model"""
-    if 'model_code' in o_bones:
-        code = o_bones['model_code']
-    elif 'code' in o_bones:
-        code = o_bones['code']
-    elif 'name' in o_bones:
-        code = o_bones['name']
-    elif 'code' in prm:
+    if 'model_code' in o_model:
+        code = o_model['model_code']
+    elif 'code' in o_model:
+        code = o_model['code']
+    elif 'name' in o_model:
+        code = o_model['name']
+    elif 'code' in ctx:
         code = 'code'
-    elif 'name' in prm:
+    elif 'name' in ctx:
         code = 'name'
-    elif 'id' in prm:
+    elif 'id' in ctx:
         code = 'id'
     else:
         code = 'name'
     return code
 
 
-def _get_model_name(prm, o_bones):
+def _get_model_name(ctx, o_model):
     """Get description field(s) name of  model"""
-    if 'name' in prm:
+    if 'name' in ctx:
         name = 'name'
-    elif 'code' in prm:
+    elif 'code' in ctx:
         name = 'code'
-    elif 'model_name' in o_bones:
-        name = o_bones['model_name']
-    elif 'name' in o_bones:
-        name = o_bones['name']
-    elif 'code' in o_bones:
-        name = o_bones['code']
+    elif 'model_name' in o_model:
+        name = o_model['model_name']
+    elif 'name' in o_model:
+        name = o_model['name']
+    elif 'code' in o_model:
+        name = o_model['code']
     else:
         name = 'name'
     return name
 
 
-def _get_model_parms(oerp, prm, o_bones, value):
+def _get_model_parms(oerp, ctx, o_model, value):
     """Extract model parameters and pure value from value and structure"""
-    model, hide_cid = _get_model_bone(prm, o_bones)
+    model, cid_type = _get_model_bone(ctx, o_model)
     value, prefix, suffix = cleanvalue(value)
     sep = '::'
     name = 'name'
     fname = 'id'
     i = value.find(sep)
     if i >= 0:
-        hide_cid = False
+        cid_type = False
     else:
         sep = ':'
         i = value.find(sep)
         if i >= 0:
-            hide_cid = True
+            cid_type = True
     if i < 0:
         i = value.find('.') + 1
         if value[0:i] == "base.":
@@ -925,11 +962,11 @@ def _get_model_parms(oerp, prm, o_bones, value):
             model = "ir.model.data"
             name = ['module', 'name']
             value = [value[0:i], value[i + 1:]]
-            hide_cid = True
+            cid_type = True
         else:
             model = None
             try:
-                value = eval(value, None, prm)
+                value = eval(value, None, ctx)
             except:
                 pass
         if prefix or suffix:
@@ -945,21 +982,21 @@ def _get_model_parms(oerp, prm, o_bones, value):
         if x.find(',') >= 0:
             name = x.split(',')
             value = value.split(',')
-    return model, name, value, hide_cid, fname
+    return model, name, value, cid_type, fname
 
 
-def _import_file_model(o_bones, csv_fn):
+def _import_file_model(o_model, csv_fn):
     """Get model name of import file"""
-    model, hide_cid = _get_model_bone(None, o_bones)
+    model, cid_type = _get_model_bone(None, o_model)
     if model is None:
         model = nakedname(csv_fn).replace('-', '.').replace('_', '.')
-    return model, hide_cid
+    return model, cid_type
 
 
-def _import_file_dbtype(o_bones, fields, csv_fn):
+def _import_file_dbtype(o_model, fields, csv_fn):
     """Get db selector name of import file"""
-    if 'db_type' in o_bones:
-        db_type = o_bones['db_type']
+    if 'db_type' in o_model:
+        db_type = o_model['db_type']
     elif 'db_type' in fields:
         db_type = 'db_type'
     else:
@@ -967,7 +1004,7 @@ def _import_file_dbtype(o_bones, fields, csv_fn):
     return db_type
 
 
-def _import_file_get_hdr(oerp, prm, o_bones, csv_obj, csv_fn, row):
+def _import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
     """Analyze csv file header and get header names
     Header will be used to load value in table
     @ return:
@@ -979,16 +1016,16 @@ def _import_file_get_hdr(oerp, prm, o_bones, csv_obj, csv_fn, row):
     @ [hide_id]    if true, no id will be returned
     """
     o_skull = {}
-    for n in o_bones:
-        o_skull[n] = o_bones[n]
+    for n in o_model:
+        o_skull[n] = o_model[n]
     csv_obj.fieldnames = row['undef_name']
-    o_skull['model'], o_skull['hide_cid'] = _import_file_model(o_bones,
+    o_skull['model'], o_skull['cid_type'] = _import_file_model(o_model,
                                                                csv_fn)
     o_skull['name'] = _get_model_name(csv_obj.fieldnames,
-                                      o_bones)
+                                      o_model)
     o_skull['code'] = _get_model_code(csv_obj.fieldnames,
-                                      o_bones)
-    o_skull['db_type'] = _import_file_dbtype(o_bones,
+                                      o_model)
+    o_skull['db_type'] = _import_file_dbtype(o_model,
                                              csv_obj.fieldnames,
                                              csv_fn)
     if o_skull['code'] != 'id' and 'id' in csv_obj.fieldnames:
@@ -1002,39 +1039,39 @@ def _import_file_get_hdr(oerp, prm, o_bones, csv_obj, csv_fn, row):
 #############################################################################
 # Field management and Queries
 #
-def _get_query_id(oerp, prm, o_bones, row):
+def _get_query_id(oerp, ctx, o_model, row):
     """Execute a query to get id of selection field read form csv
     Value may be expanded
     @ oerp:        oerplib object
-    @ o_bones:     special names
-    @ prm:         global parameters
+    @ o_model:     special names
+    @ ctx:         global parameters
     @ row:         record fields
     """
-    code = o_bones['code']
-    model, hide_cid = _get_model_bone(prm, o_bones)
+    code = o_model['code']
+    model, cid_type = _get_model_bone(ctx, o_model)
     value = row.get(code, '')
     value = _eval_value(oerp,
-                        prm,
-                        o_bones,
+                        ctx,
+                        o_model,
                         code,
                         value)
     if model is None:
         ids = []
     else:
         ids = _get_raw_query_id(oerp,
-                                prm,
+                                ctx,
                                 model,
                                 code,
                                 value,
-                                hide_cid)
-        if len(ids) == 0 and o_bones['repl_by_id'] and row['id']:
+                                cid_type)
+        if len(ids) == 0 and o_model['repl_by_id'] and row['id']:
             o_skull = {}
-            for n in o_bones:
-                o_skull[n] = o_bones[n]
+            for n in o_model:
+                o_skull[n] = o_model[n]
             o_skull['code'] = 'id'
             o_skull['hide_id'] = False
             value = _eval_value(oerp,
-                                prm,
+                                ctx,
                                 o_skull,
                                 'id',
                                 row['id'])
@@ -1043,42 +1080,42 @@ def _get_query_id(oerp, prm, o_bones, row):
     return ids
 
 
-def _eval_value(oerp, prm, o_bones, name, value):
+def _eval_value(oerp, ctx, o_model, name, value):
     """Evaluate value read form csv file: may be a function or macro
     @ oerp:        oerplib object
-    @ o_bones:     special names
-    @ prm:         global parameters
+    @ o_model:     special names
+    @ ctx:         global parameters
     @ name:        field name
     @ value:       field value (constant, macro or expression)
     """
-    if name == 'id' and o_bones.get('hide_id', False):
+    if name == 'id' and o_model.get('hide_id', False):
         value = None
-    elif name == o_bones.get('db_type', 'db_type'):
+    elif name == o_model.get('db_type', 'db_type'):
         value = None
     elif isinstance(value, basestring):
         if value[0:1] == "=":
-            return _eval_subvalue(oerp, prm, o_bones, value)
+            return _eval_subvalue(oerp, ctx, o_model, value)
         else:
             i = value.find('.') + 1
             if value[0:i] == "base.":
-                return _eval_subvalue(oerp, prm, o_bones, value)
+                return _eval_subvalue(oerp, ctx, o_model, value)
     return value
 
 
-def _eval_subvalue(oerp, prm, o_bones, value):
-    model, name, value, hide_cid, fname = _get_model_parms(oerp,
-                                                           prm,
-                                                           o_bones,
+def _eval_subvalue(oerp, ctx, o_model, value):
+    model, name, value, cid_type, fname = _get_model_parms(oerp,
+                                                           ctx,
+                                                           o_model,
                                                            value)
     if model is None:
-        value = expr(oerp, prm, model, name, value)
+        value = expr(oerp, ctx, model, name, value)
     else:
         value = _get_raw_query_id(oerp,
-                                  prm,
+                                  ctx,
                                   model,
                                   name,
                                   value,
-                                  hide_cid)
+                                  cid_type)
     if isinstance(value, list):
         if len(value):
             value = value[0]
@@ -1090,41 +1127,41 @@ def _eval_subvalue(oerp, prm, o_bones, value):
     return value
 
 
-def _get_raw_query_id(oerp, prm, model, name, value, hide_cid):
+def _get_raw_query_id(oerp, ctx, model, name, value, cid_type):
     """Execute a query to get id of selection field read form csv
     Do not expand value
     @ oerp:        oerplib object
-    @ prm:         global parameters
+    @ ctx:         global parameters
     @ model:       model name
     @ name:        field name
     @ value:       field value (just constant)
-    @ hide_cid:    hide company_id
+    @ cid_type:    hide company_id
     """
 
     if model is None:
         return value
     else:
         ids = _get_simple_query_id(oerp,
-                                   prm,
+                                   ctx,
                                    model,
                                    name,
                                    value,
-                                   hide_cid)
+                                   cid_type)
     return ids
 
 
-def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
+def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
     """Execute a simple query to get id of selection field read form csv
     Do not expand value
     @ oerp:        oerplib object
-    @ prm:         global parameters
+    @ ctx:         global parameters
     @ model:       model name
     @ code:        field name
     @ value:       field value (just constant)
-    @ hide_cid:    hide company_id
+    @ cid_type:    hide company_id
     """
-    if not hide_cid and 'company_id' in prm:
-        company_id = prm['company_id']
+    if not cid_type and 'company_id' in ctx:
+        company_id = ctx['company_id']
     else:
         company_id = None
     where = []
@@ -1132,7 +1169,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
         for i, c in enumerate(code):
             if i < len(value):
                 where = append_2_where(oerp,
-                                       prm,
+                                       ctx,
                                        model,
                                        c,
                                        value[i],
@@ -1140,7 +1177,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
                                        '=')
             else:
                 where = append_2_where(oerp,
-                                       prm,
+                                       ctx,
                                        model,
                                        c,
                                        '',
@@ -1148,7 +1185,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
                                        '=')
     else:
         where = append_2_where(oerp,
-                               prm,
+                               ctx,
                                model,
                                code,
                                value,
@@ -1168,7 +1205,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
             for i, c in enumerate(code):
                 if i < len(value):
                     where = append_2_where(oerp,
-                                           prm,
+                                           ctx,
                                            model,
                                            c,
                                            value[i],
@@ -1176,7 +1213,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
                                            'ilike')
                 else:
                     where = append_2_where(oerp,
-                                           prm,
+                                           ctx,
                                            model,
                                            c,
                                            '',
@@ -1184,7 +1221,7 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
                                            'ilike')
         else:
             where = append_2_where(oerp,
-                                   prm,
+                                   ctx,
                                    model,
                                    code,
                                    value,
@@ -1196,36 +1233,36 @@ def _get_simple_query_id(oerp, prm, model, code, value, hide_cid):
     return ids
 
 
-def append_2_where(oerp, prm, model, code, value, where, op):
+def append_2_where(oerp, ctx, model, code, value, where, op):
     if value is not None and value != "":
         if isinstance(value, basestring) and value[0] == '~':
             where.append('|')
             where.append((code, op, value))
             where.append((code, op, value[1:]))
         else:
-            value = expr(oerp, prm, model, code, value)
+            value = expr(oerp, ctx, model, code, value)
             if not isinstance(value, basestring) and op == 'ilike':
                 where.append((code, '=', value))
             else:
                 where.append((code, op, value))
     elif code == "country_id":
-        where.append((code, '=', prm['def_country_id']))
+        where.append((code, '=', ctx['def_country_id']))
     elif code != "id" and code[-3:] == "_id":
         where.append((code, '=', ""))
     return where
 
 
-def expr(oerp, prm, model, code, value):
+def expr(oerp, ctx, model, code, value):
     """Evaluate python expression value"""
     if isinstance(value, basestring):
         i = value.find("${")
         j = value.rfind("}")
         if i >= 0 and j >= 0:
-            o_bones = {}
-            o_bones['model'] = model
+            o_model = {}
+            o_model['model'] = model
             v = _eval_subvalue(oerp,
-                               prm,
-                               o_bones,
+                               ctx,
+                               o_model,
                                value[i + 2:j])
             if isinstance(v, (bool, int, long, float)):
                 v = str(v)
@@ -1236,7 +1273,7 @@ def expr(oerp, prm, model, code, value):
             if value[0:1] == "=":
                 value = value[1:]
             try:
-                value = eval(v, None, prm)
+                value = eval(v, None, ctx)
             except:
                 pass
     return value
@@ -1258,7 +1295,7 @@ def cleanvalue(value):
 #############################################################################
 # Private actions
 #
-def import_file(oerp, prm, o_bones, csv_fn):
+def import_file(oerp, ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
     Any expression may be a standard macro (like def company id) or
@@ -1269,14 +1306,14 @@ def import_file(oerp, prm, o_bones, csv_fn):
     value may be an exact value or a like value
     """
     msg = u"Import file " + csv_fn
-    msg_log(prm, 4, msg)
-    if 'company_id' in prm:
-        company_id = prm['company_id']
+    msg_log(ctx, 4, msg)
+    if 'company_id' in ctx:
+        company_id = ctx['company_id']
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
-    csv_ffn = prm['data_path'] + "/" + csv_fn
+    csv_ffn = ctx['data_path'] + "/" + csv_fn
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -1287,99 +1324,99 @@ def import_file(oerp, prm, o_bones, csv_fn):
         for row in csv_obj:
             if not hdr_read:
                 hdr_read = True
-                o_bones = _import_file_get_hdr(oerp,
-                                               prm,
-                                               o_bones,
+                o_model = _import_file_get_hdr(oerp,
+                                               ctx,
+                                               o_model,
                                                csv_obj,
                                                csv_fn,
                                                row)
                 msg = u"Model={0}, Code={1} Name={2} NoCompany={3}"\
-                    .format(o_bones['model'],
-                            tounicode(o_bones['code']),
-                            tounicode(o_bones['name']),
-                            o_bones.get('hide_cid', False))
-                debug_msg_log(prm, 5, msg)
-                if o_bones['name'] and o_bones['code']:
+                    .format(o_model['model'],
+                            tounicode(o_model['code']),
+                            tounicode(o_model['name']),
+                            o_model.get('cid_type', False))
+                debug_msg_log(ctx, 5, msg)
+                if o_model['name'] and o_model['code']:
                     continue
                 else:
                     msg = u"!File " + csv_fn + " without key!"
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
                     break
             # Data for specific db type (i.e. just for test)
-            if o_bones.get('db_type', ''):
-                if row[o_bones['db_type']]:
-                    if row[o_bones['db_type']] != prm['db_type']:
+            if o_model.get('db_type', ''):
+                if row[o_model['db_type']]:
+                    if row[o_model['db_type']] != ctx['db_type']:
                         msg = u"Record not imported by invalid db_type"
-                        debug_msg_log(prm, 5, msg)
+                        debug_msg_log(ctx, 5, msg)
                         continue
             # Does record exist ?
             ids = _get_query_id(oerp,
-                                prm,
-                                o_bones,
+                                ctx,
+                                o_model,
                                 row)
             vals = {}
             for n in row:
                 val = _eval_value(oerp,
-                                  prm,
-                                  o_bones,
+                                  ctx,
+                                  o_model,
                                   n,
                                   row[n])
                 if val is not None:
                     vals[n.split('/')[0]] = val
                 msg = u"{0}={1}".format(n, tounicode(val))
-                debug_msg_log(prm, 6, msg)
-                if n == o_bones['name']:
+                debug_msg_log(ctx, 6, msg)
+                if n == o_model['name']:
                     name_new = val
-            if 'company_id' in prm and 'company_id' in vals:
+            if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
                     continue
             if len(ids):
                 id = ids[0]
-                cur_obj = oerp.browse(o_bones['model'], id)
-                name_old = cur_obj[o_bones['name']]
+                cur_obj = oerp.browse(o_model['model'], id)
+                name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
-                debug_msg_log(prm, 5, msg)
-                if not prm['simulate']:
-                    oerp.write(o_bones['model'], ids, vals)
+                debug_msg_log(ctx, 5, msg)
+                if not ctx['simulate']:
+                    oerp.write(o_model['model'], ids, vals)
                     msg = u"id={0}, {1}={2}->{3}"\
                           .format(cur_obj.id,
-                                  tounicode(o_bones['name']),
+                                  tounicode(o_model['name']),
                                   tounicode(name_old),
                                   tounicode(name_new))
-                    msg_log(prm, 5, msg)
+                    msg_log(ctx, 5, msg)
             else:
                 msg = u"insert " + name_new.decode('utf-8')
-                debug_msg_log(prm, 5, msg)
-                if not prm['simulate']:
-                    if not o_bones.get('hide_cid', False):
-                        vals['company_id'] = prm['company_id']
+                debug_msg_log(ctx, 5, msg)
+                if not ctx['simulate']:
+                    if not o_model.get('cid_type', False):
+                        vals['company_id'] = ctx['company_id']
                     if 'id' in vals:
                         del vals['id']
-                    id = oerp.create(o_bones['model'], vals)
+                    id = oerp.create(o_model['model'], vals)
                     msg = u"creat id={0}, {1}={2}"\
                           .format(id,
-                                  tounicode(o_bones['name']),
+                                  tounicode(o_model['name']),
                                   tounicode(name_new))
-                    msg_log(prm, 5, msg)
+                    msg_log(ctx, 5, msg)
         csv_fd.close()
         return 0
     else:
         msg = u"!File " + csv_fn + " not found!"
-        msg_log(prm, 4, msg)
+        msg_log(ctx, 4, msg)
         return 1
 
 
-def _import_config_file_value(o_bones, prm, value):
+def _import_config_file_value(o_model, ctx, value):
     if value[0:3] == "=${" and value[-1] == "}":
         defval, prefix, suffix = cleanvalue(value)
-        if defval in prm:
-            value = prefix + prm[defval] + suffix
+        if defval in ctx:
+            value = prefix + ctx[defval] + suffix
         else:
             value = None
     return value
 
 
-def debug_explore(oerp, prm):
+def debug_explore(oerp, ctx):
     ids = oerp.search('res.users')
     for id in ids:
         user = oerp.browse('res.users', id)
@@ -1390,14 +1427,14 @@ def debug_explore(oerp, prm):
                         tounicode(n.name))
 
 
-def import_config_file(oerp, prm, o_bones, csv_fn):
+def import_config_file(oerp, ctx, o_model, csv_fn):
     msg = u"Import config file " + csv_fn
-    msg_log(prm, 4, msg)
+    msg_log(ctx, 4, msg)
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
-    csv_ffn = prm['data_path'] + "/" + csv_fn
+    csv_ffn = ctx['data_path'] + "/" + csv_fn
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -1423,73 +1460,73 @@ def import_config_file(oerp, prm, o_bones, csv_fn):
                 else:
                     msg = u"!Invalid header of " + csv_fn
                     msg = msg + u" Should be: user,category,name,value"
-                    msg_log(prm, 4, msg)
+                    msg_log(ctx, 4, msg)
                     break
-            user = _import_config_file_value(o_bones,
-                                             prm,
+            user = _import_config_file_value(o_model,
+                                             ctx,
                                              row['user'])
-            category = _import_config_file_value(o_bones,
-                                                 prm,
+            category = _import_config_file_value(o_model,
+                                                 ctx,
                                                  row['category'])
-            name = _import_config_file_value(o_bones,
-                                             prm,
+            name = _import_config_file_value(o_model,
+                                             ctx,
                                              row['name'])
             if name == "" or name == "False":
                 name = None
-            value = _import_config_file_value(o_bones,
-                                              prm,
+            value = _import_config_file_value(o_model,
+                                              ctx,
                                               row['value'])
-            setup_config_param(oerp, prm, user, category, name, value)
+            setup_config_param(oerp, ctx, user, category, name, value)
         csv_fd.close()
     else:
         msg = u"!File " + csv_fn + " not found!"
-        msg_log(prm, 4, msg)
+        msg_log(ctx, 4, msg)
 
 
-def setup_config_param(oerp, prm, user, category, prm_name, value):
-    if not prm['simulate']:
+def setup_config_param(oerp, ctx, user, category, ctx_name, value):
+    if not ctx['simulate']:
         ids = oerp.search('ir.module.category',
                           [('name', '=', category)])
         if len(ids):
             mod_cat_id = ids[0]
-            if prm_name is not None:
-                prm_sel_ids = oerp.search('res.groups',
+            if ctx_name is not None:
+                ctx_sel_ids = oerp.search('res.groups',
                                           [('category_id', '=', mod_cat_id),
-                                           ('name', '=', prm_name)])
-                prm_label = "." + prm_name
+                                           ('name', '=', ctx_name)])
+                ctx_label = "." + ctx_name
             else:
-                prm_sel_ids = oerp.search('res.groups',
+                ctx_sel_ids = oerp.search('res.groups',
                                           [('category_id', '=', mod_cat_id)])
-                prm_label = ""
-            prm_sel_name = {}
-            for id in sorted(prm_sel_ids):
+                ctx_label = ""
+            ctx_sel_name = {}
+            for id in sorted(ctx_sel_ids):
                 cur_obj = oerp.browse('res.groups', id)
-                prm_sel_name[cur_obj.name] = id
-            if len(prm_sel_ids) > 1:
-                if value in prm_sel_name:
-                    msg = u"Param (" + category + prm_label + \
-                        ") = " + value + "(" + str(prm_sel_name[value]) + ")"
+                ctx_sel_name[cur_obj.name] = id
+            if len(ctx_sel_ids) > 1:
+                if value in ctx_sel_name:
+                    msg = u"Param (" + category + ctx_label + \
+                        ") = " + value + "(" + str(ctx_sel_name[value]) + ")"
                 else:
-                    msg = u"!Param (" + category + prm_label + \
+                    msg = u"!Param (" + category + ctx_label + \
                         ") value " + value + " not valid!"
                     w = "("
-                    for x in prm_sel_name.keys():
+                    for x in ctx_sel_name.keys():
                         msg = msg + w + x
                         w = ","
                     msg = msg + ")"
-                msg_log(prm, 5, msg)
-            elif len(prm_sel_ids) == 1:
+                msg_log(ctx, 5, msg)
+            elif len(ctx_sel_ids) == 1:
                 if os0.str2bool(value, False):
-                    msg = u"!Param " + category + prm_label + " = True"
+                    msg = u"!Param " + category + ctx_label + " = True"
                 else:
-                    msg = u"!Param " + category + prm_label + " = False"
-                msg_log(prm, 5, msg)
+                    msg = u"!Param " + category + ctx_label + " = False"
+                msg_log(ctx, 5, msg)
             else:
-                msg = u"!Param " + category + prm_label + " not found!"
-                msg_log(prm, 5, msg)
+                msg = u"!Param " + category + ctx_label + " not found!"
+                msg_log(ctx, 5, msg)
         else:
-            msg = u"!Category " + category + prm_label + " not found!"
-            msg_log(prm, 5, msg)
+            msg = u"!Category " + category + ctx_label + " not found!"
+            msg_log(ctx, 5, msg)
 
 
 #############################################################################
@@ -1501,33 +1538,33 @@ def create_simple_act_list():
     """
     lx_act = []
     for a in list(globals()):
-        if action_name(a):
-            lx_act.append(action_name(a))
+        if act_name(a):
+            lx_act.append(act_name(a))
     return lx_act
 
 
-def create_act_list(prm):
+def create_act_list(ctx):
     lx_act = create_simple_act_list()
-    sts = check_actions_list(prm, lx_act)
+    sts = check_actions_list(ctx, lx_act)
     if sts:
-        lx_act = extend_actions_list(prm, lx_act)
-    prm['_lx_act'] = lx_act
-    return prm
+        lx_act = extend_actions_list(ctx, lx_act)
+    ctx['_lx_act'] = lx_act
+    return ctx
 
 
-def check_actions_list(prm, lx_act):
+def check_actions_list(ctx, lx_act):
     """Merge local action list with user defined action list"""
     if lx_act is None:
         lx_act = create_simple_act_list()
-    conf_obj = prm['_conf_obj']
-    list = prm.get('actions', None)
-    return check_actions_1_list(prm,
+    conf_obj = ctx['_conf_obj']
+    list = ctx.get('actions', None)
+    return check_actions_1_list(ctx,
                                 lx_act,
                                 conf_obj,
                                 list)
 
 
-def check_actions_1_list(prm, lx_act, conf_obj, list):
+def check_actions_1_list(ctx, lx_act, conf_obj, list):
     if not list:
         return False
     valid = True
@@ -1536,27 +1573,27 @@ def check_actions_1_list(prm, lx_act, conf_obj, list):
         if act == '' or act is False or act is None:
             continue
         elif act == 'per_db':
-            actions = prm.get('actions_db', None)
+            actions = ctx.get('actions_db', None)
             if actions:
-                valid = check_actions_1_list(prm,
+                valid = check_actions_1_list(ctx,
                                              actions,
                                              conf_obj,
                                              actions)
             else:
                 valid = False
         elif act == 'per_company':
-            actions = prm.get('actions_mc', None)
+            actions = ctx.get('actions_mc', None)
             if actions:
-                valid = check_actions_1_list(prm,
+                valid = check_actions_1_list(ctx,
                                              actions,
                                              conf_obj,
                                              actions)
             else:
                 valid = False
         elif act == 'per_user':
-            actions = prm.get('actions_uu', None)
+            actions = ctx.get('actions_uu', None)
             if actions:
-                valid = check_actions_1_list(prm,
+                valid = check_actions_1_list(ctx,
                                              actions,
                                              conf_obj,
                                              actions)
@@ -1567,7 +1604,7 @@ def check_actions_1_list(prm, lx_act, conf_obj, list):
         elif conf_obj.has_section(act):
             if conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                valid = check_actions_1_list(prm,
+                valid = check_actions_1_list(ctx,
                                              lx_act,
                                              conf_obj,
                                              actions)
@@ -1580,9 +1617,9 @@ def check_actions_1_list(prm, lx_act, conf_obj, list):
     return valid
 
 
-def extend_actions_list(prm, lx_act):
-    conf_obj = prm['_conf_obj']
-    lx_act = extend_actions_1_list(prm['actions'],
+def extend_actions_list(ctx, lx_act):
+    conf_obj = ctx['_conf_obj']
+    lx_act = extend_actions_1_list(ctx['actions'],
                                    lx_act,
                                    conf_obj)
     return lx_act
@@ -1633,23 +1670,23 @@ def extend_actions_1_list(list, lx_act, conf_obj):
     return lx_act
 
 
-def check_4_actions(prm):
-    if 'test_unit_mode' in prm:
+def check_4_actions(ctx):
+    if 'test_unit_mode' in ctx:
         log = False
     else:
         log = True
-    if '_lx_act' in prm:
-        lx_act = prm['_lx_act']
+    if '_lx_act' in ctx:
+        lx_act = ctx['_lx_act']
     else:
         lx_act = create_simple_act_list()
-    valid_actions = check_actions_list(prm, lx_act)
+    valid_actions = check_actions_list(ctx, lx_act)
     if not valid_actions and log:
         msg = u"Invalid action declarative "
-        msg_log(prm, 0, msg)
+        msg_log(ctx, 0, msg)
         msg = u"Use one or more in following parameters:"
-        msg_log(prm, 0, msg)
+        msg_log(ctx, 0, msg)
         msg = u"action_%%=" + ",".join(str(e) for e in lx_act)
-        msg_log(prm, 0, msg)
+        msg_log(ctx, 0, msg)
     return valid_actions
 
 
@@ -1751,14 +1788,14 @@ def create_parser():
 
 def create_params_dict(opt_obj, conf_obj):
     """Create all params dictionary"""
-    prm = {}
+    ctx = {}
     s = "options"
     if not conf_obj.has_section(s):
         conf_obj.add_section(s)
-    prm['host'] = conf_obj.get(s, "db_host")
-    prm['db_pwd'] = conf_obj.get(s, "db_password")
-    prm['login_pwd'] = conf_obj.get(s, "login_password")
-    prm['login2_pwd'] = conf_obj.get(s, "login2_password")
+    ctx['host'] = conf_obj.get(s, "db_host")
+    ctx['db_pwd'] = conf_obj.get(s, "db_password")
+    ctx['login_pwd'] = conf_obj.get(s, "login_password")
+    ctx['login2_pwd'] = conf_obj.get(s, "login2_password")
     for p in ('db_name',
               'db_user',
               'login_user',
@@ -1781,14 +1818,14 @@ def create_params_dict(opt_obj, conf_obj):
               'install_modules',
               'uninstall_modules',
               'upgrade_modules'):
-        prm[p] = conf_obj.get(s, p)
+        ctx[p] = conf_obj.get(s, p)
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
               'actions_db',
               'actions_mc',
               'actions_uu'):
-        prm[p] = os0.str2bool(prm[p], prm[p])
+        ctx[p] = os0.str2bool(ctx[p], ctx[p])
     for p in ('set_passepartout',
               'check_balance',
               'setup_banks',
@@ -1796,22 +1833,22 @@ def create_params_dict(opt_obj, conf_obj):
               'setup_partners',
               'setup_partner_banks',
               'check_config'):
-        prm[p] = conf_obj.getboolean(s, p)
+        ctx[p] = conf_obj.getboolean(s, p)
     for p in ():
-        prm[p] = conf_obj.getint(s, p)
-    prm['svc_port'] = conf_obj.getint(s, "xmlrpc_port")
+        ctx[p] = conf_obj.getint(s, p)
+    ctx['svc_port'] = conf_obj.getint(s, "xmlrpc_port")
 
-    prm['simulate'] = opt_obj.simulate
-    prm['dbg_mode'] = opt_obj.dbg_mode
-    prm['quiet_mode'] = opt_obj.quiet_mode
+    ctx['simulate'] = opt_obj.simulate
+    ctx['dbg_mode'] = opt_obj.dbg_mode
+    ctx['quiet_mode'] = opt_obj.quiet_mode
     if opt_obj.dbfilter != "":
-        prm['dbfilter'] = opt_obj.dbfilter
+        ctx['dbfilter'] = opt_obj.dbfilter
     if opt_obj.data_path != "":
-        prm['data_path'] = opt_obj.data_path
-    prm['_conf_obj'] = conf_obj
-    prm['_opt_obj'] = opt_obj
+        ctx['data_path'] = opt_obj.data_path
+    ctx['_conf_obj'] = conf_obj
+    ctx['_opt_obj'] = opt_obj
 
-    return prm
+    return ctx
 
 
 #############################################################################
@@ -1846,10 +1883,10 @@ def parse_args(arguments, apply_conf=False):
         else:
             conf_obj, conf_fn = read_config(opt_obj, parser)
         opt_obj = parser.parse_args(arguments)
-    prm = create_params_dict(opt_obj, conf_obj)
+    ctx = create_params_dict(opt_obj, conf_obj)
     if 'conf_fn' in globals():
-        prm['conf_fn'] = conf_fn
-    return prm
+        ctx['conf_fn'] = conf_fn
+    return ctx
 
 
 def read_config(opt_obj, parser, conf_fn=None):
@@ -1873,17 +1910,17 @@ def main():
     """Tool main"""
     sts = 0
     init()
-    prm = parse_args(sys.argv[1:], apply_conf=APPLY_CONF)
-    print_hdr_msg(prm)
+    ctx = parse_args(sys.argv[1:], apply_conf=APPLY_CONF)
+    print_hdr_msg(ctx)
     # import pdb
     # pdb.set_trace()
-    if not check_4_actions(prm):
+    if not check_4_actions(ctx):
         return 1
-    prm = create_act_list(prm)
-    oerp = open_connection(prm)
-    sts = do_actions(oerp, prm)
+    ctx = create_act_list(ctx)
+    oerp = open_connection(ctx)
+    sts = do_actions(oerp, ctx)
     msg = u"Operations ended"
-    msg_log(prm, 0, msg)
+    msg_log(ctx, 0, msg)
     return sts
 
 if __name__ == "__main__":

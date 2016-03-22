@@ -157,17 +157,6 @@ def debug_msg_log(ctx, level, text):
             txt = u">{0}({1})".format(ident, tounicode(text))
         else:
             txt = u">{0}{1}".format(ident, tounicode(text))
-    #     if db_msg_sp > 0:
-    #         if level < 0:
-    #             db_msg_sp -= 1
-    #         if db_msg_sp > 0:
-    #             db_msg_stack.append(txt)
-    #             return
-    #         db_msg_stack.reverse()
-    #         while (len(db_msg_stack)):
-    #             t = db_msg_stack.pop()
-    #             print t
-    #             os0.wlog(t)
         print txt
         os0.wlog(txt)
 
@@ -407,13 +396,13 @@ def add_on_account(acc_balance, level, code, credit, debit):
 def act_name(lexec):
     """Return action name from local executable function name"""
     if lexec[0:4] == 'act_':
-        act_name = lexec[4:]
+        action_name = lexec[4:]
     else:
-        act_name = None
-    return act_name
+        action_name = None
+    return action_name
 
 
-def do_action(oerp, ctx, action):
+def do_single_action(oerp, ctx, action):
     """Do single action (recursive)"""
     if isaction(oerp, ctx, action):
         if action == '' or action is False or action is None:
@@ -453,7 +442,7 @@ def do_group_action(oerp, ctx, action):
                     msg_log(ctx, 3, msg)
                     sts = 1
                     break
-                sts = do_action(oerp, lctx, act)
+                sts = do_single_action(oerp, lctx, act)
             else:
                 msg = u"Invalid action " + act
                 msg_log(ctx, 3, msg)
@@ -463,6 +452,29 @@ def do_group_action(oerp, ctx, action):
         msg = u"Undefined action"
         msg_log(ctx, 3, msg)
         sts = 1
+    return sts
+
+
+def do_actions(oerp, ctx):
+    """Do root actions (recursive)"""
+    actions = ctx.get('actions', None)
+    if not actions and 'actions_db' in ctx:
+        actions = 'per_db'
+    elif not actions and 'actions_mc' in ctx:
+        actions = 'per_company'
+    elif not actions and 'actions_uu' in ctx:
+        actions = 'per_users'
+    if not actions:
+        return 1
+    actions = actions.split(',')
+    sts = 0
+    for act in actions:
+        if isaction(oerp, ctx, act):
+            sts = do_single_action(oerp, ctx, act)
+        else:
+            sts = 1
+        if sts > 0:
+            break
     return sts
 
 
@@ -476,7 +488,7 @@ def db_actions(oerp, ctx):
     sts = 0
     for act in actions_db:
         if isaction(oerp, ctx, act):
-            sts = do_action(oerp, ctx, act)
+            sts = do_single_action(oerp, ctx, act)
         else:
             sts = 1
         if sts > 0:
@@ -499,7 +511,7 @@ def company_actions(oerp, ctx):
     sts = 0
     for act in actions_mc:
         if isaction(oerp, ctx, act):
-            sts = do_action(oerp, ctx, act)
+            sts = do_single_action(oerp, ctx, act)
         else:
             sts = 1
         if sts > 0:
