@@ -1344,6 +1344,14 @@ def _query_expr(oerp, ctx, o_model, code, value):
                     value = None
     return value
 
+def extr_macro(value):
+    o = 0
+    i = value.find("${", o)
+    j = value.find("}", o)
+    k = value.find("${", o + 2)
+    if i > k:
+        j = value.find("}", j + 1)
+    return i, j
 
 def concat_res(res, value):
     if isinstance(res, basestring) and res:
