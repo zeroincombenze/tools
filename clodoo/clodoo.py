@@ -36,7 +36,7 @@ import re
 import csv
 
 
-__version__ = "0.2.61"
+__version__ = "0.2.62"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -1028,7 +1028,6 @@ def _get_model_name(ctx, o_model):
 def _get_model_parms(oerp, ctx, o_model, value):
     """Extract model parameters and pure value from value and structure"""
     model, cid_type = _get_model_bone(ctx, o_model)
-    # value, prefix, suffix = cleanvalue(value)
     sep = '::'
     name = 'name'
     fldname = 'id'
@@ -1405,19 +1404,6 @@ def get_model_alias(value):
     return None, None, value, None
 
 
-def cleanvalue(value):
-    """Return real value for evaluation"""
-    i = value.find("${")
-    j = value.find("}")
-    if i >= 0 and j > i:
-        if value[0] == '=':
-            return value[i + 2:j], value[1:i], value[j + 1:]
-        else:
-            return value[i + 2:j], value[0:i], value[j + 1:]
-    else:
-        return value, '', ''
-
-
 #############################################################################
 # Private actions
 #
@@ -1552,16 +1538,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
         return 1
 
 
-def _import_config_file_value(o_model, ctx, value):
-    if value[0:3] == "=${" and value[-1] == "}":
-        defval, prefix, suffix = cleanvalue(value)
-        if defval in ctx:
-            value = prefix + ctx[defval] + suffix
-        else:
-            value = None
-    return value
-
-
 def debug_explore(oerp, ctx):
     ids = oerp.search('res.users')
     for id in ids:
@@ -1608,20 +1584,28 @@ def import_config_file(oerp, ctx, o_model, csv_fn):
                     msg = msg + u" Should be: user,category,name,value"
                     msg_log(ctx, 4, msg)
                     break
-            user = _import_config_file_value(o_model,
-                                             ctx,
-                                             row['user'])
-            category = _import_config_file_value(o_model,
-                                                 ctx,
-                                                 row['category'])
-            name = _import_config_file_value(o_model,
-                                             ctx,
-                                             row['name'])
+            user = _eval_value(oerp,
+                               ctx,
+                               o_model,
+                               None,
+                               row['user'])
+            category = _eval_value(oerp,
+                                   ctx,
+                                   o_model,
+                                   None,
+                                   row['category'])
+            name = _eval_value(oerp,
+                               ctx,
+                               o_model,
+                               None,
+                               row['name'])
             if name == "" or name == "False":
                 name = None
-            value = _import_config_file_value(o_model,
-                                              ctx,
-                                              row['value'])
+            value = _eval_value(oerp,
+                                ctx,
+                                o_model,
+                                None,
+                                row['value'])
             setup_config_param(oerp, ctx, user, category, name, value)
         csv_fd.close()
     else:
