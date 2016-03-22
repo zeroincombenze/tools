@@ -1278,10 +1278,17 @@ def _eval_value(oerp, ctx, o_model, name, value):
 def expr(oerp, ctx, o_model, code, value):
     """Evaluate python expression value"""
     if isinstance(value, basestring):
-        i = value.find("${")
-        j = value.find("}")
+        i, j = get_macro_pos(value)
         if i >= 0 and j > i:
-            res = value[:i]
+            v = value[i+2:j]
+            x, y = get_macro_pos(v)
+            while x >= 0 and y > i:
+                v = expr(oerp, ctx, o_model, code, v)
+                value = value[0:i+2] + v + value[j:]
+                i, j = get_macro_pos(value)
+                v = value[i+2:j]
+                x, y = get_macro_pos(v)
+            res = ""
             while i >= 0 and j > i:
                 v = value[i+2:j]
                 if v.find(':') >= 0:
@@ -1291,10 +1298,11 @@ def expr(oerp, ctx, o_model, code, value):
                         v = eval(v, None, ctx)
                     except:
                         pass
+                if i > 0:
+                    res = concat_res(res, value[0:i])
                 value = value[j+1:]
                 res = concat_res(res, v)
-                i = value.find("${")
-                j = value.find("}")
+                i, j = get_macro_pos(value)
             value = concat_res(res, value)
     if isinstance(value, basestring):
         if is_db_alias(value):
@@ -1344,14 +1352,23 @@ def _query_expr(oerp, ctx, o_model, code, value):
                     value = None
     return value
 
-def extr_macro(value):
+
+def get_macro_pos(value):
+    i = value.find("${")
     o = 0
-    i = value.find("${", o)
     j = value.find("}", o)
-    k = value.find("${", o + 2)
-    if i > k:
-        j = value.find("}", j + 1)
+    if i >= 0:
+        p = i + 2
+        k = value.find("${", p)
+    else:
+        k = -1
+    while k >= 0 and j >= 0 and k < j:
+        o = j + 1
+        j = value.find("}", o)
+        p = k + 1
+        k = value.find("${", p)
     return i, j
+
 
 def concat_res(res, value):
     if isinstance(res, basestring) and res:
