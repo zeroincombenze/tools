@@ -23,7 +23,7 @@
 
 """
 
-# import pdb
+import pdb
 import os.path
 import sys
 from os0 import os0
@@ -41,7 +41,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.63.1"
+__version__ = "0.2.63.5"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -85,8 +85,12 @@ def do_login(oerp, ctx):
     debug_msg_log(ctx, 2, msg)
     userlist = ctx['login2_user'].split(',')
     userlist.insert(0, ctx['login_user'])
+    if ctx['lgi_user']:
+        userlist.insert(0, ctx['lgi_user'])
     pwdlist = ctx['login2_pwd'].split(',')
     pwdlist.insert(0, ctx['login_pwd'])
+    if ctx['lgi_pwd']:
+        pwdlist.insert(0, ctx['lgi_pwd'])
     user_obj = False
     for username in userlist:
         for pwd in pwdlist:
@@ -160,6 +164,10 @@ def get_dblist(oerp):
     return oerp.db.list()
 
 
+def get_companylist(oerp):
+    return oerp.search('res.company')
+
+
 def get_userlist(oerp, ctx):
     """Set parameter values for current company"""
     msg = "get_userlist()"
@@ -193,13 +201,22 @@ def get_userlist(oerp, ctx):
 #############################################################################
 # Action interface
 #
-
 def isaction(oerp, ctx, action):
-    """Return if valid action"""
+    """Return true if valid action"""
     lx_act = ctx['_lx_act']
     if action == '' or action is False or action is None:
         return True
     elif action in lx_act:
+        return True
+    else:
+        return False
+
+
+def isiteraction(oerp, ctx, action):
+    """Return true if interable action"""
+    if action == 'per_db' or \
+            action == 'per_company' or \
+            action == 'per_user':
         return True
     else:
         return False
@@ -232,24 +249,6 @@ def action_id(lexec):
     return action_name
 
 
-def do_single_action(oerp, ctx, action):
-    """Do single action (recursive)"""
-    if isaction(oerp, ctx, action):
-        if action == '' or action is False or action is None:
-            return 0
-        act = lexec_name(action)
-        if act in list(globals()):
-            if action == 'install_modules' and\
-                    not ctx.get('module_udpated', False):
-                globals()[lexec_name('update_modules')](oerp, ctx)
-                ctx['module_udpated'] = True
-            return globals()[act](oerp, ctx)
-        else:
-            return do_group_action(oerp, ctx, action)
-    else:
-        return 1
-
-
 def do_group_action(oerp, ctx, action):
     """Do group actions (recursive)"""
     if 'test_unit_mode' not in ctx:
@@ -261,7 +260,7 @@ def do_group_action(oerp, ctx, action):
         # Local environment for group actions
         lctx = create_local_parms(ctx, action)
         if not lctx['actions']:
-            return 1
+            return STS_FAILED
         actions = lctx['actions'].split(',')
         for act in actions:
             if isaction(oerp, lctx, act):
@@ -285,62 +284,64 @@ def do_group_action(oerp, ctx, action):
     return sts
 
 
+def do_single_action(oerp, ctx, action):
+    """Do single action (recursive)"""
+    if isaction(oerp, ctx, action):
+        if action == '' or action is False or action is None:
+            return STS_SUCCESS
+        act = lexec_name(action)
+        if act in list(globals()):
+            if action == 'install_modules' and\
+                    not ctx.get('module_udpated', False):
+                globals()[lexec_name('update_modules')](oerp, ctx)
+                ctx['module_udpated'] = True
+            return globals()[act](oerp, ctx)
+        else:
+            return do_group_action(oerp, ctx, action)
+    else:
+        return STS_FAILED
+
+
 def do_actions(oerp, ctx):
     """Do root actions (recursive)"""
-    actions = ctx.get('actions', None)
-    if not actions and 'actions_db' in ctx:
-        actions = 'per_db'
-    elif not actions and 'actions_mc' in ctx:
-        actions = 'per_company'
-    elif not actions and 'actions_uu' in ctx:
-        actions = 'per_users'
+    pdb.set_trace()
+    if ctx.get('do_sel_action', False):
+        actions = ctx['do_sel_action']
+        del ctx['do_sel_action']
+    elif ctx.get('actions', None):
+        actions = ctx['actions']
+        del ctx['actions']
+    else:
+        actions = None
+        if 'actions_db' in ctx:
+            actions = 'per_db,' + ctx['actions_db']
+            del ctx['actions_db']
+        elif 'actions_mc' in ctx:
+            actions = 'per_company,' + ctx['actions_mc']
+            del ctx['actions_mc']
+        elif 'actions_uu' in ctx:
+            actions = 'per_users,' + ctx['actions_mc']
+            del ctx['actions_uu']
     if not actions:
-        return 1
+        return STS_FAILED
     actions = actions.split(',')
     sts = STS_SUCCESS
     for act in actions:
         if isaction(oerp, ctx, act):
-            sts = do_single_action(oerp, ctx, act)
-        else:
-            sts = STS_FAILED
-        if sts != STS_SUCCESS:
-            break
-    return sts
+            # tny
+            if isiteraction(oerp, ctx, act):
+                ctx['actions'] = ','.join(actions[1:])
+                act = actions[0]
+                if act == 'per_db' and 'actions_db' in ctx:
+                    del ctx['actions_db']
+                if act == 'per_company' and 'actions_mc' in ctx:
+                    del ctx['actions_mc']
+                if act == 'per_user' and 'actions_uu' in ctx:
+                    del ctx['actions_uu']
+                actions = [act]
 
 
-def db_actions(oerp, ctx):
-    """Do operations at DB level (no company)"""
-    msg = "db_actions()"
-    debug_msg_log(ctx, 2, msg)
-    if not ctx['actions_db']:
-        return 0
-    actions_db = ctx['actions_db'].split(',')
-    sts = STS_SUCCESS
-    for act in actions_db:
-        if isaction(oerp, ctx, act):
-            sts = do_single_action(oerp, ctx, act)
-        else:
-            sts = STS_FAILED
-        if sts != STS_SUCCESS:
-            break
-    return sts
 
-    # debug_explore(oerp, ctx)
-    # o_model = {}
-    # csv_fn = "user-config.csv"
-    # import_config_file(oerp, ctx, o_model, csv_fn)
-
-
-def company_actions(oerp, ctx):
-    """"Do operations at company level"""
-    msg = "company_actions()"
-    debug_msg_log(ctx, 2, msg)
-    if not ctx['actions_mc']:
-        return 0
-    actions_mc = ctx['actions_mc'].split(',')
-    sts = STS_SUCCESS
-    for act in actions_mc:
-        if isaction(oerp, ctx, act):
             sts = do_single_action(oerp, ctx, act)
         else:
             sts = STS_FAILED
@@ -385,19 +386,59 @@ def create_local_parms(ctx, action):
     return lctx
 
 
-def log_company(oerp, ctx, c_id):
+def ident_db(oerp, ctx, db):
+    msg = u"DB=" + db + " (" + ctx.get('db_type', '') + ")"
+    return msg
+
+
+def ident_company(oerp, ctx, c_id):
     company_obj = oerp.browse('res.company', c_id)
     msg = u"Company {0:>3})\t'{1}'".format(c_id,
                                            tounicode(company_obj.name))
-    msg_log(False, 2, msg)
+    return msg
 
 
 #############################################################################
 # Public actions
 #
+def act_list_actions(oerp, ctx):
+    for act in sorted(ctx['_lx_act']):
+        print act
+    return STS_SUCCESS
+
+
+def act_list_db(oerp, ctx):
+    dblist = get_dblist(oerp)
+    for db in sorted(dblist):
+        ctx = init_ctx(ctx, db)
+        sts = act_echo_db(oerp, ctx)
+    return sts
+
+
+def act_echo_db(oerp, ctx):
+    db = ctx['db_name']
+    msg = ident_db(oerp, ctx, db)
+    print " %s" % msg
+    return STS_SUCCESS
+
+
+def act_list_companies(oerp, ctx):
+    company_ids = get_dblist(oerp)
+    for c_id in company_ids:
+        sts = act_echo_company(oerp, ctx)
+    return sts
+
+
+def act_echo_company(oerp, ctx):
+    c_id = ctx['company_id']
+    msg = ident_company(oerp, ctx, c_id)
+    print "  %s" % msg
+    return STS_SUCCESS
+
+
 def act_unit_test(oerp, ctx):
     """This function acts just for unit test"""
-    return 0
+    return STS_SUCCESS
 
 
 def act_run_unit_tests(oerp, ctx):
@@ -411,6 +452,54 @@ def act_run_unit_tests(oerp, ctx):
     return sts
 
 
+def act_per_db(oerp, ctx):
+    """Iter action on DBs"""
+    dblist = get_dblist(oerp)
+    if 'actions_db' in ctx:
+        del ctx['actions_db']
+    saved_actions = ctx['actions']
+    sts = STS_SUCCESS
+    for db in sorted(dblist):
+        if re.match(ctx['dbfilter'], db):
+            ctx = init_ctx(ctx, db)
+            msg = ident_db(oerp, ctx, db)
+            msg_log(ctx, 1, msg)
+            if ctx['dbtypefilter']:
+                if ctx['db_type'] != ctx['dbtypefilter']:
+                    msg = u"DB skipped by invalid db_type"
+                    debug_msg_log(ctx, 5, msg)
+                    continue
+            lgiuser = do_login(oerp, ctx)
+            if lgiuser:
+                ctx['actions'] = saved_actions
+                sts = do_actions(oerp, ctx)
+            else:
+                sts = STS_FAILED
+            if sts != STS_SUCCESS:
+                break
+    return sts
+
+
+def act_per_company(oerp, ctx):
+    """iter on companies"""
+    if 'actions_mc' in ctx:
+        del ctx['actions_mc']
+    company_ids = get_companylist(oerp)
+    saved_actions = ctx['actions']
+    sts = STS_SUCCESS
+    for c_id in company_ids:
+        ctx['company_id'] = c_id
+        company_obj = oerp.browse('res.company', c_id)
+        if re.match(ctx['companyfilter'], company_obj.name):
+            msg = ident_company(oerp, ctx, c_id)
+            msg_log(ctx, 2, msg)
+            ctx['actions'] = saved_actions
+            sts = do_actions(oerp, ctx)
+            if sts != STS_SUCCESS:
+                break
+    return sts
+
+
 def act_update_modules(oerp, ctx):
     """Update module list on DB"""
     msg = u"Update module list"
@@ -419,7 +508,7 @@ def act_update_modules(oerp, ctx):
         oerp.execute('base.module.update',
                      "update_module",
                      [])
-    return 0
+    return STS_SUCCESS
 
 
 def act_upgrade_modules(oerp, ctx):
@@ -455,7 +544,7 @@ def act_upgrade_modules(oerp, ctx):
 
     if done > 0:
         time.sleep(done)
-    return 0
+    return STS_SUCCESS
 
 
 def act_uninstall_modules(oerp, ctx):
@@ -500,7 +589,7 @@ def act_uninstall_modules(oerp, ctx):
 
     if done > 0:
         time.sleep(done)
-    return 0
+    return STS_SUCCESS
 
 
 def act_install_modules(oerp, ctx):
@@ -541,7 +630,7 @@ def act_install_modules(oerp, ctx):
 
     if done > 0:
         time.sleep(done)
-    return 0
+    return STS_SUCCESS
 
 
 def act_import_file(oerp, ctx):
@@ -557,59 +646,11 @@ def act_import_file(oerp, ctx):
     elif 'model' not in o_model:
         msg = u"!Wrong import file!"
         msg_log(ctx, 3, msg)
-        return 1
+        return STS_FAILED
     else:
         csv_fn = o_model['model'].replace('.', '_') + ".csv"
     msg = u"Import file " + csv_fn
     msg_log(ctx, 3, msg)
-    return import_file(oerp, ctx, o_model, csv_fn)
-
-
-def act_setup_banks(oerp, ctx):
-    msg = u"Setup bank"
-    msg_log(ctx, 3, msg)
-    o_model = {}
-    o_model['cid_type'] = True
-    csv_fn = "res-bank.csv"
-    return import_file(oerp, ctx, o_model, csv_fn)
-
-
-def act_setup_sequence(oerp, ctx):
-    msg = u"Setup sequence"
-    msg_log(ctx, 3, msg)
-    o_model = {}
-    o_model['name'] = 'name'
-    o_model['code'] = 'name'
-    csv_fn = "ir-sequence.csv"
-    return import_file(oerp, ctx, o_model, csv_fn)
-
-
-def act_setup_account_journal(oerp, ctx):
-    msg = u"Setup account journal"
-    msg_log(ctx, 3, msg)
-    o_model = {}
-    o_model['name'] = 'name'
-    o_model['code'] = 'name'
-    csv_fn = "account-journal.csv"
-    return import_file(oerp, ctx, o_model, csv_fn)
-
-
-def setup_partner_banks(oerp, ctx):
-    msg = u"Setup partner bank"
-    msg_log(ctx, 3, msg)
-    o_model = {}
-    o_model['name'] = 'bank_name'
-    csv_fn = "res-partner-bank.csv"
-    return import_file(oerp, ctx, o_model, csv_fn)
-
-
-def act_setup_partners(oerp, ctx):
-    msg = u"Setup partner"
-    msg_log(ctx, 3, msg)
-    o_model = {}
-    o_model['code'] = 'vat'
-    csv_fn = "res-partner.csv"
-    return import_file(oerp, ctx, o_model, csv_fn)
 
 
 def act_check_config(oerp, ctx):
@@ -803,7 +844,7 @@ def act_check_balance(oerp, ctx):
                 crd_amt,
                 dbt_amt)
             msg_log(ctx, 3, msg)
-    return 0
+    return STS_SUCCESS
 
 
 #############################################################################
@@ -933,11 +974,11 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         id = None
                         os0.wlog(u"!!write error!")
         csv_fd.close()
-        return 0
+        return STS_SUCCESS
     else:
         msg = u"Import file " + csv_fn + " not found!"
         msg_log(ctx, 4, msg)
-        return 1
+        return STS_FAILED
 
 
 def debug_explore(oerp, ctx):
@@ -1077,8 +1118,8 @@ def create_simple_act_list():
 
 def create_act_list(ctx):
     lx_act = create_simple_act_list()
-    sts = check_actions_list(ctx, lx_act)
-    if sts:
+    res = check_actions_list(ctx, lx_act)
+    if res:
         lx_act = extend_actions_list(ctx, lx_act)
     ctx['_lx_act'] = lx_act
     return ctx
@@ -1089,20 +1130,30 @@ def check_actions_list(ctx, lx_act):
     if lx_act is None:
         lx_act = create_simple_act_list()
     conf_obj = ctx['_conf_obj']
-    sts = check_actions_1_list(ctx['actions_db'],
-                               lx_act,
-                               conf_obj)
-    if sts:
-        sts = check_actions_1_list(ctx['actions_mc'],
+    res = True
+    if ctx.get('do_sel_action', False):
+        res = check_actions_1_list(ctx['do_sel_action'],
                                    lx_act,
                                    conf_obj)
-    return sts
+    elif ctx.get('actions', None):
+        res = check_actions_1_list(ctx['actions'],
+                                   lx_act,
+                                   conf_obj)
+    if res and ctx.get('actions_db', None):
+        res = check_actions_1_list(ctx['actions_db'],
+                                   lx_act,
+                                   conf_obj)
+    if res and ctx.get('actions_mc', None):
+        res = check_actions_1_list(ctx['actions_mc'],
+                                   lx_act,
+                                   conf_obj)
+    return res
 
 
 def check_actions_1_list(list, lx_act, conf_obj):
-    sts = True
+    res = True
     if not list:
-        return sts
+        return res
     acts = list.split(',')
     for act in acts:
         if act == '' or act is False or act is None:
@@ -1112,18 +1163,18 @@ def check_actions_1_list(list, lx_act, conf_obj):
         elif conf_obj.has_section(act):
             if conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                sts = check_actions_1_list(actions,
+                res = check_actions_1_list(actions,
                                            lx_act,
                                            conf_obj)
-                if sts != STS_SUCCESS:
+                if not res:
                     break
             else:
-                sts = False
+                res = False
                 break
         else:
-            sts = False
+            res = False
             break
-    return sts
+    return res
 
 
 def extend_actions_list(ctx, lx_act):
@@ -1173,7 +1224,7 @@ def check_4_actions(ctx):
         msg_log(ctx, 0, msg)
         msg = u"Use one or more in following parameters:"
         msg_log(ctx, 0, msg)
-        msg = u"action_%%=" + ",".join(str(e) for e in lx_act)
+        msg = u"actions=" + ",".join(str(e) for e in sorted(lx_act))
         msg_log(ctx, 0, msg)
     return valid_actions
 
@@ -1188,35 +1239,14 @@ def main():
     init_logger(ctx)
     print_hdr_msg(ctx)
     if not check_4_actions(ctx):
-        return 1
+        return STS_FAILED
     ctx = create_act_list(ctx)
-    if ctx['do_list_actions']:
-        for act in ctx['_lx_act']:
-            print act
-        return sts
-    oerp = open_connection(ctx)
-    dblist = get_dblist(oerp)
-    for db in sorted(dblist):
-        if re.match(ctx['dbfilter'], db):
-            ctx = init_ctx(ctx, db)
-            msg = u"DB=" + db + " (" + ctx.get('db_type', '') + ")"
-            msg_log(ctx, 1, msg)
-            if ctx['dbtypefilter']:
-                if ctx['db_type'] != ctx['dbtypefilter']:
-                    msg = u"DB skipped by invalid db_type"
-                    debug_msg_log(ctx, 5, msg)
-                    continue
-            lgiuser = do_login(oerp, ctx)
-            if lgiuser:
-                ctx = get_userlist(oerp, ctx)
-                db_actions(oerp, ctx)
-                company_ids = oerp.search('res.company')
-                for c_id in sorted(company_ids):
-                    ctx['company_id'] = c_id
-                    company_obj = oerp.browse('res.company', c_id)
-                    if re.match(ctx['companyfilter'], company_obj.name):
-                        log_company(oerp, ctx, c_id)
-                        company_actions(oerp, ctx)
+    # pdb.set_trace()
+    if ctx['do_sel_action'] and ctx['do_sel_action'] == "list_actions":
+        oerp = None
+    else:
+        oerp = open_connection(ctx)
+    sts = do_actions(oerp, ctx)
     msg = u"Operations ended"
     msg_log(ctx, 0, msg)
     return sts
