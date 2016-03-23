@@ -348,7 +348,7 @@ def add_on_account(acc_balance, level, code, credit, debit):
             acc_balance[level][code] -= debit
 
 
-def act_name(lexec):
+def action_id(lexec):
     """Return action name from local executable function name"""
     if lexec[0:4] == 'act_':
         action_name = lexec[4:]
@@ -1538,8 +1538,8 @@ def create_simple_act_list():
     """
     lx_act = []
     for a in list(globals()):
-        if act_name(a):
-            lx_act.append(act_name(a))
+        if action_id(a):
+            lx_act.append(action_id(a))
     return lx_act
 
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
-#    Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.it>)
 #    All Rights Reserved
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -26,139 +26,34 @@
 # import pdb
 import os.path
 import sys
-import argparse
-import ConfigParser
 from os0 import os0
-from datetime import date
 import time
 import oerplib
 import re
 import csv
+from clodoolib import parse_args
+from clodoolib import init_logger
+from clodoolib import msg_log
+from clodoolib import debug_msg_log
+from clodoolib import msg_burst
+from clodoolib import tounicode
+from clodoocore import import_file_get_hdr
+from clodoocore import eval_value
+from clodoocore import get_query_id
 
-
-__version__ = "0.2.62"
+__version__ = "0.2.63.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
-# Default configuration file (i.e. myfile.conf or False for default)
-CONF_FN = False
-# Read Odoo configuration file (False or /etc/odoo-server.conf)
-ODOO_CONF = ["/etc/odoo/odoo-server.conf",
-             "/etc/odoo-server.conf",
-             "/etc/openerp/openerp-server.conf",
-             "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf",
-             "/etc/openerp/odoo-server.conf"]
-# Read Odoo configuration file (False or /etc/openerp-server.conf)
-OE_CONF = False
-# Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
-# list of string parameters in [options] of config file
-LX_CFG_S = ('db_name',
-            'db_user',
-            'login_user',
-            'login2_user',
-            'zeroadm_mail',
-            'svc_protocol',
-            'dbfilter',
-            'dbfilterz',
-            'dbfiltert',
-            'dbtypefilter',
-            'companyfilter',
-            'adm_uids',
-            'data_path',
-            'date_start',
-            'date_stop',
-            'actions_db',
-            'actions_mc',
-            'install_modules',
-            'uninstall_modules',
-            'upgrade_modules')
-# list of string/boolean parameters in [options] of config file
-# Must be declared in LX_CFG_S
-LX_CFG_SB = ('install_modules',
-             'uninstall_modules',
-             'actions_db',
-             'actions_mc')
-# list of pure boolean parameters in [options] of config file
-LX_CFG_B = ('set_passepartout',
-            'check_balance',
-            'setup_banks',
-            'setup_account_journal',
-            'setup_partners',
-            'setup_partner_banks',
-            'check_config')
-# list of string parameters in both [options] of config file and line command
-# or else are just in line command
-LX_OPT_CFG_S = ()
-DEFDCT = {}
+STS_FAILED = 1
+STS_SUCCESS = 0
 
 msg_time = time.time()
 db_msg_sp = 0
 db_msg_stack = []
 
 
-def init():
-    """Setup log file"""
-    tlog_fn = "./" + nakedname(os.path.basename(__file__)) + ".log"
-    os0.set_tlog_file(tlog_fn)
-
-
-#############################################################################
-# Message and output
-#
-def msg_burst(level, text, i, n):
-    """Show a message per second from burst sequence as a gauge"""
-    global msg_time
-    t = time.time() - msg_time
-    if (t > 1):
-        ident = ' ' * level
-        print(u"\x1b[A{0}[{1:>6}/{2:>6}] {3}".format(ident,
-                                                     i,
-                                                     n,
-                                                     tounicode(text)))
-        msg_time = time.time()
-
-
-def msg(level, text):
-    """Show and log a message"""
-    ident = ' ' * level
-    txt = u"{0}{1}".format(ident, tounicode(text))
-    print txt
-
-
-def msg_log(ctx, level, text):
-    """Log a message and show if needed"""
-    ident = ' ' * level
-    if ctx:
-        if 'test_unit_mode' in ctx:
-            return
-        elif ctx['simulate'] and level > 0:
-            txt = u"{0}({1})".format(ident, tounicode(text))
-        else:
-            txt = u"{0}{1}".format(ident, tounicode(text))
-        if not ctx['quiet_mode']:
-            print txt
-    else:
-        txt = u"{0}{1}".format(ident, tounicode(text))
-        print txt
-    os0.wlog(txt)
-
-
-def debug_msg_log(ctx, level, text):
-    """Log a debug message and show if needed"""
-    global db_msg_sp, db_msg_stack
-    # if level == -999:
-    #     db_msg_sp += 1
-    #     return
-    ident = ' ' * abs(level)
-    if ctx.get('dbg_mode', False):
-        if 'test_unit_mode' in ctx:
-            return
-        elif ctx['simulate'] and level > 0:
-            txt = u">{0}({1})".format(ident, tounicode(text))
-        else:
-            txt = u">{0}{1}".format(ident, tounicode(text))
-        print txt
-        os0.wlog(txt)
+def version():
+    return __version__
 
 
 def print_hdr_msg(ctx):
@@ -166,43 +61,6 @@ def print_hdr_msg(ctx):
     msg_log(ctx, 0, msg)
     msg = u"Configuration from " + ctx.get('conf_fn', '')
     msg_log(ctx, 1, msg)
-
-
-def ismbcs(t):
-    """"Return true id string contains mbcs"""
-    if isinstance(t, str):
-        try:
-            t = unicode(t)
-            return False
-        except:
-            return True
-    return False
-
-
-def strtype(t):
-    """Return string type: ascii, mbcs or unicode"""
-    if isinstance(t, unicode):
-        return 'unicode'
-    elif isinstance(t, str):
-        try:
-            t = unicode(t)
-            return 'ascii'
-        except:
-            return 'mbcs'
-    else:
-        return None
-
-
-def tounicode(s):
-    """Return unicode string from basestring"""
-    if strtype(s) == 'unicode':
-        return s
-    elif strtype(s) == 'mbcs':
-        return s.decode('utf-8')
-    elif strtype(s) == 'ascii':
-        return unicode(s)
-    else:
-        return s
 
 
 #############################################################################
@@ -336,34 +194,6 @@ def get_userlist(oerp, ctx):
 # Action interface
 #
 
-def _get_name_n_params(name, deflt=None):
-    """Extract name and params from string like 'name(params)'"""
-    deflt = '' if deflt is None else deflt
-    i = name.find('(')
-    j = name.rfind(')')
-    if i >= 0 and j >= i:
-        n = name[:i]
-        p = name[i + 1:j]
-    else:
-        n = name
-        p = deflt
-    return n, p
-
-
-def _get_name_n_ix(name, deflt=None):
-    """Extract name and subscription from string like 'name[ix]'"""
-    deflt = '' if deflt is None else deflt
-    i = name.find('[')
-    j = name.rfind(']')
-    if i >= 0 and j >= i:
-        n = name[:i]
-        x = name[i + 1:j]
-    else:
-        n = name
-        x = deflt
-    return n, x
-
-
 def isaction(oerp, ctx, action):
     """Return if valid action"""
     lx_act = ctx['_lx_act']
@@ -393,7 +223,7 @@ def add_on_account(acc_balance, level, code, credit, debit):
             acc_balance[level][code] -= debit
 
 
-def act_name(lexec):
+def action_id(lexec):
     """Return action name from local executable function name"""
     if lexec[0:4] == 'act_':
         action_name = lexec[4:]
@@ -426,7 +256,7 @@ def do_group_action(oerp, ctx, action):
         msg = u"Do group actions"
         msg_log(ctx, 3, msg)
     conf_obj = ctx['_conf_obj']
-    sts = 0
+    sts = STS_SUCCESS
     if conf_obj.has_option(action, 'actions'):
         # Local environment for group actions
         lctx = create_local_parms(ctx, action)
@@ -440,18 +270,18 @@ def do_group_action(oerp, ctx, action):
                 elif act == action:
                     msg = u"Recursive actions " + act
                     msg_log(ctx, 3, msg)
-                    sts = 1
+                    sts = STS_FAILED
                     break
                 sts = do_single_action(oerp, lctx, act)
             else:
                 msg = u"Invalid action " + act
                 msg_log(ctx, 3, msg)
-                sts = 1
+                sts = STS_FAILED
                 break
     else:
         msg = u"Undefined action"
         msg_log(ctx, 3, msg)
-        sts = 1
+        sts = STS_FAILED
     return sts
 
 
@@ -467,13 +297,13 @@ def do_actions(oerp, ctx):
     if not actions:
         return 1
     actions = actions.split(',')
-    sts = 0
+    sts = STS_SUCCESS
     for act in actions:
         if isaction(oerp, ctx, act):
             sts = do_single_action(oerp, ctx, act)
         else:
-            sts = 1
-        if sts > 0:
+            sts = STS_FAILED
+        if sts != STS_SUCCESS:
             break
     return sts
 
@@ -485,13 +315,13 @@ def db_actions(oerp, ctx):
     if not ctx['actions_db']:
         return 0
     actions_db = ctx['actions_db'].split(',')
-    sts = 0
+    sts = STS_SUCCESS
     for act in actions_db:
         if isaction(oerp, ctx, act):
             sts = do_single_action(oerp, ctx, act)
         else:
-            sts = 1
-        if sts > 0:
+            sts = STS_FAILED
+        if sts != STS_SUCCESS:
             break
     return sts
 
@@ -508,13 +338,13 @@ def company_actions(oerp, ctx):
     if not ctx['actions_mc']:
         return 0
     actions_mc = ctx['actions_mc'].split(',')
-    sts = 0
+    sts = STS_SUCCESS
     for act in actions_mc:
         if isaction(oerp, ctx, act):
             sts = do_single_action(oerp, ctx, act)
         else:
-            sts = 1
-        if sts > 0:
+            sts = STS_FAILED
+        if sts != STS_SUCCESS:
             break
     return sts
 
@@ -577,7 +407,7 @@ def act_run_unit_tests(oerp, ctx):
                            'Run Unit test',
                            'banking_export_pain')
     except:
-        sts = 1
+        sts = STS_FAILED
     return sts
 
 
@@ -585,7 +415,7 @@ def act_update_modules(oerp, ctx):
     """Update module list on DB"""
     msg = u"Update module list"
     msg_log(ctx, 3, msg)
-    if not ctx['simulate']:
+    if not ctx['dry_run']:
         oerp.execute('base.module.update',
                      "update_module",
                      [])
@@ -604,7 +434,7 @@ def act_upgrade_modules(oerp, ctx):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'installed')])
-        if not ctx['simulate']:
+        if not ctx['dry_run']:
             if len(ids):
                 try:
                     oerp.execute('ir.module.module',
@@ -640,7 +470,7 @@ def act_uninstall_modules(oerp, ctx):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'installed')])
-        if not ctx['simulate']:
+        if not ctx['dry_run']:
             if len(ids):
                 if m != 'l10n_it_base':  # debug
                     try:
@@ -685,7 +515,7 @@ def act_install_modules(oerp, ctx):
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'uninstalled')])
-        if not ctx['simulate']:
+        if not ctx['dry_run']:
             if len(ids):
                 try:
                     oerp.execute('ir.module.module',
@@ -783,7 +613,7 @@ def act_setup_partners(oerp, ctx):
 
 
 def act_check_config(oerp, ctx):
-    if not ctx['simulate'] and 'def_company_id' in ctx:
+    if not ctx['dry_run'] and 'def_company_id' in ctx:
         if ctx['def_company_id'] is not None:
             msg = u"Check config"
             msg_log(ctx, 3, msg)
@@ -977,446 +807,6 @@ def act_check_balance(oerp, ctx):
 
 
 #############################################################################
-# Models
-#
-def _get_model_bone(ctx, o_model):
-    """Inherit model structure from a parent model"""
-    model = None
-    cid_type = False
-    if ctx is not None:
-        if 'model' in ctx:
-            model = ctx['model']
-            if model == '':
-                model = None
-            else:
-                if 'cid_type' in ctx:
-                    cid_type = ctx['cid_type']
-    if model is None:
-        if 'model' in o_model:
-            model = o_model['model']
-            if model == '':
-                model = None
-        if 'cid_type' in o_model:
-            cid_type = o_model['cid_type']
-    return model, cid_type
-
-
-def _get_model_code(ctx, o_model):
-    """Get key field(s) name of  model"""
-    if 'model_code' in o_model:
-        code = o_model['model_code']
-    elif 'code' in o_model:
-        code = o_model['code']
-    elif 'name' in o_model:
-        code = o_model['name']
-    elif 'code' in ctx:
-        code = 'code'
-    elif 'name' in ctx:
-        code = 'name'
-    elif 'id' in ctx:
-        code = 'id'
-    else:
-        code = 'name'
-    return code
-
-
-def _get_model_name(ctx, o_model):
-    """Get description field(s) name of  model"""
-    if 'name' in ctx:
-        name = 'name'
-    elif 'code' in ctx:
-        name = 'code'
-    elif 'model_name' in o_model:
-        name = o_model['model_name']
-    elif 'name' in o_model:
-        name = o_model['name']
-    elif 'code' in o_model:
-        name = o_model['code']
-    else:
-        name = 'name'
-    return name
-
-
-def _get_model_parms(oerp, ctx, o_model, value):
-    """Extract model parameters and pure value from value and structure"""
-    model, cid_type = _get_model_bone(ctx, o_model)
-    sep = '::'
-    name = 'name'
-    fldname = 'id'
-    i = value.find(sep)
-    if i >= 0:
-        cid_type = False
-    else:
-        sep = ':'
-        i = value.find(sep)
-        if i >= 0:
-            cid_type = True
-    if i < 0:
-        n, v = is_db_alias(value)
-        if n:
-            model = "ir.model.data"
-            name = ['module', 'name']
-            value = v
-            cid_type = True
-        else:
-            model = None
-            try:
-                value = eval(value, None, ctx)
-            except:
-                pass
-    else:
-        model = value[:i]
-        # value = prefix + value[i + len(sep):] + suffix
-        value = value[i + len(sep):]
-        model, fldname = _get_name_n_ix(model, deflt=fldname)
-        model, x = _get_name_n_params(model, name)
-        if x.find(',') >= 0:
-            name = x.split(',')
-            value = value.split(',')
-    return model, name, value, cid_type, fldname
-
-
-def _import_file_model(o_model, csv_fn):
-    """Get model name of import file"""
-    model, cid_type = _get_model_bone(None, o_model)
-    if model is None:
-        model = nakedname(csv_fn).replace('-', '.').replace('_', '.')
-    return model, cid_type
-
-
-def _import_file_dbtype(o_model, fields, csv_fn):
-    """Get db selector name of import file"""
-    if 'db_type' in o_model:
-        db_type = o_model['db_type']
-    elif 'db_type' in fields:
-        db_type = 'db_type'
-    else:
-        db_type = False
-    return db_type
-
-
-def _import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
-    """Analyze csv file header and get header names
-    Header will be used to load value in table
-    @ return:
-    @ [model]      model name
-    @ [name]       field name which is the record description
-    @ [code]       field name which is the record key
-    @ [db_type]    field name which is db type selection
-    @ [repl_by_id] true if no record key name found (search for id)
-    @ [hide_id]    if true, no id will be returned
-    """
-    o_skull = {}
-    for n in o_model:
-        o_skull[n] = o_model[n]
-    csv_obj.fieldnames = row['undef_name']
-    o_skull['model'], o_skull['cid_type'] = _import_file_model(o_model,
-                                                               csv_fn)
-    o_skull['name'] = _get_model_name(csv_obj.fieldnames,
-                                      o_model)
-    o_skull['code'] = _get_model_code(csv_obj.fieldnames,
-                                      o_model)
-    o_skull['db_type'] = _import_file_dbtype(o_model,
-                                             csv_obj.fieldnames,
-                                             csv_fn)
-    if o_skull['code'] != 'id' and 'id' in csv_obj.fieldnames:
-        o_skull['repl_by_id'] = True
-    else:
-        o_skull['repl_by_id'] = False
-    o_skull['hide_id'] = True
-    return o_skull
-
-
-#############################################################################
-# Field management and Queries
-#
-def _get_query_id(oerp, ctx, o_model, row):
-    """Execute a query to get ids from fields in row read from csv
-    Value may be expanded
-    @ oerp:        oerplib object
-    @ o_model:     special names
-    @ ctx:         global parameters
-    @ row:         record fields
-    """
-    msg = "_get_query_id()"
-    debug_msg_log(ctx, 6, msg)
-    # pdb.set_trace()
-    code = o_model['code']
-    model, cid_type = _get_model_bone(ctx, o_model)
-    msg += "model=%s, hide_company=%s" % (model, cid_type)
-    value = row.get(code, '')
-    if model is None:
-        ids = []
-    else:
-        ids = _get_simple_query_id(oerp,
-                                   ctx,
-                                   model,
-                                   code,
-                                   value,
-                                   cid_type)
-        if len(ids) == 0 and o_model['repl_by_id'] and row.get('id', None):
-            o_skull = {}
-            for n in o_model:
-                o_skull[n] = o_model[n]
-            o_skull['code'] = 'id'
-            o_skull['hide_id'] = False
-            value = _eval_value(oerp,
-                                ctx,
-                                o_skull,
-                                'id',
-                                row['id'])
-            ids = oerp.search(model,
-                              [('id', '=', value)])
-    return ids
-
-
-def _get_simple_query_id(oerp, ctx, model, code, value, cid_type):
-    """Execute a simple query to get ids from selection field(s)
-    Do not expand value
-    @ oerp:        oerplib object
-    @ ctx:         global parameters
-    @ model:       model name
-    @ code:        field name
-    @ value:       field value (just constant)
-    @ cid_type:    hide company_id
-    """
-    ids = _get_raw_query_id(oerp, ctx, model, code, value, cid_type, '=')
-    if model == 'ir.model.data' and len(ids) == 1:
-        try:
-            o = oerp.browse('ir.model.data', ids[0])
-            ids = [o.res_id]
-        except:
-            ids = None
-    if ids is None:
-        return []
-    if len(ids) == 0:
-        ids = _get_raw_query_id(oerp,
-                                ctx,
-                                model,
-                                code,
-                                value,
-                                cid_type,
-                                'ilike')
-    return ids
-
-
-def _get_raw_query_id(oerp, ctx, model, code, value, cid_type, op):
-    if not cid_type and 'company_id' in ctx:
-        company_id = ctx['company_id']
-    else:
-        company_id = None
-    where = []
-    if isinstance(code, list) and isinstance(value, list):
-        for i, c in enumerate(code):
-            if i < len(value):
-                where = append_2_where(oerp,
-                                       ctx,
-                                       model,
-                                       c,
-                                       value[i],
-                                       where,
-                                       op)
-            else:
-                where = append_2_where(oerp,
-                                       ctx,
-                                       model,
-                                       c,
-                                       '',
-                                       where,
-                                       op)
-    else:
-        where = append_2_where(oerp,
-                               ctx,
-                               model,
-                               code,
-                               value,
-                               where,
-                               op)
-    if company_id is not None:
-        where.append(('company_id', '=', company_id))
-    try:
-        ids = oerp.search(model, where)
-    except:
-        ids = None
-    return ids
-
-
-def append_2_where(oerp, ctx, model, code, value, where, op):
-    if value is not None and value != "":
-        value = _eval_value(oerp, ctx, model, code, value)
-        if isinstance(value, basestring) and value[0] == '~':
-            where.append('|')
-            where.append((code, op, value))
-            where.append((code, op, value[1:]))
-        elif not isinstance(value, basestring) and \
-                op in ('like', 'ilike', '=like', '=ilike'):
-            where.append((code, '=', value))
-        else:
-            where.append((code, op, value))
-    elif code == "country_id":
-        where.append((code, '=', ctx['def_country_id']))
-    elif code != "id" and code[-3:] == "_id":
-        where.append((code, '=', ""))
-    return where
-
-
-def _eval_value(oerp, ctx, o_model, name, value):
-    """Evaluate value read form csv file: may be a function or macro
-    @ oerp:        oerplib object
-    @ ctx:         global parameters
-    @ o_model:     special names
-    @ name:        field name
-    @ value:       field value (constant, macro or expression)
-    """
-    msg = "_eval_value(name=%s, value=%s)" % (name, value)
-    debug_msg_log(ctx, 6, msg)
-    if isinstance(value, basestring):
-        if is_db_alias(value):
-            value = expr(oerp,
-                         ctx,
-                         o_model,
-                         name,
-                         value)
-        elif value[0:1] == "=":
-            value = expr(oerp,
-                         ctx,
-                         o_model,
-                         name,
-                         value[1:])
-    return value
-
-
-def expr(oerp, ctx, o_model, code, value):
-    """Evaluate python expression value"""
-    if isinstance(value, basestring):
-        i, j = get_macro_pos(value)
-        if i >= 0 and j > i:
-            v = value[i+2:j]
-            x, y = get_macro_pos(v)
-            while x >= 0 and y > i:
-                v = expr(oerp, ctx, o_model, code, v)
-                value = value[0:i+2] + v + value[j:]
-                i, j = get_macro_pos(value)
-                v = value[i+2:j]
-                x, y = get_macro_pos(v)
-            res = ""
-            while i >= 0 and j > i:
-                v = value[i+2:j]
-                if v.find(':') >= 0:
-                    v = _query_expr(oerp, ctx, o_model, code, v)
-                else:
-                    try:
-                        v = eval(v, None, ctx)
-                    except:
-                        pass
-                if i > 0:
-                    res = concat_res(res, value[0:i])
-                value = value[j+1:]
-                res = concat_res(res, v)
-                i, j = get_macro_pos(value)
-            value = concat_res(res, value)
-    if isinstance(value, basestring):
-        if is_db_alias(value):
-            model, name, value, cid_type = get_model_alias(value)
-            ids = _get_simple_query_id(oerp,
-                                       ctx,
-                                       model,
-                                       name,
-                                       value,
-                                       cid_type)
-            if isinstance(ids, list):
-                if len(ids):
-                    if name == 'id' or isinstance(name, list):
-                        value = ids[0]
-                    else:
-                        o = oerp.browse(model, ids[0])
-                        value = getattr(o, name)
-                else:
-                    value = None
-    return value
-
-
-def _query_expr(oerp, ctx, o_model, code, value):
-    msg = "_quer_expr(value=%s)" % value
-    debug_msg_log(ctx, 6, msg)
-    model, name, value, cid_type, fldname = _get_model_parms(oerp,
-                                                             ctx,
-                                                             o_model,
-                                                             value)
-    if model:
-        if fldname == 'db_type':
-            value = o_model.get('db_type', '')
-        else:
-            value = _get_simple_query_id(oerp,
-                                         ctx,
-                                         model,
-                                         name,
-                                         value,
-                                         cid_type)
-            if isinstance(value, list):
-                if len(value):
-                    value = value[0]
-                    if fldname != 'id':
-                        o = oerp.browse(model, value)
-                        value = getattr(o, fldname)
-                else:
-                    value = None
-    return value
-
-
-def get_macro_pos(value):
-    i = value.find("${")
-    o = 0
-    j = value.find("}", o)
-    if i >= 0:
-        p = i + 2
-        k = value.find("${", p)
-    else:
-        k = -1
-    while k >= 0 and j >= 0 and k < j:
-        o = j + 1
-        j = value.find("}", o)
-        p = k + 1
-        k = value.find("${", p)
-    return i, j
-
-
-def concat_res(res, value):
-    if isinstance(res, basestring) and res:
-        if isinstance(value, basestring):
-            res = res + value
-        elif isinstance(value, (bool, int, long, float)):
-            res = res + str(value)
-    elif isinstance(res, (bool, int, long, float)):
-        if isinstance(value, basestring) and value:
-            res = str(res) + value
-        elif isinstance(value, (bool, int, long, float)):
-            res = str(res) + str(value)
-    else:
-        res = value
-    return res
-
-
-def is_db_alias(value):
-    i = value.find('.') + 1
-    if value[0:i] == "base.":
-        return True
-    return False
-
-
-def get_model_alias(value):
-    i = value.find('.') + 1
-    if value[0:i] == "base.":
-        model = "ir.model.data"
-        name = ['module', 'name']
-        i -= 1
-        value = [value[0:i], value[i + 1:]]
-        cid_type = True
-        return model, name, value, cid_type
-    return None, None, value, None
-
-
-#############################################################################
 # Private actions
 #
 def import_file(oerp, ctx, o_model, csv_fn):
@@ -1450,12 +840,12 @@ def import_file(oerp, ctx, o_model, csv_fn):
             if not hdr_read:
                 # pdb.set_trace()
                 hdr_read = True
-                o_model = _import_file_get_hdr(oerp,
-                                               ctx,
-                                               o_model,
-                                               csv_obj,
-                                               csv_fn,
-                                               row)
+                o_model = import_file_get_hdr(oerp,
+                                              ctx,
+                                              o_model,
+                                              csv_obj,
+                                              csv_fn,
+                                              row)
                 msg = u"Model={0}, Code={1} Name={2} NoCompany={3}"\
                     .format(o_model['model'],
                             tounicode(o_model['code']),
@@ -1479,23 +869,23 @@ def import_file(oerp, ctx, o_model, csv_fn):
             if o_model['code'] == 'id' and row['id']:
                 o_model['saved_hide_id'] = o_model['hide_id']
                 o_model['hide_id'] = False
-                ids = _get_query_id(oerp,
-                                    ctx,
-                                    o_model,
-                                    row)
+                ids = get_query_id(oerp,
+                                   ctx,
+                                   o_model,
+                                   row)
                 o_model['hide_id'] = o_model['saved_hide_id']
             else:
-                ids = _get_query_id(oerp,
-                                    ctx,
-                                    o_model,
-                                    row)
+                ids = get_query_id(oerp,
+                                   ctx,
+                                   o_model,
+                                   row)
             vals = {}
             for n in row:
-                val = _eval_value(oerp,
-                                  ctx,
-                                  o_model,
-                                  n,
-                                  row[n])
+                val = eval_value(oerp,
+                                 ctx,
+                                 o_model,
+                                 n,
+                                 row[n])
                 if val is not None:
                     x = n.split('/')[0]
                     if x != 'fiscalcode' or val != '':
@@ -1513,7 +903,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
                 debug_msg_log(ctx, 5, msg)
-                if not ctx['simulate']:
+                if not ctx['dry_run']:
                     try:
                         oerp.write(o_model['model'], ids, vals)
                         msg = u"id={0}, {1}={2}->{3}"\
@@ -1527,7 +917,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
             else:
                 msg = u"insert " + name_new.decode('utf-8')
                 debug_msg_log(ctx, 5, msg)
-                if not ctx['simulate']:
+                if not ctx['dry_run']:
                     if o_model.get('cid_type', False):
                         vals['company_id'] = ctx['company_id']
                     if 'id' in vals:
@@ -1596,28 +986,28 @@ def import_config_file(oerp, ctx, o_model, csv_fn):
                     msg = msg + u" Should be: user,category,name,value"
                     msg_log(ctx, 4, msg)
                     break
-            user = _eval_value(oerp,
-                               ctx,
-                               o_model,
-                               None,
-                               row['user'])
-            category = _eval_value(oerp,
-                                   ctx,
-                                   o_model,
-                                   None,
-                                   row['category'])
-            name = _eval_value(oerp,
-                               ctx,
-                               o_model,
-                               None,
-                               row['name'])
+            user = eval_value(oerp,
+                              ctx,
+                              o_model,
+                              None,
+                              row['user'])
+            category = eval_value(oerp,
+                                  ctx,
+                                  o_model,
+                                  None,
+                                  row['category'])
+            name = eval_value(oerp,
+                              ctx,
+                              o_model,
+                              None,
+                              row['name'])
             if name == "" or name == "False":
                 name = None
-            value = _eval_value(oerp,
-                                ctx,
-                                o_model,
-                                None,
-                                row['value'])
+            value = eval_value(oerp,
+                               ctx,
+                               o_model,
+                               None,
+                               row['value'])
             setup_config_param(oerp, ctx, user, category, name, value)
         csv_fd.close()
     else:
@@ -1626,7 +1016,7 @@ def import_config_file(oerp, ctx, o_model, csv_fn):
 
 
 def setup_config_param(oerp, ctx, user, category, ctx_name, value):
-    if not ctx['simulate']:
+    if not ctx['dry_run']:
         ids = oerp.search('ir.module.category',
                           [('name', '=', category)])
         if len(ids):
@@ -1680,8 +1070,8 @@ def create_simple_act_list():
     """
     lx_act = []
     for a in list(globals()):
-        if act_name(a):
-            lx_act.append(act_name(a))
+        if action_id(a):
+            lx_act.append(action_id(a))
     return lx_act
 
 
@@ -1725,7 +1115,7 @@ def check_actions_1_list(list, lx_act, conf_obj):
                 sts = check_actions_1_list(actions,
                                            lx_act,
                                            conf_obj)
-                if sts > 0:
+                if sts != STS_SUCCESS:
                     break
             else:
                 sts = False
@@ -1788,226 +1178,22 @@ def check_4_actions(ctx):
     return valid_actions
 
 
-#############################################################################
-# Custom parser functions
-#
-def default_conf():
-    """Default configuration values"""
-    y = date.today().year
-    dfmt = "%Y-%m-%d"
-    dts_start = date(y, 1, 1).strftime(dfmt)
-    dts_stop = date(y, 12, 31).strftime(dfmt)
-    d = {"login_user": "admin",
-         "login_password": "admin",
-         "login2_user": "admin",
-         "login2_password": "admin",
-         "svc_protocol": "xmlrpc",
-         "xmlrpc_port": "8069",
-         "dbfilter": ".*",
-         "dbfilterz": "",
-         "dbfiltert": "",
-         "dbtypefilter": "",
-         "companyfilter": ".*",
-         "date_start": dts_start,
-         "date_stop": dts_stop,
-         "adm_uids": "1",
-         "set_passepartout": "0",
-         "check_balance": "0",
-         "setup_banks": "0",
-         "setup_account_journal": "0",
-         "setup_partners": "0",
-         "setup_partner_banks": "0",
-         "check_config": "0",
-         "install_modules": False,
-         "uninstall_modules": False,
-         "upgrade_modules": False,
-         "zeroadm_mail": "cc@shs-av.com",
-         "data_path": "./data",
-         "actions_db": "act_install_modules,act_uninstall_modules",
-         "actions_mc": ""}
-    return d
-
-
-def create_parser():
-    """Return command-line parser.
-    Some options are standard:
-    -c --config     set configuration file (conf_fn)
-    -h --help       show help
-    -q --quiet      quiet mode
-    -t --dry-run    simulation mode for test (simulate)
-    -U --user       set username (user)
-    -v --verbose    verbose mode (dbg_mode)
-    -V --version    show version
-    -y --yes        confirmation w/out ask
-    """
-    parser = argparse.ArgumentParser(
-        description=docstring_summary(__doc__),
-        epilog="© 2015 by SHS-AV s.r.l."
-               " - http://www.zeroincombenze.org")
-    parser.add_argument("-c", "--config",
-                        help="configuration file",
-                        dest="conf_fn",
-                        metavar="file",
-                        default=CONF_FN)
-    parser.add_argument("-d", "--dbfilter",
-                        help="DB filter",
-                        dest="dbfilter",
-                        metavar="regex",
-                        default="")
-    parser.add_argument("-p", "--data_path",
-                        help="Import file path",
-                        dest="data_path",
-                        metavar="dir",
-                        default="")
-    parser.add_argument("-q", "--quiet",
-                        help="run silently",
-                        action="store_true",
-                        dest="quiet_mode",
-                        default=False)
-    parser.add_argument("-t", "--dry_run",
-                        help="test execution mode",
-                        action="store_true",
-                        dest="simulate",
-                        default=False)
-    parser.add_argument("-v", "--verbose",
-                        help="run with debugging output",
-                        action="store_true",
-                        dest="dbg_mode",
-                        default=False)
-    parser.add_argument("-V", "--version",
-                        action="version",
-                        version="%(prog)s " + __version__)
-    # parser.add_argument("filesrc",
-    #                     help="Files to convert")
-    return parser
-
-
-def create_params_dict(opt_obj, conf_obj):
-    """Create all params dictionary"""
-    ctx = create_def_params_dict(opt_obj, conf_obj)
-#    """Create all params dictionary"""
-#    ctx = {}
-    s = "options"
-    if not conf_obj.has_section(s):
-        conf_obj.add_section(s)
-    ctx['host'] = conf_obj.get(s, "db_host")
-    ctx['db_pwd'] = conf_obj.get(s, "db_password")
-    ctx['login_pwd'] = conf_obj.get(s, "login_password")
-    ctx['login2_pwd'] = conf_obj.get(s, "login2_password")
-    for p in ():
-        ctx[p] = conf_obj.getint(s, p)
-    ctx['svc_port'] = conf_obj.getint(s, "xmlrpc_port")
-    ctx['simulate'] = opt_obj.simulate
-    ctx['dbg_mode'] = opt_obj.dbg_mode
-    ctx['quiet_mode'] = opt_obj.quiet_mode
-    if opt_obj.dbfilter != "":
-        ctx['dbfilter'] = opt_obj.dbfilter
-    if opt_obj.data_path != "":
-        ctx['data_path'] = opt_obj.data_path
-    ctx['_conf_obj'] = conf_obj
-    ctx['_opt_obj'] = opt_obj
-
-    return ctx
-
-
-#############################################################################
-# Common parser functions
-#
-def create_def_params_dict(opt_obj, conf_obj):
-    """Create default params dictionary"""
-    ctx = {}
-    s = "options"
-    if conf_obj:
-        if not conf_obj.has_section(s):
-            conf_obj.add_section(s)
-        for p in LX_CFG_S:
-            ctx[p] = conf_obj.get(s, p)
-        for p in LX_CFG_B:
-            ctx[p] = conf_obj.getboolean(s, p)
-    for p in LX_CFG_SB:
-        ctx[p] = os0.str2bool(ctx[p], ctx[p])
-    for p in LX_OPT_CFG_S:
-        if hasattr(opt_obj, p):
-            ctx[p] = getattr(opt_obj, p)
-    return ctx
-
-
-def nakedname(fn):
-    """Return nakedename (without extension)"""
-    i = fn.rfind('.')
-    if i >= 0:
-        j = len(fn) - i
-        if j <= 4:
-            fn = fn[:i]
-    return fn
-
-
-def docstring_summary(docstring):
-    """Return summary of docstring."""
-    for text in docstring.split('\n'):
-        if text.strip():
-            break
-    return text.strip()
-
-
-def parse_args(arguments, apply_conf=False):
-    """Parse command-line options."""
-    parser = create_parser()
-    opt_obj = parser.parse_args(arguments)
-    if apply_conf:
-        if hasattr(opt_obj, 'conf_fn'):
-            conf_fn = opt_obj.conf_fn
-            conf_obj, conf_fn = read_config(opt_obj, parser, conf_fn=conf_fn)
-        else:
-            conf_obj, conf_fn = read_config(opt_obj, parser)
-        opt_obj = parser.parse_args(arguments)
-    ctx = create_params_dict(opt_obj, conf_obj)
-    if 'conf_fn' in locals():
-        ctx['conf_fn'] = conf_fn
-    return ctx
-
-
-def read_config(opt_obj, parser, conf_fn=None):
-    """Read both user configuration and local configuration."""
-    if conf_fn is None or not conf_fn:
-        if CONF_FN:
-            conf_fn = CONF_FN
-        else:
-            conf_fn = nakedname(os.path.basename(__file__)) + ".conf"
-    d = default_conf()
-    conf_obj = ConfigParser.SafeConfigParser(d)
-    if ODOO_CONF:
-        if isinstance(ODOO_CONF, list):
-            found = False
-            for f in ODOO_CONF:
-                if os.path.isfile(f):
-                    conf_fns = (f, conf_fn)
-                    found = True
-                    break
-            if not found:
-                conf_fns = conf_fn
-        else:
-            if os.path.isfile(ODOO_CONF):
-                conf_fns = (ODOO_CONF, conf_fn)
-            elif os.path.isfile(OE_CONF):
-                conf_fns = (OE_CONF, conf_fn)
-            else:
-                conf_fns = conf_fn
-    else:
-        conf_fns = conf_fn
-    conf_obj.read(conf_fns)
-    return conf_obj, conf_fn
-
-
 def main():
     """Tool main"""
-    sts = 0
-    init()
-    ctx = parse_args(sys.argv[1:], apply_conf=APPLY_CONF)
+    sts = STS_SUCCESS
+    ctx = parse_args(sys.argv[1:],
+                     apply_conf=APPLY_CONF,
+                     version=version(),
+                     doc=__doc__)
+    init_logger(ctx)
     print_hdr_msg(ctx)
     if not check_4_actions(ctx):
         return 1
     ctx = create_act_list(ctx)
+    if ctx['do_list_actions']:
+        for act in ctx['_lx_act']:
+            print act
+        return sts
     oerp = open_connection(ctx)
     dblist = get_dblist(oerp)
     for db in sorted(dblist):
