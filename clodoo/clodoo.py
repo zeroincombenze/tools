@@ -37,11 +37,13 @@ from clodoolib import msg_log
 from clodoolib import debug_msg_log
 from clodoolib import msg_burst
 from clodoolib import tounicode
+from clodoolib import crypt
+from clodoolib import decrypt
 from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.63.7"
+__version__ = "0.2.63.10"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -112,6 +114,13 @@ def do_login(oerp, ctx):
         for pwd in pwdlist:
             try:
                 user_obj = oerp.login(user=username,
+                                      passwd=decrypt(pwd),
+                                      database=ctx['db_name'])
+                break
+            except:
+                user_obj = False
+            try:
+                user_obj = oerp.login(user=username,
                                       passwd=pwd,
                                       database=ctx['db_name'])
                 break
@@ -123,13 +132,17 @@ def do_login(oerp, ctx):
         os0.wlog(u"!DB={0}: invalid user/pwd"
                  .format(tounicode(ctx['db_name'])))
         return
+    if not ctx['multi_user']:
+        ctx = init_user_ctx(oerp, ctx, user_obj.id)
+        msg = ident_user(oerp, ctx, user_obj.id)
+        msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
         wrong = False
         if username != ctx['login_user']:
             user_obj.login = ctx['login_user']
             wrong = True
         if pwd != ctx['login_pwd']:
-            user_obj.password = ctx['login_pwd']
+            user_obj.password = decrypt(ctx['login_pwd'])
             wrong = True
         if wrong:
             try:
@@ -162,6 +175,7 @@ def init_db_ctx(oerp, ctx, db):
               'user_name',
               'user_partner_id',
               'user_country_id',
+              'user_company_id',
               'company_id',
               'company_name',
               'company_country_id',
@@ -202,12 +216,13 @@ def init_user_ctx(oerp, ctx, u_id):
     user_obj = oerp.browse('res.users', u_id)
     ctx['user_partner_id'] = user_obj.partner_id
     ctx['user_name'] = user_obj.partner_id.name
+    ctx['user_company_id'] = user_obj.company_id.id
     if user_obj.partner_id.country_id:
         ctx['user_country_id'] = user_obj.partner_id.country_id.id
     else:
         ctx['user_country_id'] = 0
     if ctx.get('def_company_id', 0) == 0:
-        ctx['def_company_id'] = user_obj.company_id.id
+        ctx['def_company_id'] = ctx['user_company_id']
         ctx['def_company_name'] = user_obj.company_id.name
     if ctx.get('def_country_id', 0) == 0 and \
             user_obj.company_id.country_id:
@@ -335,23 +350,7 @@ def do_single_action(oerp, ctx, action):
 
 def do_actions(oerp, ctx):
     """Do actions (recursive)"""
-    if ctx.get('do_sel_action', False):
-        actions = ctx['do_sel_action']
-        del ctx['do_sel_action']
-    elif ctx.get('actions', None):
-        actions = ctx['actions']
-        del ctx['actions']
-    else:
-        actions = None
-        if 'actions_db' in ctx:
-            actions = 'per_db,' + ctx['actions_db']
-            del ctx['actions_db']
-        elif 'actions_mc' in ctx:
-            actions = 'per_company,' + ctx['actions_mc']
-            del ctx['actions_mc']
-        elif 'actions_uu' in ctx:
-            actions = 'per_users,' + ctx['actions_mc']
-            del ctx['actions_uu']
+    actions = ctx['actions']
     if not actions:
         return STS_FAILED
     actions = actions.split(',')
@@ -365,6 +364,9 @@ def do_actions(oerp, ctx):
         if isaction(oerp, ctx, act):
             if isiteraction(oerp, ctx, act):
                 incr_lev(ctx)
+                if act == 'per_db':
+                    ctx['multi_user'] = multiuser(ctx,
+                                                  actions)
                 ctx['actions'] = ','.join(actions)
                 if act == 'per_db' and 'actions_db' in ctx:
                     del ctx['actions_db']
@@ -409,17 +411,15 @@ def create_local_parms(ctx, action):
               'code',
               'name',
               'filename',
-              'cid_type'):
+              'hide_cid'):
         if conf_obj.has_option(action, p):
             lctx[p] = conf_obj.get(action, p)
         elif p in lctx:
             del lctx[p]
-    # lctx['actions_db'] = ''
-    # lctx['actions_mc'] = ''
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
-              'cid_type'):
+              'hide_cid'):
         if p in lctx:
             lctx[p] = os0.str2bool(lctx[p], lctx[p])
     return lctx
@@ -457,9 +457,12 @@ def act_list_actions(oerp, ctx):
 
 
 def act_show_params(oerp, ctx):
+    pwd = raw_input('password ')
     print "- hostname    = %s " % ctx['host']
     print "- protocol    = %s " % ctx['svc_protocol']
     print "- port        = %s " % ctx['svc_port']
+    if pwd:
+        print "- password    = %s " % crypt(pwd)
     return STS_SUCCESS
 
 
@@ -763,7 +766,7 @@ def act_import_file(oerp, ctx):
     for p in ('model',
               'model_code',
               'model_name',
-              'cid_type'):
+              'hide_cid'):
         if p in ctx:
             o_model[p] = ctx[p]
     if 'filename' in ctx:
@@ -976,6 +979,13 @@ def act_check_balance(oerp, ctx):
 #############################################################################
 # Private actions
 #
+def multiuser(ctx, actions):
+    if "per_user" in actions:
+        return True
+    else:
+        return False
+
+
 def import_file(oerp, ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
@@ -986,9 +996,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
      'model:value' -> get value id of model w/o company
     value may be an exact value or a like value
     """
-    # pdb.set_trace()
     msg = u"Import file " + csv_fn
-    debug_msg_log(ctx, ctx['level'], msg)
+    debug_msg_log(ctx, ctx['level'] + 1, msg)
     if 'company_id' in ctx:
         company_id = ctx['company_id']
     csv.register_dialect('odoo',
@@ -1017,8 +1026,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     .format(o_model['model'],
                             tounicode(o_model['code']),
                             tounicode(o_model['name']),
-                            o_model.get('cid_type', False))
-                debug_msg_log(ctx, ctx['level'] + 1, msg)
+                            o_model.get('hide_cid', False))
+                debug_msg_log(ctx, ctx['level'] + 2, msg)
                 if o_model['name'] and o_model['code']:
                     continue
                 else:
@@ -1030,7 +1039,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if row[o_model['db_type']]:
                     if row[o_model['db_type']] != ctx['db_type']:
                         msg = u"Record not imported by invalid db_type"
-                        debug_msg_log(ctx, ctx['level'] + 1, msg)
+                        debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
             # Does record exist ?
             if o_model['code'] == 'id' and row['id']:
@@ -1085,7 +1094,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 msg = u"insert " + name_new.decode('utf-8')
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
-                    if o_model.get('cid_type', False):
+                    if not o_model.get('hide_cid', False):
                         vals['company_id'] = ctx['company_id']
                     if 'id' in vals:
                         del vals['id']
@@ -1262,6 +1271,10 @@ def check_actions_list(ctx, lx_act):
         res = check_actions_1_list(ctx['actions_mc'],
                                    lx_act,
                                    conf_obj)
+    if res and ctx.get('actions_uu', None):
+        res = check_actions_1_list(ctx['actions_uu'],
+                                   lx_act,
+                                   conf_obj)
     return res
 
 
@@ -1294,12 +1307,22 @@ def check_actions_1_list(list, lx_act, conf_obj):
 
 def extend_actions_list(ctx, lx_act):
     conf_obj = ctx['_conf_obj']
-    lx_act = extend_actions_1_list(ctx['actions_db'],
-                                   lx_act,
-                                   conf_obj)
-    lx_act = extend_actions_1_list(ctx['actions_mc'],
-                                   lx_act,
-                                   conf_obj)
+    if ctx.get('actions', None):
+        lx_act = extend_actions_1_list(ctx['actions'],
+                                       lx_act,
+                                       conf_obj)
+    if ctx.get('actions_db', None):
+        lx_act = extend_actions_1_list(ctx['actions_db'],
+                                       lx_act,
+                                       conf_obj)
+    if ctx.get('actions_mc', None):
+        lx_act = extend_actions_1_list(ctx['actions_mc'],
+                                       lx_act,
+                                       conf_obj)
+    if ctx.get('actions_uu', None):
+        lx_act = extend_actions_1_list(ctx['actions_uu'],
+                                       lx_act,
+                                       conf_obj)
     return lx_act
 
 
@@ -1351,19 +1374,50 @@ def main():
                      apply_conf=APPLY_CONF,
                      version=version(),
                      doc=__doc__)
+    if ctx.get('do_sel_action', False):
+        ctx['actions'] = ctx['do_sel_action']
+    elif not ctx.get('actions', None):
+        if ctx.get('actions_db', None):
+            ctx['actions'] = 'per_db,' + ctx['actions_db']
+            del ctx['actions_db']
+        elif ctx.get('actions_mc', None):
+            ctx['actions'] = 'per_company,' + ctx['actions_mc']
+            del ctx['actions_mc']
+        elif ctx.get('actions_uu', None):
+            ctx['actions'] = 'per_users,' + ctx['actions_uu']
+            del ctx['actions_uu']
     init_logger(ctx)
     print_hdr_msg(ctx)
     if not check_4_actions(ctx):
         return STS_FAILED
     ctx = create_act_list(ctx)
-    # pdb.set_trace()
-    if ctx['do_sel_action'] and \
-        (ctx['do_sel_action'] == "list_actions" or
-         ctx['do_sel_action'] == "show_params"):
-        oerp = None
-    else:
+    do_conn = False
+    do_multidb = False
+    for act in ctx['actions'].split(','):
+        if act not in ("list_actions", "show_params"):
+            do_conn = True
+        if act == "per_db":
+            do_multidb = True
+    if do_conn:
         oerp = open_connection(ctx)
-    sts = do_actions(oerp, ctx)
+    else:
+        oerp = None
+    ctx['multi_user'] = multiuser(ctx,
+                                  ctx['actions'].split(','))
+    if ctx.get('multi_db', False) and not do_multidb:
+        ctx['actions'] = 'per_db,' + ctx['actions']
+        do_multidb = True
+    if do_conn and not do_multidb and ctx['db_name']:
+        ctx = init_db_ctx(oerp, ctx, ctx['db_name'])
+        msg = ident_db(oerp, ctx, ctx['db_name'])
+        msg_log(ctx, ctx['level'], msg)
+        lgiuser = do_login(oerp, ctx)
+        if lgiuser:
+            sts = do_actions(oerp, ctx)
+        else:
+            sts = STS_FAILED
+    else:
+        sts = do_actions(oerp, ctx)
     decr_lev(ctx)
     msg = u"Operations ended"
     msg_log(ctx, ctx['level'], msg)
