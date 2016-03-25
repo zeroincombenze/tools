@@ -14,11 +14,14 @@ elif [ -f ./z0librc ]; then
 . ./z0librc
 elif [ -f ~/z0librc ]; then
 . ~/z0librc
-else
+elif [ -f /etc/z0librc ]; then
 . /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
 fi
 
-__version__=0.1.15
+__version__=0.1.16
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
@@ -173,7 +176,7 @@ elif [ "$opt_sel" != "^\$" ]; then
       sleep 5
     fi
     if [ $opt_dry_run -eq 0 ]; then
-      echo "Statement at '$cronline' is being exceution"
+      echo "Statement at '$cronline' is being execution"
       crontab -l
     fi
     exit 0
