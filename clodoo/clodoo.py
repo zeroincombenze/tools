@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.64.2"
+__version__ = "0.2.64.4"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -564,12 +564,13 @@ def act_drop_db(oerp, ctx):
     sts = STS_SUCCESS
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
-    try:
-        oerp.db.drop(ctx['admin_passwd'],
-                     ctx['db_name'])
-        time.sleep(3)
-    except:
-        pass
+    if not ctx['dry_run']:
+        try:
+            oerp.db.drop(ctx['admin_passwd'],
+                         ctx['db_name'])
+            time.sleep(3)
+        except:
+            pass
     return sts
 
 
@@ -578,19 +579,20 @@ def act_new_db(oerp, ctx):
     sts = STS_SUCCESS
     msg = "Create DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
-    try:
-        oerp.db.create(ctx['admin_passwd'],
-                       ctx['db_name'],
-                       False,
-                       'en_US',
-                       decrypt(ctx['login_password']))
-        time.sleep(3)
-        ctx['no_warning_pwd'] = True
-        lgiuser = do_login(oerp, ctx)
-        if not lgiuser:
+    if not ctx['dry_run']:
+        try:
+            oerp.db.create_and_wait(ctx['admin_passwd'],
+                                    ctx['db_name'],
+                                    False,
+                                    'en_US',
+                                    decrypt(ctx['login_password']))
+            # time.sleep(3)
+            ctx['no_warning_pwd'] = True
+            lgiuser = do_login(oerp, ctx)
+            if not lgiuser:
+                sts = STS_FAILED
+        except:
             sts = STS_FAILED
-    except:
-        sts = STS_FAILED
     return sts
 
 
@@ -818,6 +820,14 @@ def act_import_file(oerp, ctx):
     msg = u"Import file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
     return import_file(oerp, ctx, o_model, csv_fn)
+
+
+def act_import_config_file(oerp, ctx):
+    if 'filename' in ctx:
+        csv_fn = ctx['filename']
+    msg = u"Import config file " + csv_fn
+    msg_log(ctx, ctx['level'], msg)
+    return import_config_file(oerp, ctx, csv_fn)
 
 
 def act_check_config(oerp, ctx):
@@ -1154,9 +1164,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
         return STS_FAILED
 
 
-def import_config_file(oerp, ctx, o_model, csv_fn):
-    msg = u"Import config file " + csv_fn
-    msg_log(ctx, ctx['level'] + 1, msg)
+def import_config_file(oerp, ctx, csv_fn):
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
@@ -1176,8 +1184,6 @@ def import_config_file(oerp, ctx, o_model, csv_fn):
                 file_valid = True
                 if 'user' not in csv_obj.fieldnames:
                     file_valid = False
-                if 'category' not in csv_obj.fieldnames:
-                    file_valid = False
                 if 'name' not in csv_obj.fieldnames:
                     file_valid = False
                 if 'value' not in csv_obj.fieldnames:
@@ -1186,82 +1192,114 @@ def import_config_file(oerp, ctx, o_model, csv_fn):
                     continue
                 else:
                     msg = u"!Invalid header of " + csv_fn
-                    msg = msg + u" Should be: user,category,name,value"
+                    msg = msg + u" Should be: user,name,value"
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    break
+                    return STS_FAILED
             user = eval_value(oerp,
                               ctx,
-                              o_model,
+                              None,
                               None,
                               row['user'])
-            category = eval_value(oerp,
-                                  ctx,
-                                  o_model,
-                                  None,
-                                  row['category'])
             name = eval_value(oerp,
                               ctx,
-                              o_model,
+                              None,
                               None,
                               row['name'])
-            if name == "" or name == "False":
-                name = None
             value = eval_value(oerp,
                                ctx,
-                               o_model,
+                               None,
                                None,
                                row['value'])
-            setup_config_param(oerp, ctx, user, category, name, value)
+            sts = setup_config_param(oerp, ctx, user, name, value)
+            if sts != STS_SUCCESS:
+                break
         csv_fd.close()
     else:
         msg = u"!File " + csv_fn + " not found!"
         msg_log(ctx, ctx['level'] + 1, msg)
+        return STS_FAILED
 
 
-def setup_config_param(oerp, ctx, user, category, ctx_name, value):
-    if not ctx['dry_run']:
-        ids = oerp.search('ir.module.category',
-                          [('name', '=', category)])
-        if len(ids):
-            mod_cat_id = ids[0]
-            if ctx_name is not None:
-                ctx_sel_ids = oerp.search('res.groups',
-                                          [('category_id', '=', mod_cat_id),
-                                           ('name', '=', ctx_name)])
-                ctx_label = "." + ctx_name
-            else:
-                ctx_sel_ids = oerp.search('res.groups',
-                                          [('category_id', '=', mod_cat_id)])
-                ctx_label = ""
-            ctx_sel_name = {}
-            for id in sorted(ctx_sel_ids):
-                cur_obj = oerp.browse('res.groups', id)
-                ctx_sel_name[cur_obj.name] = id
-            if len(ctx_sel_ids) > 1:
-                if value in ctx_sel_name:
-                    msg = u"Param (" + category + ctx_label + \
-                        ") = " + value + "(" + str(ctx_sel_name[value]) + ")"
-                else:
-                    msg = u"!Param (" + category + ctx_label + \
-                        ") value " + value + " not valid!"
-                    w = "("
-                    for x in ctx_sel_name.keys():
-                        msg = msg + w + x
-                        w = ","
-                    msg = msg + ")"
-                msg_log(ctx, ctx['level'] + 2, msg)
-            elif len(ctx_sel_ids) == 1:
-                if os0.str2bool(value, False):
-                    msg = u"!Param " + category + ctx_label + " = True"
-                else:
-                    msg = u"!Param " + category + ctx_label + " = False"
-                msg_log(ctx, ctx['level'] + 2, msg)
-            else:
-                msg = u"!Param " + category + ctx_label + " not found!"
-                msg_log(ctx, ctx['level'] + 2, msg)
-        else:
-            msg = u"!Category " + category + ctx_label + " not found!"
+def setup_config_param(oerp, ctx, user, name, value):
+    sts = STS_SUCCESS
+    if not isinstance(value, bool):
+        value = os0.str2bool(value, None)
+    if not isinstance(value, bool):
+        msg = u"!Invalid value " + value + " for parameter " + name + "!!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    group_id = oerp.search('res.groups',
+                           [('name', '=', name)])
+    if len(group_id) != 1:
+        msg = u"!Parameter name " + name + " not found!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    user_id = oerp.search('res.users',
+                          [('login', '=', user)])
+    if len(user_id) != 1:
+        msg = u"!User " + user + " not found!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    user_obj = oerp.browse('res.users', user_id[0])
+    if not user_obj:
+        msg = u"!User " + user + " not found!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    ids = user_obj.groups_id.ids
+    id = group_id[0]
+    vals = {}
+    if value:
+        if id not in ids:
+            vals['groups_id'] = [(4, id)]
+            msg = u"%s.%s = True" % (user, name)
             msg_log(ctx, ctx['level'] + 2, msg)
+        if id in ids:
+            vals['groups_id'] = [(3, id)]
+            msg = u"%s.%s = False" % (user, name)
+            msg_log(ctx, ctx['level'] + 2, msg)
+    if not ctx['dry_run'] and len(vals):
+        oerp.write('res.users', user_id, vals)
+        # ids = oerp.search('ir.module.category',
+        #                   [('name', '=', category)])
+        # if len(ids):
+        #     mod_cat_id = ids[0]
+        #     if ctx_name is not None:
+        #         ctx_sel_ids = oerp.search('res.groups',
+        #                                   [('category_id', '=', mod_cat_id),
+        #                                    ('name', '=', ctx_name)])
+        #         ctx_label = "." + ctx_name
+        #     else:
+        #         ctx_sel_ids = oerp.search('res.groups',
+        #                                   [('category_id', '=', mod_cat_id)])
+        #         ctx_label = ""
+        #     ctx_sel_name = {}
+        #     for id in sorted(ctx_sel_ids):
+        #         cur_obj = oerp.browse('res.groups', id)
+        #         ctx_sel_name[cur_obj.name] = id
+        #     if len(ctx_sel_ids) > 1:
+        #         if value in ctx_sel_name:
+        #             msg = u"Param (" + category + ctx_label + \
+        #                 ") = " + value + "(" + str(ctx_sel_name[value]) + ")"
+        #         else:
+        #             msg = u"!Param (" + category + ctx_label + \
+        #                 ") value " + value + " not valid!"
+        #             w = "("
+        #             for x in ctx_sel_name.keys():
+        #                 msg = msg + w + x
+        #                 w = ","
+        #             msg = msg + ")"
+        #         msg_log(ctx, ctx['level'] + 2, msg)
+        #     elif len(ctx_sel_ids) == 1:
+        #         if os0.str2bool(value, False):
+        #             msg = u"!Param " + category + ctx_label + " = True"
+        #         else:
+        #             msg = u"!Param " + category + ctx_label + " = False"
+        #         msg_log(ctx, ctx['level'] + 2, msg)
+        #     else:
+        #         msg = u"!Param " + category + ctx_label + " not found!"
+        #         msg_log(ctx, ctx['level'] + 2, msg)
+        # else:
+    return sts
 
 
 #############################################################################
