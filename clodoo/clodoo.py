@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.64"
+__version__ = "0.2.64.2"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -87,9 +87,9 @@ def incr_lev(ctx):
 def open_connection(ctx):
     """Open connection to Odoo service"""
     try:
-        oerp = oerplib.OERP(server=ctx['host'],
+        oerp = oerplib.OERP(server=ctx['db_host'],
                             protocol=ctx['svc_protocol'],
-                            port=ctx['svc_port'])
+                            port=ctx['xmlrpc_port'])
     except:
         msg = u"!Odoo server is not running!"
         msg_log(ctx, ctx['level'], msg)
@@ -105,8 +105,8 @@ def do_login(oerp, ctx):
     userlist.insert(0, ctx['login_user'])
     if ctx['lgi_user']:
         userlist.insert(0, ctx['lgi_user'])
-    pwdlist = ctx['login2_pwd'].split(',')
-    pwdlist.insert(0, ctx['login_pwd'])
+    pwdlist = ctx['login2_password'].split(',')
+    pwdlist.insert(0, ctx['login_password'])
     if ctx['lgi_pwd']:
         pwdlist.insert(0, ctx['lgi_pwd'])
     user_obj = False
@@ -129,8 +129,9 @@ def do_login(oerp, ctx):
         if user_obj:
             break
     if not user_obj:
-        os0.wlog(u"!DB={0}: invalid user/pwd"
-                 .format(tounicode(ctx['db_name'])))
+        if not ctx.get('no_warning_pwd', False):
+            os0.wlog(u"!DB={0}: invalid user/pwd"
+                     .format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(oerp, ctx, user_obj.id)
@@ -141,26 +142,28 @@ def do_login(oerp, ctx):
         if username != ctx['login_user']:
             user_obj.login = ctx['login_user']
             wrong = True
-        if pwd != ctx['login_pwd']:
-            user_obj.password = decrypt(ctx['login_pwd'])
+        if pwd != ctx['login_password']:
+            user_obj.password = decrypt(ctx['login_password'])
             wrong = True
         if wrong:
             try:
                 oerp.write_record(user_obj)
-                os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
-                         .format(tounicode(ctx['db_name']),
-                                 tounicode(username),
-                                 tounicode(ctx['login_user'])))
+                if not ctx.get('no_warning_pwd', False):
+                    os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
+                             .format(tounicode(ctx['db_name']),
+                                     tounicode(username),
+                                     tounicode(ctx['login_user'])))
             except:
                 os0.wlog(u"!!write error!")
         if user_obj.email != ctx['zeroadm_mail']:
             user_obj.email = ctx['zeroadm_mail']
             try:
                 oerp.write_record(user_obj)
-                os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
-                         .format(tounicode(ctx['db_name']),
-                                 tounicode(ctx['login2_user']),
-                                 tounicode(ctx['login_user'])))
+                if not ctx.get('no_warning_pwd', False):
+                    os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
+                             .format(tounicode(ctx['db_name']),
+                                     tounicode(ctx['login2_user']),
+                                     tounicode(ctx['login_user'])))
             except:
                 os0.wlog(u"!!write error!")
     return user_obj
@@ -458,11 +461,11 @@ def act_list_actions(oerp, ctx):
 
 def act_show_params(oerp, ctx):
     pwd = raw_input('password ')
-    print "- hostname    = %s " % ctx['host']
-    print "- protocol    = %s " % ctx['svc_protocol']
-    print "- port        = %s " % ctx['svc_port']
+    print "- hostname      = %s " % ctx['db_host']
+    print "- protocol      = %s " % ctx['svc_protocol']
+    print "- port          = %s " % ctx['xmlrpc_port']
     if pwd:
-        print "- password    = %s " % crypt(pwd)
+        print "- password      = %s " % crypt(pwd)
     return STS_SUCCESS
 
 
@@ -484,8 +487,8 @@ def act_echo_db(oerp, ctx):
 
 def act_show_db_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- DB name     = %s " % (ident, ctx.get('db_name', ""))
-    print "%s- DB type     = %s " % (ident, ctx.get('db_type', ""))
+    print "%s- DB name       = %s " % (ident, ctx.get('db_name', ""))
+    print "%s- DB type       = %s " % (ident, ctx.get('db_type', ""))
     return STS_SUCCESS
 
 
@@ -507,10 +510,10 @@ def act_echo_company(oerp, ctx):
 
 def act_show_company_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- company_id  = %d " % (ident, ctx.get('company_id', 0))
-    print "%s- name        = %s " % (ident, ctx.get('company_name', ""))
-    print "%s- country_id  = %d " % (ident, ctx.get('company_country_id', 0))
-    print "%s- partner_id  = %d " % (ident, ctx.get('company_partner_id', 0))
+    print "%s- company_id    = %d " % (ident, ctx.get('company_id', 0))
+    print "%s- company name  = %s " % (ident, ctx.get('company_name', ""))
+    print "%s- c. country_id = %d " % (ident, ctx.get('company_country_id', 0))
+    print "%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id', 0))
     return STS_SUCCESS
 
 
@@ -532,11 +535,11 @@ def act_echo_user(oerp, ctx):
 
 def act_show_user_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- user_id     = %d " % (ident, ctx.get('user_id', 0))
-    print "%s- name        = %s " % (ident, ctx.get('user_name', ""))
-    print "%s- partner_id  = %d " % (ident, ctx.get('user_partner_id', 0))
-    print "%s- country_id  = %d " % (ident, ctx.get('user_country_id', 0))
-    print "%s- company_id  = %d " % (ident, ctx.get('user_company_id', 0))
+    print "%s- user_id       = %d " % (ident, ctx.get('user_id', 0))
+    print "%s- user name     = %s " % (ident, ctx.get('user_name', ""))
+    print "%s- u. partner_id = %d " % (ident, ctx.get('user_partner_id', 0))
+    print "%s- u. country_id = %d " % (ident, ctx.get('user_country_id', 0))
+    print "%s- u. company_id = %d " % (ident, ctx.get('user_company_id', 0))
     return STS_SUCCESS
 
 
@@ -551,6 +554,41 @@ def act_run_unit_tests(oerp, ctx):
         sts = oerp.execute('ir.actions.server',
                            'Run Unit test',
                            'banking_export_pain')
+    except:
+        sts = STS_FAILED
+    return sts
+
+
+def act_drop_db(oerp, ctx):
+    """Drop a DB"""
+    sts = STS_SUCCESS
+    msg = "Drop DB %s" % ctx['db_name']
+    msg_log(ctx, ctx['level'], msg)
+    try:
+        oerp.db.drop(ctx['admin_passwd'],
+                     ctx['db_name'])
+        time.sleep(3)
+    except:
+        pass
+    return sts
+
+
+def act_new_db(oerp, ctx):
+    """Create new DB"""
+    sts = STS_SUCCESS
+    msg = "Create DB %s" % ctx['db_name']
+    msg_log(ctx, ctx['level'], msg)
+    try:
+        oerp.db.create(ctx['admin_passwd'],
+                       ctx['db_name'],
+                       False,
+                       'en_US',
+                       decrypt(ctx['login_password']))
+        time.sleep(3)
+        ctx['no_warning_pwd'] = True
+        lgiuser = do_login(oerp, ctx)
+        if not lgiuser:
+            sts = STS_FAILED
     except:
         sts = STS_FAILED
     return sts
@@ -1392,22 +1430,32 @@ def main():
         return STS_FAILED
     ctx = create_act_list(ctx)
     do_conn = False
+    do_newdb = False
     do_multidb = False
     for act in ctx['actions'].split(','):
         if act not in ("list_actions", "show_params"):
             do_conn = True
         if act == "per_db":
             do_multidb = True
+        if act == "new_db":
+            do_newdb = True
     if do_conn:
         oerp = open_connection(ctx)
     else:
         oerp = None
     ctx['multi_user'] = multiuser(ctx,
                                   ctx['actions'].split(','))
-    if ctx.get('multi_db', False) and not do_multidb:
+    if do_newdb:
+        if ctx.get('multi_db', False):
+            ctx['db_name'] = ctx['dbfilter']
+        if not ctx['db_name']:
+            msg = u"!No DB name supplied!!"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    elif ctx.get('multi_db', False) and not do_multidb:
         ctx['actions'] = 'per_db,' + ctx['actions']
         do_multidb = True
-    if do_conn and not do_multidb and ctx['db_name']:
+    if not do_newdb and do_conn and not do_multidb and ctx['db_name']:
         ctx = init_db_ctx(oerp, ctx, ctx['db_name'])
         msg = ident_db(oerp, ctx, ctx['db_name'])
         msg_log(ctx, ctx['level'], msg)

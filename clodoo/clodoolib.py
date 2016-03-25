@@ -50,6 +50,11 @@ LX_CFG_S = ('db_name',
             'db_user',
             'login_user',
             'login2_user',
+            'login_password',
+            'login2_password',
+            'admin_passwd',
+            'db_host',
+            'xmlrpc_port',
             'zeroadm_mail',
             'svc_protocol',
             'dbfilter',
@@ -103,7 +108,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 
 #############################################################################
@@ -239,6 +244,7 @@ def default_conf(ctx):
               "login_password": "admin",
               "login2_user": "admin",
               "login2_password": "admin",
+              "db_host": "localhost",
               "svc_protocol": "xmlrpc",
               "xmlrpc_port": "8069",
               "dbfilter": ".*",
@@ -330,13 +336,9 @@ def create_params_dict(ctx):
     s = "options"
     if not conf_obj.has_section(s):
         conf_obj.add_section(s)
-    ctx['host'] = conf_obj.get(s, "db_host")
     ctx['db_pwd'] = conf_obj.get(s, "db_password")
-    ctx['login_pwd'] = conf_obj.get(s, "login_password")
-    ctx['login2_pwd'] = conf_obj.get(s, "login2_password")
     for p in ():
         ctx[p] = conf_obj.getint(s, p)
-    ctx['svc_port'] = conf_obj.getint(s, "xmlrpc_port")
     if opt_obj.dbfilter != "":
         ctx['dbfilter'] = opt_obj.dbfilter
         ctx['multi_db'] = True
