@@ -17,7 +17,6 @@ conf/
 cover/
 **/.coverage
 .coveragerc
-clodoo/
 latex/
 html/
 docs/

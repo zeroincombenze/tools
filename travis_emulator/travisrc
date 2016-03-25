@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65
+#__version__=0.1.65.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -384,6 +384,12 @@ conf_default () {
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"
     set_cfg_def "MQT_UPDT" "2016-01-01"
+    set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
+    set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+    set_cfg_def "RDLIST__travis_emulator" "_travis/"
+    set_cfg_def "RFLIST__z0lib" "Makefile z0testrc"
+    set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
+    set_cfg_def "RFLIST__z0tester" "z0testercode.py"
 }
 
 
@@ -461,17 +467,9 @@ install_dev () {
 
 update_dev () {
     XDPATH=$(echo "$(dirname $MAKEF)")
-    ME_BOS="test_nightly .test_nightly.conf.sample"
-    if [ "$1" == "travis_emulator" ]; then
-      RFLIST="autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-      RDLIST="_travis/"
-    elif [ "$1" == "z0lib" ]; then
-      RFLIST="Makefile z0testrc"
-      RDLIST=""
-    else
-      RFLIST=""
-      RDLIST=""
-    fi
+    ME_BOS=$(get_cfg_value "" "ME_BOS")
+    RFLIST=$(get_cfg_value "" "RFLIST__$1")
+    RDLIST=$(get_cfg_value "" "RDLIST__$1")
     local xvalid=1
     local v1=
     local v2=
@@ -500,8 +498,9 @@ update_dev () {
           else
             diff -q $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
             if [ $? -ne 0 ]; then
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
-              ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
+              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
+              # ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
+              run_traced "cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x"
               if [ -x $PKGPATH/$pkgname/$x ]; then
                 v1=$($PKGPATH/$pkgname/$x -V)
                 v2=$($XDPATH/$x -V)
