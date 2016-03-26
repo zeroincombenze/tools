@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.64.4"
+__version__ = "0.2.64.5"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -419,6 +419,12 @@ def create_local_parms(ctx, action):
             lctx[p] = conf_obj.get(action, p)
         elif p in lctx:
             del lctx[p]
+    for p in ('lang',
+              'dbfilter',
+              'companyfilter',
+              'userfilter'):
+        if conf_obj.has_option(action, p):
+            lctx[p] = conf_obj.get(action, p)
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
@@ -577,14 +583,15 @@ def act_drop_db(oerp, ctx):
 def act_new_db(oerp, ctx):
     """Create new DB"""
     sts = STS_SUCCESS
-    msg = "Create DB %s" % ctx['db_name']
+    lang = ctx.get('lang', 'en_US')
+    msg = "Create DB %s [%s]" % (ctx['db_name'], lang)
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         try:
             oerp.db.create_and_wait(ctx['admin_passwd'],
                                     ctx['db_name'],
                                     False,
-                                    'en_US',
+                                    lang,
                                     decrypt(ctx['login_password']))
             # time.sleep(3)
             ctx['no_warning_pwd'] = True
@@ -798,6 +805,23 @@ def act_install_modules(oerp, ctx):
 
     if done > 0:
         time.sleep(done)
+    return STS_SUCCESS
+
+
+def act_install_language(oerp, ctx):
+    """Install new language"""
+    lang = ctx.get('lang', 'en_US')
+    msg = u"Install language %s" % lang
+    msg_log(ctx, ctx['level'], msg)
+    if lang != 'en_US':
+        vals = {}
+        vals['lang'] = lang
+        vals['overwrite'] = False
+        id = oerp.create('base.language.install',
+                         vals)
+        oerp.execute('base.language.install',
+                     'lang_install',
+                     [id])
     return STS_SUCCESS
 
 
@@ -1060,6 +1084,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  fieldnames=[],
                                  restkey='undef_name',
                                  dialect='odoo')
+        import pdb
+        pdb.set_trace()
         for row in csv_obj:
             if not hdr_read:
                 # pdb.set_trace()
@@ -1111,6 +1137,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  n,
                                  row[n])
                 if val is not None:
+                    if n == 'company_ids':
+                        val = [4,3]
                     x = n.split('/')[0]
                     if x != 'fiscalcode' or val != '':
                         vals[x] = val
@@ -1157,11 +1185,11 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         id = None
                         os0.wlog(u"!!write error!")
         csv_fd.close()
-        return STS_SUCCESS
     else:
         msg = u"Import file " + csv_fn + " not found!"
         msg_log(ctx, ctx['level'] + 1, msg)
         return STS_FAILED
+    return STS_SUCCESS
 
 
 def import_config_file(oerp, ctx, csv_fn):
@@ -1218,16 +1246,14 @@ def import_config_file(oerp, ctx, csv_fn):
         msg = u"!File " + csv_fn + " not found!"
         msg_log(ctx, ctx['level'] + 1, msg)
         return STS_FAILED
+    return STS_SUCCESS
 
 
 def setup_config_param(oerp, ctx, user, name, value):
     sts = STS_SUCCESS
-    if not isinstance(value, bool):
-        value = os0.str2bool(value, None)
-    if not isinstance(value, bool):
-        msg = u"!Invalid value " + value + " for parameter " + name + "!!"
-        msg_log(ctx, ctx['level'] + 2, msg)
-        return STS_FAILED
+    v = os0.str2bool(value, None)
+    if v is not None:
+        value = v
     group_id = oerp.search('res.groups',
                            [('name', '=', name)])
     if len(group_id) != 1:
@@ -1248,15 +1274,16 @@ def setup_config_param(oerp, ctx, user, name, value):
     ids = user_obj.groups_id.ids
     id = group_id[0]
     vals = {}
-    if value:
-        if id not in ids:
-            vals['groups_id'] = [(4, id)]
-            msg = u"%s.%s = True" % (user, name)
-            msg_log(ctx, ctx['level'] + 2, msg)
-        if id in ids:
-            vals['groups_id'] = [(3, id)]
-            msg = u"%s.%s = False" % (user, name)
-            msg_log(ctx, ctx['level'] + 2, msg)
+    if isinstance(value, bool):
+        if value:
+            if id not in ids:
+                vals['groups_id'] = [(4, id)]
+                msg = u"%s.%s = True" % (user, name)
+                msg_log(ctx, ctx['level'] + 2, msg)
+            if id in ids:
+                vals['groups_id'] = [(3, id)]
+                msg = u"%s.%s = False" % (user, name)
+                msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         oerp.write('res.users', user_id, vals)
         # ids = oerp.search('ir.module.category',
