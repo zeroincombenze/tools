@@ -168,6 +168,13 @@ def eval_value(oerp, ctx, o_model, name, value):
                          o_model,
                          name,
                          value[1:])
+            if isinstance(value, basestring) and \
+                    (value == "None" or
+                     (value[0:2] == "[(" and value[-2:] == ")]")):
+                try:
+                    value = eval(value, None, ctx)
+                except:
+                    pass
     return value
 
 

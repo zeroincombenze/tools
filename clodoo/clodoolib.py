@@ -73,6 +73,7 @@ LX_CFG_S = ('db_name',
             'actions_db',
             'actions_mc',
             'actions_uu',
+            'heavy_trx',
             'install_modules',
             'uninstall_modules',
             'upgrade_modules')
@@ -83,7 +84,8 @@ LX_CFG_SB = ('install_modules',
              'actions',
              'actions_db',
              'actions_mc',
-             'actions_uu')
+             'actions_uu',
+             'heavy_trx')
 # list of pure boolean parameters in [options] of config file
 LX_CFG_B = ('set_passepartout',
             'check_balance',
@@ -274,7 +276,8 @@ def default_conf(ctx):
               'actions': '',
               'actions_db': '',
               'actions_mc': '',
-              'actions_uu': ''}
+              'actions_uu': '',
+              'heavy_trx': False}
     return DEFDCT
 
 

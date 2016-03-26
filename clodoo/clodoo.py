@@ -1084,8 +1084,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  fieldnames=[],
                                  restkey='undef_name',
                                  dialect='odoo')
-        import pdb
-        pdb.set_trace()
         for row in csv_obj:
             if not hdr_read:
                 # pdb.set_trace()
@@ -1137,8 +1135,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  n,
                                  row[n])
                 if val is not None:
-                    if n == 'company_ids':
-                        val = [4,3]
                     x = n.split('/')[0]
                     if x != 'fiscalcode' or val != '':
                         vals[x] = val
@@ -1149,13 +1145,15 @@ def import_file(oerp, ctx, o_model, csv_fn):
             if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
                     continue
+            if 'id' in vals:
+                del vals['id']
             if len(ids):
                 id = ids[0]
                 cur_obj = oerp.browse(o_model['model'], id)
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-                if not ctx['dry_run']:
+                if not ctx['dry_run'] and len(vals):
                     try:
                         oerp.write(o_model['model'], ids, vals)
                         msg = u"id={0}, {1}={2}->{3}"\
@@ -1172,8 +1170,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if not ctx['dry_run']:
                     if not o_model.get('hide_cid', False):
                         vals['company_id'] = ctx['company_id']
-                    if 'id' in vals:
-                        del vals['id']
                     try:
                         id = oerp.create(o_model['model'], vals)
                         msg = u"creat id={0}, {1}={2}"\
