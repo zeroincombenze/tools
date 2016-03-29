@@ -76,7 +76,8 @@ LX_CFG_S = ('db_name',
             'heavy_trx',
             'install_modules',
             'uninstall_modules',
-            'upgrade_modules')
+            'upgrade_modules',
+            'chart_of_account')
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
 LX_CFG_SB = ('install_modules',
@@ -277,7 +278,8 @@ def default_conf(ctx):
               'actions_db': '',
               'actions_mc': '',
               'actions_uu': '',
-              'heavy_trx': False}
+              'heavy_trx': False,
+              'chart_of_account': 'configurable_chart_template'}
     return DEFDCT
 
 

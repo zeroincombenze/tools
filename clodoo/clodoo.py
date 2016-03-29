@@ -422,7 +422,8 @@ def create_local_parms(ctx, action):
     for p in ('lang',
               'dbfilter',
               'companyfilter',
-              'userfilter'):
+              'userfilter',
+              'chart_of_account'):
         if conf_obj.has_option(action, p):
             lctx[p] = conf_obj.get(action, p)
     for p in ('install_modules',
@@ -825,6 +826,17 @@ def act_install_language(oerp, ctx):
     return STS_SUCCESS
 
 
+def act_install_chart_of_account(oerp, ctx):
+    """Install chart of account"""
+    import pdb
+    pdb.set_trace()
+    coa = ctx.get('chart_of_account',
+                  'Italy - Piano dei conti Zeroincombenze(R)')
+    msg = u"Install chart of account %s" % coa
+    msg_log(ctx, ctx['level'], msg)
+    return install_chart_of_account(oerp, ctx, coa)
+
+
 def act_import_file(oerp, ctx):
     o_model = {}
     for p in ('model',
@@ -1153,14 +1165,21 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
+                if not ctx['heavy_trx']:
+                    v = {}
+                    for p in vals:
+                        if vals[p] != cur_obj[p]:
+                            v[p] = vals[p]
+                    vals = v
+                    del v
                 if not ctx['dry_run'] and len(vals):
                     try:
                         oerp.write(o_model['model'], ids, vals)
-                        msg = u"id={0}, {1}={2}->{3}"\
-                              .format(cur_obj.id,
-                                      tounicode(o_model['name']),
-                                      tounicode(name_old),
-                                      tounicode(name_new))
+                        msg = u"id={0}, {1}={2}->{3}".\
+                              format(cur_obj.id,
+                                     tounicode(o_model['name']),
+                                     tounicode(name_old),
+                                     tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
                     except:
                         os0.wlog(u"!!write error!")
@@ -1276,6 +1295,7 @@ def setup_config_param(oerp, ctx, user, name, value):
                 vals['groups_id'] = [(4, id)]
                 msg = u"%s.%s = True" % (user, name)
                 msg_log(ctx, ctx['level'] + 2, msg)
+        else:
             if id in ids:
                 vals['groups_id'] = [(3, id)]
                 msg = u"%s.%s = False" % (user, name)
@@ -1322,6 +1342,42 @@ def setup_config_param(oerp, ctx, user, name, value):
         #         msg = u"!Param " + category + ctx_label + " not found!"
         #         msg_log(ctx, ctx['level'] + 2, msg)
         # else:
+    return sts
+
+
+def install_chart_of_account(oerp, ctx, name):
+    sts = STS_SUCCESS
+    chart_setup_model = 'wizard.multi.charts.accounts'
+    chart_template_id = oerp.search('account.chart.template',
+                                    [('name',
+                                      '=',
+                                      name)])
+    if len(chart_template_id) == 0:
+        msg = u"!Invalid chart of account " + name + "!!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    chart_template_id = chart_template_id[0]
+    if 'company_id' not in ctx:
+        msg = u"!No company declared!!"
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    company_id = ctx['company_id']
+    currency_id = oerp.browse('res.company', company_id).currency_id
+    chart_values = {
+        'company_id': company_id,
+        'currency_id': currency_id,
+        'chart_template_id': chart_template_id
+    }
+    chart_values.update(oerp.execute(chart_setup_model,
+                                     'onchange_chart_template_id',
+                                     [],
+                                     1)['value'])
+    chart_setup_id = oerp.execute(chart_setup_model,
+                                  'create',
+                                  chart_values)
+    oerp.execute(chart_setup_model,
+                 'execute',
+                 [chart_setup_id])
     return sts
 
 
