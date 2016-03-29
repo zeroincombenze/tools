@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.64.5"
+__version__ = "0.2.65.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -828,8 +828,6 @@ def act_install_language(oerp, ctx):
 
 def act_install_chart_of_account(oerp, ctx):
     """Install chart of account"""
-    import pdb
-    pdb.set_trace()
     coa = ctx.get('chart_of_account',
                   'Italy - Piano dei conti Zeroincombenze(R)')
     msg = u"Install chart of account %s" % coa
@@ -1098,7 +1096,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  dialect='odoo')
         for row in csv_obj:
             if not hdr_read:
-                # pdb.set_trace()
                 hdr_read = True
                 o_model = import_file_get_hdr(oerp,
                                               ctx,
@@ -1139,6 +1136,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                    ctx,
                                    o_model,
                                    row)
+            name_new = ""
             vals = {}
             for n in row:
                 val = eval_value(oerp,
@@ -1168,7 +1166,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if not ctx['heavy_trx']:
                     v = {}
                     for p in vals:
-                        if vals[p] != cur_obj[p]:
+                        if p != "db_type" and \
+                                vals[p] != cur_obj[p]:
                             v[p] = vals[p]
                     vals = v
                     del v

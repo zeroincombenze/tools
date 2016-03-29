@@ -112,7 +112,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.3"
+__version__ = "0.1.5"
 
 
 #############################################################################
@@ -256,7 +256,7 @@ def default_conf(ctx):
               'dbfiltert': 'openerp.*',
               'dbfilterz': 'zi[0-9]{8}',
               'dbtypefilter': '',
-              'companyfilter': '.*',
+              'companyfilter': '(?!zeroincombenze.*)',
               'userfilter': '.*',
               'lang': 'en_US',
               'date_start': dts_start,
