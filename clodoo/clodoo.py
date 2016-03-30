@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.65.1"
+__version__ = "0.2.66"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -110,19 +110,20 @@ def do_login(oerp, ctx):
     if ctx['lgi_pwd']:
         pwdlist.insert(0, ctx['lgi_pwd'])
     user_obj = False
+    db_name = get_dbname(ctx, 'login')
     for username in userlist:
         for pwd in pwdlist:
             try:
                 user_obj = oerp.login(user=username,
                                       passwd=decrypt(pwd),
-                                      database=ctx['db_name'])
+                                      database=db_name)
                 break
             except:
                 user_obj = False
             try:
                 user_obj = oerp.login(user=username,
                                       passwd=pwd,
-                                      database=ctx['db_name'])
+                                      database=db_name)
                 break
             except:
                 user_obj = False
@@ -338,6 +339,12 @@ def do_single_action(oerp, ctx, action):
     if isaction(oerp, ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
+        if ctx['db_name'] == 'auto':
+            if action not in ("list_actions", "show_params", "new_db"):
+                ctx['db_name'] = get_dbname(ctx, action)
+                lgiuser = do_login(oerp, ctx)
+                if not lgiuser:
+                    action = "unit_test"
         act = lexec_name(action)
         if act in list(globals()):
             if action == 'install_modules' and\
@@ -436,7 +443,10 @@ def create_local_parms(ctx, action):
 
 
 def ident_db(oerp, ctx, db):
+    db_name = get_dbname(ctx, '')
     msg = u"DB=" + db + " (" + ctx.get('db_type', '') + ")"
+    if db_name != db:
+        msg = msg + " - default " + db_name
     return msg
 
 
@@ -485,8 +495,7 @@ def act_list_db(oerp, ctx):
 
 
 def act_echo_db(oerp, ctx):
-    db = ctx['db_name']
-    msg = ident_db(oerp, ctx, db)
+    msg = ident_db(oerp, ctx, ctx['db_name'])
     ident = ' ' * ctx['level']
     print " %s%s" % (ident, msg)
     return STS_SUCCESS
@@ -588,18 +597,24 @@ def act_new_db(oerp, ctx):
     msg = "Create DB %s [%s]" % (ctx['db_name'], lang)
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
-        try:
-            oerp.db.create_and_wait(ctx['admin_passwd'],
-                                    ctx['db_name'],
-                                    False,
-                                    lang,
-                                    decrypt(ctx['login_password']))
-            # time.sleep(3)
-            ctx['no_warning_pwd'] = True
-            lgiuser = do_login(oerp, ctx)
-            if not lgiuser:
+        if ctx['db_name'] == 'auto':
+            ctx['db_name'] = create_zero_db(oerp, ctx)
+            msg = "Assigned name is %s" % (ctx['db_name'])
+            msg_log(ctx, ctx['level'], msg)
+        if ctx['db_name']:
+            try:
+                oerp.db.create_and_wait(ctx['admin_passwd'],
+                                        ctx['db_name'],
+                                        False,
+                                        lang,
+                                        decrypt(ctx['login_password']))
+                ctx['no_warning_pwd'] = True
+                lgiuser = do_login(oerp, ctx)
+                if not lgiuser:
+                    sts = STS_FAILED
+            except:
                 sts = STS_FAILED
-        except:
+        else:
             sts = STS_FAILED
     return sts
 
@@ -1066,6 +1081,44 @@ def multiuser(ctx, actions):
         return True
     else:
         return False
+
+
+def create_zero_db(oerp, ctx):
+    lgiuser = do_login(oerp, ctx)
+    if not lgiuser:
+        return None
+    setup_model = 'zi.dbmgr.db.create.database.wizard'
+    values = oerp.execute(setup_model,
+                          'default_get',
+                          [])
+    db_name = values['name']
+    setup_id = oerp.execute(setup_model,
+                            'create',
+                            values)
+    oerp.execute(setup_model,
+                 'execute',
+                 [setup_id],
+                 None)
+    fd = open('clodoo_last.conf', 'w')
+    fd.write('db_name=%s\n' % db_name)
+    fd.close()
+    return db_name
+
+
+def get_dbname(ctx, action):
+    if ctx['db_name'] == 'auto':
+        if action == 'login':
+            dbname = ctx['catalog_db']
+        elif action == 'new_db':
+            dbname = ctx['db_name']
+        else:
+            fd = open('clodoo_last.conf', 'r')
+            line = fd.readline()
+            fd.close()
+            dbname = line.split('=')[1].split()[0]
+    else:
+        dbname = ctx['db_name']
+    return dbname
 
 
 def import_file(oerp, ctx, o_model, csv_fn):

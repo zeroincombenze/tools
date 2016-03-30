@@ -1,4 +1,4 @@
-__version__=0.1.5
+__version__=0.1.6
 if [ "$1" == "-V" ]; then
   echo $__version__
   exit 0
@@ -32,7 +32,8 @@ else
   flt="$1"
 fi
 dir $cwd/$fls
-if [ -d $cwd/$fls ]; then
+a=$(find . -type d|grep "\./")
+if [ -n "$a" ]; then
   opts=-r
 else
   opts=

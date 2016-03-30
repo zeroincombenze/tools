@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.2
+#__version__=0.1.65.3
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -504,7 +504,7 @@ update_dev () {
               if [ -x $PKGPATH/$pkgname/$x ]; then
                 v1=$($PKGPATH/$pkgname/$x -V)
                 v2=$($XDPATH/$x -V)
-                if [ "$v1" != "$v2" }; then
+                if [ "$v1" != "$v2" ]; then
                   echo "!Copy of $x FAILED !!!"
                 fi
               fi
