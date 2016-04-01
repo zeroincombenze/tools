@@ -23,4 +23,9 @@ WWW_DWNLOAD_DIR=/var/www/html/mw/download
 #
 # pip_pkgver__{PKG}: version required for package when update
 # reportlab require 3.1.44; on development host is running 3.2.0 to test
-#
+pip_pkgver__pylint=1.4.4
+pip_pkgver__pylint-plugin-utils=0.2.3
+pip_pkgver__astroid=1.3.8
+pip_pkgver__docutils=0.12
+pip_pkgver__Pygments=2.0.2
+pip_pkgver__restructuredtext_lint=0.12.2
