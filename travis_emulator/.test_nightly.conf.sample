@@ -18,3 +18,9 @@ MYPKG=travis_emulator
 HTML_SVG_DIR=/var/www/html/wp-zi/wp-content/uploads/ci-ct
 # WWW_DWNLOAD_DIR: directory for public download
 WWW_DWNLOAD_DIR=/var/www/html/mw/download
+# upgrade_dow: day of the week to upgrade all packages
+# Value is 3 (Wednesday) on Development host and 4 (Thursday) on Production host
+#
+# pip_pkgver__{PKG}: version required for package when update
+# reportlab require 3.1.44; on development host is running 3.2.0 to test
+#

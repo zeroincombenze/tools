@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.3
+#__version__=0.1.65.4
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -390,6 +390,13 @@ conf_default () {
     set_cfg_def "RFLIST__z0lib" "Makefile z0testrc"
     set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
     set_cfg_def "RFLIST__z0tester" "z0testercode.py"
+    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      set_cfg_def "pip_pkgver__reportlab" "3.2.0"
+      set_cfg_def "upgrade_dow" "3"
+    else
+      set_cfg_def "pip_pkgver__reportlab" "3.1.44"
+      set_cfg_def "upgrade_dow" "4"
+    fi
 }
 
 
