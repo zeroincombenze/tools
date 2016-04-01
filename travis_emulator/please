@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.26
+__version__=0.1.27
 
 
 ant_rm_trap () {
@@ -280,6 +280,9 @@ elif [ "$action" == "annotate" ]; then
   sts=$?
 elif [ "$action" == "autopep8" ]; then
   opts=$(inherits_travis_opts "dnuv")
+  if [ "$PRJNAME" == "Odoo" ]; then
+    opts="$opts -o"
+  fi
   if [ $opt_verbose -gt 0 ]; then
     echo "topep8 $PKGPATH $opts"
   fi

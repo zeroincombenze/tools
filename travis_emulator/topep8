@@ -23,17 +23,18 @@ else
   exit 1
 fi
 
-__version__="0.1.9"
+__version__="0.1.10"
 
 # main
-OPTOPTS=(h        d        n            u       V           v           q)
-OPTDEST=(opt_help opt_diff opt_dry_run  opt_uop opt_version opt_verbose opt_verbose)
-OPTACTI=(1        1        1            1       "*>"        1           0)
-OPTDEFL=(1        0        0            0       ""          0           0)
-OPTMETA=("help"   "diff"   "do nothing" "uop"   "version"   "verbose"   "silent")
+OPTOPTS=(h        d        n            o       u       V           v           q)
+OPTDEST=(opt_help opt_diff opt_dry_run  opt_oca opt_uop opt_version opt_verbose opt_verbose)
+OPTACTI=(1        1        1            1       1       "*>"        1           0)
+OPTDEFL=(1        0        0            0       0       ""          0           0)
+OPTMETA=("help"   "diff"   "do nothing" "oca"   "uop"   "version"   "verbose"   "silent")
 OPTHELP=("this help"\
  "show diff"\
  "do nothing (dry-run)"\
+ "use oca-autopep8 rather than autopep8"\
  "check for unary operator W503"\
  "show version"\
  "verbose mode"\
