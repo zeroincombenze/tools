@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.3
+__version__=0.1.76.6
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -573,16 +573,28 @@ exit_n_status () {
   exit $sts
 }
 
+conf_default () {
+    set_cfg_def "DEV_HOST" "shsdev16"
+    set_cfg_def "PRD_HOST" "shsprd14"
+    set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
+    set_cfg_def "MYPKG" "travis_emulator"
+    set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
+    set_cfg_def "WWW_DWNLOAD_DIR" "/var/www/html/mw/download"
+    if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
+      set_cfg_def "pip_pkgver__reportlab" "3.2.0"
+      set_cfg_def "upgrade_dow" "2"
+    else
+      set_cfg_def "pip_pkgver__reportlab" "3.1.44"
+      set_cfg_def "upgrade_dow" "4"
+    fi
+}
+
+
 $(init_cfg)
 $(active_cfg)
-a_add "0" "DEV_HOST" "shsdev16"
-a_add "0" "PRD_HOST" "shsprd16"
-a_add "0" "ME_BOS" "test_nightly .test_nightly.conf.sample"
-a_add "0" "MYPKG" "travis_emulator"
-a_add "0" "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
-a_add "0" "WWW_DWNLOAD_DIR" "/var/www/html/mw/download"
+conf_default
 link_cfg $FCONF
-for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR; do
+for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR upgrade_dow; do
   declare $p=$(get_cfg_value "" "$p")
   if [ -z "${!p}" ]; then
     generate_svg "$USER" "FAIL" "$__version__"
@@ -654,18 +666,12 @@ if [ $EUID -eq 0 ]; then
   wlog "> Upgrade z0librc"
   _install_z0librc
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
-    local udow=$(get_cfg_value "" "upgrade_dow")
+    udow=$(get_cfg_value "" "upgrade_dow")
     if [ $dow -eq $udow ]; then
       valid=1
     else
       valid=0
     fi
-    # valid=0
-    # if [ "$HOSTNAME" == "$DEV_HOST" -a $dow -eq 3 ]; then
-    #   valid=1
-    # elif [ "$HOSTNAME" == "$PRD_HOST" -a $dow -eq 4 ]; then
-    #   valid=1
-    # fi
     if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
       logtm=$(grep "yum -y update" ~/test_nightly.log|tail -n1|awk '{print $1}')
       curtm=$(date +"%Y-%m-%")
@@ -679,8 +685,8 @@ if [ $EUID -eq 0 ]; then
         wlog "pip install --upgrade --pre pylint-odoo"
         pip install --upgrade --pre pylint-odoo
         for f in $(pip list|awk '{print $1}'); do
-          local ver=$(get_cfg_value "" "pip_pkgver__$f")
-          if [ -n $ver ]; then
+          ver=$(get_cfg_value "" "pip_pkgver__$f")
+          if [ -n "$ver" ]; then
             wlog "\$ pip install $f==$ver --upgrade"
             pip install $f==$ver --upgrade
           else
