@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.1
+__version__=0.1.27.2
 
 
 ant_rm_trap () {
@@ -75,6 +75,7 @@ ant_add_trap () {
     chmod +x $f1.sh
     mv -f $f1.sh $f1
 }
+
 
 do_annotate () {
 # do_annotate(script, include_list)
@@ -226,6 +227,33 @@ do_version () {
     fi;
 }
 
+
+do_distribution () {
+    wlog "do_distribution \"$1\" \"$2\" \"$3\""
+    sts=$STS_SUCCESS
+    if [ -f ./.travis.yml ]; then
+      local f1=./.travis.yml
+    elif [ -f ../.travis.yml ]; then
+      local f1=../.travis.yml
+    else
+      local f1=
+      echo "File .travis.yml not found!"
+      sts=$STS_FAILED
+    fi
+    if [ -n "$f1" ]; then
+      if [ "$1" == "oca" ]; then
+        sed -i -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="1":' $f1
+      elif [ "$1" == "zeroincombenze" ]; then
+        sed -i -e 's:^  - TRANSIFEX="1":  # - TRANSIFEX="1":' $f1
+      else
+        echo "Missed parameter! use:"
+        echo "\$ please distribution oca|zeroincombenze"
+        sts=$STS_FAILED
+      fi
+    fi
+    return $sts
+}
+
 OPTOPTS=(h        b          c        d        j        k        L         n           p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       0           1     "="      1         1       "*"         "+")
@@ -255,7 +283,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be on of:\nhelp|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"\
+  print_help "Developer shell\nAction may be on of:\nhelp|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -311,6 +339,9 @@ elif [ "$action" == "config" ]; then
 elif [ "$action" == "coverage" ]; then
   do_coverage "$pkgname" "$sub1" "$sub2"
   sts=$?
+elif [ "$action" == "distribution" ]; then
+  do_distribution "$pkgname" "$sub1" "$sub2"
+  sts=$?
 elif [ "$action" == "diff" ]; then
   do_diff "$pkgname" "$sub1" "$sub2"
   sts=$?
@@ -351,7 +382,7 @@ elif [ "$action" == "wep" ]; then
   clean_dirs "$PKGPATH"
 else
   echo "Invalid action!"
-  echo "Use $THIS help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"
+  echo "Use $THIS help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"
   sts=$STS_FAILED
 fi
 exit $sts
