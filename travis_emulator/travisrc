@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.4
+#__version__=0.1.65.5
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -291,6 +291,10 @@ init_travis () {
 prepare_env_travis () {
     local action="$1"
     if [ ${opt_r:-0} -gt 0 ]; then
+      if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+        run_traced "export PATH=$TOOLS_PATH:$PATH"
+      fi
+    elif [ "$2" == "-r" ]; then
       if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
         run_traced "export PATH=$TOOLS_PATH:$PATH"
       fi

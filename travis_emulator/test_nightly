@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.8
+__version__=0.1.76.10
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -685,14 +685,19 @@ if [ $EUID -eq 0 ]; then
         wlog "\$ pip install --upgrade --pre pylint-odoo"
         pip install --upgrade --pre pylint-odoo
         for f in $(pip list|awk '{print $1}'); do
-          ver=$(get_cfg_value "" "pip_pkgver__$f")
+          f1=${f,,}
+          ver=$(get_cfg_value "" "pip_pkgver__$f1")
           if [ -n "$ver" ]; then
-            wlog "\$ pip install $f==$ver --upgrade"
-            pip install $f==$ver --upgrade
+            wlog "\$ pip install $f==$ver --upgrade --no-deps"
+            pip install $f==$ver --upgrade --no-deps
           else
-            wlog "\$ pip install $f --upgrade"
-            pip install $f --upgrade
+            wlog "\$ pip install $f --upgrade --no-deps"
+            pip install $f --upgrade --no-deps
           fi
+        done
+        service openerp restart
+        for ver in 7 8 9; do
+          service odoo${ver}-server restart
         done
       fi
     fi

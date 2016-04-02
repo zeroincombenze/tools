@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27
+__version__=0.1.27.1
 
 
 ant_rm_trap () {
@@ -267,7 +267,7 @@ conf_default
 link_cfg $TCONF
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-prepare_env_travis "$action"
+prepare_env_travis "$action" "-r"
 sts=$STS_SUCCESS
 sts_bash=127
 sts_flake8=127
