@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.2
+__version__=0.1.27.3
 
 
 ant_rm_trap () {
@@ -229,7 +229,7 @@ do_version () {
 
 
 do_distribution () {
-    wlog "do_distribution \"$1\" \"$2\" \"$3\""
+    wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
     if [ -f ./.travis.yml ]; then
       local f1=./.travis.yml
@@ -241,14 +241,35 @@ do_distribution () {
       sts=$STS_FAILED
     fi
     if [ -n "$f1" ]; then
-      if [ "$1" == "oca" ]; then
-        sed -i -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="1":' $f1
-      elif [ "$1" == "zeroincombenze" ]; then
-        sed -i -e 's:^  - TRANSIFEX="1":  # - TRANSIFEX="1":' $f1
+      if [ "$2" == "oca" ]; then
+        run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"1\":' $f1"
+      elif [ "$2" == "zeroincombenze" ]; then
+        run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"1\":' $f1"
       else
+        local f1=
         echo "Missed parameter! use:"
-        echo "\$ please distribution oca|zeroincombenze"
+        echo "\$ please distribution pkgname|. oca|zeroincombenze"
         sts=$STS_FAILED
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -f ./README.md ]; then
+        local f1=./README.md
+      elif [ -f ../README.md ]; then
+        local f1=../README.md
+      elif [ -f ./README.rst ]; then
+        local f1=./README.rst
+      elif [ -f ../README.rst ]; then
+        local f1=../README.rst
+      else
+        local f1=
+      fi
+      if [ -n "$f1" ]; then
+        if [ "$2" == "oca" ]; then
+          run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$pkgname:g $f1"
+        elif [ "$2" == "zeroincombenze" ]; then
+          run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$pkgname:g $f1"
+        fi
       fi
     fi
     return $sts
