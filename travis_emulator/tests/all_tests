@@ -61,7 +61,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.59
+__version__=0.1.59.1
 
 declare -a ctrs
 export WNoCtr=1
@@ -83,6 +83,7 @@ ix=0
 sts=0
 # pass 1: count for # of tests
 max_test=0
+exec_tests_4_count "version" "2"
 exec_tests_4_count "$UT_LIST"
 if [ ${saved_max_test:-0} -gt 0 ]; then
   max_test=$saved_max_test
@@ -101,6 +102,11 @@ fi
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   ix=0
   sts=0
+  # 2 test are for version id
+  xtlver=$($RUNDIR/travis -V)
+  ci-test "check for travis version" "$__version__" "$xtlver"
+  xtlver=$($RUNDIR/please -V)
+  ci-test "check for travis version" "0.1.27.3" "$xtlver"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

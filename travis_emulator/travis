@@ -39,8 +39,40 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.46.3
+__version__=0.1.59.1
 
+
+run_cmd () {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    local xcmd="$1"
+    local sts=$STS_SUCCESS
+    local t=$(type -t $xcmd|head -n1)
+    local x
+    local s
+    read -r -a x<<<"$xcmd"
+    local k="${x[0]}"
+    if [ "$t" == "file" ]; then
+      grep -q "^.ELF" $k
+      s=$?
+      if [ $s -eq $STS_SUCCESS ]; then
+        t="bin"
+      fi
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ ${opt_verbose:-0} -gt 1 ]; then
+        echo "\$ $xcmd"
+      fi
+      if [ "$t" == "file" ]; then
+        eval "$xcmd"
+        sts=$?
+      else
+        eval "$xcmd"
+        sts=$?
+      fi
+    fi
+    $SET_X
+    return $sts
+}
 
 process_local () {
     if [ $TOOLS_PATH/travis_run_tests ]; then
@@ -243,6 +275,7 @@ process_yaml_1 () {
         process_yaml_do "$b"
       fi
     fi
+}
 
 process_yaml_2 () {
     if [ -n "$lne" ]; then
@@ -472,7 +505,7 @@ process_yaml () {
       for lne in $YML_matrix; do
         process_yaml_before_script $lne
         s=$?
-        if [ $s -ne $STS_SUCCESS ]; then
+        if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
           sts=$s
         else
           line=$(process_yaml_quote_xtl $lne)

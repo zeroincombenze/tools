@@ -27,6 +27,9 @@ import sys
 import re
 
 
+__version__ = "0.1.5"
+
+
 def update_to_8(line):
     if re.match("^from osv import", line):
         line = line.replace("from osv import",
@@ -34,6 +37,9 @@ def update_to_8(line):
     if re.match("^import decimal_precision", line):
         line = line.replace("import decimal_precision",
                             "import openerp.addons.decimal_precision")
+    if re.match("^from tools.translate import", line):
+        line = line.replace("from tools.translate import",
+                            "from openerp.tools.translate import")
     return line
 
 
