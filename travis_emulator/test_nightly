@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.11
+__version__=0.1.76.12
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -288,9 +288,9 @@ oe_upd_burst () {
           done
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
-          run_traced "mv $1.conf $.conf.bak"
+          run_traced "mv $1.conf $1.conf.bak"
         fi
-        wlog "All DB Odoo burst upgrade ended"
+        wlog "** All DB Odoo burst upgrade ended **"
       else
         wlog "Nothing to do"
       fi
