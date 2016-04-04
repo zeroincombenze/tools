@@ -21,8 +21,20 @@
 """recover W503
 """
 
+# import pdb
 # import os
 import sys
+import re
+
+
+def update_to_8(line):
+    if re.match("^from osv import", line):
+        line = line.replace("from osv import",
+                            "from openerp.osv import")
+    if re.match("^import decimal_precision", line):
+        line = line.replace("import decimal_precision",
+                            "import openerp.addons.decimal_precision")
+    return line
 
 
 def move_tk_line_up(tk, n, lines):
@@ -43,7 +55,12 @@ def exec_W503(filepy):
     source = fd.read()
     fd.close()
     lines = source.split('\n')
+    n = len(lines) - 1
+    while n > 2 and lines[n] == "" and lines[n - 1] == "":
+        del lines[n]
+        n = len(lines) - 1
     for n in range(len(lines)):
+        lines[n] = update_to_8(lines[n])
         ln = lines[n].strip()
         if ln == "or":
             tk = "or"
@@ -59,7 +76,10 @@ def exec_W503(filepy):
             move_tk_line_up(tk, n, lines)
     fd = open(filepy, 'w')
     for n in range(len(lines)):
-        ln = lines[n] + "\n"
+        if n == len(lines) - 1:
+            ln = lines[n]
+        else:
+            ln = lines[n] + "\n"
         fd.write(ln)
     fd.close()
     return 0

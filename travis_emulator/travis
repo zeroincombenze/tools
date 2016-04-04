@@ -39,7 +39,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.46
+__version__=0.1.46.3
 
 
 process_local () {
@@ -243,7 +243,6 @@ process_yaml_1 () {
         process_yaml_do "$b"
       fi
     fi
-}
 
 process_yaml_2 () {
     if [ -n "$lne" ]; then
@@ -288,7 +287,7 @@ process_yaml_file () {
     local a
     local b
     while IFS=\~ read -r line; do
-      if [[ $line =~ ^# ]]; then
+      if [[ $line =~ ^[[:space:]]*# ]]; then
         line=
       elif [[ $line =~ ^[[:space:]]+ ]]; then
         for i in {0..10};do if [ "${line:i:1}" != " " ]; then break; fi; done
@@ -465,12 +464,17 @@ process_yaml () {
     if [ -f $f1 ]; then
       process_yaml_file "$f1"
       sts=$STS_SUCCESS
+      wlog "===== [Initialize] ====="
       run_svr_test_init
       process_yaml_before_install
       process_yaml_install
+      wlog "===== [Script] ====="
       for lne in $YML_matrix; do
         process_yaml_before_script $lne
-        if [ $? ==  $STS_SUCCESS ]; then
+        s=$?
+        if [ $s -ne $STS_SUCCESS ]; then
+          sts=$s
+        else
           line=$(process_yaml_quote_xtl $lne)
           for lne1 in $YML_script; do
             line1=$(process_yaml_quote_xtl $lne1)
@@ -481,9 +485,11 @@ process_yaml () {
           done
         fi
         if [ $sts -ne $STS_SUCCESS ]; then
+          elog "!Script aborted by error!!"
           break
         fi
       done
+      wlog "===== [End script] ====="
       run_svr_test_exit
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_after_success
@@ -553,7 +559,7 @@ if [ "$action" == "setup" ]; then
   if [ ! -d $DEF_DEVPATH/_travis/cfg ]; then
     run_traced mkdir -p $DEF_DEVPATH/_travis/cfg
   fi
-  if [ "$TDIR" != $DEF_DEVPATH ]; then
+  if [ "$TDIR" != "$DEF_DEVPATH" ]; then
     run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
     for f in travis_install_pkgs travis_run_tests travis_after_tests_success; do
       run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
