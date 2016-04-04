@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.10
+__version__=0.1.76.11
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -235,56 +235,70 @@ pkg_pypi_commit () {
 
 
 oe_upd_burst () {
-    if [ $EUID -eq 0 ]; then
-      svc_name="openerp"
-      clodir="/opt/odoo/clodoo"
-      wlog "service $svc_name restart"
-      service $svc_name restart
-      cd $clodir
-      PATH=$PATH:$clodir
-    fi
-    if [ -f $1.conf ]; then
-      sleep 30
-      sts=$STS_SUCCESS
-      wlog "clodoo.py -d demo -c $1.conf"
-      clodoo.py -d "demo" -c $1.conf
-      sts=$?
-      if [ $sts -eq $STS_SUCCESS ]; then
-        sleep 30
-        wlog "clodoo.py -d zeroincombenze -c $1.conf"
-        clodoo.py -d "zeroincombenze" -c $1.conf
+    local XX=$(ps -ef|grep "clodoo\.py.*$1.conf"|tail -n1)
+    if [ -z "$XX" ]; then
+      local clodir=$(get_cfg_value "" "CLODIR")
+      run_traced "cd $clodir"
+      if [ -z "$opt_ncld" -a -f $1.conf -a $opt_dry_run -eq 0 ]; then
+        wlog "Starting all DB Odoo burst upgrade (-c $1.conf)"
+        local SLEEP_TM=$(get_cfg_value "" "SLEEP_TIME")
+        local SLEEP_TML
+        local SLEEP_TMS
+        let SLEEP_TML=$SLEEP_TM+10
+        if [ $SLEEP_TM -gt 25 ]; then
+          let SLEEP_TMS=$SLEEP_TM-20
+        else
+          SLEEP_TMS=5
+        fi
+        if [ $EUID -eq 0 ]; then
+          svc_name=$(get_cfg_value "" "svc_name")
+          run_traced "service $svc_name restart"
+          sleep $SLEEP_TMS
+        fi
+        sts=$STS_SUCCESS
+        if [ "$USER" == "odoo" ]; then
+          run_traced "makecommit"
+        fi
+        run_traced "clodoo.py -d demo -c $1.conf"
         sts=$?
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        for i in {0..11}; do
-          l=${#i}
-          ((l--))
-          n="0$i"
-          n=${n:l}
-          db="zi0001$n[0-9]{2}"
-          wlog "\$ clodoo.py -d $db -c $1.conf"
-          clodoo.py -d "$db" -c $1.conf
+        if [ $sts -eq $STS_SUCCESS ]; then
+          sleep $SLEEP_TM
+          run_traced "clodoo.py -d zeroincombenze -c $1.conf"
           sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
-          sleep 50
-          if [ $EUID -eq 0 ]; then
-            service $svc_name restart
-            sleep 10
-          else
-            sleep 40
-          fi
-        done
+        fi
+        if [ $sts -eq $STS_SUCCESS ]; then
+          for i in {0..12}; do
+            l=${#i}
+            ((l--))
+            n="0$i"
+            n=${n:l}
+            db="zi0001$n[0-9]{2}"
+            run_traced "clodoo.py -d $db -c $1.conf"
+            sts=$?
+            if [ $sts -ne $STS_SUCCESS ]; then
+              break
+            fi
+            sleep $SLEEP_TML
+            if [ $EUID -eq 0 ]; then
+              run_traced "service $svc_name restart"
+              sleep $SLEEP_TMS
+            else
+              sleep $SLEEP_TM
+            fi
+          done
+        fi
+        if [ $sts -eq $STS_SUCCESS ]; then
+          run_traced "mv $1.conf $.conf.bak"
+        fi
+        wlog "All DB Odoo burst upgrade ended"
+      else
+        wlog "Nothing to do"
       fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        mv $1.conf $.conf.bak
+      if [ -f /var/log/$THIS.log ]; then
+        chmod +rw /var/log/$THIS.log
       fi
     else
-      wlog "Nothing to do"
-    fi
-    if [ -f /var/log/$THIS.log ]; then
-      chmod +rw /var/log/$THIS.log
+      wlog "*** Odoo burst upgrade is already running ***"
     fi
     return $sts
 }
@@ -587,6 +601,9 @@ conf_default () {
       set_cfg_def "pip_pkgver__reportlab" "3.1.44"
       set_cfg_def "upgrade_dow" "4"
     fi
+    set_cfg_def "svc_name" "openerp"
+    set_cfg_def "CLODIR" "/opt/odoo/clodoo"
+    set_cfg_def "SLEEP_TIME" "30"
 }
 
 
@@ -709,12 +726,6 @@ if [ $EUID -eq 0 ]; then
       elog "!unpublished svg!!"
     fi
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      # cpfiles "/opt/odoo/dev" "/opt/openerp/dev" "beauty clodoo.py dist_pkg Makefile prjdiff topep8 travis travisrc" "odoo:odoo"
-      #s=$?
-      #[ $sts -eq $STS_SUCCESS ]&&sts=$s
-      #cpfiles "/opt/odoo/bin" "/opt/openerp/bin" "$ME_BOS" "odoo:odoo"
-      #s=$?
-      #[ $sts -eq $STS_SUCCESS ]&&sts=$s
       cd /opt/odoo/tools/product/
       wlog "\$ product package"
       product package
@@ -750,7 +761,6 @@ if [ $EUID -eq 0 ]; then
       elog "!unupdated travis emulator!!"
     fi
     [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    # cpfiles "/opt/openerp/dev" "/root" "oe_upd_burst" "root:root"
     if [ $opt_dry_run -eq 0 ]; then
       python /opt/odoo/dev/z0testercode.py
       s=$?
@@ -759,21 +769,12 @@ if [ $EUID -eq 0 ]; then
       fi
       [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi
-    # if [ $sts -eq $STS_SUCCESS ]; then
-    #   opt_odoo="oe_upgrade"
-    #   XX=$(ps -ef|grep "clodoo\.py.*$opt_odoo.conf"|tail -n1)
-    #   if [ -z "$XX" ]; then
-    #     wlog "Begin all DB Odoo burst upgrade (-c $opt_odoo.conf)"
-    #     if [ $opt_dry_run -eq 0 ]; then
-    #       oe_upd_burst "$opt_odoo"
-    #       sts=$?
-    #     fi
-    #     wlog "All DB Odoo burst upgrade ended"
-    #   else
-    #     wlog "*** Odoo burst upgrade is already running ***"
-    #    sts=$STS_FAILED
-    #   fi
-    # fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      opt_odoo="oe_upgrade"
+      oe_upd_burst "$opt_odoo"
+      s=$?
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    fi
   fi
 fi
 if [ "$USER" == "odoo" ]; then
@@ -838,25 +839,15 @@ if [ "$USER" == "odoo" ]; then
     s=$?
     [ $sts -eq $STS_SUCCESS ]&&sts=$s
   fi
+  if [ $sts -eq $STS_SUCCESS ]; then
+    opt_odoo="nightly"
+    oe_upd_burst "$opt_odoo"
+    s=$?
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
+  fi
 fi
 if [ "$USER" == "openerp" ]; then
   if [ $sts -eq $STS_SUCCESS ]; then
-    cd ~/7.0/clodoo
-    (($opt_dry_run))||./makecommit
-    opt_odoo="nightly"
-    if [ -z "$opt_ncld" -a -f $opt_odoo.conf -a $opt_dry_run -eq 0 ]; then
-      echo "Analyzing if process running $opt_odoo.conf"
-      XX=$(ps -ef|grep "clodoo\.py.*$[- ]c *opt_odoo\.conf"|tail -n1)
-      if [ -z "$XX" ]; then
-        wlog "Starting clodoo operations (-c $opt_odoo.conf)"
-        oe_upd_burst "$opt_odoo"
-        sts=$?
-        wlog "All DB Odoo burst upgrade ended"
-      else
-        wlog "*** Odoo burst upgrade is already running ***"
-        sts=$STS_FAILED
-      fi
-    fi
     if [ $sts -eq $STS_SUCCESS -a -z "$opt_nall" ]; then
       wlog "Odoo all tests"
       if [ $opt_dry_run -eq 0 ]; then
