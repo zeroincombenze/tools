@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.12
+__version__=0.1.76.13
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -256,9 +256,6 @@ oe_upd_burst () {
           sleep $SLEEP_TMS
         fi
         sts=$STS_SUCCESS
-        if [ "$USER" == "odoo" ]; then
-          run_traced "makecommit"
-        fi
         run_traced "clodoo.py -d demo -c $1.conf"
         sts=$?
         if [ $sts -eq $STS_SUCCESS ]; then
@@ -288,6 +285,9 @@ oe_upd_burst () {
           done
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
+          if [ "$USER" == "odoo" ]; then
+            run_traced "makecommit"
+          fi
           run_traced "mv $1.conf $1.conf.bak"
         fi
         wlog "** All DB Odoo burst upgrade ended **"
