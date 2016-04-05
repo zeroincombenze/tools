@@ -1,0 +1,3 @@
+id,name,country_id,parent_id,currency_id,vat,initiating_party_issuer
+base.main_company,"zeroincombenze(R)",base.it,,base.EUR,,
+,"La Tua Azienda",base.it,base.main_company,base.EUR,,

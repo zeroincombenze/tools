@@ -1,0 +1,6 @@
+db_type,id,name,street2,country
+,1,"Cassa Risparmio Fossano","CRIFIT2F",=${def_country_id}
+,,"Unicredit","UNCRITMM",=${def_country_id}
+,,"Intesa San Paolo","BCITITMM",=${def_country_id}
+,,"Monte Paschi Siena","PASCITMM",=${def_country_id}
+T,,"CR PT-LU","CRFIIT3P",,=${def_country_id}

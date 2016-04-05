@@ -1,0 +1,3 @@
+db_type,id,company_id,bank_name,name,partner_id,country_id,state,acc_number,journal_id,bank
+Z,,=${company_id},"Unicredit","UNCRITMM",=${res.partner:VODAFONE OMNITEL N.V.},=${def_country_id},iban,"IT45O0200801097000100060189",=${account.journal::banca},=${res.bank:Unicredit}
+T,,=${company_id},"UnicreditNL","UNCRNLMM",=${res.partner:Freie Universität Berlin},"=${res.country:NL}",iban,"NL42INGB0000454000",=${account.journal::banca},

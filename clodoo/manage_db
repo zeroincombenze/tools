@@ -1,0 +1,84 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Manage Odoo DB
+# Create and install new Odoo DB
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+elif [ -f /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
+fi
+
+__version__=0.1.5
+
+
+
+OPTOPTS=(h        b          d       n           q           t         V           v)
+OPTDEST=(opt_help opt_branch opt_del opt_dry_run opt_verbose test_mode opt_version opt_verbose)
+OPTACTI=(1        "="        1       1           0           1         "*"         "+")
+OPTDEFL=(1        "9.0"      0       0           -1          0         ""          -1)
+OPTMETA=("help"   "branch"   "del"   "noop"      "quiet"     "test"    "version"   "verbose")
+OPTHELP=("this help, type '$THIS help' for furthermore info"\
+ "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
+ "delete DB if exists"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "test mode (implies dry-run)"\
+ "show version end exit"\
+ "verbose mode")
+OPTARGS=(action)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Developer shell\nAction may be on of:\nhelp|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+if [ "$action" == "install" ]; then
+   if [ ! -d data ]; then
+     echo "Directory data not found!"
+     exit 1
+   fi
+   for cf in 09 00 10 11 13 13 20 21 30; do
+     if [ ! -f z0_install_$cf.conf ]; then
+       echo "Configurarion file z0_install_$cf.conf not found!"
+       exit 1
+     fi
+   done
+   if [ $opt_del -gt 0 ]; then
+     CFLOOP="09 00 10 11 13 13 20 21 30"
+   else
+     CFLOOP="00 10 11 13 13 20 21 30"
+   fi
+   for cf in $CFLOOP; do
+     if [ "$cf" == "00" ]; then
+       echo "clodoo.py -c=z0_install_$cf.conf"
+       clodoo.py -c=z0_install_$cf.conf
+     else
+       db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+       echo "clodoo.py -c=z0_install_$cf.conf -d=$db"
+       clodoo.py -c=z0_install_$cf.conf -d=$db
+     fi
+   done
+fi
