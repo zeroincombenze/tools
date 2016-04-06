@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.2"
+__version__="0.2.28.3"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -2001,6 +2001,7 @@ test_install () {
         # echo "--> yum -y install libxml2-python">>$ftest
         # echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
+        echo "--> pip  install passlib">>$ftest
         echo "--> yum -y install pyOpenSSL">>$ftest
         echo "--> yum -y install pychart">>$ftest
         echo "--> yum -y install pyparsing">>$ftest
@@ -2311,6 +2312,7 @@ test_update () {
         # echo "--> yum -y install libxml2-python">>$ftest
         # echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y install libyaml">>$ftest
+        echo "--> pip  install passlib">>$ftest
         echo "--> yum -y install pyOpenSSL">>$ftest
         echo "--> yum -y install pychart">>$ftest
         echo "--> yum -y install pyparsing">>$ftest
@@ -2627,13 +2629,10 @@ if [ -n "$opt_odoo" ]; then
     opt_oed="zeroincombenze"
   fi
 fi
-opt_osub="account-invoicing account-payment partner-contact knowledge bank-payment"
-if [ $opt_dev -gt 0 ]; then
-  opt_osub="$opt_osub web website"
+opt_osub="account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow web webkit-tools website"
+if [ "$opt_oed" =0 "zeroincombenze" ]; then
+  opt_osub="$opt_osub l10n-italy-supplemental"
 fi
-# if [ "$opt_oed" =0 "zeroincombenze" ]; then
-#   opt_osub="$opt_osub zeroincombenze"
-# fi
 if [ -n "$opt_xtly" ]; then
   SIMULATE_YES=" ${opt_xtly//,/ } "
 fi

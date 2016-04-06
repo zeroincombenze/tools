@@ -38,7 +38,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.10"
+__version__ = "2.1.25.11"
 
 
 def version():
@@ -354,10 +354,10 @@ class Backup_Mirror:
         try:
             fzip_fd = open(fsql, "r")
             fzip_fd.close()
-            os0.trace_debug("$ rm", fsql)
             if not self.dry_run:
                 os.remove(fsql)
             sts = True
+            os0.trace_debug("$ rm", fsql)
         except:
             sts = False
         return sts
@@ -386,7 +386,7 @@ class Backup_Mirror:
             # os.remove(self.ftp_cfn)
             # os.remove(self.flist)                               # Delete
             # files list
-            cmd = "ssh {0} \"cat {1}.tmp>>{1}; rm {1}.tmp\"".format(
+            cmd = "ssh root@{0} \"cat {1}.tmp>>{1}; rm {1}.tmp\"".format(
                 self.bck_host, self.flist)
             os0.muteshell(cmd, keepout=os0.debug_mode, tlog=True)
             cmd = "ssh root@" + self.bck_host + " \"at -f ./restdb now\""
@@ -469,7 +469,7 @@ def main():
         dblist = BM.gen_db_list("mysql", "root", "mysql", ctx)
         for db in dblist:
             BM.init_bck(BM.chdir(BM.mysqldir))
-            BM.bck_db("mysql", dblist,  "root", "mysqldump", ctx)
+            BM.bck_db("mysql", [db],  "root", "mysqldump", ctx)
             BM.exec_bck()
 
     os0.wlog("Backup DB ended.")

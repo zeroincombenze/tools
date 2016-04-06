@@ -52,7 +52,7 @@ import re
 from zarlib import parse_args, check_if_running
 
 
-__version__ = "2.1.22.2"
+__version__ = "2.1.22.4"
 
 
 def version():
@@ -672,10 +672,7 @@ class Restore_Image:
 
     def extract_fn_2_restore(self):
         file_2_restore = ""
-        # self.commit_fn_restored()
         ls_fd = open(self.flist, "r+")
-        # ftmp = self.flist + ".lst"
-        # lst_fd = open(ftmp, "w")
         p = ls_fd.tell()
         fl = ls_fd.readline()
         # f_copy = False
@@ -684,21 +681,12 @@ class Restore_Image:
             if file_2_restore == "" and i >= 0 and fl[0:1] != '#':
                 f = fl[0:i]
                 file_2_restore = f
-                # f_copy = True
                 f = "#" + f[1:]
                 ls_fd.seek(p, os.SEEK_SET)
                 ls_fd.write(f)
             p = ls_fd.tell()
             fl = ls_fd.readline()
-            # if f_copy:
-            #     lst_fd.write(fl)
         ls_fd.close()
-        # if not f_copy:
-        #     lst_fd.close()
-        #     lst_fd = open(self.flist, "w")
-        # dtc = datetime.today()
-        # lst_fd.write("# {0}\n".format(dtc.strftime("%Y%m%d %H:%M:%S")))
-        # lst_fd.close()
         return file_2_restore
 
     def commit_fn_restored(self):
@@ -752,23 +740,28 @@ def main():
     # Restore files
     file_r_ctr = 0
     file_u_ctr = 0
+    time_wait = 60
+    wait_loop = 3
     if not f_alrdy_run:
         fl = RI.extract_fn_2_restore()
-        while fl != "":
-            file_r_ctr = file_r_ctr + 1
-            if os.path.isfile(fl):
-                RI.restore_file(fl)
-                file_u_ctr = file_u_ctr + 1
-            else:
-                os0.wlog("  file", fl, "not found!!!")
-            RI.commit_fn_restored()
+        loop_ctr = wait_loop
+        while loop_ctr > 0:
+            if fl != "":
+                file_r_ctr = file_r_ctr + 1
+                if os.path.isfile(fl):
+                    RI.restore_file(fl)
+                    file_u_ctr += 1
+                    if file_u_ctr > 1:
+                        wait_loop = 60
+                    loop_ctr = wait_loop
+                else:
+                    os0.wlog("  file", fl, "not found!!!")
+                RI.commit_fn_restored()
             fl = RI.extract_fn_2_restore()
             if fl == "":
                 os0.wlog("  wait for next db")
-                # Wait if another file supplied
-                time.sleep(90)
-                fl = RI.extract_fn_2_restore()
-                os0.wlog("  found", fl, "?")
+                time.sleep(time_wait)
+            loop_ctr -= 1
     if not ctx['dbg_mode'] and os.path.isfile(os0.setlfilename(os0.bgout_fn)):
         os.remove(os0.setlfilename(os0.bgout_fn))
     if not f_alrdy_run:
