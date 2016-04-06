@@ -32,13 +32,14 @@ import os.path
 import sys
 from os0 import os0
 import glob
+import filecmp
 from sys import platform as _platform
 from datetime import date, timedelta
 import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.11"
+__version__ = "2.1.25.13"
 
 
 def version():
@@ -310,7 +311,7 @@ class Backup_Mirror:
             cmd = "chown " + self.mysql_uu + ":" + self.mysql_uu + " " + fsql
         os0.trace_debug("$ ", cmd)
         os0.muteshell(cmd, simulate=self.dry_run)
-
+        self.deduplicate_db(fsql)
         cmd = "tar -c" + self.tar_opt + "f " + fzip_fn + " " + fsql
         os0.trace_debug("$ ", cmd)
         os0.muteshell(cmd, simulate=self.dry_run)
@@ -327,10 +328,23 @@ class Backup_Mirror:
         fsql = f + "-????????" + self.sql_ext
         dts = date.today().strftime("%Y%m%d")
         fsql_nodel = f + "-" + dts + self.sql_ext
-        f_ids = glob.glob(fsql)
+        f_ids = sorted(glob.glob(fsql))
         for fsql in f_ids:
             if fsql != fsql_nodel:
-                self.remove_sql_file(fsql)
+                self.remove_sql_file(fsql, mute=True)
+
+    def deduplicate_db(self, fsql):
+        f_ids = sorted(glob.glob(fsql))
+        f_prior = ""
+        for fsql in f_ids:
+            if f_prior == "":
+                f_prior = fsql
+                continue
+            if filecmp.cmp(f_prior, fsql):
+                os0.trace_debug("Files %s %s are identical",
+                                f_prior,
+                                fsql)
+            f_prior = fsql
 
     def change_file_ext(self, f):
         os0.wlog("  changing extension files")
@@ -350,14 +364,15 @@ class Backup_Mirror:
                     except:
                         pass
 
-    def remove_sql_file(self, fsql):
+    def remove_sql_file(self, fsql, mute=False):
         try:
             fzip_fd = open(fsql, "r")
             fzip_fd.close()
             if not self.dry_run:
                 os.remove(fsql)
             sts = True
-            os0.trace_debug("$ rm", fsql)
+            if not mute:
+                os0.trace_debug("$ rm", fsql)
         except:
             sts = False
         return sts

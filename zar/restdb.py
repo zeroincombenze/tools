@@ -52,7 +52,7 @@ import re
 from zarlib import parse_args, check_if_running
 
 
-__version__ = "2.1.22.4"
+__version__ = "2.1.22.5"
 
 
 def version():
@@ -636,7 +636,7 @@ class Restore_Image:
 
         os0.wlog("  removing archived files")
         fsql = f + "-????????" + self.sql_ext
-        f_ids = glob.glob(fsql)
+        f_ids = sorted(glob.glob(fsql))
         for fsql in f_ids:
             self.remove_sql_file(fsql)
 
