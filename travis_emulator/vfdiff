@@ -18,7 +18,7 @@ else
   exit 1
 fi
 
-__version__="0.1.2"
+__version__="0.1.3"
 
 get_cur_ver () {
   local i=
@@ -29,6 +29,9 @@ get_cur_ver () {
       break
     elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" ]; then
       local v=$t
+      break
+    elif [ "$t" == "v7" ]; then
+      local v=7.0
       break
     fi
   done
@@ -42,8 +45,20 @@ get_path_ver () {
     local t=$(echo "$PWD"|awk -F/ '{ print $'$i'}')
     if [ -z "$t" ]; then
       break
-    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" ]; then
+    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" -o "$t" == "v7" ]; then
       p="$p/$1"
+    elif [ "$t" == "zeroincombenze" ]; then
+      if [ "$1" == "7.0" -o "$1" == "8.0" -o "$1" == "9.0" ]; then
+        p="$p/l10n-italy-supplemental"
+      else
+        p="$p/$t"
+      fi
+    elif [ "$t" == "l10n-italy-supplemental" ]; then
+      if [ "$1" == "v7" ]; then
+        p="$p/zeroincombenze"
+      else
+        p="$p/$t"
+      fi
     else
       p="$p/$t"
     fi
@@ -54,7 +69,7 @@ get_path_ver () {
 OPTOPTS=(h        n            O         V           v)
 OPTDEST=(opt_help opt_dry_run  odoo_ver  opt_version opt_verbose)
 OPTACTI=(1        "1"          "="       "*>"        1)
-OPTDEFL=(1        0            ""        ""          0)
+OPTDEFL=(0        0            ""        ""          0)
 OPTMETA=("help"   "do nothing" "version" "version"   "verbose")
 OPTHELP=("this help"\
  "do nothing (dry-run)"\
@@ -68,23 +83,38 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
+if [ -z "$odoo_ver" -a -z "$filename" ]; then
+  opt_help=1
+fi
 if [ $opt_help -gt 0 ]; then
   print_help "Diff file among Odoo versions"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-
 # set -x
 if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
   odoo_ver="$odoo_ver.0"
 fi
 cv=$(get_cur_ver)
+if [ -z "$filename" ]; then
+  filenames=./
+  filenamet=
+else
+  filenames=$filename
+  filenamet=$filename
+fi
+a=$(find $filenames -type d|grep "\./")
+if [ -n "$a" ]; then
+  opts="-x*.pyc -x*.po* -x*.bak -x*~ -qr"
+else
+  opts=
+fi
 if [ -n "$odoo_ver" ]; then
   tgt=$(get_path_ver "$odoo_ver")
   if [ $opt_verbose -gt 0 ]; then
-    echo "diff $filename $tgt/$filename"
+    echo "diff $opts $filenames $tgt/$filenamet"
   fi
-  diff $filename $tgt/$filename
+  diff $opts $filenames $tgt/$filenamet
 else
   tgt1=
   tgt2=
