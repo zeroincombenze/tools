@@ -21,7 +21,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.16
+__version__=0.1.17
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
@@ -127,7 +127,7 @@ elif [ "$opt_sel" != "^\$" ]; then
     smtline=
     rbckline=
     i=0
-    for i in {1..9}; do
+    for i in {1..19}; do
       if [ $i -eq 1 ]; then
         smtline="$SUBM_MM"
         rbckline="$SUBM_MM"

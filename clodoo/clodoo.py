@@ -43,13 +43,12 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66"
+__version__ = "0.2.66.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-msg_time = time.time()
 db_msg_sp = 0
 db_msg_stack = []
 
@@ -888,6 +887,26 @@ def act_check_config(oerp, ctx):
             o_model = {}
             csv_fn = "sale-shop.csv"
             import_file(oerp, ctx, o_model, csv_fn)
+
+
+def act_check_partners(oerp, ctx):
+    msg = u"Check for partners"
+    msg_log(ctx, ctx['level'], msg)
+    company_id = ctx['company_id']
+    partner_ids = oerp.search('res.partner',
+                              [('company_id', '=', company_id)])
+    rec_ctr = 0
+    for partner_id in partner_ids:
+        partner_obj = oerp.browse('res.partner', partner_id)
+        rec_ctr += 1
+        msg_burst(4, "Partner ",
+                  rec_ctr,
+                  partner_obj.name)
+        if partner_obj.vat:
+            iso = partner_obj.vat.upper()[0:2]
+            vatn = partner_obj.vat[2:]
+            print vat, vatn
+    return STS_SUCCESS
 
 
 def act_check_balance(oerp, ctx):
