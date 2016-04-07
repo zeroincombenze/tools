@@ -39,7 +39,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.13"
+__version__ = "2.1.25.14"
 
 
 def version():
@@ -341,9 +341,10 @@ class Backup_Mirror:
                 f_prior = fsql
                 continue
             if filecmp.cmp(f_prior, fsql):
-                os0.trace_debug("Files %s %s are identical",
+                os0.trace_debug("Files",
                                 f_prior,
-                                fsql)
+                                fsql,
+                                "are identical",)
             f_prior = fsql
 
     def change_file_ext(self, f):

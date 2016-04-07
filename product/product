@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.3"
+__version__="0.2.28.4"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1189,6 +1189,7 @@ prod () {
       fi
     fi
     SUBlist="SUB_${pkgname//-/_}"
+    if [ -z "$level" ]; then level=0; fi
     if [ "${!SUBlist}" -a $level -lt $opt_depth ]; then
       ((level++))
       for p in ${!SUBlist}; do
@@ -2630,7 +2631,7 @@ if [ -n "$opt_odoo" ]; then
   fi
 fi
 opt_osub="account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow web webkit-tools website"
-if [ "$opt_oed" =0 "zeroincombenze" ]; then
+if [ "$opt_oed" == "zeroincombenze" ]; then
   opt_osub="$opt_osub l10n-italy-supplemental"
 fi
 if [ -n "$opt_xtly" ]; then

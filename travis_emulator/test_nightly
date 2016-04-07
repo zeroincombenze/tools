@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.13
+__version__=0.1.76.14
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -318,36 +318,6 @@ check4env () {
     fi
     if [ ! -d /opt/odoo/tools/travis_emulator ]; then
       mkdir -p /opt/odoo/tools/travis_emulator
-    fi
-    if [ ! -d /opt/odoo/7.0 ]; then
-      mkdir -p /opt/odoo/7.0
-    fi
-    if [ ! -d /opt/odoo/8.0 ]; then
-      mkdir -p /opt/odoo/8.0
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze
-      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone
-      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/__openerp__.py
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_bbone/conf
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal
-      touch -d $yod-01-01 /opt/odoo/7.0/zeroincombenze/__openerp__.py
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data
-    fi
-    if [ ! -d /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf ]; then
-      mkdir -p /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf
-    fi
-    if [ ! -d /opt/odoo/7.0/openerp/workflow ]; then
-      mkdir -p /opt/odoo/7.0/openerp/workflow
     fi
 }
 
