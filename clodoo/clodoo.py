@@ -905,7 +905,7 @@ def act_check_partners(oerp, ctx):
         if partner_obj.vat:
             iso = partner_obj.vat.upper()[0:2]
             vatn = partner_obj.vat[2:]
-            print vat, vatn
+            print iso, vatn
     return STS_SUCCESS
 
 
