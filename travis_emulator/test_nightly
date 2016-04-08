@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.14
+__version__=0.1.76.15
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -292,7 +292,7 @@ oe_upd_burst () {
         fi
         wlog "** All DB Odoo burst upgrade ended **"
       else
-        wlog "Nothing to do"
+        wlog "No clodoo operations to do"
       fi
       if [ -f /var/log/$THIS.log ]; then
         chmod +rw /var/log/$THIS.log
@@ -499,28 +499,35 @@ synchronize_odoo () {
             if [ "${l:0:19}" == "https://github.com/" ]; then
               n="git@github.com:${l:19}"
               run_traced "git remote set-url origin $n${l:19}"
-            # elif [ "${l:0:4}" == "git@" ]; then
-            #   echo "origin $l"
-            # else
-            #   echo "????"
             fi
-            l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
-            if [ -z "$l" ]; then
-              l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
-              l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
-              run_traced "git remote add upstream $l"
-            elif [ "${l:0:19}" != "https://github.com/" ]; then
-              l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
-              l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
-              run_traced "git remote set-url upstream $l"
-            # else
-            #   echo "upstream $l"
-            fi
-            if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-              run_traced "git pull upstream $VERSION"
-              run_traced "git push"
-            elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
-              run_traced "git pull"
+            if [ "$d" == "l10n-italy-supplemental" -o "$d" == "zeroincombenze" ]; then
+              l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
+              if [ -n "$l" ]; then
+                run_traced "git remote rm upstream"
+              fi
+              if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+                run_traced "git pull origin $VERSION"
+                run_traced "git push"
+              elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
+                run_traced "git pull"
+              fi
+            else
+              l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
+              if [ -z "$l" ]; then
+                l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
+                l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
+                run_traced "git remote add upstream $l"
+              elif [ "${l:0:19}" != "https://github.com/" ]; then
+                l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
+                l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
+                run_traced "git remote set-url upstream $l"
+              fi
+              if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+                run_traced "git pull upstream $VERSION"
+                run_traced "git push"
+              elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
+                run_traced "git pull"
+              fi
             fi
           fi
         fi
