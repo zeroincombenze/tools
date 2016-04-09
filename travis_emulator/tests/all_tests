@@ -61,7 +61,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.59.1
+__version__=0.1.59.2
 
 declare -a ctrs
 export WNoCtr=1

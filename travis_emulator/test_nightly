@@ -74,7 +74,11 @@ detached_login () {
       export PATH=/usr/local/bin:$PATH
     fi
     if [ $(echo ":$PATH:"|grep -v "/dev/" 2>/dev/null) ]; then
-      export PATH=$PATH:~/dev
+      if [ -d ~/dev ]; then
+        export PATH=$PATH:~/dev
+      else
+        export PATH=$PATH:/opt/odoo/dev
+      fi
     fi
 }
 
@@ -578,6 +582,7 @@ conf_default () {
       set_cfg_def "pip_pkgver__reportlab" "3.1.44"
       set_cfg_def "upgrade_dow" "4"
     fi
+    set_cfg_def "ODOO_SETUP" "__openerp__.py"
     set_cfg_def "svc_name" "openerp"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "SLEEP_TIME" "30"
