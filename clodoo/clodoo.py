@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.1"
+__version__ = "0.2.66.7"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -897,7 +897,12 @@ def act_check_partners(oerp, ctx):
                               [('company_id', '=', company_id)])
     rec_ctr = 0
     for partner_id in partner_ids:
-        partner_obj = oerp.browse('res.partner', partner_id)
+        try:
+            partner_obj = oerp.browse('res.partner', partner_id)
+        except:
+            msg = u"Wrong partner " + partner_obj.name
+            msg_log(ctx, ctx['level'], msg)
+            continue
         rec_ctr += 1
         msg_burst(4, "Partner ",
                   rec_ctr,
@@ -905,6 +910,29 @@ def act_check_partners(oerp, ctx):
         if partner_obj.vat:
             iso = partner_obj.vat.upper()[0:2]
             vatn = partner_obj.vat[2:]
+            if iso >= "00" and iso <= "99" and len(partner_obj.vat) == 11:
+                iso = 'IT'
+                vatn = partner_obj.vat
+                vals = {}
+                vals['vat'] = iso + vatn
+                msg = u"Wrong VAT " + partner_obj.vat
+                msg_log(ctx, ctx['level'], msg)
+                try:
+                    oerp.write('res.partner', partner_id, vals)
+                except:
+                    msg = partner_obj.name + " WRONG VAT"
+                    msg_log(ctx, ctx['level'], msg)
+            elif iso == "1I" and len(vatn) == 11:
+                iso = 'IT'
+                vals = {}
+                vals['vat'] = iso + vatn
+                msg = u"Wrong VAT " + partner_obj.vat
+                msg_log(ctx, ctx['level'], msg)
+                try:
+                    oerp.write('res.partner', partner_id, vals)
+                except:
+                    msg = partner_obj.name + " WRONG VAT"
+                    msg_log(ctx, ctx['level'], msg)
             print iso, vatn
     return STS_SUCCESS
 

@@ -144,7 +144,7 @@ start_CentOS () {
       daemon --user ${USER} --check ${NAME} \
       "/usr/bin/setsid ${DAEMON} \
       ${DAEMON_OPTS} &"
-  fi
+    fi
     RETVAL=$?
     echo
     if [ $DRY_RUN -eq 0 ]; then
