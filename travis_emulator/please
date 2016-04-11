@@ -8,7 +8,6 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
@@ -37,7 +36,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.3
+__version__=0.1.27.4
 
 
 ant_rm_trap () {
@@ -157,36 +156,32 @@ do_diff () {
 
 
 do_replace () {
-    wlog "do_replace \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvR")
-    dist_pkg $opts $pkgname;
+    run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
 }
 
 
 do_commit () {
-    wlog "do_commit \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvC")
-    dist_pkg $opts $pkgname;
+    run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
 }
 
 
 do_push () {
-    wlog "do_push \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvP")
-    wlog "dist_pkg $opts $1"
+    run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
 }
 
 
 do_fetch () {
-    wlog "do_fetch \"$1\" \"$2\" \"$3\""
     opts=$(inherits_travis_opts "nvF")
-    dist_pkg $opts $pkgname;
+    run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
 }

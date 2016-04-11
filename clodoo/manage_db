@@ -25,7 +25,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.6
+__version__=0.1.7
 
 
 
@@ -60,25 +60,23 @@ if [ "$action" == "install" ]; then
      echo "Directory data not found!"
      exit 1
    fi
-   for cf in 09 00 10 11 13 13 20 21 30; do
+   CFLOOP="09 00 10 11 13 13 20 21 30"
+   for cf in $CFLOOP; do
      if [ ! -f z0_install_$cf.conf ]; then
        echo "Configurarion file z0_install_$cf.conf not found!"
        exit 1
      fi
    done
-   if [ $opt_del -gt 0 ]; then
-     CFLOOP="09 00 10 11 13 13 20 21 30"
-   else
-     CFLOOP="00 10 11 13 13 20 21 30"
-   fi
    for cf in $CFLOOP; do
      if [ "$cf" == "00" ]; then
-       echo "clodoo.py -c=z0_install_$cf.conf"
-       clodoo.py -c=z0_install_$cf.conf
+       echo "clodoo.py -c=conf/z0_install_$cf.conf"
+       clodoo.py -c=conf/z0_install_$cf.conf
+     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
+       true
      else
        db=$(cat clodoo_last.conf|awk -F= '{print $2}')
-       echo "clodoo.py -c=z0_install_$cf.conf -d=$db"
-       clodoo.py -c=z0_install_$cf.conf -d=$db
+       echo "clodoo.py -c=conf/z0_install_$cf.conf -d=$db"
+       clodoo.py -c=conf/z0_install_$cf.conf -d=$db
      fi
    done
 fi

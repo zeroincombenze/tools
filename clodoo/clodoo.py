@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.7"
+__version__ = "0.2.66.8"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -900,7 +900,7 @@ def act_check_partners(oerp, ctx):
         try:
             partner_obj = oerp.browse('res.partner', partner_id)
         except:
-            msg = u"Wrong partner " + partner_obj.name
+            msg = u"Wrong partner id=" + str(partner_id)
             msg_log(ctx, ctx['level'], msg)
             continue
         rec_ctr += 1
@@ -933,7 +933,12 @@ def act_check_partners(oerp, ctx):
                 except:
                     msg = partner_obj.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
-            print iso, vatn
+            elif iso < "AA" or iso > "ZZ":
+                msg = partner_obj.name + " WRONG VAT"
+                msg_log(ctx, ctx['level'], msg)
+            elif vatn.strip() == "":
+                msg = partner_obj.name + " WRONG VAT"
+                msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
