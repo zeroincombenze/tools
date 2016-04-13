@@ -282,12 +282,14 @@ class Test():
 
     def test_01(self, z0ctx):
         msg = '_get_model_bone'
+        sts = TEST_SUCCESS
         for model_name in ('res.zero', 'res.one', 'res.two',
-                           'res.three', 'res.four'):
+                           'res.four'):
             oerp, ctx, o_model, csv_obj, csv_fn, row = \
                 self.init_test(model_name)
             model, hide_cid = _get_model_bone(oerp, None, o_model)
-            sts = self.Z.test_result(z0ctx, msg, model_name, model)
+            if sts == TEST_SUCCESS:
+                sts = self.Z.test_result(z0ctx, msg, model_name, model)
             if sts == TEST_SUCCESS:
                 if model in ('res.zero', 'res.two', 'res.four'):
                     sts = self.Z.test_result(z0ctx, msg, True, hide_cid)

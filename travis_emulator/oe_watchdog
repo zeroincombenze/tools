@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.2
+__version__=0.1.6
 
 
 detached_login () {
@@ -73,7 +73,7 @@ conf_default () {
 
 OPTOPTS=(h        D      K        n            s            V           v           X)
 OPTDEST=(opt_help opt_DB opt_cron opt_dry_run  opt_svc_name opt_version opt_verbose opt_lxs)
-OPTACTI=(1        "=>"   "1>"     "1>"         "*>"         "*>"        1           1)
+OPTACTI=(1        "=>"   "1>"     "1>"         "=>"         "*>"        1           1)
 OPTDEFL=(1        "demo" 0        0            ""           ""          0           0)
 OPTMETA=("help"   "db"   "cron"   "do nothing" "svc_name"   "version"   "verbose"   "")
 OPTHELP=("this help"\
@@ -106,6 +106,7 @@ fi
 if [ $opt_lxs -gt 0 ]; then
   PIDFILE=/var/run/odoo/oe_watchdog.pid
   LOGFILE=/var/log/odoo/oe_watchdog.log
+  chmod +r $LOGFILE
   set_tlog_file "$LOGFILE"
   echo $$ > $PIDFILE
   wlog "Odoo server watchdog $__version__ starting ..."
@@ -127,21 +128,59 @@ else
   svc_name=$(get_cfg_value "" "svc_name")
 fi
 clodir=$(get_cfg_value "" "CLODIR")
+if [ ! -d $clodir ]; then
+  echo "Directory $clodir not found!"
+  exit 1
+fi
+clodir=$clodir/oe_watchdog
+if [ ! -d $clodir ]; then
+  mkdir $clodir
+fi
 cd $clodir
-ctr=1
-while [ $opt_lxs -gt 0 -o $ctr -gt 0 ]; do
-  clodoo.py -q -d=$opt_DB -A=unit_test
+if [ ! -f clodoo.conf ]; then
+  cat <<zzzconfig >clodoo.conf
+[options]
+actions=unit_test
+login_user=zeroadm
+login_password=Wg"0JK!P
+db_name=demo
+dbfilter=.*
+zzzconfig
+fi
+if [ $opt_verbose -gt -0 ]; then
+   opts=-v
+else
+   opts=-q
+fi
+if [ $opt_lxs -gt 0 ]; then
+  ctr=5256000
+else
+  ctr=1
+fi
+stampctr=0
+while [ $ctr -gt 0 ]; do
+  /opt/odoo/dev/clodoo.py $opts -d=$opt_DB -A=unit_test
   sts=$?
-  if [ $sts -ne 0 ]; then
-    sleep 10
-    clodoo.py -q -d=$opt_DB -A=unit_test
-  fi
+  ctr2=5
+  while [ $sts -ne 0 -a $ctr2 -gt 0 ]; do
+    ((ctr2--))
+    sleep 5
+    /opt/odoo/dev/clodoo.py $opts -d=$opt_DB -A=unit_test
+    sts=$?
+  done
   if [ $sts -ne 0 ]; then
     service $svc_name restart>>$LOGFILE
     date >>$LOGFILE
   fi
   ((ctr--))
-  sleep 180
+  if [ $ctr -gt 0 ]; then
+    if [ $stampctr -eq 0 ]; then
+      stampctr=21
+      wlog "Odoo server watchdog $__version__ is running"
+    else
+      ((stampctr--))
+    fi
+    sleep 180
+  fi
 done
-
-
+exit $sts
