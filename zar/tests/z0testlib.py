@@ -107,7 +107,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.1.4"
+__version__ = "0.1.7"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -323,8 +323,6 @@ class Test():
 
     def test_06(self, z0ctx):
         """Sanity autotest #6"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
-        # pdb.set_trace()
         opts = ['-s0']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
@@ -376,8 +374,6 @@ class Test():
 
     def test_07(self, z0ctx):
         """Sanity autotest #7"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
-        # pdb.set_trace()
         opts = ['-s', '0', '-z', '13']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
@@ -393,8 +389,6 @@ class Test():
 
     def test_08(self, z0ctx):
         """Sanity autotest #8"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
-        # pdb.set_trace()
         opts = []
         ctx = self.Z.parseoptest(opts)
         sts = self.simulate_main(ctx, '3')
@@ -723,9 +717,10 @@ class Z0test:
         ctx = self.ready_opts(ctx)
         for p in ('dry_run', 'ctr', 'max_test'):
             ctx = self.save_opt(ctx, p)
+        # self.init_logger(ctx)
+        ctx['dry_run'] = True
         if TestCls:
             T = TestCls(self)
-        # pdb.set_trace()
         for testname in test_list:
             if testname[0:6] == '__test':
                 # Execution only in sanity check
@@ -761,7 +756,10 @@ class Z0test:
                               stdout=PIPE,
                               stderr=PIPE)
                     res, err = p.communicate()
-                    ctr = int(res)
+                    try:
+                        ctr = int(res)
+                    except:
+                        ctr = 0
                 ctx['max_test'] += ctr
         for p in ('dry_run', 'ctr'):
             ctx = self.restore_opt(ctx, p)
@@ -775,10 +773,10 @@ class Z0test:
     def exec_all_tests(self, test_list, ctx, TestCls=None):
         args = self.inherit_opts(ctx)
         ctx = self.ready_opts(ctx)
+        self.init_logger(ctx)
         sts = 0
         if TestCls:
             T = TestCls(self)
-        self.init_logger(ctx)
         for testname in test_list:
             # Check for internal test
             if TestCls and hasattr(TestCls, testname):
@@ -865,10 +863,10 @@ class Z0test:
     def msg_test(self, ctx, msg):
         ctx = self.ready_opts(ctx)
         if msg == ctx['_prior_msg']:
-            NEWLN = False
+            # NEWLN = False
             prfx = "\x1b[A"
         else:
-            NEWLN = True
+            # NEWLN = True
             prfx = ""
             ctx['_prior_msg'] = msg
         if not ctx.get('dry_run', False):
@@ -893,11 +891,11 @@ class Z0test:
                     txt = "{0}Test {1}: {2}".format(prfx,
                                                     ctx['ctr'],
                                                     msg)
-                if NEWLN:
-                    self.wlog.info(txt)
-                else:
-                    print "\x1b[A" + txt
-                    self.wlog.debug(txt)
+                # if NEWLN:
+                self.wlog.info(txt)
+                # else:
+                #     print "\x1b[A" + txt
+                #    self.wlog.debug(txt)
 
     def test_result(self, ctx, msg, test_value, res_value):
         ctx = self.ready_opts(ctx)
@@ -909,6 +907,7 @@ class Z0test:
             if test_value != res_value:
                 print "Test failed: expected '%s', found '%s'" % (test_value,
                                                                   res_value)
+                # pdb.set_trace()
                 return TEST_FAILED
         return TEST_SUCCESS
 

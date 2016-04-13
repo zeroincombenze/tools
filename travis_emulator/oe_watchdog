@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.6
+__version__=0.1.7
 
 
 detached_login () {
@@ -103,9 +103,9 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
   wlog "$PATH"
 fi
+PIDFILE=/var/run/odoo/oe_watchdog.pid
+LOGFILE=/var/log/odoo/oe_watchdog.log
 if [ $opt_lxs -gt 0 ]; then
-  PIDFILE=/var/run/odoo/oe_watchdog.pid
-  LOGFILE=/var/log/odoo/oe_watchdog.log
   chmod +r $LOGFILE
   set_tlog_file "$LOGFILE"
   echo $$ > $PIDFILE
@@ -138,14 +138,14 @@ if [ ! -d $clodir ]; then
 fi
 cd $clodir
 if [ ! -f clodoo.conf ]; then
-  cat <<zzzconfig >clodoo.conf
+  cat <<EOF >clodoo.conf
 [options]
 actions=unit_test
 login_user=zeroadm
 login_password=Wg"0JK!P
 db_name=demo
 dbfilter=.*
-zzzconfig
+EOF
 fi
 if [ $opt_verbose -gt -0 ]; then
    opts=-v
@@ -158,14 +158,15 @@ else
   ctr=1
 fi
 stampctr=0
+PATH=/opt/odoo/tools/clodoo:$PATH
 while [ $ctr -gt 0 ]; do
-  /opt/odoo/dev/clodoo.py $opts -d=$opt_DB -A=unit_test
+  clodoo.py $opts -d=$opt_DB -A=unit_test
   sts=$?
   ctr2=5
   while [ $sts -ne 0 -a $ctr2 -gt 0 ]; do
     ((ctr2--))
     sleep 5
-    /opt/odoo/dev/clodoo.py $opts -d=$opt_DB -A=unit_test
+    clodoo.py $opts -d=$opt_DB -A=unit_test
     sts=$?
   done
   if [ $sts -ne 0 ]; then

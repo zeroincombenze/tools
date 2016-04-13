@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.38.1
+#__version__=0.1.38.2
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -420,7 +420,7 @@ export -f elog
 #    command line with parameters; command may be a comment (beginning with '#')
 #    command 'cd ' is always executed, also if dry_run
 # Parameter $2:
-#    execute as user; user must be sudoer
+#    execute as user; caller must be sudoer
 # Parameter $3:
 #    do login (1) if execute as user
 run_traced () {
