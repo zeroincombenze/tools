@@ -8,6 +8,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# cat  /var/log/odoo/openerp-server.log|tail -n50|grep "Traceback (most recent call last)"
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 if [ -e $TDIR/z0librc ]; then
@@ -37,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.9
+__version__=0.1.9.1
 
 
 detached_login () {
