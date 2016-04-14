@@ -1,10 +1,10 @@
 #!/bin/bash
-# ${xtl_name}           This shell script takes care of starting and stopping
+# oe_watchdog-server    This shell script takes care of starting and stopping
 #                       Odoo watchdog
 #
 # chkconfig: 345 95 05
 # description: oe_watchdog-server server
-#
+# version: 0.1.8
 # pidfile: /var/run/odoo/oe_watchdog.pid
 # config: /etc/odoo/odoo-server.conf
 ### BEGIN INIT INFO
@@ -40,10 +40,13 @@ if [ "$DIST" == "CentOS" ]; then
 fi
 # Set path (Only Ubuntu)
 if [ "$DIST" == "Ubuntu" ]; then
-  PATH=/bin:/sbin:/usr/bin
+    PATH=/bin:/sbin:/usr/bin
 fi
 
-DAEMON=/opt/odoo/dev/oe_watchdog
+DAEMON=/opt/odoo/tools/travis_emulator/oe_watchdog
+if [ ! -x "$DAEMON" ]; then
+    DAEMON=/opt/odoo/dev/oe_watchdog
+fi
 NAME=oe_watchdog-server
 DESC="Odoo Service watchdog"
 USER=root
@@ -53,9 +56,9 @@ LOCKFILE=/var/lock/subsys/${NAME}
 LOGFILE=/var/log/odoo/oe_watchdog.log
 # Additional options that are passed to the Daemon.
 if [ "$DIST" == "Ubuntu" ]; then
-  DAEMON_OPTS="-KX"
+    DAEMON_OPTS="-KX"
 else
-  DAEMON_OPTS="-KX"
+    DAEMON_OPTS="-KX"
 fi
 [ -x $DAEMON ] || exit 0
 

@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.7
+__version__=0.1.9
 
 
 detached_login () {
@@ -61,19 +61,30 @@ detached_login () {
     fi
 }
 
+
+kill_daemon () {
+  local pid=$(netstat -atunp|grep "8069.*LISTEN"|awk '{print $7}'|awk -F/ '{print $1}')
+  if [ -n "$pid" ]; then
+    kill $pid
+  fi
+}
+
+
 conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
     set_cfg_def "svc_name" "openerp"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
+    set_cfg_def "CLOBIN" "/opt/odoo/tools/clodoo"
+    set_cfg_def "ODOO_CONF" "/opt/odoo/odoo-server.conf"
 }
 
 
 
 OPTOPTS=(h        D      K        n            s            V           v           X)
 OPTDEST=(opt_help opt_DB opt_cron opt_dry_run  opt_svc_name opt_version opt_verbose opt_lxs)
-OPTACTI=(1        "=>"   "1>"     "1>"         "=>"         "*>"        1           1)
+OPTACTI=(1        "=>"   "1>"     "1>"         "=>"         "*>"        1           "1>")
 OPTDEFL=(1        "demo" 0        0            ""           ""          0           0)
 OPTMETA=("help"   "db"   "cron"   "do nothing" "svc_name"   "version"   "verbose"   "")
 OPTHELP=("this help"\
@@ -98,25 +109,41 @@ then
   "(C) 2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+PIDFILE=/var/run/odoo/oe_watchdog.pid
+LOGFILE=/var/log/odoo/oe_watchdog.log
+if [[ -t 0 || -p /dev/stdin ]]; then
+   LECHO=echo
+else
+   LECHO=
+fi
+set_tlog_file "$LOGFILE" "" "$LECHO"
 if [ $opt_cron -gt 0 ]; then
+  chmod +r $LOGFILE
   wlog "Run cron mode"
   detached_login "$@"
   wlog "$PATH"
 fi
-PIDFILE=/var/run/odoo/oe_watchdog.pid
-LOGFILE=/var/log/odoo/oe_watchdog.log
 if [ $opt_lxs -gt 0 ]; then
   chmod +r $LOGFILE
-  set_tlog_file "$LOGFILE"
   echo $$ > $PIDFILE
   wlog "Odoo server watchdog $__version__ starting ..."
 fi
-
 
 opts_travis
 $(init_cfg)
 $(active_cfg)
 conf_default
+TCONF=/etc/odoo/oe_watchdog.conf
+if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
+  TCONF=/etc/oe_watchdog.conf
+fi
+if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
+  if [ -d /etc/odoo ]; then
+    TCONF=/etc/odoo/oe_watchdog.conf
+  else
+    TCONF=/etc/oe_watchdog.conf
+  fi
+fi
 link_cfg $TCONF
 init_travis
 prepare_env_travis ""
@@ -127,12 +154,14 @@ if [ -n "$opt_svc_name" ]; then
 else
   svc_name=$(get_cfg_value "" "svc_name")
 fi
-clodir=$(get_cfg_value "" "CLODIR")
-if [ ! -d $clodir ]; then
-  echo "Directory $clodir not found!"
+CLODIR=$(get_cfg_value "" "CLODIR")
+CLOBIN=$(get_cfg_value "" "CLOBIN")
+ODOO_CONF=$(get_cfg_value "" "ODOO_CONF")
+if [ ! -d $CLODIR ]; then
+  wlog "Directory $CLODIR not found!"
   exit 1
 fi
-clodir=$clodir/oe_watchdog
+clodir=$CLODIR/oe_watchdog
 if [ ! -d $clodir ]; then
   mkdir $clodir
 fi
@@ -152,13 +181,20 @@ if [ $opt_verbose -gt -0 ]; then
 else
    opts=-q
 fi
+wlog "CLODIR=$clodir"
+wlog "CLOBIN=$CLOBIN"
+wlog "SVC_NAME=$svc_name"
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000
 else
   ctr=1
 fi
 stampctr=0
-PATH=/opt/odoo/tools/clodoo:$PATH
+OK_ctr=0
+FAIL_ctr=0
+TOT_OK_ctr=0
+TOT_FAIL_ctr=0
+PATH=$CLOBIN:$PATH
 while [ $ctr -gt 0 ]; do
   clodoo.py $opts -d=$opt_DB -A=unit_test
   sts=$?
@@ -170,8 +206,23 @@ while [ $ctr -gt 0 ]; do
     sts=$?
   done
   if [ $sts -ne 0 ]; then
+    OK_ctr=0
+    ((FAIL_ctr++))
+    ((TOT_FAIL_ctr++))
     service $svc_name restart>>$LOGFILE
     date >>$LOGFILE
+  else
+    ((OK_ctr++))
+    FAIL_ctr=0
+    ((TOT_OK_ctr++))
+  fi
+  if [ $FAIL_ctr -ge 3 ]; then
+    wlog "???? SERVICE FAILURE ????"
+    service $svc_name stop>>$LOGFILE
+    sleep 15
+    kill_daemon
+    sleep 15
+    service $svc_name start>>$LOGFILE
   fi
   ((ctr--))
   if [ $ctr -gt 0 ]; then
@@ -181,7 +232,7 @@ while [ $ctr -gt 0 ]; do
     else
       ((stampctr--))
     fi
-    sleep 180
+    sleep 90
   fi
 done
 exit $sts
