@@ -8,7 +8,6 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-# cat  /var/log/odoo/openerp-server.log|tail -n50|grep "Traceback (most recent call last)"
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 if [ -e $TDIR/z0librc ]; then
@@ -38,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.9.1
+__version__=0.1.11
 
 
 detached_login () {
@@ -78,7 +77,11 @@ conf_default () {
     set_cfg_def "svc_name" "openerp"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "CLOBIN" "/opt/odoo/tools/clodoo"
-    set_cfg_def "ODOO_CONF" "/opt/odoo/odoo-server.conf"
+    set_cfg_def "ODOO_CONF" "/opt/odoo/openerp.conf"
+    set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp.log"
+    set_cfg_def "MAX_RETRY" "3"
+    set_cfg_def "TIME_SLEEP" "90"
+    set_cfg_def "HELLO_CTR" "21"
 }
 
 
@@ -158,6 +161,19 @@ fi
 CLODIR=$(get_cfg_value "" "CLODIR")
 CLOBIN=$(get_cfg_value "" "CLOBIN")
 ODOO_CONF=$(get_cfg_value "" "ODOO_CONF")
+ODOO_LOG=$(get_cfg_value "" "ODOO_LOG")
+MAX_RETRY=$(get_cfg_value "" "MAX_RETRY")
+if [ $MAX_RETRY -gt 5 -o $MAX_RETRY -lt 1 ]; then
+  MAX_RETRY=3
+fi
+TIME_SLEEP=$(get_cfg_value "" "TIME_SLEEP")
+if [ $TIME_SLEEP -gt 300 -o $TIME_SLEEP -lt 30 ]; then
+  TIME_SLEEP=90
+fi
+HELLO_CTR=$(get_cfg_value "" "HELLO_CTR")
+if [ $HELLO_CTR -gt 30 -o $HELLO_CTR -lt 3 ]; then
+  TIME_SLEEP=21
+fi
 if [ ! -d $CLODIR ]; then
   wlog "Directory $CLODIR not found!"
   exit 1
@@ -185,6 +201,11 @@ fi
 wlog "CLODIR=$clodir"
 wlog "CLOBIN=$CLOBIN"
 wlog "SVC_NAME=$svc_name"
+wlog "ODOO_CONF=$ODOO_CONF"
+wlog "ODOO_LOG=$ODOO_LOG"
+wlog "MAX_RETRY=$MAX_RETRY"
+wlog "TIME_SLEEP=$TIME_SLEEP"
+wlog "HELLO_CTR=$HELLO_CTR"
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000
 else
@@ -199,7 +220,16 @@ PATH=$CLOBIN:$PATH
 while [ $ctr -gt 0 ]; do
   clodoo.py $opts -d=$opt_DB -A=unit_test
   sts=$?
-  ctr2=5
+  if [ $sts -ne 0 -o $stampctr -eq 1 ]; then
+    local HANG_UP=$(cat $ODOO_LOG|tail -n50|grep "RuntimeError: maximum recursion depth exceeded")
+  else
+    local HANG_UP=
+  fi
+  if [ -n "$HANG_UP" ]; then
+    ctr2=0
+  else
+    ctr2=$MAX_RETRY
+  fi
   while [ $sts -ne 0 -a $ctr2 -gt 0 ]; do
     ((ctr2--))
     sleep 5
@@ -211,7 +241,8 @@ while [ $ctr -gt 0 ]; do
     ((FAIL_ctr++))
     ((TOT_FAIL_ctr++))
     service $svc_name restart>>$LOGFILE
-    date >>$LOGFILE
+    dt=$(date)
+    echo "$dt $HANG_UP">>$LOGFILE
   else
     ((OK_ctr++))
     FAIL_ctr=0
@@ -228,12 +259,12 @@ while [ $ctr -gt 0 ]; do
   ((ctr--))
   if [ $ctr -gt 0 ]; then
     if [ $stampctr -eq 0 ]; then
-      stampctr=21
+      stampctr=$HELLO_CTR
       wlog "Odoo server watchdog $__version__ is running"
     else
       ((stampctr--))
     fi
-    sleep 90
+    sleep $TIME_SLEEP
   fi
 done
 exit $sts
