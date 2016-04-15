@@ -89,6 +89,7 @@ def open_connection(ctx):
         oerp = oerplib.OERP(server=ctx['db_host'],
                             protocol=ctx['svc_protocol'],
                             port=ctx['xmlrpc_port'])
+        # version=’7.0’
     except:
         msg = u"!Odoo server is not running!"
         msg_log(ctx, ctx['level'], msg)
