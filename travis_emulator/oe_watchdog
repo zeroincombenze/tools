@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.12
+__version__=0.1.15.2
 
 
 detached_login () {
@@ -70,6 +70,35 @@ kill_daemon () {
 }
 
 
+test_db () {
+    if [ -n "$opt_DB" ]; then
+      dbname="$opt_DB"
+    else
+      if [ -z "$DBLIST" ]; then
+        wlog "Creating DB list ..."
+        DBLIST=$(sudo -iupostgres psql -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
+        DB_ix=0
+      fi
+      local c=0
+      dbname=""
+      for d in $DBLIST; do
+        if [ $c -eq $DB_ix ]; then
+          ((DB_ix++))
+          dbname="$d"
+          break
+        fi
+        ((c++))
+      done
+      if [ -z "$dbname" ]; then
+        dbname="demo"
+      fi
+    fi
+    wlog "clodoo.py $opts -d=$dbname -A=unit_test"
+    clodoo.py $opts -d=$dbname -A=unit_test
+    sts=$?
+}
+
+
 conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
@@ -81,9 +110,10 @@ conf_default () {
     set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp-server.log"
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
+    # set_cfg_def "TIME_SLEEP" "30"   #debug
     set_cfg_def "HELLO_CTR" "21"
     set_cfg_def "HUPTST_CTR" "3"
-    set_cfg_def "HUPTST_TAIL" "50"
+    set_cfg_def "HUPTST_TAIL" "75"
 }
 
 
@@ -91,7 +121,7 @@ conf_default () {
 OPTOPTS=(h        D      K        n            s            V           v           X)
 OPTDEST=(opt_help opt_DB opt_cron opt_dry_run  opt_svc_name opt_version opt_verbose opt_lxs)
 OPTACTI=(1        "=>"   "1>"     "1>"         "=>"         "*>"        1           "1>")
-OPTDEFL=(1        "demo" 0        0            ""           ""          0           0)
+OPTDEFL=(1        ""     0        0            ""           ""          0           0)
 OPTMETA=("help"   "db"   "cron"   "do nothing" "svc_name"   "version"   "verbose"   "")
 OPTHELP=("this help"\
  "DB to test"\
@@ -199,10 +229,10 @@ if [ ! -f clodoo.conf ]; then
 actions=unit_test
 login_user=zeroadm
 login_password=Wg"0JK!P
-db_name=demo
 dbfilter=.*
 EOF
 fi
+DBLIST=""
 if [ $opt_verbose -gt -0 ]; then
    opts=-v
 else
@@ -224,21 +254,21 @@ else
   ctr=1
 fi
 helloctr=0
-huptst=0
+huptstctr=0
 OK_ctr=0
 FAIL_ctr=0
 TOT_OK_ctr=0
 TOT_FAIL_ctr=0
+DB_ix=0
 PATH=$CLOBIN:$PATH
 while [ $ctr -gt 0 ]; do
-  clodoo.py $opts -d=$opt_DB -A=unit_test
-  sts=$?
+  test_db
   HANG_UP=
   if [ $sts -ne 0 ]; then
     dt=$(date)
     wlog "$dt Warning: invalid response">>$LOGFILE
     HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
-  elif [ $huptst -eq 0 ]; then
+  elif [ $huptstctr -eq 0 ]; then
     HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
     huptstctr=$HUPTST_CTR
   else
@@ -256,8 +286,7 @@ while [ $ctr -gt 0 ]; do
   while [ $sts -ne 0 -a $ctr2 -gt 0 ]; do
     ((ctr2--))
     sleep 5
-    clodoo.py $opts -d=$opt_DB -A=unit_test
-    sts=$?
+    test_db
   done
   if [ $sts -ne 0 ]; then
     OK_ctr=0
