@@ -43,7 +43,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.8"
+__version__ = "0.2.66.9"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -88,8 +88,8 @@ def open_connection(ctx):
     try:
         oerp = oerplib.OERP(server=ctx['db_host'],
                             protocol=ctx['svc_protocol'],
-                            port=ctx['xmlrpc_port'])
-        # version=’7.0’
+                            port=ctx['xmlrpc_port'],
+                            version=ctx['oe_version'])
     except:
         msg = u"!Odoo server is not running!"
         msg_log(ctx, ctx['level'], msg)
@@ -452,7 +452,8 @@ def ident_db(oerp, ctx, db):
 
 def ident_company(oerp, ctx, c_id):
     msg = u"Company {0:>3})\t'{1}'".format(c_id,
-                                           tounicode(ctx['company_name']))
+                                           tounicode(ctx.get('company_name',
+                                                             '')))
     return msg
 
 
@@ -481,6 +482,7 @@ def act_show_params(oerp, ctx):
     print "- hostname      = %s " % ctx['db_host']
     print "- protocol      = %s " % ctx['svc_protocol']
     print "- port          = %s " % ctx['xmlrpc_port']
+    print "- odoo version  = %s " % ctx['oe_version']
     if pwd:
         print "- password      = %s " % crypt(pwd)
     return STS_SUCCESS
@@ -543,7 +545,7 @@ def act_list_users(oerp, ctx):
 
 def act_echo_user(oerp, ctx):
     u_id = ctx['user_id']
-    msg = ident_company(oerp, ctx, u_id)
+    msg = ident_user(oerp, ctx, u_id)
     ident = ' ' * ctx['level']
     print " %s%s" % (ident, msg)
     return STS_SUCCESS

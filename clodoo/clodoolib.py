@@ -55,6 +55,7 @@ LX_CFG_S = ('db_name',
             'admin_passwd',
             'db_host',
             'xmlrpc_port',
+            'oe_version',
             'zeroadm_mail',
             'svc_protocol',
             'dbfilter',
@@ -115,7 +116,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 
 #############################################################################
@@ -254,6 +255,7 @@ def default_conf(ctx):
               'db_host': 'localhost',
               'svc_protocol': 'xmlrpc',
               'xmlrpc_port': '8069',
+              'oe_version': '7.0',
               'dbfilter': '.*',
               'dbfilterd': 'demo',
               'dbfiltert': 'openerp.*',
