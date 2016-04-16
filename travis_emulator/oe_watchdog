@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.11
+__version__=0.1.12
 
 
 detached_login () {
@@ -78,10 +78,12 @@ conf_default () {
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "CLOBIN" "/opt/odoo/tools/clodoo"
     set_cfg_def "ODOO_CONF" "/opt/odoo/openerp.conf"
-    set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp.log"
+    set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp-server.log"
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
     set_cfg_def "HELLO_CTR" "21"
+    set_cfg_def "HUPTST_CTR" "3"
+    set_cfg_def "HUPTST_TAIL" "50"
 }
 
 
@@ -174,6 +176,14 @@ HELLO_CTR=$(get_cfg_value "" "HELLO_CTR")
 if [ $HELLO_CTR -gt 30 -o $HELLO_CTR -lt 3 ]; then
   TIME_SLEEP=21
 fi
+HUPTST_CTR=$(get_cfg_value "" "HUPTST_CTR")
+if [ $HUPTST_CTR -gt 30 -o $HUPTST_CTR -lt 3 ]; then
+  HUPTST_CTR=7
+fi
+HUPTST_TAIL=$(get_cfg_value "" "HUPTST_TAIL")
+if [ $HUPTST_TAIL -gt 300 -o $HUPTST_TAIL -lt 50 ]; then
+  HUPTST_CTR=50
+fi
 if [ ! -d $CLODIR ]; then
   wlog "Directory $CLODIR not found!"
   exit 1
@@ -206,12 +216,15 @@ wlog "ODOO_LOG=$ODOO_LOG"
 wlog "MAX_RETRY=$MAX_RETRY"
 wlog "TIME_SLEEP=$TIME_SLEEP"
 wlog "HELLO_CTR=$HELLO_CTR"
+wlog "HUPTST_CTR=$HUPTST_CTR"
+wlog "HUPTST_TAIL=$HUPTST_TAIL"
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000
 else
   ctr=1
 fi
-stampctr=0
+helloctr=0
+huptst=0
 OK_ctr=0
 FAIL_ctr=0
 TOT_OK_ctr=0
@@ -220,13 +233,23 @@ PATH=$CLOBIN:$PATH
 while [ $ctr -gt 0 ]; do
   clodoo.py $opts -d=$opt_DB -A=unit_test
   sts=$?
-  if [ $sts -ne 0 -o $stampctr -eq 1 ]; then
-    local HANG_UP=$(cat $ODOO_LOG|tail -n50|grep "RuntimeError: maximum recursion depth exceeded")
+  HANG_UP=
+  if [ $sts -ne 0 ]; then
+    dt=$(date)
+    wlog "$dt Warning: invalid response">>$LOGFILE
+    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+  elif [ $huptst -eq 0 ]; then
+    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    huptstctr=$HUPTST_CTR
   else
-    local HANG_UP=
+    ((huptstctr--))
   fi
   if [ -n "$HANG_UP" ]; then
     ctr2=0
+    huptstctr=$HUPTST_CTR
+    sts=1
+    dt=$(date)
+    wlog "$dt Warning: hang-up detected">>$LOGFILE
   else
     ctr2=$MAX_RETRY
   fi
@@ -242,7 +265,7 @@ while [ $ctr -gt 0 ]; do
     ((TOT_FAIL_ctr++))
     service $svc_name restart>>$LOGFILE
     dt=$(date)
-    echo "$dt $HANG_UP">>$LOGFILE
+    wlog "$dt $HANG_UP">>$LOGFILE
   else
     ((OK_ctr++))
     FAIL_ctr=0
@@ -258,11 +281,11 @@ while [ $ctr -gt 0 ]; do
   fi
   ((ctr--))
   if [ $ctr -gt 0 ]; then
-    if [ $stampctr -eq 0 ]; then
-      stampctr=$HELLO_CTR
+    if [ $helloctr -eq 0 ]; then
+      helloctr=$HELLO_CTR
       wlog "Odoo server watchdog $__version__ is running"
     else
-      ((stampctr--))
+      ((helloctr--))
     fi
     sleep $TIME_SLEEP
   fi
