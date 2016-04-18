@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.15.12
+__version__=0.1.15.13
 
 
 detached_login () {
@@ -70,25 +70,37 @@ kill_daemon () {
 }
 
 
+set_db_list () {
+    if [ -z "$DBLIST" ]; then
+      wlog "Creating DB list ..."
+      DBLIST=$(psql -Uodoo -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
+      DB_ix=0
+    fi
+}
+
+select_db () {
+    set_db_list
+    local c=0
+    dbname=""
+    for d in $DBLIST; do
+      if [ $c -eq $DB_ix ]; then
+        ((DB_ix++))
+        dbname="$d"
+        break
+      fi
+      ((c++))
+    done
+}
+
 test_db () {
     if [ -n "$opt_DB" ]; then
       dbname="$opt_DB"
     else
-      if [ -z "$DBLIST" ]; then
-        wlog "Creating DB list ..."
-        DBLIST=$(psql -Uodoo -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
-        DB_ix=0
+      select_db
+      if [ -z "$dbname" ]; then
+        DBLIST=""
+        select_db
       fi
-      local c=0
-      dbname=""
-      for d in $DBLIST; do
-        if [ $c -eq $DB_ix ]; then
-          ((DB_ix++))
-          dbname="$d"
-          break
-        fi
-        ((c++))
-      done
       if [ -z "$dbname" ]; then
         dbname="demo"
       fi
