@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.15.2
+__version__=0.1.15.12
 
 
 detached_login () {
@@ -76,7 +76,7 @@ test_db () {
     else
       if [ -z "$DBLIST" ]; then
         wlog "Creating DB list ..."
-        DBLIST=$(sudo -iupostgres psql -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
+        DBLIST=$(psql -Uodoo -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
         DB_ix=0
       fi
       local c=0
@@ -93,7 +93,9 @@ test_db () {
         dbname="demo"
       fi
     fi
-    wlog "clodoo.py $opts -d=$dbname -A=unit_test"
+    if [ $DEBUG_MODE -ne 0 ]; then
+      elog "clodoo.py $opts -d=$dbname -A=unit_test"
+    fi
     clodoo.py $opts -d=$dbname -A=unit_test
     sts=$?
 }
@@ -110,10 +112,10 @@ conf_default () {
     set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp-server.log"
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
-    # set_cfg_def "TIME_SLEEP" "30"   #debug
     set_cfg_def "HELLO_CTR" "21"
     set_cfg_def "HUPTST_CTR" "3"
     set_cfg_def "HUPTST_TAIL" "75"
+    set_cfg_def "DEBUG_MODE" "0"
 }
 
 
@@ -214,6 +216,10 @@ HUPTST_TAIL=$(get_cfg_value "" "HUPTST_TAIL")
 if [ $HUPTST_TAIL -gt 300 -o $HUPTST_TAIL -lt 50 ]; then
   HUPTST_CTR=50
 fi
+DEBUG_MODE=$(get_cfg_value "" "DEBUG_MODE")
+if [ $DEBUG_MODE -ne 0 ]; then
+  set_tlog_file "$LOGFILE" "" "echo"
+fi
 if [ ! -d $CLODIR ]; then
   wlog "Directory $CLODIR not found!"
   exit 1
@@ -266,7 +272,7 @@ while [ $ctr -gt 0 ]; do
   HANG_UP=
   if [ $sts -ne 0 ]; then
     dt=$(date)
-    wlog "$dt Warning: invalid response">>$LOGFILE
+    wlog "$dt Warning: invalid response"
     HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
   elif [ $huptstctr -eq 0 ]; then
     HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
@@ -279,7 +285,7 @@ while [ $ctr -gt 0 ]; do
     huptstctr=$HUPTST_CTR
     sts=1
     dt=$(date)
-    wlog "$dt Warning: hang-up detected">>$LOGFILE
+    wlog "$dt Warning: hang-up detected"
   else
     ctr2=$MAX_RETRY
   fi
@@ -294,7 +300,7 @@ while [ $ctr -gt 0 ]; do
     ((TOT_FAIL_ctr++))
     service $svc_name restart>>$LOGFILE
     dt=$(date)
-    wlog "$dt $HANG_UP">>$LOGFILE
+    wlog "$dt $HANG_UP"
   else
     ((OK_ctr++))
     FAIL_ctr=0
