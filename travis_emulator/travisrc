@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.7
+#__version__=0.1.65.8
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -818,6 +818,9 @@ please_test_pylint () {
       else
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
       fi
+      if [ ${opt_verbose:-0} -gt 0 ]; then
+        echo "export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}"
+      fi
       export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
       # if [ "$PRJNAME" == "Odoo" ]; then
       #   touch $MODULES_TO_TEST/__init__.py
@@ -861,17 +864,31 @@ run_regression_test () {
     echo "======== Running regression_test ========"
     cd $PRJPATH
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ $(echo :$PYTHONPATH:|grep -v ":$PKGPATH:"  2>/dev/null) ]; then
+        run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
+      fi
       if [ -f ./tests/all_tests ]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests
         else
-          cd ./tests; PYTHONPATH=$PYTHONPATH:$PKGPATH ./all_tests
+          cd ./tests; ./all_tests
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
-        cd ./tests; PYTHONPATH=$PYTHONPATH:$PKGPATH python ./test_$PRJNAME.py
+        if [ ${opt_dprj:-0} -gt 0 ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
+          fi
+          DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py
+        else
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
+          fi
+          cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py
+        fi
         sts=$?
       else
+        elog "!????? Module test for $PRJNAME not found!??????"
         sts=$STS_FAILED
       fi
     else
@@ -895,10 +912,10 @@ run_coverage_test () {
           sts=$STS_SUCCESS
         elif [ -f ./tests/test_$PRJNAME.py ]; then
           coverage erase
-            if [ ${opt_verbose:-0} -gt 0 ]; then
-              echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
-            fi
-            export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
+          fi
+          export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
           if [ ${opt_dprj:-0} -gt 0 ]; then
             if [ ${opt_verbose:-0} -gt 0 ]; then
               echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python ./tests/test_$PRJNAME.py"

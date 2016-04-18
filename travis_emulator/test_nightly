@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.15
+__version__=0.1.76.16
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -586,6 +586,7 @@ conf_default () {
     set_cfg_def "svc_name" "openerp"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "SLEEP_TIME" "30"
+    set_cfg_def "XFLIST__zar" "bckconf bckconf.py pg_db_active restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py"
 }
 
 
@@ -593,7 +594,7 @@ $(init_cfg)
 $(active_cfg)
 conf_default
 link_cfg $FCONF
-for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR upgrade_dow; do
+for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade_dow WWW_DWNLOAD_DIR XFLIST__zar; do
   declare $p=$(get_cfg_value "" "$p")
   if [ -z "${!p}" ]; then
     generate_svg "$USER" "FAIL" "$__version__"
@@ -725,7 +726,7 @@ if [ $EUID -eq 0 ]; then
         [ $sts -eq $STS_SUCCESS ]&&sts=$s
       fi
     fi
-    cpfiles "/opt/odoo/tools/zar" "/root" "bckconf bckconf.py restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py" "root:root"
+    cpfiles "/opt/odoo/tools/zar" "/root" "$XFLIST__zar" "root:root"
     s=$?
     if [ $s -ne $STS_SUCCESS ]; then
       elog "!unupdated zar tool!!"

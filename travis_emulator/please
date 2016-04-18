@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.5
+__version__=0.1.27.6
 
 
 ant_rm_trap () {
@@ -130,7 +130,7 @@ do_check (){
 
 
 do_test () {
-    wlog "do_test \"$1\" \"$2\" \"$3\""
+    wlog "do_test"
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
       opts=$(inherits_travis_opts "Tnrv")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"

@@ -69,6 +69,7 @@ where:
 -X             execute test library sanity check and exit [no bash]
 -z number      display total # tests when execute them
 -0             no count # unit tests
+-1             run test for coverage
 (w/o switches) do run test and return test result
 
 As result this library (and z0testrc for bash scripts) parse optional switches
@@ -79,12 +80,14 @@ ctr;            test counter [also in bash test]
 dry_run:        dry-run (do nothing) execution [opt_dry_run in bash test] "-n"
 esanity:        True if required sanity check with echo                   "-X"
 max_test:       # of tests to excecute [also in bash test]
+on_error:       behavior after error, 'continue' or 'raise' (default)
 opt_echo:       True if echo test result onto std output                  "-e"
 opt_new:        new log file [also in bash test]                          "-N"
 opt_noctr:      do not count # tests [also in bash test]                  "-0"
 opt_verbose:    From -v switch; show message during execution             "-v"
 logfn:          real trace log file name from switch                      "-l"
 qsanity:        True if required sanity check w/o echo                    "-x"
+run4cover:      Run tests for coverage (use coverage run rather python)   "-1"
 run_daemon:     True if execution w/o tty as stdio
 run_tty:        Opposite of run_daemon
 tlog:           default tracelog file name
@@ -107,7 +110,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.1.7"
+__version__ = "0.1.9"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -138,7 +141,7 @@ LX_CFG_B = ()
 LX_OPT_CFG_S = ('opt_echo',    'logfn',
                 'dry_run',     'opt_new',
                 'opt_verbose',
-                'opt_noctr')
+                'opt_noctr',   'run4cover')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_B = ('qsanity', 'esanity')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -156,7 +159,8 @@ LX_OPT_ARGS = {'opt_echo': '-e',
                'ctr': '-s',
                'opt_verbose': '-v',
                'max_test': '-z',
-               'opt_noctr': '-0'}
+               'opt_noctr': '-0',
+               'run4cover': '-1'}
 
 
 class Test():
@@ -229,9 +233,13 @@ class Test():
                                      0,
                                      ctx['max_test'])
         if sts == TEST_SUCCESS:
+            if os.environ.get("COVERAGE_PROCESS_START", ""):
+                tres = True
+            else:
+                tres = False
             sts = self.Z.test_result(z0ctx,
                                      "Opt -n (-0)",
-                                     False,
+                                     tres,
                                      ctx['opt_noctr'])
         return sts
 
@@ -392,9 +400,13 @@ class Test():
         opts = []
         ctx = self.Z.parseoptest(opts)
         sts = self.simulate_main(ctx, '3')
+        if os.environ.get("COVERAGE_PROCESS_START", ""):
+            tres = 0
+        else:
+            tres = 3
         sts = self.Z.test_result(z0ctx,
                                  "UT",
-                                 3,
+                                 tres,
                                  ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-0']
@@ -408,9 +420,13 @@ class Test():
             opts = ['-n']
             ctx = self.Z.parseoptest(opts)
             sts = self.simulate_main(ctx, '3')
+            if os.environ.get("COVERAGE_PROCESS_START", ""):
+                tres = 0
+            else:
+                tres = 3
             sts = self.Z.test_result(z0ctx,
                                      "UT -n",
-                                     3,
+                                     tres,
                                      ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-n', '-0']
@@ -476,8 +492,16 @@ class Z0test:
                 id = id[0:-5]
         self.module_id = id
         self.this_dir = this_dir
+        if os.path.isdir('./tests'):
+            os.path.join(self.this_dir,
+                         'tests')
+            self.pkg_dir = self.this_dir
+        else:
+            self.test_dir = self.this_dir
+            self.pkg_dir = os.path.abspath(self.this_dir + '/..')
         # If auto regression test is executing
-        self.tlog_fn = this_dir + "/" + self.module_id + "_test.log"
+        self.tlog_fn = os.path.join(self.test_dir,
+                                    self.module_id + "_test.log")
 
     def create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
@@ -495,6 +519,7 @@ class Z0test:
         -X --esanity    execute test library sanity check and exit
         -z --end        display total # tests when execute them
         -0 --no-count   no count # unit tests
+        -1 --coverage   run test for coverage
         """
         parser = argparse.ArgumentParser(
             description="Regression test",
@@ -560,6 +585,11 @@ class Z0test:
                             action="store_true",
                             dest="opt_noctr",
                             default=False)
+        parser.add_argument("-1", "--coverage",
+                            help="run tests for coverage",
+                            action="store_true",
+                            dest="run4cover",
+                            default=False)
         return parser
 
     def create_params_dict(self, ctx):
@@ -586,6 +616,16 @@ class Z0test:
             os0.set_tlog_file(ctx['logfn'],
                               new=ctx['opt_new'],
                               echo=ctx['opt_echo'])
+        if os.environ.get("COVERAGE_PROCESS_START", ""):
+            ctx['COVERAGE_PROCESS_START'] = \
+                os.environ["COVERAGE_PROCESS_START"]
+            ctx['run4cover'] = True
+        if ctx['run4cover']:
+            ctx['opt_noctr'] = True
+            if not ctx.get('COVERAGE_PROCESS_START', ''):
+                ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
+                    os.path.join(self.pkg_dir,
+                                 '.coveragerc'))
         return ctx
 
     def create_def_params_dict(self, ctx):
@@ -686,6 +726,9 @@ class Z0test:
             elif p == 'logfn':
                 if p in ctx and ctx[p]:
                     args.append(LX_OPT_ARGS[p] + ctx[p])
+            elif p == 'run4cover':
+                if p in ctx and ctx[p]:
+                    args.append(LX_OPT_ARGS[p])
         return args
 
     def ready_opts(self, ctx):
@@ -774,6 +817,15 @@ class Z0test:
         args = self.inherit_opts(ctx)
         ctx = self.ready_opts(ctx)
         self.init_logger(ctx)
+        if not ctx.get('_run_autotest', False) and \
+                ctx.get('run4cover', False) and \
+                not os.path.isfile(ctx['COVERAGE_PROCESS_START']):
+            fd = open(ctx['COVERAGE_PROCESS_START'], 'w')
+            fd.write("[report]\n")
+            fd.write("omit =\n")
+            fd.write("    */usr/lib*/python*\n")
+            fd.write("    */__init__.py\n")
+            fd.close()
         sts = 0
         if TestCls:
             T = TestCls(self)
@@ -785,10 +837,26 @@ class Z0test:
                 if os.path.basename(testname)[-3:] == '.py' or \
                         os.path.basename(testname)[-4:] == '.pyc':
                     if ctx.get('opt_noctr', None):
-                        test_w_args = ['python'] + [testname]
+                        if ctx.get('run4cover', False):
+                            test_w_args = ['coverage',
+                                           'run',
+                                           '-a',
+                                           '--rcfile',
+                                           ctx['COVERAGE_PROCESS_START'],
+                                           testname]
+                        else:
+                            test_w_args = ['python'] + [testname]
                         sts = subprocess.call(test_w_args)
                     else:
-                        test_w_args = ['python'] + [testname] + args
+                        if ctx.get('run4cover', False):
+                            test_w_args = ['coverage',
+                                           'run',
+                                           '-a',
+                                           '--rcfile',
+                                           ctx['COVERAGE_PROCESS_START'],
+                                           testname] + args
+                        else:
+                            test_w_args = ['python'] + [testname] + args
                         sts = subprocess.call(test_w_args)
                 else:
                     if ctx.get('opt_noctr', None):
@@ -797,7 +865,8 @@ class Z0test:
                     else:
                         test_w_args = [testname] + args
                         sts = subprocess.call(test_w_args)
-            if sts:
+            if sts or ctx.get('test_result', None) is False:
+                sts = TEST_FAILED
                 break
         return sts
 
@@ -826,7 +895,7 @@ class Z0test:
             print "Invalid test library!"
             exit(TEST_FAILED)
         test_files = os.path.abspath(
-            os.path.join(self.this_dir,
+            os.path.join(self.test_dir,
                          self.module_id + '_test*.py'))
         tests = glob.glob(test_files)
         self.exec_tests_4_count(tests, ctx)
@@ -836,6 +905,7 @@ class Z0test:
                 print success_msg
             else:
                 print fail_msg
+        return sts
 
     def main(self, ctx, Test):
         """Default main program for all tests"""
@@ -902,13 +972,19 @@ class Z0test:
         # if ctx['ctr'] == 0:
         #     self.init_logger(ctx)
         ctx['ctr'] += 1
+        if ctx.get('test_result', None) is False:
+            return TEST_FAILED
         self.msg_test(ctx, msg)
         if not ctx.get('dry_run', False):
             if test_value != res_value:
-                print "Test failed: expected '%s', found '%s'" % (test_value,
-                                                                  res_value)
-                # pdb.set_trace()
-                return TEST_FAILED
+                print "Test '%s' failed" % msg
+                print "Expected '%s', found '%s'" % (test_value,
+                                                     res_value)
+                ctx['test_result'] = False
+                if ctx.get('on_error', '') != 'continue':
+                    raise AssertionError
+                else:
+                    return TEST_FAILED
         return TEST_SUCCESS
 
     def init_test_ctx(self, opt_echo):
@@ -919,6 +995,7 @@ class Z0test:
         elif opt_echo == '-q':
             z0ctx['WLOGCMD'] = 'wecho-0'
         z0ctx = self.clear_test_ctx(z0ctx)
+        z0ctx['_run_autotest'] = True
         # Value for auto regression test
         self.tlog_fn = '~/z0testlib.log'
         return z0ctx
