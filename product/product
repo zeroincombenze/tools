@@ -13,7 +13,7 @@
 # gcc always!
 # yum install python-requests python-yaml
 # codicefiscale pyxb pypdf for italian localization
-# pip install unicodecsv pydot vatnumber
+# pip install unicodecsv pydot vatnumber BeautifulSoup
 # products?
 # oerplib
 # wget
@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.4"
+__version__="0.2.28.5"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
