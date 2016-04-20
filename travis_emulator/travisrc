@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.8
+#__version__=0.1.65.9
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -1061,6 +1061,10 @@ clone_dependencies () {
 }
 
 run_svr_test_rm_ln () {
+    local n=$(get_cfg_value "" "dbtemplate")
+    run_traced "dropdb --if-exists $n"
+    local n=$(get_cfg_value "" "dbname")
+    run_traced "dropdb --if-exists $n"
     run_traced "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
     run_traced "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
     run_traced "if [ -L $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
@@ -1072,12 +1076,8 @@ run_svr_test_init () {
     local CMD
     run_traced "coverage erase"
     if [ "$PRJNAME" == "Odoo" ]; then
-      local n=$(get_cfg_value "" "dbtemplate")
-      run_traced "dropdb --if-exists $n"
-      local n=$(get_cfg_value "" "dbname")
-      run_traced "dropdb --if-exists $n"
-      run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
       run_svr_test_rm_ln
+      run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
       clone_dependencies
       local x=$(readlink -e $PRJPATH/..)
       run_traced "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"

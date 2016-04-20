@@ -106,7 +106,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   xtlver=$($RUNDIR/travis -V)
   ci-test "check for travis version" "$__version__" "$xtlver"
   xtlver=$($RUNDIR/please -V)
-  ci-test "check for travis version" "0.1.27.5" "$xtlver"
+  ci-test "check for travis version" "0.1.27.6" "$xtlver"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

@@ -67,7 +67,7 @@ TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
 
-__version__=0.1.2
+__version__=0.1.3
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -153,11 +153,11 @@ cat<<'EOF' >$FTEST
 > coverage erase
 > dropdb --if-exists openerp_template
 > dropdb --if-exists openerp_test
-> cp_n_upd "/etc/odoo/odooT-server.conf"
 > if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/l10n_it_base-T.0 ]; then rm -f /opt/odoo/l10n_it_base-T.0; fi
 > if [ -L /opt/odoo/odoo-T.0 ]; then rm -f /opt/odoo/odoo-T.0; fi
+> cp_n_upd "/etc/odoo/odooT-server.conf"
 > mkdir /opt/odoo/dependencies
 > export INCLUDE=l10n_it_base
 > ln -s /opt/odoo/odoo/T.0 /opt/odoo/odoo-T.0

@@ -128,7 +128,7 @@ conf_default () {
     set_cfg_def "HUPTST_CTR" "3"
     set_cfg_def "HUPTST_TAIL" "75"
     set_cfg_def "DEBUG_MODE" "0"
-    set_cfg_def "PG_MAX_SESS" "100"
+    # set_cfg_def "PG_MAX_SESS" "100"
 }
 
 
@@ -233,10 +233,10 @@ DEBUG_MODE=$(get_cfg_value "" "DEBUG_MODE")
 if [ $DEBUG_MODE -ne 0 ]; then
   set_tlog_file "$LOGFILE" "" "echo"
 fi
-PG_MAX_SESS=$(get_cfg_value "" "PG_MAX_SESS")
-if [ $PG_MAX_SESS -gt 500 -o $PG_MAX_SESS -lt 50 ]; then
-  PG_MAX_SESS=100
-fi
+# PG_MAX_SESS=$(get_cfg_value "" "PG_MAX_SESS")
+# if [ $PG_MAX_SESS -gt 500 -o $PG_MAX_SESS -lt 50 ]; then
+#   PG_MAX_SESS=100
+# fi
 if [ ! -d $CLODIR ]; then
   wlog "Directory $CLODIR not found!"
   exit 1
@@ -271,7 +271,7 @@ wlog "TIME_SLEEP=$TIME_SLEEP"
 wlog "HELLO_CTR=$HELLO_CTR"
 wlog "HUPTST_CTR=$HUPTST_CTR"
 wlog "HUPTST_TAIL=$HUPTST_TAIL"
-wlog "PG_MAX_SESS=$PG_MAX_SESS"
+# wlog "PG_MAX_SESS=$PG_MAX_SESS"
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000
 else
@@ -287,9 +287,9 @@ DB_ix=0
 PATH=$CLOBIN:$PATH
 while [ $ctr -gt 0 ]; do
   if [ $DEBUG_MODE -ne 0 ]; then
-     ~/pg_db_active -k -p $PG_MAX_SESS -v >>$LOGFILE
+     ~/pg_db_active -k -v >>$LOGFILE
   else
-     ~/pg_db_active -k -p $PG_MAX_SESS
+     ~/pg_db_active -k >>$LOGFILE
   fi
   test_db
   HANG_UP=
