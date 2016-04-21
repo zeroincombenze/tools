@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.15.15
+__version__=0.1.15.16
 
 
 detached_login () {
@@ -113,6 +113,20 @@ test_db () {
 }
 
 
+test_hang_up () {
+    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    if [ -z "$HANG_UP" ]; then
+      HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
+      if [ -n "$HANG_UP" ]; then
+        local c=$(~/pg_db_active -c)
+        if [ $c -gt 10 ]; then
+          let c="$c-10"
+        fi
+        ~/pg_db_active -k -u $c>>$LOGFILE
+      fi
+    fi
+}
+
 conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
@@ -128,7 +142,6 @@ conf_default () {
     set_cfg_def "HUPTST_CTR" "3"
     set_cfg_def "HUPTST_TAIL" "75"
     set_cfg_def "DEBUG_MODE" "0"
-    # set_cfg_def "PG_MAX_SESS" "100"
 }
 
 
@@ -296,9 +309,9 @@ while [ $ctr -gt 0 ]; do
   if [ $sts -ne 0 ]; then
     dt=$(date)
     wlog "$dt Warning: invalid response"
-    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    test_hang_up
   elif [ $huptstctr -eq 0 ]; then
-    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    test_hang_up
     huptstctr=$HUPTST_CTR
   else
     ((huptstctr--))
