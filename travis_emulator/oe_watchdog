@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.15.16
+__version__=0.1.19
 
 
 detached_login () {
@@ -140,7 +140,7 @@ conf_default () {
     set_cfg_def "TIME_SLEEP" "90"
     set_cfg_def "HELLO_CTR" "21"
     set_cfg_def "HUPTST_CTR" "3"
-    set_cfg_def "HUPTST_TAIL" "75"
+    set_cfg_def "HUPTST_TAIL" "0"
     set_cfg_def "DEBUG_MODE" "0"
 }
 
@@ -239,8 +239,11 @@ if [ $HUPTST_CTR -gt 30 -o $HUPTST_CTR -lt 3 ]; then
   HUPTST_CTR=7
 fi
 HUPTST_TAIL=$(get_cfg_value "" "HUPTST_TAIL")
-if [ $HUPTST_TAIL -gt 300 -o $HUPTST_TAIL -lt 50 ]; then
-  HUPTST_CTR=50
+if [ $HUPTST_TAIL -gt 300 -o $HUPTST_TAIL -lt 75 ]; then
+  HUPTST_TAIL=$TIME_SLEEP
+  if [ $HUPTST_TAIL -lt 75 ]; then
+    HUPTST_TAIL=75
+  fi
 fi
 DEBUG_MODE=$(get_cfg_value "" "DEBUG_MODE")
 if [ $DEBUG_MODE -ne 0 ]; then
