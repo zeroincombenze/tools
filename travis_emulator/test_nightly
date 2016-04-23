@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.16
+__version__=0.1.76.17
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -749,6 +749,21 @@ if [ $EUID -eq 0 ]; then
       s=$?
       if [ $s -ne $STS_SUCCESS ]; then
         elog "!Python regression test FAILED!!"
+      fi
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    fi
+    if [ $opt_dry_run -eq 0 ]; then
+      resi=$(perl /usr/share/doc/mod_evasive-1.10.1/test.pl|head -n1)
+      rese=$(perl /usr/share/doc/mod_evasive-1.10.1/test.pl|tail -n1)
+      if [ "$(echo $resi|grep -v 200)" ]; then
+        s=$STS_FAILED
+      elif [ "$(echo $rese|grep -v 403)" ]; then
+        s=$STS_FAILED
+      else
+        s=$STS_SUCCESS
+      fi
+      if [ $s -ne $STS_SUCCESS ]; then
+        elog "!Apache mod_evasive FAILED!!"
       fi
       [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi

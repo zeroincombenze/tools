@@ -25,19 +25,20 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.7
+__version__=0.1.7.2
 
 
 
-OPTOPTS=(h        b          d       n           q           t         V           v)
-OPTDEST=(opt_help opt_branch opt_del opt_dry_run opt_verbose test_mode opt_version opt_verbose)
-OPTACTI=(1        "="        1       1           0           1         "*"         "+")
-OPTDEFL=(1        "9.0"      0       0           -1          0         ""          -1)
-OPTMETA=("help"   "branch"   "del"   "noop"      "quiet"     "test"    "version"   "verbose")
+OPTOPTS=(h        b          d      n           o       q           t         V           v)
+OPTDEST=(opt_help opt_branch opt_DB opt_dry_run opt_del opt_verbose test_mode opt_version opt_verbose)
+OPTACTI=(1        "="        "=>"   1           1       0           1         "*"         "+")
+OPTDEFL=(1        "9.0"      ""     0           0       -1          0         ""          -1)
+OPTMETA=("help"   "branch"   "name" "noop"      "del"   "quiet"     "test"    "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
- "delete DB if exists"\
+ "set database name"\
  "do nothing (dry-run)"\
+ "delete DB if exists"\
  "silent mode"\
  "test mode (implies dry-run)"\
  "show version end exit"\
@@ -54,29 +55,45 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-
+opts=
+if [ $opt_dry_run -ne 0 ]; then
+  opts="$opts -n"
+fi
 if [ "$action" == "install" ]; then
    if [ ! -d data ]; then
-     echo "Directory data not found!"
+     echo "Directory data/ not found!"
+     exit 1
+   fi
+   if [ ! -d conf ]; then
+     echo "Directory conf/ not found!"
      exit 1
    fi
    CFLOOP="09 00 10 11 13 13 20 21 30"
    for cf in $CFLOOP; do
-     if [ ! -f z0_install_$cf.conf ]; then
+     if [ ! -f conf/z0_install_$cf.conf ]; then
        echo "Configurarion file z0_install_$cf.conf not found!"
        exit 1
      fi
    done
    for cf in $CFLOOP; do
      if [ "$cf" == "00" ]; then
-       echo "clodoo.py -c=conf/z0_install_$cf.conf"
-       clodoo.py -c=conf/z0_install_$cf.conf
+       if [ -n "$opt_DB" ]; then
+         optdb="-d=$opt_DB"
+       else
+         optdb=
+       fi
+       echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb"
+       clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb
      elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
        true
      else
-       db=$(cat clodoo_last.conf|awk -F= '{print $2}')
-       echo "clodoo.py -c=conf/z0_install_$cf.conf -d=$db"
-       clodoo.py -c=conf/z0_install_$cf.conf -d=$db
+       if [ -n "$opt_DB" ]; then
+         db=$opt_DB
+       else
+         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+       fi
+       echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db"
+       clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db
      fi
    done
 fi
