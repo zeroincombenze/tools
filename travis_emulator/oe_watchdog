@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.19
+__version__=0.1.20
 
 
 detached_login () {
@@ -131,10 +131,10 @@ conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
-    set_cfg_def "svc_name" "openerp"
+    set_cfg_def "svc_name" "odoo-server"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "CLOBIN" "/opt/odoo/tools/clodoo"
-    set_cfg_def "ODOO_CONF" "/opt/odoo/openerp.conf"
+    set_cfg_def "ODOO_CONF" "/opt/odoo/odoo-server.conf"
     set_cfg_def "ODOO_LOG" "/var/log/odoo/openerp-server.log"
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
