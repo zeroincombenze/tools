@@ -18,7 +18,7 @@ else
   exit 1
 fi
 
-__version__="0.2.2"
+__version__="0.2.3"
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
 
@@ -47,11 +47,11 @@ get_arch () {
 }
 
 
-OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        U        V           v)
-OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_user opt_version opt_verbose)
-OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "9"        ""     ""       "odoo"   ""          0)
-OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "user"   "version"   "verbose")
+OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
+OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "9"        ""     ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
@@ -63,6 +63,7 @@ OPTHELP=("this help"\
  "select odoo version: may be 7, 8 or 9"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "created test script does nothing (used for debug)"\
+ "use template (def /etc/product/odoo-server_{linux_dist})"\
  "odoo service username"\
  "show version"\
  "verbose mode")
@@ -95,21 +96,21 @@ if [ -z "$opt_pid" ]; then
   if [ $opt_mult -gt 0 ]; then
     opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
   else
-    opt_pid=/var/run/${opt_id}/${opt_id}-server.pid
+    opt_pid=/var/run/${opt_id}/${opt_name}.pid
   fi
 fi
 if [ -z "$opt_flog" ]; then
   if [ $opt_mult -gt 0 ]; then
     opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
   else
-    opt_flog=/var/log/${opt_id}/${opt_id}-server.log
+    opt_flog=/var/log/${opt_id}/${opt_name}.log
   fi
 fi
 if [ -z "$opt_cfg" ]; then
   if [ $opt_mult -gt 0 ]; then
     opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
   else
-    opt_cfg=/etc/${opt_id}/${opt_id}-server.conf
+    opt_cfg=/etc/${opt_id}/${opt_name}.conf
   fi
 fi
 opt_cfg2="$(dirname $opt_cfg)"
@@ -126,13 +127,32 @@ if [ -n "$opt_osf" ]; then
 else
   FH=$(xuname "-f")
 fi
-# if [ $opt_verbose -gt 0 ]; then
-  echo "Building $script_name for $FH Linux distribution"
-  echo "- logfile is $opt_flog"
-  echo "- pidfile is $opt_pid"
-  echo "- def.conf.file is $opt_cfg"
-  echo "- alt.conf.file is $opt_cfg2"
-# fi
+if [ -f "$opt_cfg" ]; then
+  CFG_FILE=$opt_cfg
+elif [ -f "$opt_cfg2" ]; then
+  CFG_FILE=$opt_cfg2
+else
+  CFG_FILE=
+fi
+if [ -n "$CFG_FILE" ]; then
+  cfg_pidfile=$(grep "^pidfile *=" $CFG_FILE|awk -F= '{print $2}')
+  cfg_pidfile=$(echo $cfg_pidfile)
+  cfg_logfile=$(grep "^logfile *=" $CFG_FILE|awk -F= '{print $2}')
+  cfg_logfile=$(echo $cfg_logfile)
+  if [ -n "$cfg_pidfile" -a "$cfg_pidfile" != "$opt_pid" ]; then
+    echo "??? Mismatch pidfile configuration!?!?!?"
+    echo "Found $cfg_pidfile in configuratione file rather than $opt_pid"
+  fi
+  if [ -n "$cfg_logfile" -a "$cfg_logfile" != "$opt_flog" ]; then
+    echo "??? Mismatch logfile configuration!?!?!?"
+    echo "Found $cfg_logfile in configuration file rather than $opt_flog"
+  fi
+fi
+echo "Building $script_name for $FH Linux distribution"
+echo "- logfile is $opt_flog"
+echo "- pidfile is $opt_pid"
+echo "- def.conf.file is $opt_cfg"
+echo "- alt.conf.file is $opt_cfg2"
 src_template=""
 for d in $TDIR . /etc/product; do
   for p in $FH .;do

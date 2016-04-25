@@ -10,7 +10,7 @@ xtl_user=odoo
 xtl_test=0
 #!/bin/bash
 # ${xtl_name}           This shell script takes care of starting and stopping
-#                       ${xtl_Id} server V${xtl_version}
+#                       ${xtl_Id} server ${xtl_version}
 #
 # chkconfig: 345 95 05
 # description: ${xtl_Id} server
@@ -29,12 +29,12 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.2.3-RHEL
+# version: 0.2.5-RHEL
 # Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
 # This free software is released under GNU Affero GPL3
-# Update follow line to enable dry_run or set real executable script (DRY_RUN=0)
+# Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
 # Recognize Linux distribution (Ubuntu or CentOS)
 if [ -f /etc/centos-release ]; then
@@ -62,9 +62,14 @@ if [ "$DIST" == "Ubuntu" ]; then
   PATH=/bin:/sbin:/usr/bin
 fi
 
-DAEMON=/opt/${xtl_user}/${xtl_version}/openerp-server
+# Specify the user name (Default: odoo).
+USER=${xtl_user}
+DAEMON=/opt/${USER}/${xtl_version}/openerp-server
 if [ ! -x "$DAEMON" ]; then
-  DAEMON=/opt/${xtl_user}/${xtl_version}/odoo-server
+  DAEMON=/opt/${USER}/${xtl_version}/server/openerp-server
+fi
+if [ ! -x "$DAEMON" ]; then
+  DAEMON=/opt/${USER}/${xtl_version}/odoo-server
 fi
 if [ ! -x "$DAEMON" ]; then
   DAEMON=/usr/bin/openerp-server
@@ -74,8 +79,6 @@ if [ ! -x "$DAEMON" ]; then
 fi
 NAME=${xtl_name}
 DESC="${xtl_Id} Server Daemon ($NAME)"
-# Specify the user name (Default: odoo).
-USER=${xtl_user}
 # Specify config file (Default: ${xtl_cfgfile}).
 if [ -f ${xtl_cfgfile} ]; then
   CONFIGFILE="${xtl_cfgfile}"
@@ -94,7 +97,7 @@ if [ "$DIST" == "Ubuntu" ]; then
 else
   DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
 fi
-# check if the ${xtl_name} conf file is present, then use it
+# check if the ${NAME} conf file is present, then use it
 if [ -f $CONFIGFILE ]; then
     DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 fi
@@ -118,7 +121,15 @@ check_privsep_dir() {
     if [ ! -d $PIDDIR ]; then
       mkdir $PIDDIR
       chmod 0755 $PIDDIR
-      chown ${xtl_user}:${xtl_user} $PIDDIR
+      chown ${USER}:${USER} $PIDDIR
+    fi
+    if [ "$PIDDIR" != "/var/run" ]; then
+      uu=$(stat -c %U $PIDDIR)
+      if [ "$uu" != "${USER}" ]; then
+        echo "Invalid pid file owner!"
+        chmod 0755 $PIDDIR
+        chown ${USER}:${USER} $PIDDIR
+      fi
     fi
 }
 
@@ -126,7 +137,7 @@ check_privsep_dir() {
 start_CentOS () {
     # TODO: CentOS old code, could be removed?
     if [ -d /etc/${xtl_id}/start.d ] ; then
-        echo -n $"Preparing $DESC: "
+        echo -n "Preparing $DESC: "
         if [ $DRY_RUN -gt 0 ]; then
           echo "> run-parts --exit-on-error /etc/${xtl_id}/start.d"
         else
@@ -171,7 +182,7 @@ start_Ubuntu () {
 
 start() {
     if [ "$1" != "mute" ]; then
-        echo -n "Starting ${DESC}: "
+        echo "Starting ${DESC}: "
     fi
     if [ "$DIST" == "CentOS" ]; then
         start_CentOS
@@ -204,7 +215,7 @@ stop_CentOS () {
         echo
     fi
     if [ -d /etc/${xtl_id}/stop.d ] ; then
-        echo -n $"Clearing $DESC: "
+        echo -n "Clearing $DESC: "
         run-parts /etc/${xtl_id}/stop.d
         echo
     fi
@@ -227,7 +238,7 @@ stop_Ubuntu () {
 
 stop() {
     if [ "$1" != "mute" ]; then
-        echo -n "Stopping ${DESC}: "
+        echo "Stopping ${DESC}: "
     fi
     if [ "$DIST" == "CentOS" ]; then
         stop_CentOS
@@ -243,7 +254,7 @@ stop() {
 
 
 restart() {
-    echo -n "Restarting ${DESC}: "
+    echo "Restarting ${DESC}: "
     stop
     sleep 3
     start
@@ -259,12 +270,12 @@ status() {
         checkpid `cat $PIDFILE`
         RETVAL=$?
         if [ $RETVAL -eq 0 ] ; then
-            echo  $"$NAME is running..."
+            echo "$NAME is running..."
         else
-            echo  $"$NAME is stopped"
+            echo "$NAME is stopped"
         fi
     else
-        echo  $"$NAME is stopped"
+        echo "$NAME is stopped"
     fi
     return $RETVAL
 }
@@ -296,7 +307,7 @@ case "${1}" in
 
     *)
         if [ "$DIST" == "CentOS" ]; then
-          echo $"Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
+          echo "Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
         elif [ "$DIST" == "Ubuntu" ]; then
            echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
         else
