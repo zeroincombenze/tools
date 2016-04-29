@@ -25,7 +25,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.7.24.2"
+__version__="1.7.24.3"
 
 OPTOPTS=(h        V           v)
 OPTDEST=(opt_help opt_version opt_verbose)
@@ -55,6 +55,8 @@ publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
 wlog "****** $THIS $__version__ ******"
+PRODUCTION_HOST="shsdev16"
+DEVELOPMENT_HOST="shsprd16"
 #
 ff="$HOME/bckwww.ftp"
 echo>$ff
@@ -148,15 +150,15 @@ exec 3<&-
 echo bye>>$ff
 
 if [ "$1" == "-A" ]; then
-  wlog "\$ sftp -b $ff root@shsprd16"
-  sftp -b $ff root@shsprd16
-  wlog "\$ ssh ssh root@shsprd16 'at -f ./restwww now'"
-  ssh root@shsprd16 "at -f ./restwww now"
+  wlog "\$ sftp -b $ff root@$DEVELOPMENT_HOST"
+  sftp -b $ff root@$DEVELOPMENT_HOST
+  wlog "\$ ssh ssh root@$DEVELOPMENT_HOST 'at -f ./restwww now'"
+  ssh root@$DEVELOPMENT_HOST "at -f ./restwww now"
 else
-  wlog "\$ sftp -b $ff root@shsdev16"
-  sftp -b $ff root@shsdev16
-  wlog "\$ ssh root@shsdev16 'at -f ./restwww now'"
-  ssh root@shsdev16 "at -f ./restwww now"
+  wlog "\$ sftp -b $ff root@$PRODUCTION_HOST"
+  sftp -b $ff root@$PRODUCTION_HOST
+  wlog "\$ ssh root@$PRODUCTION_HOST 'at -f ./restwww now'"
+  ssh root@$PRODUCTION_HOST "at -f ./restwww now"
 fi
 
 wlog "All www dirs are backupped!"

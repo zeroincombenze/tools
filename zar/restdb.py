@@ -158,7 +158,6 @@ class Restore_Image:
         self.create_dict()
 
     def create_dict(self):
-        # pdb.set_trace()
         self.dict = {}
         self.xtl = {}
         self.seed = 0
