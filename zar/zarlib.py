@@ -84,7 +84,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.7.1"
+__version__ = "0.1.8"
 
 
 def default_conf(ctx):
@@ -108,8 +108,8 @@ def default_conf(ctx):
               "bckapp": b,
               "restapp": r,
               "specimen": "file",
-              "production_host": "shsprd16",
-              "development_host": "shsdev16",
+              "production_host": "shsdef16",
+              "development_host": "shsita16",
               "mirror_host": "shsprd14",
               "ftp_script": a + ".ftp",
               "list_file": b + ".ls",

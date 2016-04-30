@@ -25,7 +25,12 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.7.24.3"
+__version__="1.7.25"
+
+conf_default () {
+    set_cfg_def "DEV_HOST" "shsita16"
+    set_cfg_def "PRD_HOST" "shsdef14"
+}
 
 OPTOPTS=(h        V           v)
 OPTDEST=(opt_help opt_version opt_verbose)
@@ -48,6 +53,15 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+FCONF=./zar.conf
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $FCONF
+PRODUCTION_HOST=$(get_cfg_value "" "production_host")
+DEVELOPMENT_HOST=$(get_cfg_value "" "development_host")
+MIRROR_HOST=$(get_cfg_value "" "mirror_host")
+
 if [ -z "$seldir" ]; then
   seldir="*"
 fi
@@ -55,8 +69,7 @@ publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
 wlog "****** $THIS $__version__ ******"
-PRODUCTION_HOST="shsdev16"
-DEVELOPMENT_HOST="shsprd16"
+
 #
 ff="$HOME/bckwww.ftp"
 echo>$ff
@@ -150,16 +163,17 @@ exec 3<&-
 echo bye>>$ff
 
 if [ "$1" == "-A" ]; then
+  wlog "\$ sftp -b $ff root@$MIRROR_HOST"
+  sftp -b $ff root@$MIRROR_HOST
+  wlog "\$ ssh root@$MIRROR_HOST 'at -f ./restwww now'"
+  ssh root@$MIRROR_HOST "at -f ./restwww now"
+else
   wlog "\$ sftp -b $ff root@$DEVELOPMENT_HOST"
   sftp -b $ff root@$DEVELOPMENT_HOST
   wlog "\$ ssh ssh root@$DEVELOPMENT_HOST 'at -f ./restwww now'"
   ssh root@$DEVELOPMENT_HOST "at -f ./restwww now"
-else
-  wlog "\$ sftp -b $ff root@$PRODUCTION_HOST"
-  sftp -b $ff root@$PRODUCTION_HOST
-  wlog "\$ ssh root@$PRODUCTION_HOST 'at -f ./restwww now'"
-  ssh root@$PRODUCTION_HOST "at -f ./restwww now"
 fi
+rm -f $ff
 
 wlog "All www dirs are backupped!"
 exit 0
