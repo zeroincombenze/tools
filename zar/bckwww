@@ -25,16 +25,12 @@ else
   exit $STS_FAILED
 fi
 
-<<<<<<< HEAD
 __version__="1.7.25"
 
 conf_default () {
     set_cfg_def "DEV_HOST" "shsita16"
     set_cfg_def "PRD_HOST" "shsdef14"
 }
-=======
-__version__="1.7.24.3"
->>>>>>> dbd7192b85117d632323debe711a530910f51438
 
 OPTOPTS=(h        V           v)
 OPTDEST=(opt_help opt_version opt_verbose)
@@ -73,12 +69,7 @@ publog="/var/log/bckwww.log"
 set_tlog_file "$publog"
 opt_quiet=1
 wlog "****** $THIS $__version__ ******"
-<<<<<<< HEAD
 
-=======
-PRODUCTION_HOST="shsdev16"
-DEVELOPMENT_HOST="shsprd16"
->>>>>>> dbd7192b85117d632323debe711a530910f51438
 #
 ff="$HOME/bckwww.ftp"
 echo>$ff
@@ -172,7 +163,6 @@ exec 3<&-
 echo bye>>$ff
 
 if [ "$1" == "-A" ]; then
-<<<<<<< HEAD
   wlog "\$ sftp -b $ff root@$MIRROR_HOST"
   sftp -b $ff root@$MIRROR_HOST
   wlog "\$ ssh root@$MIRROR_HOST 'at -f ./restwww now'"
@@ -182,17 +172,6 @@ else
   sftp -b $ff root@$DEVELOPMENT_HOST
   wlog "\$ ssh ssh root@$DEVELOPMENT_HOST 'at -f ./restwww now'"
   ssh root@$DEVELOPMENT_HOST "at -f ./restwww now"
-=======
-  wlog "\$ sftp -b $ff root@$DEVELOPMENT_HOST"
-  sftp -b $ff root@$DEVELOPMENT_HOST
-  wlog "\$ ssh ssh root@$DEVELOPMENT_HOST 'at -f ./restwww now'"
-  ssh root@$DEVELOPMENT_HOST "at -f ./restwww now"
-else
-  wlog "\$ sftp -b $ff root@$PRODUCTION_HOST"
-  sftp -b $ff root@$PRODUCTION_HOST
-  wlog "\$ ssh root@$PRODUCTION_HOST 'at -f ./restwww now'"
-  ssh root@$PRODUCTION_HOST "at -f ./restwww now"
->>>>>>> dbd7192b85117d632323debe711a530910f51438
 fi
 rm -f $ff
 
