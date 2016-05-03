@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.76.17
+__version__=0.1.77
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -569,8 +569,8 @@ exit_n_status () {
 }
 
 conf_default () {
-    set_cfg_def "DEV_HOST" "shsdev16"
-    set_cfg_def "PRD_HOST" "shsprd14"
+    set_cfg_def "DEV_HOST" "shsita16"
+    set_cfg_def "PRD_HOST" "shsdef14"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
     set_cfg_def "MYPKG" "travis_emulator"
     set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
