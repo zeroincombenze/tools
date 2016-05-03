@@ -36,7 +36,7 @@ import string
 import re
 from zarlib import parse_args, check_if_running
 
-__version__ = "2.0.29.1"
+__version__ = "2.0.29.2"
 
 
 def version():
@@ -58,7 +58,7 @@ class Restore_Image:
         self.flist = homedir + "/" + ctx['list_file']
         os0.set_tlog_file(ctx['logfn'])
         # Log begin execution
-        os0.wlog("Backup database files", __version__)
+        os0.wlog("Restore configuration files", __version__)
         # Simulate backup
         self.dry_run = ctx['dry_run']
         if ctx['saveset'] == "bckdb" or \
@@ -145,19 +145,19 @@ class Restore_Image:
         self.dict = {}
         self.xtl = {}
         self.seed = 0
-        # pdb.set_trace()
         try:
             cnf_fd = open(self.fconf, "r")
             line = cnf_fd.readline()
             while line != "":
                 i = line.rfind('\n')
-                if i >= 0:
+                if i >= 0 and line[0:1] != "#":
+                    line = line.replace("\\ ", "\\b")
                     line = re.sub('\\s+', ' ', line).strip()
                     f = string.split(line, ' ')
                     self.add_dict_entr(f[0], f[1], f[2])
                 line = cnf_fd.readline()
         except:
-            pass
+            os0.wlog("No dictionary file", self.fconf, "found!")
 
     def add_dict_entr(self, name, src, tgt):
         self.seed = self.seed + 1
@@ -168,7 +168,7 @@ class Restore_Image:
         else:
             self.dict[name] = [key]
         self.xtl[key] = val
-        # print "[{0}] !{1}->{2}!".format(name, src, tgt)
+        # os0.wlog("> s|{0}|{1}|g {2}!".format(src, tgt, name))
 
     def search4item(self, item):
         if item in self.dict:

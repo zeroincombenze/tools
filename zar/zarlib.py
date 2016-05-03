@@ -32,7 +32,7 @@ import re
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
-CONF_FN = False
+CONF_FN = "./zar.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
 ODOO_CONF = False
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
@@ -84,7 +84,7 @@ LX_SB = ()
 LX_OPT_ARGS = {}
 DEFDCT = {}
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 
 def default_conf(ctx):
@@ -108,8 +108,8 @@ def default_conf(ctx):
               "bckapp": b,
               "restapp": r,
               "specimen": "file",
-              "production_host": "shsprd16",
-              "development_host": "shsdev16",
+              "production_host": "shsdef16",
+              "development_host": "shsita16",
               "mirror_host": "shsprd14",
               "ftp_script": a + ".ftp",
               "list_file": b + ".ls",
@@ -289,7 +289,7 @@ def create_parser(version, doc, ctx):
                         help="configuration file",
                         dest="conf_fn",
                         metavar="file",
-                        default="./zar.conf")
+                        default=CONF_FN)
     parser.add_argument("-d", "--dbname",
                         help="single db operation",
                         dest="db_name",

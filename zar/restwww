@@ -14,7 +14,21 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.27"
+__version__="1.4.28"
+
+conf_default () {
+    set_cfg_def "DEV_HOST" "shsita16"
+    set_cfg_def "PRD_HOST" "shsdef14"
+}
+
+FCONF=./zar.conf
+$(init_cfg)
+$(active_cfg)
+conf_default
+link_cfg $FCONF
+PRODUCTION_HOST=$(get_cfg_value "" "production_host")
+DEVELOPMENT_HOST=$(get_cfg_value "" "development_host")
+MIRROR_HOST=$(get_cfg_value "" "mirror_host")
 
 # set -x
 publog="/var/log/restwww.log"
@@ -95,7 +109,7 @@ do
       # wlog "\$ rm -f $fqn"
       # rm -f $fqn
 
-      if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
+      if [ "$HOSTNAME" == "$DEVELOPMENT_HOST" ]; then
         if [ "$db" == "mw-zi.org/" ]
         then
           wlog "Change local data for wiki site .."

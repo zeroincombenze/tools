@@ -1,0 +1,165 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# pg_db_active
+# manage postgres sessions
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+elif [ -f /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
+fi
+
+__version__="0.1.7"
+
+db_active () {
+    act=$1
+    if [ "$act" == "-c" ]; then
+      local sqlc="select count(pid) from pg_stat_activity where pid<>pg_backend_pid();"
+      sess_ctr=$(psql -Upostgres -tc "$sqlc"|head -n1)
+      sess_ctr=$(echo $sess_ctr)
+    else
+      local LOG=~/${THIS}_$$.log
+      psql -Upostgres -tc "$sql" -o $LOG
+      local kill=0
+      local sess_ctr=1
+      older=0
+      while IFS=\| read db pid dt w st; do
+        if [ -n "$st" ]; then
+          ((sess_ctr++))
+          db=$(echo $db)
+          w=$(echo $w)
+          st=$(echo $st)
+          pid=$(echo $pid)
+          if [ "$act" == "-l" ]; then
+            echo "($pid) $db $w $st"
+          fi
+          if [ $older -eq 0 -a "$w" == "f" -a "$st" == "idle" ]; then
+            older=$pid
+          fi
+          if [ "$db" == "$DB" ]; then
+            if [ "$w" != "f" ]; then
+              kill=1
+            fi
+            if [ "${st:0:4}" != "idle" ]; then
+              kill=1
+            fi
+          fi
+        fi
+      done < $LOG
+      rm -f $LOG
+    fi
+    if [ "$act" == "-w" ]; then
+      return $kill
+    elif [ "$act" == "-c" -o "$act" == "-l" ]; then
+      echo $sess_ctr
+    elif [ "$act" == "-k" ]; then
+      echo $older
+    fi
+    return 0
+}
+
+OPTOPTS=(h        c       k        p        V           v           w)
+OPTDEST=(opt_help act_ctr act_kill pool     opt_version opt_verbose wait_db)
+OPTACTI=(1        "1>"    "1>"     "="      "*"         1           1)
+OPTDEFL=(0        0       0        -1       ""          0           0)
+OPTMETA=("help"   "count" "kill"   "number" "version"   "verbose"   "wait")
+OPTHELP=("this help"\
+ "count & show active connections"\
+ "kill all sessions out of pool"\
+ "declare # of session pool (def=100)"\
+ "show version end exit"\
+ "verbose mode"\
+ "wait for DB idle")
+OPTARGS=(DB)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Check for postgres DB sessions"\
+  "(C) 2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ $pool -lt 1 ]; then
+  pool=$(psql -Upostgres -tc "select setting from pg_settings where name='max_connections';"|head -n1)
+  pool=$(echo $pool)
+fi
+if [ $pool -lt 5 ]; then
+  pool=5
+fi
+act=-l
+loop_ctr=1
+sleep_tm=5
+if [ $wait_db -ne 0 -a -n "$DB" ]; then
+  act=-w
+  loop_ctr=3
+elif [ $act_ctr -ne 0 ]; then
+  act=-c
+elif [ $act_kill -ne 0 ]; then
+  act=-k
+  loop_ctr=8
+  sleep_tm=1
+fi
+if [ -z "$DB" ]; then
+  sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where pid<>pg_backend_pid();"
+else
+  sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
+fi
+let threshold="$pool/5"
+let pool_max="$pool-$threshold"
+let pool_min="$pool_max-$threshold"
+bias=0
+sts=1
+while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
+  if [ $act_kill -ne 0 ]; then
+    sess_ctr=$(db_active "-c")
+    if [ $opt_verbose -gt 0 ]; then
+      echo "Found $sess_ctr currently active sessions"
+    fi
+    if [ $sess_ctr -gt $pool_max -a $bias -eq 0 ]; then
+      killing=1
+      bias=1
+      loop_ctr=$threshold
+    elif [ $sess_ctr -gt $pool_min -a $bias -ne 0 ]; then
+      killing=1
+    else
+      killing=0
+    fi
+    if [ $killing -gt 0 ]; then
+      pid=$(db_active "-k")
+      if [ $opt_verbose -gt 0 ]; then
+        echo "Killing $pid process"
+      fi
+      kill $pid
+      sts=1
+    else
+      sts=0
+    fi
+  else
+    db_active "$act"
+    sts=$?
+  fi
+  ((loop_ctr--))
+  if [ $sts -ne 0 ]; then
+    sleep $sleep_tm
+  fi
+done
+exit $sts

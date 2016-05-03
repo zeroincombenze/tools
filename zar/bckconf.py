@@ -37,7 +37,7 @@ from datetime import datetime
 from zarlib import parse_args
 
 
-__version__ = "2.1.17.2"
+__version__ = "2.1.17.3"
 
 
 def version():
@@ -59,7 +59,7 @@ class Backup_Mirror:
         self.flist = homedir + "/" + ctx['list_file']
         os0.set_tlog_file(ctx['logfn'])
         # Log begin execution
-        os0.wlog("Backup database files", __version__)
+        os0.wlog("Backup configuration files", __version__)
         # Simulate backup
         self.dry_run = ctx['dry_run']
         if ctx['saveset'] == "bckdb" or \
