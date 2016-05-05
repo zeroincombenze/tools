@@ -25,9 +25,9 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.79.1
+__version__=0.1.80
 
-TCONF=$TDIR/.$THIS.conf
+TCONF=$TDIR/.travis.conf
 # main
 OPTOPTS=(h        C         c        d        F         n            P         p         q           R         S        u       V           v           W          w         -)
 OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_dry_run  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
