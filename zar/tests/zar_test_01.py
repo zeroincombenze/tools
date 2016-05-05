@@ -25,7 +25,7 @@
 # import pdb
 # import os.path
 import sys
-from z0testlib import Z0test
+from zerobug import Z0test
 
 
 __version__ = "0.1.2"
@@ -61,7 +61,7 @@ class Test():
 # Run main if executed as a script
 if __name__ == "__main__":
     # pdb.set_trace()
-    Z = Z0test()
+    Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
     sts = Z.main_local(ctx, Test)
