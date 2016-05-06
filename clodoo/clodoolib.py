@@ -116,7 +116,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 
 
 #############################################################################
@@ -249,7 +249,7 @@ def default_conf(ctx):
     dts_start = date(y, 1, 1).strftime(dfmt)
     dts_stop = date(y, 12, 31).strftime(dfmt)
     DEFDCT = {'login_user': 'admin',
-              'login_password': 'admin',
+              'login_password': 'Ec{fu',
               'login2_user': 'admin',
               'login2_password': 'admin',
               'db_host': 'localhost',

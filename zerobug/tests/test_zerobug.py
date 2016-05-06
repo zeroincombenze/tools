@@ -20,18 +20,20 @@
 #
 ##############################################################################
 """
-    Zeroincombenze® Archives Replica Regression Test Suite
+    Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 
 # import pdb
-# import os.path
 import sys
+# import os
+# import os.path
+# from zerobug.z0testlib import Z0test
 from zerobug import Z0test
 
 
-__version__ = "0.1.2"
+__version__ = "0.1.9"
 
-MODULE_ID = 'clodoo'
+MODULE_ID = 'zerobug'
 
 
 def version():

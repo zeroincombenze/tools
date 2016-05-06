@@ -96,6 +96,11 @@ _parser:        parser
 _opt_obj:       parser obj, to acquire optional switches
 WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 Z0:             this library object
+
+Environment read:
+DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
+COVERAGE_PROCESS_START
+                Name of coverage conf file; if set test is running for coverage
 """
 
 # import pdb
@@ -110,7 +115,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.1.9"
+__version__ = "0.2.0"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -150,7 +155,7 @@ LX_OPT_CFG_N = ('ctr', 'max_test')
 # must be declared in LX_CFG_S or LX_OPT_CFG_S
 LX_SB = ('dry_run',)
 #
-DEFDCT = {}
+DEFDCT = {'opt_new': False}
 #
 LX_OPT_ARGS = {'opt_echo': '-e',
                'logfn': '-l',
@@ -184,7 +189,7 @@ class Test():
                                          "Opt -n (tty)",
                                          True,
                                          ctx['run_tty'])
-            else:
+            else:                                           # pragma: no cover
                 sts = self.Z.test_result(z0ctx,
                                          "Opt -n (tty)",
                                          False,
@@ -195,7 +200,7 @@ class Test():
                                          "Opt -n (daemon)",
                                          False,
                                          ctx['run_daemon'])
-            else:
+            else:                                           # pragma: no cover
                 sts = self.Z.test_result(z0ctx,
                                          "Opt -n (daemon)",
                                          True,
@@ -206,7 +211,7 @@ class Test():
                                          "Opt -n (-e)",
                                          True,
                                          ctx['opt_echo'])
-            else:
+            else:                                           # pragma: no cover
                 sts = self.Z.test_result(z0ctx,
                                          "Opt -n (-e)",
                                          False,
@@ -235,7 +240,7 @@ class Test():
         if sts == TEST_SUCCESS:
             if os.environ.get("COVERAGE_PROCESS_START", ""):
                 tres = True
-            else:
+            else:                                           # pragma: no cover
                 tres = False
             sts = self.Z.test_result(z0ctx,
                                      "Opt -n (-0)",
@@ -245,7 +250,6 @@ class Test():
 
     def test_02(self, z0ctx):
         """Sanity autotest #2"""
-        # z0ctx = self.clear_test_ctx(z0ctx)
         tlog = "~/dev/z0testlib.log"
         opts = ['-n']
         ctx = self.Z.parseoptest(opts, tlog=tlog)
@@ -267,7 +271,6 @@ class Test():
 
     def test_03(self, z0ctx):
         """Sanity autotest #3"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
         tlog = "~/dev/z0testlib.log"
         opts = ['-n', '-l', tlog]
         ctx = self.Z.parseoptest(opts)
@@ -289,7 +292,6 @@ class Test():
 
     def test_04(self, z0ctx):
         """Sanity autotest #4"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
         opts = ['-e']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
@@ -310,7 +312,6 @@ class Test():
 
     def test_05(self, z0ctx):
         """Sanity autotest #5"""
-        # z0ctx = self.Z.clear_test_ctx(z0ctx)
         opts = ['-q']
         ctx = self.Z.parseoptest(opts)
         sts = self.Z.test_result(z0ctx,
@@ -399,15 +400,37 @@ class Test():
         """Sanity autotest #8"""
         opts = []
         ctx = self.Z.parseoptest(opts)
-        sts = self.simulate_main(ctx, '3')
+        sts = self.simulate_main(ctx, '1')
         if os.environ.get("COVERAGE_PROCESS_START", ""):
             tres = 0
-        else:
-            tres = 3
+        else:                                               # pragma: no cover
+            tres = 1
         sts = self.Z.test_result(z0ctx,
                                  "UT",
                                  tres,
                                  ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '2')
+            if os.environ.get("COVERAGE_PROCESS_START", ""):
+                tres = 0
+            else:                                           # pragma: no cover
+                tres = 2
+            sts = self.Z.test_result(z0ctx,
+                                     "UT",
+                                     tres,
+                                     ctx['max_test'])
+        if sts == TEST_SUCCESS:
+            ctx = self.Z.parseoptest(opts)
+            sts = self.simulate_main(ctx, '3')
+            if os.environ.get("COVERAGE_PROCESS_START", ""):
+                tres = 0
+            else:                                           # pragma: no cover
+                tres = 3
+            sts = self.Z.test_result(z0ctx,
+                                     "UT",
+                                     tres,
+                                     ctx['max_test'])
         if sts == TEST_SUCCESS:
             opts = ['-0']
             ctx = self.Z.parseoptest(opts)
@@ -422,7 +445,7 @@ class Test():
             sts = self.simulate_main(ctx, '3')
             if os.environ.get("COVERAGE_PROCESS_START", ""):
                 tres = 0
-            else:
+            else:                                           # pragma: no cover
                 tres = 3
             sts = self.Z.test_result(z0ctx,
                                      "UT -n",
@@ -479,8 +502,11 @@ class Z0test:
 
     def __init__(self, id=None):
         caller_fqn = os.path.abspath(inspect.stack()[1][1])
-        this_dir = os.path.dirname(caller_fqn)
         caller = os0.nakedname(os.path.basename(caller_fqn))
+        if caller == "__init__":
+            caller_fqn = os.path.abspath(inspect.stack()[2][1])
+            caller = os0.nakedname(os.path.basename(caller_fqn))
+        this_dir = os.path.dirname(caller_fqn)
         if not id:
             if caller[0:5] == 'test_':
                 id = caller[5:]
@@ -492,13 +518,13 @@ class Z0test:
                 id = id[0:-5]
         self.module_id = id
         self.this_dir = this_dir
-        if os.path.isdir('./tests'):
-            os.path.join(self.this_dir,
-                         'tests')
-            self.pkg_dir = self.this_dir
-        else:
+        if os.path.basename(this_dir) == 'tests':
             self.test_dir = self.this_dir
             self.pkg_dir = os.path.abspath(self.this_dir + '/..')
+        else:                                               # pragma: no cover
+            self.test_dir = os.path.join(self.this_dir,
+                                         'tests')
+            self.pkg_dir = self.this_dir
         # If auto regression test is executing
         self.tlog_fn = os.path.join(self.test_dir,
                                     self.module_id + "_test.log")
@@ -594,7 +620,6 @@ class Z0test:
 
     def create_params_dict(self, ctx):
         """Create all params dictionary"""
-        # conf_obj = ctx.get('_conf_obj', None)
         ctx = self.create_def_params_dict(ctx)
         if 'opt_echo' not in ctx or ctx['opt_echo'] is None:
             ctx['opt_echo'] = ctx['run_tty']
@@ -633,7 +658,7 @@ class Z0test:
         opt_obj = ctx.get('_opt_obj', None)
         conf_obj = ctx.get('_conf_obj', None)
         s = "options"
-        if conf_obj:
+        if conf_obj:                                        # pragma: no cover
             if not conf_obj.has_section(s):
                 conf_obj.add_section(s)
             for p in LX_CFG_S:
@@ -688,7 +713,7 @@ class Z0test:
         ctx['caller'] = caller
         if os.isatty(0):
             ctx['run_daemon'] = False
-        else:
+        else:                                               # pragma: no cover
             ctx['run_daemon'] = True
         ctx['run_tty'] = os.isatty(0)
         if tlog:
@@ -703,7 +728,7 @@ class Z0test:
         opt_obj = parser.parse_args(arguments)
         ctx['_opt_obj'] = opt_obj
         ctx = self.create_params_dict(ctx)
-        if ctx['esanity']:
+        if ctx['esanity']:                                  # pragma: no cover
             exit(self.sanity_check('-e'))
         elif ctx['qsanity']:
             exit(self.sanity_check('-q'))
@@ -865,7 +890,8 @@ class Z0test:
                     else:
                         test_w_args = [testname] + args
                         sts = subprocess.call(test_w_args)
-            if sts or ctx.get('test_result', None) is False:
+            if sts or \
+                    ctx.get('test_result', None) is False:  # pragma: no cover
                 sts = TEST_FAILED
                 break
         return sts
@@ -891,7 +917,7 @@ class Z0test:
         """Default main program for tests"""
         # Execute sanity check on test library
         sts = self.sanity_check('-q')
-        if sts == TEST_FAILED:
+        if sts == TEST_FAILED:                              # pragma: no cover
             print "Invalid test library!"
             exit(TEST_FAILED)
         test_files = os.path.abspath(
@@ -972,11 +998,11 @@ class Z0test:
         # if ctx['ctr'] == 0:
         #     self.init_logger(ctx)
         ctx['ctr'] += 1
-        if ctx.get('test_result', None) is False:
+        if ctx.get('test_result', None) is False:           # pragma: no cover
             return TEST_FAILED
         self.msg_test(ctx, msg)
         if not ctx.get('dry_run', False):
-            if test_value != res_value:
+            if test_value != res_value:                     # pragma: no cover
                 print "Test '%s' failed" % msg
                 print "Expected '%s', found '%s'" % (test_value,
                                                      res_value)
@@ -987,13 +1013,20 @@ class Z0test:
                     return TEST_FAILED
         return TEST_SUCCESS
 
-    def init_test_ctx(self, opt_echo):
+    def init_test_ctx(self, opt_echo, full=None):
         """Set context value for autoest"""
         z0ctx = {}
         if opt_echo == '-e':
             z0ctx['WLOGCMD'] = 'echo'
         elif opt_echo == '-q':
             z0ctx['WLOGCMD'] = 'wecho-0'
+        if full:                                            # just for tests
+            for p in (LX_OPT_CFG_S):
+                if p not in z0ctx:
+                    z0ctx[p] = ''
+            for p in (LX_OPT_CFG_B):
+                if p not in z0ctx:
+                    z0ctx[p] = False
         z0ctx = self.clear_test_ctx(z0ctx)
         z0ctx['_run_autotest'] = True
         # Value for auto regression test
@@ -1009,13 +1042,15 @@ class Z0test:
                 del ctx[p]
         return ctx
 
-    def sanity_check(self, opt_echo):
+    def sanity_check(self, opt_echo, full=None):
         """Internal regression test
         Module z0testlib is needed to run regression tests
         This function run auto validation tests for z0testlib functions
         """
-        z0ctx = self.init_test_ctx(opt_echo)
+        z0ctx = self.init_test_ctx(opt_echo, full)
         sts = self.main_local(z0ctx, Test)
+        if full:
+            z0ctx[''] = ''
         return sts
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

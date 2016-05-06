@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
@@ -20,31 +19,50 @@
 #
 ##############################################################################
 """
-    Zeroincombenze® Archives Replica Regression Test Suite
+    Zeroincombenze® unit test library for python programs Regression Test Suite
 """
 
 # import pdb
-# import os.path
+import os
+import os.path
 import sys
 from zerobug import Z0test
 
+__version__ = "0.1.9"
 
-__version__ = "0.1.2"
-
-MODULE_ID = 'clodoo'
+MODULE_ID = 'zerobug'
+TEST_FAILED = 1
+TEST_SUCCESS = 0
 
 
 def version():
     return __version__
 
 
+class Test():
+
+    def __init__(self, zarlib):
+        self.Z = zarlib
+
+    def test_01(self, z0ctx):
+        sts = self.Z.sanity_check('-e', full=True)
+        return sts
 #
 # Run main if executed as a script
 if __name__ == "__main__":
+    # pdb.set_trace()
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    sts = Z.main_file(ctx)
+    # Just for regression tests
+    cwd = os.getcwd()
+    if os.path.basename(cwd) == 'tests':
+        cwd = os.path.dirname(cwd)
+    coveragerc_file = os.path.abspath(
+        os.path.join(cwd, '.coveragerc'))
+    if os.path.isfile(coveragerc_file):
+        os.remove(coveragerc_file)
+    sts = Z.main_local(ctx, Test)
     exit(sts)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
