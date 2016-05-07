@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.9
+#__version__=0.1.65.10
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -957,6 +957,8 @@ cp_n_upd () {
         line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
       elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
         line=$(echo "logfile = False")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*openerp-server ]]; then
+        line=$(echo "logfile = False")
       elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9]* ]]; then
@@ -1067,6 +1069,9 @@ run_svr_test_rm_ln () {
     run_traced "dropdb --if-exists $n"
     run_traced "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
     run_traced "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
+    if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
+      run_traced "if [ -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server; fi"
+    fi
     run_traced "if [ -L $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
     run_traced "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
 }
@@ -1077,11 +1082,31 @@ run_svr_test_init () {
     run_traced "coverage erase"
     if [ "$PRJNAME" == "Odoo" ]; then
       run_svr_test_rm_ln
-      run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
+      if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
+        run_traced "cp_n_upd \"/etc/odoo/openerp-server.conf\""
+      else
+        run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
+      fi
       clone_dependencies
       local x=$(readlink -e $PRJPATH/..)
       run_traced "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
       run_traced "ln -s $PKGPATH $HOME/$pkgname-$VERSION"
+      if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
+        # run_traced "ln -s $x/server/openerp-server $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server"
+        cat <<EOF >$x/openerp-server
+#!/usr/bin/env python
+import os
+import subprocess
+import sys
+if __name__ == "__main__":
+    # cmd = ["openerp-server"] + sys.argv
+    # subprocess.call(cmd)
+    sys.path.insert(0,'/opt/odoo/v7/server')
+    import openerp
+    openerp.cli.main()
+EOF
+        chmod +x $x/openerp-server
+      fi
     else
       local n
     fi
