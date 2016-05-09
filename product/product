@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.5"
+__version__="0.2.28.6"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -1963,7 +1963,7 @@ test_install () {
         echo "--> apt-get -y install pydot">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
-      local opt_osub="account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
+      local opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
       if [ "$FH" == "RHEL" ]; then
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
