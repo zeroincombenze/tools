@@ -8,6 +8,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
+# OSError: [Errno 2] No such file or directory: '/usr/lib/python2.7/site-packages/babel/locale-data'
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 if [ -e $TDIR/z0librc ]; then
