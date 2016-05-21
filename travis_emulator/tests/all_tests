@@ -1,5 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+# Regression tests for Travis Emulator
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -13,8 +14,8 @@ elif [ -d ./tests ]; then
   TESTDIR=./tests
   RUNDIR=./
 elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
+  TESTDIR=.
+  RUNDIR=..
 else
   TESTDIR=$TDIR
   RUNDIR=$TDIR/..
@@ -24,44 +25,49 @@ if [ -d $TDIR/_travis ]; then
 elif [ -d $TDIR/../_travis ]; then
   TRAVISDIR=$TDIR/..
 elif [ -d ./_travis ]; then
-  TRAVISDIR=./
+  TRAVISDIR=.
 elif [ -d ../_travis ]; then
-  TRAVISDIR=../
+  TRAVISDIR=..
 else
   TRAVISDIR=~/dev/_travis
 fi
 if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
+  Z0LIBDIR=$TDIR
 elif [ -e ./z0librc ]; then
 . ./z0librc
+  Z0LIBDIR=.
 elif [ -e ../z0librc ]; then
 . ../z0librc
+  Z0LIBDIR=..
 elif [ -e ~/z0librc ]; then
 . ~/z0librc
+  Z0LIBDIR=~
 else
 . /etc/z0librc
+  Z0LIBDIR=/etc
 fi
 if [ -e $TDIR/z0testrc ]; then
 . $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
 elif [ -e ./z0testrc ]; then
 . ./z0testrc
+  Z0TLIBDIR=.
 elif [ -e ../z0testrc ]; then
 . ../z0testrc
+  Z0TLIBDIR=..
 else
 . ~/dev/z0testrc
+  Z0TLIBDIR=~
 fi
-
-if [ -f ./travisrc ]; then
-. ./travisrc
-elif [ -f ../travisrc ]; then
-. ../travisrc
-fi
-
 TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
-__version__=0.1.59.2
+
+__version__=0.1.59.3
 
 declare -a ctrs
 export WNoCtr=1
@@ -71,6 +77,7 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 opt4childs=$(inherit_opts)
+UT1_LIST=""
 UT_LIST="test_lib test_regex test_dist_pkg"
 saved_ctr=$ctr
 saved_max_test=$max_test
@@ -81,9 +88,17 @@ saved_LECHO=$LECHO
 
 ix=0
 sts=0
+if [ -n "$UT1_LIST" ]; then
+  WLOGCMD=echo
+  FLOG=
+fi
 # pass 1: count for # of tests
 max_test=0
+# 2 tests are for version id
 exec_tests_4_count "version" "2"
+if [ -n "$UT1_LIST" ]; then
+  exec_tests_4_count "$UT1_LIST"
+fi
 exec_tests_4_count "$UT_LIST"
 if [ ${saved_max_test:-0} -gt 0 ]; then
   max_test=$saved_max_test
@@ -96,17 +111,32 @@ opt_verbose=$saved_opt_verbose
 opt_dry_run=$saved_opt_dry_run
 LNEW=$saved_LNEW
 LECHO=$saved_LECHO
+if [ -n "$UT1_LIST" ]; then
+  if [ "$LECHO" == "echo" ]; then
+    WLOGCMD="wecho-1"
+  else
+    WLOGCMD="wecho-0"
+  fi
+  FLOG=
+fi
 if [ ${opt_noctr:-0} -eq 0 -a ${ctr:-0} -gt 0 -a ${saved_max_test:-0} -eq 0 ]; then
    let max_test="$max_test"+"$ctr"
 fi
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   ix=0
   sts=0
-  # 2 test are for version id
+  # 2 tests are for version id
   xtlver=$($RUNDIR/travis -V)
   ci-test "check for travis version" "$__version__" "$xtlver"
   xtlver=$($RUNDIR/please -V)
   ci-test "check for travis version" "0.1.27.6" "$xtlver"
+  if [ -n "$UT1_LIST" ]; then
+    # test w/o tracelog
+    exec_all_tests "$UT1_LIST"
+    # Test log file successfully ended; set log file to next tests
+    WLOGCMD=
+    set_tlog_file "$TESTDIR/test_z0librc.log" "" "$LECHO"
+  fi
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

@@ -14,8 +14,8 @@ elif [ -d ./tests ]; then
   TESTDIR=./tests
   RUNDIR=./
 elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
+  TESTDIR=.
+  RUNDIR=..
 else
   TESTDIR=$TDIR
   RUNDIR=$TDIR/..
@@ -25,59 +25,49 @@ if [ -d $TDIR/_travis ]; then
 elif [ -d $TDIR/../_travis ]; then
   TRAVISDIR=$TDIR/..
 elif [ -d ./_travis ]; then
-  TRAVISDIR=./
+  TRAVISDIR=.
 elif [ -d ../_travis ]; then
-  TRAVISDIR=../
+  TRAVISDIR=..
 else
   TRAVISDIR=~/dev/_travis
 fi
 if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
-  xtlver=$(grep "#__version__" $TDIR/z0librc|head -n1|awk -F\= '{print $2}')
-  CWD=$PWD
-  cd $TDIR
-  OK=$(_install_z0librc "-n")
-  cd $CWD
+  Z0LIBDIR=$TDIR
 elif [ -e ./z0librc ]; then
 . ./z0librc
-  xtlver=$(grep "#__version__" ./z0librc|head -n1|awk -F\= '{print $2}')
-  OK=$(_install_z0librc "-n")
+  Z0LIBDIR=.
 elif [ -e ../z0librc ]; then
 . ../z0librc
-  xtlver=$(grep "#__version__" ../z0librc|head -n1|awk -F\= '{print $2}')
-  CWD=$PWD
-  cd ..
-  OK=$(_install_z0librc "-n")
-  cd $CWD
+  Z0LIBDIR=..
 elif [ -e ~/z0librc ]; then
 . ~/z0librc
-  xtlver=$(grep "#__version__" ~/z0librc|head -n1|awk -F\= '{print $2}')
-  CWD=$PWD
-  cd
-  OK=$(_install_z0librc "-n")
-  cd $CWD
+  Z0LIBDIR=~
 else
 . /etc/z0librc
-  xtlver=$(grep "#__version__" /etc/z0librc|head -n1|awk -F\= '{print $2}')
-  CWD=$PWD
-  cd /etc
-  OK=$(_install_z0librc "-n")
-  cd $CWD
+  Z0LIBDIR=/etc
 fi
 if [ -e $TDIR/z0testrc ]; then
 . $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
 elif [ -e ./z0testrc ]; then
 . ./z0testrc
+  Z0TLIBDIR=.
 elif [ -e ../z0testrc ]; then
 . ../z0testrc
+  Z0TLIBDIR=..
 else
 . ~/dev/z0testrc
+  Z0TLIBDIR=~
 fi
 TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
-__version__=0.1.38
+
+__version__=0.1.38.3
 
 declare -a ctrs
 export WNoCtr=1
@@ -98,48 +88,60 @@ saved_LECHO=$LECHO
 
 ix=0
 sts=0
-WLOGCMD=echo
-FLOG=
+if [ -n "$UT1_LIST" ]; then
+  WLOGCMD=echo
+  FLOG=
+fi
 # pass 1: count for # of tests
 max_test=0
-# 2 test are for version id
+# 2 tests are for version id
 exec_tests_4_count "version" "2"
-exec_tests_4_count "$UT1_LIST"
+if [ -n "$UT1_LIST" ]; then
+  exec_tests_4_count "$UT1_LIST"
+fi
 exec_tests_4_count "$UT_LIST"
 if [ ${saved_max_test:-0} -gt 0 ]; then
   max_test=$saved_max_test
 elif [ ${opt_noctr:-0} -gt 0 ]; then
   max_test=
 fi
-#echo "4>i=$ix;m=$max_test;c=${ctrs[@]}<<" #debug
 # pass 2: execute tests
 ctr=$saved_ctr
 opt_verbose=$saved_opt_verbose
 opt_dry_run=$saved_opt_dry_run
 LNEW=$saved_LNEW
 LECHO=$saved_LECHO
-if [ "$LECHO" == "echo" ]; then
-  WLOGCMD="wecho-1"
-else
-  WLOGCMD="wecho-0"
+if [ -n "$UT1_LIST" ]; then
+  if [ "$LECHO" == "echo" ]; then
+    WLOGCMD="wecho-1"
+  else
+    WLOGCMD="wecho-0"
+  fi
+  FLOG=
 fi
-FLOG=
 if [ ${opt_noctr:-0} -eq 0 -a ${ctr:-0} -gt 0 -a ${saved_max_test:-0} -eq 0 ]; then
    let max_test="$max_test"+"$ctr"
 fi
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   ix=0
   sts=0
-  # 2 test are for version id
+  # 2 tests are for version id
+  xtlver=$(grep "#__version__" $Z0LIBDIR/z0librc|head -n1|awk -F\= '{print $2}')
+  CWD=$PWD
+  cd $Z0LIBDIR
+  OK=$(_install_z0librc "-n")
+  cd $CWD
   ci-test "check for lib version (1)" "$xtlver" "$__version__"
   ci-test "check for lib version (2)" "cp ./z0librc /etc/z0librc" "$OK"
   ctr=$saved_ctr
   exec_all_tests "version" "2"
-  # test w/o tracelog
-  exec_all_tests "$UT1_LIST"
-  # Test log file successfully ended; set log file to next tests
-  WLOGCMD=
-  set_tlog_file "$TESTDIR/test_z0librc.log" "" "$LECHO"
+  if [ -n "$UT1_LIST" ]; then
+    # test w/o tracelog
+    exec_all_tests "$UT1_LIST"
+    # Test log file successfully ended; set log file to next tests
+    WLOGCMD=
+    set_tlog_file "$TESTDIR/test_z0librc.log" "" "$LECHO"
+  fi
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

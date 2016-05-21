@@ -445,23 +445,23 @@ disable_port () {
 
 get_arch () {
     if [ "$1" == "CentOS7" -o "$1" == "CentOS" -o "$1" == "RHEL" ]; then
-      DISTO="CentOS7"
-      FH="RHEL"
+      export DISTO="CentOS7"
+      export FH="RHEL"
       LXCORE=
       MACHARCH="x86_64"
     elif [ "$1" == "CentOS6" ]; then
-      DISTO="CentOS6"
-      FH="RHEL"
+      export DISTO="CentOS6"
+      export FH="RHEL"
       LXCORE=
       MACHARCH="i686"
     elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu"  -o "$1" == "Debian" ]; then
-      DISTO="Ubuntu14"
-      FH="Debian"
+      export DISTO="Ubuntu14"
+      export FH="Debian"
       LXCORE="trusty"
       MACHARCH="x86_64"
     elif [ "$1" == "Ubuntu12" ]; then
-      DISTO="Ubuntu12"
-      FH="Debian"
+      export DISTO="Ubuntu12"
+      export FH="Debian"
       LXCORE="precise"
       MACHARCH="i686"
     else
