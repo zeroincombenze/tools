@@ -44,7 +44,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.59.2
+__version__=0.1.59.3
 
 
 run_cmd () {
