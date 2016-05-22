@@ -11,11 +11,11 @@
 #  remove CentOS6: pyOpenSSL jbigkit-libs libwebp python-six
 #  ZSI
 # gcc always!
-# yum install python-requests python-yaml
+# # yum install python-requests python-yaml
 # codicefiscale pyxb pypdf for italian localization
-# pip install unicodecsv pydot vatnumber BeautifulSoup
+# # pip install unicodecsv pydot vatnumber BeautifulSoup
 # products?
-# oerplib
+# # oerplib
 # wget
 # flake8, autopep8, pylint, pylint-mccabe, coverage, coveralls, github3.py click
 # yum install mod_ssl mod_proxy_html iptables-services bind-utils
@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.7"
+__version__="0.2.28.8"
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -116,12 +116,12 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
  "postgresql"\
  "setuptools python-virtualenv virtualenv\
     libreadline6 libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
-    python-gdata python-ldap python-lxml pydot"\
+    python-gdata python-ldap python-lxml python-requests python-yaml"\
  "setuptools python-virtualenv virtualenv readline\
     libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
-    gdata python-ldap python-lxml pydot"\
- "python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev liblzma-dev python-libxml2"\
- "python-devel openldap-devel zlib-devel bzip2-devel openssl-devel ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel postgresql-devel libxml2 libxml2-devel libxml2-python libxslt-devel"\
+    gdata python-ldap python-lxml python-requests python-yaml"\
+ "python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev liblzma-dev python-libxml2 python-requests python-yaml"\
+ "python-devel openldap-devel zlib-devel bzip2-devel openssl-devel ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel libpcap-devel xz-devel postgresql-devel libxml2 libxml2-devel libxml2-python libxslt-devel python-requests python-yaml"\
  "ghostscript libart-2.0-2\
     libcupsfilters1 libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0\
     liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5\
@@ -133,20 +133,20 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
     python-pyinotify python-pyparsing python-pypdf python-renderpm\
     python-reportlab python-reportlab-accel python-roman python-suds\
     python-unittest2 python-utidylib python-vatnumber python-vobject\
-    python-werkzeug docutils-common docutils-doc unidecode wkhtmltopdf"\
+    python-werkzeug docutils-common docutils-doc unidecode wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"\
  "Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem\
     libjpeg-turbo libtiff libyaml passlib\
     pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2\
     python-ldap python-lxml python-mako python-markupsafe python-mock python-openid\
     python-psutil python-psycopg2 python-reportlab python-simplejson\
-    python-unittest2 urllib3 python-vobject python-werkzeug pytz unidecode wkhtmltopdf"\
+    python-unittest2 urllib3 python-vobject python-werkzeug pytz unidecode wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"\
  ""\
  "libjpeg-turbo-devel"\
  "mariadb"\
- "openssh-clients telnet"\
+ "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils"\
  "openssh-client telnet"\
  "php5-mysql php5-common php5-xml"\
- "pcregrep oerplib os0 pytok"\
+ "pcregrep oerplib erppeek os0 pytok"\
  "80 443"\
  "80 443"\
  "22"\
@@ -221,7 +221,7 @@ get_prm_value() {
           p="$p pgadmin3"
         fi
       elif [ "$2" == "PIP_PKGS" ]; then
-        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf"
+        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf nicodecsv pydot vatnumber BeautifulSoup"
       elif [ "$2" == "STD_PKGS" ]; then
         p="epel-release python-pip pip yum-utils openssh-server httpd mariadb-server postgresql-server php python"
         p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
@@ -1907,17 +1907,7 @@ test_install () {
         echo "--> yum -y update setuptools">>$ftest
         echo "--> yum -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
-        # echo "--> yum -y install zlib-devel">>$ftest
-        # echo "--> yum -y install bzip2-devel">>$ftest
-        # echo "--> yum -y install openssl-devel">>$ftest
-        # echo "--> yum -y install ncurses-devel">>$ftest
         echo "--> yum -y update readline">>$ftest
-        # echo "--> yum -y install readline-devel">>$ftest
-        # echo "--> yum -y install sqlite-devel">>$ftest
-        # echo "--> yum -y install tk-devel">>$ftest
-        # echo "--> yum -y install gdbm-devel">>$ftest
-        # echo "--> yum -y install libpcap-devel">>$ftest
-        # echo "--> yum -y install xz-devel">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
@@ -1927,26 +1917,16 @@ test_install () {
         echo "--> pip  install gdata">>$ftest
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
-        # echo "--> pip  install ZSI">>$ftest
-        # echo "--> yum -y install postgresql-devel">>$ftest
-        echo "--> yum -y install pydot">>$ftest
+        echo "--> yum -y update python-requests">>$ftest
+        echo "--> yum -y update python-yaml">>$ftest
       else
         echo "--> apt-get -y install python">>$ftest
-        # echo "--> apt-get -y install python-dev">>$ftest
         echo "--> apt-get -y update setuptools">>$ftest
         echo "--> apt-get -y upgrade setuptools">>$ftest
         echo "--> apt-get -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
-        # echo "--> apt-get -y install zlib1g-dev">>$ftest
-        # echo "--> apt-get -y install libssl-dev">>$ftest
         echo "--> apt-get -y update libreadline6">>$ftest
         echo "--> apt-get -y upgrade libreadline6">>$ftest
-        # echo "--> apt-get -y install libreadline6-dev">>$ftest
-        # echo "--> apt-get -y install libsqlite3-dev">>$ftest
-        # echo "--> apt-get -y install tk-dev">>$ftest
-        # echo "--> apt-get -y install libgdbm-dev">>$ftest
-        # echo "--> apt-get -y install libpcap-dev">>$ftest
-        # echo "--> apt-get -y install liblzma-dev">>$ftest
         echo "--> apt-get -y install libxslt-python">>$ftest
         echo "--> apt-get -y update python-psycopg2">>$ftest
         echo "--> apt-get -y upgrade python-psycopg2">>$ftest
@@ -1960,7 +1940,10 @@ test_install () {
         echo "--> apt-get -y update python-lxml">>$ftest
         echo "--> apt-get -y upgrade python-lxml">>$ftest
         # echo "--> pip  install ZSI">>$ftest
-        echo "--> apt-get -y install pydot">>$ftest
+        echo "--> apt-get -y update python-requests">>$ftest
+        echo "--> apt-get -y upgrade python-requests">>$ftest
+        echo "--> apt-get -y update python-yaml">>$ftest
+        echo "--> apt-get -y upgrade python-yaml">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
       local opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
@@ -2040,6 +2023,10 @@ test_install () {
         echo "--> wget $URL/$pn">>$ftest
         echo "--> rpm -U $pn">>$ftest
         echo "--> rm -f $pn">>$ftest
+        echo "--> pip  install unicodecsv">>$ftest
+        echo "--> pip  install pydot">>$ftest
+        echo "--> pip  install vatnumber">>$ftest
+        echo "--> pip  install BeautifulSoup">>$ftest
       else
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest
@@ -2130,6 +2117,10 @@ test_install () {
         echo "--> apt-get update $pn">>$ftest
         echo "--> apt-get upgrade $pn">>$ftest
         echo "--> rm -f $pn">>$ftest
+        echo "--> pip  install unicodecsv">>$ftest
+        echo "--> pip  install pydot">>$ftest
+        echo "--> pip  install vatnumber">>$ftest
+        echo "--> pip  install BeautifulSoup">>$ftest
       fi
     fi
     if [ "$p" ]; then
@@ -2222,17 +2213,7 @@ test_update () {
         echo "--> yum -y update setuptools">>$ftest
         echo "--> yum -y install python-virtualenv">>$ftest
         echo "--> pip  install virtualenv">>$ftest
-        # echo "--> yum -y install zlib-devel">>$ftest
-        # echo "--> yum -y install bzip2-devel">>$ftest
-        # echo "--> yum -y install openssl-devel">>$ftest
-        # echo "--> yum -y install ncurses-devel">>$ftest
         echo "--> yum -y update readline">>$ftest
-        # echo "--> yum -y install readline-devel">>$ftest
-        # echo "--> yum -y install sqlite-devel">>$ftest
-        # echo "--> yum -y install tk-devel">>$ftest
-        # echo "--> yum -y install gdbm-devel">>$ftest
-        # echo "--> yum -y install libpcap-devel">>$ftest
-        # echo "--> yum -y install xz-devel">>$ftest
         echo "--> yum -y install libxslt-python">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
@@ -2242,9 +2223,12 @@ test_update () {
         echo "--> pip  install gdata">>$ftest
         echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
-        # echo "--> pip  install ZSI">>$ftest
-        # echo "--> yum -y install postgresql-devel">>$ftest
-        echo "--> yum -y install pydot">>$ftest
+        echo "--> yum -y update python-requests">>$ftest
+        echo "--> yum -y update python-yaml">>$ftest
+        echo "--> pip  install unicodecsv">>$ftest
+        echo "--> pip  install pydot">>$ftest
+        echo "--> pip  install vatnumber">>$ftest
+        echo "--> pip  install BeautifulSoup">>$ftest
       else
         echo "--> apt-get -y update python">>$ftest
         echo "--> apt-get -y upgrade python">>$ftest
@@ -2275,8 +2259,14 @@ test_update () {
         echo "--> pip  install python-ldap">>$ftest
         echo "--> apt-get -y update python-lxml">>$ftest
         echo "--> apt-get -y upgrade python-lxml">>$ftest
-        # echo "--> pip  install ZSI">>$ftest
-        echo "--> apt-get -y install pydot">>$ftest
+        echo "--> apt-get -y update python-requests">>$ftest
+        echo "--> apt-get -y upgrade python-requests">>$ftest
+        echo "--> apt-get -y update python-yaml">>$ftest
+        echo "--> apt-get -y upgrade python-yaml">>$ftest
+        echo "--> pip  install unicodecsv">>$ftest
+        echo "--> pip  install pydot">>$ftest
+        echo "--> pip  install vatnumber">>$ftest
+        echo "--> pip  install BeautifulSoup">>$ftest
       fi
     elif [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
@@ -2850,7 +2840,7 @@ elif [ "$action" == "regression_test" ]; then
   opt_oed="odoo"
   opt_depth=999
   SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"
-  SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf"
+  SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf python-requests python-yaml"
   SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
   SAVE_SMLT_NO="openssh-clients openssh-client telnet postgresql-client-common install postgresql-contrib pgadmin3"
   SAVE_SMLT_NO="$SAVE_SMLT_NO odoo python-gdata gdata python-ldap pytz xlwt ZSI"
