@@ -48,6 +48,7 @@ fi
 
 
 __version__="0.2.28.8"
+
 STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
@@ -58,16 +59,6 @@ else
   CDIR=$TDIR
 fi
 FCONF=$CDIR/$THIS.conf
-FH=$(xuname "-f")
-x=$(xuname "-v")
-v=$(echo $x|awk -F. '{print $1}')
-DISTO=$(xuname "-d")$v
-LXCORE=$(xuname "-c")
-MACHARCH=$(xuname "-m")
-TMP_LIS_PIP=~/${THIS}_pip.log
-if [ -f $TMP_LIS_PIP ]; then
-  rm -f TMP_LIS_PIP
-fi
 _LAST_PKG=""
 _LAST_VER=""
 
@@ -153,6 +144,14 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
  "ghostscript odoo"\
  "/usr/bin/$THIS -V")
 
+
+conf_default () {
+    set_cfg_def "SUB_LAMP_security__CentOS7" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
+    set_cfg_def "SUB_LAMP_security__CentOS6" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
+    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential"
+}
+
+
 get_prm_value() {
 # get_prm_value (confname prmname)::DEF*
 # return: prmvalue; -> disco, vist
@@ -161,11 +160,16 @@ get_prm_value() {
       p=
       echo $p
       return
-    elif [ -f $1 ]; then
-      p=$(grep "^$2 *=.*" $1 2>/dev/null|awk -F\= '{print $2}'|tr -d "\"'\r\n")
-      p=$(echo $p)
     else
-      p=
+      p=$(get_cfg_value "" "$2")
+    fi
+    if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
+      if [ -f $1 ]; then
+        p=$(grep "^$2 *=.*" $1 2>/dev/null|awk -F\= '{print $2}'|tr -d "\"'\r\n")
+        p=$(echo $p)
+      else
+        p=
+      fi
     fi
     if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
       local jy=0
@@ -193,17 +197,17 @@ get_prm_value() {
       fi
     fi
     if [ -z "$p" ]; then
-      if [ "$2" == "SUB_LAMP_security" ]; then
-        if [ "$FH" == "RHEL" ]; then
-          if [ "$DISTO" == "CentOS7" ]; then
-            p="libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-          else
-            p="openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-          fi
-        else
-          p="libffi-dev libssl-dev python-openssl build-essential"
-        fi
-      elif [ "$2" == "SUB_mysql_server" ]; then
+      # if [ "$2" == "SUB_LAMP_security" ]; then
+      #   if [ "$FH" == "RHEL" ]; then
+      #     if [ "$DISTO" == "CentOS7" ]; then
+      #       p="libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
+      #     else
+      #       p="openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
+      #     fi
+      #   else
+      #     p="libffi-dev libssl-dev python-openssl build-essential"
+      #   fi
+      if [ "$2" == "SUB_mysql_server" ]; then
         if [ "$FH" == "Debian" ]; then
           p="libapache2-mod-auth-mysql"
         fi
@@ -221,7 +225,7 @@ get_prm_value() {
           p="$p pgadmin3"
         fi
       elif [ "$2" == "PIP_PKGS" ]; then
-        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf nicodecsv pydot vatnumber BeautifulSoup"
+        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
       elif [ "$2" == "STD_PKGS" ]; then
         p="epel-release python-pip pip yum-utils openssh-server httpd mariadb-server postgresql-server php python"
         p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
@@ -311,17 +315,23 @@ get_prm_value() {
     # echo "get_prm_value ('$1' '$2')::$DISTO($FH)=$p;;">>~/product.his    #debug
 }
 
-init_cfg () {
-# init_cfg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
+init_cfg_pkg () {
+# init_cfg_pkg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
-    # echo "init_cfg  ('$1')::$FCONF($FH)=$p;;">>~/product.his    #debug
-    $(a_new "3")
-    $(a_active "3")
+    # echo "# echo <<<$FCONF>>>" #debug
+    # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/product.his    #debug
     LAMP=$(get_prm_value $FCONF "LAMP")
+    echo "<<<LAMP=$LAMP>>>" #debug
     if [ -n "$opt_odoo" ]; then
       LAMP="$LAMP odoo"
     fi
-    iter=$(set_iter $1)
+    NAME_RHEL=($(get_prm_value $FCONF NAME_RHEL))
+    NAME_Debian=($(get_prm_value $FCONF NAME_Debian))
+    NAME_ALIAS=($(get_prm_value $FCONF NAME_ALIAS))
+    NAME_REAL=($(get_prm_value $FCONF NAME_REAL))
+    NAME_VIRTUAL=($(get_prm_value $FCONF NAME_VIRTUAL))
+    local r=$(prod realname $1)
+    iter=$(set_iter $r)
     for pkgname in $iter; do
       realname=$(prod realname $pkgname)
       export SUB_${pkgname//-/_}="$(get_prm_value $FCONF SUB_${pkgname//-/_})"
@@ -334,11 +344,6 @@ init_cfg () {
     VFYERR="$(get_prm_value $FCONF VFYERR)"
     PIP_PKGS="$(get_prm_value $FCONF PIP_PKGS)"
     STD_PKGS="$(get_prm_value $FCONF STD_PKGS)"
-    NAME_RHEL=($(get_prm_value $FCONF NAME_RHEL))
-    NAME_Debian=($(get_prm_value $FCONF NAME_Debian))
-    NAME_ALIAS=($(get_prm_value $FCONF NAME_ALIAS))
-    NAME_REAL=($(get_prm_value $FCONF NAME_REAL))
-    NAME_VIRTUAL=($(get_prm_value $FCONF NAME_VIRTUAL))
 }
 
 print_title () {
@@ -465,7 +470,12 @@ get_arch () {
       LXCORE="precise"
       MACHARCH="i686"
     else
-      echo "Invalid architecture"
+      export FH=$(xuname "-f")
+      local x=$(xuname "-v")
+      local v=$(echo $x|awk -F. '{print $1}')
+      export DISTO=$(xuname "-d")$v
+      LXCORE=$(xuname "-c")
+      MACHARCH=$(xuname "-m")
     fi
 }
 
@@ -1157,7 +1167,7 @@ prod () {
       return $STS_SUCCESS
     fi
     local X="TCP_${pkgname//-/_}"
-    if [ "${!X}" ]; then
+    if [ -n "${!X}" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
         for port in ${!X}; do
           enable_port $port tcp
@@ -2539,13 +2549,6 @@ test_remove () {
 }
 
 # main
-if [ $EUID -eq 0 ]; then
-  FLOG=/var/log/$THIS.log
-else
-  FLOG=~/$THIS.log
-fi
-set_tlog_file "$FLOG"
-
 OPTOPTS=(h        D       d         E       e       g       H        I        i      J        L         l          m        n           O         P          q         s         t         V           v           y       1)
 OPTDEST=(opt_help opt_dev opt_depth opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_sub   test_mode opt_version opt_verbose opt_yes opt_1st)
 OPTACTI=(1        1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "*"         1           "*"     1)
@@ -2594,16 +2597,29 @@ if [ -z "$opt_depth" ]; then
 fi
 if [ $test_mode -gt 0 ]; then
   opt_dry_run=1
+  if [ "$pkg" == "LAMP" ]; then # Bleah!
+    opt_depth=0
+  else
+    opt_depth=1
+  fi
 fi
 if [ "$opt_log" ]; then
   FLOG=$opt_log
+elif [ $EUID -eq 0 ]; then
+  FLOG=/var/log/$THIS.log
+else
+  FLOG=~/$THIS.log
 fi
-if [ -n "$opt_osf" ]; then
-  get_arch "$opt_osf"
+get_arch "$opt_osf"
+set_tlog_file "$FLOG"
+TMP_LIS_PIP=~/${THIS}_pip.log
+if [ -f $TMP_LIS_PIP ]; then
+  rm -f TMP_LIS_PIP
 fi
 $(init_cfg)
 $(active_cfg)
-link_cfg $FCONF
+conf_default
+# link_cfg $FCONF
 if [ -z "$opt_odoo" ]; then
   if [ "$action" == "version" -o "$action" == "status" ]; then
     if $(prod status odoo "-q"); then
@@ -2633,7 +2649,7 @@ fi
 if [ "$action" == "regression_test" ]; then
   FCONF="./$THIS.notexists"
 else
-  init_cfg "$pkg"
+  init_cfg_pkg "$pkg"
 fi
 ODOO_UID=$(get_prm_value $FCONF "ODOO_UID")
 ODOO_GID=$(get_prm_value $FCONF "ODOO_GID")
@@ -2852,6 +2868,7 @@ elif [ "$action" == "regression_test" ]; then
   SAVE_SMLT_NO="$SAVE_SMLT_NO docutils-common docutils-doc python-dev python-devel python-virtualenv libreadline libreadline6 "
   SAVE_SMLT_NO="$SAVE_SMLT_NO readline-devel tk-dev tk-devel gdbm-devel libgdbm-dev liblzma-dev"
   SAVE_SMLT_NO="$SAVE_SMLT_NO libpcap-dev libpcap-devel xz-devel postgresql-devel libssl-dev libreadline6-dev libsqlite3-dev unidecode"
+  SAVE_SMLT_NO="$SAVE_SMLT_NO unicodecsv pydot vatnumber BeautifulSoup"
   SAVE_SMLT_NO="$SAVE_SMLT_NO port_tcp_22"
   SAVE_SMLT_NO="$SAVE_SMLT_NO pre_install_odoo"
   PNLX=("." $THIS python-pip apache2 httpd postgresql postgresql-server openssh-server python odoo)
@@ -2860,7 +2877,7 @@ elif [ "$action" == "regression_test" ]; then
   for aa in "Ubuntu14" "CentOS7"; do
     elog "Regression test on $aa"
     get_arch "$aa"
-    init_cfg "LAMP"
+    init_cfg_pkg "LAMP"
     SIMULATE_YES=". $SAVE_SMLT_YES ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
     test_cfg_name
