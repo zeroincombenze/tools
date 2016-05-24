@@ -161,7 +161,7 @@ get_prm_value() {
       echo $p
       return
     else
-      p=$(get_cfg_value "" "$2")
+      p="$(get_cfg_value '' \"$2\")"
     fi
     if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
       if [ -f $1 ]; then
@@ -318,10 +318,8 @@ get_prm_value() {
 init_cfg_pkg () {
 # init_cfg_pkg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
-    # echo "# echo <<<$FCONF>>>" #debug
     # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/product.his    #debug
     LAMP=$(get_prm_value $FCONF "LAMP")
-    echo "<<<LAMP=$LAMP>>>" #debug
     if [ -n "$opt_odoo" ]; then
       LAMP="$LAMP odoo"
     fi
@@ -331,6 +329,8 @@ init_cfg_pkg () {
     NAME_REAL=($(get_prm_value $FCONF NAME_REAL))
     NAME_VIRTUAL=($(get_prm_value $FCONF NAME_VIRTUAL))
     local r=$(prod realname $1)
+    get_prm_value $FCONF "${1}_svcname"
+    get_prm_value $FCONF "${1}_cmdname"
     iter=$(set_iter $r)
     for pkgname in $iter; do
       realname=$(prod realname $pkgname)
@@ -567,7 +567,7 @@ get_realname () {
 # get_realname (pkgname)::NAME*
 # return: realname
     local pkgname=$1
-    if [ "$pkgname" ]; then
+    if [ -n "$pkgname" ]; then
       local jy=0
       while ((jy<${#NAME_ALIAS[*]})); do
         if [ "$1" == "${NAME_ALIAS[jy]}" ]; then
@@ -2619,7 +2619,7 @@ fi
 $(init_cfg)
 $(active_cfg)
 conf_default
-# link_cfg $FCONF
+link_cfg $FCONF
 if [ -z "$opt_odoo" ]; then
   if [ "$action" == "version" -o "$action" == "status" ]; then
     if $(prod status odoo "-q"); then
