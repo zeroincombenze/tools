@@ -57,22 +57,21 @@ TRAVISDIR=$(readlink -e $TRAVISDIR)
 
 
 base_test () {
-    keys=(k01 k02 k03 k04 ^K.*)
-    vals=("aaaa" "bbbb" "cccc" "dddd" "any")
-    for i in {0..4}; do
+    keys=(k01    k02    k03    k04    K-X    ^K.*)
+    vals=("aaaa" "bbbb" "cccc" "dddd" "eeee" "any")
+    for i in {0..5}; do
       a_add "0" "${keys[i]}" "${vals[i]}"
     done
-    for i in {0..3}; do
+    for i in {0..4}; do
       TRES=$(a_find "0" ${keys[i]})
       ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
-
-    keys=(k11 k12 k13 k14 ^K.*)
-    vals=("AAAA" "BBBB" "CCCC" "DDDD" "ANY")
-    for i in {0..4}; do
+    keys=(k11    k12    k13    k14    K-X    ^K.*)
+    vals=("AAAA" "BBBB" "CCCC" "DDDD" "EEEE" "ANY")
+    for i in {0..5}; do
       a_add "1" "${keys[i]}" "${vals[i]}"
     done
-    for i in {0..3}; do
+    for i in {0..4}; do
       TRES=$(a_find "1" ${keys[i]})
       ci-test "find ${keys[i]}" "${vals[i]}" "$TRES"
     done
@@ -81,7 +80,6 @@ base_test () {
       TRES=$(a_find "1" ${keys[i]})
       ci-test "find ${keys[i]}" "" "$TRES"
     done
-
     keys=(k21 k22 k23 k24 ^K.*)
     vals=("Aaaa" "Bbbb" "Cccc" "Dddd" "Any")
     for i in {0..4}; do
@@ -101,7 +99,6 @@ base_test () {
       TRES=$(a_find "2" ${keys[i]})
       ci-test "find ${keys[i]}" "" "$TRES"
     done
-
     keys=(k31 k32 k33 k34 ^K.*)
     vals=("AAaa" "BBbb" "CCcc" "DDdd" "ANy")
     for i in {0..4}; do
@@ -114,7 +111,7 @@ base_test () {
 }
 
 
-__version__=0.1.23
+__version__=0.1.24
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -130,9 +127,14 @@ DEFDICT2="Dirty"
 DEFRULE2="Dirty!"
 DEFDICT3="Dirty"
 DEFRULE4="Dirty!"
+fh=$(xuname "-f")
+x=$(xuname "-v")
+disto=$(xuname "-d")${x:0:1}
 for i in {0..3}; do
   $(a_new "$i")
   $(a_active "$i")
+  ci-test "FH" "$fh" "$XU_FH"
+  ci-test "DISTO" "$disto" "$XU_DISTO"
 done
 
 base_test
@@ -216,6 +218,34 @@ ci-test "find K9" "GLobal_ANY" "$TRES"
 a_add "3" "^K.*" "LOcal_ANY" "-d"
 TRES=$(a_find "3" "K9")
 ci-test "find K9" "LOcal_ANY" "$TRES"
+
+fh=$(xuname "-f")
+x=$(xuname "-v")
+disto=$(xuname "-d")${x:0:1}
+a_add "0" "kx01" "local_ax" "$fh"
+TRES=$(a_find "0" "kx01")
+ci-test "find kx01" "local_ax" "$TRES"
+a_add "0" "kx01" "global_ax" "$disto"
+TRES=$(a_find "0" "kx01")
+ci-test "find kx01" "global_ax" "$TRES"
+a_add "1" "kx11" "local_ax" "$fh"
+TRES=$(a_find "1" "kx11")
+ci-test "find kx11" "local_ax" "$TRES"
+a_add "1" "kx11" "global_ax" "$disto"
+TRES=$(a_find "1" "kx11")
+ci-test "find kx11" "global_ax" "$TRES"
+a_add "2" "kx21" "local_ax" "$fh"
+TRES=$(a_find "2" "kx21")
+ci-test "find kx21" "local_ax" "$TRES"
+a_add "2" "kx21" "global_ax" "$disto"
+TRES=$(a_find "2" "kx21")
+ci-test "find kx21" "global_ax" "$TRES"
+a_add "3" "kx31" "local_ax" "$fh"
+TRES=$(a_find "3" "kx31")
+ci-test "find kx31" "local_ax" "$TRES"
+a_add "3" "kx31" "global_ax" "$disto"
+TRES=$(a_find "3" "kx31")
+ci-test "find kx31" "global_ax" "$TRES"
 
 for i in {0..3}; do
   $(a_new "$i")
