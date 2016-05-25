@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.39
+#__version__=0.1.40.1
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -868,7 +868,7 @@ set_cfg_def () {
     else
       local tid="0"
     fi
-    a_add "$tid" "$1" "$2"
+    a_add "$tid" "$1" "$2" "$4" "$5"
 }
 export -f set_cfg_def
 
@@ -900,7 +900,8 @@ link_cfg () {
           if [ "${kk:0:1}" != "#" ]; then
             while [ "${val: -1}" == "\\" ]; do
               IFS=~ read -r x
-              val="$val$x"
+              x=$(echo $x)
+              val="${val:0:-1}$x"
             done
             a_add "$tid" "$kk" "$val"
             if [ "$kk" == "CONFN" ]; then
@@ -919,7 +920,8 @@ link_cfg () {
           if [ "${kk:0:1}" != "#" ]; then
             while [ "${val: -1}" == "\\" ]; do
               IFS=~ read -r x
-              val="$val$x"
+              x=$(echo $x)
+              val="${val:0:-1}$x"
             done
             a_add "$tid" "$kk" "$val"
           fi

@@ -53,21 +53,12 @@ STS_FAILED=1
 STS_SUCCESS=0
 THIS=$(basename $0)
 TDIR=$(echo $(readlink -f $(dirname $0)))
-if [ "$TDIR" == "/usr/bin" ]; then
-  CDIR="/etc/$THIS"
-else
-  CDIR=$TDIR
-fi
-FCONF=$CDIR/$THIS.conf
 _LAST_PKG=""
 _LAST_VER=""
 
 
 DEFPRM=("NAME_Debian"\
  "NAME_RHEL"\
- "LAMP__Debian"\
- "LAMP__RHEL"\
- "LAMP__CentOS7"\
  "VFYLOW"\
  "VFYUPP"\
  "VFYE2NL"\
@@ -82,7 +73,6 @@ DEFPRM=("NAME_Debian"\
  "SUB_odoo__RHEL"\
  "SUB_odoo__Debian__DEV"\
  "SUB_odoo__RHEL__DEV"\
- "SUB_mariadb_server"\
  "SUB_openssh_server__RHEL"\
  "SUB_openssh_server__Debian"\
  "SUB_php5"\
@@ -94,11 +84,8 @@ DEFPRM=("NAME_Debian"\
  "${THIS}_vfycmd")
 
 
-DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6-dev"\
- "httpd postgresql-server mysql-server php python-devel zlib-devel readline-devel"\
- "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python"\
- "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python"\
- "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb-server postgresql-server php python"\
+DEFVAL=("postgresql php5 python-dev zlib1g-dev libreadline6-dev"\
+ "postgresql-server php python-devel zlib-devel readline-devel"\
  "apachectl php php5"\
  "ssh"\
  ""\
@@ -133,7 +120,6 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
     python-unittest2 urllib3 python-vobject python-werkzeug pytz unidecode wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"\
  ""\
  "libjpeg-turbo-devel"\
- "mariadb"\
  "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils"\
  "openssh-client telnet"\
  "php5-mysql php5-common php5-xml"\
@@ -146,9 +132,23 @@ DEFVAL=("apache2 postgresql mysql-server php5 python-dev zlib1g-dev libreadline6
 
 
 conf_default () {
-    set_cfg_def "SUB_LAMP_security__CentOS7" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-    set_cfg_def "SUB_LAMP_security__CentOS6" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential"
+    set_cfg_def "LAMP" "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
+    set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
+    set_cfg_def "LAMP" "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
+    set_cfg_def "SUB_LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
+    set_cfg_def "SUB_LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
+    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
+    set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
+    # ALIAS
+    set_cfg_def "mysql" "mysql-server" "1"
+    set_cfg_def "mysql" "mariadb" "1" "CentOS7"
+    set_cfg_def "mysql-server" "mariadb-server" "1" "CentOS7"
+    set_cfg_def "mariadb" "mysql-server" "1" "CentOS6"
+    set_cfg_def "mariadb" "mysql-server" "1" "Debian"
+    set_cfg_def "mariadb-server" "mysql-server" "1" "CentOS6"
+    set_cfg_def "mariadb-server" "mysql-server" "1" "Debian"
+    set_cfg_def "pyopenssl" "pyOpenSSL" "1" "RHEL"
+    set_cfg_def "babel" "Babel" "1"
 }
 
 
@@ -161,7 +161,7 @@ get_prm_value() {
       echo $p
       return
     else
-      p="$(get_cfg_value '' \"$2\")"
+      p=$(get_cfg_value "0" $2)
     fi
     if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
       if [ -f $1 ]; then
@@ -197,16 +197,6 @@ get_prm_value() {
       fi
     fi
     if [ -z "$p" ]; then
-      # if [ "$2" == "SUB_LAMP_security" ]; then
-      #   if [ "$FH" == "RHEL" ]; then
-      #     if [ "$DISTO" == "CentOS7" ]; then
-      #       p="libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-      #     else
-      #       p="openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient"
-      #     fi
-      #   else
-      #     p="libffi-dev libssl-dev python-openssl build-essential"
-      #   fi
       if [ "$2" == "SUB_mysql_server" ]; then
         if [ "$FH" == "Debian" ]; then
           p="libapache2-mod-auth-mysql"
@@ -227,7 +217,7 @@ get_prm_value() {
       elif [ "$2" == "PIP_PKGS" ]; then
         p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
       elif [ "$2" == "STD_PKGS" ]; then
-        p="epel-release python-pip pip yum-utils openssh-server httpd mariadb-server postgresql-server php python"
+        p="epel-release python-pip pip yum-utils openssh-server httpd mariadb postgresql-server php python"
         p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
         p="$p python-dev python-devel ncurses-devel sqlite-devel odoo ghostscript"
         p="$p antiword docutils-common docutils-doc libart-2.0-2 libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
@@ -239,22 +229,28 @@ get_prm_value() {
         p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
       elif [ "$2" == "NAME_ALIAS" ]; then
         if [ "$DISTO" == "CentOS7" ]; then
-          p="mysql mysql-server pip pyopenssl"
+          # p="mysql mysql-server pip pyopenssl"
+          p="pip"
         elif [ "$FH" == "RHEL" ]; then
-          p="mariadb-server mysql pyopenssl"
+          # p="mariadb-server mysql pyopenssl"
+          p="pip"
         else
-          p="mariadb-server mysql pip"
+          # p="mariadb-server mysql pip"
+          p="pip"
         fi
-        p="$p babel"
+        # p="$p babel"
       elif [ "$2" == "NAME_REAL" ]; then
         if [ "$DISTO" == "CentOS7" ]; then
-          p="mariadb-server mariadb-server python-pip pyOpenSSL"
+          # p="mariadb-server mariadb-server python-pip pyOpenSSL"
+          p="python-pip"
         elif [ "$FH" == "RHEL" ]; then
-          p="mysql-server mysql-server pyOpenSSL"
+          # p="mysql-server mysql-server pyOpenSSL"
+          p="pip"
         else
-          p="mysql-server mysql-server python-pip"
+          # p="mysql-server mysql-server python-pip"
+          p="python"
         fi
-        p="$p Babel"
+        # p="$p Babel"
       elif [ "$2" == "NAME_VIRTUAL" ]; then
         p="LAMP LAMP_security PYTHON_DEVELOVER"
       elif [ "$2" == "apache2_cmdname" -o  "$2" == "httpd_cmdname" ]; then
@@ -329,8 +325,6 @@ init_cfg_pkg () {
     NAME_REAL=($(get_prm_value $FCONF NAME_REAL))
     NAME_VIRTUAL=($(get_prm_value $FCONF NAME_VIRTUAL))
     local r=$(prod realname $1)
-    get_prm_value $FCONF "${1}_svcname"
-    get_prm_value $FCONF "${1}_cmdname"
     iter=$(set_iter $r)
     for pkgname in $iter; do
       realname=$(prod realname $pkgname)
@@ -476,7 +470,12 @@ get_arch () {
       export DISTO=$(xuname "-d")$v
       LXCORE=$(xuname "-c")
       MACHARCH=$(xuname "-m")
+      if [ -n "$1" ]; then
+        echo "!!Invalid $1 architecturre: used $DISTO instead!!"
+      fi
     fi
+    XU_FH="$FH"
+    XU_DISTO="$DISTO"
 }
 
 get_locale_name () {
@@ -568,36 +567,41 @@ get_realname () {
 # return: realname
     local pkgname=$1
     if [ -n "$pkgname" ]; then
-      local jy=0
-      while ((jy<${#NAME_ALIAS[*]})); do
-        if [ "$1" == "${NAME_ALIAS[jy]}" ]; then
-          pkgname="${NAME_REAL[jy]}"
-          break
-        fi
-        ((++jy))
-      done
-      if [ "$FH" == "RHEL" ]; then
-        jy=0
-        while ((jy<${#NAME_Debian[*]})); do
-          if [ "$pkgname" == "${NAME_Debian[jy]}" ]; then
-            pkgname="${NAME_RHEL[jy]}"
+      local p=$(get_cfg_value "1" $1)
+      if [ -n "$p" ]; then
+        pkgname=$p
+      else
+        local jy=0
+        while ((jy<${#NAME_ALIAS[*]})); do
+          if [ "$1" == "${NAME_ALIAS[jy]}" ]; then
+            pkgname="${NAME_REAL[jy]}"
             break
           fi
           ((++jy))
         done
-        if [ "${2: -6}" == "-devel" ]; then
-          let l=${#2}-2
-          pkgname="${2:0:l}"
-        fi
-      elif [ "$FH" == "Debian" ]; then
-        jy=0
-        while ((jy<${#NAME_RHEL[*]})); do
-          if [ "$pkgname" == "${NAME_RHEL[jy]}" ]; then
-            pkgname="${NAME_Debian[jy]}"
-            break
+        if [ "$FH" == "RHEL" ]; then
+          jy=0
+          while ((jy<${#NAME_Debian[*]})); do
+            if [ "$pkgname" == "${NAME_Debian[jy]}" ]; then
+              pkgname="${NAME_RHEL[jy]}"
+              break
+            fi
+            ((++jy))
+          done
+          if [ "${2: -6}" == "-devel" ]; then
+            let l=${#2}-2
+            pkgname="${2:0:l}"
           fi
-          ((++jy))
-        done
+        elif [ "$FH" == "Debian" ]; then
+          jy=0
+          while ((jy<${#NAME_RHEL[*]})); do
+            if [ "$pkgname" == "${NAME_RHEL[jy]}" ]; then
+              pkgname="${NAME_Debian[jy]}"
+              break
+            fi
+            ((++jy))
+          done
+        fi
       fi
     fi
     echo $pkgname
@@ -1792,10 +1796,10 @@ test_cfg_name () {
     if [ "$FH" == "RHEL" ]; then
        local TPRM=("." httpd_svcname httpd_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
     php_cmdname postgresql-server_cmdname openssh-server_svcname php_vfycmd openssh-server_cmdname python-pip_cmdname\
-    SUB_mariadb_server SUB_openssh_server)
+    SUB_mariadb SUB_openssh_server)
        local TRES=("." "httpd" "apachectl" "apachectl -v" "postgresql" "mysqld"\
     "php" "psql" "sshd" "php -v" "" "pip"\
-    " mariadb " " openssh-clients telnet ")
+    " mariadb-server " " openssh-clients telnet ")
     else
        local TPRM=("." apache2_svcname apache2_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
     php5_cmdname postgresql_cmdname openssh-server_svcname php5_vfycmd openssh-server_cmdname  python-pip_cmdname\
@@ -2549,12 +2553,13 @@ test_remove () {
 }
 
 # main
-OPTOPTS=(h        D       d         E       e       g       H        I        i      J        L         l          m        n           O         P          q         s         t         V           v           y       1)
-OPTDEST=(opt_help opt_dev opt_depth opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_sub   test_mode opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "*"         1           "*"     1)
-OPTDEFL=(1        0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         ""        0         ""          0           ""      0)
-OPTMETA=("help"   "dev"   "number"  "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "version" "password" "quiet"   "modules" "teste"   "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        c        D       d         E       e       g       H        I        i      J        L         l          m        n           O         P          q         s         t         V           v           y       1)
+OPTDEST=(opt_help opt_conf opt_dev opt_depth opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_sub   test_mode opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "*"         1           "*"     1)
+OPTDEFL=(1        ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         ""        0         ""          0           ""      0)
+OPTMETA=("help"   "file"   "dev"   "number"  "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "version" "password" "quiet"   "modules" "teste"   "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
+ "configuration file (def /etc/product.conf)"\
  "add development package(s)"\
  "max depth level"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
@@ -2598,6 +2603,7 @@ fi
 if [ $test_mode -gt 0 ]; then
   opt_dry_run=1
   if [ "$pkg" == "LAMP" ]; then # Bleah!
+  # if $(is_virtualname $pkg); then
     opt_depth=0
   else
     opt_depth=1
@@ -2616,10 +2622,6 @@ TMP_LIS_PIP=~/${THIS}_pip.log
 if [ -f $TMP_LIS_PIP ]; then
   rm -f TMP_LIS_PIP
 fi
-$(init_cfg)
-$(active_cfg)
-conf_default
-link_cfg $FCONF
 if [ -z "$opt_odoo" ]; then
   if [ "$action" == "version" -o "$action" == "status" ]; then
     if $(prod status odoo "-q"); then
@@ -2636,6 +2638,25 @@ if [ -n "$opt_odoo" ]; then
     opt_oed="zeroincombenze"
   fi
 fi
+
+$(init_cfg)
+$(active_cfg)
+$(init_cfg "1")
+$(active_cfg "1")
+conf_default
+if [ "$action" == "regression_test" ]; then
+  FCONF="./$THIS.notexists"
+elif [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  FCONF=$opt_conf
+else
+  if [ "$TDIR" == "/usr/bin" ]; then
+    CDIR="/etc/$THIS"
+  else
+    CDIR=$TDIR
+  fi
+  FCONF=$CDIR/$THIS.conf
+fi
+link_cfg $FCONF /etc/product.conf.samp
 opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow web webkit-tools website"
 if [ "$opt_oed" == "zeroincombenze" ]; then
   opt_osub="$opt_osub l10n-italy-supplemental"
@@ -2646,9 +2667,7 @@ fi
 if [ -n "$opt_xtln" ]; then
   SIMULATE_NO=" ${opt_xtln//,/ } "
 fi
-if [ "$action" == "regression_test" ]; then
-  FCONF="./$THIS.notexists"
-else
+if [ "$action" != "regression_test" ]; then
   init_cfg_pkg "$pkg"
 fi
 ODOO_UID=$(get_prm_value $FCONF "ODOO_UID")
@@ -2936,6 +2955,16 @@ elif [ "$action" == "debug" ]; then
      echo "${DEFPRM[jy]}=${DEFVAL[jy]}">>product.conf.sample
      ((jy++))
    done
+elif [ "$action" == "realname" ]; then
+  iter=$(set_iter $pkg)
+  for p in $iter; do
+    x=$(prod $action $p)
+    if [ "$p" == "$x" ]; then
+      echo "$p"
+    else
+      echo "$p=$x"
+    fi
+  done
 else
   echo "No valid action $action!"
   exit $STS_FAILED
