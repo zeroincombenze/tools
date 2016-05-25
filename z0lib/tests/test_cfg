@@ -63,25 +63,29 @@ if [ $sts -ne 127 ]; then
 fi
 sts=0
 
+
 $(init_cfg)
 $(active_cfg)
 FCONF="$TESTDIR/test.conf"
-if [ -f $FCONF ]; then rm -f $FCONF; fi
-if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
-link_cfg $FCONF
-set_cfg_def "param1" "Value1"
-set_cfg_def "param2" "Value2"
-set_cfg_def "param3" "Value3"
-set_cfg_def "param4" "Value4"
-
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [ -f $FCONF ]; then rm -f $FCONF; fi
+  if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
+  link_cfg $FCONF
+  set_cfg_def "param1" "Value1"
+  set_cfg_def "param2" "Value2"
+  set_cfg_def "param3" "Value3"
+  set_cfg_def "param4" "Value4"
+fi
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   ci-test "find param$i" "Value$i" "$TRES"
 done
 
-echo "param1= VALUE1 ">$FCONF
-echo "param3=VALUE3">>$FCONF
-link_cfg $FCONF
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  echo "param1= VALUE1 ">$FCONF
+  echo "param3=VALUE3">>$FCONF
+  link_cfg $FCONF
+fi
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   if [ $i -eq 1 ]; then
@@ -92,30 +96,35 @@ for i in 1 2 3 4; do
     ci-test "find param$i" "Value$i" "$TRES"
   fi
 done
-echo "param4=\" VALUE4 \"">>$FCONF
-link_cfg $FCONF
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  echo "param4=\" VALUE4 \"">>$FCONF
+  link_cfg $FCONF
+fi
 TRES=$(get_cfg_value "" "param4")
 ci-test "find param4" " VALUE4 " "$TRES"
 
 
- $(init_cfg)
- $(active_cfg)
+$(init_cfg)
+$(active_cfg)
 FCONF="$TESTDIR/test.conf"
-if [ -f $FCONF ]; then rm -f $FCONF; fi
-echo "#param1=NOVALUE ">$FCONF.sample
-echo "param1= value1 ">>$FCONF.sample
-echo "param2=\"value2\"">>$FCONF.sample
-echo "param3=value3">>$FCONF.sample
-echo "param4= \"value4\" ">>$FCONF.sample
-link_cfg $FCONF
-
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [ -f $FCONF ]; then rm -f $FCONF; fi
+  echo "#param1=NOVALUE ">$FCONF.sample
+  echo "param1= value1 ">>$FCONF.sample
+  echo "param2=\"value2\"">>$FCONF.sample
+  echo "param3=value3">>$FCONF.sample
+  echo "param4= \"value4\" ">>$FCONF.sample
+  link_cfg $FCONF
+fi
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   ci-test "find param$i" "value$i" "$TRES"
 done
-echo "param1= VALUE1 ">$FCONF
-echo "param3=VALUE3">>$FCONF
-link_cfg $FCONF
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  echo "param1= VALUE1 ">$FCONF
+  echo "param3=VALUE3">>$FCONF
+  link_cfg $FCONF
+fi
 for i in 1 2 3 4; do
   TRES=$(get_cfg_value "" "param$i")
   if [ $i -eq 1 ]; then
@@ -129,19 +138,24 @@ done
 
 
 $(init_cfg)
- $(active_cfg)
+$(active_cfg)
 FCONF="$TESTDIR/test.conf"
-if [ -f $FCONF ]; then rm -f $FCONF; fi
-set_cfg_def "param1" "defval1"
-set_cfg_def "param2" "defval2"
-set_cfg_def "param3" "defval3"
-set_cfg_def "param4" "defval4"
-echo "#param1=NOVALUE ">$FCONF.sample
-echo "param2=\"value2\"">>$FCONF.sample
-echo "param3=value3">>$FCONF.sample
-echo "param3= VALUE3 ">$FCONF
-echo "param4=None ">>$FCONF
-link_cfg $FCONF $FCONF.sample
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  if [ -f $FCONF ]; then rm -f $FCONF; fi
+  set_cfg_def "param1" "defval1"
+  set_cfg_def "param2" "defval2"
+  set_cfg_def "param3" "defval3"
+  set_cfg_def "param4" "defval4"
+  echo "#param1=NOVALUE ">$FCONF.sample
+  echo "param2=\"value2\"">>$FCONF.sample
+  echo "param3=value3">>$FCONF.sample
+  echo "param3= VALUE3 ">$FCONF
+  echo "param4=None ">>$FCONF
+  echo "param9=Long long \\">>$FCONF
+  echo "       value \\">>$FCONF
+  echo "       parameter">>$FCONF
+  link_cfg $FCONF $FCONF.sample
+fi
 TRES=$(get_cfg_value "" "param1")
 ci-test "find param1" "defval1" "$TRES"
 TRES=$(get_cfg_value "" "param2")
@@ -150,7 +164,8 @@ TRES=$(get_cfg_value "" "param3")
 ci-test "find param3" "VALUE3" "$TRES"
 TRES=$(get_cfg_value "" "param4")
 ci-test "find param4" "" "$TRES"
-
+TRES=$(get_cfg_value "" "param9")
+ci-test "find param9" "Long long value parameter" "$TRES"
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"
