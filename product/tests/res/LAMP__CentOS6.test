@@ -1,0 +1,14 @@
+LAMP (by product)()
+epel-release (by yum)(epel-release --version)
+pip (by yum)(pip --version)
+yum-utils (by yum)(yum-utils --version)
+LAMP_security (by product)()
+openssh-server (by yum)()
+- TCP port 22
+httpd (by yum)(apachectl -v)
+- TCP port 80
+- TCP port 443
+mysql-server (by yum)(mysql-server --version)
+postgresql-server (by yum)(psql --version)
+php (by yum)(php -v)
+python (by yum)(python --version)

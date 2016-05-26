@@ -1,0 +1,5 @@
+LAMP_security (by product)()
+--libffi-dev (by apt-get)(libffi-dev --version)
+--libssl-dev (by apt-get)(libssl-dev --version)
+--python-openssl (by apt-get)(python-openssl --version)
+--build-essential (by apt-get)(build-essential --version)
