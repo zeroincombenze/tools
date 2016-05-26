@@ -1,6 +1,7 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Sample of Regression tests
+# Regression tests on product
+# Check for ALIASes
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -73,13 +74,94 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 sts=0
-TPRODUCT="$RUNDIR/product -L$TESTDIR/product.log -t"
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  ctr=226
-else
-  $RUNDIR/product -L $TESTDIR/product.log regression_test
-  sts=$?
-fi
+TPRODUCT="$RUNDIR/product -t"
+
+test_run () {
+# test_run(msg,package,disto)
+    # set -x #debug
+    local msg="$1"
+    local Package="$2"
+    local Disto="$3"
+    local TRES="$4"
+    local FH=
+    local opt_e="-E$Disto"
+    if [ "$Disto" == "." ]; then
+        local FH=$Real_FH
+        local Disto=$Real_DISTO
+        local opt_e=
+    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+      local FH="Debian"
+    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+      local FH="RHEL"
+    fi
+    if [ "$FH" == "RHEL" ]; then
+      TRES=${TEST_RHEL[$Package]}
+    elif [ "$FH" == "Debian" ]; then
+      TRES=${TEST_Debian[$Package]}
+    else
+      TRES=
+    fi
+    if [ -z "$TRES" ]; then
+      if [ "$Disto" == "Ubuntu12" ]; then
+        TRES=${TEST_Ubuntu12[$Package]}
+      elif [ "$Disto" == "Ubuntu14" ]; then
+        TRES=${TEST_Ubuntu14[$Package]}
+      elif [ "$Disto" == "CentOS7" ]; then
+        TRES=${TEST_CentOS7[$Package]}
+      elif [ "$Disto" == "CentOS6" ]; then
+        TRES=${TEST_CentOS6[$Package]}
+      fi
+    fi
+    if [ -z "$TRES" ]; then
+       TRES=$Package
+    else
+       TRES="$Package=$TRES"
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      RES=$(eval $TPRODUCT $opt_e realname $Package)
+    fi
+    # set +x #debug
+    ci-test "$msg" "$TRES" "$RES"
+    return $s
+}
+
+Real_FH=$(xuname "-f")
+x=$(xuname "-v")
+v=$(echo $x|awk -F. '{print $1}')
+Real_DISTO=$(xuname "-d")$v
+
+declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu16 TEST_Ubuntu14
+TEST_RHEL[apache2]="httpd"
+TEST_Debian[httpd]="apache2"
+TEST_CentOS7[pip]="python-pip"
+TEST_Debian[pip]="python-pip"
+TEST_CentOS6[python-pip]="pip"
+TEST_CentOS7[mysql]="mariadb"
+TEST_CentOS6[mysql]="mysql-server"
+TEST_CentOS7[mysql-server]="mariadb-server"
+TEST_Debian[mysql]="mysql-server"
+TEST_CentOS6[mariadb]="mysql-server"
+TEST_CentOS6[mariadb-server]="mysql-server"
+TEST_Debian[mariadb]="mysql-server"
+TEST_Debian[mariadb-server]="mysql-server"
+TEST_RHEL[postgresql]="postgresql-server"
+TEST_Debian[postgresql-server]="postgresql"
+TEST_Debian[php]="php5"
+TEST_RHEL[php5]="php"
+
+for Package in apache2 httpd pip python-pip\
+ mysql mysql-server mariadb mariadb-server\
+ postgresql postgresql-server php php5; do
+  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+     if [ "$Disto" == "." ]; then
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "realname $Package $opt_e" "$Package" "$Disto"
+  done
+done
+
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"
 fi

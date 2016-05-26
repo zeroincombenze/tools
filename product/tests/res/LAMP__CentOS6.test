@@ -8,7 +8,7 @@ openssh-server (by yum)()
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
-mysql-server (by yum)(mysql-server --version)
+mysql-server (by yum)(mysql --version)
 postgresql-server (by yum)(psql --version)
 php (by yum)(php -v)
 python (by yum)(python --version)

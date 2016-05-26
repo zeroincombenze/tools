@@ -1,1 +1,1 @@
-mysql-server (by yum)(mysql-server --version)
+mysql-server (by yum)(mysql --version)

@@ -84,8 +84,8 @@ DEFPRM=("NAME_Debian"\
  "${THIS}_vfycmd")
 
 
-DEFVAL=("postgresql php5 python-dev zlib1g-dev libreadline6-dev"\
- "postgresql-server php python-devel zlib-devel readline-devel"\
+DEFVAL=("php5 python-dev zlib1g-dev libreadline6-dev"\
+ "php python-devel zlib-devel readline-devel"\
  "apachectl php php5"\
  "ssh"\
  ""\
@@ -132,14 +132,12 @@ DEFVAL=("postgresql php5 python-dev zlib1g-dev libreadline6-dev"\
 
 
 conf_default () {
-    set_cfg_def "LAMP" "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
-    set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
-    set_cfg_def "LAMP" "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
-    set_cfg_def "SUB_LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
-    set_cfg_def "SUB_LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
-    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
     # ALIAS
+    set_cfg_def "apache2" "httpd" "1" "RHEL"
+    set_cfg_def "httpd" "apache2" "1" "Debian"
+    set_cfg_def "pip" "python-pip" "1" "Debian"
+    set_cfg_def "pip" "python-pip" "1" "CentOS7"
+    set_cfg_def "python-pip" "pip" "1" "CentOS6"
     set_cfg_def "mysql" "mysql-server" "1"
     set_cfg_def "mysql" "mariadb" "1" "CentOS7"
     set_cfg_def "mysql-server" "mariadb-server" "1" "CentOS7"
@@ -147,8 +145,37 @@ conf_default () {
     set_cfg_def "mariadb" "mysql-server" "1" "Debian"
     set_cfg_def "mariadb-server" "mysql-server" "1" "CentOS6"
     set_cfg_def "mariadb-server" "mysql-server" "1" "Debian"
+    set_cfg_def "postgres" "postgresql-server" "1" "RHEL"
+    set_cfg_def "postgres" "postgresql" "1" "Debian"
+    set_cfg_def "postgresql" "postgresql-server" "1" "RHEL"
+    set_cfg_def "postgresql-server" "postgresql" "1" "Debian"
     set_cfg_def "pyopenssl" "pyOpenSSL" "1" "RHEL"
     set_cfg_def "babel" "Babel" "1"
+    # Bill of packages
+    set_cfg_def "LAMP" "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
+    set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
+    set_cfg_def "LAMP" "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
+    set_cfg_def "SUB_LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
+    set_cfg_def "SUB_LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
+    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
+    set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
+    # Command names
+    set_cfg_def "apache2_cmdname" "apachectl" "0" "Debian"
+    set_cfg_def "httpd_cmdname" "apachectl" "0" "RHEL"
+    set_cfg_def "postgresql-server_cmdname" "psql" "0" "RHEL"
+    set_cfg_def "postgresql_cmdname" "psql" "0" "Debian"
+    set_cfg_def "python-pip_cmdname" "pip" "0" "Debian"
+    set_cfg_def "python-pip_cmdname" "pip" "0" "CentOS7"
+    set_cfg_def "mysql-server_cmdname" "mysql" "0"
+    set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
+    set_cfg_def "mysql_cmdname" "mysql" "0"
+    set_cfg_def "mariadb_cmdname" "mysql" "0" "CentOS7"
+    # Service names
+    set_cfg_def "apache2_svcname" "apache2" "0" "Debian"
+    set_cfg_def "httpd_svcname" "httpd" "0" "RHEL"
+    set_cfg_def "mysql_svcname" "mysql" "0" "Debian"
+    set_cfg_def "mariadb_svcname" "mariadb" "0" "CentOS7"
+    set_cfg_def "mysql_svcname" "mysqld" "0" "CentOS6"
 }
 
 
@@ -227,39 +254,11 @@ get_prm_value() {
         p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
         p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
         p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
-      elif [ "$2" == "NAME_ALIAS" ]; then
-        if [ "$DISTO" == "CentOS7" ]; then
-          # p="mysql mysql-server pip pyopenssl"
-          p="pip"
-        elif [ "$FH" == "RHEL" ]; then
-          # p="mariadb-server mysql pyopenssl"
-          p="pip"
-        else
-          # p="mariadb-server mysql pip"
-          p="pip"
-        fi
-        # p="$p babel"
-      elif [ "$2" == "NAME_REAL" ]; then
-        if [ "$DISTO" == "CentOS7" ]; then
-          # p="mariadb-server mariadb-server python-pip pyOpenSSL"
-          p="python-pip"
-        elif [ "$FH" == "RHEL" ]; then
-          # p="mysql-server mysql-server pyOpenSSL"
-          p="pip"
-        else
-          # p="mysql-server mysql-server python-pip"
-          p="python"
-        fi
-        # p="$p Babel"
       elif [ "$2" == "NAME_VIRTUAL" ]; then
         p="LAMP LAMP_security PYTHON_DEVELOVER"
-      elif [ "$2" == "apache2_cmdname" -o  "$2" == "httpd_cmdname" ]; then
-        p="apachectl"
-      elif [ "$2" == "postgresql_cmdname" -o  "$2" == "postgresql-server_cmdname" ]; then
-        p="psql"
-      elif [ "$2" == "apache2_svcname" -o "$2" == "httpd_svcname" -o "$2" == "mariadb_svcname" ]; then
-        let l=${#2}-8
-        p="${2:0:l}"
+      # elif [ "$2" == "apache2_svcname" -o "$2" == "httpd_svcname" -o "$2" == "mariadb_svcname" ]; then
+      #   let l=${#2}-8
+      #   p="${2:0:l}"
       elif [ "$2" == "openssh-server_svcname" ]; then
         if [ "$FH" == "RHEL" ]; then
           p="sshd"
@@ -280,11 +279,11 @@ get_prm_value() {
         p=""
       elif [ "$2" == "openssh-client_cmdname" -o "$2" == "openssh-clients_cmdname" ]; then
         p="ssh"
-      elif [ "$2" == "python-pip_cmdname" ]; then
-        p="pip"
       elif [ "${2: -8}" == "_cmdname" ]; then
-        let l=${#2}-8
-        p="${2:0:l}"
+        if ! $(is_virtualname $pkgname); then
+          let l=${#2}-8
+          p="${2:0:l}"
+        fi
       elif [ "${2: -7}" == "_vfycmd" ]; then
         let l=${#2}-7
         x="${2:0:l}"
@@ -2963,6 +2962,38 @@ elif [ "$action" == "realname" ]; then
       echo "$p"
     else
       echo "$p=$x"
+    fi
+  done
+elif [ "$action" == "info" ]; then
+  iter=$(set_iter $pkg)
+  # for p in $iter; do
+  for p in $pkg; do
+    pkgname=$(prod realname $p)
+    if $(is_virtualname $pkgname); then
+      pkglist=$(get_prm_value $FCONF "$pkgname")
+    else
+      pkglist=
+    fi
+    set_xtlcmds
+    svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
+    cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
+    vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
+    if [ "$p" == "$pkgname" ]; then
+      echo "$p (install by $xtlcmd)"
+    else
+      echo "$p=$pkgname (install by $xtlcmd)"
+    fi
+    if [ -n "$pkglist" ]; then
+      echo "($pkglist)"
+    fi
+    if [ -n "$svcname" ]; then
+      echo " service=$svcname"
+    fi
+    if [ -n "$cmdname" ]; then
+      echo " command=$cmdname"
+    fi
+    if [ -n "$vfycmd" ]; then
+      echo " get ver=$vfycmd"
     fi
   done
 else

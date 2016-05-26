@@ -1,2 +1,2 @@
-mariadb (by yum)(mariadb --version)
---mariadb-server (by yum)(mariadb-server --version)
+mariadb (by yum)(mysql --version)
+--mariadb-server (by yum)(mysql --version)

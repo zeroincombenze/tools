@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Sample of Regression tests
+# Regression tests on product
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -78,7 +78,7 @@ if [ $sts -ne 127 ]; then
 fi
 opt4childs=$(inherit_opts)
 UT1_LIST=""
-UT_LIST="product_test_01"
+UT_LIST="product_test_01 product_test_02 product_test_03 product_test_99"
 saved_ctr=$ctr
 saved_max_test=$max_test
 saved_opt_verbose=$opt_verbose
@@ -125,11 +125,11 @@ fi
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   ix=0
   sts=0
+  ctr=$saved_ctr
   # 1 test is for version id
   xtlver=$($RUNDIR/product -V)
   ci-test "check for product version" "$__version__" "$xtlver"
-  ctr=$saved_ctr
-  # exec_all_tests "version" "2"
+  ((ix++))
   if [ -n "$UT1_LIST" ]; then
     # test w/o tracelog
     exec_all_tests "$UT1_LIST"
@@ -137,6 +137,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
     WLOGCMD=
     set_tlog_file "$TESTDIR/TEST_MYAPP.log" "" "$LECHO"
   fi
+  # exec_all_tests "z0rg_trace z0rg_trace z0rg_trace z0rg_trace"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

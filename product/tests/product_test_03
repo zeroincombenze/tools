@@ -1,6 +1,7 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Sample of Regression tests
+# Regression tests on product
+# Check for whatis
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -101,6 +102,10 @@ test_run () {
       if [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
         local Package="httpd"
       fi
+    elif [ "$Package" == "pip" -a "$Disto" != "CentOS6" ]; then
+      local Package="python-pip"
+    elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
+      local Package="pip"
     elif [ "$Package" == "mysql" ]; then
       if [ "$Disto" == "CentOS7" ]; then
         local Package="mysql"
@@ -124,11 +129,12 @@ test_run () {
       # eval $TPRODUCT $opt_e whatis $Package
     fi
     # set +x #debug
-    ci-test "$msg" "$TESTOUT" "$TESTDIR/product.out" "diff"
+    ci-test "$msg" "$TESTOUT" "$TESTDIR/product.out" "$cmd"
     return $s
 }
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
+  rm -f $TESTDIR/res/*.test
   cat <<EOF >$TESTDIR/res/LAMP__Debian.test
 LAMP (by product)()
 python-pip (by apt-get)(pip --version)
@@ -138,7 +144,7 @@ openssh-server (by apt-get)()
 apache2 (by apt-get)(apachectl -v)
 - TCP port 80
 - TCP port 443
-mysql-server (by apt-get)(mysql-server --version)
+mysql-server (by apt-get)(mysql --version)
 postgresql (by apt-get)(psql --version)
 php5 (by apt-get)(php5 -v)
 python (by apt-get)(python --version)
@@ -154,7 +160,7 @@ openssh-server (by yum)()
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
-mysql-server (by yum)(mysql-server --version)
+mysql-server (by yum)(mysql --version)
 postgresql-server (by yum)(psql --version)
 php (by yum)(php -v)
 python (by yum)(python --version)
@@ -170,7 +176,7 @@ openssh-server (by yum)()
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
-mariadb (by yum)(mariadb --version)
+mariadb (by yum)(mysql --version)
 postgresql-server (by yum)(psql --version)
 php (by yum)(php -v)
 python (by yum)(python --version)
@@ -207,31 +213,44 @@ apache2 (by apt-get)(apachectl -v)
 - TCP port 80
 - TCP port 443
 EOF
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.test
+python-pip (by yum)(pip --version)
+EOF
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.test
+pip (by yum)(pip --version)
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__Debian.test
+python-pip (by apt-get)(pip --version)
+EOF
   cat <<EOF >$TESTDIR/res/mysql-server__Debian.test
-mysql-server (by apt-get)(mysql-server --version)
+mysql-server (by apt-get)(mysql --version)
 --libapache2-mod-auth-mysql (by apt-get)(libapache2-mod-auth-mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql__CentOS7.test
-mariadb (by yum)(mariadb --version)
---mariadb-server (by yum)(mariadb-server --version)
+mariadb (by yum)(mysql --version)
+--mariadb-server (by yum)(mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.test
-mariadb-server (by yum)(mariadb-server --version)
+mariadb-server (by yum)(mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.test
-mysql-server (by yum)(mysql-server --version)
+mysql-server (by yum)(mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__Debian.test
-postgres (by apt-get)(postgres --version)
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.test
+postgresql (by apt-get)(psql --version)
+--postgresql-client-common (by apt-get)(postgresql-client-common --version)
+--postgresql-contrib (by apt-get)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__RHEL.test
-postgres (by yum)(postgres --version)
+  cat <<EOF >$TESTDIR/res/postgresql__RHEL.test
+postgresql-server (by yum)(psql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres-server__Debian.test
-postgres-server (by apt-get)(postgres-server --version)
+  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.test
+postgresql (by apt-get)(psql --version)
+--postgresql-client-common (by apt-get)(postgresql-client-common --version)
+--postgresql-contrib (by apt-get)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres-server__RHEL.test
-postgres-server (by yum)(postgres-server --version)
+  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.test
+postgresql-server (by yum)(psql --version)
 EOF
 fi
 Real_FH=$(xuname "-f")
@@ -239,7 +258,8 @@ x=$(xuname "-v")
 v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
-for Package in LAMP LAMP_security apache2 httpd mysql mysql-server postgres postgres-server; do
+for Package in LAMP LAMP_security apache2 httpd pip python-pip\
+ mysql mysql-server postgresql postgresql-server; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        opt_e=
