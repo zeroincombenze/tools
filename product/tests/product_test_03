@@ -67,7 +67,7 @@ TRAVISDIR=$(readlink -e $TRAVISDIR)
 Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
-__version__=0.2.1
+__version__=0.2.1.22
 parseoptest -l$TESTDIR/test_product.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -108,10 +108,20 @@ test_run () {
       local Package="pip"
     elif [ "$Package" == "mysql" ]; then
       if [ "$Disto" == "CentOS7" ]; then
-        local Package="mysql"
+         local Package="mariadb"
       else
         local Package="mysql-server"
       fi
+    elif [ "$Package" == "mariadb" -o "$Package" == "mariadb-server" ]; then
+      if [ "$Disto" == "CentOS6" -o "$FH" == "Debian" ]; then
+        local Package="mysql-server"
+      fi
+    elif [ "$Package" == "php" -a "$FH" == "Debian" ]; then
+      local Package="php5"
+    elif [ "$Package" == "php5" -a "$FH" == "RHEL" ]; then
+      local Package="php"
+    elif [ "$Package" == "openssh" ]; then
+      local Package="openssh-server"
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $TESTDIR/res/${Package}__${Disto}.test ]; then
@@ -125,8 +135,8 @@ test_run () {
         echo "File test comparison ${Package}__${Disto} not found!"
       fi
       rm -f $TESTDIR/product.out
-      eval $TPRODUCT $opt_e whatis $Package >$TESTDIR/product.out
-      # eval $TPRODUCT $opt_e whatis $Package
+      eval $TPRODUCT $opt_e whatis $2 >$TESTDIR/product.out
+      # eval $TPRODUCT $opt_e whatis $2
     fi
     # set +x #debug
     ci-test "$msg" "$TESTOUT" "$TESTDIR/product.out" "$cmd"
@@ -139,6 +149,10 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 LAMP (by product)()
 python-pip (by apt-get)(pip --version)
 LAMP_security (by product)()
+libffi-dev (by apt-get)(libffi-dev --version)
+libssl-dev (by apt-get)(libssl-dev --version)
+python-openssl (by apt-get)(python-openssl --version)
+build-essential (by apt-get)(build-essential --version)
 openssh-server (by apt-get)()
 - TCP port 22
 apache2 (by apt-get)(apachectl -v)
@@ -155,6 +169,11 @@ epel-release (by yum)(epel-release --version)
 pip (by yum)(pip --version)
 yum-utils (by yum)(yum-utils --version)
 LAMP_security (by product)()
+openssl-devel (by yum)(openssl-devel --version)
+libffi-devel (by yum)(libffi-devel --version)
+pyOpenSSL (by yum)(pyOpenSSL --version)
+pyasn1 (by pip)()
+ndg-httpsclient (by pip)()
 openssh-server (by yum)()
 - TCP port 22
 httpd (by yum)(apachectl -v)
@@ -171,6 +190,10 @@ epel-release (by yum)(epel-release --version)
 python-pip (by yum)(pip --version)
 yum-utils (by yum)(yum-utils --version)
 LAMP_security (by product)()
+libffi-devel (by yum)(libffi-devel --version)
+pyOpenSSL (by yum)(pyOpenSSL --version)
+pyasn1 (by pip)()
+ndg-httpsclient (by pip)()
 openssh-server (by yum)()
 - TCP port 22
 httpd (by yum)(apachectl -v)
@@ -183,25 +206,25 @@ python (by yum)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__Debian.test
 LAMP_security (by product)()
---libffi-dev (by apt-get)(libffi-dev --version)
---libssl-dev (by apt-get)(libssl-dev --version)
---python-openssl (by apt-get)(python-openssl --version)
---build-essential (by apt-get)(build-essential --version)
+libffi-dev (by apt-get)(libffi-dev --version)
+libssl-dev (by apt-get)(libssl-dev --version)
+python-openssl (by apt-get)(python-openssl --version)
+build-essential (by apt-get)(build-essential --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__CentOS7.test
 LAMP_security (by product)()
---libffi-devel (by yum)(libffi-devel --version)
---pyOpenSSL (by yum)(pyOpenSSL --version)
---pyasn1 (by pip)()
---ndg-httpsclient (by pip)()
+libffi-devel (by yum)(libffi-devel --version)
+pyOpenSSL (by yum)(pyOpenSSL --version)
+pyasn1 (by pip)()
+ndg-httpsclient (by pip)()
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__CentOS6.test
 LAMP_security (by product)()
---openssl-devel (by yum)(openssl-devel --version)
---libffi-devel (by yum)(libffi-devel --version)
---pyOpenSSL (by yum)(pyOpenSSL --version)
---pyasn1 (by pip)()
---ndg-httpsclient (by pip)()
+openssl-devel (by yum)(openssl-devel --version)
+libffi-devel (by yum)(libffi-devel --version)
+pyOpenSSL (by yum)(pyOpenSSL --version)
+pyasn1 (by pip)()
+ndg-httpsclient (by pip)()
 EOF
   cat <<EOF >$TESTDIR/res/httpd.test
 httpd (by yum)(apachectl -v)
@@ -226,15 +249,27 @@ EOF
 mysql-server (by apt-get)(mysql --version)
 --libapache2-mod-auth-mysql (by apt-get)(libapache2-mod-auth-mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mysql__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.test
 mariadb (by yum)(mysql --version)
 --mariadb-server (by yum)(mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.test
 mariadb-server (by yum)(mysql --version)
 EOF
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.test
+mariadb-server (by yum)(mysql --version)
+EOF
   cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.test
 mysql-server (by yum)(mysql --version)
+--libapache2-mod-auth-mysql (by yum)(libapache2-mod-auth-mysql --version)
+EOF
+  cat <<EOF >$TESTDIR/res/postgres__Debian.test
+postgresql (by apt-get)(psql --version)
+--postgresql-client-common (by apt-get)(postgresql-client-common --version)
+--postgresql-contrib (by apt-get)(postgresql-contrib --version)
+EOF
+  cat <<EOF >$TESTDIR/res/postgres__RHEL.test
+postgresql-server (by yum)(psql --version)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__Debian.test
 postgresql (by apt-get)(psql --version)
@@ -252,6 +287,36 @@ EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.test
 postgresql-server (by yum)(psql --version)
 EOF
+  cat <<EOF >$TESTDIR/res/php__RHEL.test
+php (by yum)(php -v)
+--php-mysql (by yum)(php-mysql --version)
+--php-common (by yum)(php-common --version)
+--php-xml (by yum)(php-xml --version)
+--php-cli (by yum)(php-cli --version)
+EOF
+  cat <<EOF >$TESTDIR/res/php5__Debian.test
+php5 (by apt-get)(php5 -v)
+--php5-mysql (by apt-get)(php5-mysql --version)
+--php5-common (by apt-get)(php5-common --version)
+--php5-xml (by apt-get)(php5-xml --version)
+--php5-cli (by apt-get)(php5-cli --version)
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.test
+openssh-server (by yum)()
+- TCP port 22
+--openssh-clients (by yum)(ssh -V)
+--telnet (by yum)(telnet --version)
+--mod_ssl (by yum)(mod_ssl --version)
+--mod_proxy_html (by yum)(mod_proxy_html --version)
+--iptables-services (by yum)(iptables-services --version)
+--bind-utils (by yum)(bind-utils --version)
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.test
+openssh-server (by apt-get)()
+- TCP port 22
+--openssh-client (by apt-get)(ssh -V)
+--telnet (by apt-get)(telnet --version)
+EOF
 fi
 Real_FH=$(xuname "-f")
 x=$(xuname "-v")
@@ -259,7 +324,9 @@ v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
 for Package in LAMP LAMP_security apache2 httpd pip python-pip\
- mysql mysql-server postgresql postgresql-server; do
+ mysql mysql-server mariadb mariadb-server\
+ postgres postgresql postgresql-server php php5\
+ openssh openssh-server; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        opt_e=

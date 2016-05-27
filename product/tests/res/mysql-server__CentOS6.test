@@ -1,1 +1,2 @@
 mysql-server (by yum)(mysql --version)
+--libapache2-mod-auth-mysql (by yum)(libapache2-mod-auth-mysql --version)

@@ -63,8 +63,6 @@ DEFPRM=("NAME_Debian"\
  "VFYUPP"\
  "VFYE2NL"\
  "VFYERR"\
- "postgresql-server_svcname"\
- "postgresql_svcname"\
  "SUB_python__Debian"\
  "SUB_python__RHEL"\
  "SUB_python__Debian__DEV"\
@@ -73,25 +71,17 @@ DEFPRM=("NAME_Debian"\
  "SUB_odoo__RHEL"\
  "SUB_odoo__Debian__DEV"\
  "SUB_odoo__RHEL__DEV"\
- "SUB_openssh_server__RHEL"\
- "SUB_openssh_server__Debian"\
- "SUB_php5"\
  "SUB_odoo__DEV"\
- "TCP_httpd"\
- "TCP_apache2"\
- "TCP_openssh_server"\
  "NOINQ"\
  "${THIS}_vfycmd")
 
 
-DEFVAL=("php5 python-dev zlib1g-dev libreadline6-dev"\
- "php python-devel zlib-devel readline-devel"\
+DEFVAL=("python-dev zlib1g-dev libreadline6-dev"\
+ "python-devel zlib-devel readline-devel"\
  "apachectl php php5"\
  "ssh"\
  ""\
  "ssh python"\
- "postgresql"\
- "postgresql"\
  "setuptools python-virtualenv virtualenv\
     libreadline6 libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
     python-gdata python-ldap python-lxml python-requests python-yaml"\
@@ -120,13 +110,7 @@ DEFVAL=("php5 python-dev zlib1g-dev libreadline6-dev"\
     python-unittest2 urllib3 python-vobject python-werkzeug pytz unidecode wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"\
  ""\
  "libjpeg-turbo-devel"\
- "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils"\
- "openssh-client telnet"\
- "php5-mysql php5-common php5-xml"\
  "pcregrep oerplib erppeek os0 pytok"\
- "80 443"\
- "80 443"\
- "22"\
  "ghostscript odoo"\
  "/usr/bin/$THIS -V")
 
@@ -150,15 +134,23 @@ conf_default () {
     set_cfg_def "postgresql" "postgresql-server" "1" "RHEL"
     set_cfg_def "postgresql-server" "postgresql" "1" "Debian"
     set_cfg_def "pyopenssl" "pyOpenSSL" "1" "RHEL"
+    set_cfg_def "php5" "php" "1" "RHEL"
+    set_cfg_def "php" "php5" "1" "Debian"
+    set_cfg_def "openssh" "openssh-server" "1"
     set_cfg_def "babel" "Babel" "1"
     # Bill of packages
     set_cfg_def "LAMP" "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
     set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
     set_cfg_def "LAMP" "python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
-    set_cfg_def "SUB_LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
-    set_cfg_def "SUB_LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
-    set_cfg_def "SUB_LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
+    set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
+    set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
+    set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
     set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
+    set_cfg_def "SUB_mysql-server" "libapache2-mod-auth-mysql" "0"
+    set_cfg_def "SUB_openssh-server" "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
+    set_cfg_def "SUB_openssh-server" "openssh-client telnet" "0" "Debian"
+    set_cfg_def "SUB_php5" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
+    set_cfg_def "SUB_php" "php-mysql php-common php-xml php-cli" "0" "RHEL"
     # Command names
     set_cfg_def "apache2_cmdname" "apachectl" "0" "Debian"
     set_cfg_def "httpd_cmdname" "apachectl" "0" "RHEL"
@@ -170,12 +162,24 @@ conf_default () {
     set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
     set_cfg_def "mysql_cmdname" "mysql" "0"
     set_cfg_def "mariadb_cmdname" "mysql" "0" "CentOS7"
+    set_cfg_def "openssh-server_cmdname" "NULL" "0"
+    set_cfg_def "openssh-client_cmdname" "ssh" "0" "Debian"
+    set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
     # Service names
     set_cfg_def "apache2_svcname" "apache2" "0" "Debian"
     set_cfg_def "httpd_svcname" "httpd" "0" "RHEL"
     set_cfg_def "mysql_svcname" "mysql" "0" "Debian"
     set_cfg_def "mariadb_svcname" "mariadb" "0" "CentOS7"
+    set_cfg_def "mariadb-server_svcname" "mariadb" "0" "CentOS7"
     set_cfg_def "mysql_svcname" "mysqld" "0" "CentOS6"
+    set_cfg_def "postgresql_svcname" "postgresql" "0"
+    set_cfg_def "postgresql-server_svcname" "postgresql" "0"
+    set_cfg_def "openssh-server_svcname" "ssh" "0" "Debian"
+    set_cfg_def "openssh-server_svcname" "sshd" "0" "RHEL"
+    # TCP & UDP Ports
+    set_cfg_def "TCP_httpd" "80 443" "0" "RHEL"
+    set_cfg_def "TCP_apache2" "80 443" "0" "Debian"
+    set_cfg_def "TCP_openssh-server" "22" "0"
 }
 
 
@@ -190,15 +194,11 @@ get_prm_value() {
     else
       p=$(get_cfg_value "0" $2)
     fi
-    if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
-      if [ -f $1 ]; then
-        p=$(grep "^$2 *=.*" $1 2>/dev/null|awk -F\= '{print $2}'|tr -d "\"'\r\n")
-        p=$(echo $p)
-      else
-        p=
-      fi
+    if [ "$p" == "None" -o "$p" == "NULL" ]; then
+      echo ""
+      return
     fi
-    if [ -z "$p" -o "$p" == "None" -o "$p" == "False" ]; then
+    if [ -z "$p" -o "$p" == "False" ]; then
       local jy=0
       p=""
       while ((jy<${#DEFPRM[*]})); do
@@ -224,13 +224,7 @@ get_prm_value() {
       fi
     fi
     if [ -z "$p" ]; then
-      if [ "$2" == "SUB_mysql_server" ]; then
-        if [ "$FH" == "Debian" ]; then
-          p="libapache2-mod-auth-mysql"
-        fi
-      elif [ "$2" == "SUB_php" ]; then
-        p="php-mysql php-common php-xml"
-      elif [ "$2" == "SUB_postgresql_server" ]; then
+      if [ "$2" == "SUB_postgresql_server" ]; then
         if [ $opt_grf -gt 0 ]; then
           p="pgadmin3"
         else
@@ -256,29 +250,13 @@ get_prm_value() {
         p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
       elif [ "$2" == "NAME_VIRTUAL" ]; then
         p="LAMP LAMP_security PYTHON_DEVELOVER"
-      # elif [ "$2" == "apache2_svcname" -o "$2" == "httpd_svcname" -o "$2" == "mariadb_svcname" ]; then
-      #   let l=${#2}-8
-      #   p="${2:0:l}"
-      elif [ "$2" == "openssh-server_svcname" ]; then
-        if [ "$FH" == "RHEL" ]; then
-          p="sshd"
-        else
-          p="ssh"
-        fi
       elif [ "${2: -15}" == "-server_svcname" ]; then
         let l=${#2}-15
         if [ "$FH" == "RHEL" ]; then
           p="${2:0:l}d"
-          if [ "$p" == "mariadbd" ]; then
-            p="mariadb"
-          fi
         else
           p="${2:0:l}"
         fi
-      elif [ "$2" == "openssh-server_cmdname" ]; then
-        p=""
-      elif [ "$2" == "openssh-client_cmdname" -o "$2" == "openssh-clients_cmdname" ]; then
-        p="ssh"
       elif [ "${2: -8}" == "_cmdname" ]; then
         if ! $(is_virtualname $pkgname); then
           let l=${#2}-8
@@ -323,13 +301,6 @@ init_cfg_pkg () {
     NAME_ALIAS=($(get_prm_value $FCONF NAME_ALIAS))
     NAME_REAL=($(get_prm_value $FCONF NAME_REAL))
     NAME_VIRTUAL=($(get_prm_value $FCONF NAME_VIRTUAL))
-    local r=$(prod realname $1)
-    iter=$(set_iter $r)
-    for pkgname in $iter; do
-      realname=$(prod realname $pkgname)
-      export SUB_${pkgname//-/_}="$(get_prm_value $FCONF SUB_${pkgname//-/_})"
-      export TCP_${pkgname//-/_}="$(get_prm_value $FCONF TCP_${pkgname//-/_})"
-    done
     NOINQ="$(get_prm_value $FCONF NOINQ)"
     VFYLOW="$(get_prm_value $FCONF VFYLOW)"
     VFYUPP="$(get_prm_value $FCONF VFYUPP)"
@@ -364,10 +335,13 @@ set_iter () {
 # return: <pkg_list>
   if [ -z "$1" ]; then
     local iter="$LAMP"
-  elif [ "${!1}" ]; then
-    local iter="${!1}"
   else
-    local iter="$1"
+    local p=$(get_cfg_value "0" $1)
+    if [ -n "$p" ]; then
+      local iter="$p"
+    else
+      local iter="$1"
+    fi
   fi
   if $(is_virtualname $1); then
     if [ -z "$(echo \" $iter \"|grep [[:space:]]$1[[:space:]] 2>/dev/null)" ]; then
@@ -809,6 +783,7 @@ get_pkg_ver () {
 set_xtlcmds () {
 # set_xtlcmds::pkgname opt_yes STD_PKGS, PIP_PKGS
 # return: -> xtlcmd, stscmd, vfycmd, 'OPTS'
+    local pkgname=$1
     if $(is_virtualname $pkgname); then
       xtlcmd="product"
       stscmd="product"
@@ -1062,13 +1037,31 @@ prod () {
 # return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
 # TODO [Debian] aptitude search 'pkgname'
 # TODO [RHEL] yum search 'pkgname'
-    # echo "prod ('$1' '$2' '$3' '$4')">>~/product.his    #debug
-    pkgname=$(get_realname "$2")
-    set_xtlcmds
-    svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
-    cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
-    vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
-    cmd0=""
+    # echo "prod('$1' '$2' '$3' '$4')">>~/product.his    #debug
+    local pkgname=$(get_realname "$2")
+    if [ "$3" != "-q" -a "$3" != "-Q" ]; then
+      local iter=$(set_iter $pkgname)
+      if [ "$pkgname" != "$iter" ]; then
+        if [ "$1" == "realname" ]; then
+          echo "$2=($iter)"
+          return $STS_SUCCESS
+        fi
+        local p
+        for p in $iter; do
+          if [ "$p" == "$2" -o "$p" == "$pkgname" ]; then
+            prod $1 $p "-Q" "$4"
+          else
+            prod $1 $p "$3" "$4"
+          fi
+        done
+        return $STS_SUCCESS
+      fi
+    fi
+    set_xtlcmds $pkgname
+    local svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
+    local cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
+    local vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
+    local cmd0=""
     if [ -z "$4" ]; then
       level=0
       local lm=
@@ -1077,7 +1070,7 @@ prod () {
       let x=$level*2
       local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     fi
-    # echo "$pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
+    # echo " $pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
     if [ "$1" == "realname" ]; then
       echo "$pkgname"
       return $STS_SUCCESS
@@ -1146,7 +1139,7 @@ prod () {
           run_traced "$cmd0"
         fi
       fi
-      x=$(echo "$cmd"|awk '{print $1}')
+      local x=$(echo "$cmd"|awk '{print $1}')
       if [ "$(type -t $x)" == "function" ]; then
         $cmd
       else
@@ -1169,44 +1162,48 @@ prod () {
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
     fi
-    local X="TCP_${pkgname//-/_}"
-    if [ -n "${!X}" ]; then
+    # local X="TCP_${pkgname//-/_}"
+    local X="$(get_prm_value $FCONF TCP_$pkgname)"
+    if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           enable_port $port tcp
         done
       elif [ "$1" == "remove" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           disable_port $port tcp
         done
       elif [ "$1" == "whatis" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           test_msg "- TCP port $port"
         done
       fi
     fi
-    X="UDP_${pkgname//-/_}"
-    if [ "${!X}" ]; then
+    # X="UDP_${pkgname//-/_}"
+    local X="$(get_prm_value $FCONF UDP_$pkgname)"
+    if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           enable_port $port udp
         done
       elif [ "$1" == "remove" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           disable_port $port tcp
         done
       elif [ "$1" == "whatis" ]; then
-        for port in ${!X}; do
+        for port in $X; do
           test_msg "- UDP port $port"
         done
       fi
     fi
-    SUBlist="SUB_${pkgname//-/_}"
+    # SUBlist="SUB_${pkgname//-/_}"
+    local SUBlist="$(get_prm_value $FCONF SUB_$pkgname)"
     if [ -z "$level" ]; then level=0; fi
-    if [ "${!SUBlist}" -a $level -lt $opt_depth ]; then
+    if [ -n "$SUBlist" -a $level -lt $opt_depth ]; then
       ((level++))
-      for p in ${!SUBlist}; do
-        realname=$(prod realname $p)
+      for p in $SUBlist; do
+        # realname=$(prod realname $p)
+        realname=$(get_realname $p)
         verbose_msg "Analyzing $realname"
         if [ "$1" == "install" ]; then
           if $(prod status $realname "-q" $level); then
@@ -1233,6 +1230,7 @@ prod () {
     if [ $level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
       run_traced "apt-get autoremove"
     fi
+    # echo "  exit $1 $2">>~/product.his  #debug
     return $STS_SUCCESS
 }
 
@@ -1594,7 +1592,8 @@ pre_config_odoo () {
 }
 
 post_config_odoo () {
-    local r="$(prod realname "postresql")"
+    # local r="$(prod realname "postresql")"
+    local r=$(get_realname postresql) #tny!!
     run_traced "service $r restart"
 }
 
@@ -1824,28 +1823,6 @@ test_cfg_name () {
     done
 }
 
-test_realname () {
-    if [ "$FH" == "RHEL" ]; then
-      local TRES=("." $THIS python-pip httpd httpd postgresql-server postgresql-server openssh-server python odoo)
-    else
-      local TRES=("." $THIS python-pip apache2 apache2 postgresql postgresql openssh-server python odoo)
-    fi
-    local jj=0
-    while ((jj<${#PNLX[*]})); do
-      local p="${PNLX[jj]}"
-      if [ "$p" == "." ]; then p=; fi
-      ((tst_ctr++))
-      elog "Test $tst_ctr [$FH]: prod realname '$p'"
-      local r="$(prod realname $p)"
-      local t="${TRES[jj]}"
-      if [ "$t" == "." ]; then t=; fi
-      if [ "$r" != "$t" ]; then
-        elog "Test Failed: ($r)"
-        exit $STS_FAILED
-      fi
-      ((++jj))
-    done
-}
 
 test_install () {
   fout=~/$THIS.out
@@ -2681,10 +2658,7 @@ elif [ "$action" == "whatis" ]; then
   if [ $test_mode -eq 0 ]; then
     print_title "List managed packages"
   fi
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    prod $action $p
-  done
+  prod $action $pkg
 elif [ "$action" == "status" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2694,7 +2668,8 @@ elif [ "$action" == "status" ]; then
   print_title "Check for installation status"
   iter=$(set_iter $pkg)
   for p in $iter; do
-    realname=$(prod realname $p)
+    # realname=$(prod realname $p)
+    realname=$(get_realname $p)
     prod $action $realname
   done
   echo "See $FLOG for traced informations"
@@ -2707,7 +2682,8 @@ elif [ "$action" == "version" ]; then
   print_title "Show installed package version"
   iter=$(set_iter $pkg)
   for p in $iter; do
-    realname=$(prod realname $p)
+    # realname=$(prod realname $p)
+    realname=$(get_realname $p)
     if $(prod status $realname "-q"); then
       prod version $realname
     fi
@@ -2720,7 +2696,8 @@ elif [ "$action" == "update" ]; then
   print_title "Update/upgrade package(s)"
   iter=$(set_iter $pkg)
   for p in $iter; do
-    realname=$(prod realname $p)
+    # realname=$(prod realname $p)
+    realname=$(get_realname $p)
     if $(prod status $realname "-q"); then
       wlog "- package $realname"
       prod $action $realname
@@ -2738,7 +2715,8 @@ elif [ "$action" == "config" ]; then
   iter=$(set_iter $pkg)
   if [ "$iter" == "product" ]; then
     for pkgname in $LAMP; do
-      realname=$(prod realname $pkgname)
+      # realname=$(prod realname $pkgname)
+      realname=$(get_realname $pkgname)
       if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$realname[[:space:]] 2>/dev/null)" ]; then
         if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$realname[[:space:]] 2>/dev/null)" ]; then
           installer=$(prod installer $realname)
@@ -2752,7 +2730,8 @@ elif [ "$action" == "config" ]; then
       SUBlist="SUB_${realname//-/_}"
       if [ "$SUBlist" ]; then
         for pkg in ${!SUBlist}; do
-          p=$(prod realname $pkg)
+          # p=$(prod realname $pkg)
+          p=$(get_realname $pkg)
           if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
             if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
               installer=$(prod installer $p)
@@ -2768,7 +2747,8 @@ elif [ "$action" == "config" ]; then
     done
   else
     for p in $iter; do
-      realname=$(prod realname $p)
+      # realname=$(prod realname $p)
+      realname=$(get_realname $p)
       if $(is_virtualname $realname); then
         prod $action $realname "-q"
       elif $(prod status $realname "-q"); then
@@ -2792,7 +2772,8 @@ elif [ "$action" == "remove" ]; then
   print_title "Remove package $pkg"
   iter=$(set_iter $pkg)
   for p in $iter; do
-    realname=$(prod realname $p)
+    # realname=$(prod realname $p)
+    realname=$(get_realname $p)
     if $(is_virtualname $realname); then
       prod $action $realname "-q"
     elif $(prod status $realname "-q"); then
@@ -2817,7 +2798,8 @@ elif [ "$action" == "install" ]; then
   fi
   iter=$(set_iter $pkg)
   for p in $iter; do
-    realname=$(prod realname $p)
+    # realname=$(prod realname $p)
+    realname=$(get_realname $p)
     if $(is_virtualname $realname); then
       prod $action $realname "-q"
     elif $(prod status $p "-q"); then
@@ -2899,7 +2881,7 @@ elif [ "$action" == "regression_test" ]; then
     SIMULATE_YES=". $SAVE_SMLT_YES ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
     test_cfg_name
-    test_realname
+    # test_realname
     test_install
     SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
@@ -2955,47 +2937,43 @@ elif [ "$action" == "debug" ]; then
      ((jy++))
    done
 elif [ "$action" == "realname" ]; then
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    x=$(prod $action $p)
-    if [ "$p" == "$x" ]; then
-      echo "$p"
-    else
-      echo "$p=$x"
-    fi
-  done
+  p=$(prod $action $pkg)
+  if [ "$p" == "$pkg" ]; then
+    echo $pkg
+  elif [[ $p =~ = ]]; then
+     echo $p
+  else
+    echo $pkg=$p
+  fi
 elif [ "$action" == "info" ]; then
-  iter=$(set_iter $pkg)
-  # for p in $iter; do
-  for p in $pkg; do
-    pkgname=$(prod realname $p)
-    if $(is_virtualname $pkgname); then
-      pkglist=$(get_prm_value $FCONF "$pkgname")
+  pkgname=$(get_realname $pkg)
+  pkglist=$(prod realname $pkg)
+  set_xtlcmds $pkgname
+  svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
+  cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
+  vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
+  if [[ $pkglist =~ = ]]; then
+    if [ "$pkg" == "$pkgname" ]; then
+      echo "$pkglist (install by $xtlcmd)"
     else
-      pkglist=
+      echo "$pkg=$pkglist (install by $xtlcmd)"
     fi
-    set_xtlcmds
-    svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
-    cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
-    vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
-    if [ "$p" == "$pkgname" ]; then
-      echo "$p (install by $xtlcmd)"
+  else
+    if [ "$pkg" == "$pkgname" ]; then
+      echo "$pkg (install by $xtlcmd)"
     else
-      echo "$p=$pkgname (install by $xtlcmd)"
+      echo "$pkg=$pkgname (install by $xtlcmd)"
     fi
-    if [ -n "$pkglist" ]; then
-      echo "($pkglist)"
-    fi
-    if [ -n "$svcname" ]; then
-      echo " service=$svcname"
-    fi
-    if [ -n "$cmdname" ]; then
-      echo " command=$cmdname"
-    fi
-    if [ -n "$vfycmd" ]; then
-      echo " get ver=$vfycmd"
-    fi
-  done
+  fi
+  if [ -n "$svcname" ]; then
+    echo " service=$svcname"
+  fi
+  if [ -n "$cmdname" ]; then
+    echo " command=$cmdname"
+  fi
+  if [ -n "$vfycmd" ]; then
+    echo " get ver=$vfycmd"
+  fi
 else
   echo "No valid action $action!"
   exit $STS_FAILED

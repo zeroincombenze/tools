@@ -67,7 +67,7 @@ TRAVISDIR=$(readlink -e $TRAVISDIR)
 Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
-__version__=0.2.1
+__version__=0.2.1.25
 parseoptest -l$TESTDIR/test_product.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -94,6 +94,11 @@ test_run () {
     elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
       local FH="RHEL"
     fi
+    # if [ "$Package" == "php" -a "$FH" == "Debian" ]; then
+    #   local Package="php5"
+    # elif [ "$Package" == "php5" -a "$FH" == "RHEL" ]; then
+    #   local Package="php"
+    # fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $TESTDIR/res/${Package}__${Disto}.test ]; then
         TESTOUT=$TESTDIR/res/${Package}__${Disto}.test
@@ -117,16 +122,13 @@ test_run () {
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   rm -f $TESTDIR/res/*.test
   cat <<EOF >$TESTDIR/res/LAMP__Debian.test
-LAMP (install by product)
-( python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python )
+LAMP=(LAMP python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.test
-LAMP (install by product)
-( epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python )
+LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.test
-LAMP (install by product)
-( epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python )
+LAMP=(LAMP epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/httpd__RHEL.test
 httpd (install by yum)
@@ -218,6 +220,114 @@ mysql-server (install by yum)
  command=mysql
  get ver=mysql --version
 EOF
+ cat <<EOF >$TESTDIR/res/mariadb__Debian.test
+mariadb=mysql-server (install by apt-get)
+ service=mysql
+ command=mysql
+ get ver=mysql --version
+EOF
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.test
+mariadb (install by yum)
+ service=mariadb
+ command=mysql
+ get ver=mysql --version
+EOF
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS6.test
+mariadb=mysql-server (install by yum)
+ service=mysqld
+ command=mysql
+ get ver=mysql --version
+EOF
+ cat <<EOF >$TESTDIR/res/mariadb-server__Debian.test
+mariadb-server=mysql-server (install by apt-get)
+ service=mysql
+ command=mysql
+ get ver=mysql --version
+EOF
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.test
+mariadb-server (install by yum)
+ service=mariadb
+ command=mysql
+ get ver=mysql --version
+EOF
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS6.test
+mariadb-server=mysql-server (install by yum)
+ service=mysqld
+ command=mysql
+ get ver=mysql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgres__RHEL.test
+postgres=postgresql-server (install by yum)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgres__Debian.test
+postgres=postgresql (install by apt-get)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql__RHEL.test
+postgresql=postgresql-server (install by yum)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.test
+postgresql (install by apt-get)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.test
+postgresql-server (install by yum)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.test
+postgresql-server=postgresql (install by apt-get)
+ service=postgresql
+ command=psql
+ get ver=psql --version
+EOF
+  cat <<EOF >$TESTDIR/res/php__Debian.test
+php=php5 (install by apt-get)
+ command=php5
+ get ver=php5 -v
+EOF
+  cat <<EOF >$TESTDIR/res/php__RHEL.test
+php (install by yum)
+ command=php
+ get ver=php -v
+EOF
+  cat <<EOF >$TESTDIR/res/php5__RHEL.test
+php5=php (install by yum)
+ command=php
+ get ver=php -v
+EOF
+  cat <<EOF >$TESTDIR/res/php5__Debian.test
+php5 (install by apt-get)
+ command=php5
+ get ver=php5 -v
+EOF
+  cat <<EOF >$TESTDIR/res/openssh__RHEL.test
+openssh=openssh-server (install by yum)
+ service=sshd
+EOF
+  cat <<EOF >$TESTDIR/res/openssh__Debian.test
+openssh=openssh-server (install by apt-get)
+ service=ssh
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.test
+openssh-server (install by yum)
+ service=sshd
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.test
+openssh-server (install by apt-get)
+ service=ssh
+EOF
 fi
 Real_FH=$(xuname "-f")
 x=$(xuname "-v")
@@ -225,7 +335,9 @@ v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
 for Package in LAMP apache2 httpd pip python-pip\
- mysql mysql-server; do
+ mysql mysql-server mariadb mariadb-server\
+ postgres postgresql postgresql-server php php5\
+ openssh openssh-server; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        opt_e=

@@ -1,6 +1,10 @@
 LAMP (by product)()
 python-pip (by apt-get)(pip --version)
 LAMP_security (by product)()
+libffi-dev (by apt-get)(libffi-dev --version)
+libssl-dev (by apt-get)(libssl-dev --version)
+python-openssl (by apt-get)(python-openssl --version)
+build-essential (by apt-get)(build-essential --version)
 openssh-server (by apt-get)()
 - TCP port 22
 apache2 (by apt-get)(apachectl -v)

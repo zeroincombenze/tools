@@ -89,7 +89,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 #
-#__version__=0.1.7
+#__version__=0.1.8
 
 export opt_dry_run
 export ctr
@@ -183,7 +183,8 @@ inherit_opts () {
 
 
 test_result () {
-# test_result (msg, testval, resval, cmd)::ctr,max_test
+# test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
+# if supplied, ttype means cmd test type; may be (str-z, str-n)
   ((ctr++))
   if [ "$msg" == "_prior_msg" ]; then
     local prfx="\x1b[A"
@@ -207,8 +208,20 @@ test_result () {
         wlog "Test $ctr: $1"
       fi
     fi
-    if [ "$4" ]; then
-      if [ "$($4 $2 $3)" ]; then
+    if [ -n "$4" ]; then
+      if $($4 $2 $3 &>/dev/null); then
+        if [ "$5" == "str-z" ]; then
+          if [ -n "$($4 $2 $3)" ]; then
+            echo "Test failed: $4 '$2' '$3'"
+            exit 1
+          fi
+        elif [ "$5" == "str-n" ]; then
+          if [ -z "$($4 $2 $3)" ]; then
+            echo "Test failed: $4 '$2' '$3'"
+            exit 1
+          fi
+        fi
+      else
         echo "Test failed: $4 '$2' '$3'"
         exit 1
       fi
