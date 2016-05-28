@@ -1,2 +1,0 @@
-mysql-server (by apt-get)(mysql --version)
---libapache2-mod-auth-mysql (by apt-get)(libapache2-mod-auth-mysql --version)

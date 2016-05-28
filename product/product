@@ -47,7 +47,7 @@ else
 fi
 
 
-__version__="0.2.28.8"
+__version__="0.2.28.9"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -327,6 +327,12 @@ test_msg () {
       echo "$@"
     else
       elog "$@"
+    fi
+}
+
+ending_msg () {
+    if [ $test_mode -eq 0 ]; then
+      echo "See $FLOG for traced informations"
     fi
 }
 
@@ -1852,16 +1858,6 @@ test_install () {
       else
         echo "--> apt-get -y install python-pip">>$ftest
       fi
-    elif [ "$p" == "apache2" -o "$p" == "httpd" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y install httpd">>$ftest
-        echo "--> service httpd start">>$ftest
-        echo "--> chkconfig --levels 235 httpd on">>$ftest
-      else
-        echo "--> apt-get -y install apache2">>$ftest
-        echo "--> service apache2 start">>$ftest
-        echo "--> chkconfig apache2 on">>$ftest
-      fi
     elif [ "$p" == "postgresql" -o "$p" == "postgresql-server" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y install postgresql-server">>$ftest
@@ -2584,6 +2580,7 @@ if [ $test_mode -gt 0 ]; then
   else
     opt_depth=1
   fi
+  opt_yes="-y"
 fi
 if [ "$opt_log" ]; then
   FLOG=$opt_log
@@ -2660,7 +2657,7 @@ elif [ "$action" == "whatis" ]; then
   fi
   prod $action $pkg
 elif [ "$action" == "status" ]; then
-  if [ $EUID -ne 0 ]; then
+  if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
     exit $STS_FAILED
   fi
@@ -2672,7 +2669,7 @@ elif [ "$action" == "status" ]; then
     realname=$(get_realname $p)
     prod $action $realname
   done
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "version" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2689,7 +2686,7 @@ elif [ "$action" == "version" ]; then
     fi
   done
 elif [ "$action" == "update" ]; then
-  if [ $EUID -ne 0 ]; then
+  if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
     exit $STS_FAILED
   fi
@@ -2705,7 +2702,7 @@ elif [ "$action" == "update" ]; then
       wlog "$realname not installed"
     fi
   done
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "config" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2759,7 +2756,7 @@ elif [ "$action" == "config" ]; then
       fi
     done
   fi
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "remove" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2783,12 +2780,12 @@ elif [ "$action" == "remove" ]; then
       wlog "$realname not installed"
     fi
   done
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "install" ]; then
-  #if [ $EUID -ne 0 ]; then
-  #  elog "This command must be executed by root"
-  #  exit $STS_FAILED
-  #fi
+  if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
+    elog "This command must be executed by root"
+    exit $STS_FAILED
+  fi
   print_title "Install package(s)"
   if [ $opt_1st -gt 0 ]; then
     wlog "Setup for 1st installation"
@@ -2809,7 +2806,7 @@ elif [ "$action" == "install" ]; then
       prod $action $realname
     fi
   done
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "prepare" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2819,7 +2816,7 @@ elif [ "$action" == "prepare" ]; then
   build_groups_list
   wlog "Preparing user list"
   build_user_list
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "export" ]; then
   # if [ $EUID -ne 0 ]; then
   #   elog "This command must be executed by root"
@@ -2830,7 +2827,7 @@ elif [ "$action" == "export" ]; then
   else
     prod install $THIS
   fi
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "import" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
@@ -2840,7 +2837,7 @@ elif [ "$action" == "import" ]; then
   add_groups
   wlog "Creating users"
   add_users
-  echo "See $FLOG for traced informations"
+  ending_msg
 elif [ "$action" == "regression_test" ]; then
   DEV_ENVIRONMENT="$THIS"
   test_mode=1
@@ -2880,13 +2877,13 @@ elif [ "$action" == "regression_test" ]; then
     init_cfg_pkg "LAMP"
     SIMULATE_YES=". $SAVE_SMLT_YES ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
-    test_cfg_name
+    # test_cfg_name
     # test_realname
-    test_install
+    # test_install
     SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
-    test_update
-    test_remove
+    # test_update
+    # test_remove
   done
 
   elog "$tst_ctr regression test successfuly ended"

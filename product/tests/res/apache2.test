@@ -1,3 +1,0 @@
-apache2 (by apt-get)(apachectl -v)
-- TCP port 80
-- TCP port 443
