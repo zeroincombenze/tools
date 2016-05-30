@@ -28,6 +28,7 @@ import os.path
 import sys
 from os0 import os0
 import time
+from datetime import datetime
 import oerplib
 import re
 import csv
@@ -1125,6 +1126,82 @@ def act_check_balance(oerp, ctx):
                 crd_amt,
                 dbt_amt)
             msg_log(ctx, ctx['level'], msg)
+    return STS_SUCCESS
+
+
+def act_set_4_cscs(oerp, ctx):
+    msg = u"Set for cscs"
+    msg_log(ctx, ctx['level'], msg)
+    ctx['date_start'] = '2015-01-01'    # debug
+    ctx['date_stop'] = '2015-12-31'    # debug
+    sts = analyze_invoices(oerp, ctx, 'in_invoice')
+    if sts == STS_SUCCESS:
+        sts = analyze_invoices(oerp, ctx, 'out_invoice')
+    return sts
+
+
+def analyze_invoices(oerp, ctx, inv_type):
+    company_id = ctx['company_id']
+    period_ids = oerp.search('account.period',
+                             [('company_id', '=', company_id),
+                              ('date_start', '>=', ctx['date_start']),
+                              ('date_stop', '<=', ctx['date_stop'])])
+    account_invoice_ids = oerp.search('account.invoice',
+                                      [('company_id', '=', company_id),
+                                       ('period_id', 'in', period_ids),
+                                       ('type', '=', inv_type),
+                                       ('internal_number', '!=', '')],
+                                      # ('state', '!=', 'draft'),
+                                      # ('state', '!=', 'cancel')],
+                                      order='internal_number')
+    num_invs = len(account_invoice_ids)
+    last_number = ''
+    inv_ctr = 0
+    for account_invoice_id in account_invoice_ids:
+        account_invoice_obj = oerp.browse('account.invoice',
+                                          account_invoice_id)
+        inv_ctr += 1
+        msg_burst(4,
+                  "Invoice " + account_invoice_obj.internal_number + "      ",
+                  inv_ctr, num_invs)
+        vals = {}
+        if last_number[:-4] != account_invoice_obj.internal_number[0:-4]:
+            last_number = ''
+        if last_number == '':
+            last_number = account_invoice_obj.internal_number
+            last_registration_date = datetime.strptime(ctx['date_start'],
+                                                       "%Y-%m-%d").date()
+        date_invoice = account_invoice_obj.date_invoice
+        registration_date = account_invoice_obj.registration_date
+        if not date_invoice:
+            vals['date_invoice'] = str(last_registration_date)
+            date_invoice = last_registration_date
+        if not registration_date:
+            vals['registration_date'] = str(date_invoice)
+            registration_date = date_invoice
+        if inv_type == 'out_invoice' and\
+                registration_date != date_invoice:
+            msg = u"In {0} invalid registration date {1}".format(
+                account_invoice_id,
+                str(account_invoice_obj.registration_date))
+            msg_log(ctx, ctx['level'] + 1, msg)
+            vals['registration_date'] = str(date_invoice)
+            registration_date = date_invoice
+        elif registration_date < last_registration_date:
+            msg = u"In {0} invalid registration date {1}".format(
+                account_invoice_id,
+                str(account_invoice_obj.registration_date))
+            msg_log(ctx, ctx['level'] + 1, msg)
+            vals['registration_date'] = str(last_registration_date)
+            registration_date = last_registration_date
+        if len(vals):
+            try:
+                oerp.write('account.invoice', account_invoice_id, vals)
+            except:
+                msg = u"Cannot upèdate registration date"
+                msg_log(ctx, ctx['level'], msg)
+        last_registration_date = registration_date
+        last_number = account_invoice_obj.internal_number
     return STS_SUCCESS
 
 
