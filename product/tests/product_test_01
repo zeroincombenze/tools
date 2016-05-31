@@ -159,7 +159,7 @@ TEST_RHEL[php5]="php"
 TEST_Debian[openssh]="openssh-server"
 TEST_RHEL[openssh]="openssh-server"
 
-for Package in LAMP apache2 httpd pip python-pip\
+for Package in product LAMP apache2 httpd pip python-pip\
  mysql mysql-server mariadb mariadb-server\
  postgres postgresql postgresql-server php php5\
  openssh openssh-server; do

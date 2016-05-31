@@ -78,7 +78,7 @@ if [ $sts -ne 127 ]; then
 fi
 opt4childs=$(inherit_opts)
 UT1_LIST=""
-UT_LIST="product_test_01 product_test_02 product_test_03 product_test_04 product_test_05"
+UT_LIST="product_test_01 product_test_02 product_test_03 product_test_04 product_test_05 product_test_06"
 saved_ctr=$ctr
 saved_max_test=$max_test
 saved_opt_verbose=$opt_verbose

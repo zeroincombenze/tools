@@ -100,19 +100,18 @@ test_run () {
     #   local Package="php"
     # fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ -f $TESTDIR/res/${Package}__${Disto}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${Disto}.test
-      elif [ -f $TESTDIR/res/${Package}__${FH}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${FH}.test
-      elif [ -f $TESTDIR/res/${Package}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}.test
+      if [ -f $TESTDIR/res/${Package}__${Disto}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.02.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.02.test
+      elif [ -f $TESTDIR/res/${Package}.02.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.02.test
       else
         TESTOUT=
         echo "File test comparison ${Package}__${Disto} not found!"
       fi
       rm -f $TESTDIR/product.out
       eval $TPRODUCT $opt_e info $2 >$TESTDIR/product.out
-      # eval $TPRODUCT $opt_e info $2
     fi
     # set +x #debug
     ci-test "$msg" "$TESTOUT" "$TESTDIR/product.out" "$cmd"
@@ -120,211 +119,216 @@ test_run () {
 }
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.test
-  cat <<EOF >$TESTDIR/res/LAMP__Debian.test
+  rm -f $TESTDIR/res/*.02.test
+  cat <<EOF >$TESTDIR/res/product.02.test
+product (install by product)
+ command=product
+ get ver=product -V
+EOF
+  cat <<EOF >$TESTDIR/res/LAMP__Debian.02.test
 LAMP=(LAMP python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by product)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP__CentOS6.test
+  cat <<EOF >$TESTDIR/res/LAMP__CentOS6.02.test
 LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by product)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP__CentOS7.test
+  cat <<EOF >$TESTDIR/res/LAMP__CentOS7.02.test
 LAMP=(LAMP epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
 EOF
-  cat <<EOF >$TESTDIR/res/httpd__RHEL.test
+  cat <<EOF >$TESTDIR/res/httpd__RHEL.02.test
 httpd (install by yum)
  service=httpd
  command=apachectl
  get ver=apachectl -v
 EOF
-  cat <<EOF >$TESTDIR/res/apache2__RHEL.test
+  cat <<EOF >$TESTDIR/res/apache2__RHEL.02.test
 apache2=httpd (install by yum)
  service=httpd
  command=apachectl
  get ver=apachectl -v
 EOF
-  cat <<EOF >$TESTDIR/res/httpd__Debian.test
+  cat <<EOF >$TESTDIR/res/httpd__Debian.02.test
 httpd=apache2 (install by apt-get)
  service=apache2
  command=apachectl
  get ver=apachectl -v
 EOF
-  cat <<EOF >$TESTDIR/res/apache2__Debian.test
+  cat <<EOF >$TESTDIR/res/apache2__Debian.02.test
 apache2 (install by apt-get)
  service=apache2
  command=apachectl
  get ver=apachectl -v
 EOF
-  cat <<EOF >$TESTDIR/res/pip__CentOS7.test
+  cat <<EOF >$TESTDIR/res/pip__CentOS7.02.test
 pip=python-pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/pip__CentOS6.test
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.02.test
 pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.test
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.02.test
 python-pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__CentOS6.test
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS6.02.test
 python-pip=pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/pip__Debian.test
+  cat <<EOF >$TESTDIR/res/pip__Debian.02.test
 pip=python-pip (install by apt-get)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__Debian.test
+  cat <<EOF >$TESTDIR/res/python-pip__Debian.02.test
 python-pip (install by apt-get)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql__Debian.test
+  cat <<EOF >$TESTDIR/res/mysql__Debian.02.test
 mysql=mysql-server (install by apt-get)
  service=mysql
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mysql__CentOS7.02.test
 mysql=mariadb (install by yum)
  service=mariadb
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql__CentOS6.test
+  cat <<EOF >$TESTDIR/res/mysql__CentOS6.02.test
 mysql=mysql-server (install by yum)
  service=mysqld
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__Debian.test
+  cat <<EOF >$TESTDIR/res/mysql-server__Debian.02.test
 mysql-server (install by apt-get)
  service=mysql
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.02.test
 mysql-server=mariadb-server (install by yum)
  service=mariadb
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.test
+  cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.02.test
 mysql-server (install by yum)
  service=mysqld
  command=mysql
  get ver=mysql --version
 EOF
- cat <<EOF >$TESTDIR/res/mariadb__Debian.test
+ cat <<EOF >$TESTDIR/res/mariadb__Debian.02.test
 mariadb=mysql-server (install by apt-get)
  service=mysql
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.02.test
 mariadb (install by yum)
  service=mariadb
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb__CentOS6.test
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS6.02.test
 mariadb=mysql-server (install by yum)
  service=mysqld
  command=mysql
  get ver=mysql --version
 EOF
- cat <<EOF >$TESTDIR/res/mariadb-server__Debian.test
+ cat <<EOF >$TESTDIR/res/mariadb-server__Debian.02.test
 mariadb-server=mysql-server (install by apt-get)
  service=mysql
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.02.test
 mariadb-server (install by yum)
  service=mariadb
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS6.test
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS6.02.test
 mariadb-server=mysql-server (install by yum)
  service=mysqld
  command=mysql
  get ver=mysql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgres__RHEL.02.test
 postgres=postgresql-server (install by yum)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__Debian.test
+  cat <<EOF >$TESTDIR/res/postgres__Debian.02.test
 postgres=postgresql (install by apt-get)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgresql__RHEL.02.test
 postgresql=postgresql-server (install by yum)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql__Debian.test
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.02.test
 postgresql (install by apt-get)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.02.test
 postgresql-server (install by yum)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.test
+  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.02.test
 postgresql-server=postgresql (install by apt-get)
  service=postgresql
  command=psql
  get ver=psql --version
 EOF
-  cat <<EOF >$TESTDIR/res/php__Debian.test
+  cat <<EOF >$TESTDIR/res/php__Debian.02.test
 php=php5 (install by apt-get)
  command=php5
  get ver=php5 -v
 EOF
-  cat <<EOF >$TESTDIR/res/php__RHEL.test
+  cat <<EOF >$TESTDIR/res/php__RHEL.02.test
 php (install by yum)
  command=php
  get ver=php -v
 EOF
-  cat <<EOF >$TESTDIR/res/php5__RHEL.test
+  cat <<EOF >$TESTDIR/res/php5__RHEL.02.test
 php5=php (install by yum)
  command=php
  get ver=php -v
 EOF
-  cat <<EOF >$TESTDIR/res/php5__Debian.test
+  cat <<EOF >$TESTDIR/res/php5__Debian.02.test
 php5 (install by apt-get)
  command=php5
  get ver=php5 -v
 EOF
-  cat <<EOF >$TESTDIR/res/openssh__RHEL.test
+  cat <<EOF >$TESTDIR/res/openssh__RHEL.02.test
 openssh=openssh-server (install by yum)
  service=sshd
 EOF
-  cat <<EOF >$TESTDIR/res/openssh__Debian.test
+  cat <<EOF >$TESTDIR/res/openssh__Debian.02.test
 openssh=openssh-server (install by apt-get)
  service=ssh
 EOF
-  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.test
+  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.02.test
 openssh-server (install by yum)
  service=sshd
 EOF
-  cat <<EOF >$TESTDIR/res/openssh-server__Debian.test
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.02.test
 openssh-server (install by apt-get)
  service=ssh
 EOF
@@ -334,7 +338,7 @@ x=$(xuname "-v")
 v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
-for Package in LAMP apache2 httpd pip python-pip\
+for Package in product LAMP apache2 httpd pip python-pip\
  mysql mysql-server mariadb mariadb-server\
  postgres postgresql postgresql-server php php5\
  openssh openssh-server; do

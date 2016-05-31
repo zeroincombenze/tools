@@ -35,16 +35,35 @@
 # yum install kernel-headers
 # yum install glibc.i686
 
-if [ -f z0librc ]; then
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+elif [ -d ../tests ]; then
+  TESTDIR=.
+else
+  TESTDIR=$TDIR
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
 . ./z0librc
-elif [ -f ~/z0librc ]; then
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
 . ~/z0librc
-elif [ -f /etc/z0librc ]; then
+elif [ -e /etc/z0librc ]; then
 . /etc/z0librc
 else
   echo "Library file z0librc not found!"
   exit $STS_FAILED
 fi
+TESTDIR=$(readlink -e $TESTDIR)
 
 
 __version__="0.2.28.9"
@@ -72,8 +91,7 @@ DEFPRM=("NAME_Debian"\
  "SUB_odoo__Debian__DEV"\
  "SUB_odoo__RHEL__DEV"\
  "SUB_odoo__DEV"\
- "NOINQ"\
- "${THIS}_vfycmd")
+ "NOINQ")
 
 
 DEFVAL=("python-dev zlib1g-dev libreadline6-dev"\
@@ -111,8 +129,7 @@ DEFVAL=("python-dev zlib1g-dev libreadline6-dev"\
  ""\
  "libjpeg-turbo-devel"\
  "pcregrep oerplib erppeek os0 pytok"\
- "ghostscript odoo"\
- "/usr/bin/$THIS -V")
+ "ghostscript odoo")
 
 
 conf_default () {
@@ -147,11 +164,23 @@ conf_default () {
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
     set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
     set_cfg_def "SUB_mysql-server" "libapache2-mod-auth-mysql" "0"
+    if [ $opt_grf -eq 0 ]; then
+    set_cfg_def "SUB_postgresql-server" "postgresql-client-common postgresql-contrib" "0" "RHEL"
+    set_cfg_def "SUB_postgresql" "postgresql-client-common postgresql-contrib" "0" "Debian"
+    else
+    set_cfg_def "SUB_postgresql-server" "postgresql-client-common postgresql-contrib pgadmin3" "0" "RHEL"
+    set_cfg_def "SUB_postgresql" "postgresql-client-common postgresql-contrib pgadmin3" "0" "Debian"
+    fi
     set_cfg_def "SUB_openssh-server" "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
     set_cfg_def "SUB_openssh-server" "openssh-client telnet" "0" "Debian"
     set_cfg_def "SUB_php5" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
     set_cfg_def "SUB_php" "php-mysql php-common php-xml php-cli" "0" "RHEL"
     # Command names
+    if [ $test_mode -eq 0 ]; then
+      set_cfg_def "${THIS}_vfycmd" "/usr/bin/$THIS -V" "0"
+    else
+      set_cfg_def "${THIS}_vfycmd" "$THIS -V" "0"
+    fi
     set_cfg_def "apache2_cmdname" "apachectl" "0" "Debian"
     set_cfg_def "httpd_cmdname" "apachectl" "0" "RHEL"
     set_cfg_def "postgresql-server_cmdname" "psql" "0" "RHEL"
@@ -224,18 +253,18 @@ get_prm_value() {
       fi
     fi
     if [ -z "$p" ]; then
-      if [ "$2" == "SUB_postgresql_server" ]; then
-        if [ $opt_grf -gt 0 ]; then
-          p="pgadmin3"
-        else
-          p=""
-         fi
-      elif [ "$2" == "SUB_postgresql" ]; then
-        p="postgresql-client-common postgresql-contrib"
-        if [ $opt_grf -gt 0 ]; then
-          p="$p pgadmin3"
-        fi
-      elif [ "$2" == "PIP_PKGS" ]; then
+      # if [ "$2" == "SUB_postgresql_server" ]; then
+      #  if [ $opt_grf -gt 0 ]; then
+      #    p="pgadmin3"
+      #  else
+      #    p=""
+      #   fi
+      # elif [ "$2" == "SUB_postgresql" ]; then
+      #   p="postgresql-client-common postgresql-contrib"
+      #   if [ $opt_grf -gt 0 ]; then
+      #     p="$p pgadmin3"
+      #   fi
+      if [ "$2" == "PIP_PKGS" ]; then
         p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
       elif [ "$2" == "STD_PKGS" ]; then
         p="epel-release python-pip pip yum-utils openssh-server httpd mariadb postgresql-server php python"
@@ -595,28 +624,28 @@ get_pkg_ver_inq () {
     if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
     elif $(is_virtualname $pkgname); then
-        pkgversion=
-  elif [ "$pkgname" == "odoo" ]; then
-    pkgversion=
-    if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-      pkgversion=7.0
-    elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
       pkgversion=
-    else
-      if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-        local ov_iter="9 8 7"
+    elif [ "$pkgname" == "odoo" ]; then
+      pkgversion=
+      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        pkgversion=7.0
+      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        pkgversion=
       else
-        local ov_iter=$opt_odoo
-      fi
-      for ov in $ov_iter; do
-        if [ -d /opt/odoo/$ov.0 ]; then
-          if [ -f /opt/odoo/$ov.0/openerp-server ]; then
-            pkgversion=$ov.0
-            break
-          fi
+        if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
+          local ov_iter="9 8 7"
+        else
+          local ov_iter=$opt_odoo
         fi
-      done
-    fi
+        for ov in $ov_iter; do
+          if [ -d /opt/odoo/$ov.0 ]; then
+            if [ -f /opt/odoo/$ov.0/openerp-server ]; then
+              pkgversion=$ov.0
+              break
+            fi
+          fi
+        done
+      fi
     else
       pkgversion=
       if [ "$vfycmd" ]; then
@@ -791,6 +820,9 @@ set_xtlcmds () {
 # return: -> xtlcmd, stscmd, vfycmd, 'OPTS'
     local pkgname=$1
     if $(is_virtualname $pkgname); then
+      xtlcmd="product"
+      stscmd="product"
+    elif [ "$pkgname" == "$THIS" ]; then
       xtlcmd="product"
       stscmd="product"
     elif [ "$FH" == "RHEL" ]; then
@@ -1840,19 +1872,7 @@ test_install () {
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
     elog "Test $tst_ctr [$FH]: prod install '$p'"
-    if [ "$p" == "$THIS" ]; then
-      echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> cp $TDIR/$p /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}_bld_ods /usr/bin">>$ftest
-      echo "--> chmod +x /usr/bin/$p*">>$ftest
-      for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
-        if [ -f $TDIR/$f ]; then
-          echo "--> cp $TDIR/$f /etc/$THIS">>$ftest
-        fi
-      done
-      echo "--> _install_z0librc">>$ftest
-    elif [ "$p" == "python-pip" ]; then
+    if [ "$p" == "python-pip" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y install python-pip">>$ftest
       else
@@ -2139,18 +2159,6 @@ test_update () {
         echo "--> apt-get -y update ">>$ftest
         echo "--> apt-get -y upgrade ">>$ftest
       fi
-    elif [ "$p" == "$THIS" ]; then
-      echo "--> mkdir -p /etc/$p">>$ftest
-      echo "--> cp $TDIR/$p /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}.man /usr/bin">>$ftest
-      echo "--> cp $TDIR/${p}_bld_ods /usr/bin">>$ftest
-      echo "--> chmod +x /usr/bin/$p*">>$ftest
-      for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
-        if [ -f $TDIR/$f ]; then
-          echo "--> cp $TDIR/$f /etc/$THIS">>$ftest
-        fi
-      done
-      echo "--> _install_z0librc">>$ftest
     elif [ "$p" == "python-pip" ]; then
       echo "--> pip install --upgrade pip">>$ftest
     elif [ "$p" == "apache2" -o "$p" == "httpd" ]; then
@@ -2617,8 +2625,12 @@ $(active_cfg)
 $(init_cfg "1")
 $(active_cfg "1")
 conf_default
+FCONFDEF=/etc/product.conf.sample
 if [ "$action" == "regression_test" ]; then
   FCONF="./$THIS.notexists"
+elif [ $test_mode -gt 0 ]; then
+  FCONF=$TESTDIR/$THIS.conf
+  FCONFDEF=$TESTDIR/$THIS.conf.sample
 elif [ -n "$opt_conf" -a -f "$opt_conf" ]; then
   FCONF=$opt_conf
 else
@@ -2629,7 +2641,7 @@ else
   fi
   FCONF=$CDIR/$THIS.conf
 fi
-link_cfg $FCONF /etc/product.conf.samp
+link_cfg $FCONF $FCONFDEF
 opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow web webkit-tools website"
 if [ "$opt_oed" == "zeroincombenze" ]; then
   opt_osub="$opt_osub l10n-italy-supplemental"
@@ -2691,17 +2703,7 @@ elif [ "$action" == "update" ]; then
     exit $STS_FAILED
   fi
   print_title "Update/upgrade package(s)"
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    # realname=$(prod realname $p)
-    realname=$(get_realname $p)
-    if $(prod status $realname "-q"); then
-      wlog "- package $realname"
-      prod $action $realname
-    else
-      wlog "$realname not installed"
-    fi
-  done
+  prod $action $pkg
   ending_msg
 elif [ "$action" == "config" ]; then
   if [ $EUID -ne 0 ]; then
@@ -2758,7 +2760,7 @@ elif [ "$action" == "config" ]; then
   fi
   ending_msg
 elif [ "$action" == "remove" ]; then
-  if [ $EUID -ne 0 ]; then
+  if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
     exit $STS_FAILED
   fi
@@ -2767,19 +2769,7 @@ elif [ "$action" == "remove" ]; then
      exit $STS_FAILED
   fi
   print_title "Remove package $pkg"
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    # realname=$(prod realname $p)
-    realname=$(get_realname $p)
-    if $(is_virtualname $realname); then
-      prod $action $realname "-q"
-    elif $(prod status $realname "-q"); then
-      wlog "- package $realname"
-      prod $action $realname
-    else
-      wlog "$realname not installed"
-    fi
-  done
+  prod $action $pkg
   ending_msg
 elif [ "$action" == "install" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
@@ -2793,19 +2783,7 @@ elif [ "$action" == "install" ]; then
       prod update
     fi
   fi
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    # realname=$(prod realname $p)
-    realname=$(get_realname $p)
-    if $(is_virtualname $realname); then
-      prod $action $realname "-q"
-    elif $(prod status $p "-q"); then
-      wlog "Package $realname already installed"
-    else
-      wlog "- package $realname"
-      prod $action $realname
-    fi
-  done
+  prod $action $pkg
   ending_msg
 elif [ "$action" == "prepare" ]; then
   if [ $EUID -ne 0 ]; then

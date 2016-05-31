@@ -124,12 +124,12 @@ test_run () {
       local Package="openssh-server"
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ -f $TESTDIR/res/${Package}__${Disto}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${Disto}.test
-      elif [ -f $TESTDIR/res/${Package}__${FH}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${FH}.test
-      elif [ -f $TESTDIR/res/${Package}.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}.test
+      if [ -f $TESTDIR/res/${Package}__${Disto}.03.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.03.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.03.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.03.test
+      elif [ -f $TESTDIR/res/${Package}.03.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.03.test
       else
         TESTOUT=
         echo "File test comparison ${Package}__${Disto} not found!"
@@ -144,8 +144,11 @@ test_run () {
 }
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.test
-  cat <<EOF >$TESTDIR/res/LAMP__Debian.test
+  rm -f $TESTDIR/res/*.03.test
+  cat <<EOF >$TESTDIR/res/product.03.test
+product (by product)(product -V)
+EOF
+  cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
 LAMP (by product)()
 python-pip (by apt-get)(pip --version)
 LAMP_security (by product)()
@@ -163,7 +166,7 @@ postgresql (by apt-get)(psql --version)
 php5 (by apt-get)(php5 -v)
 python (by apt-get)(python --version)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP__CentOS6.test
+  cat <<EOF >$TESTDIR/res/LAMP__CentOS6.03.test
 LAMP (by product)()
 epel-release (by yum)(epel-release --version)
 pip (by yum)(pip --version)
@@ -184,7 +187,7 @@ postgresql-server (by yum)(psql --version)
 php (by yum)(php -v)
 python (by yum)(python --version)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP__CentOS7.test
+  cat <<EOF >$TESTDIR/res/LAMP__CentOS7.03.test
 LAMP (by product)()
 epel-release (by yum)(epel-release --version)
 python-pip (by yum)(pip --version)
@@ -204,21 +207,21 @@ postgresql-server (by yum)(psql --version)
 php (by yum)(php -v)
 python (by yum)(python --version)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP_security__Debian.test
+  cat <<EOF >$TESTDIR/res/LAMP_security__Debian.03.test
 LAMP_security (by product)()
 libffi-dev (by apt-get)(libffi-dev --version)
 libssl-dev (by apt-get)(libssl-dev --version)
 python-openssl (by apt-get)(python-openssl --version)
 build-essential (by apt-get)(build-essential --version)
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP_security__CentOS7.test
+  cat <<EOF >$TESTDIR/res/LAMP_security__CentOS7.03.test
 LAMP_security (by product)()
 libffi-devel (by yum)(libffi-devel --version)
 pyOpenSSL (by yum)(pyOpenSSL --version)
 pyasn1 (by pip)()
 ndg-httpsclient (by pip)()
 EOF
-  cat <<EOF >$TESTDIR/res/LAMP_security__CentOS6.test
+  cat <<EOF >$TESTDIR/res/LAMP_security__CentOS6.03.test
 LAMP_security (by product)()
 openssl-devel (by yum)(openssl-devel --version)
 libffi-devel (by yum)(libffi-devel --version)
@@ -226,82 +229,88 @@ pyOpenSSL (by yum)(pyOpenSSL --version)
 pyasn1 (by pip)()
 ndg-httpsclient (by pip)()
 EOF
-  cat <<EOF >$TESTDIR/res/httpd.test
+  cat <<EOF >$TESTDIR/res/httpd.03.test
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
 EOF
-  cat <<EOF >$TESTDIR/res/apache2.test
+  cat <<EOF >$TESTDIR/res/apache2.03.test
 apache2 (by apt-get)(apachectl -v)
 - TCP port 80
 - TCP port 443
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.test
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.03.test
 python-pip (by yum)(pip --version)
 EOF
-  cat <<EOF >$TESTDIR/res/pip__CentOS6.test
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.03.test
 pip (by yum)(pip --version)
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__Debian.test
+  cat <<EOF >$TESTDIR/res/python-pip__Debian.03.test
 python-pip (by apt-get)(pip --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__Debian.test
+  cat <<EOF >$TESTDIR/res/mysql-server__Debian.03.test
 mysql-server (by apt-get)(mysql --version)
 --libapache2-mod-auth-mysql (by apt-get)(libapache2-mod-auth-mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mariadb__CentOS7.03.test
 mariadb (by yum)(mysql --version)
 --mariadb-server (by yum)(mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.03.test
 mariadb-server (by yum)(mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.test
+  cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.03.test
 mariadb-server (by yum)(mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.test
+  cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.03.test
 mysql-server (by yum)(mysql --version)
 --libapache2-mod-auth-mysql (by yum)(libapache2-mod-auth-mysql --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__Debian.test
+  cat <<EOF >$TESTDIR/res/postgres__Debian.03.test
 postgresql (by apt-get)(psql --version)
 --postgresql-client-common (by apt-get)(postgresql-client-common --version)
 --postgresql-contrib (by apt-get)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgres__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgres__RHEL.03.test
 postgresql-server (by yum)(psql --version)
+--postgresql-client-common (by yum)(postgresql-client-common --version)
+--postgresql-contrib (by yum)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql__Debian.test
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.03.test
 postgresql (by apt-get)(psql --version)
 --postgresql-client-common (by apt-get)(postgresql-client-common --version)
 --postgresql-contrib (by apt-get)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgresql__RHEL.03.test
 postgresql-server (by yum)(psql --version)
+--postgresql-client-common (by yum)(postgresql-client-common --version)
+--postgresql-contrib (by yum)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.test
+  cat <<EOF >$TESTDIR/res/postgresql-server__Debian.03.test
 postgresql (by apt-get)(psql --version)
 --postgresql-client-common (by apt-get)(postgresql-client-common --version)
 --postgresql-contrib (by apt-get)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.test
+  cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.03.test
 postgresql-server (by yum)(psql --version)
+--postgresql-client-common (by yum)(postgresql-client-common --version)
+--postgresql-contrib (by yum)(postgresql-contrib --version)
 EOF
-  cat <<EOF >$TESTDIR/res/php__RHEL.test
+  cat <<EOF >$TESTDIR/res/php__RHEL.03.test
 php (by yum)(php -v)
 --php-mysql (by yum)(php-mysql --version)
 --php-common (by yum)(php-common --version)
 --php-xml (by yum)(php-xml --version)
 --php-cli (by yum)(php-cli --version)
 EOF
-  cat <<EOF >$TESTDIR/res/php5__Debian.test
+  cat <<EOF >$TESTDIR/res/php5__Debian.03.test
 php5 (by apt-get)(php5 -v)
 --php5-mysql (by apt-get)(php5-mysql --version)
 --php5-common (by apt-get)(php5-common --version)
 --php5-xml (by apt-get)(php5-xml --version)
 --php5-cli (by apt-get)(php5-cli --version)
 EOF
-  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.test
+  cat <<EOF >$TESTDIR/res/openssh-server__RHEL.03.test
 openssh-server (by yum)()
 - TCP port 22
 --openssh-clients (by yum)(ssh -V)
@@ -311,7 +320,7 @@ openssh-server (by yum)()
 --iptables-services (by yum)(iptables-services --version)
 --bind-utils (by yum)(bind-utils --version)
 EOF
-  cat <<EOF >$TESTDIR/res/openssh-server__Debian.test
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.03.test
 openssh-server (by apt-get)()
 - TCP port 22
 --openssh-client (by apt-get)(ssh -V)
@@ -323,7 +332,7 @@ x=$(xuname "-v")
 v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
-for Package in LAMP LAMP_security apache2 httpd pip python-pip\
+for Package in product LAMP LAMP_security apache2 httpd pip python-pip\
  mysql mysql-server mariadb mariadb-server\
  postgres postgresql postgresql-server php php5\
  openssh openssh-server; do

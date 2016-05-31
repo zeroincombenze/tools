@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.9"
+__version__ = "0.2.66.12"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1132,8 +1132,6 @@ def act_check_balance(oerp, ctx):
 def act_set_4_cscs(oerp, ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
-    ctx['date_start'] = '2015-01-01'    # debug
-    ctx['date_stop'] = '2015-12-31'    # debug
     sts = analyze_invoices(oerp, ctx, 'in_invoice')
     if sts == STS_SUCCESS:
         sts = analyze_invoices(oerp, ctx, 'out_invoice')
@@ -1157,6 +1155,7 @@ def analyze_invoices(oerp, ctx, inv_type):
     num_invs = len(account_invoice_ids)
     last_number = ''
     inv_ctr = 0
+    last_seq = 0
     for account_invoice_id in account_invoice_ids:
         account_invoice_obj = oerp.browse('account.invoice',
                                           account_invoice_id)
@@ -1171,14 +1170,23 @@ def analyze_invoices(oerp, ctx, inv_type):
             last_number = account_invoice_obj.internal_number
             last_registration_date = datetime.strptime(ctx['date_start'],
                                                        "%Y-%m-%d").date()
+            last_seq = 0
+        last_seq += 1
+        if str.isdigit(account_invoice_obj.internal_number[-4:]) and \
+                int(account_invoice_obj.internal_number[-4:]) != last_seq:
+            msg = u"In {0} invalid number sequence {1}".format(
+                account_invoice_id,
+                account_invoice_obj.internal_number)
+            msg_log(ctx, ctx['level'] + 1, msg)
+            last_seq = int(account_invoice_obj.internal_number[-4:])
         date_invoice = account_invoice_obj.date_invoice
         registration_date = account_invoice_obj.registration_date
         if not date_invoice:
             vals['date_invoice'] = str(last_registration_date)
             date_invoice = last_registration_date
-        if not registration_date:
-            vals['registration_date'] = str(date_invoice)
-            registration_date = date_invoice
+        # if not registration_date:
+        vals['registration_date'] = str(date_invoice)
+        registration_date = date_invoice
         if inv_type == 'out_invoice' and\
                 registration_date != date_invoice:
             msg = u"In {0} invalid registration date {1}".format(
@@ -1198,7 +1206,7 @@ def analyze_invoices(oerp, ctx, inv_type):
             try:
                 oerp.write('account.invoice', account_invoice_id, vals)
             except:
-                msg = u"Cannot upèdate registration date"
+                msg = u"Cannot update registration date"
                 msg_log(ctx, ctx['level'], msg)
         last_registration_date = registration_date
         last_number = account_invoice_obj.internal_number
