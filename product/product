@@ -66,7 +66,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.28.9"
+__version__="0.2.28.10"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -78,10 +78,6 @@ _LAST_VER=""
 
 DEFPRM=("NAME_Debian"\
  "NAME_RHEL"\
- "VFYLOW"\
- "VFYUPP"\
- "VFYE2NL"\
- "VFYERR"\
  "SUB_python__Debian"\
  "SUB_python__RHEL"\
  "SUB_python__Debian__DEV"\
@@ -94,12 +90,8 @@ DEFPRM=("NAME_Debian"\
  "NOINQ")
 
 
-DEFVAL=("python-dev zlib1g-dev libreadline6-dev"\
- "python-devel zlib-devel readline-devel"\
- "apachectl php php5"\
- "ssh"\
- ""\
- "ssh python"\
+DEFVAL=("zlib1g-dev libreadline6-dev"\
+ "zlib-devel readline-devel"\
  "setuptools python-virtualenv virtualenv\
     libreadline6 libxslt-python python-psycopg2 python-simplejson pytz xlwt PyYAML\
     python-gdata python-ldap python-lxml python-requests python-yaml"\
@@ -155,6 +147,30 @@ conf_default () {
     set_cfg_def "php" "php5" "1" "Debian"
     set_cfg_def "openssh" "openssh-server" "1"
     set_cfg_def "babel" "Babel" "1"
+    set_cfg_def "python-devel" "python-dev" "1" "Debian"
+    set_cfg_def "python-dev" "python-devel" "1" "RHEL"
+    # Commands templates
+    set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
+    set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
+    set_cfg_def "VFYUPP" "ssh product" "0"
+    set_cfg_def "VFYE2NL" "" "0"
+    set_cfg_def "VFYERR" "ssh python"
+    set_cfg_def "PIP_PKGS" "oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup" "0"
+    p="epel-release python-pip pip yum-utils openssh-server httpd mariadb postgresql-server php python"
+    p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
+    p="$p python-dev python-devel ncurses-devel sqlite-devel odoo ghostscript"
+    p="$p antiword docutils-common docutils-doc libart-2.0-2 libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
+    p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1"
+    p="$p poppler-data poppler-utils python-babel python-babel-localedata python-decorator python-docutils python-feedparser"
+    p="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako python-markupsafe python-mock"
+    p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
+    p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
+    p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
+    set_cfg_def "STD_PKGS" "$p" "0"
+    # Packges requirements
+    set_cfg_def "REQ_LAMP" "gcc" "0"
+    set_cfg_def "REQ_product" "wget git" "0"
+    set_cfg_def "REQ_odoo" "git" "0"
     # Bill of packages
     set_cfg_def "LAMP" "epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
     set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
@@ -253,31 +269,20 @@ get_prm_value() {
       fi
     fi
     if [ -z "$p" ]; then
-      # if [ "$2" == "SUB_postgresql_server" ]; then
-      #  if [ $opt_grf -gt 0 ]; then
-      #    p="pgadmin3"
-      #  else
-      #    p=""
-      #   fi
-      # elif [ "$2" == "SUB_postgresql" ]; then
-      #   p="postgresql-client-common postgresql-contrib"
-      #   if [ $opt_grf -gt 0 ]; then
-      #     p="$p pgadmin3"
-      #   fi
-      if [ "$2" == "PIP_PKGS" ]; then
-        p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
-      elif [ "$2" == "STD_PKGS" ]; then
-        p="epel-release python-pip pip yum-utils openssh-server httpd mariadb postgresql-server php python"
-        p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
-        p="$p python-dev python-devel ncurses-devel sqlite-devel odoo ghostscript"
-        p="$p antiword docutils-common docutils-doc libart-2.0-2 libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
-        p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1"
-        p="$p poppler-data poppler-utils python-babel python-babel-localedata python-decorator python-docutils python-feedparser"
-        p="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako python-markupsafe python-mock"
-        p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
-        p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
-        p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
-      elif [ "$2" == "NAME_VIRTUAL" ]; then
+      # if [ "$2" == "PIP_PKGS" ]; then
+      #   p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0 pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3 passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
+      # if [ "$2" == "STD_PKGS" ]; then
+      #   p="epel-release python-pip pip yum-utils openssh-server httpd mariadb postgresql-server php python"
+      #   p="$p apache2 mysql-server postgresql php5 php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel openssl-devel libssl-dev"
+      #   p="$p python-dev python-devel ncurses-devel sqlite-devel odoo ghostscript"
+      #   p="$p antiword docutils-common docutils-doc libart-2.0-2 libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
+      #   p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1"
+      #   p="$p poppler-data poppler-utils python-babel python-babel-localedata python-decorator python-docutils python-feedparser"
+      #   p="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako python-markupsafe python-mock"
+      #   p="$p python-pil python-psutil python-pybabel python-pychart python-pydot python-pygments python-pyinotify python-pyparsing"
+      #   p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel python-roman python-suds python-unittest2"
+      #   p="$p python-utidylib python-vatnumber python-vobject python-werkzeug"
+      if [ "$2" == "NAME_VIRTUAL" ]; then
         p="LAMP LAMP_security PYTHON_DEVELOVER"
       elif [ "${2: -15}" == "-server_svcname" ]; then
         let l=${#2}-15
@@ -648,23 +653,22 @@ get_pkg_ver_inq () {
       fi
     else
       pkgversion=
-      if [ "$vfycmd" ]; then
+      if [ -n "$vfycmd" ]; then
         x="$(echo "$vfycmd"|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-        if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-          sts=$STS_SUCCESS
-        elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
           sts=127
         else
           p=$($x &>/dev/null)
           sts=$?
+          if [ $sts -ne $STS_SUCCESS -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+            sts=$STS_SUCCESS
+          fi
         fi
       else
         sts=127
       fi
       if [ $sts -ne 127 -a $sts -ne 2 ]; then
-        if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-          pkgversion=".($vfycmd)"
-        elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
           pkgversion=
         else
           if [ "$(echo \\"$VFYERR\\"|grep [[:space:]]$cmdname[[:space:]] 2>/dev/null)" ]; then
@@ -673,6 +677,9 @@ get_pkg_ver_inq () {
             pkgversion="$($vfycmd|head -n1)"
           else
             pkgversion="$($vfycmd 2>/dev/null|head -n1)"
+          fi
+          if [ -z "$pkgversion" -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+            pkgversion=".($vfycmd)"
           fi
         fi
         _LAST_VER="$pkgversion"
@@ -1060,16 +1067,6 @@ add_users () {
     fi
 }
 
-prod_install_if () {
-# prod (pkgname)
-# return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
-    if $(prod status $1 "-q"); then
-      return $STS_SUCCESS
-    fi
-    prod "install" "$1" "-q"
-    return $STS_SUCCESS
-}
-
 prod () {
 # prod (action pkgname -q level)
 # return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
@@ -1095,11 +1092,6 @@ prod () {
         return $STS_SUCCESS
       fi
     fi
-    set_xtlcmds $pkgname
-    local svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
-    local cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
-    local vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
-    local cmd0=""
     if [ -z "$4" ]; then
       level=0
       local lm=
@@ -1108,6 +1100,25 @@ prod () {
       let x=$level*2
       local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     fi
+    local REQlist="$(get_prm_value $FCONF REQ_$pkgname)"
+    if [ -z "$level" ]; then level=0; fi
+    if [ "$1" == "install" -a -n "$REQlist" ]; then
+      ((level++))
+      for p in $REQlist; do
+        realname=$(get_realname $p)
+        if $(prod status $realname "-q" $level); then
+          true
+        else
+          prod install $realname "" $level
+        fi
+      done
+      ((level--))
+    fi
+    set_xtlcmds $pkgname
+    local svcname=$(get_prm_value $FCONF "${pkgname}_svcname")
+    local cmdname=$(get_prm_value $FCONF "${pkgname}_cmdname")
+    local vfycmd=$(get_prm_value $FCONF "${cmdname}_vfycmd")
+    local cmd0=""
     # echo " $pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
     if [ "$1" == "realname" ]; then
       echo "$pkgname"
@@ -1200,7 +1211,6 @@ prod () {
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
     fi
-    # local X="TCP_${pkgname//-/_}"
     local X="$(get_prm_value $FCONF TCP_$pkgname)"
     if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
@@ -1217,7 +1227,6 @@ prod () {
         done
       fi
     fi
-    # X="UDP_${pkgname//-/_}"
     local X="$(get_prm_value $FCONF UDP_$pkgname)"
     if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
@@ -1234,13 +1243,11 @@ prod () {
         done
       fi
     fi
-    # SUBlist="SUB_${pkgname//-/_}"
     local SUBlist="$(get_prm_value $FCONF SUB_$pkgname)"
     if [ -z "$level" ]; then level=0; fi
     if [ -n "$SUBlist" -a $level -lt $opt_depth ]; then
       ((level++))
       for p in $SUBlist; do
-        # realname=$(prod realname $p)
         realname=$(get_realname $p)
         verbose_msg "Analyzing $realname"
         if [ "$1" == "install" ]; then
@@ -1263,7 +1270,7 @@ prod () {
           prod $1 $realname "" $level
         fi
       done
-      ((level--)) #?
+      ((level--))
     fi
     if [ $level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
       run_traced "apt-get autoremove"
@@ -1314,7 +1321,7 @@ product_update_product () {
     if [ "$TDIR" != "/usr/bin" ]; then
       product_install_product
     else
-      prod_install_if "git"
+      # prod_install_if "git"
       run_traced "cd /tmp"
       if  [ -d /tmp/tools ]; then
         rm -fR /tmp/tools
@@ -1333,7 +1340,7 @@ product_remove_product () {
 
 pre_install_LAMP () {
     if [ $opt_dev -gt 0 ]; then
-      prod_install_if "gcc"
+      # prod_install_if "gcc"
       if [ "$FH" == "RHEL" ]; then
         run_traced "yum $opt_yes groupinstall \"Development tools\""
       fi
@@ -1636,7 +1643,7 @@ post_config_odoo () {
 }
 
 pre_install_odoo () {
-    prod_install_if "git"
+    # prod_install_if "git"
     if [ "$FH" == "RHEL" ]; then
       if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
         run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
@@ -1771,21 +1778,21 @@ product_update_wkhtmltopdf () {
 }
 
 post_install_apache2_httpd () {
-     if [ ! -d /var/www ]; then
+    if [ ! -d /var/www ]; then
       run_traced "mkdir -p /var/www"
       run_traced "chmod u+rwx,g=rx,o=rx /var/www"
-      fi
-      if [ ! -d /var/www/html ]; then
+    fi
+    if [ ! -d /var/www/html ]; then
       run_traced "mkdir -p /var/www/html"
       run_traced "chmod u+rwx,g=rx,o=rx /var/www/html"
-      fi
+    fi
 }
 
 post_install_apache2 () {
-      run_traced "service apache2 start"
-      run_traced "sleep 3"
+    run_traced "service apache2 start"
+    run_traced "sleep 3"
     run_traced "chkconfig apache2 on"
-      post_install_apache2_httpd
+    post_install_apache2_httpd
 }
 
 post_install_httpd () {
@@ -1826,39 +1833,6 @@ post_config_mariadb-server () {
       run_traced "mysql_secure_installation"
     fi
     run_traced "chkconfig mariadb on"
-}
-
-test_cfg_name () {
-    if [ "$FH" == "RHEL" ]; then
-       local TPRM=("." httpd_svcname httpd_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
-    php_cmdname postgresql-server_cmdname openssh-server_svcname php_vfycmd openssh-server_cmdname python-pip_cmdname\
-    SUB_mariadb SUB_openssh_server)
-       local TRES=("." "httpd" "apachectl" "apachectl -v" "postgresql" "mysqld"\
-    "php" "psql" "sshd" "php -v" "" "pip"\
-    " mariadb-server " " openssh-clients telnet ")
-    else
-       local TPRM=("." apache2_svcname apache2_cmdname apachectl_vfycmd postgresql-server_svcname mysql-server_svcname\
-    php5_cmdname postgresql_cmdname openssh-server_svcname php5_vfycmd openssh-server_cmdname  python-pip_cmdname\
-    SUB_openssh_server)
-       local TRES=("." "apache2" "apachectl" "apachectl -v" "postgresql" "mysql"\
-    "php5" "psql" "ssh" "php5 -v" "" "pip"\
-    " openssh-client telnet ")
-    fi
-    local jj=0
-    while ((jj<${#TPRM[*]})); do
-      local p="${TPRM[jj]}"
-      if [ "$p" == "." ]; then p=; fi
-      ((tst_ctr++))
-      local r="$(get_prm_value "./$THIS.notexists" $p)"
-      local t="${TRES[jj]}"
-      if [ "$t" == "." ]; then t=; fi
-      elog "Test $tst_ctr [$FH]: confg '$p'='$t'"
-      if [ "$r" != "$t" ]; then
-        elog "Test Failed: ($r)"
-        exit $STS_FAILED
-      fi
-      ((++jj))
-    done
 }
 
 
@@ -2674,29 +2648,23 @@ elif [ "$action" == "status" ]; then
     exit $STS_FAILED
   fi
   set_tlog_file "$FLOG" "" "echo"
-  print_title "Check for installation status"
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    # realname=$(prod realname $p)
-    realname=$(get_realname $p)
-    prod $action $realname
-  done
+  if [ $test_mode -eq 0 ]; then
+    print_title "Check for installation status"
+  fi
+  prod $action $pkg
   ending_msg
 elif [ "$action" == "version" ]; then
-  if [ $EUID -ne 0 ]; then
+  if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
     exit $STS_FAILED
   fi
   set_tlog_file "$FLOG" "" "echo"
-  print_title "Show installed package version"
-  iter=$(set_iter $pkg)
-  for p in $iter; do
-    # realname=$(prod realname $p)
-    realname=$(get_realname $p)
-    if $(prod status $realname "-q"); then
-      prod version $realname
-    fi
-  done
+  if [ $test_mode -eq 0 ]; then
+     print_title "Show installed package version"
+  fi
+  if $(prod status $pkg "-q"); then
+      prod version $pkg
+  fi
 elif [ "$action" == "update" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
@@ -2855,8 +2823,6 @@ elif [ "$action" == "regression_test" ]; then
     init_cfg_pkg "LAMP"
     SIMULATE_YES=". $SAVE_SMLT_YES ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
-    # test_cfg_name
-    # test_realname
     # test_install
     SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
     SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
