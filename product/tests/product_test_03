@@ -191,6 +191,7 @@ EOF
 LAMP (by product)()
 epel-release (by yum)(epel-release --version)
 python-pip (by yum)(pip --version)
+python-wheel (by yum)(python-wheel --version)
 yum-utils (by yum)(yum-utils --version)
 LAMP_security (by product)()
 libffi-devel (by yum)(libffi-devel --version)
@@ -268,33 +269,33 @@ mysql-server (by yum)(mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/postgres__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)(postgresql-client-common --version)
---postgresql-contrib (by apt-get)(postgresql-contrib --version)
+--postgresql-client-common (by apt-get)()
+--postgresql-contrib (by apt-get)()
 EOF
   cat <<EOF >$TESTDIR/res/postgres__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)(postgresql-client-common --version)
---postgresql-contrib (by yum)(postgresql-contrib --version)
+--postgresql-client-common (by yum)()
+--postgresql-contrib (by yum)()
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)(postgresql-client-common --version)
---postgresql-contrib (by apt-get)(postgresql-contrib --version)
+--postgresql-client-common (by apt-get)()
+--postgresql-contrib (by apt-get)()
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)(postgresql-client-common --version)
---postgresql-contrib (by yum)(postgresql-contrib --version)
+--postgresql-client-common (by yum)()
+--postgresql-contrib (by yum)()
 EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)(postgresql-client-common --version)
---postgresql-contrib (by apt-get)(postgresql-contrib --version)
+--postgresql-client-common (by apt-get)()
+--postgresql-contrib (by apt-get)()
 EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)(postgresql-client-common --version)
---postgresql-contrib (by yum)(postgresql-contrib --version)
+--postgresql-client-common (by yum)()
+--postgresql-contrib (by yum)()
 EOF
   cat <<EOF >$TESTDIR/res/php__RHEL.03.test
 php (by yum)(php -v)
@@ -314,7 +315,6 @@ EOF
 openssh-server (by yum)()
 - TCP port 22
 --openssh-clients (by yum)(ssh -V)
---telnet (by yum)(telnet --version)
 --mod_ssl (by yum)(mod_ssl --version)
 --mod_proxy_html (by yum)(mod_proxy_html --version)
 --iptables-services (by yum)(iptables-services --version)
@@ -324,7 +324,6 @@ EOF
 openssh-server (by apt-get)()
 - TCP port 22
 --openssh-client (by apt-get)(ssh -V)
---telnet (by apt-get)(telnet --version)
 EOF
 fi
 Real_FH=$(xuname "-f")

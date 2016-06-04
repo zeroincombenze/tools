@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.40.1
+#__version__=0.1.40.2
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -805,7 +805,7 @@ export -f a_find
 # Parameter $1:
 #    Id of table (may be 0..3)
 # Parameter $2:
-#    Paramater key to search
+#    Parameter key to search
 # Return:
 #    parameter value
 get_cfg_value () {

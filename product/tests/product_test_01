@@ -134,7 +134,7 @@ v=$(echo $x|awk -F. '{print $1}')
 Real_DISTO=$(xuname "-d")$v
 
 declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
-TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release python-pip yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
+TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release python-pip python-wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
 TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
 TEST_Debian[LAMP]="LAMP=(LAMP python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python)"
 TEST_RHEL[apache2]="httpd"
