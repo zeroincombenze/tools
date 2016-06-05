@@ -62,7 +62,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.28.12"
+__version__="0.2.29"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -115,6 +115,7 @@ conf_default () {
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
     p="$p passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup"
     set_cfg_def "PIP_PKGS" "$p" "0"
+    set_cfg_def "GIT_PKGS" "odoo" "0"
     p="epel-release python-pip pip yum-utils openssh-server httpd mariadb"
     p="$p postgresql-server php python apache2 mysql-server postgresql php5"
     p="$p php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel"
@@ -136,8 +137,10 @@ conf_default () {
     set_cfg_def "REQ_LAMP" "gcc iptables" "0" "CentOS7"
     set_cfg_def "REQ_LAMP" "gcc" "0"
     set_cfg_def "REQ_product" "wget git" "0"
-    set_cfg_def "REQ_odoo" "git unidecode unicodecsv pydot vatnumber BeautifulSoup" "0"
-    set_cfg_def "REQ_python" "python-pip pytz" "0" "Deban"
+    p="git unidecode unicodecsv pydot vatnumber BeautifulSoup"
+    set_cfg_def "REQ_odoo" "python postgresql $p" "0" "Debian"
+    set_cfg_def "REQ_odoo" "python postgresql-server $p" "0" "RHEL"
+    set_cfg_def "REQ_python" "python-pip pytz" "0" "Debian"
     set_cfg_def "REQ_python" "python-pip python-wheel pytz" "0" "CentOS7"
     set_cfg_def "REQ_python" "python-pip pytz" "0" "CentOS7"
     # Bill of packages
@@ -311,10 +314,6 @@ init_cfg_pkg () {
     if [ -n "$opt_odoo" ]; then
       LAMP="$LAMP odoo"
     fi
-    NAME_RHEL="($(get_prm_value $FCONF NAME_RHEL))"
-    NAME_Debian="($(get_prm_value $FCONF NAME_Debian))"
-    NAME_ALIAS="($(get_prm_value $FCONF NAME_ALIAS))"
-    NAME_REAL="($(get_prm_value $FCONF NAME_REAL))"
     NAME_VIRTUAL="($(get_prm_value $FCONF NAME_VIRTUAL))"
     NOINQ="$(get_prm_value $FCONF NOINQ)"
     VFYLOW="$(get_prm_value $FCONF VFYLOW)"
@@ -322,6 +321,7 @@ init_cfg_pkg () {
     VFYE2NL="$(get_prm_value $FCONF VFYE2NL)"
     VFYERR="$(get_prm_value $FCONF VFYERR)"
     PIP_PKGS="$(get_prm_value $FCONF PIP_PKGS)"
+    GIT_PKGS="$(get_prm_value $FCONF GIT_PKGS)"
     STD_PKGS="$(get_prm_value $FCONF STD_PKGS)"
 }
 
@@ -409,10 +409,8 @@ enable_port () {
     if [ "$prot" != "tcp" -a "$prot" != "upd" ]; then
        prot=tcp
     fi
-    # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]port_${prot}_${port}[[:space:]] 2>/dev/null)" ]; then
     if [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x="port_$prot_$port"
-    # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]port_${prot}_${port}[[:space:]] 2>/dev/null)" ]; then
     elif [[ " $SIMULATE_NO " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x=""
     else
@@ -430,10 +428,8 @@ disable_port () {
     if [ "$prot" != "tcp" -a "$prot" != "upd" ]; then
        prot=tcp
     fi
-    # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]port_${prot}_${port}[[:space:]] 2>/dev/null)" ]; then
     if [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x="port_$prot_$port"
-    # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]port_${prot}_${port}[[:space:]] 2>/dev/null)" ]; then
     elif [[ " $SIMULATE_NO " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x=""
     else
@@ -569,36 +565,16 @@ get_realname () {
       if [ -n "$p" ]; then
         pkgname=$p
       else
-        local jy=0
-        while ((jy<${#NAME_ALIAS[*]})); do
-          if [ "$1" == "${NAME_ALIAS[jy]}" ]; then
-            pkgname="${NAME_REAL[jy]}"
-            break
-          fi
-          ((++jy))
-        done
         if [ "$FH" == "RHEL" ]; then
-          jy=0
-          while ((jy<${#NAME_Debian[*]})); do
-            if [ "$pkgname" == "${NAME_Debian[jy]}" ]; then
-              pkgname="${NAME_RHEL[jy]}"
-              break
-            fi
-            ((++jy))
-          done
-          if [ "${2: -6}" == "-devel" ]; then
-            let l=${#2}-2
-            pkgname="${2:0:l}"
+          local p=$(get_cfg_value "1" ${1}__Debian)
+          if [ "${p: -4}" == "-dev" ]; then
+            pkgname="${p}el"
           fi
         elif [ "$FH" == "Debian" ]; then
-          jy=0
-          while ((jy<${#NAME_RHEL[*]})); do
-            if [ "$pkgname" == "${NAME_RHEL[jy]}" ]; then
-              pkgname="${NAME_Debian[jy]}"
-              break
-            fi
-            ((++jy))
-          done
+          local p=$(get_cfg_value "1" ${1}__RHEL)
+          if [ "${p: -6}" == "-devel" ]; then
+            pkgname="${p:0: -2}"
+          fi
         fi
       fi
     fi
@@ -617,9 +593,11 @@ get_pkg_ver_inq () {
       pkgversion=
     elif [ "$pkgname" == "odoo" ]; then
       pkgversion=
-      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion=7.0
-      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion=
       else
         if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
@@ -640,20 +618,25 @@ get_pkg_ver_inq () {
       pkgversion=
       if [ -n "$vfycmd" ]; then
         x="$(echo "$vfycmd"|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-        if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        # if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
           sts=127
         else
           p=$($x &>/dev/null)
           sts=$?
-          if [ $sts -ne $STS_SUCCESS -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-            sts=$STS_SUCCESS
+          # if [ $sts -ne $STS_SUCCESS -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+          if [ $sts -ne $STS_SUCCESS ]; then
+            if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+              sts=$STS_SUCCESS
+            fi
           fi
         fi
       else
         sts=127
       fi
       if [ $sts -ne 127 -a $sts -ne 2 ]; then
-        if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        # if [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+        if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
           pkgversion=
         else
           if [[ " $VFYERR " =~ [[:space:]]$cmdname[[:space:]] ]]; then
@@ -663,8 +646,11 @@ get_pkg_ver_inq () {
           else
             pkgversion="$($vfycmd 2>/dev/null|head -n1)"
           fi
-          if [ -z "$pkgversion" -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-            pkgversion=".($vfycmd)"
+          # if [ -z "$pkgversion" -a "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+          if [ -z "$pkgversion" ]; then
+            if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+              pkgversion=".($vfycmd)"
+            fi
           fi
         fi
         _LAST_VER="$pkgversion"
@@ -686,9 +672,11 @@ get_pkg_ver_pip () {
       pkgversion="$_LAST_VER"
     else
       pkgversion=
-      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion="($stscmd list|grep $pkgname).($vfycmd)"
-      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion=
       else
         if [ -f $TMP_LIS_PIP ]; then
@@ -714,9 +702,11 @@ get_pkg_ver_rpm () {
       pkgversion="$_LAST_VER"
     else
       pkgversion=
-      if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion="($stscmd -q --qf '%{VERSION}').($vfycmd)"
-      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion=
       else
         x=$($stscmd -q --qf '%{VERSION}' $pkgname 2>/dev/null)
@@ -742,9 +732,11 @@ get_pkg_ver_dpkg () {
       pkgversion="$_LAST_VER"
     else
       pkgversion=
-      if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion="($stscmd -W $pkgname).($vfycmd)"
-      elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
         pkgversion=
       else
         x="$($stscmd -f='${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
@@ -808,7 +800,7 @@ get_pkg_ver () {
 }
 
 set_xtlcmds () {
-# set_xtlcmds::pkgname opt_yes STD_PKGS, PIP_PKGS
+# set_xtlcmds::pkgname opt_yes STD_PKGS, PIP_PKGS, GIT_PKGS
 # return: -> xtlcmd, stscmd, vfycmd, 'OPTS'
     local pkgname=$1
     if $(is_virtualname $pkgname); then
@@ -832,14 +824,18 @@ set_xtlcmds () {
     # if [ "$pkgname" -a -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
     if [[ " $STD_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       :
-    else
+    #else
       # if [ "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-      if [[ " $PIP_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        xtlcmd="pip"
-        stscmd="pip"
-        vfycmd=
-        OPTS=
-      fi
+    elif [[ " $PIP_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      xtlcmd="pip"
+      stscmd="pip"
+      vfycmd=
+      OPTS=
+      # fi
+    elif [[ " $GIT_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      xtlcmd="git"
+      stscmd="git"
+      OPTS=
     fi
 }
 
@@ -847,9 +843,11 @@ set_installcmd () {
 # set_installcmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS
 # return: -> cmd, cmd0
     local INSTALLcmd="product_$1_${pkgname//-/_}"
-    if [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # if [ "$(echo -e \\"$SIMULATE_INSTALL_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [[ " $SIMULATE_INSTALL_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $INSTALLcmd (SUCCESS)"
-    elif [ "$(echo -e \\"$SIMULATE_INSTALL_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # elif [ "$(echo -e \\"$SIMULATE_INSTALL_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    elif [[ " $SIMULATE_INSTALL_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $INSTALLcmd (FAIL)"
     elif [ "$(type -t $INSTALLcmd)" == "function" ]; then
       cmd="$INSTALLcmd $OPTS install $pkgname"
@@ -871,9 +869,11 @@ set_updatecmd () {
 # set_updatecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS
 # return: -> cmd, cmd0
     local UPDATEcmd="product_$1_${pkgname//-/_}"
-    if [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # if [ "$(echo -e \\"$SIMULATE_UPDATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [[ " $SIMULATE_UPDATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $UPDATEcmd (SUCCESS)"
-    elif [ "$(echo -e \\"$SIMULATE_UPDATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # elif [ "$(echo -e \\"$SIMULATE_UPDATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    elif [[ " $SIMULATE_UPDATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $UPDATEcmd (FAIL)"
     elif [ "$(type -t $UPDATEcmd)" == "function" ]; then
       cmd="$UPDATEcmd $OPTS update $pkgname"
@@ -904,9 +904,11 @@ set_removecmd () {
 # set_removecmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS
 # return: -> cmd, cmd0
     local REMOVEcmd="product_$1_${pkgname//-/_}"
-    if [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # if [ "$(echo -e \\"$SIMULATE_REMOVE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    if [[ " $SIMULATE_REMOVE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $REMOVEcmd (SUCCESS)"
-    elif [ "$(echo -e \\"$SIMULATE_REMOVE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    # elif [ "$(echo -e \\"$SIMULATE_REMOVE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
+    elif [[ " $SIMULATE_REMOVE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       cmd="# $REMOVEcmd (FAIL)"
     elif [ "$(type -t $REMOVEcmd)" == "function" ]; then
       cmd="$REMOVEcmd $OPTS update $pkgname"
@@ -1175,9 +1177,11 @@ prod () {
        test_msg "$msg"
     else
       PREcmd="pre_$1_$pkgname"
-      if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # if [  "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      if [[ " $SIMULATE_YES " =~ [[:space:]]pre_$1_$pkgname[[:space:]] ]]; then
         run_traced "# $PREcmd succesfully ended"
-      elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      # elif [  "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]pre_$1_$pkgname[[:space:]] 2>/dev/null)" ]; then
+      elif [[ " $SIMULATE_NO " =~ [[:space:]]pre_$1_$pkgname[[:space:]] ]]; then
         run_traced "# $PREcmd failed"
       elif [ "$(type -t $PREcmd)" == "function" ]; then
         $PREcmd "$svcname" "$cmdname" "$vfycmd"
@@ -1269,7 +1273,7 @@ prod () {
           fi
         elif [ "$1" == "remove" ]; then
           if $(prod status $realname "-q" $level); then
-            elog "$realname should be removed"
+            elog "# $realname should be removed"
           fi
         else
           prod $1 $realname "" $level
@@ -1856,35 +1860,7 @@ test_install () {
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
     elog "Test $tst_ctr [$FH]: prod install '$p'"
-    if [ "$p" == "postgresql" -o "$p" == "postgresql-server" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y install postgresql-server">>$ftest
-      else
-        echo "--> apt-get -y install postgresql">>$ftest
-      fi
-        echo "--> service postgresql start">>$ftest
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y install pgadmin3">>$ftest
-      else
-        echo "--> apt-get -y install postgresql-client-common">>$ftest
-        echo "--> apt-get -y install postgresql-contrib">>$ftest
-        echo "--> apt-get -y install pgadmin3">>$ftest
-      fi
-    elif [ "$p" == "openssh-server" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y install openssh-server">>$ftest
-        echo "--> service sshd start">>$ftest
-        echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
-        echo "--> yum -y install openssh-clients">>$ftest
-        echo "--> yum -y install telnet">>$ftest
-      else
-        echo "--> apt-get -y install openssh-server">>$ftest
-        echo "--> service ssh start">>$ftest
-        echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
-        echo "--> apt-get -y install openssh-client">>$ftest
-        echo "--> apt-get -y install telnet">>$ftest
-      fi
-    elif [ "$p" == "python" ]; then
+    if [ "$p" == "python" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y install python">>$ftest
         # echo "--> yum -y install python-devel">>$ftest
@@ -2119,22 +2095,7 @@ test_update () {
   while ((jj<${#PNLX[*]})); do
     if [ -f $ftest ]; then rm -f $ftest; fi
     p="${PNLX[jj]}"
-    if [ "$p" == "postgresql" -o "$p" == "postgresql-server" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y update postgresql-server">>$ftest
-      else
-        echo "--> apt-get -y update postgresql">>$ftest
-        echo "--> apt-get -y upgrade postgresql">>$ftest
-      fi
-        echo "--> service postgresql restart">>$ftest
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y install pgadmin3">>$ftest
-      else
-        echo "--> apt-get -y install postgresql-client-common">>$ftest
-        echo "--> apt-get -y install postgresql-contrib">>$ftest
-        echo "--> apt-get -y install pgadmin3">>$ftest
-      fi
-    elif [ "$p" == "openssh-server" ]; then
+    if [ "$p" == "openssh-server" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y update openssh-server">>$ftest
         echo "--> service sshd restart">>$ftest
@@ -2382,22 +2343,7 @@ test_remove () {
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
     elog "Test $tst_ctr [$FH]: 'prod remove $p'"
-    if [ "$p" == "python-pip" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y remove python-pip">>$ftest
-      else
-        echo "--> apt-get -y remove python-pip">>$ftest
-        echo "--> apt-get autoremove">>$ftest
-      fi
-    elif [ "$p" == "postgresql" -o "$p" == "postgresql-server" ]; then
-        echo "--> service postgresql stop">>$ftest
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y remove postgresql-server">>$ftest
-      else
-        echo "--> apt-get -y remove postgresql">>$ftest
-        echo "--> apt-get autoremove">>$ftest
-      fi
-    elif [ "$p" == "openssh-server" ]; then
+    if [ "$p" == "openssh-server" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> service sshd stop">>$ftest
         echo "--> yum -y remove openssh-server">>$ftest
@@ -2644,18 +2590,20 @@ elif [ "$action" == "config" ]; then
       # if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$realname[[:space:]] 2>/dev/null)" ]; then
       if [[ " $PIP_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
         :
-      else
+      # else
         # if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$realname[[:space:]] 2>/dev/null)" ]; then
-        if [[ " $STD_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
-          :
+      elif [[ " $STD_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
+        :
+      else
+        installer=$(prod installer $realname)
+        if [ "$installer" == "pip" ]; then
+          PIP_PKGS="$PIP_PKGS $realname "
+        elif [ "$installer" == "git" ]; then
+          GIT_PKGS="$PIP_PKGS $realname "
         else
-          installer=$(prod installer $realname)
-          if [ "$installer" == "pip" ]; then
-            PIP_PKGS="$PIP_PKGS $realname "
-          else
-            STD_PKGS="$STD_PKGS $realname "
-          fi
+          STD_PKGS="$STD_PKGS $realname "
         fi
+        # fi
       fi
       SUBlist="SUB_${realname//-/_}"
       if [ "$SUBlist" ]; then
@@ -2665,18 +2613,20 @@ elif [ "$action" == "config" ]; then
           # if [ -z "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
           if [[ " $PIP_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
             :
-          else
+          # else
             # if [ -z "$(echo -e \\"$STD_PKGS\\"|grep [[:space:]]$p[[:space:]] 2>/dev/null)" ]; then
-            if [[ " $STD_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
-              :
+          elif [[ " $STD_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
+            :
+          else
+            installer=$(prod installer $p)
+            if [ "$installer" == "pip" ]; then
+              PIP_PKGS="$PIP_PKGS $p "
+            elif [ "$installer" == "git" ]; then
+              GIT_PKGS="$PIP_PKGS $p "
             else
-              installer=$(prod installer $p)
-              if [ "$installer" == "pip" ]; then
-                PIP_PKGS="$PIP_PKGS $p "
-              else
-                STD_PKGS="$STD_PKGS $p "
-              fi
+              STD_PKGS="$STD_PKGS $p "
             fi
+            # fi
           fi
         done
       fi
