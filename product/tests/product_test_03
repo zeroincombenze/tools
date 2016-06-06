@@ -146,7 +146,7 @@ test_run () {
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   rm -f $TESTDIR/res/*.03.test
   cat <<EOF >$TESTDIR/res/product.03.test
-product (by product)(product -V)
+product (by git)(product -V)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
 LAMP (by product)()

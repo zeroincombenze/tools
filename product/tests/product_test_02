@@ -121,7 +121,7 @@ test_run () {
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   rm -f $TESTDIR/res/*.02.test
   cat <<EOF >$TESTDIR/res/product.02.test
-product (install by product)
+product (install by git)
  command=product
  get ver=product -V
 EOF
