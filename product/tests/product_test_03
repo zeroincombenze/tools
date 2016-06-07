@@ -230,7 +230,14 @@ pyOpenSSL (by yum)(pyOpenSSL --version)
 pyasn1 (by pip)()
 ndg-httpsclient (by pip)()
 EOF
-  cat <<EOF >$TESTDIR/res/httpd.03.test
+  cat <<EOF >$TESTDIR/res/httpd__CentOS7.03.test
+httpd (by yum)(apachectl -v)
+- TCP port 80
+- TCP port 443
+--vsftpd (by yum)()
+- TCP port 21
+EOF
+  cat <<EOF >$TESTDIR/res/httpd__CentOS6.03.test
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
@@ -239,6 +246,8 @@ EOF
 apache2 (by apt-get)(apachectl -v)
 - TCP port 80
 - TCP port 443
+--vsftpd (by apt-get)()
+- TCP port 21
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.03.test
 python-pip (by yum)(pip --version)

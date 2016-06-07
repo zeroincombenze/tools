@@ -109,7 +109,7 @@ conf_default () {
     set_cfg_def "VFYUPP" "ssh product" "0"
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
-    set_cfg_def "NOINQ" "postgresql-client-common postgresql-contrib ghostscript odoo" "0"
+    set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
     set_cfg_def "NAME_VIRTUAL" "LAMP LAMP_security PYTHON_DEVELOVER" "0"
     p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0"
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
@@ -152,6 +152,8 @@ conf_default () {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
+    set_cfg_def "SUB_apache2" "vsftpd" "0" "Debian"
+    set_cfg_def "SUB_httpd" "vsftpd" "0" "CentOS7"
     set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
     set_cfg_def "SUB_mysql-server" "libapache2-mod-auth-mysql" "0"
     if [ $opt_grf -eq 0 ]; then
@@ -248,6 +250,7 @@ conf_default () {
     # set_cfg_def "product_git_LocalRoot" "/tmp" "0"
     set_cfg_def "product_git_LocalUser" "odoo" "0"
     # Service names
+    set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
     set_cfg_def "apache2_svcname" "apache2" "0" "Debian"
     set_cfg_def "httpd_svcname" "httpd" "0" "RHEL"
@@ -263,6 +266,7 @@ conf_default () {
     # TCP & UDP Ports
     set_cfg_def "TCP_httpd" "80 443" "0" "RHEL"
     set_cfg_def "TCP_apache2" "80 443" "0" "Debian"
+    set_cfg_def "TCP_vsftpd" "21" "0"
     set_cfg_def "TCP_openssh-server" "22" "0"
     set_cfg_def "TCP_odoo" "8069" "0"
 }
@@ -2056,75 +2060,7 @@ test_update () {
   while ((jj<${#PNLX[*]})); do
     if [ -f $ftest ]; then rm -f $ftest; fi
     p="${PNLX[jj]}"
-    if [ "$p" == "openssh-server" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y update openssh-server">>$ftest
-        echo "--> service sshd restart">>$ftest
-        echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
-        echo "--> yum -y install openssh-clients">>$ftest
-        echo "--> yum -y install telnet">>$ftest
-      else
-        echo "--> apt-get -y update openssh-server">>$ftest
-        echo "--> apt-get -y upgrade openssh-server">>$ftest
-        echo "--> service ssh restart">>$ftest
-        echo "--> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT">>$ftest
-        echo "--> apt-get -y install openssh-client">>$ftest
-        echo "--> apt-get -y install telnet">>$ftest
-      fi
-    elif [ "$p" == "python" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y update python">>$ftest
-        # echo "--> yum -y install python-devel">>$ftest
-        echo "--> yum -y update setuptools">>$ftest
-        echo "--> yum -y install python-virtualenv">>$ftest
-        echo "--> pip  install virtualenv">>$ftest
-        echo "--> yum -y update readline">>$ftest
-        echo "--> yum -y install libxslt-python">>$ftest
-        echo "--> yum -y update python-psycopg2">>$ftest
-        echo "--> yum -y update python-simplejson">>$ftest
-        echo "--> pip  install pytz">>$ftest
-        echo "--> pip  install xlwt">>$ftest
-        echo "--> pip  install PyYAML">>$ftest
-        echo "--> pip  install gdata">>$ftest
-        echo "--> pip  install python-ldap">>$ftest
-        echo "--> yum -y update python-lxml">>$ftest
-        echo "--> yum -y update python-requests">>$ftest
-        echo "--> yum -y update python-yaml">>$ftest
-        echo "--> pip  install unicodecsv">>$ftest
-        echo "--> pip  install pydot">>$ftest
-        echo "--> pip  install vatnumber">>$ftest
-        echo "--> pip  install BeautifulSoup">>$ftest
-      else
-        echo "--> apt-get -y update python">>$ftest
-        echo "--> apt-get -y upgrade python">>$ftest
-        echo "--> apt-get -y update setuptools">>$ftest
-        echo "--> apt-get -y upgrade setuptools">>$ftest
-        echo "--> apt-get -y install python-virtualenv">>$ftest
-        echo "--> pip  install virtualenv">>$ftest
-        echo "--> apt-get -y update libreadline6">>$ftest
-        echo "--> apt-get -y upgrade libreadline6">>$ftest
-        echo "--> apt-get -y install libxslt-python">>$ftest
-        echo "--> apt-get -y update python-psycopg2">>$ftest
-        echo "--> apt-get -y upgrade python-psycopg2">>$ftest
-        echo "--> apt-get -y update python-simplejson">>$ftest
-        echo "--> apt-get -y upgrade python-simplejson">>$ftest
-        echo "--> pip  install pytz">>$ftest
-        echo "--> pip  install xlwt">>$ftest
-        echo "--> pip  install PyYAML">>$ftest
-        echo "--> apt-get -y install python-gdata">>$ftest
-        echo "--> pip  install python-ldap">>$ftest
-        echo "--> apt-get -y update python-lxml">>$ftest
-        echo "--> apt-get -y upgrade python-lxml">>$ftest
-        echo "--> apt-get -y update python-requests">>$ftest
-        echo "--> apt-get -y upgrade python-requests">>$ftest
-        echo "--> apt-get -y update python-yaml">>$ftest
-        echo "--> apt-get -y upgrade python-yaml">>$ftest
-        echo "--> pip  install unicodecsv">>$ftest
-        echo "--> pip  install pydot">>$ftest
-        echo "--> pip  install vatnumber">>$ftest
-        echo "--> pip  install BeautifulSoup">>$ftest
-      fi
-    elif [ "$p" == "odoo" ]; then
+    if [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> cd /opt/odoo/7.0">>$ftest
         echo "--> git pull origin 7.0">>$ftest
@@ -2302,33 +2238,7 @@ test_remove () {
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
     elog "Test $tst_ctr [$FH]: 'prod remove $p'"
-    if [ "$p" == "openssh-server" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> service sshd stop">>$ftest
-        echo "--> yum -y remove openssh-server">>$ftest
-      else
-        echo "--> service ssh stop">>$ftest
-        echo "--> apt-get -y remove openssh-server">>$ftest
-        echo "--> apt-get autoremove">>$ftest
-      fi
-    elif [ "$p" == "python" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y remove python">>$ftest
-        echo "setuptools should be removed">>$ftest
-        echo "readline should be removed">>$ftest
-        echo "python-psycopg2 should be removed">>$ftest
-        echo "python-simplejson should be removed">>$ftest
-        echo "python-lxml should be removed">>$ftest
-      else
-        echo "--> apt-get -y remove python">>$ftest
-        echo "setuptools should be removed">>$ftest
-        echo "libreadline6 should be removed">>$ftest
-        echo "python-psycopg2 should be removed">>$ftest
-        echo "python-simplejson should be removed">>$ftest
-        echo "python-lxml should be removed">>$ftest
-        echo "--> apt-get autoremove">>$ftest
-      fi
-    elif [ "$p" == "odoo" ]; then
+    if [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y remove odoo">>$ftest
         echo "python-babel should be removed">>$ftest
@@ -2482,14 +2392,24 @@ if [ "$action" != "regression_test" ]; then
 fi
 if [ $test_mode -gt 0 -a "$action" != "update" ]; then
   if [[ " $SIMULATE_YES " =~ [[:space:]]apache2[[:space:]] ]]; then
-    SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443"
+    SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443 port_tcp_21"
   elif [[ " $SIMULATE_YES " =~ [[:space:]]httpd[[:space:]] ]]; then
-    SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443"
+    SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443 port_tcp_21"
   fi
   if [[ " $SIMULATE_NO " =~ [[:space:]]apache2[[:space:]] ]]; then
-    SIMULATE_NO="$SIMULATE_NO port_tcp_80 port_tcp_443"
+    SIMULATE_NO="$SIMULATE_NO port_tcp_80 port_tcp_443 port_tcp_21"
   elif [[ " $SIMULATE_NO " =~ [[:space:]]httpd[[:space:]] ]]; then
-    SIMULATE_NO="$SIMULATE_NO port_tcp_80 port_tcp_443"
+    SIMULATE_NO="$SIMULATE_NO port_tcp_80 port_tcp_443 port_tcp_21"
+  fi
+  if [[ " $SIMULATE_YES " =~ [[:space:]]openssh[[:space:]] ]]; then
+    SIMULATE_YES="$SIMULATE_YES port_tcp_22"
+  elif [[ " $SIMULATE_YES " =~ [[:space:]]openssh-server[[:space:]] ]]; then
+    SIMULATE_YES="$SIMULATE_YES port_tcp_22"
+  fi
+  if [[ " $SIMULATE_NO " =~ [[:space:]]openssh[[:space:]] ]]; then
+    SIMULATE_NO="$SIMULATE_NO port_tcp_22"
+  elif [[ " $SIMULATE_NO " =~ [[:space:]]openssh-server[[:space:]] ]]; then
+    SIMULATE_NO="$SIMULATE_NO port_tcp_22"
   fi
 fi
 ODOO_UID=$(get_prm_value "0" "ODOO_UID")
