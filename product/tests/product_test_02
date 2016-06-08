@@ -94,11 +94,6 @@ test_run () {
     elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
       local FH="RHEL"
     fi
-    # if [ "$Package" == "php" -a "$FH" == "Debian" ]; then
-    #   local Package="php5"
-    # elif [ "$Package" == "php5" -a "$FH" == "RHEL" ]; then
-    #   local Package="php"
-    # fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $TESTDIR/res/${Package}__${Disto}.02.test ]; then
         TESTOUT=$TESTDIR/res/${Package}__${Disto}.02.test

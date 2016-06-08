@@ -956,6 +956,7 @@ def act_check_balance(oerp, ctx):
                               ('date_start', '>=', ctx['date_start']),
                               ('date_stop', '<=', ctx['date_stop'])])
     acc_balance = {}
+    acc_partners = {}
     move_line_ids = oerp.search('account.move.line',
                                 [('company_id', '=', company_id),
                                  ('period_id', 'in', period_ids),
@@ -1021,6 +1022,15 @@ def act_check_balance(oerp, ctx):
                 move_line_id,
                 move_line_obj.ref)
             msg_log(ctx, ctx['level'] + 1, msg)
+        if move_line_obj.partner_id and \
+                move_line_obj.partner_id.id and\
+                (clf3 == "Crediti" or clf3 == "Debiti"):
+            partner_id = move_line_obj.partner_id.id
+            kk = clf3 + " " + str(partner_id)
+            if kk not in acc_partners:
+                acc_partners[kk] = 0
+            acc_partners[kk] += move_line_obj.credit
+            acc_partners[kk] += move_line_obj.debit
 
         level = '9'
         add_on_account(acc_balance,
@@ -1126,6 +1136,12 @@ def act_check_balance(oerp, ctx):
                 crd_amt,
                 dbt_amt)
             msg_log(ctx, ctx['level'], msg)
+        for kk in sorted(acc_partners):
+            partner_id = int(kk.split(" ")[1])
+            partner_obj = oerp.browse('res.partner', partner_id)
+            print u"{0:<12} {1:<50} {2:11.2f}".format(kk.decode('utf-8'),
+                                                      partner_obj.name,
+                                                      acc_partners[kk])
     return STS_SUCCESS
 
 
