@@ -1023,14 +1023,16 @@ def act_check_balance(oerp, ctx):
                 move_line_obj.ref)
             msg_log(ctx, ctx['level'] + 1, msg)
         if move_line_obj.partner_id and \
-                move_line_obj.partner_id.id and\
-                (clf3 == "Crediti" or clf3 == "Debiti"):
+                move_line_obj.partner_id.id:
             partner_id = move_line_obj.partner_id.id
-            kk = clf3 + " " + str(partner_id)
+            # if clf3 == "Crediti" or clf3 == "Attività":
+            kk = "X " + str(partner_id)
+            # elif clf3 == "Debiti" or clf3 == "Passività" or clf3 == "Contante":
+            #    kk = "X " + str(partner_id)
             if kk not in acc_partners:
                 acc_partners[kk] = 0
             acc_partners[kk] += move_line_obj.credit
-            acc_partners[kk] += move_line_obj.debit
+            acc_partners[kk] -= move_line_obj.debit
 
         level = '9'
         add_on_account(acc_balance,
