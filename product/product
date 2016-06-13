@@ -103,6 +103,7 @@ conf_default () {
     set_cfg_def "zlib-devel" "zlib1g-dev" "1" "RHEL"
     set_cfg_def "libreadline6-dev" "readline-devel" "1" "Debian"
     set_cfg_def "readline-devel" "libreadline6-dev" "1" "RHEL"
+    set_cfg_def "dateutil" "python-dateutil" "1" "RHEL"
     # Commands templates
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
@@ -113,11 +114,11 @@ conf_default () {
     set_cfg_def "NAME_VIRTUAL" "LAMP LAMP_security PYTHON_DEVELOVER" "0"
     p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0"
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
-    p="$p passlib wkhtmltopdf unicodecsv pydot vatnumber BeautifulSoup mock lxml"
+    p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
     p="$p psycopg2 simplejson"
     set_cfg_def "PIP_PKGS" "$p" "0"
     set_cfg_def "GIT_PKGS" "product odoo" "0"
-    set_cfg_def "WGET_PKGS" "product" "0"
+    set_cfg_def "WGET_PKGS" "product wkhtmltopdf" "0"
     p="epel-release python-pip pip yum-utils openssh-server httpd mariadb"
     p="$p postgresql-server php python apache2 mysql-server postgresql php5"
     p="$p php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel"
@@ -145,6 +146,7 @@ conf_default () {
     set_cfg_def "REQ_python" "python-pip" "0" "Debian"
     set_cfg_def "REQ_python" "python-pip python-wheel" "0" "CentOS7"
     set_cfg_def "REQ_python" "python-pip" "0" "CentOS7"
+    set_cfg_def "REQ_wkhtmltopdf" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
     # Bill of packages
     set_cfg_def "LAMP" "epel-release python-pip python-wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
     set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
@@ -249,6 +251,19 @@ conf_default () {
     set_cfg_def "product_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
     # set_cfg_def "product_git_LocalRoot" "/tmp" "0"
     set_cfg_def "product_git_LocalUser" "odoo" "0"
+    set_cfg_def "wkhtmltopdf_wget_URL" "http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1" "0"
+    if [ "$MACHARCH" != "x86_64" ]; then
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-trusty-i386.deb" "0" "Ubuntu14"
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-precise-i386.deb" "0" "Ubuntu12"
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-centos6-i386.rpm" "0" "CentOS6"
+    else
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-trusty-amd64.deb" "0" "Ubuntu14"
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-precise-amd64.deb" "0" "Ubuntu12"
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm" "0" "CentOS7"
+      set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-centos6-amd64.rpm" "0" "CentOS6"
+    fi
+    set_cfg_def "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
+    set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
     # Service names
     set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
@@ -289,7 +304,7 @@ get_prm_value() {
     fi
     if [ -z "$p" ]; then
       if [ "$2" != "-server_svcname" -a "${2: -15}" == "-server_svcname" ]; then
-        let l=${#2}-15
+        # let l=${#2}-15
         if [ "$FH" == "RHEL" ]; then
           p="${2:0: -15}d"
         else
@@ -301,9 +316,7 @@ get_prm_value() {
           p="${2:0: -8}"
         fi
       elif [ "$2" != "_vfycmd" -a "${2: -7}" == "_vfycmd" ]; then
-        # let l=${#2}-7
         x="${2:0: -7}"
-        # if [ -z "$x" -o "$(echo -e \\"$PIP_PKGS\\"|grep [[:space:]]$x[[:space:]] 2>/dev/null)" ]; then
         if [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p=
         elif [[ " $NOINQ " =~ [[:space:]]$x[[:space:]] ]]; then
@@ -843,7 +856,7 @@ set_xtlcmds () {
       OPTS=
     elif [[ " $WGET_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
       xtlcmd="wget"
-      stscmd="wget"
+      stscmd="#"
       OPTS=
     fi
 }
@@ -860,6 +873,10 @@ set_installcmd () {
       cmd="$INSTALLcmd $OPTS install $pkgname"
     elif $(is_virtualname $pkgname); then
       cmd="# $INSTALLcmd (VIRTUALNAME)"
+    # elif [ "$xtlcmd" == "git" ]; then
+    #  cmd="install_by_git $OPTS install $pkgname"
+    elif [ "$xtlcmd" == "wget" ]; then
+     cmd="install_by_wget $pkgname $OPTS"
     else
       get_pkg_ver_inq "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
       [ -n "$pkgversion" ]
@@ -888,6 +905,8 @@ set_updatecmd () {
       cmd="pip install --upgrade pip"
     elif [ "$xtlcmd" == "pip" ]; then
       cmd="$xtlcmd $OPTS install $pkgname --upgrade"
+    elif [ "$xtlcmd" == "wget" ]; then
+     cmd="update_by_wget $pkgname $OPTS"
     elif [ "$FH" == "RHEL" ]; then
       if [ "$pkgname" == "." ]; then
         cmd="$xtlcmd $OPTS update"
@@ -1718,84 +1737,102 @@ product_update_python_dateutil () {
     fi
 }
 
-get_wkhtmltopdf_URL () {
-    echo "http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
-}
-
-get_wkhtmltopdf_name () {
-    local pn=""
-    if [ "$DISTO" == "CentOS6" ]; then
-      if [ "$MACHARCH" == "x86_64" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-centos6-amd64.rpm"
-      elif [ "$MACHARCH" == "i686" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-centos6-i386.rpm"
-      fi
-    elif [ "$DISTO" == "CentOS7" ]; then
-      if [ "$MACHARCH" == "x86_64" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
-      elif [ "$MACHARCH" == "i686" ]; then
-        pn=""
-      fi
-    elif [ "$FH" == "Debian" ]; then
-      if [ "$LXCORE" == "trusty" -a "$MACHARCH" == "x86_64" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
-      elif [ "$LXCORE" == "trusty" -a "$MACHARCH" == "i686" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-trusty-i386.deb"
-      elif [ "$LXCORE" == "precise" -a "$MACHARCH" == "x86_64" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-precise-amd64.deb"
-      elif [ "$LXCORE" == "precise" -a "$MACHARCH" == "i686" ]; then
-        pn="wkhtmltox-0.12.2.1_linux-precise-i386.deb"
-      fi
+install_by_wget () {
+# install_by_wget(pkgname OPTS)
+    local pkgname=$1
+    local xtlcmd=wget
+    local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
+    local pkg_URL="$(get_prm_value "0" ${pkgname}_${xtlcmd}_URL)"
+    local pkg_xname="$(get_prm_value "0" ${pkgname}_${xtlcmd}_xname)"
+    if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
+      elog "*** Package $pkgname not found for this hardware"
+      elog "    wget $pkg_xname from URL=$pkg_URL"
+      return 2
     fi
-    echo "$pn"
-}
-
-product_install_wkhtmltopdf () {
-    local pn=$(get_wkhtmltopdf_name)
-    local URL=$(get_wkhtmltopdf_URL)
-    if [ -z "$pn" ]; then
-      elog "*** Package wkhtmltopdf not found for this hardware"
+    if [ -n "$LocalRoot" ]; then
+      if [ ! -d $LocalRoot ]; then
+        run_traced "mkdir -p $LocalRoot"
+      fi
+      run_traced "cd $LocalRoot"
     else
-      if [ "$FH" == "RHEL" ]; then
-        run_traced "yum install xorg-x11-fonts-Type1"
-        run_traced "yum install xorg-x11-fonts-75dpi"
-        xtlcmd="rpm"
-        run_traced "cd /tmp"
-        run_traced "wget $URL/$pn"
-        run_traced "$xtlcmd -i $pn"
-        run_traced "rm -f $pn"
-      elif [ "$FH" == "Debian" ]; then
-        xtlcmd="apt-get"
-        run_traced "cd /tmp"
-        run_traced "wget $URL/$pn"
-        run_traced "$xtlcmd install $pn"
-        run_traced "rm -f $pn"
+      if [ -d /tmp/$pkg_xname ]; then
+        run_traced "rm -fR /tmp/$pkg_xname"
+      elif [ -f /tmp/$pkg_xname ]; then
+        run_traced "rm -f /tmp/$pkg_xname"
       fi
+      run_traced "cd /tmp"
     fi
+    run_traced "wget $pkg_URL/$pkg_xname"
+    if [ "${pkg_xname: -4}" == ".rpm" ]; then
+      run_traced "rpm -i $pkg_xname"
+    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
+      run_traced "apt-get install $pkg_xname"
+    elif [ "${pkg_xname: -7}"  == ".tar.gz" ]; then
+      run_traced "pip install $pkg_xname"
+    fi
+    run_traced "rm -f $pkg_xname"
 }
 
-product_update_wkhtmltopdf () {
-    local pn=$(get_wkhtmltopdf_name)
-    local URL=$(get_wkhtmltopdf_URL)
-    if [ -z "$pn" ]; then
-      elog "*** Package wkhtmltopdf not found for this hardware"
-    else
-      if [ "$FH" == "RHEL" ]; then
-        xtlcmd="rpm"
-        run_traced "cd /tmp"
-        run_traced "wget $URL/$pn"
-        run_traced "$xtlcmd -U $pn"
-        run_traced "rm -f $pn"
-      elif [ "$FH" == "Debian" ]; then
-        xtlcmd="apt-get"
-        run_traced "cd /tmp"
-        run_traced "wget $URL/$pn"
-        run_traced "$xtlcmd update $pn"
-        run_traced "$xtlcmd upgrade $pn"
-        run_traced "rm -f $pn"
-      fi
+update_by_wget () {
+# update_by_wget(pkgname OPTS)
+    local pkgname=$1
+    local xtlcmd=wget
+    local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
+    local pkg_URL="$(get_prm_value "0" ${pkgname}_${xtlcmd}_URL)"
+    local pkg_xname="$(get_prm_value "0" ${pkgname}_${xtlcmd}_xname)"
+    if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
+      elog "*** Package $pkgname not found for this hardware"
+      elog "    wget $pkg_xname from URL=$pkg_URL"
+      return 2
     fi
+    if [ -n "$LocalRoot" ]; then
+      if [ ! -d $LocalRoot ]; then
+        run_traced "mkdir -p $LocalRoot"
+      fi
+      run_traced "cd $LocalRoot"
+    else
+      if [ -d /tmp/$pkg_xname ]; then
+        run_traced "rm -fR /tmp/$pkg_xname"
+      elif [ -f /tmp/$pkg_xname ]; then
+        run_traced "rm -f /tmp/$pkg_xname"
+      fi
+      run_traced "cd /tmp"
+    fi
+    run_traced "wget $pkg_URL/$pkg_xname"
+    if [ "${pkg_xname: -4}" == ".rpm" ]; then
+      run_traced "rpm -U $pkg_xname"
+    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
+      run_traced "apt-get update $pkg_xname"
+      run_traced "apt-get upgrade $pkg_xname"
+    elif [ "${pkg_xname: -7}"  == ".tar.gz" ]; then
+      run_traced "pip install $pkg_xname --upgrade"
+    fi
+    run_traced "rm -f $pkg_xname"
 }
+
+
+# product_update_wkhtmltopdf () {
+#     local pn=$(get_wkhtmltopdf_name)
+#     local URL=$(get_wkhtmltopdf_URL)
+#     if [ -z "$pn" ]; then
+#       elog "*** Package wkhtmltopdf not found for this hardware"
+#     else
+#       if [ "$FH" == "RHEL" ]; then
+#         xtlcmd="rpm"
+#         run_traced "cd /tmp"
+#         run_traced "wget $URL/$pn"
+#         run_traced "$xtlcmd -U $pn"
+#         run_traced "rm -f $pn"
+#       elif [ "$FH" == "Debian" ]; then
+#         xtlcmd="apt-get"
+#         run_traced "cd /tmp"
+#         run_traced "wget $URL/$pn"
+#         run_traced "$xtlcmd update $pn"
+#         run_traced "$xtlcmd upgrade $pn"
+#         run_traced "rm -f $pn"
+#       fi
+#     fi
+# }
 
 post_install_apache2_httpd () {
     if [ ! -d /var/www ]; then
@@ -2542,7 +2579,7 @@ elif [ "$action" == "install" ]; then
   if [ $opt_1st -gt 0 ]; then
     wlog "Setup for 1st installation"
     if [ $opt_dry_run -eq 0 ]; then
-      prod update
+      prod update "."
     fi
   fi
   prod $action $pkg
