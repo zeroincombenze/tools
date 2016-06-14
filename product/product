@@ -103,7 +103,7 @@ conf_default () {
     set_cfg_def "zlib-devel" "zlib1g-dev" "1" "RHEL"
     set_cfg_def "libreadline6-dev" "readline-devel" "1" "Debian"
     set_cfg_def "readline-devel" "libreadline6-dev" "1" "RHEL"
-    set_cfg_def "dateutil" "python-dateutil" "1" "RHEL"
+    set_cfg_def "dateutil" "python-dateutil" "1"
     # Commands templates
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
@@ -112,13 +112,20 @@ conf_default () {
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
     set_cfg_def "NAME_VIRTUAL" "LAMP LAMP_security PYTHON_DEVELOVER" "0"
-    p="oerplib virtualenv Babel python-ldap python-dateutil python-openid os0"
+    p="oerplib virtualenv Babel python-ldap python-openid os0"
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
     p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
     p="$p psycopg2 simplejson"
+    if [ "$DISTO" != "CentOS6" ]; then
+      p="$p python-dateutil"
+    fi
     set_cfg_def "PIP_PKGS" "$p" "0"
     set_cfg_def "GIT_PKGS" "product odoo" "0"
-    set_cfg_def "WGET_PKGS" "product wkhtmltopdf" "0"
+    p="product wkhtmltopdf"
+    if [ "$DISTO" == "CentOS6" ]; then
+      p="$p python-dateutil"
+    fi
+    set_cfg_def "WGET_PKGS" "$p" "0"
     p="epel-release python-pip pip yum-utils openssh-server httpd mariadb"
     p="$p postgresql-server php python apache2 mysql-server postgresql php5"
     p="$p php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel"
@@ -262,8 +269,11 @@ conf_default () {
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm" "0" "CentOS7"
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.2.1_linux-centos6-amd64.rpm" "0" "CentOS6"
     fi
-    set_cfg_def "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
-    set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
+    if [ "$DISTO" == "CentOS6" ]; then
+      set_cfg_def "python-dateutil_wget_URL" "https://pypi.python.org/packages/source/p/python-dateutil/" "0"
+      set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz" "0"
+      set_cfg_def "python-dateutil_wget_md5" "#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
+    fi
     # Service names
     set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
@@ -411,30 +421,30 @@ set_iter () {
 }
 
 
-run_traced () {
-# (cmd, user, login(0|1))
-    local xcmd="$1"
-    if [ -n "$2" -a "$2" != "$USER" ]; then
-      if [ ${3:-0} -gt 0 ]; then
-        xcmd="sudo -iu$2 $1"
-      else
-        xcmd="sudo -u$2 $1"
-      fi
-    fi
-    if [ $opt_dry_run -eq 0 ]; then
-      if [ "${1:0:5}" != "wlog " ];then
-        wlog "--> $xcmd"
-      fi
-      if [ "${1:0:1}" != "#" ]; then
-        eval "$xcmd"
-      fi
-    elif [ "${1:0:6}" != "sleep " ]; then
-      echo "--> $xcmd"
-      if [ "${1:0:3}" == "cd " ]; then
-        eval "$xcmd"
-      fi
-    fi
-}
+# run_traced () {
+# # (cmd, user, login(0|1))
+#     local xcmd="$1"
+#     if [ -n "$2" -a "$2" != "$USER" ]; then
+#       if [ ${3:-0} -gt 0 ]; then
+#         xcmd="sudo -iu$2 $1"
+#       else
+#         xcmd="sudo -u$2 $1"
+#       fi
+#     fi
+#     if [ $opt_dry_run -eq 0 ]; then
+#       if [ "${1:0:5}" != "wlog " ];then
+#         wlog "--> $xcmd"
+#       fi
+#       if [ "${1:0:1}" != "#" ]; then
+#         eval "$xcmd"
+#       fi
+#     elif [ "${1:0:6}" != "sleep " ]; then
+#       echo "--> $xcmd"
+#       if [ "${1:0:3}" == "cd " ]; then
+#         eval "$xcmd"
+#       fi
+#     fi
+# }
 
 enable_port () {
     # echo "enable_port ('$1' '$2')">>~/product.his #debug
@@ -579,7 +589,6 @@ install_submodules () {
 }
 
 is_virtualname () {
-    # echo "is_virtualname($1) <<$NAME_VIRTUAL>>">>~/product.his #debug
     local pkgname=$1
     local sts=$STS_FAILED
     if [ -n "$pkgname" -a "$pkgname" != "." ]; then
@@ -1022,7 +1031,7 @@ build_groups_list () {
       if [[ "$group" =~ odoo* ]]; then valid=0; fi
       if [[ "$group" =~ openerp* ]]; then valid=0; fi
       if ((valid)); then
-        wlog "Group $group ($gid)"
+        wlog "# Group $group ($gid)"
         if [ $opt_dry_run -eq 0 ]; then
           echo "$group:$enpass:$gid">>$outfile
         fi
@@ -1044,7 +1053,7 @@ build_user_list () {
       if [[ "$user" =~ saslauth* ]]; then valid=0; fi
       if [[ "$user" =~ dev131* ]]; then valid=0; fi
       if ((valid)); then
-        wlog "User $user ($uid) assigned \"$home\" home directory with $shell shell."
+        wlog "# User $user ($uid) assigned \"$home\" home directory with $shell shell."
         if [ $opt_dry_run -eq 0 ]; then
           echo "$user:$enpass:$uid:$gid:$desc:$home:$shell">>$outfile
         fi
@@ -1058,7 +1067,7 @@ add_groups () {
     if [ -f $infile ]; then
       while IFS=: read -r group enpass gid other; do
         if [ $(grep "^$group:" $sysfile 2>/dev/null) ]; then
-          wlog "Group $group already exists"
+          wlog "!! Group $group already exists"
         else
           cmd="groupadd -g $gid $group"
           wlog "$cmd"
@@ -1068,7 +1077,7 @@ add_groups () {
         fi
       done < "$infile"
     else
-      wlog "File $infile not found!"
+      wlog "!! File $infile not found!"
     fi
 }
 
@@ -1078,7 +1087,7 @@ add_users () {
     if [ -f $infile ]; then
       while IFS=: read -r user enpass uid gid desc home shell; do
         if [ $(grep "^$user:" $sysfile 2>/dev/null) ]; then
-          wlog "User $user already exists"
+          wlog "!! User $user already exists"
         else
           if [ ! -d $home ]; then cmd="useradd -m"; else cmd="useradd"; fi
           cmd="$cmd -u $uid -g $gid -d $home -s $shell $user"
@@ -1092,7 +1101,7 @@ add_users () {
         fi
       done < "$infile"
     else
-      wlog "File $infile not found!"
+      wlog "!! File $infile not found!"
     fi
 }
 
@@ -1347,7 +1356,7 @@ product_install_product () {
         run_traced "_install_z0librc"
       fi
     else
-      wlog "Copying config files to host $opt_host"
+      wlog "# Copying config files to host $opt_host"
       if [ -f z0_x_*.txt ]; then
         run_traced "$SCP z0_x_*.txt $opt_host:~/"
       fi
@@ -1625,7 +1634,7 @@ pre_config_odoo () {
       if [ "$x" ]; then
         g=$(echo "$x"|awk -F: '{ print $1 }')
         if [ "$g" != "$group" ]; then
-          wlog "Required gid $ODOO_GID already assigned to $g"
+          wlog "# Required gid $ODOO_GID already assigned to $g"
         fi
       fi
     fi
@@ -1652,7 +1661,7 @@ pre_config_odoo () {
       if [ "$x" ]; then
         u=$(echo "$x"|awk -F: '{ print $1 }')
         if [ "$u" != "$user" ]; then
-          wlog "Required uid $ODOO_UID already assigned to $u"
+          wlog "# Required uid $ODOO_UID already assigned to $u"
         fi
       fi
     fi
@@ -1676,13 +1685,11 @@ pre_config_odoo () {
 }
 
 post_config_odoo () {
-    # local r="$(prod realname "postresql")"
     local r=$(get_realname postresql) #tny!!
     run_traced "service $r restart"
 }
 
 pre_install_odoo () {
-    # prod_install_if "git"
     if [ "$FH" == "RHEL" ]; then
       if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
         run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
@@ -1715,17 +1722,6 @@ post_update_odoo () {
     post_install_odoo
 }
 
-product_install_python_dateutil () {
-    if [ "$DISTO" == "CentOS6" ]; then
-      run_traced "cd /tmp"
-      run_traced "wget https://pypi.python.org/packages/source/p/python-dateutil/python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5"
-      run_traced "pip install python-dateutil-1.5.tar.gz"
-      run_traced "rm -f python-dateutil-1.5.tar.gz"
-    else
-      run_traced "pip install python-dateutil"
-    fi
-}
-
 product_update_python_dateutil () {
     if [ "$DISTO" == "CentOS6" ]; then
       run_traced "cd /tmp"
@@ -1744,6 +1740,7 @@ install_by_wget () {
     local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
     local pkg_URL="$(get_prm_value "0" ${pkgname}_${xtlcmd}_URL)"
     local pkg_xname="$(get_prm_value "0" ${pkgname}_${xtlcmd}_xname)"
+    local pkg_md5="$(get_prm_value "0" ${pkgname}_${xtlcmd}_md5)"
     if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
       elog "*** Package $pkgname not found for this hardware"
       elog "    wget $pkg_xname from URL=$pkg_URL"
@@ -1762,7 +1759,7 @@ install_by_wget () {
       fi
       run_traced "cd /tmp"
     fi
-    run_traced "wget $pkg_URL/$pkg_xname"
+    run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
     if [ "${pkg_xname: -4}" == ".rpm" ]; then
       run_traced "rpm -i $pkg_xname"
     elif [ "${pkg_xname: -4}"  == ".deb" ]; then
@@ -1809,30 +1806,6 @@ update_by_wget () {
     fi
     run_traced "rm -f $pkg_xname"
 }
-
-
-# product_update_wkhtmltopdf () {
-#     local pn=$(get_wkhtmltopdf_name)
-#     local URL=$(get_wkhtmltopdf_URL)
-#     if [ -z "$pn" ]; then
-#       elog "*** Package wkhtmltopdf not found for this hardware"
-#     else
-#       if [ "$FH" == "RHEL" ]; then
-#         xtlcmd="rpm"
-#         run_traced "cd /tmp"
-#         run_traced "wget $URL/$pn"
-#         run_traced "$xtlcmd -U $pn"
-#         run_traced "rm -f $pn"
-#       elif [ "$FH" == "Debian" ]; then
-#         xtlcmd="apt-get"
-#         run_traced "cd /tmp"
-#         run_traced "wget $URL/$pn"
-#         run_traced "$xtlcmd update $pn"
-#         run_traced "$xtlcmd upgrade $pn"
-#         run_traced "rm -f $pn"
-#       fi
-#     fi
-# }
 
 post_install_apache2_httpd () {
     if [ ! -d /var/www ]; then
@@ -2354,6 +2327,7 @@ if [ -z "$opt_depth" ]; then
 fi
 if [ $test_mode -gt 0 ]; then
   opt_dry_run=1
+  opt_verbose=1
   if [ "$pkg" == "LAMP" ]; then # Bleah!
   # if $(is_virtualname $pkg); then
     opt_depth=0
@@ -2452,8 +2426,8 @@ fi
 ODOO_UID=$(get_prm_value "0" "ODOO_UID")
 ODOO_GID=$(get_prm_value "0" "ODOO_GID")
 
-wlog "$THIS $__version__ running on $(xuname -a)"
-wlog "Setup for $FH family"
+wlog "# $THIS $__version__ running on $(xuname -a)"
+wlog "# Setup for $FH family"
 
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man

@@ -434,7 +434,7 @@ run_traced () {
         xcmd="sudo -u$2 $1"
       fi
     fi
-    if [ ${opt_dry_run:-0} -eq 0 -o "${1:0:3}" == "cd " ]; then
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ "${1:0:5}" != "wlog " ];then
         if [ ${opt_verbose:-0} -gt 0 ]; then
           elog "\$ $xcmd"
@@ -449,6 +449,9 @@ run_traced () {
     elif [ "${1:0:6}" != "sleep " ]; then
       if [ ${opt_verbose:-0} -gt 0 ]; then
         echo "> $xcmd"
+      fi
+      if [ "${1:0:3}" == "cd " ]; then
+        eval "$xcmd"
       fi
     fi
     $SET_X
