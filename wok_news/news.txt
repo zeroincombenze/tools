@@ -1,41 +1,181 @@
-<h2>Le principali scadenze fiscali di giugno 2016 per le imprese italiane.</h2>
-<a href="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali.jpg">
-<img class="alignright wp-image-1740 size-medium"
- src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
- alt="scadenze fiscali giugno 2016" width="300" height="114" /></a>
-Zeroincombenze®, <strong>il software gestionale on line</strong> di riferimento in Italia, anche a giugno, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
-Una <b><a href="https://www.zeroincombenze.it/wp-login.php?action=register">versione gratuita di prova</a></b> è disponibile per imprese, professionisti, artigiani e commercianti.
-I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
-Per maggiori informazioni telefonare al numero <b>011.0566929</b>
-<h3>mercoledì 15 giugno 2016</h3>
-<h4>Adempimenti IVA</h4>
-<p>
-Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di maggio 2016 e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
-</p><p>
-Chi emette la <strong>fattura elettronica PA</strong> (in via sperimentale) deve inviarle alla PA.
-</p><p>
-I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di maggio 2016.
-I dati sono contabilizzati con le chiusure giornaliere nel menù <u>Punto Vendita</u> del <strong>modulo POS</strong>
-</p><p>
-Con la <strong>contabilità on line</strong> è possibile la registrazione delle fatture di importo inferiore ad € 300,00 del mese di maggio 2016; possono essere riepilogate sia le fatture attive che le fatture di acquisto.
-</p>
-<h3>giovedì 16 giugno 2016</h3>
-<h4>Versamenti IVA</h4>
-<p>
-Tramite la <strong>contabilità on line</strong>, è possibile effettuare il calcolo della liquidazione IVA relativa al mese precedente (maggio 2016). La funzione è disponibile nel menù di <u>contabilità.</u>
-Il versamento deve essere effettuato utilizzando il modello F24, in modalità telematica con codice <strong>6005</strong>
-</p><p>
-Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro dipendente (codici 1001 e 1013) e per lavoro autonomo (codice tributo 1038 e 1040).
- Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
-</p>
-<h3>giovedì 30 giugno 2016</h3>
-<p>
-<h4>Comunicazioni</h4>
-Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (maggio 2016). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
-</p>
-<h4>Altro</h4>
-Scheda carburante:<br>
-Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.
-<br>
-Maggiori informazioni sulle scadenze fiscali sono disponibili sul sito dell'<a title="Scadenze fiscali giugno 2016"
- href="http://www1.agenziaentrate.gov.it/strumenti/scadenzario/main.php" target="_blank">Agenzia delle Entrate</a>.
+{{Template:Language_Toolbar}}
+
+Empty Example
+
+
+==postgresql-server==
+${sect_Descrizione_Breve}
+
+
+===Versioni===
+{{Template:Warning}}
+
+
+===Requisiti===
+I requisiti sono:
+* Python 2.6 o successive (soltanto python2)
+* Linux, Windows e OpenVMS
+
+===Verifica installato con comandi manuali (package python)===
+Eseguire i seguenti comandi, correggendo in modo appropriato il nome della directory<ref>scelta adatta soltanto ad utenti esperti</ref>:
+<syntaxhighlight lang="bash">
+# Setup package directory
+pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
+pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
+# If you do not know, use following statements
+python
+>>> import sys
+>>> print '\n'.join(sys.path)
+>>> exit()
+pypkg="..."  #  set right directory selected from above list
+dir -ld $pypkg/*postgresql-server*
+</syntaxhighlight>
+Nella directory, se installato, è presente un file con nome simile a <code>postgresql-server-n.n-py2.6.egg-info</code> che identifica anche la versione installata.
+
+
+==Gestione package python tramite pip (scelta consigliata se pip installato)==
+Tramite pip<ref>pip è package che richiede python</ref> è possibile gestire l'installazione in modo indipendente dal sistema operativo utilizzato.
+Le istruzioni sono valide sia per tutte le distribuzioni di Linux, per tutte le versioni di Windows.
+Potrebbe diventare disponibile anche su OpenVMS.
+Per maggiori dettagli vedere [[Python/opt/pip|pip]].
+
+===Verifica installato===
+<syntaxhighlight lang="bash">
+pip list|grep postgresql-server
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+pip install postgresql-server
+</syntaxhighlight>
+
+===Aggiornamento===
+<syntaxhighlight lang="bash">
+pip install postgresql-server --upgrade
+</syntaxhighlight>
+
+
+==Gestione rpm su CentOS e famiglia RHEL==
+
+===Verifica installato===
+<ref>il comando yum info potrebbe richiedere un po' di tempo</ref>
+<syntaxhighlight lang="bash">
+rpm -q postgresql-server
+# If info displayed, extract installed version
+yum info postgresql-server|grep "[Vv]ersion"   
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+yum  [-y] install postgresql-server
+</syntaxhighlight>  
+
+===Aggiornamento===
+<syntaxhighlight lang="bash">
+yum [-y] update postgresql-server
+</syntaxhighlight>
+
+
+==Gestione package aptitude su Ubuntu e famiglia Debian==
+
+===Verifica installato===
+<syntaxhighlight lang="bash">
+dpkg-query -s postgresql-server
+# If info displayed, extract installation status
+dpkg-query -s postgresql-server|grep [Ss]tatus
+# If info displayed, extract installed version   
+dpkg-query -W postgresql-server
+</syntaxhighlight>  
+
+===Installazione===
+<syntaxhighlight lang="bash">
+apt-get [-y] install postgresql-server
+</syntaxhighlight>  
+
+===Aggiornamento===
+<ref>il comando apt-get update potrebbe non essere necessario</ref>
+<syntaxhighlight lang="bash">
+apt-get [-y] update postgresql-server
+apt-get [-y] upgrade postgresql-server
+</syntaxhighlight>
+
+
+==Gestione sorgenti (con git clone)==
+
+===Verifica installato===
+Non esiste una verifica universale dell'installazione dei sorgenti.
+<ref>scelta adatta soltanto ad utenti esperti per lo sviluppo del codice</ref>
+Si può operare come segue:
+<syntaxhighlight lang="bash">
+find <directory-probabile> -type f -name postgresql-server.py
+# as above list
+cd <directory of postgresql-server.py>
+git status
+</syntaxhighlight>
+
+===Installazione===
+<syntaxhighlight lang="bash">
+# Setup source directory package
+pypkg="~/dev/postgresql-server"  # Esempio
+mkdir $pypkg 
+cd $pypkg
+git clone <https://github.com/postgresql-server.git> # Esempio da correggere
+python setup.py
+</syntaxhighlight>
+
+===Aggiornamento===
+<ref>per maggiori dettagli vedere [[Git]]</ref>
+<syntaxhighlight lang="bash">
+# Setup source directory package
+pypkg="~/dev/postgresql-server"  # Esempio
+cd $pypkg
+git fetch origin
+</syntaxhighlight>
+
+
+==Gestione file tar/gz/zip==
+<ref>scelta da usare soltanto se falliscono le opzioni precedenti</ref>
+
+===Installation===
+<syntaxhighlight lang="bash">
+cd /tmp
+# Impostare la directory dei package
+pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
+pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
+wget <https://pypi.python.org/packages/source/O/postgresql-server.tar.gz> # Esempio da correggere
+tar -xf postgresql-server*.tar.gz -C $pypkg
+cd $pypkg/postgresql-server*
+python setup.py install
+</syntaxhighlight>
+
+
+==Post-installation/update checklist==
+
+===Visualizza versione===
+<syntaxhighlight lang="bash">
+postgresql-server -V --version
+</syntaxhighlight>
+
+===Configurazione===
+N/D
+
+===Troubleshooting===
+{{Template:Warning}}
+
+
+
+==Come fare==
+[[Python/opt/postgresql-server/help|Breve guida all'uso]]
+
+
+==Note==
+{{Template:Warning}}
+<references/>
+
+
+==Collegamenti esterni==
+{{Template:Warning}}
+* [http://postgresql-server.com Home page postgresql-server]
+* [https://pypi.python.org/pypi/postgresql-server/ Package postgresql-server]
+* [http://pythonhosted.org/postgresql-server/ Guida postgresql-server]
+* [[Python/opt/postgresql-server/help|Guida all'uso]]
