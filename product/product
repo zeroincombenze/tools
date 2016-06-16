@@ -97,6 +97,10 @@ conf_default () {
     set_cfg_def "openssh" "openssh-server" "1"
     set_cfg_def "babel" "Babel" "1"
     set_cfg_def "beautifulsoup" "BeautifulSoup" "1"
+    set_cfg_def "libxml2-python" "python-libxml2" "1" "Debian"
+    set_cfg_def "python-libxml2" "libxml2-python" "1" "RHEL"
+    set_cfg_def "libxslt-python" "python-libxslt1" "1" "Debian"
+    set_cfg_def "python-libxslt1" "libxslt-python" "1" "RHEL"
     set_cfg_def "python-devel" "python-dev" "1" "Debian"
     set_cfg_def "python-dev" "python-devel" "1" "RHEL"
     set_cfg_def "zlib1g-dev" "zlib-devel" "1" "Debian"
@@ -111,7 +115,7 @@ conf_default () {
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
-    set_cfg_def "NAME_VIRTUAL" "LAMP LAMP_security PYTHON_DEVELOVER" "0"
+    set_cfg_def "NAME_VIRTUAL" "LAMP" "0"
     p="oerplib virtualenv Babel python-ldap python-openid os0"
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
     p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
@@ -181,23 +185,25 @@ conf_default () {
     fi
     set_cfg_def "SUB_php5" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
     set_cfg_def "SUB_php" "php-mysql php-common php-xml php-cli" "0" "RHEL"
+    set_cfg_def "PYTHON_LIB_XML" "python-libxslt1 libxml2 python-libxml2 lxml" "0" "Debian"
+    set_cfg_def "PYTHON_LIB_XML" "libxslt-python libxml2 libxml2-python lxml" "0" "RHEL"
     p="setuptools python-virtualenv virtualenv"
-    p="$p libreadline6 libxslt-python psycopg2 simplejson xlwt PyYAML"
-    p="$p gdata python-ldap lxml pytz"
+    p="$p libreadline6 PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
+    p="$p gdata python-ldap pytz"
     if [ $opt_dev -gt 0 ]; then
       p="$p python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev"
       p="$p libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev"
-      p="$p liblzma-dev python-libxml2 python-requests python-yaml mock"
+      p="$p liblzma-dev python-requests python-yaml mock"
     fi
     set_cfg_def "SUB_python" "$p" "0" "Debian"
     p="setuptools python-virtualenv virtualenv readline"
-    p="$p libxslt-python psycopg2 simplejson xlwt PyYAML"
-    p="$p gdata python-ldap lxml pytz"
+    p="$p PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
+    p="$p gdata python-ldap pytz"
     if [ $opt_dev -gt 0 ]; then
       p="$p python-devel openldap-devel zlib-devel bzip2-devel openssl-devel"
       P="$p ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel"
-      p="$p libpcap-devel xz-devel postgresql-devel libxml2 libxml2-devel"
-      p="$p libxml2-python libxslt-devel python-requests python-yaml mock"
+      p="$p libpcap-devel xz-devel postgresql-devel libxml2-devel"
+      p="$p libxslt-devel python-requests python-yaml mock"
     fi
     set_cfg_def "SUB_python" "$p" "0" "RHEL"
     p="ghostscript libart-2.0-2 libcupsfilters1"
@@ -233,7 +239,9 @@ conf_default () {
       set_cfg_def "${THIS}_vfycmd" "$THIS -V" "0"
     fi
     set_cfg_def "apache2_cmdname" "apachectl" "0" "Debian"
+    set_cfg_def "apache2_LocalRoot" "/var/www/html" "0" "Debian"
     set_cfg_def "httpd_cmdname" "apachectl" "0" "RHEL"
+    set_cfg_def "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
     set_cfg_def "postgresql-server_cmdname" "psql" "0" "RHEL"
     set_cfg_def "postgresql_cmdname" "psql" "0" "Debian"
     set_cfg_def "python-pip_cmdname" "pip" "0" "Debian"
@@ -1080,12 +1088,75 @@ add_users () {
     fi
 }
 
+set_level () {
+# set_level(action pkgname -q level)
+    if [ -z "$4" ]; then
+      level=0
+    else
+      level=$4
+    fi
+}
+
+satisfy_request () {
+# satisfy_requeat(action pkgname -q level)
+    set_level "$@"
+    local pkgname=$2
+    local REQlist="$(get_prm_value "0" REQ_$pkgname)"
+    set_xtlcmds $pkgname
+    if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
+      if [[ "$REQlist" =~ $xtlcmd ]]; then
+        :
+      else
+        local REQlist="$REQlist $xtlcmd"
+      fi
+    fi
+    if [ "$1" == "install" -a -n "$REQlist" ]; then
+      ((level++))
+      for p in $REQlist; do
+        realname=$(get_realname $p)
+        if $(prod status $realname "-q" $level); then
+          :
+        else
+          prod install $realname "" $level
+        fi
+      done
+      ((level--))
+    fi
+}
+
+do_action_sub () {
+# satisfy_requeat(action realname -q level)
+    verbose_msg "Analyzing $2"
+    if [ "$1" == "install" ]; then
+      if $(prod status $2 "-q" $level); then
+        prod update $2 "" $level
+      else
+        prod $1 $2 "" $level
+      fi
+    elif [ "$1" == "update" ]; then
+      if $(prod status $2 "-q" $level); then
+        prod $1 $2 "" $level
+      else
+        prod install $2 "" $level
+      fi
+    elif [ "$1" == "remove" ]; then
+      if $(prod status $2 "-q" $level); then
+        elog "# $2 should be removed"
+      fi
+    else
+      prod $1 $2 "" $level
+    fi
+}
+
 prod () {
 # prod (action pkgname -q level)
 # return: sts -> pkgname, xtlcmd, stscmd, svcname, cmdname, vfycmd
 # TODO [Debian] aptitude search 'pkgname'
 # TODO [RHEL] yum search 'pkgname'
     # echo "prod('$1' '$2' '$3' '$4')">>~/product.his    #debug
+    set_level "$@"
+    let x=$level*2
+    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     local pkgname=$(get_realname "$2")
     if [ "$3" != "-q" -a "$3" != "-Q" ]; then
       local iter=$(set_iter $pkgname)
@@ -1105,42 +1176,12 @@ prod () {
         return $STS_SUCCESS
       fi
     fi
-    if [ -z "$4" ]; then
-      level=0
-      local lm=
-    else
-      level=$4
-      let x=$level*2
-      local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    fi
-    local REQlist="$(get_prm_value "0" REQ_$pkgname)"
-    set_xtlcmds $pkgname
-    if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
-      if [[ "$REQlist" =~ $xtlcmd ]]; then
-        :
-      else
-        local REQlist="$REQlist $xtlcmd"
-      fi
-    fi
-    if [ -z "$level" ]; then level=0; fi
-    if [ "$1" == "install" -a -n "$REQlist" ]; then
-      ((level++))
-      for p in $REQlist; do
-        realname=$(get_realname $p)
-        if $(prod status $realname "-q" $level); then
-          :
-        else
-          prod install $realname "" $level
-        fi
-      done
-      ((level--))
-    fi
+    satisfy_request "$@"
     set_xtlcmds $pkgname
     local svcname=$(get_prm_value "0" "${pkgname}_svcname")
     local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
     local vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
     local cmd0=""
-    # echo " $pkgname:svc=$svcname:cmd=$cmdname:vfy=$vfycmd:xtl:$xtlcmd:$stscmd;;">>~/product.his #debug
     if [ "$1" == "realname" ]; then
       echo "$pkgname"
       return $STS_SUCCESS
@@ -1202,12 +1243,6 @@ prod () {
       elif [ "$1" == "remove" -a -n "$svcname" ]; then
         run_traced "service $svcname stop"
         run_traced "sleep 3"
-      # elif [ \( "$1" == "install" -o "$1" == "update" \) -a \
-      #        \( "$xtlcmd" == "git" -o "$xtlcmd" == "wget" \) ]; then
-      #   local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
-      #   if [ -n "$LocalRoot" ]; then
-      #     run_traced "cd $LocalRoot"
-      #   fi
       fi
       if [ "$cmd0" ]; then
         x=$(echo "$cmd"|awk '{print $1}')
@@ -1223,12 +1258,16 @@ prod () {
       else
         run_traced "$cmd"
       fi
-      POSTcmd="post_$1_$pkgname"
+      local POSTcmd="post_$1_$pkgname"
+      if [ -n "$svcname" ]; then
+        local POSTsvc="post_$1_service"
+      else
+        local POSTsvc="post_$1_NULL"
+      fi
       if [ "$(type -t $POSTcmd)" == "function" ]; then
-        $POSTcmd "$svcname" "$cmdname" "$vfycmd"
-      elif [ "$1" == "install" -a "$svcname" ]; then
-        run_traced "service $svcname start"
-        run_traced "sleep 3"
+        $POSTcmd "$pkgname" "$svcname" "$cmdname" "$vfycmd"
+      elif [ "$(type -t $POSTsvc)" == "function" ]; then
+        $POSTsvc "$pkgname" "$svcname" "$cmdname" "$vfycmd"
       elif [ "$1" == "update" -a "$svcname" ]; then
         run_traced "service $svcname restart"
         run_traced "sleep 3"
@@ -1276,27 +1315,21 @@ prod () {
     if [ -z "$level" ]; then level=0; fi
     if [ -n "$SUBlist" -a $level -lt $opt_depth ]; then
       ((level++))
-      for p in $SUBlist; do
-        realname=$(get_realname $p)
-        verbose_msg "Analyzing $realname"
-        if [ "$1" == "install" ]; then
-          if $(prod status $realname "-q" $level); then
-            prod update $realname "" $level
-          else
-            prod $1 $realname "" $level
-          fi
-        elif [ "$1" == "update" ]; then
-          if $(prod status $realname "-q" $level); then
-            prod $1 $realname "" $level
-          else
-            prod install $realname "" $level
-          fi
-        elif [ "$1" == "remove" ]; then
-          if $(prod status $realname "-q" $level); then
-            elog "# $realname should be removed"
-          fi
+      local ps
+      local rs
+      for ps in $SUBlist; do
+        rs=$(get_realname $ps)
+        local iter=$(set_iter $ps)
+        if [ "$ps" != "$iter" ]; then
+          for p in $iter; do
+            if [ "$p" != "$ps" -a "$p" != "$rs" ]; then
+              realname=$(get_realname $p)
+              do_action_sub $1 $realname "" $level
+            fi
+          done
         else
-          prod $1 $realname "" $level
+          realname=$rs
+          do_action_sub $1 $realname "" $level
         fi
       done
       ((level--))
@@ -1701,17 +1734,6 @@ post_update_odoo () {
     post_install_odoo
 }
 
-product_update_python_dateutil () {
-    if [ "$DISTO" == "CentOS6" ]; then
-      run_traced "cd /tmp"
-      run_traced "wget https://pypi.python.org/packages/source/p/python-dateutil/python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5"
-      run_traced "pip install python-dateutil-1.5.tar.gz --upgrade"
-      run_traced "rm -f python-dateutil-1.5.tar.gz"
-    else
-      run_traced "pip install python-dateutil --upgrade"
-    fi
-}
-
 install_by_wget () {
 # install_by_wget(pkgname OPTS)
     local pkgname=$1
@@ -1786,14 +1808,21 @@ update_by_wget () {
     run_traced "rm -f $pkg_xname"
 }
 
-post_install_apache2_httpd () {
-    if [ ! -d /var/www ]; then
-      run_traced "mkdir -p /var/www"
-      run_traced "chmod u+rwx,g=rx,o=rx /var/www"
-    fi
-    if [ ! -d /var/www/html ]; then
-      run_traced "mkdir -p /var/www/html"
-      run_traced "chmod u+rwx,g=rx,o=rx /var/www/html"
+post_install_service () {
+# post_install_service(pkgname,svcname,cmdname,$vfycmd,OPTS)
+    local pkgname=$1
+    local svcname=$2
+    if [ -n "$svcname" ]; then
+      run_traced "service $svcname start"
+      run_traced "sleep 3"
+      run_traced "chkconfig $svcname on"
+      local LocalRoot="$(get_prm_value "0" ${pkgname}_LocalRoot)"
+      if [ -n "$LocalRoot" ]; then
+        if [ ! -d $LocalRoot ]; then
+          run_traced "mkdir -p $LocalRoot"
+          run_traced "chmod u+rwx,g=rx,o=rx $LocalRoot"
+        fi
+      fi
     fi
 }
 
@@ -1803,22 +1832,8 @@ post_install_LAMP () {
     fi
 }
 
-post_install_apache2 () {
-    run_traced "service apache2 start"
-    run_traced "sleep 3"
-    run_traced "chkconfig apache2 on"
-    post_install_apache2_httpd
-}
-
-post_install_httpd () {
-    run_traced "service httpd start"
-    run_traced "sleep 3"
-    run_traced "chkconfig --levels 235 httpd on"
-    post_install_apache2_httpd
-}
-
 post_config_postgresql () {
-    run_traced "service $1 initdb"
+    run_traced "service $2 initdb"
     run_traced "chkconfig $1 on"
 }
 
@@ -1826,9 +1841,9 @@ post_config_postgresql-server () {
     if [ "$DISTO" == "CentOS7" ]; then
       run_traced "postgresql-setup initdb"
     else
-      run_traced "service $1 initdb"
+      run_traced "service $2 initdb"
     fi
-    run_traced "chkconfig $1 on"
+    run_traced "chkconfig $2 on"
 }
 
 post_config_mysql-server () {
@@ -2301,22 +2316,6 @@ fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
   test_mode=1
 fi
-if [ -z "$opt_depth" ]; then
-  opt_depth=999
-fi
-if [ $test_mode -gt 0 ]; then
-  opt_dry_run=1
-  opt_verbose=1
-  if [ $opt_depth -eq 999 ]; then
-    if [ "$pkg" == "LAMP" ]; then # Bleah!
-    # if $(is_virtualname $pkg); then
-      opt_depth=0
-    else
-      opt_depth=1
-    fi
-  fi
-  opt_yes="-y"
-fi
 if [ "$opt_log" ]; then
   FLOG=$opt_log
 elif [ $EUID -eq 0 ]; then
@@ -2349,9 +2348,7 @@ $(init_cfg "1")
 $(active_cfg "1")
 conf_default
 FCONFDEF=/etc/product.conf.sample
-if [ "$action" == "regression_test" ]; then
-  FCONF="./$THIS.notexists"
-elif [ $test_mode -gt 0 ]; then
+if [ $test_mode -gt 0 ]; then
   FCONF=$TESTDIR/$THIS.conf
   FCONFDEF=$TESTDIR/$THIS.conf.sample
 elif [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -2375,9 +2372,7 @@ fi
 if [ -n "$opt_xtln" ]; then
   SIMULATE_NO=" ${opt_xtln//,/ } "
 fi
-if [ "$action" != "regression_test" ]; then
-  init_cfg_pkg "$pkg"
-fi
+init_cfg_pkg "$pkg"
 if [ $test_mode -gt 0 -a "$action" != "update" ]; then
   if [[ " $SIMULATE_YES " =~ [[:space:]]apache2[[:space:]] ]]; then
     SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443 port_tcp_21"
@@ -2402,7 +2397,29 @@ if [ $test_mode -gt 0 -a "$action" != "update" ]; then
 fi
 ODOO_UID=$(get_prm_value "0" "ODOO_UID")
 ODOO_GID=$(get_prm_value "0" "ODOO_GID")
-
+if [ -z "$opt_depth" ]; then
+  opt_depth=999
+fi
+if [ "$action" == "remove" -a $opt_depth -eq 999 ]; then
+  if $(is_virtualname $pkg); then
+    opt_depth=0
+  else
+    opt_depth=1
+  fi
+fi
+if [ $test_mode -gt 0 ]; then
+  opt_dry_run=1
+  opt_verbose=1
+  if [ $opt_depth -eq 999 ]; then
+    # if [ "$pkg" == "LAMP" ]; then # Bleah!
+    if $(is_virtualname $pkg); then
+      opt_depth=0
+    else
+      opt_depth=1
+    fi
+  fi
+  opt_yes="-y"
+fi
 wlog "# $THIS $__version__ running on $(xuname -a)"
 wlog "# Setup for $FH family"
 
@@ -2562,53 +2579,6 @@ elif [ "$action" == "import" ]; then
   wlog "Creating users"
   add_users
   ending_msg
-elif [ "$action" == "regression_test" ]; then
-  DEV_ENVIRONMENT="$THIS"
-  test_mode=1
-  opt_dry_run=1
-  tst_ctr=0
-  opt_host=""
-  opt_yes="-y"
-  opt_grf=1
-  opt_quiet=0
-  opt_verbose=0
-  opt_odoo="7"
-  opt_dev=0
-  opt_oed="odoo"
-  opt_depth=999
-  SAVE_SMLT_YES="python python-lxml python-psycopg2 python-simplejson python-babel setuptools readline libreadline6"
-  SAVE_SMLT_YES="$SAVE_SMLT_YES wkhtmltopdf python-requests python-yaml"
-  SAVE_SMLT_YES="$SAVE_SMLT_YES port_tcp_80 port_tcp_443"
-  SAVE_SMLT_NO="openssh-clients openssh-client telnet postgresql-client-common install postgresql-contrib pgadmin3"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO odoo python-gdata gdata python-ldap pytz xlwt ZSI"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO Babel python-dateutil python-docutils python-feedparser zlib-devel zlib1g-dev bzip2-devel openssl-devel"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO python-imaging python-jinja2 python-mako python-markupsafe python-openid python-psutil"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO python-reportlab python-suds python-unittest2 python-vobject python-werkzeug urllib3"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO libwebp5 libwebpmux1 python-passlib passlib python-paste python-pillow python-requests python-six python-tempita"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO ncurses-devel sqlite-devel virtualenv pydot PyYAML libxslt-python python-libxml2 libxml2-python"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO docutils-common docutils-doc python-dev python-devel python-virtualenv libreadline libreadline6 "
-  SAVE_SMLT_NO="$SAVE_SMLT_NO readline-devel tk-dev tk-devel gdbm-devel libgdbm-dev liblzma-dev"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO libpcap-dev libpcap-devel xz-devel postgresql-devel libssl-dev libreadline6-dev libsqlite3-dev unidecode"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO unicodecsv pydot vatnumber BeautifulSoup"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO port_tcp_22"
-  SAVE_SMLT_NO="$SAVE_SMLT_NO pre_install_odoo"
-  PNLX=("." $THIS python-pip apache2 httpd postgresql postgresql-server openssh-server python odoo)
-  # PNLX=(odoo) #debug
-#
-  for aa in "Ubuntu14" "CentOS7"; do
-    elog "Regression test on $aa"
-    get_arch "$aa"
-    init_cfg_pkg "LAMP"
-    SIMULATE_YES=". $SAVE_SMLT_YES ."
-    SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo python-pip ."
-    # test_install
-    SIMULATE_YES=". $SAVE_SMLT_YES python-pip ."
-    SIMULATE_NO=". $SAVE_SMLT_NO $SUB_odoo ."
-    # test_update
-    # test_remove
-  done
-
-  elog "$tst_ctr regression test successfuly ended"
 elif [ "$action" == "package" ]; then
   package="product"
   if [ -f $package -a -f $package.man -a -f z0librc ]; then
