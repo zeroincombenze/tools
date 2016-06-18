@@ -149,13 +149,13 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 product (by git)(product -V)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
-LAMP (by product)()
+LAMP (by product)
 python-pip (by apt-get)(pip --version)
-libffi-dev (by apt-get)(libffi-dev --version)
-libssl-dev (by apt-get)(libssl-dev --version)
-python-openssl (by apt-get)(python-openssl --version)
-build-essential (by apt-get)(build-essential --version)
-openssh-server (by apt-get)()
+libffi-dev (by apt-get)
+libssl-dev (by apt-get)
+python-openssl (by apt-get)
+build-essential (by apt-get)
+openssh-server (by apt-get)
 - TCP port 22
 apache2 (by apt-get)(apachectl -v)
 - TCP port 80
@@ -166,16 +166,16 @@ php5 (by apt-get)(php5 -v)
 python (by apt-get)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.03.test
-LAMP (by product)()
-epel-release (by yum)(epel-release --version)
+LAMP (by product)
+epel-release (by yum)
 pip (by yum)(pip --version)
-yum-utils (by yum)(yum-utils --version)
-openssl-devel (by yum)(openssl-devel --version)
-libffi-devel (by yum)(libffi-devel --version)
-pyOpenSSL (by yum)(pyOpenSSL --version)
-pyasn1 (by pip)()
-ndg-httpsclient (by pip)()
-openssh-server (by yum)()
+yum-utils (by yum)
+openssl-devel (by yum)
+libffi-devel (by yum)
+pyOpenSSL (by yum)
+pyasn1 (by pip)
+ndg-httpsclient (by pip)
+openssh-server (by yum)
 - TCP port 22
 httpd (by yum)(apachectl -v)
 - TCP port 80
@@ -186,16 +186,16 @@ php (by yum)(php -v)
 python (by yum)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.03.test
-LAMP (by product)()
-epel-release (by yum)(epel-release --version)
+LAMP (by product)
+epel-release (by yum)
 python-pip (by yum)(pip --version)
-python-wheel (by yum)(python-wheel --version)
-yum-utils (by yum)(yum-utils --version)
-libffi-devel (by yum)(libffi-devel --version)
-pyOpenSSL (by yum)(pyOpenSSL --version)
-pyasn1 (by pip)()
-ndg-httpsclient (by pip)()
-openssh-server (by yum)()
+python-wheel (by yum)
+yum-utils (by yum)
+libffi-devel (by yum)
+pyOpenSSL (by yum)
+pyasn1 (by pip)
+ndg-httpsclient (by pip)
+openssh-server (by yum)
 - TCP port 22
 httpd (by yum)(apachectl -v)
 - TCP port 80
@@ -206,29 +206,29 @@ php (by yum)(php -v)
 python (by yum)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__Debian.03.test
-libffi-dev (by apt-get)(libffi-dev --version)
-libssl-dev (by apt-get)(libssl-dev --version)
-python-openssl (by apt-get)(python-openssl --version)
-build-essential (by apt-get)(build-essential --version)
+libffi-dev (by apt-get)
+libssl-dev (by apt-get)
+python-openssl (by apt-get)
+build-essential (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__CentOS7.03.test
-libffi-devel (by yum)(libffi-devel --version)
-pyOpenSSL (by yum)(pyOpenSSL --version)
-pyasn1 (by pip)()
-ndg-httpsclient (by pip)()
+libffi-devel (by yum)
+pyOpenSSL (by yum)
+pyasn1 (by pip)
+ndg-httpsclient (by pip)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP_security__CentOS6.03.test
-openssl-devel (by yum)(openssl-devel --version)
-libffi-devel (by yum)(libffi-devel --version)
-pyOpenSSL (by yum)(pyOpenSSL --version)
-pyasn1 (by pip)()
-ndg-httpsclient (by pip)()
+openssl-devel (by yum)
+libffi-devel (by yum)
+pyOpenSSL (by yum)
+pyasn1 (by pip)
+ndg-httpsclient (by pip)
 EOF
   cat <<EOF >$TESTDIR/res/httpd__CentOS7.03.test
 httpd (by yum)(apachectl -v)
 - TCP port 80
 - TCP port 443
---vsftpd (by yum)()
+--vsftpd (by yum)
 - TCP port 21
 EOF
   cat <<EOF >$TESTDIR/res/httpd__CentOS6.03.test
@@ -240,7 +240,7 @@ EOF
 apache2 (by apt-get)(apachectl -v)
 - TCP port 80
 - TCP port 443
---vsftpd (by apt-get)()
+--vsftpd (by apt-get)
 - TCP port 21
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.03.test
@@ -254,7 +254,7 @@ python-pip (by apt-get)(pip --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__Debian.03.test
 mysql-server (by apt-get)(mysql --version)
---libapache2-mod-auth-mysql (by apt-get)(libapache2-mod-auth-mysql --version)
+--libapache2-mod-auth-mysql (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/mariadb__CentOS7.03.test
 mariadb (by yum)(mysql --version)
@@ -268,63 +268,63 @@ mariadb-server (by yum)(mysql --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.03.test
 mysql-server (by yum)(mysql --version)
---libapache2-mod-auth-mysql (by yum)(libapache2-mod-auth-mysql --version)
+--libapache2-mod-auth-mysql (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/postgres__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)()
---postgresql-contrib (by apt-get)()
+--postgresql-client-common (by apt-get)
+--postgresql-contrib (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/postgres__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)()
---postgresql-contrib (by yum)()
+--postgresql-client-common (by yum)
+--postgresql-contrib (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)()
---postgresql-contrib (by apt-get)()
+--postgresql-client-common (by apt-get)
+--postgresql-contrib (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)()
---postgresql-contrib (by yum)()
+--postgresql-client-common (by yum)
+--postgresql-contrib (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__Debian.03.test
 postgresql (by apt-get)(psql --version)
---postgresql-client-common (by apt-get)()
---postgresql-contrib (by apt-get)()
+--postgresql-client-common (by apt-get)
+--postgresql-contrib (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.03.test
 postgresql-server (by yum)(psql --version)
---postgresql-client-common (by yum)()
---postgresql-contrib (by yum)()
+--postgresql-client-common (by yum)
+--postgresql-contrib (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/php__RHEL.03.test
 php (by yum)(php -v)
---php-mysql (by yum)(php-mysql --version)
---php-common (by yum)(php-common --version)
---php-xml (by yum)(php-xml --version)
---php-cli (by yum)(php-cli --version)
+--php-mysql (by yum)
+--php-common (by yum)
+--php-xml (by yum)
+--php-cli (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/php5__Debian.03.test
 php5 (by apt-get)(php5 -v)
---php5-mysql (by apt-get)(php5-mysql --version)
---php5-common (by apt-get)(php5-common --version)
---php5-xml (by apt-get)(php5-xml --version)
---php5-cli (by apt-get)(php5-cli --version)
+--php5-mysql (by apt-get)
+--php5-common (by apt-get)
+--php5-xml (by apt-get)
+--php5-cli (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__RHEL.03.test
-openssh-server (by yum)()
+openssh-server (by yum)
 - TCP port 22
 --openssh-clients (by yum)(ssh -V)
---mod_ssl (by yum)(mod_ssl --version)
---mod_proxy_html (by yum)(mod_proxy_html --version)
---iptables-services (by yum)(iptables-services --version)
---bind-utils (by yum)(bind-utils --version)
+--mod_ssl (by yum)
+--mod_proxy_html (by yum)
+--iptables-services (by yum)
+--bind-utils (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.03.test
-openssh-server (by apt-get)()
+openssh-server (by apt-get)
 - TCP port 22
 --openssh-client (by apt-get)(ssh -V)
 EOF

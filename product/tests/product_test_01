@@ -158,11 +158,15 @@ TEST_Debian[php]="php5"
 TEST_RHEL[php5]="php"
 TEST_Debian[openssh]="openssh-server"
 TEST_RHEL[openssh]="openssh-server"
+TEST_Debian[libxml2-python]="python-libxml2"
+TEST_RHEL[python-libxml2]="libxml2-python"
+
 
 for Package in product LAMP apache2 httpd pip python-pip\
  mysql mysql-server mariadb mariadb-server\
  postgres postgresql postgresql-server php php5\
- openssh openssh-server; do
+ openssh openssh-server\
+ python-libxml2 libxml2-python; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        opt_e=

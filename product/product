@@ -15,7 +15,6 @@
 # products?
 # # oerplib
 # flake8, autopep8, pylint, pylint-mccabe, coverage, coveralls, github3.py click
-# yum install bind-utils
 #[RHEL]
 # curl --silent --location https://rpm.nodesource.com/setup_5.x | bash -
 # yum -y install nodejs
@@ -95,6 +94,8 @@ conf_default () {
     set_cfg_def "php5" "php" "1" "RHEL"
     set_cfg_def "php" "php5" "1" "Debian"
     set_cfg_def "openssh" "openssh-server" "1"
+    set_cfg_def "openssh-client" "openssh-clients" "1" "RHEL"
+    set_cfg_def "openssh-clients" "openssh-client" "1" "Debian"
     set_cfg_def "babel" "Babel" "1"
     set_cfg_def "beautifulsoup" "BeautifulSoup" "1"
     set_cfg_def "libxml2-python" "python-libxml2" "1" "Debian"
@@ -108,10 +109,19 @@ conf_default () {
     set_cfg_def "libreadline6-dev" "readline-devel" "1" "Debian"
     set_cfg_def "readline-devel" "libreadline6-dev" "1" "RHEL"
     set_cfg_def "dateutil" "python-dateutil" "1"
+    set_cfg_def "php5-mysql" "php-mysql" "1" "RHEL"
+    set_cfg_def "php-mysql" "php5-mysql" "1" "Debian"
+    set_cfg_def "php5-common" "php-common" "1" "RHEL"
+    set_cfg_def "php-common" "php5-common" "1" "Debian"
+    set_cfg_def "php5-xml" "php-xml" "1" "RHEL"
+    set_cfg_def "php-xml" "php5-xml" "1" "Debian"
+    set_cfg_def "php5-cli" "php-cli" "1" "RHEL"
+    set_cfg_def "php-cli" "php5-cli" "1" "Debian"
     # Commands templates
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
     set_cfg_def "VFYUPP" "ssh product" "0"
+    set_cfg_def "VFYPSX" "pip mysql psql python" "0"
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
@@ -130,11 +140,11 @@ conf_default () {
       p="$p python-dateutil"
     fi
     set_cfg_def "WGET_PKGS" "$p" "0"
-    p="epel-release python-pip pip yum-utils openssh-server httpd mariadb"
-    p="$p postgresql-server php python apache2 mysql-server postgresql php5"
-    p="$p php-mysql php-common php-xml zlib-devel zlib1g-dev bzip2-devel"
-    p="$p openssl-devel libssl-dev python-dev docutils-doc libart-2.0-2"
-    p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common python-devel"
+    p="epel-release python-pip pip yum-utils openssh-server"
+    p="$p postgresql-server python mysql-server postgresql iptables-services"
+    p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
+    p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
+    p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
     p="$p ncurses-devel sqlite-devel odoo ghostscript antiword docutils-common"
     p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1"
     p="$p libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1 poppler-data"
@@ -146,7 +156,18 @@ conf_default () {
     p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel"
     p="$p python-roman python-suds python-unittest2"
     p="$p python-utidylib python-vobject python-werkzeug wget git"
+    p="$p python-wheel libapache2-mod-auth-mysql pyopenssl"
+    p="$p vsftpd postgresql-client-common postgresql-contrib"
     set_cfg_def "STD_PKGS" "$p" "0"
+    p="httpd mariadb mariadb-server php libxml2-python pyOpenSSL libffi-devel"
+    p="$p php-cli libxslt-python python-devel zlib1g-dev libreadline6-dev"
+    p="$p php-mysql php-common php-xml php-cli openssh-clients"
+    p="$p bind-utils"
+    set_cfg_def "YUM_PKGS" "$p" "0" "RHEL"
+    p="apache2 php5 python-libxml2 libffi-dev python-openssl build-essential"
+    p="$p python-libxslt1 python-dev zlib-devel readline-devel"
+    p="$p php5-mysql php5-common php5-xml php5-cli openssh-client"
+    set_cfg_def "APT_PKGS" "$p" "0" "Debian"
     # Packges requirements
     set_cfg_def "REQ_LAMP" "gcc iptables" "0" "CentOS7"
     set_cfg_def "REQ_LAMP" "gcc" "0"
@@ -306,15 +327,21 @@ conf_default () {
 
 
 get_prm_value() {
-# get_prm_value (confname prmname)::DEF*
+# get_prm_value (tid prmname)::DEF*
 # return: prmvalue; -> disco, vist
     local p
+    local x
+    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+      local tid=$1
+    else
+      local tid="0"
+    fi
     if [ -z "$2" ]; then
       p=
       echo $p
       return
     else
-      p=$(get_cfg_value "0" $2)
+      p=$(get_cfg_value $tid $2)
     fi
     if [ "$p" == "None" -o "$p" == "NULL" ]; then
       echo ""
@@ -328,21 +355,85 @@ get_prm_value() {
           p="${2:0: -15}"
         fi
       elif [ "$2" != "_cmdname" -a "${2: -8}" == "_cmdname" ]; then
-        if ! $(is_virtualname $pkgname); then
+        x="${2:0: -8}"
+        if ! $(is_virtualname $x); then
           p="${2:0: -8}"
+        else
+          p=""
+        fi
+      elif [ "$2" != "xtlcmd" -a "${2: -7}" == "_xtlcmd" ]; then
+        x="${2:0: -7}"
+        if $(is_virtualname $x); then
+          p="product"
+        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          if [ "$FH" == "RHEL" ]; then
+           p="yum"
+          elif [ "$FH" == "Debian" ]; then
+            p="apt-get"
+          else
+            p="#"
+          fi
+        elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="pip"
+        elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="git"
+        elif [[ " $WGET_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="wget"
+        elif [[ " $YUM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="yum"
+        elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="apt-get"
+        else
+          p=
+        fi
+      elif [ "$2" != "stscmd" -a "${2: -7}" == "_stscmd" ]; then
+        x="${2:0: -7}"
+        if $(is_virtualname $x); then
+          p="product"
+        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          if [ "$FH" == "RHEL" ]; then
+            p="rpm"
+          elif [ "$FH" == "Debian" ]; then
+            p="dpkg-query"
+          else
+            p="#"
+          fi
+        elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="pip"
+        elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="git"
+        elif [[ " $WGET_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="#"
+        elif [[ " $YUM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="rpm"
+        elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="dpkg-query"
+        else
+          p=
         fi
       elif [ "$2" != "_vfycmd" -a "${2: -7}" == "_vfycmd" ]; then
         x="${2:0: -7}"
-        if [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p=
-        elif [[ " $NOINQ " =~ [[:space:]]$x[[:space:]] ]]; then
-          p=
-        elif [[ " $VFYLOW " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="$x -v"
-        elif [[ " $VFYUPP " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="$x -V"
+        if $(is_virtualname $x); then
+          p=""
         else
-          p="$x --version"
+          x=$(get_prm_value "0" "${x}_cmdname")
+          if [ -z "$x" ]; then
+            p=""
+          else
+            if [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+              p=""
+            elif [[ " $NOINQ " =~ [[:space:]]$x[[:space:]] ]]; then
+              p=
+            elif [[ " $VFYLOW " =~ [[:space:]]$x[[:space:]] ]]; then
+              p="$x -v"
+            elif [[ " $VFYUPP " =~ [[:space:]]$x[[:space:]] ]]; then
+              p="$x -V"
+            elif [[ " $VFYPSX " =~ [[:space:]]$x[[:space:]] ]]; then
+              p="$x --version"
+            else
+              p=""
+            fi
+          fi
         fi
       fi
     fi
@@ -355,19 +446,22 @@ init_cfg_pkg () {
 # return:
     # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/product.his    #debug
     LAMP=$(get_prm_value "0" "LAMP")
-    if [ -n "$opt_odoo" ]; then
-      LAMP="$LAMP odoo"
-    fi
+    # if [ -n "$opt_odoo" ]; then
+    #   LAMP="$LAMP odoo"
+    # fi
     NAME_VIRTUAL="$(get_prm_value "0" NAME_VIRTUAL)"
     NOINQ="$(get_prm_value "0" NOINQ)"
     VFYLOW="$(get_prm_value "0" VFYLOW)"
     VFYUPP="$(get_prm_value "0" VFYUPP)"
+    VFYPSX="$(get_prm_value "0" VFYPSX)"
     VFYE2NL="$(get_prm_value "0" VFYE2NL)"
     VFYERR="$(get_prm_value "0" VFYERR)"
     PIP_PKGS="$(get_prm_value "0" PIP_PKGS)"
     GIT_PKGS="$(get_prm_value "0" GIT_PKGS)"
     WGET_PKGS="$(get_prm_value "0" WGET_PKGS)"
     STD_PKGS="$(get_prm_value "0" STD_PKGS)"
+    YUM_PKGS="$(get_prm_value "0" YUM_PKGS)"
+    APT_PKGS="$(get_prm_value "0" APT_PKGS)"
 }
 
 print_title () {
@@ -595,64 +689,27 @@ get_realname () {
         fi
       fi
     fi
+    # echo "get_realname($1):=$pkgname">>~/product.his    #debug
     echo $pkgname
 }
 
 get_pkg_ver_inq () {
-# get_pkg_ver_inq (pkgname cmdname vfycmd xtlcmd stscmd)
-# return: ->  pkgversion,xtlcmd,stscmd
+# get_pkg_ver_inq (pkgname)
+# return: ->  pkgversion
     # echo "get_pkg_ver_inq ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
-    local pkgname="$1"
-    local vfycmd="$3"
+    local pkgname=$1
+    local pkgversion=
     if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
-    elif $(is_virtualname $pkgname); then
-      pkgversion=
-    elif [ "$pkgname" == "odoo" ]; then
-      pkgversion=
-      # if [ "$(echo -e \\"$SIMULATE_YES\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion=7.0
-      # elif [ "$(echo -e \\"$SIMULATE_NO\\"|grep [[:space:]]$pkgname[[:space:]] 2>/dev/null)" ]; then
-      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion=
-      else
-        if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-          local ov_iter="9 8 7"
-        else
-          local ov_iter=$opt_odoo
-        fi
-        for ov in $ov_iter; do
-          if [ -d /opt/odoo/$ov.0 ]; then
-            if [ -f /opt/odoo/$ov.0/openerp-server ]; then
-              pkgversion=$ov.0
-              break
-            fi
-          fi
-        done
-      fi
+    elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      :
     else
-      pkgversion=
+      local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
+      local vfycmd=$(get_prm_value "0" "${pkgname}_vfycmd")
       if [ -n "$vfycmd" ]; then
-        if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-          sts=127
-        else
-          x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-          p=$($x &>/dev/null)
-          sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-              sts=$STS_SUCCESS
-            fi
-          fi
-        fi
-      else
-        sts=127
-      fi
-      if [ $sts -ne 127 -a $sts -ne 2 ]; then
-        if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-          pkgversion=
-        else
+        local x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
+        local p=$($x &>/dev/null)
+        if [ $? -eq $STS_SUCCESS ]; then
           if [[ " $VFYERR " =~ [[:space:]]$cmdname[[:space:]] ]]; then
             pkgversion="$($vfycmd 2>&1 |head -n1)"
           elif [[ " $VFYE2NL " =~ [[:space:]]$cmdname[[:space:]] ]]; then
@@ -660,43 +717,36 @@ get_pkg_ver_inq () {
           else
             pkgversion="$($vfycmd 2>/dev/null|head -n1)"
           fi
-          if [ -z "$pkgversion" ]; then
-            if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-              pkgversion=".($vfycmd)"
-            fi
-          fi
+        elif [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+          pkgversion=".($vfycmd)"
         fi
-        _LAST_VER="$pkgversion"
-        _LAST_PKG="$pkgname"
-      else
-        pkgversion=
       fi
+      _LAST_VER="$pkgversion"
+      _LAST_PKG="$pkgname"
     fi
-    # echo "ret:$pkgversion;;">>~/product.his    #debug
+    echo $pkgversion
 }
 
 get_pkg_ver_pip () {
-# get_pkg_ver_pip 'pkgname' 'cmdname' 'vfycmd' 'xtlcmd' 'stscmd'
-# return: pkgversion,xtlcmd,stscmd
+# get_pkg_ver_pip (pkgname)
+# return: pkgversion
     # echo "get_pkg_ver_pip ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
     local pkgname="$1"
-    local vfycmd="$3"
+    local stscmd=$(get_prm_value "0" "${1}_stscmd")
+    local pkgversion=
     local x=
     if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
+    elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      :
     else
-      if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion=
-      else
-        pkgversion=
-        x="$($stscmd show $pkgname)"
-        if [ $? -eq $STS_SUCCESS ]; then
-          pkgversion="$($stscmd show $pkgname|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')"
-        fi
-        if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-          if [ -z "$pkgversion" ]; then
-            pkgversion="($pkgname).($vfycmd)"
-          fi
+      x="$($stscmd show $pkgname)"
+      if [ $? -eq $STS_SUCCESS ]; then
+        pkgversion="$($stscmd show $pkgname|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')"
+      fi
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+        if [ -z "$pkgversion" ]; then
+          pkgversion="($pkgname).($vfycmd)"
         fi
       fi
       if [ "$pkgversion" ]; then
@@ -704,30 +754,29 @@ get_pkg_ver_pip () {
         _LAST_PKG="$pkgname"
       fi
     fi
+    echo $pkgversion
 }
 
 get_pkg_ver_rpm () {
-# get_pkg_ver_rpm 'pkgname' 'cmdname' 'vfycmd' 'xtlcmd' 'stscmd'
-# return: pkgversion,xtlcmd,stscmd
+# get_pkg_ver_rpm(pkgname)
+# return: pkgversion
     # echo "get_pkg_ver_rpm ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
     local pkgname="$1"
-    local vfycmd="$3"
+    local stscmd=$(get_prm_value "0" "${1}_stscmd")
+    local pkgversion=
     local x=
     if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
+    elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      :
     else
-      if [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion=
-      else
-        pkgversion=
-        x=$($stscmd -q --qf '%{VERSION}' $pkgname 2>/dev/null)
-        if [ $? -eq $STS_SUCCESS ]; then
-          pkgversion="$x"
-        fi
-        if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-          if [ -z "$pkgversion" ]; then
-            pkgversion="($pkgname).($vfycmd)"
-          fi
+      x=$($stscmd -q --qf '%{VERSION}' $pkgname 2>/dev/null)
+      if [ $? -eq $STS_SUCCESS ]; then
+        pkgversion="$x"
+      fi
+      if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+        if [ -z "$pkgversion" ]; then
+          pkgversion="($pkgname).($vfycmd)"
         fi
       fi
       if [ "$pkgversion" ]; then
@@ -735,30 +784,33 @@ get_pkg_ver_rpm () {
         _LAST_PKG="$pkgname"
       fi
     fi
+    echo $pkgversion
 }
 
 get_pkg_ver_dpkg () {
-# get_pkg_ver_dpkg 'pkgname' 'cmdname' 'vfycmd' 'xtlcmd' 'stscmd'
-# return: pkgversion,xtlcmd,stscmd
+# get_pkg_ver_dpkg(pkgname)
+# return: pkgversion
     # echo "get_pkg_ver_dpkg ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
     local pkgname="$1"
-    local vfycmd="$3"
+    local stscmd=$(get_prm_value "0" "${1}_stscmd")
+    local pkgversion=
+    local x=
     if [ "$pkgname" == "$_LAST_PKG" ]; then
       pkgversion="$_LAST_VER"
+    elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
+      :
     else
-      pkgversion=
+      x="$(${stscmd}-query -f='${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
+      sts=$?
+      if [ $sts -eq $STS_SUCCESS -a "$x" != "installed" ]; then
+        sts=$STS_FAILED
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        pkgversion="$(${stscmd}-query -f='${Version}' -W $pkgname 2>/dev/null|awk -F\- '{print $1}')"
+      fi
       if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion="($stscmd -W $pkgname).($vfycmd)"
-      elif [[ " $SIMULATE_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-        pkgversion=
-      else
-        x="$($stscmd -f='${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
-        sts=$?
-        if [ $sts -eq $STS_SUCCESS -a "$x" != "installed" ]; then
-          sts=$STS_FAILED
-        fi
-        if [ $sts -eq $STS_SUCCESS ]; then
-          pkgversion="$($stscmd -f='${Version}' -W $pkgname 2>/dev/null|awk -F\- '{print $1}')"
+        if [ -z "$pkgversion" ]; then
+          pkgversion="($pkgname).($vfycmd)"
         fi
       fi
       if [ "$pkgversion" ]; then
@@ -766,90 +818,28 @@ get_pkg_ver_dpkg () {
         _LAST_PKG="$pkgname"
       fi
     fi
+    echo $pkgversion
 }
 
 get_pkg_ver () {
-# get_pkg_ver(pkgname,cmdname,vfycmd,xtlcmd,stscmd)
-# return: pkgversion,xtlcmd,stscmd,vfycmd
-    # echo "get_pkg_ver ('$1' '$2' '$3' '$4' '$5')">>~/product.his    #debug
+# get_pkg_ver(pkgname)
+# return: pkgversion
+    # echo "get_pkg_ver($1)">>~/product.his    #debug
     local pkgname=$1
-    local cmdname=$2
-    vfycmd=$3
-    xtlcmd=$4
-    stscmd=$5
-    if $(is_virtualname $pkgname); then
-      pkgversion="N/A"
-      vfycmd=
-    # elif [ "$pkgname" == "odoo" ]; then
-    #   get_pkg_ver_inq "$1" "$2" "$3" "$4" "$5"
-    elif [ "$stscmd" == "pip" ]; then
-      pkgversion=
-      vfycmd=
-    else
-      get_pkg_ver_inq "$1" "$2" "$3" "$4" "$5"
-    fi
-    if [ -z "$pkgversion" -a "$pkgname" != "odoo" ]; then
-      sts=$STS_FAILED
-      if [ "${cmdname:0:1}" != "." -a "${cmdname:0:1}" != "/" ]; then
-        if [ "$stscmd" == "rpm" ]; then
-          get_pkg_ver_rpm "$1" "$2" "$3" "$4" "$5"
-        elif [ "$stscmd" == "dpkg-query" ]; then
-          get_pkg_ver_dpkg "$1" "$2" "$3" "$4" "$5"
-        elif [ "$stscmd" == "pip" ]; then
-          get_pkg_ver_pip "$1" "$2" "$3" "$4" "$5"
-        fi
-        if [ -z "$pkgversion" -a "$stscmd" != "pip" ]; then
-          if $(pip search $pkgname 2>/dev/null|grep "^$pkgname[ \t]" &>/dev/null); then
-            xtlcmd="pip"
-            stscmd="pip"
-            vfycmd=
-            OPTS=
-            get_pkg_ver_pip "$1" "$2" "$3" "$4" "$5"
-          fi
+    local pkgversion=$(get_pkg_ver_inq "$1")
+    if [ -z "$pkgversion" ]; then
+      if $(is_virtualname $pkgname); then
+        pkgversion="# $pkgname N/A"
+      else
+        local stscmd=$(get_prm_value "0" "${1}_stscmd")
+        local cmd="get_pkg_ver_$stscmd"
+        if [ "$(type -t $cmd)" == "function" ]; then
+          pkgversion=$($cmd "$1")
         fi
       fi
     fi
-    # echo "ret:$pkgversion;;">>~/product.his    #debug
-}
-
-set_xtlcmd () {
-# set_xtlcmd(pkgname,[action])
-# return: -> xtlcmd, stscmd, vfycmd, 'OPTS'
-    local pkgname=$1
-    local xtlcmd=
-    if $(is_virtualname $pkgname); then
-      xtlcmd="product"
-      # stscmd="product"
-      # vfycmd=
-    elif [ "$FH" == "RHEL" ]; then
-      xtlcmd="yum"
-      # stscmd="rpm"
-    elif [ "$FH" == "Debian" ]; then
-      xtlcmd="apt-get"
-      # stscmd="dpkg-query"
-    else
-      xtlcmd="#"
-      # stscmd="#"
-      # elog "Unknown platform"
-    fi
-    # OPTS=$opt_yes
-    if [[ " $STD_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      :
-    elif [[ " $PIP_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      xtlcmd="pip"
-      # stscmd="pip"
-      # vfycmd=
-      # OPTS=
-    elif [[ " $GIT_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      xtlcmd="git"
-      # stscmd="git"
-      # OPTS=
-    elif [[ " $WGET_PKGS " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      xtlcmd="wget"
-      # stscmd="#"
-      # OPTS=
-    fi
-    echo $xtlcmd
+    # echo "    return $pkgversion">>~/product.his    #debug
+    echo $pkgversion
 }
 
 set_install_cmd () {
@@ -869,7 +859,7 @@ set_install_cmd () {
     elif [ "$xtlcmd" == "wget" ]; then
      cmd="install_by_wget $pkgname $OPTS"
     else
-      get_pkg_ver_inq "$pkgname" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
+      local pkgversion=$(get_pkg_ver_inq "$pkgname")
       [ -n "$pkgversion" ]
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
@@ -1161,34 +1151,8 @@ update_by_wget () {
     run_traced "rm -f $pkg_xname"
 }
 
-satisfy_request () {
-# satisfy_requeat(action pkgname OPTS svcname)
-    local pkgname=$2
-    local REQlist="$(get_prm_value "0" REQ_$pkgname)"
-    local xtlcmd=$(set_xtlcmd $pkgname $1)
-    if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
-      if [[ "$REQlist" =~ $xtlcmd ]]; then
-        :
-      else
-        local REQlist="$REQlist $xtlcmd"
-      fi
-    fi
-    if [ "$1" == "install" -a -n "$REQlist" ]; then
-      ((prdstk_level++))
-      for p in $REQlist; do
-        realname=$(get_realname $p)
-        if $(prod status $realname "-q"); then
-          :
-        else
-          prod install $realname ""
-        fi
-      done
-      ((prdstk_level--))
-    fi
-}
-
 do_action_sub () {
-# do_action_sub(action pkgname OPTS svcname)
+# do_action_sub(action pkgname OPTS)
     local p
     local ps=$2
     local rs=$(get_realname $ps)
@@ -1230,8 +1194,144 @@ do_action_sub () {
     fi
 }
 
+pre_install_LAMP () {
+# pre_install_LAMP(action pkgname OPTS)
+    if [ $opt_dev -gt 0 ]; then
+      if [ "$FH" == "RHEL" ]; then
+        run_traced "yum $opt_yes groupinstall \"Development tools\""
+      fi
+    fi
+}
+
+pre_update_LAMP () {
+    pre_install_LAMP
+}
+
+do_1_realname_package () {
+# do_1_realname_package(action pkgname OPTS)
+    echo "$2"
+    return $STS_SUCCESS
+}
+
+do_1_installer_package () {
+# do_1_installer_package(action pkgname OPTS)
+    local xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+    echo "$xtlcmd"
+    return $STS_SUCCESS
+}
+
+do_1_vfycmd_package () {
+# do_1_vfycmd_package(action pkgname OPTS)
+    local vfycmd=$(get_prm_value "0" "${2}_vfycmd")
+    echo "$vfycmd"
+    return $STS_SUCCESS
+}
+
+do_1_status_package () {
+# do_1_status_package(action pkgname OPTS)
+    # echo "do_1_status_package($1 $2 '$3')">>~/product.his    #debug
+    local pkgversion="$(get_pkg_ver "$2")"
+    [ -n "$pkgversion" ]
+    return $?
+}
+
+do_status_package () {
+# do_status_package(action pkgname OPTS)
+    # echo "do_status_package($1 $2 '$3')">>~/product.his    #debug
+    local x=$((prdstk_level*2))
+    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    do_1_status_package "$@"
+    sts=$?
+    local xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+    if [ $sts -eq $STS_SUCCESS ]; then
+      local cmd="wlog \"$lm$pkgname: installed by $xtlcmd\""
+    else
+      local cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
+    fi
+    eval $cmd
+    return $STS_SUCCESS
+}
+
+do_version_package () {
+# do_version_package(action pkgname OPTS)
+    # cho "do_version_package($1 $2 '$3')">>~/product.his    #debug
+    local pkgversion
+    local xtlcmd
+    local cmd
+    local x=$((prdstk_level*2))
+    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    do_1_status_package "$@"
+    if [ $? -ne $STS_SUCCESS ]; then
+       xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+       cmd="wlog \"$lm$pkgname should be installed by $xtlcmd\""
+    else
+       pkgversion=$(get_pkg_ver "$2")
+       if [ -z "$pkgversion" ]; then
+         pkgversion="$pkgname: unknown version"
+       fi
+       if [ $opt_quiet -gt 0 ]; then
+         cmd="wlog \"$pkgversion\""
+       else
+         cmd="wlog \"$lm$pkgname: $pkgversion\""
+       fi
+    fi
+    eval $cmd
+    return $STS_SUCCESS
+}
+
+do_whatis_package () {
+# do_whatis_package(action pkgname OPTS)
+    local x=$((prdstk_level*2))
+    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    local cmdname=$(get_prm_value "0" "${2}_cmdname")
+    local vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
+    if [ -n "$vfycmd" ]; then
+      local msg="$lm$2 (by $xtlcmd)($vfycmd)"
+    else
+      local msg="$lm$2 (by $xtlcmd)"
+    fi
+    test_msg "$msg"
+    return $STS_SUCCESS
+}
+
+
+# do_install_package () {
+# # do_install_package(action pkgname OPTS)
+#     set_install_cmd $1
+# }
+
+satisfy_request () {
+# satisfy_request(action pkgname OPTS)
+    # echo "satisfy_request($1 $2 '$3')">>~/product.his    #debug
+    local pkgname=$2
+    local REQlist="$(get_prm_value "0" REQ_$pkgname)"
+    local xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+    if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
+      if [[ "$REQlist" =~ $xtlcmd ]]; then
+        :
+      else
+        local REQlist="$REQlist $xtlcmd"
+      fi
+    fi
+    if [ "$1" == "install" -a -n "$REQlist" ]; then
+      ((prdstk_level++))
+      for p in $REQlist; do
+        realname=$(get_realname $p)
+        if $(prod status $realname "-q"); then
+          :
+        else
+          prod install $realname ""
+        fi
+      done
+      ((prdstk_level--))
+    fi
+}
+
 do_iteration () {
-# do_iteration(action pkgname OPTS svcname)
+# do_iteration(action pkgname OPTS)
+    # echo "do_iteration($1 $2 '$3')">>~/product.his    #debug
     local pkgname=$(get_realname "$2")
     if [ "$3" != "-q" -a "$3" != "-Q" ]; then
       local iter=$(set_iter $pkgname)
@@ -1243,9 +1343,9 @@ do_iteration () {
         local p
         for p in $iter; do
           if [ "$p" == "$2" -o "$p" == "$pkgname" ]; then
-            prod $1 $p "-Q"
+            prod $1 $p "-Q" "$4"
           else
-            prod $1 $p "$3"
+            prod $1 $p "$3" "$4"
           fi
         done
         return $STS_SUCCESS
@@ -1254,115 +1354,29 @@ do_iteration () {
     return 127
 }
 
-do_1_realname_package () {
-# do_1_realname_package(action pkgname OPTS svcname)
-    echo "$pkgname"
-    return $STS_SUCCESS
-}
-
-do_1_installer_package () {
-# do_1_installer_package(action pkgname OPTS svcname)
-    local xtlcmd=$(set_xtlcmd $2 $1)
-    echo "$xtlcmd"
-    return $STS_SUCCESS
-}
-
-do_1_vfycmd_package () {
-# do_1_vfycmd_package(action pkgname OPTS svcname)
-    local cmdname=$(get_prm_value "0" "${2}_cmdname")
-    local vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
-    echo "$vfycmd"
-    return $STS_SUCCESS
-}
-
-do_1_status_package () {
-# do_1_status_package(action pkgname OPTS svcname)
-    local xtlcmd=$(set_xtlcmd $2 $1)
-    local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmdname=$(get_prm_value "0" "${2}_cmdname")
-    local vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
-    get_pkg_ver "$2" "$cmdname" "$vfycmd" "$xtlcmd" "$stscmd"
-    [ -n "$pkgversion" ]
-    return $?
-}
-
-do_status_package () {
-# do_status_package(action pkgname OPTS svcname)
-    do_1_status_package "$@"
-    sts=$?
-    if [ $sts -eq $STS_SUCCESS ]; then
-       local cmd="wlog $lm $pkgname: installed by $xtlcmd"
-    else
-       local cmd="wlog $lm $pkgname could be installed by $xtlcmd"
-    fi
-    eval $cmd
-    return $STS_SUCCESS
-}
-
-do_version_package () {
-# do_version_package(action pkgname OPTS svcname)
-    if $(is_virtualname $pkgname); then
-      local cmd="# $pkgname"
-    else
-      do_1_status_package "$@"
-      if [ -z "$pkgversion" ]; then
-        pkgversion="$pkgname: unknown version"
-      fi
-      if [ $opt_quiet -gt 0 ]; then
-        local cmd="wlog $pkgversion"
-      else
-        local cmd="wlog $lm $pkgname: $pkgversion"
-      fi
-      eval $cmd
-    fi
-    return $STS_SUCCESS
-}
-
-do_whatis_package () {
-# do_whatis_package(action pkgname OPTS svcname)
-    local msg="$lm$2 (by $xtlcmd)($vfycmd)"
-    test_msg "$msg"
-    return $STS_SUCCESS
-}
-
-
-# do_install_package () {
-# # do_install_package(action pkgname OPTS svcname)
-#     set_install_cmd $1
-# }
-
 prod () {
 # prod(action pkgname OPTS)
 # return: sts
 # TODO [Debian] aptitude search 'pkgname'
 # TODO [RHEL] yum search 'pkgname'
-    # echo "prod('$1' '$2' '$3' '$4')">>~/product.his    #debug
+    # echo "prod($1 $2 '$3')">>~/product.his    #debug
     if [ -z "$prdstk_level" ]; then prdstk_level=0; fi
-    local x=$((prdstk_level*2))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     do_iteration "$@"
     if [ $? == $STS_SUCCESS ]; then
       return $STS_SUCCESS
     fi
+    local x=$((prdstk_level*2))
+    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     local pkgname=$(get_realname "$2")
-    satisfy_request "$@"
-    # xtlcmd=$(set_xtlcmd $pkgname $1)
-    # local svcname=$(get_prm_value "0" "${pkgname}_svcname")
-    # local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
-    # local vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
+    satisfy_request $1 $pkgname "$3" "$4" "$5"
     local SUBcmd=do_${1}_package
     local SUBcmd1=do_1_${1}_package
     if [ "$(type -t $SUBcmd1)" == "function" -a "$(type -t $SUBcmd)" != "function" ]; then
-      eval $SUBcmd1 $1 $pkgname "$3" "$4"
+      eval $SUBcmd1 $1 $pkgname "$3" "$4" "$5"
       return $?
     elif [ "$(type -t $SUBcmd1)" == "function" -a "$3" == "-q" ]; then
-      eval $SUBcmd $1 $pkgname "$3" "$4"
+      eval $SUBcmd1 $1 $pkgname "$3" "$4" "$5"
       return $?
-    fi
-    cmd0=""
-    SUBcmd=set_${1}_cmd
-    if [ "$(type -t $SUBcmd)" == "function" ]; then
-      eval $SUBcmd $1 $pkgname "$3" "$4"
     fi
     SUBcmd=pre_${1}_$pkgname
     SUBcmd1=pre_${1}_service
@@ -1525,18 +1539,6 @@ product_remove_product () {
     run_traced "rm /usr/bin/${pkgname}.*"
 }
 
-pre_install_LAMP () {
-    if [ $opt_dev -gt 0 ]; then
-      if [ "$FH" == "RHEL" ]; then
-        run_traced "yum $opt_yes groupinstall \"Development tools\""
-      fi
-    fi
-}
-
-pre_update_LAMP () {
-    pre_install_LAMP
-}
-
 init_odoo_env () {
     if [ ! -d /opt/odoo ]; then
       run_traced "mkdir -p /opt/odoo"
@@ -1568,7 +1570,7 @@ product_install_odoo () {
     fi
     for ov in $ov_iter; do
       local xtl=1
-      local v=$(get_pkg_ver_inq "odoo")
+      local v=$(_inq "odoo")
       if [ -n "$v" -a -d /opt/odoo/$ov.0 ]; then
         cd /opt/odoo/$ov.0
         git status &>/dev/null
@@ -2377,13 +2379,13 @@ else
 fi
 get_arch "$opt_osf"
 set_tlog_file "$FLOG"
-if [ -z "$opt_odoo" ]; then
-  if [ "$action" == "version" -o "$action" == "status" ]; then
-    if $(prod status odoo "-q"); then
-      opt_odoo="9"
-    fi
-  fi
-fi
+# if [ -z "$opt_odoo" ]; then
+#   if [ "$action" == "version" -o "$action" == "status" ]; then
+#     if $(prod status odoo "-q"); then
+#       opt_odoo="9"
+#     fi
+#   fi
+# fi
 if [ -n "$opt_odoo" ]; then
   if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a "$opt_odoo" != "*" ]; then
     echo "Invalid option value: use -O9 or -O8 or -O7 or -O*"
@@ -2500,10 +2502,10 @@ elif [ "$action" == "version" ]; then
   fi
   set_tlog_file "$FLOG" "" "echo"
   if [ $test_mode -eq 0 ]; then
-     print_title "Show installed package version"
+    print_title "Show installed package version"
   fi
   if $(prod status $pkg "-q"); then
-      prod version $pkg
+    prod version $pkg
   fi
 elif [ "$action" == "update" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
@@ -2527,6 +2529,10 @@ elif [ "$action" == "config" ]; then
         :
       elif [[ " $STD_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
         :
+      elif [[ " $YUM_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
+        :
+      elif [[ " $APT_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
+        :
       else
         installer=$(prod installer $realname)
         if [ "$installer" == "pip" ]; then
@@ -2547,6 +2553,10 @@ elif [ "$action" == "config" ]; then
           if [[ " $PIP_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
             :
           elif [[ " $STD_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
+            :
+          elif [[ " $YUM_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
+            :
+          elif [[ " $APT_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
             :
           else
             installer=$(prod installer $p)
@@ -2689,7 +2699,7 @@ elif [ "$action" == "realname" ]; then
 elif [ "$action" == "info" ]; then
   pkgname=$(get_realname $pkg)
   pkglist=$(prod realname $pkg)
-  xtlcmd=$(set_xtlcmd $pkgname)
+  xtlcmd=$(get_prm_value "0" "${pkgname}_xtlcmd")
   svcname=$(get_prm_value "0" "${pkgname}_svcname")
   cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
   vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
