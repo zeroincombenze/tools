@@ -1354,6 +1354,39 @@ do_iteration () {
     return 127
 }
 
+do_local_function () {
+# select_function(prefix svcname action pkgname OPTS)
+    if [ -n "$2" ]; then
+       local x="service"
+    else
+       local x="package"
+    fi
+    if [[ " $SIMULATE_YES " =~ [[:space:]]$4[[:space:]] ]]; then
+       local y="_YES"
+    elif [[ " $SIMULATE_NO " =~ [[:space:]]$4[[:space:]] ]]; then
+       local y="_NO"
+    else
+       local y=
+    fi
+    local n
+    local cmd
+    for n in $4 $x; do
+      cmd=${1}_dry_$n
+      if [ "$(type -t $cmd)" != "function" ]; then
+        cmd=${1}_$n$y
+      fi
+      if [ "$(type -t $cmd)" == "function" ]; then
+        break
+      fi
+    done
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$3" "$4" "$5"
+    else
+      :
+    fi
+    return $?
+}
+
 prod () {
 # prod(action pkgname OPTS)
 # return: sts
@@ -1371,6 +1404,7 @@ prod () {
     satisfy_request $1 $pkgname "$3" "$4" "$5"
     local SUBcmd=do_${1}_package
     local SUBcmd1=do_1_${1}_package
+    local SUBcmd2=
     if [ "$(type -t $SUBcmd1)" == "function" -a "$(type -t $SUBcmd)" != "function" ]; then
       eval $SUBcmd1 $1 $pkgname "$3" "$4" "$5"
       return $?
@@ -1378,57 +1412,12 @@ prod () {
       eval $SUBcmd1 $1 $pkgname "$3" "$4" "$5"
       return $?
     fi
-    SUBcmd=pre_${1}_$pkgname
-    SUBcmd1=pre_${1}_service
-    if [[ " $SIMULATE_YES " =~ [[:space:]]pre_$1_$pkgname[[:space:]] ]]; then
-      run_traced "# $SUBcmd succesfully ended"
-    elif [[ " $SIMULATE_NO " =~ [[:space:]]pre_$1_$pkgname[[:space:]] ]]; then
-      run_traced "# $SUBcmd failed"
-    elif [ "$(type -t $SUBcmd)" == "function" ]; then
-      $SUBcmd $1 $pkgname "$3" "$4"
-    elif [ "$(type -t $SUBcmd1)" == "function" ]; then
-      $SUBcmd1 $1 $pkgname "$3" "$svcname"
+    do_local_function "pre" "$svcname" "$pkgname" "$3" "$4" "$5"
+    if [ $? -eq $STS_SUCCESS ]; then
+      do_local_function "do" "$svcname" "$pkgname" "$3" "$4" "$5"
     fi
-    if [ -n "$svcname" ]; then
-      SUBcmd=do_${1}_service
-    else
-      SUBcmd=do_${1}_package
-    fi
-    if [ "$(type -t $SUBcmd)" == "function" ]; then
-      eval $SUBcmd $1 $pkgname "$3" "$svcname"
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS -a $sts -ne 127 ]; then
-        return $sts
-      fi
-    fi
-    if [ "$cmd0" ]; then
-      x=$(echo "$cmd"|awk '{print $1}')
-      if [ "$(type -t $x)" == "function" ]; then
-        $cmd0
-      else
-        run_traced "$cmd0"
-      fi
-    fi
-    # local x=$(echo "$cmd"|awk '{print $1}')
-    # if [ "$(type -t $x)" == "function" ]; then
-    #   $cmd
-    # else
-    #   run_traced "$cmd"
-    # fi
-    SUBcmd=post_${1}_$package
-    SUBcmd1=post_${1}_service
-    if [ "$(type -t $SUBcmd)" == "function" ]; then
-      eval $SUBcmd $1 $pkgname "$3" "$svcname"
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS -a $sts -ne 127 ]; then
-        return $sts
-      fi
-    elif [ "$(type -t $SUBcmd1)" == "function" ]; then
-      $SUBcmd1 $1 $pkgname "$3" "$svcname"
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS -a $sts -ne 127 ]; then
-        return $sts
-      fi
+    if [ $? -eq $STS_SUCCESS ]; then
+      do_local_function "post" "$svcname" "$pkgname" "$3" "$4" "$5"
     fi
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
