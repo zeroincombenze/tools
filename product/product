@@ -842,32 +842,13 @@ get_pkg_ver () {
     echo $pkgversion
 }
 
-set_install_cmd () {
-# set_install_cmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS
-# return: -> cmd, cmd0
-    local INSTALLcmd="product_$1_${pkgname//-/_}"
-    if [[ " $SIMULATE_INSTALL_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      cmd="# $INSTALLcmd (SUCCESS)"
-    elif [[ " $SIMULATE_INSTALL_NO " =~ [[:space:]]$pkgname[[:space:]] ]]; then
-      cmd="# $INSTALLcmd (FAIL)"
-    elif [ "$(type -t $INSTALLcmd)" == "function" ]; then
-      cmd="$INSTALLcmd $OPTS install $pkgname"
-    elif $(is_virtualname $pkgname); then
-      cmd="# $INSTALLcmd (VIRTUALNAME)"
-    # elif [ "$xtlcmd" == "git" ]; then
-    #  cmd="install_by_git $OPTS install $pkgname"
-    elif [ "$xtlcmd" == "wget" ]; then
-     cmd="install_by_wget $pkgname $OPTS"
-    else
-      local pkgversion=$(get_pkg_ver_inq "$pkgname")
-      [ -n "$pkgversion" ]
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS ]; then
-        cmd="$xtlcmd $OPTS install $pkgname"
-      else
-        cmd="# $xtlcmd $OPTS install $pkgname"
-      fi
+get_full_xtlcmd () {
+# get_full_xtlcmd(action pkgname OPTS)
+    local xtlcmd=$(get_prm_value "0" "${2}_xtlcmd")
+    if [ "$xtlcmd" == "yum" -o "$xtlcmd" == "apt-get" ]; then
+      if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
     fi
+    echo "$xtlcmd"
 }
 
 set_update_cmd () {
@@ -1077,8 +1058,46 @@ add_users () {
     fi
 }
 
-install_by_wget () {
-# install_by_wget(pkgname OPTS svcname)
+do_dry_install_product () {
+# product_install_product(action pkgname OPTS)
+    local pkgname=$2
+    if [ -z "$opt_host" ]; then
+      if [ "$TDIR" != "/usr/bin" ]; then
+        if [ "${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
+          local cmd="cp"
+        else
+          local cmd="mv"
+        fi
+        run_traced "mkdir -p /etc/$THIS"
+        run_traced "$cmd $TDIR/$pkgname /usr/bin"
+        run_traced "$cmd $TDIR/${pkgname}.man /usr/bin"
+        run_traced "$cmd $TDIR/${pkgname}_bld_ods /usr/bin"
+        run_traced "chmod +x /usr/bin/$pkgname*"
+        for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+          if [ -f $TDIR/$f ]; then
+            run_traced "cp $TDIR/$f /etc/$THIS"
+          fi
+        done
+        run_traced "_install_z0librc"
+      fi
+    else
+      if [ "opt_if" ]; then
+        SCP="scp -oIdentityFile=$opt_if"
+      else
+        SCP="scp"
+      fi
+      wlog "# Copying config files to host $opt_host"
+      if [ -f z0_x_*.txt ]; then
+        run_traced "$SCP z0_x_*.txt $opt_host:~/"
+      fi
+      run_traced "$SCP $TDIR/$pkgname $opt_host:~/"
+      run_traced "$SCP $TDIR/${pkgname}.* $opt_host:~/"
+      run_traced "$SCP /etc/z0librc $opt_host:~/"
+    fi
+}
+
+do_install_by_wget () {
+# do_install_by_wget(pkgname OPTS)
     local pkgname=$1
     local xtlcmd=wget
     local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
@@ -1207,6 +1226,82 @@ pre_update_LAMP () {
     pre_install_LAMP
 }
 
+pre_package () {
+# pre_package(action pkgname OPTS)
+    :
+}
+
+do_install_package () {
+# do_package(action pkgname OPTS)
+    local xtlcmd=$(get_full_xtlcmd $1 $2 $3)
+    local cmd="$xtlcmd $1 $2"
+    run_traced "$cmd"
+    return $?
+}
+
+post_package () {
+# post_package(action pkgname OPTS)
+    :
+}
+
+pre_install_service() {
+# pre_service(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# pre_${1}_${svcname} succesfully ended"
+}
+
+pre_service_NO () {
+# pre_service_NO(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# pre_${1}_${2} failed"
+}
+
+pre_service_ANY () {
+# pre_service_ANY(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# post_${1}_${svcname} ()"
+}
+
+do_service_YES () {
+# do_service_YES(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# do_${1}_${svcname} succesfully ended"
+}
+
+do_service_NO () {
+# do_service_NO(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# do_${1}_${2} failed"
+}
+
+do_install_service () {
+# do_service_ANY(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# post_${1}_${svcname} ()"
+    local xtlcmd=$(get_full_xtlcmd $1 $2 $3)
+    local cmd="$xtlcmd $1 $2"
+    run_traced "$cmd"
+    return $?
+}
+
+post_service_YES () {
+# post_service_YES(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# post_${1}_${svcname} succesfully ended"
+}
+
+post_service_NO () {
+# post_service_NO(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# post_${1}_${svcname} failed"
+}
+
+post_service_ANY () {
+# post_install_service_ANY(action pkgname OPTS)
+    local svcname=$(get_prm_value "0" "${2}_svcname")
+    run_traced "# post_${1}_${svcname} ()"
+}
+
 do_1_realname_package () {
 # do_1_realname_package(action pkgname OPTS)
     echo "$2"
@@ -1297,11 +1392,6 @@ do_whatis_package () {
 }
 
 
-# do_install_package () {
-# # do_install_package(action pkgname OPTS)
-#     set_install_cmd $1
-# }
-
 satisfy_request () {
 # satisfy_request(action pkgname OPTS)
     # echo "satisfy_request($1 $2 '$3')">>~/product.his    #debug
@@ -1322,7 +1412,7 @@ satisfy_request () {
         if $(prod status $realname "-q"); then
           :
         else
-          prod install $realname ""
+          prod install $realname "$3"
         fi
       done
       ((prdstk_level--))
@@ -1368,20 +1458,26 @@ do_local_function () {
     else
        local y=
     fi
+    local xtlcmd=$(get_prm_value "0" "${4}_xtlcmd")
     local n
     local cmd
-    for n in $4 $x; do
-      cmd=${1}_dry_$n
-      if [ "$(type -t $cmd)" != "function" ]; then
-        cmd=${1}_$n$y
-      fi
-      if [ "$(type -t $cmd)" == "function" ]; then
-        break
-      fi
-    done
+    cmd=${1}_dry_${3}_$4
+    if [ "$(type -t $cmd)" != "function" -a -z $y -a $opt_dry_run -eq 0 ]; then
+      cmd=${1}_${3}_${4}
+    fi
+    if [ "$(type -t $cmd)" != "function" ]; then
+      cmd=${1}_${3}_by_$xtlcmd
+    fi
+    if [ "$(type -t $cmd)" != "function" ]; then
+      cmd=${1}_${3}_$x
+    fi
+    if [ "$(type -t $cmd)" != "function" ]; then
+      cmd=${1}_$x
+    fi
     if [ "$(type -t $cmd)" == "function" ]; then
       eval $cmd "$3" "$4" "$5"
     else
+      echo "<<<$cmd>>>"
       :
     fi
     return $?
@@ -1412,12 +1508,12 @@ prod () {
       eval $SUBcmd1 $1 $pkgname "$3" "$4" "$5"
       return $?
     fi
-    do_local_function "pre" "$svcname" "$pkgname" "$3" "$4" "$5"
+    do_local_function "pre" "$svcname" "$1" "$pkgname" "$3" "$4" "$5"
     if [ $? -eq $STS_SUCCESS ]; then
-      do_local_function "do" "$svcname" "$pkgname" "$3" "$4" "$5"
+      do_local_function "do" "$svcname" "$1" "$pkgname" "$3" "$4" "$5"
     fi
     if [ $? -eq $STS_SUCCESS ]; then
-      do_local_function "post" "$svcname" "$pkgname" "$3" "$4" "$5"
+      do_local_function "post" "$svcname" "$1" "$pkgname" "$3" "$4" "$5"
     fi
     if [ "$3" == "-q" ]; then
       return $STS_SUCCESS
@@ -1468,43 +1564,6 @@ prod () {
     fi
     # echo "  exit $1 $2">>~/product.his  #debug
     return $STS_SUCCESS
-}
-
-product_install_product () {
-# product_install_product::pkgname opt_yes xtlcmd, stscmd STD_PKGS
-    if [ "opt_if" ]; then
-      SCP="scp -oIdentityFile=$opt_if"
-    else
-      SCP="scp"
-    fi
-    if [ -z "$opt_host" ]; then
-      if [ "$TDIR" != "/usr/bin" ]; then
-        if [ "${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
-          local cmd="cp"
-        else
-          local cmd="mv"
-        fi
-        run_traced "mkdir -p /etc/$THIS"
-        run_traced "$cmd $TDIR/$pkgname /usr/bin"
-        run_traced "$cmd $TDIR/${pkgname}.man /usr/bin"
-        run_traced "$cmd $TDIR/${pkgname}_bld_ods /usr/bin"
-        run_traced "chmod +x /usr/bin/$pkgname*"
-        for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
-          if [ -f $TDIR/$f ]; then
-            run_traced "cp $TDIR/$f /etc/$THIS"
-          fi
-        done
-        run_traced "_install_z0librc"
-      fi
-    else
-      wlog "# Copying config files to host $opt_host"
-      if [ -f z0_x_*.txt ]; then
-        run_traced "$SCP z0_x_*.txt $opt_host:~/"
-      fi
-      run_traced "$SCP $TDIR/$pkgname $opt_host:~/"
-      run_traced "$SCP $TDIR/${pkgname}.* $opt_host:~/"
-      run_traced "$SCP /etc/z0librc $opt_host:~/"
-    fi
 }
 
 product_update_product () {
@@ -2316,8 +2375,8 @@ test_remove () {
 # main
 OPTOPTS=(h        c        D       d         E       e       g       H        I        i      J        L         l          m        n           O         P          q         s         t         u       V           v           y       1)
 OPTDEST=(opt_help opt_conf opt_dev opt_depth opt_osf opt_oed opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_odoo  opt_pwd    opt_quiet opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "="     "*"         1           "*"     1)
-OPTDEFL=(1        ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         ""        0         ""      ""          0           ""      0)
+OPTACTI=(1        "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="       "="        1         "="       1         "="     "*"         1           1       1)
+OPTDEFL=(1        ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""        ""         0         ""        0         ""      ""          0           0       0)
 OPTMETA=("help"   "file"   "dev"   "number"  "disto" "disto" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "version" "password" "quiet"   "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "configuration file (def /etc/product.conf)"\
@@ -2461,8 +2520,14 @@ if [ $test_mode -gt 0 ]; then
       opt_depth=1
     fi
   fi
-  opt_yes="-y"
+  opt_yes=1
 fi
+OPTS=
+if [ ${opt_yes:-0} -gt 0 ]; then OPTS="${OPTS}y"; fi
+if [ ${opt_dev:-0} -gt 0 ]; then OPTS="${OPTS}D"; fi
+if [ ${opt_grf:-0} -gt 0 ]; then OPTS="${OPTS}g"; fi
+if [ ${opt_1st:-0} -gt 0 ]; then OPTS="${OPTS}1"; fi
+if [ -n "$OPTS" ]; then OPTS="-$OPTS"; fi
 wlog "# $THIS $__version__ running on $(xuname -a)"
 wlog "# Setup for $FH family"
 
@@ -2472,7 +2537,7 @@ elif [ "$action" == "whatis" ]; then
   if [ $test_mode -eq 0 ]; then
     print_title "List managed packages"
   fi
-  prod $action $pkg
+  prod $action $pkg $OPTS
 elif [ "$action" == "status" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
     elog "This command must be executed by root"
@@ -2482,7 +2547,7 @@ elif [ "$action" == "status" ]; then
   if [ $test_mode -eq 0 ]; then
     print_title "Check for installation status"
   fi
-  prod $action $pkg
+  prod $action $pkg $OPTS
   ending_msg
 elif [ "$action" == "version" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
@@ -2502,7 +2567,7 @@ elif [ "$action" == "update" ]; then
     exit $STS_FAILED
   fi
   print_title "Update/upgrade package(s)"
-  prod $action $pkg
+  prod $action $pkg $OPTS
   ending_msg
 elif [ "$action" == "config" ]; then
   if [ $EUID -ne 0 ]; then
@@ -2587,7 +2652,7 @@ elif [ "$action" == "remove" ]; then
      exit $STS_FAILED
   fi
   print_title "Remove package $pkg"
-  prod $action $pkg
+  prod $action $pkg $OPTS
   ending_msg
 elif [ "$action" == "install" ]; then
   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
@@ -2601,7 +2666,7 @@ elif [ "$action" == "install" ]; then
       prod update "."
     fi
   fi
-  prod $action $pkg
+  prod $action $pkg "$OPTS"
   ending_msg
 elif [ "$action" == "prepare" ]; then
   if [ $EUID -ne 0 ]; then
