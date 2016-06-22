@@ -121,13 +121,13 @@ product (install by git)
  get ver=product -V
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__Debian.02.test
-LAMP=(LAMP python-pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by product)
+LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.02.test
 LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.02.test
-LAMP=(LAMP epel-release python-pip python-wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
+LAMP=(LAMP epel-release pip python-wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/httpd__RHEL.02.test
 httpd (install by yum)
@@ -153,8 +153,13 @@ apache2 (install by apt-get)
  command=apachectl
  get ver=apachectl -v
 EOF
+  cat <<EOF >$TESTDIR/res/pip__Debian.02.test
+pip (install by apt-get)
+ command=pip
+ get ver=pip --version
+EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS7.02.test
-pip=python-pip (install by yum)
+pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
@@ -164,7 +169,7 @@ pip (install by yum)
  get ver=pip --version
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.02.test
-python-pip (install by yum)
+python-pip=pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
@@ -173,13 +178,8 @@ python-pip=pip (install by yum)
  command=pip
  get ver=pip --version
 EOF
-  cat <<EOF >$TESTDIR/res/pip__Debian.02.test
-pip=python-pip (install by apt-get)
- command=pip
- get ver=pip --version
-EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.02.test
-python-pip (install by apt-get)
+python-pip=pip (install by apt-get)
  command=pip
  get ver=pip --version
 EOF

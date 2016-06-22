@@ -150,7 +150,7 @@ product (by git)(product -V)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
 LAMP (by product)
-python-pip (by apt-get)(pip --version)
+pip (by apt-get)(pip --version)
 libffi-dev (by apt-get)
 libssl-dev (by apt-get)
 python-openssl (by apt-get)
@@ -188,7 +188,7 @@ EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.03.test
 LAMP (by product)
 epel-release (by yum)
-python-pip (by yum)(pip --version)
+pip (by yum)(pip --version)
 python-wheel (by yum)
 yum-utils (by yum)
 libffi-devel (by yum)
@@ -244,13 +244,13 @@ apache2 (by apt-get)(apachectl -v)
 - TCP port 21
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.03.test
-python-pip (by yum)(pip --version)
+pip (by yum)(pip --version)
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS6.03.test
 pip (by yum)(pip --version)
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.03.test
-python-pip (by apt-get)(pip --version)
+pip (by apt-get)(pip --version)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__Debian.03.test
 mysql-server (by apt-get)(mysql --version)
