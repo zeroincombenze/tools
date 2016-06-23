@@ -74,7 +74,7 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 sts=0
-TPRODUCT="$RUNDIR/product -t"
+TPRODUCT="$RUNDIR/product -T"
 
 test_run () {
 # test_run(msg,package,disto)
