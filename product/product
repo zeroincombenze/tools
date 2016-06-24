@@ -75,6 +75,9 @@ conf_default() {
     # ALIAS
     local p=
     local x=
+    set_cfg_def "OSSERVICE" "service" "1" "Debian"
+    set_cfg_def "OSSERVICE" "service" "1" "CentOS6"
+    set_cfg_def "OSSERVICE" "systemctl" "1" "CentOS7"
     set_cfg_def "apache2" "httpd" "1" "RHEL"
     set_cfg_def "httpd" "apache2" "1" "Debian"
     set_cfg_def "python-pip" "pip" "1"
@@ -496,8 +499,8 @@ ending_msg() {
     fi
 }
 
-set_iter() {
-# set_iter (pkgname)
+get_iter() {
+# get_iter (pkgname)
 # return: <pkg_list>
   if [ -z "$1" ]; then
     local iter="$1"
@@ -670,10 +673,38 @@ is_virtualname() {
     return $sts
 }
 
+get_realaction(){
+# get_realaction(action)
+    if [ "${1:0:4}" == "pre-" ]; then
+      local act=${1:4}
+    elif [ "${1:0:3}" == "do-" -o "${1:0:5}" == "post-" ]; then
+      local act=${1:3}
+    elif [ "${1:0:5}" == "post-" ]; then
+      local act=${1:5}
+    else
+      local act=$1
+    fi
+    echo $act
+}
+
+get_pfxaction(){
+# get_realaction(action)
+    if [ "${1:0:4}" == "pre-" ]; then
+      local pfx="pre-"
+    elif [ "${1:0:3}" == "do-" -o "${1:0:5}" == "post-" ]; then
+      local pfx="do-"
+    elif [ "${1:0:5}" == "post-" ]; then
+      local pfx="post-"
+    else
+      local pfx=
+    fi
+    echo $pfx
+}
+
 get_realname() {
 # get_realname(pkgname [action] [sub])
 # return: realname
-    if [[ $3 =~ b ]]; then echo "get_realname($1 $2 $3)">>~/$THIS.his; fi    #debug
+    if [[ $3 =~ b ]]; then echo "get_realname($1 $2 $3)">>~/$THIS.his; fi #debug
     local pkgname=$1
     if [ -z "$1" -o "$1" == "." ]; then
       if [ "$2" == "update" ]; then
@@ -698,6 +729,7 @@ get_realname() {
         fi
       fi
     fi
+    if [[ $3 =~ b ]]; then echo "  return($pkgname)">>~/$THIS.his; fi   #debug
     # echo "get_realname($1):=$pkgname">>~/$THIS.his    #debug
     echo $pkgname
 }
@@ -907,22 +939,13 @@ get_full_xtlcmd() {
 
 get_full_svccmd() {
 # get_full_svccmd(action svcname OPTS)
-  if [ "$DISTO" == "CentOS7" ]; then
-    :
-  else
-    :
-  fi
-}
-
-set_config_cmd() {
-# set_config_cmd::pkgname opt_yes xtlcmd, stscmd STD_PKGS
-# return: -> cmd, cmd0
-    local CFGcmd="product_$1_${pkgname//-/_}"
-    if [ "$(type -t $CFGcmd)" == "function" ]; then
-      cmd="$CFGcmd $OPTS config $pkgname"
+    local servicecmd=$(get_realname "OSSERVICE")
+    if [ "$servicecmd" == "service" ]; then
+      local cmd="$servicecmd $2 $1"
     else
-      cmd="# $CFGcmd"
+      local cmd="$servicecmd $1 $2"
     fi
+    echo "$cmd"
 }
 
 update_hba_conf() {
@@ -1201,6 +1224,7 @@ do_dry_update_product() {
 
 do_dry_remove_product() {
 # do_dry_remove_product(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo "do_dry_remove_product($1 $2 $3)">>~/$THIS.his; fi    #debug
     run_traced "rm /usr/bin/$2"
     run_traced "rm /usr/bin/${2}.*"
     return $STS_SUCCESS
@@ -1244,61 +1268,6 @@ do_dry_update_by_wget() {
     local sts=$?
     run_traced "rm -f $pkg_xname"
     return $sts
-}
-
-do_action_sub() {
-# do_action_sub(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then echo "do_action_sub($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local p
-    local x
-    local rs=$(get_realname $2 $1)
-    local realname
-    if [[ $3 =~ [qQ] ]]; then
-      :
-    else
-      local iter=$(set_iter $2)
-      local sts=$STS_SUCCESS
-      if [ "$2" != "$iter" ]; then
-        for p in $iter; do
-          if [ "$p" != "$2" -a "$p" != "$rs" ]; then
-            realname=$(get_realname $p $1)
-            do_action_sub $1 $realname $3Q
-            sts=$?
-            if [ $sts -ne $STS_SUCCESS ]; then
-              break
-            fi
-          fi
-        done
-      else
-        do_action_sub $1 $2 $3Q
-        sts=$?
-      fi
-      return $sts
-    fi
-    verbose_msg "Analyzing $2"
-    local opts=${3//Q/}
-    opts=${opts//q/}
-    if [[ $3 =~ b ]]; then x="-qb"; else x="-q"; fi
-    if [ "$1" == "install" ]; then
-      if $(prod status $2 $x); then
-        prod update $2 $opts
-      else
-        prod $1 $2 $opts
-      fi
-    elif [ "$1" == "update" ]; then
-      if $(prod status $2 $x); then
-        prod $1 $2 $opts
-      else
-        prod install $2 $opts
-      fi
-    elif [ "$1" == "remove" ]; then
-      if $(prod status $2 $x); then
-        elog "# $2 should be removed"
-      fi
-    else
-      prod $1 $2 $opts
-    fi
-    return $?
 }
 
 pre_install_LAMP() {
@@ -1421,7 +1390,7 @@ post_dry_install_service() {
 # post_dry_install_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then echo "post_dry_install_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd="service $svcname start"
+    local cmd=$(get_full_svccmd start $svcname)
     run_traced "$cmd"
     local sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -1456,7 +1425,7 @@ post_dry_update_service() {
 # post_dry_update_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then echo "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd="service $svcname restart"
+    local cmd=$(get_full_svccmd restart $svcname)
     run_traced "$cmd"
     local sts=$?
     return $sts
@@ -1466,7 +1435,7 @@ pre_dry_remove_service() {
 # pre_dry_remove_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then echo "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd="service $svcname stop"
+    local cmd=$(get_full_svccmd stop $svcname)
     run_traced "$cmd"
     local sts=$?
     return $sts
@@ -1475,12 +1444,14 @@ pre_dry_remove_service() {
 
 do_1_realname_package() {
 # do_1_realname_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo "do_1_realname_package($1 $2 $3)">>~/$THIS.his; fi    #debug
     echo "$2"
     return $STS_SUCCESS
 }
 
 do_1_installer_package() {
 # do_1_installer_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo " do_1_installer_package($1 $2 $3)">>~/$THIS.his; fi    #debug
     local xtlcmd=$(get_act_xtlcmd $2 "install")
     echo "$xtlcmd"
     return $STS_SUCCESS
@@ -1488,6 +1459,7 @@ do_1_installer_package() {
 
 do_1_vfycmd_package() {
 # do_1_vfycmd_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo "do_1_vfycmd_package($1 $2 $3)">>~/$THIS.his; fi    #debug
     local vfycmd=$(get_prm_value "0" "${2}_vfycmd")
     echo "$vfycmd"
     return $STS_SUCCESS
@@ -1511,11 +1483,7 @@ do_1_info_package() {
     local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
     local vfycmd=$(get_prm_value "0" "${pkgname}_vfycmd")
     if [[ $pkglist =~ = ]]; then
-      if [ "$2" == "$pkgname" ]; then
-        echo "$pkglist (install by $xtlcmd)"
-      else
-        echo "$2=$pkglist (install by $xtlcmd)"
-      fi
+      echo "$pkglist (install by $xtlcmd)"
     else
       if [ "$2" == "$pkgname" ]; then
         echo "$2 (install by $xtlcmd)"
@@ -1553,8 +1521,8 @@ do_dry_status_package() {
 }
 
 do_dry_version_package() {
-# do_version_package(action pkgname OPTS)
-    # echo "do_version_package($1 $2 '$3')">>~/$THIS.his    #debug
+# do_dry_version_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo "do_dry_version_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
     local pkgversion
     local xtlcmd
     local cmd
@@ -1581,6 +1549,7 @@ do_dry_version_package() {
 
 do_dry_whatis_package() {
 # do_dry_whatis_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then echo "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his; fi    #debug
     local x=$((prdstk_level*2))
     local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     local xtlcmd=$(get_act_xtlcmd $2 "install")
@@ -1598,7 +1567,7 @@ do_dry_whatis_package() {
 
 satisfy_request() {
 # satisfy_request(action pkgname OPTS)
-    # echo "satisfy_request($1 $2 '$3')">>~/$THIS.his    #debug
+    if [[ $3 =~ b ]]; then echo "satisfy_request($1 $2 $3)">>~/$THIS.his; fi    #debug
     local pkgname=$2
     local REQlist="$(get_prm_value "0" REQ_$pkgname)"
     local xtlcmd=$(get_act_xtlcmd $2 "install")
@@ -1625,21 +1594,28 @@ satisfy_request() {
 
 do_iteration() {
 # do_iteration(action pkgname OPTS)
-    # echo "do_iteration($1 $2 '$3')">>~/$THIS.his    #debug
-    local pkgname=$(get_realname $2 $1)
+    if [[ $3 =~ b ]]; then echo "do_iteration($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local pkgname=$(get_realname $2 $1 $3)
     if [[ $3 =~ [qQ] ]]; then
       return 127
     fi
     if [ "$1" == "info" ]; then
       return 127
     fi
-    local iter=$(set_iter $pkgname)
+    local iter=$(get_iter $pkgname)
+    if [[ $3 =~ b ]]; then echo "  pkg=$pkgname($iter)">>~/$THIS.his; fi  #debug
+    if [ "$1" == "realname" ]; then
+      if [ "$2" == "$iter" ]; then
+        echo "$2"
+      elif [ "$pkgname" == "$iter" ]; then
+        echo "$2=$pkgname"
+      else
+        echo "$2=($iter)"
+      fi
+      return $STS_SUCCESS
+    fi
     if [ "$pkgname" == "$iter" ]; then
       return 127
-    fi
-    if [ "$1" == "realname" ]; then
-      echo "$2=($iter)"
-      return $STS_SUCCESS
     fi
     local p
     for p in $iter; do
@@ -1648,8 +1624,89 @@ do_iteration() {
        else
          prod $1 $p "$3" "$4" "$5"
        fi
+       local sts=$?
+       if [ $sts -ne $STS_SUCCESS ]; then
+         break
+       fi
     done
+    return $sts
+}
+
+do_action_subpkg() {
+# do_action_subpkg(pfx action pkgname OPTS)
+    if [[ $4 =~ b ]]; then echo "do_action_subpkg($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    local p
+    local x
+    local rs=$(get_realname $3 $2)
+    local realname
+    if [[ $4 =~ [qQ] ]]; then
+      :
+    else
+      local iter=$(get_iter $3)
+      local sts=$STS_SUCCESS
+      if [ "$3" != "$iter" ]; then
+        for p in $iter; do
+          if [ "$p" != "$3" -a "$p" != "$rs" ]; then
+            realname=$(get_realname $p $2)
+            do_action_subpkg "$1" $2 $realname $4Q
+            sts=$?
+            if [ $sts -ne $STS_SUCCESS ]; then
+              break
+            fi
+          fi
+        done
+      else
+        do_action_subpkg "$1" $2 $3 $4Q
+        sts=$?
+      fi
+      return $sts
+    fi
+    verbose_msg "Analyzing $3"
+    local opts=${4//Q/}
+    opts=${opts//q/}
+    if [[ $4 =~ b ]]; then x="-qb"; else x="-q"; fi
+    if [ "$2" == "install" ]; then
+      if $(prod status $3 $x); then
+        prod update $3 $opts
+      else
+        prod $2 $3 $opts
+      fi
+    elif [ "$2" == "update" ]; then
+      if $(prod status $3 $x); then
+        prod $2 $3 $opts
+      else
+        prod install $3 $opts
+      fi
+    elif [ "$2" == "remove" ]; then
+      if $(prod status $3 $x); then
+        elog "# $3 should be removed"
+      fi
+    else
+      prod $2 $3 $opts
+    fi
     return $?
+}
+
+
+do_act_all_subpkgs() {
+# do_act_all_subpkgs(pfx action pkgname OPTS)
+    if [[ $4 =~ b ]]; then echo "prod($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    local s
+    local SUBlist="$(get_prm_value "0" SUB_$3)"
+    if [[ $4 =~ b ]]; then echo "SUBlist=$SUBlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
+    if [ -n "$SUBlist" -a $prdstk_level -lt $opt_depth ]; then
+      ((prdstk_level++))
+      local p
+      for p in $SUBlist; do
+        do_action_subpkg "$pfx" $act $p $3 "$4" "$5"
+        s=$?
+        if [ $sts -eq $STS_SUCCESS -a $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
+          sts=$s
+        fi
+      done
+      ((prdstk_level--))
+    fi
+    return $sts
 }
 
 do_local_function() {
@@ -1662,12 +1719,13 @@ do_local_function() {
     else
       local ij=
     fi
-    local xtlcmd=$(get_act_xtlcmd $4 43)
+    local xtlcmd=$(get_act_xtlcmd $4 $3)
     if [ -n "$2" ]; then
        local X="_$4 _by_$xtlcmd _service _package"
     else
        local X="_$4 _by_$xtlcmd _package"
     fi
+    local sts=127
     local cmd x c d
     for c in _${3} _; do
       for x in $X; do
@@ -1681,14 +1739,18 @@ do_local_function() {
           cmd=${cmd//__/_}
           if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
           if [ "$(type -t $cmd)" == "function" ]; then
-            eval $cmd "$3" "$4" "$5"
-            local sts=$?
+            eval $cmd $3 $4 $5
+            sts=$?
             if [ $sts -eq $STS_SUCCESS ]; then
               cmd=${1}_${3}_ports
               if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
               if [ "$(type -t $cmd)" == "function" ]; then
-                eval $cmd "$3" "$4" "$5"
+                eval $cmd $3 $4 $5
               fi
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              do_act_all_subpkgs "$1" $3 $4 $5
+              sts=$?
             fi
             return $sts
           fi
@@ -1698,9 +1760,14 @@ do_local_function() {
     cmd=${1}_${3}_ports
     if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
     if [ "$(type -t $cmd)" == "function" ]; then
-      eval $cmd "$3" "$4" "$5"
+      eval $cmd $3 $4 $5
+      sts=$?
     fi
-    return 127
+    if [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
+      do_act_all_subpkgs "$1" $3 $4 $5
+      sts=$?
+    fi
+    return $sts
 }
 
 prod() {
@@ -1717,11 +1784,16 @@ prod() {
     fi
     local x=$((prdstk_level*2))
     local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    if [ "$1" == "info" ]; then
+    local pfx=$(get_pfxaction $1)
+    local act=$(get_realaction $1)
+    if [[ $3 =~ b ]]; then echo "  pfx=$pfx; act=$act;">>~/$THIS.his; fi    #debug
+    if [ "$act" == "info" ]; then
       local pkgname=$2
     else
-      local pkgname=$(get_realname $2 $1)
-      satisfy_request $1 $pkgname "$3" "$4" "$5"
+      local pkgname=$(get_realname $2 $act)
+      if [ -z "$pfx" ]; then
+        satisfy_request $act $pkgname "$3" "$4" "$5"
+      fi
     fi
     if [[ " $SIMULATE_YES " =~ [[:space:]]$pkgname[[:space:]] ]]; then
        local ij="I"
@@ -1730,27 +1802,36 @@ prod() {
     else
        local ij=
     fi
-    local SUBcmd=do_dry_${1}_package
-    local SUBcmd1=do_1_${1}_package
+    local SUBcmd=do_dry_${act}_package
+    local SUBcmd1=do_1_${act}_package
     local SUBcmd2=
     local svcname=$(get_prm_value "0" "${pkgname}_svcname")
-    if [ "$(type -t $SUBcmd1)" == "function" ] && [[  "$3" =~ q ]]; then
-      eval $SUBcmd1 $1 $pkgname "$3$ij" "$4" "$5"
-      return $?
-    elif [ "$(type -t $SUBcmd1)" == "function" -a "$(type -t $SUBcmd)" != "function" ]; then
-      eval $SUBcmd1 $1 $pkgname "$3$ij" "$4" "$5"
-      return $?
+    if [ -z "$pfx" ]; then
+      if [ "$(type -t $SUBcmd1)" == "function" ] && [[  "$3" =~ q ]]; then
+        eval $SUBcmd1 $act $pkgname "$3$ij" "$4" "$5"
+        return $?
+      elif [ "$(type -t $SUBcmd1)" == "function" -a "$(type -t $SUBcmd)" != "function" ]; then
+        eval $SUBcmd1 $act $pkgname "$3$ij" "$4" "$5"
+        return $?
+      fi
     fi
-    do_local_function "pre" "$svcname" "$1" "$pkgname" "$3$ij" "$4" "$5"
-    sts=$?
-    if [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
-      do_local_function "do" "$svcname" "$1" "$pkgname" "$3$ij" "$4" "$5"
+    sts=$STS_SUCCESS
+    if [ -z "$pfx" -o "$pfx" == "pre-" ]; then
+      do_local_function "pre" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       sts=$?
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      do_local_function "post" "$svcname" "$1" "$pkgname" "$3$ij" "$4" "$5"
-      sts=$?
-      if [ $sts -eq 127 ]; then sts=$STS_SUCCESS; fi
+    if [ -z "$pfx" -o "$pfx" == "do-" ]; then
+      if [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
+        do_local_function "do" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+        sts=$?
+      fi
+    fi
+    if [ -z "$pfx" -o "$pfx" == "post-" ]; then
+      if [ $sts -eq $STS_SUCCESS ]; then
+        do_local_function "post" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+        sts=$?
+        if [ $sts -eq 127 ]; then sts=$STS_SUCCESS; fi
+      fi
     fi
     if [ $sts -ne $STS_SUCCESS ] || [[  "$3" =~ q ]]; then
       return $sts
@@ -1758,18 +1839,18 @@ prod() {
     local SUBlist="$(get_prm_value "0" SUB_$pkgname)"
     if [[ $3 =~ b ]]; then echo "SUBlist=$SUBlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
     local s
-    if [ -n "$SUBlist" -a $prdstk_level -lt $opt_depth ]; then
-      ((prdstk_level++))
-      local ps
-      for ps in $SUBlist; do
-        do_action_sub $1 $ps $3 "$4" "$5"
-        s=$?
-        if [ $sts -eq $STS_SUCCESS -a $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
-          sts=$s
-        fi
-      done
-      ((prdstk_level--))
-    fi
+    # if [ -n "$SUBlist" -a $prdstk_level -lt $opt_depth ]; then
+    #   ((prdstk_level++))
+    #   local ps
+    #   for ps in $SUBlist; do
+    #     do_action_subpkg "$pfx" $act $ps $3 "$4" "$5"
+    #     s=$?
+    #     if [ $sts -eq $STS_SUCCESS -a $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
+    #       sts=$s
+    #     fi
+    #   done
+    #   ((prdstk_level--))
+    # fi
     if [ $prdstk_level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
       run_traced "apt-get autoremove"
     fi
@@ -2703,7 +2784,7 @@ elif [ "$action" == "config" ]; then
     exit $STS_FAILED
   fi
   print_title "Config package(s)"
-  iter=$(set_iter $pkg)
+  iter=$(get_iter $pkg)
   if [ "$iter" == "product" ]; then
     for pkgname in $LAMP; do
       realname=$(get_realname $pkgname)
@@ -2843,47 +2924,6 @@ elif [ "$action" == "debug" ]; then
      echo "${DEFPRM[jy]}=${DEFVAL[jy]}">>product.conf.sample
      ((jy++))
    done
-# elif [ "$action" == "realname" ]; then
-#   p=$(prod $action $pkg)
-#   if [ "$p" == "$pkg" ]; then
-#     echo $pkg
-#   elif [[ $p =~ = ]]; then
-#      echo $p
-#   else
-#     echo $pkg=$p
-#   fi
-# elif [ "$action" == "info" ]; then
-#   pkgname=$(get_realname $pkg)
-#   pkglist=$(prod realname $pkg)
-#   xtlcmd=$(get_act_xtlcmd ${pkgname} "install")
-#   svcname=$(get_prm_value "0" "${pkgname}_svcname")
-#   cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
-#   vfycmd=$(get_prm_value "0" "${cmdname}_vfycmd")
-#   if [[ $pkglist =~ = ]]; then
-#     if [ "$pkg" == "$pkgname" ]; then
-#       echo "$pkglist (install by $xtlcmd)"
-#     else
-#       echo "$pkg=$pkglist (install by $xtlcmd)"
-#     fi
-#   else
-#     if [ "$pkg" == "$pkgname" ]; then
-#       echo "$pkg (install by $xtlcmd)"
-#     else
-#       echo "$pkg=$pkgname (install by $xtlcmd)"
-#     fi
-#   fi
-#   if [ -n "$svcname" ]; then
-#     echo " service=$svcname"
-#   fi
-#   if [ -n "$cmdname" ]; then
-#     echo " command=$cmdname"
-#   fi
-#   if [ -n "$vfycmd" ]; then
-#     echo " get ver=$vfycmd"
-#   fi
-# else
-#   echo "No valid action $action!"
-#  exit $STS_FAILED
 else
   actions=${action//+/ }
   actions=${actions//,/ }
@@ -2933,18 +2973,7 @@ else
       fi
     fi
     for package in $pkgs; do
-      if [ "$act" == "realname" ]; then
-        p=$(prod $act $package)
-        if [ "$p" == "$package" ]; then
-          echo $package
-        elif [[ $p =~ = ]]; then
-          echo $p
-        else
-          echo $package=$p
-        fi
-      else
-        prod $act $package $OPTS
-      fi
+      prod $act $package $OPTS
       sts=$?
       if [ $sts -eq 127 ]; then
         echo "Unknow action $act"
