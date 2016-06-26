@@ -1644,24 +1644,36 @@ do_action_subpkg() {
     opts=${opts//I/}
     opts=${opts//J/}
     if [[ $4 =~ b ]]; then x="-qb"; else x="-q"; fi
-    if [ "$2" == "install" ]; then
-      if $(prod status $3 $x); then
-        prod ${1}update $3 $opts
-      else
-        prod $1$2 $3 $opts
-      fi
-    elif [ "$2" == "update" ]; then
-      if $(prod status $3 $x); then
-        prod ${1}$2 $3 $opts
-      else
-        prod ${1}install $3 $opts
-      fi
-    elif [ "$2" == "remove" ]; then
-      if [ "$1" == "do_" ]; then
-        if $(prod status $3 $x); then
-          elog "# $3 should be removed"
-        fi
-      fi
+    if [ "$1" == "pre_" ]; then
+       do_1_status_package "$@"
+       sts=$?
+       if [ "$2" == "install" -a $sts -eq $STS_SUCCESS ]; then
+         sts=17
+       elif [ "$2" == "update" -a $sts -ne $STS_SUCCESS ]; then
+         sts=2
+       elif [ "$2" == "remove" -a $sts -ne $STS_SUCCESS ]; then
+         sts=2
+       else
+         prod $1$2 $3 $opts
+       fi
+    # if [ "$2" == "install" ]; then
+    #   if $(prod status $3 $x); then
+    #     prod ${1}update $3 $opts
+    #   else
+    #     prod $1$2 $3 $opts
+    #   fi
+    # elif [ "$2" == "update" ]; then
+    #   if $(prod status $3 $x); then
+    #     prod ${1}$2 $3 $opts
+    #   else
+    #    prod ${1}install $3 $opts
+    #   fi
+    # elif [ "$2" == "remove" ]; then
+    #  if [ "$1" == "do_" ]; then
+    #    if $(prod status $3 $x); then
+    #      elog "# $3 should be removed"
+    #     fi
+    #   fi
     else
       prod $1$2 $3 $opts
     fi
@@ -1877,21 +1889,31 @@ prod() {
     sts=$STS_SUCCESS
     local s
     if [ -z "$pfx" -o "$pfx" == "pre_" ]; then
-      # if [ -z "$pfx" ]; then
-      #   [ $sts -eq $STS_SUCCESS ] && do_local_function "pre_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
-      #   s=$?
-      #   [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-      # fi
       [ $sts -eq $STS_SUCCESS ] && do_iter_local_function "pre_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       s=$?
+      if [ $s -eq 17 -a "act" == "install" ]; then
+        if [ $prdstk_level -eq 0 ]; then
+          ij="I"
+        else
+          act="update"
+        fi
+        do_iter_local_function "pre_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+      elif [ $s -eq 2 -a "act" == "update" ]; then
+        if [ $prdstk_level -eq 0 ]; then
+          ij="J"
+        else
+          act="install"
+        fi
+        do_iter_local_function "pre_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+      elif [ $s -eq 2 -a "act" == "remove" ]; then
+        if [ $prdstk_level -eq 0 ]; then
+          ij="J"
+        fi
+        s=$STS_SUCCESS
+      fi
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$s
     fi
     if [ -z "$pfx" -o "$pfx" == "do_" ]; then
-      # if [ -z "$pfx" ]; then
-      #   [ $sts -eq $STS_SUCCESS ] && do_local_function "do_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
-      #   s=$?
-      #   [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$?
-      # fi
       [ $sts -eq $STS_SUCCESS ] && do_iter_local_function "do_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       s=$?
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$?
@@ -1900,9 +1922,6 @@ prod() {
       [ $sts -eq $STS_SUCCESS ] && do_iter_local_function "post_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       s=$?
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$?
-      # [ $sts -eq $STS_SUCCESS ] && do_local_function "post_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
-      # s=$?
-      # [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$?
     fi
     if [ $sts -ne $STS_SUCCESS ] || [[  "$3" =~ q ]]; then
       return $sts
@@ -2986,7 +3005,6 @@ else
   actions=${actions//,/ }
   pkgs=${pkg//+/ }
   pkgs=${pkgs//,/ }
-  # set -x #debug
   TITL_whatis="List managed packages"
   TITL_status="Check for installation status"
   TITL_version="Show installed package version"
