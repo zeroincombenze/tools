@@ -3,179 +3,111 @@
 Empty Example
 
 
-==postgresql-server==
-${sect_Descrizione_Breve}
 
-
-===Versioni===
+==Versions==
 {{Template:Warning}}
 
 
-===Requisiti===
-I requisiti sono:
-* Python 2.6 o successive (soltanto python2)
-* Linux, Windows e OpenVMS
 
-===Verifica installato con comandi manuali (package python)===
-Eseguire i seguenti comandi, correggendo in modo appropriato il nome della directory<ref>scelta adatta soltanto ad utenti esperti</ref>:
-<syntaxhighlight lang="bash">
-# Setup package directory
-pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
-pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
-# If you do not know, use following statements
-python
->>> import sys
->>> print '\n'.join(sys.path)
->>> exit()
-pypkg="..."  #  set right directory selected from above list
-dir -ld $pypkg/*postgresql-server*
-</syntaxhighlight>
-Nella directory, se installato, è presente un file con nome simile a <code>postgresql-server-n.n-py2.6.egg-info</code> che identifica anche la versione installata.
+[[File:H caratteristiche.png|left]]
+==Features==
+{{Template:Warning}}
 
 
-==Gestione package python tramite pip (scelta consigliata se pip installato)==
-Tramite pip<ref>pip è package che richiede python</ref> è possibile gestire l'installazione in modo indipendente dal sistema operativo utilizzato.
-Le istruzioni sono valide sia per tutte le distribuzioni di Linux, per tutte le versioni di Windows.
-Potrebbe diventare disponibile anche su OpenVMS.
-Per maggiori dettagli vedere [[Python/opt/pip|pip]].
-
-===Verifica installato===
-<syntaxhighlight lang="bash">
-pip list|grep postgresql-server
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-pip install postgresql-server
-</syntaxhighlight>
-
-===Aggiornamento===
-<syntaxhighlight lang="bash">
-pip install postgresql-server --upgrade
-</syntaxhighlight>
+[[File:H vantaggi-svantaggi.png|left]]
+===Advantages and disadvantages===
+{{Template:Warning}}
 
 
-==Gestione rpm su CentOS e famiglia RHEL==
-
-===Verifica installato===
-<ref>il comando yum info potrebbe richiedere un po' di tempo</ref>
-<syntaxhighlight lang="bash">
-rpm -q postgresql-server
-# If info displayed, extract installed version
-yum info postgresql-server|grep "[Vv]ersion"   
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-yum  [-y] install postgresql-server
-</syntaxhighlight>  
-
-===Aggiornamento===
-<syntaxhighlight lang="bash">
-yum [-y] update postgresql-server
-</syntaxhighlight>
+[[File:H distribuzione.png|left]]
+===Distributions===
+{{Template:Warning}}
 
 
-==Gestione package aptitude su Ubuntu e famiglia Debian==
-
-===Verifica installato===
-<syntaxhighlight lang="bash">
-dpkg-query -s postgresql-server
-# If info displayed, extract installation status
-dpkg-query -s postgresql-server|grep [Ss]tatus
-# If info displayed, extract installed version   
-dpkg-query -W postgresql-server
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-apt-get [-y] install postgresql-server
-</syntaxhighlight>  
-
-===Aggiornamento===
-<ref>il comando apt-get update potrebbe non essere necessario</ref>
-<syntaxhighlight lang="bash">
-apt-get [-y] update postgresql-server
-apt-get [-y] upgrade postgresql-server
-</syntaxhighlight>
+[[File:H concorrenti.png|left]]
+===Competitors===
+{{Template:Warning}}
 
 
-==Gestione sorgenti (con git clone)==
 
-===Verifica installato===
-Non esiste una verifica universale dell'installazione dei sorgenti.
-<ref>scelta adatta soltanto ad utenti esperti per lo sviluppo del codice</ref>
-Si può operare come segue:
-<syntaxhighlight lang="bash">
-find <directory-probabile> -type f -name postgresql-server.py
-# as above list
-cd <directory of postgresql-server.py>
-git status
-</syntaxhighlight>
-
-===Installazione===
-<syntaxhighlight lang="bash">
-# Setup source directory package
-pypkg="~/dev/postgresql-server"  # Esempio
-mkdir $pypkg 
-cd $pypkg
-git clone <https://github.com/postgresql-server.git> # Esempio da correggere
-python setup.py
-</syntaxhighlight>
-
-===Aggiornamento===
-<ref>per maggiori dettagli vedere [[Git]]</ref>
-<syntaxhighlight lang="bash">
-# Setup source directory package
-pypkg="~/dev/postgresql-server"  # Esempio
-cd $pypkg
-git fetch origin
-</syntaxhighlight>
+[[File:H guida all'uso.png|left]]
+==User Guide==
+{{Template:Warning}}
 
 
-==Gestione file tar/gz/zip==
-<ref>scelta da usare soltanto se falliscono le opzioni precedenti</ref>
 
+
+[[File:H guida tecnica.png|left]]
+==Technical Reference Guide==
+{{Template:Warning}}
+
+
+[[File:H installazione.png|left]]
 ===Installation===
-<syntaxhighlight lang="bash">
-cd /tmp
-# Impostare la directory dei package
-pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
-pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
-wget <https://pypi.python.org/packages/source/O/postgresql-server.tar.gz> # Esempio da correggere
-tar -xf postgresql-server*.tar.gz -C $pypkg
-cd $pypkg/postgresql-server*
-python setup.py install
-</syntaxhighlight>
+{{Template:Warning}}
 
 
-==Post-installation/update checklist==
+[[File:H aggiornamento.png|left]]
+===Upgrade===
+{{Template:Warning}}
 
-===Visualizza versione===
-<syntaxhighlight lang="bash">
-postgresql-server -V --version
-</syntaxhighlight>
 
-===Configurazione===
-N/D
+[[File:H faq.png|left]]
+===FAQ===
+{{Template:Warning}}
 
+
+[[File:H troubleshooting.png|left]]
 ===Troubleshooting===
 {{Template:Warning}}
 
 
 
-==Come fare==
-[[Python/opt/postgresql-server/help|Breve guida all'uso]]
+[[File:H sicurezza.png|left]]
+==Security Guide==
+{{Template:Warning}}
 
 
-==Note==
+
+[[File:H software.png|left]]
+==Code development==
+{{Template:Warning}}
+[[{{#var:softwname}}/' +                'dev|Documentazione riservata agli sviluppatori]]
+
+
+[[File:H libreria.png|left]]
+===Libraries and environment===
+{{Template:Warning}}
+
+
+[[File:H programmi_complementari2.png|left]]
+===Software Integration===
+{{Template:Warning}}
+
+
+
+[[File:H storia.png|left]]
+==History==
+{{Template:Warning}}
+
+
+
+[[File:H notes.png|left]]
+==Notes==
 {{Template:Warning}}
 <references/>
 
 
-==Collegamenti esterni==
+
+[[File:H unit.png|left]]
+==See also==
 {{Template:Warning}}
-* [http://postgresql-server.com Home page postgresql-server]
-* [https://pypi.python.org/pypi/postgresql-server/ Package postgresql-server]
-* [http://pythonhosted.org/postgresql-server/ Guida postgresql-server]
-* [[Python/opt/postgresql-server/help|Guida all'uso]]
+
+
+
+[[File:H Collegamenti.png|left]]
+==External Links==
+{{Template:Warning}}
+
+
+[[Category:Software]]

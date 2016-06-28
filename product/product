@@ -759,6 +759,8 @@ get_pkg_ver_inq() {
         elif [[ $2 =~ I ]]; then
           pkgversion="($pkgname).($vfycmd)"
         fi
+      elif [[ $2 =~ I ]]; then
+        pkgversion="($pkgname).($vfycmd)"
       fi
       if [ "$pkgversion" ]; then
         declare $X="$pkgversion"
@@ -868,7 +870,9 @@ get_pkg_ver() {
     if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "get_pkg_ver($1 $2)">>~/$THIS.his; fi    #debug
     local pkgname=$1
     local ij
-    if [[ " $DETECTED_NO " =~ [[:space:]]$1[[:space:]] ]]; then
+    if [ "$1" == "EVERYTHINGS" ]; then
+      local pkgversion="# $pkgname N/A"
+    elif [[ " $DETECTED_NO " =~ [[:space:]]$1[[:space:]] ]]; then
       local pkgversion=
       ij=J
     elif [[ " $DETECTED_YES " =~ [[:space:]]$1[[:space:]] ]]; then
