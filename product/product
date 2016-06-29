@@ -195,26 +195,26 @@ conf_default() {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    set_cfg_def "SUB_apache2" "vsftpd" "0" "Debian"
-    set_cfg_def "SUB_httpd" "vsftpd" "0" "CentOS7"
-    set_cfg_def "SUB_mariadb" "mariadb-server" "0" "CentOS7"
-    set_cfg_def "SUB_mysql-server" "libapache2-mod-auth-mysql" "0"
+    set_cfg_def "BOP_apache2" "vsftpd" "0" "Debian"
+    set_cfg_def "BOP_httpd" "vsftpd" "0" "CentOS7"
+    set_cfg_def "BOP_mariadb" "mariadb-server" "0" "CentOS7"
+    set_cfg_def "BOP_mysql-server" "libapache2-mod-auth-mysql" "0"
     if [ $opt_grf -eq 0 ]; then
-      set_cfg_def "SUB_postgresql-server" "postgresql-client-common postgresql-contrib" "0" "RHEL"
-      set_cfg_def "SUB_postgresql" "postgresql-client-common postgresql-contrib" "0" "Debian"
+      set_cfg_def "BOP_postgresql-server" "postgresql-client-common postgresql-contrib" "0" "RHEL"
+      set_cfg_def "BOP_postgresql" "postgresql-client-common postgresql-contrib" "0" "Debian"
     else
-      set_cfg_def "SUB_postgresql-server" "postgresql-client-common postgresql-contrib pgadmin3" "0" "RHEL"
-      set_cfg_def "SUB_postgresql" "postgresql-client-common postgresql-contrib pgadmin3" "0" "Debian"
+      set_cfg_def "BOP_postgresql-server" "postgresql-client-common postgresql-contrib pgadmin3" "0" "RHEL"
+      set_cfg_def "BOP_postgresql" "postgresql-client-common postgresql-contrib pgadmin3" "0" "Debian"
     fi
     if [ $opt_dev -gt 0 ]; then
-      set_cfg_def "SUB_openssh-server" "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
-      set_cfg_def "SUB_openssh-server" "openssh-client telnet" "0" "Debian"
+      set_cfg_def "BOP_openssh-server" "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
+      set_cfg_def "BOP_openssh-server" "openssh-client telnet" "0" "Debian"
     else
-      set_cfg_def "SUB_openssh-server" "openssh-clients mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
-      set_cfg_def "SUB_openssh-server" "openssh-client" "0" "Debian"
+      set_cfg_def "BOP_openssh-server" "openssh-clients mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
+      set_cfg_def "BOP_openssh-server" "openssh-client" "0" "Debian"
     fi
-    set_cfg_def "SUB_php5" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
-    set_cfg_def "SUB_php" "php-mysql php-common php-xml php-cli" "0" "RHEL"
+    set_cfg_def "BOP_php5" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
+    set_cfg_def "BOP_php" "php-mysql php-common php-xml php-cli" "0" "RHEL"
     set_cfg_def "PYTHON_LIB_XML" "python-libxslt1 libxml2 python-libxml2 lxml" "0" "Debian"
     set_cfg_def "PYTHON_LIB_XML" "libxslt-python libxml2 libxml2-python lxml" "0" "RHEL"
     p="setuptools python-virtualenv virtualenv"
@@ -225,7 +225,7 @@ conf_default() {
       p="$p libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev"
       p="$p liblzma-dev python-requests python-yaml mock"
     fi
-    set_cfg_def "SUB_python" "$p" "0" "Debian"
+    set_cfg_def "BOP_python" "$p" "0" "Debian"
     p="setuptools python-virtualenv virtualenv readline"
     p="$p PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
     p="$p gdata python-ldap pytz"
@@ -235,7 +235,7 @@ conf_default() {
       p="$p libpcap-devel xz-devel postgresql-devel libxml2-devel"
       p="$p libxslt-devel python-requests python-yaml mock"
     fi
-    set_cfg_def "SUB_python" "$p" "0" "RHEL"
+    set_cfg_def "BOP_python" "$p" "0" "RHEL"
     p="ghostscript libart-2.0-2 libcupsfilters1"
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
@@ -251,7 +251,7 @@ conf_default() {
     if [ $opt_dev -gt 0 ]; then
       p="$p oerplib erppeek os0 pytok"
     fi
-    set_cfg_def "SUB_odoo" "$p" "0" "Debian"
+    set_cfg_def "BOP_odoo" "$p" "0" "Debian"
     p="Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
     p="$p pyOpenSSL pychart pyparsing python-babel python-beaker python-dateutil python-docutils python-feedparser python-jinja2"
@@ -261,7 +261,7 @@ conf_default() {
     if [ $opt_dev -gt 0 ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
     fi
-    set_cfg_def "SUB_odoo" "$p" "0" "RHEL"
+    set_cfg_def "BOP_odoo" "$p" "0" "RHEL"
     # Packages options
     if [ $test_mode -eq 0 ]; then
       set_cfg_def "${THIS}_vfycmd" "/usr/bin/$THIS -V" "0"
@@ -522,20 +522,28 @@ get_iter() {
 }
 
 enable_port() {
+# enable_port(port prot [OPTS])
     local port=$1
     local prot=$2
     if [ "$prot" != "tcp" -a "$prot" != "upd" ]; then
        prot=tcp
     fi
-    if [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
+    cmd="iptables -A INPUT -p $prot -m state --state NEW -m $prot --dport $port -j ACCEPT"
+    if [[ $3 =~ I ]]; then
       x="port_$prot_$port"
+      cmd="# $cmd"
+    elif [[ $3 =~ J ]]; then
+      x=""
+    elif [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
+      x="port_$prot_$port"
+      cmd="# $cmd"
     elif [[ " $SIMULATE_NO " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x=""
     else
       x=$(iptables -S 2>/dev/null|grep "\-p *$prot *.*\-dport *$port" 2>/dev/null)
     fi
     if [ -z "$x" ]; then
-      run_traced "iptables -A INPUT -p $prot -m state --state NEW -m $prot --dport $port -j ACCEPT"
+      run_traced "$cmd"
     fi
 }
 
@@ -545,15 +553,22 @@ disable_port() {
     if [ "$prot" != "tcp" -a "$prot" != "upd" ]; then
        prot=tcp
     fi
-    if [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
+    cmd="iptables -D INPUT -p $prot -m state --state NEW -m $prot --dport $port -j ACCEPT"
+    if [[ $3 =~ I ]]; then
       x="port_$prot_$port"
+      cmd="# $cmd"
+    elif [[ $3 =~ J ]]; then
+      x=""
+    elif [[ " $SIMULATE_YES " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
+      x="port_$prot_$port"
+      cmd="# $cmd"
     elif [[ " $SIMULATE_NO " =~ [[:space:]]port_${prot}_${port}[[:space:]] ]]; then
       x=""
     else
       x=$(iptables -S 2>/dev/null|grep "\-p *$prot *.*\-dport *$port" 2>/dev/null)
     fi
     if [ "$x" ]; then
-      run_traced "iptables -D INPUT -p $prot -m state --state NEW -m $prot --dport $port -j ACCEPT"
+      run_traced "$cmd"
     fi
 }
 
@@ -885,7 +900,7 @@ get_pkg_ver() {
     else
       local pkgversion=$(get_pkg_ver_inq $1 $2)
     fi
-    if [ -z "$pkgversion" ]; then
+    if [ -z "$pkgversion" -a "$ij" != "J" ]; then
       if $(is_virtualname $pkgname); then
         pkgversion="# $pkgname N/A"
       else
@@ -958,6 +973,16 @@ get_full_svccmd() {
     else
       local cmd="$servicecmd $1 $2"
     fi
+    if [[ $3 =~ I ]]; then
+      if [ "$1" == "start" ]; then
+        cmd="# $cmd"
+      fi
+    elif [[ $3 =~ J ]]; then
+      if [ "$1" == "restart" -o "$1" == "stop" ]; then
+        cmd="# $cmd"
+      fi
+    fi
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$cmd=get_full_svccmd($1 $2 $3)">>~/$THIS.his; fi    #debug
     echo "$cmd"
 }
 
@@ -1332,11 +1357,11 @@ post_install_ports() {
     if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
         for port in $X; do
-          enable_port $port tcp
+          enable_port $port tcp $3
         done
       elif [ "$1" == "remove" ]; then
         for port in $X; do
-          disable_port $port tcp
+          disable_port $port tcp $3
         done
       elif [ "$1" == "whatis" ]; then
         for port in $X; do
@@ -1369,13 +1394,13 @@ post_update_ports() {
     local X="$(get_prm_value "0" TCP_$2)"
     if [ -n "$X" ]; then
       for port in $X; do
-        enable_port $port tcp
+        enable_port $port tcp $3
       done
     fi
     local X="$(get_prm_value "0" UDP_$pkgname)"
     if [ -n "$X" ]; then
       for port in $X; do
-        enable_port $port udp
+        enable_port $port udp $3
       done
     fi
     return $STS_SUCCESS
@@ -1388,13 +1413,13 @@ post_remove_ports() {
     local X="$(get_prm_value "0" TCP_$2)"
     if [ -n "$X" ]; then
       for port in $X; do
-        disable_port $port tcp
+        disable_port $port tcp $3
       done
     fi
     local X="$(get_prm_value "0" UDP_$pkgname)"
     if [ -n "$X" ]; then
       for port in $X; do
-        disable_port $port tcp
+        disable_port $port tcp $3
       done
     fi
     return $STS_SUCCESS
@@ -1404,7 +1429,7 @@ post_dry_install_service() {
 # post_dry_install_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_install_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd=$(get_full_svccmd start $svcname)
+    local cmd=$(get_full_svccmd start $svcname $3)
     run_traced "$cmd"
     local sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -1439,7 +1464,7 @@ post_dry_update_service() {
 # post_dry_update_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd=$(get_full_svccmd restart $svcname)
+    local cmd=$(get_full_svccmd restart $svcname $3)
     run_traced "$cmd"
     local sts=$?
     return $sts
@@ -1449,7 +1474,7 @@ pre_dry_remove_service() {
 # pre_dry_remove_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "0" "${2}_svcname")
-    local cmd=$(get_full_svccmd stop $svcname)
+    local cmd=$(get_full_svccmd stop $svcname $3)
     run_traced "$cmd"
     local sts=$?
     return $sts
@@ -1581,6 +1606,21 @@ do_dry_whatis_package() {
     return $STS_SUCCESS
 }
 
+end_remove() {
+# end_remove(action OPTS)
+    local cmd=
+    if [ "$FH" == "Debian" ]; then
+      cmd="apt-get autoremove"
+      if [[ $2 =~ J ]]; then
+        cmd="# $cmd"
+      fi
+    fi
+    if [ -n "$cmd" ]; then
+      run_traced "$cmd"
+    fi
+    return $STS_SUCCESS
+}
+
 satisfy_request() {
 # satisfy_request(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "satisfy_request($1 $2 $3)">>~/$THIS.his; fi    #debug
@@ -1663,12 +1703,12 @@ do_act_all_deppkgs() {
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_act_all_deppkgs($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
     local sts=$STS_SUCCESS
     local s
-    local DEPlist="$(get_prm_value "0" SUB_$3)"
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  DEPlist=$DEPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
-    if [ -n "$DEPlist" -a $prdstk_level -lt $opt_depth ]; then
+    local BOPlist="$(get_prm_value "0" BOP_$3)"
+    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  BOPlist=$BOPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
+    if [ -n "$BOPlist" -a $prdstk_level -lt $opt_depth ]; then
       ((prdstk_level++))
       local p
-      for p in $DEPlist; do
+      for p in $BOPlist; do
         do_action_subpkg "$1" $2 $p $4 "$5"
         s=$?
         [ $sts -eq 127 ] && sts=$s
@@ -1724,33 +1764,44 @@ do_local_function() {
         fi
         if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $3/$act; ij=$ij; sts=$sts; stk=$prdstk_level; aae=$opt_aae;">>~/$THIS.his; fi    #debug
       elif [ "$3" == "update" -a $sts -ne $STS_SUCCESS ]; then
-        if [ $sts -eq $STS_SUCCESS ]; then
-          sts=$STS_SUCCESS
-        else
-          if [ $opt_aae -eq 1 -a $prdstk_level -gt 0 ]; then
-            ij=J
-            DETECTED_NO="$DETECTED_NO $4"
-          elif [ $opt_aae -eq 2 ]; then
-            ij=J
-            DETECTED_NO="$DETECTED_NO $4"
-          elif [ $opt_aae -eq 3 ]; then
-            if [ $prdstk_level -gt 0 ]; then
-              act="install"
-              DETECTED_INS="$DETECTED_INS $4"
-            else
-              ij=J
-              DETECTED_NO="$DETECTED_NO $4"
-            fi
-          elif [ $opt_aae -eq 4 ]; then
+        sts=$STS_SUCCESS
+        if [ $opt_aae -eq 1 -a $prdstk_level -gt 0 ]; then
+          ij=J
+          DETECTED_NO="$DETECTED_NO $4"
+        elif [ $opt_aae -eq 2 ]; then
+          ij=J
+          DETECTED_NO="$DETECTED_NO $4"
+        elif [ $opt_aae -eq 3 ]; then
+          if [ $prdstk_level -gt 0 ]; then
             act="install"
             DETECTED_INS="$DETECTED_INS $4"
           else
-            if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(1) # do_local_function">>~/$THIS.his; fi    #debug
-            return $STS_FAILED
+            ij=J
+            DETECTED_NO="$DETECTED_NO $4"
           fi
+        elif [ $opt_aae -eq 4 ]; then
+          act="install"
+          DETECTED_INS="$DETECTED_INS $4"
+        else
+          if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(1) # do_local_function">>~/$THIS.his; fi    #debug
+          return $STS_FAILED
         fi
       elif [ "$3" == "remove" -a $sts -ne $STS_SUCCESS ]; then
-        local ij=J
+        sts=$STS_SUCCESS
+        if [ $opt_aae -eq 1 -a $prdstk_level -gt 0 ]; then
+          ij=J
+          DETECTED_NO="$DETECTED_NO $4"
+        elif [ $opt_aae -gt 1 ]; then
+          ij=J
+          DETECTED_NO="$DETECTED_NO $4"
+        else
+          if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(1) # do_local_function">>~/$THIS.his; fi    #debug
+          return $STS_FAILED
+        fi
+      elif [ "$3" == "remove" -a $prdstk_level -ge $opt_depth ]; then
+        ij=J
+        DETECTED_NO="$DETECTED_NO $4"
+        if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  ij=$ij; DECN=$DETECTED_NO;">>~/$THIS.his; fi    #debug
       fi
     fi
     local xtlcmd=$(get_act_xtlcmd $4 $act)
@@ -1772,7 +1823,7 @@ do_local_function() {
           cmd=${cmd//__/_}
           # if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
           if [ "$(type -t $cmd)" == "function" ]; then
-            eval $cmd $act $4 $5
+            eval $cmd $act $4 $5$ij
             s=$?
             [ $sts -eq 127 ] && sts=$s
             [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
@@ -1781,7 +1832,7 @@ do_local_function() {
               cmd=${cmd//__/_}
               # if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
               if [ "$(type -t $cmd)" == "function" ]; then
-                eval $cmd $act $4 $5
+                eval $cmd $act $4 $5$ij
                 s=$?
                 [ $sts -eq 127 ] && sts=$s
                 [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
@@ -1797,7 +1848,7 @@ do_local_function() {
     cmd=${cmd//__/_}
     # if [[ $5 =~ b ]]; then echo "# [$cmd]">>~/$THIS.his; fi #debug
     if [ "$(type -t $cmd)" == "function" ]; then
-      eval $cmd $act $4 $5
+      eval $cmd $act $4 $5$ij
       s=$?
       [ $sts -eq 127 ] && sts=$s
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
@@ -1806,9 +1857,9 @@ do_local_function() {
     return $sts
 }
 
-do_local_function_DEP() {
-# do_local_function_DEP(prefix svcname action pkgname OPTS)
-    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function_DEP($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+do_local_function_BOP() {
+# do_local_function_BOP(prefix svcname action pkgname OPTS)
+    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function_BOP($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
     local sts=127
     local s
     if [ "$1" == "pre_" ]; then
@@ -1819,17 +1870,18 @@ do_local_function_DEP() {
     s=$?
     [ $sts -eq 127 ] && sts=$s
     [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-    local DEPlist="$(get_prm_value "0" SUB_$4)"
-    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  DEPlist=$DEPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
-    if [ -n "$DEPlist" -a $prdstk_level -lt $opt_depth ]; then
-      if [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
+    local BOPlist="$(get_prm_value "0" BOP_$4)"
+    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  BOPlist=$BOPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
+    if [ -n "$BOPlist" ] && [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
+      if [ $prdstk_level -lt $opt_depth ]; then
+      # if [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
         local opts=${5//I/}
         opts=${opts//J/}
         do_act_all_deppkgs "$1" $3 $4 $opts
         sts=$?
       fi
     fi
-    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) # do_local_function_DEP">>~/$THIS.his; fi    #debug
+    if [[ $5 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) # do_local_function_BOP">>~/$THIS.his; fi    #debug
     return $sts
 }
 
@@ -1902,23 +1954,23 @@ prod() {
     else
       local pkgname=$(get_realname $2 $act)
     fi
-    local SUBcmd=do_dry_${act}_package
-    local SUBcmd1=do_1_${act}_package
-    local SUBcmd2=
+    local BOPcmd=do_dry_${act}_package
+    local BOPcmd1=do_1_${act}_package
+    local BOPcmd2=
     local svcname=$(get_prm_value "0" "${pkgname}_svcname")
     if [ -z "$pfx" ]; then
-      if [ "$(type -t $SUBcmd1)" == "function" ] && [[  "$3" =~ q ]]; then
-        eval $SUBcmd1 $act $pkgname "$3" "$4" "$5"
+      if [ "$(type -t $BOPcmd1)" == "function" ] && [[  "$3" =~ q ]]; then
+        eval $BOPcmd1 $act $pkgname "$3" "$4" "$5"
         return $?
-      elif [ "$(type -t $SUBcmd1)" == "function" -a "$(type -t $SUBcmd)" != "function" ]; then
-        eval $SUBcmd1 $act $pkgname "$3" "$4" "$5"
+      elif [ "$(type -t $BOPcmd1)" == "function" -a "$(type -t $BOPcmd)" != "function" ]; then
+        eval $BOPcmd1 $act $pkgname "$3" "$4" "$5"
         return $?
       fi
     fi
     sts=$STS_SUCCESS
     local s
     if [ -z "$pfx" -o "$pfx" == "pre_" ]; then
-      [ $sts -eq $STS_SUCCESS ] && do_local_function_DEP "pre_" "$svcname" "$act" "$pkgname" "$3" "$4" "$5"
+      [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "pre_" "$svcname" "$act" "$pkgname" "$3" "$4" "$5"
       s=$?
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$s
     fi
@@ -1939,20 +1991,23 @@ prod() {
       fi
     fi
     if [ -z "$pfx" -o "$pfx" == "do_" ]; then
-      [ $sts -eq $STS_SUCCESS ] && do_local_function_DEP "do_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+      [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "do_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       s=$?
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$?
     fi
     if [ -z "$pfx" -o "$pfx" == "post_" ]; then
-      [ $sts -eq $STS_SUCCESS ] && do_local_function_DEP "post_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
+      [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "post_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$5"
       s=$?
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$?
     fi
     if [ $sts -ne $STS_SUCCESS ] || [[  "$3" =~ q ]]; then
       return $sts
     fi
-    if [ $prdstk_level -eq 0 -a "$FH" == "Debian" -a "$1" == "remove" ]; then
-      run_traced "apt-get autoremove"
+    if [ $prdstk_level -eq 0 ]; then
+      BOPcmd=end_${act}
+      if [ "$(type -t $BOPcmd)" == "function" ]; then
+        eval $BOPcmd $act $3$ij
+      fi
     fi
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #prod">>~/$THIS.his; fi  #debug
     return $sts
@@ -2916,9 +2971,9 @@ elif [ "$action" == "config" ]; then
         fi
         # fi
       fi
-      DEPlist="SUB_${realname//-/_}"
-      if [ "$DEPlist" ]; then
-        for pkg in ${!DEPlist}; do
+      BOPlist="BOP_${realname//-/_}"
+      if [ "$BOPlist" ]; then
+        for pkg in ${!BOPlist}; do
           p=$(get_realname $pkg)
           if [[ " $PIP_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
             :
