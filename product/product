@@ -61,7 +61,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.30"
+__version__="0.2.31"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -73,51 +73,51 @@ conf_default() {
     # ALIAS
     local p=
     local x=
-    set_cfg_def "OSSERVICE" "service" "1" "Debian"
-    set_cfg_def "OSSERVICE" "service" "1" "CentOS6"
-    set_cfg_def "OSSERVICE" "systemctl" "1" "CentOS7"
-    set_cfg_def "apache2" "httpd" "1" "RHEL"
-    set_cfg_def "httpd" "apache2" "1" "Debian"
-    set_cfg_def "python-pip" "pip" "1"
-    set_cfg_def "python-setuptools" "setuptools" "1"
-    set_cfg_def "mysql" "mysql-server" "1"
-    set_cfg_def "mysql" "mariadb" "1" "CentOS7"
-    set_cfg_def "mysql-server" "mariadb-server" "1" "CentOS7"
-    set_cfg_def "mariadb" "mysql-server" "1" "CentOS6"
-    set_cfg_def "mariadb" "mysql-server" "1" "Debian"
-    set_cfg_def "mariadb-server" "mysql-server" "1" "CentOS6"
-    set_cfg_def "mariadb-server" "mysql-server" "1" "Debian"
-    set_cfg_def "postgres" "postgresql-server" "1" "RHEL"
-    set_cfg_def "postgres" "postgresql" "1" "Debian"
-    set_cfg_def "postgresql" "postgresql-server" "1" "RHEL"
-    set_cfg_def "postgresql-server" "postgresql" "1" "Debian"
-    set_cfg_def "pyopenssl" "pyOpenSSL" "1" "RHEL"
-    set_cfg_def "php5" "php" "1" "RHEL"
-    set_cfg_def "php" "php5" "1" "Debian"
-    set_cfg_def "openssh" "openssh-server" "1"
-    set_cfg_def "openssh-client" "openssh-clients" "1" "RHEL"
-    set_cfg_def "openssh-clients" "openssh-client" "1" "Debian"
-    set_cfg_def "babel" "Babel" "1"
-    set_cfg_def "beautifulsoup" "BeautifulSoup" "1"
-    set_cfg_def "libxml2-python" "python-libxml2" "1" "Debian"
-    set_cfg_def "python-libxml2" "libxml2-python" "1" "RHEL"
-    set_cfg_def "libxslt-python" "python-libxslt1" "1" "Debian"
-    set_cfg_def "python-libxslt1" "libxslt-python" "1" "RHEL"
-    set_cfg_def "python-devel" "python-dev" "1" "Debian"
-    set_cfg_def "python-dev" "python-devel" "1" "RHEL"
-    set_cfg_def "zlib1g-dev" "zlib-devel" "1" "Debian"
-    set_cfg_def "zlib-devel" "zlib1g-dev" "1" "RHEL"
-    set_cfg_def "libreadline6-dev" "readline-devel" "1" "Debian"
-    set_cfg_def "readline-devel" "libreadline6-dev" "1" "RHEL"
-    set_cfg_def "dateutil" "python-dateutil" "1"
-    set_cfg_def "php5-mysql" "php-mysql" "1" "RHEL"
-    set_cfg_def "php-mysql" "php5-mysql" "1" "Debian"
-    set_cfg_def "php5-common" "php-common" "1" "RHEL"
-    set_cfg_def "php-common" "php5-common" "1" "Debian"
-    set_cfg_def "php5-xml" "php-xml" "1" "RHEL"
-    set_cfg_def "php-xml" "php5-xml" "1" "Debian"
-    set_cfg_def "php5-cli" "php-cli" "1" "RHEL"
-    set_cfg_def "php-cli" "php5-cli" "1" "Debian"
+    set_cfg_def "REAL_OSSERVICE" "service" "0" "Debian"
+    set_cfg_def "REAL_OSSERVICE" "service" "0" "CentOS6"
+    set_cfg_def "REAL_OSSERVICE" "systemctl" "0" "CentOS7"
+    set_cfg_def "REAL_apache2" "httpd" "0" "RHEL"
+    set_cfg_def "REAL_httpd" "apache2" "0" "Debian"
+    set_cfg_def "REAL_python-pip" "pip" "0"
+    set_cfg_def "REAL_python-setuptools" "setuptools" "0"
+    set_cfg_def "REAL_mysql" "mysql-server" "0"
+    set_cfg_def "REAL_mysql" "mariadb" "0" "CentOS7"
+    set_cfg_def "REAL_mysql-server" "mariadb-server" "0" "CentOS7"
+    set_cfg_def "REAL_mariadb" "mysql-server" "0" "CentOS6"
+    set_cfg_def "REAL_mariadb" "mysql-server" "0" "Debian"
+    set_cfg_def "REAL_mariadb-server" "mysql-server" "0" "CentOS6"
+    set_cfg_def "REAL_mariadb-server" "mysql-server" "0" "Debian"
+    set_cfg_def "REAL_postgres" "postgresql-server" "0" "RHEL"
+    set_cfg_def "REAL_postgres" "postgresql" "0" "Debian"
+    set_cfg_def "REAL_postgresql" "postgresql-server" "0" "RHEL"
+    set_cfg_def "REAL_postgresql-server" "postgresql" "0" "Debian"
+    set_cfg_def "REAL_pyopenssl" "pyOpenSSL" "0" "RHEL"
+    set_cfg_def "REAL_php5" "php" "0" "RHEL"
+    set_cfg_def "REAL_php" "php5" "0" "Debian"
+    set_cfg_def "REAL_openssh" "openssh-server" "0"
+    set_cfg_def "REAL_openssh-client" "openssh-clients" "0" "RHEL"
+    set_cfg_def "REAL_openssh-clients" "openssh-client" "0" "Debian"
+    set_cfg_def "REAL_babel" "Babel" "0"
+    set_cfg_def "REAL_beautifulsoup" "BeautifulSoup" "0"
+    set_cfg_def "REAL_libxml2-python" "python-libxml2" "0" "Debian"
+    set_cfg_def "REAL_python-libxml2" "libxml2-python" "0" "RHEL"
+    set_cfg_def "REAL_libxslt-python" "python-libxslt1" "0" "Debian"
+    set_cfg_def "REAL_python-libxslt1" "libxslt-python" "0" "RHEL"
+    set_cfg_def "REAL_python-devel" "python-dev" "0" "Debian"
+    set_cfg_def "REAL_python-dev" "python-devel" "0" "RHEL"
+    set_cfg_def "REAL_zlib1g-dev" "zlib-devel" "0" "Debian"
+    set_cfg_def "REAL_zlib-devel" "zlib1g-dev" "0" "RHEL"
+    set_cfg_def "REAL_libreadline6-dev" "readline-devel" "0" "Debian"
+    set_cfg_def "REAL_readline-devel" "libreadline6-dev" "0" "RHEL"
+    set_cfg_def "REAL_dateutil" "python-dateutil" "0"
+    set_cfg_def "REAL_php5-mysql" "php-mysql" "0" "RHEL"
+    set_cfg_def "REAL_php-mysql" "php5-mysql" "0" "Debian"
+    set_cfg_def "REAL_php5-common" "php-common" "0" "RHEL"
+    set_cfg_def "REAL_php-common" "php5-common" "0" "Debian"
+    set_cfg_def "REAL_php5-xml" "php-xml" "0" "RHEL"
+    set_cfg_def "REAL_php-xml" "php5-xml" "0" "Debian"
+    set_cfg_def "REAL_php5-cli" "php-cli" "0" "RHEL"
+    set_cfg_def "REAL_php-cli" "php5-cli" "0" "Debian"
     # Commands templates
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
@@ -334,8 +334,13 @@ conf_default() {
     set_cfg_def "TCP_vsftpd" "21" "0"
     set_cfg_def "TCP_openssh-server" "22" "0"
     set_cfg_def "TCP_odoo" "8069" "0"
+    # Configuration filed
+    p="/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
+    set_cfg_def "FINDPKG_postgresql" "$p" "0" "Debian"
+    set_cfg_def "CONFN_postgresql" "pg_hba.conf" "0" "Debian"
+    set_cfg_def "FINDPKG_postgresql-server" "$p" "0" "RHEL"
+    set_cfg_def "CONFN_postgresql-server" "pg_hba.conf" "0" "RHEL"
 }
-
 
 get_prm_value() {
 # get_prm_value (tid prmname)::DEF*
@@ -727,17 +732,17 @@ get_realname() {
         pkgname="LAMP"
       fi
     fi
-    local p=$(get_cfg_value "1" $pkgname)
+    local p=$(get_cfg_value "0" REAL_$pkgname)
     if [ -n "$p" ]; then
       pkgname=$p
     else
       if [ "$FH" == "RHEL" ]; then
-        local p=$(get_cfg_value "1" ${1}__Debian)
+        local p=$(get_cfg_value "0" REAL_${1}__Debian)
         if [ "${p: -4}" == "-dev" ]; then
           pkgname="${p}el"
         fi
       elif [ "$FH" == "Debian" ]; then
-        local p=$(get_cfg_value "1" ${1}__RHEL)
+        local p=$(get_cfg_value "0" REAL_${1}__RHEL)
         if [ "${p: -6}" == "-devel" ]; then
           pkgname="${p:0: -2}"
         fi
@@ -984,6 +989,21 @@ get_full_svccmd() {
     fi
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$cmd=get_full_svccmd($1 $2 $3)">>~/$THIS.his; fi    #debug
     echo "$cmd"
+}
+
+get_full_confn() {
+# get_full_confn(action pkgname OPTS)
+    local confpaths="$(get_prm_value "0" FINDPKG_$2)"
+    local confn="$(get_prm_value "0" CONFN_$2)"
+    if [ -n "$confpaths" -a -n "$confn" ]; then
+      local p1=$(echo "$confpaths"|awk -F\; '{print $1}')
+      local p2=$(echo "$confpaths"|awk -F\; '{print $2}')
+      local p3=$(echo "$confpaths"|awk -F\; '{print $3}')
+      local p4=$(echo "$confpaths"|awk -F\; '{print $4}')
+      local p5=$(echo "$confpaths"|awk -F\; '{print $5}')
+      confn=$(findpkg "$confn" "$p1" "$p2" "$p3" "$p4" "$p5")
+    fi
+    echo "$confn"
 }
 
 update_hba_conf() {
@@ -1308,6 +1328,17 @@ do_dry_update_by_wget() {
     return $sts
 }
 
+
+do_dry_config_package() {
+# do_dry_config_package(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_config_package($1 $2 $3)">>~/$THIS.his; fi #debug
+    confn=$(get_full_confn $1 $2 $3)
+    if [ -n "$confn" ]; then
+      vi $confn
+    fi
+    return $STS_SUCCESS
+}
+
 pre_install_LAMP() {
 # pre_install_LAMP(action pkgname OPTS)
     if [ $opt_dev -gt 0 ]; then
@@ -1516,7 +1547,7 @@ do_1_info_package() {
 # do_1_info_package(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
     local pkgname=$(get_realname $2)
-    local pkglist=$(prod realname $2)
+    local pkglist=$(please realname $2)
     local xtlcmd=$(get_act_xtlcmd $pkgname "install")
     local svcname=$(get_prm_value "0" "${pkgname}_svcname")
     local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
@@ -1642,10 +1673,10 @@ satisfy_request() {
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
       for p in $REQlist; do
         realname=$(get_realname $p $1 $3)
-        if $(prod status $realname $x); then
+        if $(please status $realname $x); then
           [ $sts -eq 127 ] && sts=$STS_SUCCESS
         else
-          prod install $realname $3
+          please install $realname $3
           s=$?
           [ $sts -eq 127 ] && sts=$s
           [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
@@ -1691,7 +1722,7 @@ do_action_subpkg() {
     verbose_msg "Analyzing $3"
     opts=${opts//Q/}
     opts=${opts//q/}
-    prod $1$2 $3 $opts
+    please $1$2 $3 $opts
     sts=$?
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_action_subpkg">>~/$THIS.his; fi    #debug
     return $sts
@@ -1918,9 +1949,9 @@ do_iter_prod() {
     local p
     for p in $iter; do
       if [ "$p" == "$2" -o "$p" == "$pkgname" ]; then
-         prod $1 $p "-Q" "$4" "$5"
+         please $1 $p "-Q" "$4" "$5"
        else
-         prod $1 $p "$3" "$4" "$5"
+         please $1 $p "$3" "$4" "$5"
        fi
        local sts=$?
        if [ $sts -ne $STS_SUCCESS ]; then
@@ -1931,17 +1962,17 @@ do_iter_prod() {
     return $sts
 }
 
-prod() {
-# prod(action pkgname OPTS)
+please() {
+# please(action pkgname OPTS)
 # return: sts
 # TODO [Debian] aptitude search 'pkgname'
 # TODO [RHEL] yum search 'pkgname'
     if [ -z "$prdstk_level" ]; then prdstk_level=0; fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "prod($1 $2 $3)">>~/$THIS.his; fi #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "please($1 $2 $3)">>~/$THIS.his; fi #debug
     do_iter_prod "$@"
     local sts=$?
     if [ $sts -ne 127 ]; then
-      if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #prod">>~/$THIS.his; fi   #debug
+      if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #please">>~/$THIS.his; fi   #debug
       return $sts
     fi
     local x=$((prdstk_level*2))
@@ -2009,7 +2040,7 @@ prod() {
         eval $BOPcmd $act $3$ij
       fi
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #prod">>~/$THIS.his; fi  #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #please">>~/$THIS.his; fi  #debug
     return $sts
 }
 
@@ -2385,7 +2416,7 @@ test_install() {
     p="${PNLX[jj]}"
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
-    elog "Test $tst_ctr [$FH]: prod install '$p'"
+    elog "Test $tst_ctr [$FH]: please install '$p'"
     if [ "$p" == "odoo" ]; then
       local opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
       if [ "$FH" == "RHEL" ]; then
@@ -2555,7 +2586,7 @@ test_install() {
       fi
     fi
     if [ "$p" ]; then
-      prod install $p>$fout
+      please install $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
         elog "Test Failed"
         exit $STS_FAILED
@@ -2731,7 +2762,7 @@ test_update() {
         echo "--> rm -f $pn">>$ftest
       fi
     fi
-    prod update $p>$fout
+    please update $p>$fout
     if [ "$(diff -q $fout $ftest)" ]; then
       elog "Test Failed"
       exit $STS_FAILED
@@ -2751,7 +2782,7 @@ test_remove() {
     p="${PNLX[jj]}"
     if [ "$p" == "." ]; then p=; fi
     ((tst_ctr++))
-    elog "Test $tst_ctr [$FH]: 'prod remove $p'"
+    elog "Test $tst_ctr [$FH]: 'please remove $p'"
     if [ "$p" == "odoo" ]; then
       if [ "$FH" == "RHEL" ]; then
         echo "--> yum -y remove odoo">>$ftest
@@ -2768,7 +2799,7 @@ test_remove() {
       fi
     fi
     if [ "$p" ]; then
-      prod remove $p>$fout
+      please remove $p>$fout
       if [ "$(diff -q $fout $ftest)" ]; then
         elog "Test Failed"
         exit $STS_FAILED
@@ -2854,8 +2885,6 @@ fi
 
 $(init_cfg)
 $(active_cfg)
-$(init_cfg "1")
-$(active_cfg "1")
 conf_default
 FCONFDEF=/etc/product.conf.sample
 if [ $test_mode -gt 0 ]; then
@@ -2940,7 +2969,7 @@ if [ ${opt_dbg:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi    #debug
 
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
-elif [ "$action" == "config" ]; then
+elif [ "$action" == "_config" ]; then
   if [ $EUID -ne 0 ]; then
     elog "This command must be executed by root"
     exit $STS_FAILED
@@ -2959,7 +2988,7 @@ elif [ "$action" == "config" ]; then
       elif [[ " $APT_PKGS " =~ [[:space:]]$realname[[:space:]] ]]; then
         :
       else
-        installer=$(prod installer $realname)
+        installer=$(please installer $realname)
         if [ "$installer" == "pip" ]; then
           PIP_PKGS="$PIP_PKGS $realname "
         elif [ "$installer" == "git" ]; then
@@ -2984,7 +3013,7 @@ elif [ "$action" == "config" ]; then
           elif [[ " $APT_PKGS " =~ [[:space:]]$p[[:space:]] ]]; then
             :
           else
-            installer=$(prod installer $p)
+            installer=$(please installer $p)
             if [ "$installer" == "pip" ]; then
               PIP_PKGS="$PIP_PKGS $p "
             elif [ "$installer" == "git" ]; then
@@ -3003,10 +3032,10 @@ elif [ "$action" == "config" ]; then
     for p in $iter; do
       realname=$(get_realname $p)
       if $(is_virtualname $realname); then
-        prod $action $realname "-q"
-      elif $(prod status $realname "-q"); then
+        please $action $realname "-q"
+      elif $(please status $realname "-q"); then
         wlog "- package $realname"
-        prod $action $realname
+        please $action $realname
       else
         wlog "$realname not installed"
       fi
@@ -3027,7 +3056,7 @@ elif [ "$action" == "export" ]; then
   if [ -z "$opt_host" ]; then
     elog "Missing destination host name: use -H host option"
   else
-    prod install $THIS
+    please install $THIS
   fi
   ending_msg
 elif [ "$action" == "import" ]; then
@@ -3113,7 +3142,7 @@ else
   if [ $opt_tail -gt 0 ]; then
     wlog "Setup for 1st installation"
     if [ $opt_dry_run -eq 0 ]; then
-      prod update "."
+      please update "."
     fi
   fi
   opt_tail=0
@@ -3134,7 +3163,7 @@ else
       fi
     fi
     for package in $pkgs; do
-      prod $act $package $OPTS
+      please $act $package $OPTS
       sts=$?
       if [ $sts -eq 127 ]; then
         echo "Unknow action $act"
