@@ -189,7 +189,7 @@ EOF
 LAMP (by product)
 epel-release (by yum)
 pip (by yum)(pip --version)
-python-wheel (by yum)
+wheel (by pip)
 yum-utils (by yum)
 libffi-devel (by yum)
 pyOpenSSL (by yum)

@@ -127,7 +127,7 @@ EOF
 LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.02.test
-LAMP=(LAMP epel-release pip python-wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
+LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by product)
 EOF
   cat <<EOF >$TESTDIR/res/httpd__RHEL.02.test
 httpd (install by yum)
