@@ -122,7 +122,7 @@ conf_default() {
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
     set_cfg_def "VFYUPP" "ssh product" "0"
-    set_cfg_def "VFYPSX" "pip mysql psql python" "0"
+    set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf" "0"
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
@@ -725,10 +725,14 @@ get_pfxaction(){
 }
 
 get_realname() {
-# get_realname(pkgname [action] [sub])
+# get_realname(pkgname [action] [OPTS])
 # return: realname
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_realname($1 $2 $3)">>~/$THIS.his; fi #debug
-    local pkgname=$1
+    local pkgname=$(echo "$1"|grep -Eo '[^<=>]*'|head -n1)
+    local op=$(echo "$1"|grep -Eo '[<=>]*'|head -n1)
+    if [ -n "$op" ]; then
+      local reqver=$(echo "$1"|awk -F"$op" '{print $2}')
+    fi
     if [ -z "$1" -o "$1" == "." ]; then
       if [ "$2" == "update" ]; then
         pkgname="EVERYTHINGS"
@@ -933,6 +937,9 @@ get_pkg_ver() {
 get_act_xtlcmd() {
 # get_act_xtlcmd(pkgname [action] [OPTS])
     local xtlcmd=$(get_prm_value "0" "${1}_xtlcmd_${2}")
+    if [ -z "$xtlcmd"  -a "$2" == "remove" ]; then
+      xtlcmd=$(get_prm_value "0" "${1}_xtlcmd_install")
+    fi
     if [ -z "$xtlcmd" ]; then
       xtlcmd=$(get_prm_value "0" "${1}_xtlcmd")
     fi
@@ -948,6 +955,8 @@ get_full_xtlcmd() {
     if [ "$2" == "EVERYTHINGS" ]; then
       p=""
     elif [ "$2" == "pip" -a "$1" == "install" -a "$DISTO" != "CentOS6" ]; then
+        p=" python-$2"
+    elif [ "$2" == "pip" -a "$1" == "remove" -a "$DISTO" != "CentOS6" ]; then
         p=" python-$2"
     elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] && [[ $3 =~ p ]]; then
       if [ "$1" == "install" -o "$1" == "remove" ]; then
@@ -979,7 +988,7 @@ get_full_xtlcmd() {
 
 get_full_svccmd() {
 # get_full_svccmd(action svcname OPTS)
-    local servicecmd=$(get_realname "OSSERVICE")
+    local servicecmd=$(get_realname "OSSERVICE" $3)
     if [ "$servicecmd" == "service" ]; then
       local cmd="$servicecmd $2 $1"
     else
@@ -1273,8 +1282,9 @@ do_dry_remove_package() {
     cmd=$(get_full_xtlcmd $1 $2 $3)
     run_traced "$cmd"
     local sts=$?
-    if [[ " $PIP_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
+    if [ "$2" != "pip" ] && [[ " $PIP_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
       cmd=$(get_full_xtlcmd install $2 $3)
+      cmd="${cmd/install/$1}"
       run_traced "$cmd"
       local s=$?
       if [ $s -ne $STS_SUCCESS ]; then
@@ -1533,35 +1543,26 @@ pre_dry_remove_service() {
     return $sts
 }
 
-do_1_realname_package() {
-# do_1_realname_package(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_realname_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    echo "$2"
-    return $STS_SUCCESS
-}
-
-do_1_confn_package() {
-# do_1_confn_package(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_confn_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local confn=$(get_full_confn $1 $2 $3)
-    echo "$confn"
-    return $STS_SUCCESS
-}
-
-do_1_installer_package() {
-# do_1_installer_package(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " " do_1_installer_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local xtlcmd=$(get_act_xtlcmd $2 install $3)
-    echo "$xtlcmd"
-    return $STS_SUCCESS
-}
-
-do_1_vfycmd_package() {
-# do_1_vfycmd_package(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_vfycmd_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local vfycmd=$(get_prm_value "0" "${2}_vfycmd")
-    echo "$vfycmd"
-    return $STS_SUCCESS
+do_1_tellme_package() {
+# do_1_tellme_package(action pkgname OPTS param)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    local sts=$STS_SUCCESS
+    if [ "$4" == "realname" ]; then
+      echo "$2"
+    elif [ "$4" == "installer" ]; then
+      local xtlcmd=$(get_act_xtlcmd $2 install $3)
+      echo "$xtlcmd"
+    elif [ "$4" == "vfycmd" ]; then
+      local vfycmd=$(get_prm_value "0" "${2}_vfycmd")
+      echo "$vfycmd"
+    elif [ "$4" == "confn" ]; then
+      local confn=$(get_full_confn $1 $2 $3)
+      echo "$confn"
+    else
+      echo "Invalid param: realname|installer|vfycmd|confn"
+      sts=$STS_FAILED
+    fi
+    return $sts
 }
 
 do_1_status_package() {
@@ -1575,8 +1576,8 @@ do_1_status_package() {
 do_1_info_package() {
 # do_1_info_package(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local pkgname=$(get_realname $2)
-    local pkglist=$(please realname $2)
+    local pkgname=$(get_realname "$2" $3)
+    local pkglist=$(please tellme $2 $3 realname)
     local xtlcmd=$(get_act_xtlcmd $pkgname install $3)
     local svcname=$(get_prm_value "0" "${pkgname}_svcname")
     local cmdname=$(get_prm_value "0" "${pkgname}_cmdname")
@@ -1681,6 +1682,12 @@ end_remove() {
     return $STS_SUCCESS
 }
 
+get_ver_num() {
+  local xtlver=$(echo "$1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9+]|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+  if [ -z "$xtver" ]; then xtlver="0"; fi
+  echo $xtlver
+}
+
 satisfy_request() {
 # satisfy_request(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "satisfy_request($1 $2 $3)">>~/$THIS.his; fi    #debug
@@ -1722,7 +1729,7 @@ do_action_subpkg() {
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_action_subpkg($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
     local p
     local x
-    local rs=$(get_realname $3 $2)
+    local rs=$(get_realname $3 $2 $4)
     local realname
     local opts=$4
     if [[ $4 =~ [qQ] ]]; then
@@ -1733,7 +1740,7 @@ do_action_subpkg() {
       if [ "$3" != "$iter" ]; then
         for p in $iter; do
           if [ "$p" != "$3" -a "$p" != "$rs" ]; then
-            realname=$(get_realname $p $2)
+            realname=$(get_realname $p $2 $4)
             do_action_subpkg "$1" $2 $realname ${opts}Q
             sts=$?
             if [ $sts -ne $STS_SUCCESS ]; then
@@ -1948,7 +1955,7 @@ do_iter_prod() {
       return 127
     fi
     local iter=$(get_iter $pkgname $3)
-    if [ "$act" == "realname" ]; then
+    if [ "$act" == "tellme" ]; then
       if [ "$2" == "$iter" ]; then
         echo "$2"
       elif [ "$pkgname" == "$iter" ]; then
@@ -2000,7 +2007,7 @@ please() {
     if [ "$act" == "info" ]; then
       local pkgname=$2
     else
-      local pkgname=$(get_realname $2 $act)
+      local pkgname=$(get_realname $2 "$act" $3)
     fi
     local BOPcmd=do_dry_${act}_package
     local BOPcmd1=do_1_${act}_package
@@ -2382,12 +2389,6 @@ post_install_odoo() {
 
 post_update_odoo() {
     post_install_odoo
-}
-
-post_install_LAMP() {
-    if [ "$FH" == "RHEL" ]; then
-      run_traced "yum upgrade python-setuptools"
-    fi
 }
 
 post_config_postgresql() {

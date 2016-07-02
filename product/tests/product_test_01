@@ -114,16 +114,14 @@ test_run () {
     fi
     if [ -z "$TRES" ]; then
        TRES=$Package
-    # elif $(echo $TRES|grep -v "=" &>/dev/null); then
     elif [[ $TRES =~ = ]]; then
        true
     else
        TRES="$2=$TRES"
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$(eval $TPRODUCT $opt_e realname $Package)
+      RES=$(eval $TPRODUCT $opt_e tellme $Package realname)
     fi
-    # set +x #debug
     ci-test "$msg" "$TRES" "$RES"
     return $s
 }

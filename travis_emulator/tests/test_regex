@@ -188,4 +188,3 @@ opt_dry_run=$saved_opt_dry_run
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"
 fi
-exit $sts

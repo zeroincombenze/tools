@@ -37,54 +37,75 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.6
+__version__=0.1.27.7
+
+z0coverage() {
+    if [ "$1" == "erase" ]; then
+      find . -name "*.tracehistory" -delete
+      find . -name "*,cover" -delete
+      coverage $1
+    elif [ "$1" == "run" ]; then
+      coverage "$@"
+    elif [ "$1" == "annotate" ]; then
+      coverage $1 -d cover ./*.py
+    elif [ "$1" == "report" ]; then
+      coverage $1
+    else
+      echo "Invalid bash coverage command!"
+      return 1
+    fi
+    return 0
+}
 
 
-ant_rm_trap () {
+ant_rm_trap() {
     wlog "... recover $1"
     local f1=$(readlink -f $1)
-    local fhist=$f1.tracehistory
-    local lne=$(head -n1 $f1)
-    if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
-      tail -n+2 $f1>$f1.tmp
-      mv -f $f1.tmp $f1
+    if [ -f $f1 ]; then
+      # local FHIST=$f1.tracehistory
+      local lne=$(head -n1 $f1)
+      if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
+        tail -n+2 $f1>$f1.tmp
+        mv -f $f1.tmp $f1
+      fi
     fi
 }
 
-ant_add_trap () {
+ant_add_trap() {
     echo "... analyzing $1"
     local f1=$(readlink -f $1)
-    local fhist=$f1.tracehistory
-    ant_rm_trap "$f1"
-    echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$fhist\" DEBUG">$f1.sh
-    local line=
-    while IFS=\~ read -r line; do
-      echo "$line">>$f1.sh
-      if [ "${line:0:1}" == "." ]; then
-        local fn="${line:2}"
-        local p="$(dirname $fn)"
-        if [ "$p" == "." ]; then
-          if [ "$(echo " $FL_2_TEST "|grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
-            FL_2_TEST="$FL_2_TEST $fn"
+    if [ -f $f1 ]; then
+      # local FHIST=$f1.tracehistory
+      ant_rm_trap "$f1"
+      echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
+      local line=
+      while IFS=\~ read -r line; do
+        echo "$line">>$f1.sh
+        if [ "${line:0:1}" == "." ]; then
+          local fn="${line:2}"
+          local p="$(dirname $fn)"
+          if [ "$p" == "." ]; then
+            if [ "$(echo " $FL_2_TEST "|grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
+              FL_2_TEST="$FL_2_TEST $fn"
+            fi
           fi
         fi
-      fi
-    done < "$f1"
-    # cat $fhist $f1>$f1.sh
-    rm -f $fhist
-    chmod +x $f1.sh
-    mv -f $f1.sh $f1
+      done < "$f1"
+      rm -f $FHIST
+      chmod +x $f1.sh
+      mv -f $f1.sh $f1
+    fi
 }
 
 
-do_annotate () {
+do_annotate() {
 # do_annotate(script, include_list)
   # set -x
   wlog "do_annotate \"$1\" \"$2\""
   trap - DEBUG
   FL_2_TEST=${2//,/ }
   local f1=$(readlink -f $1)
-  local fhist=$f1.tracehistory
+  FHIST=$f1.tracehistory
   if [ -f $f1 ]; then
     CWD=$PWD
     mkdir -p ./cover
@@ -102,18 +123,13 @@ do_annotate () {
     chmod +x $f1
     if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
     python $TDIR/$THIS.py "$f1" "$opts_k"
-    rm -f $fhist
-    for fn in $FL_2_TEST; do
-      fhist=$fn.tracehistory
-      python $TDIR/$THIS.py "$fn" "$opts_k"
-      rm -f $fhist
-    done
+    rm -f $FHIST
   fi
   return 0
 }
 
 
-do_check (){
+do_check() {
     wlog "do_check \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
       opts=$(inherits_travis_opts "Knrv")
@@ -129,7 +145,7 @@ do_check (){
 }
 
 
-do_test () {
+do_test() {
     wlog "do_test"
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
       opts=$(inherits_travis_opts "Tnrv")
@@ -146,7 +162,7 @@ do_test () {
 }
 
 
-do_diff () {
+do_diff() {
     wlog "do_diff \"$1\" \"$2\" \"$3\""
     opt_diff=1
     opts=$(inherits_travis_opts "nvd")
@@ -156,7 +172,7 @@ do_diff () {
 }
 
 
-do_replace () {
+do_replace() {
     opts=$(inherits_travis_opts "nvR")
     run_traced "dist_pkg $opts $1"
     sts=$?
@@ -164,7 +180,7 @@ do_replace () {
 }
 
 
-do_commit () {
+do_commit() {
     opts=$(inherits_travis_opts "nvC")
     run_traced "dist_pkg $opts $1"
     sts=$?
@@ -172,7 +188,7 @@ do_commit () {
 }
 
 
-do_push () {
+do_push() {
     opts=$(inherits_travis_opts "nvP")
     run_traced "dist_pkg $opts $1"
     sts=$?
@@ -180,7 +196,7 @@ do_push () {
 }
 
 
-do_fetch () {
+do_fetch() {
     opts=$(inherits_travis_opts "nvF")
     run_traced "dist_pkg $opts $1"
     sts=$?
@@ -188,7 +204,7 @@ do_fetch () {
 }
 
 
-do_coverage () {
+do_coverage() {
     wlog "do_coverage \"$1\" \"$2\" \"$3\""
     run_coverage_test
     sts=$?
@@ -196,7 +212,7 @@ do_coverage () {
 }
 
 
-do_travis (){
+do_travis() {
     wlog "do_travis \"$1\" \"$2\" \"$3\""
     if [ $opt_r -gt 0 ]; then
       please_run_tests "-KT"
@@ -213,7 +229,7 @@ do_travis (){
 }
 
 
-do_version () {
+do_version() {
     cd $PKGPATH; $DEVPATH/dist_pkg -- $pkgname $PRJNAME;
     if [ "$PRJNAME" != "Odoo" ]; then
       echo "Project $PRJNAME V$prjversion [$pkgname] answer:";
@@ -224,7 +240,7 @@ do_version () {
 }
 
 
-do_distribution () {
+do_distribution() {
     wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
     if [ -f ./.travis.yml ]; then
@@ -321,7 +337,7 @@ test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
-  do_annotate "$pkg" "$opt_srcs"
+  do_annotate "$pkgname" "$opt_srcs"
   sts=$?
 elif [ "$action" == "autopep8" ]; then
   opts=$(inherits_travis_opts "dnuv")

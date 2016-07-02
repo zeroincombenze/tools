@@ -13,8 +13,8 @@ elif [ -d ./tests ]; then
   TESTDIR=./tests
   RUNDIR=./
 elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
+  TESTDIR=.
+  RUNDIR=..
 else
   TESTDIR=$TDIR
   RUNDIR=$TDIR/..
@@ -24,44 +24,49 @@ if [ -d $TDIR/_travis ]; then
 elif [ -d $TDIR/../_travis ]; then
   TRAVISDIR=$TDIR/..
 elif [ -d ./_travis ]; then
-  TRAVISDIR=./
+  TRAVISDIR=.
 elif [ -d ../_travis ]; then
-  TRAVISDIR=../
+  TRAVISDIR=..
 else
   TRAVISDIR=~/dev/_travis
 fi
 if [ -e $TDIR/z0librc ]; then
 . $TDIR/z0librc
+  Z0LIBDIR=$TDIR
 elif [ -e ./z0librc ]; then
 . ./z0librc
+  Z0LIBDIR=.
 elif [ -e ../z0librc ]; then
 . ../z0librc
+  Z0LIBDIR=..
 elif [ -e ~/z0librc ]; then
 . ~/z0librc
+  Z0LIBDIR=
 else
 . /etc/z0librc
+  Z0LIBDIR=/etc
 fi
 if [ -e $TDIR/z0testrc ]; then
 . $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
 elif [ -e ./z0testrc ]; then
 . ./z0testrc
+  Z0TLIBDIR=.
 elif [ -e ../z0testrc ]; then
 . ../z0testrc
+  Z0TLIBDIR=..
 else
 . ~/dev/z0testrc
+  Z0TLIBDIR=
 fi
-
-if [ -f ./travisrc ]; then
-. ./travisrc
-elif [ -f ../travisrc ]; then
-. ../travisrc
-fi
-
 TESTDIR=$(readlink -e $TESTDIR)
 RUNDIR=$(readlink -e $RUNDIR)
 TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
-__version__=0.1.59.2
+
+__version__=0.1.59.3
 
 declare -a ctrs
 export WNoCtr=1
@@ -106,7 +111,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   xtlver=$($RUNDIR/travis -V)
   ci-test "check for travis version" "$__version__" "$xtlver"
   xtlver=$($RUNDIR/please -V)
-  ci-test "check for travis version" "0.1.27.6" "$xtlver"
+  ci-test "check for travis version" "0.1.27.7" "$xtlver"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"
