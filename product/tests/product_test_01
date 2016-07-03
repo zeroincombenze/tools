@@ -77,12 +77,12 @@ sts=0
 TPRODUCT="$RUNDIR/product -T"
 
 test_run () {
-# test_run(msg,package,disto)
+# test_run(msg,package,disto,cmd)
     # set -x #debug
     local msg="$1"
     local Package="$2"
     local Disto="$3"
-    local TRES="$4"
+    local cmd="$4"
     local FH=
     local opt_e="-E$Disto"
     if [ "$Disto" == "." ]; then
@@ -112,15 +112,17 @@ test_run () {
         TRES=${TEST_CentOS6[$Package]}
       fi
     fi
-    if [ -z "$TRES" ]; then
-       TRES=$Package
-    elif [[ $TRES =~ = ]]; then
-       true
-    else
-       TRES="$2=$TRES"
+    if [ "$cmd" == "realname" ]; then
+      if [ -z "$TRES" ]; then
+        TRES=$Package
+      elif [[ $TRES =~ = ]]; then
+        :
+      else
+        TRES="$2=$TRES"
+      fi
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$(eval $TPRODUCT $opt_e tellme $Package realname)
+      RES=$(eval $TPRODUCT $opt_e tellme $Package "$cmd")
     fi
     ci-test "$msg" "$TRES" "$RES"
     return $s
@@ -158,7 +160,6 @@ TEST_RHEL[openssh]="openssh-server"
 TEST_Debian[libxml2-python]="python-libxml2"
 TEST_RHEL[python-libxml2]="libxml2-python"
 
-
 for Package in product LAMP apache2 httpd pip python-pip\
  mysql mysql-server mariadb mariadb-server\
  postgres postgresql postgresql-server php php5\
@@ -170,7 +171,27 @@ for Package in product LAMP apache2 httpd pip python-pip\
      else
        opt_e="-E$Disto"
      fi
-     test_run "realname $Package $opt_e" "$Package" "$Disto"
+     test_run "realname $Package $opt_e" "$Package" "$Disto" "realname"
+  done
+done
+
+
+declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+TEST_Debian[apache2]="apt-get"
+TEST_Debian[httpd]="apt-get"
+TEST_RHEL[apache2]="yum"
+TEST_RHEL[httpd]="yum"
+TEST_Debian[os0]="pip"
+TEST_RHEL[os0]="pip"
+
+for Package in apache2 httpd os0; do
+  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+     if [ "$Disto" == "." ]; then
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
   done
 done
 
