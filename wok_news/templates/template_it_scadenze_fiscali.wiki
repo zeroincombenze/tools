@@ -3,7 +3,7 @@
 <img class="alignright wp-image-1740 size-medium"
  src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
  alt="scadenze fiscali ${cur_month} ${cur_year}" width="300" height="114" /></a>
-Zeroincombenze®, <strong>il software gestionale on line</strong> di riferimento in Italia, anche a ${cur_month}, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
+Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a ${cur_month}, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
 Una <b><a href="https://www.zeroincombenze.it/wp-login.php?action=register">versione gratuita di prova</a></b> è disponibile per imprese, professionisti, artigiani e commercianti.
 I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
 Per maggiori informazioni telefonare al numero <b>011.0566929</b>
