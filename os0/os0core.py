@@ -84,7 +84,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.10"
+__version__ = "0.2.11"
 
 
 class Os0():
@@ -95,6 +95,7 @@ class Os0():
         self.LFN_EXE = 1
         self.LFN_CMD = 2
         self.LFN_DIR = 4
+        self.PYCODESET = 'utf-8'
         self.tlog_fn = None
         if not hasattr(self, 'fh'):
             self.fh = None
@@ -118,6 +119,19 @@ class Os0():
 
         if _platform == "OpenVMS":
             self.bginp_fn = self.setlfilename("/dev/null", self.LFN_FLAT)
+
+    def set_codeset(self, cs):
+        self.PYCODESET = cs
+
+    def b(self, s):
+        if isinstance(s, unicode):
+            return s.encode(self.PYCODESET)
+        return s
+
+    def u(self, s):
+        if isinstance(s, str):
+            return unicode(s, self.PYCODESET)
+        return s
 
     def str2bool(self, t, dflt):
         """Convert text to bool"""

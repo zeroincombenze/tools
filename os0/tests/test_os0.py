@@ -292,7 +292,7 @@ class main:
         # Need debug mode to avoid security fault in Linux
         os0.set_debug_mode(True)
         title = "os0 regression test. Version: V0.2.10"
-        if os0.version != "0.2.10":
+        if os0.version != "0.2.11":
             raise Exception("Test not executable: invalid os0 version")
         if 'DEV_ENVIRONMENT' in os.environ:
             LOCAL_ECHO = False
@@ -384,6 +384,24 @@ class main:
         res = os0.nakedname('myfile.py')
         if res != 'myfile':
             raise Exception("Test failed: nakedname")
+
+        os0.wlog1("Test 0.10: unicode(string)")
+        bstr = 'text àèìòù'
+        ustr = u"text àèìòù"
+        res = os0.u(bstr)
+        if res != ustr:
+            raise Exception("Test failed: unicode")
+        if os0.u(ustr) != ustr:
+            raise Exception("Test failed: unicode")
+
+        os0.wlog1("Test 0.10: bstring(string)")
+        bstr = 'text àèìòù'
+        ustr = u"text àèìòù"
+        res = os0.b(ustr)
+        if res != bstr:
+            raise Exception("Test failed: bstring")
+        if os0.b(bstr) != bstr:
+            raise Exception("Test failed: bstring")
 #
 # Level 0 tests
         T = Test()
