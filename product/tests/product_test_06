@@ -1,0 +1,395 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on product
+# Check for update
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=.
+  RUNDIR=..
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=.
+elif [ -d ../_travis ]; then
+  TRAVISDIR=..
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+  Z0LIBDIR=$TDIR
+elif [ -e ./z0librc ]; then
+. ./z0librc
+  Z0LIBDIR=.
+elif [ -e ../z0librc ]; then
+. ../z0librc
+  Z0LIBDIR=..
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+  Z0LIBDIR=~
+else
+. /etc/z0librc
+  Z0LIBDIR=/etc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+  Z0TLIBDIR=.
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+  Z0TLIBDIR=..
+else
+. ~/dev/z0testrc
+  Z0TLIBDIR=~
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
+
+__version__=0.2.1.1
+parseoptest -l$TESTDIR/test_product.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+TPRODUCT="$RUNDIR/product -T"
+
+test_run () {
+# test_run(msg,package,disto,cmd)
+    # set -x #debug
+    local msg="$1"
+    if [ "$2" == "." ]; then
+      local Package="_"
+    else
+      local Package="$2"
+    fi
+    local Disto="$3"
+    local cmd="$4"
+    local FH=
+    local opt_e="-E$Disto"
+    local opt_ij="-I$Package,wget,gcc,git"
+    if [ "$Disto" == "." ]; then
+        local FH=$Real_FH
+        local Disto=$Real_DISTO
+        local opt_e=
+    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+      local FH="Debian"
+    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+      local FH="RHEL"
+    fi
+    if [ "$Package" == "httpd" ]; then
+      if [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+        local Package="apache2"
+      fi
+      local opt_ij="-I$Package -Jvsftpd"
+    elif [ "$Package" == "apache2" ]; then
+      if [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+        local Package="httpd"
+      fi
+      local opt_ij="-I$Package -Jvsftpd"
+    elif [ "$Package" == "pip" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="python-pip"
+        local opt_ij="-I$Package"
+      elif [ "$Disto" == "CentOS7" ]; then
+        local Package="python-pip"
+        local opt_ij="-I$Package"
+      fi
+    elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
+      local Package="pip"
+      local opt_ij="-I$Package"
+    elif [ "$Package" == "postgresql-server" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="postgresql"
+      fi
+      local opt_ij="-I$Package -Jpostgresql-client-common,postgresql-contrib"
+    elif [ "$Package" == "postgresql" ]; then
+      if [ "$FH" == "RHEL" ]; then
+        local Package="postgresql-server"
+      fi
+      local opt_ij="-I$Package -Jpostgresql-client-common,postgresql-contrib"
+    elif [ "$Package" == "postgres" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="postgresql"
+      elif [ "$FH" == "RHEL" ]; then
+        local Package="postgresql-server"
+      fi
+      local opt_ij="-I$Package -Jpostgresql-client-common,postgresql-contrib"
+    elif [ "$Package" == "openssh" ]; then
+      local Package="openssh-server"
+      opt_ij="-I$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils"
+    elif [ "$Package" == "openssh-server" ]; then
+      opt_ij="-I$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils"
+    elif [ "$Package" == "python" ]; then
+      opt_ij="-I$Package,python-setuptools,setuptools,python-wheel,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+    elif [ "$Package" == "wkhtmltopdf" ]; then
+      opt_ij="-I$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $TESTDIR/res/${Package}__${Disto}.06.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.06.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.06.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.06.test
+      elif [ -f $TESTDIR/res/${Package}.06.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.06.test
+      else
+        TESTOUT=
+        echo "File test comparison ${Package}__${Disto} not found!"
+      fi
+      rm -f $TESTDIR/product.out
+      eval $TPRODUCT $opt_e update $2 $opt_ij>$TESTDIR/product.out
+    fi
+    # set +x #debug
+    ci-test "$msg" "$TESTOUT" "$TESTDIR/product.out" "$cmd"
+    return $s
+}
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  rm -f $TESTDIR/res/*.06.test
+  cat <<EOF >$TESTDIR/res/___RHEL.06.test
+> yum -y update
+EOF
+  cat <<EOF >$TESTDIR/res/___Debian.06.test
+> apt-get -y update
+> apt-get -y upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/product.06.test
+> mkdir -p /etc/product
+> cp $RUNDIR/product /usr/bin
+> cp $RUNDIR/product.man /usr/bin
+> cp $RUNDIR/product_bld_ods /usr/bin
+> chmod +x /usr/bin/product*
+EOF
+  for f in product.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+    if [ -f $RUNDIR/$f ]; then
+      echo "> cp $RUNDIR/$f /etc/product">>$TESTDIR/res/product.06.test
+    fi
+  done
+  echo "> _install_z0librc">>$TESTDIR/res/product.06.test
+#
+  cat <<EOF >$TESTDIR/res/apache2__Debian.06.test
+> apt-get -y update apache2
+> apt-get -y upgrade apache2
+> apt-get -y install vsftpd
+> service apache2 restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> service vsftpd start
+> chkconfig vsftpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/httpd__CentOS7.06.test
+> yum -y update httpd
+> yum -y install vsftpd
+> systemctl restart httpd
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> systemctl start vsftpd
+> chkconfig vsftpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/httpd__CentOS6.06.test
+> yum -y update httpd
+> service httpd restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__CentOS7.06.test
+> yum -y update postgresql-server
+> yum -y install postgresql-client-common
+> yum -y install postgresql-contrib
+> systemctl restart postgresql
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__CentOS6.06.test
+> yum -y update postgresql-server
+> yum -y install postgresql-client-common
+> yum -y install postgresql-contrib
+> service postgresql restart
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.06.test
+> apt-get -y update postgresql
+> apt-get -y upgrade postgresql
+> apt-get -y install postgresql-client-common
+> apt-get -y install postgresql-contrib
+> service postgresql restart
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip.06.test
+> yum -y update python-pip
+> pip install pip --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__Debian.06.test
+> apt-get -y update python-pip
+> apt-get -y upgrade python-pip
+> pip install pip --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/pip__Debian.06.test
+> apt-get -y update python-pip
+> apt-get -y upgrade python-pip
+> pip install pip --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/pip__RHEL.06.test
+> yum -y update python-pip
+> pip install pip --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.06.test
+> apt-get -y update openssh-server
+> apt-get -y upgrade openssh-server
+> apt-get -y update openssh-client
+> apt-get -y upgrade openssh-client
+> service ssh restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS7.06.test
+> yum -y update openssh-server
+> yum -y update openssh-clients
+> yum -y update mod_ssl
+> yum -y update mod_proxy_html
+> yum -y update iptables-services
+> yum -y update bind-utils
+> systemctl restart sshd
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS6.06.test
+> yum -y update openssh-server
+> yum -y update openssh-clients
+> yum -y update mod_ssl
+> yum -y update mod_proxy_html
+> yum -y update iptables-services
+> yum -y update bind-utils
+> service sshd restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu14.06.test
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+> apt-get update wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+> apt-get upgrade wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+> rm -f wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu12.06.test
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-precise-i386.deb
+> apt-get update wkhtmltox-0.12.2.1_linux-precise-i386.deb
+> apt-get upgrade wkhtmltox-0.12.2.1_linux-precise-i386.deb
+> rm -f wkhtmltox-0.12.2.1_linux-precise-i386.deb
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS7.06.test
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+> rpm -U wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+> rm -f wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS6.06.test
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+> rpm -U wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+> rm -f wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+EOF
+fi
+Real_FH=$(xuname "-f")
+x=$(xuname "-v")
+v=$(echo $x|awk -F. '{print $1}')
+Real_DISTO=$(xuname "-d")$v
+
+for Package in . product apache2 httpd\
+  pip python-pip\
+  postgres postgresql postgresql-server\
+  openssh openssh-server wkhtmltopdf; do
+  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+     if [ "$Disto" == "." ]; then
+       if [ "$Package" == "wkhtmltopdf" ]; then
+         continue
+       fi
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "update $Package $opt_e" "$Package" "$Disto" "diff"
+  done
+done
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  cat <<EOF >$TESTDIR/res/python__Debian.06.test
+> apt-get -y update python
+> apt-get -y upgrade python
+> apt-get -y update python-setuptools
+> apt-get -y upgrade python-setuptools
+> pip install setuptools --upgrade
+> apt-get -y update python-virtualenv
+> apt-get -y upgrade python-virtualenv
+> pip install virtualenv --upgrade
+> apt-get -y update libreadline6
+> apt-get -y upgrade libreadline6
+> apt-get -y update python-libxslt1
+> apt-get -y upgrade python-libxslt1
+> apt-get -y update libxml2
+> apt-get -y upgrade libxml2
+> apt-get -y update python-libxml2
+> apt-get -y upgrade python-libxml2
+> pip install lxml --upgrade
+> pip install psycopg2 --upgrade
+> pip install simplejson --upgrade
+> pip install xlwt --upgrade
+> pip install PyYAML --upgrade
+> pip install gdata --upgrade
+> pip install python-ldap --upgrade
+> pip install pytz --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/python__RHEL.06.test
+> yum -y update python
+> yum -y update python-setuptools
+> pip install setuptools --upgrade
+> yum -y update python-virtualenv
+> pip install virtualenv --upgrade
+> yum -y update readline
+> yum -y update libxslt-python
+> yum -y update libxml2
+> yum -y update libxml2-python
+> pip install lxml --upgrade
+> pip install psycopg2 --upgrade
+> pip install simplejson --upgrade
+> pip install xlwt --upgrade
+> pip install PyYAML --upgrade
+> pip install gdata --upgrade
+> pip install python-ldap --upgrade
+> pip install pytz --upgrade
+EOF
+fi
+
+for Package in python; do
+  for Disto in Ubuntu14 CentOS7; do
+     if [ "$Disto" == "." ]; then
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "update $Package $opt_e" "$Package" "$Disto" "diff"
+  done
+done
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts
