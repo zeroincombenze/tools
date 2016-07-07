@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.12"
+__version__ = "0.2.66.13"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -169,6 +169,12 @@ def do_login(oerp, ctx):
             except:
                 os0.wlog(u"!!write error!")
     return user_obj
+
+
+def get_context(ctx):
+    context = {}
+    context['lang'] = 'en_US'
+    return context
 
 
 def init_db_ctx(oerp, ctx, db):
@@ -710,13 +716,15 @@ def act_upgrade_modules(oerp, ctx):
     msg = u"Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['upgrade_modules'].split(',')
+    context = get_context(ctx)
     done = 0
     for m in module_list:
         if m == "":
             continue
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
-                           ('state', '=', 'installed')])
+                           ('state', '=', 'installed')],
+                          context=context)
         if not ctx['dry_run']:
             if len(ids):
                 try:
@@ -746,13 +754,15 @@ def act_uninstall_modules(oerp, ctx):
     msg = u"Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['uninstall_modules'].split(',')
+    context = get_context(ctx)
     done = 0
     for m in module_list:
         if m == "":
             continue
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
-                           ('state', '=', 'installed')])
+                           ('state', '=', 'installed')],
+                          context=context)
         if not ctx['dry_run']:
             if len(ids):
                 if m != 'l10n_it_base':  # debug
@@ -772,7 +782,8 @@ def act_uninstall_modules(oerp, ctx):
 
             ids = oerp.search('ir.module.module',
                               [('name', '=', m),
-                               ('state', '=', 'uninstalled')])
+                               ('state', '=', 'uninstalled')],
+                              context=context)
             if len(ids):
                 module_obj = oerp.browse('ir.module.module', ids[0])
                 oerp.unlink_record(module_obj)
@@ -791,13 +802,15 @@ def act_install_modules(oerp, ctx):
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['install_modules'].split(',')
+    context = get_context(ctx)
     done = 0
     for m in module_list:
         if m == "":
             continue
         ids = oerp.search('ir.module.module',
                           [('name', '=', m),
-                           ('state', '=', 'uninstalled')])
+                           ('state', '=', 'uninstalled')],
+                          context=context)
         if not ctx['dry_run']:
             if len(ids):
                 try:
@@ -812,7 +825,8 @@ def act_install_modules(oerp, ctx):
                     msg_log(ctx, ctx['level'] + 1, msg)
             else:
                 ids = oerp.search('ir.module.module',
-                                  [('name', '=', m)])
+                                  [('name', '=', m)],
+                                  context=context)
                 if len(ids):
                     msg = "Module {0} already installed!".format(m)
                 else:
@@ -1025,10 +1039,7 @@ def act_check_balance(oerp, ctx):
         if move_line_obj.partner_id and \
                 move_line_obj.partner_id.id:
             partner_id = move_line_obj.partner_id.id
-            # if clf3 == "Crediti" or clf3 == "Attività":
             kk = "X " + str(partner_id)
-            # elif clf3 == "Debiti" or clf3 == "Passività" or clf3 == "Contante":
-            #    kk = "X " + str(partner_id)
             if kk not in acc_partners:
                 acc_partners[kk] = 0
             acc_partners[kk] += move_line_obj.credit
@@ -1358,7 +1369,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if val is not None:
                     x = n.split('/')[0]
                     if x != 'fiscalcode' or val != '':
-                        vals[x] = val
+                        vals[x] = tounicode(val)
                 msg = u"{0}={1}".format(n, tounicode(val))
                 debug_msg_log(ctx, ctx['level'] + 2, msg)
                 if n == o_model['name']:
@@ -1475,12 +1486,14 @@ def import_config_file(oerp, ctx, csv_fn):
 
 
 def setup_config_param(oerp, ctx, user, name, value):
+    context = get_context(ctx)
     sts = STS_SUCCESS
     v = os0.str2bool(value, None)
     if v is not None:
         value = v
     group_id = oerp.search('res.groups',
-                           [('name', '=', name)])
+                           [('name', '=', name)],
+                           context=context)
     if len(group_id) != 1:
         msg = u"!Parameter name " + name + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -1557,11 +1570,13 @@ def setup_config_param(oerp, ctx, user, name, value):
 
 def install_chart_of_account(oerp, ctx, name):
     sts = STS_SUCCESS
+    context = get_context(ctx)
     chart_setup_model = 'wizard.multi.charts.accounts'
     chart_template_id = oerp.search('account.chart.template',
                                     [('name',
                                       '=',
-                                      name)])
+                                      name)],
+                                    context=context)
     if len(chart_template_id) == 0:
         msg = u"!Invalid chart of account " + name + "!!"
         msg_log(ctx, ctx['level'] + 2, msg)

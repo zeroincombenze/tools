@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.82
+# Makefile __version__=0.1.83
 
 .DEFAULT: check
 
@@ -166,7 +166,8 @@ upload: build
 .PHONY: publish 
 publish: upload
 	if [ "$(PRJNAME)" != "Odoo" ]; then \
-	  cd ..; python setup.py build sdist upload;\
+	  cd ..; python setup.py build sdist;\
+	  cd ..; twine upload;\
 	fi
 
 install: build

@@ -88,7 +88,7 @@ testpath () {
 }
 
 
-__version__=0.1.82
+__version__=0.1.83
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
@@ -98,7 +98,7 @@ sts=0
 
 MAKEF=/opt/odoo/dev/pypi/z0lib/z0lib/Makefile
 export DEVPATH=/opt/odoo/dev
-OS_VER=0.2.10
+OS_VER=0.2.11
 BB_VER=7.0.0.2
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   if [ ${opt_verbose:-0} -gt 0 ]; then
