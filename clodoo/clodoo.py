@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.66.13"
+__version__ = "0.2.67"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1

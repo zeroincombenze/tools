@@ -20,7 +20,7 @@
 #
 ##############################################################################
 """
-    Zeroincombenze® Archives Replica Regression Test Suite
+    Zeroincombenze® Clodoo Regression Test Suite
 """
 
 # import pdb

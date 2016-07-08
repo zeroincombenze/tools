@@ -41,7 +41,7 @@ from clodoo.clodoo import isaction
 from clodoo.clodoo import check_4_actions
 from clodoo.clodoo import do_single_action
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -106,6 +106,12 @@ class Oerp():
                 self.db[model]['name'] = 'myname'
                 self.db[model]['id'] = REF_ID
                 self.db[model]['country_id'] = CTRY_IT
+            elif model == 'res.three':
+                self.db[model] = {}
+                self.db[model]['name'] = 'name àèìòù'
+                self.db[model]['company_id'] = CID
+                self.db[model]['ref0'] = ID_0
+                self.db[model]['id'] = ID_1
             elif model == 'ir.model.data':
                 self.db[model] = {}
                 self.db[model]['module'] = 'base'
@@ -190,6 +196,12 @@ class Oerp():
             if ids == REF_ID:
                 self.name = self.db[model]['name']
                 self.country_id = self.db[model]['country_id']
+                return self
+        elif model == 'res.three':
+            if ids == ID_1:
+                self.name = self.db[model]['name']
+                self.ref0 = self.db[model]['ref0']
+                self.company_id = self.db[model]['company_id']
                 return self
         else:
             self.res_id = 0
@@ -491,10 +503,13 @@ class Test():
 
             for model_name in ("res.zero",
                                "res.one",
-                               "res.two"):
+                               "res.two",
+                               "res.three"):
                 oerp, ctx, o_model, csv_obj, csv_fn, row = \
                     self.init_test(model_name)
-                if model_name in ('res.zero', 'res.two', 'res.four'):
+                if model_name == "res.three":
+                    value = model_name + "::name àèìòù"
+                elif model_name in ('res.zero', 'res.two', 'res.four'):
                     value = model_name + ":myname"
                 else:
                     value = model_name + "::myname"
@@ -512,7 +527,9 @@ class Test():
                         value = "=${" + model_name + "[" + name + "]"
                     else:
                         value = "=${" + model_name + "[id]"
-                    if model_name in ('res.zero', 'res.two', 'res.four'):
+                    if model_name == "res.three":
+                        value = value + "::name àèìòù}"
+                    elif model_name in ('res.zero', 'res.two', 'res.four'):
                         value = value + ":myname}"
                     else:
                         value = value + "::myname}"
@@ -521,7 +538,12 @@ class Test():
                                      o_model,
                                      name,
                                      value)
-                    if name == "name":
+                    if name == "name" and model_name == 'res.three':
+                        sts = self.Z.test_result(z0ctx,
+                                                 msg,
+                                                 "name àèìòù",
+                                                 res)
+                    elif name == "name":
                         sts = self.Z.test_result(z0ctx,
                                                  msg,
                                                  "myname",
@@ -544,6 +566,8 @@ class Test():
                                                      msg,
                                                      REF_ID,
                                                      res)
+                        elif value[0:12] == "=${res.three":
+                            sts = self.Z.test_result(z0ctx, msg, ID_1, res)
                         else:
                             sts = self.Z.test_result(z0ctx,
                                                      msg,
@@ -693,7 +717,6 @@ class Test():
             if sts == TEST_SUCCESS:
                 oerp, ctx, o_bones, csv_obj, csv_fn, row = \
                     self.init_test(model)
-                # row = {}
                 row['id'] = ''
                 row['name'] = 'myname'
                 row['other'] = "=${res.one:myname}"
@@ -776,7 +799,6 @@ class Test():
                                        o_bones,
                                        row)
                     sts = self.Z.test_result(z0ctx, msg, [], res)
-
         return sts
 
     def test_09(self, z0ctx):

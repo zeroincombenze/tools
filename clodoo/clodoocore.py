@@ -153,7 +153,7 @@ def eval_value(oerp, ctx, o_model, name, value):
     @ name:        field name
     @ value:       field value (constant, macro or expression)
     """
-    msg = "eval_value(name=%s, value=%s)" % (name, value)
+    msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
         if is_db_alias(value):

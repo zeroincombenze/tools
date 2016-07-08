@@ -100,7 +100,7 @@ LX_CFG_B = ('set_passepartout',
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lgi_user', 'lgi_pwd',
-            'logfn', 'quiet_mode')
+            'logfn', 'quiet_mode', 'xmlrpc_port')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ()
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -322,7 +322,9 @@ def create_def_params_dict(ctx):
                 else:
                     ctx[p] = None
             elif hasattr(opt_obj, p):
-                ctx[p] = getattr(opt_obj, p)
+                tmp = getattr(opt_obj, p)
+                if p not in ctx or tmp:
+                    ctx[p] = tmp
         for p in LX_OPT_B:
             if hasattr(opt_obj, p):
                 ctx[p] = os0.str2bool(getattr(opt_obj, p), None)
@@ -416,13 +418,13 @@ def create_parser(version, doc, ctx):
         description=docstring_summary(doc),
         epilog="© 2015 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
-    parser.add_argument("-A", "--list-actions",
-                        help="do nothig, list actions",
+    parser.add_argument("-A", "--action-to-do",
+                        help="action to do (use list_actions to dir)",
                         dest="do_sel_action",
-                        metavar="action",
+                        metavar="actions",
                         default=None)
     parser.add_argument("-c", "--config",
-                        help="configuration file",
+                        help="configuration command file",
                         dest="conf_fn",
                         metavar="file",
                         default=CONF_FN)
@@ -431,12 +433,12 @@ def create_parser(version, doc, ctx):
                         dest="dbfilter",
                         metavar="regex",
                         default="")
-    parser.add_argument("-n", "--dry_run",
+    parser.add_argument("-n", "--dry-run",
                         help="test execution mode",
                         action="store_true",
                         dest="dry_run",
                         default=False)
-    parser.add_argument("-p", "--data_path",
+    parser.add_argument("-p", "--data-path",
                         help="Import file path",
                         dest="data_path",
                         metavar="dir",
@@ -451,6 +453,11 @@ def create_parser(version, doc, ctx):
                         action="store_true",
                         dest="quiet_mode",
                         default=False)
+    parser.add_argument("-r", "--xmlrpc-port",
+                        help="xmlrpc port",
+                        dest="xmlrpc_port",
+                        metavar="port",
+                        default="")
     parser.add_argument("-U", "--user",
                         help="login username",
                         dest="lgi_user",
@@ -464,8 +471,6 @@ def create_parser(version, doc, ctx):
     parser.add_argument("-V", "--version",
                         action="version",
                         version="%(prog)s " + version)
-    # parser.add_argument("filesrc",
-    #                     help="Files to convert")
     return parser
 
 
