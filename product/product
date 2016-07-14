@@ -1700,7 +1700,7 @@ end_remove() {
 }
 
 get_ver_num() {
-  local xtlver=$(echo "$1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9+]|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+  local xtlver=$(echo "$1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
   if [ -z "$xtver" ]; then xtlver="0"; fi
   echo $xtlver
 }
