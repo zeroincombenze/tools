@@ -1,0 +1,4 @@
+mysql=mysql-server (install by apt-get)
+ service=mysql
+ command=mysql
+ get ver=mysql --version

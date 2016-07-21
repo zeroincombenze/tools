@@ -1,0 +1,447 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on lisa
+# Check for install
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=.
+  RUNDIR=..
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=.
+elif [ -d ../_travis ]; then
+  TRAVISDIR=..
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+  Z0LIBDIR=$TDIR
+elif [ -e ./z0librc ]; then
+. ./z0librc
+  Z0LIBDIR=.
+elif [ -e ../z0librc ]; then
+. ../z0librc
+  Z0LIBDIR=..
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+  Z0LIBDIR=~
+else
+. /etc/z0librc
+  Z0LIBDIR=/etc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+  Z0TLIBDIR=.
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+  Z0TLIBDIR=..
+else
+. ~/dev/z0testrc
+  Z0TLIBDIR=~
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
+
+__version__=0.2.1.19
+parseoptest -l$TESTDIR/test_lisa.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+TPRODUCT="$RUNDIR/lisa -T"
+
+test_run () {
+# test_run(msg,package,disto,cmd,opt_d)
+    local msg="$1"
+    local Package="$2"
+    local Disto="$3"
+    local cmd="$4"
+    local opt_d="$5"
+    local FH=
+    local opt_e="-E$Disto"
+    local opt_ij="-J$Package,wget,gcc,git"
+    if [ "$Disto" == "." ]; then
+        local FH=$Real_FH
+        local Disto=$Real_DISTO
+        local opt_e=
+    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+      local FH="Debian"
+    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+      local FH="RHEL"
+    fi
+    if [ "$Package" == "httpd" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="apache2"
+      fi
+      opt_ij="-J$Package,vsftpd"
+    elif [ "$Package" == "apache2" ]; then
+      if [ "$FH" == "RHEL" ]; then
+        local Package="httpd"
+      fi
+      opt_ij="-J$Package,vsftpd"
+    elif [ "$Package" == "pip" -o "$Package" == "python-pip" ]; then
+      local Package="pip"
+      opt_ij="-Jpip,python-pip"
+    elif [ "$Package" == "postgresql-server" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="postgresql"
+        opt_ij="-J$Package,postgresql-client-common,postgresql-contrib"
+      elif [ "$FH" == "RHEL" ]; then
+        opt_ij="-J$Package -Ipostgresql-client-common,postgresql-contrib"
+      fi
+    elif [ "$Package" == "postgresql" ]; then
+      if [ "$FH" == "RHEL" ]; then
+        local Package="postgresql-server"
+        opt_ij="-J$Package -Ipostgresql-client-common,postgresql-contrib"
+      fi
+    elif [ "$Package" == "postgres" ]; then
+      if [ "$FH" == "Debian" ]; then
+        local Package="postgresql"
+        opt_ij="-J$Package,postgresql-client-common,postgresql-contrib"
+      elif [ "$FH" == "RHEL" ]; then
+        local Package="postgresql-server"
+        opt_ij="-J$Package -Ipostgresql-client-common,postgresql-contrib"
+      fi
+    elif [ "$Package" == "openssh" ]; then
+      local Package="openssh-server"
+      opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
+    elif [ "$Package" == "openssh-server" ]; then
+      opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
+    elif [ "$Package" == "python" ]; then
+      opt_ij="-e1 -I$Package,python-setuptools,setuptools,wheel -Jpython-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+    elif [ "$Package" == "wkhtmltopdf" ]; then
+      opt_ij="-J$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $TESTDIR/res/${Package}__${Disto}.05.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.05.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.05.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.05.test
+      elif [ -f $TESTDIR/res/${Package}.05.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.05.test
+      else
+        TESTOUT=
+        echo "File test comparison ${Package}__${Disto} not found!"
+      fi
+      rm -f $TESTDIR/lisa.out
+      eval $TPRODUCT $opt_d $opt_e install $2 $opt_ij>$TESTDIR/lisa.out
+    fi
+    ci-test "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "$cmd"
+    return $s
+}
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  rm -f $TESTDIR/res/*.05.test
+  cat <<EOF >$TESTDIR/res/lisa__RHEL.05.test
+> yum -y install wget
+> yum -y install git
+> mkdir -p /etc/lisa
+> cp $RUNDIR/lisa /usr/bin
+> cp $RUNDIR/lisa.man /usr/bin
+> cp $RUNDIR/lisa_bld_ods /usr/bin
+> chmod +x /usr/bin/lisa*
+EOF
+  cat <<EOF >$TESTDIR/res/lisa__Debian.05.test
+> apt-get -y install wget
+> apt-get -y install git
+> mkdir -p /etc/lisa
+> cp $RUNDIR/lisa /usr/bin
+> cp $RUNDIR/lisa.man /usr/bin
+> cp $RUNDIR/lisa_bld_ods /usr/bin
+> chmod +x /usr/bin/lisa*
+EOF
+  for f in lisa.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+    if [ -f $RUNDIR/$f ]; then
+      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
+      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
+    fi
+  done
+  echo "> _install_z0librc">>$TESTDIR/res/lisa__RHEL.05.test
+  echo "> _install_z0librc">>$TESTDIR/res/lisa__Debian.05.test
+#
+  cat <<EOF >$TESTDIR/res/apache2__Debian.05.test
+> apt-get -y install apache2
+> apt-get -y install vsftpd
+> service apache2 start
+> chkconfig apache2 on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> service vsftpd start
+> chkconfig vsftpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/httpd__CentOS7.05.test
+> yum -y install httpd
+> yum -y install vsftpd
+> systemctl start httpd
+> chkconfig httpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> systemctl start vsftpd
+> chkconfig vsftpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/httpd__CentOS6.05.test
+> yum -y install httpd
+> service httpd start
+> chkconfig httpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__CentOS7.05.test
+> yum -y install postgresql-server
+# yum -y install postgresql-client-common
+# yum -y install postgresql-contrib
+> systemctl start postgresql
+> chkconfig postgresql on
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql-server__CentOS6.05.test
+> yum -y install postgresql-server
+# yum -y install postgresql-client-common
+# yum -y install postgresql-contrib
+> service postgresql start
+> chkconfig postgresql on
+EOF
+  cat <<EOF >$TESTDIR/res/postgresql__Debian.05.test
+> apt-get -y install postgresql
+> apt-get -y install postgresql-client-common
+> apt-get -y install postgresql-contrib
+> service postgresql start
+> chkconfig postgresql on
+EOF
+  cat <<EOF >$TESTDIR/res/pip__CentOS7.05.test
+> yum -y install python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.05.test
+> yum -y install pip
+EOF
+  cat <<EOF >$TESTDIR/res/pip__Debian.05.test
+> apt-get -y install python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.05.test
+> apt-get -y install openssh-server
+> apt-get -y install openssh-client
+> service ssh start
+> chkconfig ssh on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS7.05.test
+> yum -y install openssh-server
+> yum -y install openssh-clients
+> yum -y install mod_ssl
+> yum -y install mod_proxy_html
+> yum -y install iptables-services
+> yum -y install bind-utils
+> systemctl start sshd
+> chkconfig sshd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS6.05.test
+> yum -y install openssh-server
+> yum -y install openssh-clients
+> yum -y install mod_ssl
+> yum -y install mod_proxy_html
+> yum -y install iptables-services
+> yum -y install bind-utils
+> service sshd start
+> chkconfig sshd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu14.05.test
+> apt-get -y install xorg-x11-fonts-Type1
+> apt-get -y install xorg-x11-fonts-75dpi
+> apt-get -y install wget
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+> apt-get install wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+> rm -f wkhtmltox-0.12.2.1_linux-trusty-amd64.deb
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu12.05.test
+> apt-get -y install xorg-x11-fonts-Type1
+> apt-get -y install xorg-x11-fonts-75dpi
+> apt-get -y install wget
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-precise-i386.deb
+> apt-get install wkhtmltox-0.12.2.1_linux-precise-i386.deb
+> rm -f wkhtmltox-0.12.2.1_linux-precise-i386.deb
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS7.05.test
+> yum -y install xorg-x11-fonts-Type1
+> yum -y install xorg-x11-fonts-75dpi
+> yum -y install wget
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+> rpm -i wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+> rm -f wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm
+EOF
+  cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS6.05.test
+> yum -y install xorg-x11-fonts-Type1
+> yum -y install xorg-x11-fonts-75dpi
+> yum -y install wget
+> cd /tmp
+> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+> rpm -i wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+> rm -f wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
+EOF
+  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS6.05.test
+> yum -y install wget
+> cd /tmp
+> wget https://pypi.python.org/packages/source/p/python-dateutil//python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5
+> pip install python-dateutil-1.5.tar.gz
+> rm -f python-dateutil-1.5.tar.gz
+EOF
+  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS7.05.test
+> pip install python-dateutil
+EOF
+  cat <<EOF >$TESTDIR/res/python-dateutil__Debian.05.test
+> pip install python-dateutil
+EOF
+fi
+Real_FH=$(xuname "-f")
+x=$(xuname "-v")
+v=$(echo $x|awk -F. '{print $1}')
+Real_DISTO=$(xuname "-d")$v
+
+for Package in lisa apache2 httpd\
+  pip python-pip\
+  postgres postgresql postgresql-server\
+  openssh openssh-server wkhtmltopdf python-dateutil; do
+  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+     if [ "$Disto" == "." ]; then
+       if [ "$Package" == "wkhtmltopdf" ]; then
+         continue
+       fi
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "install $Package $opt_e" "$Package" "$Disto" "diff"
+  done
+done
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  cat <<EOF >$TESTDIR/res/openssh-server__Debian.05.test
+> apt-get -y install openssh-server
+> apt-get -y install openssh-client
+> apt-get -y install telnet
+> service ssh start
+> chkconfig ssh on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS7.05.test
+> yum -y install openssh-server
+> yum -y install openssh-clients
+> yum -y install telnet
+> yum -y install mod_ssl
+> yum -y install mod_proxy_html
+> yum -y install iptables-services
+> yum -y install bind-utils
+> systemctl start sshd
+> chkconfig sshd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+  cat <<EOF >$TESTDIR/res/openssh-server__CentOS6.05.test
+> yum -y install openssh-server
+> yum -y install openssh-clients
+> yum -y install telnet
+> yum -y install mod_ssl
+> yum -y install mod_proxy_html
+> yum -y install iptables-services
+> yum -y install bind-utils
+> service sshd start
+> chkconfig sshd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+EOF
+fi
+
+for Package in openssh-server; do
+  for Disto in Ubuntu14 CentOS7; do
+     if [ "$Disto" == "." ]; then
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "install -D $Package $opt_e" "$Package" "$Disto" "diff" "-D"
+  done
+done
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  cat <<EOF >$TESTDIR/res/python__Debian.05.test
+# apt-get -y install python
+# pip install setuptools
+> apt-get -y install python-virtualenv
+> pip install virtualenv
+> apt-get -y install libreadline6
+> apt-get -y install python-libxslt1
+> apt-get -y install libxml2
+> apt-get -y install python-libxml2
+> pip install lxml
+> pip install psycopg2
+> pip install simplejson
+> pip install xlwt
+> pip install PyYAML
+> pip install gdata
+> pip install python-ldap
+> pip install pytz
+EOF
+  cat <<EOF >$TESTDIR/res/python__RHEL.05.test
+# yum -y install python
+# pip install setuptools
+> yum -y install python-virtualenv
+> pip install virtualenv
+> yum -y install readline
+> yum -y install libxslt-python
+> yum -y install libxml2
+> yum -y install libxml2-python
+> pip install lxml
+> pip install psycopg2
+> pip install simplejson
+> pip install xlwt
+> pip install PyYAML
+> pip install gdata
+> pip install python-ldap
+> pip install pytz
+EOF
+fi
+
+for Package in python; do
+  for Disto in Ubuntu14 CentOS7; do
+     if [ "$Disto" == "." ]; then
+       opt_e=
+     else
+       opt_e="-E$Disto"
+     fi
+     test_run "install $Package $opt_e" "$Package" "$Disto" "diff"
+  done
+done
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

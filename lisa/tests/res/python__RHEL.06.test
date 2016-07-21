@@ -1,0 +1,17 @@
+> yum -y update python
+> yum -y update python-setuptools
+> pip install setuptools --upgrade
+> yum -y update python-virtualenv
+> pip install virtualenv --upgrade
+> yum -y update readline
+> yum -y update libxslt-python
+> yum -y update libxml2
+> yum -y update libxml2-python
+> pip install lxml --upgrade
+> pip install psycopg2 --upgrade
+> pip install simplejson --upgrade
+> pip install xlwt --upgrade
+> pip install PyYAML --upgrade
+> pip install gdata --upgrade
+> pip install python-ldap --upgrade
+> pip install pytz --upgrade

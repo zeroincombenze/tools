@@ -1,0 +1,3 @@
+> apt-get -y update python-pip
+> apt-get -y upgrade python-pip
+> pip install pip --upgrade

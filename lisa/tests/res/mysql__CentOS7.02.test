@@ -1,0 +1,4 @@
+mysql=mariadb (install by yum)
+ service=mariadb
+ command=mysql
+ get ver=mysql --version

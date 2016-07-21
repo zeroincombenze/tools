@@ -1,0 +1,3 @@
+httpd (by yum)(apachectl -v)
+- TCP port 80
+- TCP port 443

@@ -1,0 +1,2 @@
+openssh=openssh-server (install by apt-get)
+ service=ssh

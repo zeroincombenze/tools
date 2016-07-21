@@ -1,0 +1,265 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Build start/stop odoo daemon script
+# Tool for internal use
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+if [ -f z0librc ]; then
+  . ./z0librc
+elif [ -f ~/z0librc ]; then
+  . ~/z0librc
+elif [ -f /etc/z0librc ]; then
+  . /etc/z0librc
+else
+  echo "Libreria z0librc non trovata!"
+  exit 1
+fi
+
+__version__="0.2.3"
+THIS=$(basename $0)
+TDIR=$(echo $(readlink -f $(dirname $0)))
+
+get_arch () {
+    if [ "$1" == "CentOS7" -o "$1" == "CentOS" -o "$1" == "RHEL" ]; then
+      DISTO="CentOS7"
+      FH="RHEL"
+      LXCORE=
+      MACHARCH="x86_64"
+    elif [ "$1" == "CentOS6" ]; then
+      DISTO="CentOS6"
+      FH="RHEL"
+      LXCORE=
+      MACHARCH="i686"
+    elif [ "$1" == "Ubuntu14" -o "$1" == "Ubuntu"  -o "$1" == "Debian" ]; then
+      DISTO="Ubuntu14"
+      FH="Debian"
+      LXCORE="trusty"
+      MACHARCH="x86_64"
+    elif [ "$1" == "Ubuntu12" ]; then
+      DISTO="Ubuntu12"
+      FH="Debian"
+      LXCORE="precise"
+      MACHARCH="i686"
+    fi
+}
+
+
+OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
+OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "9"        ""     ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "file"   "user"   "version"   "verbose")
+OPTHELP=("this help"\
+ "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
+ "select linux distribution: RHEL or Debian (default is current platform)"\
+ "set id name (odoo or openerp, default is odoo)"\
+ "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"\
+ "multiple version environment (append version to filenames)"\
+ "set odoo service name (default {id_name}-server)"\
+ "do nothing (dry-run)"\
+ "select odoo version: may be 7, 8 or 9"\
+ "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
+ "created test script does nothing (used for debug)"\
+ "use template (def /etc/product/odoo-server_{linux_dist})"\
+ "odoo service username"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(script_name)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Build Odoo daemon script (default name is odoo-server)"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$opt_name" ]; then
+  if [ $opt_mult -gt 0 ]; then
+    opt_name=${opt_id}${odoo_ver}-server
+  else
+    opt_name=${opt_id}-server
+  fi
+fi
+if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
+  odoo_fver="$odoo_ver.0"
+else
+  odoo_fver="$odoo_ver"
+  odoo_ver=$(if $(echo "/$odoo_ver/"|grep "/v9/\|9.0/">/dev/null); then echo "9"; elif $(echo "/$odoo_ver/"|grep "/v8/\|8.0/">/dev/null); then echo "8"; else echo "7"; fi)
+fi
+if [ -z "$opt_pid" ]; then
+  if [ $opt_mult -gt 0 ]; then
+    opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
+  else
+    opt_pid=/var/run/${opt_id}/${opt_name}.pid
+  fi
+fi
+if [ -z "$opt_flog" ]; then
+  if [ $opt_mult -gt 0 ]; then
+    opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
+  else
+    opt_flog=/var/log/${opt_id}/${opt_name}.log
+  fi
+fi
+if [ -z "$opt_cfg" ]; then
+  if [ $opt_mult -gt 0 ]; then
+    opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
+  else
+    opt_cfg=/etc/${opt_id}/${opt_name}.conf
+  fi
+fi
+opt_cfg2="$(dirname $opt_cfg)"
+opt_cfg2="$(readlink -m $opt_cfg2/..)/$(basename $opt_cfg)"
+if [ -z "$script_name" ]; then
+  script_name=${opt_name}
+fi
+if [ -n "$opt_osf" ]; then
+  get_arch "$opt_osf"
+  if [ "$FH" != "RHEL" -a "$FH" != "Debian" ]; then
+    echo "Invalid Linux distribution: use -d RHEL o -d Debian"
+    exit 1
+  fi
+else
+  FH=$(xuname "-f")
+fi
+if [ -f "$opt_cfg" ]; then
+  CFG_FILE=$opt_cfg
+elif [ -f "$opt_cfg2" ]; then
+  CFG_FILE=$opt_cfg2
+else
+  CFG_FILE=
+fi
+if [ -n "$CFG_FILE" ]; then
+  cfg_pidfile=$(grep "^pidfile *=" $CFG_FILE|awk -F= '{print $2}')
+  cfg_pidfile=$(echo $cfg_pidfile)
+  cfg_logfile=$(grep "^logfile *=" $CFG_FILE|awk -F= '{print $2}')
+  cfg_logfile=$(echo $cfg_logfile)
+  if [ -n "$cfg_pidfile" -a "$cfg_pidfile" != "$opt_pid" ]; then
+    echo "??? Mismatch pidfile configuration!?!?!?"
+    echo "Found $cfg_pidfile in configuratione file rather than $opt_pid"
+  fi
+  if [ -n "$cfg_logfile" -a "$cfg_logfile" != "$opt_flog" ]; then
+    echo "??? Mismatch logfile configuration!?!?!?"
+    echo "Found $cfg_logfile in configuration file rather than $opt_flog"
+  fi
+fi
+echo "Building $script_name for $FH Linux distribution"
+echo "- logfile is $opt_flog"
+echo "- pidfile is $opt_pid"
+echo "- def.conf.file is $opt_cfg"
+echo "- alt.conf.file is $opt_cfg2"
+src_template=""
+for d in $TDIR . /etc/product; do
+  for p in $FH .;do
+    if [ "$p" == "." ]; then
+      n=$d/odoo-server
+    else
+      n=$d/odoo-server_$FH
+    fi
+    if [ -f $n ]; then
+      src_template=$n
+      break
+    fi
+  done
+  if [ -n "$src_template" ]; then
+    break
+  fi
+done
+if [ -z "$src_template" ]; then
+  echo "Template odoo-server_$FH not found"
+  exit 1
+fi
+
+expand_line () {
+  local ln="$1"
+  for p in $2; do
+      ln="${ln//\$\{$p\}/${!p}}"
+  done
+  if [ "${1:0:14}" == "# \${xtl_name} " ]; then
+    local x="${ln%%This*}"
+    i=${#x}
+    local y="${1%%This*}"
+    j=${#y}
+    local x="${ln:0:i}                           "
+    local y="${ln:i}"
+    ln="${x:0:j}$y"
+  elif  [ "${1:0:11}" == "# version: " ]; then
+    local v=$(echo "$1"|awk -F: '{ print $2 }')
+    local ln="# version: ${__version__} ($(echo $v)) $(date +%Y-%m-%d)"
+  fi
+  echo "$ln"
+}
+if [ -f $script_name.tmp ]; then
+  rm -f $script_name.tmp
+fi
+begin_scrpt=0
+prm_list=
+dbg=0
+while IFS=\| read -r line; do
+  if [ "${line:0:1}" == "#" ]; then
+    begin_scrpt=1
+  elif [ $begin_scrpt -eq 0 ]; then
+    prm=$(echo "$line"|awk -F\= '{ print $1 }')
+    val=$(echo "$line"|awk -F\= '{ print $2 }')
+    if [ "$prm" == "xtl_id" ]; then
+      declare $prm="$opt_id"
+    elif [ "$prm" == "xtl_Id" ]; then
+      if [ "$opt_id" == "odoo" ]; then
+        declare $prm="Odoo"
+      elif [ "$opt_id" == "openerp" ]; then
+        declare $prm="OpenERP"
+      else
+        declare $prm="$opt_id"
+      fi
+    elif [ "$prm" == "xtl_name" ]; then
+      declare $prm="$opt_name"
+    elif [ "$prm" == "xtl_logfile" ]; then
+      declare $prm="$opt_flog"
+    elif [ "$prm" == "xtl_pidfile" ]; then
+      declare $prm="$opt_pid"
+    elif [ "$prm" == "xtl_cfgfile" ]; then
+      declare $prm="$opt_cfg"
+    elif [ "$prm" == "xtl_altcfgfile" ]; then
+      declare $prm="$opt_cfg2"
+    elif [ "$prm" == "xtl_version" ]; then
+      declare $prm="$odoo_fver"
+    elif [ "$prm" == "xtl_user" ]; then
+      declare $prm="$opt_user"
+    elif [ "$prm" == "xtl_test" ]; then
+      if [ "$opt_test" == "-T" ]; then
+        declare $prm="1"
+      else
+        declare $prm="0"
+      fi
+    else
+      val=$(expand_line "$val" "$prm_list")
+      declare $prm="$val"
+    fi
+    prm_list="$prm_list $prm"
+  fi
+  if [ $begin_scrpt -gt 0 ]; then
+    line=$(expand_line "$line" "$prm_list")
+    if [ $opt_verbose -gt 0 ]; then
+      echo "$line"
+    fi
+    echo "$line">>$script_name.tmp
+  fi
+done < "$src_template"
+if [ $opt_dry_run -eq 0 ]; then
+  if [ -f $script_name ]; then
+    mv -f $script_name $script_name.bak
+  fi
+  mv -f $script_name.tmp $script_name
+  chmod +x $script_name
+  d=$(basename $script_name)
+  if [ "$d" != "/etc/init.d" ]; then
+    echo "To make active created script, you must type \"mv $script_name /etc/init.d\""
+  fi
+else
+  echo "See $script_name.tmp to discover how to script works"
+fi

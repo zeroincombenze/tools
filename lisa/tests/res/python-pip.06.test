@@ -1,0 +1,2 @@
+> yum -y update python-pip
+> pip install pip --upgrade

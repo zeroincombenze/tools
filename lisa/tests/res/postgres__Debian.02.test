@@ -1,0 +1,4 @@
+postgres=postgresql (install by apt-get)
+ service=postgresql
+ command=psql
+ get ver=psql --version
