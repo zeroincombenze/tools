@@ -68,11 +68,16 @@ test_run () {
    local SAVE_FLOG_ECHO=$FLOG_ECHO
    local SAVE_FLOG=$FLOG
    local SAVE_opt_verbose=$opt_verbose
+   local SAVE_opt_dry_run=$opt_dry_run
    FLOG_ECHO=
    FLOG=
    opt_verbose=
+   if [ "${1:0:3}" == "cd " -o "$1" == "cd" ]; then
+     opt_dry_run=1
+   fi
    run_traced "$1"
    local s=$?
+   opt_dry_run=$SAVE_opt_dry_run
    opt_verbose=$SAVE_opt_verbose
    FLOG=$SAVE_FLOG
    FLOG_ECHO=$SAVE_FLOG_ECHO
@@ -105,6 +110,10 @@ if [ -f $f ]; then
 else
   ci-test "rm -f $f" "$s" "$STS_SUCCESS"
 fi
+
+test_run "cd /not/exists/directory"
+s=$?
+ci-test "rm -f $f" "$s" "$STS_SUCCESS"
 
 if [ ${opt_dry_run:-0} -ne 0 ]; then
   echo "$ctr"

@@ -67,7 +67,7 @@ Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
 
-__version__=0.2.31
+__version__=0.2.32
 
 declare -a ctrs
 export WNoCtr=1
@@ -78,8 +78,7 @@ if [ $sts -ne 127 ]; then
 fi
 opt4childs=$(inherit_opts)
 UT1_LIST=""
-UT_LIST="lisa_test_01 lisa_test_02 lisa_test_03 lisa_test_04 lisa_test_05 lisa_test_06 lisa_test_07"
-# UT_LIST="lisa_test_06"
+UT_LIST="lisa_test_01 lisa_test_02 lisa_test_03 lisa_test_04 lisa_test_05 lisa_test_06 lisa_test_07 lisa_test_08"
 saved_ctr=$ctr
 saved_max_test=$max_test
 saved_opt_verbose=$opt_verbose

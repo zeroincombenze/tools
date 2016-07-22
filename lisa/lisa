@@ -61,7 +61,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.31"
+__version__="0.2.32"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -137,7 +137,7 @@ conf_default() {
       p="$p python-dateutil"
     fi
     set_cfg_def "PIP_PKGS" "$p" "0"
-    set_cfg_def "GIT_PKGS" "lisa odoo" "0"
+    set_cfg_def "GIT_PKGS" "lisa odoo pandoc" "0"
     p="lisa wkhtmltopdf"
     if [ "$DISTO" == "CentOS6" ]; then
       p="$p python-dateutil"
@@ -152,7 +152,7 @@ conf_default() {
     p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
     p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
     p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
-    p="$p ncurses-devel sqlite-devel odoo ghostscript antiword docutils-common"
+    p="$p ncurses-devel sqlite-devel ghostscript antiword docutils-common"
     p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1"
     p="$p libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1 poppler-data"
     p="$p poppler-utils python-babel python-babel-localedata python-decorator"
@@ -293,9 +293,11 @@ conf_default() {
     else
       gitrep="zeroincombenze/OCB"
     fi
+    set_cfg_def "odoo_cmdname" "NULL" "0"
     set_cfg_def "odoo_git_URL" "https://github.com/$gitrep.git" "0"
     set_cfg_def "odoo_git_LocalRoot" "/opt/odoo" "0"
     set_cfg_def "odoo_git_LocalUser" "odoo" "0"
+    set_cfg_def "odoo_git_Branch" "*" "0"
     set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
     # set_cfg_def "lisa_git_LocalRoot" "/tmp" "0"
     set_cfg_def "lisa_git_LocalUser" "odoo" "0"
@@ -315,6 +317,8 @@ conf_default() {
       set_cfg_def "python-dateutil_wget_xname" "python-dateutil-1.5.tar.gz" "0"
       set_cfg_def "python-dateutil_wget_md5" "#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5" "0"
     fi
+    set_cfg_def "pandoc_git_URL" "https://github.com/jgm/pandoc.git" "0"
+    set_cfg_def "pandoc_git_LocalRoot" "/opt/pandoc" "0"
     # Service names
     set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
@@ -1262,6 +1266,50 @@ do_dry_install_by_wget() {
     fi
     local sts=$?
     run_traced "rm -f $pkg_xname"
+    return $sts
+}
+
+do_dry_install_by_git() {
+# do_dry_install_by_git(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local pkgname=$2
+    local xtlcmd=git
+    local git_opts=""
+    if [ $opt_dev -eq 0 ]; then
+      git_opts="--depth 1 $git_opts"
+    fi
+    local LocalRoot="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalRoot)"
+    local pkg_URL="$(get_prm_value "0" ${pkgname}_${xtlcmd}_URL)"
+    local pkg_user="$(get_prm_value "0" ${pkgname}_${xtlcmd}_LocalUser)"
+    local pkg_branch="$(get_prm_value "0" ${pkgname}_${xtlcmd}_Branch)"
+    if [ -n "$pkg_branch" ]; then
+      if [ "$pkg_branch" != "*" ]; then
+        git_opts="-b $pkg_branch --depth 1 $git_opts"
+      fi
+    fi
+    if [ -z "$pkg_URL" ]; then
+      elog "*** Package $pkgname not found for this platform"
+      elog "    git $pkg_name from URL=$pkg_URL"
+      return 2
+    fi
+    if [ -n "$LocalRoot" ]; then
+      if [ ! -d $LocalRoot ]; then
+        run_traced "mkdir -p $LocalRoot"
+      fi
+      run_traced "cd $LocalRoot"
+    else
+      if [ -d /tmp/$pkg_xname ]; then
+        run_traced "rm -fR /tmp/$pkg_xname"
+      elif [ -f /tmp/$pkg_xname ]; then
+        run_traced "rm -f /tmp/$pkg_xname"
+      fi
+      run_traced "cd /tmp"
+    fi
+    run_traced "git clone $pkg_URL $pkg_xname $git_opts" "$pkg_user"
+    local sts=$?
+    if [ -n "$pkg_user" ]; then
+      run_traced "chown -R $pkg_user $pkg_xname/"
+    fi
     return $sts
 }
 

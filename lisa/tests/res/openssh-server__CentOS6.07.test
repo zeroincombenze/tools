@@ -1,8 +1,0 @@
-> service sshd stop
-> yum -y remove openssh-server
-# yum -y remove openssh-clients
-# yum -y remove mod_ssl
-# yum -y remove mod_proxy_html
-# yum -y remove iptables-services
-# yum -y remove bind-utils
-# iptables -D INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
