@@ -1,14 +1,25 @@
 f() {
-  local p=$1
-  l=${p[0]}
-  o=${p[1]}
-  r=${p[2]}
-  echo "l=$l; o=$o; r=$r"
+    local c=$(echo "$1"|grep -Eo '[!<=>]*'|wc -l)
+    local i pkgname Lop Rop Lreqver Rreqver xtlcmd op x
+    pkgname=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
+    i=1
+    while ((i<=c)); do
+      op=$(echo "$1"|grep -Eo '[!<=>]*'|head -n$i|tail -n1)
+      ((i++))
+      x=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n$i|tail -n1)
+      # echo "$i)$x$op"
+      if [ "$op" == "!!" ]; then
+        xtlcmd=$x
+      elif [ -z "$Lreqver" ]; then
+        Lreqver=$x
+        Lop=$op
+      elif [ -z "$Rreqver" ]; then
+        Rreqver=$x
+        Rop=$op
+      fi
+    done
+    echo "$pkgname~$Lop~$Lreqver~$Rop~$Rreqver~$xtlcmd"
 }
 
-declare -a p
-p[0]="left"
-p[1]="op"
-p[2]="right"
-echo "l=${p[0]}; o==${p[1]}; r=${p[2]}"
-f "$p"
+f "$1"
+
