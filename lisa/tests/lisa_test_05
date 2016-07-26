@@ -133,6 +133,14 @@ test_run () {
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
     elif [ "$Package" == "openssh-server" ]; then
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
+    elif [ "$Package" == "dateutil" -a "$Disto" == "CentOS6" ]; then
+      Package=python-dateutil
+      opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
+    elif [ "$Package" == "python-dateutil" -a "$Disto" != "CentOS6" ]; then
+      Package=dateutil
+      opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
+    elif [ "$Package" == "dateutil" -o "$Package" == "python-dateutil" ]; then
+      opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "python" ]; then
       opt_ij="-e1 -I$Package,python-setuptools,setuptools,wheel -Jpython-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
     elif [ "$Package" == "wkhtmltopdf" ]; then
@@ -316,11 +324,11 @@ EOF
 > pip install python-dateutil-1.5.tar.gz
 > rm -f python-dateutil-1.5.tar.gz
 EOF
-  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS7.05.test
-> pip install python-dateutil
+  cat <<EOF >$TESTDIR/res/dateutil__CentOS7.05.test
+> pip install dateutil
 EOF
-  cat <<EOF >$TESTDIR/res/python-dateutil__Debian.05.test
-> pip install python-dateutil
+  cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
+> pip install dateutil
 EOF
 fi
 Real_FH=$(xuname "-f")
@@ -331,7 +339,7 @@ Real_DISTO=$(xuname "-d")$v
 for Package in lisa apache2 httpd\
   pip python-pip\
   postgres postgresql postgresql-server\
-  openssh openssh-server wkhtmltopdf python-dateutil; do
+  openssh openssh-server wkhtmltopdf dateutil python-dateutil; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        if [ "$Package" == "wkhtmltopdf" ]; then
