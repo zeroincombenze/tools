@@ -142,7 +142,7 @@ test_run () {
     elif [ "$Package" == "dateutil" -o "$Package" == "python-dateutil" ]; then
       opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "python" ]; then
-      opt_ij="-e1 -I$Package,python-setuptools,setuptools,wheel -Jpython-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+      opt_ij="-e1 -I$Package,python-setuptools,setuptools,wheel -Jpython-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
     elif [ "$Package" == "wkhtmltopdf" ]; then
       opt_ij="-J$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
     fi
@@ -428,13 +428,13 @@ EOF
 > yum -y install libxml2
 > yum -y install libxml2-python
 > pip install lxml
-> pip install psycopg2
 > pip install simplejson
 > pip install xlwt
 > pip install PyYAML
 > pip install gdata
 > pip install python-ldap
 > pip install pytz
+> pip install psycopg2
 EOF
 fi
 

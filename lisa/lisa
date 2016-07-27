@@ -71,8 +71,7 @@ TDIR=$(echo $(readlink -f $(dirname $0)))
 
 conf_default() {
     # ALIAS
-    local p=
-    local x=
+    local p x
     set_cfg_def "REAL_OSSERVICE" "service" "0" "Debian"
     set_cfg_def "REAL_OSSERVICE" "service" "0" "CentOS6"
     set_cfg_def "REAL_OSSERVICE" "systemctl" "0" "CentOS7"
@@ -120,18 +119,22 @@ conf_default() {
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
     set_cfg_def "VFYUPP" "ssh lisa" "0"
-    set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf" "0"
+    set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf wget" "0"
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
     set_cfg_def "NAME_VIRTUAL" "LAMP" "0"
     # Packages migrated into pip
-    PIP_PYSTD_PKGS="dateutil pychart Babel"
+    PIP_PYSTD_PKGS="dateutil pychart Babel pyparsing beaker psycopg2 reportlab"
     for p in $PIP_PYSTD_PKGS; do
       x=${p,}
-      set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
-      set_cfg_def "REAL_python-$x" "$p" "0" "CentOS7"
-      set_cfg_def "REAL_$p" "python-$x" "0" "CentOS6"
+      if [ "$p" == "pyparsing" ]; then
+        set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
+      else
+        set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
+        set_cfg_def "REAL_python-$x" "$p" "0" "CentOS7"
+        set_cfg_def "REAL_$p" "python-$x" "0" "CentOS6"
+      fi
       if [ "$x" != "$p" ]; then
         set_cfg_def "REAL_$x" "$p" "0"
       fi
@@ -141,9 +144,9 @@ conf_default() {
     p="$PIP_PYSTD_PKGS oerplib virtualenv Babel python-ldap python-openid os0"
     p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
     p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
-    p="$p psycopg2 simplejson"
+    p="$p simplejson"
     if [ "$DISTO" != "CentOS6" ]; then
-      p="$p dateutil pychart"
+      p="$p dateutil pychart pyparsing beaker psycopg2 reportlab"
     fi
     set_cfg_def "PIP_PKGS" "$p" "0"
     set_cfg_def "GIT_PKGS" "lisa odoo pandoc" "0"
@@ -242,7 +245,7 @@ conf_default() {
     fi
     set_cfg_def "BOP_python" "$p" "0" "Debian"
     p="setuptools python-virtualenv virtualenv readline"
-    p="$p PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
+    p="$p PYTHON_LIB_XML simplejson xlwt PyYAML"
     p="$p gdata python-ldap pytz"
     if [ $opt_dev -gt 0 ]; then
       p="$p python-devel openldap-devel zlib-devel bzip2-devel openssl-devel"
@@ -250,7 +253,8 @@ conf_default() {
       p="$p libpcap-devel xz-devel postgresql-devel libxml2-devel"
       p="$p libxslt-devel python-requests python-yaml mock"
     fi
-    set_cfg_def "BOP_python" "$p" "0" "RHEL"
+    set_cfg_def "BOP_python" "$p psycopg2" "0" "CentOS7"
+    set_cfg_def "BOP_python" "$p python-psycopg2" "0" "CentOS6"
     p="ghostscript libart-2.0-2 libcupsfilters1"
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
@@ -259,19 +263,19 @@ conf_default() {
     P="$p python-gevent python-greenlet python-imaging python-jinja2 python-mako"
     p="$p python-markupsafe python-openid passlib python-pil"
     P="$p python-psutil python-pybabel pychart python-pygments"
-    p="$p python-pyinotify python-pyparsing python-pypdf python-renderpm"
-    p="$p python-reportlab python-reportlab-accel python-roman python-suds"
+    p="$p python-pyinotify pyparsing python-pypdf python-renderpm"
+    p="$p reportlab==3.1.44 python-reportlab-accel python-roman python-suds"
     p="$p python-unittest2 python-utidylib python-vobject"
     p="$p python-werkzeug docutils-common docutils-doc wkhtmltopdf"
     if [ $opt_dev -gt 0 ]; then
       p="$p oerplib erppeek os0 pytok"
     fi
     set_cfg_def "BOP_odoo" "$p" "0" "Debian"
-    p="Babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
+    p="Babel==1.3 dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
-    p="$p pyOpenSSL pychart pyparsing python-beaker dateutil python-docutils python-feedparser python-jinja2"
+    p="$p pyOpenSSL pychart pyparsing beaker dateutil python-docutils python-feedparser python-jinja2"
     p="$p python-ldap python-mako python-markupsafe python-openid"
-    p="$p python-psutil python-reportlab"
+    p="$p python-psutil reportlab==3.1.44"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
     if [ $opt_dev -gt 0 ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
@@ -279,7 +283,7 @@ conf_default() {
     set_cfg_def "BOP_odoo" "$p" "0" "CentOS7"
     p="python-babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
-    p="$p pyOpenSSL pychart pyparsing python-beaker dateutil python-docutils python-feedparser python-jinja2"
+    p="$p pyOpenSSL pychart pyparsing beaker dateutil python-docutils python-feedparser python-jinja2"
     p="$p python-ldap python-mako python-markupsafe python-openid"
     p="$p python-psutil python-reportlab"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
@@ -1008,7 +1012,6 @@ get_pkg_ver() {
         pkgversion="# $pkgname N/A"
       else
         local stscmd=$(get_prm_value "0" "${1}_stscmd")
-        if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "    $stscmd=\$(get_prm_value 0 ${1}_stscmd)">>~/$THIS.his; fi    #debug
         if [ "$stscmd" == "dpkg-query" ]; then
           local cmd="get_pkg_ver_dpkg"
         else
@@ -1025,9 +1028,11 @@ get_pkg_ver() {
 
 get_act_xtlcmd() {
 # get_act_xtlcmd(pkgname [action] [OPTS] [param] [SPECIMEN])
-    local via xtlcmd
-    IFS="=" read via xtlcmd<<<"$4"
-    if [ "$via" != "via" -o -z "$xtlcmd" ]; then
+    local pkg lop lreqver rop rreqver branch x xtlcmd
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    if [ -n "$x" ]; then
+      xtlcmd=$x
+    else
       xtlcmd=$(get_prm_value "0" "${1}_xtlcmd_${2}")
     fi
     if [ -z "$xtlcmd"  -a "$2" == "remove" ]; then
@@ -1044,6 +1049,8 @@ get_full_xtlcmd() {
 # get_full_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
     local xtlcmd=$(get_act_xtlcmd $2 "$1" $3 $4 $5)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_act_xtlcmd($2 $1 $3)">>~/$THIS.his; fi    #debug
+    local pkg lop lreqver rop rreqver branch x pkgURL subpkg
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     local p=" $2"
     if [ "$2" == "EVERYTHINGS" ]; then
       p=""
@@ -1052,6 +1059,8 @@ get_full_xtlcmd() {
     elif [ "$2" == "pip" -a "$1" == "remove" -a "$DISTO" != "CentOS6" ]; then
         p=" python-$2"
     elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] && [[ $3 =~ p ]]; then
+      p=" python-$2"
+    elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
       if [ "$1" == "install" -o "$1" == "remove" ]; then
         p=" python-$2"
       fi
@@ -1061,9 +1070,9 @@ get_full_xtlcmd() {
       xtlcmd="$xtlcmd $1$p"
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
-        xtlcmd="$xtlcmd install$p --upgrade"
+        xtlcmd="$xtlcmd install$p$lop$lreqver$rop$rreqver --upgrade"
       else
-        xtlcmd="$xtlcmd $1$p"
+        xtlcmd="$xtlcmd $1$p$lop$lreqver$rop$rreqver"
       fi
     fi
     if [[ $3 =~ I ]]; then
@@ -1645,7 +1654,7 @@ do_dry_install_by_git() {
 do_dry_update_package() {
 # do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
-    if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
+    if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
       local cmd=$(get_act_xtlcmd python-$2 install $3 $4 "$5")
       if [ -n "$cmd" ]; then
         cmd=$(get_full_xtlcmd $1 python-$2 $3 $4 "$5")
@@ -1655,14 +1664,15 @@ do_dry_update_package() {
           run_traced "$cmd"
         fi
       fi
-    fi
-    cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-    run_traced "$cmd"
-    local sts=$?
-    if [ "${cmd:0:7}" == "apt-get" ]; then
-      cmd="${cmd/update/upgrade}"
+    else
+      cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
       run_traced "$cmd"
-      sts=$?
+      local sts=$?
+      if [ "${cmd:0:7}" == "apt-get" ]; then
+        cmd="${cmd/update/upgrade}"
+        run_traced "$cmd"
+        sts=$?
+      fi
     fi
     return $sts
 }
@@ -1937,28 +1947,30 @@ pre_dry_remove_service() {
 
 do_1_tellme_package() {
 # do_1_tellme_package(action pkgname OPTS param [SPECIMEN])
-# - tellme receives cmdline pkgname into SPECIMEN
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    local pkg lop lreqver rop rreqver branch x xtlcmd
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    local pkgname=$(get_realname "$2" $3)
     local sts=$STS_SUCCESS
     if [ "$4" == "realname" ]; then
-      local iter=$(get_iter $2 $3)
-      if [ "$5" == "$iter" ]; then
-        echo "$5"
-      elif [ "$2" == "$iter" ]; then
-        echo "$5=$2"
+      local iter=$(get_iter $pkgname $3)
+      if [ "$2" == "$iter" ]; then
+        echo "$2"
+      elif [ "$pkgname" == "$iter" ]; then
+        echo "$2=$pkgname"
       else
-        echo "$5=($iter)"
+        echo "$2=($iter)"
       fi
       if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_1_tellme_package">>~/$THIS.his; fi    #debug
       return $STS_SUCCESS
     elif [ "$4" == "installer" ]; then
-      local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+      local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
       echo "$xtlcmd"
     elif [ "$4" == "vfycmd" ]; then
       local vfycmd=$(get_prm_value "0" "${2}_vfycmd")
       echo "$vfycmd"
     elif [ "$4" == "confn" ]; then
-      local confn=$(get_full_confn $1 $2 $3)
+      local confn=$(get_full_confn $1 $pkgname $3)
       echo "$confn"
     elif [ "$4" == "cmdname" ]; then
       local cmdname=$(get_prm_value "0" "${2}_cmdname")
@@ -1969,11 +1981,14 @@ do_1_tellme_package() {
     elif [ "$4" == "submodules" ]; then
       local p=$(get_prm_value "0" "SUBM_${2}")
       echo "$p"
+    elif [ "$4" == "requirements" ]; then
+      local p=$(get_prm_value "0" "REQ_${2}")
+      echo "$p"
     elif [ "$4" == "confdirs" ]; then
       local p=$(get_prm_value "0" "${2}_confdirs")
       echo "$p"
     else
-      echo "Invalid param: branches|cmdname|confdirs|confn|installer|realname|submodules|vfycmd"
+      echo "Invalid param: branches|cmdname|confdirs|confn|installer|realname|requirements|submodules|vfycmd"
       sts=$STS_FAILED
     fi
     return $sts
@@ -2138,7 +2153,7 @@ satisfy_request() {
     local s
     local pkgname=$2
     local REQlist="$(get_prm_value 0 REQ_$pkgname)"
-    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "")
     if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
       if [[ "$REQlist" =~ $xtlcmd ]]; then
         :
@@ -2152,10 +2167,10 @@ satisfy_request() {
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
       for p in $REQlist; do
         realname=$(get_realname $p $1 $3)
-        if $(please status $realname $x "$4" "$5"); then
+        if $(please status $realname $x "$4" ""); then
           [ $sts -eq 127 ] && sts=$STS_SUCCESS
         else
-          please install $realname $3 "$4" "$5" "$6"
+          please install $realname $3 "$4" ""
           s=$?
           [ $sts -eq 127 ] && sts=$s
           [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
@@ -2183,8 +2198,9 @@ do_action_subpkg() {
       if [ "$3" != "$iter" ]; then
         for p in $iter; do
           if [ "$p" != "$3" -a "$p" != "$rs" ]; then
-            realname=$(get_realname $p $2 $4)
-            do_action_subpkg "$1" $2 $realname ${opts}Q
+            # realname=$(get_realname $p $2 $4)
+            # do_action_subpkg "$1" $2 $realname ${opts}Q
+            do_action_subpkg "$1" $2 $p ${opts}Q
             sts=$?
             if [ $sts -ne $STS_SUCCESS ]; then
               break
@@ -2253,6 +2269,8 @@ do_local_function() {
         sts=$?
         if [ $sts -ne $STS_SUCCESS ]; then
           pkg=$4
+        elif [ "$4" != "pip" ]; then
+          DETECTED_NOPIP="$DETECTED_NOPIP $4"
         fi
       fi
       if [ "$3" == "install" ]; then
@@ -2296,7 +2314,7 @@ do_local_function() {
         DETECTED_NO="$DETECTED_NO $4"
       fi
     fi
-    local xtlcmd=$(get_act_xtlcmd $4 $act $5 $6 "'$7'")
+    local xtlcmd=$(get_act_xtlcmd $4 $act $5 $6 "$7")
     if [ -n "$2" ]; then
       local X="_$4 _by_$xtlcmd _service _package"
     else
@@ -2383,7 +2401,8 @@ do_iter_prod() {
     fi
     local iter=$(get_iter $pkgname $3)
     if [ "$act" == "tellme" ]; then
-      do_1_tellme_package $1 $pkgname $3 $4 $2
+      local specimen=$(get_specimen $2 "$act" $3)
+      do_1_tellme_package $1 $2 $3 $4 "$specimen"
       return $?
     fi
     if [ "$pkgname" == "$iter" ]; then
@@ -2863,52 +2882,10 @@ test_install() {
         echo "--> mkdir -p /var/run/odoo">>$ftest
         echo "--> chown odoo:odoo /var/run/odoo">>$ftest
         echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
-        echo "--> pip  install Babel">>$ftest
-        echo "--> yum -y install dejavu-fonts-common">>$ftest
-        echo "--> yum -y install dejavu-sans-fonts">>$ftest
-        echo "--> yum -y install fontpackages-filesystem">>$ftest
-        # echo "--> yum -y install jbigkit-libs">>$ftest
-        echo "--> yum -y install libjpeg-turbo">>$ftest
-        echo "--> yum -y install libtiff">>$ftest
-        # echo "--> yum -y install libwebp">>$ftest
-        # echo "--> yum -y install libxml2-python">>$ftest
-        # echo "--> yum -y install libxslt-python">>$ftest
-        echo "--> yum -y install libyaml">>$ftest
-        echo "--> pip  install passlib">>$ftest
-        echo "--> yum -y install pyOpenSSL">>$ftest
-        echo "--> yum -y install pychart">>$ftest
-        echo "--> yum -y install pyparsing">>$ftest
-        echo "--> yum -y update python-babel">>$ftest
-        echo "--> yum -y install python-beaker">>$ftest
-        echo "--> pip install python-dateutil">>$ftest
-        echo "--> yum -y install python-docutils">>$ftest
-        echo "--> yum -y install python-feedparser">>$ftest
-        echo "--> yum -y install python-jinja2">>$ftest
-        echo "--> pip  install python-ldap">>$ftest
         echo "--> yum -y update python-lxml">>$ftest
-        echo "--> yum -y install python-mako">>$ftest
-        echo "--> yum -y install python-markupsafe">>$ftest
-        echo "--> pip  install python-openid">>$ftest
-        echo "--> yum -y install python-psutil">>$ftest
         echo "--> yum -y update python-psycopg2">>$ftest
-        echo "--> yum -y install python-reportlab">>$ftest
         echo "--> yum -y update python-simplejson">>$ftest
-        echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> pip  install urllib3">>$ftest
-        echo "--> yum -y install python-vobject">>$ftest
-        echo "--> yum -y install python-werkzeug">>$ftest
         echo "--> pip  install pytz">>$ftest
-        echo "--> pip  install unidecode">>$ftest
-        local pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
-        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
-        echo "--> cd /tmp">>$ftest
-        echo "--> wget $URL/$pn">>$ftest
-        echo "--> rpm -U $pn">>$ftest
-        echo "--> rm -f $pn">>$ftest
-        echo "--> pip  install unicodecsv">>$ftest
-        echo "--> pip  install pydot">>$ftest
-        echo "--> pip  install vatnumber">>$ftest
-        echo "--> pip  install BeautifulSoup">>$ftest
       else
         echo "--> # pre_install_odoo failed">>$ftest
         echo "--> cd /opt/odoo">>$ftest

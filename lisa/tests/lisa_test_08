@@ -1,0 +1,469 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on lisa
+# Check for odoo
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+elif [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=.
+  RUNDIR=..
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=.
+elif [ -d ../_travis ]; then
+  TRAVISDIR=..
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+  Z0LIBDIR=$TDIR
+elif [ -e ./z0librc ]; then
+. ./z0librc
+  Z0LIBDIR=.
+elif [ -e ../z0librc ]; then
+. ../z0librc
+  Z0LIBDIR=..
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+  Z0LIBDIR=~
+else
+. /etc/z0librc
+  Z0LIBDIR=/etc
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+  Z0TLIBDIR=$TDIR
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+  Z0TLIBDIR=.
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+  Z0TLIBDIR=..
+else
+. ~/dev/z0testrc
+  Z0TLIBDIR=~
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
+
+__version__=0.2.1.19
+parseoptest -l$TESTDIR/test_lisa.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+TPRODUCT="$RUNDIR/lisa -T"
+
+test_run () {
+# test_run(msg,package,disto,cmd)
+    # set -x #debug
+    local msg="$1"
+    local Package=$(echo "$2"|grep -Eo '[^!<=>]*'|head -n1)
+    local Disto="$3"
+    local cmd="$4"
+    local FH=
+    local opt_e="-E$Disto"
+    local opt_ij=""
+    if [ "$Disto" == "." ]; then
+        local FH=$Real_FH
+        local Disto=$Real_DISTO
+        local opt_e=
+    elif [ "$Disto" == "Ubuntu12" -o "$Disto" == "Ubuntu14" ]; then
+      local FH="Debian"
+    elif [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
+      local FH="RHEL"
+    fi
+    if [ "$cmd" == "version" ]; then
+      opt_ij="-d0 -oodoo"
+    elif [ "$cmd" == "install" ]; then
+      opt_ij="-d0 -Jodoo"
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $TESTDIR/res/${Package}__${Disto}.08.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.08.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.08.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.08.test
+      elif [ -f $TESTDIR/res/${Package}.08.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.08.test
+      else
+        TESTOUT=
+        echo "File test comparison ${Package}__${Disto} not found!"
+      fi
+      rm -f $TESTDIR/lisa.out
+      eval $TPRODUCT $opt_e $cmd "'$2'" $opt_ij>$TESTDIR/lisa.out
+    fi
+    # set +x #debug
+    ci-test "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "diff -Z"
+    return $s
+}
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  rm -f $TESTDIR/res/*.08.test
+  cat <<EOF >$TESTDIR/res/odoo__Debian.08.test
+odoo (install by git)
+ service=odoo-server
+EOF
+  cat <<EOF >$TESTDIR/res/odoo__RHEL.08.test
+odoo (install by git)
+ service=odoo-server
+EOF
+fi
+Real_FH=$(xuname "-f")
+x=$(xuname "-v")
+v=$(echo $x|awk -F. '{print $1}')
+Real_DISTO=$(xuname "-d")$v
+
+Package=odoo
+for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+  if [ "$Disto" == "." ]; then
+    opt_e=
+  else
+    opt_e="-E$Disto"
+  fi
+  test_run "info $Package $opt_e" "$Package" "$Disto" "info"
+done
+
+if [ ${opt_dry_run:-0} -eq 0 ]; then
+  rm -f $TESTDIR/res/*.08.test
+  cat <<EOF >$TESTDIR/res/odoo__Ubuntu14.08.test
+odoo (by git)
+- TCP port 8069
+--ghostscript (by apt-get)
+--libart-2.0-2 (by apt-get)
+--libcupsfilters1 (by apt-get)
+--libcupsimage2 (by apt-get)
+--libgs9 (by apt-get)
+--libgs9-common (by apt-get)
+--libijs-0.35 (by apt-get)
+--libjbig2dec0 (by apt-get)
+--liblcms2-2 (by apt-get)
+--libpaper-utils (by apt-get)
+--libpaper1 (by apt-get)
+--libpoppler44 (by apt-get)
+--libtidy-0.99-0 (by apt-get)
+--libwebp5 (by apt-get)
+--libwebpmux1 (by apt-get)
+--poppler-data (by apt-get)
+--poppler-utils (by apt-get)
+--Babel (by pip)
+--python-babel-localedata (by apt-get)
+--dateutil (by pip)
+--python-decorator (by apt-get)
+--python-docutils (by apt-get)
+--python-feedparser (by apt-get)
+--python-markupsafe (by apt-get)
+--python-openid (by pip)
+--passlib (by pip)
+--python-pil (by apt-get)
+--python-pyinotify (by apt-get)
+--pyparsing (by pip)
+--python-pypdf (by apt-get)
+--python-renderpm (by apt-get)
+--reportlab (by pip)
+--python-reportlab-accel (by apt-get)
+--python-roman (by apt-get)
+--python-suds (by apt-get)
+--python-unittest2 (by apt-get)
+--python-utidylib (by apt-get)
+--python-vobject (by apt-get)
+--python-werkzeug (by apt-get)
+--docutils-common (by apt-get)
+--docutils-doc (by apt-get)
+--wkhtmltopdf (by wget)(wkhtmltopdf --version)
+EOF
+  cat <<EOF >$TESTDIR/res/odoo__Ubuntu12.08.test
+odoo (by git)
+- TCP port 8069
+--ghostscript (by apt-get)
+--libart-2.0-2 (by apt-get)
+--libcupsfilters1 (by apt-get)
+--libcupsimage2 (by apt-get)
+--libgs9 (by apt-get)
+--libgs9-common (by apt-get)
+--libijs-0.35 (by apt-get)
+--libjbig2dec0 (by apt-get)
+--liblcms2-2 (by apt-get)
+--libpaper-utils (by apt-get)
+--libpaper1 (by apt-get)
+--libpoppler44 (by apt-get)
+--libtidy-0.99-0 (by apt-get)
+--libwebp5 (by apt-get)
+--libwebpmux1 (by apt-get)
+--poppler-data (by apt-get)
+--poppler-utils (by apt-get)
+--Babel (by pip)
+--python-babel-localedata (by apt-get)
+--dateutil (by pip)
+--python-decorator (by apt-get)
+--python-docutils (by apt-get)
+--python-feedparser (by apt-get)
+--python-markupsafe (by apt-get)
+--python-openid (by pip)
+--passlib (by pip)
+--python-pil (by apt-get)
+--python-pyinotify (by apt-get)
+--pyparsing (by pip)
+--python-pypdf (by apt-get)
+--python-renderpm (by apt-get)
+--reportlab (by pip)
+--python-reportlab-accel (by apt-get)
+--python-roman (by apt-get)
+--python-suds (by apt-get)
+--python-unittest2 (by apt-get)
+--python-utidylib (by apt-get)
+--python-vobject (by apt-get)
+--python-werkzeug (by apt-get)
+--docutils-common (by apt-get)
+--docutils-doc (by apt-get)
+--wkhtmltopdf (by wget)(wkhtmltopdf --version)
+EOF
+  cat <<EOF >$TESTDIR/res/odoo__CentOS7.08.test
+odoo (by git)
+- TCP port 8069
+--Babel (by pip)
+--dejavu-fonts-common (by yum)
+--dejavu-sans-fonts (by yum)
+--fontpackages-filesystem (by yum)
+--libjpeg-turbo (by yum)
+--libtiff (by yum)
+--libyaml (by yum)
+--passlib (by pip)
+--pyOpenSSL (by yum)
+--pychart (by pip)
+--pyparsing (by pip)
+--beaker (by pip)
+--dateutil (by pip)
+--python-docutils (by yum)
+--python-feedparser (by yum)
+--python-jinja2 (by yum)
+--python-ldap (by pip)
+--python-mako (by yum)
+--python-markupsafe (by yum)
+--python-openid (by pip)
+--python-psutil (by yum)
+--reportlab (by pip)
+--python-unittest2 (by yum)
+--urllib3 (by pip)
+--python-vobject (by yum)
+--python-werkzeug (by yum)
+--wkhtmltopdf (by wget)(wkhtmltopdf --version)
+EOF
+  cat <<EOF >$TESTDIR/res/odoo__CentOS6.08.test
+odoo (by git)
+- TCP port 8069
+--python-babel (by yum)
+--dejavu-fonts-common (by yum)
+--dejavu-sans-fonts (by yum)
+--fontpackages-filesystem (by yum)
+--libjpeg-turbo (by yum)
+--libtiff (by yum)
+--libyaml (by yum)
+--passlib (by pip)
+--pyOpenSSL (by yum)
+--python-pychart (by yum)
+--pyparsing (by pip)
+--python-beaker (by yum)
+--python-dateutil (by wget)
+--python-docutils (by yum)
+--python-feedparser (by yum)
+--python-jinja2 (by yum)
+--python-ldap (by pip)
+--python-mako (by yum)
+--python-markupsafe (by yum)
+--python-openid (by pip)
+--python-psutil (by yum)
+--python-reportlab (by yum)
+--python-unittest2 (by yum)
+--urllib3 (by pip)
+--python-vobject (by yum)
+--python-werkzeug (by yum)
+--wkhtmltopdf (by wget)(wkhtmltopdf --version)
+EOF
+fi
+
+for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+  if [ "$Disto" == "." ]; then
+    opt_e=
+  else
+    opt_e="-E$Disto"
+  fi
+  test_run "whatis $Package $opt_e" "$Package" "$Disto" "whatis"
+done
+
+if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  if [ ${opt_dry_run:-0} -eq 0 ]; then
+    rm -f $TESTDIR/res/*.08.test
+  fi
+  Disto=CentOS7
+  for ver in 7.0 8.0 9.0 10.0; do
+    opt_e=
+    if [ "$ver" == "10.0" ]; then
+      echo "odoo should be installed by git">$TESTDIR/res/odoo__$Disto.08.test
+    else
+      echo "odoo: $ver">$TESTDIR/res/odoo__$Disto.08.test
+    fi
+    test_run "version $Package==$ver" "$Package==$ver" "$Disto" "version"
+  done
+  echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package<9.0" "$Package<9.0" "$Disto" "version"
+  echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package>7.0" "$Package>7.0" "$Disto" "version"
+  echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package<=8.0" "$Package<=8.0" "$Disto" "version"
+  echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package>=8.0" "$Package>=8.0" "$Disto" "version"
+  echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package<>9.0" "$Package<>9.0" "$Disto" "version"
+  # echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package!=9.0" "$Package!=9.0" "$Disto" "version"
+  # echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package>7.0<9.0" "$Package>7.0<9.0" "$Disto" "version"
+
+  cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
+> cd /opt/odoo
+> git clone https://github.com/zeroincombenze/OCB.git odoo -b 8.0 --depth=1
+> chown -R odoo odoo/
+> mkdir -p /etc/odoo
+> chown odoo /etc/odoo/
+> chmod u+rwx,g=rx,o=rx /etc/odoo/
+> mkdir -p /var/log/odoo
+> chown odoo /var/log/odoo/
+> chmod u+rwx,g=rx,o=rx /var/log/odoo/
+> mkdir -p /var/run/odoo
+> chown odoo /var/run/odoo/
+> chmod u+rwx,g=rx,o=rx /var/run/odoo/
+> git checkout 8.0
+> echo "l10n-italy-supplemental/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
+> cd /opt/odoo
+> echo "account-closing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
+> cd /opt/odoo
+> echo "account-financial-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
+> cd /opt/odoo
+> echo "account-invoicing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
+> cd /opt/odoo
+> echo "account-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
+> cd /opt/odoo
+> echo "bank-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
+> cd /opt/odoo
+> echo "knowledge/">>.gitignore
+> git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
+> cd /opt/odoo
+> echo "partner-contact/">>.gitignore
+> git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
+> cd /opt/odoo
+> echo "stock-logistics-workflow/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
+> cd /opt/odoo
+> echo "webkit-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 8.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> cd /opt/odoo
+> systemctl start odoo-server
+> chkconfig odoo-server on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
+EOF
+  test_run "install $Package" "$Package" "$Disto" "install"
+
+  cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
+> cd /opt/odoo
+> git clone https://github.com/zeroincombenze/OCB.git odoo -b 7.0 --depth=1
+> chown -R odoo odoo/
+> mkdir -p /etc/odoo
+> chown odoo /etc/odoo/
+> chmod u+rwx,g=rx,o=rx /etc/odoo/
+> mkdir -p /var/log/odoo
+> chown odoo /var/log/odoo/
+> chmod u+rwx,g=rx,o=rx /var/log/odoo/
+> mkdir -p /var/run/odoo
+> chown odoo /var/run/odoo/
+> chmod u+rwx,g=rx,o=rx /var/run/odoo/
+> git checkout 7.0
+> echo "l10n-italy-supplemental/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
+> cd /opt/odoo
+> echo "account-closing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
+> cd /opt/odoo
+> echo "account-financial-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
+> cd /opt/odoo
+> echo "account-invoicing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
+> cd /opt/odoo
+> echo "account-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
+> cd /opt/odoo
+> echo "bank-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
+> cd /opt/odoo
+> echo "knowledge/">>.gitignore
+> git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
+> cd /opt/odoo
+> echo "partner-contact/">>.gitignore
+> git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
+> cd /opt/odoo
+> echo "stock-logistics-workflow/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
+> cd /opt/odoo
+> echo "webkit-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 7.0 --depth=1
+> git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> cd /opt/odoo
+> systemctl start odoo-server
+> chkconfig odoo-server on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
+EOF
+  test_run "install $Package<8.0" "$Package<8.0" "$Disto" "install"
+fi
+
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

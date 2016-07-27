@@ -1,0 +1,128 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests for submodule of travisrc
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -d ./tests ]; then
+  TESTDIR=./tests
+  RUNDIR=./
+elif [ -d ../tests ]; then
+  TESTDIR=./
+  RUNDIR=../
+elif [ -d $TDIR/tests ]; then
+  TESTDIR=$TDIR/tests
+  RUNDIR=$TDIR
+elif [ -d $TDIR/../tests ]; then
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+else
+  TESTDIR=$TDIR
+  RUNDIR=$TDIR/..
+fi
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+else
+. /etc/z0librc
+fi
+if [ -d $TDIR/_travis ]; then
+  TRAVISDIR=$TDIR
+elif [ -d $TDIR/../_travis ]; then
+  TRAVISDIR=$TDIR/..
+elif [ -d ./_travis ]; then
+  TRAVISDIR=./
+elif [ -d ../_travis ]; then
+  TRAVISDIR=../
+else
+  TRAVISDIR=~/dev/_travis
+fi
+if [ -e $TDIR/travisrc ]; then
+. $TDIR/travisrc
+elif [ -e ./travisrc ]; then
+. ./travisrc
+elif [ -e ../travisrc ]; then
+. ../travisrc
+elif [ -e ~/travisrc ]; then
+. ~/travisrc
+else
+  echo "No travisrc lib found!"
+  exit 1
+fi
+if [ -e $TDIR/z0testrc ]; then
+. $TDIR/z0testrc
+elif [ -e ./z0testrc ]; then
+. ./z0testrc
+elif [ -e ../z0testrc ]; then
+. ../z0testrc
+else
+. ~/dev/z0testrc
+fi
+TESTDIR=$(readlink -e $TESTDIR)
+RUNDIR=$(readlink -e $RUNDIR)
+TRAVISDIR=$(readlink -e $TRAVISDIR)
+
+test_copy() {
+    local cmd="$RUNDIR/vfcp -nv $1 $2"
+    if [ -n "$1" ]; then
+      local msg1=$(basename $1)
+    else
+      local msg1=
+    fi
+    if [ -n "$2" ]; then
+      local msg2=$(basename $2)
+    else
+      local msg2=.
+    fi
+    if [ -n "$3" ]; then
+      cmd="$cmd -r $3"
+    fi
+    if [ -n "$4" ]; then
+      cmd="$cmd -p $4"
+    fi
+    if [ -n "$5" ]; then
+      if [ "${5:0:1}" == "-" ]; then
+        cmd="$cmd -R"
+        if [ -n "${5:1}" ]; then
+          cmd="$cmd -O ${5:1}"
+        fi
+      else
+        cmd="$cmd -O $5"
+      fi
+    fi
+    TRES=$(eval $cmd)
+    test_result "cp $msg1 $msg2" "$6" "$TRES"
+}
+
+__version__=0.1.3
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+sts=0
+
+test_copy "~/7.0" "~/v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
+test_copy "~/8.0" "~/7.0" "" "" "" "cp -R /opt/odoo/8.0 /opt/odoo/7.0"
+test_copy "~/7.0" "~/8.0" "l10n-italy" "" "" "cp -R /opt/odoo/7.0/l10n-italy /opt/odoo/8.0/l10n-italy"
+test_copy "~/7.0" "~/9.0" "l10n-italy" "l10n_it_vat_registries" "" "cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries /opt/odoo/9.0/l10n-italy/l10n_it_vat_registries"
+test_copy "~/v7" "~/7.0" "zeroincombenze" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
+test_copy "~/7.0" "~/v7" "zeroincombenze" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
+test_copy "~/v7" "~/7.0" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
+test_copy "~/7.0" "~/v7" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
+test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "8.0" "" "" "" "cp  /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py"
+test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "" "" "" "-8" "cp  /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py"
+test_copy " ~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
+test_copy "~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
+test_copy " ~/7.0/l10n-italy-supplemental/account_banking_pain_base/" "~/v7.0/bank-payment/account_banking_pain_base" "" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental/account_banking_pain_base /opt/odoo/v7.0/bank-payment/account_banking_pain_base"
+
+
+if [ ${opt_dry_run:-0} -ne 0 ]; then
+  echo "$ctr"
+fi
+exit $sts

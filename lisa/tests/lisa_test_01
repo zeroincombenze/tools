@@ -80,7 +80,7 @@ test_run () {
 # test_run(msg,package,disto,cmd)
     # set -x #debug
     local msg="$1"
-    local Package="$2"
+    local Package=$(echo "$2"|grep -Eo '[^!<=>]*'|head -n1)
     local Disto="$3"
     local cmd="$4"
     local FH=
@@ -125,7 +125,7 @@ test_run () {
       if [ "$cmd" == "vfycmd" -a -z "$opt_e" ]; then
         RES=$(eval $RUNDIR/lisa tellme $Package "$cmd")
       else
-        RES=$(eval $TPRODUCT $opt_e tellme $Package "$cmd")
+        RES=$(eval $TPRODUCT $opt_e tellme $2 "$cmd")
       fi
     fi
     ci-test "$msg" "$TRES" "$RES"
@@ -187,8 +187,10 @@ TEST_RHEL[apache2]="yum"
 TEST_RHEL[httpd]="yum"
 TEST_Debian[os0]="pip"
 TEST_RHEL[os0]="pip"
+TEST_Debian[odoo]="git"
+TEST_RHEL[odoo]="git"
 
-for Package in apache2 httpd os0; do
+for Package in apache2 httpd os0 odoo; do
   for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
      if [ "$Disto" == "." ]; then
        opt_e=
@@ -198,7 +200,12 @@ for Package in apache2 httpd os0; do
      test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
   done
 done
-
+Package=odoo!!pip
+Disto=.
+opt_e=
+TEST_Debian[odoo]="pip"
+TEST_RHEL[odoo]="pip"
+test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
 
 declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
 

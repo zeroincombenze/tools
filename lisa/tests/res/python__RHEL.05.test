@@ -7,10 +7,10 @@
 > yum -y install libxml2
 > yum -y install libxml2-python
 > pip install lxml
-> pip install psycopg2
 > pip install simplejson
 > pip install xlwt
 > pip install PyYAML
 > pip install gdata
 > pip install python-ldap
 > pip install pytz
+> pip install psycopg2

@@ -1,7 +1,5 @@
 > apt-get -y update python
 > apt-get -y upgrade python
-> apt-get -y update python-setuptools
-> apt-get -y upgrade python-setuptools
 > pip install setuptools --upgrade
 > apt-get -y update python-virtualenv
 > apt-get -y upgrade python-virtualenv
