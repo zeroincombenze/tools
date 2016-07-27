@@ -61,7 +61,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.35.1"
+__version__="0.2.36"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -119,7 +119,7 @@ conf_default() {
     set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
     set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
     set_cfg_def "VFYUPP" "ssh lisa" "0"
-    set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf wget" "0"
+    set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf wget gcc" "0"
     set_cfg_def "VFYE2NL" "" "0"
     set_cfg_def "VFYERR" "ssh python" "0"
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
@@ -166,7 +166,7 @@ conf_default() {
         p="$p python-$x"
       fi
     done
-    p="$p epel-release yum-utils openssh-server"
+    p="$p gcc iptables epel-release yum-utils openssh-server"
     p="$p postgresql-server python mysql-server postgresql iptables-services"
     p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
     p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
@@ -198,9 +198,9 @@ conf_default() {
     p="$p php5-mysql php5-common php5-xml php5-cli openssh-client"
     set_cfg_def "APT_PKGS" "$p" "0" "Debian"
     # Packges requirements
-    set_cfg_def "REQ_LAMP" "gcc iptables" "0" "CentOS7"
-    set_cfg_def "REQ_LAMP" "gcc" "0"
-    set_cfg_def "REQ_lisa" "wget" "0"
+    set_cfg_def "REQ_LAMP" "gcc pip iptables" "0" "CentOS7"
+    set_cfg_def "REQ_LAMP" "gcc pip" "0"
+    set_cfg_def "REQ_lisa" "wget git" "0"
     p="git unidecode unicodecsv pydot vatnumber BeautifulSoup"
     set_cfg_def "REQ_odoo" "python postgresql $p" "0" "Debian"
     set_cfg_def "REQ_odoo" "python postgresql-server $p" "0" "RHEL"
@@ -603,7 +603,7 @@ get_iter() {
       fi
     fi
   fi
-  if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$iter=get_iter($1 $2)">>~/$THIS.his; fi #debug
+  if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" ">" "$iter=get_iter($1 $2)">>~/$THIS.his; fi #debug
   echo "$iter"
 }
 
@@ -2278,6 +2278,13 @@ do_local_function() {
       if [ "$3" == "install" ]; then
         if [ $sts -ne $STS_SUCCESS ]; then
           sts=$STS_SUCCESS
+        elif $(is_virtualname $4); then
+          if [ $opt_aaeD -lt 2 ]; then
+             opt_aaeD=2
+          fi
+          if [ $opt_aaeR -lt 2 ]; then
+            opt_aaeR=2
+          fi
         else
           if [ $opt_aaeD -eq 1 -a $prdstk_level -gt 0 ] || [ $opt_aaeR -eq 1 -a $prdstk_level -eq 0 ]; then
             ij=I
@@ -2316,11 +2323,15 @@ do_local_function() {
         DETECTED_NO="$DETECTED_NO $4"
       fi
     fi
-    local xtlcmd=$(get_act_xtlcmd $4 $act $5 $6 "$7")
-    if [ -n "$2" ]; then
-      local X="_$4 _by_$xtlcmd _service _package"
+    if $(is_virtualname $4); then
+      local X="_by_NULL"
     else
-      local X="_$4 _by_$xtlcmd _package"
+      local xtlcmd=$(get_act_xtlcmd $4 $act $5 $6 "$7")
+      if [ -n "$2" ]; then
+        local X="_$4 _by_$xtlcmd _service _package"
+      else
+        local X="_$4 _by_$xtlcmd _package"
+      fi
     fi
     local cmd x c d
     for c in _${act} _; do
@@ -2395,6 +2406,7 @@ do_iter_prod() {
     local pfx=$(get_pfxaction $1)
     local act=$(get_realaction $1)
     local pkgname=$(get_realname $2 $act $3)
+    local p x
     if [[ $3 =~ [qQ] ]]; then
       return 127
     fi
@@ -2410,10 +2422,10 @@ do_iter_prod() {
     if [ "$pkgname" == "$iter" ]; then
       return 127
     fi
-    local p
     for p in $iter; do
       if [ "$p" == "$2" -o "$p" == "$pkgname" ]; then
-         please $1 $p -Q "$4" "$5"
+         if [[ $3 =~ b ]]; then local x="-Qb"; else local x="-Q"; fi
+         please $1 $p $x "$4" "$5"
        else
          please $1 $p $3 "$4" "$5"
        fi
@@ -2437,6 +2449,7 @@ please() {
     if [ $sts -ne 127 ]; then
       return $sts
     fi
+    sts=$STS_SUCCESS
     local x=$((prdstk_level*2))
     local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     local pfx=$(get_pfxaction $1)
@@ -2463,7 +2476,6 @@ please() {
         return $?
       fi
     fi
-    sts=$STS_SUCCESS
     local s
     if [ -z "$pfx" -o "$pfx" == "pre_" ]; then
       [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "pre_" "$svcname" "$act" "$pkgname" "$3" "$4" "$specimen"
@@ -3259,7 +3271,7 @@ if [ "$opt_log" ]; then
   FLOG=$opt_log
 elif [ $test_mode -gt 0 -o $opt_dry_run -gt 0 ]; then
   FLOG=~/$THIS.log
-elif [ $EUID -eq 0 ]; then tny
+elif [ $EUID -eq 0 ]; then
   FLOG=/var/log/$THIS.log
 else
   FLOG=~/$THIS.log
