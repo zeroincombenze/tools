@@ -1,4 +1,3 @@
-LAMP (by lisa)
 pip (by apt-get)(pip --version)
 libffi-dev (by apt-get)
 libssl-dev (by apt-get)

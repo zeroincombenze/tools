@@ -1,4 +1,3 @@
-LAMP (by lisa)
 epel-release (by yum)
 pip (by yum)(pip --version)
 wheel (by pip)

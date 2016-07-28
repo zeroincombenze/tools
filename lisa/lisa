@@ -61,7 +61,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.36"
+__version__="0.2.36.1"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -1388,6 +1388,108 @@ add_users() {
     fi
 }
 
+create_setup_lisa() {
+cat <<EOF >./setup.sh
+THIS=\$(basename \$0)
+TDIR=\$(readlink -f \$(dirname \$0))
+pkgname=\$THIS
+if [ -f ./z0librc ]; then
+  . ./z0librc
+  if [ "\$TDIR" != "/usr/bin" ]; then
+    if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
+      local cmd="cp"
+    else
+      local cmd="mv"
+    fi
+    mkdir -p /etc/\$THIS
+    eval \$cmd \$TDIR/\$pkgname /usr/bin
+    eval \$cmd \$TDIR/\${pkgname}.man /usr/bin
+    eval \$cmd \$TDIR/\${pkgname}_bld_ods /usr/bin
+    chmod +x /usr/bin/\$pkgname*
+    for f in \${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+      if [ -f \$TDIR/\$f ]; then
+        eval cp \$TDIR/\$f /etc/\$THIS
+      fi
+    done
+    _install_z0librc
+  fi
+fi
+EOF
+chmod +x ./setup.sh
+}
+
+do_dry_build_lisa() {
+# do_dry_build_lisa(action pkgname OPTS)
+if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local package="$2"
+    local f x s
+    local PKGLIST="$package $package.man ${package}_bld_ods"
+    s=0
+    for f in $PKGLIST; do
+      if [ ! -f $f ]; then
+        s=1
+      fi
+    done
+    if [ $s -eq 0 ]; then
+      create_setup_lisa
+      if [ -f $package.gz ]; then
+        rm -f $package.gz
+      fi
+      x="-cf"
+      run_traced "tar $x $package.gz setup.sh"
+      x=${x/c/r}
+      for f in $PKGLIST; do
+        run_traced "tar $x $package.gz $f"
+      done
+      for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
+        if [ -f $f ]; then
+          run_traced "tar $x $package.gz $f"
+        fi
+      done
+      if [ -L z0librc ]; then
+        rm -f z0librc
+      fi
+      run_traced "cp /etc/z0librc ./"
+      run_traced "chown odoo:odoo z0librc"
+      run_traced "tar $x $package.gz z0librc"
+      if [ -f z0librc ]; then
+        run_traced "rm -f z0librc"
+      fi
+      if [ -d /var/www/html/mw/download/ ]; then
+        run_traced "chown apache:apache $package.gz"
+        run_traced "mv $package.gz /var/www/html/mw/download/"
+      fi
+    else
+      run_traced "cd /tmp"
+      if [ -f ./$package ]; then
+        rm -f ./$package
+      elif [ -d ./$package ]; then
+        rm -fR ./$package
+      fi
+      run_traced "mkdir ./$package"
+      run_traced "cd ./$package"
+      run_traced "cp /usr/bin/$package ./"
+      run_traced "cp /usr/bin/$package.man ./"
+      run_traced "cp /usr/bin/${pkgname}_bld_ods ./"
+      run_traced "cp /etc/z0librc ./"
+      for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
+        if [ -f /usr/bin/$f ]; then
+          run_traced "cp /usr/bin/$f ./"
+        fi
+      done
+      create_setup_lisa
+      run_traced "cd .."
+      x="-cf"
+      run_traced "tar $x $package.gz ./$package"
+      if [ -d /var/www/html/mw/download/ ]; then
+        run_traced "chown apache:apache $package.gz"
+        run_traced "mv $package.gz /var/www/html/mw/download/"
+        run_traced "rm -fR ./$package"
+      fi
+    fi
+    return $STS_SUCCESS
+}
+
 do_dry_install_lisa() {
 # do_dry_install_lisa(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
@@ -1456,7 +1558,14 @@ do_dry_install_by_wget() {
       run_traced "cd /tmp"
     fi
     run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
-    if [ "${pkg_xname: -4}" == ".rpm" ]; then
+    if [ -d $pkg_xname ]; then
+      cd $pkg_xname
+      if [ -f ./setup.sh ]; then
+        ./setup.sh
+      elif [ -f ./setup.py ]; then
+        python ./setup.py
+      fi
+    elif [ "${pkg_xname: -4}" == ".rpm" ]; then
       run_traced "rpm -i $pkg_xname"
     elif [ "${pkg_xname: -4}"  == ".deb" ]; then
       run_traced "apt-get install $pkg_xname"
@@ -3404,43 +3513,6 @@ elif [ "$action" == "import" ]; then
   wlog "Creating users"
   add_users
   ending_msg
-elif [ "$action" == "package" ]; then
-  package="lisa"
-  if [ -f $package -a -f $package.man -a -f z0librc ]; then
-    if [ -f $package.gz ]; then
-      rm -f $package.gz
-    fi
-    tar -cvf $package.gz $package $package.man z0librc ${package}_bld_ods
-    for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
-      if [ -f $f ]; then
-        tar -rvf $package.gz $f
-      fi
-    done
-    chown apache:apache $package.gz
-    mv $package.gz /var/www/html/mw/download/
-  else
-    cd /tmp
-    if [ -f ./$package ]; then
-      rm -f ./$package
-    elif [ -d ./$package ]; then
-      rm -fR ./$package
-    fi
-    mkdir ./$package
-    cd ./$package
-    cp /usr/bin/$package ./$package
-    cp /usr/bin/$package.man ./$package
-    cp /usr/bin/${pkgname}_bld_ods ./$package
-    cp /etc/z0librc ./$package
-    for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
-      if [ -f /usr/bin/$f ]; then
-        cp /usr/bin/$f ./$package
-      fi
-    done
-    tar -f $package.gz ./$package
-    chown apache:apache $package.gz
-    mv $package.gz /var/www/html/mw/download/
-    rm -fR ./$package
-  fi
 elif [ "$action" == "debug" ]; then
    echo "[options]">lisa.conf.sample
    jy=0

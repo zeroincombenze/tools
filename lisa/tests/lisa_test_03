@@ -149,7 +149,6 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 EOF
 echo "lisa (by git)($RUNDIR/lisa -V)">>$TESTDIR/res/lisa.03.test
   cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
-LAMP (by lisa)
 pip (by apt-get)(pip --version)
 libffi-dev (by apt-get)
 libssl-dev (by apt-get)
@@ -166,7 +165,6 @@ php5 (by apt-get)(php5 -v)
 python (by apt-get)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.03.test
-LAMP (by lisa)
 epel-release (by yum)
 pip (by yum)(pip --version)
 yum-utils (by yum)
@@ -186,7 +184,6 @@ php (by yum)(php -v)
 python (by yum)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.03.test
-LAMP (by lisa)
 epel-release (by yum)
 pip (by yum)(pip --version)
 wheel (by pip)

@@ -98,7 +98,11 @@ test_run () {
     if [ "$cmd" == "version" ]; then
       opt_ij="-d0 -oodoo"
     elif [ "$cmd" == "install" ]; then
-      opt_ij="-d0 -Jodoo"
+      if [ "$Package" == "LAMP" ]; then
+        opt_ij="-Jpip,python-pip,gcc,iptables,epel-release,wheel,yum-utils,libffi-devel,pyOpenSSL,pyasn1,ndg-httpsclient,httpd,mariadb,mysql,postgresql-server -Iopenssh-server,python,php,php5"
+      elif [ "$Package" == "odoo" ]; then
+        opt_ij="-d0 -Jodoo"
+      fi
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $TESTDIR/res/${Package}__${Disto}.08.test ]; then
@@ -317,6 +321,44 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
     rm -f $TESTDIR/res/*.08.test
   fi
   Disto=CentOS7
+
+  Package=LAMP
+  cat <<EOF >$TESTDIR/res/LAMP__$Disto.08.test
+> yum install gcc
+> yum install python-pip
+> yum install iptables
+> systemctl start iptables
+> chkconfig iptables on
+> yum -y install epel-release
+> yum -y install python-pip
+> pip install wheel
+> yum -y install yum-utils
+> yum -y install libffi-devel
+> yum -y install pyOpenSSL
+> pip install pyasn1
+> pip install ndg-httpsclient
+# yum -y install openssh-server
+# systemctl start sshd
+> chkconfig sshd on
+> yum -y install httpd
+> systemctl start httpd
+> chkconfig httpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> yum -y install mariadb
+> systemctl start mariadb
+> chkconfig mariadb on
+> yum -y install postgresql-server
+> systemctl start postgresql
+> chkconfig postgresql on
+# yum -y install php
+> yum -y install python-pip
+> pip install wheel
+# yum -y install python
+EOF
+  test_run "install $Package" "$Package" "$Disto" "install"
+
+  Package=odoo
   for ver in 7.0 8.0 9.0 10.0; do
     opt_e=
     if [ "$ver" == "10.0" ]; then
