@@ -67,7 +67,7 @@ Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
 
-__version__=0.1.40.5
+__version__=0.1.40.6
 
 declare -a ctrs
 export WNoCtr=1
