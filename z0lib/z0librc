@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.40.6
+#__version__=0.1.40.7
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -18,14 +18,11 @@ _install_z0librc () {
     if [ -f $src ]; then
       if [ -f $tgt ]; then
         if [ "$1" == "-n" ]; then
-          # local xtlver=$(echo "#__version__=0.1.1"|awk -F\= '{print $2}'|awk -F. '{print $1*10000 + $2*100 + $3}')
           local xtlver=$(echo "#__version__=0.1.1"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
         else
-          # local xtlver=$(grep "#__version__" $tgt|head -n1|awk -F\= '{print $2}'|awk -F. '{print $1*10000 + $2*100 + $3}')
           local xtlver=$(grep "#__version__" $tgt|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
           if [ -z "$xtver" ]; then xtlver="0"; fi
         fi
-        # local newver=$(grep "#__version__" $src|head -n1|awk -F\= '{print $2}'|awk -F. '{print $1*10000 + $2*100 + $3}')
         local newver=$(grep "#__version__" $src|head -n1|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
         if [ -z "$newver" ]; then newver="0"; fi
         if [ $newver -gt $xtlver ]; then
@@ -99,71 +96,71 @@ xuname () {
     KERNEL=`uname -r`
     CODENAME=""
     if [ -f /etc/vmware-release ]; then
-        DIST='VMWare'
-        CODENAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//`
+      DIST='VMWare'
+      CODENAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/centos-release ]; then
-        DIST='CentOS'
-        XDES=$(cat /etc/centos-release|tr -d " \n")
-        CODENAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RHEL"
+      DIST='CentOS'
+      XDES=$(cat /etc/centos-release|tr -d " \n")
+      CODENAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
+      FAMILY="RHEL"
     elif [ -f /etc/gentoo-release ]; then
-        DIST='Gentoo'
-        CODENAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//`
+      DIST='Gentoo'
+      CODENAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/redhat-release ]; then
-        DIST='RedHat'
-        CODENAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RHEL"
+      DIST='RedHat'
+      CODENAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
+      FAMILY="RHEL"
     elif [ -f /etc/SUSE-release ]; then
-        DIST="SuSE"
-        CODENAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
-        VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
-        FAMILY="RHEL"
+      DIST="SuSE"
+      CODENAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
+      VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
+      FAMILY="RHEL"
     elif [ -f /etc/SuSE-release ]; then
-        DIST="SuSE"
-        CODENAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
-        VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
-        FAMILY="RHEL"
+      DIST="SuSE"
+      CODENAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
+      VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
+      FAMILY="RHEL"
     elif [ -f /etc/mandriva-release ]; then
-        DIST='Mandriva'
-        CODENAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RHEL"
+      DIST='Mandriva'
+      CODENAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
+      FAMILY="RHEL"
     elif [ -f /etc/mandrake-release ]; then
-        DIST='Mandrake'
-        CODENAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//`
+      DIST='Mandrake'
+      CODENAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//`
     elif [ -f /etc/fedora-release ]; then
-        DIST="Fedora"
-        CODENAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
-        VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
-        FAMILY="RHEL"
+      DIST="Fedora"
+      CODENAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
+      VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
+      FAMILY="RHEL"
     elif [ -f /etc/slackware-version ]; then
-        DIST="Slackware"
-        VER=""
+      DIST="Slackware"
+      VER=""
     elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-        DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
-        if [ -z "$DIST" ]; then
-           DIST="Ubuntu"
-        fi
-        VER=$(grep "DISTRIB_RELEASE" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
-        CODENAME=$(grep "DISTRIB_CODENAME" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
-        XDES=$(grep "DISTRIB_DESCRIPTION" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
-        FAMILY="Debian"
+      DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      if [ -z "$DIST" ]; then
+        DIST="Ubuntu"
+      fi
+      VER=$(grep "DISTRIB_RELEASE" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      CODENAME=$(grep "DISTRIB_CODENAME" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      XDES=$(grep "DISTRIB_DESCRIPTION" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
+      FAMILY="Debian"
     elif [ -f /etc/debian_version ]; then
-        DIST="Debian"
-        VER=$(lsb_release --release --short)
-        FAMILY="Debian"
-     elif [ -f /etc/os-release ]; then
-        DIST="Debian"
-        VER=$(lsb_release --release --short)
-        FAMILY="Debian"
+      DIST="Debian"
+      VER=$(lsb_release --release --short)
+      FAMILY="Debian"
+    elif [ -f /etc/os-release ]; then
+      DIST="Debian"
+      VER=$(lsb_release --release --short)
+      FAMILY="Debian"
     fi
     if [ -f /etc/UnitedLinux-release ]; then
-        DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
+      DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
     fi
     OSSTR="${OS} ${DIST} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
   fi
@@ -199,7 +196,7 @@ export -f xuname
 
 ##############################################################################
 # Parse command line arguments in a professional way
-# __version__="0.1.8"
+# __version__="0.1.9"
 # You can define syntax rules declaring some array variables, before calling
 # this function. On exit, variable are set on appropriate way.
 # Global variables to declare
@@ -310,48 +307,48 @@ export -f parseoptargs
 
 
 # Print help for parse command line arguments
-# __version__="0.1.8"
+# __version__="0.1.9"
 print_help () {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
-    txt="Usage: "
-    hlp=""
+    local txt="Usage: "
+    local hlp=""
     txt+="$(basename $0) "
-      xx="[-"
-      jy=0
-      while ((jy<${#OPTOPTS[*]})); do
-        a=${OPTACTI[jy]}
-        a=${a:0:1}
-        if [ "$a" == "0" -o "$a" == "1" -o "$a" == "*" ]; then
-          if [ "$xx" == "]" ]; then
-            xx="][-"
-          fi
-          txt+="$xx${OPTOPTS[jy]}"
-          xx=""
-          hlp+=" -${OPTOPTS[jy]}\t\t${OPTHELP[jy]}\n"
-        elif [ "$a" == "=" ]; then
-          if [ -z "$xx" -o "$xx" == "]" ]; then
-            xx="][-"
-          fi
-          txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
-          xx="]"
-          hlp+=" -${OPTOPTS[jy]} ${OPTMETA[jy]}\t${OPTHELP[jy]}\n"
+    local xx="[-"
+    local jy=0
+    while ((jy<${#OPTOPTS[*]})); do
+      local a=${OPTACTI[jy]}
+      a=${a:0:1}
+      if [ "$a" == "0" -o "$a" == "1" -o "$a" == "*" ]; then
+        if [ "$xx" == "]" ]; then
+          xx="][-"
         fi
-        ((++jy))
-      done
-      if [ -z "$xx" ]; then
+        txt+="$xx${OPTOPTS[jy]}"
+        xx=""
+        hlp+=" -${OPTOPTS[jy]}\t\t${OPTHELP[jy]}\n"
+      elif [ "$a" == "=" ]; then
+        if [ -z "$xx" -o "$xx" == "]" ]; then
+          xx="][-"
+        fi
+        txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
         xx="]"
+        hlp+=" -${OPTOPTS[jy]} ${OPTMETA[jy]}\t${OPTHELP[jy]}\n"
       fi
-      txt+="$xx"
-      jy=0
-      while ((jy<${#OPTARGS[*]})); do
-        txt+=" ${OPTARGS[jy]}"
-        ((++jy))
-      done
-      txt+="\n$1\n"
-      txt+="$hlp"
-      txt+="\n$2"
-      echo -e $txt
+      ((++jy))
+    done
+    if [ -z "$xx" ]; then
+      xx="]"
+    fi
+    txt+="$xx"
+    jy=0
+    while ((jy<${#OPTARGS[*]})); do
+      txt+=" ${OPTARGS[jy]}"
+      ((++jy))
+    done
+    txt+="\n$1\n"
+    txt+="$hlp"
+    txt+="\n$2"
+    echo -e $txt
 }
 export -f print_help
 
@@ -831,9 +828,6 @@ get_cfg_value () {
       p=
       echo $p
       return
-    # elif [ "$CONFN" -a -f $CONFN ]; then
-    #   p=$(grep "^$2 *=.*" $CONFN 2>/dev/null|awk -F\= '{print $2}')
-    #   p=$(echo $p|tr -d "\"'")
     else
       p=
     fi
