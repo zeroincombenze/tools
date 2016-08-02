@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.77
+__version__=0.1.77.1
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -743,6 +743,8 @@ if [ $EUID -eq 0 ]; then
     if [ $s -ne $STS_SUCCESS ]; then
       elog "!unupdated travis emulator!!"
     fi
+    cpfiles "/opt/odoo/tools/zar" "/root/bin" "pg_db_active" "root:root"
+    s=$?
     [ $sts -eq $STS_SUCCESS ]&&sts=$s
     if [ $opt_dry_run -eq 0 ]; then
       python /opt/odoo/dev/z0testercode.py
