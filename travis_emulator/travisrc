@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.65.12
+#__version__=0.1.65.15
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -64,6 +64,9 @@ inherits_travis_opts () {
     local e=$1
   fi
   if [ $(echo $TOOLS_PATH|grep -v "/maintainer-quality-tools/"  2>/dev/null) ]; then
+    if [[ $e =~ B ]]; then
+      opts="${opts}B"
+    fi
     if [[ $e =~ C ]]; then
       opts="${opts}C"
     fi
@@ -72,6 +75,12 @@ inherits_travis_opts () {
     fi
     if [[ $e =~ K ]]; then
       opts="${opts}K"
+    fi
+    if [[ $e =~ P ]]; then
+      opts="${opts}P"
+    fi
+    if [[ $e =~ m ]]; then
+      opts="${opts}m"
     fi
     if [[ $e =~ R ]]; then
       opts="${opts}R"
@@ -123,8 +132,10 @@ inherits_travis_opts () {
       fi
     fi
   else
-    if [[ $e =~ K ]]; then
+    if [[ $e =~ [BK] ]]; then
       export BASH_CHECK="1"
+    fi
+    if [[ $e =~ [PK] ]]; then
       export LINT_CHECK="1"
     fi
     if [[ $e =~ T ]]; then
@@ -860,6 +871,102 @@ do_summary () {
     echo "+======================================="
 }
 
+
+ant_rm_trap() {
+    # wlog "... recover $1"
+    local f1=$(readlink -f $1)
+    if [ -f $f1 ]; then
+      local lne=$(head -n1 $f1)
+      if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
+        echo "... recover $f1"
+        tail -n+2 $f1>$f1.tmp
+        mv -f $f1.tmp $f1
+      fi
+    fi
+}
+
+ant_add_trap() {
+    echo "... analyzing $1"
+    local f1=$(readlink -f $1)
+    if [ -f $f1 ]; then
+      ant_rm_trap "$f1"
+      echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
+      local line=
+      while IFS=\~ read -r line; do
+        echo "$line">>$f1.sh
+        if [ "${line:0:1}" == "." ]; then
+          local fn="${line:2}"
+          local p="$(dirname $fn)"
+          if [ "$p" == "." ]; then
+            if [ "$(echo " $FL_2_TEST "|grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
+              FL_2_TEST="$FL_2_TEST $fn"
+            fi
+          fi
+        fi
+      done < "$f1"
+      rm -f $FHIST
+      chmod +x $f1.sh
+      mv -f $f1.sh $f1
+    fi
+}
+
+ant_erase() {
+    local fn
+    for fn in $(find . -type f -executable); do
+      if [[ $fn =~ \.[a-zA-Z0-9_]{1,3} ]]; then
+        if [ ${fn: -3} == ".sh" ]; then
+          ant_rm_trap $fn
+        fi
+      else
+        ant_rm_trap $fn
+      fi
+    done
+
+# do_annotate() {
+# # do_annotate(script, include_list)
+#  # set -x
+#  wlog "do_annotate \"$1\" \"$2\""
+#  trap - DEBUG
+#  FL_2_TEST=${2//,/ }
+#  local f1=$(readlink -f $1)
+#  FHIST=$f1.tracehistory
+#  if [ -f $f1 ]; then
+#    CWD=$PWD
+#    mkdir -p ./cover
+#    ant_add_trap "$f1"
+#    local fn
+#    for fn in $FL_2_TEST; do
+#      ant_add_trap $fn
+#    done
+#    $f1
+#    cd $CWD
+#    ant_rm_trap "$f1"
+#    for fn in $FL_2_TEST; do
+#      ant_rm_trap $fn
+#    done
+#    chmod +x $f1
+#    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
+#    python $TDIR/$THIS.py "$f1" "$opts_k"
+#    rm -f $FHIST
+#  fi
+#  return 0
+}
+
+coverage() {
+    if [ -z "$COVERAGE" ]; then
+      COVERAGE=$(which coverage)
+    fi
+    if [ "$1" == "erase" ]; then
+      mkdir -p $PRJPATH/cover
+      find . -name "*.tracehistory" -delete
+      find . -name "*,cover" -delete
+      find . -name ".coverage" -delete
+      ant_erase
+    fi
+    eval $COVERAGE "$@"
+    return $?
+}
+
 run_regression_test () {
     echo "======== Running regression_test ========"
     cd $PRJPATH
@@ -908,7 +1015,11 @@ run_coverage_test () {
             echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py"
           fi
           DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py
-          coverage report
+          if [ ${opt_mis:-0} -gt 0 ]; then
+            coverage report -m
+          else
+            coverage report
+          fi
           sts=$STS_SUCCESS
         elif [ -f ./tests/test_$PRJNAME.py ]; then
           coverage erase
@@ -927,7 +1038,57 @@ run_coverage_test () {
             fi
             cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python test_$PRJNAME.py
           fi
-          coverage report
+          if [ ${opt_mis:-0} -gt 0 ]; then
+            coverage report -m
+          else
+            coverage report
+          fi
+          sts=$STS_SUCCESS
+        else
+          sts=$STS_FAILED
+        fi
+      else
+        sts=$STS_SUCCESS
+      fi
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+run_annotate_test () {
+    cd $PRJPATH
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ "$PRJNAME" != "Odoo" ]; then
+        # find . -name "*$PRJNAME*.log" -exec rm -f '{}' \;
+        if [ -f ./__main__.py ]; then
+          coverage erase
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py"
+          fi
+          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./*.py
+          dir $PRJPATH/cover/
+          # coverage report
+          sts=$STS_SUCCESS
+        elif [ -f ./tests/test_$PRJNAME.py ]; then
+          coverage erase
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
+          fi
+          export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
+          if [ ${opt_dprj:-0} -gt 0 ]; then
+            if [ ${opt_verbose:-0} -gt 0 ]; then
+              echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py"
+            fi
+            DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover ./tests/test_$PRJNAME.py
+          else
+            if [ ${opt_verbose:-0} -gt 0 ]; then
+              echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover test_$PRJNAME.py"
+            fi
+            cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage annotate -d $PRJPATH/cover test_$PRJNAME.py
+          fi
+          dir $PRJPATH/cover/
+          # coverage report
           sts=$STS_SUCCESS
         else
           sts=$STS_FAILED
@@ -1130,15 +1291,29 @@ run_server_test () {
 
 please_run_tests () {
     sts=$STS_SUCCESS
-    if [[ $1 =~ K ]]; then
+    if [[ $1 =~ [BK] ]]; then
       please_test_bash
       sts_bash=$?
+    else
+      sts_bash=127
+    fi
+    if [[ $1 =~ [LK] ]]; then
       cd $TOOLS_PATH
       please_test_flake8
       sts_flake8=$?
       please_test_pylint
       sts_pylint=$?
-      sts=$(($sts_flake8 || $sts_pylint))
+      if [ $sts_bash -ne 127 ]; then
+        sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+      else
+        sts=$(($sts_flake8 || $sts_pylint))
+      fi
+    else
+      if [ $sts_bash -ne 127 ]; then
+        sts=$sts_bash
+      else
+        sts=$STS_SUCCESS
+      fi
     fi
     if [[ $1 =~ T ]]; then
       if [ "$PRJNAME" == "Odoo" ]; then

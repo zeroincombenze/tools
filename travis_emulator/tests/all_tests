@@ -66,7 +66,7 @@ Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
 
-__version__=0.1.59.3
+__version__=0.1.59.4
 
 declare -a ctrs
 export WNoCtr=1
@@ -111,7 +111,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   xtlver=$($RUNDIR/travis -V)
   ci-test "check for travis version" "$__version__" "$xtlver"
   xtlver=$($RUNDIR/please -V)
-  ci-test "check for travis version" "0.1.27.7" "$xtlver"
+  ci-test "check for travis version" "0.1.27.9" "$xtlver"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

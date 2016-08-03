@@ -21,7 +21,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.17
+__version__=0.1.20
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
@@ -60,7 +60,7 @@ CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.tmp
 VIM_RC=~/$THIS.vim
 if [ "$opt_sel" != "^\$" ]; then
-  true  # disable edit
+  :  # disable edit
 elif [ "$opt_action" == "-e" ]; then
   crontab -e
   if [ -f $CRONTAB_SAVED ]; then
@@ -80,7 +80,8 @@ elif [ $opt_rback -gt 0 ]; then
     echo "dd">>$VIM_RC
     echo ":wq">>$VIM_RC
     if [ $opt_dry_run -eq 0 ]; then
-      VISUAL="vim -s $VIM_RC" crontab -e &>/dev/null
+      # VISUAL="vim -s $VIM_RC" crontab -e &>/dev/null
+      EDITOR="vim -s $VIM_RC" crontab -e &>/dev/null
     fi
     crontab -l >$CRONTAB_TMP
     diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
@@ -106,6 +107,8 @@ fi
 if [ -f $CRONTAB_SAVED ]; then
    if [ "$opt_action" == "-l" ]; then
     cat $CRONTAB_SAVED
+    echo "****************************************************************************"
+    echo "$THIS is waiting for cron activation, please do not execute crontab command!"
     exit 0
    elif [ $opt_force -eq 0 ]; then
      echo "$THIS already running or previous crashed execution"
@@ -153,12 +156,20 @@ elif [ "$opt_sel" != "^\$" ]; then
     echo "$smtline"
     echo "GA">$VIM_RC
     echo "$rbckline">>$VIM_RC
-    echo -e "$smtline\e">>$VIM_RC
+    echo -e "$smtline\n\e">>$VIM_RC
     if [ "$opt_action" != "-e" ]; then
-      echo ":wq">>$VIM_RC
+      echo ":w!q">>$VIM_RC
     fi
     if [ $opt_dry_run -eq 0 ]; then
-      VISUAL="vim -s $VIM_RC" crontab -e
+      # VISUAL="vim -s $VIM_RC" crontab -e
+      EDITOR="vim -s $VIM_RC" crontab -e
+      crontab -l >$CRONTAB_TMP
+      diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
+      sts=$?
+      if [ $sts -eq -0 ]; then
+        echo "Warning: crontab does not accept new jobs!"
+        exit 1
+      fi
     fi
     if [ $opt_wait -gt 0 ]; then
       executed=0

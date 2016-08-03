@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ##############################################################################
 #
@@ -28,7 +29,7 @@ import os.path
 import sys
 from zerobug import Z0test
 
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -45,12 +46,14 @@ class Test():
         self.Z = zarlib
 
     def test_01(self, z0ctx):
-        sts = self.Z.sanity_check('-e', full=True)
+        if z0ctx['dry_run']:
+            sts = self.Z.sanity_check('-q', full=True)
+        else:
+            sts = self.Z.sanity_check('-e', full=True)
         return sts
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    # pdb.set_trace()
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())

@@ -37,97 +37,47 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.27.7
-
-z0coverage() {
-    if [ "$1" == "erase" ]; then
-      find . -name "*.tracehistory" -delete
-      find . -name "*,cover" -delete
-      coverage $1
-    elif [ "$1" == "run" ]; then
-      coverage "$@"
-    elif [ "$1" == "annotate" ]; then
-      coverage $1 -d cover ./*.py
-    elif [ "$1" == "report" ]; then
-      coverage $1
-    else
-      echo "Invalid bash coverage command!"
-      return 1
-    fi
-    return 0
-}
+__version__=0.1.27.9
 
 
-ant_rm_trap() {
-    wlog "... recover $1"
-    local f1=$(readlink -f $1)
-    if [ -f $f1 ]; then
-      # local FHIST=$f1.tracehistory
-      local lne=$(head -n1 $f1)
-      if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
-        tail -n+2 $f1>$f1.tmp
-        mv -f $f1.tmp $f1
-      fi
-    fi
-}
 
-ant_add_trap() {
-    echo "... analyzing $1"
-    local f1=$(readlink -f $1)
-    if [ -f $f1 ]; then
-      # local FHIST=$f1.tracehistory
-      ant_rm_trap "$f1"
-      echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
-      local line=
-      while IFS=\~ read -r line; do
-        echo "$line">>$f1.sh
-        if [ "${line:0:1}" == "." ]; then
-          local fn="${line:2}"
-          local p="$(dirname $fn)"
-          if [ "$p" == "." ]; then
-            if [ "$(echo " $FL_2_TEST "|grep -v [[:space:]]$fn[[:space:]] 2>/dev/null)" ]; then
-              FL_2_TEST="$FL_2_TEST $fn"
-            fi
-          fi
-        fi
-      done < "$f1"
-      rm -f $FHIST
-      chmod +x $f1.sh
-      mv -f $f1.sh $f1
-    fi
-}
 
+# do_annotate() {
+# # do_annotate(script, include_list)
+#  # set -x
+#  wlog "do_annotate \"$1\" \"$2\""
+#  trap - DEBUG
+#  FL_2_TEST=${2//,/ }
+#  local f1=$(readlink -f $1)
+#  FHIST=$f1.tracehistory
+#  if [ -f $f1 ]; then
+#    CWD=$PWD
+#    mkdir -p ./cover
+#    ant_add_trap "$f1"
+#    local fn
+#    for fn in $FL_2_TEST; do
+#      ant_add_trap $fn
+#    done
+#    $f1
+#    cd $CWD
+#    ant_rm_trap "$f1"
+#    for fn in $FL_2_TEST; do
+#      ant_rm_trap $fn
+#    done
+#    chmod +x $f1
+#    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
+#    python $TDIR/$THIS.py "$f1" "$opts_k"
+#    rm -f $FHIST
+#  fi
+#  return 0
+# }
 
 do_annotate() {
-# do_annotate(script, include_list)
-  # set -x
-  wlog "do_annotate \"$1\" \"$2\""
-  trap - DEBUG
-  FL_2_TEST=${2//,/ }
-  local f1=$(readlink -f $1)
-  FHIST=$f1.tracehistory
-  if [ -f $f1 ]; then
-    CWD=$PWD
-    mkdir -p ./cover
-    ant_add_trap "$f1"
-    local fn
-    for fn in $FL_2_TEST; do
-      ant_add_trap $fn
-    done
-    $f1
-    cd $CWD
-    ant_rm_trap "$f1"
-    for fn in $FL_2_TEST; do
-      ant_rm_trap $fn
-    done
-    chmod +x $f1
-    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
-    python $TDIR/$THIS.py "$f1" "$opts_k"
-    rm -f $FHIST
-  fi
-  return 0
+    wlog "do_annotate"
+    run_annotate_test "-T"
+    sts=$?
+    return $sts
 }
-
 
 do_check() {
     wlog "do_check \"$1\" \"$2\" \"$3\""
@@ -287,11 +237,11 @@ do_distribution() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        d        j        k        L         n           p         q           r     s        t         u       V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1        1        "="       1           "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0           ""        -1          0     ""       0         0       ""          -1)
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" "noop"      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        b          c        d        j        k        L         m       n           p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1        1        "="       1       1           "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0       0           ""        -1          0     ""       0         0       ""          -1)
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" ""      "noop"      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
@@ -299,6 +249,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "execute tests in project dir rather in test dir"\
  "keep coverage statistics in annotate test"\
  "log file name"\
+ "show missing line in report coverage"\
  "do nothing (dry-run)"\
  "declare local git path"\
  "silent mode"\

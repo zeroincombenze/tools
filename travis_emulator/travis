@@ -44,7 +44,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.59.3
+__version__=0.1.59.4
 
 
 run_cmd () {
@@ -540,15 +540,16 @@ process_yaml () {
 }
 
 
-OPTOPTS=(h        b          c        j        n            q           r     V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        "1>"         0           1     "*>"        "+")
-OPTDEFL=(0        9.0        ""       0        0            -1          0     ""          -1)
-OPTMETA=("help"   "branch"   "file"   "dprj"   "do nothing" "verbose"   "res" "version"   "verbose")
+OPTOPTS=(h        b          c        j        m       n            q           r     V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1       "1>"         0           1     "*>"        "+")
+OPTDEFL=(0        9.0        ""       0        0       0            -1          0     ""          -1)
+OPTMETA=("help"   "branch"   "file"   "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
  "execute tests in project dir rather in test dir"\
+ "show missing line in report coverage"\
  "do nothing (dry-run)"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file)"\

@@ -1,5 +1,5 @@
 # Config file travis.yml for no Odoo package test
-# version 0.1.3
+# version 0.1.4
 
 language: python
 sudo: false
@@ -21,7 +21,7 @@ before_install:
 
 env:
   global:
-  - TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
   - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${PKGNAME} TESTS="1"
