@@ -24,21 +24,161 @@ fi
 __version__=0.1.20
 
 CRONTAB_SAVED=~/$THIS.crontab
-CRONTAB_TMP=~/$THIS.crontab.tmp
+CRONTAB_TMP=~/$THIS.crontab.$$.tmp
+CRONTAB_TMP2=~/$THIS.crontab.$$_2.tmp
 VIM_RC=~/$THIS.vim
 
+extract_cmdline() {
+    cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
+    local SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
+    local SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
+    local SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
+    SK_CMD=
+    SK_RCMD=
+    SKTIME=
+    local i=0
+    for i in {1..19}; do
+      if [ $i -eq 1 ]; then
+        SK_CMD="$SUBM_MM"
+        SKTIME="$SUBM_MM"
+      elif [ $i -eq 2 ]; then
+        SK_CMD="$SK_CMD $SUBM_HH"
+        SKTIME="$SKTIME $SUBM_HH"
+      else
+        local p=$(echo "$cronline"|awk '{print $'$i'}')
+        SK_CMD="$SK_CMD $p"
+      fi
+    done
+    FQN_THIS=$(readlink -f $0)
+    SK_RCMD="$SKTIME * * * SHELL=/bin/bash $FQN_THIS -R"
+}
 
-OPTOPTS=(h        e          f         l          n            R         s       V           v           w)
-OPTDEST=(opt_help opt_action opt_force opt_action opt_dry_run  opt_rback opt_sel opt_version opt_verbose opt_wait)
-OPTACTI=(1        "*>"       1         "*>"       "1>"         "1>"      "=>"    "*>"        1           1)
-OPTDEFL=(1        ""         0         ""         0            0         "^$"    ""          0           0  )
-OPTMETA=("help"   "edit"     "force"   "list"     "do nothing" "rollbck" "regex" "version"   "verbose"   "wait")
+cron_list() {
+    if [ -f $CRONTAB_SAVED ]; then
+      cat $CRONTAB_SAVED
+      echo "****************************************************************************"
+      echo "$THIS is waiting for cron activation, please do not execute crontab command!"
+    else
+      crontab -l
+    fi
+    return $?
+}
+
+cron_runow() {
+    local sts=0
+    if [ -f $CRONTAB_SAVED ]; then
+      if [ $opt_force -eq 0 ]; then
+        echo "$THIS already running or previous crashed execution"
+        echo "Use -f for run after previous crash"
+        return 1
+      fi
+    else
+      crontab -l >$CRONTAB_SAVED
+    fi
+    extract_cmdline
+    if [ $opt_edit -eq 0 ]; then
+      if [ $opt_dry_run -gt 0 ]; then
+        echo "crontab statement simulated by DRY_RUN:"
+        echo "$cronline"
+      else
+        cp $CRONTAB_SAVED $CRONTAB_TMP
+        echo "$SK_CMD">>$CRONTAB_TMP
+        echo "$SK_RCMD">>$CRONTAB_TMP
+        if [ $opt_verbose -gt 0 ]; then
+          echo "crontab statement added:"
+          echo "$cronline"
+        fi
+        cat $CRONTAB_TMP|crontab
+        sts=$?
+      fi
+    else
+      if [ $opt_dry_run -eq 0 ]; then
+        echo "GA">$VIM_RC
+        echo "$SK_CMD">>$VIM_RC
+        echo "$SK_RCMD">>$VIM_RC
+        echo -e "\e">>$VIM_RC
+        echo ":w!q">>$VIM_RC
+        # VISUAL="vim -s $VIM_RC" crontab -e
+        EDITOR="vim -s $VIM_RC" crontab -e
+        sts=$?
+      fi
+    fi
+    if [ $sts -eq 0 ]; then
+      crontab -l >$CRONTAB_TMP
+      diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
+      sts=$?
+      if [ $sts -eq 0 ]; then
+        sts=1
+      else
+        sts=0
+      fi
+    fi
+    if [ $sts -ne 0 ]; then
+      echo "Warning: crontab does not accept new jobs!!"
+    fi
+    return $sts
+}
+
+cron_recover() {
+    local sts=0
+    if [ -f $CRONTAB_SAVED ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        crontab -l >$CRONTAB_TMP
+        head $CRONTAB_TMP -n-2>$CRONTAB_TMP2
+        mv -f $CRONTAB_TMP2 $CRONTAB_TMP
+        diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
+        sts=$?
+        if [ $sts -eq -0 ]; then
+          rm -f $CRONTAB_SAVED
+        else
+          echo "**********************************************"
+          echo "Warning: crontab schedulation was modified during execution"
+          echo "---- Initial crontab ----"
+          cat $CRONTAB_SAVED
+          echo "---- Current crontab ----"
+          cat $CRONTAB_TMP
+          echo "-------------------------"
+          if [ "$opt_action" != "-e" ]; then
+            echo "run '$THIS -e' to restore correct values"
+          fi
+          sts=1
+        fi
+        if [ "$opt_action" == "-e" ]; then
+          read
+          crontab -e
+          sts=$?
+          if [ -f "$CRONTAB_SAVED" ]; then
+            rm -f $CRONTAB_SAVED
+          fi
+        fi
+      fi
+    elif [ "$opt_action" == "-e" ]; then
+      crontab -e
+      sts=$?
+    fi
+    return $sts
+}
+
+cron_clean() {
+    if [ -f $CRONTAB_TMP ]; then
+      rm -f $CRONTAB_TMP
+    fi
+    if [ -f $VIM_RC ]; then
+      rm -f $VIM_RC
+    fi
+}
+
+OPTOPTS=(h        e        f         l          n            R          s       V           v           w)
+OPTDEST=(opt_help opt_edit opt_force opt_action opt_dry_run  opt_action opt_sel opt_version opt_verbose opt_wait)
+OPTACTI=(1        "1>"     1         "*>"       "1>"         "*>"       "=>"    "*>"        1           1)
+OPTDEFL=(1        0        0         ""         0            ""         "^$"    ""          0           0  )
+OPTMETA=("help"   "edit"   "force"   "list"     "do nothing" "rollbck"  "regex" "version"   "verbose"   "wait")
 OPTHELP=("this help"\
- "edit crontab after selection or crash"\
- "force execution"\
+ "edit crontab [after selection or crash]"\
+ "force execution after crash"\
  "list crontab entries"\
  "do nothing (dry-run)"\
- "rollbak from cron execution (never use this option)"\
+ "rollbak from cron execution (never use this option!)"\
  "select statement to execute now"\
  "show version"\
  "verbose mode"\
@@ -55,141 +195,27 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-
-CRONTAB_SAVED=~/$THIS.crontab
-CRONTAB_TMP=~/$THIS.crontab.tmp
-VIM_RC=~/$THIS.vim
-if [ "$opt_sel" != "^\$" ]; then
-  :  # disable edit
-elif [ "$opt_action" == "-e" ]; then
-  crontab -e
-  if [ -f $CRONTAB_SAVED ]; then
-    rm -vf $CRONTAB_SAVED
+# set -x #debug
+if [ -z "$opt_action" ]; then
+  if [ "$opt_sel" != "^\$" ]; then
+    opt_action="--"
+  elif [ $opt_edit -ne 0 ]; then
+    opt_action="-e"
   fi
-  if [ -f $CRONTAB_TMP ]; then
-    rm -vf $CRONTAB_TMP
-  fi
-  if [ -f $VIM_RC ]; then
-    rm -vf $VIM_RC
-  fi
-  exit 0
-elif [ $opt_rback -gt 0 ]; then
-  if [ -f $CRONTAB_SAVED ]; then
-    echo "G">$VIM_RC
-    echo "dd">>$VIM_RC
-    echo "dd">>$VIM_RC
-    echo ":wq">>$VIM_RC
-    if [ $opt_dry_run -eq 0 ]; then
-      # VISUAL="vim -s $VIM_RC" crontab -e &>/dev/null
-      EDITOR="vim -s $VIM_RC" crontab -e &>/dev/null
-    fi
-    crontab -l >$CRONTAB_TMP
-    diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
-    sts=$?
-    if [ $sts -eq -0 ]; then
-      rm -f $CRONTAB_SAVED
-      rm -f $CRONTAB_TMP
-    else
-      echo "**********************************************"
-      echo "Warning: crontab was modified during execution"
-      echo "---- Initial crontab ----"
-      cat $CRONTAB_SAVED
-      echo "---- Current crontab ----"
-      cat $CRONTAB_TMP
-      echo "-------------------------"
-      echo "run '$THIS -e' to restore correct values"
-      exit 1
-    fi
-    rm -f $VIM_RC
-  fi
-  exit 0
-fi
-if [ -f $CRONTAB_SAVED ]; then
-   if [ "$opt_action" == "-l" ]; then
-    cat $CRONTAB_SAVED
-    echo "****************************************************************************"
-    echo "$THIS is waiting for cron activation, please do not execute crontab command!"
-    exit 0
-   elif [ $opt_force -eq 0 ]; then
-     echo "$THIS already running or previous crashed execution"
-     echo "Use -f for run after previous crash"
-     exit 1
-   fi
-else
-  crontab -l >$CRONTAB_SAVED
 fi
 if [ "$opt_action" == "-l" ]; then
-    cat $CRONTAB_SAVED
-    rm -f $CRONTAB_SAVED
-    exit 0
-elif [ "$opt_sel" != "^\$" ]; then
-    cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
-    SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
-    SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
-    SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
-    smtline=
-    rbckline=
-    i=0
-    for i in {1..19}; do
-      if [ $i -eq 1 ]; then
-        smtline="$SUBM_MM"
-        rbckline="$SUBM_MM"
-      elif [ $i -eq 2 ]; then
-        smtline="$smtline $SUBM_HH"
-        rbckline="$rbckline $SUBM_HH"
-      else
-        p=$(echo "$cronline"|awk '{print $'$i'}')
-        smtline="$smtline $p"
-      fi
-    done
-    cmdR=$(readlink -f $0)
-    rbckline="$rbckline * * * SHELL=/bin/bash $cmdR -R"
-    if [ $opt_verbose -gt 0 ]; then
-      echo "crontab statement selected:"
-      echo "$cronline"
-      if [ $opt_dry_run -gt 0 ]; then
-        echo "crontab statement simulated by DRY_RUN"
-      else
-        echo "crontab statement added"
-      fi
-    fi
-    echo "$smtline"
-    echo "GA">$VIM_RC
-    echo "$rbckline">>$VIM_RC
-    echo -e "$smtline\n\e">>$VIM_RC
-    if [ "$opt_action" != "-e" ]; then
-      echo ":w!q">>$VIM_RC
-    fi
-    if [ $opt_dry_run -eq 0 ]; then
-      # VISUAL="vim -s $VIM_RC" crontab -e
-      EDITOR="vim -s $VIM_RC" crontab -e
-      crontab -l >$CRONTAB_TMP
-      diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
-      sts=$?
-      if [ $sts -eq -0 ]; then
-        echo "Warning: crontab does not accept new jobs!"
-        exit 1
-      fi
-    fi
-    if [ $opt_wait -gt 0 ]; then
-      executed=0
-      while [ $executed -eq 0 ]; do
-        NOW_TIME=$(date +"%H:%M")
-        NOW_HH=$(echo $NOW_TIME|awk -F\: '{print $1}')
-        NOW_MM=$(echo $NOW_TIME|awk -F\: '{print $2}')
-        if [ $NOW_HH$NOW_MM -gt $SUBM_HH$SUBM_MM ]; then
-          executed=1
-        else
-          echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
-          sleep 5
-        fi
-      done
-      sleep 5
-    fi
-    if [ $opt_dry_run -eq 0 ]; then
-      echo "Statement at '$cronline' is being execution"
-      crontab -l
-    fi
-    exit 0
+  cron_list
+  sts=$?
+elif [ "$opt_action" == "--" ]; then
+  cron_runow
+  sts=$?
+elif [ "$opt_action" == "-R" -o "$opt_action" == "-e" ]; then
+  cron_recover
+  sts=$?
+else
+  print_help "Run now a selected cron statement from crontab"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  sts=1
 fi
-exit 1
+cron_clean
+exit $sts
