@@ -1,5 +1,0 @@
-openssl-devel (by yum)
-libffi-devel (by yum)
-pyOpenSSL (by yum)
-pyasn1 (by pip)
-ndg-httpsclient (by pip)

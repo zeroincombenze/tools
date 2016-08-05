@@ -1,0 +1,231 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Purge backupped postgres DB
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+elif [ -e /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
+fi
+
+__version__="1.3.11"
+
+
+detached_login() {
+# detached_login([path] [path2] [path3])
+    if [ $opt_cron -gt 0 -a "$SHELL" == "/bin/sh" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        fqcmd=$(readlink -f $0)
+        wlog "Run $fqcmd in cron mode"
+        SHELL=/bin/bash exec "$fqcmd" "$@"
+      fi
+    elif [ $opt_cron -gt 0 -a -f $HOME/.bash_profile ]; then
+      wlog "Simulate login ($HOME/.bash_profile)"
+      . $HOME/.bash_profile
+    fi
+    if [[ ":$PATH:" =~ /usr/local/bin ]]; then
+      :
+    else
+      export PATH=/usr/local/bin:$PATH
+    fi
+    if [ -n "$1" -a -d $1 ]; then
+      if [[ ":$PATH:" =~ $1 ]]; then
+        :
+      else
+        export PATH=$PATH:$1
+      fi
+    fi
+    if [ -n "$2" -a -d $2 ]; then
+      if [[ ":$PATH:" =~ $2 ]]; then
+        :
+      else
+        export PATH=$PATH:$2
+      fi
+    fi
+    if [ -n "$3" -a -d $3 ]; then
+      if [[ ":$PATH:" =~ $3 ]]; then
+        :
+      else
+        export PATH=$PATH:$3
+      fi
+    fi
+    wlog "PATH=$PATH"
+}
+
+OPTOPTS=(h        K        l       n            V           v)
+OPTDEST=(opt_help opt_cron opt_log opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        1        "="     1            "*>"        1)
+OPTDEFL=(0        0        ""      0            ""          0)
+OPTMETA=("help"   "cron"   "file"  "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "run in cron environment"\
+ "log filename (def /var/log/bckdb.log)"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(action)
+
+parseoptargs $@
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Update zar suite\nacction if issued, may be build|build_last"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$opt_log" ]; then
+  publog="/var/log/zar/updzar.log"
+else
+  publog=$opt_log
+fi
+$(init_cfg)
+$(active_cfg)
+set_tlog_file "$publog"
+if [ $opt_cron -gt 0 ]; then
+  detached_login "$@"
+fi
+
+FLIST="zar_bck zar_rest zar_purge zar_upd pg_db_active"
+GZFN=zar.gz
+if [ "$action" == "build" -o "$action" == "build_last" ]; then
+  wlog "Build ZAR suite $__version__ by $USER"
+  SRCDIR=$TDIR
+  if [ ! -f $HOME/tmp ]; then
+    mkdir -p $HOME/tmp
+  fi
+  invalid=
+  for f in $FLIST; do
+    if [ -f $SRCDIR/$f ]; then
+      cp $SRCDIR/$f $HOME/tmp
+    else
+      invalid=$f
+    fi
+  done
+  if  [ -n "$invalid" ]; then
+    wlog "File $f not found"
+    echo "File $f not found"
+    exit 1
+  fi
+  if [ -f $GZFN ]; then
+    rm -f $GZFN
+  fi
+  if [ "$action" == "build_last" ]; then
+    cp /opt/odoo/dev/pypi/z0lib/z0lib/z0librc $HOME/tmp
+    cp /opt/odoo/dev/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
+  else
+    cp /etc/z0librc $HOME/tmp
+    cp /opt/odoo/bin/cronow $HOME/tmp
+  fi
+  CWD=$PWD
+  cd $HOME/tmp
+  if [ $EUID -eq 0 ]; then
+    chown root:root *
+  fi
+  for f in $FLIST cronow; do
+    v=$($HOME/tmp/$f -V)
+    echo "$f $v"
+    wlog "$f $v"
+  done
+  x="-cf"
+  tar $x $GZFN $FLIST
+  x=${x/c/r}
+  tar $x $GZFN z0librc
+  tar $x $GZFN cronow
+  if [ $EUID -eq 0 ]; then
+    if [ -d /var/www/html/mw/download/ ]; then
+      wlog "\$ cp $GZFN /var/www/html/mw/download/"
+      chown apache:apache $GZFN
+      mv $GZFN /var/www/html/mw/download/
+    fi
+    rm -fR $HOME/tmp
+  else
+    for f in $FLIST z0librc cronow; do
+      if [ -f $HOME/tmp/$f ]; then
+        rm -f $HOME/tmp/$f
+      fi
+    done
+  fi
+  cd $CWD
+  exit 0
+fi
+if [ $EUID -eq 0 ]; then
+  echo "This command must be executed by root privileges"
+fi
+wlog "Update ZAR suite $__version__ by $USER"
+PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+PGHOME=$(grep postgres /etc/passwd|awk -F":" '{print $6}')
+if [ -z "$PGDIR" ]; then
+  wlog "No postgres directory found!"
+  exit 1
+fi
+if [ -z "$PGHOME" ]; then
+  wlog "No postgres directory found!"
+  exit 1
+fi
+wlog "Found $PGHOME directory"
+wlog "Found $PGDIR directory"
+cd /tmp
+if [ -f $GZFN ]; then
+  rm -f $GZFN
+fi
+wget http://download.zeroincombenze.org/$GZFN
+if [ ! -f zar.gz ]; then
+  wlog "No file $GZFN downloaded"
+  echo "No file $GZFN downloaded"
+  exit 1
+fi
+tar -xvf $GZFN
+if [ "$0" == "$PGHOME/zar_upd" -a -f ./zar_upd ]; then
+  mv zar_upd $PGHOME/updzar
+  chown postgres:postgres $PGHOME/updzar
+  exec $PGHOME/updzar $@
+fi
+TFQN=$(readlink -f $0)
+if [ "$TFQN" == "/tmp/zar_upd" ]; then
+  mv /tmp/zar_upd $PGHOME/updzar
+  exec $PGHOME/updzar $@
+fi
+for f in $FLIST cronow; do
+  if [ -f ./$f ]; then
+    wlog "Installing $f in $PGHOME/"
+    mv ./$f $PGHOME/
+    chown postgres:postgres $PGHOME/$f
+    v=$($PGHOME/$f -V)
+    echo "$f $v"
+    wlog "$f $v"
+  else
+    wlog "No file $f downloaded"
+    echo "No file $f downloaded"
+  fi
+done
+_install_z0librc
+for f in bckdb-v1 purgedb dup4test restdb-v1; do
+  if [ -f $PGHOME/$f ]; then
+    rm -f $PGHOME/$f
+  fi
+done
+if [ ! -d /var/log/zar ]; then
+  mkdir -p /var/log/zar
+  chown postgres:postgres /var/log/zar
+fi
+exit 0

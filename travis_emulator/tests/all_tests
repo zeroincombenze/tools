@@ -66,7 +66,7 @@ Z0LIBDIR=$(readlink -e $Z0LIBDIR)
 Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
 
 
-__version__=0.1.59.4
+__version__=0.1.60
 
 declare -a ctrs
 export WNoCtr=1
@@ -76,7 +76,7 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 opt4childs=$(inherit_opts)
-UT_LIST="test_lib test_regex test_dist_pkg test_vfdiff test_vfcp"
+UT_LIST="test_lib test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
 saved_ctr=$ctr
 saved_max_test=$max_test
 saved_opt_verbose=$opt_verbose
@@ -111,7 +111,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   xtlver=$($RUNDIR/travis -V)
   ci-test "check for travis version" "$__version__" "$xtlver"
   xtlver=$($RUNDIR/please -V)
-  ci-test "check for travis version" "0.1.27.9" "$xtlver"
+  ci-test "check for travis version" "0.1.28" "$xtlver"
   exec_all_tests "$UT_LIST"
   if [ $sts -eq 0 ]; then
     echo "Test successfully terminated"

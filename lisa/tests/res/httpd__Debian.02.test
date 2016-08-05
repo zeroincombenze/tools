@@ -1,4 +1,0 @@
-httpd=apache2 (install by apt-get)
- service=apache2
- command=apachectl
- get ver=apachectl -v

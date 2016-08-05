@@ -1,7 +1,0 @@
-> yum -y install xorg-x11-fonts-Type1
-> yum -y install xorg-x11-fonts-75dpi
-> yum -y install wget
-> cd /tmp
-> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1/wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
-> rpm -i wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
-> rm -f wkhtmltox-0.12.2.1_linux-centos6-i386.rpm

@@ -1,3 +1,0 @@
-php5=php (install by yum)
- command=php
- get ver=php -v

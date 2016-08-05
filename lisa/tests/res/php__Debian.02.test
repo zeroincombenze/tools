@@ -1,3 +1,0 @@
-php=php5 (install by apt-get)
- command=php5
- get ver=php5 -v

@@ -1,3 +1,0 @@
-pip (install by yum)
- command=pip
- get ver=pip --version

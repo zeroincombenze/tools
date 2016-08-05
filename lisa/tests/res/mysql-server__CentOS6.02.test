@@ -1,4 +1,0 @@
-mysql-server (install by yum)
- service=mysqld
- command=mysql
- get ver=mysql --version

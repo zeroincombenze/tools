@@ -1,3 +1,0 @@
-lisa (install by git)
- command=/opt/odoo/dev/pypi/lisa/lisa/lisa
- get ver=/opt/odoo/dev/pypi/lisa/lisa/lisa -V

@@ -1,0 +1,250 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Purge backupped postgres DB
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# This free software is released under GNU Affero GPL3
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+if [ -e $TDIR/z0librc ]; then
+. $TDIR/z0librc
+elif [ -e ./z0librc ]; then
+. ./z0librc
+elif [ -e ../z0librc ]; then
+. ../z0librc
+elif [ -e ~/z0librc ]; then
+. ~/z0librc
+elif [ -e /etc/z0librc ]; then
+. /etc/z0librc
+else
+  echo "Library file z0librc not found!"
+  exit $STS_FAILED
+fi
+
+__version__="1.3.8.a1"
+
+
+detached_login() {
+# detached_login([path] [path2] [path3])
+    if [ $opt_cron -gt 0 -a "$SHELL" == "/bin/sh" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        fqcmd=$(readlink -f $0)
+        wlog "Run $fqcmd in cron mode"
+        SHELL=/bin/bash exec "$fqcmd" "$@"
+      fi
+    elif [ $opt_cron -gt 0 -a -f $HOME/.bash_profile ]; then
+      wlog "Simulate login ($HOME/.bash_profile)"
+      . $HOME/.bash_profile
+    fi
+    if [[ ":$PATH:" =~ /usr/local/bin ]]; then
+      :
+    else
+      export PATH=/usr/local/bin:$PATH
+    fi
+    if [ -n "$1" -a -d $1 ]; then
+      if [[ ":$PATH:" =~ $1 ]]; then
+        :
+      else
+        export PATH=$PATH:$1
+      fi
+    fi
+    if [ -n "$2" -a -d $2 ]; then
+      if [[ ":$PATH:" =~ $2 ]]; then
+        :
+      else
+        export PATH=$PATH:$2
+      fi
+    fi
+    if [ -n "$3" -a -d $3 ]; then
+      if [[ ":$PATH:" =~ $3 ]]; then
+        :
+      else
+        export PATH=$PATH:$3
+      fi
+    fi
+    wlog "PATH=$PATH"
+}
+
+OPTOPTS=(h        K        k          l       m        n           U          V           v)
+OPTDEST=(opt_help opt_cron opt_keep   opt_log opt_km   opt_dry_run opt_user   opt_version opt_verbose)
+OPTACTI=(1        1        "="        "="     "="      "1"         "="        "*>"        1)
+OPTDEFL=(0        0        ""         ""      ""        0           "postgres" ""          0)
+OPTMETA=("help"   "cron"   "# copies" "file" "# copies" "do nothing" "username" "version"   "verbose")
+OPTHELP=("this help"\
+ "run in cron environment"\
+ "keep # recent copies of db (max 60)"\
+ "log filename (def /var/log/bckdb.log)"\
+ "keep # of monthly copies of db (max 12)"\
+ "do nothing (dry-run)"\
+ "username (def postgres)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(dbsel)
+
+parseoptargs $@
+
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Purge backupped postgres DB"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$opt_log" ]; then
+  publog="/var/log/zar/purgedb.log"
+else
+  publog=$opt_log
+fi
+FCONF=$TDIR/zar.conf
+$(init_cfg)
+$(active_cfg)
+set_tlog_file "$publog"
+if [ $opt_cron -gt 0 ]; then
+  detached_login "$@"
+fi
+link_cfg $FCONF
+wlog "Starting purge backup $__version__ by $USER"
+
+PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+DBCKDIR="$PGDIR/backups"
+HOST_PRD=$(get_cfg_value 0 production_host)
+HOST_DEV=$(get_cfg_value 0 development_host)
+wlog "PRD=$HOST_PRD"
+wlog "DEV=$HOST_DEV"
+if [ -z "$dbsel" ]; then
+  dbsel=$(get_cfg_value 0 dbfilter)
+fi
+for sfx in A B; do
+  if [ "$HOSTNAME" == "$HOST_PRD" ]; then
+    eval DB$sfx=$(get_cfg_value 0 PRD_DB$sfx_filter)
+    eval NC$sfx=$(get_cfg_value 0 PRD_DB$sfx_keep_recent)
+  elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+    eval DB$sfx=$(get_cfg_value 0 DEV_DB$sfx_filter)
+    eval NC$sfx=$(get_cfg_value 0 DEV_DB$sfx_keep_recent)
+  fi
+  if [ -z "$DB$pfx" ]; then
+    eval DB$sfx=$(get_cfg_value 0 DB$sfx_filter)
+    eval NC$sfx=$(get_cfg_value 0 DB$sfx_keep_recent)
+  fi
+done
+
+NC16=$(get_cfg_value 0 keep_recent)
+NA=$(get_cfg_value 0 keep_monthly)
+if [ "$HOSTNAME" == "erp-copia" ]; then
+  NC14=1
+  NC16=2
+  NA=4
+  if [ -z "$dbsel" ]; then
+    dbsel="[Cc]s[a-zA-Z0-9_]*"
+  fi
+elif [ "$HOSTNAME" == "erp" ]; then
+  NC14=1
+  if [ -z "$NC16" ]; then
+    NC16=6
+  fi
+  if [ -z "$NA" ]; then
+    NA=12
+  fi
+  if [ -z "$dbsel" ]; then
+    dbsel="[Cc]s[a-zA-Z0-9_]*"
+  fi
+elif [ "$HOSTNAME" == "greenservice" ]; then
+  NC14=0
+  if [ -z "$NC16" ]; then
+    NC16=2
+  fi
+  if [ -z "$NA" ]; then
+    NA=4
+  fi
+  if [ -z "$dbsel" ]; then
+    dbsel="[Gg]reen[a-zA-Z0-9_]*"
+  fi
+elif [ "${HOSTNAME:0:3}" == "shs" ]; then
+  NC14=0
+  if [ -z "$NC16" ]; then
+    NC16=60
+  fi
+  if [ -z "$NA" ]; then
+    NA=12
+  fi
+  if [ -z "$dbsel" ]; then
+    dbsel="[Zz]i[a-zA-Z0-9_]*"
+  fi
+fi
+if [[ "$opt_keep" =~ [0-9]+ ]]; then
+  NC16=$opt_keep
+fi
+if [[ "$opt_km" =~ [0-9]+ ]]; then
+  NA=$opt_km
+fi
+dblist=""
+re=$dbsel
+if [ -z "$re" ]; then
+  re=".*"
+fi
+if [ $opt_dry_run -gt 0 ]; then
+  echo "Keep $NC16 recent copies and $NA monthly copies of $re"
+else
+  wlog "Keep $NC16 recent copies and $NA monthly copies of $re"
+fi
+for f in $(dir $DBCKDIR/*.sql)
+do
+  dbf=${f%%-*}
+  db=$(basename $dbf)
+  if [[ $db =~ $re ]]; then
+    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+      dblist=$(echo "$dblist $db")
+    fi
+    if [ "$db" == "cscs2014" ]; then
+      range=$NC14
+    else
+      range=$NC16
+    fi
+    for i in {90..1}; do
+      dtc=$(date -d "today - $i day" +%Y%m%d)
+      dd=$(date -d "today - $i day" +%d)
+      if [ "$dd" != "01" -a $i -gt $range ]
+      then
+        if [ -f "$dbf-$dtc.sql" ]; then
+          if [ $opt_dry_run -gt 0 ]; then
+             wlog "File and DB $dbf-$dtc.sql should be deleted!"
+          else
+            wlog "File and DB $dbf-$dtc.sql deleted!"
+            rm -f $dbf-$dtc.sql
+          fi
+        fi
+      fi
+    done
+  fi
+done
+mm=$(date -d today +%m)
+mm=${mm#0}
+for i in {1..12}; do
+  if [ $mm -lt $i ]; then
+    ((d=$mm+12-$i))
+    yy=$(date -d "today - 1 year" +%Y)
+  else
+    ((d=$mm-$i))
+    yy=$(date -d today +%Y)
+  fi
+  if [ $d -gt $NA ]; then
+    dtc=$(printf "%04d%02d%02d" $yy $i 1)
+    for f in $dblist; do
+      if [ -f "$DBCKDIR/${f}-$dtc.sql" ]; then
+        if [ $opt_dry_run -gt 0 ]; then
+          wlog "File $DBCKDIR/${f}-$dtc.sql should be deleted!"
+        else
+          wlog "File $DBCKDIR/${f}-$dtc.sql deleted!"
+          rm -f $DBCKDIR/${f}-$dtc.sql
+        fi
+      fi
+    done
+  fi
+done
+exit 0

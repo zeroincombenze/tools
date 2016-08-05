@@ -1,3 +1,0 @@
-pip (install by apt-get)
- command=pip
- get ver=pip --version

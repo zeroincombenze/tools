@@ -21,7 +21,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.20
+__version__=0.2.0
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.$$.tmp
@@ -29,7 +29,7 @@ CRONTAB_TMP2=~/$THIS.crontab.$$_2.tmp
 VIM_RC=~/$THIS.vim
 
 extract_cmdline() {
-    cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
+    local cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
     local SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
     local SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
     local SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
@@ -51,6 +51,26 @@ extract_cmdline() {
     done
     FQN_THIS=$(readlink -f $0)
     SK_RCMD="$SKTIME * * * SHELL=/bin/bash $FQN_THIS -R"
+}
+
+cron_wait() {
+    local sts=0
+    local cronline=$(crontab -l|grep "$FQN_THIS -R"|head -n1)
+    if [ -n "$cronline" ]; then
+      local SUBM_TIME=$(echo "$cronline"|awk '{print $2":"$1}')
+    fi
+    local wctr=20
+    while [ -n "$cronline" -a $wctr -gt 0 ]; do
+      local NOW_TIME=$(date +"%H:%M")
+      echo "$NOW_TIME waiting for cron activation ($SUBM_TIME), please do not execute crontab command! $REM"
+      sleep 6
+      cronline=$(crontab -l|grep "$FQN_THIS -R"|head -n1)
+      ((wctr--))
+    done
+    if [ $wctr -eq 0 ]; then
+      sts=1
+    fi
+    return $sts
 }
 
 cron_list() {
@@ -136,6 +156,7 @@ cron_recover() {
         diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
         sts=$?
         if [ $sts -eq -0 ]; then
+          cat $CRONTAB_SAVED|crontab
           rm -f $CRONTAB_SAVED
         else
           echo "**********************************************"
@@ -152,7 +173,12 @@ cron_recover() {
         fi
         if [ "$opt_action" == "-e" ]; then
           read
-          crontab -e
+          echo "G">$VIM_RC
+          echo "dd">>$VIM_RC
+          echo "dd">>$VIM_RC
+          echo ":w!q">>$VIM_RC
+          # VISUAL="vim -s $VIM_RC" crontab -e
+          EDITOR="vim -s $VIM_RC" crontab -e
           sts=$?
           if [ -f "$CRONTAB_SAVED" ]; then
             rm -f $CRONTAB_SAVED
@@ -177,7 +203,7 @@ cron_clean() {
 
 OPTOPTS=(h        e        f         l          n            R          s       V           v           w)
 OPTDEST=(opt_help opt_edit opt_force opt_action opt_dry_run  opt_action opt_sel opt_version opt_verbose opt_wait)
-OPTACTI=(1        "1>"     1         "*>"       "1>"         "*>"       "=>"    "*>"        1           1)
+OPTACTI=(1        "1>"     1         "*>"       "1>"         "*>"       "=>"    "*>"        1           "1>")
 OPTDEFL=(1        0        0         ""         0            ""         "^$"    ""          0           0  )
 OPTMETA=("help"   "edit"   "force"   "list"     "do nothing" "rollbck"  "regex" "version"   "verbose"   "wait")
 OPTHELP=("this help"\
@@ -208,6 +234,8 @@ if [ -z "$opt_action" ]; then
     opt_action="--"
   elif [ $opt_edit -ne 0 ]; then
     opt_action="-e"
+  elif [ $opt_wait -gt 0 ]; then
+    opt_action="-w"
   fi
 fi
 if [ "$opt_action" == "-l" ]; then
@@ -216,8 +244,14 @@ if [ "$opt_action" == "-l" ]; then
 elif [ "$opt_action" == "--" ]; then
   cron_runow
   sts=$?
+  if [ $sts -eq 0 -a $opt_wait -gt 0 ]; then
+    cron_wait
+  fi
 elif [ "$opt_action" == "-R" -o "$opt_action" == "-e" ]; then
   cron_recover
+  sts=$?
+elif [ "$opt_action" == "-w" ]; then
+  cron_wait
   sts=$?
 else
   print_help "Run now a selected cron statement from crontab"\

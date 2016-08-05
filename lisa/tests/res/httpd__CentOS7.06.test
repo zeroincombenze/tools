@@ -1,8 +1,0 @@
-> yum -y update httpd
-> yum -y install vsftpd
-> systemctl restart httpd
-> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
-> systemctl start vsftpd
-> chkconfig vsftpd on
-> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
