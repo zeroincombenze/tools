@@ -66,6 +66,7 @@ cron_list() {
 
 cron_runow() {
     local sts=0
+    local del_saved=0
     if [ -f $CRONTAB_SAVED ]; then
       if [ $opt_force -eq 0 ]; then
         echo "$THIS already running or previous crashed execution"
@@ -74,6 +75,9 @@ cron_runow() {
       fi
     else
       crontab -l >$CRONTAB_SAVED
+      if [ $opt_dry_run -gt 0 ]; then
+        del_saved=1
+      fi
     fi
     extract_cmdline
     if [ $opt_edit -eq 0 ]; then
@@ -103,7 +107,7 @@ cron_runow() {
         sts=$?
       fi
     fi
-    if [ $sts -eq 0 ]; then
+    if [ $sts -eq 0 -a $opt_dry_run -eq 0 ]; then
       crontab -l >$CRONTAB_TMP
       diff -qr $CRONTAB_SAVED $CRONTAB_TMP &>/dev/null
       sts=$?
@@ -115,6 +119,9 @@ cron_runow() {
     fi
     if [ $sts -ne 0 ]; then
       echo "Warning: crontab does not accept new jobs!!"
+    fi
+    if [ $del_saved -gt 0 ]; then
+      rm -f $CRONTAB_SAVED
     fi
     return $sts
 }
