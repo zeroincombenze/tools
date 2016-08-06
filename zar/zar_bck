@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.13"
+__version__="1.3.14"
 
 
 detached_login() {
@@ -118,7 +118,7 @@ inherit_options() {
       OPTS=v$OPTS
     fi
     if [ -n "$opt_user" ]; then
-      OPTS="$OPTSU$opt_user"
+      OPTS="${OPTS}U$opt_user"
     fi
     if [ -n "$OPTS" ]; then
       OPTS=-$OPTS
@@ -231,10 +231,13 @@ then
   done
   wlog "All $ctr databases are backupped!"
   inherit_options
+  wlog "\$ ./zar_purge $OPTS $dbsel"
   ./zar_purge $OPTS $dbsel
   if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
+    wlog "\$ ./zar_rest $OPTS"
     ./zar_rest $OPTS
   elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+    wlog "\$ ./zar_rest $OPTS"
     ./zar_rest $OPTS
   fi
 fi
