@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.66
+#__version__=0.1.67
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -1029,14 +1029,14 @@ run_coverage_test () {
           export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
           if [ ${opt_dprj:-0} -gt 0 ]; then
             if [ ${opt_verbose:-0} -gt 0 ]; then
-              echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python ./tests/test_$PRJNAME.py"
+              echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --rcfile=$COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py"
             fi
-            DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python ./tests/test_$PRJNAME.py
+            DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --rcfile=$COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py
           else
             if [ ${opt_verbose:-0} -gt 0 ]; then
-              echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python test_$PRJNAME.py"
+              echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py"
             fi
-            cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH python test_$PRJNAME.py
+            cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py
           fi
           if [ ${opt_mis:-0} -gt 0 ]; then
             coverage report -m
