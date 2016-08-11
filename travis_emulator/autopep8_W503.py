@@ -27,7 +27,7 @@ import sys
 import re
 
 
-__version__ = "0.1.5"
+__version__ = "0.1.7"
 
 
 def update_to_8(line):
@@ -40,6 +40,12 @@ def update_to_8(line):
     if re.match("^from tools.translate import", line):
         line = line.replace("from tools.translate import",
                             "from openerp.tools.translate import")
+    if re.match("^import netsvc", line):
+        line = line.replace("import netsvc",
+                            "from openerp import netsvc")
+    if re.match("^import pooler", line):
+        line = line.replace("import pooler",
+                            "from openerp import pooler")
     return line
 
 
@@ -53,7 +59,12 @@ def move_tk_line_up(tk, n, lines):
         else:
             lines[n] = newln
         n -= 1
-        lines[n] = lines[n] + " " + tk
+        if lines[n][-2:] == ' \\':
+            lines[n] = lines[n][0:-1] + tk + " \\"
+        elif lines[n][-1] == '\\':
+            lines[n] = lines[n][0:-1] + " " + tk + " \\"
+        else:
+            lines[n] = lines[n] + " " + tk
 
 
 def exec_W503(filepy):
