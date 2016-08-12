@@ -29,7 +29,7 @@ import os.path
 import sys
 from zerobug import Z0test
 
-__version__ = "0.1.10"
+__version__ = "0.1.9"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -45,27 +45,24 @@ class Test():
     def __init__(self, zarlib):
         self.Z = zarlib
 
-    def test_01(self, z0ctx):
-        if z0ctx['dry_run']:
-            sts = self.Z.sanity_check('-q', full=True)
-        else:
-            sts = self.Z.sanity_check('-e', full=True)
-        return sts
+    # def test_01(self, z0ctx):
+    #     if z0ctx['dry_run']:
+    #         ctx['ctr'] = 40
+    #         sts = TEST_SUCCESS
+    #     else:
+    #         sts = self.Z.sanity_check('-e', full=z0ctx)
+    #     return sts
 #
 # Run main if executed as a script
 if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    # Just for regression tests
-    cwd = os.getcwd()
-    if os.path.basename(cwd) == 'tests':
-        cwd = os.path.dirname(cwd)
-    coveragerc_file = os.path.abspath(
-        os.path.join(cwd, '.coveragerc'))
-    if os.path.isfile(coveragerc_file):
-        os.remove(coveragerc_file)
-    sts = Z.main_local(ctx, Test)
+    f1 = os.path.join(Z.pkg_dir, 'z0testrc')
+    f2 = '/etc/z0librc'
+    UT = ['__version_0_%s%s' % (__version__, f1),
+          '__version_1_0.1.40.7%s' % f2]
+    sts = Z.main_file(ctx, UT=UT)
     exit(sts)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

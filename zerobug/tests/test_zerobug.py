@@ -24,14 +24,13 @@
 """
 
 # import pdb
+import os
+import os.path
 import sys
-# import os
-# import os.path
-# from zerobug.z0testlib import Z0test
 from zerobug import Z0test
 
 
-__version__ = "0.1.10"
+__version__ = "0.1.9"
 
 MODULE_ID = 'zerobug'
 
@@ -46,7 +45,19 @@ if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
+    # Just for regression tests
+    coveragerc_file = os.path.join(Z.pkg_dir, '.coveragerc')
+    coveragerc_bak = os.path.join(Z.pkg_dir, 'coveragerc.bak')
+    if not os.path.isfile(coveragerc_bak):
+        if os.path.isfile(coveragerc_file):
+            os.rename(coveragerc_file, coveragerc_bak)
+    if os.path.isfile(coveragerc_file):
+        os.remove(coveragerc_file)
     sts = Z.main_file(ctx)
+    if os.path.isfile(coveragerc_file):
+        os.remove(coveragerc_file)
+    if os.path.isfile(coveragerc_bak):
+        os.rename(coveragerc_bak, coveragerc_file)
     exit(sts)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
