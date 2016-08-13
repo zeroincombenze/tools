@@ -29,6 +29,8 @@ elif [ -f $TDIR/../travisrc ]; then
 . $TDIR/../travisrc
 elif [ -f ./travisrc ]; then
 . ./travisrc
+elif [ -e ../tests/travisrc ]; then
+. ../tests/travisrc
 elif [ -f ~/travisrc ]; then
 . ~/travisrc
 else
@@ -36,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.8
+__version__=0.1.9
 
 
 OPTOPTS=(h        j        n            q           t         V           v)
