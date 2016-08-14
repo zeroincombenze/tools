@@ -177,6 +177,7 @@ DBCKDIR="$PGDIR/backups"
 if [ ! -d $DBCKDIR ]; then
   mkdir -p $DBCKDIR
 fi
+wlog "Backup directory is $DBCKDIR"
 HOST_PRD=$(get_cfg_value 0 production_host)
 HOST_DEV=$(get_cfg_value 0 development_host)
 wlog "PRD=$HOST_PRD"

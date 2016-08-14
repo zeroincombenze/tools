@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.8.a2"
+__version__="1.3.9"
 
 
 detached_login() {
@@ -199,6 +199,7 @@ if [ $opt_dry_run -gt 0 ]; then
 else
   wlog "Keep $NC16 recent copies and $NA monthly copies of $re"
 fi
+ctr=0
 for f in $(dir $DBCKDIR/*.sql)
 do
   dbf=${f%%-*}
@@ -223,6 +224,7 @@ do
           else
             wlog "File and DB $dbf-$dtc.sql deleted!"
             rm -f $dbf-$dtc.sql
+            ((ctr++))
           fi
         fi
       fi
@@ -248,9 +250,11 @@ for i in {1..12}; do
         else
           wlog "File $DBCKDIR/${f}-$dtc.sql deleted!"
           rm -f $DBCKDIR/${f}-$dtc.sql
+          ((ctr++))
         fi
       fi
     done
   fi
 done
+wlog "All $ctr databases are purged!"
 exit 0
