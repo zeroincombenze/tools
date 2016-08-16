@@ -1,0 +1,297 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Unit test library for bash script
+# Unit test can run in package directory or in ./tests directory of package
+# Main unit test (all_tests script) calls sequentially all unit test scripts
+# Every unit test check for cmdline which is:
+# > unit_test [-hek][-l file][-Nnq][-s number][-Vv][-z number][-0]
+# where:
+# -h             this help
+# -e             enable echoing even if not interactive tty
+# -k             keep current logfile
+# -l file        set logfile name
+# -N             create new logfile
+# -n             count and display # unit tests (do no test, return success)
+# -q             run tests in quiet mode (no echo)
+# -s number      set last test number (do run test, return test result)
+# -V             show version (do no test, return success); version on unit test should be the same of tested software
+# -v             verbose mode
+# -z number      set total # in displayed tests
+# -0             no count # unit tests
+# (no cmdline) do run test and return test result
+#
+# Test environment and deploy
+# .../pkg                   $RUNDIR - Package directory (may be pypi packge or Odoo module);
+# .../pkg/tests             $TESTDIR - Unit test directory (must contains one of 'all_tests' or 'test_PKG')
+# .../pkg/tests/z0testrc    This unit test bash script library (aim to set TESTDIR env var); usually does not exist
+#                           may be a real file (when is under test), or a link to ~/dev/;
+#                           on github must be a real file
+# .../pkg/z0librc           Local bash script library; usually does not exist
+#                           may be a real file (when is under test), or a link; is not present is /etc/z0librc
+# .../pkg/_travis           $TRAVISDIR - Interface to travis emulator; usually is a link to ~/dev/_travis
+#                           on github.com become a directory with copies of travis interface files
+#                           in future, on github, could be become a test project for all packages.
+# Sample UT script
+##THIS=$(basename $0)
+##TDIR=$(readlink -f $(dirname $0))
+##if [ -d $TDIR/tests ]; then
+##  TESTDIR=$TDIR/tests
+##  RUNDIR=$TDIR
+##elif [ -d $TDIR/../tests ]; then
+##  TESTDIR=$TDIR
+##  RUNDIR=$TDIR/..
+##elif [ -d ./tests ]; then
+##  TESTDIR=./tests
+##  RUNDIR=./
+##elif [ -d ../tests ]; then
+##  TESTDIR=./
+##  RUNDIR=../
+##else
+##  TESTDIR=$TDIR
+##  RUNDIR=$TDIR/..
+##fi
+##if [ -d $TDIR/_travis ]; then
+##  TRAVISDIR=$TDIR
+##elif [ -d $TDIR/../_travis ]; then
+##  TRAVISDIR=$TDIR/..
+##elif [ -d ./_travis ]; then
+##  TRAVISDIR=./
+##elif [ -d ../_travis ]; then
+##  TRAVISDIR=../
+##else
+##  TRAVISDIR=~/dev/_travis
+##fi
+##if [ -e $TDIR/z0librc ]; then
+##. $TDIR/z0librc
+##elif [ -e ./z0librc ]; then
+##. ./z0librc
+##elif [ -e ../z0librc ]; then
+##. ../z0librc
+##elif [ -e ~/z0librc ]; then
+##. ~/z0librc
+##else
+##. /etc/z0librc
+##fi
+##if [ -e $TDIR/z0testrc ]; then
+##. $TDIR/z0testrc
+##elif [ -e ./z0testrc ]; then
+##. ./z0testrc
+##elif [ -e ../z0testrc ]; then
+##. ../z0testrc
+##else
+##. ~/dev/z0testrc
+##fi
+##TESTDIR=$(readlink -e $TESTDIR)
+##RUNDIR=$(readlink -e $RUNDIR)
+##TRAVISDIR=$(readlink -e $TRAVISDIR)
+#
+# Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# This software is free software under GNU Affero GPL3
+#
+#__version__=0.1.8
+
+export opt_dry_run
+export ctr
+export opt_verbose
+export max_test
+export opt_noctr
+export logfn
+export LNEW
+export LECHO
+export _prior_msg=""
+
+parseoptest() {
+    if [[ -t 0 || -p /dev/stdin ]]; then
+      export LECHO=echo
+      local Z0=0
+    else
+      export LECHO=
+      local Z0=1
+    fi
+    OPTOPTS=(h        e        k       l      N       n           q        s        V           v           z        0)
+    OPTDEST=(opt_help opt_echo opt_new logfn  opt_new opt_dry_run opt_echo ctr      opt_version opt_verbose max_test opt_noctr)
+    OPTACTI=(1        1        0       "="    1       1           0        "=>"     "*>"        1           "=>"     1)
+    OPTDEFL=(0        -1       -1      ""     -1      0           -1       ""       ""          0           ""       $Z0)
+    OPTMETA=("help"   "echo"   "keep"  "file" "new"   "count"     "quiet"  "number" "version"   "verbose"   "number" "no")
+    OPTHELP=("this help"\
+     "enable echoing even if not interactive tty"\
+     "keep current logfile"\
+     "set logfile name"\
+     "create new logfile"\
+     "count and display # unit tests"\
+     "run tests without output (quiet mode)"\
+     "set last test number"\
+     "show version"\
+      "verbose mode"\
+     "set total # in displayed tests"\
+     "no count # unit tests")
+    OPTARGS=()
+    parseoptargs $@
+    if [ "$opt_version" ]; then
+      echo "$__version__"
+      exit 0
+    elif [ $opt_help -gt 0 ]; then
+      print_help "Run unit test"\
+      "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+      exit 0
+    fi
+    if [ ${opt_echo:-1} -eq 0 ]; then
+      export LECHO=
+    elif [ ${opt_echo:-0} -eq 1 ]; then
+      export LECHO=echo
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ ${opt_new:-0} -eq 1 ]; then
+        export LNEW=new
+      elif [ ${opt_new:-0} -ne 0 -a ${ctr:-0} -eq 0 ]; then
+        export LNEW=new
+      else
+        export LNEW=
+      fi
+    else
+      export LNEW=
+    fi
+    if [ ${max_test:-0} -eq 0 -a ${opt_dry_run:-0} -eq 0 -a ${opt_noctr:-0} -eq 0 ]; then
+      if [ ${WNoCtr:-0} -eq 0 ]; then
+        max_test="$($0 -n|tr -d '\n')"
+      fi
+      unset WNoCtr
+    fi
+    if [ -z "$logfn" ]; then logfn="~/$(basename $0).log"; fi
+    logfn=$(readlink -f $logfn)
+    set_tlog_file "$logfn" "$LNEW" "$LECHO"
+    return 127
+}
+
+
+inherit_opts () {
+    if [ "$LECHO" == "echo" ]; then
+      params="-e"
+    else
+      params="-q"
+    fi
+    if [ ${opt_noctr:-0} -gt 0 ]; then
+      params="${params}0"
+    fi
+    if [ ${opt_verbose:-0} -gt 0 ]; then
+      params="${params}v"
+    fi
+    params="${params}kl$logfn"
+    echo "$params"
+}
+
+
+test_result () {
+# test_result (msg, testval, resval, cmd, [ttype])::ctr,max_test
+# if supplied, ttype means cmd test type; may be (str-z, str-n)
+  ((ctr++))
+  if [ "$msg" == "_prior_msg" ]; then
+    local prfx="\x1b[A"
+  else
+    local prfx=""
+    _prior_msg=$msg
+  fi
+  if [ ${opt_dry_run:-0} -eq 0 ]; then
+    if [ -n "$WLOGCMD" ]; then
+      if [ "$WLOGCMD" == "echo" -o "$WLOGCMD" == "wecho-1" ]; then
+        if [ ${max_test:-0} -gt 0 ]; then
+          echo -e "${prfx}Test $ctr/$max_test: $1"
+        else
+          echo -e "${prfx}Test $ctr: $1"
+        fi
+      fi
+    else
+      if [ ${max_test:-0} -gt 0 ]; then
+        wlog "Test $ctr/$max_test: $1"
+      else
+        wlog "Test $ctr: $1"
+      fi
+    fi
+    if [ -n "$4" ]; then
+      if $($4 $2 $3 &>/dev/null); then
+        if [ "$5" == "str-z" ]; then
+          if [ -n "$($4 $2 $3)" ]; then
+            echo "Test failed: $4 '$2' '$3'"
+            exit 1
+          fi
+        elif [ "$5" == "str-n" ]; then
+          if [ -z "$($4 $2 $3)" ]; then
+            echo "Test failed: $4 '$2' '$3'"
+            exit 1
+          fi
+        fi
+      else
+        echo "Test failed: $4 '$2' '$3'"
+        exit 1
+      fi
+    else
+      if [ "$2" != "$3" ]; then
+        echo "Test failed: expected '$2', found '$3'"
+        exit 1
+      fi
+    fi
+  fi
+  return 0
+}
+export -f test_result
+
+
+ci-test () {
+    local s
+    if [ $sts -eq 0 ]; then
+      test_result "$1" "$2" "$3" "$4"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+export -f ci-test
+
+
+exec_tests_4_count () {
+# exec_tests_4_count (test_list, [#])::sts,ctrs,ctr,max_test,ix,opt_noctr,TESTDIR,opt4childs
+    local testname
+    for testname in $1; do
+      ((ix++))
+      if [ ${opt_noctr:-0} -gt 0 ]; then
+        ctrs[$ix]="0"
+      elif [ ${2:-0} -gt 0 ]; then
+        ctrs[$ix]="$2"
+      else
+        ctrs[$ix]="$($TESTDIR/$testname -n)"
+      fi
+      let max_test="${max_test:-0}"+"${ctrs[$ix]}"
+    done
+    return $sts
+}
+export -f exec_tests_4_count
+
+
+exec_all_tests () {
+# exec_all_tests (test_list)::sts,ctr,max_test,ix,opt_noctr,TESTDIR,opt4childs
+    if [ ${ctr:-0} -eq 0 ]; then ctr=0; fi
+    local testname
+    local s
+    for testname in $1; do
+      if [ $sts -eq 0 ]; then
+        ((ix++))
+        if [ ${2:-0} -gt 0 ]; then
+          true
+        elif [ ${opt_noctr:-0} -gt 0 ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "> $TESTDIR/$testname $opt4childs"
+          fi
+          $TESTDIR/$testname $opt4childs
+        else
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "> $TESTDIR/$testname $opt4childs -s$ctr -z$max_test"
+          fi
+          $TESTDIR/$testname $opt4childs -s$ctr -z$max_test
+        fi
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        let ctr="$ctr"+"${ctrs[$ix]}"
+      fi
+    done
+    return $sts
+}
+export -f exec_all_tests

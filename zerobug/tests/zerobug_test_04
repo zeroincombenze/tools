@@ -1,0 +1,227 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on zerobug
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+TRAVISDIR=$(findpkg "" "$TDIR . .. ~/dev" "_travis")
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. ~/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.1.9
+
+
+test_01() {
+    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      dbgmsg ".test_01 - min=$min_test, max=$max_test, ctr=$ctr"
+    fi
+    Z0BUG_run_autotest=1
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      save_env
+      TEST_opts="-n"
+      parseoptest $TEST_opts
+      ready_opts
+      res1=$opt_dry_run
+      res2=$LECHO
+      res3=$opt_echo
+      res4=$opt_new
+      res5=$logfn
+      res6=$ctr
+      res7=$min_test
+      res8=$max_test
+      res9=$opt_noctr
+      res10=$opt_debug
+      res11=$run_on_top
+      restore_env
+    else
+      ctr=0
+    fi
+    test_result "Opt -n" "1" "$res1"
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [[ -t 0 || -p /dev/stdin ]]; then
+        res=echo
+      else
+        res=
+      fi
+      test_result "Opt -n (tty)" "$res" "$res2"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [[ -t 0 || -p /dev/stdin ]]; then
+        res=1
+      else
+        res=0
+      fi
+      test_result "Opt -n (-e)" "$res" "$res3"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Opt -n (-k)" "$res" "$res4"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=$HOME/$THIS.log
+      test_result "Opt -n (-k)" "$res" "$res5"
+      sts=$?
+    fi
+    # if [ $sts -eq $STS_SUCCESS ]; then
+    #  res=0
+    #  test_result "Counter" "$res" "$res6"
+    #  sts=$?
+    # fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Opt -n (-s)" "$res" "$res7"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Opt -n (-z)" "$res" "$res8"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -n "$COVERAGE_PROCESS_START" ]; then
+        res=1
+      else
+        res=0
+      fi
+      test_result "Opt -n (-0)" "$res" "$res9"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Opt -b" "$res" "$res10"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=1
+      test_result "Run on top" "$res" "$res11"
+      sts=$?
+    fi
+    return $sts
+}
+
+test_03() {
+    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      dbgmsg ".test_03 - min=$min_test, max=$max_test, ctr=$ctr"
+    fi
+    Z0BUG_run_autotest=1
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      save_env
+      res10=$HOME/dev/z0testlib.log
+      TEST_opts="-n -l$res10"
+      parseoptest $TEST_opts
+      res1=$opt_dry_run
+      res4=$opt_new
+      res5=$logfn
+      restore_env
+    else
+      ctr=0
+    fi
+    test_result "Opt -n" "1" "$res1"
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Opt -n (-k)" "$res" "$res4"
+      sts=$?
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=$res10
+      test_result "Opt -n (-k)" "$res" "$res5"
+      sts=$?
+    fi
+    return $sts
+}
+
+test_06() {
+    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      dbgmsg ".test_06 - min=$min_test, max=$max_test, ctr=$ctr"
+    fi
+    Z0BUG_run_autotest=1
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      save_env
+      TEST_opts="-s0"
+      parseoptest $TEST_opts
+      res7=$min_test
+      res11=$run_on_top
+      restore_env
+    else
+      ctr=0
+    fi
+    res=0
+    test_result "Opt -n (-s)" "$res" "$res7"
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=0
+      test_result "Run on top" "$res" "$res11"
+      sts=$?
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      save_env
+      TEST_opts="-s 13"
+      parseoptest $TEST_opts
+      res7=$min_test
+      restore_env
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=13
+      test_result "Opt -s 13" "$res" "$res7"
+      sts=$?
+    fi
+    return $sts
+}
+
+test_07() {
+    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      dbgmsg ".test_06 - min=$min_test, max=$max_test, ctr=$ctr"
+    fi
+    Z0BUG_run_autotest=1
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      save_env
+      TEST_opts="-s0 -z13"
+      parseoptest $TEST_opts
+      res7=$min_test
+      res8=$max_test
+      restore_env
+    else
+      ctr=0
+    fi
+    res=0
+    test_result "Opt -s0" "$res" "$res7"
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      res=13
+      test_result "Opt -z13" "$res" "$res8"
+      sts=$?
+    fi
+    return $sts
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_zerobug.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+UT1_LIST=""
+UT_LIST=""
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+exit $sts

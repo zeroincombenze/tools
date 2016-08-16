@@ -24,12 +24,10 @@
 """
 
 # import pdb
-# import os
-# import os.path
 import sys
 from zerobug import Z0test
 
-__version__ = "0.2.1"
+__version__ = "0.1.9"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -40,20 +38,25 @@ def version():
     return __version__
 
 
-class Test():
+class RegressionTest():
 
     def __init__(self, zarlib):
         self.Z = zarlib
 
+    def test_01(self, z0ctx):
+        if z0ctx['dry_run']:
+            ctx['ctr'] = 44
+            sts = TEST_SUCCESS
+        else:
+            sts = self.Z.sanity_check('-e', full=z0ctx)
+        return sts
 #
 # Run main if executed as a script
 if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    UT_LIST = ["__version_0_" + __version__,
-               "__version_1_0.1.40.7/etc/z0librc"]
-    sts = Z.main_file(ctx, UT=UT_LIST)
+    sts = Z.main_file(ctx, RegressionTest)
     exit(sts)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
