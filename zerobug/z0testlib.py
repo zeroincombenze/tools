@@ -122,16 +122,21 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
 # return code
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-RED = "\033[1;31m"
-GREEN = "\033[1;32m"
-CLEAR = "\033[0;m"
+if os.name == "posix":
+    RED = "\033[1;31m"
+    GREEN = "\033[1;32m"
+    CLEAR = "\033[0;m"
+else:                                                       # pragma: no cover
+    RED = ''
+    GREEN = ''
+    CLEAR = ''
 fail_msg = RED + "Test FAILED!" + CLEAR
 success_msg = GREEN + "Test successfully terminated" + CLEAR
 # max # of test
@@ -146,9 +151,9 @@ ODOO_CONF = False
 OE_CONF = False
 # Warning: set all LXs with no values -> LX=(), with 1 value -> LX=(value,)
 # List of string parameters in [options] of config file
-LX_CFG_S = ()
+LX_CFG_S = ('opt_debug', 'opt_verbose', 'opt_noctr')
 # List of pure boolean parameters in [options] of config file
-LX_CFG_B = ()
+LX_CFG_B = ('opt_debug', )
 # List of string parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_S = ('opt_echo',     'logfn',
                 'dry_run',      'opt_new',
@@ -163,7 +168,9 @@ LX_OPT_CFG_N = ('ctr', 'max_test', 'min_test')
 # must be declared in LX_CFG_S or LX_OPT_CFG_S
 LX_SB = ('dry_run',)
 #
-DEFDCT = {'opt_new': False}
+DEFDCT = {'run4cover': False,
+          'opt_debug': False,
+          'opt_new': False}
 #
 LX_OPT_ARGS = {'opt_debug': '-b',
                'opt_echo': '-e',
@@ -714,7 +721,7 @@ class Z0test:
             ctx['run4cover'] = True
         if ctx['run4cover']:
             ctx['opt_noctr'] = True
-            if not ctx.get('COVERAGE_PROCESS_START', ''):
+            if not ctx.get('COVERAGE_PROCESS_START', ''):   # pragma: no cover
                 ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
                     os.path.join(self.pkg_dir,
                                  '.coveragerc'))
@@ -802,7 +809,7 @@ class Z0test:
         return ctx
 
     def default_conf(self, ctx):
-        return {}
+        return DEFDCT
 
     def inherit_opts(self, ctx):
         args = []
@@ -872,11 +879,11 @@ class Z0test:
         res = ""
         cmd = ""
         if tver == "V":
-            cmd = file + "-V"
+            cmd = file + " -V"
         elif tver == "v":
-            cmd = file + "-v"
+            cmd = file + " -v"
         elif tver == "P":
-            cmd = file + "--version"
+            cmd = file + " --version"
         elif tver == "1":
             cmd = "grep __version__ %s|head -n1|awk -F= '{print $2}'" % file
         elif tver == "0":
@@ -886,6 +893,7 @@ class Z0test:
             stdout_fd = open(os0.setlfilename(os0.bgout_fn, 'r'))
             res = stdout_fd.read().strip()
             stdout_fd.close()
+            os.remove(os0.bgout_fn)
         return self.test_result(ctx,
                                 msg,
                                 version,
@@ -926,7 +934,7 @@ class Z0test:
                 res, err = p.communicate()
                 try:
                     ctx['ctr'] = int(res)
-                except:
+                except:                                     # pragma: no cover
                     ctx['ctr'] = 0
                 if ctx.get('run4cover', False):
                     self.ctr_list.append(ctx['ctr'])

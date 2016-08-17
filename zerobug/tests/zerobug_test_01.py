@@ -24,12 +24,12 @@
 """
 
 # import pdb
-# import os
-# import os.path
+import os
+import os.path
 import sys
 from zerobug import Z0test
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -40,19 +40,28 @@ def version():
     return __version__
 
 
-class Test():
-
-    def __init__(self, zarlib):
-        self.Z = zarlib
-
-#
 # Run main if executed as a script
 if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
-    UT_LIST = ["__version_0_" + __version__,
-               "__version_1_0.1.40.7/etc/z0librc"]
+    if os.name == 'posix':
+        UT_LIST = ["__version_0_" + __version__,
+                   "__version_1_0.1.40.7/etc/z0librc",
+                   "__version_V_0.2.0" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py"),
+                   "__version_v_0.2.1" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py"),
+                   "__version_P_0.2.2" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py")]
+    else:                                                   # pragma: no cover
+        UT_LIST = ["__version_0_" + __version__,
+                   "__version_V_0.2.0" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py"),
+                   "__version_v_0.2.1" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py"),
+                   "__version_P_0.2.2" + os.path.join(Z.test_dir,
+                                                      "dummy_01.py")]
     sts = Z.main_file(ctx, UT=UT_LIST)
     exit(sts)
 
