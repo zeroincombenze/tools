@@ -50,7 +50,7 @@
 # opt_noctr:      do not count # tests                                     "-0"
 # opt_verbose:    show message during execution                            "-v"
 # LOGFN:          real trace log file name from switch                     "-l"
-# WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
+# WLOGCMD:        override opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 #
 # Sample UT script
 ##THIS=$(basename $0)

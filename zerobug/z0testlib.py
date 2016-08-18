@@ -99,7 +99,7 @@ tlog:           default tracelog file name
 _run_autotest:  True if running auto-test
 _parser:        parser
 _opt_obj:       parser obj, to acquire optional switches
-WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
+WLOGCMD:        override opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 Z0:             this library object
 
 Environment read:

@@ -218,7 +218,7 @@ export -f xuname
 #      =    Set variable to following option value
 #      2.nd character:
 #      >    executive command (disable help and version)
-#   OPTDEFL  array with default values, '#' means no defalt value (matches one to one OPTOPTS)
+#   OPTDEFL  array with default values, '#' means no default value (matches one to one OPTOPTS)
 #   OPTMETA  array with meta help to build help (matches one to one OPTOPTS)
 #   OPTHELP  array with parameters description to build help (matches one to one OPTOPTS)
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
@@ -413,7 +413,7 @@ export -f elog
 
 
 ##############################################################################
-# Execute line commad and trace in tracelog
+# Execute line command and trace in tracelog
 #
 # Global variables to declare (base on parseoptargs):
 # - opt_dry_run (-n): if > 0 do not execute command, just log

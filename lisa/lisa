@@ -61,7 +61,7 @@ fi
 TESTDIR=$(readlink -e $TESTDIR)
 
 
-__version__="0.2.36.1"
+__version__="0.2.36.3"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -125,7 +125,7 @@ conf_default() {
     set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
     set_cfg_def "NAME_VIRTUAL" "LAMP" "0"
     # Packages migrated into pip
-    PIP_PYSTD_PKGS="dateutil pychart Babel pyparsing beaker psycopg2 reportlab decorator"
+    PIP_PYSTD_PKGS="dateutil Babel pyparsing beaker psycopg2 reportlab decorator"
     PIP_PYSTD_PKGS="$PIP_PYSTD_PKGS docutils feedparser gevent jinja2"
     for p in $PIP_PYSTD_PKGS; do
       x=${p,}
@@ -147,7 +147,7 @@ conf_default() {
     p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
     p="$p simplejson"
     if [ "$DISTO" != "CentOS6" ]; then
-      p="$p dateutil pychart pyparsing beaker psycopg2 reportlab decorator docutils feedparser gevent"
+      p="$p dateutil pyparsing beaker psycopg2 reportlab decorator docutils feedparser gevent"
       P="$p jinja2"
     fi
     set_cfg_def "PIP_PKGS" "$p" "0"
@@ -264,7 +264,7 @@ conf_default() {
     p="$p dateutil decorator==3.4.0 docutils==0.12 feedparser==5.1.3"
     P="$p gevent==1.0.2 python-greenlet python-imaging jinja2==2.7.3 python-mako"
     p="$p python-markupsafe python-openid passlib==1.6.2 python-pil"
-    P="$p python-psutil python-pybabel pychart python-pygments"
+    P="$p python-psutil python-pybabel python-pychart python-pygments"
     p="$p python-pyinotify pyparsing python-pypdf python-renderpm"
     p="$p reportlab==3.1.44 python-reportlab-accel python-roman python-suds"
     p="$p python-unittest2 python-utidylib python-vobject"
@@ -275,7 +275,7 @@ conf_default() {
     set_cfg_def "BOP_odoo" "$p" "0" "Debian"
     p="Babel==1.3 dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib==1.6.2"
-    p="$p pyOpenSSL pychart pyparsing beaker dateutil docutils==0.12 feedparser==5.1.3 jinja2==2.7.3"
+    p="$p pyOpenSSL python-pychart pyparsing beaker dateutil docutils==0.12 feedparser==5.1.3 jinja2==2.7.3"
     p="$p python-ldap python-mako python-markupsafe python-openid"
     p="$p python-psutil reportlab==3.1.44"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
@@ -285,7 +285,7 @@ conf_default() {
     set_cfg_def "BOP_odoo" "$p" "0" "CentOS7"
     p="python-babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
-    p="$p pyOpenSSL pychart pyparsing beaker dateutil python-docutils python-feedparser python-jinja2"
+    p="$p pyOpenSSL python-pychart pyparsing beaker dateutil python-docutils python-feedparser python-jinja2"
     p="$p python-ldap python-mako python-markupsafe python-openid"
     p="$p python-psutil python-reportlab"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
@@ -299,19 +299,19 @@ conf_default() {
     elif [ "$opt_oed" == "oca" ]; then
       gitrep="OCA/OCB"
       set_cfg_def "odoo_Branch" "7.0 8.0 9.0" "0"
-      p="account-closing,account-financial-tools,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
+      p="account-closing,account-financial-tools,account-financial-reporting,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
       set_cfg_def "SUBM_odoo" "$p" "0"
     else
       gitrep="zeroincombenze/OCB"
       set_cfg_def "odoo_Branch" "7.0 8.0" "0"
-      p="l10n-italy-supplemental,account-closing,account-financial-tools,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
+      p="l10n-italy-supplemental,account-closing,account-financial-tools,account-financial-reporting,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
       set_cfg_def "SUBM_odoo" "$p" "0"
       set_cfg_def "odoo_upstream" "https://github.com/OCA/$addons.git"
     fi
     set_cfg_def "odoo_cmdname" "NULL" "0"
     set_cfg_def "odoo_git_URL" "https://github.com/$gitrep.git" "0"
     set_cfg_def "odoo_git_LocalRoot" "/opt/odoo" "0"
-    set_cfg_def "odoo_git_LocalUser" "odoo" "0"
+    set_cfg_def "odoo_git_LocalUser" "odoo:odoo" "0"
     set_cfg_def "odoo_confdirs" "/etc/odoo,/var/log/odoo,/var/run/odoo" "0"
     # odoo locale
     p=${gitrep%/*}
@@ -1197,27 +1197,34 @@ do_git_localroot() {
     # local LocalRoot="$(get_prm_value 0 ${pkgname}_${xtlcmd}_LocalRoot)"
     local LocalRoot=$(get_full_LocalRoot "$1" $2 $3 $4 "$5")
     local pkg_branch="$(get_prm_value 0 ${pkgname}_Branch)"
-    local pkg lop lreqver rop rreqver branch
+    local pkg lop lreqver rop rreqver branch v
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     local sts=$STS_FAILED
     if [ -n "$LocalRoot" ]; then
       local pgkpath=
       if [ "$1" == "install" ]; then
-        pgkpath=$LocalRoot
         if [ ! -d $LocalRoot ]; then
           mkdir_traced $LocalRoot
+        fi
+        if [[ $3 =~ s ]] && [ -n "$branch" ]; then
+          pgkpath=$LocalRoot/$branch
+        else
+          pgkpath=$LocalRoot
         fi
       fi
       if [ -d $LocalRoot -a "$1" != "install" ]; then
         if [ -n "$pkg_branch" ]; then
-          local v=
-          for v in $pkg_branch; do
-            if [ -d $LocalRoot/$v ]; then
-              if $(cmp_ver "$v" "$lop" "$lreqver") && $(cmp_ver "$v" "$rop" "$rreqver"); then
-                pgkpath=$LocalRoot/$v
+          if [ -n "$branch" -a "$1" != "version" ]; then
+            pgkpath=$LocalRoot/$branch
+          else
+            for v in $pkg_branch; do
+              if [ -d $LocalRoot/$v ]; then
+                if $(cmp_ver "$v" "$lop" "$lreqver") && $(cmp_ver "$v" "$rop" "$rreqver"); then
+                  pgkpath=$LocalRoot/$v
+                fi
               fi
-            fi
-          done
+            done
+          fi
         else
           pgkpath=$LocalRoot
         fi
@@ -1677,15 +1684,11 @@ do_dry_install_by_git() {
       elog "    git $pkg_name from URL=$pkg_URL"
       return 2
     fi
-    if [ -n "$subpkg" ]; then
-      :
-    else
-      do_git_localroot $1 $2 $3 $4 "$5"
-    fi
+    do_git_localroot $1 $2 $3 $4 "$5"
     if [ $? -eq $STS_SUCCESS ]; then
       git_opts=""
       if [ $opt_dev -eq 0 ]; then
-        git_opts="--depth=1 $git_opts"
+        git_opts="--single-branch --depth=1 $git_opts"
       fi
       pkg_user=$(get_prm_value 0 ${pkgname}_${xtlcmd}_LocalUser)
       if [ -z "subpkg" ]; then
@@ -1695,6 +1698,7 @@ do_dry_install_by_git() {
       fi
       if [ -n "$pkg_branch" ]; then
         git_opts="-b $branch $git_opts"
+        # target_dir=version
       else
         branch=
       fi
@@ -1909,8 +1913,9 @@ do_dry_install_package() {
 do_whatis_ports() {
 # do_whatis_ports(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_whatis_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local x=$((prdstk_level*2+1))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local lm x=$((prdstk_level*2+1))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     local X="$(get_prm_value 0 TCP_$2)"
     if [ -n "$X" ]; then
       for port in $X; do
@@ -2147,8 +2152,9 @@ do_1_info_package() {
 do_dry_status_package() {
 # do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
-    local x=$((prdstk_level*2))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
     sts=$?
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
@@ -2168,8 +2174,9 @@ do_dry_version_package() {
     local pkgversion
     local xtlcmd
     local cmd
-    local x=$((prdstk_level*2))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
     if [ $? -ne $STS_SUCCESS ]; then
       local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
@@ -2192,8 +2199,9 @@ do_dry_version_package() {
 do_dry_whatis_package() {
 # do_dry_whatis_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local x=$((prdstk_level*2))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
     local svcname=$(get_prm_value "0" "${2}_svcname")
     local cmdname=$(get_prm_value "0" "${2}_cmdname")
@@ -2559,8 +2567,9 @@ please() {
       return $sts
     fi
     sts=$STS_SUCCESS
-    local x=$((prdstk_level*2))
-    local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     local pfx=$(get_pfxaction $1)
     local act=$(get_realaction $1)
     if [ "$act" == "info" ]; then
