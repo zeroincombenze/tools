@@ -73,7 +73,7 @@ test_01() {
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      res=$HOME/$THIS.log
+      res=$TESTDIR/${module_id}_test.log
       test_result "Opt -n (-k)" "$res" "$res5"
       sts=$?
     fi

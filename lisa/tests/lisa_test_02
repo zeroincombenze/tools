@@ -5,69 +5,24 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=.
-  RUNDIR=..
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=.
-elif [ -d ../_travis ]; then
-  TRAVISDIR=..
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-  Z0LIBDIR=$TDIR
-elif [ -e ./z0librc ]; then
-. ./z0librc
-  Z0LIBDIR=.
-elif [ -e ../z0librc ]; then
-. ../z0librc
-  Z0LIBDIR=..
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-  Z0LIBDIR=~
-else
-. /etc/z0librc
-  Z0LIBDIR=/etc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-  Z0TLIBDIR=$TDIR
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-  Z0TLIBDIR=.
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-  Z0TLIBDIR=..
-else
-. ~/dev/z0testrc
-  Z0TLIBDIR=~
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
-Z0LIBDIR=$(readlink -e $Z0LIBDIR)
-Z0TLIBDIR=$(readlink -e $Z0TLIBDIR)
+for x in "$TDIR" "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 
 __version__=0.2.1.25
+
+Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log $@
 sts=$?
 if [ $sts -ne 127 ]; then

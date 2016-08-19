@@ -3,7 +3,7 @@
 #
 # Zeroincombenze® continuous testing framework and tools for bash scripts
 # This library can run unit test of target package software.
-# Run like z0testlib.py for python programs.
+# Use z0testlib.py for python programs.
 #
 # Package, test environment and deployment are:
 #   ./pkg                   $RUNDIR - Package directory (may be pypi packge or Odoo module);
@@ -50,66 +50,12 @@
 # opt_noctr:      do not count # tests                                     "-0"
 # opt_verbose:    show message during execution                            "-v"
 # LOGFN:          real trace log file name from switch                     "-l"
-# WLOGCMD:        override opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
-#
-# Sample UT script
-##THIS=$(basename $0)
-##TDIR=$(readlink -f $(dirname $0))
-##if [ -d $TDIR/tests ]; then
-##  TESTDIR=$TDIR/tests
-##  RUNDIR=$TDIR
-##elif [ -d $TDIR/../tests ]; then
-##  TESTDIR=$TDIR
-##  RUNDIR=$TDIR/..
-##elif [ -d ./tests ]; then
-##  TESTDIR=./tests
-##  RUNDIR=./
-##elif [ -d ../tests ]; then
-##  TESTDIR=./
-##  RUNDIR=../
-##else
-##  TESTDIR=$TDIR
-##  RUNDIR=$TDIR/..
-##fi
-##if [ -d $TDIR/_travis ]; then
-##  TRAVISDIR=$TDIR
-##elif [ -d $TDIR/../_travis ]; then
-##  TRAVISDIR=$TDIR/..
-##elif [ -d ./_travis ]; then
-##  TRAVISDIR=./
-##elif [ -d ../_travis ]; then
-##  TRAVISDIR=../
-##else
-##  TRAVISDIR=~/dev/_travis
-##fi
-##if [ -e $TDIR/z0librc ]; then
-##. $TDIR/z0librc
-##elif [ -e ./z0librc ]; then
-##. ./z0librc
-##elif [ -e ../z0librc ]; then
-##. ../z0librc
-##elif [ -e ~/z0librc ]; then
-##. ~/z0librc
-##else
-##. /etc/z0librc
-##fi
-##if [ -e $TDIR/z0testrc ]; then
-##. $TDIR/z0testrc
-##elif [ -e ./z0testrc ]; then
-##. ./z0testrc
-##elif [ -e ../z0testrc ]; then
-##. ../z0testrc
-##else
-##. ~/dev/z0testrc
-##fi
-##TESTDIR=$(readlink -e $TESTDIR)
-##RUNDIR=$(readlink -e $RUNDIR)
-##TRAVISDIR=$(readlink -e $TRAVISDIR)
+# WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 #
 # Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
 # This software is free software under GNU Affero GPL3
 #
-__version__=0.2.1
+__version__=0.2.3
 
 export opt_dry_run
 export ctr
@@ -198,9 +144,15 @@ parseoptest() {
     else
       export run_on_top=0
     fi
-    if [ -z "$logfn" ]; then logfn="$HOME/$THIS.log"; fi
+    if [ -z "$logfn" ]; then
+      if [ -n "$Z0BUG_def_tlog_fn" ]; then
+        logfn="$Z0BUG_def_tlog_fn"
+      else
+        logfn="$HOME/$THIS.log"
+      fi
+    fi
     logfn=$(readlink -m $logfn)
-    if [ $Z0BUG_run_autotest -ne 1 ]; then
+    if [ ${Z0BUG_run_autotest:-0} -ne 1 ]; then
       set_tlog_file "$logfn" "$LNEW" "$LECHO"
     fi
     if [ -n "$COVERAGE_PROCESS_START" ]; then
@@ -300,14 +252,14 @@ msg_test() {
   if [ ${opt_dry_run:-0} -eq 0 ]; then
     if [ -n "$WLOGCMD" ]; then
       if [ "$WLOGCMD" == "echo" -o "$WLOGCMD" == "wecho-1" ]; then
-        if [ ${max_test:-0} -gt 0 ]; then
+        if [ ${opt_noctr:-0} -eq 0 ]; then
           echo -e "${prfx}Test $ctr/$max_test: $msg"
         else
           echo -e "${prfx}Test $ctr: $msg"
         fi
       fi
     else
-      if [ ${max_test:-0} -gt 0 ]; then
+      if [ ${opt_noctr:-0} -eq 0 ]; then
         wlog "Test $ctr/$max_test: $msg"
       else
         wlog "Test $ctr: $msg"
@@ -390,9 +342,9 @@ export -f ci-test
 
 
 Z0BUG_init() {
-    teststs=0
-    Z0BUG_on_error=""
-    Z0BUG_run_autotest=0
+    export teststs=0
+    export Z0BUG_on_error=""
+    export Z0BUG_run_autotest=0
     if [ "${THIS:0:5}" == "test_" ]; then
       module_id=${THIS:5}
     elif [ "$THIS" == "all_tests" ]; then
@@ -406,7 +358,8 @@ Z0BUG_init() {
     if [ "${module_id: -5}" == "_test" ]; then
       module_id=${module_id:0: -5}
     fi
-    Z0BUG_ctr_list=
+    Z0BUG_def_tlog_fn="$TESTDIR/${module_id}_test.log"
+    export Z0BUG_ctr_list=
 }
 export -f Z0BUG_init
 
@@ -458,13 +411,13 @@ exec_tests_4_count() {
     sts=0
     testctr=0
     for testname in $1; do
+      dbgmsg ".$testname - min=$min_test, max=$max_test, c=$ctr, -0=$opt_noctr"
       opt_dry_run=1
       opt4childs=-n
       dirtn=$(dirname $testname)
       basetn=$(basename $testname)
-      if [ ${opt_noctr:-0} -gt 0 ]; then
-        ctr=0
-      elif [ ${2:-0} -gt 0 ]; then  # to remove
+      ctr=0
+      if [ ${2:-0} -gt 0 ]; then  # to remove
         ctr=$2
       elif [ "${testname:0:6}" == "__test" ]; then
         ctr=${testname:7:2}
@@ -483,17 +436,18 @@ exec_tests_4_count() {
           dbgmsg " $testname $opt4childs"
           ctr=$($testname $opt4childs)
         fi
-        if [ ${run4cover:-0} -ne 0 ]; then
-          Z0BUG_ctr_list="Z0BUG_ctr_list $ctr"
-        fi
+        Z0BUG_ctr_list="$Z0BUG_ctr_list $ctr"
       fi
+      dbgmsg " let testctr=$testctr+$ctr"
       let testctr="$testctr+$ctr"
     done
     restore_options
-    if [ ${opt_noctr:-0} -eq 0 -a ${max_test:-0} -eq 0 ]; then
+    ctr=$testctr
+    if [ ${max_test:-0} -eq 0 ]; then
       let max_test="$testctr+${min_test:-0}"
     fi
-    dbgmsg "- min=$min_test, max=$max_test"
+    dbgmsg "- c=$ctr, min=$min_test, max=$max_test"
+    _prior_msg=
     return $sts
 }
 export -f exec_tests_4_count
@@ -505,10 +459,12 @@ exec_all_tests () {
     dbgmsg ".exec_all_tests"
     ready_opts
     ctr=${min_test:-0}
+    dbgmsg "- c=$ctr; ctr_list=$Z0BUG_ctr_list"
     ix=0
     sts=0
     for testname in $1; do
       dbgmsg "- min=$min_test, max=$max_test, c=$ctr, -0=$opt_noctr"
+      c=0
       opt4childs=$(inherit_opts)
       dirtn=$(dirname $testname)
       basetn=$(basename $testname)
@@ -529,13 +485,13 @@ exec_all_tests () {
             testname=$TESTDIR/$basetn
           fi
           if [ "${basetn: -3}" == ".py" ]; then
-            if [ ${run4cover:-0} -ne 0 ]; then
-              ((ix++))
-              c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
-            else
-              dbgmsg " python $testname -n"
-              c=$(python $testname -n)
-            fi
+            # if [ ${run4cover:-0} -ne 0 ]; then
+            #   ((ix++))
+            #   c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
+            # else
+            #   dbgmsg " python $testname -n"
+            #   c=$(python $testname -n)
+            # fi
             if [ ${run4cover:-0} -ne 0 ]; then
               dbgmsg " coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs"
               coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs
@@ -545,14 +501,17 @@ exec_all_tests () {
             fi
             s=$?
           else
-            dbgmsg " $testname -n"
-            c=$($testname -n)
+            # dbgmsg " $testname -n"
+            # c=$($testname -n)
+            # dbgmsg "> c=$c"
             dbgmsg " $testname $opt4childs"
             $testname $opt4childs
             s=$?
           fi
-          dbgmsg " let ctr=$ctr+$c"
-          let ctr="$ctr+$c"
+          ((ix++))
+          c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
+          dbgmsg " let ctr=$ctr+${c:-0}"
+          let ctr="$ctr+${c:-0}"
         fi
         [ ${s:-0} -ne 0 ] && sts=$s
       fi
@@ -566,10 +525,14 @@ export -f exec_all_tests
 Z0BUG_main_file() {
 # Z0BUG_main_file ut1_list, ut_list
     local ut1_list ut_list test_num i fn
+    if [ -z "$teststs" ]; then
+      Z0BUG_init
+    fi
     ut1_list="$1"
     if [ ${opt_debug:-0} -ne 0 -a ${run_on_top:-0} -ne 0 ]; then
       dbgmsg "!Test tree of $module_id!"
     fi
+    dbgmsg "- min=$min_test, max=$max_test, -0=$opt_noctr"
     ut_list=
     if [ -n "$2" ]; then
       dbgmsg "- UT list"
@@ -602,6 +565,7 @@ Z0BUG_main_file() {
         ((i++))
       done
     fi
+    dbgmsg "- ut_list=$ut1_list $ut_list"
     saved_opt_verbose=$opt_verbose
     saved_LNEW=$LNEW
     saved_LECHO=$LECHO
@@ -610,10 +574,9 @@ Z0BUG_main_file() {
       WLOGCMD=echo
       FLOG=
     fi
-    if [ ${opt_noctr:-0} -eq 0 -o ${run4cover:-0} -ne 0 ]; then
-      exec_tests_4_count "$ut1_list $ut_list"
-    fi
-    # pass 2: execute tests
+    # if [ ${opt_noctr:-0} -eq 0 -o ${run4cover:-0} -ne 0 ]; then
+    exec_tests_4_count "$ut1_list $ut_list"
+    # fi
     opt_verbose=$saved_opt_verbose
     LNEW=$saved_LNEW
     LECHO=$saved_LECHO
@@ -632,7 +595,7 @@ Z0BUG_main_file() {
         exec_all_tests "$ut1_list"
         # Test log file successfully ended; set log file to next tests
         WLOGCMD=
-        set_tlog_file "$TESTDIR/TEST_MYAPP.log" "" "$LECHO"
+        set_tlog_file "$logfn" "" "$LECHO"
       fi
       exec_all_tests "$ut_list"
       sts=$?
@@ -644,7 +607,7 @@ Z0BUG_main_file() {
         fi
       fi
     else
-      echo "$max_test"
+      echo $ctr
       sts=0
     fi
     return $sts

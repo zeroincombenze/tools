@@ -45,8 +45,9 @@ class RegressionTest():
 
     def test_01(self, z0ctx):
         if z0ctx['dry_run']:
-            ctx['ctr'] = 44
-            sts = TEST_SUCCESS
+            # sts = TEST_SUCCESS
+            sts = self.Z.sanity_check('-q', full=z0ctx)
+            ctx['ctr'] = 46
         else:
             sts = self.Z.sanity_check('-e', full=z0ctx)
         return sts
