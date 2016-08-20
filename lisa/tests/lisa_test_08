@@ -22,15 +22,6 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 __version__=0.2.1.19
 
-Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log $@
-sts=$?
-if [ $sts -ne 127 ]; then
-  exit $sts
-fi
-sts=0
-TPRODUCT="$RUNDIR/lisa -T"
-
 test_run () {
 # test_run(msg,package,disto,cmd)
     # set -x #debug
@@ -78,6 +69,7 @@ test_run () {
     return $s
 }
 
+test_01() {
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   rm -f $TESTDIR/res/*.08.test
   cat <<EOF >$TESTDIR/res/odoo__Debian.08.test
@@ -488,9 +480,16 @@ EOF
 EOF
   test_run "install $Package<8.0" "$Package<8.0" "$Disto" "install"
 fi
+}
 
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
+Z0BUG_init
+parseoptest -l$TESTDIR/test_lisa.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
-exit $sts
+
+TPRODUCT="$RUNDIR/lisa -T"
+
+Z0BUG_main_file "" ""
+exit $?

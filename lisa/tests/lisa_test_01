@@ -22,16 +22,7 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 __version__=0.2.1.20
 
-Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log $@
-sts=$?
-if [ $sts -ne 127 ]; then
-  exit $sts
-fi
-sts=0
-TPRODUCT="$RUNDIR/lisa -T"
-
-test_run () {
+test_run() {
 # test_run(msg,package,disto,cmd)
     # set -x #debug
     local msg="$1"
@@ -87,100 +78,108 @@ test_run () {
     return $s
 }
 
-Real_FH=$(xuname "-f")
-x=$(xuname "-v")
-v=$(echo $x|awk -F. '{print $1}')
-Real_DISTO=$(xuname "-d")$v
+test_01() {
+    Real_FH=$(xuname "-f")
+    x=$(xuname "-v")
+    v=$(echo $x|awk -F. '{print $1}')
+    Real_DISTO=$(xuname "-d")$v
 
-declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
-TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
-TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
-TEST_Debian[LAMP]="LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python)"
-TEST_RHEL[apache2]="httpd"
-TEST_Debian[httpd]="apache2"
-TEST_Debian[python-pip]="pip"
-TEST_RHEL[python-pip]="pip"
-TEST_CentOS7[mysql]="mariadb"
-TEST_CentOS6[mysql]="mysql-server"
-TEST_CentOS7[mysql-server]="mariadb-server"
-TEST_Debian[mysql]="mysql-server"
-TEST_CentOS6[mariadb]="mysql-server"
-TEST_CentOS6[mariadb-server]="mysql-server"
-TEST_Debian[mariadb]="mysql-server"
-TEST_Debian[mariadb-server]="mysql-server"
-TEST_RHEL[postgres]="postgresql-server"
-TEST_RHEL[postgresql]="postgresql-server"
-TEST_Debian[postgres]="postgresql"
-TEST_Debian[postgresql-server]="postgresql"
-TEST_Debian[php]="php5"
-TEST_RHEL[php5]="php"
-TEST_Debian[openssh]="openssh-server"
-TEST_RHEL[openssh]="openssh-server"
-TEST_Debian[libxml2-python]="python-libxml2"
-TEST_RHEL[python-libxml2]="libxml2-python"
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+    TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
+    TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
+    TEST_Debian[LAMP]="LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python)"
+    TEST_RHEL[apache2]="httpd"
+    TEST_Debian[httpd]="apache2"
+    TEST_Debian[python-pip]="pip"
+    TEST_RHEL[python-pip]="pip"
+    TEST_CentOS7[mysql]="mariadb"
+    TEST_CentOS6[mysql]="mysql-server"
+    TEST_CentOS7[mysql-server]="mariadb-server"
+    TEST_Debian[mysql]="mysql-server"
+    TEST_CentOS6[mariadb]="mysql-server"
+    TEST_CentOS6[mariadb-server]="mysql-server"
+    TEST_Debian[mariadb]="mysql-server"
+    TEST_Debian[mariadb-server]="mysql-server"
+    TEST_RHEL[postgres]="postgresql-server"
+    TEST_RHEL[postgresql]="postgresql-server"
+    TEST_Debian[postgres]="postgresql"
+    TEST_Debian[postgresql-server]="postgresql"
+    TEST_Debian[php]="php5"
+    TEST_RHEL[php5]="php"
+    TEST_Debian[openssh]="openssh-server"
+    TEST_RHEL[openssh]="openssh-server"
+    TEST_Debian[libxml2-python]="python-libxml2"
+    TEST_RHEL[python-libxml2]="libxml2-python"
 
-for Package in lisa LAMP apache2 httpd pip python-pip\
- mysql mysql-server mariadb mariadb-server\
- postgres postgresql postgresql-server php php5\
- openssh openssh-server\
- python-libxml2 libxml2-python; do
-  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
-     if [ "$Disto" == "." ]; then
-       opt_e=
-     else
-       opt_e="-E$Disto"
-     fi
-     test_run "realname $Package $opt_e" "$Package" "$Disto" "realname"
-  done
-done
-
-
-declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
-TEST_Debian[apache2]="apt-get"
-TEST_Debian[httpd]="apt-get"
-TEST_RHEL[apache2]="yum"
-TEST_RHEL[httpd]="yum"
-TEST_Debian[os0]="pip"
-TEST_RHEL[os0]="pip"
-TEST_Debian[odoo]="git"
-TEST_RHEL[odoo]="git"
-
-for Package in apache2 httpd os0 odoo; do
-  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
-     if [ "$Disto" == "." ]; then
-       opt_e=
-     else
-       opt_e="-E$Disto"
-     fi
-     test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
-  done
-done
-Package=odoo!!pip
-Disto=.
-opt_e=
-TEST_Debian[odoo]="pip"
-TEST_RHEL[odoo]="pip"
-test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
-
-declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
-
-for Package in lisa; do
-  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
-     if [ "$Disto" == "." ]; then
-       opt_e=
-       TEST_Debian[lisa]="/usr/bin/lisa -V"
-       TEST_RHEL[lisa]="/usr/bin/lisa -V"
-     else
-       opt_e="-E$Disto"
-       TEST_Debian[lisa]="$RUNDIR/lisa -V"
-       TEST_RHEL[lisa]="$RUNDIR/lisa -V"
-     fi
-     test_run "vfycmd $Package $opt_e" "$Package" "$Disto" "vfycmd"
-  done
-done
+    for Package in lisa LAMP apache2 httpd pip python-pip\
+     mysql mysql-server mariadb mariadb-server\
+     postgres postgresql postgresql-server php php5\
+     openssh openssh-server\
+     python-libxml2 libxml2-python; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+         else
+           opt_e="-E$Disto"
+         fi
+         test_run "realname $Package $opt_e" "$Package" "$Disto" "realname"
+      done
+    done
 
 
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+    TEST_Debian[apache2]="apt-get"
+    TEST_Debian[httpd]="apt-get"
+    TEST_RHEL[apache2]="yum"
+    TEST_RHEL[httpd]="yum"
+    TEST_Debian[os0]="pip"
+    TEST_RHEL[os0]="pip"
+    TEST_Debian[odoo]="git"
+    TEST_RHEL[odoo]="git"
+
+    for Package in apache2 httpd os0 odoo; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+         else
+           opt_e="-E$Disto"
+         fi
+         test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
+      done
+    done
+    Package=odoo!!pip
+    Disto=.
+    opt_e=
+    TEST_Debian[odoo]="pip"
+    TEST_RHEL[odoo]="pip"
+    test_run "installer $Package $opt_e" "$Package" "$Disto" "installer"
+
+    declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
+
+    for Package in lisa; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+           TEST_Debian[lisa]="/usr/bin/lisa -V"
+           TEST_RHEL[lisa]="/usr/bin/lisa -V"
+         else
+           opt_e="-E$Disto"
+           TEST_Debian[lisa]="$RUNDIR/lisa -V"
+           TEST_RHEL[lisa]="$RUNDIR/lisa -V"
+         fi
+         test_run "vfycmd $Package $opt_e" "$Package" "$Disto" "vfycmd"
+      done
+    done
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_lisa.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
-exit $sts
+
+TPRODUCT="$RUNDIR/lisa -T"
+
+Z0BUG_main_file "" ""
+exit $?

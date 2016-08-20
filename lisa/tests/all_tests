@@ -32,4 +32,4 @@ UT1_LIST=""
 UT_LIST="__version_V_${__version__}$RUNDIR/lisa"
 UT_LIST="$UTLIST lisa_test_01 lisa_test_02 lisa_test_03 lisa_test_04 lisa_test_05 lisa_test_06 lisa_test_07 lisa_test_08"
 Z0BUG_main_file "" "$UT_LIST"
-exit $sts
+exit $?

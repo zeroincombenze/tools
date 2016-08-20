@@ -29,7 +29,8 @@
      Date        Author      Linux           Windows        OpenVMS
      2015-01-27  antoniov    python V2.6.6   python V2.7.6  python V2.7.9
                              CentOS V6.5     Windows 7      OpenVMS-IA64 V8.4
-
+     2016-07-01  antoniov    python 2.7.5
+                             CentOS V7.0
 """
 
 # import pdb
@@ -464,7 +465,6 @@ class main:
         os0.muteshell(cmd)
         if os.path.isfile(os0.bgout_fn):
             raise Exception("Test failed: output file")
-
 #
 #
         os0.wlog("Test successfully ended. See {0} file".
