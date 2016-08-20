@@ -1,69 +1,25 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests for submodule of z0lib module
+# Regression tests on z0lib
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=./
-elif [ -d ../_travis ]; then
-  TRAVISDIR=../
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-else
-. ~/dev/z0testrc
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 
 __version__=0.1.1
-parseoptest -l$TESTDIR/test_z0librc.log $@
-sts=$?
-if [ $sts -ne 127 ]; then
-  exit $sts
-fi
-sts=0
 
-test_run () {
+test_run() {
    # set -x
    local SAVE_FLOG_ECHO=$FLOG_ECHO
    local SAVE_FLOG=$FLOG
@@ -85,37 +41,55 @@ test_run () {
    return $s
 }
 
-test_run "true"
-s=$?
-ci-test "run true" "$s" "$STS_SUCCESS"
+test_01() {
+    local s
+    test_run "true"
+    s=$?
+    test_result "run true" "$s" "$STS_SUCCESS"
+}
 
-test_run "false"
-s=$?
-ci-test "run false" "$s" "$STS_FAILED"
+test_02() {
+    local s
+    test_run "false"
+    s=$?
+    test_result "run false" "$s" "$STS_FAILED"
+}
 
-f="NOT_EXISTS"
-if [ -f $f ]; then rm -f $f; fi
-test_run "touch $f"
-s=$?
-if [ -f $f ]; then
-  ci-test "run touch $f" "$s" "$STS_SUCCESS"
-else
-  ci-test "run touch $f" "$s" "$STS_FAILED"
+test_03() {
+    local f s
+    f="NOT_EXISTS"
+    if [ -f $f ]; then rm -f $f; fi
+    test_run "touch $f"
+    s=$?
+    if [ -f $f ]; then
+      test_result "run touch $f" "$s" "$STS_SUCCESS"
+    else
+      test_result "run touch $f" "$s" "$STS_FAILED"
+    fi
+
+    test_run "rm -f $f"
+    s=$?
+    if [ -f $f ]; then
+      test_result "rm -f $f" "$s" "$STS_FAILED"
+    else
+      test_result "rm -f $f" "$s" "$STS_SUCCESS"
+    fi
+}
+
+test_04() {
+    local f s
+    f="NOT_EXISTS"
+    test_run "cd /not/exists/directory"
+    s=$?
+    test_result "cd $f" "$s" "$STS_SUCCESS"
+}
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_z0librc.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
 
-test_run "rm -f $f"
-s=$?
-if [ -f $f ]; then
-  ci-test "rm -f $f" "$s" "$STS_FAILED"
-else
-  ci-test "rm -f $f" "$s" "$STS_SUCCESS"
-fi
-
-test_run "cd /not/exists/directory"
-s=$?
-ci-test "rm -f $f" "$s" "$STS_SUCCESS"
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
-fi
-exit $sts
+Z0BUG_main_file "" ""
+exit $?

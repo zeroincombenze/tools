@@ -1,301 +1,272 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests for submodule of z0lib module
+# Regression tests on z0lib
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=./
-elif [ -d ../_travis ]; then
-  TRAVISDIR=../
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-else
-. ~/dev/z0testrc
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 
 __version__=0.1.28
+
+test_01() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        n            V           v)
+    OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+    OPTACTI=(1        "1>"         "*>"        1)
+    OPTDEFL=(1        0            ""          0)
+    OPTMETA=("help"   "do nothing" "version"   "verbose")
+    OPTHELP=("this help"\
+     "do nothing (dry-run)"\
+     "show version"\
+     "verbose mode")
+    OPTARGS=()
+
+    parseoptargs "-V"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -V [-h]" "$opt_help" "0"
+    test_result "cmd -V" "$opt_version" "-V"
+    test_result "cmd -V [-n]" "$tested_opt_dry_run" "0"
+    test_result "cmd -V [-v]" "$opt_verbose" "0"
+    echo "Usage: test_parseoptargs [-hnVv]">$FTEST
+    echo "Unit test">>$FTEST
+    echo " -h             this help">>$FTEST
+    echo " -n             do nothing (dry-run)">>$FTEST
+    echo " -V             show version">>$FTEST
+    echo " -v             verbose mode">>$FTEST
+    print_help "Unit test"\
+      "">$FOUT
+    test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+}
+
+test_02() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        n            V           p        q           v)
+    OPTDEST=(opt_help opt_dry_run  opt_version opt_path opt_verbose opt_verbose)
+    OPTACTI=(1        "1>"         "*>"        "=>"     0           1)
+    OPTDEFL=(1        0            ""          "~/"     "#"         "#")
+    OPTMETA=("help"   "do nothing" "version"   "path"   "quiet"     "verbose")
+    OPTHELP=("this help"\
+     "do nothing (dry-run)"\
+     "show version"\
+     "path"
+     "silent mode"\
+     "verbose mode")
+    OPTARGS=(tgt)
+
+    opt_verbose=-1
+    parseoptargs "mytarget"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd mytarget [-h]" "$opt_help" "0"
+    test_result "cmd mytarget [-V]" "$opt_version" ""
+    test_result "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
+    test_result "cmd mytarget [-p]" "$opt_path" "~/"
+    test_result "cmd mytarget [-qv]" "$opt_verbose" "-1"
+
+    opt_verbose=-1
+    parseoptargs "mytarget" "-q"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd mytarget [-q]" "$opt_verbose" "0"
+
+    opt_verbose=-1
+    parseoptargs "mytarget" "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd mytarget [-v]" "$opt_verbose" "1"
+
+    echo "Usage: test_parseoptargs [-hnV][-p path][-qv] tgt">$FTEST
+    echo "Unit test">>$FTEST
+    echo " -h             this help">>$FTEST
+    echo " -n             do nothing (dry-run)">>$FTEST
+    echo " -V             show version">>$FTEST
+    echo " -p path        path">>$FTEST
+    echo " -q             silent mode">>$FTEST
+    echo " -v             verbose mode">>$FTEST
+    print_help "Unit test"\
+      "">$FOUT
+    test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+    parseoptargs "-p" "./mypath" "yourtarget"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -p ./mypath yourtarget [-h]" "$opt_help" "0"
+    test_result "cmd -p ./mypath yourtarget [-V]" "$opt_version" ""
+    test_result "cmd -p ./mypath yourtarget [-n]" "$tested_opt_dry_run" "0"
+    test_result "cmd -p ./mypath yourtarget [-p]" "$opt_path" "./mypath"
+    test_result "cmd -p ./mypath yourtarget [\$1]" "$tgt" "yourtarget"
+}
+
+test_03() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        n            O       p        V)
+    OPTDEST=(opt_help opt_dry_run  opt_own opt_path opt_version)
+    OPTACTI=(1        "1>"         "="     "=>"     "*>")
+    OPTDEFL=(1        0            "$USER" "~/"     "")
+    OPTMETA=("help"   "do nothing" "own"   "path"   "version")
+    OPTHELP=("this help"\
+     "do nothing (dry-run)"\
+     "owner username"\
+     "path"\
+     "show version")
+    OPTARGS=(tgt)
+
+    parseoptargs "mytarget"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd mytarget [-h]" "$opt_help" "0"
+    test_result "cmd mytarget [-V]" "$opt_version" ""
+    test_result "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
+    test_result "cmd mytarget [-p]" "$opt_path" "~/"
+    test_result "cmd mytarget [-O]" "$opt_own" "$USER"
+    test_result "cmd mytarget [\$1]" "$tgt" "mytarget"
+    echo "Usage: test_parseoptargs [-hn][-O own][-p path][-V] tgt">$FTEST
+    echo "Unit test">>$FTEST
+    echo " -h             this help">>$FTEST
+    echo " -n             do nothing (dry-run)">>$FTEST
+    echo " -O own owner username">>$FTEST
+    echo " -p path        path">>$FTEST
+    echo " -V             show version">>$FTEST
+    print_help "Unit test"\
+      "">$FOUT
+    test_result "print_help" "$FOUT" "$FTEST" "diff -qEbB"
+
+    parseoptargs "mytarget" "-x"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -x mytarget [-h]" "$opt_help" "1"
+    if [ -f $FOUT ]; then rm -f $FOUT; fi
+    if [ -f $FTEST ]; then rm -f $FTEST; fi
+}
+
+test_04() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        a     b     c     d     e     f     g     i     j     k     l     V)
+    OPTDEST=(opt_help opt_a opt_b opt_c opt_d opt_e opt_f opt_g opt_i opt_j opt_k opt_l opt_version)
+    OPTACTI=(1        1     1     1     1     1     1     1     1     1     1     1     "*>")
+    OPTDEFL=(0        0     0     0     0     0     0     0     0     0     0     0     "")
+    OPTMETA=("help"   "o_a" "o_b" "o_c" "0_d" "o_e" "o_f" "o_g" "o_i" "o_j" "o_k" "o_l" "version")
+    OPTHELP=("this help"\
+     "opt_a"\
+     "opt_b"\
+     "opt_c"\
+     "opt_d"\
+     "opt_e"\
+     "opt_f"\
+     "opt_g"\
+     "opt_i"\
+     "opt_j"\
+     "opt_k"\
+     "opt_l"\
+     "show version")
+    OPTARGS=()
+
+    parseoptargs "-a" "-b" "-c" "-d" "-e" "-f" "-g" "-i" "-j" "-k" "-l"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    for i in {a..l}; do
+      if [ "$i" == "h" ]; then
+        test_result "cmd -a -b -c ... [-h]" "$opt_help" "0"
+      else
+        o="opt_$i"
+        test_result "cmd -a -b -c ... [-$i]" "${!o}" "1"
+      fi
+    done
+}
+
+test_05() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        n            v           V)
+    OPTDEST=(opt_help opt_dry_run  opt_verbose opt_version)
+    OPTACTI=(1        1            "+"         "*>")
+    OPTDEFL=(0        0            0           "")
+    OPTMETA=("help"   "do nothing" "verbose"   "version")
+    OPTHELP=("this help"\
+     "do nothing (dry-run)"\
+     "verbose mode"\
+     "show version")
+    OPTARGS=()
+
+    parseoptargs "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v [-h]" "$opt_help" "0"
+    test_result "cmd -v" "$opt_verbose" "1"
+
+    parseoptargs "-vv"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -vv" "$opt_verbose" "2"
+
+    parseoptargs "-v" "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v -v" "$opt_verbose" "2"
+
+    parseoptargs "-v" "-n" "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v -v" "$opt_verbose" "2"
+}
+
+test_06() {
+    local tested_opt_dry_run
+    OPTOPTS=(h        n            v           V)
+    OPTDEST=(opt_help opt_dry_run  opt_verbose opt_version)
+    OPTACTI=(1        1            "+"         "*>")
+    OPTDEFL=(0        0            -1          "")
+    OPTMETA=("help"   "do nothing" "verbose"   "version")
+    OPTHELP=("this help"\
+     "do nothing (dry-run)"\
+     "verbose mode"\
+     "show version")
+    OPTARGS=()
+
+    parseoptargs "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v" "$opt_verbose" "1"
+
+    parseoptargs "-vv"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -vv" "$opt_verbose" "2"
+
+    parseoptargs "-v" "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v -v" "$opt_verbose" "2"
+
+    parseoptargs "-v" "-n" "-v"
+    tested_opt_dry_run=$opt_dry_run
+    opt_dry_run=$SAVED_OPT_DRY_RUN
+    test_result "cmd -v -v" "$opt_verbose" "2"
+}
+
+Z0BUG_init
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-sts=0
-# This test could fail because opt_dry_run is parsed by test
-# So opt_dry_run is saved and restored
-saved_opt_dry_run=$opt_dry_run
 
+# This test could fail because opt_dry_run is parsed by test itself
+# So opt_dry_run is saved and restored
+SAVED_OPT_DRY_RUN=$opt_dry_run
 FOUT=$TESTDIR/z0librc.out
 FTEST=$TESTDIR/z0librc.test
 
-OPTOPTS=(h        n            V           v)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
-OPTACTI=(1        "1>"         "*>"        1)
-OPTDEFL=(1        0            ""          0)
-OPTMETA=("help"   "do nothing" "version"   "verbose")
-OPTHELP=("this help"\
- "do nothing (dry-run)"\
- "show version"\
- "verbose mode")
-OPTARGS=()
-
-parseoptargs "-V"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -V [-h]" "$opt_help" "0"
-ci-test "cmd -V" "$opt_version" "-V"
-ci-test "cmd -V [-n]" "$tested_opt_dry_run" "0"
-ci-test "cmd -V [-v]" "$opt_verbose" "0"
-echo "Usage: test_parseoptargs [-hnVv]">$FTEST
-echo "Unit test">>$FTEST
-echo " -h             this help">>$FTEST
-echo " -n             do nothing (dry-run)">>$FTEST
-echo " -V             show version">>$FTEST
-echo " -v             verbose mode">>$FTEST
-print_help "Unit test"\
-  "">$FOUT
-ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
-
-OPTOPTS=(h        n            V           p        q           v)
-OPTDEST=(opt_help opt_dry_run  opt_version opt_path opt_verbose opt_verbose)
-OPTACTI=(1        "1>"         "*>"        "=>"     0           1)
-OPTDEFL=(1        0            ""          "~/"     "#"         "#")
-OPTMETA=("help"   "do nothing" "version"   "path"   "quiet"     "verbose")
-OPTHELP=("this help"\
- "do nothing (dry-run)"\
- "show version"\
- "path"
- "silent mode"\
- "verbose mode")
-OPTARGS=(tgt)
-
-opt_verbose=-1
-parseoptargs "mytarget"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd mytarget [-h]" "$opt_help" "0"
-ci-test "cmd mytarget [-V]" "$opt_version" ""
-ci-test "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
-ci-test "cmd mytarget [-p]" "$opt_path" "~/"
-ci-test "cmd mytarget [-qv]" "$opt_verbose" "-1"
-
-opt_verbose=-1
-parseoptargs "mytarget" "-q"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd mytarget [-q]" "$opt_verbose" "0"
-
-opt_verbose=-1
-parseoptargs "mytarget" "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd mytarget [-v]" "$opt_verbose" "1"
-
-echo "Usage: test_parseoptargs [-hnV][-p path][-qv] tgt">$FTEST
-echo "Unit test">>$FTEST
-echo " -h             this help">>$FTEST
-echo " -n             do nothing (dry-run)">>$FTEST
-echo " -V             show version">>$FTEST
-echo " -p path        path">>$FTEST
-echo " -q             silent mode">>$FTEST
-echo " -v             verbose mode">>$FTEST
-print_help "Unit test"\
-  "">$FOUT
-ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
-
-parseoptargs "-p" "./mypath" "yourtarget"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -p ./mypath yourtarget [-h]" "$opt_help" "0"
-ci-test "cmd -p ./mypath yourtarget [-V]" "$opt_version" ""
-ci-test "cmd -p ./mypath yourtarget [-n]" "$tested_opt_dry_run" "0"
-ci-test "cmd -p ./mypath yourtarget [-p]" "$opt_path" "./mypath"
-ci-test "cmd -p ./mypath yourtarget [\$1]" "$tgt" "yourtarget"
-
-
-OPTOPTS=(h        n            O       p        V)
-OPTDEST=(opt_help opt_dry_run  opt_own opt_path opt_version)
-OPTACTI=(1        "1>"         "="     "=>"     "*>")
-OPTDEFL=(1        0            "$USER" "~/"     "")
-OPTMETA=("help"   "do nothing" "own"   "path"   "version")
-OPTHELP=("this help"\
- "do nothing (dry-run)"\
- "owner username"\
- "path"\
- "show version")
-OPTARGS=(tgt)
-
-parseoptargs "mytarget"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd mytarget [-h]" "$opt_help" "0"
-ci-test "cmd mytarget [-V]" "$opt_version" ""
-ci-test "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
-ci-test "cmd mytarget [-p]" "$opt_path" "~/"
-ci-test "cmd mytarget [-O]" "$opt_own" "$USER"
-ci-test "cmd mytarget [\$1]" "$tgt" "mytarget"
-echo "Usage: test_parseoptargs [-hn][-O own][-p path][-V] tgt">$FTEST
-echo "Unit test">>$FTEST
-echo " -h             this help">>$FTEST
-echo " -n             do nothing (dry-run)">>$FTEST
-echo " -O own owner username">>$FTEST
-echo " -p path        path">>$FTEST
-echo " -V             show version">>$FTEST
-print_help "Unit test"\
-  "">$FOUT
-ci-test "print_help" "$FOUT" "$FTEST" "diff -qEbB"
-
-parseoptargs "mytarget" "-x"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -x mytarget [-h]" "$opt_help" "1"
-
-if [ -f $FOUT ]; then rm -f $FOUT; fi
-if [ -f $FTEST ]; then rm -f $FTEST; fi
-
-
-OPTOPTS=(h        a     b     c     d     e     f     g     i     j     k     l     V)
-OPTDEST=(opt_help opt_a opt_b opt_c opt_d opt_e opt_f opt_g opt_i opt_j opt_k opt_l opt_version)
-OPTACTI=(1        1     1     1     1     1     1     1     1     1     1     1     "*>")
-OPTDEFL=(0        0     0     0     0     0     0     0     0     0     0     0     "")
-OPTMETA=("help"   "o_a" "o_b" "o_c" "0_d" "o_e" "o_f" "o_g" "o_i" "o_j" "o_k" "o_l" "version")
-OPTHELP=("this help"\
- "opt_a"\
- "opt_b"\
- "opt_c"\
- "opt_d"\
- "opt_e"\
- "opt_f"\
- "opt_g"\
- "opt_i"\
- "opt_j"\
- "opt_k"\
- "opt_l"\
- "show version")
-OPTARGS=()
-
-parseoptargs "-a" "-b" "-c" "-d" "-e" "-f" "-g" "-i" "-j" "-k" "-l"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-for i in {a..l}; do
-  if [ "$i" == "h" ]; then
-    ci-test "cmd -a -b -c ... [-h]" "$opt_help" "0"
-  else
-    o="opt_$i"
-    ci-test "cmd -a -b -c ... [-$i]" "${!o}" "1"
-  fi
-done
-
-
-OPTOPTS=(h        n            v           V)
-OPTDEST=(opt_help opt_dry_run  opt_verbose opt_version)
-OPTACTI=(1        1            "+"         "*>")
-OPTDEFL=(0        0            0           "")
-OPTMETA=("help"   "do nothing" "verbose"   "version")
-OPTHELP=("this help"\
- "do nothing (dry-run)"\
- "verbose mode"\
- "show version")
-OPTARGS=()
-
-
-parseoptargs "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v [-h]" "$opt_help" "0"
-ci-test "cmd -v" "$opt_verbose" "1"
-
-parseoptargs "-vv"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -vv" "$opt_verbose" "2"
-
-parseoptargs "-v" "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v -v" "$opt_verbose" "2"
-
-parseoptargs "-v" "-n" "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v -v" "$opt_verbose" "2"
-
-
-OPTOPTS=(h        n            v           V)
-OPTDEST=(opt_help opt_dry_run  opt_verbose opt_version)
-OPTACTI=(1        1            "+"         "*>")
-OPTDEFL=(0        0            -1          "")
-OPTMETA=("help"   "do nothing" "verbose"   "version")
-OPTHELP=("this help"\
- "do nothing (dry-run)"\
- "verbose mode"\
- "show version")
-OPTARGS=()
-
-
-parseoptargs "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v" "$opt_verbose" "1"
-
-parseoptargs "-vv"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -vv" "$opt_verbose" "2"
-
-parseoptargs "-v" "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v -v" "$opt_verbose" "2"
-
-parseoptargs "-v" "-n" "-v"
-tested_opt_dry_run=$opt_dry_run
-opt_dry_run=$saved_opt_dry_run
-ci-test "cmd -v -v" "$opt_verbose" "2"
-
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
-fi
-exit $sts
+Z0BUG_main_file "" ""
+exit $?

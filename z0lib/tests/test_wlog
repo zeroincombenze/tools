@@ -1,121 +1,83 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests for submodule of z0lib module
+# Regression tests on z0lib
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=./
-elif [ -d ../_travis ]; then
-  TRAVISDIR=../
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-else
-. ~/dev/z0testrc
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 __version__=0.1.24
+
+test_01() {
+    if [ "$LECHO" == "echo" ]; then
+      WLOGCMD="wecho-1"
+    else
+      WLOGCMD="wecho-0"
+    fi
+    FLOG=
+    FLOGTMP="test_z0librc.log"
+    set_tlog_file "$FLOGTMP"
+    test_result "set logfile (1)" "$HOME/$FLOGTMP" "$FLOG"
+    test_result "set logfile (2)" "#" "$FLOG_ECHO"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      touch $HOME/$FLOGTMP
+      if [ ! -f $HOME/$FLOGTMP ]; then
+        echo "Test failed due impossible internal error!!"
+        exit 1
+      fi
+      set_tlog_file "$FLOGTMP" "new"
+      if [ -f $HOME/test_z0librc.log ]; then TRES="1"; else TRES="0"; fi
+    fi
+    test_result "rm logfile (1)" "0" "$TRES"
+    test_result "rm logfile (2)" "#" "$FLOG_ECHO"
+
+    FLOGTMP="./test_tmp.log"
+    set_tlog_file "$FLOGTMP" "new"
+    FLOGTMP=$(readlink -f $FLOGTMP)
+    test_result "set logfile (3)" "$FLOGTMP" "$FLOG"
+    test_result "set logfile (4)" "#" "$FLOG_ECHO"
+
+    FLOGTMP="$TESTDIR/test_tmp.log"
+    set_tlog_file "$FLOGTMP" "new"
+    test_result "set logfile (5)" "$FLOGTMP" "$FLOG"
+    test_result "set logfile (6)" "#" "$FLOG_ECHO"
+
+    set_tlog_file "$FLOGTMP" "new" "echo"
+    test_result "set logfile (7)" "$FLOGTMP" "$FLOG"
+    test_result "set logfile (8)" "echo" "$FLOG_ECHO"
+    if [ -f $FLOGTMP ]; then rm -f $FLOGTMP; fi
+
+
+    WLOGCMD=
+    set_tlog_file "$logfn" "$LNEW" "$LECHO"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      wlog "Since now, test messages are store in $FLOG"
+    fi
+    test_result "echoing with wlog (1)" "$TESTDIR/test_z0librc.log" "$FLOG"
+    if [ "$LECHO" == "echo" ]; then
+      test_result "echoing with wlog (2)" "echo" "$FLOG_ECHO"
+    else
+      test_result "echoing with wlog (2)" "#" "$FLOG_ECHO"
+    fi
+}
+
+Z0BUG_init
 parseoptest -l$TESTDIR/test_z0librc.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-sts=0
 
-if [ "$LECHO" == "echo" ]; then
-  WLOGCMD="wecho-1"
-else
-  WLOGCMD="wecho-0"
-fi
-FLOG=
-FLOGTMP="test_z0librc.log"
-set_tlog_file "$FLOGTMP"
-ci-test "set logfile (1)" "$HOME/$FLOGTMP" "$FLOG"
-ci-test "set logfile (2)" "#" "$FLOG_ECHO"
-
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  touch $HOME/$FLOGTMP
-  if [ ! -f $HOME/$FLOGTMP ]; then
-    echo "Test failed due impossible internal error!!"
-    exit 1
-  fi
-  set_tlog_file "$FLOGTMP" "new"
-  if [ -f $HOME/test_z0librc.log ]; then TRES="1"; else TRES="0"; fi
-fi
-ci-test "rm logfile (1)" "0" "$TRES"
-ci-test "rm logfile (2)" "#" "$FLOG_ECHO"
-
-FLOGTMP="./test_tmp.log"
-set_tlog_file "$FLOGTMP" "new"
-FLOGTMP=$(readlink -f $FLOGTMP)
-ci-test "set logfile (3)" "$FLOGTMP" "$FLOG"
-ci-test "set logfile (4)" "#" "$FLOG_ECHO"
-
-FLOGTMP="$TESTDIR/test_tmp.log"
-set_tlog_file "$FLOGTMP" "new"
-ci-test "set logfile (5)" "$FLOGTMP" "$FLOG"
-ci-test "set logfile (6)" "#" "$FLOG_ECHO"
-
-set_tlog_file "$FLOGTMP" "new" "echo"
-ci-test "set logfile (7)" "$FLOGTMP" "$FLOG"
-ci-test "set logfile (8)" "echo" "$FLOG_ECHO"
-if [ -f $FLOGTMP ]; then rm -f $FLOGTMP; fi
-
-
-WLOGCMD=
-set_tlog_file "$logfn" "$LNEW" "$LECHO"
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  wlog "Since now, test messages are store in $FLOG"
-fi
-ci-test "echoing with wlog (1)" "$TESTDIR/test_z0librc.log" "$FLOG"
-if [ "$LECHO" == "echo" ]; then
-  ci-test "echoing with wlog (2)" "echo" "$FLOG_ECHO"
-else
-  ci-test "echoing with wlog (2)" "#" "$FLOG_ECHO"
-fi
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
-fi
-exit $sts
+Z0BUG_main_file "" ""
+exit $?

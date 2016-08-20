@@ -1,170 +1,151 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests for submodule of z0lib module
+# Regression tests on z0lib
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=./
-elif [ -d ../_travis ]; then
-  TRAVISDIR=../
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-else
-. ~/dev/z0testrc
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 
 __version__=0.1.24
+
+test_01() {
+    local f p result TRES
+    local f=$(basename $0)
+    local p=$(dirname $0)
+    local result=$(findpkg "$f" "$p")
+    local TRES=$(readlink -e $0)
+    test_result "find myself" "$TRES" "$result"
+}
+
+test_02() {
+    local p p1 p2 Y1 Y2 result TRES
+    p=$(dirname $0)
+    p=$(readlink -e $p)
+    Y1=pgsql
+    Y2=postgresql
+    mkdir -p $p/$Y1
+    mkdir -p $p/$Y2
+    mkdir -p $p/$Y2/9.1
+    touch $p/$Y2/psql
+    touch $p/$Y2/9.1/psql9
+
+    result=$(findpkg "" "$p" "$Y1")
+    TRES=$(readlink -e $p/$Y1)
+    test_result "find myself ($Y1)" "$TRES" "$result"
+
+    result=$(findpkg "" "$p" "$Y2")
+    TRES=$(readlink -e $p/$Y2)
+    test_result "find myself ($Y2)" "$TRES" "$result"
+
+    result=$(findpkg "" "$p" "$Y2 $Y1" "9.1")
+    TRES=$(readlink -e $p/$Y2/9.1)
+    test_result "find myself ($Y2 $Y1)" "$TRES" "$result"
+
+    result=$(findpkg "psql" "$p" "$Y1 $Y2" "9.1")
+    TRES=$(readlink -e $p/$Y2/psql)
+    test_result "find myself ($Y2/psql)" "$TRES" "$result"
+
+    result=$(findpkg "psql9" "$p" "$Y1 $Y2" "9.1")
+    TRES=$(readlink -e $p/$Y2/9.1/psql9)
+    test_result "find myself ($Y2/psql9)" "$TRES" "$result"
+
+    p1=$(basename $p)
+    p=$(dirname $p)
+    result=$(findpkg "psql9" "$p" "$p1" "$Y1 $Y2" "9.1")
+    test_result "find myself ($Y2/psql9 2)" "$TRES" "$result"
+
+    p2=$(basename $p)
+    p=$(dirname $p)
+    result=$(findpkg "psql9" "$p" "$p2" "$p1" "$Y1 $Y2" "9.1")
+    test_result "find myself ($Y2/psql9 3)" "$TRES" "$result"
+}
+
+test_03() {
+    local f p result TRES
+    f=""
+    p="/etc /usr"
+    result=$(findpkg "$f" "$p")
+    TRES="/etc"
+    test_result "find /etc dir" "$TRES" "$result"
+}
+
+test_04() {
+    local f p result TRES
+    f=""
+    p="./Non_Exists /etc /usr"
+    result=$(findpkg "$f" "$p")
+    TRES="/etc"
+    test_result "find /etc dir" "$TRES" "$result"
+}
+
+test_05() {
+    local f p result TRES
+    f="bash"
+    p="./Non_Exists /etc /bin"
+    result=$(findpkg "$f" "$p")
+    if [ -s /bin ]; then
+      TRES=$(readlink -e /bin)/bash
+    else
+      TRES="/bin/bash"
+    fi
+    test_result "find $f" "$TRES" "$result"
+}
+
+test_06() {
+    local f p s result TRES
+    p="/usr /etc /bin"
+    s="init hosts init.d"
+    if [ -h /etc/init.d ]; then
+      TRES=$(readlink -e /etc/init.d)
+    else
+      TRES=/etc/init.d
+    fi
+    if [ -f $TRES/network ]; then
+      TRES=$TRES/network
+      f="network"
+      result=$(findpkg "$f" "$p" "$s")
+    elif [ -f $TRES/networking ]; then
+      TRES=$TRES/networking
+      f="networking"
+      result=$(findpkg "$f" "$p" "$s")
+    else
+      f=failed
+      result=$(findpkg "$f" "$p" "$s")
+    fi
+    test_result "find $f in $p" "$TRES" "$result"
+}
+
+test_07() {
+    local f p s result TRES
+    f="mail/"
+    p="/var  /usr /etc /bin"
+    s="spool mail log lib"
+    result=$(findpkg "$f" "$p" "$s")
+    if [ -h  /var/spool/mail ]; then
+      TRES=$(readlink -e /var/spool/mail)
+    else
+      TRES=/var/spool/mail
+    fi
+    test_result "find $f in $p" "$TRES" "$result"
+}
+
+Z0BUG_init
 parseoptest -l$TESTDIR/test_z0librc.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-sts=0
 
-
-f=$(basename $0)
-p=$(dirname $0)
-result=$(findpkg "$f" "$p")
-TRES=$(readlink -e $0)
-ci-test "find myself" "$TRES" "$result"
-
-p=$(readlink -e $p)
-Y1=pgsql
-Y2=postgresql
-mkdir -p $p/$Y1
-mkdir -p $p/$Y2
-mkdir -p $p/$Y2/9.1
-touch $p/$Y2/psql
-touch $p/$Y2/9.1/psql9
-
-# echo "findpkg <> <$p> <$Y1>"
-result=$(findpkg "" "$p" "$Y1")
-TRES=$(readlink -e $p/$Y1)
-ci-test "find myself ($Y1)" "$TRES" "$result"
-
-result=$(findpkg "" "$p" "$Y2")
-TRES=$(readlink -e $p/$Y2)
-ci-test "find myself ($Y2)" "$TRES" "$result"
-
-result=$(findpkg "" "$p" "$Y2 $Y1" "9.1")
-TRES=$(readlink -e $p/$Y2/9.1)
-ci-test "find myself ($Y2 $Y1)" "$TRES" "$result"
-
-result=$(findpkg "psql" "$p" "$Y1 $Y2" "9.1")
-TRES=$(readlink -e $p/$Y2/psql)
-ci-test "find myself ($Y2/psql)" "$TRES" "$result"
-
-result=$(findpkg "psql9" "$p" "$Y1 $Y2" "9.1")
-TRES=$(readlink -e $p/$Y2/9.1/psql9)
-ci-test "find myself ($Y2/psql9)" "$TRES" "$result"
-
-p1=$(basename $p)
-p=$(dirname $p)
-result=$(findpkg "psql9" "$p" "$p1" "$Y1 $Y2" "9.1")
-ci-test "find myself ($Y2/psql9 2)" "$TRES" "$result"
-
-p2=$(basename $p)
-p=$(dirname $p)
-result=$(findpkg "psql9" "$p" "$p2" "$p1" "$Y1 $Y2" "9.1")
-ci-test "find myself ($Y2/psql9 3)" "$TRES" "$result"
-
-f=""
-p="/etc /usr"
-result=$(findpkg "$f" "$p")
-TRES="/etc"
-ci-test "find /etc dir" "$TRES" "$result"
-
-f=""
-p="./Non_Exists /etc /usr"
-result=$(findpkg "$f" "$p")
-TRES="/etc"
-ci-test "find /etc dir" "$TRES" "$result"
-
-f="bash"
-p="./Non_Exists /etc /bin"
-result=$(findpkg "$f" "$p")
-if [ -s /bin ]; then
-  TRES=$(readlink -e /bin)/bash
-else
-  TRES="/bin/bash"
-fi
-ci-test "find $f" "$TRES" "$result"
-
-p="/usr /etc /bin"
-s="init hosts init.d"
-if [ -h /etc/init.d ]; then
-  TRES=$(readlink -e /etc/init.d)
-else
-  TRES=/etc/init.d
-fi
-if [ -f $TRES/network ]; then
-  TRES=$TRES/network
-  f="network"
-  result=$(findpkg "$f" "$p" "$s")
-elif [ -f $TRES/networking ]; then
-  TRES=$TRES/networking
-  f="networking"
-  result=$(findpkg "$f" "$p" "$s")
-else
-  f=failed
-  result=$(findpkg "$f" "$p" "$s")
-fi
-ci-test "find $f in $p" "$TRES" "$result"
-
-f="mail/"
-p="/var  /usr /etc /bin"
-s="spool mail log lib"
-result=$(findpkg "$f" "$p" "$s")
-if [ -h  /var/spool/mail ]; then
-  TRES=$(readlink -e /var/spool/mail)
-else
-  TRES=/var/spool/mail
-fi
-ci-test "find $f in $p" "$TRES" "$result"
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
-fi
-exit $sts
+Z0BUG_main_file "" ""
+exit $?

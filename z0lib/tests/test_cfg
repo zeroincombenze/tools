@@ -1,173 +1,133 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests for submodule of z0lib module
+# Regression tests on z0lib
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -d $TDIR/tests ]; then
-  TESTDIR=$TDIR/tests
-  RUNDIR=$TDIR
-elif [ -d $TDIR/../tests ]; then
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-elif [ -d ./tests ]; then
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -d ../tests ]; then
-  TESTDIR=./
-  RUNDIR=../
-else
-  TESTDIR=$TDIR
-  RUNDIR=$TDIR/..
-fi
-if [ -d $TDIR/_travis ]; then
-  TRAVISDIR=$TDIR
-elif [ -d $TDIR/../_travis ]; then
-  TRAVISDIR=$TDIR/..
-elif [ -d ./_travis ]; then
-  TRAVISDIR=./
-elif [ -d ../_travis ]; then
-  TRAVISDIR=../
-else
-  TRAVISDIR=~/dev/_travis
-fi
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -e $TDIR/z0testrc ]; then
-. $TDIR/z0testrc
-elif [ -e ./z0testrc ]; then
-. ./z0testrc
-elif [ -e ../z0testrc ]; then
-. ../z0testrc
-else
-. ~/dev/z0testrc
-fi
-TESTDIR=$(readlink -e $TESTDIR)
-RUNDIR=$(readlink -e $RUNDIR)
-TRAVISDIR=$(readlink -e $TRAVISDIR)
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 
 __version__=0.1.23
+
+test_01() {
+    $(init_cfg)
+    $(active_cfg)
+    FCONF="$TESTDIR/test.conf"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $FCONF ]; then rm -f $FCONF; fi
+      if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
+      link_cfg $FCONF
+      set_cfg_def "param1" "Value1"
+      set_cfg_def "param2" "Value2"
+      set_cfg_def "param3" "Value3"
+      set_cfg_def "param4" "Value4"
+    fi
+    for i in 1 2 3 4; do
+      TRES=$(get_cfg_value "" "param$i")
+      test_result "find param$i" "Value$i" "$TRES"
+    done
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      echo "param1= VALUE1 ">$FCONF
+      echo "param3=VALUE3">>$FCONF
+      link_cfg $FCONF
+    fi
+    for i in 1 2 3 4; do
+      TRES=$(get_cfg_value "" "param$i")
+      if [ $i -eq 1 ]; then
+        test_result "find param$i" "VALUE$i" "$TRES"
+      elif [ $i -eq 3 ]; then
+        test_result "find param$i" "VALUE$i" "$TRES"
+      else
+        test_result "find param$i" "Value$i" "$TRES"
+      fi
+    done
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      echo "param4=\" VALUE4 \"">>$FCONF
+      link_cfg $FCONF
+    fi
+    TRES=$(get_cfg_value "" "param4")
+    test_result "find param4" " VALUE4 " "$TRES"
+
+    $(init_cfg)
+    $(active_cfg)
+    FCONF="$TESTDIR/test.conf"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $FCONF ]; then rm -f $FCONF; fi
+      echo "#param1=NOVALUE ">$FCONF.sample
+      echo "param1= value1 ">>$FCONF.sample
+      echo "param2=\"value2\"">>$FCONF.sample
+      echo "param3=value3">>$FCONF.sample
+      echo "param4= \"value4\" ">>$FCONF.sample
+      link_cfg $FCONF
+    fi
+    for i in 1 2 3 4; do
+      TRES=$(get_cfg_value "" "param$i")
+      test_result "find param$i" "value$i" "$TRES"
+    done
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      echo "param1= VALUE1 ">$FCONF
+      echo "param3=VALUE3">>$FCONF
+      link_cfg $FCONF
+    fi
+    for i in 1 2 3 4; do
+      TRES=$(get_cfg_value "" "param$i")
+      if [ $i -eq 1 ]; then
+        test_result "find param$i" "VALUE$i" "$TRES"
+      elif [ $i -eq 3 ]; then
+        test_result "find param$i" "VALUE$i" "$TRES"
+      else
+        test_result "find param$i" "value$i" "$TRES"
+      fi
+    done
+
+    $(init_cfg)
+    $(active_cfg)
+    FCONF="$TESTDIR/test.conf"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $FCONF ]; then rm -f $FCONF; fi
+      set_cfg_def "param1" "defval1"
+      set_cfg_def "param2" "defval2"
+      set_cfg_def "param3" "defval3"
+      set_cfg_def "param4" "defval4"
+      echo "#param1=NOVALUE ">$FCONF.sample
+      echo "param2=\"value2\"">>$FCONF.sample
+      echo "param3=value3">>$FCONF.sample
+      echo "param3= VALUE3 ">$FCONF
+      echo "param4=None ">>$FCONF
+      echo "param9=Long long \\">>$FCONF
+      echo "       value \\">>$FCONF
+      echo "       parameter">>$FCONF
+      link_cfg $FCONF $FCONF.sample
+    fi
+    TRES=$(get_cfg_value "" "param1")
+    test_result "find param1" "defval1" "$TRES"
+    TRES=$(get_cfg_value "" "param2")
+    test_result "find param2" "value2" "$TRES"
+    TRES=$(get_cfg_value "" "param3")
+    test_result "find param3" "VALUE3" "$TRES"
+    TRES=$(get_cfg_value "" "param4")
+    test_result "find param4" "" "$TRES"
+    TRES=$(get_cfg_value "" "param9")
+    test_result "find param9" "Long long value parameter" "$TRES"
+}
+
+Z0BUG_init
 parseoptest -l$TESTDIR/test_z0librc.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-sts=0
 
-
-$(init_cfg)
-$(active_cfg)
-FCONF="$TESTDIR/test.conf"
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  if [ -f $FCONF ]; then rm -f $FCONF; fi
-  if [ -f $FCONF.sample ]; then rm -f $FCONF.sample; fi
-  link_cfg $FCONF
-  set_cfg_def "param1" "Value1"
-  set_cfg_def "param2" "Value2"
-  set_cfg_def "param3" "Value3"
-  set_cfg_def "param4" "Value4"
-fi
-for i in 1 2 3 4; do
-  TRES=$(get_cfg_value "" "param$i")
-  ci-test "find param$i" "Value$i" "$TRES"
-done
-
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  echo "param1= VALUE1 ">$FCONF
-  echo "param3=VALUE3">>$FCONF
-  link_cfg $FCONF
-fi
-for i in 1 2 3 4; do
-  TRES=$(get_cfg_value "" "param$i")
-  if [ $i -eq 1 ]; then
-    ci-test "find param$i" "VALUE$i" "$TRES"
-  elif [ $i -eq 3 ]; then
-    ci-test "find param$i" "VALUE$i" "$TRES"
-  else
-    ci-test "find param$i" "Value$i" "$TRES"
-  fi
-done
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  echo "param4=\" VALUE4 \"">>$FCONF
-  link_cfg $FCONF
-fi
-TRES=$(get_cfg_value "" "param4")
-ci-test "find param4" " VALUE4 " "$TRES"
-
-
-$(init_cfg)
-$(active_cfg)
-FCONF="$TESTDIR/test.conf"
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  if [ -f $FCONF ]; then rm -f $FCONF; fi
-  echo "#param1=NOVALUE ">$FCONF.sample
-  echo "param1= value1 ">>$FCONF.sample
-  echo "param2=\"value2\"">>$FCONF.sample
-  echo "param3=value3">>$FCONF.sample
-  echo "param4= \"value4\" ">>$FCONF.sample
-  link_cfg $FCONF
-fi
-for i in 1 2 3 4; do
-  TRES=$(get_cfg_value "" "param$i")
-  ci-test "find param$i" "value$i" "$TRES"
-done
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  echo "param1= VALUE1 ">$FCONF
-  echo "param3=VALUE3">>$FCONF
-  link_cfg $FCONF
-fi
-for i in 1 2 3 4; do
-  TRES=$(get_cfg_value "" "param$i")
-  if [ $i -eq 1 ]; then
-    ci-test "find param$i" "VALUE$i" "$TRES"
-  elif [ $i -eq 3 ]; then
-    ci-test "find param$i" "VALUE$i" "$TRES"
-  else
-    ci-test "find param$i" "value$i" "$TRES"
-  fi
-done
-
-
-$(init_cfg)
-$(active_cfg)
-FCONF="$TESTDIR/test.conf"
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  if [ -f $FCONF ]; then rm -f $FCONF; fi
-  set_cfg_def "param1" "defval1"
-  set_cfg_def "param2" "defval2"
-  set_cfg_def "param3" "defval3"
-  set_cfg_def "param4" "defval4"
-  echo "#param1=NOVALUE ">$FCONF.sample
-  echo "param2=\"value2\"">>$FCONF.sample
-  echo "param3=value3">>$FCONF.sample
-  echo "param3= VALUE3 ">$FCONF
-  echo "param4=None ">>$FCONF
-  echo "param9=Long long \\">>$FCONF
-  echo "       value \\">>$FCONF
-  echo "       parameter">>$FCONF
-  link_cfg $FCONF $FCONF.sample
-fi
-TRES=$(get_cfg_value "" "param1")
-ci-test "find param1" "defval1" "$TRES"
-TRES=$(get_cfg_value "" "param2")
-ci-test "find param2" "value2" "$TRES"
-TRES=$(get_cfg_value "" "param3")
-ci-test "find param3" "VALUE3" "$TRES"
-TRES=$(get_cfg_value "" "param4")
-ci-test "find param4" "" "$TRES"
-TRES=$(get_cfg_value "" "param9")
-ci-test "find param9" "Long long value parameter" "$TRES"
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
-fi
-exit $sts
+Z0BUG_main_file "" ""
+exit $?

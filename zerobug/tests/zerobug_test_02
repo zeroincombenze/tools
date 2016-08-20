@@ -35,4 +35,4 @@ UT_LIST="$UT_LIST __version_V_0.2.0$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_v_0.2.1$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_P_0.2.2$TESTDIR/dummy_01.py"
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
-exit $sts
+exit $?
