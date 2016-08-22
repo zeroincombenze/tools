@@ -38,7 +38,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.9
+__version__=0.1.10
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
@@ -87,8 +87,8 @@ if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
 if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
 if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
 opts_travis
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis

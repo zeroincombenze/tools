@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.40.7
+#__version__=0.1.40.8
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -558,7 +558,7 @@ a_new () {
       local tid="0"
     fi
     cmd="unset DEFDICT$tid DEFRULE$tid"
-    echo "$cmd"
+    echo $cmd
 }
 export -f a_new
 
@@ -580,8 +580,10 @@ a_active () {
     fi
     # FH="$XU_FH"
     # DISTO="$XU_DISTO"
-    cmd="declare -A XU_FH=$XU_FH XU_DISTO=$XU_DISTO DEFDICT$tid DEFRULE$tid"
-    echo "$cmd"
+    cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -A DEFDICT$tid DEFRULE$tid"
+    echo $cmd
+    # cmd="declare XU_FH=$XU_FH XU_DISTO=$XU_DISTO"
+    # echo $cmd
     # $SET_X
 }
 export -f a_active
@@ -855,7 +857,7 @@ init_cfg () {
       local tid="0"
     fi
     echo $(a_new "$tid")
-    $(a_active "$tid")
+    eval $(a_active "$tid")
 }
 export -f init_cfg
 

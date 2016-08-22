@@ -28,7 +28,7 @@ else
   exit 1
 fi
 
-__version__=0.1.77.1
+__version__=0.1.78
 
 # main
 OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
@@ -590,8 +590,8 @@ conf_default () {
 }
 
 
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $FCONF
 for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade_dow WWW_DWNLOAD_DIR XFLIST__zar; do

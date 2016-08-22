@@ -44,7 +44,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.61.1
+__version__=0.1.62
 
 
 run_cmd () {
@@ -571,8 +571,8 @@ fi
 if [ -z "$action" ]; then action=all; fi
 if [ -z $pkg ]; then pkg="."; fi
 opts_travis
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis

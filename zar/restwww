@@ -14,7 +14,7 @@ else
 . /etc/z0librc
 fi
 
-__version__="1.4.28"
+__version__="1.4.29"
 
 conf_default () {
     set_cfg_def "DEV_HOST" "shsita16"
@@ -22,8 +22,8 @@ conf_default () {
 }
 
 FCONF=./zar.conf
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $FCONF
 PRODUCTION_HOST=$(get_cfg_value "" "production_host")

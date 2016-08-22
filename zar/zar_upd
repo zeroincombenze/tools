@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.11"
+__version__="1.3.12"
 
 
 detached_login() {
@@ -98,8 +98,8 @@ if [ -z "$opt_log" ]; then
 else
   publog=$opt_log
 fi
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 set_tlog_file "$publog"
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"

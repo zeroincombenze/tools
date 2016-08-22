@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.20
+__version__=0.1.21
 
 
 detached_login () {
@@ -194,8 +194,8 @@ if [ $opt_lxs -gt 0 ]; then
 fi
 
 opts_travis
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 TCONF=/etc/odoo/oe_watchdog.conf
 if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then

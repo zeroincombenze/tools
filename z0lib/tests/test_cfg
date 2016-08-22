@@ -8,6 +8,7 @@ for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
     . $x/z0librc
     Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
   fi
 done
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
@@ -20,8 +21,8 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.1.23
 
 test_01() {
-    $(init_cfg)
-    $(active_cfg)
+    eval $(init_cfg)
+    eval $(active_cfg)
     FCONF="$TESTDIR/test.conf"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $FCONF ]; then rm -f $FCONF; fi
@@ -59,8 +60,8 @@ test_01() {
     TRES=$(get_cfg_value "" "param4")
     test_result "find param4" " VALUE4 " "$TRES"
 
-    $(init_cfg)
-    $(active_cfg)
+    eval $(init_cfg)
+    eval $(active_cfg)
     FCONF="$TESTDIR/test.conf"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $FCONF ]; then rm -f $FCONF; fi
@@ -91,8 +92,8 @@ test_01() {
       fi
     done
 
-    $(init_cfg)
-    $(active_cfg)
+    eval $(init_cfg)
+    eval $(active_cfg)
     FCONF="$TESTDIR/test.conf"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $FCONF ]; then rm -f $FCONF; fi
@@ -128,6 +129,8 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
+# This code must be execute at the main level
+eval $(init_cfg)
+eval $(active_cfg)
 Z0BUG_main_file "" ""
 exit $?

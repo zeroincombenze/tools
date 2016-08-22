@@ -3408,8 +3408,8 @@ fi
 opt_aaeR=$(echo "0$opt_aae"|awk -F, '{print $1}')
 opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
 
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 FCONFDEF=/etc/lisa.conf.sample
 if [ $test_mode -gt 0 ]; then

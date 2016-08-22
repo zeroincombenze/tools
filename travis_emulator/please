@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.28
+__version__=0.1.29
 
 
 
@@ -273,8 +273,8 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis

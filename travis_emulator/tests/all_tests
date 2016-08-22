@@ -19,7 +19,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 
-__version__=0.1.61.1
+__version__=0.1.62
 
 
 Z0BUG_init

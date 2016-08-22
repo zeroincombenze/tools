@@ -20,11 +20,10 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 
-__version__=0.2.1.19
+__version__=0.2.1.21
 
 test_run () {
 # test_run(msg,package,disto,cmd)
-    # set -x #debug
     local msg="$1"
     local Package="$2"
     local Disto="$3"
@@ -48,6 +47,12 @@ test_run () {
       if [ "$3" != "." ]; then
         opt_ij="-I$Package"
       fi
+      # if [ "$cmd" == "status" ]; then
+        apachectl -v &>/dev/null
+        if [ $? -ne 0 ]; then
+          opt_ij=
+        fi
+      # fi
     elif [ "$Package" == "apache2" ]; then
       if [ "$FH" == "RHEL" ]; then
         local Package="httpd"
@@ -55,16 +60,22 @@ test_run () {
       if [ "$3" != "." ]; then
         opt_ij="-I$Package"
       fi
+      # if [ "$cmd" == "status" ]; then
+        apachectl -v &>/dev/null
+        if [ $? -ne 0 ]; then
+          opt_ij=
+        fi
+      # fi
     elif [ "$Package" == "python" ]; then
        opt_ij="-I$Package -d0"
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ -f $TESTDIR/res/${Package}__${Disto}.07.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${Disto}.07.test
-      elif [ -f $TESTDIR/res/${Package}__${FH}.07.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}__${FH}.07.test
-      elif [ -f $TESTDIR/res/${Package}.07.test ]; then
-        TESTOUT=$TESTDIR/res/${Package}.07.test
+      if [ -f $TESTDIR/res/${Package}__${Disto}.04.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${Disto}.04.test
+      elif [ -f $TESTDIR/res/${Package}__${FH}.04.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}__${FH}.04.test
+      elif [ -f $TESTDIR/res/${Package}.04.test ]; then
+        TESTOUT=$TESTDIR/res/${Package}.04.test
       else
         TESTOUT=
         echo "File test comparison ${Package}__${Disto} not found!"
@@ -76,22 +87,19 @@ test_run () {
         eval $TPRODUCT $opt_e version $2 $opt_ij>$TESTDIR/lisa.out
       fi
     fi
-    ci-test "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "diff"
+    test_result "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "diff"
     return $s
 }
 
 test_01() {
-Real_FH=$(xuname "-f")
-x=$(xuname "-v")
-v=$(echo $x|awk -F. '{print $1}')
-Real_DISTO=$(xuname "-d")$v
 if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.07.test
-  x=$(apachectl -v|head -n1)
+  rm -f $TESTDIR/res/*.04.test
+  x=$(apachectl -v 2>/dev/null|head -n1)
+  apachectl -v &>/dev/null
   sts=$?
   if [ -n "$x" -a $sts -eq 0 ]; then
-    echo "apache2: installed by apt-get">$TESTDIR/res/apache2.07.test
-    echo "httpd: installed by yum">$TESTDIR/res/httpd.07.test
+    echo "apache2: installed by apt-get">$TESTDIR/res/apache2.04.test
+    echo "httpd: installed by yum">$TESTDIR/res/httpd.04.test
     if [ "$Real_FH" == "Debian" ]; then
       x=$(dpkg -s vsftpd|grep "Version"|awk -F: '{print $2}')
     elif [ "$Real_FH" == "RHEL" ]; then
@@ -99,24 +107,31 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
     fi
     x=$(echo $x)
     if [ -n "$x" ]; then
-      echo "--vsftpd: installed by apt-get">>$TESTDIR/res/apache2.07.test
-      echo "--vsftpd: installed by yum">>$TESTDIR/res/httpd.07.test
+      echo "--vsftpd: installed by apt-get">>$TESTDIR/res/apache2.04.test
+      echo "--vsftpd: installed by yum">>$TESTDIR/res/httpd.04.test
     else
-      echo "--vsftpd could be installed by apt-get">>$TESTDIR/res/apache2.07.test
-      echo "--vsftpd could be installed by yum">>$TESTDIR/res/httpd.07.test
+      echo "--vsftpd could be installed by apt-get">>$TESTDIR/res/apache2.04.test
+      echo "--vsftpd could be installed by yum">>$TESTDIR/res/httpd.04.test
     fi
   else
-    echo "apache2 could be installed by apt-get">$TESTDIR/res/apache2.07.test
-    echo "httpd could be installed by yum">$TESTDIR/res/httpd.07.test
+    echo "apache2 could be installed by apt-get">$TESTDIR/res/apache2.04.test
+    echo "httpd could be installed by yum">$TESTDIR/res/httpd.04.test
   fi
   x=$(python --version 2>&1|awk '{print $2}')
+  python --version &>/dev/null
   sts=$?
   if [ -n "$x" -a $sts -eq 0 ]; then
-    echo "python: installed by apt-get">$TESTDIR/res/python.07.test
-    echo "python: installed by yum">$TESTDIR/res/python.07.test
+    if [ "$Real_FH" == "RHEL" ]; then
+      echo "python: installed by yum">$TESTDIR/res/python.04.test
+    else
+      echo "python: installed by apt-get">$TESTDIR/res/python.04.test
+    fi
   else
-    echo "python could be installed by apt-get">$TESTDIR/res/python.07.test
-    echo "python could be installed by yum">$TESTDIR/res/python.07.test
+    if [ "$Real_FH" == "RHEL" ]; then
+      echo "python could be installed by yum">$TESTDIR/res/python.04.test
+    else
+      echo "python could be installed by apt-get">$TESTDIR/res/python.04.test
+    fi
   fi
 fi
 
@@ -134,41 +149,42 @@ for Package in apache2 httpd python; do
 done
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.07.test
-  x=$(apachectl -v|head -n1)
+  rm -f $TESTDIR/res/*.04.test
+  x=$(apachectl -v 2>/dev/null|head -n1)
+  apachectl -v &>/dev/null
   sts=$?
   if [ -n "$x" -a $sts -eq 0 ]; then
     if [ "$Real_FH" == "Debian" ]; then
-      echo "apache2: $x">$TESTDIR/res/apache2.07.test
+      echo "apache2: $x">$TESTDIR/res/apache2.04.test
     fi
     if [ "$Real_FH" == "RHEL" ]; then
-      echo "httpd: $x">$TESTDIR/res/httpd.07.test
-    fi
-    if [ "$Real_FH" == "Debian" ]; then
-      x=$(dpkg -s vsftpd|grep "Version"|awk -F: '{print $2}')
-    elif [ "$Real_FH" == "RHEL" ]; then
-      x=$(yum info vsftpd|grep "Version"|awk -F: '{print $2}')
-    fi
-    x=$(echo $x)
-    if [ -n "$x" ]; then
-      echo "--vsftpd: $x">>$TESTDIR/res/apache2.07.test
-      echo "--vsftpd: $x">>$TESTDIR/res/httpd.07.test
-    else
-      echo "--vsftpd: .()">>$TESTDIR/res/apache2.07.test
-      echo "--vsftpd: .()">>$TESTDIR/res/httpd.07.test
+      echo "httpd: $x">$TESTDIR/res/httpd.04.test
     fi
   else
-    echo "apache2: .(apachectl -v)">$TESTDIR/res/apache2.07.test
-    echo "httpd: .(apachectl -v)">$TESTDIR/res/httpd.07.test
+    echo "apache2 should be installed by apt-get">$TESTDIR/res/apache2.04.test
+    echo "httpd should be installed by yum">$TESTDIR/res/httpd.04.test
+  fi
+  if [ "$Real_FH" == "Debian" ]; then
+    x=$(dpkg -s vsftpd 2>/dev/null|grep "Version"|awk -F: '{print $2}')
+  elif [ "$Real_FH" == "RHEL" ]; then
+    x=$(yum info vsftpd 2>/dev/null|grep "Version"|awk -F: '{print $2}')
+  fi
+  x=$(echo $x)
+  if [ -n "$x" ]; then
+    echo "--vsftpd: $x">>$TESTDIR/res/apache2.04.test
+    echo "--vsftpd: $x">>$TESTDIR/res/httpd.04.test
+  else
+    echo "--vsftpd should be installed by apt-get">>$TESTDIR/res/apache2.04.test
+    echo "--vsftpd should be installed by yum">>$TESTDIR/res/httpd.04.test
   fi
   x=$(python --version 2>&1)
   sts=$?
   if [ -n "$x" -a $sts -eq 0 ]; then
-    echo "python: $x">$TESTDIR/res/python.07.test
-    echo "python: $x">$TESTDIR/res/python.07.test
+    echo "python: $x">$TESTDIR/res/python.04.test
+    echo "python: $x">$TESTDIR/res/python.04.test
   else
-    echo "python: .(python --version)">$TESTDIR/res/python.07.test
-    echo "python: .(python --version)">$TESTDIR/res/python.07.test
+    echo "python: .(python --version)">$TESTDIR/res/python.04.test
+    echo "python: .(python --version)">$TESTDIR/res/python.04.test
   fi
 fi
 
@@ -194,6 +210,10 @@ if [ $sts -ne 127 ]; then
 fi
 
 TPRODUCT="$RUNDIR/lisa -T"
+Real_FH=$(xuname "-f")
+x=$(xuname "-v")
+v=$(echo $x|awk -F. '{print $1}')
+Real_DISTO=$(xuname "-d")$v
 
 Z0BUG_main_file "" ""
 exit $?

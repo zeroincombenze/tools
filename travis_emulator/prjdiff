@@ -20,7 +20,7 @@ fi
 . $TDIR/travisrc
 TCONF=$TDIR/.$THIS.conf
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        c        n            s       V           v           0       1       2)
 OPTDEST=(opt_help opt_conf opt_dry_run  opt_sel opt_version opt_verbose opt_sts opt_sts opt_2nd)
@@ -50,8 +50,8 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 conf_default
 link_cfg $TCONF
 init_travis

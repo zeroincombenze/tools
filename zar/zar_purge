@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.9"
+__version__="1.3.10"
 
 
 detached_login() {
@@ -108,8 +108,8 @@ else
   publog=$opt_log
 fi
 FCONF=$TDIR/zar.conf
-$(init_cfg)
-$(active_cfg)
+eval $(init_cfg)
+eval $(active_cfg)
 set_tlog_file "$publog"
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
