@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.12"
+__version__="1.3.13"
 
 
 detached_login() {
@@ -172,33 +172,13 @@ fi
 wlog "OWN=$OWN"
 if [ -z "$olddb" ]; then
   OLDDB=$(get_cfg_value 0 db_name)
-  if [ -z "$OLDDB" ]; then
-    if [ "$HOSTNAME" == "erp-copia" ]; then
-      OLDDB=cscs2016
-    elif [ "$HOSTNAME" == "erp" ]; then
-      OLDDB=cscs2016
-    elif [ "$HOSTNAME" == "greenservice" ]; then
-      OLDDB=greenservice
-    else
-      OLDDB=
-    fi
-  fi
 else
   OLDDB=$olddb
 fi
 if [ -z "$newdb" ]; then
   NEWDB=$(get_cfg_value 0 bck_db)
-  if [ -z "$NEWDB" ]; then
-    if [ "$HOSTNAME" == "$HOST_PRD" -a -n "$HOST_DEV" ]; then
-      NEWDB=
-    elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
-      NEWDB=
-    else
-      NEWDB=prove_16
-    fi
-    if [ "$NEWDB" == "*" ]; then
-      NEWDB=$OLDDB
-    fi
+  if [ "$NEWDB" == "*" ]; then
+    NEWDB=$OLDDB
   fi
 elif [ "$newdb" == "*" ]; then
   NEWDB=$OLDDB
@@ -209,6 +189,10 @@ if [ -z "$OLDDB" -o -z "$NEWDB" ]; then
   print_help
   exit
 fi
+TEST_DB="$(get_cfg_value 0 test_db)"
+if [ -z $TEST_DB ]; then
+  TEST_DB="$(get_cfg_value 0 bck_db)"
+fi
 if [[ $seldate =~ [0-9]{8} ]]; then
   dtdb=$seldate
 else
@@ -216,7 +200,9 @@ else
 fi
 if [ $opt_mail -eq -1 ]; then
   opt_mail=0
-  if [ "$HOSTNAME" == "$HOST_DEV" -o "${NEWDB:0:4}" == "prov" -o "${NEWDB:0:4}" == "test" ]; then
+  if [ "$HOSTNAME" == "$HOST_DEV" ]; then
+    opt_mail=1
+  elif [[ $NEWDB =~ $TEST_DB ]]; then
     opt_mail=1
   fi
 fi

@@ -603,7 +603,7 @@ get_iter() {
       fi
     fi
   fi
-  if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" ">" "$iter=get_iter($1 $2)">>~/$THIS.his; fi #debug
+  if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$iter=get_iter($1 $2)">>~/$THIS.his; fi #debug
   echo "$iter"
 }
 
@@ -1906,6 +1906,7 @@ do_dry_install_package() {
 # do_dry_install_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_package($1 $2 $3)">>~/$THIS.his; fi    #debug
     local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his; fi    #debug
     run_traced "$cmd"
     return $?
 }

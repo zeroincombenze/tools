@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.10"
+__version__="1.3.11"
 
 
 detached_login() {
@@ -124,95 +124,74 @@ HOST_DEV=$(get_cfg_value 0 development_host)
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
 if [ -z "$dbsel" ]; then
-  dbsel=$(get_cfg_value 0 dbfilter)
+  dbsel="$(get_cfg_value 0 dbfilter)"
 fi
 for sfx in A B; do
   if [ "$HOSTNAME" == "$HOST_PRD" ]; then
-    eval DB$sfx=$(get_cfg_value 0 PRD_DB$sfx_filter)
-    eval NC$sfx=$(get_cfg_value 0 PRD_DB$sfx_keep_recent)
+    eval DB$sfx="$(get_cfg_value 0 PRD_DB${sfx}_filter)"
+    eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
+    eval NA$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_monthly)"
   elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
-    eval DB$sfx=$(get_cfg_value 0 DEV_DB$sfx_filter)
-    eval NC$sfx=$(get_cfg_value 0 DEV_DB$sfx_keep_recent)
+    eval DB$sfx="$(get_cfg_value 0 DEV_DB${sfx}_filter)"
+    eval NC$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_recent)"
+    eval NA$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_monthly)"
   fi
-  if [ -z "$DB$pfx" ]; then
-    eval DB$sfx=$(get_cfg_value 0 DB$sfx_filter)
-    eval NC$sfx=$(get_cfg_value 0 DB$sfx_keep_recent)
+  if [ -z "$DB$sfx" ]; then
+    eval DB$sfx="$(get_cfg_value 0 DB${sfx}_filter)"
+    eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
+    eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
   fi
 done
-
-NC16=$(get_cfg_value 0 keep_recent)
-NA=$(get_cfg_value 0 keep_monthly)
-if [ "$HOSTNAME" == "erp-copia" ]; then
-  NC14=1
-  NC16=2
-  NA=4
-  if [ -z "$dbsel" ]; then
-    dbsel="[Cc]s[a-zA-Z0-9_]*"
+if [ -z $DBA ]; then
+  DBA="'$dbsel'"
+  NCA=$(get_cfg_value 0 keep_recent)
+  if [ -z "$NCA" ]; then
+    NCA=30
   fi
-elif [ "$HOSTNAME" == "erp" ]; then
-  NC14=1
-  if [ -z "$NC16" ]; then
-    NC16=6
-  fi
-  if [ -z "$NA" ]; then
-    NA=12
-  fi
-  if [ -z "$dbsel" ]; then
-    dbsel="[Cc]s[a-zA-Z0-9_]*"
-  fi
-elif [ "$HOSTNAME" == "greenservice" ]; then
-  NC14=0
-  if [ -z "$NC16" ]; then
-    NC16=2
-  fi
-  if [ -z "$NA" ]; then
-    NA=4
-  fi
-  if [ -z "$dbsel" ]; then
-    dbsel="[Gg]reen[a-zA-Z0-9_]*"
-  fi
-elif [ "${HOSTNAME:0:3}" == "shs" ]; then
-  NC14=0
-  if [ -z "$NC16" ]; then
-    NC16=60
-  fi
-  if [ -z "$NA" ]; then
-    NA=12
-  fi
-  if [ -z "$dbsel" ]; then
-    dbsel="[Zz]i[a-zA-Z0-9_]*"
+  NAA=$(get_cfg_value 0 keep_monthly)
+  if [ -z "$NAA" ]; then
+    NAA=12
   fi
 fi
+
 if [[ "$opt_keep" =~ [0-9]+ ]]; then
-  NC16=$opt_keep
+  NCA=$opt_keep
 fi
 if [[ "$opt_km" =~ [0-9]+ ]]; then
-  NA=$opt_km
+  NAA=$opt_km
 fi
 dblist=""
-re=$dbsel
-if [ -z "$re" ]; then
-  re=".*"
-fi
 if [ $opt_dry_run -gt 0 ]; then
-  echo "Keep $NC16 recent copies and $NA monthly copies of $re"
+  echo "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
+  echo "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
 else
-  wlog "Keep $NC16 recent copies and $NA monthly copies of $re"
+  wlog "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
+  wlog "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
 fi
 ctr=0
-for f in $(dir $DBCKDIR/*.sql)
+for fn in $(dir $DBCKDIR/*.sql)
 do
-  dbf=${f%%-*}
+  dbf=${fn%%-*}
   db=$(basename $dbf)
-  if [[ $db =~ $re ]]; then
+  f=0
+  if [[ $db =~ $DBA ]]; then
     if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-      dblist=$(echo "$dblist $db")
-    fi
-    if [ "$db" == "cscs2014" ]; then
-      range=$NC14
+      :
     else
-      range=$NC16
+      dblist="$dblist $db"
+      f=1
     fi
+    range=$NCA
+  elif [[ $db =~ $DBB ]]; then
+    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+      :
+    else
+      dblist="$dblist $db"
+      f=1
+    fi
+    range=$NCB
+  fi
+  if [ $f -gt 0 -a -n "$range" ]; then
     for i in {90..1}; do
       dtc=$(date -d "today - $i day" +%Y%m%d)
       dd=$(date -d "today - $i day" +%d)
@@ -220,9 +199,9 @@ do
       then
         if [ -f "$dbf-$dtc.sql" ]; then
           if [ $opt_dry_run -gt 0 ]; then
-             wlog "File and DB $dbf-$dtc.sql should be deleted!"
+            echo "File $dbf-$dtc.sql should be deleted!"
           else
-            wlog "File and DB $dbf-$dtc.sql deleted!"
+            wlog "File $dbf-$dtc.sql deleted!"
             rm -f $dbf-$dtc.sql
             ((ctr++))
           fi
@@ -241,20 +220,29 @@ for i in {1..12}; do
     ((d=$mm-$i))
     yy=$(date -d today +%Y)
   fi
-  if [ $d -gt $NA ]; then
-    dtc=$(printf "%04d%02d%02d" $yy $i 1)
-    for f in $dblist; do
-      if [ -f "$DBCKDIR/${f}-$dtc.sql" ]; then
-        if [ $opt_dry_run -gt 0 ]; then
-          wlog "File $DBCKDIR/${f}-$dtc.sql should be deleted!"
-        else
-          wlog "File $DBCKDIR/${f}-$dtc.sql deleted!"
-          rm -f $DBCKDIR/${f}-$dtc.sql
-          ((ctr++))
+  dtc=$(printf "%04d%02d%02d" $yy $i 1)
+  for db in $dblist; do
+    if [[ $db =~ $DBA ]]; then
+      f=1
+      range=$NAA
+    elif [[ $db =~ $DBB ]]; then
+      f=1
+      range=$NAB
+    fi
+    if [ $f -gt 0 -a -n "$range" ]; then
+      if [ $d -ge $range ]; then
+        if [ -f "$DBCKDIR/${db}-$dtc.sql" ]; then
+          if [ $opt_dry_run -gt 0 ]; then
+            echo "File $DBCKDIR/${db}-$dtc.sql should be deleted!"
+          else
+            wlog "File $DBCKDIR/${db}-$dtc.sql deleted!"
+            rm -f $DBCKDIR/${db}-$dtc.sql
+            ((ctr++))
+          fi
         fi
       fi
-    done
-  fi
+    fi
+  done
 done
 wlog "All $ctr databases are purged!"
 exit 0

@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.15"
+__version__="1.3.16"
 
 
 detached_login() {
@@ -74,7 +74,7 @@ detached_login() {
 }
 
 create_db_list() {
-# create_db_list(dbsel pgsql_dir bck_dir)
+# create_db_list(dbsel pgsql_dir bck_dir bck_db)
     local PGDIR=$2
     if [ -z $3 ]; then
       local DBCKDIR="$PGDIR/backups"
@@ -86,6 +86,10 @@ create_db_list() {
     if [ -z "$re" ]; then
       re=".*"
     fi
+    local rex=$4
+    if [ -z "$rex" ]; then
+      rex="test"
+    fi
     if [ $opt_dry_run -gt 0 ]; then
       echo "Select DB matches $re in $DBCKDIR"
     else
@@ -96,9 +100,13 @@ create_db_list() {
     local dblist=
     for db in $(awk -F"|" '{ print $1 }' $flst); do
       db=$(echo $db|sed -e 's/^ *//' -e 's/ *$//')
-      if [[ $db =~ $re ]]; then
-        if [ "$HOSTNAME" == "$HOST_PRD" -o \( "${db:0:4}" != "prov" -a "${db:0:4}" != "test" \) ]; then
-          dblist=$(echo "$dblist $db")
+      if [[ $db =~ $rex ]]; then
+        wlog "DB $db is backup copy"
+      else
+        if [[ $db =~ $re ]]; then
+          if [ "$HOSTNAME" == "$HOST_PRD" -o \( "${db:0:4}" != "prov" -a "${db:0:4}" != "test" \) ]; then
+            dblist=$(echo "$dblist $db")
+          fi
         fi
       fi
     done
@@ -182,22 +190,14 @@ HOST_PRD=$(get_cfg_value 0 production_host)
 HOST_DEV=$(get_cfg_value 0 development_host)
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
-if [ "$HOSTNAME" == "erp" -a -z "$HOST_DEV" ]; then
-  HOST_DEV=erp-copia
-fi
 if [ -z "$dbsel" ]; then
-  dbsel=$(get_cfg_value 0 dbfilter)
+  dbsel="$(get_cfg_value 0 dbfilter)"
 fi
-if [ -z "$dbsel" ]; then
-  if [ "$HOSTNAME" == "erp-copia" -o "$HOSTNAME" == "erp" ]; then
-    dbsel="[Cc]s[a-zA-Z0-9_]*"
-  elif [ "$HOSTNAME" == "greenservice" ]; then
-    dbsel="[Gg]reen[a-zA-Z0-9_]*"
-  elif [ "${HOSTNAME:0:3}" == "shs" ]; then
-    dbsel="[Zz]i[a-zA-Z0-9_]*"
-  fi
+TEST_DB="$(get_cfg_value 0 test_db)"
+if [ -z $TEST_DB ]; then
+  TEST_DB="$(get_cfg_value 0 bck_db)"
 fi
-dblist=$(create_db_list "$dbsel" "$PGDIR" "$DBCKDIR")
+dblist=$(create_db_list "$dbsel" "$PGDIR" "$DBCKDIR" "$TEST_DB")
 ctr=0
 if [ -n "$dblist" ]
 then
@@ -233,7 +233,7 @@ then
   wlog "All $ctr databases are backupped!"
   inherit_options
   wlog "\$ ./zar_purge $OPTS $dbsel"
-  ./zar_purge $OPTS $dbsel
+  ./zar_purge $OPTS "'$dbsel'"
   if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
     wlog "\$ ./zar_rest $OPTS"
     ./zar_rest $OPTS
