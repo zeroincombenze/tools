@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.16"
+__version__="1.3.17"
 
 
 detached_login() {
@@ -86,9 +86,9 @@ create_db_list() {
     if [ -z "$re" ]; then
       re=".*"
     fi
-    local rex=$4
-    if [ -z "$rex" ]; then
-      rex="test"
+    local redb=$4
+    if [ -z "$redb" ]; then
+      redb="test"
     fi
     if [ $opt_dry_run -gt 0 ]; then
       echo "Select DB matches $re in $DBCKDIR"
@@ -100,7 +100,7 @@ create_db_list() {
     local dblist=
     for db in $(awk -F"|" '{ print $1 }' $flst); do
       db=$(echo $db|sed -e 's/^ *//' -e 's/ *$//')
-      if [[ $db =~ $rex ]]; then
+      if [[ $db =~ $redb ]]; then
         wlog "DB $db is backup copy"
       else
         if [[ $db =~ $re ]]; then
@@ -194,10 +194,12 @@ if [ -z "$dbsel" ]; then
   dbsel="$(get_cfg_value 0 dbfilter)"
 fi
 TEST_DB="$(get_cfg_value 0 test_db)"
-if [ -z $TEST_DB ]; then
-  TEST_DB="$(get_cfg_value 0 bck_db)"
+NEWDBS=$(get_cfg_value 0 bck_db)
+REDB="($TEST_DB|${NEWDBS//,/|})"
+if [ -z $REDB ]; then
+  REDB="test"
 fi
-dblist=$(create_db_list "$dbsel" "$PGDIR" "$DBCKDIR" "$TEST_DB")
+dblist=$(create_db_list "$dbsel" "$PGDIR" "$DBCKDIR" "$REDB")
 ctr=0
 if [ -n "$dblist" ]
 then

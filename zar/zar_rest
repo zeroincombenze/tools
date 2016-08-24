@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.13"
+__version__="1.3.14"
 
 
 detached_login() {
@@ -163,11 +163,7 @@ wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
 OWN=$(get_cfg_value 0 db_user)
 if [ -z "$OWN" ]; then
-  if [ "$HOSTNAME" == "erp-copia" -o "$HOSTNAME" == "erp" ]; then
-    OWN=openerp
-  else
-    OWN=odoo
-  fi
+  OWN=odoo
 fi
 wlog "OWN=$OWN"
 if [ -z "$olddb" ]; then
@@ -176,80 +172,100 @@ else
   OLDDB=$olddb
 fi
 if [ -z "$newdb" ]; then
-  NEWDB=$(get_cfg_value 0 bck_db)
-  if [ "$NEWDB" == "*" ]; then
-    NEWDB=$OLDDB
+  NEWDBS=$(get_cfg_value 0 bck_db)
+  if [ "$NEWDBS" == "*" ]; then
+    NEWDBS=$OLDDB
   fi
 elif [ "$newdb" == "*" ]; then
-  NEWDB=$OLDDB
+  NEWDBS=$OLDDB
 else
-  NEWDB=$newdb
+  NEWDBS=$newdb
 fi
-if [ -z "$OLDDB" -o -z "$NEWDB" ]; then
+if [ -z "$OLDDB" -o -z "$NEWDBS" ]; then
   print_help
   exit
 fi
 TEST_DB="$(get_cfg_value 0 test_db)"
-if [ -z $TEST_DB ]; then
+if [ -z "$TEST_DB" ]; then
   TEST_DB="$(get_cfg_value 0 bck_db)"
 fi
 if [[ $seldate =~ [0-9]{8} ]]; then
-  dtdb=$seldate
-else
-  dtdb=$(date +"%Y%m%d")
+  NDAYSB=$seldate
+elif [ "$HOSTNAME" == "$HOST_PRD" ]; then
+  NDAYSB="$(get_cfg_value 0 PRD_num_days_before)"
+elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+  NDAYSB="$(get_cfg_value 0 DEV_num_days_before)"
 fi
-if [ $opt_mail -eq -1 ]; then
-  opt_mail=0
-  if [ "$HOSTNAME" == "$HOST_DEV" ]; then
-    opt_mail=1
-  elif [[ $NEWDB =~ $TEST_DB ]]; then
-    opt_mail=1
-  fi
+if [ -z "$NDAYSB" ]; then
+  NDAYSB="$(get_cfg_value 0 num_days_before)"
+fi
+if [ -z "$NDAYSB" ]; then
+  NDAYSB=yesterday
 fi
 ctr=0
-echo "Searching $DBCKDIR/$OLDDB-$dtdb.sql"
-if [ ! -f $DBCKDIR/$OLDDB-$dtdb.sql ]; then
-  if [[ $1 =~ [0-9]{8} ]]; then
-    echo "No sql file found!!!"
-    exit 1
-  fi
-  dtdb=$(date -d yesterday +"%Y%m%d")
-  echo "Searching $DBCKDIR/$OLDDB-$dtdb.sql"
-fi
-if [ ! -f $DBCKDIR/$OLDDB-$dtdb.sql ]; then
-  echo "No sql file found!!!"
-  exit 1
-fi
-if [ $opt_dry_run -eq 0 ]; then
-  wlog "Duplicate $OLDDB-$dtdb.sql $NEWDB"
-else
-  echo "Should duplicate $OLDDB-$dtdb.sql $NEWDB"
-fi
-if [ "$NEWDB" == "$OLDDB" -a "$dtdb" != "00000000" ]; then
-  backup_db $OLDDB
-fi
-echo "DROP DATABASE IF EXISTS $NEWDB;">$NEWDB.txt
-echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$NEWDB.txt
-echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$NEWDB.txt
-if [ $opt_dry_run -eq 0 ]; then
-  kill_process
-  echo "Creating new DB $NEWDB"
-  psql -U$opt_user -d postgres -f $NEWDB.txt -o ${NEWDB}_pre.log
-  echo "Loading data into DB $NEWDB"
-  psql -U$opt_user -d $NEWDB -f $DBCKDIR/$OLDDB-$dtdb.sql -o $NEWDB.log
-  ((ctr++))
-fi
-if [ $opt_mail -gt 0 ]; then
-  fsql=$HOME/dup4test.sql
-  wlog "Disabling inbound mail ..."
-  echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">$fsql
-  echo "update fetchmail_server set active=false;">>$fsql
-  wlog "Disabling outbound mail ..."
-  echo "update ir_mail_server set active=false;">>$fsql
-  if [ $opt_dry_run -eq 0 ]; then
-    psql -U$opt_user -d $NEWDB -f $fsql
-  fi
-fi
+passed=""
+for NEWDB in ${NEWDBS//,/ }; do
+  for ND in ${NDAYSB//,/ }; do
+    if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
+       continue
+    fi
+    if [[ $ND =~ [0-9]{8} ]]; then
+      dtdb=$ND
+    elif [[ $ND =~ [0-9]+ ]]; then
+      NDAYB=-${ND}day
+      dtdb=$(date -d $NDAYB +"%Y%m%d")
+    else
+      dtdb=$(date -d yesterday +"%Y%m%d")
+    fi
+    if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+       continue
+    fi
+    if [ $opt_mail -eq -1 ]; then
+      opt_mail=0
+      if [ "$HOSTNAME" == "$HOST_DEV" ]; then
+        opt_mail=1
+      elif [[ $NEWDB =~ $TEST_DB ]]; then
+        opt_mail=1
+      fi
+    fi
+    echo "Searching $DBCKDIR/$OLDDB-$dtdb.sql"
+    if [ ! -f $DBCKDIR/$OLDDB-$dtdb.sql ]; then
+      echo "No sql file found!!!"
+      exit 1
+    fi
+    if [ $opt_dry_run -eq 0 ]; then
+      wlog "Restore/duplicate $OLDDB-$dtdb.sql $NEWDB"
+    else
+      echo "Should restore $OLDDB-$dtdb.sql $NEWDB"
+    fi
+    if [ "$NEWDB" == "$OLDDB" -a "$dtdb" != "00000000" ]; then
+      backup_db $OLDDB
+    fi
+    echo "DROP DATABASE IF EXISTS $NEWDB;">$NEWDB.txt
+    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$NEWDB.txt
+    echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$NEWDB.txt
+    if [ $opt_dry_run -eq 0 ]; then
+      kill_process
+      echo "Creating new DB $NEWDB"
+      psql -U$opt_user -d postgres -f $NEWDB.txt -o ${NEWDB}_pre.log
+      echo "Loading data into DB $NEWDB"
+      psql -U$opt_user -d $NEWDB -f $DBCKDIR/$OLDDB-$dtdb.sql -o $NEWDB.log
+      ((ctr++))
+    fi
+    if [ $opt_mail -gt 0 ]; then
+      fsql=$HOME/dup4test.sql
+      wlog "Disabling inbound mail ..."
+      echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">$fsql
+      echo "update fetchmail_server set active=false;">>$fsql
+      wlog "Disabling outbound mail ..."
+      echo "update ir_mail_server set active=false;">>$fsql
+      if [ $opt_dry_run -eq 0 ]; then
+        psql -U$opt_user -d $NEWDB -f $fsql
+      fi
+    fi
+    passed="$passed $NEWDB $dtdb"
+  done
+done
 if [ $opt_dry_run -eq 0 ]; then
   sleep 30
 fi

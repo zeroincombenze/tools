@@ -53,7 +53,7 @@ if __name__ == "__main__":
             os.rename(coveragerc_file, coveragerc_bak)
     if os.path.isfile(coveragerc_file):
         os.remove(coveragerc_file)
-    sts = Z.main_file(ctx)
+    sts = Z0test.main_file(ctx)
     if os.path.isfile(coveragerc_file):
         os.remove(coveragerc_file)
     if os.path.isfile(coveragerc_bak):

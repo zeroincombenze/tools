@@ -111,7 +111,7 @@ COVERAGE_PROCESS_START
 # import pdb
 import os
 import os.path
-# import sys
+import sys
 import subprocess
 from subprocess import Popen, PIPE
 # import logging
@@ -123,7 +123,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.3"
+__version__ = "0.2.3.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -564,26 +564,18 @@ class SanityTest():
                                      ctx['max_test'])
         return sts
 
-    def simulate_main(self, ctx, action):
-        """Simulate test program"""
-        if action == '3':
-            test_list = ['__test_01', '__test_02']
-        elif action == '2':
-            test_list = ['__test_02']
-        else:
-            test_list = ['__test_01']
-        self.Z.exec_tests_4_count(test_list, ctx)
-        if ctx.get('dry_run', False):
-            sts = TEST_SUCCESS
-        else:
-            sts = self.Z.exec_all_tests(test_list, ctx)
-        return sts
 
+class Z0test(object):
 
-class Z0test:
-
-    def __init__(self, id=None):
-        this_fqn = os.path.abspath(inspect.stack()[1][1])
+    def __init__(self, argv=None, id=None, version=None):
+        # import pdb
+        # pdb.set_trace()
+        this_fqn = inspect.stack()[1][1]
+        if argv is None:
+            argv = sys.argv[1:]
+            if len(sys.argv) > 0:
+                this_fqn = sys.argv[0]
+        this_fqn = os.path.abspath(this_fqn)
         this = os0.nakedname(os.path.basename(this_fqn))
         if this == "__init__":
             this_fqn = os.path.abspath(inspect.stack()[2][1])
@@ -594,8 +586,11 @@ class Z0test:
             self.test_dir = self.this_dir
             self.pkg_dir = os.path.abspath(self.this_dir + '/..')
         else:                                               # pragma: no cover
-            self.test_dir = os.path.join(self.this_dir,
-                                         'tests')
+            if os.path.isdir('.tests'):
+                self.test_dir = os.path.join(self.this_dir,
+                                             'tests')
+            else:
+                self.test_dir = self.this_dir
             self.pkg_dir = self.this_dir
         if not id:
             if this[0:5] == 'test_':
@@ -613,6 +608,8 @@ class Z0test:
         self.def_tlog_fn = os.path.join(self.test_dir,
                                         self.module_id + "_test.log")
         self.ctr_list = []
+        # self.ctx = self.parseoptest(argv,
+        #                            version=version)
 
     def create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
@@ -1127,7 +1124,7 @@ class Z0test:
             sts = self.exec_all_tests(test_list, ctx, Test)
         return sts
 
-    def main_file(self, ctx, Test=None, UT1=None, UT=None):
+    def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution
         ctx: context
         Test: test class for internal tests;
@@ -1135,6 +1132,8 @@ class Z0test:
         UT1: protected Unit Test list (w/o log)
         UT: Unit Test list (if None, search for files)
         """
+        if ctx is None:
+            ctx = self.ctx
         if ctx.get('opt_debug', False) and \
                 ctx.get('run_on_top', False) and \
                 not ctx.get('_run_autotest', False):
