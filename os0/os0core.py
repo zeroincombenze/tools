@@ -84,7 +84,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.11"
+__version__ = "0.2.12"
 
 
 class Os0():
@@ -380,22 +380,22 @@ class Os0():
                 txt = txt + sp + x.encode('utf-8')
             sp = ' '
         self.trace_msg(txt, dbg_mode=False)
-
-    def wlog1(self, *args):
-        """Write a log/debug message onto tracelog file"""
-        txt = ""
-        for arg in args:
-            try:
-                if isinstance(arg, unicode):
-                    txt = txt + arg.encode('utf-8')
-                elif isinstance(arg, str):
-                    txt = txt + arg
-                else:
-                    txt = txt + str(arg).encode('utf-8')
-            except:
-                x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
-                txt = txt + x.encode('utf-8')
-        self.trace_msg(txt, dbg_mode=False)
+    #
+    # def wlog1(self, *args):
+    #     """Write a log/debug message onto tracelog file"""
+    #     txt = ""
+    #     for arg in args:
+    #         try:
+    #             if isinstance(arg, unicode):
+    #                 txt = txt + arg.encode('utf-8')
+    #             elif isinstance(arg, str):
+    #                 txt = txt + arg
+    #             else:
+    #                 txt = txt + str(arg).encode('utf-8')
+    #         except:
+    #             x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
+    #             txt = txt + x.encode('utf-8')
+    #     self.trace_msg(txt, dbg_mode=False)
 
     def trace_debug(self, *args):
         """Likw wlog but only if debug mode is active """

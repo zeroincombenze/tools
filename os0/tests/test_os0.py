@@ -49,9 +49,9 @@ class Test:
     # in order to verify results (see above header)
 
     def test_path_splitdrive(self, txtid, fsrc, dtgt, ftgt):
-        os0.wlog1("Test ", txtid,
-                  ": os.path.splitdrive", dtgt,
-                  "->", ftgt)
+        os0.wlog("Test %s: os.path.splitdrive%s->%s" % (txtid,
+                                                        dtgt,
+                                                        ftgt))
         d, p = os.path.splitdrive(fsrc)
         if d != dtgt or p != ftgt:
             os0.wlog("Test {0} failed!!!".format(txtid))
@@ -292,8 +292,8 @@ class main:
     if __name__ == "__main__":
         # Need debug mode to avoid security fault in Linux
         os0.set_debug_mode(True)
-        title = "os0 regression test. Version: V0.2.10"
-        if os0.version != "0.2.11":
+        title = "os0 regression test. Version: V0.2.12"
+        if os0.version != "0.2.12":
             raise Exception("Test not executable: invalid os0 version")
         if 'DEV_ENVIRONMENT' in os.environ:
             LOCAL_ECHO = False
@@ -360,33 +360,33 @@ class main:
         x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
         os0.wlog("- Greek letters", x)
 
-        os0.wlog1("Test 0.04: str2bool(true)")
+        os0.wlog("Test 0.04: str2bool(true)")
         res = os0.str2bool('true', None)
         if not res:
             raise Exception("Test failed: str2bool")
-        os0.wlog1("Test 0.05: str2bool(0)")
+        os0.wlog("Test 0.05: str2bool(0)")
         res = os0.str2bool('0', None)
         if res:
             raise Exception("Test failed: str2bool")
-        os0.wlog1("Test 0.06: str2bool(0)")
+        os0.wlog("Test 0.06: str2bool(0)")
         res = os0.str2bool(False, None)
         if res:
             raise Exception("Test failed: str2bool")
-        os0.wlog1("Test 0.07: str2bool(0)")
+        os0.wlog("Test 0.07: str2bool(0)")
         res = os0.str2bool('invalid', False)
         if res:
             raise Exception("Test failed: str2bool")
 
-        os0.wlog1("Test 0.08: nakedname(myfile)")
+        os0.wlog("Test 0.08: nakedname(myfile)")
         res = os0.nakedname('myfile')
         if res != 'myfile':
             raise Exception("Test failed: nakedname")
-        os0.wlog1("Test 0.09: nakedname(myfile.py)")
+        os0.wlog("Test 0.09: nakedname(myfile.py)")
         res = os0.nakedname('myfile.py')
         if res != 'myfile':
             raise Exception("Test failed: nakedname")
 
-        os0.wlog1("Test 0.10: unicode(string)")
+        os0.wlog("Test 0.10: unicode(string)")
         bstr = 'text àèìòù'
         ustr = u"text àèìòù"
         res = os0.u(bstr)
@@ -395,7 +395,7 @@ class main:
         if os0.u(ustr) != ustr:
             raise Exception("Test failed: unicode")
 
-        os0.wlog1("Test 0.10: bstring(string)")
+        os0.wlog("Test 0.10: bstring(string)")
         bstr = 'text àèìòù'
         ustr = u"text àèìòù"
         res = os0.b(ustr)

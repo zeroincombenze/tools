@@ -1290,6 +1290,15 @@ def get_dbname(ctx, action):
     return dbname
 
 
+def get_actioname(actv):
+    if isinstance(actv, basestring) and \
+            actv[-4:] in ('_7.0', '_8.0', '_9.0', '_10.0'):
+        act = actv[0:-4]
+    else:
+        act = actv
+    return act
+
+
 def import_file(oerp, ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
@@ -1663,7 +1672,8 @@ def check_actions_1_list(list, lx_act, conf_obj):
     if not list:
         return res
     acts = list.split(',')
-    for act in acts:
+    for actv in acts:
+        act = get_actioname(actv)
         if act == '' or act is False or act is None:
             continue
         elif act in lx_act:

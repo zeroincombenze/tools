@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.17"
+__version__="1.3.19"
 
 
 detached_login() {
@@ -193,6 +193,7 @@ wlog "DEV=$HOST_DEV"
 if [ -z "$dbsel" ]; then
   dbsel="$(get_cfg_value 0 dbfilter)"
 fi
+REST2="$(get_cfg_value 0 enable_restore)"
 TEST_DB="$(get_cfg_value 0 test_db)"
 NEWDBS=$(get_cfg_value 0 bck_db)
 REDB="($TEST_DB|${NEWDBS//,/|})"
@@ -203,6 +204,9 @@ dblist=$(create_db_list "$dbsel" "$PGDIR" "$DBCKDIR" "$REDB")
 ctr=0
 if [ -n "$dblist" ]
 then
+  inherit_options
+  wlog "\$ ./zar_purge $OPTS $dbsel"
+  ./zar_purge $OPTS "'$dbsel'"
   dt=$(date +%F)
   dtc=$(date +%Y%m%d)
   for db in $dblist
@@ -233,15 +237,19 @@ then
     fi
   done
   wlog "All $ctr databases are backupped!"
-  inherit_options
-  wlog "\$ ./zar_purge $OPTS $dbsel"
-  ./zar_purge $OPTS "'$dbsel'"
-  if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
-    wlog "\$ ./zar_rest $OPTS"
-    ./zar_rest $OPTS
-  elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
-    wlog "\$ ./zar_rest $OPTS"
-    ./zar_rest $OPTS
+  if [ -z "$REST2" ]; then
+    if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
+      wlog "\$ ./zar_rest $OPTS"
+      ./zar_rest $OPTS
+    elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+      wlog "\$ ./zar_rest $OPTS"
+      ./zar_rest $OPTS
+    fi
+  else
+    if [ "$REST2" == "1" ]; then
+      wlog "\$ ./zar_rest $OPTS"
+      ./zar_rest $OPTS
+    fi
   fi
 fi
 exit 0
