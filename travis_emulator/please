@@ -37,7 +37,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.29
+__version__=0.1.30
 
 
 
@@ -237,6 +237,153 @@ do_distribution() {
     return $sts
 }
 
+do_pythonhosted() {
+    wlog "do_pythonhosted $1 $2 $3"
+    sts=$STS_SUCCESS
+    if [ -z "$2" ]; then
+      echo "Missing URL! use:"
+      echo "> please pythonhosted PKGNAME URL"
+      return $STS_FAILED
+    fi
+    local URL=$2
+    if [ "${URL: -2}" != "/" ]; then
+      local URL=$URL/
+    fi
+    local TITLE="$3"
+    local CWD=$PWD
+    cd $PKGPATH
+cat <<EOF >index.html
+<!DOCTYPE HTML>
+   <head>
+       <meta http-equiv="refresh" content="0; $URL">
+       <script type="text/javascript">
+           top.location.href = "$URL"
+       </script>
+       <title>Redirect</title>
+   </head>
+   <body>
+       Please wait for a moment .. <a href='$URL' $2</a>
+   </body>
+</html>
+EOF
+    zip -j pythonhosted-$pkgname.zip index.html
+    if [ -f index.html ]; then
+      rm -f index.html
+    fi
+    cd $CWD
+    if [ -f $PKGPATH/pythonhosted-$pkgname.zip ]; then
+      echo "Now you can download $PKGPATH/pythonhosted-$pkgname.zip in pypy webpage of project"
+    fi
+    return $sts
+}
+
+do_docs() {
+    wlog "do_docs $1"
+    sts=$STS_SUCCESS
+    local doxygen_conf
+    doxygen_conf=.${1}_doc.conf
+    if [ ! -f $doxygen_conf ]; then
+      doxygen -g $doxygen_conf
+      vim $doxygen_conf
+    fi
+    doxygen $doxygen_conf
+    return $?
+}
+
+do_publish() {
+#do_publish pkgname (svg|docs)
+    wlog "do_publish $1 $2"
+    sts=$STS_SUCCESS
+    if [ "$2" == "svg" ]; then
+      do_publish_svg "$@"
+    elif [ "$2" == "docs" ]; then
+      do_publish_docs "$@"
+    else
+      echo "Missing object! Use:"
+      echo "> please publish PKGNAME (svg|docs)"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
+mvfiles () {
+# mvfiles(srcpath, tgtpath, files, owner)
+    if [ -z "$3" ]; then
+      local l="*"
+    else
+      local l="$3"
+    fi
+    local CWD=$PWD
+    local sts=$STS_SUCCESS
+    local f
+    if [ -d $1 -a -n "$2" ]; then
+      if [ -d $2 ]; then
+        cd $1
+        for f in $l; do
+          if [ -e $1/$f ]; then
+            run_traced "mv $1/$f $2/$f"
+            if [ $4 ]; then
+              run_traced "chown $4 $2/$f"
+            fi
+          else
+            elog "! File $1/$f not found!!"
+            sts=$STS_FAILED
+          fi
+        done
+      else
+        elog "! Directory $2 not found!!"
+        sts=$STS_FAILED
+      fi
+    else
+      elog "! Directory $1 not found!!"
+      sts=$STS_FAILED
+    fi
+    cd $CWD
+    return $sts
+}
+
+do_publish_svg() {
+#do_publish_svg pgkname svg (prd|dev)
+    local sts=$STS_FAILED
+    local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
+    local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
+    if [ "$HOSTNAME" == "$PRD_HOST" ]; then
+      local tgt="prd"
+    elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      local tgt="dev"
+    else
+      local tgt=""
+    fi
+    mvfiles "$DEV_SVG" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
+    local sts=$?
+    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
+      local s=$?
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    fi
+    return $sts
+}
+
+do_publish_docs() {
+#do_publish_svg pgkname docs
+    local sts=$STS_FAILED
+    local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
+    if [ -d $HTML_DOCS_DIR/$1 ]; then
+      rm -fR $HTML_DOCS_DIR/$1
+    fi
+    if [ ! -d $HTML_DOCS_DIR/$1 ]; then
+      mkdir -p $HTML_DOCS_DIR/$1
+      chown apache:apache $HTML_DOCS_DIR/$1
+    fi
+    mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
+    local sts=$?
+    rmdir $PRJPATH/html
+    if [ -d $PRJPATH/latex ]; then
+      rm -fR $PRJPATH/latex
+    fi
+    return $sts
+}
+
 OPTOPTS=(h        b          c        d        j        k        L         m       n           p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1        1        "="       1       1           "="       0           1     "="      1         1       "*"         "+")
@@ -266,8 +413,9 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
+HLPCMDLIST="help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be on of:\nhelp|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"\
+  print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -276,6 +424,9 @@ opts_travis
 eval $(init_cfg)
 eval $(active_cfg)
 conf_default
+set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
+set_cfg_def "DEV_SVG" "/opt/odoo/dev/svg"
+set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
 link_cfg $TCONF
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
@@ -365,8 +516,14 @@ elif [ "$action" == "wep" ]; then
   fi
   clean_dirs "$PKGPATH"
 else
-  echo "Invalid action!"
-  echo "Use $THIS help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|[if-]fetch|[if-push]|[if-replace]|test|travis|version|wep"
-  sts=$STS_FAILED
+  cmd="do_$action"
+  if [ "$(type -t $cmd)" == "function" ]; then
+    eval $cmd "$pkgname" "$sub1" "$sub2"
+    sts=$?
+  else
+    echo "Invalid action!"
+    echo "Use $THIS $HLPCMDLIST"
+    sts=$STS_FAILED
+  fi
 fi
 exit $sts

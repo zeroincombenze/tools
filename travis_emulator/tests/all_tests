@@ -31,7 +31,7 @@ fi
 
 UT_LIST="__version_1_${__version__}$RUNDIR/travis"
 UT_LIST="$UT_LIST __version_0_0.2.3_$Z0TLIBDIR/z0testrc"
-UT_LIST="$UT_LIST __version_1_0.1.40.7$Z0LIBDIR/z0librc"
+UT_LIST="$UT_LIST __version_1_0.1.40.8$Z0LIBDIR/z0librc"
 UT_LIST="$UT_LIST test_lib test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
 Z0BUG_main_file "" "$UT_LIST"
 exit $sts

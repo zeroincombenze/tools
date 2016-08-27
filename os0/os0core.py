@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
+#
 #
 #    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.it>)
 #    All Rights Reserved
@@ -18,60 +18,60 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-##############################################################################
-r"""@package docstring
-!OS routines for Linux, OpenVMS and Windows
-!
-!This module expands standard os.py module.
-!os0 is platform independent and can run on Linux, OpenVMS and Linux.
-!See http://www.zeroincombenze.eu about os differences.
+#
+r"""@mainpage
+OS routines for Linux, OpenVMS and Windows
+
+This module expands standard os.py module.
+os0 is platform independent and can run on Linux, OpenVMS and Linux.
 
 This exports:
-  - osx.setlfilename set local filename from URI (linux) filename
+  - osx0.setlfilename set local filename from URI (linux) filename
 
 URI filename conversion rules
-Case                Linux              Windows            OpenVMS
-Simple file         myfile.ext         myfile.ext         myfile.ext
-Abs pathname        /root/myfile.ext   \root\myfile.ext   [root]myfile.ext
-Rel pathname        lib/myfile.ext     lib\myfile.ext     [.lib]myfile.ext
-CWD pathname        ./myfile.ext       .\myfile.ext       []myfile.ext
-Updir pathname      ../myfile.ext      ..\myfile.ext      [-]myfile.ext
-Root file           /myfile.ext        \myfile.ext        [000000]myfile.ext
-dotted pathname     /u/os.1.0/a.b.c    \u\os.1.0/a.b.c    [u.os^.1^.0]a^.^.b.c
-hidden/leading dot  .myfile            .myfile            .myfile ??
+|Case              |Linux             |Windows          |OpenVMS              |
+|------------------|------------------|-----------------|---------------------|
+|Simple file       |myfile.ext        |myfile.ext       |myfile.ext           |
+|Abs pathname      |/root/myfile.ext  |\\root\\myfile.ext |[root]myfile.ext     |
+|Rel pathname      |lib/myfile.ext    |lib\\myfile.ext   |[.lib]myfile.ext     |
+|CWD pathname      |./myfile.ext      |.\\myfile.ext     |[]myfile.ext         |
+|Updir pathname    |../myfile.ext     |..\\myfile.ext    |[-]myfile.ext        |
+|Root file         |/myfile.ext       |\\myfile.ext      |[000000]myfile.ext   |
+|dotted pathname   |/u/os.1.0/a.b.c   |\\u\\os.1.0/a.b.c  |[u.os^.1^.0]a^.^.b.c |
+|hidden/leading dot |.myfile          |.myfile          |.myfile ??           |
+|                  |                  |                 |                     |
+|executable        |myfile            |myfile.exe       |myfile.exe           |
+|command file      |myfile            |myfile.bat       |myfile.com           |
+|directory         |mydir/            |mydir            |mydir.DIR            |
+|                  |                  |                 |                     |
+|dev null          |/dev/null         |nul              |NL0:                 |
+|dev/disk/myfile   |/dev/disk/myfile  |c:\\myfile        |disk:[000000]myfile  |
+|system disk       |/c/temp/myfile    |c:\\temp\\myfile   |c:[temp]myfile       |
 
-executable          myfile             myfile.exe         myfile.exe
-command file        myfile             myfile.bat         myfile.com
-directory           mydir/             mydir              mydir.DIR
-
-dev null            /dev/null          nul                NL0:
-dev/disk/myfile     /dev/disk/myfile   c:\myfile          disk:[000000]myfile
-system disk         /c/temp/myfile     c:\temp\myfile     c:[temp]myfile
 
 Notes:
-1.URL username (user@) is not supported by this version
-2.URL port number o service (http: ftp:) is not supported by this version
-3.URL server domain (//server) is not supported by this version
-4.URL character encoding (%%20) is not supported by this version
-5.Linux has not disk device in pathname; in order to manager Windows and
+-# URL with username (user@) is not supported by this version
+-# URL with port number or service (http:) is not supported by this version
+-# URL with server domain (//server) is not supported by this version
+-# URL with character encoding (%20) is not supported by this version
+-# Linux has not disk device in pathname; in order to manager Windows and
   OpenVMS devices here is used /dev/disk where disk may be a letter in Windows
   or a name in OpenVMS.
   Both Windows and OpenVMS use colon (:) at the end of disk device in local
   pathname (see last but one example above)
-6.Here is also implemented a brief form for disk device, if exist on hosting
+-# Here is also implemented a brief form for disk device, if exist on hosting
   machine
   Brief form is /dev/pathname like /c/windows/ or /sys$sysdevice/sys0/
   This brief form may be not universal translatable (see last example above)
-7.Updir (..) may be recursive -> ../../myfile -> ..\..\myfile -> [-.-]myfile
-8.Home dir (~/myfile) is no supported by this version
-9.OpenVMS logical names use dollar sign, such as sys$sysdevice;
-  in Linux dollar start a macro
+-# Updir (..) may be recursive -> ../../myfile -> ..\\..\\myfile -> [-.-]myfile
+-# Home dir (~/myfile) is no supported by this version
+-# OpenVMS logical names use dollar sign, such as sys$sysdevice;
+  in Linux dollar start a macro.
   Need to verify about some trouble
-10.OpenVMS files have version; syntax is 'myfile.exe;ver' where ';ver'
+-# OpenVMS files have version; syntax is 'myfile.exe;ver' where ';ver'
    can be omitted
    No any other OS has this feature, so in version of module there is no
    support for filename version
-
 """
 
 import os
