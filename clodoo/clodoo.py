@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.67"
+__version__ = "0.2.68"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1819,7 +1819,10 @@ def main():
     else:
         sts = do_actions(oerp, ctx)
     decr_lev(ctx)
-    msg = u"Operations ended"
+    if sts == STS_SUCCESS:
+        msg = u"Operations ended"
+    else:
+        msg = u"Last operation FAILED!"
     msg_log(ctx, ctx['level'], msg)
     return sts
 

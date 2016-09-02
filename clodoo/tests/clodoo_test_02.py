@@ -30,7 +30,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.1.2"
+__version__ = "0.2.68"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -62,7 +62,7 @@ class Test():
             return False
 
     def test_01(self, z0ctx):
-        req_version = 'clodoo.py 0.2.67'
+        req_version = 'clodoo.py %s' % __version__
         if not ctx['dry_run']:
             cmd = self.cmd + ['-V']
             p = Popen(cmd,
