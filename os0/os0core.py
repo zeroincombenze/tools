@@ -32,12 +32,12 @@ URI filename conversion rules
 |Case              |Linux             |Windows          |OpenVMS              |
 |------------------|------------------|-----------------|---------------------|
 |Simple file       |myfile.ext        |myfile.ext       |myfile.ext           |
-|Abs pathname      |/root/myfile.ext  |\\root\\myfile.ext |[root]myfile.ext     |
-|Rel pathname      |lib/myfile.ext    |lib\\myfile.ext   |[.lib]myfile.ext     |
-|CWD pathname      |./myfile.ext      |.\\myfile.ext     |[]myfile.ext         |
-|Updir pathname    |../myfile.ext     |..\\myfile.ext    |[-]myfile.ext        |
-|Root file         |/myfile.ext       |\\myfile.ext      |[000000]myfile.ext   |
-|dotted pathname   |/u/os.1.0/a.b.c   |\\u\\os.1.0/a.b.c  |[u.os^.1^.0]a^.^.b.c |
+|Abs pathname      |/root/myfile.ext  |\\root\\myfile.ext |[root]myfile.ext   |
+|Rel pathname      |lib/myfile.ext    |lib\\myfile.ext   |[.lib]myfile.ext    |
+|CWD pathname      |./myfile.ext      |.\\myfile.ext     |[]myfile.ext        |
+|Updir pathname    |../myfile.ext     |..\\myfile.ext    |[-]myfile.ext       |
+|Root file         |/myfile.ext       |\\myfile.ext      |[000000]myfile.ext  |
+|dotted pathname   |/u/os.1.0/a.b.c  |\\u\\os.1.0/a.b.c |[u.os^.1^.0]a^.^.b.c |
 |hidden/leading dot |.myfile          |.myfile          |.myfile ??           |
 |                  |                  |                 |                     |
 |executable        |myfile            |myfile.exe       |myfile.exe           |
@@ -45,8 +45,8 @@ URI filename conversion rules
 |directory         |mydir/            |mydir            |mydir.DIR            |
 |                  |                  |                 |                     |
 |dev null          |/dev/null         |nul              |NL0:                 |
-|dev/disk/myfile   |/dev/disk/myfile  |c:\\myfile        |disk:[000000]myfile  |
-|system disk       |/c/temp/myfile    |c:\\temp\\myfile   |c:[temp]myfile       |
+|dev/disk/myfile   |/dev/disk/myfile  |c:\\myfile       |disk:[000000]myfile  |
+|system disk       |/c/temp/myfile    |c:\\temp\\myfile |c:[temp]myfile       |
 
 
 Notes:
@@ -84,7 +84,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.12"
+__version__ = "0.2.13"
 
 
 class Os0():
@@ -110,6 +110,8 @@ class Os0():
             bg = bg[0:i]
         self.bgout_fn = self.homedir + "/" + bg + \
             "-{0:08x}".format(os.getpid()) + ".out"
+        self.bgerr_fn = self.homedir + "/" + bg + \
+            "-{0:08x}".format(os.getpid()) + ".err"
         self.bginp_fn = os.devnull
         if doinit:
             self.set_logger("")

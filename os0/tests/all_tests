@@ -46,7 +46,7 @@ if [ $opt_dry_run -gt 0 ]; then
 fi
 if [ -f "$td/$tf" ]; then
   if [ `python -m doctest $1 $td/$tf` ]; then
-    python $td/test_os0.py
+    python $td/os0_test_01.py
   fi
 else
   false

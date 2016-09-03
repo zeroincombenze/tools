@@ -501,7 +501,7 @@ class Builder:
         return dict
 
     def __init__(self):
-        self.version = "V1.1.3"
+        self.version = "1.1.4"
 
 
 class main:
@@ -513,7 +513,7 @@ class main:
 
         parser = argparse.ArgumentParser(
             description="Zeroincombenze® make news.",
-            epilog="© 2015 by SHS-AV s.r.l. - http://www.shs-av.com",
+            epilog="© 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com",
             argument_default=argparse.SUPPRESS)
         parser.add_argument("-c", "--conf",
                             help="configuration file",

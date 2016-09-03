@@ -85,7 +85,7 @@ if __name__ == "__main__":
         if os.path.isdir('./tests'):
             os.chdir('./tests')
             # sts = call("all_tests")
-            sts = execfile("test_os0.py")
+            sts = execfile("os0_test_01.py")
             sys.exit(sts)
 
     print os0.version
