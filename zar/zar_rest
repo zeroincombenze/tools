@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.14"
+__version__="1.3.15"
 
 
 detached_login() {
@@ -254,11 +254,13 @@ for NEWDB in ${NEWDBS//,/ }; do
     fi
     if [ $opt_mail -gt 0 ]; then
       fsql=$HOME/dup4test.sql
-      wlog "Disabling inbound mail ..."
+      wlog "Disabling inbound mails ..."
       echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">$fsql
       echo "update fetchmail_server set active=false;">>$fsql
-      wlog "Disabling outbound mail ..."
+      wlog "Disabling outbound mails ..."
       echo "update ir_mail_server set active=false;">>$fsql
+      wlog "Disabling automatic actions ..."
+      echo "update base_action_rule set active=false;">>$fsql
       if [ $opt_dry_run -eq 0 ]; then
         psql -U$opt_user -d $NEWDB -f $fsql
       fi
