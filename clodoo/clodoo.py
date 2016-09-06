@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.68"
+__version__ = "0.2.69.5"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -975,18 +975,22 @@ def act_check_balance(oerp, ctx):
                                 [('company_id', '=', company_id),
                                  ('period_id', 'in', period_ids),
                                  ('state', '!=', 'draft')])
-    # adm_uids = ctx['adm_uids'].split(',')
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
         move_line_obj = oerp.browse('account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
+        warn_rec = False
+        move_hdr_id = move_line_obj.move_id.id
         account_obj = move_line_obj.account_id
         account_tax_obj = move_line_obj.account_tax_id
         journal_obj = move_line_obj.journal_id
         acctype_id = account_obj.user_type.id
         acctype_obj = oerp.browse('account.account.type', acctype_id)
+        if acctype_obj.report_type not in ("asset", "liability",
+                                           "income", "expense"):
+            warn_rec = "Untyped"
         if account_obj.parent_id:
             parent_account_obj = account_obj.parent_id
             parent_acctype_id = parent_account_obj.user_type.id
@@ -998,8 +1002,17 @@ def act_check_balance(oerp, ctx):
             parent_acctype_id = 0
             parent_acctype_obj = None
             parent_code = None
+        if parent_acctype_obj and\
+                parent_acctype_obj.report_type and\
+                parent_acctype_obj.report_type != 'none':
+            if parent_acctype_obj.report_type in ("asset",
+                                                  "liability",
+                                                  "income",
+                                                  "expense") and \
+                    acctype_obj.report_type != parent_acctype_obj.report_type:
+                warn_rec = "Mismatch"
 
-        code = account_obj.code
+        code = account_obj.code.encode('utf-8')
         clf3 = acctype_obj.name.encode('utf-8')
         clf = acctype_obj.report_type
         if clf == "asset":
@@ -1015,8 +1028,8 @@ def act_check_balance(oerp, ctx):
             clf2 = "costi"
             clf1 = "conto economico"
         else:
-            clf2 = "x_????"
-            clf1 = "z"
+            clf2 = "unknown"
+            clf1 = "unknown"
 
         if (account_obj.company_id.id != company_id):
             msg = u"Invalid company account {0} in {1:>6} {2}".format(
@@ -1036,6 +1049,7 @@ def act_check_balance(oerp, ctx):
                 move_line_id,
                 move_line_obj.ref)
             msg_log(ctx, ctx['level'] + 1, msg)
+
         if move_line_obj.partner_id and \
                 move_line_obj.partner_id.id:
             partner_id = move_line_obj.partner_id.id
@@ -1066,15 +1080,6 @@ def act_check_balance(oerp, ctx):
                        move_line_obj.credit,
                        move_line_obj.debit)
 
-        if parent_acctype_obj and\
-                parent_acctype_obj.report_type and\
-                clf3 != parent_acctype_obj.report_type and\
-                parent_acctype_obj.report_type != 'none':
-            msg = u"Look carefully at {0:>6} account record {1}".format(
-                move_line_id,
-                move_line_obj.ref)
-            msg_log(ctx, ctx['level'] + 1, msg)
-
         level = '2'
         add_on_account(acc_balance,
                        level,
@@ -1096,13 +1101,14 @@ def act_check_balance(oerp, ctx):
                        move_line_obj.credit,
                        move_line_obj.debit)
 
-        clf3 = acctype_obj.report_type
-        if clf3 not in ("asset", "liability",
-                        "income", "expense"):
-            msg = u"Look carefully at {0:>6} account record {1}".format(
+        if warn_rec:
+            msg = u"Because {0:8} look at {1:>6}/{2:>6} record {3}".format(
+                warn_rec,
+                move_hdr_id,
                 move_line_id,
                 move_line_obj.ref)
             msg_log(ctx, ctx['level'] + 1, msg)
+            warn_rec = False
 
     if '0' in acc_balance:
         for level in ('0', '1', '2', '4', '8'):
@@ -1161,10 +1167,91 @@ def act_check_balance(oerp, ctx):
 def act_set_4_cscs(oerp, ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
-    sts = analyze_invoices(oerp, ctx, 'in_invoice')
-    if sts == STS_SUCCESS:
-        sts = analyze_invoices(oerp, ctx, 'out_invoice')
+    # sts = analyze_invoices(oerp, ctx, 'in_invoice')
+    # if sts == STS_SUCCESS:
+    #     sts = analyze_invoices(oerp, ctx, 'out_invoice')
+    sts = set_account_type(oerp, ctx)
     return sts
+
+
+def set_account_type(oerp, ctx):
+    company_id = ctx['company_id']
+    move_line_ids = oerp.search('account.move.line',
+                                [('company_id', '=', company_id), ])
+    if len(move_line_ids) == 0:
+        return STS_SUCCESS
+    recs = []
+    accounts = []
+    journals = []
+    num_moves = len(move_line_ids)
+    move_ctr = 0
+    for move_line_id in move_line_ids:
+        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_ctr += 1
+        msg_burst(4, "Move    ", move_ctr, num_moves)
+        account_id = move_line_obj.account_id.id
+        account_obj = move_line_obj.account_id
+        acctype_id = account_obj.user_type.id
+        acctype_obj = oerp.browse('account.account.type', acctype_id)
+        if acctype_obj.report_type not in ("asset", "liability",
+                                           "income", "expense"):
+            if account_id not in accounts:
+                accounts.append(account_id)
+            journal_id = move_line_obj.journal_id.id
+            if journal_id not in journals:
+                journals.append(journal_id)
+            rec = move_line_obj.move_id.id
+            if rec not in recs:
+                move_id = move_line_obj.move_id.id
+                move_obj = oerp.browse('account.move', move_id)
+                if move_obj.state == 'posted':
+                    recs.append(move_line_obj.move_id.id)
+    if len(journals):
+        vals = {}
+        vals['updated_posted'] = True
+        try:
+            msg = u"Update journals " + str(journals)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.write('account.journal', journals, vals)
+        except:
+            msg = u"Cannot update journals"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    if len(recs):
+        try:
+            msg = u"Update recs to draft " + str(recs)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.move',
+                         "button_cancel",
+                         recs)
+        except:
+            msg = u"Cannot update registration status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    if len(accounts):
+        vals = {}
+        vals['type'] = 'liquidity'
+        vals['user_type'] = 4
+        try:
+            msg = u"Update accounts " + str(accounts)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.write('account.account', accounts, vals)
+        except:
+            msg = u"Cannot update accounts"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    if len(recs):
+        try:
+            msg = u"Update recs to posted " + str(recs)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.move',
+                         "button_validate",
+                         recs)
+        except:
+            msg = u"Cannot restore registration status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    return STS_SUCCESS
 
 
 def analyze_invoices(oerp, ctx, inv_type):
