@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.5"
+__version__ = "0.2.69.7"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1002,6 +1002,7 @@ def act_check_balance(oerp, ctx):
             parent_acctype_id = 0
             parent_acctype_obj = None
             parent_code = None
+            warn_rec = 'Orphan'
         if parent_acctype_obj and\
                 parent_acctype_obj.report_type and\
                 parent_acctype_obj.report_type != 'none':
@@ -1121,7 +1122,7 @@ def act_check_balance(oerp, ctx):
             elif level == '4':
                 ident = "   - {0:<7}".format('Grp')
             elif level == '8':
-                ident = "    - {0:<6}".format('Conto')
+                ident = "    - {0:<6}".format('Mastro')
             else:
                 ident = "     - {0:<5}".format('conto')
             crd_amt = 0.0
@@ -1191,10 +1192,15 @@ def set_account_type(oerp, ctx):
         msg_burst(4, "Move    ", move_ctr, num_moves)
         account_id = move_line_obj.account_id.id
         account_obj = move_line_obj.account_id
+        valid = True
+        if not account_obj.parent_id:
+            valid = False
         acctype_id = account_obj.user_type.id
         acctype_obj = oerp.browse('account.account.type', acctype_id)
         if acctype_obj.report_type not in ("asset", "liability",
                                            "income", "expense"):
+            valid = False
+        if not valid:
             if account_id not in accounts:
                 accounts.append(account_id)
             journal_id = move_line_obj.journal_id.id
