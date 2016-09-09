@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.7"
+__version__ = "0.2.69.9"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -451,7 +451,7 @@ def create_local_parms(ctx, action):
 
 def ident_db(oerp, ctx, db):
     db_name = get_dbname(ctx, '')
-    msg = u"DB=" + db + " (" + ctx.get('db_type', '') + ")"
+    msg = u"DB=" + db + " [" + ctx.get('db_type', '') + "]"
     if db_name != db:
         msg = msg + " - default " + db_name
     return msg
@@ -1181,11 +1181,15 @@ def set_account_type(oerp, ctx):
                                 [('company_id', '=', company_id), ])
     if len(move_line_ids) == 0:
         return STS_SUCCESS
-    recs = []
+    payments = []
+    invoices = []
     accounts = []
     journals = []
+    payment_ids = {}
     num_moves = len(move_line_ids)
     move_ctr = 0
+    import pdb
+    pdb.set_trace()
     for move_line_id in move_line_ids:
         move_line_obj = oerp.browse('account.move.line', move_line_id)
         move_ctr += 1
@@ -1207,11 +1211,28 @@ def set_account_type(oerp, ctx):
             if journal_id not in journals:
                 journals.append(journal_id)
             rec = move_line_obj.move_id.id
-            if rec not in recs:
-                move_id = move_line_obj.move_id.id
-                move_obj = oerp.browse('account.move', move_id)
-                if move_obj.state == 'posted':
-                    recs.append(move_line_obj.move_id.id)
+            invoice_ids = oerp.search('account.invoice',
+                                      [('move_id', '=', rec)])
+            if len(invoice_ids):
+                for id in invoice_ids:
+                    if id not in invoices:
+                        account_invoice_obj = oerp.browse('account.invoice',
+                                                          id)
+                        if account_invoice_obj.state == 'paid' or \
+                                account_invoice_obj.state == 'open':
+                            invoices.append(id)
+                            if account_invoice_obj.payment_ids:
+                                payment_ids[id] = account_invoice_obj.\
+                                    payment_ids
+                                vals = {}
+                                vals['payment_ids'] = (5, 0)
+                                oerp.write('account.invoice', id, vals)
+            else:
+                if rec not in payments:
+                    move_id = move_line_obj.move_id.id
+                    move_obj = oerp.browse('account.move', move_id)
+                    if move_obj.state == 'posted':
+                        payments.append(move_line_obj.move_id.id)
     if len(journals):
         vals = {}
         vals['updated_posted'] = True
@@ -1223,15 +1244,26 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update journals"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    if len(recs):
+    if len(payments):
         try:
-            msg = u"Update recs to draft " + str(recs)
+            msg = u"Update payments to draft " + str(payments)
             msg_log(ctx, ctx['level'], msg)
             oerp.execute('account.move',
                          "button_cancel",
-                         recs)
+                         payments)
         except:
-            msg = u"Cannot update registration status"
+            msg = u"Cannot update payment status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    if len(invoices):
+        try:
+            msg = u"Update invoices to cancelled " + str(invoices)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.invoice',
+                         "action_cancel",
+                         invoices)
+        except:
+            msg = u"Cannot update invoice status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     if len(accounts):
@@ -1246,13 +1278,39 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update accounts"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    if len(recs):
+    if len(invoices):
         try:
-            msg = u"Update recs to posted " + str(recs)
+            msg = u"Update invoices to draft " + str(invoices)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.invoice',
+                         "action_cancel_draft",
+                         invoices)
+        except:
+            msg = u"Cannot update invoice status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    if len(invoices):
+        try:
+            msg = u"Update invoices to open " + str(invoices)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.invoice',
+                         "invoice_validate",
+                         invoices)
+        except:
+            msg = u"Cannot update invoice status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    for id in payment_ids:
+        vals = {}
+        vals['payment_ids'] = (6, 0, payment_ids[id])
+        oerp.write('account.invoice', id, vals)
+    if len(payments):
+        try:
+            msg = u"Update recs to posted " + str(payments)
             msg_log(ctx, ctx['level'], msg)
             oerp.execute('account.move',
                          "button_validate",
-                         recs)
+                         payments)
         except:
             msg = u"Cannot restore registration status"
             msg_log(ctx, ctx['level'], msg)
