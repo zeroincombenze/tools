@@ -1235,7 +1235,7 @@ def set_account_type(oerp, ctx):
                         payments.append(move_line_obj.move_id.id)
     if len(journals):
         vals = {}
-        vals['updated_posted'] = True
+        vals['update_posted'] = True
         try:
             msg = u"Update journals " + str(journals)
             msg_log(ctx, ctx['level'], msg)
