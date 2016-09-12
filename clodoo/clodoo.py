@@ -1175,6 +1175,37 @@ def act_set_4_cscs(oerp, ctx):
     return sts
 
 
+def add_payment(oerp, move_line_obj, payments, ctx):
+    rec = move_line_obj.move_id.id
+    if rec not in payments:
+        move_id = move_line_obj.move_id.id
+        move_obj = oerp.browse('account.move', move_id)
+        if move_obj.state == 'posted':
+            payments.append(rec)
+    return payments
+
+
+def add_invoice(oerp, rec, invoices, payments, payment_ids, ctx):
+    invoice_ids = oerp.search('account.invoice',
+                              [('move_id', '=', rec)])
+    if len(invoice_ids):
+        for id in invoice_ids:
+            if id not in invoices:
+                account_invoice_obj = oerp.browse('account.invoice',
+                                                  id)
+                if account_invoice_obj.state == 'paid' or \
+                        account_invoice_obj.state == 'open':
+                    invoices.append(id)
+                    if account_invoice_obj.payment_ids:
+                        payment_ids[id] = account_invoice_obj.payment_ids
+                        for move_line_obj in account_invoice_obj.payment_ids:
+                            add_payment(oerp, move_line_obj, payments, ctx)
+                        vals = {}
+                        vals['payment_ids'] = (5, 0)
+                        oerp.write('account.invoice', id, vals)
+    return invoices, payments, payment_ids
+
+
 def set_account_type(oerp, ctx):
     company_id = ctx['company_id']
     move_line_ids = oerp.search('account.move.line',
@@ -1188,8 +1219,8 @@ def set_account_type(oerp, ctx):
     payment_ids = {}
     num_moves = len(move_line_ids)
     move_ctr = 0
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     for move_line_id in move_line_ids:
         move_line_obj = oerp.browse('account.move.line', move_line_id)
         move_ctr += 1
@@ -1210,29 +1241,14 @@ def set_account_type(oerp, ctx):
             journal_id = move_line_obj.journal_id.id
             if journal_id not in journals:
                 journals.append(journal_id)
+            payments = add_payment(oerp, move_line_obj, payments, ctx)
             rec = move_line_obj.move_id.id
-            invoice_ids = oerp.search('account.invoice',
-                                      [('move_id', '=', rec)])
-            if len(invoice_ids):
-                for id in invoice_ids:
-                    if id not in invoices:
-                        account_invoice_obj = oerp.browse('account.invoice',
-                                                          id)
-                        if account_invoice_obj.state == 'paid' or \
-                                account_invoice_obj.state == 'open':
-                            invoices.append(id)
-                            if account_invoice_obj.payment_ids:
-                                payment_ids[id] = account_invoice_obj.\
-                                    payment_ids
-                                vals = {}
-                                vals['payment_ids'] = (5, 0)
-                                oerp.write('account.invoice', id, vals)
-            else:
-                if rec not in payments:
-                    move_id = move_line_obj.move_id.id
-                    move_obj = oerp.browse('account.move', move_id)
-                    if move_obj.state == 'posted':
-                        payments.append(move_line_obj.move_id.id)
+            invoices, payments, payment_ids = add_invoice(oerp,
+                                                          rec,
+                                                          invoices,
+                                                          payments,
+                                                          payment_ids,
+                                                          ctx)
     if len(journals):
         vals = {}
         vals['update_posted'] = True

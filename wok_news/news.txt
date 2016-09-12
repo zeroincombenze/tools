@@ -1,183 +1,41 @@
-
-
-==wok_news==
-${sect_Descrizione_Breve}
-
-
-===Versioni===
-
-<!-- <version>
-o~0.1~0.1.1~15 settembre 2015~Versione preliminare, nome product
-o~0.2~0.2.20~30 novembre 2015~Versione stabile
-c~0.3~0.3.0~15 luglio 2016~Totalmente riscritte
-</
-
-
-===Requisiti===
-I requisiti sono:
-* Python 2.6 o successive (soltanto python2)
-* Linux, Windows e OpenVMS
-
-===Verifica installato con comandi manuali (package python)===
-Eseguire i seguenti comandi, correggendo in modo appropriato il nome della directory<ref>scelta adatta soltanto ad utenti esperti</ref>:
-<syntaxhighlight lang="bash">
-# Setup package directory
-pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
-pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
-# If you do not know, use following statements
-python
->>> import sys
->>> print '\n'.join(sys.path)
->>> exit()
-pypkg="..."  #  set right directory selected from above list
-dir -ld $pypkg/*wok_news*
-</syntaxhighlight>
-Nella directory, se installato, è presente un file con nome simile a <code>wok_news-n.n-py2.6.egg-info</code> che identifica anche la versione installata.
-
-
-==Gestione package python tramite pip (scelta consigliata se pip installato)==
-Tramite pip<ref>pip è package che richiede python</ref> è possibile gestire l'installazione in modo indipendente dal sistema operativo utilizzato.
-Le istruzioni sono valide sia per tutte le distribuzioni di Linux, per tutte le versioni di Windows.
-Potrebbe diventare disponibile anche su OpenVMS.
-Per maggiori dettagli vedere [[Python/opt/pip|pip]].
-
-===Verifica installato===
-<syntaxhighlight lang="bash">
-pip list|grep wok_news
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-pip install wok_news
-</syntaxhighlight>
-
-===Aggiornamento===
-<syntaxhighlight lang="bash">
-pip install wok_news --upgrade
-</syntaxhighlight>
-
-
-==Gestione rpm su CentOS e famiglia RHEL==
-
-===Verifica installato===
-<ref>il comando yum info potrebbe richiedere un po' di tempo</ref>
-<syntaxhighlight lang="bash">
-rpm -q wok_news
-# If info displayed, extract installed version
-yum info wok_news|grep "[Vv]ersion"   
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-yum  [-y] install wok_news
-</syntaxhighlight>  
-
-===Aggiornamento===
-<syntaxhighlight lang="bash">
-yum [-y] update wok_news
-</syntaxhighlight>
-
-
-==Gestione package aptitude su Ubuntu e famiglia Debian==
-
-===Verifica installato===
-<syntaxhighlight lang="bash">
-dpkg-query -s wok_news
-# If info displayed, extract installation status
-dpkg-query -s wok_news|grep [Ss]tatus
-# If info displayed, extract installed version   
-dpkg-query -W wok_news
-</syntaxhighlight>  
-
-===Installazione===
-<syntaxhighlight lang="bash">
-apt-get [-y] install wok_news
-</syntaxhighlight>  
-
-===Aggiornamento===
-<ref>il comando apt-get update potrebbe non essere necessario</ref>
-<syntaxhighlight lang="bash">
-apt-get [-y] update wok_news
-apt-get [-y] upgrade wok_news
-</syntaxhighlight>
-
-
-==Gestione sorgenti (con git clone)==
-
-===Verifica installato===
-Non esiste una verifica universale dell'installazione dei sorgenti.
-<ref>scelta adatta soltanto ad utenti esperti per lo sviluppo del codice</ref>
-Si può operare come segue:
-<syntaxhighlight lang="bash">
-find <directory-probabile> -type f -name wok_news.py
-# as above list
-cd <directory of wok_news.py>
-git status
-</syntaxhighlight>
-
-===Installazione===
-<syntaxhighlight lang="bash">
-# Setup source directory package
-pypkg="~/dev/wok_news"  # Esempio
-mkdir $pypkg 
-cd $pypkg
-git clone <https://github.com/wok_news.git> # Esempio da correggere
-python setup.py
-</syntaxhighlight>
-
-===Aggiornamento===
-<ref>per maggiori dettagli vedere [[Git]]</ref>
-<syntaxhighlight lang="bash">
-# Setup source directory package
-pypkg="~/dev/wok_news"  # Esempio
-cd $pypkg
-git fetch origin
-</syntaxhighlight>
-
-
-==Gestione file tar/gz/zip==
-<ref>scelta da usare soltanto se falliscono le opzioni precedenti</ref>
-
-===Installation===
-<syntaxhighlight lang="bash">
-cd /tmp
-# Impostare la directory dei package
-pypkg="/usr/lib/python2.7/dist-packages"  # esempio di Python 2.7.* in Ubuntu
-pypkg="/usr/lib/python2.6/site-packages"  # esempio di Python 2.6.* in CentOS
-wget <https://pypi.python.org/packages/source/O/wok_news.tar.gz> # Esempio da correggere
-tar -xf wok_news*.tar.gz -C $pypkg
-cd $pypkg/wok_news*
-python setup.py install
-</syntaxhighlight>
-
-
-==Post-installation/update checklist==
-
-===Visualizza versione===
-<syntaxhighlight lang="bash">
-wok_news -V --version
-</syntaxhighlight>
-
-===Configurazione===
-N/D
-
-===Troubleshooting===
-{{Template:Warning}}
-
-
-
-==Come fare==
-[[Python/opt/wok_news/help|Breve guida all'uso]]
-
-
-==Note==
-{{Template:Warning}}
-<references/>
-
-
-==Collegamenti esterni==
-{{Template:Warning}}
-* [http://wok_news.com Home page wok_news]
-* [https://pypi.python.org/pypi/wok_news/ Package wok_news]
-* [http://pythonhosted.org/wok_news/ Guida wok_news]
-* [[Python/opt/wok_news/help|Guida all'uso]]
+<h2>Le principali scadenze fiscali di settembre 2016 per le imprese italiane.</h2>
+<a href="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali.jpg">
+<img class="alignright wp-image-1740 size-medium"
+ src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
+ alt="scadenze fiscali settembre 2016" width="300" height="114" /></a>
+Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a settembre, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
+Una <b><a href="https://www.zeroincombenze.it/wp-login.php?action=register">versione gratuita di prova</a></b> è disponibile per imprese, professionisti, artigiani e commercianti.
+I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
+Per maggiori informazioni telefonare al numero <b>011.0566929</b>
+<h3>giovedì 15 settembre 2016</h3>
+<h4>Adempimenti IVA</h4>
+<p>
+Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di agosto 2016 e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
+</p><p>
+Chi emette la <strong>fattura elettronica PA</strong> (in via sperimentale) deve inviarle alla PA.
+</p><p>
+I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di agosto 2016.
+I dati sono contabilizzati con le chiusure giornaliere nel menù <u>Punto Vendita</u> del <strong>modulo POS</strong>
+</p><p>
+Con la <strong>contabilità on line</strong> è possibile la registrazione delle fatture di importo inferiore ad € 300,00 del mese di agosto 2016; possono essere riepilogate sia le fatture attive che le fatture di acquisto.
+</p>
+<h3>venerdì 16 settembre 2016</h3>
+<h4>Versamenti IVA</h4>
+<p>
+Tramite la <strong>contabilità on line</strong>, è possibile effettuare il calcolo della liquidazione IVA relativa al mese precedente (agosto 2016). La funzione è disponibile nel menù di <u>contabilità.</u>
+Il versamento deve essere effettuato utilizzando il modello F24, in modalità telematica con codice <strong>6008</strong>
+</p><p>
+Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro dipendente (codici 1001 e 1013) e per lavoro autonomo (codice tributo 1038 e 1040).
+ Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
+</p>
+<h3>venerdì 30 settembre 2016</h3>
+<p>
+<h4>Comunicazioni</h4>
+Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (agosto 2016). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
+</p>
+<h4>Altro</h4>
+Scheda carburante:<br>
+Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.
+<br>
+Maggiori informazioni sulle scadenze fiscali sono disponibili sul sito dell'<a title="Scadenze fiscali settembre 2016"
+ href="http://www1.agenziaentrate.gov.it/strumenti/scadenzario/main.php" target="_blank">Agenzia delle Entrate</a>.
