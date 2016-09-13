@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.9"
+__version__ = "0.2.69.11"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1182,10 +1182,11 @@ def add_payment(oerp, move_line_obj, payments, ctx):
         move_obj = oerp.browse('account.move', move_id)
         if move_obj.state == 'posted':
             payments.append(rec)
-    return payments
+    return payments, rec
 
 
-def add_invoice(oerp, rec, invoices, payments, payment_ids, ctx):
+def add_invoice(oerp, move_line_obj, invoices, payments, payment_ids, ctx):
+    rec = move_line_obj.move_id.id
     invoice_ids = oerp.search('account.invoice',
                               [('move_id', '=', rec)])
     if len(invoice_ids):
@@ -1193,16 +1194,18 @@ def add_invoice(oerp, rec, invoices, payments, payment_ids, ctx):
             if id not in invoices:
                 account_invoice_obj = oerp.browse('account.invoice',
                                                   id)
-                if account_invoice_obj.state == 'paid' or \
+                if account_invoice_obj.payment_ids:
+                    payment_list = []
+                    for move_line_obj in account_invoice_obj.payment_ids:
+                        payments, recp = add_payment(oerp,
+                                                     move_line_obj,
+                                                     payments,
+                                                     ctx)
+                        payment_list.append(recp)
+                    payment_ids[id] = payment_list
+                elif account_invoice_obj.state == 'paid' or \
                         account_invoice_obj.state == 'open':
                     invoices.append(id)
-                    if account_invoice_obj.payment_ids:
-                        payment_ids[id] = account_invoice_obj.payment_ids
-                        for move_line_obj in account_invoice_obj.payment_ids:
-                            add_payment(oerp, move_line_obj, payments, ctx)
-                        vals = {}
-                        vals['payment_ids'] = (5, 0)
-                        oerp.write('account.invoice', id, vals)
     return invoices, payments, payment_ids
 
 
@@ -1219,8 +1222,6 @@ def set_account_type(oerp, ctx):
     payment_ids = {}
     num_moves = len(move_line_ids)
     move_ctr = 0
-    # import pdb
-    # pdb.set_trace()
     for move_line_id in move_line_ids:
         move_line_obj = oerp.browse('account.move.line', move_line_id)
         move_ctr += 1
@@ -1241,14 +1242,14 @@ def set_account_type(oerp, ctx):
             journal_id = move_line_obj.journal_id.id
             if journal_id not in journals:
                 journals.append(journal_id)
-            payments = add_payment(oerp, move_line_obj, payments, ctx)
-            rec = move_line_obj.move_id.id
+            payments, recp = add_payment(oerp, move_line_obj, payments, ctx)
             invoices, payments, payment_ids = add_invoice(oerp,
-                                                          rec,
+                                                          move_line_obj,
                                                           invoices,
                                                           payments,
                                                           payment_ids,
                                                           ctx)
+    partners = []
     if len(journals):
         vals = {}
         vals['update_posted'] = True
@@ -1272,6 +1273,43 @@ def set_account_type(oerp, ctx):
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     if len(invoices):
+        msg = u"Unreconcile invoices "
+        msg_log(ctx, ctx['level'], msg)
+        del_list = []
+        for id in payment_ids:
+            try:
+                context = {'active_ids': payment_ids[id]}
+                oerp.execute('account.unreconcile',
+                             'trans_unrec',
+                             None,
+                             context)
+                oerp.execute('account.invoice',
+                             "action_cancel",
+                             [id])
+            except:
+                del_list.append(id)
+                partner_id = oerp.browse('account.invoice', id).partner_id.id
+                p_ids = oerp.search('account.move.line',
+                                    [('partner_id',
+                                      '=',
+                                      partner_id)])
+                try:
+                    context = {'active_ids': p_ids}
+                    oerp.execute('account.unreconcile',
+                                 'trans_unrec',
+                                 None,
+                                 context)
+                    oerp.execute('account.invoice',
+                                 "action_cancel",
+                                 [id])
+                    if partner_id not in partners:
+                        partners.append(partner_id)
+                except:
+                    msg = u"Cannot unreconcile/cancel invoice " + str(id)
+                    msg_log(ctx, ctx['level'], msg)
+                    return STS_FAILED
+        for id in del_list:
+            del payment_ids[id]
         try:
             msg = u"Update invoices to cancelled " + str(invoices)
             msg_log(ctx, ctx['level'], msg)
@@ -1305,7 +1343,6 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update invoice status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    if len(invoices):
         try:
             msg = u"Update invoices to open " + str(invoices)
             msg_log(ctx, ctx['level'], msg)
@@ -1316,10 +1353,42 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update invoice status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    for id in payment_ids:
-        vals = {}
-        vals['payment_ids'] = (6, 0, payment_ids[id])
-        oerp.write('account.invoice', id, vals)
+    try:
+        msg = u"Reconcile invoices "
+        msg_log(ctx, ctx['level'], msg)
+        for id in payment_ids:
+            oerp.execute('account.invoice',
+                         "action_cancel_draft",
+                         [id])
+            oerp.execute('account.invoice',
+                         "invoice_validate",
+                         [id])
+            context = {'active_ids': payment_ids[id]}
+            oerp.execute('account.move.line.reconcile',
+                         'trans_rec_reconcile_partial_reconcile',
+                         None,
+                         context)
+    except:
+        msg = u"Cannot reconcile invoice " + str(id)
+        msg_log(ctx, ctx['level'], msg)
+        return STS_FAILED
+    for partner_id in partners:
+        msg = u"Reconcile partner " + str(partner_id)
+        msg_log(ctx, ctx['level'], msg)
+        p_ids = oerp.search('account.move.line',
+                            [('partner_id',
+                              '=',
+                              partner_id)])
+        context = {'active_ids': p_ids}
+        try:
+            oerp.execute('account.move.line.reconcile',
+                         'trans_rec_reconcile_partial_reconcile',
+                         None,
+                         context)
+        except:
+            msg = u"Cannot reconcile partner " + str(partner_id)
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
     if len(payments):
         try:
             msg = u"Update recs to posted " + str(payments)
