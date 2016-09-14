@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.11"
+__version__ = "0.2.69.13"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1175,7 +1175,7 @@ def act_set_4_cscs(oerp, ctx):
     return sts
 
 
-def add_payment(oerp, move_line_obj, payments, ctx):
+def add_pay_4_draft(oerp, move_line_obj, payments, ctx):
     rec = move_line_obj.move_id.id
     if rec not in payments:
         move_id = move_line_obj.move_id.id
@@ -1185,7 +1185,8 @@ def add_payment(oerp, move_line_obj, payments, ctx):
     return payments, rec
 
 
-def add_invoice(oerp, move_line_obj, invoices, payments, payment_ids, ctx):
+def add_inv_4_draft(oerp, move_line_obj, invoices, payments,
+                    reconcile_ids, ctx):
     rec = move_line_obj.move_id.id
     invoice_ids = oerp.search('account.invoice',
                               [('move_id', '=', rec)])
@@ -1194,62 +1195,39 @@ def add_invoice(oerp, move_line_obj, invoices, payments, payment_ids, ctx):
             if id not in invoices:
                 account_invoice_obj = oerp.browse('account.invoice',
                                                   id)
-                if account_invoice_obj.payment_ids:
-                    payment_list = []
-                    for move_line_obj in account_invoice_obj.payment_ids:
-                        payments, recp = add_payment(oerp,
-                                                     move_line_obj,
-                                                     payments,
-                                                     ctx)
-                        payment_list.append(recp)
-                    payment_ids[id] = payment_list
+                reconcile_list = create_reconcile_list(oerp,
+                                                       account_invoice_obj,
+                                                       payments,
+                                                       id,
+                                                       rec,
+                                                       ctx)
+                if len(reconcile_list) > 0:
+                    reconcile_ids[id] = reconcile_list
                 elif account_invoice_obj.state == 'paid' or \
                         account_invoice_obj.state == 'open':
                     invoices.append(id)
-    return invoices, payments, payment_ids
+    return invoices, payments, reconcile_ids
 
 
-def set_account_type(oerp, ctx):
-    company_id = ctx['company_id']
-    move_line_ids = oerp.search('account.move.line',
-                                [('company_id', '=', company_id), ])
-    if len(move_line_ids) == 0:
-        return STS_SUCCESS
-    payments = []
-    invoices = []
-    accounts = []
-    journals = []
-    payment_ids = {}
-    num_moves = len(move_line_ids)
-    move_ctr = 0
-    for move_line_id in move_line_ids:
-        move_line_obj = oerp.browse('account.move.line', move_line_id)
-        move_ctr += 1
-        msg_burst(4, "Move    ", move_ctr, num_moves)
-        account_id = move_line_obj.account_id.id
-        account_obj = move_line_obj.account_id
-        valid = True
-        if not account_obj.parent_id:
-            valid = False
-        acctype_id = account_obj.user_type.id
-        acctype_obj = oerp.browse('account.account.type', acctype_id)
-        if acctype_obj.report_type not in ("asset", "liability",
-                                           "income", "expense"):
-            valid = False
-        if not valid:
-            if account_id not in accounts:
-                accounts.append(account_id)
-            journal_id = move_line_obj.journal_id.id
-            if journal_id not in journals:
-                journals.append(journal_id)
-            payments, recp = add_payment(oerp, move_line_obj, payments, ctx)
-            invoices, payments, payment_ids = add_invoice(oerp,
-                                                          move_line_obj,
-                                                          invoices,
-                                                          payments,
-                                                          payment_ids,
-                                                          ctx)
-    partners = []
+def create_reconcile_list(oerp, account_invoice_obj, payments,
+                          inv_id, move_id, ctx):
+    reconcile_list = []
+    if account_invoice_obj.payment_ids:
+        partner_id = oerp.browse('account.invoice', inv_id)
+        reconcile_list = oerp.search('account.move.line',
+                                     [('move_id', '=', move_id),
+                                      ('partner_id', '=', partner_id),
+                                      ])
+        for move_line_obj in account_invoice_obj.payment_ids:
+            payments, recp = add_pay_4_draft(oerp,
+                                             move_line_obj,
+                                             payments,
+                                             ctx)
+            reconcile_list.append(recp)
+    return reconcile_list
+
+
+def upd_journals_ena_del(oerp, journals, ctx):
     if len(journals):
         vals = {}
         vals['update_posted'] = True
@@ -1261,6 +1239,10 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update journals"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
+    return STS_SUCCESS
+
+
+def upd_payment_2_draft(oerp, payments, ctx):
     if len(payments):
         try:
             msg = u"Update payments to draft " + str(payments)
@@ -1272,13 +1254,33 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update payment status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
+    return STS_SUCCESS
+
+
+def upd_payment_2_posted(oerp, payments, ctx):
+    if len(payments):
+        try:
+            msg = u"Update recs to posted " + str(payments)
+            msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.move',
+                         "button_validate",
+                         payments)
+        except:
+            msg = u"Cannot restore registration status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    return STS_SUCCESS
+
+
+def upd_inv_2_draft(oerp, invoices, reconcile_ids, ctx):
+    partners = []
     if len(invoices):
         msg = u"Unreconcile invoices "
         msg_log(ctx, ctx['level'], msg)
         del_list = []
-        for id in payment_ids:
+        for id in reconcile_ids:
             try:
-                context = {'active_ids': payment_ids[id]}
+                context = {'active_ids': reconcile_ids[id]}
                 oerp.execute('account.unreconcile',
                              'trans_unrec',
                              None,
@@ -1309,7 +1311,7 @@ def set_account_type(oerp, ctx):
                     msg_log(ctx, ctx['level'], msg)
                     return STS_FAILED
         for id in del_list:
-            del payment_ids[id]
+            del reconcile_ids[id]
         try:
             msg = u"Update invoices to cancelled " + str(invoices)
             msg_log(ctx, ctx['level'], msg)
@@ -1320,19 +1322,6 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update invoice status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    if len(accounts):
-        vals = {}
-        vals['type'] = 'liquidity'
-        vals['user_type'] = 4
-        try:
-            msg = u"Update accounts " + str(accounts)
-            msg_log(ctx, ctx['level'], msg)
-            oerp.write('account.account', accounts, vals)
-        except:
-            msg = u"Cannot update accounts"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-    if len(invoices):
         try:
             msg = u"Update invoices to draft " + str(invoices)
             msg_log(ctx, ctx['level'], msg)
@@ -1343,6 +1332,11 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot update invoice status"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
+    return STS_SUCCESS, partners
+
+
+def upd_inv_2_openpaid(oerp, invoices, reconcile_ids, partners, ctx):
+    if len(invoices):
         try:
             msg = u"Update invoices to open " + str(invoices)
             msg_log(ctx, ctx['level'], msg)
@@ -1356,14 +1350,14 @@ def set_account_type(oerp, ctx):
     try:
         msg = u"Reconcile invoices "
         msg_log(ctx, ctx['level'], msg)
-        for id in payment_ids:
+        for id in reconcile_ids:
             oerp.execute('account.invoice',
                          "action_cancel_draft",
                          [id])
             oerp.execute('account.invoice',
                          "invoice_validate",
                          [id])
-            context = {'active_ids': payment_ids[id]}
+            context = {'active_ids': reconcile_ids[id]}
             oerp.execute('account.move.line.reconcile',
                          'trans_rec_reconcile_partial_reconcile',
                          None,
@@ -1389,18 +1383,82 @@ def set_account_type(oerp, ctx):
             msg = u"Cannot reconcile partner " + str(partner_id)
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    if len(payments):
+    return STS_SUCCESS
+
+
+def upd_acc_2_bank(oerp, accounts, ctx):
+    if len(accounts):
+        vals = {}
+        vals['type'] = 'liquidity'
+        vals['user_type'] = 4
         try:
-            msg = u"Update recs to posted " + str(payments)
+            msg = u"Update accounts " + str(accounts)
             msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.move',
-                         "button_validate",
-                         payments)
+            oerp.write('account.account', accounts, vals)
         except:
-            msg = u"Cannot restore registration status"
+            msg = u"Cannot update accounts"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
+
+
+def set_account_type(oerp, ctx):
+    company_id = ctx['company_id']
+    move_line_ids = oerp.search('account.move.line',
+                                [('company_id', '=', company_id), ])
+    if len(move_line_ids) == 0:
+        return STS_SUCCESS
+    payments = []
+    invoices = []
+    accounts = []
+    journals = []
+    reconcile_ids = {}
+    num_moves = len(move_line_ids)
+    move_ctr = 0
+    # import pdb
+    # pdb.set_trace()
+    for move_line_id in move_line_ids:
+        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_ctr += 1
+        msg_burst(4, "Move    ", move_ctr, num_moves)
+        account_id = move_line_obj.account_id.id
+        account_obj = move_line_obj.account_id
+        valid = True
+        if not account_obj.parent_id:
+            valid = False
+        acctype_id = account_obj.user_type.id
+        acctype_obj = oerp.browse('account.account.type', acctype_id)
+        if acctype_obj.report_type not in ("asset", "liability",
+                                           "income", "expense"):
+            valid = False
+        if not valid:
+            if account_id not in accounts:
+                accounts.append(account_id)
+            journal_id = move_line_obj.journal_id.id
+            if journal_id not in journals:
+                journals.append(journal_id)
+            payments, recp = add_pay_4_draft(oerp,
+                                             move_line_obj,
+                                             payments,
+                                             ctx)
+            invoices, payments, reconcile_ids = add_inv_4_draft(oerp,
+                                                                move_line_obj,
+                                                                invoices,
+                                                                payments,
+                                                                reconcile_ids,
+                                                                ctx)
+    sts = upd_journals_ena_del(oerp, journals, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_payment_2_draft(oerp, payments, ctx)
+    if sts == STS_SUCCESS:
+        sts, partners = upd_inv_2_draft(oerp, invoices, reconcile_ids, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_acc_2_bank(oerp, accounts, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_inv_2_openpaid(oerp, invoices, reconcile_ids, partners, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_payment_2_posted(oerp, payments, ctx)
+    return sts
 
 
 def analyze_invoices(oerp, ctx, inv_type):
