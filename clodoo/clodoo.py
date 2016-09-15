@@ -1213,6 +1213,7 @@ def create_reconcile_list(oerp, account_invoice_obj, payments,
                           inv_id, move_id, ctx):
     reconcile_list = []
     if account_invoice_obj.payment_ids:
+        pdb.set_trace()
         partner_id = oerp.browse('account.invoice', inv_id)
         reconcile_list = oerp.search('account.move.line',
                                      [('move_id', '=', move_id),
@@ -1415,7 +1416,7 @@ def set_account_type(oerp, ctx):
     reconcile_ids = {}
     num_moves = len(move_line_ids)
     move_ctr = 0
-    # import pdb
+    import pdb
     # pdb.set_trace()
     for move_line_id in move_line_ids:
         move_line_obj = oerp.browse('account.move.line', move_line_id)
@@ -1447,6 +1448,7 @@ def set_account_type(oerp, ctx):
                                                                 payments,
                                                                 reconcile_ids,
                                                                 ctx)
+    pdb.set_trace()
     sts = upd_journals_ena_del(oerp, journals, ctx)
     if sts == STS_SUCCESS:
         sts = upd_payment_2_draft(oerp, payments, ctx)
