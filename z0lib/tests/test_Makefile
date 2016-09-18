@@ -52,7 +52,7 @@ testpath () {
 test_01() {
     MAKEF=/opt/odoo/dev/pypi/z0lib/z0lib/Makefile
     export DEVPATH=/opt/odoo/dev
-    OS_VER=0.2.11
+    OS_VER=0.2.12
     BB_VER=7.0.0.2
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ ${opt_verbose:-0} -gt 0 ]; then

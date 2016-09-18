@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.40.8
+#__version__=0.1.40.9
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -886,7 +886,7 @@ export -f set_cfg_def
 
 
 link_cfg () {
-# link_cfg(file_cfg,file_def,tid)
+# link_cfg(file_cfg,[file_def,[tid,[section]]])
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
       local tid=$3
@@ -903,39 +903,67 @@ link_cfg () {
       fi
       if [ -f "$cfndef" ]; then
         a_add "$tid" "CONFND" "$1"
-        local key
-        local val
-        local x
-        while IFS=\= read -r kk val; do
-          kk=$(echo $kk|tr -d "\"' ")
-          val=$(echo $val|tr -d "\"'")
-          if [ "${kk:0:1}" != "#" ]; then
-            while [ "${val: -1}" == "\\" ]; do
-              IFS=~ read -r x
-              x=$(echo $x)
-              val="${val:0:-1}$x"
-            done
-            a_add "$tid" "$kk" "$val"
-            if [ "$kk" == "CONFN" ]; then
-              CONFN="$val"
+        local key val lne x r t s
+        t=1
+        s=
+        while IFS="#" read -r lne r; do
+          if [ -n "$lne" ]; then
+            if [ "${lne:0:1}" == "[" ]; then
+              s="${lne:1: -1}"
+              t=0
+              if [ "$s" == "Linux" ]; then
+                s=
+                t=1
+              elif [ "$s" == "$XU_DISTO" -o  "$s" == "$XU_FH" ]; then
+                t=1
+              elif [ "$s" == "$4" ]; then
+                t=1
+              fi
+            elif [ $t -gt 0 ]; then
+              IFS== read -r kk val <<<"$lne"
+              kk=$(echo $kk|tr -d "\"' ")
+              val=$(echo $val|tr -d "\"'")
+              while [ "${val: -1}" == "\\" ]; do
+                IFS=~ read -r x
+                x=$(echo $x)
+                val="${val:0:-1}$x"
+              done
+              a_add "$tid" "$kk" "$val"
+              if [ "$kk" == "CONFN" ]; then
+                CONFN="$val"
+              fi
             fi
           fi
         done < "$cfndef"
       fi
       if [ -f "$CONFN" ]; then
-        local key
-        local val
-        local x
-        while IFS=\= read -r kk val; do
-          kk=$(echo $kk|tr -d "\"' ")
-          val=$(echo $val|tr -d "\"'")
-          if [ "${kk:0:1}" != "#" ]; then
-            while [ "${val: -1}" == "\\" ]; do
-              IFS=~ read -r x
-              x=$(echo $x)
-              val="${val:0:-1}$x"
-            done
-            a_add "$tid" "$kk" "$val"
+        local key val lne x r t s
+        t=1
+        s=
+        while IFS="#" read -r lne r; do
+          if [ -n "$lne" ]; then
+            if [ "${lne:0:1}" == "[" ]; then
+              s="${lne:1: -1}"
+              t=0
+              if [ "$s" == "Linux" ]; then
+                s=
+                t=1
+              elif [ "$s" == "$XU_DISTO" -o  "$s" == "$XU_FH" ]; then
+                t=1
+              elif [ "$s" == "$4" ]; then
+                t=1
+              fi
+            elif [ $t -gt 0 ]; then
+              IFS== read -r kk val <<<"$lne"
+              kk=$(echo $kk|tr -d "\"' ")
+              val=$(echo $val|tr -d "\"'")
+              while [ "${val: -1}" == "\\" ]; do
+                IFS=~ read -r x
+                x=$(echo $x)
+                val="${val:0:-1}$x"
+              done
+              a_add "$tid" "$kk" "$val"
+            fi
           fi
         done < "$CONFN"
       fi
