@@ -121,6 +121,27 @@ test_01() {
     test_result "find param4" "" "$TRES"
     TRES=$(get_cfg_value "" "param9")
     test_result "find param9" "Long long value parameter" "$TRES"
+
+    eval $(init_cfg)
+    eval $(active_cfg)
+    FCONF="$TESTDIR/test.conf"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $FCONF ]; then rm -f $FCONF; fi
+      echo "#">$FCONF.sample
+      echo "param1=Invalid">$FCONF
+      local FH=$(xuname "-f")
+      echo "[_${FH}_]">>$FCONF
+      echo "param1=Right">>$FCONF
+      if [ "$FH" == "RHEL" ]; then
+        echo "[_Debian_]">>$FCONF
+      else
+        echo "[_RHEL_]">>$FCONF
+      fi
+      echo "param1=Wrong">>$FCONF
+      link_cfg $FCONF
+    fi
+    TRES=$(get_cfg_value "" "param1")
+    test_result "find param1 OS" "Right" "$TRES"
 }
 
 Z0BUG_init
