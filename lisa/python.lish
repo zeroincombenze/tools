@@ -1,8 +1,8 @@
-# Odoo Configuration file
+# Python Configuration file
 # Please, if you update this configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # so your configuration should be shared with other people.
-# Last update: 2016-09-16
+# Last update: 2016-09-24
 #
 # This file may be deployed in /etc/lisa directory.
 # See /etc/lisa/lisa.conf.sample for example of configuration file
@@ -13,8 +13,14 @@
 #
 [Linux]
 
+
 [Debian]
-ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=pip,wheel
+
 
 [CentOS7]
-ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=pip,wheel
+
+
+[CentOS6]
+ReqPkgList=pip

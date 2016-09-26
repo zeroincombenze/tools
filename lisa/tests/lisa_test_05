@@ -51,7 +51,7 @@ test_run () {
       fi
       opt_ij="-J$Package,vsftpd"
     elif [ "$Package" == "pip" -o "$Package" == "python-pip" ]; then
-      local Package="pip"
+      # local Package="pip"
       opt_ij="-Jpip,python-pip"
     elif [ "$Package" == "postgresql-server" ]; then
       if [ "$FH" == "Debian" ]; then
@@ -78,12 +78,12 @@ test_run () {
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
     elif [ "$Package" == "openssh-server" ]; then
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
-    elif [ "$Package" == "dateutil" -a "$Disto" == "CentOS6" ]; then
-      Package=python-dateutil
-      opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
-    elif [ "$Package" == "python-dateutil" -a "$Disto" != "CentOS6" ]; then
-      Package=dateutil
-      opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
+    # elif [ "$Package" == "dateutil" -a "$Disto" == "CentOS6" ]; then
+    #   Package=python-dateutil
+    #   opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
+    # elif [ "$Package" == "python-dateutil" -a "$Disto" != "CentOS6" ]; then
+    #   Package=dateutil
+    #   opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "dateutil" -o "$Package" == "python-dateutil" ]; then
       opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "python" ]; then
@@ -191,11 +191,23 @@ EOF
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS7.05.test
 > yum -y install python-pip
+#
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS6.05.test
-> yum -y install pip
+> yum -y install python-pip
+#
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.05.test
+> apt-get -y install python-pip
+#
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.05.test
+> yum -y install python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS6.05.test
+> yum -y install python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__Debian.05.test
 > apt-get -y install python-pip
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.05.test
@@ -263,7 +275,11 @@ EOF
 > rpm -i wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
 > rm -f wkhtmltox-0.12.2.1_linux-centos6-i386.rpm
 EOF
-  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS6.05.test
+  cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
+> apt-get -y install python-dateutil
+> pip install dateutil
+EOF
+  cat <<EOF >$TESTDIR/res/dateutil__CentOS6.05.test
 > yum -y install wget
 > cd /tmp
 > wget https://pypi.python.org/packages/source/p/python-dateutil//python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5
@@ -271,10 +287,21 @@ EOF
 > rm -f python-dateutil-1.5.tar.gz
 EOF
   cat <<EOF >$TESTDIR/res/dateutil__CentOS7.05.test
+> yum -y install python-dateutil
 > pip install dateutil
 EOF
-  cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
-> pip install dateutil
+  cat <<EOF >$TESTDIR/res/python-dateutil__Debian.05.test
+> apt-get -y install python-dateutil
+EOF
+  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS6.05.test
+> yum -y install wget
+> cd /tmp
+> wget https://pypi.python.org/packages/source/p/python-dateutil//python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5
+> pip install python-dateutil-1.5.tar.gz
+> rm -f python-dateutil-1.5.tar.gz
+EOF
+  cat <<EOF >$TESTDIR/res/python-dateutil__CentOS7.05.test
+> yum -y install python-dateutil
 EOF
 fi
 Real_FH=$(xuname "-f")
@@ -347,6 +374,7 @@ done
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   cat <<EOF >$TESTDIR/res/python__Debian.05.test
+> apt-get -y install python-psycopg2
 # apt-get -y install python
 # pip install setuptools
 > apt-get -y install python-virtualenv
@@ -365,6 +393,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > pip install pytz
 EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.05.test
+> yum -y install python-psycopg2
 # yum -y install python
 # pip install setuptools
 > yum -y install python-virtualenv

@@ -56,16 +56,12 @@ test_run () {
       fi
       local opt_ij="-I$Package -Jvsftpd"
     elif [ "$Package" == "pip" ]; then
-      if [ "$FH" == "Debian" ]; then
-        local Package="python-pip"
-        local opt_ij="-I$Package"
-      elif [ "$Disto" == "CentOS7" ]; then
-        local Package="python-pip"
-        local opt_ij="-I$Package"
-      fi
-    elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
-      local Package="pip"
-      local opt_ij="-I$Package"
+      local opt_ij="-I$Package,python-pip"
+    elif [ "$Package" == "python-pip" ]; then
+      # if [ "$Disto" == "CentOS6" ]; then
+      #  local Package="pip"
+      # fi
+      local opt_ij="-I$Package,python-pip"
     elif [ "$Package" == "postgresql-server" ]; then
       if [ "$FH" == "Debian" ]; then
         local Package="postgresql"
@@ -182,11 +178,12 @@ EOF
 > apt-get -y install postgresql-contrib
 > service postgresql restart
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip.06.test
-> pip install pip --upgrade
+  cat <<EOF >$TESTDIR/res/python-pip__RHEL.06.test
+> yum -y update python-pip
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.06.test
-> pip install pip --upgrade
+> apt-get -y update python-pip
+> apt-get -y upgrade python-pip
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.06.test
 > pip install pip --upgrade

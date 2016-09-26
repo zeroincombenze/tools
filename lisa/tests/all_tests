@@ -19,7 +19,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 
-__version__=0.2.36.6
+__version__=0.2.36.7
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log $@

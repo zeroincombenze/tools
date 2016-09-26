@@ -30,7 +30,7 @@
 # yum install kernel-headers
 # yum install glibc.i686
 
-__version__="0.2.36.6"
+__version__="0.2.36.7"
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -109,93 +109,94 @@ conf_default() {
     # set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
     # set_cfg_def "NAME_VIRTUAL" "LAMP" "0"
     # Packages migrated into pip
-    PIP_PYSTD_PKGS="dateutil Babel pyparsing beaker psycopg2 reportlab decorator"
-    PIP_PYSTD_PKGS="$PIP_PYSTD_PKGS docutils feedparser gevent jinja2"
-    for p in $PIP_PYSTD_PKGS; do
-      x=${p,}
-      if [ "$p" == "pyparsing" ]; then
-        set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
-      else
-        set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
-        set_cfg_def "REAL_python-$x" "$p" "0" "CentOS7"
-        set_cfg_def "REAL_$p" "python-$x" "0" "CentOS6"
-      fi
-      if [ "$x" != "$p" ]; then
-        set_cfg_def "REAL_$x" "$p" "0"
-      fi
-    done
-    PIP_PYSTD_PKGS="pip setuptools wheel $PIP_PYSTD_PKGS"
-    set_cfg_def "PIP_PYSTD_PKGS" "$PIP_PYSTD_PKGS" "0"
-    p="$PIP_PYSTD_PKGS oerplib virtualenv Babel python-ldap python-openid os0"
-    p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
-    p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
-    p="$p simplejson"
-    if [ "$DISTO" != "CentOS6" ]; then
-      p="$p dateutil pyparsing beaker psycopg2 reportlab decorator docutils feedparser gevent"
-      P="$p jinja2"
-    fi
-    set_cfg_def "PIP_PKGS" "$p" "0"
-    set_cfg_def "GIT_PKGS" "lisa odoo pandoc" "0"
-    p="lisa wkhtmltopdf"
-    if [ "$DISTO" == "CentOS6" ]; then
-      p="$p python-dateutil"
-    fi
-    set_cfg_def "WGET_PKGS" "$p" "0"
-    local WGET_PKGS=$p
-    p=""
-    for x in $PIP_PYSTD_PKGS;do
-      if [[ " $WGET_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
-        :
-      else
-        p="$p python-$x"
-      fi
-    done
-    p="$p gcc iptables epel-release yum-utils openssh-server"
-    p="$p postgresql-server python mysql-server postgresql iptables-services"
-    p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
-    p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
-    p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
-    p="$p ncurses-devel sqlite-devel ghostscript antiword docutils-common"
-    p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1"
-    p="$p libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1 poppler-data"
-    p="$p poppler-utils python-babel python-babel-localedata python-decorator"
-    p="$p python-docutils python-feedparser python-gevent python-greenlet"
-    p="$p python-imaging python-jinja2 python-mako python-markupsafe"
-    p="$p python-pil python-psutil python-pybabel python-pychart"
-    p="$p python-pygments python-pyinotify python-pyparsing"
-    p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel"
-    p="$p python-roman python-suds python-unittest2"
-    p="$p python-utidylib python-vobject python-werkzeug wget git"
-    p="$p libapache2-mod-auth-mysql pyopenssl"
-    p="$p vsftpd postgresql-client-common postgresql-contrib"
-    p="$p telnet xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi"
-    p="$p python-virtualenv libxml2 libjpeg-turbo libtiff libyaml"
-    p="$p dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
-    set_cfg_def "STD_PKGS" "$p EVERYTHINGS" "0"
-    p="httpd mariadb mariadb-server php libxml2-python pyOpenSSL libffi-devel"
-    p="$p php-cli libxslt-python python-devel readline zlib1g-dev libreadline6-dev"
-    p="$p php-mysql php-common php-xml php-cli openssh-clients"
-    p="$p bind-utils"
-    set_cfg_def "YUM_PKGS" "$p" "0" "RHEL"
-    p="apache2 php5 python-libxml2 libffi-dev python-openssl build-essential"
-    p="$p python-libxslt1 python-dev libreadline6 zlib-devel readline-devel"
-    p="$p php5-mysql php5-common php5-xml php5-cli openssh-client"
-    set_cfg_def "APT_PKGS" "$p" "0" "Debian"
+    # PIP_PYSTD_PKGS="dateutil Babel pyparsing beaker psycopg2 reportlab decorator"
+    # PIP_PYSTD_PKGS="$PIP_PYSTD_PKGS docutils feedparser gevent jinja2"
+    # for p in $PIP_PYSTD_PKGS; do
+    #   x=${p,}
+    #   if [ "$p" == "pyparsing" ]; then
+    #     set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
+    #   else
+    #     set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
+    #     set_cfg_def "REAL_python-$x" "$p" "0" "CentOS7"
+    #     # set_cfg_def "REAL_$p" "python-$x" "0" "CentOS6"
+    #   fi
+    #   # if [ "$x" != "$p" ]; then
+    #   #   set_cfg_def "REAL_$x" "$p" "0"
+    #   # fi
+    # done
+    # PIP_PYSTD_PKGS="pip setuptools wheel $PIP_PYSTD_PKGS"
+    # set_cfg_def "PIP_PYSTD_PKGS" "$PIP_PYSTD_PKGS" "0"
+    # p="$PIP_PYSTD_PKGS oerplib virtualenv Babel python-ldap python-openid os0"
+    # p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
+    # p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
+    # p="$p simplejson"
+    # if [ "$DISTO" != "CentOS6" ]; then
+    #   p="$p pyparsing beaker psycopg2 reportlab decorator docutils feedparser gevent"
+    #   P="$p jinja2"
+    # fi
+    # set_cfg_def "PIP_PKGS" "$p" "0"
+    # set_cfg_def "GIT_PKGS" "lisa odoo pandoc" "0"
+    # p="lisa wkhtmltopdf"
+    # if [ "$DISTO" == "CentOS6" ]; then
+    #   p="$p python-dateutil"
+    #   set_cfg_def "REAL_dateutil" "python-dateutil" "0" "CentOS6"
+    # fi
+    # set_cfg_def "WGET_PKGS" "$p" "0"
+    # local WGET_PKGS=$p
+    # p=""
+    # for x in $PIP_PYSTD_PKGS;do
+    #   if [[ " $WGET_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
+    #     :
+    #   else
+    #     p="$p python-$x"
+    #   fi
+    # done
+    # p="$p gcc iptables epel-release yum-utils openssh-server"
+    # p="$p postgresql-server python mysql-server postgresql iptables-services"
+    # p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
+    # p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
+    # p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
+    # p="$p ncurses-devel sqlite-devel ghostscript antiword docutils-common"
+    # p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1"
+    # p="$p libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1 poppler-data"
+    # p="$p poppler-utils python-babel python-babel-localedata python-decorator"
+    # p="$p python-docutils python-feedparser python-gevent python-greenlet"
+    # p="$p python-imaging python-jinja2 python-mako python-markupsafe"
+    # p="$p python-pil python-psutil python-pybabel python-pychart"
+    # p="$p python-pygments python-pyinotify python-pyparsing"
+    # p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel"
+    # p="$p python-roman python-suds python-unittest2"
+    # p="$p python-utidylib python-vobject python-werkzeug wget git"
+    # p="$p libapache2-mod-auth-mysql pyopenssl"
+    # p="$p vsftpd postgresql-client-common postgresql-contrib"
+    # p="$p telnet xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi"
+    # p="$p python-virtualenv libxml2 libjpeg-turbo libtiff libyaml"
+    # p="$p dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
+    # set_cfg_def "STD_PKGS" "$p EVERYTHINGS" "0"
+    # p="httpd mariadb mariadb-server php libxml2-python pyOpenSSL libffi-devel"
+    # p="$p php-cli libxslt-python python-devel readline zlib1g-dev libreadline6-dev"
+    # p="$p php-mysql php-common php-xml php-cli openssh-clients"
+    # p="$p bind-utils"
+    # set_cfg_def "YUM_PKGS" "$p" "0" "RHEL"
+    # p="apache2 php5 python-libxml2 libffi-dev python-openssl build-essential"
+    # p="$p python-libxslt1 python-dev libreadline6 zlib-devel readline-devel"
+    # p="$p php5-mysql php5-common php5-xml php5-cli openssh-client"
+    # set_cfg_def "APT_PKGS" "$p" "0" "Debian"
     # Packges requirements
     # set_cfg_def "LAMP_ReqPkgList" "gcc pip iptables" "0" "CentOS7"
     # set_cfg_def "LAMP_ReqPkgList" "gcc pip" "0"
-    set_cfg_def "lisa_ReqPkgList" "wget git" "0"
+    # set_cfg_def "lisa_ReqPkgList" "wget git" "0"
     # p="git unidecode unicodecsv pydot vatnumber BeautifulSoup"
     # set_cfg_def "odoo_ReqPkgList" "python postgresql $p" "0" "Debian"
     # set_cfg_def "odoo_ReqPkgList" "python postgresql-server $p" "0" "RHEL"
-    set_cfg_def "python_ReqPkgList" "pip wheel" "0" "Debian"
-    set_cfg_def "python_ReqPkgList" "pip wheel" "0" "CentOS7"
-    set_cfg_def "python_ReqPkgList" "pip" "0" "CentOS6"
+    # set_cfg_def "python_ReqPkgList" "pip wheel" "0" "Debian"
+    # set_cfg_def "python_ReqPkgList" "pip wheel" "0" "CentOS7"
+    # set_cfg_def "python_ReqPkgList" "pip" "0" "CentOS6"
     set_cfg_def "wkhtmltopdf_ReqPkgList" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
     # Bill of packages
-    set_cfg_def "LAMP" "epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
-    set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
-    set_cfg_def "LAMP" "pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
+    # set_cfg_def "LAMP" "epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
+    # set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
+    # set_cfg_def "LAMP" "pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
@@ -244,7 +245,7 @@ conf_default() {
     p="ghostscript libart-2.0-2 libcupsfilters1"
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
-    p="$p libwebpmux1 poppler-data poppler-utils python-babel python-babel-localedata"
+    p="$p libwebpmux1 poppler-data poppler-utils Babel python-babel-localedata"
     p="$p dateutil decorator==3.4.0 docutils==0.12 feedparser==5.1.3"
     P="$p gevent==1.0.2 python-greenlet python-imaging jinja2==2.7.3 python-mako"
     p="$p python-markupsafe python-openid passlib==1.6.2 python-pil"
@@ -320,8 +321,8 @@ conf_default() {
     set_cfg_def "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
     set_cfg_def "postgresql-server_cmdname" "psql" "0" "RHEL"
     set_cfg_def "postgresql_cmdname" "psql" "0" "Debian"
-    set_cfg_def "pip_xtlcmd_install" "apt-get" "0" "Debian"
-    set_cfg_def "pip_xtlcmd_install" "yum" "0" "RHEL"
+    # set_cfg_def "pip_xtlcmd_install" "apt-get" "0" "Debian"
+    # set_cfg_def "pip_xtlcmd_install" "yum" "0" "RHEL"
     # set_cfg_def "wheel_xtlcmd_install" "apt-get" "0" "Debian"
     # set_cfg_def "wheel_xtlcmd_install" "yum" "0" "RHEL"
     set_cfg_def "mysql-server_cmdname" "mysql" "0"
@@ -393,7 +394,7 @@ conf_default() {
 store_cfg_param_value() {
 #store_cfg_param_value(tid key value [section])
     local p
-    if [[ " REQ " =~ [[:space:]]$2[[:space:]] ]]; then
+    if [[ " BOP " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$4"
     elif [[ " ReqPkgList xtlcmd " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${4}_$2"
@@ -411,8 +412,6 @@ get_conf_pkg() {
     fi
     local tid=1
     while [ $tid -le $conf_level ]; do
-      # echo "[ "$1" == "${CONF_FNS[$tid]}" ] (tid=$tid;lev=$conf_level)"  #debug
-      # echo "<<${DEFDICT1[LAMP_ReqPkgList]}>>" #debug
       if [ "$1" == "${CONF_FNS[$tid]}" ]; then
         return
       fi
@@ -510,15 +509,11 @@ get_prm_value() {
         x="${1:0: -7}"
         if $(is_virtualname $x); then
           p="lisa"
-        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          if [ "$FH" == "RHEL" ]; then
-           p="yum"
-          elif [ "$FH" == "Debian" ]; then
-            p="apt-get"
-          else
-            p="#"
-          fi
+        # elif [ "$x" == "pip" ]; then
+        #   p=
         elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="pip"
+        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="pip"
         elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="git"
@@ -528,6 +523,14 @@ get_prm_value() {
           p="yum"
         elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="apt-get"
+        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          if [ "$FH" == "RHEL" ]; then
+           p="yum"
+          elif [ "$FH" == "Debian" ]; then
+            p="apt-get"
+          else
+            p="#"
+          fi
         else
           p=
         fi
@@ -535,6 +538,8 @@ get_prm_value() {
         x="${1:0: -7}"
         if $(is_virtualname $x); then
           p="lisa"
+        elif [ "$x" == "pip" ]; then
+          p=
         elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           if [ "$FH" == "RHEL" ]; then
             p="rpm"
@@ -544,6 +549,8 @@ get_prm_value() {
             p="#"
           fi
         elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="pip"
+        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="pip"
         elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="git"
@@ -596,6 +603,7 @@ init_cfg_pkg() {
 # init_cfg_pkg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
     # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his    #debug
+    local p x
     LAMP=$(get_prm_value "LAMP")
     LAMP="${LAMP//,/ }"
     NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL)"
@@ -612,13 +620,31 @@ init_cfg_pkg() {
     VFYE2NL="${VFYE2NL//,/ }"
     VFYERR="$(get_prm_value VFYERR)"
     VFYERR="${VFYERR//,/ }"
-    PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS)"
     PIP_PKGS="$(get_prm_value PIP_PKGS)"
+    PIP_PKGS="${PIP_PKGS//,/ }"
     GIT_PKGS="$(get_prm_value GIT_PKGS)"
+    GIT_PKGS="${GIT_PKGS//,/ }"
     WGET_PKGS="$(get_prm_value WGET_PKGS)"
+    WGET_PKGS="${WGET_PKGS//,/ }"
     STD_PKGS="$(get_prm_value STD_PKGS)"
+    STD_PKGS="${STD_PKGS//,/ } EVERYTHINGS"
     YUM_PKGS="$(get_prm_value YUM_PKGS)"
+    YUM_PKGS="${YUM_PKGS//,/ }"
     APT_PKGS="$(get_prm_value APT_PKGS)"
+    APT_PKGS="${APT_PKGS//,/ }"
+    PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS)"
+    PIP_PYSTD_PKGS="${PIP_PYSTD_PKGS//,/ }"
+    for p in $PIP_PYSTD_PKGS; do
+      x="python-$p"
+      set_cfg_def "${p}_ReqPkgList" "$x" "0"
+      if [[ " $WGET_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
+        :
+      elif [[ " $STD_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
+        :
+      else
+        STD_PKGS="$STD_PKGS $x"
+      fi
+    done
 }
 
 print_title() {
@@ -653,9 +679,15 @@ get_iter() {
   if [ -z "$1" ]; then
     local iter="$1"
   else
-    local p=$(get_cfg_value "0" $1)
+    local p tid
+    for tid in 3 2 1 0; do
+      p=$(get_cfg_value $tid $1)
+      if [ -n "$p" ]; then break; fi
+    done
     if [ -n "$p" ]; then
-      local iter="$p"
+      local iter="${p//,/ }"
+    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$1[[:space:]] ]]; then
+    #   local iter="python-$1 $1"
     else
       local iter="$1"
     fi
@@ -1104,8 +1136,14 @@ get_act_xtlcmd() {
     if [ -z "$xtlcmd"  -a "$2" == "remove" ]; then
       xtlcmd=$(get_prm_value "${1}_xtlcmd_install")
     fi
+    if [ "$xtlcmd" == "$1" ] && [ "$2" == "install" -o "$2" == "remove" ]; then
+      xtlcmd=
+    fi
     if [ -z "$xtlcmd" ]; then
       xtlcmd=$(get_prm_value "${1}_xtlcmd")
+    fi
+    if [ "$xtlcmd" == "$1" ] && [ "$2" == "install" -o "$2" == "remove" ]; then
+      xtlcmd=
     fi
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xtlcmd=get_act_xtlcmd($1 $2 $3)">>~/$THIS.his; fi    #debug
     echo "$xtlcmd"
@@ -1120,16 +1158,18 @@ get_full_xtlcmd() {
     local p=" $2"
     if [ "$2" == "EVERYTHINGS" ]; then
       p=""
-    elif [ "$2" == "pip" -a "$1" == "install" -a "$DISTO" != "CentOS6" ]; then
-        p=" python-$2"
-    elif [ "$2" == "pip" -a "$1" == "remove" -a "$DISTO" != "CentOS6" ]; then
-        p=" python-$2"
-    elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] && [[ $3 =~ p ]]; then
-      p=" python-$2"
-    elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
-      if [ "$1" == "install" -o "$1" == "remove" ]; then
-        p=" python-$2"
-      fi
+    # elif [[ " pip setuptools wheel " =~ [[:space:]]$2[[:space:]] ]] && [ "$1" == "install" -o "$1" == "remove" ] && [ "$DISTO" != "CentOS6" ]; then
+    #   p=" python-$2"
+    # elif [ "$2" == "pip" -a "$1" == "install" -a "$DISTO" != "CentOS6" ]; then
+    #     p=" python-$2"
+    # elif [ "$2" == "pip" -a "$1" == "remove" -a "$DISTO" != "CentOS6" ]; then
+    #     p=" python-$2"
+    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] && [[ $3 =~ p ]]; then
+    #   p=" python-$2"
+    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
+    #   if [ "$1" == "install" -o "$1" == "remove" ]; then
+    #     p=" python-$2"
+    #   fi
     fi
     if [ "$xtlcmd" == "yum" -o "$xtlcmd" == "apt-get" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
@@ -1149,6 +1189,8 @@ get_full_xtlcmd() {
       if [ "$1" == "update" -o "$1" == "remove" ]; then
         xtlcmd="# $xtlcmd"
       fi
+    elif [ -z "$xtlcmd" ]; then
+      xtlcmd="#"
     fi
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_full_xtlcmd($1 $2 $3)">>~/$THIS.his; fi    #debug
     echo "$xtlcmd"
@@ -1833,17 +1875,17 @@ do_dry_install_by_git() {
 do_dry_update_package() {
 # do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
-    if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
-      local cmd=$(get_act_xtlcmd python-$2 install $3 $4 "$5")
-      if [ -n "$cmd" ]; then
-        cmd=$(get_full_xtlcmd $1 python-$2 $3 $4 "$5")
-        run_traced "$cmd"
-        if [ "${cmd:0:7}" == "apt-get" ]; then
-          cmd="${cmd/update/upgrade}"
-          run_traced "$cmd"
-        fi
-      fi
-    else
+    # if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
+    #   local cmd=$(get_act_xtlcmd python-$2 install $3 $4 "$5")
+    #   if [ -n "$cmd" ]; then
+    #     cmd=$(get_full_xtlcmd $1 python-$2 $3 $4 "$5")
+    #     run_traced "$cmd"
+    #     if [ "${cmd:0:7}" == "apt-get" ]; then
+    #       cmd="${cmd/update/upgrade}"
+    #       run_traced "$cmd"
+    #     fi
+    #   fi
+    # else
       cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
       run_traced "$cmd"
       local sts=$?
@@ -1852,26 +1894,18 @@ do_dry_update_package() {
         run_traced "$cmd"
         sts=$?
       fi
-    fi
+    # fi
     return $sts
 }
 
 do_dry_remove_package() {
 # do_dry_remove_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_package($1 $2 $3)">>~/$THIS.his; fi #debug
-    cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his; fi    #debug
     run_traced "$cmd"
-    local sts=$?
-    if [ "$2" != "pip" ] && [[ " $PIP_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
-      cmd=$(get_full_xtlcmd install $2 $3 $4 "$5")
-      cmd="${cmd/install/$1}"
-      run_traced "$cmd"
-      local s=$?
-      if [ $s -ne $STS_SUCCESS ]; then
-        sts=$s
-      fi
-    fi
-    return $sts
+    return $?
+
 }
 
 do_dry_update_lisa() {
@@ -2190,6 +2224,9 @@ do_1_info_package() {
     local pkgname=$(get_realname "$2" $3)
     local pkglist=$(please tellme $2 $3 realname)
     local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
+    if [ -z "$xtlcmd" ]; then
+      xtlcmd=$(get_act_xtlcmd $pkgname "" $3 $4 "$5")
+    fi
     local svcname=$(get_prm_value "${pkgname}_svcname")
     local cmdname=$(get_prm_value "${pkgname}_cmdname")
     local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
@@ -2245,6 +2282,9 @@ do_dry_version_package() {
     do_1_status_package "$@"
     if [ $? -ne $STS_SUCCESS ]; then
       local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+      if [ -z "$xtlcmd" ]; then
+        xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
+      fi
       cmd="wlog \"$lm$pkgname should be installed by $xtlcmd\""
     else
       pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
@@ -2268,6 +2308,9 @@ do_dry_whatis_package() {
     # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+    if [ -z "$xtlcmd" ]; then
+      xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
+    fi
     local svcname=$(get_prm_value "${2}_svcname")
     local cmdname=$(get_prm_value "${2}_cmdname")
     local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
@@ -2449,16 +2492,16 @@ do_local_function() {
     if [ "$1" == "pre_" -a -z "$ij" ] && [[ " install update remove " =~ $3 ]]; then
       do_1_status_package $3 $pkg $5 "$6" "$7"
       sts=$?
-      if [ $sts -ne $STS_SUCCESS ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$4[[:space:]] ]]; then
-        pkg=python-$pkg
-        do_1_status_package $3 $pkg $5 $6 "$7"
-        sts=$?
-        if [ $sts -ne $STS_SUCCESS ]; then
-          pkg=$4
-        elif [ "$4" != "pip" ]; then
-          DETECTED_NOPIP="$DETECTED_NOPIP $4"
-        fi
-      fi
+      # if [ $sts -ne $STS_SUCCESS ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$4[[:space:]] ]]; then
+      #   pkg=python-$pkg
+      #   do_1_status_package $3 $pkg $5 $6 "$7"
+      #   sts=$?
+      #   if [ $sts -ne $STS_SUCCESS ]; then
+      #     pkg=$4
+      #   elif [ "$4" != "pip" ]; then
+      #     DETECTED_NOPIP="$DETECTED_NOPIP $4"
+      #   fi
+      # fi
       if [ "$3" == "install" ]; then
         if [ $sts -ne $STS_SUCCESS ]; then
           sts=$STS_SUCCESS
@@ -2768,7 +2811,7 @@ __lisa_install_odoo() {
 }
 
 lisa_update_odoo() {
-# lisa_install_lisa::pkgname opt_yes xtlcmd, stscmd STD_PKGS, PIP_PKGS
+# lisa_install_lisa
     # init_odoo_env
     if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
       local ov_iter="9 8 7"

@@ -235,7 +235,7 @@ odoo (by git)
 --pyOpenSSL (by yum)
 --python-pychart (by yum)
 --pyparsing (by pip)
---python-beaker (by yum)
+--beaker (by pip)
 --python-dateutil (by wget)
 --python-docutils (by yum)
 --python-feedparser (by yum)
@@ -273,11 +273,14 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
   cat <<EOF >$TESTDIR/res/LAMP__$Disto.08.test
 > yum install gcc
 > yum install python-pip
+#
 > yum install iptables
 > systemctl start iptables
 > chkconfig iptables on
 > yum -y install epel-release
 > yum -y install python-pip
+#
+> yum -y install python-wheel
 > pip install wheel
 > yum -y install yum-utils
 > yum -y install libffi-devel
@@ -299,8 +302,6 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 > systemctl start postgresql
 > chkconfig postgresql on
 # yum -y install php
-> yum -y install python-pip
-> pip install wheel
 # yum -y install python
 EOF
   test_run "install $Package" "$Package" "$Disto" "install"

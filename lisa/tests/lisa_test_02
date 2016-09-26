@@ -106,34 +106,28 @@ apache2 (install by apt-get)
  get ver=apachectl -v
 EOF
       cat <<EOF >$TESTDIR/res/pip__Debian.02.test
-pip (install by apt-get)
+pip (install by pip)
  command=pip
  get ver=pip --version
 EOF
       cat <<EOF >$TESTDIR/res/pip__CentOS7.02.test
-pip (install by yum)
+pip (install by pip)
  command=pip
  get ver=pip --version
 EOF
       cat <<EOF >$TESTDIR/res/pip__CentOS6.02.test
-pip (install by yum)
+pip (install by pip)
  command=pip
  get ver=pip --version
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__CentOS7.02.test
-python-pip=pip (install by yum)
- command=pip
- get ver=pip --version
+python-pip (install by yum)
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__CentOS6.02.test
-python-pip=pip (install by yum)
- command=pip
- get ver=pip --version
+python-pip (install by yum)
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__Debian.02.test
-python-pip=pip (install by apt-get)
- command=pip
- get ver=pip --version
+python-pip (install by apt-get)
 EOF
       cat <<EOF >$TESTDIR/res/mysql__Debian.02.test
 mysql=mysql-server (install by apt-get)

@@ -56,6 +56,8 @@
 #
 
 [_Linux_]
+# lisa itself needs wget o git
+lisa_ReqPkgList=wget,git
 # REAL_OSSERVICE declares OS command to run/stop services. Value are: (service|systemctl)
 REAL_OSSERVICE=service
 # REAL_pkgname, wher pkgname is specific package name declares the real name
@@ -63,9 +65,9 @@ REAL_OSSERVICE=service
 # This parameter help end user to install package on every distribution, even
 # if it supplies wrong name. Please look at REAL_apache2 and REAL_httpd
 # to understand how this parameter works.
-# Real name of python-pip and python-setuptools
-REAL_python-pip=pip
-REAL_python-setuptools=setuptools
+# # Real name of python-pip and python-setuptools
+# REAL_python-pip=pip
+# REAL_python-setuptools=setuptools
 # If user supplies mysql
 REAL_mysql=mysql-server
 # Other packages
@@ -78,6 +80,42 @@ VFYE2NL=None
 VFYERR=ssh,python
 NOINQ=vsftpd,postgresql-client-common,postgresql-contrib,ghostscript,odoo
 NAME_VIRTUAL=LAMP
+# Packages migrated into pip
+PIP_PYSTD_PKGS=pip,setuptools,wheel,\
+               dateutil,Babel,pyparsing,beaker,psycopg2,reportlab,decorator,\
+               docutils,feedparser,gevent,jinja2
+# Packages intalled by pip
+PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
+    pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
+    passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
+    simplejson
+# Packages cloned by git
+GIT_PKGS=lisa,odoo,pandoc
+# Packages downloaded by wget
+WGET_PKGS=lisa,wkhtmltopdf
+# Standard packages (intalled by yum or apt-get)
+STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
+         postgresql-server,python,mysql-server,postgresql,iptables-services,\
+         php-mysql,php-common,php-xml,bzip2-devel,mod_ssl,mod_proxy_html,\
+         openssl-devel,libssl-dev,docutils-doc,libart-2.0-2,\
+         libcupsfilters1,libcupsimage2,libgs9,libgs9-common,\
+         ncurses-devel,sqlite-devel,ghostscript,antiword,docutils-common,\
+         libijs-0.35,libjbig2dec0,liblcms2-2,libpaper-utils,libpaper1,\
+         libpoppler44,libtidy-0.99-0,libwebp5,libwebpmux1,poppler-data,\
+         poppler-utils,python-babel,python-babel-localedata,python-decorator,\
+         python-docutils,python-feedparser,python-gevent,python-greenlet,\
+         python-imaging,python-jinja2,python-mako,python-markupsafe,\
+         python-pil,python-psutil,python-pybabel,python-pychart,\
+         python-pygments,python-pyinotify,python-pyparsing,\
+         python-pypdf,python-renderpm,python-reportlab,python-reportlab-accel,\
+         python-roman,python-suds,python-unittest2,\
+         python-utidylib,python-vobject,python-werkzeug,wget,git,\
+         libapache2-mod-auth-mysql,pyopenssl,\
+         vsftpd,postgresql-client-common,postgresql-contrib,\
+         telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
+         python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
+         dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem
+
 
 [_Debian_]
 # Commands templates
@@ -101,6 +139,11 @@ REAL_libxml2-python=python-libxml2
 REAL_libxslt-python=python-libxslt1
 REAL_zlib1g-dev=zlib-devel
 REAL_libreadline6-dev=readline-devel
+# Standard packages
+APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
+         python-libxslt1,python-dev,libreadline6,zlib-devel,readline-devel,\
+         php5-mysql,php5-common,php5-xml,php5-cli,openssh-client
+
 
 [_RHEL_]
 # Commands templates
@@ -116,7 +159,6 @@ REAL_php5-mysql=php-mysql
 REAL_php5-common=php-common
 REAL_php5-xml=php-xml
 REAL_php5-cli=php-cli
-
 # python
 REAL_python-dev=python-devel
 # Other packages
@@ -126,21 +168,40 @@ REAL_python-libxml2=libxml2-python
 REAL_python-libxslt1=libxslt-python
 REAL_zlib-devel=zlib1g-dev
 REAL_readline-devel=libreadline6-dev
+# Standard packages
+YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,pyOpenSSL,libffi-devel,\
+         php-cli,libxslt-python,python-devel,readline,zlib1g-dev,libreadline6-dev,\
+         php-mysql,php-common,php-xml,php-cli,openssh-clients,\
+         bind-utils
+
 
 [_Ubuntu12_]
 # mariadb does non exists in Ubuntu12
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 
+
 [_Ubuntu14_]
 # mariadb does non exists in Ubuntu14
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 
+
 [_CentOS6_]
 # mariadb does non exists in CentOS6
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
+REAL_dateutil=python-dateutil
+# Packages intalled by pip
+PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
+    pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
+    passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
+    simplejson,\
+    pyparsing,beaker,psycopg2,reportlab,decorator,docutils,feedparser,gevent,\
+    jinja2
+# Packages downloaded by wget
+WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
+
 
 [_CentOS7_]
 # CentOS7 use systemctl instead of service command

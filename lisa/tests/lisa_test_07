@@ -51,17 +51,17 @@ test_run () {
         local Package="httpd"
       fi
       local opt_ij="-I$Package,vsftpd"
-    elif [ "$Package" == "pip" ]; then
-      if [ "$FH" == "Debian" ]; then
-        local Package="python-pip"
-        local opt_ij="-I$Package"
-      elif [ "$Disto" == "CentOS7" ]; then
-        local Package="python-pip"
-        local opt_ij="-I$Package"
-      fi
-    elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
-      local Package="pip"
-      local opt_ij="-I$Package"
+    elif [ "$Package" == "pip" -o "$Package" == "python-pip" ]; then
+      # if [ "$FH" == "Debian" ]; then
+      #  local Package="python-pip"
+        local opt_ij="-I$Package,python-pip"
+      # elif [ "$Disto" == "CentOS7" ]; then
+      #   local Package="python-pip"
+      #   local opt_ij="-I$Package"
+      # fi
+    # elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
+    #   local Package="pip"
+    #   local opt_ij="-I$Package"
     elif [ "$Package" == "postgresql-server" ]; then
       if [ "$FH" == "Debian" ]; then
         local Package="postgresql"
@@ -158,15 +158,19 @@ EOF
 # apt-get -y remove postgresql-contrib
 > apt-get autoremove
 EOF
+  cat <<EOF >$TESTDIR/res/pip.07.test
+#
+EOF
+  cat <<EOF >$TESTDIR/res/pip__Debian.07.test
+#
+> apt-get autoremove
+EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.07.test
 > apt-get -y remove python-pip
 > apt-get autoremove
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__RHEL.07.test
 > yum -y remove python-pip
-EOF
-  cat <<EOF >$TESTDIR/res/pip.07.test
-> yum -y remove pip
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.07.test
 > service ssh stop

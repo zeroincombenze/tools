@@ -15,5 +15,15 @@
 [_Linux_]
 ReqPkgList=gcc,pip
 
+
+[_Debian_]
+LAMP=pip,LAMP_security,openssh-server,apache2,mysql-server,postgresql,php5,python
+
+
 [_CentOS7_]
 ReqPkgList=gcc,pip,iptables
+LAMP=epel-release,pip,wheel,yum-utils,LAMP_security,openssh-server,httpd,mariadb,postgresql-server,php,python
+
+
+[_CentOS6_]
+LAMP=epel-release,pip,yum-utils,LAMP_security,openssh-server,httpd,mysql-server,postgresql-server,php,python
