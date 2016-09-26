@@ -23,7 +23,7 @@ else
   exit $STS_FAILED
 fi
 
-__version__="1.3.15"
+__version__="1.3.16"
 
 
 detached_login() {
@@ -202,6 +202,16 @@ fi
 if [ -z "$NDAYSB" ]; then
   NDAYSB=yesterday
 fi
+ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
+if [ -z "$ODOO_RPC_HOST" ]; then ODOO_RPC_HOST=localhost; fi
+ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
+if [ -z "$ODOO_RPC_PROTOCOL" ]; then ODOO_RPC_PROTOCOL=xmlrpc; fi
+ODOO_RPC_XMLPORT="$(get_cfg_value 0 odoo_rpc_xmlport)"
+if [ -z "$ODOO_RPC_XMLPORT" ]; then ODOO_RPC_XMLPORT=8069; fi
+ODOO_VERSION="$(get_cfg_value 0 odoo_version)"
+if [ -z "$ODOO_VERSION" ]; then ODOO_VERSION=7.0; fi
+ODOO_RPC_PWD="$(get_cfg_value 0 odoo_rpc_pwd)"
+if [ -z "$ODOO_RPC_PWD" ]; then ODOO_RPC_PWD=admin; fi
 ctr=0
 passed=""
 for NEWDB in ${NEWDBS//,/ }; do
@@ -241,29 +251,42 @@ for NEWDB in ${NEWDBS//,/ }; do
     if [ "$NEWDB" == "$OLDDB" -a "$dtdb" != "00000000" ]; then
       backup_db $OLDDB
     fi
-    echo "DROP DATABASE IF EXISTS $NEWDB;">$NEWDB.txt
-    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$NEWDB.txt
-    echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$NEWDB.txt
+    pycmd=$HOME/$NEWDB.py
+    echo "import oerplib">$pycmd
+    echo "oerp = oerplib.OERP(server='$ODOO_RPC_HOST',">>$pycmd
+    echo "                    protocol='$ODOO_RPC_PROTOCOL',">>$pycmd
+    echo "                    port='$ODOO_RPC_XMLPORT',">>$pycmd
+    echo "                    version='$ODOO_VERSION')">>$pycmd
+    echo "oerp.db.drop('$ODOO_RPC_PWD',">>$pycmd
+    echo "             '$NEWDB')">>$pycmd
+    python $pycmd
+    fsql=$HOME/$NEWDB.sql
+    wlog "Prepare file script $fsql ..."
+    echo "\\c postgres">$fsql
+    echo "\\echo Creating new DB $NEWDB">>$fsql
+    echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
+    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
+    echo "\\c $NEWDB">>$fsql
+    echo "\\echo Loading data into DB $NEWDB">>$fsql
+    echo "\\i $DBCKDIR/$OLDDB-$dtdb.sql">>$fsql
+    if [ $opt_mail -gt 0 ]; then
+      wlog "Database without inbound/outbound mails"
+      echo "\\echo Disabling inbound mails ...">>$fsql
+      # echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">>$fsql
+      echo "update fetchmail_server set active=false;">>$fsql
+      echo "\\echo Disabling outbound mails ...">>$fsql
+      echo "update ir_mail_server set active=false;">>$fsql
+      echo "\\echo Disabling automatic actions ...">>$fsql
+      echo "update base_action_rule set active=false;">>$fsql
+    fi
+    echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$fsql
     if [ $opt_dry_run -eq 0 ]; then
       kill_process
-      echo "Creating new DB $NEWDB"
-      psql -U$opt_user -d postgres -f $NEWDB.txt -o ${NEWDB}_pre.log
-      echo "Loading data into DB $NEWDB"
-      psql -U$opt_user -d $NEWDB -f $DBCKDIR/$OLDDB-$dtdb.sql -o $NEWDB.log
+      wlog "Starting restore $NEWDB"
+      psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
+      wlog "Restore $NEWDB terminated"
+      rm -f $pycmd
       ((ctr++))
-    fi
-    if [ $opt_mail -gt 0 ]; then
-      fsql=$HOME/dup4test.sql
-      wlog "Disabling inbound mails ..."
-      echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">$fsql
-      echo "update fetchmail_server set active=false;">>$fsql
-      wlog "Disabling outbound mails ..."
-      echo "update ir_mail_server set active=false;">>$fsql
-      wlog "Disabling automatic actions ..."
-      echo "update base_action_rule set active=false;">>$fsql
-      if [ $opt_dry_run -eq 0 ]; then
-        psql -U$opt_user -d $NEWDB -f $fsql
-      fi
     fi
     passed="$passed $NEWDB $dtdb"
   done
