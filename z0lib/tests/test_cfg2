@@ -18,14 +18,14 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 
-__version__=0.1.23
+__version__=0.1.24
 
 PASSED=0
 
 store_cfg_param_value() {
-#store_cfg_param_value(tid key value [section])
+#store_cfg_param_value(tid key value [opt] [section])
     PASSED=1
-    a_add "$1" "$2" "$3"
+    a_add "$1" "$2" "$3" "$4"
 }
 
 test_01() {

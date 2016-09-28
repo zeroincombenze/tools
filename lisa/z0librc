@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.1.41
+#__version__=1.1.41.1
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -578,7 +578,9 @@ a_active() {
       local x=$(xuname "-v")
       XU_DISTO=$(xuname "-d")${x:0:1}
     fi
-    cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -A DEFDICT$tid DEFRULE$tid"
+    # declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
+    # declare -gA DEFDICT$tid DEFRULE$tid
+    cmd="XU_FH=$XU_FH XU_DISTO=$XU_DISTO; declare -gA DEFDICT$tid DEFRULE$tid"
     echo $cmd
     $SET_X
 }
@@ -882,7 +884,7 @@ export -f set_cfg_def
 
 _read_cfg_file() {
 #read_cfg_file(file $tid [section])
-    local key val lne x r t s
+    local key val lne x r t s d
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
     else
@@ -890,6 +892,7 @@ _read_cfg_file() {
     fi
     t=1
     s=
+    d=
     while IFS="#" read -r lne r; do
       if [ -n "$lne" ]; then
         if [ "${lne:0:1}" == "[" ]; then
@@ -898,14 +901,22 @@ _read_cfg_file() {
           if [ "$s" == "_Linux_" ]; then
             t=1
             s="$3"
-          elif [ "$s" == "_${XU_DISTO}_" -o  "$s" == "_${XU_FH}_" ]; then
+            d=
+          elif [ "$s" == "_${XU_DISTO}_" ]; then
             t=1
             s="$3"
+            d=-d
+          elif [ "$s" == "_${XU_FH}_" ]; then
+            t=1
+            s="$3"
+            d=-f
           elif [ "$s" == "$3" ]; then
             t=1
             s="$3"
+            d=
           elif [ -z "$3" -a "${s:0:1}" != "_" -a "${s:0: -1}" != "_" ]; then
             t=1
+            d=
           fi
         elif [ $t -gt 0 ]; then
           IFS== read -r kk val <<<"$lne"
@@ -917,7 +928,7 @@ _read_cfg_file() {
               x=$(echo $x)
               val="${val:0:-1}$x"
             done
-            $store_param $2 $kk "$val" "$s"
+            $store_param $2 $kk "$val" "$d" "$s"
             if [ "$kk" == "CONFN" ]; then
               CONFN="$val"
             fi
