@@ -25,7 +25,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
 
-__version__="1.3.17"
+__version__="1.3.17.1"
 
 
 detached_login() {
@@ -191,6 +191,7 @@ TEST_DB="$(get_cfg_value 0 test_db)"
 if [ -z "$TEST_DB" ]; then
   TEST_DB="$(get_cfg_value 0 bck_db)"
 fi
+wlog "TEST_DB=$TEST_DB"
 if [[ $seldate =~ [0-9]{8} ]]; then
   NDAYSB=$seldate
 elif [ "$HOSTNAME" == "$HOST_PRD" ]; then
@@ -236,8 +237,10 @@ for NEWDB in ${NEWDBS//,/ }; do
       opt_mail=0
       if [ "$HOSTNAME" == "$HOST_DEV" ]; then
         opt_mail=1
+        wlog "Restored DB is for test because Development Host"
       elif [[ $NEWDB =~ $TEST_DB ]]; then
         opt_mail=1
+        wlog "Restored DB is for test as classificated"
       fi
     fi
     echo "Searching $DBCKDIR/$OLDDB-$dtdb.sql"
@@ -318,7 +321,9 @@ for NEWDB in ${NEWDBS//,/ }; do
       wlog "Starting restore $NEWDB"
       kill_process
       python $pycmd
-      $bashcmd &
+      if [ $opt_mail -gt 0 ]; then
+        $bashcmd &
+      fi
       psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
       rm -f $pycmd
       rm -f $bashcmd
