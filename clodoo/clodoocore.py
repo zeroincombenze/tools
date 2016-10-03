@@ -24,7 +24,7 @@
 from os0 import os0
 from clodoolib import debug_msg_log
 
-__version__ = "0.1.5"
+__version__ = "0.1.5.1"
 
 
 def _get_model_bone(oerp, ctx, o_model):
@@ -449,6 +449,8 @@ def _get_model_parms(oerp, ctx, o_model, value):
         if x.find(',') >= 0:
             name = x.split(',')
             value = value.split(',')
+        else:
+            name = x
     return model, name, value, hide_cid, fldname
 
 
