@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.15"
+__version__ = "0.2.69.16"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1179,8 +1179,7 @@ def create_reconcile_list(oerp, account_invoice_obj, payments,
                           inv_id, move_id, ctx):
     reconcile_list = []
     if account_invoice_obj.payment_ids:
-        pdb.set_trace()
-        partner_id = oerp.browse('account.invoice', inv_id)
+        partner_id = oerp.browse('account.invoice', inv_id).id
         reconcile_list = oerp.search('account.move.line',
                                      [('move_id', '=', move_id),
                                       ('partner_id', '=', partner_id),
@@ -1220,7 +1219,7 @@ def add_inv_4_draft(oerp, move_line_obj, invoices, payments,
                                                        move_id,
                                                        ctx)
                 if len(reconcile_list) > 0:
-                    reconcile_ids[id] = reconcile_list
+                    reconcile_ids[inv_id] = reconcile_list
                 elif account_invoice_obj.state == 'paid' or \
                         account_invoice_obj.state == 'open':
                     invoices.append(inv_id)
@@ -1448,7 +1447,7 @@ def set_account_type(oerp, ctx):
                                                                 payments,
                                                                 reconcile_ids,
                                                                 ctx)
-    # pdb.set_trace()
+    pdb.set_trace()
     sts = upd_journals_ena_del(oerp, journals, ctx)
     if sts == STS_SUCCESS:
         sts = upd_payment_2_draft(oerp, payments, ctx)
