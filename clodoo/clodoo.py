@@ -23,7 +23,7 @@
 
 """
 
-import pdb
+# import pdb
 import os.path
 import sys
 from os0 import os0
@@ -49,6 +49,10 @@ __version__ = "0.2.69.16"
 APPLY_CONF = True
 STS_FAILED = 1
 STS_SUCCESS = 0
+
+PAY_MOVE_STS_2_DRAFT = ('posted')
+INVOICES_STS_2_DRAFT = ('open', 'paid')
+STATES_2_DRAFT = ('open', 'paid', 'posted')
 
 db_msg_sp = 0
 db_msg_stack = []
@@ -1175,58 +1179,121 @@ def act_set_4_cscs(oerp, ctx):
     return sts
 
 
-def create_reconcile_list(oerp, account_invoice_obj, payments,
-                          inv_id, move_id, ctx):
-    reconcile_list = []
-    if account_invoice_obj.payment_ids:
-        partner_id = oerp.browse('account.invoice', inv_id).id
-        reconcile_list = oerp.search('account.move.line',
-                                     [('move_id', '=', move_id),
-                                      ('partner_id', '=', partner_id),
-                                      ])
-        for move_line_obj in account_invoice_obj.payment_ids:
-            payments, recp = add_pay_4_draft(oerp,
-                                             move_line_obj,
-                                             payments,
-                                             ctx)
-            reconcile_list.append(recp)
-    return reconcile_list
-
-
-def add_pay_4_draft(oerp, move_line_obj, payments, ctx):
+def get_payment_info(oerp, move_line_obj, ctx):
+    """Return move (header) and move_line (detail) ids of passed move line
+    record and return payment state if needed to become draft
+    """
+    move_line_id = move_line_obj.id
     move_id = move_line_obj.move_id.id
-    if move_id not in payments:
-        move_obj = oerp.browse('account.move', move_id)
-        if move_obj.state == 'posted':
-            payments.append(move_id)
-    return payments, move_id
+    move_obj = oerp.browse('account.move', move_id)
+    mov_state = False
+    if move_obj.state in PAY_MOVE_STS_2_DRAFT:
+        mov_state = move_obj.state
+    return move_id, move_line_id, mov_state
 
 
-def add_inv_4_draft(oerp, move_line_obj, invoices, payments,
-                    reconcile_ids, ctx):
+def get_reconcile_from_inv(oerp, inv_id, ctx):
+    """Return a list of reconciled move lines of passed (included) invoice
+    List may be used to set unreconcile all movements, set draft all of them,
+    update something and then reconcile again all movements.
+    If there no reconcile movements, returned list is empty
+    @param inv_id: invoice (header) id
+    @return: list of reconciled move lines of passed (included) invoice
+    @return: dictionary of posted movements (header) to set to draft state
+    """
+    # Payment move line (detail) list
+    reconciles = []
+    # For every state, store move (header) list to update state
+    move_dict = {}
+    for state in STATES_2_DRAFT:
+        move_dict[state] = []
+    account_invoice_obj = oerp.browse('account.invoice',
+                                      inv_id)
+    if account_invoice_obj.payment_ids:
+        partner_id = account_invoice_obj.partner_id.id
+        move_id = account_invoice_obj.move_id.id
+        reconciles = oerp.search('account.move.line',
+                                 [('move_id', '=', move_id),
+                                  ('partner_id', '=', partner_id), ])
+        for move_line_obj in account_invoice_obj.payment_ids:
+            move_id, move_line_id, mov_state = get_payment_info(oerp,
+                                                                move_line_obj,
+                                                                ctx)
+            reconciles.append(move_line_id)
+            if mov_state:
+                move_dict[state].append(move_id)
+    if account_invoice_obj.state in INVOICES_STS_2_DRAFT:
+        move_dict[account_invoice_obj.state].append(inv_id)
+    return reconciles, move_dict
+
+
+def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
+    """Like get_reconcile_from_inv but it is passed move_line id
+    If move_line is not of an invoice, returned lists are empties.
+    @param move_line_obj: record of move_line (may be invoice or not)
+    @return: list of reconciled move lines of passed (included) invoice
+    @return: dictionary of posted movements (header) to set to draft state
+    """
+    # For every invoice id, store payment move line (detail) list
+    reconcile_dict = {}
+    # For every state, store move (header) list to update state
+    move_dict = {}
+    for state in STATES_2_DRAFT:
+        move_dict[state] = []
     move_id = move_line_obj.move_id.id
     invoice_ids = oerp.search('account.invoice',
                               [('move_id', '=', move_id)])
     if len(invoice_ids):
         for inv_id in invoice_ids:
-            if inv_id not in invoices:
-                account_invoice_obj = oerp.browse('account.invoice',
-                                                  inv_id)
-                reconcile_list = create_reconcile_list(oerp,
-                                                       account_invoice_obj,
-                                                       payments,
-                                                       inv_id,
-                                                       move_id,
-                                                       ctx)
-                if len(reconcile_list) > 0:
-                    reconcile_ids[inv_id] = reconcile_list
-                elif account_invoice_obj.state == 'paid' or \
-                        account_invoice_obj.state == 'open':
-                    invoices.append(inv_id)
-    return invoices, payments, reconcile_ids
+            reconciles, inv_move_dict = \
+                get_reconcile_from_inv(oerp,
+                                       inv_id,
+                                       ctx)
+            for state in STATES_2_DRAFT:
+                if len(inv_move_dict[state]):
+                    move_dict[state] = list(set(move_dict[state]) |
+                                            set(inv_move_dict[state]))
+            if inv_id in reconcile_dict:
+                reconcile_dict[inv_id] = \
+                    list(set(reconcile_dict[inv_id]) | reconciles)
+            else:
+                reconcile_dict[inv_id] = reconciles
+    else:
+        move_id, move_line_id, mov_state = get_payment_info(oerp,
+                                                            move_line_obj,
+                                                            ctx)
+        if mov_state:
+            move_dict[mov_state].append(move_id)
+    return reconcile_dict, move_dict
+
+
+def get_reconcile_from_invoices(oerp, invoices, ctx):
+    """Search for payments of all invoices and return reconcile list
+    List may be used to set unreconcile all movements, set draft all of them,
+    update something and then reconcile again all movements.
+    @param invoices: invoice (header) list
+    @return: dictionary of reconciled move lines of passed (included) invoice
+    @return: list of posted payments to set draft
+    @return: flag true if invoice is to set in draft state to update
+    """
+    reconcile_dict = {}
+    payment_dict = []
+    if len(invoices):
+        for inv_id in invoices:
+            inv_reconciles, inv_payments, inv_state = \
+                get_reconcile_from_inv(oerp,
+                                       inv_id,
+                                       ctx)
+            reconcile_dict[inv_id] = inv_reconciles
+            payment_dict = list(set(payment_dict) | set(inv_payments))
+    return reconcile_dict, payment_dict
 
 
 def upd_journals_ena_del(oerp, journals, ctx):
+    """Before set invoices to draft, invoice has to set in cancelled state.
+    To do this, journal has to be enabled
+    @param journals: journal list to enable update_posted
+    """
     if len(journals):
         vals = {}
         vals['update_posted'] = True
@@ -1241,148 +1308,148 @@ def upd_journals_ena_del(oerp, journals, ctx):
     return STS_SUCCESS
 
 
-def upd_payment_2_draft(oerp, payments, ctx):
-    if len(payments):
-        try:
-            msg = u"Update payments to draft " + str(payments)
+def upd_invoices_2_draft(oerp, move_dict, ctx):
+    """Set invoices (header) list to draft state.
+    See upd_invoices_2_posted to return in posted state
+    @param move_dict: invoices (header) list to set in draft state
+    """
+    for state in INVOICES_STS_2_DRAFT:
+        if len(move_dict[state]):
+            invoices = move_dict[state]
+            msg = u"Update invoices to draft %s " % invoices
             msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.move',
-                         "button_cancel",
-                         payments)
-        except:
-            msg = u"Cannot update payment status"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-    return STS_SUCCESS
-
-
-def upd_payment_2_posted(oerp, payments, ctx):
-    if len(payments):
-        try:
-            msg = u"Update recs to posted " + str(payments)
-            msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.move',
-                         "button_validate",
-                         payments)
-        except:
-            msg = u"Cannot restore registration status"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-    return STS_SUCCESS
-
-
-def upd_inv_2_draft(oerp, invoices, reconcile_ids, ctx):
-    partners = []
-    if len(invoices):
-        msg = u"Unreconcile invoices "
-        msg_log(ctx, ctx['level'], msg)
-        del_list = []
-        for inv_id in reconcile_ids:
             try:
-                context = {'active_ids': reconcile_ids[inv_id]}
-                oerp.execute('account.unreconcile',
-                             'trans_unrec',
-                             None,
-                             context)
                 oerp.execute('account.invoice',
                              "action_cancel",
-                             [inv_id])
+                             invoices)
             except:
-                del_list.append(inv_id)
-                partner_id = oerp.browse('account.invoice',
-                                         inv_id).partner_id.id
-                p_ids = oerp.search('account.move.line',
-                                    [('partner_id',
-                                      '=',
-                                      partner_id)])
-                try:
-                    msg = u"Unreconcile partner invoices " + str(partner_id)
-                    msg_log(ctx, ctx['level'], msg)
-                    context = {'active_ids': p_ids}
-                    oerp.execute('account.unreconcile',
-                                 'trans_unrec',
-                                 None,
-                                 context)
-                    oerp.execute('account.invoice',
-                                 "action_cancel",
-                                 [inv_id])
-                    if partner_id not in partners:
-                        partners.append(partner_id)
-                except:
-                    msg = u"Cannot unreconcile/cancel invoice " + str(inv_id)
-                    msg_log(ctx, ctx['level'], msg)
-                    return STS_FAILED
-        for inv_id in del_list:
-            del reconcile_ids[inv_id]
-        try:
-            msg = u"Update invoices to cancel " + str(invoices)
-            msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.invoice',
-                         "action_cancel",
-                         invoices)
-        except:
-            msg = u"Cannot update invoice status"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-        try:
-            msg = u"Update invoices to draft " + str(invoices)
-            msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.invoice',
-                         "action_cancel_draft",
-                         invoices)
-        except:
-            msg = u"Cannot update invoice status"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-    return STS_SUCCESS, partners
+                msg = u"Cannot update invoice status"
+                msg_log(ctx, ctx['level'], msg)
+                return STS_FAILED
+    return STS_SUCCESS
 
 
-def upd_inv_2_openpaid(oerp, invoices, reconcile_ids, partners, ctx):
-    if len(invoices):
-        try:
-            msg = u"Update invoices to open " + str(invoices)
-            msg_log(ctx, ctx['level'], msg)
-            oerp.execute('account.invoice',
-                         "invoice_validate",
-                         invoices)
-        except:
-            msg = u"Cannot update invoice status"
-            msg_log(ctx, ctx['level'], msg)
-            return STS_FAILED
-    try:
-        msg = u"Reconcile invoices "
+def upd_invoices_2_posted(oerp, move_dict, ctx):
+    """Set invoices (header) list to original posted state.
+    See upd_invoices_2_posted to return in posted state
+    @param move_dict: invoices (header) list to set in draft state
+    """
+    for state in INVOICES_STS_2_DRAFT:
+        if len(move_dict[state]):
+            invoices = move_dict[state]
+            try:
+                msg = u"Restore invoices to open " + str(invoices)
+                msg_log(ctx, ctx['level'], msg)
+                oerp.execute('account.invoice',
+                             "action_cancel_draft",
+                             [invoices])
+            except:
+                pass
+            try:
+                oerp.execute('account.invoice',
+                             "invoice_validate",
+                             invoices)
+            except:
+                msg = u"Cannot update invoice status"
+                msg_log(ctx, ctx['level'], msg)
+                return STS_FAILED
+
+    return STS_SUCCESS
+
+
+def upd_payments_2_draft(oerp, move_dict, ctx):
+    """Set payments (header) list to draft state.
+    See upd_payments_2_posted to return in posted state
+    @param move_dict: payments (header) list to set in draft state
+    """
+    for state in PAY_MOVE_STS_2_DRAFT:
+        if len(move_dict[state]):
+            payments = move_dict[state]
+            try:
+                msg = u"Update payments to draft %s" % payments
+                msg_log(ctx, ctx['level'], msg)
+                oerp.execute('account.move',
+                             "button_cancel",
+                             payments)
+            except:
+                msg = u"Cannot update payment status"
+                msg_log(ctx, ctx['level'], msg)
+                return STS_FAILED
+    return STS_SUCCESS
+
+
+def upd_payments_2_posted(oerp, move_dict, ctx):
+    """Set payments (header) list to posted state.
+    See upd_payments_2_draft to set in draft state before execute this one.
+    @param move_dict: payments (header) list to set in posted state
+    """
+    for state in PAY_MOVE_STS_2_DRAFT:
+        if len(move_dict[state]):
+            payments = move_dict[state]
+            try:
+                msg = u"Restore payments to posted %s" % payments
+                msg_log(ctx, ctx['level'], msg)
+                oerp.execute('account.move',
+                             "button_validate",
+                             payments)
+            except:
+                msg = u"Cannot restore payment status"
+                msg_log(ctx, ctx['level'], msg)
+                return STS_FAILED
+    return STS_SUCCESS
+
+
+def upd_movements_2_draft(oerp, move_dict, ctx):
+    """Set invoice and payments (header) list to draft state.
+    See upd_movements_2_posted to return in posted state
+    @param move_dict: invoices & payments (header) list to set in draft state
+    """
+    sts = upd_payments_2_draft(oerp, move_dict, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_invoices_2_draft(oerp, move_dict, ctx)
+    return sts
+
+
+def upd_movements_2_posted(oerp, move_dict, ctx):
+    """Set invoice and payments (header) list to posted state.
+    See upd_movements_2_draft to set in draft state before execute this one.
+    @param move_dict: invoices & payments (header) list to set in posted state
+    """
+    sts = upd_invoices_2_posted(oerp, move_dict, ctx)
+    if sts == STS_SUCCESS:
+        sts = upd_payments_2_posted(oerp, move_dict, ctx)
+    return sts
+
+
+def unreconcile_invoices(oerp, reconcile_dict, ctx):
+    for inv_id in reconcile_dict:
+        msg = u"Unreconcile invoice %d" % inv_id
         msg_log(ctx, ctx['level'], msg)
-        for id in reconcile_ids:
-            oerp.execute('account.invoice',
-                         "action_cancel_draft",
-                         [id])
-            oerp.execute('account.invoice',
-                         "invoice_validate",
-                         [id])
-            context = {'active_ids': reconcile_ids[id]}
+        try:
+            context = {'active_ids': reconcile_dict[inv_id]}
+            oerp.execute('account.unreconcile',
+                         'trans_unrec',
+                         None,
+                         context)
+        except:
+            msg = u"Cannot update invoice status of %d" % inv_id
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    return STS_SUCCESS
+
+
+def reconcile_invoices(oerp, reconcile_dict, ctx):
+    for inv_id in reconcile_dict:
+        msg = u"Reconcile invoice %d" % inv_id
+        msg_log(ctx, ctx['level'], msg)
+        try:
+            context = {'active_ids': reconcile_dict[inv_id]}
             oerp.execute('account.move.line.reconcile',
                          'trans_rec_reconcile_partial_reconcile',
                          None,
                          context)
-    except:
-        msg = u"Cannot reconcile invoice " + str(id)
-        msg_log(ctx, ctx['level'], msg)
-        return STS_FAILED
-    for partner_id in partners:
-        msg = u"Reconcile partner " + str(partner_id)
-        msg_log(ctx, ctx['level'], msg)
-        p_ids = oerp.search('account.move.line',
-                            [('partner_id',
-                              '=',
-                              partner_id)])
-        context = {'active_ids': p_ids}
-        try:
-            oerp.execute('account.move.line.reconcile',
-                         'trans_rec_reconcile_partial_reconcile',
-                         None,
-                         context)
         except:
-            msg = u"Cannot reconcile partner " + str(partner_id)
+            msg = u"Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
     return STS_SUCCESS
@@ -1405,16 +1472,30 @@ def upd_acc_2_bank(oerp, accounts, ctx):
 
 
 def set_account_type(oerp, ctx):
+    """Read all account movements and correct account type if wrong
+    If needed
+    1. unreconcile invoices,
+    2. set payments of invoices to draft,
+    3. set invoices to draft,
+    4. do needed operations,
+    5. restore invoices to original states
+    6. restore payments to original states
+    7. restore reconciliation
+    """
     company_id = ctx['company_id']
     move_line_ids = oerp.search('account.move.line',
                                 [('company_id', '=', company_id), ])
     if len(move_line_ids) == 0:
         return STS_SUCCESS
-    payments = []
-    invoices = []
     accounts = []
+    # Journals to enable update posted
     journals = []
-    reconcile_ids = {}
+    # For every invoice id, store payment move line (detail) list
+    reconcile_dict = {}
+    # For every state, store move (header) list to update state
+    move_dict = {}
+    for state in STATES_2_DRAFT:
+        move_dict[state] = []
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
@@ -1434,31 +1515,34 @@ def set_account_type(oerp, ctx):
             account_id = account_obj.id
             if account_id not in accounts:
                 accounts.append(account_id)
-            journal_id = move_line_obj.journal_id.id
-            if journal_id not in journals:
-                journals.append(journal_id)
-            payments, recp = add_pay_4_draft(oerp,
-                                             move_line_obj,
-                                             payments,
-                                             ctx)
-            invoices, payments, reconcile_ids = add_inv_4_draft(oerp,
-                                                                move_line_obj,
-                                                                invoices,
-                                                                payments,
-                                                                reconcile_ids,
-                                                                ctx)
-    pdb.set_trace()
+            if not move_line_obj.journal_id.update_posted:
+                journal_id = move_line_obj.journal_id.id
+                if journal_id not in journals:
+                    journals.append(journal_id)
+            inv_reconcile_dict, inv_move_dict = \
+                get_reconcile_list_from_move_line(oerp, move_line_obj, ctx)
+            for inv_id in inv_reconcile_dict:
+                if inv_id in reconcile_dict:
+                    reconcile_dict[inv_id] = \
+                        list(set(reconcile_dict[inv_id]) |
+                             set(inv_reconcile_dict[inv_id]))
+                else:
+                    reconcile_dict[inv_id] = inv_reconcile_dict[inv_id]
+            for state in STATES_2_DRAFT:
+                if len(inv_move_dict[state]):
+                    move_dict[state] = list(set(move_dict[state]) |
+                                            set(inv_move_dict[state]))
     sts = upd_journals_ena_del(oerp, journals, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_payment_2_draft(oerp, payments, ctx)
+        sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
     if sts == STS_SUCCESS:
-        sts, partners = upd_inv_2_draft(oerp, invoices, reconcile_ids, ctx)
+        sts = upd_movements_2_draft(oerp, move_dict, ctx)
     if sts == STS_SUCCESS:
         sts = upd_acc_2_bank(oerp, accounts, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_inv_2_openpaid(oerp, invoices, reconcile_ids, partners, ctx)
+        sts = upd_movements_2_posted(oerp, move_dict, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_payment_2_posted(oerp, payments, ctx)
+        sts = reconcile_invoices(oerp, reconcile_dict, ctx)
     return sts
 
 
