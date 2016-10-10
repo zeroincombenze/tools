@@ -1175,7 +1175,13 @@ def act_set_4_cscs(oerp, ctx):
     # sts = analyze_invoices(oerp, ctx, 'in_invoice')
     # if sts == STS_SUCCESS:
     #     sts = analyze_invoices(oerp, ctx, 'out_invoice')
-    sts = set_account_type(oerp, ctx)
+    # sts = set_account_type(oerp, ctx)
+    invoices = []
+    reconcile_dict, payment_dict = clodoo.get_reconcile_from_invoices(oerp,
+                                                                      invoices,
+                                                                      ctx)
+    clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
+
     return sts
 
 
