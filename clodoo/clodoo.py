@@ -1172,16 +1172,10 @@ def act_check_balance(oerp, ctx):
 def act_set_4_cscs(oerp, ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
-    # sts = analyze_invoices(oerp, ctx, 'in_invoice')
+    sts = analyze_invoices(oerp, ctx, 'out_invoice')
     # if sts == STS_SUCCESS:
     #     sts = analyze_invoices(oerp, ctx, 'out_invoice')
     # sts = set_account_type(oerp, ctx)
-    invoices = []
-    reconcile_dict, payment_dict = clodoo.get_reconcile_from_invoices(oerp,
-                                                                      invoices,
-                                                                      ctx)
-    clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
-
     return sts
 
 
@@ -1236,6 +1230,52 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
     if account_invoice_obj.state in INVOICES_STS_2_DRAFT:
         move_dict[account_invoice_obj.state].append(inv_id)
     return reconciles, move_dict
+
+
+def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
+    """If invoice state id update to draft and returned to open, linked
+    account move is changed. So move_id and all move_line_ids read by
+    'get_reconcile_from_inv' and/or 'get_reconcile_list_from_move_line'
+    are no more valid, while payments reference are still valid.
+    So all invoice reference are update with new reference.
+    @ param inv_id: invoice (header) id (CANNOT BE CHANGED BY PRIOR READ)
+    @ param reconciles: prior reconciled move lines
+    @ return: list of reconciled move lines of passed (included) invoice
+    @ return: dictionary of posted movements (header) to set to draft state
+    """
+    # Payment move line (detail) list
+    new_reconciles = []
+    account_invoice_obj = oerp.browse('account.invoice',
+                                      inv_id)
+    partner_id = account_invoice_obj.partner_id.id
+    if account_invoice_obj.move_id:
+        move_id = account_invoice_obj.move_id.id
+    else:
+        move_id = False
+    move_lines = oerp.search('account.move.line',
+                             [('move_id', '=', move_id),
+                              ('partner_id', '=', partner_id), ])
+    for move_line_id in move_lines:
+        type = oerp.browse('account.account',
+                           oerp.browse('account.move.line',
+                                       move_line_id).account_id.id).type
+        if type == 'receivable' or type == 'payable':
+            new_reconciles.append(move_line_id)
+    partner_id = account_invoice_obj.partner_id.id
+    move_id = account_invoice_obj.move_id.id
+    company_id = account_invoice_obj.company_id.id
+    valid_recs = True
+    for move_line_id in reconciles[1:]:
+        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        if move_line_obj.partner_id.id != partner_id or \
+                move_line_obj.company_id.id != company_id:
+            valid_recs = False
+        else:
+            new_reconciles.append(move_line_id)
+    if not valid_recs:
+        new_reconciles = []
+    reconcile_dict = {inv_id: new_reconciles}
+    return new_reconciles, reconcile_dict
 
 
 def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
@@ -1324,45 +1364,154 @@ def upd_journals_ena_del(oerp, journals, ctx):
     return STS_SUCCESS
 
 
-def upd_invoices_2_draft(oerp, move_dict, ctx):
-    """Set invoices (header) list to draft state.
-    See upd_invoices_2_posted to return in posted state
-    @param move_dict: invoices (header) list to set in draft state
+def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
+    """Update invoices (header) list/dictionary registration_date and period_id
+    Notice:
+        All invoices MUST be in draft or cancelled state
+        All invoices must belong to the same journal and company
+    @ param invoices:     invoices (header) list
+    @ param min_rec_date: last record date; record date may not be less than
+                          this value
+    @ return: min record date
     """
-    for state in INVOICES_STS_2_DRAFT:
-        if len(move_dict[state]):
-            invoices = move_dict[state]
-            if len(invoices):
-                msg = u"Update invoices to draft %s " % invoices
+    invoice_obj = oerp.get('account.invoice')
+    list_keys = {}
+    company_id = None
+    journal_id = None
+    for inv_id in invoices:
+        invoice = invoice_obj.browse(inv_id)
+        if not company_id:
+            company_id = invoice.company_id.id
+        elif invoice.company_id.id != company_id:
+            return None
+        if not journal_id:
+            journal_id = invoice.journal_id.id
+        elif invoice.journal_id.id != journal_id:
+            return None
+        if invoice.internal_number:
+            list_keys[invoice.internal_number] = inv_id
+    for internal_number in sorted(list_keys):
+        inv_id = list_keys[internal_number]
+        vals = {}
+        invoice = invoice_obj.browse(inv_id)
+        date_invoice = invoice.date_invoice
+        registration_date = invoice.registration_date
+        inv_type = invoice.type
+        if invoice.move_id:
+            move_id = invoice.move_id.id
+        else:
+            move_id = False
+        if inv_type in ('out_invoice', 'out_refund'):
+            if not registration_date and date_invoice:
+                vals['registration_date'] = str(date_invoice)
+                registration_date = date_invoice
+            elif not date_invoice:
+                if registration_date:
+                    vals['date_invoice'] = str(registration_date)
+                    date_invoice = registration_date
+                elif min_rec_date:
+                    vals['date_invoice'] = str(min_rec_date)
+                    date_invoice = min_rec_date
+            if registration_date != date_invoice:
+                if registration_date < date_invoice:
+                    vals['registration_date'] = str(date_invoice)
+                    registration_date = date_invoice
+                elif date_invoice and min_rec_date and \
+                        date_invoice >= min_rec_date:
+                    vals['registration_date'] = str(date_invoice)
+                    registration_date = date_invoice
+                elif date_invoice and not min_rec_date:
+                    vals['registration_date'] = str(date_invoice)
+                    registration_date = date_invoice
+                elif min_rec_date:
+                    vals['registration_date'] = str(min_rec_date)
+                    registration_date = min_rec_date
+            if min_rec_date and registration_date < min_rec_date:
+                vals['registration_date'] = str(min_rec_date)
+                registration_date = min_rec_date
+        elif inv_type in ('in_invoice', 'in_refund'):
+            if min_rec_date and registration_date and \
+                    registration_date < min_rec_date:
+                vals['registration_date'] = str(min_rec_date)
+                registration_date = min_rec_date
+            elif min_rec_date and not registration_date:
+                vals['registration_date'] = str(min_rec_date)
+                registration_date = min_rec_date
+        if not min_rec_date or \
+                (registration_date and registration_date < min_rec_date):
+            min_rec_date = registration_date
+        if len(vals):
+            period_ids = oerp.execute('account.period',
+                                      'find',
+                                      str(registration_date))
+            period_id = period_ids and period_ids[0] or False
+            vals['period_id'] = period_id
+            try:
+                oerp.write('account.invoice', [inv_id], vals)
+            except:
+                msg = u"Cannot update registration date of %d" % inv_id
                 msg_log(ctx, ctx['level'], msg)
-                try:
-                    oerp.execute('account.invoice',
-                                 "action_cancel",
-                                 invoices)
-                except:
-                    msg = u"Cannot update invoice status"
-                    msg_log(ctx, ctx['level'], msg)
-                try:
-                    msg = u"Update invoices to open %s " % invoices
-                    msg_log(ctx, ctx['level'], msg)
-                    oerp.execute('account.invoice',
-                                 "action_cancel_draft",
-                                 invoices)
-                except:
-                    msg = u"Cannot update invoice status"
-                    msg_log(ctx, ctx['level'], msg)
-                    return STS_FAILED
+            if 'registration_date' in vals and move_id:
+                oerp.write('account.move',
+                           [move_id],
+                           {'date': vals['registration_date']})
+                move_lines = oerp.search('account.move.line',
+                                         [('move_id', '=', move_id)])
+                for move_line_id in move_lines:
+                    oerp.write('account.move.line',
+                               [move_line_id],
+                               {'date': vals['registration_date']})
+    return min_rec_date
+
+
+def upd_invoices_2_draft(oerp, move_dict, ctx):
+    """Set invoices (header) list/dictionary to draft state.
+    See upd_invoices_2_posted to return in posted state
+    @ param move_dict: invoices (header) dictionary keyed on state or
+                       invoices list to set in draft state
+    """
+    for i, state in enumerate(INVOICES_STS_2_DRAFT):
+        invoices = []
+        if isinstance(move_dict, dict):
+            invoices = move_dict[state]
+        elif isinstance(move_dict, list) and i == 0:
+            invoices = move_dict
+        if len(invoices):
+            msg = u"Update invoices to draft %s " % invoices
+            msg_log(ctx, ctx['level'], msg)
+            try:
+                oerp.execute('account.invoice',
+                             "action_cancel",
+                             invoices)
+            except:
+                msg = u"Cannot update invoice status"
+                msg_log(ctx, ctx['level'], msg)
+            try:
+                msg = u"Update invoices to open %s " % invoices
+                msg_log(ctx, ctx['level'], msg)
+                oerp.execute('account.invoice',
+                             "action_cancel_draft",
+                             invoices)
+            except:
+                msg = u"Cannot update invoice status"
+                msg_log(ctx, ctx['level'], msg)
+                return STS_FAILED
     return STS_SUCCESS
 
 
 def upd_invoices_2_posted(oerp, move_dict, ctx):
-    """Set invoices (header) list to original posted state.
-    See upd_invoices_2_posted to return in posted state
-    @param move_dict: invoices (header) list to set in draft state
+    """Set invoices (header) list/dictionary to posted state.
+    See upd_invoices_2_draft  to set in draft state before execute this one.
+    @ param move_dict: invoices (header) dictionary keyed on state or
+                       invoices list to set in posted state
     """
-    for state in INVOICES_STS_2_DRAFT:
-        if len(move_dict[state]):
+    for i, state in enumerate(INVOICES_STS_2_DRAFT):
+        invoices = []
+        if isinstance(move_dict, dict):
             invoices = move_dict[state]
+        elif isinstance(move_dict, list) and i == 0:
+            invoices = move_dict
+        if len(invoices):
             msg = u"Restore invoices to validated %s " % invoices
             msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
@@ -1381,13 +1530,18 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
 
 
 def upd_payments_2_draft(oerp, move_dict, ctx):
-    """Set payments (header) list to draft state.
+    """Set payments (header) list/dictionary to draft state.
     See upd_payments_2_posted to return in posted state
-    @param move_dict: payments (header) list to set in draft state
+    @ param move_dict: payments (header) dictionary keyed on state or
+                       payments list to set in draft state
     """
-    for state in PAY_MOVE_STS_2_DRAFT:
-        if len(move_dict[state]):
+    for i, state in enumerate(PAY_MOVE_STS_2_DRAFT):
+        payments = []
+        if isinstance(move_dict, dict):
             payments = move_dict[state]
+        elif isinstance(move_dict, list) and i == 0:
+            payments = move_dict
+        if len(payments):
             try:
                 msg = u"Update payments to draft %s" % payments
                 msg_log(ctx, ctx['level'], msg)
@@ -1402,13 +1556,18 @@ def upd_payments_2_draft(oerp, move_dict, ctx):
 
 
 def upd_payments_2_posted(oerp, move_dict, ctx):
-    """Set payments (header) list to posted state.
-    See upd_payments_2_draft to set in draft state before execute this one.
-    @param move_dict: payments (header) list to set in posted state
+    """Set payments (header) list/dictionary to posted state.
+    See upd_payments_2_draft  to set in draft state before execute this one.
+    @ param move_dict: payments (header) dictionary keyed on state or
+                       payments list to set in posted state
     """
-    for state in PAY_MOVE_STS_2_DRAFT:
-        if len(move_dict[state]):
+    for i, state in enumerate(PAY_MOVE_STS_2_DRAFT):
+        payments = []
+        if isinstance(move_dict, dict):
             payments = move_dict[state]
+        elif isinstance(move_dict, list) and i == 0:
+            payments = move_dict
+        if len(payments):
             try:
                 msg = u"Restore payments to posted %s" % payments
                 msg_log(ctx, ctx['level'], msg)
@@ -1423,9 +1582,11 @@ def upd_payments_2_posted(oerp, move_dict, ctx):
 
 
 def upd_movements_2_draft(oerp, move_dict, ctx):
-    """Set invoice and payments (header) list to draft state.
+    """Set invoice and payments (header) dict to draft state.
     See upd_movements_2_posted to return in posted state
-    @param move_dict: invoices & payments (header) list to set in draft state
+    Notice: do not pass a list (like called functions); dictionary is needed
+    to recognize invoices from payments.
+    @param move_dict: invoices & payments (header) dictionary keyed on state
     """
     sts = upd_payments_2_draft(oerp, move_dict, ctx)
     if sts == STS_SUCCESS:
@@ -1434,9 +1595,11 @@ def upd_movements_2_draft(oerp, move_dict, ctx):
 
 
 def upd_movements_2_posted(oerp, move_dict, ctx):
-    """Set invoice and payments (header) list to posted state.
+    """Set invoice and payments (header) dict to posted state.
     See upd_movements_2_draft to set in draft state before execute this one.
-    @param move_dict: invoices & payments (header) list to set in posted state
+    Notice: do not pass a list (like called functions); dictionary is needed
+    to recognize invoices from payments.
+    @param move_dict: invoices & payments (header) dictionary keyed on state
     """
     sts = upd_invoices_2_posted(oerp, move_dict, ctx)
     if sts == STS_SUCCESS:
@@ -1471,6 +1634,10 @@ def reconcile_invoices(oerp, reconcile_dict, ctx):
                          'trans_rec_reconcile_partial_reconcile',
                          None,
                          context)
+            # oerp.execute('account.move.line',
+            #              'reconcile',
+            #              reconcile_dict[inv_id],
+            #              'manual')
         except:
             msg = u"Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
@@ -1564,8 +1731,12 @@ def set_account_type(oerp, ctx):
         sts = upd_acc_2_bank(oerp, accounts, ctx)
     if sts == STS_SUCCESS:
         sts = upd_movements_2_posted(oerp, move_dict, ctx)
-    if sts == STS_SUCCESS:
-        sts = reconcile_invoices(oerp, reconcile_dict, ctx)
+        if sts == STS_SUCCESS:
+            for inv_id in reconcile_dict:
+                reconciles = reconcile_dict[inv_id]
+                new_reconciles, new_reconcile_dict = \
+                    refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx)
+                sts = reconcile_invoices(oerp, new_reconcile_dict, ctx)
     return sts
 
 
@@ -1594,13 +1765,13 @@ def analyze_invoices(oerp, ctx, inv_type):
         msg_burst(4,
                   "Invoice " + account_invoice_obj.internal_number + "      ",
                   inv_ctr, num_invs)
-        vals = {}
+        # vals = {}
         if last_number[:-4] != account_invoice_obj.internal_number[0:-4]:
             last_number = ''
         if last_number == '':
             last_number = account_invoice_obj.internal_number
-            last_registration_date = datetime.strptime(ctx['date_start'],
-                                                       "%Y-%m-%d").date()
+            last_rec_date = datetime.strptime(ctx['date_start'],
+                                              "%Y-%m-%d").date()
             last_seq = 0
         last_seq += 1
         if str.isdigit(account_invoice_obj.internal_number[-4:]) and \
@@ -1610,36 +1781,45 @@ def analyze_invoices(oerp, ctx, inv_type):
                 account_invoice_obj.internal_number)
             msg_log(ctx, ctx['level'] + 1, msg)
             last_seq = int(account_invoice_obj.internal_number[-4:])
-        date_invoice = account_invoice_obj.date_invoice
-        registration_date = account_invoice_obj.registration_date
-        if not date_invoice:
-            vals['date_invoice'] = str(last_registration_date)
-            date_invoice = last_registration_date
-        # if not registration_date:
-        vals['registration_date'] = str(date_invoice)
-        registration_date = date_invoice
-        if inv_type == 'out_invoice' and\
-                registration_date != date_invoice:
-            msg = u"In {0} invalid registration date {1}".format(
-                account_invoice_id,
-                str(account_invoice_obj.registration_date))
-            msg_log(ctx, ctx['level'] + 1, msg)
-            vals['registration_date'] = str(date_invoice)
-            registration_date = date_invoice
-        elif registration_date < last_registration_date:
-            msg = u"In {0} invalid registration date {1}".format(
-                account_invoice_id,
-                str(account_invoice_obj.registration_date))
-            msg_log(ctx, ctx['level'] + 1, msg)
-            vals['registration_date'] = str(last_registration_date)
-            registration_date = last_registration_date
-        if len(vals):
-            try:
-                oerp.write('account.invoice', account_invoice_id, vals)
-            except:
-                msg = u"Cannot update registration date"
-                msg_log(ctx, ctx['level'], msg)
-        last_registration_date = registration_date
+        last_rec_date = put_invoices_record_date(oerp,
+                                                 [account_invoice_id],
+                                                 last_rec_date,
+                                                 ctx)
+        # date_invoice = account_invoice_obj.date_invoice
+        # registration_date = account_invoice_obj.registration_date
+        # if not date_invoice:
+        #     vals['date_invoice'] = str(last_rec_date)
+        #     date_invoice = last_rec_date
+        # # if not registration_date:
+        # vals['registration_date'] = str(date_invoice)
+        # registration_date = date_invoice
+        # if inv_type == 'out_invoice' and\
+        #        registration_date != date_invoice:
+        #     msg = u"In {0} invalid registration date {1}".format(
+        #         account_invoice_id,
+        #         str(account_invoice_obj.registration_date))
+        #     msg_log(ctx, ctx['level'] + 1, msg)
+        #     vals['registration_date'] = str(date_invoice)
+        #     registration_date = date_invoice
+        # elif registration_date < last_rec_date:
+        #     msg = u"In {0} invalid registration date {1}".format(
+        #         account_invoice_id,
+        #         str(account_invoice_obj.registration_date))
+        #     msg_log(ctx, ctx['level'] + 1, msg)
+        #     vals['registration_date'] = str(last_rec_date)
+        #     registration_date = last_rec_date
+        # if len(vals):
+        #     period_ids = oerp.execute('account.period',
+        #                               'find',
+        #                               registration_date)
+        #     period_id = period_ids and period_ids[0] or False
+        #     vals['period_id'] = period_id
+        #     try:
+        #         oerp.write('account.invoice', account_invoice_id, vals)
+        #     except:
+        #         msg = u"Cannot update registration date"
+        #         msg_log(ctx, ctx['level'], msg)
+        # last_rec_date = registration_date
         last_number = account_invoice_obj.internal_number
     return STS_SUCCESS
 
