@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.16"
+__version__ = "0.2.69.17"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1262,7 +1262,10 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
         if type == 'receivable' or type == 'payable':
             new_reconciles.append(move_line_id)
     partner_id = account_invoice_obj.partner_id.id
-    move_id = account_invoice_obj.move_id.id
+    if account_invoice_obj.move_id:
+        move_id = account_invoice_obj.move_id.id
+    else:
+        move_id = False
     company_id = account_invoice_obj.company_id.id
     valid_recs = True
     for move_line_id in reconciles[1:]:
@@ -1477,8 +1480,6 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
         elif isinstance(move_dict, list) and i == 0:
             invoices = move_dict
         if len(invoices):
-            msg = u"Update invoices to draft %s " % invoices
-            msg_log(ctx, ctx['level'], msg)
             try:
                 oerp.execute('account.invoice',
                              "action_cancel",
@@ -1505,6 +1506,7 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
     @ param move_dict: invoices (header) dictionary keyed on state or
                        invoices list to set in posted state
     """
+    sts = STS_SUCCESS
     for i, state in enumerate(INVOICES_STS_2_DRAFT):
         invoices = []
         if isinstance(move_dict, dict):
@@ -1525,8 +1527,8 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
                 except:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
-                # return STS_FAILED
-    return STS_SUCCESS
+                sts = STS_FAILED
+    return sts
 
 
 def upd_payments_2_draft(oerp, move_dict, ctx):
