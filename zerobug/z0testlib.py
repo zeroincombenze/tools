@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-##############################################################################
+#
 #
 #    Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
 #    All Rights Reserved
@@ -17,93 +17,121 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-##############################################################################
-"""Zeroincombenze® continuous testing framework and tools for python programs
+#
+"""@mainpage
+Zeroincombenze® continuous testing framework with tools for python programs
+===========================================================================
 
 This library can run unit test of target package software.
-Use z0testrc for bash scripts
+Supported languages are *python* (through z0testlib.py)
+and *bash* (through z0testrc)
+
+*zerobug* supports test automation, aggregation of tests into collections
+and independence of the tests from the reporting framework.
+The *zerobug* module provides all code that make it easy to support testing
+both for python programs both for bash scripts.
+*zerobug* differs from pytest standard library because show execution test with
+a message like "n/tot message" where *n* is current unit test and *tot* is the
+total unit test to execute, that is a sort of advancing test progress.
+
+*zerobug* is built on follow concepts:
+
+-# test main - it is a main program to executes all test runners
+-# test runner - it is a programm to executes one or more test suites
+-# test suite - it is a collection of test cases
+-# test case -it is a smallest unit test
+
+Test main file (usually is called 'all_tests') execute the test suite declared
+in source file. If no test list declared, it searches for test runner files
+named 'test_[0-9]*' and executed in sorted order.
+This behavior differs from pytest standard library.
+
+Test suite is a collection of test case named 'test_[0-9]*' and
+executed in sorted order. Also this behavior differs from
+pytest standard library.
+
+Because *zerobug* can show total number of unit test to execute, it run tests
+with 2 passes. In the first pass it counts test, in second pass execute really
+it.
+
+Every unit test file may be called with follows switches:
+
+    $ unit_test [-hek][-l file][-Nnq][-s number][-Vv][-z number][-0]
+    where:
+    -h             this help
+    -e             enable echoing even if not interactive tty
+    -k             keep current logfile
+    -l file        set logfile name
+    -N             create new logfile
+    -n             count and display # unit tests (do no test, return success)
+    -q             run tests in quiet mode (no echo)
+    -s number      run tests counting 1st test next to number
+    -V             show version (do no test, return success);
+                   version on unit test should be the same of tested software
+    -v             verbose mode
+    -x             execute silently library sanity check and exit [no bash]
+    -X             execute library sanity check and exit [no bash]
+    -z number      display total # tests when execute them
+    -0             no count # unit tests
+    -1             run test for coverage
+    (w/o switches) do run test and return test result
+
+
 Package, test environment and deployment are:
- ./pkg                  Package directory (may be pypi packge or Odoo module);
-                        self.pkg_dir in python test [$RUNDIR in bash test]
- ./pkg/tests            Unit test directory
-                        (must contains one of 'all_tests' or 'test_PKG');
-                        self.test_dir in python test [$TESTDIR in bash test]
- ./pkg/tests/z0testlib  This unit test python file [z0testrc in bash test]
-                        may be a real file (when is under test),
-                        or a link to ~/dev/;
-                        usually does not exis, it is under zerobug python pkg;
-                        on github.com project must be a real file;
-                        [$Z0TLIBDIR in bash test]
- ./pkg/z0librc          Local bash script library for bash scripts;
-                        may be a real file (when is under test),
-                        or a link to ~/dev/z0librc, usually it is /etc/z0librc;
-                        [$Z0LIBDIR in bash test]
- ./pkg/_travis          Interface to travis emulator;
-                        usually is a link to ~/dev/_travis
-                        [$TRAVISDIR in bash test]
-                        on github.com become a directory with copy of travis
-                        interface files; in future, could be become a
-                        test project for all packages.
 
-Unit test can run in package directory or in ./tests directory of package
-Main unit test (usually 'all_tests' script) calls all unit test files
-named 'test_[0-9]*' called by this library in numbered order.
-In every unit test file the 'Test' class contains unit test functions
-named 'test_[0-9]*' called by this library in numbered order.
-Functions may be called with dry_run option by 'exec_tests_4_counts',
-to count # of tests.
-Function must be always return TEST_SUCCESS or TEST_FAILED status.
-Every unit test file must call 'parseoptest' to create context from
-commandline which is:
-$ unit_test [-hek][-l file][-Nnq][-s number][-Vv][-z number][-0]
-where:
--h             this help
--e             enable echoing even if not interactive tty
--k             keep current logfile
--l file        set logfile name
--N             create new logfile
--n             count and display # unit tests (do no test, return success)
--q             run tests in quiet mode (no echo)
--s number      count 1st test next to number (do run test, return test result)
--V             show version (do no test, return success);
-               version on unit test should be the same of tested software
--v             verbose mode
--x             execute silently test library sanity check and exit [no bash]
--X             execute test library sanity check and exit [no bash]
--z number      display total # tests when execute them
--0             no count # unit tests
--1             run test for coverage
-(w/o switches) do run test and return test result
+    ./                  Package directory
+                        inside python test program is self.pkg_dir
+                        inside bash test script is $RUNDIR
+    ./tests             Unit test directory
+                        should contains one of 'all_tests' or 'test_PKGNAME'
+                        inside python test program is self.test_dir
+                        inside bash test script is $TESTDIR
+    ./tests/z0testlib   Python file unit test library from zerobug package
+                        may be not present if zerobug python package installed
+    ./tests/z0testrc    Bash file unit test library from zerobug package
+                        may be not present if zerobug python package installed
+                        inside bash test script is $Z0TLIBDIR
+    ./tests/z0librc     Local bash script library for bash scripts;
+                        Could be in user root directory or in /etc directory
+                        inside bash test script is $Z0LIBDIR
+    ./_travis           Interface to travis emulator if present;
+                        it used in local host to emualte some travis functions
+                        inside bash test script is $TRAVISDIR
 
-As result this library (and z0testrc for bash scripts) parse optional switches
-and returns the follow context with appropriate values.
-this_fqn:       parent caller full qualified name (i.e. /opt/odoo/zar.pyc)
-this:           parent name, w/o extension (i.e. zar)
-ctr;            test counter [also in bash test]
-dry_run:        dry-run (do nothing) execution [opt_dry_run in bash test] "-n"
-esanity:        True if required sanity check with echo                   "-X"
-max_test:       # of tests to execute [also in bash test]                 "-z"
-min_test:       # of test executed before this one                        "-s"
-on_error:       behavior after error, 'continue' or 'raise' (default)
-opt_echo:       True if echo test result onto std output                  "-e"
-opt_new:        new log file [also in bash test]                          "-N"
-opt_noctr:      do not count # tests [also in bash test]                  "-0"
-opt_verbose:    show message during execution                             "-v"
-logfn:          real trace log file name from switch                      "-l"
-qsanity:        True if required sanity check w/o echo                    "-x"
-run4cover:      Run tests for coverage (use coverage run rather python)   "-1"
-run_daemon:     True if execution w/o tty as stdio
-run_on_top:     Top test (not parent)
-run_tty:        Opposite of run_daemon
-tlog:           default tracelog file name
-_run_autotest:  True if running auto-test
-_parser:        parser
-_opt_obj:       parser obj, to acquire optional switches
-WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
-Z0:             this library object
+Unit test can run in package directory or in ./tests directory of package.
+
+
+Every test can inquire internal context.
+
+    this_fqn      parent caller full qualified name (i.e. /opt/odoo/zar.pyc)
+    this          parent name, w/o extension (i.e. zar)
+    ctr;          test counter [also in bash test]
+    dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
+    esanity       True if required sanity check with echo                  "-X"
+    max_test      # of tests to execute [also in bash test]                "-z"
+    min_test      # of test executed before this one                       "-s"
+    on_error      behavior after error, 'continue' or 'raise' (default)
+    opt_echo      True if echo test result onto std output                 "-e"
+    opt_new       new log file [also in bash test]                         "-N"
+    opt_noctr     do not count # tests [also in bash test]                 "-0"
+    opt_verbose   show message during execution                            "-v"
+    logfn         real trace log file name from switch                     "-l"
+    qsanity       True if required sanity check w/o echo                   "-x"
+    run4cover     Run tests for coverage (use coverage run rather python)  "-1"
+    run_daemon    True if execution w/o tty as stdio
+    run_on_top    Top test (not parent)
+    run_tty       Opposite of run_daemon
+    tlog          default tracelog file name
+    _run_autotest True if running auto-test
+    _parser       parser
+    _opt_obj      parser obj, to acquire optional switches
+    WLOGCMD       oveerride opt_echo; may be None, 'echo', 'echo-1', 'echo-0'
+    Z0            this library object
 
 Environment read:
+
 DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
+
 COVERAGE_PROCESS_START
                 Name of coverage conf file; if set test is running for coverage
 """
@@ -123,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.3.1"
+__version__ = "0.2.4"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -566,6 +594,8 @@ class SanityTest():
 
 
 class Z0test(object):
+    """The command line program to execute all tests in professional way.
+    """
 
     def __init__(self, argv=None, id=None, version=None):
         # import pdb
@@ -1301,4 +1331,5 @@ class Z0test(object):
         del z0ctx
         return sts
 
+main = Z0test
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

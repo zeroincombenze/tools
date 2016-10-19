@@ -11,13 +11,18 @@ for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
     break
   fi
 done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.26
+__version__=0.1.27
+
 
 base_test () {
     local keys vals i

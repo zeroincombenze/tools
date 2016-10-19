@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.1.41.1
+#__version__=0.1.42
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -837,7 +837,6 @@ get_cfg_value() {
     fi
     if [ -z "$p" -o "$p" == "False" ]; then
       p=$(a_find "$tid" "$2")
-      echo "get_cfg_value($1|$2|$3)=$p;">>tmp.log
     fi
     if [ "$p" == "None" ]; then
       p=
