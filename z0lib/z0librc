@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.42
+#__version__=0.1.43
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -538,19 +538,7 @@ findpkg() {
 export -f findpkg
 
 
-
-
-##############################################################################
-# Create empty dictionary (based on associative array)
-# Must be called twice, before as 'a_new', then as 'a_active'
-# __version__="0.1.5"
-# Return:
-#   DEFDICT  global dictionary based on unique key (associative array)
-#   DEFRULE  global dictionary based on regex (associative array)
-#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
-#   XU_FH    contains Linux Family id (see xuname)
-# Parameter $1:
-#    Id of table for access
+# Deprecated: use CFG_init
 a_new() {
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
       local tid=$1
@@ -562,6 +550,9 @@ a_new() {
 }
 export -f a_new
 
+
+
+# Deprecated: use CFG_init
 a_active() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
@@ -592,7 +583,7 @@ export -f a_active
 # key may be regex to match multiple values
 # It's a ugly solution but currently works
 # __version__="0.1.5"
-# Global variables declared by a_active
+# Global variables declared by CFG_init
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
 #   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
@@ -609,7 +600,7 @@ export -f a_active
 # not ""    specific Linux distribution or family
 # Parameter $5:
 #    "-D"   key is specific for development environment
-a_add() {
+CFG_set() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ -n "$2" ]; then
       if [ "$4" == "-d" ]; then
@@ -653,8 +644,12 @@ a_add() {
     fi
     $SET_X
 }
-export -f a_add
+export -f CFG_set
 
+# Deprecated: use CFG_set
+a_add() {
+    CFG_set "$@"
+}
 
 ##############################################################################
 # Find value in associative array
@@ -674,7 +669,7 @@ export -f a_add
 # Return:
 #    dictionary value to stdout
 #    status
-a_find() {
+CFG_find() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     local p=""
     local sts=1
@@ -803,14 +798,18 @@ a_find() {
     $SET_X
     return $sts
 }
-export -f a_find
+export -f CFG_find
 
+# Deprecated: use CFG_find
+a_find() {
+    CFG_find "$@"
+}
 
 ##############################################################################
 # get value from config file
 # if file does not exist, or parameter does not exist, return default value
 # __version__="0.1.1"
-# Require a_find
+# Require CFG_find
 #   DEFDICT  global dictionary based on unique key (associative array)
 #   DEFRULE  global dictionary based on regex (associative array)
 #   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
@@ -836,7 +835,7 @@ get_cfg_value() {
       local tid="0"
     fi
     if [ -z "$p" -o "$p" == "False" ]; then
-      p=$(a_find "$tid" "$2")
+      p=$(CFG_find "$tid" "$2")
     fi
     if [ "$p" == "None" ]; then
       p=
@@ -845,6 +844,42 @@ get_cfg_value() {
 }
 export -f get_cfg_value
 
+
+##############################################################################
+# Create empty dictionary (based on associative array)
+# __version__="0.2.0"
+# Globals:
+#   DEFDICT  global dictionary based on unique key (associative array)
+#   DEFRULE  global dictionary based on regex (associative array)
+#   XU_DISTO contains distribution id (to search key of specific Linux Distribution)
+#   XU_FH    contains Linux Family id (see xuname)
+# Parameter $1:
+#    Id of table for access
+CFG_init() {
+    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
+      local tid=$1
+    else
+      local tid="0"
+    fi
+    unset DEFDICT$tid DEFRULE$tid
+    if [ "$XU_FH" != "RHEL" -a "$XU_FH" != "Debian" ]; then
+      XU_FH=$(xuname "-f")
+      local x=$(xuname "-v")
+      local v=$(echo $x|awk -F. '{print $1}')
+      XU_DISTO=$(xuname "-d")$v
+    elif [ -z "$XU_DISTO" ]; then
+      local x=$(xuname "-v")
+      XU_DISTO=$(xuname "-d")${x:0:1}
+    fi
+    declare -g XU_FH=$XU_FH XU_DISTO=$XU_DISTO
+    declare -gA DEFDICT$tid DEFRULE$tid
+    $SET_X
+}
+export -f CFG_init
+
+
+# Deprecated: use CFG_init
 init_cfg() {
 # Parameter $1: Id of table (may be 0..3)
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
@@ -857,7 +892,7 @@ init_cfg() {
 }
 export -f init_cfg
 
-
+# Deprecated: use CFG_init
 active_cfg() {
 # Parameter $1: Id of table (may be 0..3)
     if [ "$1" == "0" -o "$1" == "1" -o "$1" == "2" -o "$1" == "3" ]; then
@@ -876,7 +911,7 @@ set_cfg_def() {
     else
       local tid="0"
     fi
-    a_add "$tid" "$1" "$2" "$4" "$5"
+    CFG_set "$tid" "$1" "$2" "$4" "$5"
 }
 export -f set_cfg_def
 
@@ -887,7 +922,7 @@ _read_cfg_file() {
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
     else
-      store_param=a_add
+      store_param=CFG_set
     fi
     t=1
     s=
@@ -946,7 +981,7 @@ link_cfg() {
       local tid="0"
     fi
     if [ -n "$1" ]; then
-      a_add "$tid" "CONFN" "$1"
+      CFG_set "$tid" "CONFN" "$1"
       CONFN="$1"
       if [ -z "$2" ]; then
         local cfndef="$1.sample"
@@ -954,7 +989,7 @@ link_cfg() {
         local cfndef="$2"
       fi
       if [ -f "$cfndef" ]; then
-        a_add "$tid" "CONFND" "$cfndef"
+        CFG_set "$tid" "CONFND" "$cfndef"
         _read_cfg_file "$cfndef" "$tid" "$4"
       fi
       if [ -f "$CONFN" ]; then

@@ -21,7 +21,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.26
+__version__=0.1.25
 
 
 PASSED=0
@@ -29,12 +29,13 @@ PASSED=0
 store_cfg_param_value() {
 #store_cfg_param_value(tid key value [opt] [section])
     PASSED=1
-    CFG_set "$1" "$2" "$3" "$4"
+    a_add "$1" "$2" "$3" "$4"
 }
 
 test_01() {
     for tid in 0 1 2 3; do
-      CFG_init $tid
+      eval $(init_cfg $tid)
+      eval $(active_cfg $tid)
       FCONF="$TESTDIR/test.conf"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ -f $FCONF ]; then rm -f $FCONF; fi
@@ -67,9 +68,10 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-# # This code must be execute at the main level
-# for tid in 0 1 2 3; do
-#   CFG_init $tid
-# done
+# This code must be execute at the main level
+for tid in 0 1 2 3; do
+  eval $(init_cfg $tid)
+  eval $(active_cfg $tid)
+done
 Z0BUG_main_file "" ""
 exit $?

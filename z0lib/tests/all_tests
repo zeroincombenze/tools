@@ -21,7 +21,8 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.42
+
+__version__=0.1.43
 
 
 test_00() {
@@ -42,6 +43,6 @@ fi
 UT1_LIST="test_wlog"
 UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
 UT_LIST="$UT_LIST test_00"
-UT_LIST="$UT_LIST test_findpkg test_run test_parseoptargs test_dict test_cfg test_cfg2 test_Makefile"
+UT_LIST="$UT_LIST test_findpkg test_run test_parseoptargs test_dict1 test_dict2 test_cfg1 test_cfg2 test_cfg3 test_cfg4 test_Makefile"
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 exit $?

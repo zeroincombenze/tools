@@ -145,6 +145,16 @@ test_07() {
     test_result "find $f in $p" "$TRES" "$result"
 }
 
+test_09() {
+    local p p1 p2 Y1 Y2 result TRES
+    p=$(dirname $0)
+    p=$(readlink -e $p)
+    Y1=pgsql
+    Y2=postgresql
+    rm -fR $p/$Y1
+    rm -fR $p/$Y2
+}
+
 Z0BUG_init
 parseoptest -l$TESTDIR/test_z0librc.log "$@"
 sts=$?
