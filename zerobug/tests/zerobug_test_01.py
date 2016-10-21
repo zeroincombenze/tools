@@ -47,7 +47,7 @@ if __name__ == "__main__":
                         version=version())
     if os.name == 'posix':
         UT_LIST = ["__version_0_" + __version__,
-                   "__version_1_0.1.42/etc/z0librc",
+                   "__version_1_0.1.43/etc/z0librc",
                    "__version_V_0.2.0" + os.path.join(Z.test_dir,
                                                       "dummy_01.py"),
                    "__version_v_0.2.1" + os.path.join(Z.test_dir,

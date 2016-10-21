@@ -43,15 +43,15 @@ total unit test to execute, that is a sort of advancing test progress.
 
 Test main file (usually is called 'all_tests') execute the test suite declared
 in source file. If no test list declared, it searches for test runner files
-named 'test_[0-9]*' and executed in sorted order.
-This behavior differs from pytest standard library.
+named 'test_[0-9]*' executed in sorted order.
+This behavior differs slightly from pytest standard library.
 
-Test suite is a collection of test case named 'test_[0-9]*' and
+Test suite is a collection of test case named 'test_[0-9]*'
 executed in sorted order. Also this behavior differs from
 pytest standard library.
 
 Because *zerobug* can show total number of unit test to execute, it run tests
-with 2 passes. In the first pass it counts test, in second pass execute really
+in 2 passes. In the first pass it counts test, in second pass executes really
 it.
 
 Every unit test file may be called with follows switches:
@@ -103,18 +103,18 @@ Unit test can run in package directory or in ./tests directory of package.
 
 Every test can inquire internal context.
 
-    this_fqn      parent caller full qualified name (i.e. /opt/odoo/zar.pyc)
-    this          parent name, w/o extension (i.e. zar)
-    ctr;          test counter [also in bash test]
+    this_fqn      parent caller full qualified name (i.e. /opt/odoo/z0bug.pyc)
+    this          parent name, w/o extension (i.e. z0bug)
+    ctr;          test counter [both bash and python tests]
     dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
     esanity       True if required sanity check with echo                  "-X"
-    max_test      # of tests to execute [also in bash test]                "-z"
+    max_test      # of tests to execute [both bash and python tests]       "-z"
     min_test      # of test executed before this one                       "-s"
     on_error      behavior after error, 'continue' or 'raise' (default)
     opt_echo      True if echo test result onto std output                 "-e"
-    opt_new       new log file [also in bash test]                         "-N"
-    opt_noctr     do not count # tests [also in bash test]                 "-0"
-    opt_verbose   show message during execution                            "-v"
+    opt_new       new log file [both bash and python tests]                "-N"
+    opt_noctr     do not count # tests [both bash and python tests]        "-0"
+    opt_verbose   show messages during execution                           "-v"
     logfn         real trace log file name from switch                     "-l"
     qsanity       True if required sanity check w/o echo                   "-x"
     run4cover     Run tests for coverage (use coverage run rather python)  "-1"
@@ -125,7 +125,7 @@ Every test can inquire internal context.
     _run_autotest True if running auto-test
     _parser       parser
     _opt_obj      parser obj, to acquire optional switches
-    WLOGCMD       oveerride opt_echo; may be None, 'echo', 'echo-1', 'echo-0'
+    WLOGCMD       override opt_echo; may be None, 'echo', 'echo-1', 'echo-0'
     Z0            this library object
 
 Environment read:
