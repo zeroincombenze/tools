@@ -6,13 +6,12 @@
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 
-
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
-    Z0LIBDIR=$x/z0librc
+    Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -24,8 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-
-__version__="1.3.17.1"
+__version__="1.3.17.3"
 
 
 detached_login() {
@@ -110,16 +108,49 @@ backup_db() {
     fi
 }
 
-OPTOPTS=(h        K        l       m        n            U          V           v)
-OPTDEST=(opt_help opt_cron opt_log opt_mail opt_dry_run  opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="     1        "1"          "="        "*>"        1)
-OPTDEFL=(0        0        ""      -1        0           "postgres" ""          0)
-OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" "username" "version"   "verbose")
+stop_mail_svr() {
+# stop_mail_svr(NEWDB)
+    local x NEWDB
+    NEWDB=$1
+    wlog ".. Starting mail server checker on $NEWDB ..."
+    local OMS=1
+    local FMS=1
+    local MAXC=50
+    while [ $FMS -gt 0 -o $OMS -gt 0 ]; do
+      sleep 20
+      if [ $OMS -gt 0 ]; then
+        x=$(psql -tc "select * from ir_mail_server where active=true;" $NEWDB)
+        if [ -n "$x" ]; then
+          psql -tc "update ir_mail_server set active=false where active=true;" $NEWDB
+          ((OMS--))
+          wlog ".. Found out mail server ..."
+        fi
+      fi
+      if [ $FMS -gt 0 ]; then
+        x=$(psql -tc "select * from fetchmail_server where active=true;" $NEWDB)
+        if [ -n "$x" ]; then
+          psql -tc "update fetchmail_server set active=false where active=true;" $NEWDB
+          ((FMS--))
+          wlog ".. Found fetch mail server ..."
+        fi
+      fi
+      ((MAXC--))
+      if [ $MAXC -eq 0 ]; then break; fi
+    done
+}
+
+
+OPTOPTS=(h        K        l       m        n            R       U          V           v)
+OPTDEST=(opt_help opt_cron opt_log opt_mail opt_dry_run  opt_srt opt_user   opt_version opt_verbose)
+OPTACTI=(1        1        "="     1        1            1       "="        "*>"        1)
+OPTDEFL=(0        0        ""      -1       0            0       "postgres" ""          0)
+OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" ""      "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
  "log filename (def /var/log/bckdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
+ "stop mail server while DB is loading"\
  "username (def postgres)"\
  "show version"\
  "verbose mode")
@@ -144,13 +175,16 @@ else
   publog=$opt_log
 fi
 FCONF=$TDIR/zar.conf
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 set_tlog_file "$publog"
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
+if [ $opt_srt -gt 0 ]; then
+  stop_mail_svr "$olddb"
+  exit 0
+fi
 wlog "Starting restore/duplicate $__version__ by $USER"
 
 DBCKDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4" "backups")
@@ -322,7 +356,8 @@ for NEWDB in ${NEWDBS//,/ }; do
       kill_process
       python $pycmd
       if [ $opt_mail -gt 0 ]; then
-        $bashcmd &
+        # $bashcmd &
+        $0 -R "$NEWDB" &
       fi
       psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
       rm -f $pycmd
