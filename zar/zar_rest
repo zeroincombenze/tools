@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="1.3.17.3"
+__version__="1.3.17.9"
 
 
 detached_login() {
@@ -108,35 +108,77 @@ backup_db() {
     fi
 }
 
-stop_mail_svr() {
-# stop_mail_svr(NEWDB)
-    local x NEWDB
-    NEWDB=$1
-    wlog ".. Starting mail server checker on $NEWDB ..."
-    local OMS=1
-    local FMS=1
-    local MAXC=50
-    while [ $FMS -gt 0 -o $OMS -gt 0 ]; do
-      sleep 20
-      if [ $OMS -gt 0 ]; then
-        x=$(psql -tc "select * from ir_mail_server where active=true;" $NEWDB)
-        if [ -n "$x" ]; then
-          psql -tc "update ir_mail_server set active=false where active=true;" $NEWDB
-          ((OMS--))
-          wlog ".. Found out mail server ..."
-        fi
+check_4_table() {
+# check_4_table DB table what
+    local DB=$1
+    local tblnm=$2
+    local what=$3
+    local x
+    if [ "$what" == "exists" ]; then
+       x=$(psql -tc "select * from pg_tables where tablename = '$tblnm';" $DB)
+    elif [ "$what" == "with_data" ]; then
+       x=$(psql -tc "select * from $tblnm;" $DB)
+    elif [ "$what" == "active_data" ]; then
+       x=$(psql -tc "select * from $tblnm where active=true;" $DB)
+    elif [ "$what" == "reset_data" ]; then
+       x=$(psql -tc "select * from $tblnm where active=true;" $DB)
+    else
+       x=""
+    fi
+    if [ -n "$x" ]; then
+      if [ "$what" == "reset_data" ]; then
+         psql -tc "update $tblnm set active=false where active=true;" $DB
       fi
-      if [ $FMS -gt 0 ]; then
-        x=$(psql -tc "select * from fetchmail_server where active=true;" $NEWDB)
-        if [ -n "$x" ]; then
-          psql -tc "update fetchmail_server set active=false where active=true;" $NEWDB
-          ((FMS--))
-          wlog ".. Found fetch mail server ..."
+      wlog ".. Table $tblnm $what ..."
+      return 0
+    fi
+    return 1
+}
+
+stop_services() {
+# stop_services(DB)
+    if [ -z "$1" ]; then
+      return 1
+    fi
+    local x DB tbl res wtm act wfid
+    DB=$1
+    declare -A tblok tblwf
+    wrkflw=("exists" "with_data" "reset_data" "Ok")
+    wlog ".. Starting mail server checker on $DB ..."
+    local MAXC=50
+    res=1
+    while [ $res -ne 0 ]; do
+      res=0
+      wtm=2
+      for tbl in ir_mail_server fetchmail_server base_action_rule ir_cron; do
+        if [ -z "${tblwf[$tbl]}" ]; then
+          wfid=0
+        else
+          wfid=${tblwf[$tbl]}
         fi
+        act=${wrkflw[$wfid]}
+        if [ "$act" != "Ok" ]; then
+          res=1
+          check_4_table $DB $tbl $act
+          if [ $? -eq 0 ]; then
+            ((wfid++))
+            tblwf[$tbl]=$wfid
+          else
+            if [ "${tblok[$tbl]}" != "$act" ]; then
+              wlog ".. Table $tbl, action $act failed ..."
+              tblok[$tbl]="$act"
+            fi
+            let wtm="$wtm+1"
+          fi
+        fi
+      done
+      if [ $res -ne 0 ]; then
+        sleep $wtm
       fi
       ((MAXC--))
-      if [ $MAXC -eq 0 ]; then break; fi
+      if [ $MAXC -le 0 ]; then return 1; fi
     done
+    return 0
 }
 
 
@@ -150,7 +192,7 @@ OPTHELP=("this help"\
  "log filename (def /var/log/bckdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
- "stop mail server while DB is loading"\
+ "stop mail server and services while DB is loading"\
  "username (def postgres)"\
  "show version"\
  "verbose mode")
@@ -182,8 +224,8 @@ if [ $opt_cron -gt 0 ]; then
 fi
 link_cfg $FCONF
 if [ $opt_srt -gt 0 ]; then
-  stop_mail_svr "$olddb"
-  exit 0
+  stop_services "$olddb"
+  exit $?
 fi
 wlog "Starting restore/duplicate $__version__ by $USER"
 
