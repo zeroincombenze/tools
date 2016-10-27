@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="1.3.17.9"
+__version__="1.3.18.4"
 
 
 detached_login() {
@@ -111,46 +111,63 @@ backup_db() {
 check_4_table() {
 # check_4_table DB table what
     local DB=$1
-    local tblnm=$2
+    local tbl=$2
     local what=$3
     local x
     if [ "$what" == "exists" ]; then
-       x=$(psql -tc "select * from pg_tables where tablename = '$tblnm';" $DB)
+       x=$(psql -tc "select * from pg_tables where tablename = '$tbl';" $DB)
     elif [ "$what" == "with_data" ]; then
-       x=$(psql -tc "select * from $tblnm;" $DB)
+       x=$(psql -tc "select * from $tbl;" $DB)
     elif [ "$what" == "active_data" ]; then
-       x=$(psql -tc "select * from $tblnm where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl where active=true;" $DB)
     elif [ "$what" == "reset_data" ]; then
-       x=$(psql -tc "select * from $tblnm where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl where active=true;" $DB)
     else
        x=""
     fi
     if [ -n "$x" ]; then
       if [ "$what" == "reset_data" ]; then
-         psql -tc "update $tblnm set active=false where active=true;" $DB
+         psql -tc "update $tbl set active=false where active=true;" $DB
       fi
-      wlog ".. Table $tblnm $what ..."
       return 0
     fi
     return 1
 }
 
 stop_services() {
-# stop_services(DB)
+# stop_services(DB quickmode)
     if [ -z "$1" ]; then
       return 1
     fi
-    local x DB tbl res wtm act wfid
+    local x DB tbl res wtm act wfid SVCS SVCS2
     DB=$1
+    SVCS="$(get_cfg_value 0 services_2_stop)"
+    if [ -z "$SVCS" ]; then
+      SVCS="ir_mail_server fetchmail_server base_action_rule ir_cron"
+    else
+      SVCS=${SVCS//,/ }
+    fi
+    SVCS2="$(get_cfg_value 0 services_2_stop)"
+    if [ -z "$SVCS2" ]; then
+      SVCS2="ir_mail_server base_action_rule"
+    else
+      SVCS2=${SVCS2//,/ }
+    fi
     declare -A tblok tblwf
+    declare -gA svc2run
     wrkflw=("exists" "with_data" "reset_data" "Ok")
-    wlog ".. Starting mail server checker on $DB ..."
-    local MAXC=50
+    if [ -n "$2" ]; then
+      wlog ".. Starting services quick checker on $DB ..."
+      local MAXC=5
+    else
+       wlog ".. Starting services checker on $DB ..."
+      local MAXC=50
+    fi
     res=1
-    while [ $res -ne 0 ]; do
+    while [ $res -ne 0 -a $MAXC -gt 0 ]; do
       res=0
       wtm=2
-      for tbl in ir_mail_server fetchmail_server base_action_rule ir_cron; do
+      for tbl in $SVCS; do
         if [ -z "${tblwf[$tbl]}" ]; then
           wfid=0
         else
@@ -161,14 +178,24 @@ stop_services() {
           res=1
           check_4_table $DB $tbl $act
           if [ $? -eq 0 ]; then
+            wlog ".. Table $tbl $act ok"
             ((wfid++))
             tblwf[$tbl]=$wfid
+             if [ "$act" == "exists" -a -z "${svc2run[$tbl]}" ]; then
+               x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
+               if [ -n "$x" ]; then
+                 svc2run[$tbl]="${svc2run[$tbl]} $x"
+               fi
+             fi
           else
             if [ "${tblok[$tbl]}" != "$act" ]; then
-              wlog ".. Table $tbl, action $act failed ..."
+              wlog ".. Table $tbl, action $act failed !!"
               tblok[$tbl]="$act"
+              if [ "$act" == "exists" -a $MAXC -lt 75 ]; then
+                let MAXC="$MAXC+5"
+              fi
             fi
-            let wtm="$wtm+1"
+            ((wtm++))
           fi
         fi
       done
@@ -176,7 +203,14 @@ stop_services() {
         sleep $wtm
       fi
       ((MAXC--))
-      if [ $MAXC -le 0 ]; then return 1; fi
+    done
+    for tbl in $SVCS; do
+      if [ -n "$2" -a -n "${svc2run[$tbl]}" ]; then
+        if [[ " $SVCS2 " =~ [[:space:]]$tbl[[:space:]] ]]; then
+          wlog "> psql -tc \"update $tbl set active=true where id in (${svc2run[$tbl]});\" $DB"
+          psql -tc "update $tbl set active=true where id in (${svc2run[$tbl]});" $DB
+        fi
+      fi
     done
     return 0
 }
@@ -189,10 +223,10 @@ OPTDEFL=(0        0        ""      -1       0            0       "postgres" ""  
 OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" ""      "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
- "log filename (def /var/log/bckdb.log)"\
+ "log filename (def /var/log/zar/restdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
- "stop mail server and services while DB is loading"\
+ "stop mail server and services"\
  "username (def postgres)"\
  "show version"\
  "verbose mode")
@@ -340,39 +374,6 @@ for NEWDB in ${NEWDBS//,/ }; do
     echo "                    version='$ODOO_VERSION')">>$pycmd
     echo "oerp.db.drop('$ODOO_RPC_PWD',">>$pycmd
     echo "             '$NEWDB')">>$pycmd
-    bashcmd=$HOME/$NEWDB.sh
-    echo "# Check for $NEWDB">$bashcmd
-    echo ". $Z0LIBDIR">>$bashcmd
-    echo "eval \$(init_cfg)">>$bashcmd
-    echo "eval \$(active_cfg)">>$bashcmd
-    echo "set_tlog_file "$publog"">>$bashcmd
-    echo "wlog \".. Starting mail server checker ...\"">>$bashcmd
-    echo "OMS=1">>$bashcmd
-    echo "FMS=1">>$bashcmd
-    echo "while [ \$FMS -gt 0 -o \$OMS -gt 0 ]; do">>$bashcmd
-    echo "  sleep 20">>$bashcmd
-    echo "  if [ \$OMS -gt 0 ]; then">>$bashcmd
-    echo "    x=\$(psql -tc \"select * from ir_mail_server where active=true;\" $NEWDB)">>$bashcmd
-    echo "    if [ -n \"\$x\" ]; then">>$bashcmd
-    echo "      psql -tc \"update ir_mail_server set active=false where active=true;\" $NEWDB">>$bashcmd
-    echo "      ((OMS--))">>$bashcmd
-    echo "      wlog \".. Found out mail server ...\"">>$bashcmd
-    echo "    fi">>$bashcmd
-    echo "  fi">>$bashcmd
-    echo "  if [ \$FMS -gt 0 ]; then">>$bashcmd
-    echo "    x=\$(psql -tc \"select * from fetchmail_server where active=true;\" $NEWDB)">>$bashcmd
-    echo "    if [ -n \"\$x\" ]; then">>$bashcmd
-    echo "      psql -tc \"update fetchmail_server set active=false where active=true;\" $NEWDB">>$bashcmd
-    echo "      ((FMS--))">>$bashcmd
-    echo "      wlog \".. Found fetch mail server ...\"">>$bashcmd
-    echo "    fi">>$bashcmd
-    echo "  fi">>$bashcmd
-    # echo "  if [ \$FMS -eq 0 -a  \$OMS -gt 1 ]; then">>$bashcmd
-    # echo "    ((FMS++))">>$bashcmd
-    # echo "  fi">>$bashcmd
-    echo "done">>$bashcmd
-    echo "wlog \".. All mail servers are disabled!\"">>$bashcmd
-    chmod +x $bashcmd
     fsql=$HOME/$NEWDB.sql
     wlog "Prepare file script $fsql ..."
     echo "\\c postgres">$fsql
@@ -382,28 +383,17 @@ for NEWDB in ${NEWDBS//,/ }; do
     echo "\\c $NEWDB">>$fsql
     echo "\\echo Loading data into DB $NEWDB">>$fsql
     echo "\\i $DBCKDIR/$OLDDB-$dtdb.sql">>$fsql
-    if [ $opt_mail -gt 0 ]; then
-      wlog "Database without inbound/outbound mails"
-      echo "\\echo Disabling inbound mails ...">>$fsql
-      # echo "update ir_cron set interval_number=60000 where name='Fetchmail Service';">>$fsql
-      echo "update fetchmail_server set active=false;">>$fsql
-      echo "\\echo Disabling outbound mails ...">>$fsql
-      echo "update ir_mail_server set active=false;">>$fsql
-      echo "\\echo Disabling automatic actions ...">>$fsql
-      echo "update base_action_rule set active=false;">>$fsql
-    fi
     echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$fsql
     if [ $opt_dry_run -eq 0 ]; then
       wlog "Starting restore $NEWDB"
       kill_process
       python $pycmd
       if [ $opt_mail -gt 0 ]; then
-        # $bashcmd &
         $0 -R "$NEWDB" &
       fi
       psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
+      stop_services "$NEWDB" "quick"
       rm -f $pycmd
-      rm -f $bashcmd
       wlog "Restore $NEWDB terminated"
       ((ctr++))
     fi

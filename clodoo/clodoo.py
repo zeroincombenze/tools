@@ -44,13 +44,13 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.17"
+__version__ = "0.2.69.18"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-PAY_MOVE_STS_2_DRAFT = ('posted')
+PAY_MOVE_STS_2_DRAFT = ('posted', )
 INVOICES_STS_2_DRAFT = ('open', 'paid')
 STATES_2_DRAFT = ('open', 'paid', 'posted')
 
@@ -1172,10 +1172,10 @@ def act_check_balance(oerp, ctx):
 def act_set_4_cscs(oerp, ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
-    sts = analyze_invoices(oerp, ctx, 'out_invoice')
+    # sts = analyze_invoices(oerp, ctx, 'out_invoice')
     # if sts == STS_SUCCESS:
-    #     sts = analyze_invoices(oerp, ctx, 'out_invoice')
-    # sts = set_account_type(oerp, ctx)
+    #    sts = analyze_invoices(oerp, ctx, 'in_invoice')
+    sts = set_account_type(oerp, ctx)
     return sts
 
 
@@ -1527,7 +1527,7 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
                 except:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
+                    sts = STS_FAILED
     return sts
 
 
@@ -1676,7 +1676,8 @@ def set_account_type(oerp, ctx):
     """
     company_id = ctx['company_id']
     move_line_ids = oerp.search('account.move.line',
-                                [('company_id', '=', company_id), ])
+                                [('company_id', '=', company_id),
+                                 ('account_id', '=', 850)])
     if len(move_line_ids) == 0:
         return STS_SUCCESS
     accounts = []
@@ -1695,7 +1696,8 @@ def set_account_type(oerp, ctx):
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         account_obj = move_line_obj.account_id
-        valid = True
+        # valid = True
+        valid = False       # debug
         if not account_obj.parent_id:
             valid = False
         acctype_id = account_obj.user_type.id
@@ -1729,8 +1731,9 @@ def set_account_type(oerp, ctx):
         sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
     if sts == STS_SUCCESS:
         sts = upd_movements_2_draft(oerp, move_dict, ctx)
-    if sts == STS_SUCCESS:
-        sts = upd_acc_2_bank(oerp, accounts, ctx)
+    # if sts == STS_SUCCESS:
+    #     sts = upd_acc_2_bank(oerp, accounts, ctx)
+    a = raw_input('Press RET to continue')
     if sts == STS_SUCCESS:
         sts = upd_movements_2_posted(oerp, move_dict, ctx)
         if sts == STS_SUCCESS:
