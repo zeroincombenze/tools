@@ -8,22 +8,22 @@
 
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -e /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="1.3.19"
+__version__="1.3.19.1"
 
 
 detached_login() {
@@ -133,15 +133,16 @@ inherit_options() {
     fi
 }
 
-OPTOPTS=(h        K        l       n            U          V           v)
-OPTDEST=(opt_help opt_cron opt_log opt_dry_run  opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="     1            "="        "*>"        1)
-OPTDEFL=(0        0        ""      0            "postgres" ""          0)
-OPTMETA=("help"   "cron"   "file"  "do nothing" "username" "version"   "verbose")
+OPTOPTS=(h        K        l       n            o        U          V           v)
+OPTDEST=(opt_help opt_cron opt_log opt_dry_run  opt_name opt_user   opt_version opt_verbose)
+OPTACTI=(1        1        "="     1            "="      "="        "*>"        1)
+OPTDEFL=(0        0        ""      0            ""       "postgres" ""          0)
+OPTMETA=("help"   "cron"   "file"  "do nothing" "fname"  "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
  "log filename (def /var/log/bckdb.log)"\
  "do nothing (dry-run)"\
+ "output filename (def dbname-date)"\
  "username (def postgres)"\
  "show version"\
  "verbose mode")
@@ -166,8 +167,7 @@ else
   publog=$opt_log
 fi
 FCONF=$TDIR/zar.conf
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 set_tlog_file "$publog"
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
@@ -205,22 +205,32 @@ ctr=0
 if [ -n "$dblist" ]
 then
   inherit_options
-  wlog "\$ ./zar_purge $OPTS $dbsel"
-  ./zar_purge $OPTS "'$dbsel'"
-  dt=$(date +%F)
+  if [ -z "$opt_name" ]; then
+    wlog "\$ ./zar_purge $OPTS $dbsel"
+    ./zar_purge $OPTS "'$dbsel'"
+  fi
   dtc=$(date +%Y%m%d)
   for db in $dblist
   do
     wlog "backup $db"
+    if [ -z "$opt_name" ]; then
+      sqlfname=$DBCKDIR/$db-$dtc.sql
+    else
+      sqlfname=$opt_name
+      if [ -f $sqlfname ]; then
+        echo "File $sqlfname already exists!"
+        exit 1
+      fi
+    fi
     if [ "$HOSTNAME" != "$HOST_DEV" ]; then
       if [ $opt_dry_run -gt 0 ]; then
-        wlog "> pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-$dtc.sql $db"
+        wlog "> pg_dump -U$opt_user -Fp -f $sqlfname $db"
       else
-        wlog "\$ pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-$dtc.sql $db"
-        pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-$dtc.sql $db
-        if [ "$HOSTNAME" == "$HOST_PRD" -a -n "$HOST_DEV" ]; then
-          wlog "\$ scp $DBCKDIR/$db-$dtc.sql $HOST_DEV:$DBCKDIR/$db-$dtc.sql"
-          scp $DBCKDIR/$db-$dtc.sql $HOST_DEV:$DBCKDIR/$db-$dtc.sql
+        wlog "\$ pg_dump -U$opt_user -Fp -f $sqlfname $db"
+        pg_dump -U$opt_user -Fp -f $sqlfname $db
+        if [ -z "$opt_name" -a "$HOSTNAME" == "$HOST_PRD" -a -n "$HOST_DEV" ]; then
+          wlog "\$ scp $sqlfname $HOST_DEV:$sqlfname"
+          scp $sqlfname $HOST_DEV:$sqlfname
         fi
       fi
       ((ctr++))
@@ -228,27 +238,29 @@ then
       wlog "Waiting for backup from production host"
       if [ $opt_dry_run -eq 0 ]; then
         wctr=25
-        while [ ! -f $DBCKDIR/$db-$dtc.sql -a $wctr -gt 0 ]; do
+        while [ ! -f $sqlfname -a $wctr -gt 0 ]; do
           sleep 180
           ((wctr--))
         done
-        wlog "Received $DBCKDIR/$db-$dtc.sql"
+        wlog "Received $sqlfname"
       fi
     fi
   done
   wlog "All $ctr databases are backupped!"
-  if [ -z "$REST2" ]; then
-    if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
-      wlog "\$ ./zar_rest $OPTS"
-      ./zar_rest $OPTS
-    elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
-      wlog "\$ ./zar_rest $OPTS"
-      ./zar_rest $OPTS
-    fi
-  else
-    if [ "$REST2" == "1" ]; then
-      wlog "\$ ./zar_rest $OPTS"
-      ./zar_rest $OPTS
+  if [ -z "$opt_name" ]; then
+    if [ -z "$REST2" ]; then
+      if [ "$HOSTNAME" == "$HOST_PRD" -a -z "$HOST_DEV" ]; then
+        wlog "\$ ./zar_rest $OPTS"
+        ./zar_rest $OPTS
+      elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+        wlog "\$ ./zar_rest $OPTS"
+        ./zar_rest $OPTS
+      fi
+    else
+      if [ "$REST2" == "1" ]; then
+        wlog "\$ ./zar_rest $OPTS"
+        ./zar_rest $OPTS
+      fi
     fi
   fi
 fi

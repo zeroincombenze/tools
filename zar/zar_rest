@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="1.3.18.4"
+__version__="1.3.19.2"
 
 
 detached_login() {
@@ -154,10 +154,13 @@ stop_services() {
       SVCS2=${SVCS2//,/ }
     fi
     declare -A tblok tblwf
-    declare -gA svc2run
+    if [ -z "${svc2run[*]}" ]; then
+      unset svc2run
+      declare -gA svc2run
+    fi
     wrkflw=("exists" "with_data" "reset_data" "Ok")
     if [ -n "$2" ]; then
-      wlog ".. Starting services quick checker on $DB ..."
+      wlog ". Starting services quick checker on $DB"
       local MAXC=5
     else
        wlog ".. Starting services checker on $DB ..."
@@ -181,10 +184,11 @@ stop_services() {
             wlog ".. Table $tbl $act ok"
             ((wfid++))
             tblwf[$tbl]=$wfid
-             if [ "$act" == "exists" -a -z "${svc2run[$tbl]}" ]; then
+             if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
                x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
                if [ -n "$x" ]; then
                  svc2run[$tbl]="${svc2run[$tbl]} $x"
+                 svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
                fi
              fi
           else
@@ -207,7 +211,7 @@ stop_services() {
     for tbl in $SVCS; do
       if [ -n "$2" -a -n "${svc2run[$tbl]}" ]; then
         if [[ " $SVCS2 " =~ [[:space:]]$tbl[[:space:]] ]]; then
-          wlog "> psql -tc \"update $tbl set active=true where id in (${svc2run[$tbl]});\" $DB"
+          wlog ".. update $tbl set active=true where id in (${svc2run[$tbl]});"
           psql -tc "update $tbl set active=true where id in (${svc2run[$tbl]});" $DB
         fi
       fi
@@ -216,16 +220,17 @@ stop_services() {
 }
 
 
-OPTOPTS=(h        K        l       m        n            R       U          V           v)
-OPTDEST=(opt_help opt_cron opt_log opt_mail opt_dry_run  opt_srt opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="     1        1            1       "="        "*>"        1)
-OPTDEFL=(0        0        ""      -1       0            0       "postgres" ""          0)
-OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" ""      "username" "version"   "verbose")
+OPTOPTS=(h        K        l       m        n            o        R       U          V           v)
+OPTDEST=(opt_help opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst opt_user   opt_version opt_verbose)
+OPTACTI=(1        1        "="     1        1            "="      1       "="        "*>"        1)
+OPTDEFL=(0        0        ""      -1       0            ""       0       "postgres" ""          0)
+OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" "fname"  ""      "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
  "log filename (def /var/log/zar/restdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
+ "input filename (def dbname-date)"\
  "stop mail server and services"\
  "username (def postgres)"\
  "show version"\
@@ -257,7 +262,7 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
-if [ $opt_srt -gt 0 ]; then
+if [ $opt_rst -gt 0 ]; then
   stop_services "$olddb"
   exit $?
 fi
@@ -278,6 +283,14 @@ if [ -z "$OWN" ]; then
   OWN=odoo
 fi
 wlog "OWN=$OWN"
+if [ -n "$opt_name" ]; then
+   if [ -z "$olddb" ]; then
+     echo "Missing DB name, when restore form file!"
+     exit 1
+   elif [ -z "$newdb" ]; then
+     newdb=$olddb
+   fi
+fi
 if [ -z "$olddb" ]; then
   OLDDB=$(get_cfg_value 0 db_name)
 else
@@ -332,16 +345,20 @@ for NEWDB in ${NEWDBS//,/ }; do
     if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
        continue
     fi
-    if [[ $ND =~ [0-9]{8} ]]; then
-      dtdb=$ND
-    elif [[ $ND =~ [0-9]+ ]]; then
-      NDAYB=-${ND}day
-      dtdb=$(date -d $NDAYB +"%Y%m%d")
+    if [ -z "$opt_name" ]; then
+      if [[ $ND =~ [0-9]{8} ]]; then
+        dtdb=$ND
+      elif [[ $ND =~ [0-9]+ ]]; then
+        NDAYB=-${ND}day
+        dtdb=$(date -d $NDAYB +"%Y%m%d")
+      else
+        dtdb=$(date -d yesterday +"%Y%m%d")
+      fi
+      if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+         continue
+      fi
     else
-      dtdb=$(date -d yesterday +"%Y%m%d")
-    fi
-    if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
-       continue
+      dtdb="00000000"
     fi
     if [ $opt_mail -eq -1 ]; then
       opt_mail=0
@@ -353,15 +370,20 @@ for NEWDB in ${NEWDBS//,/ }; do
         wlog "Restored DB is for test as classificated"
       fi
     fi
-    echo "Searching $DBCKDIR/$OLDDB-$dtdb.sql"
-    if [ ! -f $DBCKDIR/$OLDDB-$dtdb.sql ]; then
+    if [ -z "$opt_name" ]; then
+      sqlfname=$DBCKDIR/$OLDDB-$dtdb.sql
+    else
+      sqlfname=$opt_name
+    fi
+    echo "Searching $sqlfname"
+    if [ ! -f $sqlfname ]; then
       echo "No sql file found!!!"
       exit 1
     fi
     if [ $opt_dry_run -eq 0 ]; then
-      wlog "Restore/duplicate $OLDDB-$dtdb.sql $NEWDB"
+      wlog "Restore/duplicate $sqlfname $NEWDB"
     else
-      echo "Should restore $OLDDB-$dtdb.sql $NEWDB"
+      echo "Should restore $sqlfname $NEWDB"
     fi
     if [ "$NEWDB" == "$OLDDB" -a "$dtdb" != "00000000" ]; then
       backup_db $OLDDB
@@ -382,7 +404,7 @@ for NEWDB in ${NEWDBS//,/ }; do
     echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
     echo "\\c $NEWDB">>$fsql
     echo "\\echo Loading data into DB $NEWDB">>$fsql
-    echo "\\i $DBCKDIR/$OLDDB-$dtdb.sql">>$fsql
+    echo "\\i $sqlfname">>$fsql
     echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$fsql
     if [ $opt_dry_run -eq 0 ]; then
       wlog "Starting restore $NEWDB"
@@ -396,9 +418,15 @@ for NEWDB in ${NEWDBS//,/ }; do
       rm -f $pycmd
       wlog "Restore $NEWDB terminated"
       ((ctr++))
+      if [ -n "$opt_name" ]; then
+        break
+      fi
     fi
     passed="$passed $NEWDB $dtdb"
   done
+  if [ -n "$opt_name" ]; then
+    break
+  fi
 done
 if [ $opt_dry_run -eq 0 ]; then
   sleep 30
