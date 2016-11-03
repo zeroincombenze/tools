@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68
+#__version__=0.1.68.1
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -238,14 +238,15 @@ init_travis () {
       PRJNAME=Odoo
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      BRANCH=$(if $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      BRANCH=$(if $(echo "$PWD/"|grep "/v10/\|10.0/">/dev/null); then echo "10.0"; elif $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
       else
-        local v
+        local v l
         local x=1
-        for v in 7.0 8.0 9.0; do
-          if [ ${prjversion:0:3} == "$v" -a $prjversion != "$v" ]; then
+        for v in 10.0 9.0 8.0 7.0; do
+          l=${#v}
+          if [ ${prjversion:0:l} == "$v" -a $prjversion != "$v" ]; then
             x=0
           fi
         done
