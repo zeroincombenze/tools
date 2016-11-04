@@ -205,8 +205,8 @@ init_travis () {
       SETUP="$PKGPATH/setup.py";
       REPOSNAME=$(basename $PKGPATH)
     else
-       SETUP="$ODOO_SETUP";
-       REPOSNAME=
+      SETUP="$ODOO_SETUP";
+      REPOSNAME=
     fi
     if [ "$SETUP" == "$ODOO_SETUP" ]; then
       if [ -z "$PRJNAME" ]; then
@@ -1163,8 +1163,9 @@ clone_core_dependencies () {
     local p
     local d
     local CORE_MODULES=""
+    local oetpath=$(readlink -e $PRJPATH/..)
     for line in $CORE_MODULES; do
-      d=$(find $HOME/$VERSION -type d -name "$line")
+      d=$(find $oetpath -type d -name "$line")
       if [ -n "$d" ]; then
         if [ -n "$REPOSNAME" ]; then
           for p in $d/*; do
@@ -1178,7 +1179,7 @@ clone_core_dependencies () {
       fi
     done
     if [ -n "$REPOSNAME" ]; then
-      clone_1_dependence "$HOME/$VERSION/addons"
+      clone_1_dependence "$oetpath/addons"
     fi
 }
 
@@ -1187,10 +1188,11 @@ clone_oca_dependencies () {
     local line
     local p
     local d
+    local oetpath=$(readlink -e $PRJPATH/..)
     if [ -f "$f1" ]; then
       while IFS=\~ read -r line; do
         if [ -n "$line" -a "${line:0:1}" != "#" ]; then
-          d=$(find $HOME/$VERSION -type d -name "$line")
+          d=$(find $oetpath -type d -name "$line")
           if [ -n "$d" ]; then
             if [ -n "$REPOSNAME" ]; then
               for p in $d/*; do
@@ -1207,21 +1209,22 @@ clone_oca_dependencies () {
     fi
 }
 
-clone_dependencies () {
+clone_dependencies() {
     local p
     if [ ! -d $HOME/dependencies ]; then
       run_traced "mkdir $HOME/dependencies"
     fi
     if [ -n "$REPOSNAME" ]; then
       run_traced "export INCLUDE=$pkgname"
-      for p in $HOME/$VERSION/$REPOSNAME/*; do
+      local oetpath=$(readlink -e $PRJPATH/..)
+      for p in $oetpath/*; do
         clone_1_dependence "$p"
       done
-      p=$(readlink -e $HOME/$VERSION/openerp)
+      p=$(readlink -e $oetpath/openerp)
       if [ -n "$p" ]; then
         clone_1_dependence "$p"
       fi
-      p=$(readlink -e $HOME/$VERSION/$REPOSNAME/)
+      p=$(readlink -e $oetpath/$REPOSNAME/)
       if [ -n "$p" ]; then
          clone_oca_dependencies "$p/oca_dependencies.txt"
       fi
