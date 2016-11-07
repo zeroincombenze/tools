@@ -317,8 +317,14 @@ create_virtual_env() {
       virtualenv $TRAVIS_ENVOPTS $TRAVIS_ENVDIR
       cd $TRAVIS_ENVDIR
       source bin/activate
-      ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/run
-      cd run
+      if [ -z "$REPOSNAME" ]; then
+        TRAVIS_REPOSNAME=run
+      else
+        TRAVIS_REPOSNAME=$REPOSNAME
+      fi
+      wlog "\$ ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/$TRAVIS_REPOSNAME"
+      ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/$TRAVIS_REPOSNAME
+      cd $TRAVIS_REPOSNAME
     fi
 }
 
