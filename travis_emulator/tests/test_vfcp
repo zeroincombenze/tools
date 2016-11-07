@@ -2,26 +2,28 @@
 # -*- coding: utf-8 -*-
 # Regression tests on travis emulator
 #
-THIS=$(basename $0)
+TTHIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "." ".." "~" "/etc"; do
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
   fi
 done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
-TRAVISRC=$(findpkg "travisrc" "$TDIR . .. $HOME/dev" "_travis")
-. $TRAVISRC
 Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
+__version__=0.1.4
 
-__version__=0.1.3
 
 test_copy() {
     local cmd="$RUNDIR/vfcp -nv $1 $2"
@@ -55,30 +57,38 @@ test_copy() {
     test_result "cp $msg1 $msg2" "$6" "$TRES"
 }
 
+test_01() {
+    test_copy "~/7.0" "~/v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
+    test_copy "~/8.0" "~/7.0" "" "" "" "cp -R /opt/odoo/8.0 /opt/odoo/7.0"
+    test_copy "~/7.0" "~/8.0" "l10n-italy" "" "" "cp -R /opt/odoo/7.0/l10n-italy /opt/odoo/8.0/l10n-italy"
+    test_copy "~/7.0" "~/9.0" "l10n-italy" "l10n_it_vat_registries" "" "cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries /opt/odoo/9.0/l10n-italy/l10n_it_vat_registries"
+    test_copy "~/v7" "~/7.0" "zeroincombenze" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
+    test_copy "~/7.0" "~/v7" "zeroincombenze" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
+    test_copy "~/v7" "~/7.0" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
+    test_copy "~/7.0" "~/v7" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "8.0" "" "" "" "cp  /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py"
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "" "" "" "-8" "cp  /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py"
+    test_copy " ~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
+    test_copy "~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
+    #test_copy " ~/7.0/l10n-italy-supplemental/account_banking_pain_base/" "~/v7.0/bank-payment/account_banking_pain_base" "" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental/account_banking_pain_base /opt/odoo/v7.0/bank-payment/account_banking_pain_base"
+}
+
+
 Z0BUG_init
-parseoptest -l$TESTDIR/test_z0librc.log $@
+parseoptest -l$TESTDIR/test_zerobug.log $@
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-sts=0
 
-test_copy "~/7.0" "~/v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
-test_copy "~/8.0" "~/7.0" "" "" "" "cp -R /opt/odoo/8.0 /opt/odoo/7.0"
-test_copy "~/7.0" "~/8.0" "l10n-italy" "" "" "cp -R /opt/odoo/7.0/l10n-italy /opt/odoo/8.0/l10n-italy"
-test_copy "~/7.0" "~/9.0" "l10n-italy" "l10n_it_vat_registries" "" "cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries /opt/odoo/9.0/l10n-italy/l10n_it_vat_registries"
-test_copy "~/v7" "~/7.0" "zeroincombenze" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
-test_copy "~/7.0" "~/v7" "zeroincombenze" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
-test_copy "~/v7" "~/7.0" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
-test_copy "~/7.0" "~/v7" "l10n-italy-supplemental" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental /opt/odoo/v7/zeroincombenze"
-test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "8.0" "" "" "" "cp  /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py"
-test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py" "" "" "" "-8" "cp  /opt/odoo/8.0/l10n-italy/l10n_it_base/__openerp__.py /opt/odoo/7.0/l10n-italy/l10n_it_base/__openerp__.py"
-test_copy " ~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
-test_copy "~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
-test_copy " ~/7.0/l10n-italy-supplemental/account_banking_pain_base/" "~/v7.0/bank-payment/account_banking_pain_base" "" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental/account_banking_pain_base /opt/odoo/v7.0/bank-payment/account_banking_pain_base"
-
-
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
 fi
-exit $sts
+. $TRAVISLIBDIR
+
+UT1_LIST=""
+UT_LIST=""
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+exit $?

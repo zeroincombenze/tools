@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.1
+#__version__=0.1.68.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -262,7 +262,6 @@ init_travis () {
     else
       PRJPATH=$PKGPATH/$PRJNAME
     fi
-
     if [ -z "$TOOLS_PATH" ]; then
       if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
         TOOLS_PATH=$TDIR/_travis
@@ -281,7 +280,6 @@ init_travis () {
       else
         unset -v TOOLS_PATH
       fi
-      # wlog "\$ TOOLS_PATH=$TOOLS_PATH"
       if [ "$PRJNAME" == "Odoo" ]; then
         if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/dev/maintainer-quality-tools/travis
@@ -295,8 +293,41 @@ init_travis () {
       else
         unset -v MQT_PATH
       fi
-    # else
-      # wlog "TOOLS_PATH=$TOOLS_PATH"
+    fi
+}
+
+create_virtual_env() {
+    TRAVIS_ENV=$(get_cfg_value "" "Environment")
+    TRAVIS_ENVOPTS=
+    if [ ${opt_virt:-0} -eq -1 ]; then
+      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+        opt_virt=1
+      else
+        opt_virt=0
+      fi
+    elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
+      TRAVIS_ENV=virtualenv
+    fi
+    if [ ${opt_virt:-0} -gt 0 ]; then
+      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+        TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+      fi
+      local TRAVIS_CWD=$PWD
+      TRAVIS_ENVDIR=$HOME/VENV_$$
+      virtualenv $TRAVIS_ENVOPTS $TRAVIS_ENVDIR
+      cd $TRAVIS_ENVDIR
+      source bin/activate
+      ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/run
+      cd run
+    fi
+}
+
+drop_virtual_env() {
+    if [ ${opt_virt:-0} -gt 0 ]; then
+      cd $TRAVIS_ENVDIR
+      deactivate
+      cd $TRAVIS_CWD
+      rm -fR $TRAVIS_ENVDIR
     fi
 }
 
@@ -413,6 +444,8 @@ conf_default () {
       set_cfg_def "pip_pkgver__reportlab" "3.1.44"
       set_cfg_def "upgrade_dow" "4"
     fi
+    set_cfg_def "Environment" "bash"
+    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
 }
 
 
@@ -922,35 +955,6 @@ ant_erase() {
         ant_rm_trap $fn
       fi
     done
-
-# do_annotate() {
-# # do_annotate(script, include_list)
-#  # set -x
-#  wlog "do_annotate \"$1\" \"$2\""
-#  trap - DEBUG
-#  FL_2_TEST=${2//,/ }
-#  local f1=$(readlink -f $1)
-#  FHIST=$f1.tracehistory
-#  if [ -f $f1 ]; then
-#    CWD=$PWD
-#    mkdir -p ./cover
-#    ant_add_trap "$f1"
-#    local fn
-#    for fn in $FL_2_TEST; do
-#      ant_add_trap $fn
-#    done
-#    $f1
-#    cd $CWD
-#    ant_rm_trap "$f1"
-#    for fn in $FL_2_TEST; do
-#      ant_rm_trap $fn
-#    done
-#    chmod +x $f1
-#    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
-#    python $TDIR/$THIS.py "$f1" "$opts_k"
-#    rm -f $FHIST
-#  fi
-#  return 0
 }
 
 coverage() {

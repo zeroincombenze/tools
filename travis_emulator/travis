@@ -38,40 +38,40 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.62.1
+__version__=0.1.62.3
 
 
-run_cmd () {
-    if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-    local xcmd="$1"
-    local sts=$STS_SUCCESS
-    local t=$(type -t $xcmd|head -n1)
-    local x
-    local s
-    read -r -a x<<<"$xcmd"
-    local k="${x[0]}"
-    if [ "$t" == "file" ]; then
-      grep -q "^.ELF" $k
-      s=$?
-      if [ $s -eq $STS_SUCCESS ]; then
-        t="bin"
-      fi
-    fi
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ ${opt_verbose:-0} -gt 1 ]; then
-        echo "\$ $xcmd"
-      fi
-      if [ "$t" == "file" ]; then
-        eval "$xcmd"
-        sts=$?
-      else
-        eval "$xcmd"
-        sts=$?
-      fi
-    fi
-    $SET_X
-    return $sts
-}
+# run_cmd () {
+#     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+#     local xcmd="$1"
+#     local sts=$STS_SUCCESS
+#     local t=$(type -t $xcmd|head -n1)
+#     local x
+#     local s
+#     read -r -a x<<<"$xcmd"
+#     local k="${x[0]}"
+#     if [ "$t" == "file" ]; then
+#       grep -q "^.ELF" $k
+#       s=$?
+#       if [ $s -eq $STS_SUCCESS ]; then
+#         t="bin"
+#       fi
+#     fi
+#     if [ ${opt_dry_run:-0} -eq 0 ]; then
+#       if [ ${opt_verbose:-0} -gt 1 ]; then
+#         echo "\$ $xcmd"
+#       fi
+#       if [ "$t" == "file" ]; then
+#         eval "$xcmd"
+#         sts=$?
+#       else
+#         eval "$xcmd"
+#         sts=$?
+#       fi
+#     fi
+#     $SET_X
+#     return $sts
+# }
 
 process_local () {
     if [ $TOOLS_PATH/travis_run_tests ]; then
@@ -315,13 +315,13 @@ process_yaml_file () {
     local line1=
     local lne1=
     local linex=
-    local i
-    local a
-    local b
-    while IFS=\~ read -r line; do
-      if [[ $line =~ ^[[:space:]]*# ]]; then
-        line=
-      elif [[ $line =~ ^[[:space:]]+ ]]; then
+    local a b i r
+    # while IFS=\~ read -r line; do
+    while IFS="#" read -r line r; do
+      # if [[ $line =~ ^[[:space:]]*# ]]; then
+      #   line=
+      # elif [[ $line =~ ^[[:space:]]+ ]]; then
+      if [[ $line =~ ^[[:space:]]+ ]]; then
         for i in {0..10};do if [ "${line:i:1}" != " " ]; then break; fi; done
         if [ $i -gt $ident ]; then
            ((lev++))
@@ -397,10 +397,7 @@ process_yaml_before_install () {
 process_yaml_install () {
     wlog "===== [Install] ====="
     local sts=$STS_SUCCESS
-    local i
-    local s
-    local line
-    local lne
+    local i s line lne
     for lne in $YML_install; do
       line=$(process_yaml_quote_xtl $lne)
       wlog "\$ $line"
@@ -483,12 +480,8 @@ process_yaml_after_success () {
 
 process_yaml () {
     local sts=$STS_SUCCESS
-    local i
-    local s
-    local line
-    local lne
-    local line1
-    local lne1
+    local i s
+    local line lne line1 lne1
     f1=$PRJPATH/.travis.yml
     if [ ! -f $f1 ]; then
       f1=$TOOLS_PATH/travis.yml
@@ -496,6 +489,18 @@ process_yaml () {
     if [ -f $f1 ]; then
       process_yaml_file "$f1"
       sts=$STS_SUCCESS
+      wlog "===== [System informations] ====="
+      wlog "# Execution environment: $TRAVIS_ENV"
+      if [ ${opt_virt:-0} -gt 0 ]; then
+        wlog "\$ virtualenv $TRAVIS_ENVOPTS $TRAVIS_ENVDIR"
+        create_virtual_env
+      fi
+      for lne in HOSTENV TOOLS_PATH MQT_PATH DEVPATH PRJNAME pkgname REPOSNAME BRANCH PRJPATH PKGPATH; do
+         lne1=${!lne}
+         if [ -n "$lne1" ]; then
+           wlog "\$ $lne=$lne1"
+         fi
+      done
       wlog "===== [Initialize] ====="
       run_svr_test_init
       process_yaml_before_install
@@ -526,6 +531,7 @@ process_yaml () {
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_after_success
       fi
+      drop_virtual_env
     else
       process_local
       sts=$?
@@ -534,14 +540,15 @@ process_yaml () {
 }
 
 
-OPTOPTS=(h        b          c        j        m       n            q           r     V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1       "1>"         0           1     "*>"        "+")
-OPTDEFL=(0        9.0        ""       0        0       0            -1          0     ""          -1)
-OPTMETA=("help"   "branch"   "file"   "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
+OPTOPTS=(h        b          c        H        j        m       n            q           r     V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_virt opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1        1       "1>"         0           1     "*>"        "+")
+OPTDEFL=(0        9.0        ""       -1       0        0       0            -1          0     ""          -1)
+OPTMETA=("help"   "branch"   "file"   ""       "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
+ "use virtualenv to run tests"\
  "execute tests in project dir rather in test dir"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
@@ -564,20 +571,29 @@ fi
 
 if [ -z "$action" ]; then action=all; fi
 if [ -z $pkg ]; then pkg="."; fi
+# if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" -a "$action" != "chkconfig" ]; then
+ACTIONS="check test all setup chkconfig"
+VIRTACTS="check test all"
+if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
+  if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
+    :
+  else
+    opt_virt=0
+  fi
+else
+  echo "Invalid action!"
+  echo "action should be one of $ACTIONS"
+  exit $STS_FAILED
+fi
 opts_travis
 CFG_init
 conf_default
 link_cfg $TCONF
+
 init_travis
 prepare_env_travis "$action"
 sts=$STS_SUCCESS
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-
-if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" -a "$action" != "chkconfig" ]; then
-  echo "Invalid action!"
-  echo "action should be one of check, test, all, setup or chkconfig"
-  exit $STS_FAILED
-fi
 
 if [ "$action" == "setup" ]; then
   opt_r=0
@@ -605,10 +621,6 @@ fi
 
 check_4_travis
 sts=$STS_SUCCESS
-#if [ -f $TOOLS_PATH/travis_install_pkgs ]; then
-#  run_traced $TOOLS_PATH/travis_install_pkgs
-#  if [ $? -ne 0 ]; then sts=$?; fi
-#fi
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then
     wlog "=== Simulate YAML test ==="

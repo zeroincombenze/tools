@@ -14,14 +14,12 @@ done
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
-TRAVISRC=$(findpkg "travisrc" "$TDIR . .. $HOME/dev" "_travis")
-. $TRAVISRC
 Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
+__version__=0.1.29
 
-__version__=0.1.28
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_travis_em.log $@
@@ -55,6 +53,86 @@ test_result_cp () {
     test_result "$1" "$2" "$3"
 }
 
+test_01() {
+    robocopy_init
+    a_append "--new"
+    a_append "KEY_A" "aaa"
+    a_append "KEY_B" "bbb"
+    a_append "^KEY.*" "any"
+
+    test_result_k "KEY_A" "KEY_A" "aaa"
+    test_result_k "KEY_B" "KEY_B" "bbb"
+    test_result_k "KEY_Z" "KEY_Z" "any"
+    test_result_k "NOKEY" "NOKEY" ""
+
+    a_append "--new"
+    a_append "/opt/odoo/dev/travis" "1"
+    a_append "/opt/odoo/dev/travis/travis.pyc" "0"
+    a_append "/opt/odoo/dev/travis/travis.log" "0"
+    a_append "/opt/odoo/dev/travis/travis.bak" "0"
+    a_append "/opt/odoo/dev/travis/build/travis.py" "0"
+    a_append "/opt/odoo/dev/travis/dist/travis.py" "0"
+    a_append "/opt/odoo/dev/travis/.coverage/result" "0"
+    a_append "/opt/odoo/dev/travis/.git/travis" "0"
+    a_append "/opt/odoo/dev/travis/conf/travis.conf" "0"
+    a_append "/opt/odoo/dev/travis/travis" "1"
+    a_append "/opt/odoo/dev/travis/travis/tests" "1"
+    a_append "/opt/odoo/dev/travis/travis/tests/travis.log" "0"
+    a_append "/opt/odoo/dev/travis/travis/tests/.logfile" "1"
+    a_append "build/travis.py" "0"
+    a_append ".coverage/result" "0"
+    a_append ".git/travis" "0"
+    a_append "conf/travis.conf" "0"
+    a_append "conf/travis.conf.sample" "1"
+    a_append "dist/travis.py" "0"
+
+    for f in ${DEFPRM[*]}; do
+      TRES=$(a_search "$f")
+      # set -x
+      test_result_x "$f" "$f" "$TRES"
+      sts=$?
+      # set +x
+      if [ $sts -gt 0 ]; then
+        break
+      fi
+    done
+
+    MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
+
+    opt_dry_run=1
+    opts_dry_run="-n"
+    opt_fetch=0
+
+    robocopy_init "travis_emulator" "travis_emulator"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator.egg-info" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/build" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/dist" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.rst" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.rst /opt/odoo/tools/travis_emulator/" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.md" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.md /opt/odoo/tools/travis_emulator/" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/setup.py" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf/conf.sample" "/opt/odoo/tools/travis_emulator")
+    test_result_cp "robocopy" "" "$TRES"
+
+    robocopy_init "Odoo" "zeroincombenze"
+    TRES=$(robocopy "/opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py" "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal")
+    test_result_cp "robocopy # odoo" "1||cp -L /opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/" "$TRES"
+    TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+    test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
+    TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+    test_result_cp "robocopy" "" "$TRES"
+    TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
+    test_result_cp "robocopy" "1||cp -L /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data" "$TRES"
+}
 
 # TODO: integration with z0librc
 # $(init_cfg)
@@ -66,87 +144,21 @@ test_result_cp () {
 # link_cfg $FCONF $GCONF
 # set_cfg_def "ignore" ".pyc .log .bak .out .conf build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 
-robocopy_init
-a_append "--new"
-a_append "KEY_A" "aaa"
-a_append "KEY_B" "bbb"
-a_append "^KEY.*" "any"
-
-test_result_k "KEY_A" "KEY_A" "aaa"
-test_result_k "KEY_B" "KEY_B" "bbb"
-test_result_k "KEY_Z" "KEY_Z" "any"
-test_result_k "NOKEY" "NOKEY" ""
-
-a_append "--new"
-a_append "/opt/odoo/dev/travis" "1"
-a_append "/opt/odoo/dev/travis/travis.pyc" "0"
-a_append "/opt/odoo/dev/travis/travis.log" "0"
-a_append "/opt/odoo/dev/travis/travis.bak" "0"
-a_append "/opt/odoo/dev/travis/build/travis.py" "0"
-a_append "/opt/odoo/dev/travis/dist/travis.py" "0"
-a_append "/opt/odoo/dev/travis/.coverage/result" "0"
-a_append "/opt/odoo/dev/travis/.git/travis" "0"
-a_append "/opt/odoo/dev/travis/conf/travis.conf" "0"
-a_append "/opt/odoo/dev/travis/travis" "1"
-a_append "/opt/odoo/dev/travis/travis/tests" "1"
-a_append "/opt/odoo/dev/travis/travis/tests/travis.log" "0"
-a_append "/opt/odoo/dev/travis/travis/tests/.logfile" "1"
-a_append "build/travis.py" "0"
-a_append ".coverage/result" "0"
-a_append ".git/travis" "0"
-a_append "conf/travis.conf" "0"
-a_append "conf/travis.conf.sample" "1"
-a_append "dist/travis.py" "0"
-
-for f in ${DEFPRM[*]}; do
-  TRES=$(a_search "$f")
-  # set -x
-  test_result_x "$f" "$f" "$TRES"
-  sts=$?
-  # set +x
-  if [ $sts -gt 0 ]; then
-    break
-  fi
-done
-
-MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
-
-opt_dry_run=1
-opts_dry_run="-n"
-opt_fetch=0
-
-robocopy_init "travis_emulator" "travis_emulator"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/dev/pypi/travis_emulator/travis_emulator/ /opt/odoo/tools/travis_emulator/" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/travis_emulator.egg-info" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/build" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/dist" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.rst" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.rst /opt/odoo/tools/travis_emulator/" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/README.md" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "1||cp -L /opt/odoo/dev/pypi/travis_emulator/README.md /opt/odoo/tools/travis_emulator/" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/setup.py" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/dev/pypi/travis_emulator/conf/conf.sample" "/opt/odoo/tools/travis_emulator")
-test_result_cp "robocopy" "" "$TRES"
-
-robocopy_init "Odoo" "zeroincombenze"
-TRES=$(robocopy "/opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py" "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal")
-test_result_cp "robocopy # odoo" "1||cp -L /opt/odoo/dev/7.0/zeroincombenze/l10n_it_fiscal/__init__.py /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/" "$TRES"
-TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
-test_result_cp "robocopy # rsync" "rsync -n -ab  --del --copy-links  --exclude=*.pyc --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.cover/ --exclude=.coverage/ --exclude=.git/ --exclude=*~ /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/data/ /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data/" "$TRES"
-TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
-test_result_cp "robocopy" "" "$TRES"
-TRES=$(robocopy "/opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample" "/opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data")
-test_result_cp "robocopy" "1||cp -L /opt/odoo/7.0/zeroincombenze/l10n_it_fiscal/conf/res_sample /opt/odoo/8.0/zeroincombenze/l10n_it_fiscal/data" "$TRES"
-
-
-opt_dry_run=$saved_opt_dry_run
-if [ ${opt_dry_run:-0} -ne 0 ]; then
-  echo "$ctr"
+Z0BUG_init
+parseoptest -l$TESTDIR/test_zerobug.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
 fi
+
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+
+UT1_LIST=""
+UT_LIST=""
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+exit $?
