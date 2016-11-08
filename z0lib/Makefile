@@ -1,4 +1,4 @@
-# Makefile __version__=0.1.83
+# Makefile __version__=0.1.84
 
 .DEFAULT: check
 
@@ -73,7 +73,7 @@ ifeq ($(PRJNAME),Odoo)
   #ifeq ($(PKGPATH),)
   #  PKGPATH=$(shell pwd)
   #endif
-  pkgname:=$(shell if [ -f $(SETUP) ]; then basename $$PWD; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then basename $$PWD; else echo ""; fi)
+  PKGNAME:=$(shell if [ -f $(SETUP) ]; then basename $$PWD; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then basename $$PWD; else echo ""; fi)
   PRJPATH:=$(shell if [ -f $(SETUP) ]; then cd ..; pwd; elif [ "$$(basename $$(readlink -e ../))" == "openerp" ]; then cd ..; pwd; else pwd; fi)
   BRANCH=$(shell if $$(echo "$(PRJPATH)/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $$(echo "$(PRJPATH)/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
   MODVER=$(shell grep "'version' *:" $(SETUP) 2>/dev/null|awk -F":" '{print $$2}'|tr -d "\"', \r\n")
@@ -88,7 +88,7 @@ else
   #ifeq ($(PKGPATH),)
   #  PKGPATH=$(dir $(SETUP))
   #endif
-  pkgname:=$(shell basename $(PKGPATH))
+  PKGNAME:=$(shell basename $(PKGPATH))
   pkgids=$(shell grep "[^a-zA-Z0-9_]packages *=" $(SETUP) 2>/dev/null|awk -F"=" '{print $$2}'|tr -d "[]\"', \r\n")
   PRJPATH:=$(PKGPATH)$(PRJNAME)
   BRANCH=""
@@ -104,18 +104,18 @@ ifeq ($(HOSTENV),local)
   export BRANCH
   export PKGPATH
 endif
-ifneq ($(pkgname),$(PRJNAME))
-  @echo "Warning: package name $(pkgname) and project name $(PRJNAME) are different!"
+ifneq ($(PKGNAME),$(PRJNAME))
+  @echo "Warning: package name $(PKGNAME) and project name $(PRJNAME) are different!"
 endif
 
 .PHONY: chkconfig
 chkconfig:
 	@echo "Project name   = \"$(PRJNAME)\""
 	@echo "Tools path     = \"$(DEVPATH)\""
-	@echo "Status         = \"$$(cd $(PKGPATH); $(DEVPATH)/dist_pkg -n -S$(devstatus) $(pkgname))\""
+	@echo "Status         = \"$$(cd $(PKGPATH); $(DEVPATH)/dist_pkg -n -S$(devstatus) $(PKGNAME))\""
 	@echo "Hosted         = \"$(HOSTENV)\""
 	@echo "Branch         = \"$(BRANCH)\""
-	@echo "Package name   = \"$(pkgname)\"($(pkgids))"
+	@echo "Package name   = \"$(PKGNAME)\"($(pkgids))"
 	@echo "Version        = \"$(prjversion)\""
 	@echo "Setup file     = \"$(SETUP)\""
 	@echo "Project path   = \"$(PRJPATH)\""
@@ -125,7 +125,7 @@ chkconfig:
 
 .PHONY: help
 help:
-	@echo "Execute action on project $(PRJNAME) V$(prjversion) [$(pkgname)]- use:"
+	@echo "Execute action on project $(PRJNAME) V$(prjversion) [$(PKGNAME)]- use:"
 	@echo "make version    # check for version -> TODO before publish!"
 	@echo "make test       # run regression tests"
 	@echo "make check      # run pep8 check"
@@ -178,12 +178,12 @@ install: build
 .PHONY: version
 version:
 	@# Follow line is just for internal use: it couldn't work outside Zeroincombenze(R) environment
-	@cd $(PKGPATH); $(DEVPATH)/dist_pkg -- $(pkgname) $(PRJNAME);
+	@cd $(PKGPATH); $(DEVPATH)/dist_pkg -- $(PKGNAME) $(PRJNAME);
 	@if [ "$(PRJNAME)" != "Odoo" ]; then \
-	  echo "Project $(PRJNAME) V$(prjversion) [$(pkgname)] answer:"; \
+	  echo "Project $(PRJNAME) V$(prjversion) [$(PKGNAME)] answer:"; \
 	  cd $(PKGPATH); PYTHONPATH=$(PKGPATH) python $(PRJNAME); \
 	else \
-	  echo "Project $(PRJNAME) V$(BRANCH) [$(pkgname) $(prjversion)]"; \
+	  echo "Project $(PRJNAME) V$(BRANCH) [$(PKGNAME) $(prjversion)]"; \
 	fi;
 
 .PHONY: check
@@ -213,10 +213,10 @@ travis:
 	  travis_run_tests; \
 	elif [ "$(PRJNAME)" == "travis_emulator" ]; then \
 	  $(DEVPATH)/travis local/$(PRJNAME); \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -S3 $(pkgname); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -S3 $(PKGNAME); \
 	else \
 	  $(DEVPATH)/travis local/$(PRJNAME); \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -S3 $(pkgname); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -S3 $(PKGNAME); \
 	fi
 
 .PHONY: annotate
@@ -233,94 +233,94 @@ pep8:
 replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vR $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vR $(PKGNAME);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vR $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vR $(PKGNAME);\
 	fi
 
 .PHONY: if-replace
 if-replace:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvR $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvR $(PKGNAME);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvR $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvR $(PKGNAME);\
 	fi
 
 .PHONY: fetch
 fetch:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vF $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vF $(PKGNAME);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vF $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vF $(PKGNAME);\
 	fi
 
 .PHONY: if-fetch
 if-fetch:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then\
-	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvF $(pkgname);\
+	   cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvF $(PKGNAME);\
 	else\
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvF $(pkgname);\
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvF $(PKGNAME);\
 	fi
 
 .PHONY: diff
 diff:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vd $(pkgname); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vd $(PKGNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vd $(pkgname); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vd $(PKGNAME); \
 	fi
 
 .PHONY: push
 push:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vP $(PKGNAME) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vP $(PKGNAME) $(PRJNAME); \
 	fi
 
 .PHONY: if-push
 if-push:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvP $(PKGNAME) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvP $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvP $(PKGNAME) $(PRJNAME); \
 	fi
 
 .PHONY: commit
 commit:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -vC $(PKGNAME) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -vC $(PKGNAME) $(PRJNAME); \
 	fi
 
 .PHONY: if-commit
 if-commit:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -nvC $(PKGNAME) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvC $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -nvC $(PKGNAME) $(PRJNAME); \
 	fi
 
 .PHONY: wep
 wep:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
 	@if [ "$(PRJNAME)" == "travis_emulator" ]; then \
-	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -w $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(PKGPATH)/$(PRJNAME)/dist_pkg -w $(PKGNAME) $(PRJNAME); \
 	else \
-	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -w $(pkgname) $(PRJNAME); \
+	  cd $(PKGPATH); $(DEVPATH)/dist_pkg -w $(PKGNAME) $(PRJNAME); \
 	fi
 
 .PHONY: docs
 docs:
 	@# Warning! This command is just for internal use and doesn't work outside Zeroincombenze(R) environment
-	cd $(PRJPATH); PYTHONPATH=$(PKGPATH) $(DEVPATH)/wok_doc -v $(pkgname)
-	# cd $(PRJPATH); PYTHONPATH=$(PKGPATH) ./wok_doc -v $(pkgname)
+	cd $(PRJPATH); PYTHONPATH=$(PKGPATH) $(DEVPATH)/wok_doc -v $(PKGNAME)
+	# cd $(PRJPATH); PYTHONPATH=$(PKGPATH) ./wok_doc -v $(PKGNAME)
