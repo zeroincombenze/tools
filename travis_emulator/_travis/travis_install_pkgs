@@ -20,7 +20,7 @@ else
 fi
 TCONF=$TDIR/.$THIS.conf
 
-__version__=0.1.1
+__version__=0.1.2
 
 
 run_traced () {
@@ -61,8 +61,8 @@ if [ ! -d $PKGPATH ]; then
   echo "Invalid path $PKGPATH"
   exit 1
 elif [ "$PRJNAME" != "Odoo" ]; then
-  if [ ! -d $PKGPATH/$pkgname ]; then
-    echo "Invalid path $PKGPATH/$pkgname"
+  if [ ! -d $PKGPATH/$PKGNAME ]; then
+    echo "Invalid path $PKGPATH/$PKGNAME"
     exit 1
   fi
 fi

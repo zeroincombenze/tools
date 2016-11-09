@@ -11,34 +11,29 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "$HOME/tools/z0lib" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
-if [ -f $TDIR/travisrc ]; then
-. $TDIR/travisrc
-elif [ -f $TDIR/../travisrc ]; then
-. $TDIR/../travisrc
-elif [ -f ./travisrc ]; then
-. ./travisrc
-elif [ -f ~/travisrc ]; then
-. ~/travisrc
-else
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME/tools/travis_emulator" "_travis")
+if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.10
+__version__=0.1.11
+
 
 do_test () {
     if [ $opt_verbose -gt 0 ]; then
@@ -87,8 +82,7 @@ if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
 if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
 if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
 opts_travis
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 conf_default
 link_cfg $TCONF
 init_travis

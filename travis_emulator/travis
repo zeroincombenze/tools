@@ -38,42 +38,12 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.62.3
+__version__=0.1.62.4
 
 
-# run_cmd () {
-#     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-#     local xcmd="$1"
-#     local sts=$STS_SUCCESS
-#     local t=$(type -t $xcmd|head -n1)
-#     local x
-#     local s
-#     read -r -a x<<<"$xcmd"
-#     local k="${x[0]}"
-#     if [ "$t" == "file" ]; then
-#       grep -q "^.ELF" $k
-#       s=$?
-#       if [ $s -eq $STS_SUCCESS ]; then
-#         t="bin"
-#       fi
-#     fi
-#     if [ ${opt_dry_run:-0} -eq 0 ]; then
-#       if [ ${opt_verbose:-0} -gt 1 ]; then
-#         echo "\$ $xcmd"
-#       fi
-#       if [ "$t" == "file" ]; then
-#         eval "$xcmd"
-#         sts=$?
-#       else
-#         eval "$xcmd"
-#         sts=$?
-#       fi
-#     fi
-#     $SET_X
-#     return $sts
-# }
 
-process_local () {
+process_local() {
+    wlog "=== Simulate YAML test ==="
     if [ $TOOLS_PATH/travis_run_tests ]; then
       if [ "$action" == "check" ]; then
         opts=$(inherits_travis_opts "Knrv")
@@ -106,7 +76,7 @@ process_local () {
     return $sts
 }
 
-process_yaml_init () {
+process_yaml_init() {
     YML_sect=
     YML_sect0=
     YML_env=
@@ -123,90 +93,89 @@ process_yaml_init () {
 }
 
 
-process_yaml_unquote () {
+process_yaml_unquote() {
   lne="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
   echo $lne
 }
 
-process_yaml_quote () {
+process_yaml_quote() {
   lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
   echo $lne
 }
 
-process_yaml_quote_xtl () {
+process_yaml_quote_xtl() {
   lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
-  if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
-   lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
-  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+expect-dev ]]; then
-   lne="# $lne"
-  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-lxml ]]; then
-   lne="# $lne"
-  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-simplejson ]]; then
-   lne="# $lne"
-  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-serial ]]; then
-   lne="# $lne"
-  elif [[ $lne =~ yum[[:space:]]+install[[:space:]]+python-yaml ]]; then
-   lne="# $lne"
-  elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
-    if [ ! -d $HOME/maintainer-quality-tools ]; then
-      dow=3
-    else
-      dow=$(date +%w)
-    fi
-    if [ $opt_dry_run -ne 0 -o $dow -ne 3 ]; then
-     lne="# $lne"
-    else
+  if [ ${opt_virt:-0} -eq 0 ]; then
+    if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
+      lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
+    elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
       if [ ! -d $HOME/maintainer-quality-tools ]; then
-        local MQT_UPDT="2016-00-00"
+        dow=3
       else
-        local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+        dow=$(date +%w)
       fi
-      local curtm=$(date +"%Y-%m-%d")
-      if [ "$curtm" == "$MQT_UPDT" ]; then
+      if [ $opt_dry_run -ne 0 -o $dow -ne 3 ]; then
         lne="# $lne"
       else
-        if [ -d $HOME/maintainer-quality-tools/ ]; then
-          wlog "\$ rm -fR $HOME/maintainer-quality-tools/"
-          rm -fR $HOME/maintainer-quality-tools/
-        fi
-        if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
-          sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+        if [ ! -d $HOME/maintainer-quality-tools ]; then
+          local MQT_UPDT="2016-00-00"
         else
-          echo "MQT_UPDT=$curtm">>$TCONF
+          local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+        fi
+        local curtm=$(date +"%Y-%m-%d")
+        if [ "$curtm" == "$MQT_UPDT" ]; then
+          lne="# $lne"
+        else
+          if [ -d $HOME/maintainer-quality-tools/ ]; then
+            wlog "\$ rm -fR $HOME/maintainer-quality-tools/"
+            rm -fR $HOME/maintainer-quality-tools/
+          fi
+          if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
+            sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+          else
+            echo "MQT_UPDT=$curtm">>$TCONF
+          fi
         fi
       fi
+    # elif [[ $lne =~ PATH=\$\{*HOME\}/tools/travis_emulator/_travis ]]; then
+    #   if [ "$PRJNAME" == "travis_emulator" ]; then
+    #     lne="export PATH=${HOME}/dev/pypi/travis_emulator/travis_emulator/_travis:${PATH}"
+    #   fi
+    elif [[ $lne =~ travis_install_nightly ]]; then
+      lne="# $lne"
     fi
-  elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/zeroincombenze/tools.git ]]; then
-   lne="# $lne"
-  # elif [[ $lne =~ PATH=\$\{*HOME\}/maintainer-quality-tools/travis ]]; then
-  #  lne="# $lne"
-  elif [[ $lne =~ PATH=\$\{*HOME\}/tools/travis_emulator/_travis ]]; then
-    if [ "$PRJNAME" == "travis_emulator" ]; then
-      lne="export PATH=${HOME}/dev/pypi/travis_emulator/travis_emulator/_travis:${PATH}"
-    fi
-    # lne="# $lne"
-  elif [[ $lne =~ travis_install_nightly ]]; then
-   lne="# $lne"
-  # elif [[ $lne =~ travis_run_tests ]]; then # debug
-  #   lne="read #lne"
   fi
   lne=$(expand_path "$lne")
   echo $lne
 }
 
+process_yaml_xtl_pre() {
+    local line
+    line=$(process_yaml_quote_xtl $1)
+    if [ "$action" == "check" ]; then
+      line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]0[\"]/LINT_CHECK=\"1\"/g)
+      line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]0[\"]/BASH_CHECK=\"1\"/g)
+      line=$(echo "$line"|sed -e s/TESTS=[\"]1[\"]/TESTS=\"0\"/g)
+    elif [ "$action" == "test" ]; then
+      line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]1[\"]/LINT_CHECK=\"0\"/g)
+      line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
+      line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
+    fi
+    if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
+      line="# $line"
+    elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
+      line="# $line"
+    fi
+    echo "$line"
+}
 
-process_yaml_do () {
+process_yaml_do() {
     # echo "[$YML_sect]" #debug
     local lne=
     if [ "$YML_sect" == "python" ]; then
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        lne="yum install $(echo $1)"
-      else
-        lne="apt-get install $(echo $1)"
-      fi
-      lne=$(process_yaml_unquote "$lne")
+      lne=$(process_yaml_unquote "$1")
       YML_packages="$YML_packages $lne"
     elif [ "$YML_sect" == "env" ]; then
       lne=$(process_yaml_unquote "$1")
@@ -236,7 +205,7 @@ process_yaml_do () {
     # echo ">>> $lne" #debug
 }
 
-process_yaml_0 () {
+process_yaml_0() {
     if [ -n "$lne" ]; then
       IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
@@ -256,7 +225,7 @@ process_yaml_0 () {
     fi
 }
 
-process_yaml_1 () {
+process_yaml_1() {
     if [ -n "$lne" ]; then
       IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
@@ -276,7 +245,7 @@ process_yaml_1 () {
     fi
 }
 
-process_yaml_2 () {
+process_yaml_2() {
     if [ -n "$lne" ]; then
       IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
@@ -296,7 +265,7 @@ process_yaml_2 () {
     fi
 }
 
-process_yaml_3 () {
+process_yaml_3() {
     if [ -n "$lne" ]; then
       IFS=- read a b <<<"$lne"
       if [ -z "$a" ]; then
@@ -305,8 +274,8 @@ process_yaml_3 () {
     fi
 }
 
-process_yaml_file () {
-    local f1=$1
+process_yaml_file() {
+    local YML_FILE=$1
     process_yaml_init
     local lev=0
     local ident=0
@@ -344,124 +313,100 @@ process_yaml_file () {
       elif [ $lev -eq 3 ]; then
         process_yaml_3
       fi
-    done < "$f1"
+    done < "$YML_FILE"
 }
 
-process_yaml_before_install () {
+process_yaml_before_install() {
     wlog "===== [Before install] ====="
     local sts=$STS_SUCCESS
-    local i
-    local s
-    local line
-    local lne
+    local i s line lne
     for i in {1..9}; do
       line=$(get_cfg_value "" "yaml_init_$i")
       if [ -n "$line" ]; then
-        wlog "\$ $line"
-        eval $(process_yaml_quote $lne)
-        s=$?
-        if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
+        process_yaml_run_cmd "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
-    for lne in $YML_packages; do
-      line=$(process_yaml_quote_xtl $lne)
-      wlog "\$ $line"
-      eval $(process_yaml_quote_xtl $lne)
-      s=$?
-      if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
-    done
-    for lne in $YML_global; do
-      line="export $(process_yaml_quote_xtl $lne)"
-      wlog "\$ $line"
-      eval $line
-    done
-    for lne in UNBUFFER; do
-      line=$(get_cfg_value "" "$lne")
-      if [ -n "$line" ]; then
-        wlog "\$ export $lne=$line"
-        export $lne=$line
-      fi
-    done
-    for i in {1..9}; do
-      line=$(get_cfg_value "" "yaml_before_install_$i")
-      if [ -n "$line" ]; then
-        wlog "\$ $line"
-        eval $(process_yaml_quote $lne)
-        s=$?
-        if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
-      fi
-    done
+    if [ $sts -eq $STS_SUCCESS ]; then
+      for lne in $YML_packages; do
+        if [ "$FH" == "RHEL" ]; then
+          line="yum install $lne"
+        else
+          line="apt-get install $lne"
+        fi
+        process_yaml_run_cmd "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      for lne in $YML_global; do
+        line="export $(process_yaml_quote_xtl $lne)"
+        run_traced "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+      for lne in UNBUFFER; do
+        line=$(get_cfg_value "" "$lne")
+        if [ -n "$line" ]; then
+          line="export $lne=$line"
+          run_traced "$line"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+      done
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      for i in {1..9}; do
+        line=$(get_cfg_value "" "yaml_before_install_$i")
+        if [ -n "$line" ]; then
+          process_yaml_run_cmd "$line"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+      done
+    fi
     return $sts
 }
 
-process_yaml_install () {
+process_yaml_install() {
     wlog "===== [Install] ====="
     local sts=$STS_SUCCESS
     local i s line lne
     for lne in $YML_install; do
-      line=$(process_yaml_quote_xtl $lne)
-      wlog "\$ $line"
-      eval $(process_yaml_quote_xtl $lne)
-      s=$?
-      if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
+      process_yaml_run_cmd "$lne"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for i in {1..9}; do
       line=$(get_cfg_value "" "yaml_install_$i")
       if [ -n "$line" ]; then
-        wlog "\$ $line"
-        eval $(process_yaml_quote $lne)
-        s=$?
-        if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
+        process_yaml_run_cmd "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
     return $sts
 }
 
-process_yaml_before_script () {
+process_yaml_before_script() {
     local sts=$STS_SUCCESS
-    local i
-    local s
-    local line
-    local line1
-    local lne
-    line=$(process_yaml_quote_xtl $1)
-    wlog "===== [Before script $line ] ====="
-    if [ "$action" == "check" ]; then
-      if [[ $line =~ LINT_CHECK=[\"]*0 ]]; then
-        line="# $line"
-      elif [[ $line =~ TESTS=[\"]*1 ]]; then
-        line="# $line"
-      fi
-    elif [ "$action" == "test" ]; then
-      if [[ $line =~ LINT_CHECK=[\"]*1 ]]; then
-        line="# $line"
-      elif [[ $line =~ TESTS=[\"]*0 ]]; then
-        line="# $line"
-      fi
+    local line lne lne1
+    line="$1"
+    lne=$(process_yaml_quote $2)
+    if [ "$line" != "$lne" ]; then
+       wlog "===== [Before original script $lne] ====="
     else
-      true
-    fi
-    if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
-      line="# $line"
-    elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
-      line="# $line"
+       wlog "===== [Before script $line] ====="
     fi
     if [ -z "$line" -o "${line:0:1}" == "#" ]; then
       sts=127
     else
       for lne in $YML_global; do
-        line1="export $(process_yaml_quote_xtl $lne)"
-        wlog "\$ $line1"
-        eval $line1
+        lne1="export $(process_yaml_quote_xtl $lne)"
+        run_traced "$lne1"
       done
       line="export $line"
-      wlog "\$ $line"
-      eval $line
+      run_traced "$line"
     fi
     return $sts
 }
 
-process_yaml_after_success () {
+process_yaml_after_success() {
     local sts=$STS_SUCCESS
     local i
     local s
@@ -470,62 +415,123 @@ process_yaml_after_success () {
     local lne
     for lne in $YML_after; do
       line=$(process_yaml_quote_xtl $lne)
-      wlog "\$ $line"
-      eval $line
-      s=$?
-      if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
+      process_yaml_run_cmd "$lne"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
 }
 
-process_yaml () {
+process_yaml_run_cmd() {
+#process_yaml_run_cmd (cmd)
+    local xcmd=$(process_yaml_quote_xtl "$1")
+    local c i x s p sts
+    c=$xcmd
+    read -r -a x<<<"$xcmd"
+    if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
+      if [ "${x[2]}" == "expect-dev" ]; then
+        xcmd="# $xcmd"
+      elif $(rpm -q ${x[2]} &>/dev/null); then
+        xcmd="# $xcmd"
+      else
+        xcmd="false; # Warning! TODO> $xcmd"
+      fi
+    elif [ "${x[0]}" == "apt-get" -a "${x[1]}" == "install" ]; then
+      if $(dpkg-query -s ${x[2]} &>/dev/null); then
+        xcmd="# $xcmd"
+      else
+        xcmd="false; # Warning! TODO> $xcmd"
+      fi
+    elif [ "${x[0]}" == "git" -a "${x[1]}" == "clone" ]; then
+      i=2
+      p=${x[$i]}
+      while [ "${p:0:1}" == "-" ]; do ((i++)); p=${x[$i]}; done
+      if [ "$p" == "https://github.com/zeroincombenze/tools.git" ]; then
+        if [ ${opt_virt:-0} -eq 0 ]; then
+          xcmd="# $xcmd"
+        else
+          xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
+        fi
+      fi
+    fi
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      if [ "${x[0]}" == "pip" -a "${x[1]}" == "install" ]; then
+        p=$(echo "${x[2]}"|grep -Eo '[^!<=>]*'|head -n1)
+        if $(pip show $p &>/dev/null); then
+          xcmd="# $xcmd"
+        else
+          xcmd="false; # Warning! TODO> $xcmd"
+        fi
+      fi
+    fi
+    if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
+       wlog "## $c"
+    fi
+    run_traced "$xcmd"
+    return $?
+}
+
+process_yaml() {
+# process_yaml ()
     local sts=$STS_SUCCESS
     local i s
     local line lne line1 lne1
-    f1=$PRJPATH/.travis.yml
-    if [ ! -f $f1 ]; then
-      f1=$TOOLS_PATH/travis.yml
+    if [ "$action" == "chkconfig" ]; then
+      YML_FILE=$TOOLS_PATH/chkconfig.yml
+      if [ ! -f $YML_FILE ]; then
+        do_chkconfig
+        return $STS_SUCCESS
+      fi
+    else
+      YML_FILE=$PRJPATH/.travis.yml
+      if [ ! -f $YML_FILE ]; then
+        YML_FILE=$TOOLS_PATH/travis.yml
+      fi
     fi
-    if [ -f $f1 ]; then
-      process_yaml_file "$f1"
+    if [ -f $YML_FILE ]; then
+      wlog "=== Process YAML file ==="
+      process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
       wlog "===== [System informations] ====="
-      wlog "# Execution environment: $TRAVIS_ENV"
-      if [ ${opt_virt:-0} -gt 0 ]; then
-        wlog "\$ virtualenv $TRAVIS_ENVOPTS $TRAVIS_ENVDIR"
-        create_virtual_env
-      fi
-      for lne in HOSTENV TOOLS_PATH MQT_PATH DEVPATH PRJNAME pkgname REPOSNAME BRANCH PRJPATH PKGPATH; do
+      for lne in HOSTENV YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
          fi
       done
       wlog "===== [Initialize] ====="
+      if [ ${opt_virt:-0} -gt 0 ]; then
+        create_virtual_env
+      fi
       run_svr_test_init
-      process_yaml_before_install
-      process_yaml_install
-      wlog "===== [Script] ====="
-      for lne in $YML_matrix; do
-        process_yaml_before_script $lne
-        s=$?
-        if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
-          sts=$s
-        else
-          line=$(process_yaml_quote_xtl $lne)
-          for lne1 in $YML_script; do
-            line1=$(process_yaml_quote_xtl $lne1)
-            wlog "\$ $line $line1"
-            eval $line $line1
-            s=$?
-            if [ $s -ne $STS_SUCCESS ]; then sts=$s; fi
-          done
-        fi
-        if [ $sts -ne $STS_SUCCESS ]; then
-          elog "!Script aborted by error!!"
-          break
-        fi
-      done
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      if [ $sts -eq $STS_SUCCESS ]; then
+        process_yaml_before_install
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        process_yaml_install
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        wlog "===== [Script] ====="
+        for lne in $YML_matrix; do
+          line=$(process_yaml_xtl_pre "$lne")
+          process_yaml_before_script "$line" "$lne"
+          s=$?
+          if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
+            sts=$s
+          else
+            for lne1 in $YML_script; do
+              process_yaml_run_cmd "$line $lne1"
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            done
+          fi
+          if [ $sts -ne $STS_SUCCESS ]; then
+            elog "!Script aborted by error!!"
+            break
+          fi
+        done
+      fi
       wlog "===== [End script] ====="
       run_svr_test_exit
       if [ $sts -eq $STS_SUCCESS ]; then
@@ -590,11 +596,7 @@ CFG_init
 conf_default
 link_cfg $TCONF
 
-init_travis
-prepare_env_travis "$action"
-sts=$STS_SUCCESS
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-
 if [ "$action" == "setup" ]; then
   opt_r=0
   DEF_DEVPATH=$(readlink -f ~/dev)
@@ -614,20 +616,17 @@ if [ "$action" == "setup" ]; then
     done
   fi
   exit $STS_SUCCESS
-elif [ "$action" == "chkconfig" ]; then
-  do_chkconfig
-  exit $STS_SUCCESS
 fi
 
-check_4_travis
 sts=$STS_SUCCESS
+init_travis
+prepare_env_travis "$action"
+check_4_travis
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then
-    wlog "=== Simulate YAML test ==="
     process_local
     sts=$?
   else
-    wlog "=== Process YAML file ==="
     process_yaml
     sts=$?
   fi

@@ -10,7 +10,7 @@ XRGI="^(.*\/|)conf\/.*sample$"
 XXXX=".pyc .log .bak .out .tmp .conf .tracehistory ,cover .coverage build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
 
 
-opts_travis () {
+opts_travis() {
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       TCONF=$opt_conf
     else
@@ -38,9 +38,7 @@ opts_travis () {
       repository="local/"
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
-    pkgname=$(basename $PKGPATH)
-    PKGPATH=$(set_pkgpath "$PKGPATH")
-    pkgname=$(basename $PKGPATH)
+    PKGNAME=$(basename $PKGPATH)
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
     fi
@@ -55,7 +53,7 @@ opts_travis () {
     fi
 }
 
-inherits_travis_opts () {
+inherits_travis_opts() {
 # inherits_travis_opts(opts_enables)
   local opts=
   if [ -z "$1" ]; then
@@ -163,7 +161,23 @@ inherits_travis_opts () {
   echo "$opts"
 }
 
-init_travis () {
+init_travis() {
+    TRAVIS_ENV=$(get_cfg_value "" "Environment")
+    TRAVIS_ENVOPTS=
+    if [ ${opt_virt:-0} -eq -1 ]; then
+      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+        opt_virt=1
+      else
+        opt_virt=0
+      fi
+    elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
+      TRAVIS_ENV=virtualenv
+    fi
+    if [ ${opt_virt:-0} -gt 0 ]; then
+      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
+        TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+      fi
+    fi
     if [ ${opt_dry_run:-0} -gt 0 ]; then
       opts_dry_run=-n
     else
@@ -297,47 +311,38 @@ init_travis () {
 }
 
 create_virtual_env() {
-    TRAVIS_ENV=$(get_cfg_value "" "Environment")
-    TRAVIS_ENVOPTS=
-    if [ ${opt_virt:-0} -eq -1 ]; then
-      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-        opt_virt=1
-      else
-        opt_virt=0
-      fi
-    elif [ ${opt_virt:-0} -eq 1 -a "$TRAVIS_ENV" == "bash" ]; then
-      TRAVIS_ENV=virtualenv
-    fi
     if [ ${opt_virt:-0} -gt 0 ]; then
-      if [ "$TRAVIS_ENV" == "virtualenv" ]; then
-        TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-      fi
+      PKGPATH=$(set_pkgpath "")
       local TRAVIS_CWD=$PWD
-      TRAVIS_ENVDIR=$HOME/VENV_$$
-      virtualenv $TRAVIS_ENVOPTS $TRAVIS_ENVDIR
-      cd $TRAVIS_ENVDIR
+      TRAVIS_HOME=$HOME/VENV_$$
+      run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+      cd $TRAVIS_HOME
       source bin/activate
-      if [ -z "$REPOSNAME" ]; then
-        TRAVIS_REPOSNAME=run
+      if [ -z "$repository" ]; then
+        TRAVIS_WORK_DIR=local/$REPOSNAME
       else
-        TRAVIS_REPOSNAME=$REPOSNAME
+        TRAVIS_WORK_DIR=$repository
       fi
-      wlog "\$ ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/$TRAVIS_REPOSNAME"
-      ln -s $TRAVIS_CWD $TRAVIS_ENVDIR/$TRAVIS_REPOSNAME
-      cd $TRAVIS_REPOSNAME
+      TRAVIS_BUILD_DIR="$TRAVIS_HOME/${TRAVIS_WORK_DIR%%/*}"
+      run_traced "mkdir -p $TRAVIS_BUILD_DIR"
+      TRAVIS_SAVED_HOME=$HOME
+      export HOME=$TRAVIS_HOME
+      run_traced "cp -R $TRAVIS_CWD $TRAVIS_BUILD_DIR"
+      run_traced "cd $HOME"
     fi
 }
 
 drop_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then
-      cd $TRAVIS_ENVDIR
+      cd $TRAVIS_HOME
       deactivate
       cd $TRAVIS_CWD
-      rm -fR $TRAVIS_ENVDIR
+      rm -fR $TRAVIS_HOME
+      export HOME=$TRAVIS_SAVED_HOME
     fi
 }
 
-prepare_env_travis () {
+prepare_env_travis() {
     local action="$1"
     if [ ${opt_r:-0} -gt 0 ]; then
       if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
@@ -397,29 +402,29 @@ prepare_env_travis () {
     export PRJNAME
     export PRJPATH
     export PKGPATH
-    export pkgname
+    export PKGNAME
     export HOSTENV
     export LGITPATH
 }
 
-check_4_travis () {
+check_4_travis() {
     if [ ! -d $PKGPATH ]; then
       echo "Invalid package path $PKGPATH"
       exit $STS_FAILED
     elif [ "$PRJNAME" != "Odoo" ]; then
-      if [ ! -d $PKGPATH/$pkgname ]; then
-        echo "Invalid package path $PKGPATH/$pkgname"
+      if [ ! -d $PKGPATH/$PKGNAME ]; then
+        echo "Invalid package path $PKGPATH/$PKGNAME"
         exit $STS_FAILED
       fi
     fi
 }
 
-do_chkconfig () {
+do_chkconfig() {
     echo "Project name   = \"$PRJNAME\""
     echo "Tools path     = \"$TOOLS_PATH\" -r=\"$DEVPATH\""
     echo "Hosted         = \"$HOSTENV\""
     echo "Branch         = \"$BRANCH\""
-    echo "Package name   = \"$pkgname\" in \"$REPOSNAME\""
+    echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
     echo "Version        = \"$prjversion\""
     echo "Setup file     = \"$SETUP\""
     echo "Project path   = \"$PRJPATH\""
@@ -428,7 +433,7 @@ do_chkconfig () {
     echo "Config file    = \"$TCONF\""
 }
 
-conf_default () {
+conf_default() {
     set_cfg_def "loglevel" "1"
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
@@ -452,19 +457,20 @@ conf_default () {
     fi
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
+    set_cfg_def "ODOO_LOGFILE" "False"
 }
 
 
-expand_path () {
+expand_path() {
 # expand_path (path)
 # return:path
-    local x=$(echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$pkgname:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g  -e s:\${HOME}:$HOME:g)
+    local x=$(echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$PKGNAME:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g -e s:\${TRAVIS_BUILD_DIR}:$TRAVIS_BUILD_DIR:g -e s:\${HOME}:$HOME:g)
     echo $x|sed -e s\|\${PATH}\|$PATH\|g
 }
 
 
-set_pkgpath () {
-# set_pkgpath (pkgname)
+set_pkgpath() {
+# set_pkgpath (PKGNAME)
 # return:pkgpath
     PKGPATH="$1"
     if [ -z "$PKGPATH" ]; then
@@ -499,7 +505,7 @@ set_pkgpath () {
     echo "$PKGPATH"
 }
 
-install_dev () {
+install_dev() {
     if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
       local yod=$(date +%Y)
       if [ ! -d ~/dev ]; then
@@ -527,7 +533,7 @@ install_dev () {
 }
 
 
-update_dev () {
+update_dev() {
     XDPATH=$(echo "$(dirname $MAKEF)")
     ME_BOS=$(get_cfg_value "" "ME_BOS")
     RFLIST=$(get_cfg_value "" "RFLIST__$1")
@@ -537,7 +543,7 @@ update_dev () {
     local v2=
     if [ -n "$RFLIST" ]; then
       for x in $RFLIST; do
-        if [ ! -f $PKGPATH/$pkgname/$x ]; then
+        if [ ! -f $PKGPATH/$PKGNAME/$x ]; then
           xvalid=0
         fi
       done
@@ -548,23 +554,23 @@ update_dev () {
     fi
     if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
       for x in $RFLIST; do
-        if [ -f $PKGPATH/$pkgname/$x ]; then
+        if [ -f $PKGPATH/$PKGNAME/$x ]; then
           if [ ${opt_diff:-0} -gt 0 ]; then
-            if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x)" ]; then
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
-              diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
+            if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x)" ]; then
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
+              diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
             fi
           elif [ ${opt_fetch:-0} -gt 0 ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$pkgname/$x"; fi
-            ((${opt_dry_run:-0}))||cp $opts_verbose $XDPATH/$x $PKGPATH/$pkgname/$x
+            if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $XDPATH/$x $PKGPATH/$PKGNAME/$x"; fi
+            ((${opt_dry_run:-0}))||cp $opts_verbose $XDPATH/$x $PKGPATH/$PKGNAME/$x
           else
-            diff -q $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
+            diff -q $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
             if [ $? -ne 0 ]; then
-              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x $XDPATH/$x"; fi
-              # ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x
-              run_traced "cp $opts_verbose $PKGPATH/$pkgname/$x $XDPATH/$x"
-              if [ -x $PKGPATH/$pkgname/$x ]; then
-                v1=$($PKGPATH/$pkgname/$x -V)
+              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
+              # ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$PKGNAME/$x $XDPATH/$x
+              run_traced "cp $opts_verbose $PKGPATH/$PKGNAME/$x $XDPATH/$x"
+              if [ -x $PKGPATH/$PKGNAME/$x ]; then
+                v1=$($PKGPATH/$PKGNAME/$x -V)
                 v2=$($XDPATH/$x -V)
                 if [ "$v1" != "$v2" ]; then
                   echo "!Copy of $x FAILED !!!"
@@ -577,39 +583,38 @@ update_dev () {
       if [ -n "$RDLIST" ]; then
         for x in $RDLIST; do
           if [ ${opt_diff:-0} -gt 0 ]; then
-             diff -rq $XLDF $PKGPATH/$pkgname/$x $XDPATH/$x
+             diff -rq $XLDF $PKGPATH/$PKGNAME/$x $XDPATH/$x
           elif [ ${opt_fetch:-0} -eq 0 ]; then
-             diff -rq $PKGPATH/$pkgname/$x $XDPATH/$x &>/dev/null
+             diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
              if [ $? -ne 0 ]; then
-               if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$pkgname/$x $XDPATH/"; fi
-               ((${opt_dry_run:-0}))||cp -R $PKGPATH/$pkgname/$x $XDPATH/
+               if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"; fi
+               ((${opt_dry_run:-0}))||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/
              fi
           fi
         done
       fi
       if [ -n "$ME_BOS" ]; then
         for x in $ME_BOS cronow replica.sh; do
-          if [ -f $PKGPATH/$pkgname/$x ]; then
+          if [ -f $PKGPATH/$PKGNAME/$x ]; then
             if [ ${opt_diff:-0} -gt 0 ]; then
-              if [ "$(diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x)" ]; then
-                if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x"; fi
-                diff -rq $XLDF $PKGPATH/$pkgname/$x ~/bin/$x
+              if [ "$(diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x)" ]; then
+                if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
+                diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x
               fi
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               true
             else
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$pkgname/$x ~/bin/$x"; fi
-              ((${opt_dry_run:-0}))||cp $PKGPATH/$pkgname/$x ~/bin/$x
+              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
+              ((${opt_dry_run:-0}))||cp $PKGPATH/$PKGNAME/$x ~/bin/$x
             fi
           fi
         done
       fi
-      # set +x #debug
-      MAKEF=$PKGPATH/$pkgname/Makefile
+      MAKEF=$PKGPATH/$PKGNAME/Makefile
     fi
 }
 
-a_append () {
+a_append() {
 # a_append (key, values)::DEFPRM,DEFVAL
 # return:
 # key=="--new" && value=="" -> clean dictionary
@@ -626,7 +631,7 @@ a_append () {
 }
 
 
-a_search () {
+a_search() {
 # a_search (key)::DEFPRM,DEFVAL
 # return:value,sts
     local jy=0
@@ -651,7 +656,7 @@ a_search () {
 }
 
 
-matches1of () {
+matches1of() {
 # matches1of (filename, exclist)
 # return:true/false
     local x=
@@ -666,8 +671,8 @@ matches1of () {
 }
 
 
-robocopy_init () {
-# robocopy_init (prjname, pkgname)::DIST_CONF,TCONF,opt_fetch,opt_verbose
+robocopy_init() {
+# robocopy_init (prjname, PKGNAME)::DIST_CONF,TCONF,opt_fetch,opt_verbose
 # return:
     a_append "--new"
     a_append "^.*\.egg-info$" ""
@@ -737,7 +742,7 @@ robocopy_init () {
 }
 
 
-robocopy () {
+robocopy() {
 # robocopy (srcfname, tgtpath, sshopt)::opt_dry_run,opts_dry_run,opt_verbose,XRGX,XRGI,XLFS
 # return:
     if [ -d "$1" ]; then
@@ -795,7 +800,7 @@ robocopy () {
     fi
 }
 
-clean_dirs () {
+clean_dirs() {
 # clean_dirs (directory)::
 # return:
     for x in $XXXX;do
@@ -810,7 +815,7 @@ clean_dirs () {
 }
 
 
-please_test_bash () {
+please_test_bash() {
     echo "======== Testing test_bash   ========"
     sts=$STS_SUCCESS
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -838,7 +843,7 @@ please_test_bash () {
     return $sts
 }
 
-please_test_flake8 () {
+please_test_flake8() {
     echo "======== Testing test_flake8 ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
@@ -853,7 +858,7 @@ please_test_flake8 () {
     return $sts
 }
 
-please_test_pylint () {
+please_test_pylint() {
     echo "======== Testing test_pylint ========"
     sts=$STS_SUCCESS
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -885,7 +890,7 @@ please_test_pylint () {
     return $sts
 }
 
-do_summary () {
+do_summary() {
 # do_summary(bash,flake8,pylint,test)
     local RED="\033[1;31m"
     local GREEN="\033[1;32m"
@@ -978,7 +983,7 @@ coverage() {
     return $?
 }
 
-run_regression_test () {
+run_regression_test() {
     echo "======== Running regression_test ========"
     cd $PRJPATH
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -1015,7 +1020,7 @@ run_regression_test () {
     return $sts
 }
 
-run_coverage_test () {
+run_coverage_test() {
     cd $PRJPATH
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ "$PRJNAME" != "Odoo" ]; then
@@ -1070,7 +1075,7 @@ run_coverage_test () {
     return $sts
 }
 
-run_annotate_test () {
+run_annotate_test() {
     cd $PRJPATH
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ "$PRJNAME" != "Odoo" ]; then
@@ -1119,24 +1124,40 @@ run_annotate_test () {
     return $sts
 }
 
-cp_n_upd () {
-    local src="$1"
+cp_n_upd_conf() {
+    local confn=$1
     local tgt=~/.openerp_serverrc
-    local odoo_ver=${VERSION:0:1}
-    if [ ! -f $src ]; then
-      echo "File $src not found!"
+    if [ "$VERSION" == "v7" ]; then
+      local odoo_ver=7
+      local pfx="openerp"
+      local pfx2=
+      local sfx="/server"
+    else
+      local odoo_ver=${VERSION:0:1}
+      local pfx="odoo$odoo_ver"
+      local pfx2=odoo
+      local sfx=
+    fi
+    if [ -z "$confn" ] || [ ! -f $confn ]; then
+      local confn=/etc/odoo/${pfx}-server.conf
+      if [ ! -f $confn ]; then
+        confn=/etc/odoo/${pfx2}-server.conf
+      fi
+    fi
+    if [ ! -f $confn ]; then
+      echo "File $confn not found!"
       exit 1
     fi
     if [ -f $tgt ]; then
       rm -f $tgt
     fi
+    wlog "$ cp $confn $tgt"
+    local ODOO_LOGFILE=$(get_cfg_value "" "ODOO_LOGFILE")
     while IFS=\| read -r line; do
       if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
         line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
-      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
-        line=$(echo "logfile = False")
-      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*openerp-server ]]; then
-        line=$(echo "logfile = False")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.* ]]; then
+        line=$(echo "logfile = $ODOO_LOGFILE")
       elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9]* ]]; then
@@ -1151,54 +1172,61 @@ cp_n_upd () {
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       fi
       echo "$line">>$tgt
-    done < "$src"
+    done < "$confn"
 }
 
-clone_1_dependence () {
-    local n
+clone_1_dependence() {
+    local n sts
     n=$(basename $1)
     if [ -d $1 ]; then
       if [ "$n" != "__unported__" ]; then
         if [ ! -d $HOME/dependencies/$n ]; then
           run_traced "ln -s $1 $HOME/dependencies/"
+          sts=$?
         else
           wlog "Module $1 already cloned!"
+          sts=0
         fi
       fi
     fi
+    return $sts
 }
 
-clone_core_dependencies () {
+clone_core_dependencies() {
     local line
-    local p
-    local d
+    local p d s sts
     local CORE_MODULES=""
     local oetpath=$(readlink -e $PRJPATH/..)
+    sts=0
     for line in $CORE_MODULES; do
       d=$(find $oetpath -type d -name "$line")
       if [ -n "$d" ]; then
         if [ -n "$REPOSNAME" ]; then
           for p in $d/*; do
             clone_1_dependence "$p"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
           done
         else
           clone_1_dependence "$d"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
         fi
       else
         elog "!????? Module $line not found!??????"
+        sts=2
       fi
     done
     if [ -n "$REPOSNAME" ]; then
       clone_1_dependence "$oetpath/addons"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
+    return $sts
 }
 
-clone_oca_dependencies () {
+clone_oca_dependencies() {
     local f1=$1
-    local line
-    local p
-    local d
+    local line p d s sts
     local oetpath=$(readlink -e $PRJPATH/..)
+    sts=0
     if [ -f "$f1" ]; then
       while IFS=\~ read -r line; do
         if [ -n "$line" -a "${line:0:1}" != "#" ]; then
@@ -1207,101 +1235,117 @@ clone_oca_dependencies () {
             if [ -n "$REPOSNAME" ]; then
               for p in $d/*; do
                 clone_1_dependence "$p"
+                s=$?; [ ${s-0} -ne 0 ] && sts=$s
               done
             else
               clone_1_dependence "$d"
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
             fi
           else
             elog "!????? Module $line not found!??????"
+            sts=2
           fi
         fi
       done < "$f1"
     fi
+    return $sts
 }
 
 clone_dependencies() {
-    local p
+    local p s sts
     if [ ! -d $HOME/dependencies ]; then
       run_traced "mkdir $HOME/dependencies"
     fi
+    sts=0
     if [ -n "$REPOSNAME" ]; then
-      run_traced "export INCLUDE=$pkgname"
+      run_traced "export INCLUDE=$PKGNAME"
       local oetpath=$(readlink -e $PRJPATH/..)
       for p in $oetpath/*; do
         clone_1_dependence "$p"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
       p=$(readlink -e $oetpath/openerp)
       if [ -n "$p" ]; then
         clone_1_dependence "$p"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
       p=$(readlink -e $oetpath/$REPOSNAME/)
       if [ -n "$p" ]; then
          clone_oca_dependencies "$p/oca_dependencies.txt"
+         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
       clone_core_dependencies
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     else
       run_traced "export INCLUDE="
       clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
+    return $sts
 }
 
-run_svr_test_rm_ln () {
+run_svr_test_rm_ln() {
     local n=$(get_cfg_value "" "dbtemplate")
     run_traced "dropdb --if-exists $n"
     local n=$(get_cfg_value "" "dbname")
     run_traced "dropdb --if-exists $n"
-    run_traced "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
-    run_traced "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
+    run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
+    run_unvirt "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
     if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-      run_traced "if [ -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server; fi"
+      run_unvirt "if [ -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server; fi"
     fi
-    run_traced "if [ -L $HOME/$pkgname-$VERSION ]; then rm -f $HOME/$pkgname-$VERSION; fi"
-    run_traced "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
+    run_unvirt "if [ -L $HOME/$PKGNAME-$VERSION ]; then rm -f $HOME/$PKGNAME-$VERSION; fi"
+    run_unvirt "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
 }
 
-run_svr_test_init () {
+
+run_unvirt() {
+#run_unvirt (cmd)
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      run_traced "$1"
+    else
+      :
+    fi
+    return $?
+}
+
+run_svr_test_init() {
     local i
     local CMD
     run_traced "coverage erase"
+    sts=0
     if [ "$PRJNAME" == "Odoo" ]; then
       run_svr_test_rm_ln
-      if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-        run_traced "cp_n_upd \"/etc/odoo/openerp-server.conf\""
-      else
-        run_traced "cp_n_upd \"/etc/odoo/odoo${VERSION:0:1}-server.conf\""
-      fi
+      cp_n_upd_conf
       clone_dependencies
+      sts=$?
       local x=$(readlink -e $PRJPATH/..)
-      run_traced "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-      run_traced "ln -s $PKGPATH $HOME/$pkgname-$VERSION"
+      run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+      run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-        # run_traced "ln -s $x/server/openerp-server $HOME/${ODOO_REPO#*/}-$VERSION/openerp-server"
         cat <<EOF >$x/openerp-server
 #!/usr/bin/env python
 import os
 import subprocess
 import sys
 if __name__ == "__main__":
-    # cmd = ["openerp-server"] + sys.argv
-    # subprocess.call(cmd)
     sys.path.insert(0,'/opt/odoo/v7/server')
     import openerp
     openerp.cli.main()
 EOF
         chmod +x $x/openerp-server
       fi
-    else
-      local n
     fi
+    return $sts
 }
 
-run_svr_test_exit () {
+run_svr_test_exit() {
     if [ "$PRJNAME" == "Odoo" ]; then
       run_svr_test_rm_ln
     fi
 }
 
-run_server_test () {
+run_server_test() {
   echo "======== Running server_test ========"
   run_svr_test_init
   run_svr_test_exit
@@ -1309,7 +1353,7 @@ run_server_test () {
   return $sts
 }
 
-please_run_tests () {
+please_run_tests() {
     sts=$STS_SUCCESS
     if [[ $1 =~ [BK] ]]; then
       please_test_bash

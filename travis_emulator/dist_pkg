@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.82
+__version__=0.1.82.1
 
 TCONF=$TDIR/.travis.conf
 # main
@@ -118,22 +118,22 @@ if [ "$opt_whatis" ]; then
 fi
 if [ $opt_dry_run -gt 0 ]; then
   if [ $opt_sync -gt 0 ]; then
-    echo "$(basename $0) -n -- $pkgname $PRJNAME"
+    echo "$(basename $0) -n -- $PKGNAME $PRJNAME"
   elif [ $opt_diff -gt 0 ]; then
-    echo "$(basename $0) -n -d -p \"$LGITPATH\" $pkgname $PRJNAME"
+    echo "$(basename $0) -n -d -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   elif [ "$opt_cpush" ]; then
-    echo "$(basename $0) -n $opt_cpush -p \"$LGITPATH\" $pkgname $PRJNAME"
+    echo "$(basename $0) -n $opt_cpush -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   elif [ $opt_fetch -gt 0 ]; then
-    echo "$(basename $0) -n -f -p \"$LGITPATH\" $pkgname $PRJNAME"
+    echo "$(basename $0) -n -f -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   elif [ "$opt_sts" ]; then
     echo "$opt_sts"
   else
-    echo "$(basename $0) -n -p \"$LGITPATH\" $pkgname $PRJNAME"
+    echo "$(basename $0) -n -p \"$LGITPATH\" $PKGNAME $PRJNAME"
   fi
 fi
 
 if [ "$PRJNAME" != "Odoo" ]; then
-  LSETUP=$PKGPATH/$pkgname/setup.py
+  LSETUP=$PKGPATH/$PKGNAME/setup.py
   if [ -f $LSETUP ]; then
     DEVSSTS0=" 1 - Planning"
     if [ -z "$devstatus" ]; then
@@ -152,7 +152,7 @@ if [ "$PRJNAME" != "Odoo" ]; then
 fi
 if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
   if [ -f $DIST_CONF ]; then
-    robocopy_init "$PRJNAME" "$pkgname"
+    robocopy_init "$PRJNAME" "$PKGNAME"
     f_done=0
     for ii in {1..9}; do
       declare x=tgt${ii}path
@@ -196,19 +196,19 @@ fi
 check_4_travis
 install_dev
 if [ "$PRJNAME" != "Odoo" ]; then
-  if [ "$pkgname" != "$PRJNAME" ]; then
-    echo "Warning: package name $pkgname and project name $PRJNAME are different!"
+  if [ "$PKGNAME" != "$PRJNAME" ]; then
+    echo "Warning: package name $PKGNAME and project name $PRJNAME are different!"
   else
     if [ $opt_dry_run -eq 0 -a $opt_diff -eq 0 ]; then
-      if [ $opt_verbose -gt 0 ]; then echo "$ cp $SETUP $PKGPATH/$pkgname/setup.py"; fi
-      echo "from setuptools import setup">$PKGPATH/$pkgname/setup.py
-      echo "">>$PKGPATH/$pkgname/setup.py
-      echo "setup(name='$PRJNAME',">>$PKGPATH/$pkgname/setup.py
-      echo "      version='$prjversion',">>$PKGPATH/$pkgname/setup.py
-      echo "      description='$prjdesc',">>$PKGPATH/$pkgname/setup.py
-      echo "      classifiers=[">>$PKGPATH/$pkgname/setup.py
-      echo "          'Development Status ::$devstatus',">>$PKGPATH/$pkgname/setup.py
-      echo "      ])">>$PKGPATH/$pkgname/setup.py
+      if [ $opt_verbose -gt 0 ]; then echo "$ cp $SETUP $PKGPATH/$PKGNAME/setup.py"; fi
+      echo "from setuptools import setup">$PKGPATH/$PKGNAME/setup.py
+      echo "">>$PKGPATH/$PKGNAME/setup.py
+      echo "setup(name='$PRJNAME',">>$PKGPATH/$PKGNAME/setup.py
+      echo "      version='$prjversion',">>$PKGPATH/$PKGNAME/setup.py
+      echo "      description='$prjdesc',">>$PKGPATH/$PKGNAME/setup.py
+      echo "      classifiers=[">>$PKGPATH/$PKGNAME/setup.py
+      echo "          'Development Status ::$devstatus',">>$PKGPATH/$PKGNAME/setup.py
+      echo "      ])">>$PKGPATH/$PKGNAME/setup.py
     fi
   fi
 fi
@@ -223,7 +223,7 @@ if [ "$opt_cpush" == "-w" ]; then
   if [ "$PRJNAME" == "Odoo" ]; then
     cd $PKGPATH
   else
-    cd $PKGPATH/$pkgname
+    cd $PKGPATH/$PKGNAME
   fi
   if [ "$PRJNAME" != "z0lib" ]; then
     if [ -f ./Makefile -a -f /opt/odoo/dev/Makefile ]; then
@@ -255,7 +255,7 @@ if [ ! -d "$LGITPATH" ]; then
   exit $STS_FAILED
 fi
 dpath_parent=$LGITPATH
-dpath_child=$LGITPATH/$pkgname
+dpath_child=$LGITPATH/$PKGNAME
 dpath_prj=$PKGPATH/$PRJNAME
 if [ "$PRJNAME" == "Odoo" ]; then
   dpath_prj=$PKGPATH
@@ -263,7 +263,7 @@ if [ "$PRJNAME" == "Odoo" ]; then
 else
   LGITLEV=1
 fi
-robocopy_init "$PRJNAME" "$pkgname"
+robocopy_init "$PRJNAME" "$PKGNAME"
 if [ $opt_diff -gt 0 ]; then
   if [ $LGITLEV -gt 0 ]; then
     if [ $opt_verbose -gt 0 ]; then echo "$ diff $XLDF -rq $dpath_prj/ $LGITPATH/"; fi
@@ -294,8 +294,8 @@ else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do
       if [[ ! $f =~ .*~ ]]; then
-        if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$pkgname/$f\""; fi
-        robocopy "$LGITPATH/$f" "$PKGPATH/$pkgname/$f"
+        if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$PKGNAME/$f\""; fi
+        robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
       fi
     done
   else

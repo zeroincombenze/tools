@@ -780,25 +780,25 @@ fi
 if [ "$USER" == "odoo" ]; then
   (($opt_dry_run))||check4env
   cd ~/dev/pypi
-  for pkgname in *; do
+  for PKGNAME in *; do
     if [ $sts -eq $STS_SUCCESS ]; then
       valid=0
-      if [ -d "$pkgname" ]; then
+      if [ -d "$PKGNAME" ]; then
         for p in $PKGSLX; do
-          if [ "$pkgname" == "$p" ]; then
+          if [ "$PKGNAME" == "$p" ]; then
             valid=1
             break
           fi
         done
         if [ $valid -gt 0 ]; then
-          test_pkg_pypi $pkgname
+          test_pkg_pypi $PKGNAME
           sts=$?
           if [ $sts -eq $STS_SUCCESS ]; then
-            pkg_pypi_commit $pkgname
+            pkg_pypi_commit $PKGNAME
           fi
         elif [ $opt_dry_run -eq $STS_SUCCESS ]; then
           wlog "------------------------------------"
-          wlog "Module $pkgname uncertificated ($sts)!"
+          wlog "Module $PKGNAME uncertificated ($sts)!"
         fi
       fi
     fi

@@ -116,7 +116,7 @@ do_diff() {
     wlog "do_diff \"$1\" \"$2\" \"$3\""
     opt_diff=1
     opts=$(inherits_travis_opts "nvd")
-    dist_pkg $opts $pkgname;
+    dist_pkg $opts $PKGNAME;
     sts=$?
     return $sts
 }
@@ -180,12 +180,12 @@ do_travis() {
 
 
 do_version() {
-    cd $PKGPATH; $DEVPATH/dist_pkg -- $pkgname $PRJNAME;
+    cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
     if [ "$PRJNAME" != "Odoo" ]; then
-      echo "Project $PRJNAME V$prjversion [$pkgname] answer:";
+      echo "Project $PRJNAME V$prjversion [$PKGNAME] answer:";
       cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
     else
-      echo "Project $PRJNAME V$BRANCH [$pkgname $prjversion]";
+      echo "Project $PRJNAME V$BRANCH [$PKGNAME $prjversion]";
     fi;
 }
 
@@ -210,7 +210,7 @@ do_distribution() {
       else
         local f1=
         echo "Missed parameter! use:"
-        echo "\$ please distribution pkgname|. oca|zeroincombenze"
+        echo "\$ please distribution PKGNAME|. oca|zeroincombenze"
         sts=$STS_FAILED
       fi
     fi
@@ -228,9 +228,9 @@ do_distribution() {
       fi
       if [ -n "$f1" ]; then
         if [ "$2" == "oca" ]; then
-          run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$pkgname:g $f1"
+          run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
         elif [ "$2" == "zeroincombenze" ]; then
-          run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$pkgname:g $f1"
+          run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
         fi
       fi
     fi
@@ -266,13 +266,13 @@ cat <<EOF >index.html
    </body>
 </html>
 EOF
-    zip -j pythonhosted-$pkgname.zip index.html
+    zip -j pythonhosted-$PKGNAME.zip index.html
     if [ -f index.html ]; then
       rm -f index.html
     fi
     cd $CWD
-    if [ -f $PKGPATH/pythonhosted-$pkgname.zip ]; then
-      echo "Now you can download $PKGPATH/pythonhosted-$pkgname.zip in pypy webpage of project"
+    if [ -f $PKGPATH/pythonhosted-$PKGNAME.zip ]; then
+      echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypy webpage of project"
     fi
     return $sts
 }
@@ -291,7 +291,7 @@ do_docs() {
 }
 
 do_publish() {
-#do_publish pkgname (svg|docs)
+#do_publish PKGNAME (svg|docs)
     wlog "do_publish $1 $2"
     sts=$STS_SUCCESS
     if [ "$2" == "svg" ]; then
@@ -439,7 +439,7 @@ test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "annotate" ]; then
-  do_annotate "$pkgname" "$opt_srcs"
+  do_annotate "$PKGNAME" "$opt_srcs"
   sts=$?
 elif [ "$action" == "autopep8" ]; then
   opts=$(inherits_travis_opts "dnuv")
@@ -451,17 +451,17 @@ elif [ "$action" == "autopep8" ]; then
   fi
   topep8 "$PKGPATH" "$opts"
 elif [ "$action" == "check" ]; then
-  do_check "$pkgname" "$sub1" "$sub2"
+  do_check "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "chkconfig" ]; then
   do_chkconfig
   sts=$STS_SUCCESS
 elif [ "$action" == "if-commit" ]; then
   opt_dry_run=1
-  do_commit "$pkgname" "$sub1" "$sub2"
+  do_commit "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "commit" ]; then
-  do_commit "$pkgname" "$sub1" "$sub2"
+  do_commit "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "config" ]; then
   if [ $opt_r -gt 0 ]; then
@@ -472,43 +472,43 @@ elif [ "$action" == "config" ]; then
   fi
   sts=$STS_SUCCESS
 elif [ "$action" == "coverage" ]; then
-  do_coverage "$pkgname" "$sub1" "$sub2"
+  do_coverage "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "distribution" ]; then
-  do_distribution "$pkgname" "$sub1" "$sub2"
+  do_distribution "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "diff" ]; then
-  do_diff "$pkgname" "$sub1" "$sub2"
+  do_diff "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "if-fetch" ]; then
   opt_dry_run=1
-  do_fetch "$pkgname" "$sub1" "$sub2"
+  do_fetch "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "fetch" ]; then
-  do_fetch "$pkgname" "$sub1" "$sub2"
+  do_fetch "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "if-push" ]; then
   opt_dry_run=1
-  do_push "$pkgname" "$sub1" "$sub2"
+  do_push "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "push" ]; then
-  do_push "$pkgname" "$sub1" "$sub2"
+  do_push "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "if-replace" ]; then
   opt_dry_run=1
-  do_replace "$pkgname" "$sub1" "$sub2"
+  do_replace "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "replace" ]; then
-  do_replace "$pkgname" "$sub1" "$sub2"
+  do_replace "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "test" ]; then
-  do_test "$pkgname" "$sub1" "$sub2"
+  do_test "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "travis" ]; then
-  do_travis "$pkgname" "$sub1" "$sub2"
+  do_travis "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "version" ]; then
-  do_version "$pkgname" "$sub1" "$sub2"
+  do_version "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "wep" ]; then
   if [ $opt_verbose -gt 0 ]; then
@@ -518,7 +518,7 @@ elif [ "$action" == "wep" ]; then
 else
   cmd="do_$action"
   if [ "$(type -t $cmd)" == "function" ]; then
-    eval $cmd "$pkgname" "$sub1" "$sub2"
+    eval $cmd "$PKGNAME" "$sub1" "$sub2"
     sts=$?
   else
     echo "Invalid action!"
