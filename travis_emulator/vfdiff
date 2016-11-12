@@ -6,19 +6,23 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-
-if [ -f z0librc ]; then
-. ./z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
-  echo "Libreria z0librc non trovata!"
-  exit 1
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
 fi
 
-__version__="0.1.7"
+__version__="0.1.8"
+
 
 get_odoo_ver() {
   local i=
@@ -31,19 +35,12 @@ get_odoo_ver() {
     local t=$(echo "$p"|awk -F/ '{ print $'$i'}')
     if [ -z "$t" ]; then
       break
-    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" -o "$t" == "10.0" ]; then
+    elif [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$t[[:space:]] ]]; then
       local v=$t
       break
-    else
-      v=$(echo "$t"|grep -Eo '[0-9]+\.[0-9]+')
-      if [ -n "$v" ]; then
-        break
-      fi
-      v=$(echo "$t"|grep -Eo '[vV][0-9]+')
-      if [ -n "$v" ]; then
-        v=$V{1:}.0
-        break
-      fi
+    elif [[ " v10 v9 v8 v7 " =~ [[:space:]]$t[[:space:]] ]]; then
+      local v=${t:1}.0
+      break
     fi
   done
   echo "$v"
@@ -52,7 +49,7 @@ get_odoo_ver() {
 get_name_zeroincombenze() {
 # get_name_zeroincombenze(name odoo_ver)
     if [ "$1" == "zeroincombenze" ]; then
-      if [ "$2" == "7.0" -o "$2" == "8.0" -o "$2" == "9.0" -o "$2" == "10.0" ]; then
+      if [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$2[[:space:]] ]]; then
         result="$result/l10n-italy-supplemental"
       else
         result="$result/$1"
@@ -67,7 +64,7 @@ get_name_zeroincombenze() {
 get_name_supplemental() {
 # get_name_zeroincombenze(name odoo_ver)
     if [ "$1" == "l10n-italy-supplemental" ]; then
-      if [ "$2" == "v7" ]; then
+      if [[ " v10 v9 v8 v7 " =~ [[:space:]]$2[[:space:]] ]]; then
         result="$result/zeroincombenze"
       else
         result="$result/$1"
@@ -86,7 +83,7 @@ get_path_ver() {
   local i=
   local ov=$2
   local r=$1
-  local re="(7\.0|8\.0|9\.0|10\.0|v7)"
+  local re="(10\.0|9\.0|8\.0|7\.0|v10|v9|v8|v7)"
   if [ -z "$r" ]; then
     r=/opt/odoo
   elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
@@ -96,10 +93,6 @@ get_path_ver() {
     local t=$(echo "$r"|awk -F/ '{ print $'$i'}')
     if [ -z "$t" ]; then
       break
-    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0"  -o "$t" == "10.0" -o "$t" == "v7" ]; then
-      result="$result/$t"
-      ov=$t
-      msts=1
     elif [ $msts -eq 0 ] && [[ $t =~ $re ]]; then
       result="$result/$t"
       ov=$t
@@ -191,7 +184,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 # set -x
-if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" -o "$odoo_ver" == "10" ]; then
+if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
 cv=$(get_odoo_ver)

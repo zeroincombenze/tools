@@ -6,160 +6,199 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-
-if [ -f z0librc ]; then
-. ./z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
-  echo "Libreria z0librc non trovata!"
-  exit 1
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
 fi
 
-__version__="0.1.7"
+__version__="0.1.8"
 
 get_odoo_ver() {
-  local i=
-  local v=
-  local p=$1
-  if [ -z "$1" ]; then
-    p=$PWD
-  fi
-  for i in {2..4}; do
-    local t=$(echo "$p"|awk -F/ '{ print $'$i'}')
-    if [ -z "$t" ]; then
-      break
-    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0" -o "$t" == "10.0" ]; then
-      local v=$t
-      break
-    else
-      v=$(echo "$t"|grep -Eo '[0-9]+\.[0-9]+')
-      if [ -n "$v" ]; then
-        break
-      fi
-      v=$(echo "$t"|grep -Eo '[vV][0-9]+')
-      if [ -n "$v" ]; then
-        v=$V{1:}.0
-        break
-      fi
+    local i=
+    local v=
+    local p=$1
+    if [ -z "$1" ]; then
+      p=$PWD
     fi
-  done
-  echo "$v"
+    for i in {2..4}; do
+      local t=$(echo "$p"|awk -F/ '{ print $'$i'}')
+      if [ -z "$t" ]; then
+        break
+      elif [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$t[[:space:]] ]]; then
+        local v=$t
+        break
+      elif [[ " v10 v9 v8 v7 " =~ [[:space:]]$t[[:space:]] ]]; then
+        local v=${t:1}.0
+        break
+      fi
+    done
+    echo "$v"
 }
 
 get_name_zeroincombenze() {
 # get_name_zeroincombenze(name odoo_ver)
-    if [ "$1" == "zeroincombenze" ]; then
-      if [ "$2" == "7.0" -o "$2" == "8.0" -o "$2" == "9.0" -o "$2" == "10.0" ]; then
-        result="$result/l10n-italy-supplemental"
-      else
-        result="$result/$1"
+      if [ "$1" == "zeroincombenze" ]; then
+        if [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$2[[:space:]] ]]; then
+          VF_REP="l10n-italy-supplemental"
+        else
+          VF_REP="$1"
+        fi
+        result="$result/$VF_REP"
+        VF_MSTS=2
       fi
-      if [ -z "$opt_rep" ]; then
-        opt_rep=l10n-italy-supplemental
-      fi
-      msts=2
-    fi
 }
 
 get_name_supplemental() {
 # get_name_zeroincombenze(name odoo_ver)
-    if [ "$1" == "l10n-italy-supplemental" ]; then
-      if [ "$2" == "v7" ]; then
-        result="$result/zeroincombenze"
-      else
-        result="$result/$1"
+      if [ "$1" == "l10n-italy-supplemental" ]; then
+        if [[ " v7 " =~ [[:space:]]$2[[:space:]] ]]; then
+          VF_REP=$zeroincombenze
+        else
+          VF_REP=$1
+        fi
+        result="$result/$VF_REP"
+        VF_MSTS=2
       fi
-      if [ -z "$opt_rep" ]; then
-        opt_rep=$1
-      fi
-      msts=2
-    fi
 }
+
+# /opt/odoo/${ver}/${repository}/${module}/module_path/file
+# /etc/odoo/odoo${ver}[-server].conf
+# /var/run/odoo/odoo${ver}.pid
+# /etc/init.d/odoo${ver}[-server]
+
+
 
 get_path_ver() {
 # get_path_ver(path odoo_ver rep pkg)
-  result=
-  msts=0
-  local i=
-  local ov=$2
-  local r=$1
-  local re="(7\.0|8\.0|9\.0|10\.0|v7)"
-  if [ -z "$r" ]; then
-    r=/opt/odoo
-  elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
-    r=/opt/odoo/$r
-  fi
-  for i in {2..9}; do
-    local t=$(echo "$r"|awk -F/ '{ print $'$i'}')
-    if [ -z "$t" ]; then
-      break
-    elif [ "$t" == "7.0" -o "$t" == "8.0" -o "$t" == "9.0"  -o "$t" == "10.0" -o "$t" == "v7" ]; then
-      result="$result/$t"
-      ov=$t
-      msts=1
-    elif [ $msts -eq 0 ] && [[ $t =~ $re ]]; then
-      result="$result/$t"
-      ov=$t
-      msts=1
-    elif [ "$t" == "zeroincombenze" ]; then
-      get_name_zeroincombenze "$t" "$ov"
-    elif [ "$t" == "l10n-italy-supplemental" ]; then
-      get_name_supplemental "$t" "$ov"
-    else
-      result="$result/$t"
-      if [ $msts -eq 1 ]; then
+    result=
+    VF_MSTS=0
+    VF_PFX=/opt/odoo
+    VF_OFVER=
+    VF_REP=
+    VF_MOD=
+    VF_PATH=
+    VF_FN=
+    local i
+    local t v
+    local r=$1
+    local ov=$2
+    local re="(10\.0|9\.0|8\.0|7\.0|v7)"
+    if [ -z "$r" ]; then
+      r=$VF_PFX
+    fi
+    for i in {1..9}; do
+      t=$(echo "$r"|awk -F/ '{ print $'$i'}')
+      if [ -z "$t" ]; then
+        break
+      elif [ $VF_MSTS -eq 0 ]; then
+        if [[ $t =~ $re ]]; then
+          if [ "${r:0:1}" == "." -a "${r:0:2}" != ".." ]; then
+            VF_PFX=$PWD
+            result="$VF_PFX/$result/$t"
+          elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
+            result="$VF_PFX/$result/$t"
+          else
+            VF_PFX=$result
+            result="$result/$t"
+          fi
+          VF_OFVER=$t
+          if [ -z "$ov" ]; then
+            ov=$VF_OFVER
+          fi
+          VF_MSTS=1
+        elif [[ $t =~ ^odoo[0-9] ]]; then
+          if [ "${r:0:1}" == "." -a "${r:0:2}" != ".." ]; then
+            VF_PFX=$PWD
+            result="$VF_PFX/$result"
+          elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
+            result="$VF_PFX/$result"
+          else
+            VF_PFX=$result
+          fi
+          v=$(echo $t|grep -Eo [0-9]*|head -n1)
+          VF_OFVER=$v.0
+          if [ -z "$ov" ]; then
+            ov=$VF_OFVER
+          fi
+          v=$(echo $ov|grep -Eo [0-9]*|head -n1)
+          t=$(echo $t|sed -e s:odoo[0-9]*:odoo$v:)
+          result="$result/$t"
+          VF_MSTS=3
+        else
+          result="$result/$t"
+        fi
+      elif [ $VF_MSTS -eq 1 ]; then
+        if [ "$t" == "zeroincombenze" ]; then
+          get_name_zeroincombenze "$t" "$ov"
+        elif [ "$t" == "l10n-italy-supplemental" ]; then
+          get_name_supplemental "$t" "$ov"
+        elif [ "${result:0:10}" == "/opt/odoo/" ]; then
+          VF_REP=$t
+          result="$result/$t"
+          VF_MSTS=2
+        fi
+      elif [ $VF_MSTS -eq 2 ]; then
         if [ -z "$opt_rep" ]; then
-          opt_rep=$t
+          opt_rep=$VF_REP
         fi
-        msts=2
-      elif [ $msts -eq 2 ]; then
+        VF_MOD=$t
+        result="$result/$t"
+        VF_MSTS=3
+      elif [ $VF_MSTS -eq 3 ]; then
         if [ -z "$opt_pkg" ]; then
-          opt_pkg=$t
+          opt_pkg=$VF_MOD
         fi
-        msts=3
-      elif [ $msts -eq 3 ]; then
-        if [ -z "$opt_fn" ]; then
-          opt_fn=$t
-        fi
-        msts=4
+        VF_PATH=$VF_PATH/$t
+        result="$result/$t"
+      fi
+    done
+    if [ $VF_MSTS -eq 0 ]; then
+      if [ "${r:0:1}" == "." -a "${r:0:2}" != ".." ]; then
+        VF_PFX=$PWD
+      fi
+      result="$VF_PFX/$result/$ov"
+      VF_MSTS=1
+    fi
+    if [ $VF_MSTS -eq 1 ]; then
+      if [ "$3" == "zeroincombenze" ]; then
+        get_name_zeroincombenze "$3" "$ov"
+      elif [ "$3" == "l10n-italy-supplemental" ]; then
+        get_name_supplemental "$3" "$ov"
+      elif [ -n "$3" ]; then
+        result="$result/$3"
+        VF_REP=$3
+        VF_MSTS=2
+      elif [ -n "$opt_rep" ]; then
+        result="$result/$opt_rep"
+        VF_REP=$opt_rep
+        VF_MSTS=2
       fi
     fi
-  done
-  if [ $msts -eq 0 ]; then
-    result="$result/$ov"
-    msts=1
-  fi
-  if [ $msts -eq 1 ]; then
-    if [ "$3" == "zeroincombenze" ]; then
-      get_name_zeroincombenze "$3" "$ov"
-    elif [ "$3" == "l10n-italy-supplemental" ]; then
-      get_name_supplemental "$3" "$ov"
-    elif [ -n "$3" ]; then
-      result="$result/$3"
-      msts=2
-    elif [ -n "$opt_rep" ]; then
-      result="$result/$opt_rep"
-      msts=2
+    if [ $VF_MSTS -eq 2 ]; then
+      if [ -n "$4" ]; then
+        result="$result/$4"
+        VF_MSTS=3
+      elif [ -n "$opt_pkg" ]; then
+        result="$result/$opt_pkg"
+        VF_MSTS=3
+      fi
     fi
-  fi
-  if [ $msts -eq 2 ]; then
-    if [ -n "$4" ]; then
-      result="$result/$4"
-      msts=3
-    elif [ -n "$opt_pkg" ]; then
-      result="$result/$opt_pkg"
-      msts=3
+    if [ $VF_MSTS -eq 3 ]; then
+      if [ -n "$opt_fn" ]; then
+        result="$result/$opt_fn"
+        VF_MSTS=4
+      fi
     fi
-  fi
-  if [ $msts -eq 3 ]; then
-    if [ -n "$opt_fn" ]; then
-      result="$result/$opt_fn"
-      msts=4
-    fi
-  fi
 }
 
 OPTOPTS=(h        n            O         p         R         r            V           v)
@@ -191,7 +230,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 # set -x
-if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" -o "$odoo_ver" == "10" ]; then
+if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
 cv=$(get_odoo_ver)
