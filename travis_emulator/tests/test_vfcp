@@ -58,8 +58,11 @@ test_copy() {
 }
 
 test_01() {
+    test_copy "7.0" "v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
+    test_copy "~/7.0" "v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
     test_copy "~/7.0" "~/v7" "" "" "" "cp -R /opt/odoo/7.0 /opt/odoo/v7"
-    test_copy "~/8.0" "~/7.0" "" "" "" "cp -R /opt/odoo/8.0 /opt/odoo/7.0"
+    test_copy "~/8.0" "7.0" "" "" "" "cp -R /opt/odoo/8.0 /opt/odoo/7.0"
+    test_copy "9.0" "" "" "" "" "cp -R /opt/odoo/9.0 /opt/odoo/9.0"
     test_copy "~/7.0" "~/8.0" "l10n-italy" "" "" "cp -R /opt/odoo/7.0/l10n-italy /opt/odoo/8.0/l10n-italy"
     test_copy "~/7.0" "~/9.0" "l10n-italy" "l10n_it_vat_registries" "" "cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries /opt/odoo/9.0/l10n-italy/l10n_it_vat_registries"
     test_copy "~/v7" "~/7.0" "zeroincombenze" "" "" "cp -R /opt/odoo/v7/zeroincombenze /opt/odoo/7.0/l10n-italy-supplemental"
@@ -71,6 +74,7 @@ test_01() {
     test_copy " ~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
     test_copy "~/v7/l10n-italy/l10n_it_base" "8.0" "" "" "" "cp -R /opt/odoo/v7/l10n-italy/l10n_it_base /opt/odoo/8.0/l10n-italy/l10n_it_base"
     #test_copy " ~/7.0/l10n-italy-supplemental/account_banking_pain_base/" "~/v7.0/bank-payment/account_banking_pain_base" "" "" "" "cp -R /opt/odoo/7.0/l10n-italy-supplemental/account_banking_pain_base /opt/odoo/v7.0/bank-payment/account_banking_pain_base"
+    test_copy "/opt/odoo/9.0/addons" "" "l10n-italy" "" "10.0" "cp -R /opt/odoo/9.0/addons /opt/odoo/10.0/l10n-italy"
 }
 
 
