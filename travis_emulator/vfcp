@@ -23,75 +23,30 @@ fi
 
 __version__="0.1.8"
 
-get_odoo_ver() {
-    local i=
-    local v=
-    local p=$1
-    if [ -z "$1" ]; then
-      p=$PWD
-    fi
-    for i in {2..4}; do
-      local t=$(echo "$p"|awk -F/ '{ print $'$i'}')
-      if [ -z "$t" ]; then
-        break
-      elif [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$t[[:space:]] ]]; then
-        local v=$t
-        break
-      elif [[ " v7 " =~ [[:space:]]$t[[:space:]] ]]; then
-        local v=${t:1}.0
-        break
-      elif [[ " ^odoo[0-9] " =~ [[:space:]]$t[[:space:]] ]]; then
-        local v=${t:1}.0
-        break
-      fi
-    done
-    echo "$v"
-}
-
-get_name_zeroincombenze() {
-# get_name_zeroincombenze(name odoo_ver)
-      if [ "$1" == "zeroincombenze" ]; then
-        if [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$2[[:space:]] ]]; then
-          VF_REP="l10n-italy-supplemental"
-        else
-          VF_REP="$1"
-        fi
-        result="$result/$VF_REP"
-        VF_MSTS=2
-      fi
-}
-
-get_name_supplemental() {
-# get_name_zeroincombenze(name odoo_ver)
-      if [ "$1" == "l10n-italy-supplemental" ]; then
-        if [[ " v7 " =~ [[:space:]]$2[[:space:]] ]]; then
-          VF_REP=$zeroincombenze
-        else
-          VF_REP=$1
-        fi
-        result="$result/$VF_REP"
-        VF_MSTS=2
-      fi
-}
-
-# /opt/odoo/${ver}/${repository}/${module}/module_path/file
-# /etc/odoo/odoo${ver}[-server].conf
-# /var/run/odoo/odoo${ver}.pid
-# /etc/init.d/odoo${ver}[-server]
-
-
-
+# PATH examples:
+#   /opt/odoo/${ver}/${repository}/${module}/module_path/file
+#   /etc/odoo/odoo${ver}[-server].conf
+#   /var/run/odoo/odoo${ver}.pid
+#   /etc/init.d/odoo${ver}[-server]
 get_path_ver() {
 # get_path_ver(path odoo_ver rep pkg)
     VF_MSTS=0
     local i
     local t v
-    local r=$1
+    if [ -z "$1" ]; then
+      local r=$VF_PFX
+    elif [ "${1: -1}" == "/" -o -d $1 ]; then
+      local r=$1
+    else
+      local r=$(dirname $1)
+      if [ "$r" == "." ]; then
+        r=$1
+      else
+        VF_FN=$(basename $1)
+      fi
+    fi
     local VFT_VER=$2
     local re="(10\.0|9\.0|8\.0|7\.0|v7)"
-    if [ -z "$r" ]; then
-      r=$VF_PFX
-    fi
     PUWD=$(readlink -f $PWD/..)
     result=
     for i in {1..9}; do
@@ -111,16 +66,21 @@ get_path_ver() {
             VF_OFVER=$t
           fi
           if [ -z "$result" ]; then
-            result=$VF_PFX/$t
-          else
+            if [ "$VF_PFX" == "/opt/odoo" ]; then
+              result=$VF_PFX/$t
+            else
+              result=$VF_PFX
+            fi
+          elif [ "${result:0:9}" == "/opt/odoo" ]; then
             result=$result/$t
           fi
           if [ -z "$VFT_VER" ]; then
-            if [ -z "$odoo_ver" ]; then
-              VFT_VER=$VF_OFVER
-            else
-              VFT_VER=$odoo_ver
-            fi
+            VFT_VER=$t
+            # if [ -z "$odoo_ver" ]; then
+            #   VFT_VER=$VF_OFVER
+            # else
+            #   VFT_VER=$odoo_ver
+            # fi
           fi
           VF_MSTS=1
         elif [[ $t =~ ^odoo[0-9] ]]; then
@@ -157,13 +117,32 @@ get_path_ver() {
         fi
         result="$result/$t"
       elif [ $VF_MSTS -eq 3 ]; then
-        if [ -z "$opt_pkg" ]; then
-          opt_pkg=$VF_PKG
+        if [ "${result:0:10}" == "/opt/odoo/" ]; then
+          if [ -z "$VF_PATH" ]; then
+            VF_PATH=$t
+          else
+            VF_PATH=$VF_PATH/$t
+          fi
         fi
-        VF_PATH=$VF_PATH/$t
         result="$result/$t"
       fi
     done
+    if [ "${result:0:9}" != "/opt/odoo" -a -n "$VF_FN" ]; then
+      if [[ $VF_FN =~ ^odoo[0-9] ]]; then
+        VF_PFX=$result
+        v=$(echo $VF_FN|grep -Eo [0-9]*|head -n1)
+        VF_OFVER=$v.0
+        if [ -z "$VFT_VER" ]; then
+          if [ -z "$odoo_ver" ]; then
+            VFT_VER=$VF_OFVER
+          else
+            VFT_VER=$odoo_ver
+          fi
+        fi
+        v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+        VF_FN=$(echo $VF_FN|sed -e s:odoo[0-9]*:odoo$v:)
+      fi
+    fi
     if [ $VF_MSTS -eq 0 ]; then
       if [ "${r:0:2}" == ".." ]; then
         VF_PFX=$PUWD
@@ -181,11 +160,15 @@ get_path_ver() {
           VFT_VER=$odoo_ver
         fi
       fi
-      result=$result/$VFT_VER
-      VF_MSTS=1
+      if [ "${result:0:9}" == "/opt/odoo" -a -n "$VFT_VER" ]; then
+        result=$result/$VFT_VER
+        VF_MSTS=1
+      else
+        VF_MSTS=3
+      fi
     fi
     if [ $VF_MSTS -eq 1 ]; then
-      if [ "${result:0:10}" == "/opt/odoo/" ]; then
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
         if [ -n "$3" ]; then
           VF_REP=$3
         elif [ -n "$opt_rep" ]; then
@@ -198,7 +181,7 @@ get_path_ver() {
       fi
     fi
     if [ $VF_MSTS -eq 2 ]; then
-      if [ "${result:0:10}" == "/opt/odoo/" ]; then
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
         if [ -n "$4" ]; then
           VF_PKG=$4
         elif [ -n "$opt_pkg" ]; then
@@ -211,10 +194,14 @@ get_path_ver() {
       fi
     fi
     if [ $VF_MSTS -eq 3 ]; then
-      if [ -n "$opt_fn" ]; then
-        result="$result/$opt_fn"
-        VF_MSTS=4
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
+        if [ -n "$VF_PATH" ]; then
+          result="$result/$VF_PATH"
+        fi
       fi
+    fi
+    if [ -n "$VF_FN" ]; then
+      result="$result/$VF_FN"
     fi
 }
 
@@ -250,27 +237,6 @@ fi
 if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
-# cv=$(get_odoo_ver)
-# if [ -z "$source" ]; then
-#   filenames=$PWD
-#   # ovs=$cv
-# else
-#   filenames=$(readlink -f $source)
-#   # ovs=$(get_odoo_ver $source)
-# fi
-# if [ -z "$target" ]; then
-#   filenamet=
-#   # ovt=$odoo_ver
-# elif [ "${target:0:1}" == "/" -o "${target:0:1}" == "~" -o "${target:0:2}" == "./" -o "${target:0:3}" == "../" ]; then
-#   filenamet=$(readlink -f $target)
-#   # ovt=$odoo_ver
-# else
-#   filenamet=$target
-#   # ovt=$(get_odoo_ver $target)
-# fi
-# if [ -z "$ovt" ]; then
-#   ovt=$ovs
-# fi
 VF_PFX=/opt/odoo
 VF_OFVER=
 VF_REP=
@@ -284,7 +250,7 @@ filenames=$result
 get_path_ver "$filenamet" "$ovt" "$opt_rep" "$opt_pkg"
 filenamet=$result
 if [ -d "$filenames" ]; then
-  opts="-R"
+  opts=" -R"
 else
   opts=
 fi
@@ -294,8 +260,8 @@ if [ $opt_rest -gt 0 ]; then
   filenames=$tmp
 fi
 if [ $opt_verbose -gt 0 ]; then
-  echo "cp $opts $filenames $filenamet"
+  echo "cp$opts $filenames $filenamet"
 fi
 if [ $opt_dry_run -eq 0 ]; then
-  cp $opts $filenames $filenamet
+  cp$opts $filenames $filenamet
 fi
