@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Regression tests on travis emulator
 #
-TTHIS=$(basename $0)
+THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
   if [ -e $x/z0librc ]; then
@@ -22,7 +22,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.4
+__version__=0.1.8
 
 
 test_copy() {
@@ -80,6 +80,10 @@ test_01() {
     for s in 7 8; do
       test_copy "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "cp /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
     done
+    local CWD=$PWD
+    cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
+    test_copy "__openerp__.py" "" "" "" "8" "cp /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    cd $CWD
 }
 
 

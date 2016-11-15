@@ -23,24 +23,38 @@ fi
 
 __version__="0.1.8"
 
+
 # PATH examples:
 #   /opt/odoo/${ver}/${repository}/${module}/module_path/file
 #   /etc/odoo/odoo${ver}[-server].conf
 #   /var/run/odoo/odoo${ver}.pid
 #   /etc/init.d/odoo${ver}[-server]
+#   filename
 get_path_ver() {
 # get_path_ver(path odoo_ver rep pkg)
     VF_MSTS=0
     local i
-    local t v
+    local r t v
     if [ -z "$1" ]; then
-      local r=$VF_PFX
-    elif [ "${1: -1}" == "/" -o -d $1 ]; then
-      local r=$1
+      r=$VF_PFX
+    elif [ -d $1 ]; then
+      r=$1
     else
-      local r=$(dirname $1)
+      if [ "${r:0:1}" == "/" -o "${r:0:1}" == "~" -o "${1:0:2}" == "./" -o "${1:0:3}" == "../" ]; then
+        :
+      fi
+      r=$(dirname $1)
       if [ "$r" == "." ]; then
-        r=$1
+        if [ -d "./$1" -o "${1: -1}" == "/" ]; then
+          r=$PWD/$1
+          VF_FN=
+        elif [ -f "./$1" ]; then
+          r=$PWD
+          VF_FN=$1
+        else
+          r=$1
+          VF_FN=
+        fi
       else
         VF_FN=$(basename $1)
       fi
@@ -76,11 +90,6 @@ get_path_ver() {
           fi
           if [ -z "$VFT_VER" ]; then
             VFT_VER=$t
-            # if [ -z "$odoo_ver" ]; then
-            #   VFT_VER=$VF_OFVER
-            # else
-            #   VFT_VER=$odoo_ver
-            # fi
           fi
           VF_MSTS=1
         elif [[ $t =~ ^odoo[0-9] ]]; then
@@ -243,11 +252,9 @@ VF_REP=
 VF_PKG=
 VF_PATH=
 VF_FN=
-filenames=$source
-filenamet=$target
-get_path_ver "$filenames" "$ovs" "$opt_rep" "$opt_pkg"
+get_path_ver "$source" "" "$opt_rep" "$opt_pkg"
 filenames=$result
-get_path_ver "$filenamet" "$ovt" "$opt_rep" "$opt_pkg"
+get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
 filenamet=$result
 if [ -d "$filenames" ]; then
   opts=" -R"

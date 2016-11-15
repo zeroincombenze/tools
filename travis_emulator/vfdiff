@@ -24,135 +24,187 @@ fi
 __version__="0.1.8"
 
 
-get_odoo_ver() {
-  local i=
-  local v=
-  local p=$1
-  if [ -z "$1" ]; then
-    p=$PWD
-  fi
-  for i in {2..4}; do
-    local t=$(echo "$p"|awk -F/ '{ print $'$i'}')
-    if [ -z "$t" ]; then
-      break
-    elif [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$t[[:space:]] ]]; then
-      local v=$t
-      break
-    elif [[ " v10 v9 v8 v7 " =~ [[:space:]]$t[[:space:]] ]]; then
-      local v=${t:1}.0
-      break
-    fi
-  done
-  echo "$v"
-}
-
-get_name_zeroincombenze() {
-# get_name_zeroincombenze(name odoo_ver)
-    if [ "$1" == "zeroincombenze" ]; then
-      if [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$2[[:space:]] ]]; then
-        result="$result/l10n-italy-supplemental"
-      else
-        result="$result/$1"
-      fi
-      if [ -z "$opt_rep" ]; then
-        opt_rep=l10n-italy-supplemental
-      fi
-      msts=2
-    fi
-}
-
-get_name_supplemental() {
-# get_name_zeroincombenze(name odoo_ver)
-    if [ "$1" == "l10n-italy-supplemental" ]; then
-      if [[ " v10 v9 v8 v7 " =~ [[:space:]]$2[[:space:]] ]]; then
-        result="$result/zeroincombenze"
-      else
-        result="$result/$1"
-      fi
-      if [ -z "$opt_rep" ]; then
-        opt_rep=$1
-      fi
-      msts=2
-    fi
-}
-
+# PATH examples:
+#   /opt/odoo/${ver}/${repository}/${module}/module_path/file
+#   /etc/odoo/odoo${ver}[-server].conf
+#   /var/run/odoo/odoo${ver}.pid
+#   /etc/init.d/odoo${ver}[-server]
+#   filename
 get_path_ver() {
 # get_path_ver(path odoo_ver rep pkg)
-  result=
-  msts=0
-  local i=
-  local ov=$2
-  local r=$1
-  local re="(10\.0|9\.0|8\.0|7\.0|v10|v9|v8|v7)"
-  if [ -z "$r" ]; then
-    r=/opt/odoo
-  elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
-    r=/opt/odoo/$r
-  fi
-  for i in {2..9}; do
-    local t=$(echo "$r"|awk -F/ '{ print $'$i'}')
-    if [ -z "$t" ]; then
-      break
-    elif [ $msts -eq 0 ] && [[ $t =~ $re ]]; then
-      result="$result/$t"
-      ov=$t
-      msts=1
-    elif [ "$t" == "zeroincombenze" ]; then
-      get_name_zeroincombenze "$t" "$ov"
-    elif [ "$t" == "l10n-italy-supplemental" ]; then
-      get_name_supplemental "$t" "$ov"
+    VF_MSTS=0
+    local i
+    local r t v
+    if [ -z "$1" ]; then
+      r=$VF_PFX
     else
-      result="$result/$t"
-      if [ $msts -eq 1 ]; then
-        if [ -z "$opt_rep" ]; then
-          opt_rep=$t
+      r=$(dirname $1)
+      if [ "$r" == "." ]; then
+        if [ -d "./$1" -o "${1: -1}" == "/" ]; then
+          r=$PWD/$1
+        elif [ -f "./$1" ]; then
+          r=$PWD
+          VF_FN=$1
+        else
+          r=$1
         fi
-        msts=2
-      elif [ $msts -eq 2 ]; then
-        if [ -z "$opt_pkg" ]; then
-          opt_pkg=$t
-        fi
-        msts=3
-      elif [ $msts -eq 3 ]; then
-        if [ -z "$opt_fn" ]; then
-          opt_fn=$t
-        fi
-        msts=4
+      else
+        VF_FN=$(basename $1)
       fi
     fi
-  done
-  if [ $msts -eq 0 ]; then
-    result="$result/$ov"
-    msts=1
-  fi
-  if [ $msts -eq 1 ]; then
-    if [ "$3" == "zeroincombenze" ]; then
-      get_name_zeroincombenze "$3" "$ov"
-    elif [ "$3" == "l10n-italy-supplemental" ]; then
-      get_name_supplemental "$3" "$ov"
-    elif [ -n "$3" ]; then
-      result="$result/$3"
-      msts=2
-    elif [ -n "$opt_rep" ]; then
-      result="$result/$opt_rep"
-      msts=2
+    local VFT_VER=$2
+    local re="(10\.0|9\.0|8\.0|7\.0|v7)"
+    PUWD=$(readlink -f $PWD/..)
+    result=
+    for i in {1..9}; do
+      t=$(echo "$r"|awk -F/ '{ print $'$i'}')
+      if [ -z "$t" ]; then
+        continue
+      elif [ $VF_MSTS -eq 0 ]; then
+        if [[ $t =~ $re ]]; then
+          if [ "${r:0:2}" == ".." ]; then
+            VF_PFX=$PUWD
+          elif [ "${r:0:1}" == "." ]; then
+            VF_PFX=$PWD
+          elif [ -n "$result" ]; then
+            VF_PFX=$result
+          fi
+          if [ -z "$VF_OFVER" ]; then
+            VF_OFVER=$t
+          fi
+          if [ -z "$result" ]; then
+            if [ "$VF_PFX" == "/opt/odoo" ]; then
+              result=$VF_PFX/$t
+            else
+              result=$VF_PFX
+            fi
+          elif [ "${result:0:9}" == "/opt/odoo" ]; then
+            result=$result/$t
+          fi
+          if [ -z "$VFT_VER" ]; then
+            VFT_VER=$t
+          fi
+          VF_MSTS=1
+        elif [[ $t =~ ^odoo[0-9] ]]; then
+          if [ "${r:0:1}" == "." -a "${r:0:2}" != ".." ]; then
+            VF_PFX=$PWD
+            result="$VF_PFX/$result"
+          elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
+            result="$VF_PFX/$result"
+          else
+            VF_PFX=$result
+          fi
+          v=$(echo $t|grep -Eo [0-9]*|head -n1)
+          VF_OFVER=$v.0
+          if [ -z "$VFT_VER" ]; then
+            VFT_VER=$VF_OFVER
+          fi
+          v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+          t=$(echo $t|sed -e s:odoo[0-9]*:odoo$v:)
+          result="$result/$t"
+          VF_MSTS=3
+        else
+          result="$result/$t"
+        fi
+      elif [ $VF_MSTS -eq 1 ]; then
+        if [ "${result:0:10}" == "/opt/odoo/" ]; then
+          VF_REP=$t
+          VF_MSTS=2
+        fi
+        result="$result/$t"
+      elif [ $VF_MSTS -eq 2 ]; then
+        if [ "${result:0:10}" == "/opt/odoo/" ]; then
+          VF_PKG=$t
+          VF_MSTS=3
+        fi
+        result="$result/$t"
+      elif [ $VF_MSTS -eq 3 ]; then
+        if [ "${result:0:10}" == "/opt/odoo/" ]; then
+          if [ -z "$VF_PATH" ]; then
+            VF_PATH=$t
+          else
+            VF_PATH=$VF_PATH/$t
+          fi
+        fi
+        result="$result/$t"
+      fi
+    done
+    if [ "${result:0:9}" != "/opt/odoo" -a -n "$VF_FN" ]; then
+      if [[ $VF_FN =~ ^odoo[0-9] ]]; then
+        VF_PFX=$result
+        v=$(echo $VF_FN|grep -Eo [0-9]*|head -n1)
+        VF_OFVER=$v.0
+        if [ -z "$VFT_VER" ]; then
+          if [ -z "$odoo_ver" ]; then
+            VFT_VER=$VF_OFVER
+          else
+            VFT_VER=$odoo_ver
+          fi
+        fi
+        v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+        VF_FN=$(echo $VF_FN|sed -e s:odoo[0-9]*:odoo$v:)
+      fi
     fi
-  fi
-  if [ $msts -eq 2 ]; then
-    if [ -n "$4" ]; then
-      result="$result/$4"
-      msts=3
-    elif [ -n "$opt_pkg" ]; then
-      result="$result/$opt_pkg"
-      msts=3
+    if [ $VF_MSTS -eq 0 ]; then
+      if [ "${r:0:2}" == ".." ]; then
+        VF_PFX=$PUWD
+      elif [ "${r:0:1}" == "." ]; then
+        VF_PFX=$PWD
+      elif [ "${r:0:1}" != "/" -a "${r:0:1}" != "~" ]; then
+        if [ -z "$result" ]; then
+          result=$VF_PFX
+        fi
+      fi
+      if [ -z "$VFT_VER" ]; then
+        if [ -z "$odoo_ver" ]; then
+          VFT_VER=$VF_OFVER
+        else
+          VFT_VER=$odoo_ver
+        fi
+      fi
+      if [ "${result:0:9}" == "/opt/odoo" -a -n "$VFT_VER" ]; then
+        result=$result/$VFT_VER
+        VF_MSTS=1
+      else
+        VF_MSTS=3
+      fi
     fi
-  fi
-  if [ $msts -eq 3 ]; then
-    if [ -n "$opt_fn" ]; then
-      result="$result/$opt_fn"
-      msts=4
+    if [ $VF_MSTS -eq 1 ]; then
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
+        if [ -n "$3" ]; then
+          VF_REP=$3
+        elif [ -n "$opt_rep" ]; then
+          VF_REP=$opt_rep
+        fi
+        if [ -n "$VF_REP" ]; then
+          result=$result/$VF_REP
+        fi
+        VF_MSTS=2
+      fi
     fi
-  fi
+    if [ $VF_MSTS -eq 2 ]; then
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
+        if [ -n "$4" ]; then
+          VF_PKG=$4
+        elif [ -n "$opt_pkg" ]; then
+          VF_pkg=$opt_pkg
+        fi
+        if [ -n "$VF_PKG" ]; then
+          result=$result/$VF_PKG
+        fi
+        VF_MSTS=3
+      fi
+    fi
+    if [ $VF_MSTS -eq 3 ]; then
+      if [ "${result:0:9}" == "/opt/odoo" ]; then
+        if [ -n "$VF_PATH" ]; then
+          result="$result/$VF_PATH"
+        fi
+      fi
+    fi
+    if [ -n "$VF_FN" ]; then
+      result="$result/$VF_FN"
+    fi
 }
 
 OPTOPTS=(h        n            O         p         r            V           v           y)
@@ -187,43 +239,28 @@ fi
 if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
-cv=$(get_odoo_ver)
-if [ -z "$source" ]; then
-  filenames=$PWD
-  ovs=$cv
-else
-  filenames=$(readlink -f $source)
-  ovs=$(get_odoo_ver $source)
-fi
-if [ -z "$target" ]; then
-  filenamet=
-  ovt=$odoo_ver
-elif [ "${target:0:1}" == "/" -o "${target:0:1}" == "~" ]; then
-  filenamet=$(readlink -f $target)
-  ovt=$odoo_ver
-else
-  filenamet=$target
-  ovt=$(get_odoo_ver $target)
-fi
-if [ -z "$ovt" ]; then
-  ovt=$ovs
-fi
-get_path_ver "$filenames" "$ovs" "$opt_rep" "$opt_pkg"
+VF_PFX=/opt/odoo
+VF_OFVER=
+VF_REP=
+VF_PKG=
+VF_PATH=
+VF_FN=
+get_path_ver "$source" "" "$opt_rep" "$opt_pkg"
 filenames=$result
-get_path_ver "$filenamet" "$ovt" "$opt_rep" "$opt_pkg"
+get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
 filenamet=$result
 if [ -d "$filenames" ]; then
-  opts="-x*.pyc -x*.po* -x*.bak -x*~ -qr"
+  opts=" -x*.pyc -x*.po* -x*.bak -x*~ -qr"
 else
   if [ $opt_para -ne 0 ]; then
-    opts=-y
+    opts=" -y"
   else
     opts=
   fi
 fi
 if [ $opt_verbose -gt 0 ]; then
-  echo "diff $opts $filenames $filenamet"
+  echo "diff$opts $filenames $filenamet"
 fi
 if [ $opt_dry_run -eq 0 ]; then
-  diff $opts $filenames $filenamet
+  diff$opts $filenames $filenamet
 fi
