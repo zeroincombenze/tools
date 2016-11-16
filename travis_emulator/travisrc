@@ -458,6 +458,8 @@ conf_default() {
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "ODOO_LOGFILE" "False"
+    set_cfg_def "fileignore" ".pyc .log .bak .out .tmp .conf .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
+    set_cfg_def "filediffignore" ".po .pot"
 }
 
 

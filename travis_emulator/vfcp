@@ -20,9 +20,136 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME" "_travis")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
 
-__version__="0.1.8"
+__version__="0.1.10"
 
+
+vf_init() {
+    VF_IGNORE=$(get_cfg_value "" "fileignore")
+    VF_DIGNORE=$(get_cfg_value "" "filediffignore")
+    XRGX=
+    XLFS=
+    XLDF=
+    for x in $VF_IGNORE; do
+      local x1="${x:0:1}"
+      local x9="${x: -1}"
+      if [ "$x9" == "/" ]; then
+         XRGX="$XRGX ^(.*\\/|)$x"
+         XLFS="$XLFS --exclude=$x"
+      elif [ "$x1" == "." -o "$x1" == "," -o "$x" == "~" ]; then
+         XRGX="$XRGX ^.*\\$x\$"
+         XLFS="$XLFS --exclude=*$x"
+      else
+         XRGX="$XRGX $x"
+         XLFS="$XLFS --exclude=*$x*"
+      fi
+      XLDF="$XLDF -x '*$x'"
+    done
+    XXDF=
+    for x in $VF_DIGNORE; do
+      local x1="${x:0:1}"
+      local x9="${x: -1}"
+      if [ "$x9" == "/" ]; then
+         XXDF="$XXDF ^(.*\\/|)$x"
+      elif [ "$x1" == "." -o "$x" == "~" ]; then
+         XXDF="$XXDF ^.*\\$x\$"
+      else
+         XXDF="$XXDF $x"
+      fi
+      XLDF="$XLDF -x '*$x'"
+    done
+}
+
+exec_cp() {
+    if [ $opt_rest -gt 0 ]; then
+      local left=$2
+      local right=$1
+    else
+      local left=$1
+      local right=$2
+    fi
+    if [ -d "$left" ]; then
+      local opts=" -R"
+    else
+      local opts=
+    fi
+    run_traced "cp$opts $left $right"
+    return $?
+}
+
+localcp() {
+    local param=-i
+    if [ $opt_rest -gt 0 ]; then
+      local left=$2
+      local right=$1
+    else
+      local left=$1
+      local right=$2
+    fi
+    local f
+    local cparq=""
+    local cparv=""
+    local sts=$opt_sts
+    if [ "$opt_sel" ]; then param="$param -s$opt_sel"; fi
+    if [ $opt_verbose -gt 0 ]; then param="$param -v"; fi
+    if [ $opt_verbose -gt 0 ]; then cparv="$cparv -v"; fi
+    if [ -d $left ]; then
+      for f in $(ls -1 $left); do
+        if [ $opt_verbose -gt 1 ]; then
+          echo "> $0 $param $left/$f $right/$f"
+        fi
+        if $(matches1of "$f" "$XRGX"); then
+          :
+        else
+          $0 -$sts $param -2 $left/$f $right/$f
+          if [ $? -gt 0 ]; then
+            sts=$STS_FAILED
+          fi
+        fi
+      done
+      # if [ -d $right ]; then
+      #   for f in $(ls -1 $right); do
+      #     if $(matches1of "$f" "$XRGX $XXDF"); then
+      #       :
+      #     else
+      #       if [ ! -e $left/$f ]; then
+      #         echo "Only in $right: $f"
+      #         sts=$STS_FAILED
+      #       fi
+      #     fi
+      #   done
+      # fi
+      # if [ $opt_2nd -eq 0 -a $sts -eq $STS_SUCCESS -a $opt_verbose -gt 0 ]; then
+      #    echo "No diff found"
+      # fi
+    else
+      if [ $opt_verbose -gt 1 ]; then
+        echo "> $0 $left $right"
+      fi
+      if $(matches1of "$left" "$XRGX $XXDF"); then
+        :
+      else
+        # if [ -f $right ]; then
+          run_traced "cp $cparv $left $right"
+          if [ $? -gt 0 ]; then
+            sts=$STS_FAILED
+          fi
+        # elif [ ! -f $right ]; then
+        #   fd=$(dirname $left)
+        #   fb=$(basename $left)
+        #   echo "Only in $fd: $fb"
+        #   sts=$STS_FAILED
+        # fi
+      fi
+    fi
+    return $sts
+}
 
 # PATH examples:
 #   /opt/odoo/${ver}/${repository}/${module}/module_path/file
@@ -37,23 +164,22 @@ get_path_ver() {
     local r t v
     if [ -z "$1" ]; then
       r=$VF_PFX
-    elif [ -d $1 ]; then
-      r=$1
     else
-      if [ "${r:0:1}" == "/" -o "${r:0:1}" == "~" -o "${1:0:2}" == "./" -o "${1:0:3}" == "../" ]; then
-        :
-      fi
       r=$(dirname $1)
       if [ "$r" == "." ]; then
         if [ -d "./$1" -o "${1: -1}" == "/" ]; then
           r=$PWD/$1
-          VF_FN=
         elif [ -f "./$1" ]; then
           r=$PWD
           VF_FN=$1
         else
           r=$1
-          VF_FN=
+        fi
+      elif [ "${r:0:1}" == "/" -o "${r:0:1}" == "~" -o "${1:0:2}" == "./" -o "${1:0:3}" == "../" ]; then
+        if [ -d $1 ]; then
+          r=$1
+        else
+          VF_FN=$(basename $1)
         fi
       else
         VF_FN=$(basename $1)
@@ -214,19 +340,25 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        n            O         p         R         r            V           v)
-OPTDEST=(opt_help opt_dry_run  odoo_ver  opt_pkg   opt_rest  opt_rep      opt_version opt_verbose)
-OPTACTI=(1        "1"          "="       "="       1         "="          "*>"        1)
-OPTDEFL=(0        0            ""        ""        0         ""           ""          0)
-OPTMETA=("help"   "do nothing" "version" "package" "restore" "repository" "version"   "verbose")
+OPTOPTS=(h        a       c        i       n            O         p         R         r            V           v           0       1       2)
+OPTDEST=(opt_help opt_all opt_conf opt_iar opt_dry_run  odoo_ver  opt_pkg   opt_rest  opt_rep      opt_version opt_verbose opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       "="      1       1            "="       "="       1         "="          "*>"        1           0       1       1)
+OPTDEFL=(0        0       ""       0       0            ""        ""        0         ""           ""          0           0       0       0)
+OPTMETA=("help"   ""      "file"   ""      "do nothing" "version" "package" "restore" "repository" "version"   "verbose"   ""      ""      "")
 OPTHELP=("this help"\
+ "copy all files (ignore exclusion list)"\
+ "configuration file (def ~/dev/.travis.conf)"\
+ "use internal algorithm rather than standard recursive cp"\
  "do nothing (dry-run)"\
  "select target Odoo version (may be 7, 8, 9 o 10)"\
  "select package name"\
  "reverse copy from target to source rather source to target"\
  "select repository name"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "initial status is true"\
+ "initial status is false"\
+ "undocumented")
 OPTARGS=(source target)
 
 parseoptargs "$@"
@@ -242,33 +374,43 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-# set -x
+if [ $opt_all -eq 0 -a $opt_iar -eq 0 ]; then
+  opt_iar=1
+  opt_iar=0 # temporary
+elif [ $opt_all -gt 0 ]; then
+  opt_iar=0
+fi
 if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
-VF_PFX=/opt/odoo
-VF_OFVER=
-VF_REP=
-VF_PKG=
-VF_PATH=
-VF_FN=
-get_path_ver "$source" "" "$opt_rep" "$opt_pkg"
-filenames=$result
-get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
-filenamet=$result
-if [ -d "$filenames" ]; then
-  opts=" -R"
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  TCONF=$opt_conf
 else
-  opts=
+  TCONF=$TDIR/.travis.conf
 fi
-if [ $opt_rest -gt 0 ]; then
-  tmp=$filenamet
-  filenamet=$filenames
-  filenames=$tmp
+CFG_init
+conf_default
+link_cfg $TCONF
+vf_init
+
+if [ $opt_2nd -eq 0 ]; then
+  VF_PFX=/opt/odoo
+  VF_OFVER=
+  VF_REP=
+  VF_PKG=
+  VF_PATH=
+  VF_FN=
+  get_path_ver "$source" "" "$opt_rep" "$opt_pkg"
+  left=$result
+  get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
+  right=$result
+else
+  left=$source
+  right=$target
 fi
-if [ $opt_verbose -gt 0 ]; then
-  echo "cp$opts $filenames $filenamet"
+if [ $opt_iar -gt 0 ]; then
+  localcp "$left" "$right"
+else
+  exec_cp "$left" "$right"
 fi
-if [ $opt_dry_run -eq 0 ]; then
-  cp$opts $filenames $filenamet
-fi
+exit $?
