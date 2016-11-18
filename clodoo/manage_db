@@ -1,41 +1,38 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# Manage Odoo DB
-# Create and install new Odoo DB
-#
+# Set Odoo Version in clodo files
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.7.2
-
+__version__=0.1.7.4
 
 
 OPTOPTS=(h        b          d      n           o       q           t         V           v)
 OPTDEST=(opt_help opt_branch opt_DB opt_dry_run opt_del opt_verbose test_mode opt_version opt_verbose)
 OPTACTI=(1        "="        "=>"   1           1       0           1         "*"         "+")
-OPTDEFL=(1        "9.0"      ""     0           0       -1          0         ""          -1)
+OPTDEFL=(1        "7.0"      ""     0           0       -1          0         ""          -1)
 OPTMETA=("help"   "branch"   "name" "noop"      "del"   "quiet"     "test"    "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
- "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
+ "branch: must be 7.0 or 8.0 or 9.0 or 10.0 (def 7.0)"\
  "set database name"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
@@ -60,40 +57,49 @@ if [ $opt_dry_run -ne 0 ]; then
   opts="$opts -n"
 fi
 if [ "$action" == "install" ]; then
-   if [ ! -d data ]; then
-     echo "Directory data/ not found!"
-     exit 1
-   fi
-   if [ ! -d conf ]; then
-     echo "Directory conf/ not found!"
-     exit 1
-   fi
-   CFLOOP="09 00 10 11 13 13 20 21 30"
-   for cf in $CFLOOP; do
-     if [ ! -f conf/z0_install_$cf.conf ]; then
-       echo "Configurarion file z0_install_$cf.conf not found!"
-       exit 1
-     fi
-   done
-   for cf in $CFLOOP; do
-     if [ "$cf" == "00" ]; then
-       if [ -n "$opt_DB" ]; then
-         optdb="-d=$opt_DB"
-       else
-         optdb=
-       fi
-       echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb"
-       clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb
-     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
-       true
-     else
-       if [ -n "$opt_DB" ]; then
-         db=$opt_DB
-       else
-         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
-       fi
-       echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db"
-       clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db
-     fi
-   done
+  if [[ $opt_branch =~ ^(10|9|8|7)$ ]]; then
+    opt_branch=$opt_branch.0
+  elif [[ $opt_branch =~ ^(10\.0|9\.0|8\.0|7\.0)$ ]]; then
+    :
+  else
+    echo "Invalid Odoo version"
+    exit 1
+  fi
+  if [ ! -d data ]; then
+    echo "Directory data/ not found!"
+    exit 1
+  fi
+  if [ ! -d conf ]; then
+    echo "Directory conf/ not found!"
+    exit 1
+  fi
+  CFLOOP="09 00 10 11 13 13 20 21 30"
+  for cf in $CFLOOP; do
+    if [ ! -f conf/z0_install_$cf.conf ]; then
+      echo "Configurarion file z0_install_$cf.conf not found!"
+      exit 1
+    fi
+  done
+  set_odoover_confn $opt_branch $opt_DB
+  for cf in $CFLOOP; do
+    if [ "$cf" == "00" ]; then
+      if [ -n "$opt_DB" ]; then
+        optdb="-d=$opt_DB"
+      else
+        optdb=
+      fi
+      echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb"
+      clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb
+    elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
+      :
+    else
+      if [ -n "$opt_DB" ]; then
+        db=$opt_DB
+      else
+        db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+      fi
+      echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db"
+      clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db
+    fi
+  done
 fi

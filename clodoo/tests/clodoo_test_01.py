@@ -207,6 +207,7 @@ class Oerp():
             self.res_id = 0
         return self
 
+
 Oerp()
 
 
@@ -215,6 +216,7 @@ class Csv():
 
     def _init(self):
         self.fieldnames = ""
+
 
 Csv()
 
@@ -242,6 +244,8 @@ class Conf():
             return 'unit_test'
         else:
             return False
+
+
 Conf()
 
 
@@ -853,6 +857,8 @@ class Test():
             sts = do_single_action(oerp, ctx, MY_ACT)
             sts = self.Z.test_result(z0ctx, msg, TEST_SUCCESS, sts)
         return sts
+
+
 #
 # Run main if executed as a script
 if __name__ == "__main__":

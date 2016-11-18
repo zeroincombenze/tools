@@ -56,13 +56,10 @@ def test_gtin():
             res = "***Failed*** expected:" + test_dict[code]
         print "%013d -> %s (%s)" % (code, pad_code, res)
 
-# test_gtin()
-# code_len = raw_input('code len(8 or 13): ')
-code_len = '13'
-# code = raw_input('Start code to check: ')
-code = '248018201600'
-# nums = raw_input('# of code to generate: ')
-nums = '100'
+test_gtin()
+code_len='8'
+code='0001000'
+nums='130'
 start_code = int(code)
 code_len = int(code_len)
 nums = int(nums)

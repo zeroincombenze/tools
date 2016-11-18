@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.18"
+__version__ = "0.2.69.19"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1733,7 +1733,7 @@ def set_account_type(oerp, ctx):
         sts = upd_movements_2_draft(oerp, move_dict, ctx)
     # if sts == STS_SUCCESS:
     #     sts = upd_acc_2_bank(oerp, accounts, ctx)
-    a = raw_input('Press RET to continue')
+    raw_input('Press RET to continue')
     if sts == STS_SUCCESS:
         sts = upd_movements_2_posted(oerp, move_dict, ctx)
         if sts == STS_SUCCESS:
@@ -2412,6 +2412,7 @@ def main():
         msg = u"Last operation FAILED!"
     msg_log(ctx, ctx['level'], msg)
     return sts
+
 
 if __name__ == "__main__":
     sts = main()
