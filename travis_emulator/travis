@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.62.4
+__version__=0.1.62.5
 
 
 
@@ -296,7 +296,7 @@ process_yaml_file() {
            ((lev++))
            ident=$i
         elif [ $i -lt $ident ]; then
-          ((lev-))
+          ((lev--))
           ident=$i
         fi
       else
