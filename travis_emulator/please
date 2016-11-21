@@ -37,40 +37,8 @@ else
   exit $STS_FAILED
 fi
 
-__version__=0.1.30
+__version__=0.1.30.1
 
-
-
-
-# do_annotate() {
-# # do_annotate(script, include_list)
-#  # set -x
-#  wlog "do_annotate \"$1\" \"$2\""
-#  trap - DEBUG
-#  FL_2_TEST=${2//,/ }
-#  local f1=$(readlink -f $1)
-#  FHIST=$f1.tracehistory
-#  if [ -f $f1 ]; then
-#    CWD=$PWD
-#    mkdir -p ./cover
-#    ant_add_trap "$f1"
-#    local fn
-#    for fn in $FL_2_TEST; do
-#      ant_add_trap $fn
-#    done
-#    $f1
-#    cd $CWD
-#    ant_rm_trap "$f1"
-#    for fn in $FL_2_TEST; do
-#      ant_rm_trap $fn
-#    done
-#    chmod +x $f1
-#    if [ $opt_keep -gt 0 ]; then local opts_k=-k; else local opts_l=; fi
-#    python $TDIR/$THIS.py "$f1" "$opts_k"
-#    rm -f $FHIST
-#  fi
-#  return 0
-# }
 
 do_annotate() {
     wlog "do_annotate"
@@ -202,10 +170,20 @@ do_distribution() {
       echo "File .travis.yml not found!"
       sts=$STS_FAILED
     fi
+    f1_oca=$(dirname $f1)/oca__$(basename $f1)
+    f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
     if [ -n "$f1" ]; then
       if [ "$2" == "oca" ]; then
+        if [ -f $f1_oca ]; then
+          mv $f1 $f1_z0i
+          mv $f1_oca $f1
+        fi
         run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"1\":' $f1"
       elif [ "$2" == "zeroincombenze" ]; then
+        if [ -f $f1_z0i ]; then
+          mv $f1 $f1_oca
+          mv $f1_z0i $f1
+        fi
         run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"1\":' $f1"
       else
         local f1=
@@ -226,10 +204,20 @@ do_distribution() {
       else
         local f1=
       fi
+      f1_oca=$(dirname $f1)/oca__$(basename $f1)
+      f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
       if [ -n "$f1" ]; then
         if [ "$2" == "oca" ]; then
+          if [ -f $f1_oca ]; then
+            mv $f1 $f1_z0i
+            mv $f1_oca $f1
+          fi
           run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
         elif [ "$2" == "zeroincombenze" ]; then
+          if [ -f $f1_z0i ]; then
+            mv $f1 $f1_oca
+            mv $f1_z0i $f1
+          fi
           run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
         fi
       fi
@@ -275,6 +263,16 @@ EOF
       echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypy webpage of project"
     fi
     return $sts
+}
+
+do_synchro() {
+    wlog "do_synchro $1"
+    do_distribution "$PKGNAME" "oca"
+    if [ "$PRJNAME" == "Odoo" ]; then
+      git status
+      git remote -v
+      git pull upstream $BRANCH
+    fi
 }
 
 do_docs() {
@@ -413,7 +411,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|test|travis|version|wep"
+HLPCMDLIST="help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|synchro|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
