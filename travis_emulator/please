@@ -10,34 +10,26 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
-if [ -f $TDIR/travisrc ]; then
-. $TDIR/travisrc
-elif [ -f $TDIR/../travisrc ]; then
-. $TDIR/../travisrc
-elif [ -f ./travisrc ]; then
-. ./travisrc
-elif [ -f ~/travisrc ]; then
-. ~/travisrc
-else
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME" "_travis")
+if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
+. $TRAVISLIBDIR
 
-__version__=0.1.30.1
+__version__=0.1.30.2
 
 
 do_annotate() {
@@ -266,12 +258,29 @@ EOF
 }
 
 do_synchro() {
-    wlog "do_synchro $1"
-    do_distribution "$PKGNAME" "oca"
-    if [ "$PRJNAME" == "Odoo" ]; then
-      git status
-      git remote -v
-      git pull upstream $BRANCH
+    wlog "do_synchro $1 $2"
+    if [ "$2" == "oca" ]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        git checkout $BRANCH
+        do_distribution "$PKGNAME" "$2"
+        git status
+        git remote -v
+        git pull upstream $BRANCH
+      fi
+    elif [ "$2" == "zeroincombenze" ]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        git checkout $BRANCH
+        do_distribution "$PKGNAME" "$2"
+        local x=($git status -s)
+        if [ -n "$x" ]; then
+          git commit -am "[SYNCHRO] Synchronizing against OCA repository"
+        fi
+        git push
+      fi
+    else
+      echo "Missed parameter! use:"
+      echo "\$ please synchro PKGNAME|. oca|zeroincombenze"
+      sts=$STS_FAILED
     fi
 }
 

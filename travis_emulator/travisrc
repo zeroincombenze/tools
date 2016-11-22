@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.3
+#__version__=0.1.68.5
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -805,13 +805,18 @@ robocopy() {
 clean_dirs() {
 # clean_dirs (directory)::
 # return:
+    if [ ${opt_verbose:-0} -gt 0 ]; then
+      local o="-print "
+    else
+      local o=
+    fi
     XXXX=$(get_cfg_value "" "fileignore")
     for x in $XXXX;do
       if [ "$x" != ".conf" ]; then
         if [ ${opt_dry_run:-0} -gt 0 ]; then
           find $1 -nowarn -name "*$x" -exec echo "1||rm '{}'" \;
         else
-          find $1 -nowarn -name "*$x" -exec rm -f '{}' \;
+          find $1 -nowarn -name "*$x" $o-exec rm -f '{}' \;
         fi
       fi
     done
@@ -1191,15 +1196,17 @@ cp_n_upd_conf() {
 
 clone_1_dependence() {
     local n sts
-    n=$(basename $1)
-    if [ -d $1 ]; then
-      if [ "$n" != "__unported__" ]; then
-        if [ ! -d $HOME/dependencies/$n ]; then
-          run_traced "ln -s $1 $HOME/dependencies/"
-          sts=$?
-        else
-          wlog "Module $1 already cloned!"
-          sts=0
+    sts=0
+    if [ -n "$1" ]; then
+      n=$(basename $1)
+      if [ -d $1 ]; then
+        if [ "$n" != "__unported__" ]; then
+          if [ ! -d $HOME/dependencies/$n ]; then
+            run_traced "ln -s $1 $HOME/dependencies/"
+            sts=$?
+          else
+            wlog "Module $1 already cloned!"
+          fi
         fi
       fi
     fi
@@ -1238,13 +1245,17 @@ clone_core_dependencies() {
 
 clone_oca_dependencies() {
     local f1=$1
-    local line p d s sts
+    local line p d r s sts
     local oetpath=$(readlink -e $PRJPATH/..)
     sts=0
     if [ -f "$f1" ]; then
-      while IFS=\~ read -r line; do
-        if [ -n "$line" -a "${line:0:1}" != "#" ]; then
-          d=$(find $oetpath -type d -name "$line")
+      # while IFS=\~ read -r line; do
+      while IFS="#" read -r line r; do
+        if [[ $line =~ ^[[:space:]]*$ ]]; then
+          :
+        else
+        # if [ -n "$line" -a "${line:0:1}" != "#" ]; then
+          d=$(find $oetpath -maxdepth 1 -type d -name "$line")
           if [ -n "$d" ]; then
             if [ -n "$REPOSNAME" ]; then
               for p in $d/*; do

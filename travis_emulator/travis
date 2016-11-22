@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.63
+__version__=0.1.66
 
 
 
@@ -285,11 +285,7 @@ process_yaml_file() {
     local lne1=
     local linex=
     local a b i r
-    # while IFS=\~ read -r line; do
     while IFS="#" read -r line r; do
-      # if [[ $line =~ ^[[:space:]]*# ]]; then
-      #   line=
-      # elif [[ $line =~ ^[[:space:]]+ ]]; then
       if [[ $line =~ ^[[:space:]]+ ]]; then
         for i in {0..10};do if [ "${line:i:1}" != " " ]; then break; fi; done
         if [ $i -gt $ident ]; then
@@ -431,6 +427,8 @@ process_yaml_run_cmd() {
       if [ "${x[2]}" == "expect-dev" ]; then
         xcmd="# $xcmd"
       elif $(rpm -q ${x[2]} &>/dev/null); then
+        xcmd="# $xcmd"
+      elif $(yum info ${x[2]} &>/dev/null); then
         xcmd="# $xcmd"
       else
         xcmd="false; # Warning! TODO> $xcmd"

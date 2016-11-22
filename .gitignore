@@ -20,3 +20,6 @@ cover/
 latex/
 html/
 docs/
+stdout.log
+oca__*
+z0i__*
