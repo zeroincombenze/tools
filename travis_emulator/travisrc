@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.5
+#__version__=0.1.68.6
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -1152,7 +1152,7 @@ cp_n_upd_conf() {
       local pfx2=
       local sfx="/server"
     else
-      local odoo_ver=${VERSION:0:1}
+      local odoo_ver=$(echo $VERSION|grep -Eo [0-9]*|head -n1)
       local pfx="odoo$odoo_ver"
       local pfx2=odoo
       local sfx=
@@ -1160,7 +1160,13 @@ cp_n_upd_conf() {
     if [ -z "$confn" ] || [ ! -f $confn ]; then
       local confn=/etc/odoo/${pfx}-server.conf
       if [ ! -f $confn ]; then
+        confn=/etc/odoo/${pfx}.conf
+      fi
+      if [ ! -f $confn ]; then
         confn=/etc/odoo/${pfx2}-server.conf
+      fi
+      if [ ! -f $confn ]; then
+        confn=/etc/odoo/${pfx2}.conf
       fi
     fi
     if [ ! -f $confn ]; then
@@ -1185,6 +1191,8 @@ cp_n_upd_conf() {
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ .*odoo$odoo_ver-server.conf.* ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*$confn.* ]]; then
+        line=$(echo "$line"|sed -e "s:$confn:odoo-test:")
       elif [[ $line =~ .*odoo$odoo_ver-server.pid.* ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ .*odoo$odoo_ver-server.log.* ]]; then
