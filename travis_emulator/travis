@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.67
+__version__=0.1.68
 
 
 
@@ -137,12 +137,12 @@ process_yaml_quote_xtl() {
           fi
         fi
       fi
-    # elif [[ $lne =~ PATH=\$\{*HOME\}/tools/travis_emulator/_travis ]]; then
-    #   if [ "$PRJNAME" == "travis_emulator" ]; then
-    #     lne="export PATH=${HOME}/dev/pypi/travis_emulator/travis_emulator/_travis:${PATH}"
-    #   fi
     elif [[ $lne =~ travis_install_nightly ]]; then
       lne="# $lne"
+    fi
+  else
+    if [[ $lne =~ travis_install_nightly ]]; then
+      lne="/opt/odoo/maintainer-quality-tools/travis/travis_install_nightly"
     fi
   fi
   lne=$(expand_path "$lne")
@@ -171,6 +171,7 @@ process_yaml_xtl_pre() {
 
 process_yaml_do() {
     # echo "[$YML_sect]" #debug
+    local a b
     local lne=
     if [ "$YML_sect" == "python" ]; then
       lne="#"
@@ -217,7 +218,6 @@ process_yaml_0() {
           YML_sect0=
           YML_sect=
           declare YML_$a="$(echo $b)"
-          #echo ">YML_$a=$(echo $b)" #debug
         fi
       else
         process_yaml_do "$b"
@@ -234,10 +234,13 @@ process_yaml_1() {
           YML_sect1=$a
           YML_sect="$YML_sect0.$YML_sect1"
         else
-          YML_sect1=
-          YML_sect="$YML_sect0"
-          declare ${YML_sect0}__$a="$(echo $b)"
-          #echo ">${YML_sect0}__$a=$(echo $b)" #debug
+          if [ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ] && [[ "$b" =~ "true" ]]; then
+            TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+          else
+            YML_sect1=
+            YML_sect="$YML_sect0"
+            declare ${YML_sect0}__$a="$(echo $b)"
+          fi
         fi
       else
         process_yaml_do "$b"
@@ -257,7 +260,6 @@ process_yaml_2() {
           YML_sect2=
           YML_sect="$YML_sect0.$$YML_sect1"
           declare ${YML_sect0}__${YML_sect1}__$a="$(echo $b)"
-          #echo ">${YML_sect0}__${YML_sect1}__$a=$(echo $b)" #debug
         fi
       else
         process_yaml_do "$b"
@@ -497,6 +499,7 @@ process_yaml() {
          fi
       done
       wlog "===== [Initialize] ====="
+      run_traced "alias pip=\"pip --user $USER\""
       if [ ${opt_virt:-0} -gt 0 ]; then
         create_virtual_env
       fi
@@ -541,6 +544,13 @@ process_yaml() {
       sts=$?
     fi
     return $sts
+}
+
+checkpid() {
+    [ -f $1 ] || return 1
+    local pid=`cat $1`
+    [ -d /proc/$pid ] && return 0
+    return 1
 }
 
 
@@ -620,13 +630,27 @@ sts=$STS_SUCCESS
 init_travis
 prepare_env_travis "$action"
 check_4_travis
+PIDFILE=
 if [ $sts -eq $STS_SUCCESS ]; then
+  if [ ${opt_virt:-0} -eq 0 ]; then
+    PIDFILE=$(get_cfg_value "" "PIDFILE")
+    checkpid "$PIDFILE"
+    sts=$?
+    if [ $sts -eq 0 ]; then
+      echo "Another instance of travis emulator is running"
+      exit $sts
+    fi
+    echo $$>$PIDFILE
+  fi
   if [ $opt_r -gt 0 ]; then
     process_local
     sts=$?
   else
     process_yaml
     sts=$?
+  fi
+  if [ -n "$PIDFILE" ]; then
+    rm -f $PIDFILE
   fi
 fi
 exit $sts

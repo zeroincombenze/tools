@@ -4,5 +4,5 @@ setup(name='travis_emulator',
       version='0.1.46',
       description='Travis CI emulator for local develop environment',
       classifiers=[
-          'Development Status ::',
+          'Development Status :: 1 - Planning',
       ])

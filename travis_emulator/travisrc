@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.6
+#__version__=0.1.68.7
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -205,22 +205,32 @@ init_travis() {
       opts_verbose=
       export FLOG_ECHO=
     fi
-    ODOO_SETUP=$(get_cfg_value "" "ODOO_SETUP")
-    if [ -n "$ODOO_SETUP" -a -f $ODOO_SETUP ]; then
-      SETUP="$ODOO_SETUP";
-      REPOSNAME=$(basename $(readlink -e ..))
-      if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
+    local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
+    local ODOO_SETUPS=${ODOO_SETUPS//,/ }
+    SETUP=
+    for ODOO_SETUP in $ODOO_SETUPS; do
+      if [ -f $ODOO_SETUP ]; then
+        SETUP="$ODOO_SETUP";
+        REPOSNAME=$(basename $(readlink -e ..))
+        if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
+          REPOSNAME=
+        fi
+        break
+      elif [ "$(basename $(readlink -e ../))" == "openerp" ]; then
+        SETUP="$ODOO_SETUP";
+        REPOSNAME=$(basename $(readlink -e ../..))
+        break
+      fi
+    done
+    if [ -z "$SETUP" ]; then
+      ODOO_SETUP="__openerp__.py"
+      if [ -f $PKGPATH/setup.py ]; then
+        SETUP="$PKGPATH/setup.py";
+        REPOSNAME=$(basename $PKGPATH)
+      else
+        SETUP=$ODOO_SETUP
         REPOSNAME=
       fi
-    elif [ -n "$ODOO_SETUP" -a "$(basename $(readlink -e ../))" == "openerp" ]; then
-      SETUP="$ODOO_SETUP";
-      REPOSNAME=$(basename $(readlink -e ../..))
-    elif [ -f $PKGPATH/setup.py ]; then
-      SETUP="$PKGPATH/setup.py";
-      REPOSNAME=$(basename $PKGPATH)
-    else
-      SETUP="$ODOO_SETUP";
-      REPOSNAME=
     fi
     if [ "$SETUP" == "$ODOO_SETUP" ]; then
       if [ -z "$PRJNAME" ]; then
@@ -252,6 +262,12 @@ init_travis() {
       PRJNAME=Odoo
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
+      local npm_curpfx=$(npm config get prefix)
+      export NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+      if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
+        mkdir -p $NPM_CONFIG_PREFIX
+        npm config set prefix $NPM_CONFIG_PREFIX
+      fi
       BRANCH=$(if $(echo "$PWD/"|grep "/v10/\|10.0/">/dev/null); then echo "10.0"; elif $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
@@ -312,6 +328,7 @@ init_travis() {
 
 create_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then
+      local HOME_BRANCH=$HOME/$BRANCH
       PKGPATH=$(set_pkgpath "")
       local TRAVIS_CWD=$PWD
       TRAVIS_HOME=$HOME/VENV_$$
@@ -328,7 +345,25 @@ create_virtual_env() {
       TRAVIS_SAVED_HOME=$HOME
       export HOME=$TRAVIS_HOME
       run_traced "cp -R $TRAVIS_CWD $TRAVIS_BUILD_DIR"
+      # run_traced "mkdir -p $TRAVIS_BUILD_DIR/odoo"
+      # local fn
+      # for fn in addons odoo odoo.py openerp openerp-server openerp-wsgi.py; do
+      #   if [ -d $HOME_BRANCH/$fn ]; then
+      #     run_traced "cp -R $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
+      #   elif [ -f $HOME_BRANCH/$fn ]; then
+      #     run_traced "cp $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
+      #   fi
+      # done
+      # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
+      run_traced "export REPO_CACHED=$HOME_BRANCH"
       run_traced "cd $HOME"
+      FH=$(xuname -f)
+      if [ "$FH" == "RHEL" ]; then
+        local NODEJS=$(which node)
+        if [ -n "$NODEJS" ]; then
+          run_traced "ln -s $NODEJS $TRAVIS_HOME/bin/nodejs"
+        fi
+      fi
     fi
 }
 
@@ -356,6 +391,8 @@ prepare_env_travis() {
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
       run_traced "export PATH=$DEVPATH:$PATH"
     fi
+    NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+    run_traced "export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX"
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
     export BRANCH
     export VERSION=$BRANCH
@@ -437,7 +474,11 @@ conf_default() {
     set_cfg_def "loglevel" "1"
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
-    set_cfg_def "ODOO_SETUP" "__openerp__.py"
+    set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
+    set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
+    set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py"
+    set_cfg_def "ODOO_DEFCONF" ".odoorc"
+    set_cfg_def "ODOO_LOGFILE" "False"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"
@@ -457,7 +498,7 @@ conf_default() {
     fi
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
-    set_cfg_def "ODOO_LOGFILE" "False"
+    set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "fileignore" ".pyc .log .bak .out .tmp .conf .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~ test*.pdf tmp tmp.*"
     set_cfg_def "filediffignore" ".po .pot"
 }
@@ -1145,7 +1186,6 @@ run_annotate_test() {
 
 cp_n_upd_conf() {
     local confn=$1
-    local tgt=~/.openerp_serverrc
     if [ "$VERSION" == "v7" ]; then
       local odoo_ver=7
       local pfx="openerp"
@@ -1156,6 +1196,19 @@ cp_n_upd_conf() {
       local pfx="odoo$odoo_ver"
       local pfx2=odoo
       local sfx=
+    fi
+    if [ "$odoo_ver" == "10" ]; then
+      local tgt=$(get_cfg_value "" "ODOO_DEFCONF")
+      tgt=$(basename $tgt)
+      if [ "$tgt" == ".openerp_serverrc" ]; then
+        local atgt=~/.odoorc
+      else
+        local atgt=~/.openerp_serverrc
+      fi
+      tgt=~/$tgt
+    else
+      local tgt=~/.openerp_serverrc
+      local atgt=~/.odoorc
     fi
     if [ -z "$confn" ] || [ ! -f $confn ]; then
       local confn=/etc/odoo/${pfx}-server.conf
@@ -1173,10 +1226,14 @@ cp_n_upd_conf() {
       echo "File $confn not found!"
       exit 1
     fi
+    if [ -f $atgt ]; then
+      rm -f $atgt
+    fi
     if [ -f $tgt ]; then
       rm -f $tgt
     fi
     wlog "$ cp $confn $tgt"
+    touch $tgt
     local ODOO_LOGFILE=$(get_cfg_value "" "ODOO_LOGFILE")
     while IFS=\| read -r line; do
       if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
