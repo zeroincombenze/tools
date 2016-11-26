@@ -1,0 +1,273 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.1.1
+
+
+save_testenv() {
+    local p
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
+      eval SAVE_$p=${!p}
+    done
+    LCLTEST_CWD=$PWD
+    cd $LCLTEST_TMPDIR
+}
+
+restore_testenv() {
+    local p x
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
+      x=saved_$p
+      eval $p=${!x}
+      eval SAVE_$p=
+    done
+    cd $LCLTEST_CWD
+}
+
+result_testenv() {
+    local p x
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
+      eval tested_$p=${!p}
+    done
+    restore_testenv
+    save_testenv
+}
+
+Z0BUG_setup() {
+    local VERSION=9.0
+    local ODOO_REPO=local/odoo
+    LCLTEST_PRJNAME="Odoo"
+    LCLTEST_REPOSNAME=l10n_italy
+    local PKGNAME=l10n_it_base
+    LCLTEST_PRJPATH=~/dev/odoo/$VERSION/$LCLTEST_REPOSNAME
+    local PKGPATH=$LCLTEST_PRJPATH/$PKGNAME
+    mkdir -p ~/dev/odoo/$VERSION
+    mkdir -p $LCLTEST_PRJPATH
+    mkdir -p $PKGPATH
+    touch $PKGPATH/__openerp__.py
+    LCLTEST_TMPDIR=$PKGPATH
+    LCLTEST_SETUP=__openerp__.py
+    LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
+
+    FOUT=$TESTDIR/test_lib.out
+    FTEST=$TESTDIR/test_lib.test
+    cat<<'EOF' >$FTEST
+> coverage erase
+> dropdb --if-exists openerp_template
+> dropdb --if-exists openerp_test
+> if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
+> if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
+> if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
+> if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
+$ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
+> mkdir /opt/odoo/dependencies
+> export INCLUDE=l10n_it_base
+> ln -s /opt/odoo/dev/odoo/9.0/l10n_italy /opt/odoo/dependencies/
+> ln -s /opt/odoo/dev/odoo/9.0 /opt/odoo/odoo-9.0
+> ln -s /opt/odoo/dev/odoo/9.0/l10n_italy/l10n_it_base /opt/odoo/l10n_it_base-9.0
+EOF
+}
+
+Z0BUG_teardown() {
+    # local VERSION=9.0
+    # local ODOO_REPO=local/odoo
+    local PKGNAME=l10n_it_base
+    local PKGPATH=$LCLTEST_PRJPATH/$PKGNAME
+    rm -fR $PKGPATH
+    rm -fR $LCLTEST_PRJPATH
+    rm -fR ~/dev/odoo/$VERSION
+    if [ -f $FOUT ]; then rm -f $FOUT; fi
+    if [ -f $FTEST ]; then rm -f $FTEST; fi
+}
+
+
+test_01() {
+    save_testenv
+    local s sts res opts
+    opt_conf=
+    pkg=
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis
+      result_testenv
+    fi
+    res=$TDIR/.travis.conf
+    test_result "travis.conf" "$res" "$TCONF"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.pkgpath" "$LCLTEST_TMPDIR" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.repository" "local/" "$repository"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    restore_testenv
+    return $sts
+}
+
+test_02() {
+    save_testenv
+    local s sts res opts
+    opt_conf=
+    pkg=
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=1
+      PRJNAME=
+      CFG_init
+      conf_default
+      init_travis
+      result_testenv
+    fi
+    test_result "init_travis.dry_run" "" "$opts_dry_run"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.verbose" "-v" "$opts_verbose"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.FLOG_ECHO" "echo" "$FLOG_ECHO"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.setup" "$LCLTEST_SETUP" "$SETUP"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.reposname" "$LCLTEST_REPOSNAME" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.prjname" "$LCLTEST_PRJNAME" "$PRJNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.prjpath" "$LCLTEST_PRJPATH" "$PRJPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TOOLS_PATH=~/dev/_travis
+      opt_verbose=1
+      opts=$(inherits_travis_opts "v")
+      result_testenv
+    fi
+    test_result "init_travis opts" "-v" "$opts"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TOOLS_PATH=~/maintainer-quality-tools/travis
+      opt_verbose=1
+      MQT_VERBOSE_MODE=
+      inherits_travis_opts "v" >/dev/null
+      result_testenv
+    fi
+    test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
+    restore_testenv
+    return $sts
+}
+
+
+test_03() {
+    save_testenv
+    local s sts res opts
+    export opt_conf=$TESTDIR/test_travis.conf
+    if [ -f $opt_conf ]; then rm -f $opt_conf; fi
+    touch $opt_conf
+    pkg=
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis
+      result_testenv
+    fi
+    test_result "travis.conf" "$tested_opt_conf" "$TCONF"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    res=$LCLTEST_TMPDIR
+    test_result "travis.pkgpath" "$res" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.repository" "local/" "$repository"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    restore_testenv
+    return $sts
+}
+
+
+test_04() {
+    save_testenv
+    local s sts res opts
+    opt_conf=
+    pkg=
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=2
+      opt_r=1
+      TOOLS_PATH=
+      PRJNAME=
+      CFG_init
+      conf_default
+      init_travis
+      result_testenv
+    fi
+    test_result "init_travis.dry_run" "" "$opts_dry_run"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.verbose" "-v" "$opts_verbose"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.FLOG_ECHO" "echo" "$FLOG_ECHO"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.setup" "$LCLTEST_SETUP" "$SETUP"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.reposname" "$LCLTEST_REPOSNAME" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ -d $TDIR/_travis ]; then
+      test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
+    else
+      test_result "init_travis \$TOOLS_PATH" "$HOME/dev/_travis" "$TOOLS_PATH"
+    fi
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis \$MQT_PATH" "$LCLTEST_MQT_PATH" "$MQT_PATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=1
+      MQT_VERBOSE_MODE=
+      TOOLS_PATH=~/maintainer-quality-tools/travis
+      inherits_travis_opts "v" >/dev/null
+      result_testenv
+    fi
+    test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=1
+      opt_dry_run=1
+      prepare_env_travis
+      run_svr_test_init > $FOUT
+      result_testenv
+    fi
+    test_result "run_svr_test_ini" "$FOUT" "$FTEST" "diff -qEbB"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    restore_testenv
+    return $sts
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_zerobug.log $@
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+
+UT1_LIST=""
+UT_LIST=""
+Z0BUG_setup
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+Z0BUG_teardown
+exit $?

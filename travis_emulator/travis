@@ -108,42 +108,42 @@ process_yaml_quote_xtl() {
   if [ ${opt_virt:-0} -eq 0 ]; then
     if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
       lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
-    elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
-      if [ ! -d $HOME/maintainer-quality-tools ]; then
-        dow=3
-      else
-        dow=$(date +%w)
-      fi
-      if [ $opt_dry_run -ne 0 -o $dow -ne 3 ]; then
-        lne="# $lne"
-      else
-        if [ ! -d $HOME/maintainer-quality-tools ]; then
-          local MQT_UPDT="2016-00-00"
-        else
-          local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
-        fi
-        local curtm=$(date +"%Y-%m-%d")
-        if [ "$curtm" == "$MQT_UPDT" ]; then
-          lne="# $lne"
-        else
-          if [ -d $HOME/maintainer-quality-tools/ ]; then
-            wlog "\$ rm -fR $HOME/maintainer-quality-tools/"
-            rm -fR $HOME/maintainer-quality-tools/
-          fi
-          if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
-            sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
-          else
-            echo "MQT_UPDT=$curtm">>$TCONF
-          fi
-        fi
-      fi
-    elif [[ $lne =~ travis_install_nightly ]]; then
-      lne="# $lne"
+    # elif [[ $lne =~ git[[:space:]]+clone[[:space:]]+.*https://github.com/OCA/maintainer-quality-tools.git ]]; then
+    #   if [ ! -d $HOME/maintainer-quality-tools ]; then
+    #     dow=3
+    #   else
+    #     dow=$(date +%w)
+    #   fi
+    #   if [ $opt_dry_run -ne 0 -o $dow -ne 3 ]; then
+    #     lne="# $lne"
+    #   else
+    #     if [ ! -d $HOME/maintainer-quality-tools ]; then
+    #       local MQT_UPDT="2016-00-00"
+    #     else
+    #       local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+    #     fi
+    #     local curtm=$(date +"%Y-%m-%d")
+    #     if [ "$curtm" == "$MQT_UPDT" ]; then
+    #       lne="# $lne"
+    #     else
+    #       if [ -d $HOME/maintainer-quality-tools/ ]; then
+    #         wlog "\$ rm -fR $HOME/maintainer-quality-tools/"
+    #         rm -fR $HOME/maintainer-quality-tools/
+    #       fi
+    #       if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
+    #         sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+    #       else
+    #         echo "MQT_UPDT=$curtm">>$TCONF
+    #       fi
+    #     fi
+    #   fi
+    # elif [[ $lne =~ travis_install_nightly ]]; then
+    #   lne="# $lne"
     fi
-  else
-    if [[ $lne =~ travis_install_nightly ]]; then
-      lne="/opt/odoo/maintainer-quality-tools/travis/travis_install_nightly"
-    fi
+  # else
+  #   if [[ $lne =~ travis_install_nightly ]]; then
+  #     lne="/opt/odoo/maintainer-quality-tools/travis/travis_install_nightly"
+  #   fi
   fi
   lne=$(expand_path "$lne")
   echo $lne
@@ -426,7 +426,7 @@ process_yaml_run_cmd() {
     c=$xcmd
     read -r -a x<<<"$xcmd"
     if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
-      if [ "${x[2]}" == "expect-dev" ]; then
+      if [ "$FH" == "RHEL" -a "${x[2]}" == "expect-dev" ]; then
         xcmd="# $xcmd"
       elif $(rpm -q ${x[2]} &>/dev/null); then
         xcmd="# $xcmd"
@@ -451,15 +451,42 @@ process_yaml_run_cmd() {
         else
           xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
         fi
+      elif [ "$p" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
+        if [ ! -d $HOME/maintainer-quality-tools ]; then
+          local MQT_UPDT="2016-00-00"
+        else
+          local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+        fi
+        local curtm=$(date +"%Y-%m-%d")
+        if [ "$curtm" == "$MQT_UPDT" ]; then
+          xcmd="# $xcmd"
+        else
+          if [ -d $HOME/maintainer-quality-tools/ ]; then
+            run_traced "rm -fR $HOME/maintainer-quality-tools/"
+          fi
+          if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
+            sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+          else
+            echo "MQT_UPDT=$curtm">>$TCONF
+          fi
+        fi
       fi
-    fi
-    if [ ${opt_virt:-0} -eq 0 ]; then
-      if [ "${x[0]}" == "pip" -a "${x[1]}" == "install" ]; then
+    elif [ "${x[0]}" == "pip" -a "${x[1]}" == "install" ]; then
+      if [ ${opt_virt:-0} -eq 0 ]; then
         p=$(echo "${x[2]}"|grep -Eo '[^!<=>]*'|head -n1)
         if $(pip show $p &>/dev/null); then
           xcmd="# $xcmd"
         else
           xcmd="false; # Warning! TODO> $xcmd"
+        fi
+      fi
+    elif [ "${x[0]}" == "travis_install_nightly" ]; then
+      if [ ${opt_virt:-0} -eq 0 ]; then
+        xcmd="# $xcmd"
+      else
+        local xtlcmd=$(get_cfg_value "" "RUN_travis_install_nightly")
+        if [ -n "$xtlvmd" ]; then
+          xcmd="$xtlcmd"
         fi
       fi
     fi

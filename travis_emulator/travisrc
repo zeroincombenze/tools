@@ -263,7 +263,7 @@ init_travis() {
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
       local npm_curpfx=$(npm config get prefix)
-      export NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
+      NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
       if [ "$npm_curpfx" != "$NPM_CONFIG_PREFIX" ]; then
         mkdir -p $NPM_CONFIG_PREFIX
         npm config set prefix $NPM_CONFIG_PREFIX
@@ -392,7 +392,7 @@ prepare_env_travis() {
       run_traced "export PATH=$DEVPATH:$PATH"
     fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
-    run_traced "export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX"
+    export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
     export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
     export BRANCH
     export VERSION=$BRANCH
@@ -479,6 +479,7 @@ conf_default() {
     set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py"
     set_cfg_def "ODOO_DEFCONF" ".odoorc"
     set_cfg_def "ODOO_LOGFILE" "False"
+    set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"

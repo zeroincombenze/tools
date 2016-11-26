@@ -1,0 +1,80 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+__version__=0.1.22
+
+explore() {
+# explore dir
+    local res=
+    for fn in $1/*; do
+      if [ -d $fn ]; then
+        nm=$(basename $fn)
+        if [[ " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
+          :
+        else
+          res="$res $nm"
+        fi
+      fi
+    done
+    echo $res
+}
+
+sub_list=
+excl_list="addons cover cscs_addons debian doc history odoo openerp scripts server setup themes __to_remove"
+for oev in v7 7.0 8.0 9.0 10.0; do
+  # IFS=. read d r<<<$oev
+  mlist=$(explore $oev)
+  for oem in $mlist; do
+    if [[ " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
+      :
+    else
+      sub_list="$sub_list $oem"
+    fi
+  done
+done
+echo "$sub_list"
+for oem in $sub_list; do
+  for oev in v7 7.0 8.0 9.0 10.0; do
+    rq_oev=$(echo $oev|grep -Eo [0-9.]+)
+    if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
+      # git push origin --delete 5.0
+      # git push origin --delete 6.0
+      # git push origin --delete 6.1
+    if [ -L ~/$oev/$oem ]; then
+      :
+    elif [ "$oem" == "website" -a "$rq_oev" == "7.0" ]; then
+      :
+    elif [ "$oem" == "l10n-italy-supplemental" ]; then
+      :
+    elif [ "$oem" == "l10n-italy" -a "$rq_oev" == "7.0" ]; then
+      :
+    else
+      echo "=====[$oev/$oem]====="
+      if [ "$oev" == "8.0" ]; then
+        cd ~/$oev/$oem
+        please synchro . oca
+      elif [ "$oev" == "9.0" ]; then
+        # addsubm.sh https://github.com/OCA/$oem.git $oev $oev -y
+        # cd ~/$oev/$oem
+        cd ~/$oev/$oem
+        please synchro . oca
+      elif [ "$oev" == "10.0" ]; then
+        # addsubm.sh https://github.com/OCA/$oem.git $oev $oev -y
+        # cd ~/$oev/$oem
+        cd ~/$oev/$oem
+        please synchro . oca
+      else
+        cd ~/$oev/$oem
+      fi
+      v=$(git branch|grep -Eo [0-9.]+)
+      if [ "$v" != "$rq_oev" ]; then
+        echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
+      else
+        please synchro . zeroincombenze
+        git status
+        echo "--------"
+        git remote -v
+      fi
+      read
+    fi
+  done
+done
