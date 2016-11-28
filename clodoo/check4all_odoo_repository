@@ -1,6 +1,35 @@
 #! /bin/bash
-# -*- coding: utf-8 -*-
-__version__=0.1.22
+#
+# Check for all odoo repositories
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME" "_travis")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.1.25
+
 
 explore() {
 # explore dir
@@ -18,10 +47,140 @@ explore() {
     echo $res
 }
 
+do_action() {
+#do_action(action, oem, oev)
+    local act=$1
+    local oem=$2
+    local oev=$3
+    local rq_oev=$(echo $oev|grep -Eo [0-9.]+)
+    if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
+    if [ $opt_dry_run -eq 0 ]; then
+      local opts=-n
+    else
+      local opts=
+    fi
+    local sts=0
+    if [ "$oem" != "$LAST_OEM" -o "$oev" != "$LAST_OEV" ]; then
+      echo "=====[$oem/$oev]====="
+      LAST_OEM=$oem
+      LAST_OEV=$oev
+    else
+       echo "--------------------"
+    fi
+    local excl="${opt_excl//,/ }"
+    local x
+    for x in $excl; do
+      if [ "$x" == "$oem" -o "$x" == "$oem/$oev"  -o "$x" == "$oev/$oem"  -o "$x" == "$oem/$rq_oev"  -o "$x" == "$rq_oev/$oem" ]; then
+        return $sts
+      fi
+    done
+    if [ ! -d ~/$oev/$oem ]; then
+      echo "BRANCH $oev OF $oem NOT FOUND!"
+      sts=1
+    else
+      cd ~/$oev/$oem
+      if [ "$act" == "check" ]; then
+        if [ -L ~/$oev/$oem ]; then
+          travis . check $opts
+          sts=$?
+        fi
+      elif [ "$act" == "clean" ]; then
+        if [ -L ~/$oev/$oem ]; then
+          :
+        else
+          if [ $opt_dry_run -eq 0 ]; then
+            git push origin --delete 5.0
+            git push origin --delete 6.0
+            git push origin --delete 6.1
+          fi
+        fi
+        please wep $opts
+      elif [ "$act" == "oca" ]; then
+        if [ -L ~/$oev/$oem ]; then
+          please synchro . oca $opts
+        fi
+      elif [ "$act" == "remote" ]; then
+        git remote -v
+      elif [ "$act" == "status" ]; then
+        git status
+        sts=$?
+        if [ $sts -eq 0 ]; then
+          local v=$(git branch|grep -Eo [0-9.]+)
+          if [ "$v" != "$rq_oev" ]; then
+            echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
+            sts=1
+          fi
+        fi
+      elif [ "$act" == "zeroincombenze" ]; then
+        if [ -L ~/$oev/$oem ]; then
+          please synchro . zeroincombenze $opts
+        fi
+      fi
+    fi
+    return $sts
+}
+
+OPTOPTS=(h        b          c        n            q           s          V           v           x)
+OPTDEST=(opt_help opt_branch opt_conf opt_dry_run  opt_verbose opt_nostop opt_version opt_verbose opt_excl)
+OPTACTI=(1        "="        "="      1            0           1          "*>"        "+"         "=")
+OPTDEFL=(0        ""         ""       0            -1          0          ""          -1          "")
+OPTMETA=("help"   "branch"   "file"   "do nothing" "verbose"   ""         "version"   "verbose"   "modules")
+OPTHELP=("this help"\
+ "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
+ "configuration file (def .travis.conf)"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "no stop after every module/version"\
+ "show version"\
+ "verbose mode"\
+ "module list to exclude (comma separated)")
+OPTARGS=(actions)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+if [ -z "$actions" ]; then
+  opt_help=1
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Check for all odoo repositories\nactions may be: check clean list oca remote status zeroincombenze"\
+  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+if [ -z "$opt_branch" ]; then
+  opt_branch="v7 7.0 8.0 9.0 10.0"
+else
+  opt_branch="${opt_branch//,/ }"
+fi
 sub_list=
-excl_list="addons cover cscs_addons debian doc history odoo openerp scripts server setup themes __to_remove"
-for oev in v7 7.0 8.0 9.0 10.0; do
-  # IFS=. read d r<<<$oev
+excl_list="addons cover debian doc history odoo openerp scripts server setup __to_remove"
+if [ -z $opt_excl ]; then
+  opt_excl="cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0"
+fi
+opt_excl="${opt_excl//,/ }"
+if [[ " $opt_excl " =~ [[:space:]]themes[[:space:]] ]]; then
+  :
+else
+  opt_excl="$opt_excl themes"
+fi
+if [[ " $opt_excl " =~ [[:space:]]website/7.0[[:space:]] ]]; then
+  :
+elif [[ " $opt_excl " =~ [[:space:]]7.0/website[[:space:]] ]]; then
+  :
+else
+  opt_excl="$opt_excl website/7.0"
+fi
+for oem in $opt_excl; do
+  if [[ "$oem" =~ / ]]; then
+    :
+  else
+    excl_list="$excl_list $oem"
+  fi
+done
+cd
+for oev in $opt_branch; do
   mlist=$(explore $oev)
   for oem in $mlist; do
     if [[ " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
@@ -31,50 +190,30 @@ for oev in v7 7.0 8.0 9.0 10.0; do
     fi
   done
 done
-echo "$sub_list"
+if [ "$actions" == "list" -o $opt_verbose -gt 0 ]; then
+  echo "$sub_list"
+  if [ "$actions" == "list" ]; then
+    echo "-x $opt_excl"
+    exit 0
+  fi
+fi
+actions="${actions//+/ }"
+actions="${actions//,/ }"
+sts=0
 for oem in $sub_list; do
-  for oev in v7 7.0 8.0 9.0 10.0; do
-    rq_oev=$(echo $oev|grep -Eo [0-9.]+)
-    if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
-      # git push origin --delete 5.0
-      # git push origin --delete 6.0
-      # git push origin --delete 6.1
-    if [ -L ~/$oev/$oem ]; then
-      :
-    elif [ "$oem" == "website" -a "$rq_oev" == "7.0" ]; then
-      :
-    elif [ "$oem" == "l10n-italy-supplemental" ]; then
-      :
-    elif [ "$oem" == "l10n-italy" -a "$rq_oev" == "7.0" ]; then
-      :
-    else
-      echo "=====[$oev/$oem]====="
-      if [ "$oev" == "8.0" ]; then
-        cd ~/$oev/$oem
-        please synchro . oca
-      elif [ "$oev" == "9.0" ]; then
-        # addsubm.sh https://github.com/OCA/$oem.git $oev $oev -y
-        # cd ~/$oev/$oem
-        cd ~/$oev/$oem
-        please synchro . oca
-      elif [ "$oev" == "10.0" ]; then
-        # addsubm.sh https://github.com/OCA/$oem.git $oev $oev -y
-        # cd ~/$oev/$oem
-        cd ~/$oev/$oem
-        please synchro . oca
-      else
-        cd ~/$oev/$oem
+  for oev in $opt_branch; do
+    for act in $actions; do
+      do_action $act $oem $oev
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    if [ $sts -ne 0 ]; then
+      exit $sts
+    elif [ $opt_nostop -eq 0 ]; then
+      read -p "Press RET to continue" a
+      if [ "$a" == "q" ]; then
+        exit $sts
       fi
-      v=$(git branch|grep -Eo [0-9.]+)
-      if [ "$v" != "$rq_oev" ]; then
-        echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
-      else
-        please synchro . zeroincombenze
-        git status
-        echo "--------"
-        git remote -v
-      fi
-      read
     fi
   done
 done
+exit $sts
