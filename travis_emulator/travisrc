@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.8
+#__version__=0.1.68.9
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
-XXXX=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ .cover/ .coverage/ .git/ ~"
+# XXXX=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ .cover/ .coverage/ .git/ npm-debug.log ~"
 
 
 opts_travis() {
@@ -500,7 +500,7 @@ conf_default() {
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-    set_cfg_def "fileignore" ".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~ test*.pdf tmp tmp.*"
+    set_cfg_def "fileignore" ".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "filediffignore" ".po .pot"
 }
 
