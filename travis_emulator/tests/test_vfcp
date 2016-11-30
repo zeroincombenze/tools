@@ -69,26 +69,39 @@ test_01() {
     echo "filediffignore=.po .pot">>$opt_conf
     for s in v7 8.0 10.0; do
       for t in v7 7.0 9.0; do
-        test_copy "$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo/$t"
-        test_copy "~/$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo/$t"
-        test_copy "/opt/odoo/$s" "$t" "l10n-italy" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t/l10n-italy"
-        test_copy "/opt/odoo/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
-        test_copy "/opt/odoo/$s/l10n-italy" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t/l10n-italy"
-        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
-        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> cp /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        test_copy "$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo"
+        test_copy "~/$s" "$t" "" "" "" "> cp -R /opt/odoo/$s /opt/odoo"
+        test_copy "/opt/odoo/$s" "$t" "l10n-italy" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t"
+        test_copy "/opt/odoo/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy"
+        test_copy "/opt/odoo/$s/l10n-italy" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy /opt/odoo/$t"
+        test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> cp -R /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy"
+        if [ "$s" == "$t" ]; then
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" ""  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t"  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> cp /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        else
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" ""  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '$t/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"$t/g\" /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t"  "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '$t/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"$t/g\" /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+          test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> cp /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$t/'version': '$s/g\" -e \"s/\\\"version\\\": *\\\"$t/\\\"version': \\\"$s/g\" /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        fi
       done
     done
     for s in v7 10.0; do
-      test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
+      test_copy "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> cp /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'$s/'version': '8.0/g\" -e \"s/\\\"version\\\": *\\\"$s/\\\"version': \\\"8.0/g\" /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
     done
     for s in 7 8; do
       test_copy "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> cp /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
     done
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "" "> cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries"
+    test_copy "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "" "> cp -R /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries"
     local CWD=$PWD
     cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
-    test_copy "__openerp__.py" "" "" "" "8" "> cp /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    test_copy "__openerp__.py" "" "" "" "8" "> cp /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py
+> sed -i -e \"s/'version': *'7.0/'version': '8.0/g\" -e \"s/\\\"version\\\": *\\\"7.0/\\\"version': \\\"8.0/g\" /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
     cd $CWD
 }
 

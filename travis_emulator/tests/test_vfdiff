@@ -86,6 +86,8 @@ test_01() {
     for s in 7 8; do
       test_diff "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> diff /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
     done
+    test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
+    test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
     local CWD=$PWD
     cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
     test_diff "__openerp__.py" "" "" "" "8" "> diff /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"

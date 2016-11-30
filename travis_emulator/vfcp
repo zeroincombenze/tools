@@ -27,7 +27,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__="0.1.10"
+__version__="0.1.12"
 
 
 vf_init() {
@@ -66,7 +66,29 @@ vf_init() {
     done
 }
 
+simple_cp() {
+# simple_cp(opts src tgt)
+    local opts=$1
+    local src=$2
+    local tgt=$3
+    local d n s
+    run_traced "cp$opts $src $tgt"
+    s=$?
+    if [ "$VF_OFVER" != "$VFT_VER" ]; then
+      n=$(basename $src)
+      if [ "$n" == "__openerp__.py" ]; then
+        if [ $opt_rest -gt 0 ]; then
+          run_traced "sed -i -e \"s/'version': *'$VFT_VER/'version': '$VF_OFVER/g\" -e \"s/\\\"version\\\": *\\\"$VFT_VER/\\\"version': \\\"$VF_OFVER/g\" $tgt"
+        else
+          run_traced "sed -i -e \"s/'version': *'$VF_OFVER/'version': '$VFT_VER/g\" -e \"s/\\\"version\\\": *\\\"$VF_OFVER/\\\"version': \\\"$VFT_VER/g\" $tgt"
+        fi
+      fi
+    fi
+    return $s
+}
+
 exec_cp() {
+# exec_cp(left right)
     if [ $opt_rest -gt 0 ]; then
       local left=$2
       local right=$1
@@ -76,14 +98,16 @@ exec_cp() {
     fi
     if [ -d "$left" ]; then
       local opts=" -R"
+      right=$(dirname $right)
     else
       local opts=
     fi
-    run_traced "cp$opts $left $right"
+    simple_cp "$opts" "$left" "$right"
     return $?
 }
 
 localcp() {
+# localcp(left right)
     local param=-i
     if [ $opt_rest -gt 0 ]; then
       local left=$2
@@ -136,7 +160,7 @@ localcp() {
         :
       else
         # if [ -f $right ]; then
-          run_traced "cp $cparv $left $right"
+          simple_cp "$cparv" "$left" "$right"
           if [ $? -gt 0 ]; then
             sts=$STS_FAILED
           fi
@@ -151,17 +175,30 @@ localcp() {
     return $sts
 }
 
+set_oever() {
+# set_oever(odoo_ver)
+    if [ -z "$VF_OFVER" ]; then
+      VF_OFVER=$1
+    fi
+    if [ -z "$VFT_VER" ]; then
+      VFT_VER=$1
+    fi
+}
+
 # PATH examples:
 #   /opt/odoo/${ver}/${repository}/${module}/module_path/file
 #   /etc/odoo/odoo${ver}[-server].conf
 #   /var/run/odoo/odoo${ver}.pid
 #   /etc/init.d/odoo${ver}[-server]
 #   filename
+#   ${ver}
 get_path_ver() {
 # get_path_ver(path odoo_ver rep pkg)
     VF_MSTS=0
     local i
     local r t v
+    local re="(10\.0|9\.0|8\.0|7\.0|v7)"
+    VFT_VER=$2
     if [ -z "$1" ]; then
       r=$VF_PFX
     else
@@ -172,6 +209,10 @@ get_path_ver() {
         elif [ -f "./$1" ]; then
           r=$PWD
           VF_FN=$1
+        elif [[ $1 =~ $re ]]; then
+          r=$VF_PFX
+          set_oever "$1"
+          # echo "<$1;r=$r;VF_OFVER=$VF_OFVER;VFT_VER=$VFT_VER>" #debug
         else
           r=$1
         fi
@@ -185,8 +226,6 @@ get_path_ver() {
         VF_FN=$(basename $1)
       fi
     fi
-    local VFT_VER=$2
-    local re="(10\.0|9\.0|8\.0|7\.0|v7)"
     PUWD=$(readlink -f $PWD/..)
     result=
     for i in {1..9}; do
@@ -202,9 +241,6 @@ get_path_ver() {
           elif [ -n "$result" ]; then
             VF_PFX=$result
           fi
-          if [ -z "$VF_OFVER" ]; then
-            VF_OFVER=$t
-          fi
           if [ -z "$result" ]; then
             if [ "$VF_PFX" == "/opt/odoo" ]; then
               result=$VF_PFX/$t
@@ -214,9 +250,7 @@ get_path_ver() {
           elif [ "${result:0:9}" == "/opt/odoo" ]; then
             result=$result/$t
           fi
-          if [ -z "$VFT_VER" ]; then
-            VFT_VER=$t
-          fi
+          set_oever "$t"
           VF_MSTS=1
         elif [[ $t =~ ^odoo[0-9] ]]; then
           if [ "${r:0:1}" == "." -a "${r:0:2}" != ".." ]; then
@@ -253,11 +287,13 @@ get_path_ver() {
         result="$result/$t"
       elif [ $VF_MSTS -eq 3 ]; then
         if [ "${result:0:10}" == "/opt/odoo/" ]; then
-          if [ -z "$VF_PATH" ]; then
-            VF_PATH=$t
-          else
-            VF_PATH=$VF_PATH/$t
-          fi
+          VF_PATH=$t
+        fi
+        VF_MSTS=4
+        result="$result/$t"
+      elif [ $VF_MSTS -eq 4 ]; then
+        if [ "${result:0:10}" == "/opt/odoo/" ]; then
+          VF_PATH=$VF_PATH/$t
         fi
         result="$result/$t"
       fi
@@ -396,6 +432,7 @@ vf_init
 if [ $opt_2nd -eq 0 ]; then
   VF_PFX=/opt/odoo
   VF_OFVER=
+  VFT_VER=
   VF_REP=
   VF_PKG=
   VF_PATH=
