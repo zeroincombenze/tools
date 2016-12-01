@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.23
+__version__=0.1.24
 
 rmdir_if_exists() {
 #rmdir_if_exists (MODNAME new_odoo_ver rq_oev)
@@ -237,6 +237,6 @@ else
   cfgfn=/etc/odoo/odoo${v}-server.conf
 fi
 if [ -z "$(grep "^addons_path *=.*$MODNAME" $cfgfn 2>/dev/null)" ]; then
-  run_traced "sed -i \"s|^addons_path *=.*|&;$DSTPATH|\" $cfgfn"
+  run_traced "sed -i \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
 fi
 exit 0
