@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.68
+__version__=0.1.70
 
 
 
@@ -425,6 +425,36 @@ process_yaml_run_cmd() {
     local c i x s p sts
     c=$xcmd
     read -r -a x<<<"$xcmd"
+    if [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sudo" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/sudo //g')"
+      read -r -a x<<<"$xcmd"
+    fi
+    if [ "$FH" == "Debian" -a "${x[0]}" == "yum" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/yum /apt-get /g')"
+      x[0]="apt-get"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "apt-get" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/apt-get /yum /g')"
+      x[0]="yum"
+    fi
+    if [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-serial" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/python-serial/pyserial/g')"
+      x[2]="pyserial"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "libcups2-dev" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/libcups2-dev/cups-devel/g')"
+      x[2]="cups-devel"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-yaml" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/python-yaml/PyYAML/g')"
+      x[2]="PyYAML"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-pypdf" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/python-pypdf/pyPdf/g')"
+      x[2]="pyPdf"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "libcups2-devel" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/libcups2-devel/cups-devel/g')"
+      x[2]="cups-devel"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "ruby-sass" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/ruby-sass/rubygem-sass/g')"
+      x[2]="rubygem-sass"
+    fi
     if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
       if [ "$FH" == "RHEL" -a "${x[2]}" == "expect-dev" ]; then
         xcmd="# $xcmd"

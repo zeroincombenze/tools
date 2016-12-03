@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.30.2
+__version__=0.1.30.3
 
 
 do_annotate() {
@@ -265,7 +265,7 @@ do_synchro() {
         do_distribution "$PKGNAME" "$2"
         git status
         git remote -v
-        git pull upstream $BRANCH
+        git pull --no-edit upstream $BRANCH
       fi
     elif [ "$2" == "zeroincombenze" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
