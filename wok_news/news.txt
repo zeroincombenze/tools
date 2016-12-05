@@ -1,41 +1,41 @@
-<h2>Le principali scadenze fiscali di novembre 2016 per le imprese italiane.</h2>
+<h2>Le principali scadenze fiscali di dicembre 2016 per le imprese italiane.</h2>
 <a href="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali.jpg">
 <img class="alignright wp-image-1740 size-medium"
  src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
- alt="scadenze fiscali novembre 2016" width="300" height="114" /></a>
-Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a novembre, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
+ alt="scadenze fiscali dicembre 2016" width="300" height="114" /></a>
+Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a dicembre, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
 Puoi <b><a href="https://www.zeroincombenze.it/area-clienti-software-gestionale-online/demo/">provare la versione demo</a></b> disponibile per imprese, professionisti, artigiani e commercianti.
 I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> o  <strong>Commercialista in allegato</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
 Per maggiori informazioni telefonare al numero <b>011.0566929</b>
-<h3>martedì 15 novembre 2016</h3>
+<h3>giovedì 15 dicembre 2016</h3>
 <h4>Adempimenti IVA</h4>
 <p>
-Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di ottobre 2016 e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
+Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di novembre 2016 e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
 </p><p>
 Chi emette la <strong>fattura elettronica PA</strong> (in via sperimentale) deve inviarle alla PA.
 </p><p>
-I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di ottobre 2016.
+I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di novembre 2016.
 I dati sono contabilizzati con le chiusure giornaliere nel menù <u>Punto Vendita</u> del <strong>modulo POS</strong>
 </p><p>
-Con la <strong>contabilità on line</strong> è possibile la registrazione delle fatture di importo inferiore ad € 300,00 del mese di ottobre 2016; possono essere riepilogate sia le fatture attive che le fatture di acquisto.
+Con la <strong>contabilità on line</strong> è possibile la registrazione delle fatture di importo inferiore ad € 300,00 del mese di novembre 2016; possono essere riepilogate sia le fatture attive che le fatture di acquisto.
 </p>
-<h3>mercoledì 16 novembre 2016</h3>
+<h3>venerdì 16 dicembre 2016</h3>
 <h4>Versamenti IVA</h4>
 <p>
-Tramite la <strong>contabilità on line</strong>, è possibile effettuare il calcolo della liquidazione IVA relativa al mese precedente (ottobre 2016). La funzione è disponibile nel menù di <u>contabilità.</u>
-Il versamento deve essere effettuato utilizzando il modello F24, in modalità telematica con codice <strong>6010</strong>
+Tramite la <strong>contabilità on line</strong>, è possibile effettuare il calcolo della liquidazione IVA relativa al mese precedente (novembre 2016). La funzione è disponibile nel menù di <u>contabilità.</u>
+Il versamento deve essere effettuato utilizzando il modello F24, in modalità telematica con codice <strong>6011</strong>
 </p><p>
 Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro dipendente (codici 1001 e 1013) e per lavoro autonomo (codice tributo 1038 e 1040).
  Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
 </p>
-<h3>mercoledì 30 novembre 2016</h3>
+<h3>sabato 31 dicembre 2016</h3>
 <p>
 <h4>Comunicazioni</h4>
-Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (ottobre 2016). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
+Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (novembre 2016). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
 </p>
 <h4>Altro</h4>
 Scheda carburante:<br>
 Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.
 <br>
-Maggiori informazioni sulle scadenze fiscali sono disponibili sul sito dell'<a title="Scadenze fiscali novembre 2016"
+Maggiori informazioni sulle scadenze fiscali sono disponibili sul sito dell'<a title="Scadenze fiscali dicembre 2016"
  href="http://www1.agenziaentrate.gov.it/strumenti/scadenzario/main.php" target="_blank">Agenzia delle Entrate</a>.

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.68.9
+#__version__=0.1.70.1
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -209,18 +209,34 @@ init_travis() {
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     SETUP=
     for ODOO_SETUP in $ODOO_SETUPS; do
+      local r=$(basename $(readlink -e ..))
       if [ -f $ODOO_SETUP ]; then
-        SETUP="$ODOO_SETUP";
-        REPOSNAME=$(basename $(readlink -e ..))
-        if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
+        if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
           REPOSNAME=
+        else
+          REPOSNAME=$r
         fi
-        break
-      elif [ "$(basename $(readlink -e ../))" == "openerp" ]; then
         SETUP="$ODOO_SETUP";
-        REPOSNAME=$(basename $(readlink -e ../..))
         break
+      else
+        if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
+          REPOSNAME=$(basename $(readlink -e ../..))
+          SETUP="$ODOO_SETUP";
+          break
+        fi
       fi
+      # if [ -f $ODOO_SETUP ]; then
+      #  SETUP="$ODOO_SETUP";
+      #  REPOSNAME=$(basename $(readlink -e ..))
+      #  if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
+      #    REPOSNAME=
+      #  fi
+      #  break
+      # elif [ "$(basename $(readlink -e ../))" == "openerp" ]; then
+      #   SETUP="$ODOO_SETUP";
+      #   REPOSNAME=$(basename $(readlink -e ../..))
+      #   break
+      # fi
     done
     if [ -z "$SETUP" ]; then
       ODOO_SETUP="__openerp__.py"
@@ -480,6 +496,11 @@ conf_default() {
     set_cfg_def "ODOO_DEFCONF" ".odoorc"
     set_cfg_def "ODOO_LOGFILE" "False"
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
+    set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
+    set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
+    # set_cfg_def "EM_travis_install_nightly" "travis_install_nightly"
+    # set_cfg_def "EM_travis_run_tests" "true"
+    set_cfg_def "EM_travis_after_tests_success" "run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "UNBUFFER" "0"
@@ -999,7 +1020,7 @@ ant_add_trap() {
       ant_rm_trap "$f1"
       echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
       local line=
-      while IFS=\~ read -r line; do
+      while IFS=\~ read -r line || [ -n "$line" ]; do
         echo "$line">>$f1.sh
         if [ "${line:0:1}" == "." ]; then
           local fn="${line:2}"
@@ -1129,6 +1150,11 @@ run_coverage_test() {
           sts=$STS_FAILED
         fi
       else
+        if [ ${opt_mis:-0} -gt 0 ]; then
+          coverage report -m
+        else
+          coverage report
+        fi
         sts=$STS_SUCCESS
       fi
     else
@@ -1237,7 +1263,7 @@ cp_n_upd_conf() {
     wlog "$ cp $confn $tgt"
     touch $tgt
     local ODOO_LOGFILE=$(get_cfg_value "" "ODOO_LOGFILE")
-    while IFS=\| read -r line; do
+    while IFS=\| read -r line || [ -n "$line" ]; do
       if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
         line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
       elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.* ]]; then
@@ -1316,12 +1342,10 @@ clone_oca_dependencies() {
     local oetpath=$(readlink -e $PRJPATH/..)
     sts=0
     if [ -f "$f1" ]; then
-      # while IFS=\~ read -r line; do
-      while IFS="#" read -r line r; do
+      while IFS="#" read -r line r || [ -n "$line" ]; do
         if [[ $line =~ ^[[:space:]]*$ ]]; then
           :
         else
-        # if [ -n "$line" -a "${line:0:1}" != "#" ]; then
           d=$(find $oetpath -maxdepth 1 -type d -name "$line")
           if [ -n "$d" ]; then
             if [ -n "$REPOSNAME" ]; then
@@ -1361,17 +1385,17 @@ clone_dependencies() {
         clone_1_dependence "$p"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
-      p=$(readlink -e $oetpath/$REPOSNAME/)
-      if [ -n "$p" ]; then
-         clone_oca_dependencies "$p/oca_dependencies.txt"
-         s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
+      # p=$(readlink -e $oetpath/$REPOSNAME/)
+      # if [ -n "$p" ]; then
+      #    clone_oca_dependencies "$p/oca_dependencies.txt"
+      #    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      # fi
       clone_core_dependencies
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     else
       run_traced "export INCLUDE="
-      clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      # clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
+      # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
     return $sts
 }
