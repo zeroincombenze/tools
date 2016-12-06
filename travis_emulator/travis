@@ -38,9 +38,21 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.70.1
+__version__=0.1.71
 
 
+store_cfg_param_value() {
+#store_cfg_param_value(tid key value [opt] [section])
+    local p
+    if [[ $2 =~ ^pip_pkgver__ ]]; then
+      if [ -z "$PIPPKGVER" ]; then
+        declare -gA PIPPKGVER
+      fi
+      p=${2:12}
+      PIPPKGVER[$p]=$3
+    fi
+    a_add "$1" "$2" "$3" "$4"
+}
 
 process_local() {
     wlog "=== Simulate YAML test ==="
@@ -105,11 +117,11 @@ process_yaml_quote() {
 
 process_yaml_quote_xtl() {
   lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
-  if [ ${opt_virt:-0} -eq 0 ]; then
-    if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
-      lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
-    fi
-  fi
+  # if [ ${opt_virt:-0} -eq 0 ]; then
+  #   if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
+  #     lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
+  #   fi
+  # fi
   lne=$(expand_path "$lne")
   echo $lne
 }
@@ -126,11 +138,11 @@ process_yaml_xtl_pre() {
       line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
       line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
     fi
-    if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
-      line="# $line"
-    elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
-      line="# $line"
-    fi
+    # if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
+    #   line="# $line"
+    # elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
+    #   line="# $line"
+    # fi
     echo "$line"
 }
 
@@ -387,7 +399,7 @@ process_yaml_after_success() {
 process_yaml_run_cmd() {
 #process_yaml_run_cmd (cmd)
     local xcmd=$(process_yaml_quote_xtl "$1")
-    local c i x s p sts
+    local c i x s p sts xtlcmd
     c=$xcmd
     read -r -a x<<<"$xcmd"
     if [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sudo" ]; then
@@ -475,57 +487,59 @@ process_yaml_run_cmd() {
           xcmd="false; # Warning! TODO> $xcmd"
         fi
       fi
-    elif [ "${x[0]}" == "travis_install_nightly" ]; then
-      if [ ${opt_virt:-0} -eq 0 ]; then
-        if [ -n "$REPOSNAME" ]; then
-          local p=$(readlink -e $PRJPATH/../$REPOSNAME/)
-          if [ -n "$p" ]; then
-            xcmd="clone_oca_dependencies \"$p/oca_dependencies.txt\" # $xcmd"
-          else
-            xcmd="# $xcmd"
-          fi
-        else
-          xcmd="clone_oca_dependencies \"$PKGPATH/oca_dependencies.txt\" # $xcmd"
-        fi
-      else
-        local xtlcmd=$(get_cfg_value "" "RUN_travis_install_nightly")
-        if [ -n "$xtlcmd" ]; then
-          xcmd="$xtlcmd"
-        fi
-      fi
-    elif [ "${x[0]}" == "travis_after_tests_success" ]; then
-      if [ ${opt_virt:-0} -eq 0 ]; then
-        local xtlcmd=$(get_cfg_value "" "EM_travis_after_tests_success")
-      else
-        local xtlcmd=$(get_cfg_value "" "RUN_travis_after_tests_success")
-      fi
-      if [ -n "$xtlcmd" ]; then
-        xcmd="$(echo $xcmd|sed -e 's/travis_after_tests_success/'$xtlcmd'/g')"
-        x[$i]="$xtlcmd"
-      fi
     else
-      local xlint xtest
+      local xlint xtest xtfex xpkg
+      if [ -z "$REPOSNAME" ]; then
+        local p=$PKGPATH
+      else
+        local p=$(readlink -e $PRJPATH/../$REPOSNAME/)
+      fi
       for i in 0 1 2 3 4 5; do
         if [[ "${x[$i]}" =~ LINT_CHECK=.1. ]]; then
           xlint=1
         elif [[ "${x[$i]}" =~ LINT_CHECK=.0. ]]; then
           xlint=0
-        elif [[ "${x[$i]}" =~ TESTS=.1. ]]; then
-          xtest=1
-        elif [[ "${x[$i]}" =~ TESTS=.0. ]]; then
-          xtest=0
-        elif [ "${x[$i]}" == "travis_run_tests" ]; then
-          if [ "$xlint" != "1" ]; then
-            if [ ${opt_virt:-0} -eq 0 ]; then
-              local xtlcmd=$(get_cfg_value "" "EM_travis_run_tests")
-            else
-              local xtlcmd=$(get_cfg_value "" "RUN_travis_run_tests")
-            fi
-            if [ -n "$xtlcmd" ]; then
-              xcmd="$(echo $xcmd|sed -e 's/travis_run_tests/'$xtlcmd'/g')"
-              x[$i]="$xtlcmd"
-            fi
+        # elif [[ "${x[$i]}" =~ TESTS=.1. ]]; then
+        #   xtest=1
+        # elif [[ "${x[$i]}" =~ TESTS=.0. ]]; then
+        #   xtest=0
+        elif [[ "${x[$i]}" =~ TRANSIFEX=.1. ]]; then
+          # xtfex=1
+          xcmd="# $xcmd"
+        # elif [[ "${x[$i]}" =~ TRANSIFEX=.0. ]]; then
+        #   xtfex=0
+        elif [[ "${x[$i]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
+          xcmd="# $xcmd"
+        elif [[ "${x[$i]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
+          if [ ${opt_virt:-0} -eq 0 ]; then
+            xcmd="$(echo $xcmd|sed -e 's|OCA/OCB|local/odoo|g')"
+            x[$i]=local/odoo
           fi
+        elif [[ "${x[$i]}" =~ ^INCLUDE= ]]; then
+          if [ ${opt_virt:-0} -eq 0 ]; then
+            xcmd="# $xcmd"
+          fi
+        else
+          for xpkg in travis_install_nightly travis_run_tests travis_after_tests_success; do
+            if [ "${x[$i]}" == "$xpkg" ]; then
+              if [ "$xlint" != "1" ]; then
+                if [ ${opt_virt:-0} -eq 0 ]; then
+                  xtlcmd=$(get_cfg_value "" "EM_$xpkg")
+                else
+                  xtlcmd=$(get_cfg_value "" "RUN_$xpkg")
+                fi
+                xtlcmd=$(process_yaml_unquote "$xtlcmd")
+                if [ -n "$xtlcmd" ]; then
+                  xcmd="$(echo $xcmd|sed -e 's|'$xpkg'|'$xtlcmd'|g')"
+                  xcmd=$(process_yaml_quote "$xcmd")
+                elif [ -z "$p" ] && [[ "$xtlcmd" =~ \$\{ ]]; then
+                  xcmd=$(process_yaml_quote "$xcmd")
+                  xcmd="# $xcmd"
+                fi
+                xcmd="$(echo $xcmd|sed -e 's|\${1}|'$p'|g')"
+              fi
+            fi
+          done
         fi
       done
     fi
@@ -539,7 +553,7 @@ process_yaml_run_cmd() {
 process_yaml() {
 # process_yaml ()
     local sts=$STS_SUCCESS
-    local i s
+    local i s p
     local line lne line1 lne1
     if [ "$action" == "chkconfig" ]; then
       YML_FILE=$TOOLS_PATH/chkconfig.yml
@@ -558,19 +572,32 @@ process_yaml() {
       process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
       wlog "===== [System informations] ====="
-      for lne in HOSTENV YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
+      if [ -n "${PIPPKGVER[*]}" ]; then
+        wlog "\$ PIPPKGVER=\"${!PIPPKGVER[*]}\""
+      fi
+      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
          fi
       done
       wlog "===== [Initialize] ====="
-      run_traced "alias pip=\"pip --user $USER\""
-      if [ ${opt_virt:-0} -gt 0 ]; then
-        create_virtual_env
+      for p in ${!PIPPKGVER[*]}; do
+        lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
+        if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
+          wlog "## pip install $p==${PIPPKGVER[$p]}:$lne1"
+          sts=1
+        fi
+      done
+      run_traced "# pip install --upgrade --pre --no-deps https://github.com/OCA/pylint-odoo.git"
+      if [ $sts -eq $STS_SUCCESS ]; then
+        run_traced "alias pip=\"pip --user $USER\""
+        if [ ${opt_virt:-0} -gt 0 ]; then
+          create_virtual_env
+        fi
+        run_svr_test_init
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
-      run_svr_test_init
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_before_install
         s=$?; [ ${s-0} -ne 0 ] && sts=$s

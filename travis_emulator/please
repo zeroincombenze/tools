@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.30.3
+__version__=0.1.31
 
 
 do_annotate() {
@@ -261,6 +261,7 @@ do_synchro() {
     wlog "do_synchro $1 $2"
     if [ "$2" == "oca" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
+        clean_dirs "$PKGPATH"
         git checkout $BRANCH
         do_distribution "$PKGNAME" "$2"
         git status
@@ -269,13 +270,16 @@ do_synchro() {
       fi
     elif [ "$2" == "zeroincombenze" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
+        clean_dirs "$PKGPATH"
         git checkout $BRANCH
         do_distribution "$PKGNAME" "$2"
         local x=($git status -s)
         if [ -n "$x" ]; then
           git commit -am "[SYNCHRO] Synchronizing against OCA repository"
         fi
+        git remote -v
         git push
+        git status
       fi
     else
       echo "Missed parameter! use:"

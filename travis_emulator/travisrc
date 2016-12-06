@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.70.1
+#__version__=0.1.71
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -498,7 +498,7 @@ conf_default() {
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
-    # set_cfg_def "EM_travis_install_nightly" "travis_install_nightly"
+    set_cfg_def "EM_travis_install_nightly" "clone_oca_dependencies \${1}/oca_dependencies.txt"
     # set_cfg_def "EM_travis_run_tests" "true"
     set_cfg_def "EM_travis_after_tests_success" "run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
