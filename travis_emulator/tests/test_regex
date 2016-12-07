@@ -18,7 +18,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.29
+__version__=0.1.30
 
 
 Z0BUG_init
@@ -54,6 +54,10 @@ test_result_cp () {
 }
 
 test_01() {
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      CFG_init
+      conf_default
+    fi
     robocopy_init
     a_append "--new"
     a_append "KEY_A" "aaa"

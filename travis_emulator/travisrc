@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.71
+#__version__=0.1.71.1
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
-# XXXX=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ .cover/ .coverage/ .git/ npm-debug.log ~"
-
 
 opts_travis() {
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -521,7 +519,8 @@ conf_default() {
     set_cfg_def "Environment" "bash"
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
-    set_cfg_def "fileignore" ".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
+    set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
+    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/"
     set_cfg_def "filediffignore" ".po .pot"
 }
 
@@ -757,18 +756,24 @@ robocopy_init() {
       fi
       a_append "^.*" ""
     fi
-    if [ "$DIST_CONF" ]; then
-      local xx=$(grep "^ignore *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-      local yy=$(grep "^ignorediff *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    fi
-    if [ -z "$xx" -a "$TCONF" ]; then
-      local xx=$(grep "^ignore *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-      local yy=$(grep "^ignorediff *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    fi
+    # if [ "$DIST_CONF" ]; then
+    #   local xx=$(grep "^ignore *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    #   local yy=$(grep "^ignorediff *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    # fi
+    # if [ -z "$xx" -a "$TCONF" ]; then
+    #   local xx=$(grep "^ignore *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    #   local yy=$(grep "^ignorediff *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
+    # fi
+    local xx="$(get_cfg_value 0 ignore)"
+    local yy="$(get_cfg_value 0 ignorediff)"
     if [ -z "$xx" ]; then
       # TODO: addons
-      local xx=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
-      local yy=".po .pot"
+      # local xx=".pyc .log .bak .out .tmp .conf .tracehis .tracehistory ,cover .coverage build/ dist/ conf/ filestore/ .cover/ .coverage/ .git/ ~"
+      # local yy=".po .pot"
+      local xx="$(get_cfg_value 0 filedel)"
+      local yy="$(get_cfg_value 0 fileignore)"
+      local xx="$xx $yy"
+      local yy="$(get_cfg_value 0 filediffignore)"
     fi
     XRGX=
     XLFS=
@@ -873,7 +878,7 @@ clean_dirs() {
     else
       local o=
     fi
-    XXXX=$(get_cfg_value "" "fileignore")
+    XXXX=$(get_cfg_value "" "filedel")
     for x in $XXXX;do
       if [ "$x" != ".conf" ]; then
         if [ ${opt_dry_run:-0} -gt 0 ]; then

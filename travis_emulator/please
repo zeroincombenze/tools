@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.31
+__version__=0.1.31.1
 
 
 do_annotate() {
@@ -167,20 +167,20 @@ do_distribution() {
     if [ -n "$f1" ]; then
       if [ "$2" == "oca" ]; then
         if [ -f $f1_oca ]; then
-          mv $f1 $f1_z0i
-          mv $f1_oca $f1
+          run_traced "mv $f1 $f1_z0i"
+          run_traced "mv $f1_oca $f1"
         fi
         run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"1\":' $f1"
-      elif [ "$2" == "zeroincombenze" ]; then
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
         if [ -f $f1_z0i ]; then
-          mv $f1 $f1_oca
-          mv $f1_z0i $f1
+          run_traced "mv $f1 $f1_oca"
+          run_traced "mv $f1_z0i $f1"
         fi
         run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"1\":' $f1"
       else
         local f1=
         echo "Missed parameter! use:"
-        echo "\$ please distribution PKGNAME|. oca|zeroincombenze"
+        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero"
         sts=$STS_FAILED
       fi
     fi
@@ -201,16 +201,20 @@ do_distribution() {
       if [ -n "$f1" ]; then
         if [ "$2" == "oca" ]; then
           if [ -f $f1_oca ]; then
-            mv $f1 $f1_z0i
-            mv $f1_oca $f1
+            run_traced "mv $f1 $f1_z0i"
+            run_traced "mv $f1_oca $f1"
           fi
           run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
-        elif [ "$2" == "zeroincombenze" ]; then
+          run_traced "sed -i -e s://coveralls.io/github/://coveralls.io/r/:g $1"
+          run_traced "sed -i -e s://repos/github/://repos/OCA/:g $1"
+        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
           if [ -f $f1_z0i ]; then
-            mv $f1 $f1_oca
-            mv $f1_z0i $f1
+            run_traced "mv $f1 $f1_oca"
+            run_traced "mv $f1_z0i $f1"
           fi
           run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
+          run_traced "sed -i -e s://coveralls.io/r/://coveralls.io/github/:g $1"
+          run_traced "sed -i -e s://repos/OCA/://repos/github/:g $1"
         fi
       fi
     fi
@@ -262,28 +266,28 @@ do_synchro() {
     if [ "$2" == "oca" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
-        git checkout $BRANCH
+        run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
         git status
         git remote -v
-        git pull --no-edit upstream $BRANCH
+        run_traced "git pull --no-edit upstream $BRANCH"
       fi
-    elif [ "$2" == "zeroincombenze" ]; then
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
-        git checkout $BRANCH
+        run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
         local x=($git status -s)
         if [ -n "$x" ]; then
-          git commit -am "[SYNCHRO] Synchronizing against OCA repository"
+          run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
         fi
         git remote -v
-        git push
+        run_traced "git push"
         git status
       fi
     else
       echo "Missed parameter! use:"
-      echo "\$ please synchro PKGNAME|. oca|zeroincombenze"
+      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero"
       sts=$STS_FAILED
     fi
 }

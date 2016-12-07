@@ -22,7 +22,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.10
+__version__=0.1.11
 
 
 test_copy() {
@@ -65,7 +65,8 @@ test_01() {
     export opt_conf=$TESTDIR/test_travis.conf
     if [ -f $opt_conf ]; then rm -f $opt_conf; fi
     touch $opt_conf
-    echo "fileignore=.pyc .log .bak  ~">>$opt_conf
+    echo "filedel=.pyc .log .bak  ~">>$opt_conf
+    echo "fileignore=.conf">>$opt_conf
     echo "filediffignore=.po .pot">>$opt_conf
     for s in v7 8.0 10.0; do
       for t in v7 7.0 9.0; do
