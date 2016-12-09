@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.24
+__version__=0.1.25.1
 
 rmdir_if_exists() {
 #rmdir_if_exists (MODNAME new_odoo_ver rq_oev)
@@ -67,7 +67,11 @@ set_remote_info() {
     local pkg_URL=$3
     local DSTPATH=$HOME/$new_odoo_ver/$MODNAME
     run_traced "cd $DSTPATH"
-    run_traced "git remote add upstream $pkg_URL"
+    if [ "$MODNAME" != "l10n-italy-supplemental" ]; then
+      run_traced "git remote add upstream $pkg_URL"
+    else
+      run_traced "git remote remove upstream"
+    fi
     pkg_URL="git@github.com:zeroincombenze/$MODNAME.git"
     run_traced "git remote remove origin"
     run_traced "git remote add origin $pkg_URL"
@@ -207,7 +211,7 @@ else
     run_traced "git format-patch --stdout origin/$odoo_ver -- $DSTPATH | git am -3"
     run_traced "git branch $odoo_ver -D"
   fi
-  pkg_URL=$(git remote -v|grep origin|head -n1|awk '{ print $odoo_ver}')
+  pkg_URL=$(git remote -v|grep origin|head -n1|awk '{ print $2}')
   if [ "$rq_oev" == "$new_odoo_ver" ]; then
     run_traced "git push origin $new_odoo_ver"
     run_traced "git push origin --delete 5.0"

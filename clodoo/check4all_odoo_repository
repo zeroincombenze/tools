@@ -28,12 +28,12 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.25
+__version__=0.1.26
 
 
 explore() {
 # explore dir
-    local res=
+    local res=OCB
     for fn in $1/*; do
       if [ -d $fn ]; then
         nm=$(basename $fn)
@@ -52,6 +52,11 @@ do_action() {
     local act=$1
     local oem=$2
     local oev=$3
+    if [ "$oem" == "OCB" ]; then
+      local pdir=~/$oev
+    else
+      local pdir=~/$oev/$oem
+    fi
     local rq_oev=$(echo $oev|grep -Eo [0-9.]+)
     if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
     if [ $opt_dry_run -eq 0 ]; then
@@ -74,45 +79,47 @@ do_action() {
         return $sts
       fi
     done
-    if [ ! -d ~/$oev/$oem ]; then
+    if [ ! -d $pdir ]; then
       echo "BRANCH $oev OF $oem NOT FOUND!"
       sts=1
     else
-      cd ~/$oev/$oem
+      cd $pdir
       if [ "$act" == "check" ]; then
-        if [ -L ~/$oev/$oem ]; then
+        if [ ! -L $pdir ]; then
           travis . check $opts
           sts=$?
         fi
       elif [ "$act" == "clean" ]; then
-        if [ -L ~/$oev/$oem ]; then
+        if [ -L $pdir ]; then
           :
         else
-          if [ $opt_dry_run -eq 0 ]; then
-            git push origin --delete 5.0
-            git push origin --delete 6.0
-            git push origin --delete 6.1
-          fi
+          # if [ $opt_dry_run -eq 0 ]; then
+          #   git push origin --delete 5.0
+          #   git push origin --delete 6.0
+          #   git push origin --delete 6.1
+          # fi
+          please wep $opts
         fi
-        please wep $opts
       elif [ "$act" == "oca" ]; then
-        if [ -L ~/$oev/$oem ]; then
+        if [ ! -L $pdir ]; then
           please synchro . oca $opts
         fi
       elif [ "$act" == "remote" ]; then
         git remote -v
       elif [ "$act" == "status" ]; then
-        git status
-        sts=$?
-        if [ $sts -eq 0 ]; then
-          local v=$(git branch|grep -Eo [0-9.]+)
-          if [ "$v" != "$rq_oev" ]; then
-            echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
-            sts=1
+        if [ ! -L $pdir ]; then
+          git status
+          sts=$?
+          if [ $sts -eq 0 ]; then
+            local v=$(git branch|grep -Eo [0-9.]+)
+            if [ "$v" != "$rq_oev" ]; then
+              echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
+              sts=1
+            fi
           fi
         fi
       elif [ "$act" == "zeroincombenze" ]; then
-        if [ -L ~/$oev/$oem ]; then
+        if [ ! -L $pdir ]; then
           please synchro . zeroincombenze $opts
         fi
       fi
@@ -157,7 +164,7 @@ fi
 sub_list=
 excl_list="addons cover debian doc history odoo openerp scripts server setup __to_remove"
 if [ -z $opt_excl ]; then
-  opt_excl="cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0"
+  opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0"
 fi
 opt_excl="${opt_excl//,/ }"
 if [[ " $opt_excl " =~ [[:space:]]themes[[:space:]] ]]; then

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.71
+__version__=0.1.71.1
 
 
 store_cfg_param_value() {
@@ -589,7 +589,7 @@ process_yaml() {
           sts=1
         fi
       done
-      run_traced "# pip install --upgrade --pre --no-deps https://github.com/OCA/pylint-odoo.git"
+      run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
       if [ $sts -eq $STS_SUCCESS ]; then
         run_traced "alias pip=\"pip --user $USER\""
         if [ ${opt_virt:-0} -gt 0 ]; then
