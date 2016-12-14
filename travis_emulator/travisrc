@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.72
+#__version__=0.1.72.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -36,7 +36,8 @@ opts_travis() {
       repository="local/"
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
-    PKGNAME=$(basename $PKGPATH)
+    # PKGNAME=$(basename $PKGPATH)
+    set_pkgname $PKGPATH
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
     fi
@@ -214,16 +215,25 @@ init_travis() {
         else
           REPOSNAME=$r
         fi
+        PRJNAME="Odoo"
         SETUP="$ODOO_SETUP";
         break
       fi
     done
     if [ -z "$SETUP" ]; then
-      if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
+      if [ -f ./odoo -a -f ./odoo_bin ]; then
+        REPOSNAME=
+        PRJNAME="Odoo"
+      elif [ -d ./openerp -a -f ./openerp-server ]; then
+        REPOSNAME=
+        PRJNAME="Odoo"
+      elif [ "$r" == "odoo" -o "$r" == "openerp" ]; then
         REPOSNAME=$(basename $(readlink -e ../..))
       fi
-      ODOO_SETUP="__openerp__.py"
-      if [ -f $PKGPATH/setup.py ]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        ODOO_SETUP="__openerp__.py"
+        SETUP=$ODOO_SETUP
+      elif [ -f $PKGPATH/setup.py ]; then
         SETUP="$PKGPATH/setup.py";
         REPOSNAME=$(basename $PKGPATH)
       else
@@ -267,9 +277,7 @@ init_travis() {
         mkdir -p $NPM_CONFIG_PREFIX
         npm config set prefix $NPM_CONFIG_PREFIX
       fi
-      if [[ $PKGNAME =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
-        PKGNAME=OCB
-      fi
+      set_pkgname $PKGNAME
       BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
       if [[ $BRANCH =~ ^(7.0|8.0|9.0|10.0)$ ]] ; then
         :
@@ -572,10 +580,20 @@ set_dstpath() {
 #set_dstpath(PKGNAME)
     if [ "$1" == "OCB" ]; then
       local DSTPATH=$PKGPATH
+    elif [[ $1 =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
+      local DSTPATH=$PKGPATH
     else
       local DSTPATH=$PKGPATH/$1
     fi
     echo "$DSTPATH"
+}
+
+set_pkgname() {
+#set_pkgname(PKGPATH)
+    PKGNAME=$(basename $1)
+    if [[ $PKGNAME =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
+      PKGNAME=OCB
+    fi
 }
 
 install_dev() {

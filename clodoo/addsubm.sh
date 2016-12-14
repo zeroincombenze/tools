@@ -31,7 +31,17 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.25.1
+__version__=0.1.25.2
+
+set_dstpath() {
+#set_dstpath(modname ver)
+    if [ "$1" == "OCB" ]; then
+      local DSTPATH=$HOME/$2
+    else
+      local DSTPATH=$HOME/$2/$1
+    fi
+    echo "$DSTPATH"
+}
 
 rmdir_if_exists() {
 #rmdir_if_exists (MODNAME new_odoo_ver rq_oev)
@@ -39,7 +49,7 @@ rmdir_if_exists() {
       local MODNAME=$1
       local new_odoo_ver=$2
       local rq_oev=$3
-      DSTPATH=$HOME/$new_odoo_ver/$MODNAME
+      DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
       if [ -d $DSTPATH ]; then
         echo "Version $new_odoo_ver already exists"
         if [ $opt_yes -gt 0 -o $opt_dry_run -gt 0 ]; then
@@ -65,7 +75,7 @@ set_remote_info() {
     local MODNAME=$1
     local new_odoo_ver=$2
     local pkg_URL=$3
-    local DSTPATH=$HOME/$new_odoo_ver/$MODNAME
+    local DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
     run_traced "cd $DSTPATH"
     if [ "$MODNAME" != "l10n-italy-supplemental" ]; then
       run_traced "git remote add upstream $pkg_URL"
@@ -137,13 +147,13 @@ if [ -z "$new_odoo_ver" ]; then
       git_opts="-b $odoo_ver"
       run_traced "git clone $pkg_URL $MODNAME/ $git_opts"
     else
-      DSTPATH=$HOME/$odoo_ver/$MODNAME
+      DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
     fi
     set_remote_info $MODNAME $odoo_ver $pkg_URL
   else
     if [ $opt_updrmt -ne 0 ]; then
       pkg_URL="https://github.com/OCA/$MODNAME.git"
-      DSTPATH=$HOME/$odoo_ver/$MODNAME
+      DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
       set_remote_info $MODNAME $odoo_ver $pkg_URL
       exit 0
     else
