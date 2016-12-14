@@ -1,0 +1,3 @@
+pip (install by pip)
+ command=pip
+ get ver=pip --version

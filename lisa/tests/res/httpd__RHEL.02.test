@@ -1,0 +1,4 @@
+httpd (install by yum)
+ service=httpd
+ command=apachectl
+ get ver=apachectl -v

@@ -1,0 +1,14 @@
+pip (by pip)(pip --version)
+libffi-dev (by apt-get)
+libssl-dev (by apt-get)
+python-openssl (by apt-get)
+build-essential (by apt-get)
+openssh-server (by apt-get)
+- TCP port 22
+apache2 (by apt-get)(apachectl -v)
+- TCP port 80
+- TCP port 443
+mysql-server (by apt-get)(mysql --version)
+postgresql (by apt-get)(psql --version)
+php5 (by apt-get)(php5 -v)
+python (by apt-get)(python --version)

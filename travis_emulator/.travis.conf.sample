@@ -1,0 +1,5 @@
+pip_pkgver__pylint=1.6.4
+pip_pkgver__pylint-plugin-utils=0.2.4
+pip_pkgver__astroid=1.4.8
+pip_pkgver__pygments=2.0.2
+pip_pkgver__restructuredtext_lint=0.12.2

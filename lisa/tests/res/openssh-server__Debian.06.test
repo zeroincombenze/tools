@@ -1,0 +1,6 @@
+> apt-get -y update openssh-server
+> apt-get -y upgrade openssh-server
+> apt-get -y update openssh-client
+> apt-get -y upgrade openssh-client
+> service ssh restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT

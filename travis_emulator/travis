@@ -5,11 +5,11 @@
 # Emulate travis-ci on local machine, to test before upgrade git project
 # Deploy:
 # ~/dev                          -> this script
-# ~/dev/_travis                  -> default script (travis_install_pkgs, travis_runs_tests, travis_after_tests_success)
+# ~/dev/_travis                  -> default script (travis_runs_tests, travis_after_tests_success)
 # ~/maintainer-quality-tools -> actual scripts, mainly for Odoo environment by OCA; thery replaces default scripts
 # When developping travis emulator itself, deployment is:
 # ~/dev/pypi/travis_em/travis_em -> this script
-# ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_install_pkgs, travis_runs_tests, travis_after_tests_success)
+# ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_runs_tests, travis_after_tests_success)
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.71.1
+__version__=0.1.72
 
 
 store_cfg_param_value() {
@@ -712,7 +712,8 @@ if [ "$action" == "setup" ]; then
   fi
   if [ "$TDIR" != "$DEF_DEVPATH" ]; then
     run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
-    for f in travis_install_pkgs travis_run_tests travis_after_tests_success; do
+    # for f in travis_install_pkgs travis_run_tests travis_after_tests_success; do
+    for f in travis_run_tests travis_after_tests_success; do
       run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
     done
   fi

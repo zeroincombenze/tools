@@ -1,0 +1,17 @@
+> apt-get -y install python-psycopg2
+# apt-get -y install python
+# pip install setuptools
+> apt-get -y install python-virtualenv
+> pip install virtualenv
+> apt-get -y install libreadline6
+> apt-get -y install python-libxslt1
+> apt-get -y install libxml2
+> apt-get -y install python-libxml2
+> pip install lxml
+> pip install psycopg2
+> pip install simplejson
+> pip install xlwt
+> pip install PyYAML
+> pip install gdata
+> pip install python-ldap
+> pip install pytz

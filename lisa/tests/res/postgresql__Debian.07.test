@@ -1,0 +1,5 @@
+> service postgresql stop
+> apt-get -y remove postgresql
+# apt-get -y remove postgresql-client-common
+# apt-get -y remove postgresql-contrib
+> apt-get autoremove

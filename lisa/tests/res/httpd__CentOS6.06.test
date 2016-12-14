@@ -1,0 +1,4 @@
+> yum -y update httpd
+> service httpd restart
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT

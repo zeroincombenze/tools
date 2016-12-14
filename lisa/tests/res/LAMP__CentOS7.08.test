@@ -1,0 +1,32 @@
+> yum install gcc
+> yum install python-pip
+#
+> yum install iptables
+> systemctl start iptables
+> chkconfig iptables on
+> yum -y install epel-release
+> yum -y install python-pip
+#
+> yum -y install python-wheel
+> pip install wheel
+> yum -y install yum-utils
+> yum -y install libffi-devel
+> yum -y install pyOpenSSL
+> pip install pyasn1
+> pip install ndg-httpsclient
+# yum -y install openssh-server
+# systemctl start sshd
+> chkconfig sshd on
+> yum -y install httpd
+> systemctl start httpd
+> chkconfig httpd on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
+> yum -y install mariadb
+> systemctl start mariadb
+> chkconfig mariadb on
+> yum -y install postgresql-server
+> systemctl start postgresql
+> chkconfig postgresql on
+# yum -y install php
+# yum -y install python

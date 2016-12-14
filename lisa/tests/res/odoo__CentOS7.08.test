@@ -1,0 +1,71 @@
+> cd /opt/odoo
+> sudo -uodoo:odoo git clone https://github.com/zeroincombenze/OCB.git odoo -b 7.0 --single-branch --depth=1
+> chown -R odoo:odoo odoo/
+> mkdir -p /etc/odoo
+> chown odoo:odoo /etc/odoo/
+> chmod u+rwx,g=rx,o=rx /etc/odoo/
+> mkdir -p /var/log/odoo
+> chown odoo:odoo /var/log/odoo/
+> chmod u+rwx,g=rx,o=rx /var/log/odoo/
+> mkdir -p /var/run/odoo
+> chown odoo:odoo /var/run/odoo/
+> chmod u+rwx,g=rx,o=rx /var/run/odoo/
+> git checkout 7.0
+> cd /tmp
+> echo "l10n-italy-supplemental/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-closing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-financial-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-financial-reporting/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-invoicing/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
+> cd /opt/odoo
+> cd /tmp
+> echo "bank-payment/">>.gitignore
+> git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
+> cd /opt/odoo
+> cd /tmp
+> echo "knowledge/">>.gitignore
+> git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
+> cd /opt/odoo
+> cd /tmp
+> echo "partner-contact/">>.gitignore
+> git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-workflow/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
+> cd /opt/odoo
+> cd /tmp
+> echo "webkit-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> cd /opt/odoo
+> systemctl start odoo-server
+> chkconfig odoo-server on
+> iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT

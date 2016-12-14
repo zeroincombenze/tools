@@ -1,0 +1,5 @@
+apache2 (by apt-get)(apachectl -v)
+- TCP port 80
+- TCP port 443
+--vsftpd (by apt-get)
+--- TCP port 21

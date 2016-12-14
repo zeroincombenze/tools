@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.71.1
+#__version__=0.1.72
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -206,8 +206,8 @@ init_travis() {
     local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     SETUP=
+    local r=$(basename $(readlink -e ..))
     for ODOO_SETUP in $ODOO_SETUPS; do
-      local r=$(basename $(readlink -e ..))
       if [ -f $ODOO_SETUP ]; then
         if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
           REPOSNAME=
@@ -216,27 +216,12 @@ init_travis() {
         fi
         SETUP="$ODOO_SETUP";
         break
-      else
-        if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
-          REPOSNAME=$(basename $(readlink -e ../..))
-          SETUP="$ODOO_SETUP";
-          break
-        fi
       fi
-      # if [ -f $ODOO_SETUP ]; then
-      #  SETUP="$ODOO_SETUP";
-      #  REPOSNAME=$(basename $(readlink -e ..))
-      #  if [ "$REPOSNAME" == "odoo" -o "$REPOSNAME" == "openerp" ]; then
-      #    REPOSNAME=
-      #  fi
-      #  break
-      # elif [ "$(basename $(readlink -e ../))" == "openerp" ]; then
-      #   SETUP="$ODOO_SETUP";
-      #   REPOSNAME=$(basename $(readlink -e ../..))
-      #   break
-      # fi
     done
     if [ -z "$SETUP" ]; then
+      if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
+        REPOSNAME=$(basename $(readlink -e ../..))
+      fi
       ODOO_SETUP="__openerp__.py"
       if [ -f $PKGPATH/setup.py ]; then
         SETUP="$PKGPATH/setup.py";
@@ -282,7 +267,18 @@ init_travis() {
         mkdir -p $NPM_CONFIG_PREFIX
         npm config set prefix $NPM_CONFIG_PREFIX
       fi
-      BRANCH=$(if $(echo "$PWD/"|grep "/v10/\|10.0/">/dev/null); then echo "10.0"; elif $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
+      if [[ $PKGNAME =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
+        PKGNAME=OCB
+      fi
+      BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
+      if [[ $BRANCH =~ ^(7.0|8.0|9.0|10.0)$ ]] ; then
+        :
+      elif [[ $BRANCH =~ ^(v7|v8|v9|v10)$ ]] ; then
+        BRANCH=${BRANCH:1}.0
+      else
+        BRANCH=7.0
+      fi
+      # BRANCH=$(if $(echo "$PWD/"|grep "/v10/\|10.0/">/dev/null); then echo "10.0"; elif $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
       else
@@ -459,14 +455,17 @@ prepare_env_travis() {
 }
 
 check_4_travis() {
+    local DSTPATH=$(set_dstpath $PKGNAME)
     if [ ! -d $PKGPATH ]; then
       echo "Invalid package path $PKGPATH"
       exit $STS_FAILED
-    elif [ "$PRJNAME" != "Odoo" ]; then
-      if [ ! -d $PKGPATH/$PKGNAME ]; then
-        echo "Invalid package path $PKGPATH/$PKGNAME"
-        exit $STS_FAILED
-      fi
+    # elif [ "$PRJNAME" != "Odoo" ]; then
+    #   if [ ! -d $PKGPATH/$PKGNAME ]; then
+    #     echo "Invalid package path $PKGPATH/$PKGNAME"
+    #     exit $STS_FAILED
+    elif [ ! -d $DSTPATH ]; then
+      echo "Invalid package path $DSTPATH"
+      exit $STS_FAILED
     fi
 }
 
@@ -540,7 +539,7 @@ set_pkgpath() {
     if [ -z "$PKGPATH" ]; then
       PKGPATH=$PWD
     fi
-    if [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" ]; then
+    if [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" -a "${PKGPATH:0:1}" != "~" ]; then
       local x=$(readlink -e ../$PKGPATH)
       if [ "$x" ]; then
         if [ "$(basename $x)" == "$PKGPATH" ]; then
@@ -567,6 +566,16 @@ set_pkgpath() {
       fi
     fi
     echo "$PKGPATH"
+}
+
+set_dstpath() {
+#set_dstpath(PKGNAME)
+    if [ "$1" == "OCB" ]; then
+      local DSTPATH=$PKGPATH
+    else
+      local DSTPATH=$PKGPATH/$1
+    fi
+    echo "$DSTPATH"
 }
 
 install_dev() {
