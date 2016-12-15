@@ -463,16 +463,11 @@ prepare_env_travis() {
 }
 
 check_4_travis() {
-    local DSTPATH=$(set_dstpath $PKGNAME)
-    if [ ! -d $PKGPATH ]; then
-      echo "Invalid package path $PKGPATH"
+    if [ ! -d $PRJGPATH ]; then
+      echo "Invalid project path $PRJPATH"
       exit $STS_FAILED
-    # elif [ "$PRJNAME" != "Odoo" ]; then
-    #   if [ ! -d $PKGPATH/$PKGNAME ]; then
-    #     echo "Invalid package path $PKGPATH/$PKGNAME"
-    #     exit $STS_FAILED
-    elif [ ! -d $DSTPATH ]; then
-      echo "Invalid package path $DSTPATH"
+    elif [ ! -d $PKGPATH ]; then
+      echo "Invalid package path $PKGPATH"
       exit $STS_FAILED
     fi
 }
@@ -574,18 +569,6 @@ set_pkgpath() {
       fi
     fi
     echo "$PKGPATH"
-}
-
-set_dstpath() {
-#set_dstpath(PKGNAME)
-    if [ "$1" == "OCB" ]; then
-      local DSTPATH=$PKGPATH
-    elif [[ $1 =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
-      local DSTPATH=$PKGPATH
-    else
-      local DSTPATH=$PKGPATH/$1
-    fi
-    echo "$DSTPATH"
 }
 
 set_pkgname() {

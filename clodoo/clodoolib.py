@@ -70,6 +70,7 @@ LX_CFG_S = ('db_name',
             'data_path',
             'date_start',
             'date_stop',
+            'account_code',
             'actions',
             'actions_db',
             'actions_mc',
@@ -116,7 +117,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 
 
 #############################################################################
@@ -266,6 +267,7 @@ def default_conf(ctx):
               'lang': 'en_US',
               'date_start': dts_start,
               'date_stop': dts_stop,
+              'account_code': '000000',
               'adm_uids': '1',
               'set_passepartout': '0',
               'check_balance': '0',

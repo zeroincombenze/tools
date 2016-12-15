@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.19"
+__version__ = "0.2.69.20"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1675,9 +1675,19 @@ def set_account_type(oerp, ctx):
     7. restore reconciliation
     """
     company_id = ctx['company_id']
+    account_id = oerp.search('account.account', [('company_id',
+                                                  '=',
+                                                  company_id),
+                                                 ('code',
+                                                  'like',
+                                                  ctx['account_code'])])
+    if len(account_id):
+        account_id = account_id[0]
+    else:
+        account_id = 0
     move_line_ids = oerp.search('account.move.line',
                                 [('company_id', '=', company_id),
-                                 ('account_id', '=', 850)])
+                                 ('account_id', '=', account_id)])
     if len(move_line_ids) == 0:
         return STS_SUCCESS
     accounts = []

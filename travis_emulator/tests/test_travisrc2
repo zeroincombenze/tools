@@ -153,6 +153,9 @@ test_02() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis.prjpath" "$LCLTEST_PRJPATH" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    check_4_travis
+    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TOOLS_PATH=~/dev/_travis
       opt_verbose=1
@@ -278,6 +281,9 @@ test_05() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    check_4_travis
+    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     LCLTEST_TMPDIR=$SAVED_TMPDIR
     return $sts
@@ -309,6 +315,9 @@ test_06() {
     test_result "travis.prjname (RPS)" "$LCLTEST_REPOSNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.prjpath (RPS)" "$LCLTEST_PRJPATH" "$PRJPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    check_4_travis
+    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     LCLTEST_TMPDIR=$SAVED_TMPDIR
