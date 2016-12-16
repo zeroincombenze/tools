@@ -138,7 +138,6 @@ do_travis() {
     return $sts
 }
 
-
 do_version() {
     cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
     if [ "$PRJNAME" != "Odoo" ]; then
@@ -149,6 +148,66 @@ do_version() {
     fi;
 }
 
+cvt_readme() {
+# cvt_readme(file_readme oca|zero)
+# params: 1=repository, 2=pkgname, 3=odoo_ver, 4=ver(major)
+#         8=(txt1)repos 9=(txt2)repos
+    local fn=$1
+    local fntmp=$fn.tmp
+    local wf=0
+    local line repository txtrepos ver
+    rm -f $fntmp
+    ver=$(echo $BRANCH|grep -Eo '[0-9]+'|head -n1)
+    if [ "$2" == "oca" ]; then
+      repository=OCA
+      txt1repos=repos
+      txt2repos=r
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+      repository=zeroincombenze
+      txt1repos=repos/github
+      txt2repos=github
+    fi
+    # set -x #debug
+    while IFS="#" read -r line r || [ -n "$line" ]; do
+      if [ $wf -eq 0 ]; then
+        if [[ "$line" =~ ".*Build Status.*https://travis-ci.org/.*" ]]; then
+          :
+        else
+          echo $line>>$fn.tmp
+        fi
+        line="[![Build Status](https://travis-ci.org/\${1}/\${2}.svg?branch=\${3})](https://travis-ci.org/\${1}/\${2})"
+        ((wf++))
+      elif [ $wf -eq 1 ]; then
+        if [[ "$line" =~ ".*Coverage Status.*https://coveralls.io/.*" ]]; then
+          :
+        else
+          echo $line>>$fn.tmp
+        fi
+        line="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/${9}/\${1}/\${2}?branch=\${3})"
+        ((wf++))
+      elif [ $wf -eq 2 ]; then
+        if [[ "$line" =~ ".*license agpl.*" ]]; then
+          :
+        else
+          echo $line>>$fn.tmp
+        fi
+        line="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-green.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
+        ((wf++))
+      elif [ $wf -eq 3 ]; then
+        if [[ "$line" =~ ".*try it.*https://www.zeroincombenze.it.*" ]]; then
+          :
+        else
+          echo $line>>$fn.tmp
+        fi
+        line="[![try it](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-7.svg)](http://erp\${4}.zeroincombenze.it)"
+        ((wf++))
+
+      fi
+      line="$(echo $line|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+      echo $line>>$fn.tmp
+    done < "$fn"
+    # set +x #debug
+}
 
 do_distribution() {
     wlog "do_distribution $1 $2"
@@ -199,23 +258,24 @@ do_distribution() {
       f1_oca=$(dirname $f1)/oca__$(basename $f1)
       f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
       if [ -n "$f1" ]; then
-        if [ "$2" == "oca" ]; then
-          if [ -f $f1_oca ]; then
-            run_traced "mv $f1 $f1_z0i"
-            run_traced "mv $f1_oca $f1"
-          fi
-          run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
-          run_traced "sed -i -e s://coveralls.io/github/://coveralls.io/r/:g $1"
-          run_traced "sed -i -e s://repos/github/://repos/OCA/:g $1"
-        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-          if [ -f $f1_z0i ]; then
-            run_traced "mv $f1 $f1_oca"
-            run_traced "mv $f1_z0i $f1"
-          fi
-          run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
-          run_traced "sed -i -e s://coveralls.io/r/://coveralls.io/github/:g $1"
-          run_traced "sed -i -e s://repos/OCA/://repos/github/:g $1"
-        fi
+        cvt_readme $f1 $2
+        # if [ "$2" == "oca" ]; then
+        #   if [ -f $f1_oca ]; then
+        #     run_traced "mv $f1 $f1_z0i"
+        #     run_traced "mv $f1_oca $f1"
+        #   fi
+        #   run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
+        #   run_traced "sed -i -e s://coveralls.io/github/://coveralls.io/r/:g $1"
+        #   run_traced "sed -i -e s://repos/github/://repos/OCA/:g $1"
+        # elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+        #   if [ -f $f1_z0i ]; then
+        #     run_traced "mv $f1 $f1_oca"
+        #     run_traced "mv $f1_z0i $f1"
+        #   fi
+        #   run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
+        #   run_traced "sed -i -e s://coveralls.io/r/://coveralls.io/github/:g $1"
+        #   run_traced "sed -i -e s://repos/OCA/://repos/github/:g $1"
+        # fi
       fi
     fi
     return $sts

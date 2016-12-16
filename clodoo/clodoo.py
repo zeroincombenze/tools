@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.20"
+__version__ = "0.2.69.21"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1675,21 +1675,21 @@ def set_account_type(oerp, ctx):
     7. restore reconciliation
     """
     company_id = ctx['company_id']
-    account_id = oerp.search('account.account', [('company_id',
-                                                  '=',
-                                                  company_id),
-                                                 ('code',
-                                                  'like',
-                                                  ctx['account_code'])])
-    if len(account_id):
-        account_id = account_id[0]
-    else:
-        account_id = 0
+    account_ids = oerp.search('account.account', [('company_id',
+                                                   '=',
+                                                   company_id),
+                                                  ('code',
+                                                   'like',
+                                                   ctx['account_code'])])
+    if len(account_ids) == 0:
+        return STS_FAILED
+    for account_id in account_ids:
+        account = oerp.browse('account.account', account_id)
+        msg = u"Account %s %s" % (account.code, account.name)
+        msg_log(ctx, ctx['level'], msg)
     move_line_ids = oerp.search('account.move.line',
                                 [('company_id', '=', company_id),
-                                 ('account_id', '=', account_id)])
-    if len(move_line_ids) == 0:
-        return STS_SUCCESS
+                                 ('account_id', 'in', account_ids)])
     accounts = []
     # Journals to enable update posted
     journals = []
@@ -1706,8 +1706,8 @@ def set_account_type(oerp, ctx):
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         account_obj = move_line_obj.account_id
-        # valid = True
-        valid = False       # debug
+        valid = True
+        # valid = False       # debug
         if not account_obj.parent_id:
             valid = False
         acctype_id = account_obj.user_type.id
