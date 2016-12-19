@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.32.1
+__version__=0.1.33.2
 
 
 do_annotate() {
@@ -150,22 +150,25 @@ do_version() {
 
 add_copyright() {
 #add_copyright(file)
-    echo "[//]: # (copyright)">>$1
-    echo "">>$1
-    echo "----">>$1
-    echo "">>$1
-    echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/)">>$1
-    echo "">>$1
-    echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
-    echo "mission is to support the collaborative development of Odoo features and">>$1
-    echo "promote its widespread use.">>$1
-    echo "">>$1
-    echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
-    echo "which distributes Odoo on its own cloud infrastructure and promotes the Odoo widespread use.">>$1
-    echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
-    echo "is mainly based on OCA version of Odoo with some supplemental modules, all free license released.">>$1
-    echo "">>$1
-    echo "[//]: # (end copyright)">>$1
+    if [ $opt_dry_run -eq 0 ]; then
+      echo "[//]: # (copyright)">>$1
+      echo "">>$1
+      echo "----">>$1
+      echo "">>$1
+      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/)">>$1
+      echo "">>$1
+      echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
+      echo "mission is to support the collaborative development of Odoo features and">>$1
+      echo "promote its widespread use.">>$1
+      echo "">>$1
+      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
+      echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
+      echo "is mainly designed for Italian law and markeplace.">>$1
+      echo "Everytime, every Odoo DB and customized code can be replicated on local server.">>$1
+      echo "">>$1
+      echo "[//]: # (end copyright)">>$1
+    fi
 }
 
 cvt_readme() {
@@ -313,7 +316,7 @@ cvt_readme() {
       fi
       if [ $Icright -eq 2 ] && [[ "$line" =~ \[//\]:.*#.*end.copyright ]]; then
         Icright=3
-        add_copyright $fn.tmp
+        add_copyright $fntmp
         line="⌂"
       fi
       if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
@@ -322,72 +325,72 @@ cvt_readme() {
           Ibuild=1
           lne1="[![Build Status](https://travis-ci.org/\${1}/\${2}.svg?branch=\${3})](https://travis-ci.org/\${1}/\${2})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Ilicense -eq 0 ]; then
           Ilicense=1
           lne1="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-green.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Icoverage -eq 0 ]; then
           Icoverage=1
           lne1="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/\${2}?branch=\${3})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Icodecov -eq 0 ]; then
           Icodecov=1
           lne1="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Idocs -eq 0 ]; then
           Idocs=1
           lne1="[![Tech Doc](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/dev/${3})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Ihelp -eq 0 ]; then
           Ihelp=1
-          lne1="[![Help](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/\${3}/man/\${5})"
+          lne1="[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/\${3}/man/\${5})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         if [ $Itryit -eq 0 ]; then
           Itryit=1
           lne1="[![try it](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-7.svg)](http://erp\${4}.zeroincombenze.it)"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-          echo "$lne1">>$fn.tmp
+          echo "$lne1">>$fntmp
         fi
         lne1="⌂"
       fi
-      [ "$lne1" != "⌂" ] && echo "$lne1">>$fn.tmp
+      [ "$lne1" != "⌂" ] && echo "$lne1">>$fntmp
       if [ $Icright -ne 2 -a "$line" != "⌂" ]; then
         line="$(echo -n "$line"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
-        echo "$line">>$fn.tmp
+        echo "$line">>$fntmp
         if [ -z "$line" ]; then nleof=1; else nleof=0; fi
       fi
-      [ "$lne2" != "⌂" ] && echo "$lne2">>$fn.tmp; if [ -z "$lne2" ]; then nleof=1; else nleof=0; fi
+      [ "$lne2" != "⌂" ] && echo "$lne2">>$fntmp; if [ -z "$lne2" ]; then nleof=1; else nleof=0; fi
     done < "$fn"
     if [ $Icright -eq 0 ]; then
-      [ $nleof -eq 0 ] && echo "">>$fn.tmp
-      add_copyright $fn.tmp
-      # [ $nleof -eq 0 ] && echo "">>$fn.tmp
+      [ $nleof -eq 0 ] && echo "">>$fntmp
+      add_copyright $fntmp
+      # [ $nleof -eq 0 ] && echo "">>$fntmp
       nleof=1
     fi
     if [ $Icht -eq 0 ]; then
-      [ $nleof -eq 0 ] && echo "">>$fn.tmp
+      [ $nleof -eq 0 ] && echo "">>$fntmp
       line="[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)"
-      echo "$line">>$fn.tmp
+      echo "$line">>$fntmp
       nleof=1
     fi
     # set +x #debug
-    if [ "$(diff -q $fn $fn.tmp)" ]; then
+    if [ "$(diff -q $fn $fntmp)" ]; then
       run_traced "mv $fn $fn.bak"
-      run_traced "mv $fn.tmp $fn"
+      run_traced "mv $fntmp $fn"
     else
-      rm -f $fn.tmp
+      rm -f $fntmp
     fi
 }
 
@@ -403,21 +406,53 @@ do_distribution() {
       echo "File .travis.yml not found!"
       sts=$STS_FAILED
     fi
+    if [ $opt_orig -gt 0 ]; then
+      if [ "$2" == "oca" ]; then
+         local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+        local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
+      else
+        local gitprj=
+      fi
+      if [ -z "$gitprj" ]; then
+        echo "git project not found!"
+        f1=
+        sts=$STS_FAILED
+      else
+        run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
+      fi
+    fi
     f1_oca=$(dirname $f1)/oca__$(basename $f1)
     f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
     if [ -n "$f1" ]; then
       if [ "$2" == "oca" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/.travis.yml $f1_oca"
+        fi
         if [ -f $f1_oca ]; then
           run_traced "mv $f1 $f1_z0i"
           run_traced "mv $f1_oca $f1"
         fi
-        run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"1\":' $f1"
+        local fntmp=$f1.tmp
+        cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
+        if [ "$(diff -q $f1 $fntmp)" ]; then
+          run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
+        fi
+        rm -f $fntmp
       elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/.travis.yml $f1_z0i"
+        fi
         if [ -f $f1_z0i ]; then
           run_traced "mv $f1 $f1_oca"
           run_traced "mv $f1_z0i $f1"
         fi
-        run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"1\":' $f1"
+        local fntmp=$f1.tmp
+        cat $f1|sed -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":'>$fntmp
+        if [ "$(diff -q $f1 $fntmp)" ]; then
+          run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
+        fi
+        rm -f $fntmp
       else
         local f1=
         echo "Missed parameter! use:"
@@ -437,27 +472,86 @@ do_distribution() {
       else
         local f1=
       fi
-      f1_oca=$(dirname $f1)/oca__$(basename $f1)
-      f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
       if [ -n "$f1" ]; then
+        local f=$(basename $f1)
+        f1_oca=$(dirname $f1)/oca__$f
+        f1_z0i=$(dirname $f1)/z0i__$f
+        if [ "$2" == "oca" ]; then
+          if [ $opt_orig -gt 0 ]; then
+            run_traced "mv ./tmp/$f $f1_oca"
+          fi
+          if [ -f $f1_oca ]; then
+            run_traced "mv $f1 $f1_z0i"
+            run_traced "mv $f1_oca $f1"
+          fi
+        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+          if [ $opt_orig -gt 0 ]; then
+            run_traced "mv ./tmp/$f $f1_z0i"
+          fi
+          if [ -f $f1_z0i ]; then
+            run_traced "mv $f1 $f1_oca"
+            run_traced "mv $f1_z0i $f1"
+          fi
+        fi
         cvt_readme $f1 $2
-        # if [ "$2" == "oca" ]; then
-        #   if [ -f $f1_oca ]; then
-        #     run_traced "mv $f1 $f1_z0i"
-        #     run_traced "mv $f1_oca $f1"
-        #   fi
-        #   run_traced "sed -i -e s:/zeroincombenze/$1:/OCA/$PKGNAME:g $f1"
-        #   run_traced "sed -i -e s://coveralls.io/github/://coveralls.io/r/:g $1"
-        #   run_traced "sed -i -e s://repos/github/://repos/OCA/:g $1"
-        # elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-        #   if [ -f $f1_z0i ]; then
-        #     run_traced "mv $f1 $f1_oca"
-        #     run_traced "mv $f1_z0i $f1"
-        #   fi
-        #   run_traced "sed -i -e s:/OCA/$1:/zeroincombenze/$PKGNAME:g $f1"
-        #   run_traced "sed -i -e s://coveralls.io/r/://coveralls.io/github/:g $1"
-        #   run_traced "sed -i -e s://repos/OCA/://repos/github/:g $1"
-        # fi
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      f1=oca_dependencies.txt
+      f1_oca=oca__$f1
+      f1_z0i=z0i__$f1
+      if [ "$2" == "oca" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/$f1 $f1_oca"
+        fi
+        if [ -f $f1_oca ]; then
+          run_traced "mv $f1 $f1_z0i"
+          run_traced "mv $f1_oca $f1"
+        fi
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/$f1 $f1_z0i"
+        fi
+        if [ -f $f1_z0i ]; then
+          run_traced "mv $f1 $f1_oca"
+          run_traced "mv $f1_z0i $f1"
+        fi
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      f1_oca=l10n_it_base
+      f1_z0i=l10n_it_bbone
+      for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
+        f1=$(readlink -e $f)
+        local fntmp=$f1.tmp
+        if [ "$2" == "oca" ]; then
+          cat $f1|sed -e 's:'$f1_z0i':'$f1_oca':'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$f1_z0i':'$f1_oca':' $f1"
+          fi
+        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+          cat $f1|sed -e 's:'$f1_oca':'$f1_z0i':'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$f1_oca':'$f1_z0i':' $f1"
+          fi
+        fi
+        rm -f $fntmp
+      done
+      if [ "$PKGNAME" == "l10n-italy" ]; then
+        if [ "$2" == "oca" ]; then
+          if [ -d l10n_it_bbone ]; then
+            run_traced "rm -fR l10n_it_bbone"
+          fi
+        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+          if [ ! -d l10n_it_bbone ]; then
+            run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
+          fi
+        fi
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -d tmp ]; then
+        rm -fR tmp
       fi
     fi
     return $sts
@@ -641,11 +735,11 @@ do_publish_docs() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        d        j        k        L         m       n           p         q           r     s        t         u       V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1        1        "="       1       1           "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0       0           ""        -1          0     ""       0         0       ""          -1)
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" ""      "noop"      "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        b          c        d        j        k        L         m       n           O        p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
+OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" ""      "noop"      ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
@@ -655,6 +749,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "log file name"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
+ "pull original README in distribution"\
  "declare local git path"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file)"\
