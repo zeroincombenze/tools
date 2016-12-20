@@ -67,7 +67,6 @@ Z0BUG_setup() {
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
-> coverage erase
 EOF
 }
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.72.2
+#__version__=0.1.73.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -530,7 +530,7 @@ conf_default() {
 expand_path() {
 # expand_path (path)
 # return:path
-    local x=$(echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$PKGNAME:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g -e s:\${TRAVIS_BUILD_DIR}:$TRAVIS_BUILD_DIR:g -e s:\${HOME}:$HOME:g)
+    local x=$(echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$PKGNAME:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g -e s:\${TRAVIS_BUILD_DIR}:$TRAVIS_BUILD_DIR:g  -e s:\${ODOO_REPO}:$ODOO_REPO:g -e s:\${HOME}:$HOME:g)
     echo $x|sed -e s\|\${PATH}\|$PATH\|g
 }
 
@@ -1018,7 +1018,7 @@ do_summary() {
 ant_rm_trap() {
     # wlog "... recover $1"
     local f1=$(readlink -f $1)
-    if [ -f $f1 ]; then
+    if [ -n "$f1" -a -f "$f1" ]; then
       local lne=$(head -n1 $f1)
       if [ -n "$lne" -a "${lne:0:5}" == "trap " ]; then
         echo "... recover $f1"
@@ -1031,7 +1031,7 @@ ant_rm_trap() {
 ant_add_trap() {
     echo "... analyzing $1"
     local f1=$(readlink -f $1)
-    if [ -f $f1 ]; then
+    if [ -n "$f1" -a -f "$f1" ]; then
       ant_rm_trap "$f1"
       echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
       local line=
@@ -1451,7 +1451,7 @@ run_unvirt() {
 run_svr_test_init() {
     local i
     local CMD
-    run_traced "coverage erase"
+    coverage erase
     sts=0
     if [ "$PRJNAME" == "Odoo" ]; then
       run_svr_test_rm_ln

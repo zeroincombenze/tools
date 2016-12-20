@@ -134,7 +134,6 @@ ci-test ". \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
 FOUT=$TESTDIR/test_lib.out
 FTEST=$TESTDIR/test_lib.test
 cat<<'EOF' >$FTEST
-> coverage erase
 > dropdb --if-exists openerp_template
 > dropdb --if-exists openerp_test
 > if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi

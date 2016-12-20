@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.72.2
+__version__=0.1.73.2
 
 
 store_cfg_param_value() {
@@ -111,17 +111,12 @@ process_yaml_unquote() {
 }
 
 process_yaml_quote() {
-  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
+  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
   echo $lne
 }
 
 process_yaml_quote_xtl() {
-  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g)"
-  # if [ ${opt_virt:-0} -eq 0 ]; then
-  #   if [[ $lne =~ ODOO_REPO=[\"]*OCA/OCB ]]; then
-  #     lne="$(echo $lne|sed -e s:OCA/OCB:local/odoo:g)"
-  #   fi
-  # fi
+  lne="$(echo $1|sed -e s/%%22/\"/g -e s/%%26/\'/g -e s/%%20/\ /g -e s/%%24/\$/g)"
   lne=$(expand_path "$lne")
   echo $lne
 }
@@ -148,34 +143,29 @@ process_yaml_xtl_pre() {
 
 process_yaml_do() {
     # echo "[$YML_sect]" #debug
-    local a b
-    local lne=
+    local a b i
+    local lne=$(process_yaml_unquote "$1")
     if [ "$YML_sect" == "python" ]; then
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_packages="$YML_packages $lne"
     elif [ "$YML_sect" == "env" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_env="$YML_env $lne"
     elif [ "$YML_sect" == "env.global" ]; then
-      lne=$(process_yaml_unquote "$1")
       if [ "${lne:0:7}" == "secure:" ]; then
         lne="# $lne"
       else
         YML_global="$YML_global $lne"
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_matrix="$YML_matrix $lne"
+    elif [ "$YML_sect" == "before_install" ]; then
+      YML_install="$YML_before_install $lne"
     elif [ "$YML_sect" == "install" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_install="$YML_install $lne"
     elif [ "$YML_sect" == "script" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_script="$YML_script $lne"
     elif [ "$YML_sect" == "after_success" ]; then
-      lne=$(process_yaml_unquote "$1")
       YML_after="$YML_after $lne"
     else
       local lne="$(echo $1)"
@@ -265,6 +255,10 @@ process_yaml_file() {
     local linex=
     local a b i r
     while IFS="#" read -r line r || [ -n "$line" ]; do
+      if [ "${line: -1}" != " " -a -n "$r" ]; then
+        line="$line#$r"
+        r=
+      fi
       if [[ $line =~ ^[[:space:]]+ ]]; then
         for i in {0..10};do if [ "${line:i:1}" != " " ]; then break; fi; done
         if [ $i -gt $ident ]; then
@@ -278,7 +272,8 @@ process_yaml_file() {
         lev=0
         ident=0
       fi
-      lne=$(echo $line)
+      # lne=$(echo $line)
+      lne=$(echo ${line//$/%%24})
       if [ $lev -eq 0 ]; then
         process_yaml_0
       elif [ $lev -eq 1 ]; then
@@ -303,6 +298,12 @@ process_yaml_before_install() {
       fi
     done
     if [ $sts -eq $STS_SUCCESS ]; then
+      for lne in $YML_before_install; do
+        process_yaml_run_cmd "$lne"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_packages; do
         if [ "$FH" == "RHEL" ]; then
           line="yum install $lne"
@@ -314,6 +315,11 @@ process_yaml_before_install() {
       done
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+      for lne in $YML_env; do
+        line="export $(process_yaml_quote_xtl $lne)"
+        run_traced "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
       for lne in $YML_global; do
         line="export $(process_yaml_quote_xtl $lne)"
         run_traced "$line"
@@ -399,7 +405,7 @@ process_yaml_after_success() {
 process_yaml_run_cmd() {
 #process_yaml_run_cmd (cmd)
     local xcmd=$(process_yaml_quote_xtl "$1")
-    local c i x s p sts xtlcmd
+    local c i x s p z sts xtlcmd
     c=$xcmd
     read -r -a x<<<"$xcmd"
     if [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sudo" ]; then
@@ -434,6 +440,8 @@ process_yaml_run_cmd() {
     fi
     if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
       if [ "$FH" == "RHEL" -a "${x[2]}" == "expect-dev" ]; then
+        xcmd="# $xcmd"
+      elif [ "$FH" == "RHEL" -a "${x[2]}" == "antiword" ]; then
         xcmd="# $xcmd"
       elif $(rpm -q ${x[2]} &>/dev/null); then
         xcmd="# $xcmd"
@@ -480,13 +488,48 @@ process_yaml_run_cmd() {
       fi
     elif [ "${x[0]}" == "pip" -a "${x[1]}" == "install" ]; then
       if [ ${opt_virt:-0} -eq 0 ]; then
-        p=$(echo "${x[2]}"|grep -Eo '[^!<=>]*'|head -n1)
-        if $(pip show $p &>/dev/null); then
-          xcmd="# $xcmd"
-        else
-          xcmd="false; # Warning! TODO> $xcmd"
-        fi
+        i=2
+        p=${x[$i]}
+        xcmd="# pip install"
+        while [ -n "$p" ]; do
+          if [ "$p" == "-r" -o "$p" == "--requirement" ]; then
+            ((i++))
+            z=${x[$i]}
+            xcmd="$xcmd -r $z"
+            while IFS=# read -r p r || [ -n "$p" ]; do
+              if [ -n "$p" ]; then
+                if [ "${p:0:4}" == "http" ]; then
+                  p=$(basename $p)
+                  p=$(echo $p|grep -Eo '[a-zA-Z0-9_]*'|head -n1)
+                fi
+                p=$(echo "$p"|grep -Eo '[^!<=>\[]*'|head -n1)
+                p=${p//\"/}
+                if [ "$p" == "transifex-client" ]; then
+                  xcmd="$xcmd $p"
+                elif $(pip show $p &>/dev/null); then
+                  xcmd="$xcmd $p"
+                else
+                  xcmd="false; $xcmd <$p>"
+                fi
+              fi
+            done < $z
+          elif [ "${p:0:1}" != "-" ]; then
+            p=$(echo "${x[$i]}"|grep -Eo '[^!<=>]*'|head -n1)
+            p=${p//\"/}
+            if $(pip show $p &>/dev/null); then
+              xcmd="$xcmd $p"
+            else
+              xcmd="false; $xcmd <$p>"
+            fi
+          else
+            xcmd="$xcmd $p"
+          fi
+          ((i++))
+          p=${x[$i]}
+        done
       fi
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "ln" -a "${x[1]}" == "-s" -a "${x[2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
+      xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
     else
       local xlint xtest xtfex xpkg
       if [ -z "$REPOSNAME" ]; then
@@ -499,15 +542,9 @@ process_yaml_run_cmd() {
           xlint=1
         elif [[ "${x[$i]}" =~ LINT_CHECK=.0. ]]; then
           xlint=0
-        # elif [[ "${x[$i]}" =~ TESTS=.1. ]]; then
-        #   xtest=1
-        # elif [[ "${x[$i]}" =~ TESTS=.0. ]]; then
-        #   xtest=0
         elif [[ "${x[$i]}" =~ TRANSIFEX=.1. ]]; then
           # xtfex=1
           xcmd="# $xcmd"
-        # elif [[ "${x[$i]}" =~ TRANSIFEX=.0. ]]; then
-        #   xtfex=0
         elif [[ "${x[$i]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
           xcmd="# $xcmd"
         elif [[ "${x[$i]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
@@ -615,8 +652,8 @@ process_yaml() {
           if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
             sts=$s
           else
-            for lne1 in $YML_script; do
-              process_yaml_run_cmd "$line $lne1"
+            for lne in $YML_script; do
+              process_yaml_run_cmd "$line $lne"
               s=$?; [ ${s-0} -ne 0 ] && sts=$s
             done
           fi
