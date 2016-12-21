@@ -133,11 +133,6 @@ process_yaml_xtl_pre() {
       line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
       line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
     fi
-    # if [[ $line =~ TRANSIFEX=[\"]*1 ]]; then
-    #   line="# $line"
-    # elif [[ $line =~ ODOO_REPO=[\"]*odoo/odoo ]]; then
-    #   line="# $line"
-    # fi
     echo "$line"
 }
 
@@ -529,7 +524,9 @@ process_yaml_run_cmd() {
         done
       fi
     elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "ln" -a "${x[1]}" == "-s" -a "${x[2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
-      xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+      xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+    elif [ ${opt_virt:-0} -eq 0 ] && [ "${x[0]}" == "sh" -o  "${x[0]}" == "\"sh" ]; then
+      xcmd="# $xcmd"
     else
       local xlint xtest xtfex xpkg
       if [ -z "$REPOSNAME" ]; then
@@ -645,6 +642,16 @@ process_yaml() {
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
         wlog "===== [Script] ====="
+        # set -x #debug
+        if [ -z "$YML_matrix" ]; then
+          if [ "$action" == "check" ]; then
+            YML_matrix="LINT_CHECK=\"1\""
+          elif [ "$action" == "test" ]; then
+            YML_matrix="TESTS=\"1\""
+          else
+            YML_matrix="LINT_CHECK=\"1\" TESTS=\"1\""
+          fi
+        fi
         for lne in $YML_matrix; do
           line=$(process_yaml_xtl_pre "$lne")
           process_yaml_before_script "$line" "$lne"
@@ -662,6 +669,7 @@ process_yaml() {
             break
           fi
         done
+        # set +x #debug
       fi
       wlog "===== [End script] ====="
       run_svr_test_exit

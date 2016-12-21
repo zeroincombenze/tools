@@ -1235,7 +1235,7 @@ cp_n_upd_conf() {
       local pfx2=
       local sfx="/server"
     else
-      local odoo_ver=$(echo $VERSION|grep -Eo [0-9]*|head -n1)
+      local odoo_ver=$(echo $VERSION|grep -Eo '[0-9]*'|head -n1)
       local pfx="odoo$odoo_ver"
       local pfx2=odoo
       local sfx=
