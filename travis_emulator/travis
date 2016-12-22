@@ -139,7 +139,11 @@ process_yaml_xtl_pre() {
 process_yaml_do() {
     # echo "[$YML_sect]" #debug
     local a b i
-    local lne=$(process_yaml_unquote "$1")
+    if [ "${1:1}" == "\"" -a "${1: -1}" == "\"" ]; then
+      local lne=$(process_yaml_unquote "${1:1: -1}")
+    else
+      local lne=$(process_yaml_unquote "$1")
+    fi
     if [ "$YML_sect" == "python" ]; then
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
@@ -525,7 +529,7 @@ process_yaml_run_cmd() {
       fi
     elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "ln" -a "${x[1]}" == "-s" -a "${x[2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
       xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
-    elif [ ${opt_virt:-0} -eq 0 ] && [ "${x[0]}" == "sh" -o  "${x[0]}" == "\"sh" ]; then
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sh" ]; then
       xcmd="# $xcmd"
     else
       local xlint xtest xtfex xpkg
@@ -644,16 +648,14 @@ process_yaml() {
         wlog "===== [Script] ====="
         # set -x #debug
         if [ -z "$YML_matrix" ]; then
-          if [ "$action" == "check" ]; then
-            YML_matrix="LINT_CHECK=\"1\""
-          elif [ "$action" == "test" ]; then
-            YML_matrix="TESTS=\"1\""
-          else
-            YML_matrix="LINT_CHECK=\"1\" TESTS=\"1\""
-          fi
+          YML_matrix=":"
         fi
         for lne in $YML_matrix; do
-          line=$(process_yaml_xtl_pre "$lne")
+          if [ "$lne" == ":" ]; then
+            line=
+          else
+            line=$(process_yaml_xtl_pre "$lne")
+          fi
           process_yaml_before_script "$line" "$lne"
           s=$?
           if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
@@ -708,7 +710,7 @@ OPTHELP=("this help"\
  "run restricted mode (w/o parsing travis.yml file)"\
  "show version"\
  "verbose mode")
-OPTARGS=(pkg action)
+OPTARGS=(pkg action sub)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -723,8 +725,7 @@ fi
 
 if [ -z "$action" ]; then action=all; fi
 if [ -z $pkg ]; then pkg="."; fi
-# if [ "$action" != "check" -a "$action" != "test" -a "$action" != "all" -a "$action" != "setup" -a "$action" != "chkconfig" ]; then
-ACTIONS="check test all setup chkconfig"
+ACTIONS="check test all setup chkconfig parseyaml"
 VIRTACTS="check test all"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
   if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
@@ -743,6 +744,26 @@ conf_default
 link_cfg $TCONF
 
 if [ $opt_verbose -gt 1 ]; then set -x; fi
+if [ "$action" == "parseyaml" ]; then
+  process_yaml_file "$sub"
+  echo "env:"
+  for lne in $YML_env; do
+    line="  - $(process_yaml_quote_xtl $lne)"
+    echo "$line"
+  done
+  echo "  global:"
+  for lne in $YML_global; do
+    line="  - $(process_yaml_quote_xtl $lne)"
+    echo "$line"
+  done
+  echo "  matrix:"
+  for lne in $YML_matrix; do
+    line="  - $(process_yaml_quote_xtl $lne)"
+    echo "$line"
+  done
+  sts=$STS_SUCCESS
+  exit $sts
+fi
 if [ "$action" == "setup" ]; then
   opt_r=0
   DEF_DEVPATH=$(readlink -f ~/dev)
