@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.21"
+__version__ = "0.2.69.24"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -603,6 +603,96 @@ def act_drop_db(oerp, ctx):
     return sts
 
 
+def act_wep_db(oerp, ctx):
+    """Wep a DB (delete all record but keep res_parter"""
+    sts = STS_SUCCESS
+    msg = "Wep DB %s" % ctx['db_name']
+    msg_log(ctx, ctx['level'], msg)
+    if not ctx['dry_run']:
+        company_id = ctx['company_id']
+        msg = u"Searching for invoices to delete"
+        msg_log(ctx, ctx['level'], msg)
+        model = 'account.invoice'
+        record_ids = oerp.search(model, [('company_id',
+                                          '=',
+                                          company_id),
+                                         ('state',
+                                          '=',
+                                          'paid')])
+        reconcile_dict, move_dict = get_reconcile_from_invoices(oerp,
+                                                                record_ids,
+                                                                ctx)
+        sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
+        if sts == STS_SUCCESS:
+            msg = u"Setting invoices to cancel state"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                sts = upd_invoices_2_cancel(oerp, record_ids, ctx)
+            except:
+                msg = u"Cannot delete invoices"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Removing all invoices"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id),
+                                             ('internal_number',
+                                              '!=',
+                                              '')])
+            try:
+                oerp.write(model,
+                           record_ids,
+                           {'internal_number': ''})
+            except:
+                pass
+        if sts == STS_SUCCESS:
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                oerp.unlink(model,
+                            record_ids)
+            except:
+                msg = u"Cannot remove invoices"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Searching for moves and payments to delete"
+            msg_log(ctx, ctx['level'], msg)
+            model = 'account.move'
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            if len(record_ids):
+                try:
+                    oerp.execute('account.move',
+                                 "button_cancel",
+                                 record_ids)
+                except:
+                    msg = u"Cannot delete payments"
+                    msg_log(ctx, ctx['level'], msg)
+                    sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Removing all payments"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                oerp.unlink(model,
+                            record_ids)
+            except:
+                msg = u"Cannot remove moves and payments"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+    return sts
+
+
 def act_new_db(oerp, ctx):
     """Create new DB"""
     sts = STS_SUCCESS
@@ -951,7 +1041,7 @@ def act_check_partners(oerp, ctx):
                 msg = u"Wrong VAT " + partner_obj.vat
                 msg_log(ctx, ctx['level'], msg)
                 try:
-                    oerp.write('res.partner', partner_id, vals)
+                    oerp.write('res.partner', [partner_id], vals)
                 except:
                     msg = partner_obj.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
@@ -1207,7 +1297,8 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
     move_dict = {}
     for state in STATES_2_DRAFT:
         move_dict[state] = []
-    account_invoice_obj = oerp.browse('account.invoice',
+    model = 'account.invoice'
+    account_invoice_obj = oerp.browse(model,
                                       inv_id)
     if account_invoice_obj.payment_ids:
         partner_id = account_invoice_obj.partner_id.id
@@ -1233,7 +1324,7 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
 
 
 def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
-    """If invoice state id update to draft and returned to open, linked
+    """If invoice state is update to draft and returned to open, linked
     account move is changed. So move_id and all move_line_ids read by
     'get_reconcile_from_inv' and/or 'get_reconcile_list_from_move_line'
     are no more valid, while payments reference are still valid.
@@ -1245,7 +1336,8 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
     """
     # Payment move line (detail) list
     new_reconciles = []
-    account_invoice_obj = oerp.browse('account.invoice',
+    model = 'account.invoice'
+    account_invoice_obj = oerp.browse(model,
                                       inv_id)
     partner_id = account_invoice_obj.partner_id.id
     if account_invoice_obj.move_id:
@@ -1295,7 +1387,8 @@ def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
     for state in STATES_2_DRAFT:
         move_dict[state] = []
     move_id = move_line_obj.move_id.id
-    invoice_ids = oerp.search('account.invoice',
+    model = 'account.invoice'
+    invoice_ids = oerp.search(model,
                               [('move_id', '=', move_id)])
     if len(invoice_ids):
         for inv_id in invoice_ids:
@@ -1377,7 +1470,8 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
                           this value
     @ return: min record date
     """
-    invoice_obj = oerp.get('account.invoice')
+    model = 'account.invoice'
+    invoice_obj = oerp.get(model)
     list_keys = {}
     company_id = None
     journal_id = None
@@ -1450,7 +1544,7 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
             period_id = period_ids and period_ids[0] or False
             vals['period_id'] = period_id
             try:
-                oerp.write('account.invoice', [inv_id], vals)
+                oerp.write(model, [inv_id], vals)
             except:
                 msg = u"Cannot update registration date of %d" % inv_id
                 msg_log(ctx, ctx['level'], msg)
@@ -1467,12 +1561,13 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
     return min_rec_date
 
 
-def upd_invoices_2_draft(oerp, move_dict, ctx):
-    """Set invoices (header) list/dictionary to draft state.
+def upd_invoices_2_cancel(oerp, move_dict, ctx):
+    """Set invoices (header) list/dictionary to cancel state.
     See upd_invoices_2_posted to return in posted state
     @ param move_dict: invoices (header) dictionary keyed on state or
                        invoices list to set in draft state
     """
+    model = 'account.invoice'
     for i, state in enumerate(INVOICES_STS_2_DRAFT):
         invoices = []
         if isinstance(move_dict, dict):
@@ -1481,16 +1576,59 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
             invoices = move_dict
         if len(invoices):
             try:
-                oerp.execute('account.invoice',
+                oerp.execute(model,
                              "action_cancel",
                              invoices)
             except:
-                msg = u"Cannot update invoice status"
-                msg_log(ctx, ctx['level'], msg)
+                # zero-amount invoices have not payments so keep 'paid' state
+                for inv_id in invoices:
+                    if oerp.browse(model, inv_id).state == 'paid':
+                        try:
+                            oerp.write(model,
+                                       [inv_id],
+                                       {'state': 'cancel'})
+                        except:
+                            msg = u"Cannot update invoice status (%d)" % inv_id
+                            msg_log(ctx, ctx['level'], msg)
+    return STS_SUCCESS
+
+
+def upd_invoices_2_draft(oerp, move_dict, ctx):
+    """Set invoices (header) list/dictionary to draft state.
+    See upd_invoices_2_posted to return in posted state
+    @ param move_dict: invoices (header) dictionary keyed on state or
+                       invoices list to set in draft state
+    """
+    model = 'account.invoice'
+    passed = []
+    for i, state in enumerate(INVOICES_STS_2_DRAFT):
+        invoices = []
+        if isinstance(move_dict, dict):
+            invoices = move_dict[state]
+        elif isinstance(move_dict, list) and i == 0:
+            invoices = move_dict
+        if len(invoices):
+            try:
+                oerp.execute(model,
+                             "action_cancel",
+                             invoices)
+            except:
+                # zero-amount invoices have not payments so keep 'paid' state
+                for inv_id in invoices:
+                    if oerp.browse(model, inv_id).state == 'paid':
+                        try:
+                            oerp.write(model,
+                                       [inv_id],
+                                       {'state': 'draft'})
+                            passed.append(inv_id)
+                        except:
+                            msg = u"Cannot update invoice status (%d)" % inv_id
+                            msg_log(ctx, ctx['level'], msg)
+                invoices = list(set(invoices) - set(passed))
             try:
                 msg = u"Update invoices to open %s " % invoices
                 msg_log(ctx, ctx['level'], msg)
-                oerp.execute('account.invoice',
+                oerp.execute(model,
                              "action_cancel_draft",
                              invoices)
             except:
@@ -1506,6 +1644,7 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
     @ param move_dict: invoices (header) dictionary keyed on state or
                        invoices list to set in posted state
     """
+    model = 'account.invoice'
     sts = STS_SUCCESS
     for i, state in enumerate(INVOICES_STS_2_DRAFT):
         invoices = []
@@ -1518,10 +1657,10 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
             msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
                 try:
-                    oerp.exec_workflow('account.invoice',
+                    oerp.exec_workflow(model,
                                        'invoice_open',
                                        inv_id)
-                    # oerp.execute('account.invoice',
+                    # oerp.execute(model,
                     #              "invoice_validate",
                     #              invoices)
                 except:
@@ -1761,7 +1900,8 @@ def analyze_invoices(oerp, ctx, inv_type):
                              [('company_id', '=', company_id),
                               ('date_start', '>=', ctx['date_start']),
                               ('date_stop', '<=', ctx['date_stop'])])
-    account_invoice_ids = oerp.search('account.invoice',
+    model = 'account.invoice'
+    account_invoice_ids = oerp.search(model,
                                       [('company_id', '=', company_id),
                                        ('period_id', 'in', period_ids),
                                        ('type', '=', inv_type),
@@ -1774,7 +1914,7 @@ def analyze_invoices(oerp, ctx, inv_type):
     inv_ctr = 0
     last_seq = 0
     for account_invoice_id in account_invoice_ids:
-        account_invoice_obj = oerp.browse('account.invoice',
+        account_invoice_obj = oerp.browse(model,
                                           account_invoice_id)
         inv_ctr += 1
         msg_burst(4,
@@ -1830,7 +1970,7 @@ def analyze_invoices(oerp, ctx, inv_type):
         #     period_id = period_ids and period_ids[0] or False
         #     vals['period_id'] = period_id
         #     try:
-        #         oerp.write('account.invoice', account_invoice_id, vals)
+        #         oerp.write(model, account_invoice_id, vals)
         #     except:
         #         msg = u"Cannot update registration date"
         #         msg_log(ctx, ctx['level'], msg)
