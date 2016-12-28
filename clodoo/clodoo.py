@@ -608,88 +608,7 @@ def act_wep_db(oerp, ctx):
     sts = STS_SUCCESS
     msg = "Wep DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
-    if not ctx['dry_run']:
-        company_id = ctx['company_id']
-        msg = u"Searching for invoices to delete"
-        msg_log(ctx, ctx['level'], msg)
-        model = 'account.invoice'
-        record_ids = oerp.search(model, [('company_id',
-                                          '=',
-                                          company_id),
-                                         ('state',
-                                          '=',
-                                          'paid')])
-        reconcile_dict, move_dict = get_reconcile_from_invoices(oerp,
-                                                                record_ids,
-                                                                ctx)
-        sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
-        if sts == STS_SUCCESS:
-            msg = u"Setting invoices to cancel state"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            try:
-                sts = upd_invoices_2_cancel(oerp, record_ids, ctx)
-            except:
-                msg = u"Cannot delete invoices"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
-        if sts == STS_SUCCESS:
-            msg = u"Removing all invoices"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id),
-                                             ('internal_number',
-                                              '!=',
-                                              '')])
-            try:
-                oerp.write(model,
-                           record_ids,
-                           {'internal_number': ''})
-            except:
-                pass
-        if sts == STS_SUCCESS:
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            try:
-                oerp.unlink(model,
-                            record_ids)
-            except:
-                msg = u"Cannot remove invoices"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
-        if sts == STS_SUCCESS:
-            msg = u"Searching for moves and payments to delete"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'account.move'
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            if len(record_ids):
-                try:
-                    oerp.execute('account.move',
-                                 "button_cancel",
-                                 record_ids)
-                except:
-                    msg = u"Cannot delete payments"
-                    msg_log(ctx, ctx['level'], msg)
-                    sts = STS_FAILED
-        if sts == STS_SUCCESS:
-            msg = u"Removing all payments"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            try:
-                oerp.unlink(model,
-                            record_ids)
-            except:
-                msg = u"Cannot remove moves and payments"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
+    sts = remove_all_account_records(oerp, ctx)
     return sts
 
 
@@ -1765,6 +1684,24 @@ def unreconcile_invoices(oerp, reconcile_dict, ctx):
     return STS_SUCCESS
 
 
+def unreconcile_payments(oerp, ctx):
+    msg = u"Unreconcile payments"
+    msg_log(ctx, ctx['level'], msg)
+    reconcile_list = oerp.search('account.move.line',
+                                 [('reconcile_id', '!=', False)])
+    try:
+        context = {'active_ids': reconcile_list}
+        oerp.execute('account.unreconcile',
+                     'trans_unrec',
+                     None,
+                     context)
+    except:
+        msg = u"Cannot update payment status"
+        msg_log(ctx, ctx['level'], msg)
+        return STS_FAILED
+    return STS_SUCCESS
+
+
 def reconcile_invoices(oerp, reconcile_dict, ctx):
     for inv_id in reconcile_dict:
         msg = u"Reconcile invoice %d" % inv_id
@@ -1891,6 +1828,128 @@ def set_account_type(oerp, ctx):
                 new_reconciles, new_reconcile_dict = \
                     refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx)
                 sts = reconcile_invoices(oerp, new_reconcile_dict, ctx)
+    return sts
+
+
+def remove_all_account_records(oerp, ctx):
+    if not ctx['dry_run']:
+        company_id = ctx['company_id']
+        sts = STS_SUCCESS
+        if sts == STS_SUCCESS:
+            msg = u"Searching for vouchers to delete"
+            msg_log(ctx, ctx['level'], msg)
+            model = 'account.voucher.line'
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            if len(record_ids):
+                try:
+                    oerp.execute(model,
+                                 "cancel_voucher",
+                                 record_ids)
+                except:
+                    msg = u"Cannot unreconcile vouchers"
+                    msg_log(ctx, ctx['level'], msg)
+                    sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Removing all vouchers"
+            msg_log(ctx, ctx['level'], msg)
+            model = 'account.voucher'
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                oerp.unlink(model,
+                            record_ids)
+            except:
+                msg = u"Cannot remove vouchers"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Searching for invoices to delete"
+            msg_log(ctx, ctx['level'], msg)
+            model = 'account.invoice'
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id),
+                                             '|', ('state',
+                                                   '=',
+                                                   'paid'),
+                                                  ('state',
+                                                   '=',
+                                                   'open')])
+            reconcile_dict, move_dict = get_reconcile_from_invoices(oerp,
+                                                                    record_ids,
+                                                                    ctx)
+            sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
+        if sts == STS_SUCCESS:
+            msg = u"Setting invoices to cancel state"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                sts = upd_invoices_2_cancel(oerp, record_ids, ctx)
+            except:
+                msg = u"Cannot delete invoices"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Removing all invoices"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id),
+                                             ('internal_number',
+                                              '!=',
+                                              '')])
+            try:
+                oerp.write(model,
+                           record_ids,
+                           {'internal_number': ''})
+            except:
+                pass
+        if sts == STS_SUCCESS:
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                oerp.unlink(model,
+                            record_ids)
+            except:
+                msg = u"Cannot remove invoices"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Searching for moves and payments to delete"
+            msg_log(ctx, ctx['level'], msg)
+            model = 'account.move'
+            unreconcile_payments(oerp, ctx)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            if len(record_ids):
+                try:
+                    oerp.execute(model,
+                                 "button_cancel",
+                                 record_ids)
+                except:
+                    msg = u"Cannot delete payments"
+                    msg_log(ctx, ctx['level'], msg)
+                    sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            msg = u"Removing all payments"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            try:
+                oerp.unlink(model,
+                            record_ids)
+            except:
+                msg = u"Cannot remove moves and payments"
+                msg_log(ctx, ctx['level'], msg)
+                sts = STS_FAILED
     return sts
 
 
