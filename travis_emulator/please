@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.34
+__version__=0.1.34.1
 
 
 do_annotate() {
@@ -329,7 +329,7 @@ cvt_readme() {
         fi
         if [ $Ilicense -eq 0 ]; then
           Ilicense=1
-          lne1="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-green.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
+          lne1="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           echo "$lne1">>$fntmp
         fi
@@ -371,7 +371,10 @@ cvt_readme() {
         echo "$line">>$fntmp
         if [ -z "$line" ]; then nleof=1; else nleof=0; fi
       fi
-      [ "$lne2" != "⌂" ] && echo "$lne2">>$fntmp; if [ -z "$lne2" ]; then nleof=1; else nleof=0; fi
+      if [ "$lne2" != "⌂" ]; then
+        echo "$lne2">>$fntmp;
+        if [ -z "$lne2" ]; then nleof=1; else nleof=0; fi
+      fi
     done < "$fn"
     if [ $Icright -eq 0 ]; then
       [ $nleof -eq 0 ] && echo "">>$fntmp
