@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.73.2
+#__version__=0.1.74.1
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -1361,6 +1361,8 @@ clone_oca_dependencies() {
         if [[ $line =~ ^[[:space:]]*$ ]]; then
           :
         else
+          d="$line"
+          IFS=" " read line r <<<"$d"
           d=$(find $oetpath -maxdepth 1 -type d -name "$line")
           if [ -n "$d" ]; then
             if [ -n "$REPOSNAME" ]; then
@@ -1400,17 +1402,10 @@ clone_dependencies() {
         clone_1_dependence "$p"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
-      # p=$(readlink -e $oetpath/$REPOSNAME/)
-      # if [ -n "$p" ]; then
-      #    clone_oca_dependencies "$p/oca_dependencies.txt"
-      #    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      # fi
       clone_core_dependencies
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     else
       run_traced "export INCLUDE="
-      # clone_oca_dependencies "$PKGPATH/oca_dependencies.txt"
-      # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
     return $sts
 }

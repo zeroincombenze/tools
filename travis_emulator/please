@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.33.2
+__version__=0.1.34
 
 
 do_annotate() {
@@ -537,17 +537,6 @@ do_distribution() {
         fi
         rm -f $fntmp
       done
-      if [ "$PKGNAME" == "l10n-italy" ]; then
-        if [ "$2" == "oca" ]; then
-          if [ -d l10n_it_bbone ]; then
-            run_traced "rm -fR l10n_it_bbone"
-          fi
-        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-          if [ ! -d l10n_it_bbone ]; then
-            run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
-          fi
-        fi
-      fi
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ -d tmp ]; then
@@ -602,6 +591,11 @@ do_synchro() {
     if [ "$2" == "oca" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
+        if [ "$PKGNAME" == "l10n-italy" ]; then
+          if [ -d l10n_it_bbone ]; then
+            run_traced "rm -fR l10n_it_bbone"
+          fi
+        fi
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
         git status
@@ -613,6 +607,11 @@ do_synchro() {
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
+        if [ "$PKGNAME" == "l10n-italy" ]; then
+          if [ ! -d l10n_it_bbone ]; then
+            run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
+          fi
+        fi
         local x=($git status -s)
         if [ -n "$x" ]; then
           run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
@@ -620,12 +619,21 @@ do_synchro() {
         git remote -v
         run_traced "git push"
         git status
+        if [ "$PKGNAME" == "l10n-italy" ]; then
+          if [ -d l10n_it_bbone ]; then
+            run_traced "rm -fR l10n_it_bbone"
+          fi
+        fi
       fi
     else
       echo "Missed parameter! use:"
       echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero"
       sts=$STS_FAILED
     fi
+
+
+
+
 }
 
 do_docs() {
