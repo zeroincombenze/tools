@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.34.1
+__version__=0.1.35.1
 
 
 do_annotate() {
@@ -177,7 +177,7 @@ cvt_readme() {
 #         8=(txt1)repos 9=(txt2)repos
     local fn=$1
     local fntmp=$fn.tmp
-    local wf=0 nleof=0 Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0
+    local wf=0 nleof=0 Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
     local line lne1 lne2 repository txtrepos ver
     local helpname=
     if [ "$PKGNAME" == "l10n-italy-supplemental" -o "$PKGNAME" == "l10n-italy" ]; then
@@ -232,7 +232,7 @@ cvt_readme() {
         else
           Ibutton=1
           Icodecov=1
-          line="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2})"
+          line="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
         fi
       elif [[ "$line" =~ Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/Odoo/dev/) ]]; then
         Ibutton=1
@@ -298,6 +298,18 @@ cvt_readme() {
             line="⌂"
           fi
         fi
+      elif [[ "$line" =~ OCA_project.*https://github.com/OCA/ ]]; then
+        Ibutton=1
+        if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+          line="⌂"
+        elif [ $IOCA -ne 0 ]; then
+          line="⌂"
+        else
+          IOCA=1
+          if [[ "$line" =~ OCA_project.*https://github.com/OCA/ ]]; then
+            line="⌂"
+          fi
+        fi
       elif [[ "$line" =~ chat.with.us ]]; then
         Ibutton=1
         if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
@@ -341,9 +353,17 @@ cvt_readme() {
         fi
         if [ $Icodecov -eq 0 ]; then
           Icodecov=1
-          lne1="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2})"
+          lne1="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           echo "$lne1">>$fntmp
+        fi
+        if [ $IOCA -eq 0 ]; then
+          IOCA=1
+          if [ "$PKGNAME" != "l10n-italy-supplemental" ]; then
+            lne1="[![OCA_project](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-\${4}.svg)](https://github.com/OCA/\${2}/tree/\${3})"
+            lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            echo "$lne1">>$fntmp
+          fi
         fi
         if [ $Idocs -eq 0 ]; then
           Idocs=1
@@ -359,7 +379,7 @@ cvt_readme() {
         fi
         if [ $Itryit -eq 0 ]; then
           Itryit=1
-          lne1="[![try it](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-7.svg)](http://erp\${4}.zeroincombenze.it)"
+          lne1="[![try it](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-\${4}.svg)](http://erp\${4}.zeroincombenze.it)"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           echo "$lne1">>$fntmp
         fi

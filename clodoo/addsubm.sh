@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.25.2
+__version__=0.1.26
 
 set_dstpath() {
 #set_dstpath(modname ver)
@@ -77,16 +77,40 @@ set_remote_info() {
     local pkg_URL=$3
     local DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
     run_traced "cd $DSTPATH"
-    if [ "$MODNAME" != "l10n-italy-supplemental" ]; then
-      run_traced "git remote add upstream $pkg_URL"
-    else
+    local rval=$(git remote -v|grep upstream|head -n1|awk '{ print $2}')
+    if [ -n "$rval" ]; then
       run_traced "git remote remove upstream"
     fi
+    if [ "$MODNAME" != "l10n-italy-supplemental" ]; then
+      run_traced "git remote add upstream $pkg_URL"
+    fi
     pkg_URL="git@github.com:zeroincombenze/$MODNAME.git"
-    run_traced "git remote remove origin"
+    local rval=$(git remote -v|grep origin|head -n1|awk '{ print $2}')
+    if [ -n "$rval" ]; then
+      run_traced "git remote remove origin"
+    fi
     run_traced "git remote add origin $pkg_URL"
 }
 
+wep_remote_branch() {
+    git remote show origin > $TMPFILE
+    PARSE=0
+    while IFS=⌂ read -r line r || [ -n "$line" ]; do
+      if [[ "$line" =~ Remote[[:space:]]branches ]]; then
+        PARSE=1
+      elif [[ "$line" =~  Local ]]; then
+        PARSE=0
+      elif [ $PARSE -gt 0 ]; then
+        line="$(echo $line)"
+        IFS=" " read v x <<< "$line"
+        if [[ $v =~ (7.0|8.0|9.0|10.0) ]] ; then
+          :
+        else
+          run_traced "git push origin --delete $v"
+        fi
+      fi
+    done < $TMPFILE
+}
 
 OPTOPTS=(h        b          c        L        n            q           r          V           v           y)
 OPTDEST=(opt_help opt_branch opt_conf opt_link opt_dry_run  opt_verbose opt_updrmt opt_version opt_verbose opt_yes)
@@ -133,6 +157,7 @@ if [ -n "$opt_branch" ]; then
   fi
 fi
 
+TMPFILE=$HOME/tmp_$$.out
 if [ -z "$new_odoo_ver" ]; then
   run_traced "cd $HOME/$odoo_ver"
   pkg_URL=$moduleid
@@ -155,6 +180,7 @@ if [ -z "$new_odoo_ver" ]; then
       pkg_URL="https://github.com/OCA/$MODNAME.git"
       DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
       set_remote_info $MODNAME $odoo_ver $pkg_URL
+      wep_remote_branch
       exit 0
     else
       echo "Invalid git repository name!"
@@ -224,9 +250,7 @@ else
   pkg_URL=$(git remote -v|grep origin|head -n1|awk '{ print $2}')
   if [ "$rq_oev" == "$new_odoo_ver" ]; then
     run_traced "git push origin $new_odoo_ver"
-    run_traced "git push origin --delete 5.0"
-    run_traced "git push origin --delete 6.0"
-    run_traced "git push origin --delete 6.1"
+    wep_remote_branch
   fi
   run_traced "cd $HOME/$new_odoo_ver"
 fi

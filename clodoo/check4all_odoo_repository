@@ -28,7 +28,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.26
+__version__=0.1.27
 
 
 explore() {
@@ -93,12 +93,10 @@ do_action() {
         if [ -L $pdir ]; then
           :
         else
-          # if [ $opt_dry_run -eq 0 ]; then
-          #   git push origin --delete 5.0
-          #   git push origin --delete 6.0
-          #   git push origin --delete 6.1
-          # fi
           please wep $opts
+          if [ "$oem" != "OCB" ]; then
+            addsubm.sh $oem $oev -r $opts
+          fi
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pdir ]; then

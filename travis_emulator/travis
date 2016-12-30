@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.74.1
+__version__=0.1.75
 
 
 store_cfg_param_value() {
@@ -446,6 +446,9 @@ process_yaml_run_cmd() {
     elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "ruby-sass" ]; then
       xcmd="$(echo $xcmd|sed -e 's/ruby-sass/rubygem-sass/g')"
       x[2]="rubygem-sass"
+    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-simplejson" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/python-simplejson/python2-simplejson/g')"
+      x[2]="python2-simplejson"
     fi
     if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
       if [ "$FH" == "RHEL" -a "${x[2]}" == "expect-dev" ]; then
