@@ -22,7 +22,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.11
+__version__=0.1.12.1
 
 
 test_diff() {
@@ -76,22 +76,22 @@ test_01() {
         test_diff "/opt/odoo/$s" "$t" "l10n-italy" "l10n_it_vat_registries" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
         test_diff "/opt/odoo/$s/l10n-italy" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy /opt/odoo/$t/l10n-italy"
         test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries" "$t" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/$s/l10n-italy/l10n_it_vat_registries /opt/odoo/$t/l10n-italy/l10n_it_vat_registries"
-        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> diff /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> diff /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
-        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> diff -y /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "$t" "" "" "" "> diff -ZB /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "$t" "> diff -ZB /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+        test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "" "" "" "-$t" "> diff -ZBy /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/$t/l10n-italy/l10n_it_vat_registries/__openerp__.py"
       done
     done
     for s in v7 10.0; do
-      test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> diff /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
+      test_diff "/opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py" "8.0" "l10n-italy-supplemental" "" "" "> diff -ZB /opt/odoo/$s/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy-supplemental/l10n_it_vat_registries/__openerp__.py"
     done
     for s in 7 8; do
-      test_diff "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> diff /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
+      test_diff "/etc/odoo/odoo$s-server.conf" "9.0" "" "" "" "> diff -ZB /etc/odoo/odoo$s-server.conf /etc/odoo/odoo9-server.conf"
     done
     test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n/" "8.0" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
     test_diff "/opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n" "8.0" "" "" "" "> diff -x '*.pyc' -x '*.log' -x '*.bak' -x '*~' -x '*.conf' -x '*.po' -x '*.pot' -ZBqr /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/i18n /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/i18n"
     local CWD=$PWD
     cd /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries
-    test_diff "__openerp__.py" "" "" "" "8" "> diff /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
+    test_diff "__openerp__.py" "" "" "" "8" "> diff -ZB /opt/odoo/7.0/l10n-italy/l10n_it_vat_registries/__openerp__.py /opt/odoo/8.0/l10n-italy/l10n_it_vat_registries/__openerp__.py"
     cd $CWD
 }
 

@@ -27,7 +27,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__="0.1.12"
+__version__="0.1.12.1"
 
 
 vf_init() {
@@ -43,14 +43,16 @@ vf_init() {
       if [ "$x9" == "/" ]; then
          XRGX="$XRGX ^(.*\\/|)$x"
          XLFS="$XLFS --exclude=$x"
+         XLDF="$XLDF -x '${x:0: -1}'"
       elif [ "$x1" == "." -o "$x1" == "," -o "$x" == "~" ]; then
          XRGX="$XRGX ^.*\\$x\$"
          XLFS="$XLFS --exclude=*$x"
+         XLDF="$XLDF -x '*$x'"
       else
          XRGX="$XRGX $x"
          XLFS="$XLFS --exclude=*$x*"
+         XLDF="$XLDF -x '*$x'"
       fi
-      XLDF="$XLDF -x '*$x'"
     done
     XXDF=
     for x in $VF_DIGNORE; do
@@ -97,11 +99,19 @@ exec_diff() {
       else
         opts="$XLDF -ZBqr"
       fi
+      if [ $opt_igns -gt 0 ]; then
+        opts="${opts}Ew"
+      fi
     else
       if [ $opt_para -ne 0 ]; then
-        opts=" -y"
+        opts=" -ZBy"
+        if [ $opt_igns -gt 0 ]; then
+          opts="${opts}Ew"
+        fi
+      elif [ $opt_igns -gt 0 ]; then
+          opts=" -ZBEw"
       else
-        opts=
+        opts=" -ZB"
       fi
     fi
     run_traced "diff$opts $left $right"
@@ -376,11 +386,11 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        a       c        i       n            O         p         r            V           v           y        0       1       2)
-OPTDEST=(opt_help opt_all opt_conf opt_iar opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       "="      1       1            "="       "="       "="          "*>"        1           1        0       1       1)
-OPTDEFL=(0        0       ""       0       0            ""        ""        ""           ""          0           0        0       0       0)
-OPTMETA=("help"   ""      "file"   ""      "do nothing" "version" "package" "repository" "version"   "verbose"   "parall" ""      ""      "")
+OPTOPTS=(h        a       c        i       n            O         p         r            V           v           w        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_conf opt_iar opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_igns opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       "="      1       1            "="       "="       "="          "*>"        1           1        1        0       1       1)
+OPTDEFL=(0        0       ""       0       0            ""        ""        ""           ""          0           0        0        0       0       0)
+OPTMETA=("help"   ""      "file"   ""      "do nothing" "version" "package" "repository" "version"   "verbose"   ""       "parall" ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
  "configuration file (def ~/dev/.travis.conf)"\
@@ -391,6 +401,7 @@ OPTHELP=("this help"\
  "select repository name"\
  "show version"\
  "verbose mode"\
+ "ignore all space differences"\
  "side by side"\
  "initial status is true"\
  "initial status is false"\
