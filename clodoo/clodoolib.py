@@ -262,7 +262,7 @@ def default_conf(ctx):
               'dbfiltert': 'openerp.*',
               'dbfilterz': 'zi[0-9]{8}',
               'dbtypefilter': '',
-              'companyfilter': '(?!zeroincombenze.*)',
+              'companyfilter': '(?![Zz]eroincombenze.*)',
               'userfilter': '.*',
               'lang': 'en_US',
               'date_start': dts_start,

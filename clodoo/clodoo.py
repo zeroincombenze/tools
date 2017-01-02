@@ -28,7 +28,7 @@ import os.path
 import sys
 from os0 import os0
 import time
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import oerplib
 import re
 import csv
@@ -44,7 +44,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.25"
+__version__ = "0.2.69.26"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -970,6 +970,52 @@ def act_check_partners(oerp, ctx):
             elif vatn.strip() == "":
                 msg = partner_obj.name + " WRONG VAT"
                 msg_log(ctx, ctx['level'], msg)
+    return STS_SUCCESS
+
+
+def act_set_periods(oerp, ctx):
+    msg = u"Set account periods "
+    msg_log(ctx, ctx['level'], msg)
+    company_id = ctx['company_id']
+    model = 'account.fiscalyear'
+    period_ids = oerp.search(model,
+                             [('company_id', '=', company_id)])
+    last_start = date(1970, 1, 1)
+    last_stop = date(1970, 12, 31)
+    last_name = ''
+    periods_ok = False
+    valid = False
+    for period_id in period_ids:
+        period = oerp.browse(model, period_id)
+        name = period.name
+        date_start = period.date_start
+        if date_start > last_start:
+            last_start = date_start
+            valid = True
+            last_name = name
+        date_stop = period.date_stop
+        if date_stop > last_stop:
+            last_stop = date_stop
+        if date.today() >= date_start and date.today() <= date_stop:
+            periods_ok = True
+    if not periods_ok and valid:
+        date_start = last_stop + timedelta(1)
+        date_stop = date(last_stop.year + 1,
+                         last_stop.month,
+                         last_stop.day)
+        n = (last_stop.year + 1) % 100
+        o = last_stop.year % 100
+        name = last_name.replace(str(o), str(n))
+        n = o
+        o = (last_stop.year - 1) % 100
+        name = name.replace(str(o), str(n))
+        oerp.create(model, {'name': name,
+                            'code': name,
+                            'date_start': str(date_start),
+                            'date_stop': str(date_stop),
+                            'company_id': company_id})
+        msg = u"Added period %s" % name
+        msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 

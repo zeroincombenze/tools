@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.26
+__version__=0.1.26.1
 
 set_dstpath() {
 #set_dstpath(modname ver)
@@ -165,7 +165,7 @@ if [ -z "$new_odoo_ver" ]; then
   if [ "${MODNAME: -4}" == ".git" ]; then
     MODNAME=${MODNAME:0: -4}
   fi
-  if [ "$pkg_URL" != "$MODNAME" ]; then
+  if [ "$pkg_URL" != "$MODNAME" -a "$pkg_URL" != "$MODNAME/" ]; then
     if [ $opt_updrmt -eq 0 ]; then
       rmdir_if_exists $MODNAME $odoo_ver ""
       # git_opts="--single-branch --depth=1"
@@ -254,6 +254,7 @@ else
   fi
   run_traced "cd $HOME/$new_odoo_ver"
 fi
+run_traced "cd $HOME/$odoo_ver"
 if [ "$rq_oev" == "$new_odoo_ver" ]; then
   x=$(git submodule status|grep $MODNAME)
   if [ -z "$x" ]; then
@@ -277,4 +278,5 @@ fi
 if [ -z "$(grep "^addons_path *=.*$MODNAME" $cfgfn 2>/dev/null)" ]; then
   run_traced "sed -i \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
 fi
+rm -f $TMPFILE
 exit 0

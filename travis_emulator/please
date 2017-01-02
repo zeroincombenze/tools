@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.35.1
+__version__=0.1.35.2
 
 
 do_annotate() {
@@ -286,7 +286,7 @@ cvt_readme() {
           Ilicense=1
           line="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
         fi
-      elif [[ "$line" =~ try.it.*https://www.zeroincombenze.it ]]; then
+      elif [[ "$line" =~ try.it.*http(s)?://www.zeroincombenze.it ]]; then
         Ibutton=1
         if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
           line="⌂"
@@ -294,7 +294,7 @@ cvt_readme() {
           line="⌂"
         else
           Itryit=1
-          if [[ "$line" =~ try.it.*https://www.zeroincombenze.it ]]; then
+          if [[ "$line" =~ try.it.*http(s)?://www.zeroincombenze.it ]]; then
             line="⌂"
           fi
         fi
@@ -360,14 +360,14 @@ cvt_readme() {
         if [ $IOCA -eq 0 ]; then
           IOCA=1
           if [ "$PKGNAME" != "l10n-italy-supplemental" ]; then
-            lne1="[![OCA_project](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-\${4}.svg)](https://github.com/OCA/\${2}/tree/\${3})"
+            lne1="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-\${4}.svg)](https://github.com/OCA/\${2}/tree/\${3})"
             lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
             echo "$lne1">>$fntmp
           fi
         fi
         if [ $Idocs -eq 0 ]; then
           Idocs=1
-          lne1="[![Tech Doc](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/dev/${3})"
+          lne1="[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/dev/${3})"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           echo "$lne1">>$fntmp
         fi
@@ -379,7 +379,7 @@ cvt_readme() {
         fi
         if [ $Itryit -eq 0 ]; then
           Itryit=1
-          lne1="[![try it](https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-\${4}.svg)](http://erp\${4}.zeroincombenze.it)"
+          lne1="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-\${4}.svg)](http://erp\${4}.zeroincombenze.it)"
           lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           echo "$lne1">>$fntmp
         fi
