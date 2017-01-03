@@ -89,8 +89,6 @@ EOF
 }
 
 Z0BUG_teardown() {
-    # local VERSION=9.0
-    # local ODOO_REPO=local/odoo
     local PKGNAME=$LCLTEST_PKGNAME
     local PKGPATH=$LCLTEST_PRJPATH/$PKGNAME
     rm -fR $PKGPATH
@@ -124,7 +122,7 @@ test_01() {
 
 test_02() {
     save_testenv
-    local s sts res opts
+    local s sts RES opts
     opt_conf=
     pkg=
     sts=0
@@ -156,20 +154,104 @@ test_02() {
     test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      TOOLS_PATH=~/dev/_travis
+      # TOOLS_PATH=~/dev/_travis
       opt_verbose=1
-      opts=$(inherits_travis_opts "v")
+      opts=$(inherits_travis_opts "v" "D")
       result_testenv
     fi
     test_result "init_travis opts" "-v" "$opts"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      TOOLS_PATH=~/maintainer-quality-tools/travis
+      # TOOLS_PATH=~/maintainer-quality-tools/travis
       opt_verbose=1
       MQT_VERBOSE_MODE=
-      inherits_travis_opts "v" >/dev/null
+      inherits_travis_opts "v" "T" >/dev/null
       result_testenv
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=1
+      opt_dprj=0
+      RES=$(inherits_travis_opts "-rjPKT" "T")
+      result_testenv
+    fi
+    test_result "inherit opts T" "-KjPrTv" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=-1
+      opt_dprj=1
+      RES=$(inherits_travis_opts "-vn" "A")
+      result_testenv
+    fi
+    test_result "inherit opts A" "-jnv" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=0
+      opt_cpush="-C"
+      opt_diff=1
+      RES=$(inherits_travis_opts "-n" "D")
+      result_testenv
+    fi
+    test_result "inherit opts D" "-Cdnq" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=0
+      opt_cpush="-P"
+      opt_diff=0
+      opt_force=1
+      RES=$(inherits_travis_opts "-nd" "D")
+      result_testenv
+    fi
+    test_result "inherit opts D" "-dfnPq" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=0
+      opt_cpush="-R"
+      opt_diff=0
+      opt_force=0
+      RES=$(inherits_travis_opts "-n" "D")
+      result_testenv
+    fi
+    test_result "inherit opts D" "-nqR" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=0
+      opt_cpush="-F"
+      opt_diff=0
+      opt_force=0
+      RES=$(inherits_travis_opts "-nf" "D")
+      result_testenv
+    fi
+    test_result "inherit opts D" "-Ffnq" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=-1
+      opt_r=1
+      RES=$(inherits_travis_opts "-nmjb" "E")
+      result_testenv
+    fi
+    test_result "inherit opts E" "-jmnr" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=-1
+      opt_r=0
+      RES=$(inherits_travis_opts "-nmjb" "E")
+      result_testenv
+    fi
+    test_result "inherit opts E" "-jmn" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_cpush=
+      RES=$(inherits_travis_opts "-RnKCO" "N")
+      result_testenv
+    fi
+    test_result "inherit opts N" "-CKnOR" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=1
+      opt_diff=1
+      RES=$(inherits_travis_opts "-upOnLjb" "P")
+      result_testenv
+    fi
+    test_result "inherit opts P" "-djnOuv" "$RES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opt_verbose=0
+      opt_diff=0
+      opt_uop=1
+      RES=$(inherits_travis_opts "-n" "8")
+      result_testenv
+    fi
+    test_result "inherit opts 8" "-nqu" "$RES"
     restore_testenv
     return $sts
 }
@@ -234,21 +316,25 @@ test_04() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=1
       MQT_VERBOSE_MODE=
-      TOOLS_PATH=~/maintainer-quality-tools/travis
-      inherits_travis_opts "v" >/dev/null
+      # TOOLS_PATH=~/maintainer-quality-tools/travis
+      inherits_travis_opts "v" "T" >/dev/null
       result_testenv
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opt_verbose=1
-      opt_dry_run=1
-      prepare_env_travis
-      run_svr_test_init > $FOUT
-      result_testenv
+    if [ -d ~/9.0 ]; then
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        opt_verbose=1
+        opt_dry_run=1
+        prepare_env_travis
+        run_svr_test_init > $FOUT
+        result_testenv
+      fi
+      test_result "run_svr_test_ini" "$FOUT" "$FTEST" "diff -qEbB"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    else
+      VERSION=9.0
     fi
-    test_result "run_svr_test_ini" "$FOUT" "$FTEST" "diff -qEbB"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
 }

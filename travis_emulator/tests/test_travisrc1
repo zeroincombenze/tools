@@ -128,7 +128,7 @@ test_02() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TOOLS_PATH=~/dev/_travis
       opt_verbose=1
-      opts=$(inherits_travis_opts "v")
+      opts=$(inherits_travis_opts "v" "D")
       result_testenv
     fi
     test_result "init_travis opts" "-v" "$opts"
@@ -136,7 +136,7 @@ test_02() {
       TOOLS_PATH=~/maintainer-quality-tools/travis
       opt_verbose=1
       MQT_VERBOSE_MODE=
-      inherits_travis_opts "v" >/dev/null
+      inherits_travis_opts "v" "T" >/dev/null
       result_testenv
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
@@ -207,7 +207,7 @@ test_04() {
       opt_verbose=1
       MQT_VERBOSE_MODE=
       TOOLS_PATH=~/maintainer-quality-tools/travis
-      inherits_travis_opts "v" >/dev/null
+      inherits_travis_opts "v" "T">/dev/null
       result_testenv
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"

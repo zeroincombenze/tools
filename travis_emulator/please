@@ -29,8 +29,38 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.35.2
+__version__=0.1.35.5
 
+#
+# General Purpose options:
+# -A dont exec odoo test
+# -B exec bash test
+# -b branch: must be 7.0, 8.0, 9.0 or 10.0
+# -C commit & push | dont exc clodoo test
+# -c configuration file
+# -d diff
+# -F fetch
+# -f force
+# -H use virtualenv
+# -K exec bash, flake8 and pylint tests | run cron environ
+# -j exec tests in project dir rather in test dir
+# -m show missing line in report
+# -n do nothing (dry-run)
+# -O run odoo burst
+# -o OCA directives
+# -P push
+# -p local path
+# -q silent mode
+# -R replace | replica
+# -r rescricted mode (w/o parsing travis.yml file)
+# -S status
+# -T exec regression test
+# -t do nothing (test-mode)
+# -u dont update newer files
+# -V show version
+# -v verbose mode
+# -W whatis
+# -w wep
 
 do_annotate() {
     wlog "do_annotate"
@@ -42,7 +72,7 @@ do_annotate() {
 do_check() {
     wlog "do_check \"$1\" \"$2\" \"$3\""
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "Knrv")
+      opts=$(inherits_travis_opts "K" "T")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -58,7 +88,7 @@ do_check() {
 do_test() {
     wlog "do_test"
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "Tnrv")
+      opts=$(inherits_travis_opts "T" "T")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -75,7 +105,7 @@ do_test() {
 do_diff() {
     wlog "do_diff \"$1\" \"$2\" \"$3\""
     opt_diff=1
-    opts=$(inherits_travis_opts "nvd")
+    opts=$(inherits_travis_opts "" "D")
     dist_pkg $opts $PKGNAME;
     sts=$?
     return $sts
@@ -83,7 +113,8 @@ do_diff() {
 
 
 do_replace() {
-    opts=$(inherits_travis_opts "nvR")
+    opts=$(inherits_travis_opts "R" "D")
+    opt_dry_run=0
     run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
@@ -91,7 +122,8 @@ do_replace() {
 
 
 do_commit() {
-    opts=$(inherits_travis_opts "nvC")
+    opts=$(inherits_travis_opts "C" "D")
+    opt_dry_run=0
     run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
@@ -99,7 +131,8 @@ do_commit() {
 
 
 do_push() {
-    opts=$(inherits_travis_opts "nvP")
+    opts=$(inherits_travis_opts "P" "D")
+    opt_dry_run=0
     run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
@@ -107,7 +140,8 @@ do_push() {
 
 
 do_fetch() {
-    opts=$(inherits_travis_opts "nvF")
+    opts=$(inherits_travis_opts "F" "D")
+    opt_dry_run=0
     run_traced "dist_pkg $opts $1"
     sts=$?
     return $sts
@@ -127,7 +161,7 @@ do_travis() {
     if [ $opt_r -gt 0 ]; then
       please_run_tests "-KT"
     else
-      opts=$(inherits_travis_opts "cnv")
+      opts=$(inherits_travis_opts "c" "E")
       if [ -n "$opts" ]; then
         travis "$opts" "$@"
       else
@@ -766,15 +800,16 @@ do_publish_docs() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        d        j        k        L         m       n           O        p         q           r     s        t         u       V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        "9.0"      ""       0        0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
-OPTMETA=("help"   "branch"   "file"   "diff"   "dprj"   "keep"   "logfile" ""      "noop"      ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
+OPTOPTS=(h        b          c        d        f         j        k        L         m       n           O        p         q           r     s        t         u       V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1        1         1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
+OPTDEFL=(1        "9.0"      ""       0        0         0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
+OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"      ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
  "do diff no real action"\
+  "force copy (if commit o push)"\
  "execute tests in project dir rather in test dir"\
  "keep coverage statistics in annotate test"\
  "log file name"\
@@ -804,8 +839,7 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 conf_default
 set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
 set_cfg_def "DEV_SVG" "/opt/odoo/dev/svg"
@@ -825,7 +859,7 @@ elif [ "$action" == "annotate" ]; then
   do_annotate "$PKGNAME" "$opt_srcs"
   sts=$?
 elif [ "$action" == "autopep8" ]; then
-  opts=$(inherits_travis_opts "dnuv")
+  opts=$(inherits_travis_opts "" "8")
   if [ "$PRJNAME" == "Odoo" ]; then
     opts="$opts -o"
   fi

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.75
+__version__=0.1.75.4
 
 
 store_cfg_param_value() {
@@ -58,11 +58,11 @@ process_local() {
     wlog "=== Simulate YAML test ==="
     if [ $TOOLS_PATH/travis_run_tests ]; then
       if [ "$action" == "check" ]; then
-        opts=$(inherits_travis_opts "Knrv")
+        opts=$(inherits_travis_opts "K" "T")
       elif [ "$action" == "test" ]; then
-        opts=$(inherits_travis_opts "Tnrv")
+        opts=$(inherits_travis_opts "T" "T")
       else
-        opts=$(inherits_travis_opts "KTnrv")
+        opts=$(inherits_travis_opts "KT" "T")
       fi
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       sts=$?
@@ -81,7 +81,7 @@ process_local() {
       sts=127
     fi
     if [ $sts -eq $STS_SUCCESS -a "$action" != "check" -a "$action" != "test" ]; then
-      opts=$(inherits_travis_opts "jnqv")
+      opts=$(inherits_travis_opts "" "A")
       run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     fi
@@ -604,7 +604,7 @@ process_yaml_run_cmd() {
 process_yaml() {
 # process_yaml ()
     local sts=$STS_SUCCESS
-    local i s p X
+    local i s p v X
     local line lne line1 lne1
     if [ "$action" == "chkconfig" ]; then
       YML_FILE=$TOOLS_PATH/chkconfig.yml
@@ -642,7 +642,10 @@ process_yaml() {
       done
       run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
       if [ $sts -eq $STS_SUCCESS ]; then
-        run_traced "alias pip=\"pip --user $USER\""
+        v=$(pip --version|grep -Eo [0-9]+|head -n1)
+        if [ $v -ge 7 ]; then
+          run_traced "alias pip=\"pip --user $USER\""
+        fi
         if [ ${opt_virt:-0} -gt 0 ]; then
           create_virtual_env
         fi

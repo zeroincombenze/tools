@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.75
+#__version__=0.1.75.4
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -36,7 +36,6 @@ opts_travis() {
       repository="local/"
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
-    # PKGNAME=$(basename $PKGPATH)
     set_pkgname $PKGPATH
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
@@ -53,111 +52,153 @@ opts_travis() {
 }
 
 inherits_travis_opts() {
-# inherits_travis_opts(opts_enables)
-  local opts=
-  if [ -z "$1" ]; then
-    local e=nv
-  else
-    local e=$1
-  fi
-  if [ $(echo $TOOLS_PATH|grep -v "/maintainer-quality-tools/"  2>/dev/null) ]; then
-    if [[ $e =~ B ]]; then
-      opts="${opts}B"
+# inherits_travis_opts(opts_enables app)
+# app: After_test,Distribution,Emulator,Nightly,Please,Test,pep8
+    local opts=
+    local o
+    if [ -z "$1" ]; then
+      local e=
+    else
+      local e=$1
     fi
-    if [[ $e =~ C ]]; then
-      opts="${opts}C"
+    declare -A A
+    A[A]="jnqv"
+    A[D]="CcdFfnPqRv"
+    A[E]="cdjmnqrv"
+    A[N]="CKnOR"
+    A[P]="cdfjmnOqruv"
+    A[T]="cKjnPqrTv"
+    A[8]="dnquv"
+    if [ -n "$2" ]; then
+      for o in C c d F f K j m n O P q R r T u v; do
+        if [[ ${A[$2]} =~ $o ]]; then
+          if [ "$o" == "C" -a "$opt_cpush" == "-$o" ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "d" -a ${opt_diff:-0} -gt 0 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "F" -a "$opt_cpush" == "-$o" ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "f" -a ${opt_force:-0} -gt 0 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "j" -a ${opt_dprj:-0} -gt 0 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "n" -a ${opt_dry_run:-0} -gt 0 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "q" -a ${opt_verbose:-1} -eq 0 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "R" -a "$opt_cpush" == "-$o" ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "r" -a ${opt_r:-0} -eq 1 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "u" -a ${opt_uop:-0} -eq 1 ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "v" -a ${opt_verbose:-0} -gt 0 ]; then
+            opts="${opts}$o"
+          elif [[ $e =~ $o ]]; then
+            opts="${opts}$o"
+          fi
+        fi
+      done
     fi
-    if [[ $e =~ F ]]; then
-      opts="${opts}F"
-    fi
-    if [[ $e =~ K ]]; then
-      opts="${opts}K"
-    fi
-    if [[ $e =~ P ]]; then
-      opts="${opts}P"
-    fi
-    if [[ $e =~ m ]]; then
-      opts="${opts}m"
-    fi
-    if [[ $e =~ R ]]; then
-      opts="${opts}R"
-    fi
-    if [[ $e =~ P ]]; then
-      opts="${opts}P"
-    fi
-    if [[ $e =~ T ]]; then
-      opts="${opts}T"
-    fi
-    if [[ $e =~ d ]]; then
-      if [ ${opt_diff:-0} -gt 0 ]; then
-        opts="${opts}d"
+
+    # if [ $(echo $TOOLS_PATH|grep -v "/maintainer-quality-tools/"  2>/dev/null) ]; then
+      # if [[ $e =~ B ]]; then
+      #   opts="${opts}B"
+      # fi
+      # if [[ $e =~ C ]]; then
+      #   opts="${opts}C"
+      # fi
+      # if [[ $e =~ F ]]; then
+      #   opts="${opts}F"
+      # fi
+      # if [[ $e =~ K ]]; then
+      #   opts="${opts}K"
+      # fi
+      # if [[ $e =~ P ]]; then
+      #   opts="${opts}P"
+      # fi
+      # if [[ $e =~ m ]]; then
+      #   opts="${opts}m"
+      # fi
+      # if [[ $e =~ R ]]; then
+      #   opts="${opts}R"
+      # fi
+      # if [[ $e =~ T ]]; then
+      #   opts="${opts}T"
+      # fi
+      # if [[ $e =~ d ]]; then
+      #   if [ ${opt_diff:-0} -gt 0 ]; then
+      #     opts="${opts}d"
+      #   fi
+      # fi
+      # if [[ $e =~ j ]]; then
+      #   if [ ${opt_dprj:-0} -gt 0 ]; then
+      #     opts="${opts}j"
+      #   fi
+      # fi
+      # if [[ $e =~ n ]]; then
+      #   if [ ${opt_dry_run:-0} -gt 0 ]; then
+      #     opts="${opts}n"
+      #   fi
+      # fi
+      # if [[ $e =~ q ]]; then
+      #   if [ ${opt_verbose:-0} -eq 0 ]; then
+      #     opts="${opts}q"
+      #   fi
+      # fi
+      # if [[ $e =~ r ]]; then
+      #   if [ ${opt_r:-0} -gt 0 ]; then
+      #     opts="${opts}r"
+      #   fi
+      # fi
+      # if [[ $e =~ u ]]; then
+      #   if [ ${opt_uop:-0} -gt 0 ]; then
+      #     opts="${opts}u"
+      #   fi
+      # fi
+      # if [[ $e =~ v ]]; then
+      #   if [ ${opt_verbose:-0} -gt 0 ]; then
+      #     opts="${opts}v"
+      #   fi
+      # fi
+      # if [[ $e =~ c ]]; then
+      #   if [ -n "$opt_conf" ]; then
+      #     opts="${opts}c$TCONF"
+      #   fi
+      # fi
+    # else
+    if [ "$2" == "T" ]; then
+      if [[ $e =~ [BK] ]]; then
+        export BASH_CHECK="1"
+      fi
+      if [[ $e =~ [PK] ]]; then
+        export LINT_CHECK="1"
+      fi
+      if [[ $e =~ T ]]; then
+        export TEST_CHECK="1"
+      fi
+      if [[ $e =~ n ]]; then
+        if [ ${opt_dry_run:-0} -gt 0 ]; then
+          export MQT_DRY_RUN="1"
+        fi
+      fi
+      if [[ $e =~ q ]]; then
+        if [ ${opt_verbose:-0} -eq 0 ]; then
+          export MQT_VERBOSE_MODE="0"
+        fi
+      fi
+      if [[ $e =~ v ]]; then
+        if [ ${opt_verbose:-0} -gt 0 ]; then
+          export MQT_VERBOSE_MODE="1"
+        fi
       fi
     fi
-    if [[ $e =~ j ]]; then
-      if [ ${opt_dprj:-0} -gt 0 ]; then
-        opts="${opts}j"
-      fi
+    if [ -n "$opts" ]; then
+      opts="-${opts}"
     fi
-    if [[ $e =~ n ]]; then
-      if [ ${opt_dry_run:-0} -gt 0 ]; then
-        opts="${opts}n"
-      fi
-    fi
-    if [[ $e =~ q ]]; then
-      if [ ${opt_verbose:-0} -eq 0 ]; then
-        opts="${opts}q"
-      fi
-    fi
-    if [[ $e =~ r ]]; then
-      if [ ${opt_r:-0} -gt 0 ]; then
-        opts="${opts}r"
-      fi
-    fi
-    if [[ $e =~ u ]]; then
-      if [ ${opt_uop:-0} -gt 0 ]; then
-        opts="${opts}u"
-      fi
-    fi
-    if [[ $e =~ v ]]; then
-      if [ ${opt_verbose:-0} -gt 0 ]; then
-        opts="${opts}v"
-      fi
-    fi
-    if [[ $e =~ c ]]; then
-      if [ -n "$opt_conf" ]; then
-        opts="${opts}c$TCONF"
-      fi
-    fi
-  else
-    if [[ $e =~ [BK] ]]; then
-      export BASH_CHECK="1"
-    fi
-    if [[ $e =~ [PK] ]]; then
-      export LINT_CHECK="1"
-    fi
-    if [[ $e =~ T ]]; then
-      export TEST_CHECK="1"
-    fi
-    if [[ $e =~ n ]]; then
-      if [ ${opt_dry_run:-0} -gt 0 ]; then
-        export MQT_DRY_RUN="1"
-      fi
-    fi
-    if [[ $e =~ q ]]; then
-      if [ ${opt_verbose:-0} -eq 0 ]; then
-        export MQT_VERBOSE_MODE="0"
-      fi
-    fi
-    if [[ $e =~ v ]]; then
-      if [ ${opt_verbose:-0} -gt 0 ]; then
-        export MQT_VERBOSE_MODE="1"
-      fi
-    fi
-  fi
-  if [ -n "$opts" ]; then
-    opts="-${opts}"
-  fi
-  echo "$opts"
+    echo "$opts"
 }
 
 init_travis() {
@@ -397,13 +438,15 @@ drop_virtual_env() {
 
 prepare_env_travis() {
     local action="$1"
-    if [ ${opt_r:-0} -gt 0 ]; then
-      if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-        run_traced "export PATH=$TOOLS_PATH:$PATH"
-      fi
-    elif [ "$2" == "-r" ]; then
-      if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-        run_traced "export PATH=$TOOLS_PATH:$PATH"
+    if [[ $action =~ (check|test|all) ]]; then
+      if [ ${opt_r:-0} -gt 0 ]; then
+        if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          run_traced "export PATH=$TOOLS_PATH:$PATH"
+        fi
+      elif [ "$2" == "-r" ]; then
+        if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          run_traced "export PATH=$TOOLS_PATH:$PATH"
+        fi
       fi
     fi
     if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
@@ -548,6 +591,8 @@ set_pkgpath() {
         if [ "$(basename $x)" == "$PKGPATH" ]; then
           PKGPATH=$x
         fi
+      elif [ "$PKGPATH" == "OCB" ]; then
+        PKGPATH=$PWD
       fi
     else
       PKGPATH=$(readlink -e $PKGPATH)
@@ -597,12 +642,6 @@ install_dev() {
       if [ ! -d ~/tools/travis_emulator ]; then
         mkdir -p ~/tools/travis_emulator
       fi
-      if [ ! -d ~/7.0 ]; then
-        mkdir -p ~/7.0
-      fi
-      if [ ! -d ~/8.0 ]; then
-        mkdir -p ~/8.0
-      fi
     fi
 }
 
@@ -642,7 +681,7 @@ update_dev() {
             if [ $? -ne 0 ]; then
               # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
               # ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$PKGNAME/$x $XDPATH/$x
-              run_traced "cp $opts_verbose $PKGPATH/$PKGNAME/$x $XDPATH/$x"
+              run_traced "cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"
               if [ -x $PKGPATH/$PKGNAME/$x ]; then
                 v1=$($PKGPATH/$PKGNAME/$x -V)
                 v2=$($XDPATH/$x -V)
@@ -661,8 +700,9 @@ update_dev() {
           elif [ ${opt_fetch:-0} -eq 0 ]; then
              diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
              if [ $? -ne 0 ]; then
-               if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"; fi
-               ((${opt_dry_run:-0}))||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/
+               # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"; fi
+               # ((${opt_dry_run:-0}))||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/
+               run_traced "cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"
              fi
           fi
         done
@@ -676,10 +716,11 @@ update_dev() {
                 diff -rq $XLDF $PKGPATH/$PKGNAME/$x ~/bin/$x
               fi
             elif [ ${opt_fetch:-0} -gt 0 ]; then
-              true
+              :
             else
-              if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
-              ((${opt_dry_run:-0}))||cp $PKGPATH/$PKGNAME/$x ~/bin/$x
+              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
+              # ((${opt_dry_run:-0}))||cp $PKGPATH/$PKGNAME/$x ~/bin/$x
+              run_traced "cp $PKGPATH/$PKGNAME/$x ~/bin/$x"
             fi
           fi
         done
@@ -758,7 +799,14 @@ robocopy_init() {
       if [ "$1" != "travis_emulator" ]; then
         a_append "_travis" ""
       fi
-      a_append "$2" "/"
+      if [ "$2" == "OCB" ]; then
+        local p=$(echo $PWD|grep -Eo "(v7|7.0|8.0|9.0|10.0)"|head -n1)
+        if [ -n "$p" ]; then
+          a_append "$p" "/"
+        fi
+      else
+        a_append "$2" "/"
+      fi
       a_append "conf" "/"
       if [ ${opt_fetch:-0} -eq 0 ]; then
          a_append "README.rst" "/"
@@ -849,8 +897,8 @@ robocopy() {
             local optrsync="-abzhe"
           fi
           local optssh="$3"
-          echo "\$ rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
-          rsync $opts_dry_run $optrsync "$optssh" $opts_upd --del --copy-links $XLFS $ff $2$v
+          # echo "\$ rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
+          run_traced "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
         else
           if [ ${opt_verbose:-0} -gt 0 ]; then
             local optrsync="-abv"
@@ -858,22 +906,24 @@ robocopy() {
             local optrsync="-ab"
           fi
           local optssh=""
-          echo "\$ rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
-          rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v
+          # echo "\$ rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
+          run_traced "rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
         fi
       else
         if [ "${3:0:3}" == "ssh" ]; then
           local optssh="${3:3}"
-          echo "((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2"
-          ((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2
+          # echo "((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2"
+          # ((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2
+          run_traced "scp -Bp $optssh $ff $2"
         else
           if [ ! -d "$2" ]; then
             local v=
           fi
           diff -q $ff $2$v &>/dev/null
           if [ $? -ne 0 ]; then
-            echo "${opt_dry_run:-0}||cp -L $ff $2$v"
-            ((${opt_dry_run:-0}))||cp -L $ff $2$v
+            # echo "${opt_dry_run:-0}||cp -L $ff $2$v"
+            # ((${opt_dry_run:-0}))||cp -L $ff $2$v
+            run_traced "cp -L $ff $2$v"
           fi
         fi
       fi

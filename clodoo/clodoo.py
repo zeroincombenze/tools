@@ -29,6 +29,7 @@ import sys
 from os0 import os0
 import time
 from datetime import datetime, date, timedelta
+import calendar
 import oerplib
 import re
 import csv
@@ -44,7 +45,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.26"
+__version__ = "0.2.69.28"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -976,46 +977,40 @@ def act_check_partners(oerp, ctx):
 def act_set_periods(oerp, ctx):
     msg = u"Set account periods "
     msg_log(ctx, ctx['level'], msg)
-    company_id = ctx['company_id']
     model = 'account.fiscalyear'
-    period_ids = oerp.search(model,
-                             [('company_id', '=', company_id)])
-    last_start = date(1970, 1, 1)
-    last_stop = date(1970, 12, 31)
-    last_name = ''
-    periods_ok = False
-    valid = False
-    for period_id in period_ids:
-        period = oerp.browse(model, period_id)
-        name = period.name
-        date_start = period.date_start
-        if date_start > last_start:
-            last_start = date_start
-            valid = True
-            last_name = name
-        date_stop = period.date_stop
-        if date_stop > last_stop:
-            last_stop = date_stop
-        if date.today() >= date_start and date.today() <= date_stop:
-            periods_ok = True
-    if not periods_ok and valid:
-        date_start = last_stop + timedelta(1)
-        date_stop = date(last_stop.year + 1,
-                         last_stop.month,
-                         last_stop.day)
-        n = (last_stop.year + 1) % 100
-        o = last_stop.year % 100
-        name = last_name.replace(str(o), str(n))
-        n = o
-        o = (last_stop.year - 1) % 100
-        name = name.replace(str(o), str(n))
-        oerp.create(model, {'name': name,
-                            'code': name,
-                            'date_start': str(date_start),
-                            'date_stop': str(date_stop),
-                            'company_id': company_id})
-        msg = u"Added period %s" % name
+    company_id = ctx['company_id']
+    fiscalyear_id, process_it, last_name, last_start, last_stop = \
+        read_last_fiscalyear(oerp, company_id, ctx)
+    if fiscalyear_id == 0 and process_it:
+        name, date_start, date_stop = \
+            evaluate_date_n_name(oerp,
+                                 last_name,
+                                 last_start,
+                                 last_stop,
+                                 'year',
+                                 ctx)
+        fiscal_year_id = oerp.create(model, {'name': name,
+                                             'code': name,
+                                             'date_start': str(date_start),
+                                             'date_stop': str(date_stop),
+                                             'company_id': company_id})
+        msg = u"Added fiscalyear %s" % name
         msg_log(ctx, ctx['level'], msg)
+        add_periods(oerp,
+                    company_id,
+                    fiscal_year_id,
+                    last_name,
+                    last_start,
+                    last_stop,
+                    ctx)
+    elif process_it:
+        add_periods(oerp,
+                    company_id,
+                    fiscalyear_id,
+                    last_name,
+                    last_start,
+                    last_stop,
+                    ctx)
     return STS_SUCCESS
 
 
@@ -1222,6 +1217,102 @@ def act_check_balance(oerp, ctx):
                                                       partner_obj.name,
                                                       acc_partners[kk])
     return STS_SUCCESS
+
+
+def read_last_fiscalyear(oerp, company_id, ctx):
+    model = 'account.fiscalyear'
+    fiscalyear_ids = oerp.search(model,
+                                 [('company_id', '=', company_id)])
+    last_start = date(1970, 1, 1)
+    last_stop = date(1970, 12, 31)
+    last_name = ''
+    valid_fiscalyear_id = 0
+    process_it = False
+    for fiscalyear_id in fiscalyear_ids:
+        fiscalyear = oerp.browse(model, fiscalyear_id)
+        name = fiscalyear.name
+        date_start = fiscalyear.date_start
+        date_stop = fiscalyear.date_stop
+        ids = oerp.search('account.period',
+                          [('company_id', '=', company_id),
+                           ('date_start', '>=', str(date_start)),
+                           ('date_stop', '<=', str(date_stop))])
+        if date.today() >= date_start and date.today() <= date_stop:
+            valid_fiscalyear_id = fiscalyear_id
+        elif len(ids) == 0:
+            valid_fiscalyear_id = fiscalyear_id
+        else:
+            if date_start > last_start:
+                last_start = date_start
+                process_it = True
+                last_name = name
+            if date_stop > last_stop:
+                last_stop = date_stop
+    return valid_fiscalyear_id, process_it, last_name, last_start, last_stop
+
+
+def add_periods(oerp, company_id, fiscalyear_id,
+                last_name, last_start, last_stop, ctx):
+    model = 'account.period'
+    period_ids = oerp.search(model,
+                             [('company_id', '=', company_id),
+                              ('date_start', '>=', str(last_start)),
+                              ('date_stop', '<=', str(last_stop))])
+    for period_id in period_ids:
+        period = oerp.browse(model, period_id)
+        name = period.name
+        date_start = period.date_start
+        date_stop = period.date_stop
+        special = period.special
+        name, date_start, date_stop = \
+            evaluate_date_n_name(oerp,
+                                 name,
+                                 date_start,
+                                 date_stop,
+                                 'period',
+                                 ctx)
+        ids = oerp.search(model,
+                          [('company_id', '=', company_id),
+                           ('date_start', '=', str(date_start)),
+                           ('date_stop', '=', str(date_stop)),
+                           ('special', '=', special)])
+        if len(ids) == 0:
+            oerp.create(model, {'name': name,
+                                'code': name,
+                                'fiscalyear_id': fiscalyear_id,
+                                'date_start': str(date_start),
+                                'date_stop': str(date_stop),
+                                'special': special,
+                                'company_id': company_id})
+            msg = u"Added period %s" % name
+            msg_log(ctx, ctx['level'], msg)
+
+
+def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
+    if yp == 'year':
+        date_start = last_stop + timedelta(1)
+    else:
+        if last_start.day >= 28:
+            day = calendar.monthrange(last_start.year + 1, last_start.month)[1]
+        else:
+            day = last_start.day
+        date_start = date(last_start.year + 1,
+                          last_start.month,
+                          day)
+    if last_stop.day >= 28:
+        day = calendar.monthrange(last_stop.year + 1, last_stop.month)[1]
+    else:
+        day = last_stop.day
+    date_stop = date(last_stop.year + 1,
+                     last_stop.month,
+                     day)
+    n = (last_stop.year + 1) % 100
+    o = last_stop.year % 100
+    name = last_name.replace(str(o), str(n))
+    n = o
+    o = (last_stop.year - 1) % 100
+    name = name.replace(str(o), str(n))
+    return name, date_start, date_stop
 
 
 def act_set_4_cscs(oerp, ctx):
