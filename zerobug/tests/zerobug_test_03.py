@@ -27,7 +27,7 @@
 import sys
 from zerobug import Z0test
 
-__version__ = "0.1.9"
+__version__ = "0.1.9.1"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -51,6 +51,8 @@ class RegressionTest():
         else:
             sts = self.Z.sanity_check('-e', full=z0ctx)
         return sts
+
+
 #
 # Run main if executed as a script
 if __name__ == "__main__":

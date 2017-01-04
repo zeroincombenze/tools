@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.75.4
+#__version__=0.1.76
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -551,7 +551,8 @@ conf_default() {
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
     set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
     set_cfg_def "RDLIST__travis_emulator" "_travis/"
-    set_cfg_def "RFLIST__z0lib" "Makefile z0testrc"
+    set_cfg_def "RFLIST__z0lib" "Makefile"
+    set_cfg_def "RFLIST__zerobug" "z0testrc"
     set_cfg_def "RFLIST__clodoo" "clodoo.py clodoocore.py clodoolib.py"
     set_cfg_def "RFLIST__z0tester" "z0testercode.py"
     if [ "$HOSTNAME" == "$DEV_HOST" ]; then

@@ -21,8 +21,30 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.83
+__version__=0.1.84
 
+
+Z0BUG_setup() {
+    LCLTEST_RMDIR=
+    for VERSION in 8.0 9.0 10.0; do
+      if [ ! -d ~/$VERSION ]; then
+        LCLTEST_RMDIR="$LCLTEST_RMDIR $VERSION"
+        mkdir -p ~/$VERSION
+        mkdir -p ~/$VERSION/l10n-italy
+        mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries
+      fi
+    done
+}
+
+Z0BUG_teardown() {
+    for VERSION in 8.0 9.0 10.0; do
+      if [[ "$LCLTEST_RMDIR" =~ $VERSION ]]; then
+        rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries
+        rm -fR ~/$VERSION/l10n-italy
+        rm -fR ~/$VERSION
+      fi
+    done
+}
 
 testpath () {
   if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -157,5 +179,7 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
+Z0BUG_setup
 Z0BUG_main_file "" ""
+Z0BUG_teardown
 exit $?

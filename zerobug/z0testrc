@@ -52,10 +52,12 @@
 # LOGFN:          real trace log file name from switch                     "-l"
 # WLOGCMD:        oveerride opt_echo; may be None, 'echo', 'echo-1' or 'echo-0'
 #
-# Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
-# This software is free software under GNU Affero GPL3
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-__version__=0.2.4
+
+__version__=0.2.5
 
 export opt_dry_run
 export ctr
@@ -438,8 +440,8 @@ exec_tests_4_count() {
         fi
         Z0BUG_ctr_list="$Z0BUG_ctr_list $ctr"
       fi
-      dbgmsg " let testctr=$testctr+$ctr"
-      let testctr="$testctr+$ctr"
+      dbgmsg " let testctr=$testctr+${ctr:-0}"
+      let testctr="$testctr+${ctr:-0}"
     done
     restore_options
     ctr=$testctr

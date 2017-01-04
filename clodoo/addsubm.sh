@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME" "_travis")
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.26.1
+__version__=0.1.28
 
 set_dstpath() {
 #set_dstpath(modname ver)

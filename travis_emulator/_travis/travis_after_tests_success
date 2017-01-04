@@ -5,40 +5,32 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -f /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "$HOME/tools/z0lib" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
-if [ -f $TDIR/travisrc ]; then
-. $TDIR/travisrc
-elif [ -f $TDIR/../travisrc ]; then
-. $TDIR/../travisrc
-elif [ -f ./travisrc ]; then
-. ./travisrc
-elif [ -e ../tests/travisrc ]; then
-. ../tests/travisrc
-elif [ -f ~/travisrc ]; then
-. ~/travisrc
-else
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME/tools/travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.10
+__version__=0.1.11
 
 
 OPTOPTS=(h        j        n            q           t         V           v)

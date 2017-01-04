@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.4"
+__version__ = "0.2.4.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -597,14 +597,17 @@ class Z0test(object):
     """The command line program to execute all tests in professional way.
     """
 
-    def __init__(self, argv=None, id=None, version=None):
+    def __init__(self, argv=None, id=None, version=None, autorun=False):
         # import pdb
         # pdb.set_trace()
+        self.autorun = autorun
         this_fqn = inspect.stack()[1][1]
         if argv is None:
             argv = sys.argv[1:]
             if len(sys.argv) > 0:
                 this_fqn = sys.argv[0]
+        else:
+            self.autorun = True
         this_fqn = os.path.abspath(this_fqn)
         this = os0.nakedname(os.path.basename(this_fqn))
         if this == "__init__":
@@ -633,13 +636,18 @@ class Z0test(object):
                 id = id[0:-3]
             if id[-5:] == '_test':
                 id = id[0:-5]
+        else:
+            self.autorun = True
         self.module_id = id
         # If auto regression test is executing
         self.def_tlog_fn = os.path.join(self.test_dir,
                                         self.module_id + "_test.log")
         self.ctr_list = []
-        # self.ctx = self.parseoptest(argv,
-        #                            version=version)
+        if self.autorun:
+            self.ctx = self.parseoptest(argv,
+                                        version=version)
+            sts = self.main_file()
+            sys.exit(sts)
 
     def create_parser(self, version, ctx):
         """Standard test option parser; same funcionality of bash version
@@ -1331,5 +1339,6 @@ class Z0test(object):
         del z0ctx
         return sts
 
-main = Z0test
+
+main = Z0test(autorun=True)
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

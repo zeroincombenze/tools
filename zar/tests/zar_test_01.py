@@ -28,7 +28,7 @@ import sys
 from zerobug import Z0test
 
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 MODULE_ID = 'zar'
 
@@ -57,6 +57,8 @@ class Test():
         res_value = True
         sts = self.Z.test_result(ctx, msg, test_value, res_value)
         return sts
+
+
 #
 # Run main if executed as a script
 if __name__ == "__main__":

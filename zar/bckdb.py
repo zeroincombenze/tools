@@ -39,7 +39,7 @@ import re
 from zarlib import parse_args
 
 
-__version__ = "2.1.25.14"
+__version__ = "2.1.25.15"
 
 
 def version():
@@ -490,6 +490,7 @@ def main():
 
     os0.wlog("Backup DB ended.")
     return sts
+
 
 if __name__ == "__main__":
     sts = main()

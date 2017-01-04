@@ -1,29 +1,28 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
+#
 # Purge backupped postgres DB
 #
-# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -e $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -e ./z0librc ]; then
-. ./z0librc
-elif [ -e ../z0librc ]; then
-. ../z0librc
-elif [ -e ~/z0librc ]; then
-. ~/z0librc
-elif [ -e /etc/z0librc ]; then
-. /etc/z0librc
-else
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit $STS_FAILED
+  exit 2
 fi
 
-__version__="1.3.12.1"
+__version__="1.3.13.3"
 
 
 detached_login() {
@@ -125,7 +124,7 @@ wlog "DEV=$HOST_DEV"
 if [ -z "$dbsel" ]; then
   dbsel="$(get_cfg_value 0 dbfilter)"
 fi
-for sfx in A B; do
+for sfx in A B C D; do
   if [ "$HOSTNAME" == "$HOST_PRD" ]; then
     eval DB$sfx="$(get_cfg_value 0 PRD_DB${sfx}_filter)"
     eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
@@ -163,9 +162,13 @@ dblist=""
 if [ $opt_dry_run -gt 0 ]; then
   echo "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
   echo "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
+  echo "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
+  echo "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
 else
   wlog "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
   wlog "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
+  wlog "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
+  wlog "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
 fi
 ctr=0
 for fn in $(dir $DBCKDIR/*.sql)
@@ -189,6 +192,22 @@ do
       f=1
     fi
     range=$NCB
+  elif [[ $db =~ $DBC ]]; then
+    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+      :
+    else
+      dblist="$dblist $db"
+      f=1
+    fi
+    range=$NCC
+  elif [[ $db =~ $DBD ]]; then
+    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+      :
+    else
+      dblist="$dblist $db"
+      f=1
+    fi
+    range=$NCD
   fi
   if [ $f -gt 0 -a -n "$range" ]; then
     for i in {90..1}; do
@@ -227,6 +246,12 @@ for i in {1..12}; do
     elif [[ $db =~ $DBB ]]; then
       f=1
       range=$NAB
+    elif [[ $db =~ $DBC ]]; then
+      f=1
+      range=$NAC
+    elif [[ $db =~ $DBD ]]; then
+      f=1
+      range=$NAD
     fi
     if [ $f -gt 0 -a -n "$range" ]; then
       if [ $d -ge $range ]; then

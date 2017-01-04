@@ -45,7 +45,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.28"
+__version__ = "0.2.69.30"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1973,39 +1973,9 @@ def remove_all_account_records(oerp, ctx):
         company_id = ctx['company_id']
         sts = STS_SUCCESS
         if sts == STS_SUCCESS:
-            msg = u"Searching for vouchers to delete"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'account.voucher.line'
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            if len(record_ids):
-                try:
-                    oerp.execute(model,
-                                 "cancel_voucher",
-                                 record_ids)
-                except:
-                    msg = u"Cannot unreconcile vouchers"
-                    msg_log(ctx, ctx['level'], msg)
-                    sts = STS_FAILED
-        if sts == STS_SUCCESS:
-            msg = u"Removing all vouchers"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'account.voucher'
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            try:
-                oerp.unlink(model,
-                            record_ids)
-            except:
-                msg = u"Cannot remove vouchers"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
-        if sts == STS_SUCCESS:
+            model = 'account.invoice'
             msg = u"Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
-            model = 'account.invoice'
             record_ids = oerp.search(model, [('company_id',
                                               '=',
                                               company_id),
@@ -2032,6 +2002,39 @@ def remove_all_account_records(oerp, ctx):
                 msg_log(ctx, ctx['level'], msg)
                 sts = STS_FAILED
         if sts == STS_SUCCESS:
+            model = 'account.move'
+            msg = u"Searching for moves and payments to delete"
+            msg_log(ctx, ctx['level'], msg)
+            unreconcile_payments(oerp, ctx)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            for record_id in record_ids:
+                try:
+                    oerp.execute(model,
+                                 "button_cancel",
+                                 [record_id])
+                except:
+                    msg = u"Cannot delete payment %d" % record_id
+                    msg_log(ctx, ctx['level'], msg)
+        if sts == STS_SUCCESS:
+            model = 'account.voucher'
+            msg = u"Searching for vouchers to delete"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            for record_id in record_ids:
+                try:
+                    oerp.execute(model,
+                                 "cancel_voucher",
+                                 [record_id])
+                except:
+                    msg = u"Cannot unreconcile vouchers %d" % record_id
+                    msg_log(ctx, ctx['level'], msg)
+                    sts = STS_FAILED
+        if sts == STS_SUCCESS:
+            model = 'account.invoice'
             msg = u"Removing all invoices"
             msg_log(ctx, ctx['level'], msg)
             record_ids = oerp.search(model, [('company_id',
@@ -2050,43 +2053,41 @@ def remove_all_account_records(oerp, ctx):
             record_ids = oerp.search(model, [('company_id',
                                               '=',
                                               company_id)])
-            try:
-                oerp.unlink(model,
-                            record_ids)
-            except:
-                msg = u"Cannot remove invoices"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
-        if sts == STS_SUCCESS:
-            msg = u"Searching for moves and payments to delete"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'account.move'
-            unreconcile_payments(oerp, ctx)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            if len(record_ids):
+            for record_id in record_ids:
                 try:
-                    oerp.execute(model,
-                                 "button_cancel",
-                                 record_ids)
+                    oerp.unlink(model,
+                                [record_id])
                 except:
-                    msg = u"Cannot delete payments"
+                    msg = u"Cannot remove invoice %d " % record_id
                     msg_log(ctx, ctx['level'], msg)
-                    sts = STS_FAILED
         if sts == STS_SUCCESS:
+            model = 'account.move'
             msg = u"Removing all payments"
             msg_log(ctx, ctx['level'], msg)
             record_ids = oerp.search(model, [('company_id',
                                               '=',
                                               company_id)])
-            try:
-                oerp.unlink(model,
-                            record_ids)
-            except:
-                msg = u"Cannot remove moves and payments"
-                msg_log(ctx, ctx['level'], msg)
-                sts = STS_FAILED
+            for record_id in record_ids:
+                try:
+                    oerp.unlink(model,
+                                [record_id])
+                except:
+                    msg = u"Cannot remove move or payment %d" % record_id
+                    msg_log(ctx, ctx['level'], msg)
+        if sts == STS_SUCCESS:
+            model = 'account.voucher'
+            msg = u"Removing all vouchers"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = oerp.search(model, [('company_id',
+                                              '=',
+                                              company_id)])
+            for record_id in record_ids:
+                try:
+                    oerp.unlink(model,
+                                [record_id])
+                except:
+                    msg = u"Cannot remove voucher %d" % record_id
+                    msg_log(ctx, ctx['level'], msg)
     return sts
 
 

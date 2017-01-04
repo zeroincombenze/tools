@@ -57,7 +57,7 @@ import string
 # from zarlib import ZarLib
 from zar.zar.zarlib import ZarLib
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 # Apply for configuration file (True/False)
 APPLY_CONF = False
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -403,6 +403,7 @@ class Restore_Image(ZarLib):
         else:
             self.dict[name] = [key]
         self.xlt[key] = val
+
 
 Restore_Image()
 

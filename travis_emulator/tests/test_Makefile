@@ -1,28 +1,24 @@
-#!/bin/bash
+#! /bin/bash
 # -*- coding: utf-8 -*-
-if [ -f ./z0librc ]; then
-. ./z0librc
-elif [ -f ../z0librc ]; then
-. ../z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-if [ -f ./travisrc ]; then
-. ./travisrc
-  TESTDIR=./tests
-  RUNDIR=./
-elif [ -f ../travisrc ]; then
-. ../travisrc
-  TESTDIR=.
-  RUNDIR=../
-fi
-RUNDIR=$(readlink -e $RUNDIR)
-TESTDIR=$(readlink -e $TESTDIR)
+# Regression tests on travis emulator
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+  fi
+done
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
+Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-#__version__=0.1.76
-# set -x
+__version__=0.1.77
 
 
 test_result () {
