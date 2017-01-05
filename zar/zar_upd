@@ -89,7 +89,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Update zar suite\nacction if issued, may be build|build_last"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then

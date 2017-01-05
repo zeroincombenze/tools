@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.36
+__version__=0.1.37
 
 #
 # General Purpose options:
@@ -707,16 +707,30 @@ do_docs() {
 }
 
 do_publish() {
-#do_publish PKGNAME (svg|docs)
+#do_publish PKGNAME (svg|docs|pypi|testpypi)
     wlog "do_publish $1 $2"
+    local cmd="do_publish_$2"
     sts=$STS_SUCCESS
-    if [ "$2" == "svg" ]; then
-      do_publish_svg "$@"
-    elif [ "$2" == "docs" ]; then
-      do_publish_docs "$@"
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$@"
     else
       echo "Missing object! Use:"
-      echo "> please publish PKGNAME (svg|docs)"
+      echo "> please publish PKGNAME (svg|docs|pypi|testpypi)"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
+do_register() {
+#do_register PKGNAME (pypi|testpypi)
+    wlog "do_register $1 $2"
+    local cmd="do_register_$2"
+    sts=$STS_SUCCESS
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$@"
+    else
+      echo "Missing object! Use:"
+      echo "> please register PKGNAME (pypi|testpypi)"
       sts=$STS_FAILED
     fi
     return $sts
@@ -800,6 +814,94 @@ do_publish_docs() {
     return $sts
 }
 
+do_publish_pypi() {
+#do_publish_pypi pgkname
+    local sts=$STS_SUCCESS
+    local rpt=pypi
+    local n p s v
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      p=$(find dist -name "$n*$v*tar.gz")
+      if [ -z "$p" -o $opt_force -gt 0 ]; then
+        run_traced "python setup.py build sdist"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      p=$(find dist -name "$n*$v*tar.gz")
+      run_traced "twine upload $p -r $rpt"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+
+do_publish_testpypi() {
+#do_publish_testpypi pgkname
+    local sts=$STS_SUCCESS
+    local rpt=testpypi
+    local n p s v
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      p=$(find dist -name "$n*$v*tar.gz")
+      if [ -z "$p" -o $opt_force -gt 0 ]; then
+        run_traced "python setup.py build sdist"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      p=$(find dist -name "$n*$v*tar.gz")
+      run_traced "twine upload $p -r $rpt"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+
+do_register_pypi() {
+#do_register_pypi pgkname
+    local sts=$STS_SUCCESS
+    local rpt=testpypi
+    local n p s v
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      p=$(find dist -name "$n*$v*.whl")
+      if [ -z "$p" -o $opt_force -gt 0 ]; then
+        run_traced "python setup.py bdist_wheel --universal"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      p=$(find dist -name "$n*$v*.whl")
+      run_traced "twine register $p -r $rpt"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+
+do_register_testpypi() {
+#do_register_testpypi pgkname
+    local sts=$STS_SUCCESS
+    local rpt=testpypi
+    local n p s v
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      p=$(find dist -name "$n*$v*.whl")
+      if [ -z "$p" -o $opt_force -gt 0 ]; then
+        run_traced "python setup.py bdist_wheel --universal"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+      p=$(find dist -name "$n*$v*.whl")
+      run_traced "twine register $p -r $rpt"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
+
 OPTOPTS=(h        b          c        d        f         j        k        L         m       n           O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1         1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
@@ -809,7 +911,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
  "do diff no real action"\
-  "force copy (if commit o push)"\
+ "force copy (if commit or push) or build (if register or publish)"\
  "execute tests in project dir rather in test dir"\
  "keep coverage statistics in annotate test"\
  "log file name"\

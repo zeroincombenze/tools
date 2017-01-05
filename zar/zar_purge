@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="1.3.13.3"
+__version__="1.3.13.4"
 
 
 detached_login() {
@@ -72,11 +72,11 @@ detached_login() {
     wlog "PATH=$PATH"
 }
 
-OPTOPTS=(h        K        k          l       m        n           U          V           v)
-OPTDEST=(opt_help opt_cron opt_keep   opt_log opt_km   opt_dry_run opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="        "="     "="      "1"         "="        "*>"        1)
-OPTDEFL=(0        0        ""         ""      ""        0           "postgres" ""          0)
-OPTMETA=("help"   "cron"   "# copies" "file" "# copies" "do nothing" "username" "version"   "verbose")
+OPTOPTS=(h        K        k          l       m          n            U          V           v)
+OPTDEST=(opt_help opt_cron opt_keep   opt_log opt_km     opt_dry_run  opt_user   opt_version opt_verbose)
+OPTACTI=(1        1        "="        "="     "="        "1"          "="        "*>"        1)
+OPTDEFL=(0        0        ""         ""      ""         0            "postgres" ""          0)
+OPTMETA=("help"   "cron"   "# copies" "file"  "# copies" "do nothing" "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
  "keep # recent copies of db (max 60)"\
@@ -98,7 +98,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Purge backupped postgres DB"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -113,7 +113,7 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
-wlog "Starting purge backup $__version__ by $USER"
+wlog "Starting purge backup $__version__ by $opt_user"
 
 PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
 DBCKDIR="$PGDIR/backups"
@@ -160,15 +160,15 @@ if [[ "$opt_km" =~ [0-9]+ ]]; then
 fi
 dblist=""
 if [ $opt_dry_run -gt 0 ]; then
-  echo "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
-  echo "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
-  echo "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
-  echo "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
+  [ -n "$DBA" ] && echo "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
+  [ -n "$DBB" ] && echo "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
+  [ -n "$DBC" ] && echo "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
+  [ -n "$DBD" ] && echo "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
 else
-  wlog "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
-  wlog "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
-  wlog "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
-  wlog "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
+  [ -n "$DBA" ] && wlog "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
+  [ -n "$DBB" ] && wlog "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
+  [ -n "$DBC" ] && wlog "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
+  [ -n "$DBD" ] && wlog "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
 fi
 ctr=0
 for fn in $(dir $DBCKDIR/*.sql)

@@ -24,7 +24,7 @@ fi
 # TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 # RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="1.3.21.1"
+__version__="1.3.21.6"
 
 
 detached_login() {
@@ -140,7 +140,7 @@ stop_services() {
     if [ -z "$1" ]; then
       return 1
     fi
-    local x DB tbl res wtm act wfid SVCS SVCS2
+    local c i x DB tbl res wtm act wfid SVCS SVCS2
     DB=$1
     SVCS="$(get_cfg_value 0 services_2_stop)"
     if [ -z "$SVCS" ]; then
@@ -187,10 +187,10 @@ stop_services() {
             tblwf[$tbl]=$wfid
              if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
                # x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
-               x=$(psql -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
+               x=$(psql -AR\| -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
                if [ -n "$x" ]; then
                  svc2run[$tbl]="${svc2run[$tbl]} $x"
-                 svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
+                 # svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
                fi
              fi
           else
@@ -199,9 +199,16 @@ stop_services() {
               tblok[$tbl]="$act"
               if [ "$act" == "exists" -a $MAXC -lt 75 ]; then
                 let MAXC="$MAXC+5"
+              elif [ -z "$2" -a "$act" == "reset_data" ]; then
+                if [ $MAXC -gt 5 ]; then
+                  MAXC=5
+                fi
+                wtm=1
               fi
             fi
-            ((wtm++))
+            if [ -z "$2" -a "$act" != "reset_data" ]; then
+              ((wtm++))
+            fi
           fi
         fi
       done
@@ -215,8 +222,15 @@ stop_services() {
         if [[ " $SVCS2 " =~ [[:space:]]$tbl[[:space:]] ]]; then
           # wlog ".. update $tbl set active=true where id in (${svc2run[$tbl]});"
           # psql -tc "update $tbl set active=true where id in (${svc2run[$tbl]});" $DB
-          wlog ".. update $tbl set active=true where name in (${svc2run[$tbl]});"
-          psql -tc "update $tbl set active=true where name in (${svc2run[$tbl]});" $DB
+          c=$(echo ${svc2run[$tbl]}|awk -F\| '{print NF}')
+          x=
+          i=0
+          while [ $i -lt $c ]; do
+            res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
+            wlog ".. update $tbl set active=true where name='$res';"
+            psql -tc "update $tbl set active=true where name='$res';" $DB
+            ((i++))
+          done
         fi
       fi
     done
@@ -251,7 +265,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Restore/duplicate postgres DB"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$opt_log" ]; then
@@ -270,7 +284,7 @@ if [ $opt_rst -gt 0 ]; then
   stop_services "$olddb"
   exit $?
 fi
-wlog "Starting restore/duplicate $__version__ by $USER"
+wlog "Starting restore/duplicate $__version__ by $opt_user"
 
 DBCKDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4" "backups")
 if [ -z "$DBCKDIR" ]; then
@@ -368,10 +382,10 @@ for NEWDB in ${NEWDBS//,/ }; do
       opt_mail=0
       if [ "$HOSTNAME" == "$HOST_DEV" ]; then
         opt_mail=1
-        wlog "Restored DB is for test because Development Host"
+        wlog "Restored DB is set for test because Development Host"
       elif [[ $NEWDB =~ $TEST_DB ]]; then
         opt_mail=1
-        wlog "Restored DB is for test as classificated"
+        wlog "Restored DB is set for test as classificated"
       fi
     fi
     if [ -z "$opt_name" ]; then

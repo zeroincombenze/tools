@@ -84,7 +84,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.13.1"
+__version__ = "0.2.14"
 
 
 class Os0():
