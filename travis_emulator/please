@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.37
+__version__=0.1.37.1
 
 #
 # General Purpose options:
@@ -612,12 +612,12 @@ do_pythonhosted() {
       return $STS_FAILED
     fi
     local URL=$2
-    if [ "${URL: -2}" != "/" ]; then
+    if [ "${URL: -1}" != "/" ]; then
       local URL=$URL/
     fi
     local TITLE="$3"
     local CWD=$PWD
-    cd $PKGPATH
+    run_traced "cd $PKGPATH"
 cat <<EOF >index.html
 <!DOCTYPE HTML>
    <head>
@@ -632,13 +632,13 @@ cat <<EOF >index.html
    </body>
 </html>
 EOF
-    zip -j pythonhosted-$PKGNAME.zip index.html
+    run_traced "zip -j pythonhosted-$PKGNAME.zip index.html"
     if [ -f index.html ]; then
       rm -f index.html
     fi
     cd $CWD
     if [ -f $PKGPATH/pythonhosted-$PKGNAME.zip ]; then
-      echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypy webpage of project"
+      echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypi webpage of project"
     fi
     return $sts
 }
@@ -799,11 +799,11 @@ do_publish_docs() {
     local sts=$STS_FAILED
     local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
     if [ -d $HTML_DOCS_DIR/$1 ]; then
-      rm -fR $HTML_DOCS_DIR/$1
+      run_traced "rm -fR $HTML_DOCS_DIR/$1"
     fi
     if [ ! -d $HTML_DOCS_DIR/$1 ]; then
-      mkdir -p $HTML_DOCS_DIR/$1
-      chown apache:apache $HTML_DOCS_DIR/$1
+      run_traced "mkdir -p $HTML_DOCS_DIR/$1"
+      run_traced "chown apache:apache $HTML_DOCS_DIR/$1"
     fi
     mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
     local sts=$?
