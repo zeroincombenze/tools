@@ -619,7 +619,31 @@ def act_wep_db(oerp, ctx):
     if sts == STS_SUCCESS:
         sts = remove_all_sales_records(oerp, ctx)
     if sts == STS_SUCCESS:
+        sts = remove_all_marketing_records(oerp, ctx)
+    if sts == STS_SUCCESS:
         sts = remove_all_account_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_hr_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_product_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_partner_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        company_id = ctx['company_id']
+        model = 'res.company'
+        if company_id == 1:
+            oerp.write(model,
+                       [company_id],
+                       {'name': 'Your Company',
+                        'street': '',
+                        'city': ''})
+        else:
+            try:
+                oerp.unlink(model,
+                            [company_id])
+            except:
+                msg = u"Cannot remove %s.%d" % (model, record_id)
+                msg_log(ctx, ctx['level'], msg)
     return sts
 
 
@@ -1978,12 +2002,12 @@ def set_account_type(oerp, ctx):
     return sts
 
 
-def updstate_model_all_records(oerp, model, hide_cid, field_name,
+def setstate_model_all_records(oerp, model, hide_cid, field_name,
                                new_value, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         incr_lev(ctx)
-        msg = u"Searching for %s record to update status" % model
+        msg = u"Searching for records to update status in %s" % model
         msg_log(ctx, ctx['level'], msg)
         if not hide_cid and 'company_id' in ctx:
             company_id = ctx['company_id']
@@ -1997,25 +2021,43 @@ def updstate_model_all_records(oerp, model, hide_cid, field_name,
             record_ids = oerp.search(model, [(field_name,
                                               '!=',
                                               new_value)])
+        num_moves = len(record_ids)
+        move_ctr = 0
         for record_id in record_ids:
-            if model == 'purchase.order' and \
-                    field_name == 'state' and \
-                    new_value == 'cancel':
-                try:
+            msg_burst(ctx['level'], "Upstate ", move_ctr, num_moves)
+            move_ctr += 1
+            try:
+                if model in ('purchase.order', 'sale.order') and \
+                        field_name == 'state' and \
+                        new_value == 'cancel':
                     oerp.execute(model,
                                  "action_cancel",
                                  [record_id])
-                except:
-                    msg = u"Cannot update status of id %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
-            else:
-                try:
+                elif model == 'purchase.requisition' and \
+                        field_name == 'state' and \
+                        new_value == 'cancel':
+                    oerp.execute(model,
+                                 "tender_cancel",
+                                 [record_id])
+                elif model == 'project.task' and \
+                        field_name == 'state' and \
+                        new_value == 'cancelled':
+                    oerp.execute(model,
+                                 "do_cancel",
+                                 [record_id])
+                elif model == 'project.project' and \
+                        field_name == 'state' and \
+                        new_value == 'cancelled':
+                    oerp.execute(model,
+                                 "set_cancel",
+                                 [record_id])
+                else:
                     oerp.write(model,
                                [record_id],
                                {field_name: new_value})
-                except:
-                    msg = u"Cannot update status of id %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            except:
+                msg = u"Cannot update status of %s.%d" % (model, record_id)
+                msg_log(ctx, ctx['level'], msg)
         decr_lev(ctx)
     return sts
 
@@ -2025,7 +2067,7 @@ def reactivate_model_all_records(oerp, model, hide_cid, field_name,
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         incr_lev(ctx)
-        msg = u"Searching for %s record to reactivate" % model
+        msg = u"Searching for records to reactivate in %s" % model
         msg_log(ctx, ctx['level'], msg)
         if not hide_cid and 'company_id' in ctx:
             company_id = ctx['company_id']
@@ -2039,13 +2081,25 @@ def reactivate_model_all_records(oerp, model, hide_cid, field_name,
             record_ids = oerp.search(model, [(field_name,
                                               '=',
                                               sel_value)])
+        num_moves = len(record_ids)
+        move_ctr = 0
         for record_id in record_ids:
+            msg_burst(ctx['level'], "Reactive", move_ctr, num_moves)
+            move_ctr += 1
             try:
-                oerp.write(model,
-                           [record_id],
-                           {field_name: new_value})
+                if model == 'project.project' and \
+                        field_name == 'state' and \
+                        sel_value == 'close' and \
+                        new_value == 'set_open':
+                    oerp.execute(model,
+                                 "set_open",
+                                 [record_id])
+                else:
+                    oerp.write(model,
+                               [record_id],
+                               {field_name: new_value})
             except:
-                msg = u"Cannot reactivate id %d" % record_id
+                msg = u"Cannot reactivate %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
         decr_lev(ctx)
     return sts
@@ -2055,7 +2109,7 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         incr_lev(ctx)
-        msg = u"Searching for %s record to cancel" % model
+        msg = u"Searching for records to cancel in %s" % model
         msg_log(ctx, ctx['level'], msg)
         if not hide_cid and 'company_id' in ctx:
             company_id = ctx['company_id']
@@ -2083,8 +2137,9 @@ def remove_model_all_records(oerp, model, hide_cid, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         incr_lev(ctx)
-        msg = u"Searching for %s record to delete" % model
+        msg = u"Searching for records to delete in %s" % model
         msg_log(ctx, ctx['level'], msg)
+        # where = []
         if not hide_cid and 'company_id' in ctx:
             company_id = ctx['company_id']
             record_ids = oerp.search(model, [('company_id',
@@ -2092,12 +2147,16 @@ def remove_model_all_records(oerp, model, hide_cid, ctx):
                                               company_id)])
         else:
             record_ids = oerp.search(model)
+        num_moves = len(record_ids)
+        move_ctr = 0
         for record_id in record_ids:
+            msg_burst(ctx['level'], "Unlink  ", move_ctr, num_moves)
+            move_ctr += 1
             try:
                 oerp.unlink(model,
                             [record_id])
             except:
-                msg = u"Cannot remove id %d" % record_id
+                msg = u"Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
         decr_lev(ctx)
     return sts
@@ -2114,6 +2173,15 @@ def remove_all_mail_records(oerp, ctx):
             sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'mail.mail'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'mail.notification'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'mail.followers'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'mail.alias'
             sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'fetchmail.server'
@@ -2150,16 +2218,51 @@ def remove_all_purchases_records(oerp, ctx):
         if sts == STS_SUCCESS:
             sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
+            model = 'purchase.requisition'
+            sts = setstate_model_all_records(oerp,
+                                             model,
+                                             False,
+                                             'state',
+                                             'cancel',
+                                             ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
             model = 'purchase.order'
+            sts = setstate_model_all_records(oerp,
+                                             model,
+                                             False,
+                                             'state',
+                                             'cancel',
+                                             ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'product.pricelist.version'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'product.pricelist'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+    return sts
+
+
+def remove_all_sales_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'stock.picking.out'
             sts = reactivate_model_all_records(oerp,
                                                model,
                                                False,
                                                'state',
-                                               'done',
+                                               'cancel',
                                                'draft',
                                                ctx)
         if sts == STS_SUCCESS:
-            sts = updstate_model_all_records(oerp,
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'sale.order'
+            sts = setstate_model_all_records(oerp,
                                              model,
                                              False,
                                              'state',
@@ -2170,159 +2273,139 @@ def remove_all_purchases_records(oerp, ctx):
     return sts
 
 
-def remove_all_sales_records(oerp, ctx):
+def remove_all_project_records(oerp, ctx):
+    sts = STS_SUCCESS
     if not ctx['dry_run']:
-        company_id = ctx['company_id']
-        sts = STS_SUCCESS
         if sts == STS_SUCCESS:
-            model = 'stock.picking.out'
-            msg = u"Searching for pickings to delete"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove picking %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'survey.page'
+            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
-            model = 'sale.order'
-            msg = u"Searching for sale orders to delete"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id),
-                                             ('state',
-                                              '!=',
-                                              'cancel')])
-            for record_id in record_ids:
-                try:
-                    oerp.execute(model,
-                                 "action_cancel",
-                                 [record_id])
-                except:
-                    msg = u"Cannot delete sale order %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
-            msg = u"Removing all sale orders"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove sale order %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'survey.request'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'survey'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'project.task.work'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'project.task'
+            sts = setstate_model_all_records(oerp,
+                                             model,
+                                             False,
+                                             'state',
+                                             'cancelled',
+                                             ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'project.phase'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'project.project'
+            # sts = deactivate_model_all_records(oerp, model, False, ctx)
+            sts = reactivate_model_all_records(oerp,
+                                               model,
+                                               False,
+                                               'state',
+                                               'close',
+                                               'set_open',
+                                               ctx)
+        if sts == STS_SUCCESS:
+            sts = setstate_model_all_records(oerp,
+                                             model,
+                                             False,
+                                             'state',
+                                             'cancelled',
+                                             ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'account.analytic.line'
+            sts = remove_model_all_records(oerp, model, False, ctx)
     return sts
 
 
-def remove_all_project_records(oerp, ctx):
+def remove_all_marketing_records(oerp, ctx):
+    sts = STS_SUCCESS
     if not ctx['dry_run']:
-        company_id = ctx['company_id']
-        sts = STS_SUCCESS
         if sts == STS_SUCCESS:
-            model = 'project.task.work'
-            msg = u"Searching for timesheets to delete"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove timesheet %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'marketing.campaign.workitem'
+            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
-            model = 'project.task'
-            msg = u"Searching for tasks to delete"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id),
-                                             ('state',
-                                              '!=',
-                                              'cancelled')])
-            for record_id in record_ids:
-                try:
-                    oerp.execute(model,
-                                 "do_cancel",
-                                 [record_id])
-                except:
-                    msg = u"Cannot delete task %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'marketing.campaign.segment'
+            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
-            msg = u"Searching for projects to delete"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id),
-                                             ('state',
-                                              '=',
-                                              'close')])
-            for record_id in record_ids:
-                try:
-                    oerp.execute(model,
-                                 "set_open",
-                                 [record_id])
-                except:
-                    msg = u"Cannot reopen project %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id),
-                                             ('state',
-                                              '!=',
-                                              'cancel')])
-            for record_id in record_ids:
-                try:
-                    oerp.execute(model,
-                                 "set_cancel",
-                                 [record_id])
-                except:
-                    msg = u"Cannot delete project %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'marketing.campaign'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
+def remove_all_hr_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
         if sts == STS_SUCCESS:
-            msg = u"Removing all tasks"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'project.task'
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove project %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'hr_timesheet_sheet.sheet.account'
+            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
-            msg = u"Removing all projects"
-            msg_log(ctx, ctx['level'], msg)
-            model = 'project.project'
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove project %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'hr_timesheet_sheet.sheet'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.analytic.timesheet'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.expense.line'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.expense.expense'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.contract'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.holidays'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.payslip'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.attendance'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'hr.applicant'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
+def remove_all_product_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'product.product'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'product.template'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+
+    return sts
+
+
+def remove_all_partner_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'res.partner.bank'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'res.partner'
+            sts = remove_model_all_records(oerp, model, False, ctx)
     return sts
 
 
 def remove_all_account_records(oerp, ctx):
+    sts = STS_SUCCESS
     if not ctx['dry_run']:
         company_id = ctx['company_id']
-        sts = STS_SUCCESS
         if sts == STS_SUCCESS:
             model = 'account.invoice'
             msg = u"Searching for invoices to delete"
@@ -2388,51 +2471,33 @@ def remove_all_account_records(oerp, ctx):
             model = 'account.invoice'
             msg = u"Removing all invoices"
             msg_log(ctx, ctx['level'], msg)
-            sts = updstate_model_all_records(oerp,
+            sts = setstate_model_all_records(oerp,
                                              model,
                                              False,
                                              'internal_number',
                                              '',
                                              ctx)
         if sts == STS_SUCCESS:
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove invoice %d " % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            model = 'account.invoice'
+            sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
             model = 'account.move'
-            msg = u"Removing all payments"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove move or payment %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
             model = 'account.voucher'
-            msg = u"Removing all vouchers"
-            msg_log(ctx, ctx['level'], msg)
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-            for record_id in record_ids:
-                try:
-                    oerp.unlink(model,
-                                [record_id])
-                except:
-                    msg = u"Cannot remove voucher %d" % record_id
-                    msg_log(ctx, ctx['level'], msg)
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'payment.line'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'payment.order'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'account.period'
+            sts = remove_model_all_records(oerp, model, False, ctx)
+        if sts == STS_SUCCESS:
+            model = 'account.fiscalyear'
+            sts = remove_model_all_records(oerp, model, False, ctx)
     return sts
 
 
