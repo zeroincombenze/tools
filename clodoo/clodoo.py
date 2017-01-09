@@ -604,30 +604,33 @@ def act_drop_db(oerp, ctx):
     return sts
 
 
-def act_wep_db(oerp, ctx):
-    """Wep a DB (delete all record but keep res_parter"""
+def act_wep_company(oerp, ctx):
+    """Wep a DB (delete all record of compny but keep res_parter"""
     sts = STS_SUCCESS
-    msg = "Wep DB %s" % ctx['db_name']
+    c_id = ctx['company_id']
+    msg = ident_company(oerp, ctx, c_id)
+    msg = "Wep company %s" % ctx['company_name']
     msg_log(ctx, ctx['level'], msg)
-    sts = remove_all_mail_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_project_records(oerp, ctx)
+        sts = remove_company_mail_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_purchases_records(oerp, ctx)
+        sts = remove_company_project_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_crm_records(oerp, ctx)
+        sts = remove_company_purchases_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_sales_records(oerp, ctx)
+        sts = remove_company_crm_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_marketing_records(oerp, ctx)
+        sts = remove_company_sales_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_account_records(oerp, ctx)
+        sts = remove_company_logistic_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_hr_records(oerp, ctx)
+        sts = remove_company_marketing_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_product_records(oerp, ctx)
+        sts = remove_company_hr_records(oerp, ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_partner_records(oerp, ctx)
+        sts = remove_company_product_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_company_partner_records(oerp, ctx)
     if sts == STS_SUCCESS:
         company_id = ctx['company_id']
         model = 'res.company'
@@ -642,8 +645,45 @@ def act_wep_db(oerp, ctx):
                 oerp.unlink(model,
                             [company_id])
             except:
-                msg = u"Cannot remove %s.%d" % (model, record_id)
+                msg = u"Cannot remove %s.%d" % (model, company_id)
                 msg_log(ctx, ctx['level'], msg)
+                oerp.write(model,
+                           [company_id],
+                           {'name': 'Do not use',
+                            'street': '',
+                            'city': ''})
+    return sts
+
+
+def act_wep_db(oerp, ctx):
+    """Wep a DB (delete all record but keep res_parter"""
+    sts = STS_SUCCESS
+    msg = "Wep DB %s" % ctx['db_name']
+    msg_log(ctx, ctx['level'], msg)
+    if sts == STS_SUCCESS:
+        sts = remove_all_mail_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_project_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_purchases_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_crm_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_sales_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_logistic_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_marketing_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_account_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_hr_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_product_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_partner_records(oerp, ctx)
+    if sts == STS_SUCCESS:
+        sts = remove_all_user_records(oerp, ctx)
     return sts
 
 
@@ -2039,6 +2079,12 @@ def setstate_model_all_records(oerp, model, hide_cid, field_name,
                     oerp.execute(model,
                                  "tender_cancel",
                                  [record_id])
+                elif model == 'account.move' and \
+                        field_name == 'state' and \
+                        new_value == 'cancel':
+                    oerp.execute(model,
+                                 "button_cancel",
+                                 [record_id])
                 elif model == 'project.task' and \
                         field_name == 'state' and \
                         new_value == 'cancelled':
@@ -2133,20 +2179,40 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx):
     return sts
 
 
-def remove_model_all_records(oerp, model, hide_cid, ctx):
+def append_2_where(oerp, model, code, op, value, where, ctx):
+    where.append((code, op, value))
+    return where
+
+
+def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         incr_lev(ctx)
         msg = u"Searching for records to delete in %s" % model
         msg_log(ctx, ctx['level'], msg)
-        # where = []
+        where = []
         if not hide_cid and 'company_id' in ctx:
             company_id = ctx['company_id']
-            record_ids = oerp.search(model, [('company_id',
-                                              '=',
-                                              company_id)])
-        else:
-            record_ids = oerp.search(model)
+            where = append_2_where(oerp,
+                                   model,
+                                   'company_id',
+                                   '=',
+                                   company_id,
+                                   where,
+                                   ctx)
+        if exclusion:
+            for rule in exclusion:
+                code = rule[0]
+                op = rule[1]
+                value = rule[2]
+                where = append_2_where(oerp,
+                                       model,
+                                       code,
+                                       op,
+                                       value,
+                                       where,
+                                       ctx)
+        record_ids = oerp.search(model, where)
         num_moves = len(record_ids)
         move_ctr = 0
         for record_id in record_ids:
@@ -2162,12 +2228,18 @@ def remove_model_all_records(oerp, model, hide_cid, ctx):
     return sts
 
 
-def remove_all_mail_records(oerp, ctx):
+def remove_company_mail_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'ir.attachment'
             sts = remove_model_all_records(oerp, model, False, ctx)
+    return sts
+
+
+def remove_all_mail_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'mail.message'
             sts = remove_model_all_records(oerp, model, True, ctx)
@@ -2192,7 +2264,7 @@ def remove_all_mail_records(oerp, ctx):
     return sts
 
 
-def remove_all_crm_records(oerp, ctx):
+def remove_company_crm_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         model = 'crm.lead'
@@ -2203,9 +2275,27 @@ def remove_all_crm_records(oerp, ctx):
     return sts
 
 
-def remove_all_purchases_records(oerp, ctx):
+def remove_all_crm_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
+        pass
+    return sts
+
+
+def remove_company_purchases_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'procurement.order'
+            sts = reactivate_model_all_records(oerp,
+                                               model,
+                                               False,
+                                               'state',
+                                               'done',
+                                               'draft',
+                                               ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
             model = 'stock.picking.in'
             sts = reactivate_model_all_records(oerp,
@@ -2246,7 +2336,14 @@ def remove_all_purchases_records(oerp, ctx):
     return sts
 
 
-def remove_all_sales_records(oerp, ctx):
+def remove_all_purchases_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        pass
+    return sts
+
+
+def remove_company_sales_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
@@ -2273,18 +2370,51 @@ def remove_all_sales_records(oerp, ctx):
     return sts
 
 
-def remove_all_project_records(oerp, ctx):
+def remove_all_sales_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        pass
+    return sts
+
+
+def remove_company_logistic_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
-            model = 'survey.page'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            model = 'stock.picking'
+            sts = reactivate_model_all_records(oerp,
+                                               model,
+                                               False,
+                                               'state',
+                                               'cancel',
+                                               'draft',
+                                               ctx)
         if sts == STS_SUCCESS:
-            model = 'survey.request'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
-            model = 'survey'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            model = 'stock.move'
+            sts = reactivate_model_all_records(oerp,
+                                               model,
+                                               False,
+                                               'state',
+                                               'cancel',
+                                               'draft',
+                                               ctx)
+        if sts == STS_SUCCESS:
+            sts = remove_model_all_records(oerp, model, False, ctx)
+    return sts
+
+
+def remove_all_logistic_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        pass
+    return sts
+
+
+def remove_company_project_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'project.task.work'
             sts = remove_model_all_records(oerp, model, False, ctx)
@@ -2298,9 +2428,6 @@ def remove_all_project_records(oerp, ctx):
                                              ctx)
         if sts == STS_SUCCESS:
             sts = remove_model_all_records(oerp, model, False, ctx)
-        if sts == STS_SUCCESS:
-            model = 'project.phase'
-            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'project.project'
             # sts = deactivate_model_all_records(oerp, model, False, ctx)
@@ -2326,6 +2453,31 @@ def remove_all_project_records(oerp, ctx):
     return sts
 
 
+def remove_all_project_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'survey.page'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'survey.request'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'survey'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'project.phase'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
+def remove_company_marketing_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        pass
+    return sts
+
+
 def remove_all_marketing_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
@@ -2338,6 +2490,14 @@ def remove_all_marketing_records(oerp, ctx):
         if sts == STS_SUCCESS:
             model = 'marketing.campaign'
             sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
+def remove_company_hr_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            pass
     return sts
 
 
@@ -2377,12 +2537,9 @@ def remove_all_hr_records(oerp, ctx):
     return sts
 
 
-def remove_all_product_records(oerp, ctx):
+def remove_company_product_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
-        if sts == STS_SUCCESS:
-            model = 'product.product'
-            sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'product.template'
             sts = remove_model_all_records(oerp, model, False, ctx)
@@ -2390,19 +2547,54 @@ def remove_all_product_records(oerp, ctx):
     return sts
 
 
-def remove_all_partner_records(oerp, ctx):
+def remove_all_product_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'product.product'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
+def remove_company_partner_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'res.partner.bank'
             sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
+            model = "res.company"
+            company_id = ctx['company_id']
+            exclusion = [('id',
+                          '!=',
+                          oerp.browse(model, company_id).id)]
             model = 'res.partner'
-            sts = remove_model_all_records(oerp, model, False, ctx)
+            sts = remove_model_all_records(oerp, model, False, ctx,
+                                           exclusion=exclusion)
     return sts
 
 
-def remove_all_account_records(oerp, ctx):
+def remove_all_partner_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        pass
+    return sts
+
+
+def remove_all_user_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'res.users'
+            exclusion = [('id',
+                          'not in',
+                          [1, 4, 95])]
+            sts = remove_model_all_records(oerp, model, True, ctx,
+                                           exclusion=exclusion)
+    return sts
+
+
+def remove_company_account_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         company_id = ctx['company_id']
@@ -2487,9 +2679,6 @@ def remove_all_account_records(oerp, ctx):
             model = 'account.voucher'
             sts = remove_model_all_records(oerp, model, False, ctx)
         if sts == STS_SUCCESS:
-            model = 'payment.line'
-            sts = remove_model_all_records(oerp, model, True, ctx)
-        if sts == STS_SUCCESS:
             model = 'payment.order'
             sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
@@ -2498,6 +2687,15 @@ def remove_all_account_records(oerp, ctx):
         if sts == STS_SUCCESS:
             model = 'account.fiscalyear'
             sts = remove_model_all_records(oerp, model, False, ctx)
+    return sts
+
+
+def remove_all_account_records(oerp, ctx):
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'payment.line'
+            sts = remove_model_all_records(oerp, model, True, ctx)
     return sts
 
 
