@@ -23,7 +23,7 @@
 
 """
 
-# import pdb
+import pdb
 import os.path
 import sys
 from os0 import os0
@@ -1085,6 +1085,7 @@ def act_set_periods(oerp, ctx):
                     last_start,
                     last_stop,
                     ctx)
+    set_journal_per_year(oerp, ctx)
     return STS_SUCCESS
 
 
@@ -1360,6 +1361,54 @@ def add_periods(oerp, company_id, fiscalyear_id,
                                 'company_id': company_id})
             msg = u"Added period %s" % name
             msg_log(ctx, ctx['level'], msg)
+
+
+def set_journal_per_year(oerp, ctx):
+    pdb.set_trace()
+    company_id = ctx['company_id']
+    model = 'account.fiscalyear'
+    fy_ids = oerp.search(model, [('company_id', '=', company_id)])
+    fy_name = ''
+    last_date = date(1970, 1, 1)
+    for id in fy_ids:
+        if oerp.browse(model, id).date_stop > last_date:
+            last_date = oerp.browse(model, id).date_stop
+            fy_name = oerp.browse(model, id).code
+    model = 'account.journal'
+    journal_ids = oerp.search(model, [('company_id', '=', company_id),
+                                      ('type', '!=', 'situation')])
+    primary_ir_sequences = []
+    for journal_id in journal_ids:
+        id = oerp.browse(model, journal_id)
+        primary_ir_sequences.append(id.sequence_id.id)
+    model = 'ir.sequence'
+    ir_ids = oerp.search(model, [('company_id', '=', company_id),
+                                 ('id', 'in', primary_ir_sequences)])
+    for ir_id in ir_ids:
+        ir_sequence = oerp.browse(model, ir_id)
+        fy = []
+        for o in ir_sequence.fiscal_ids:
+            id = o.fiscalyear_id.id
+            fy.append(id)
+        for id in fy_ids:
+            if id not in fy:
+                vals = {}
+                vals['name'] = ir_sequence.name
+                vals['implementation'] = ir_sequence.implementation
+                vals['prefix'] = ir_sequence.prefix
+                vals['suffix'] = ir_sequence.suffix
+                vals['number_next'] = 1
+                vals['number_increment'] = ir_sequence.number_increment
+                vals['padding'] = ir_sequence.padding
+                vals['company_id'] = company_id
+                vals['code'] = False
+                vals['prefix'].replace('%(year)s', fy_name)
+                vals['suffix'].replace('%(year)s', fy_name)
+                new_id = oerp.create(model, vals)
+                oerp.create('account.sequence.fiscalyear',
+                            {'sequence_id': new_id,
+                             'sequence_main_id': ir_id,
+                             'fiscalyear_id': id})
 
 
 def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
