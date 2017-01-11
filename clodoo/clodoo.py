@@ -23,7 +23,7 @@
 
 """
 
-import pdb
+# import pdb
 import os.path
 import sys
 from os0 import os0
@@ -1063,8 +1063,9 @@ def act_set_periods(oerp, ctx):
                                  last_stop,
                                  'year',
                                  ctx)
+        code = re.findall('[0-9./-]+', name)
         fiscal_year_id = oerp.create(model, {'name': name,
-                                             'code': name,
+                                             'code': code,
                                              'date_start': str(date_start),
                                              'date_stop': str(date_stop),
                                              'company_id': company_id})
@@ -1352,8 +1353,9 @@ def add_periods(oerp, company_id, fiscalyear_id,
                            ('date_stop', '=', str(date_stop)),
                            ('special', '=', special)])
         if len(ids) == 0:
+            code = re.findall('[0-9./-]+', name)
             oerp.create(model, {'name': name,
-                                'code': name,
+                                'code': code,
                                 'fiscalyear_id': fiscalyear_id,
                                 'date_start': str(date_start),
                                 'date_stop': str(date_stop),
@@ -1364,16 +1366,17 @@ def add_periods(oerp, company_id, fiscalyear_id,
 
 
 def set_journal_per_year(oerp, ctx):
-    pdb.set_trace()
     company_id = ctx['company_id']
     model = 'account.fiscalyear'
     fy_ids = oerp.search(model, [('company_id', '=', company_id)])
+    if len(fy_ids) == 0:
+        return
     fy_name = ''
     last_date = date(1970, 1, 1)
     for id in fy_ids:
         if oerp.browse(model, id).date_stop > last_date:
             last_date = oerp.browse(model, id).date_stop
-            fy_name = oerp.browse(model, id).code
+            fy_name = str(last_date.year)
     model = 'account.journal'
     journal_ids = oerp.search(model, [('company_id', '=', company_id),
                                       ('type', '!=', 'situation')])
@@ -1381,6 +1384,8 @@ def set_journal_per_year(oerp, ctx):
     for journal_id in journal_ids:
         id = oerp.browse(model, journal_id)
         primary_ir_sequences.append(id.sequence_id.id)
+    if len(primary_ir_sequences) == 0:
+        return
     model = 'ir.sequence'
     ir_ids = oerp.search(model, [('company_id', '=', company_id),
                                  ('id', 'in', primary_ir_sequences)])
@@ -1388,12 +1393,18 @@ def set_journal_per_year(oerp, ctx):
         ir_sequence = oerp.browse(model, ir_id)
         fy = []
         for o in ir_sequence.fiscal_ids:
-            id = o.fiscalyear_id.id
-            fy.append(id)
-        for id in fy_ids:
-            if id not in fy:
+            fy_id = o.fiscalyear_id.id
+            fy.append(fy_id)
+        for fy_id in fy_ids:
+            if fy_id not in fy:
+                fy_name = str(oerp.browse('account.fiscalyear',
+                                          fy_id).date_stop.year)
                 vals = {}
-                vals['name'] = ir_sequence.name
+                name = ir_sequence.name
+                if len(name) > 59:
+                    vals['name'] = name[0:59] + ' ' + fy_name
+                else:
+                    vals['name'] = name + ' ' + fy_name
                 vals['implementation'] = ir_sequence.implementation
                 vals['prefix'] = ir_sequence.prefix
                 vals['suffix'] = ir_sequence.suffix
@@ -1402,13 +1413,38 @@ def set_journal_per_year(oerp, ctx):
                 vals['padding'] = ir_sequence.padding
                 vals['company_id'] = company_id
                 vals['code'] = False
-                vals['prefix'].replace('%(year)s', fy_name)
-                vals['suffix'].replace('%(year)s', fy_name)
-                new_id = oerp.create(model, vals)
-                oerp.create('account.sequence.fiscalyear',
-                            {'sequence_id': new_id,
-                             'sequence_main_id': ir_id,
-                             'fiscalyear_id': id})
+                pfx = vals['prefix']
+                sfx = vals['suffix']
+                if vals['prefix']:
+                    vals['prefix'] = vals['prefix'].replace('%(year)s',
+                                                            fy_name)
+                if vals['suffix']:
+                    vals['suffix'] = vals['suffix'].replace('%(year)s',
+                                                            fy_name)
+                if pfx != vals['prefix'] or sfx != vals['suffix']:
+                    new_id = oerp.create(model, vals)
+                    oerp.create('account.sequence.fiscalyear',
+                                {'sequence_id': new_id,
+                                 'sequence_main_id': ir_id,
+                                 'fiscalyear_id': fy_id})
+        for asf_id in oerp.search('account.sequence.fiscalyear',
+                                  [('sequence_main_id', '=', ir_id)]):
+            id = oerp.browse('account.sequence.fiscalyear',
+                             asf_id).sequence_id.id
+            fy_id = oerp.browse('account.sequence.fiscalyear',
+                                asf_id).fiscalyear_id.id
+            fy_name = str(oerp.browse('account.fiscalyear',
+                                      fy_id).date_stop.year)
+            name = oerp.browse(model, id).name
+            if not name.endswith(' ' + fy_name):
+                vals = {}
+                if name.endswith(fy_name):
+                    name = name[0: -4]
+                if len(name) > 59:
+                    vals['name'] = name[0:59] + ' ' + fy_name
+                else:
+                    vals['name'] = name + ' ' + fy_name
+                oerp.write(model, [id], vals)
 
 
 def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
