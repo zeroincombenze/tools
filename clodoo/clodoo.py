@@ -45,7 +45,7 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.69.33"
+__version__ = "0.2.69.34"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -2575,6 +2575,9 @@ def remove_all_marketing_records(oerp, ctx):
         if sts == STS_SUCCESS:
             model = 'marketing.campaign'
             sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'booking.resource'
+            sts = remove_model_all_records(oerp, model, True, ctx)
     return sts
 
 
@@ -2796,8 +2799,6 @@ def analyze_invoices(oerp, ctx, inv_type):
                                        ('period_id', 'in', period_ids),
                                        ('type', '=', inv_type),
                                        ('internal_number', '!=', '')],
-                                      # ('state', '!=', 'draft'),
-                                      # ('state', '!=', 'cancel')],
                                       order='internal_number')
     num_invs = len(account_invoice_ids)
     last_number = ''
