@@ -611,6 +611,7 @@ def act_wep_company(oerp, ctx):
     msg = ident_company(oerp, ctx, c_id)
     msg = "Wep company %s" % ctx['company_name']
     msg_log(ctx, ctx['level'], msg)
+    set_server_isolated(oerp, ctx)
     if sts == STS_SUCCESS:
         sts = remove_company_mail_records(oerp, ctx)
     if sts == STS_SUCCESS:
@@ -656,10 +657,11 @@ def act_wep_company(oerp, ctx):
 
 
 def act_wep_db(oerp, ctx):
-    """Wep a DB (delete all record but keep res_parter"""
+    """Wep a DB (delete all record but keep res_parter)"""
     sts = STS_SUCCESS
     msg = "Wep DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
+    set_server_isolated(oerp, ctx)
     if sts == STS_SUCCESS:
         sts = remove_all_mail_records(oerp, ctx)
     if sts == STS_SUCCESS:
@@ -2322,6 +2324,24 @@ def remove_company_mail_records(oerp, ctx):
     return sts
 
 
+def set_server_isolated(oerp, ctx):
+    """Isolate server to avoid notification mail for some events
+    like remove tasks
+    """
+    sts = STS_SUCCESS
+    if not ctx['dry_run']:
+        if sts == STS_SUCCESS:
+            model = 'fetchmail.server'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'ir.mail_server'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+        if sts == STS_SUCCESS:
+            model = 'mail.followers'
+            sts = remove_model_all_records(oerp, model, True, ctx)
+    return sts
+
+
 def remove_all_mail_records(oerp, ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
@@ -2335,16 +2355,7 @@ def remove_all_mail_records(oerp, ctx):
             model = 'mail.notification'
             sts = remove_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
-            model = 'mail.followers'
-            sts = remove_model_all_records(oerp, model, True, ctx)
-        if sts == STS_SUCCESS:
             model = 'mail.alias'
-            sts = remove_model_all_records(oerp, model, True, ctx)
-        if sts == STS_SUCCESS:
-            model = 'fetchmail.server'
-            sts = remove_model_all_records(oerp, model, True, ctx)
-        if sts == STS_SUCCESS:
-            model = 'ir.mail_server'
             sts = remove_model_all_records(oerp, model, True, ctx)
     return sts
 
