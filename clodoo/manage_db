@@ -4,7 +4,7 @@
 # Set Odoo Version in clodo files
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -23,24 +23,26 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.7.4
+__version__=0.1.10
 
 
-OPTOPTS=(h        b          d      n           o       q           t         V           v)
-OPTDEST=(opt_help opt_branch opt_DB opt_dry_run opt_del opt_verbose test_mode opt_version opt_verbose)
-OPTACTI=(1        "="        "=>"   1           1       0           1         "*"         "+")
-OPTDEFL=(1        "7.0"      ""     0           0       -1          0         ""          -1)
-OPTMETA=("help"   "branch"   "name" "noop"      "del"   "quiet"     "test"    "version"   "verbose")
+OPTOPTS=(h        b          c        d      n           o       q           t         U        V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_DB opt_dry_run opt_del opt_verbose test_mode opt_user opt_version opt_verbose)
+OPTACTI=(1        "="        "="      "="    1           1       0           1         "="      "*"         "+")
+OPTDEFL=(1        "7.0"      ""       ""     0           0       -1          0         "odoo"   ""          -1)
+OPTMETA=("help"   "branch"   "file"   "name" "noop"      "del"   "quiet"     "test"    "user"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 (def 7.0)"\
- "set database name"\
+ "configration file (if update)"\
+ "set database name or regex if update"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
  "silent mode"\
  "test mode (implies dry-run)"\
+ "db user"\
  "show version end exit"\
  "verbose mode")
-OPTARGS=(action)
+OPTARGS=(action cmdlist)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -48,14 +50,22 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be on of:\ninstall"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Developer shell\nAction may be on of:\ninstall,update"\
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 opts=
 if [ $opt_dry_run -ne 0 ]; then
   opts="$opts -n"
 fi
+WCMD=$(which pg_db_active 2>/dev/null)
+if [ -n "$WCMD" ]; then
+  WCMD="$WCMD -k"
+else
+  SLEEP_TIME=30
+  WCMD="sleep $SLEEP_TIME"
+fi
+sts=$STS_SUCCESS
 if [ "$action" == "install" ]; then
   if [[ $opt_branch =~ ^(10|9|8|7)$ ]]; then
     opt_branch=$opt_branch.0
@@ -100,6 +110,65 @@ if [ "$action" == "install" ]; then
       fi
       echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db"
       clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db
+      sts=$?
+    fi
+  done
+elif [ "$action" == "update" ]; then
+  # set_odoover_confn $opt_branch $opt_DB
+  if [ -f "$opt_conf" ]; then
+    cf=$opt_conf
+  elif [ -f "$opt_conf.conf" ]; then
+    cf=$opt_conf.conf
+  elif [ -f "conf/$opt_conf" ]; then
+    cf=conf/$opt_conf
+  elif [ -f "conf/$opt_conf.conf" ]; then
+    cf=conf/$opt_conf.conf
+  else
+    cf=
+  fi
+  if [ -z "$opt_DB" ]; then
+    opt_DB=".*"
+  fi
+  DBlist=
+  psql -Upostgres -tl > $HOME/tmp.log
+  while IFS=\| read db user a b c; do
+    db=$(echo $db)
+    user=$(echo $user)
+    if [ -n "$db" -a "$user" == "$opt_user" ]; then
+      if [[ $db =~ $opt_DB ]]; then
+        DBlist=$DBlist,$db
+      fi
+    fi
+  done < $HOME/tmp.log
+  rm -f $HOME/tmp.log
+  DBlist=${DBlist:1}
+  DBlist=${DBlist//,/ }
+  W4T=0
+  for db in $DBlist; do
+    if [ $W4T -eq 0 -o $opt_dry_run -ne 0 ]; then
+      W4T=1
+    else
+      eval $WCMD
+    fi
+    if [ -n "$cmdlist" ]; then
+      echo "clodoo.py $opts -A $cmdlist -d=$db"
+      clodoo.py $opts -A $cmdlist -d=$db
+      sts=$?
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
+    else
+      if [ -z "$cf" ]; then
+        echo "Configuration file $opt_conf not found!"
+        exit 1
+      fi
+      echo "clodoo.py $opts -c=$cf -d=$db"
+      clodoo.py $opts -c=$cf -d=$db
+      sts=$?
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
     fi
   done
 fi
+exit $sts
