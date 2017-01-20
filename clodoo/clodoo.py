@@ -45,7 +45,8 @@ from clodoocore import import_file_get_hdr
 from clodoocore import eval_value
 from clodoocore import get_query_id
 
-__version__ = "0.2.70"
+
+__version__ = "0.2.70.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -2332,10 +2333,12 @@ def set_server_isolated(oerp, ctx):
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'fetchmail.server'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            # sts = remove_model_all_records(oerp, model, True, ctx)
+            sts = deactivate_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'ir.mail_server'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            # sts = remove_model_all_records(oerp, model, True, ctx)
+            sts = deactivate_model_all_records(oerp, model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'mail.followers'
             sts = remove_model_all_records(oerp, model, True, ctx)
