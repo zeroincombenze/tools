@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.4.2"
+__version__ = "0.2.6"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -598,10 +598,9 @@ class Z0test(object):
     """
 
     def __init__(self, argv=None, id=None, version=None, autorun=False):
-        # import pdb
         # pdb.set_trace()
         self.autorun = autorun
-        this_fqn = inspect.stack()[1][1]
+        this_fqn = self.get_this_fqn()
         if argv is None:
             argv = sys.argv[1:]
             if len(sys.argv) > 0:
@@ -610,9 +609,6 @@ class Z0test(object):
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn)
         this = os0.nakedname(os.path.basename(this_fqn))
-        if this == "__init__":
-            this_fqn = os.path.abspath(inspect.stack()[2][1])
-            this = os0.nakedname(os.path.basename(this_fqn))
         this_dir = os.path.dirname(this_fqn)
         self.this_dir = this_dir
         if os.path.basename(this_dir) == 'tests':
@@ -844,9 +840,21 @@ class Z0test(object):
             ctx[p] = os0.str2bool(ctx[p], ctx[p])
         return ctx
 
+    def get_this_fqn(self):
+        i = 1
+        valid = False
+        while not valid:
+            this_fqn = os.path.abspath(inspect.stack()[i][1])
+            this = os0.nakedname(os.path.basename(this_fqn))
+            if this in ("__init__", "pdb", "cmd", "z0testlib"):
+                i += 1
+            else:
+                valid = True
+        return this_fqn
+
     def parseoptest(self, arguments, version=None, tlog=None):
         ctx = {}
-        this_fqn = os.path.abspath(inspect.stack()[1][1])
+        this_fqn = self.get_this_fqn()
         ctx['this_fqn'] = this_fqn
         this = os0.nakedname(os.path.basename(this_fqn))
         ctx['this'] = this
@@ -1340,5 +1348,5 @@ class Z0test(object):
         return sts
 
 
-main = Z0test(autorun=True)
+# main = Z0test(autorun=True)
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

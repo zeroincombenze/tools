@@ -27,9 +27,10 @@
 import os
 import os.path
 import sys
+# pdb.set_trace()
 from zerobug import Z0test
 
-__version__ = "0.2.4.1"
+__version__ = "0.2.6"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
