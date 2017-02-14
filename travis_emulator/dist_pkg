@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.82.2
+__version__=0.1.83
 
 TCONF=$TDIR/.travis.conf
 # main
@@ -179,7 +179,9 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
         fi
       fi
       f_done=1
-      break
+      if [ "$opt_cpush" == "-C" ]; then
+        break
+      fi
     fi
   done
   if [ $f_done -eq 0 ]; then

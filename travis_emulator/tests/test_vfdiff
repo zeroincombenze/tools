@@ -22,7 +22,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.12.2
+__version__=0.1.12.3
 
 
 Z0BUG_setup() {
@@ -33,6 +33,8 @@ Z0BUG_setup() {
         mkdir -p ~/$VERSION
         mkdir -p ~/$VERSION/l10n-italy
         mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries
+        mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries/i18n
+        touch ~/$VERSION/l10n-italy/l10n_it_vat_registries/__openerp__.py
       fi
     done
 }
@@ -40,6 +42,7 @@ Z0BUG_setup() {
 Z0BUG_teardown() {
     for VERSION in 8.0 9.0 10.0; do
       if [[ "$LCLTEST_RMDIR" =~ $VERSION ]]; then
+        rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries/i18n
         rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries
         rm -fR ~/$VERSION/l10n-italy
         rm -fR ~/$VERSION

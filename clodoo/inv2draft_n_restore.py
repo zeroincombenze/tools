@@ -123,10 +123,11 @@ ctx = {}
 ctx['level'] = 4
 ctx['dry_run'] = False
 company_id = 3
-inv_id = raw_input('ID fattura? ')
+inv_id = raw_input('Type invoice ID? ')
 if inv_id == "":
     exit()
 inv_id = int(inv_id)
+res = raw_input('Will you reset invoice number (yes,no)?')
 inv_obj = oerp.browse('account.invoice', inv_id)
 print "Numb=%s, supply num=%s, ref=%s" % (inv_obj.number,
                                           inv_obj.supplier_invoice_number,
@@ -139,7 +140,10 @@ print ">> Unreconcile cur invoices"
 clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
 print ">> Draft cur invoices"
 clodoo.upd_invoices_2_draft(oerp, move_dict, ctx)
-raw_input('Press RET to continue ...')
+if res == 'yes':
+    print ">> Reset invoice number"
+    oerp.write('account.invoice', [inv_id], {'internal_number': ''})
+res = raw_input('Press RET to continue ..')
 print ">> Posted"
 clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
 print ">> Reconcile "

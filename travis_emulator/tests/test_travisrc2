@@ -22,7 +22,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.1
+__version__=0.1.3
 
 
 save_testenv() {
@@ -69,12 +69,16 @@ Z0BUG_setup() {
     LCLTEST_TMPDIR=$PKGPATH
     LCLTEST_SETUP=__openerp__.py
     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
+    if [ ! -f /etc/odoo/odoo9-server.conf ]; then
+      LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
+      touch $LCLTEST_ODOO9_SERVER
+    fi
 
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
-> dropdb --if-exists openerp_template
-> dropdb --if-exists openerp_test
+> dropdb -Upostgres --if-exists openerp_template
+> dropdb -Upostgres --if-exists openerp_test
 > if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
@@ -94,6 +98,9 @@ Z0BUG_teardown() {
     rm -fR $PKGPATH
     rm -fR $LCLTEST_PRJPATH
     rm -fR ~/dev/odoo/$VERSION
+    if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
+      rm -f $LCLTEST_ODOO9_SERVER
+    fi
     if [ -f $FOUT ]; then rm -f $FOUT; fi
     if [ -f $FTEST ]; then rm -f $FTEST; fi
 }

@@ -21,6 +21,7 @@
 """Clodoo common library
 """
 
+# import pdb
 import os
 from datetime import date
 import time
@@ -80,7 +81,9 @@ LX_CFG_S = ('db_name',
             'uninstall_modules',
             'upgrade_modules',
             'chart_of_account',
-            'catalog_db')
+            'catalog_db',
+            'custom_act',
+            )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
 LX_CFG_SB = ('install_modules',
@@ -97,7 +100,9 @@ LX_CFG_B = ('set_passepartout',
             'setup_account_journal',
             'setup_partners',
             'setup_partner_banks',
-            'check_config')
+            'check_config',
+            'exit_onerror',
+            )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lgi_user', 'lgi_pwd',
@@ -117,7 +122,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.10"
+__version__ = "0.1.10.2"
 
 
 #############################################################################
@@ -276,6 +281,8 @@ def default_conf(ctx):
               'setup_partners': '0',
               'setup_partner_banks': '0',
               'check_config': '0',
+              'exit_onerror': '0',
+              'custom_act': 'cscs',
               'install_modules': False,
               'uninstall_modules': False,
               'upgrade_modules': False,
@@ -418,7 +425,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015 by SHS-AV s.r.l."
+        epilog="© 2015-2017 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
     parser.add_argument("-A", "--action-to-do",
                         help="action to do (use list_actions to dir)",

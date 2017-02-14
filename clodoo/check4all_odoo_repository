@@ -3,7 +3,7 @@
 # Check for all odoo repositories
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -28,8 +28,23 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.28
+__version__=0.1.28.8
 
+
+defmodules() {
+# explore dir
+    local res=OCB
+    DEFMLIST="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy l10n-italy-supplemental partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website account_banking_cscs account_invoice_create_payment account_payment_approve_invoice zeroincombenze"
+    for fn in $DEFMLIST; do
+      nm=$(basename $fn)
+      if [[ " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
+        :
+      else
+        res="$res $nm"
+      fi
+    done
+    echo $res
+}
 
 explore() {
 # explore dir
@@ -47,22 +62,48 @@ explore() {
     echo $res
 }
 
+build_pkgurl() {
+# build_pkgurl(pkgname rpt)
+    local MODNAME=$1
+    local RPT=$2
+    if [ "$RPT" == "oca" ]; then
+      ODOO_RPT="https://github.com/OCA"
+    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
+      ODOO_RPT="git@github.com:zeroincombenze"
+    elif [ "$RPT" == "zero-http" ]; then
+      ODOO_RPT="https://github.com/zeroincombenze"
+    else
+      echo "Odoo repository is one of oca|zero|zero-http|zero-git"
+      sts=1
+      exit $sts
+    fi
+    pkg_URL="$ODOO_RPT/$MODNAME.git"
+    echo "$pkg_URL"
+}
+
 do_action() {
 #do_action(action, oem, oev)
     local act=$1
     local oem=$2
     local oev=$3
     if [ "$oem" == "OCB" ]; then
-      local pdir=~/$oev
+      local pkgdir=~/$oev
+      local pardir=~/
     else
-      local pdir=~/$oev/$oem
+      local pkgdir=~/$oev/$oem
+      local pardir=~/$oev
     fi
     local rq_oev=$(echo $oev|grep -Eo [0-9.]+)
     if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ $opt_dry_run -ne 0 ]; then
       local opts=-n
     else
       local opts=
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      local opts="${opts} -v"
+    else
+      local opts="${opts} -q"
     fi
     local sts=0
     if [ "$oem" != "$LAST_OEM" -o "$oev" != "$LAST_OEV" ]; then
@@ -79,18 +120,63 @@ do_action() {
         return $sts
       fi
     done
-    if [ ! -d $pdir ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "upgrade" ]; then
+      if [ "$opt_rpt" == "oca" ]; then
+        ODOO_RPT="https://github.com/OCA"
+        OPTS_GIT="--depth 1 --single-branch"
+        OPTS_ASM="-1"
+      elif [ "$opt_rpt" == "zero-git" ]; then
+        ODOO_RPT="git@github.com:zeroincombenze"
+        OPTS_GIT=""
+        OPTS_ASM=""
+      elif [ "$opt_rpt" == "zero-http" ]; then
+        ODOO_RPT="https://github.com/zeroincombenze"
+        OPTS_GIT="--depth 1 --single-branch"
+        OPTS_ASM="-1"
+       else
+        echo "Odoo repository is one of oca|zero-http|zero-git"
+        sts=1
+        exit $sts
+      fi
+    fi
+    if [ "$act" == "rebuild" -a -d $pkgdir ]; then
+      if [ $opt_yes -eq 0 ]; then
+        read -p "BRANCH $oev OF $oem already exist! confirm action (yes,no)?" a
+        if [ "$a" != "yes" ]; then
+          sts=1
+          return $sts
+        fi
+      fi
+      run_traced "rm -fR $pkgdir"
+    fi
+    if [ "$act" == "upgrade" -a -d $pkgdir ]; then
+      return $sts
+    elif [ "$act" == "build" -a -d $pkgdir ]; then
+      echo "BRANCH $oev OF $oem ALREADY EXISTS!"
+      sts=1
+    elif [ "$act" != "build" -a "$act" != "rebuild" -a ! -d $pkgdir ]; then
       echo "BRANCH $oev OF $oem NOT FOUND!"
       sts=1
+    fi
+    if [ $sts -ne 0 ]; then
+      return $sts
+    fi
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "upgrade" ]; then
+      run_traced "cd $pardir"
+      if [ "$oem" == "OCB" ]; then
+        run_traced "git clone $ODOO_RPT/OCB.git $oev -b $oev $OPTS_GIT"
+      else
+        addsubm.sh $ODOO_RPT/$oem.git $oev $opts $OPTS_ASM
+      fi
     else
-      cd $pdir
+      run_traced "cd $pkgdir"
       if [ "$act" == "check" ]; then
-        if [ ! -L $pdir ]; then
+        if [ ! -L $pkgdir ]; then
           travis . check $opts
           sts=$?
         fi
       elif [ "$act" == "clean" ]; then
-        if [ -L $pdir ]; then
+        if [ -L $pkgdir ]; then
           :
         else
           please wep $opts
@@ -99,13 +185,13 @@ do_action() {
           fi
         fi
       elif [ "$act" == "oca" ]; then
-        if [ ! -L $pdir ]; then
+        if [ ! -L $pkgdir ]; then
           please synchro . oca $opts
         fi
       elif [ "$act" == "remote" ]; then
         git remote -v
       elif [ "$act" == "status" ]; then
-        if [ ! -L $pdir ]; then
+        if [ ! -L $pkgdir ]; then
           git status
           sts=$?
           if [ $sts -eq 0 ]; then
@@ -117,7 +203,7 @@ do_action() {
           fi
         fi
       elif [ "$act" == "zeroincombenze" ]; then
-        if [ ! -L $pdir ]; then
+        if [ ! -L $pkgdir ]; then
           please synchro . zeroincombenze $opts
         fi
       fi
@@ -125,20 +211,23 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        n            q           s          V           v           x)
-OPTDEST=(opt_help opt_branch opt_conf opt_dry_run  opt_verbose opt_nostop opt_version opt_verbose opt_excl)
-OPTACTI=(1        "="        "="      1            0           1          "*>"        "+"         "=")
-OPTDEFL=(0        ""         ""       0            -1          0          ""          -1          "")
-OPTMETA=("help"   "branch"   "file"   "do nothing" "verbose"   ""         "version"   "verbose"   "modules")
+OPTOPTS=(h        b          c        D       n            q           R            s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_dry_run  opt_verbose opt_rpt      opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       1            0           "="          1          "*>"        "+"         "="       1)
+OPTDEFL=(0        ""         ""       0       0            -1          ""           0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      "do nothing" "verbose"   "repository" ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
+ "user default module list"\
  "do nothing (dry-run)"\
  "silent mode"\
+ "if [re]build|upgrade repository name, one of oca zero-git zero-http"\
  "no stop after every module/version"\
  "show version"\
  "verbose mode"\
- "module list to exclude (comma separated)")
+ "module list to exclude (comma separated)"\
+ "assume yes")
 OPTARGS=(actions)
 
 parseoptargs "$@"
@@ -149,9 +238,12 @@ fi
 if [ -z "$actions" ]; then
   opt_help=1
 fi
+if [ $opt_verbose -eq -1 ]; then
+  opt_verbose=1
+fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: check clean list oca remote status zeroincombenze"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Check for all odoo repositories\nactions may be: build check clean list oca rebuild remote status upgrade zeroincombenze"\
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ -z "$opt_branch" ]; then
@@ -160,9 +252,13 @@ else
   opt_branch="${opt_branch//,/ }"
 fi
 sub_list=
-excl_list="addons cover debian doc history odoo openerp scripts server setup __to_remove"
+excl_list="addons cover debian doc history odoo openerp scripts server setup __to_remove woven_fabric"
 if [ -z $opt_excl ]; then
-  opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0"
+  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "upgrade" ]; then
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental/10.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze openerp_gantt_chart_modification"
+  else
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze openerp_gantt_chart_modification"
+  fi
 fi
 opt_excl="${opt_excl//,/ }"
 if [[ " $opt_excl " =~ [[:space:]]themes[[:space:]] ]]; then
@@ -185,8 +281,15 @@ for oem in $opt_excl; do
   fi
 done
 cd
+if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "upgrade" ]; then
+  opt_def=1
+fi
 for oev in $opt_branch; do
-  mlist=$(explore $oev)
+  if [ $opt_def -gt 0 ]; then
+    mlist=$(defmodules $oev)
+  else
+    mlist=$(explore $oev)
+  fi
   for oem in $mlist; do
     if [[ " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
       :

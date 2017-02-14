@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.76
+#__version__=0.1.76.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -546,6 +546,7 @@ conf_default() {
     set_cfg_def "EM_travis_after_tests_success" "run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
+    set_cfg_def "dbuser" "postgres"
     set_cfg_def "UNBUFFER" "0"
     set_cfg_def "MQT_UPDT" "2016-01-01"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
@@ -1119,7 +1120,7 @@ ant_erase() {
 
 coverage() {
     if [ -z "$COVERAGE" ]; then
-      COVERAGE=$(which coverage)
+      COVERAGE=$(which coverage 2>/dev/null)
     fi
     if [ "$1" == "erase" ]; then
       mkdir -p $PRJPATH/cover
@@ -1128,7 +1129,11 @@ coverage() {
       find . -name ".coverage" -delete
       ant_erase
     fi
-    eval $COVERAGE "$@"
+    if [ -n "$COVERAGE" ]; then
+      eval $COVERAGE "$@"
+    else
+      :
+    fi
     return $?
 }
 
@@ -1467,13 +1472,14 @@ run_svr_test_rm_ln() {
     else
       local n=$(get_cfg_value "" "dbtemplate")_$$
     fi
-    run_traced "dropdb --if-exists $n"
+    local u=$(get_cfg_value "" "dbuser")
+    run_traced "dropdb -U$u --if-exists $n"
     if [ ${opt_virt:-0} -eq 0 ]; then
       local n=$(get_cfg_value "" "dbname")
     else
       local n=$(get_cfg_value "" "dbname")_$$
     fi
-    run_traced "dropdb --if-exists $n"
+    run_traced "dropdb -U$u --if-exists $n"
     run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
     run_unvirt "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
     if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
