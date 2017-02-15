@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.76.2
+#__version__=0.1.76.3
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -955,11 +955,11 @@ clean_dirs() {
       if [ -z "$(grep "stdout.log" .gitignore 2>/dev/null)" ]; then
         echo "stdout.log">>.gitignore
       fi
-      if [ -z "$(grep "oca__*" .gitignore 2>/dev/null)" ]; then
-        echo "oca__*">>.gitignore
+      if [ -z "$(grep "*.oca" .gitignore 2>/dev/null)" ]; then
+        echo "*.oca">>.gitignore
       fi
-      if [ -z "$(grep "z0i__*" .gitignore 2>/dev/null)" ]; then
-        echo "z0i__*">>.gitignore
+      if [ -z "$(grep "*.z0i" .gitignore 2>/dev/null)" ]; then
+        echo "*.z0i">>.gitignore
       fi
     fi
 }

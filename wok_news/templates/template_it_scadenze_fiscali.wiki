@@ -6,7 +6,6 @@
 Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a ${cur_month}, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
 Puoi <b><a href="https://www.zeroincombenze.it/area-clienti-software-gestionale-online/demo/">provare la versione demo</a></b> disponibile per imprese, professionisti, artigiani e commercianti.
 I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> o  <strong>Commercialista in allegato</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
-Per maggiori informazioni telefonare al numero <b>011.0566929</b>
 <h3>${dayw_ivam} ${day_ivam} ${cur_month} ${cur_year}</h3>
 <h4>Adempimenti IVA</h4>
 <p>
