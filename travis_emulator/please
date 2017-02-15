@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.37.1
+__version__=0.1.37.2
 
 #
 # General Purpose options:
@@ -451,7 +451,81 @@ cvt_readme() {
     fi
 }
 
+
+cvt_file() {
+# cvt_file(file oca|zero travis|readme|manifest)
+    local f1=$1
+    sts=$STS_SUCCESS
+    if [ -n "$f1" ]; then
+      local f=$(basename $f1)
+      local f1_oca=$(dirname $f1)/oca__$f
+      local f1_z0i=$(dirname $f1)/z0i__$f
+      local fntmp=$f1.tmp
+      if [ "$2" == "oca" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/$f1 $f1_oca"
+        fi
+        if [ -f $f1_oca ]; then
+          run_traced "mv $f1 $f1_z0i"
+          run_traced "mv $f1_oca $f1"
+        elif [ $opt_force -ne 0 -a "$3" != "manifest" -a ! -f $f1_z0i ]; then
+          run_traced "cp $f1 $f1_z0i"
+        fi
+        if [ "$3" == "travis" ]; then
+          cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
+          fi
+          rm -f $fntmp
+        elif [ "$3" == "manifest" ]; then
+          f1_oca=l10n_it_base
+          f1_z0i=l10n_it_bbone
+          cat $f1|sed -e 's:'$f1_z0i':'$f1_oca':'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$f1_z0i':'$f1_oca':' $f1"
+          fi
+          rm -f $fntmp
+        fi
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+        if [ $opt_orig -gt 0 ]; then
+          run_traced "mv ./tmp/.travis.yml $f1_z0i"
+        fi
+        if [ -f $f1_z0i ]; then
+          run_traced "mv $f1 $f1_oca"
+          run_traced "mv $f1_z0i $f1"
+        elif [ $opt_force -ne 0 -a "$3" != "manifest" -a ! -f $f1_oca ]; then
+          run_traced "cp $f1 $f1_oca"
+        fi
+        if [ "$3" == "travis" ]; then
+          local fntmp=$f1.tmp
+          cat $f1|sed -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
+          fi
+          rm -f $fntmp
+        elif [ "$3" == "readme" ]; then
+          cvt_readme $f1 $2
+        elif [ "$3" == "manifest" ]; then
+          f1_oca=l10n_it_base
+          f1_z0i=l10n_it_bbone
+          cat $f1|sed -e 's:'$f1_oca':'$f1_z0i':'>$fntmp
+          if [ "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$f1_oca':'$f1_z0i':' $f1"
+          fi
+          rm -f $fntmp
+        fi
+      else
+        local f1=
+        echo "Missed parameter! use:"
+        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero"
+        sts=$STS_FAILED
+      fi
+    fi
+    return $sts
+}
+
 do_distribution() {
+# do_distribution(PKGNAME oca|zero)
     wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
     if [ -f ./.travis.yml ]; then
@@ -479,44 +553,8 @@ do_distribution() {
         run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
       fi
     fi
-    f1_oca=$(dirname $f1)/oca__$(basename $f1)
-    f1_z0i=$(dirname $f1)/z0i__$(basename $f1)
-    if [ -n "$f1" ]; then
-      if [ "$2" == "oca" ]; then
-        if [ $opt_orig -gt 0 ]; then
-          run_traced "mv ./tmp/.travis.yml $f1_oca"
-        fi
-        if [ -f $f1_oca ]; then
-          run_traced "mv $f1 $f1_z0i"
-          run_traced "mv $f1_oca $f1"
-        fi
-        local fntmp=$f1.tmp
-        cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
-        if [ "$(diff -q $f1 $fntmp)" ]; then
-          run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
-        fi
-        rm -f $fntmp
-      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-        if [ $opt_orig -gt 0 ]; then
-          run_traced "mv ./tmp/.travis.yml $f1_z0i"
-        fi
-        if [ -f $f1_z0i ]; then
-          run_traced "mv $f1 $f1_oca"
-          run_traced "mv $f1_z0i $f1"
-        fi
-        local fntmp=$f1.tmp
-        cat $f1|sed -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":'>$fntmp
-        if [ "$(diff -q $f1 $fntmp)" ]; then
-          run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
-        fi
-        rm -f $fntmp
-      else
-        local f1=
-        echo "Missed parameter! use:"
-        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero"
-        sts=$STS_FAILED
-      fi
-    fi
+    cvt_file $f1 $2 "travis"
+    sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ -f ./README.md ]; then
         local f1=./README.md
@@ -529,70 +567,22 @@ do_distribution() {
       else
         local f1=
       fi
-      if [ -n "$f1" ]; then
-        local f=$(basename $f1)
-        f1_oca=$(dirname $f1)/oca__$f
-        f1_z0i=$(dirname $f1)/z0i__$f
-        if [ "$2" == "oca" ]; then
-          if [ $opt_orig -gt 0 ]; then
-            run_traced "mv ./tmp/$f $f1_oca"
-          fi
-          if [ -f $f1_oca ]; then
-            run_traced "mv $f1 $f1_z0i"
-            run_traced "mv $f1_oca $f1"
-          fi
-        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-          if [ $opt_orig -gt 0 ]; then
-            run_traced "mv ./tmp/$f $f1_z0i"
-          fi
-          if [ -f $f1_z0i ]; then
-            run_traced "mv $f1 $f1_oca"
-            run_traced "mv $f1_z0i $f1"
-          fi
-        fi
-        cvt_readme $f1 $2
-      fi
+      cvt_file $f1 $2 "readme"
+      sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       f1=oca_dependencies.txt
-      f1_oca=oca__$f1
-      f1_z0i=z0i__$f1
-      if [ "$2" == "oca" ]; then
-        if [ $opt_orig -gt 0 ]; then
-          run_traced "mv ./tmp/$f1 $f1_oca"
-        fi
-        if [ -f $f1_oca ]; then
-          run_traced "mv $f1 $f1_z0i"
-          run_traced "mv $f1_oca $f1"
-        fi
-      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-        if [ $opt_orig -gt 0 ]; then
-          run_traced "mv ./tmp/$f1 $f1_z0i"
-        fi
-        if [ -f $f1_z0i ]; then
-          run_traced "mv $f1 $f1_oca"
-          run_traced "mv $f1_z0i $f1"
-        fi
-      fi
+      cvt_file $f1 $2 ""
+      sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      f1_oca=l10n_it_base
-      f1_z0i=l10n_it_bbone
       for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
         f1=$(readlink -e $f)
-        local fntmp=$f1.tmp
-        if [ "$2" == "oca" ]; then
-          cat $f1|sed -e 's:'$f1_z0i':'$f1_oca':'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$f1_z0i':'$f1_oca':' $f1"
-          fi
-        elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
-          cat $f1|sed -e 's:'$f1_oca':'$f1_z0i':'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$f1_oca':'$f1_z0i':' $f1"
-          fi
+        cvt_file $f1 $2 "manifest"
+        sts=$?
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
         fi
-        rm -f $fntmp
       done
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -905,19 +895,19 @@ do_register_testpypi() {
 OPTOPTS=(h        b          c        d        f         j        k        L         m       n           O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1         1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        "9.0"      ""       0        0         0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
+OPTDEFL=(1        "10.0"     ""       0        0         0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
 OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"      ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
- "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
+ "branch: must be 7.0 or 8.0 or 9.0 or 10.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
- "do diff no real action"\
- "force copy (if commit or push) or build (if register or publish)"\
+ "do diff no real action (obsolete)"\
+ "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
  "execute tests in project dir rather in test dir"\
  "keep coverage statistics in annotate test"\
  "log file name"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
- "pull original README in distribution"\
+ "pull original README (and docs) in distribution"\
  "declare local git path"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file)"\
@@ -936,7 +926,7 @@ fi
 HLPCMDLIST="help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|synchro|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

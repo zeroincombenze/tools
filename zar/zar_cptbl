@@ -1,0 +1,101 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Copy table between 2 Dbs
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+# TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+# RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__="0.1.10"
+
+
+OPTOPTS=(h        d        l       n            s        t        U          V           v)
+OPTDEST=(opt_help opt_dst  opt_log opt_dry_run  opt_src  opt_tbl  opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      "="     1            "="      "="      "="        "*>"        1)
+OPTDEFL=(0        ""       ""      0            ""       ""       "postgres" ""          0)
+OPTMETA=("help"   "DBname" "file"  "do nothing" "DBname" "table"  "username" "version"   "verbose")
+OPTHELP=("this help"\
+ "destination DB name"\
+ "log filename (def /var/log/bckdb.log)"\
+ "do nothing (dry-run)"\
+ "source DB name"\
+ "table to copy"\
+ "username (def postgres)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=()
+
+
+parseoptargs $@
+if [ -z "$opt_src" -o -z "$opt_dst" -o -z "$opt_tbl" ]; then
+  opt_help=1
+fi
+if [ "$opt_version" ]
+then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]
+then
+  print_help "Copy table between DBs"\
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ -z "$opt_log" ]; then
+  publog="/var/log/zar/cptbl.log"
+else
+  publog=$opt_log
+fi
+FCONF=$TDIR/zar.conf
+CFG_init
+set_tlog_file "$publog"
+link_cfg $FCONF
+wlog "Starting copy $__version__ by $opt_user"
+
+PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+if [ -z "$PGDIR" ]; then
+  wlog "No postgres directory found!"
+  exit 1
+fi
+wlog "Found $PGDIR directory"
+DBCKDIR="$PGDIR/backups"
+if [ ! -d $DBCKDIR ]; then
+  mkdir -p $DBCKDIR
+fi
+wlog "Backup directory is $DBCKDIR"
+HOST_PRD=$(get_cfg_value 0 production_host)
+HOST_DEV=$(get_cfg_value 0 development_host)
+wlog "PRD=$HOST_PRD"
+wlog "DEV=$HOST_DEV"
+opt_tbl=${opt_tbl//./_}
+PID=$$
+tmpfn=./tmp$PID
+psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+psql -U$opt_user -tec "select count(id) from $opt_tbl" $opt_src
+run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
+run_traced "psql -U$opt_user -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
+psql -U$opt_user -tec "select count(id) from $opt_tbl" $opt_dst
+NXTID=$(psql -U$opt_user -tc "select max(id) from $opt_tbl" $opt_dst)
+((NXTID++))
+psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+run_traced "psql -U$opt_user -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
+rm -f $tmpfn.*
+exit 0
