@@ -70,6 +70,8 @@ if [ "$version" != "$__version__" ]; then
   echo "Warning: command version $__version__ and library version $version differ!"
 fi
 if [ "$opt_xtl" ]; then
+  CWD=$PWD
+  cd $Z0LIBDIR
   if [ $opt_dry_run -ne 0 ]; then
     _install_z0librc "-n"
   elif [ $EUID -eq 0 ]; then
@@ -79,6 +81,7 @@ if [ "$opt_xtl" ]; then
     echo "This command must be executed by root"
     exit 1
   fi
+  cd $CWD
 elif [ "opt_test" ]; then
   if [ -d ./tests -a -f ./tests/all_tests ]; then
     ./tests/all_tests

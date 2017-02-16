@@ -27,12 +27,16 @@
 # -h             this help
 # -b             run tests in debug mode
 # -e             enable echoing even if not interactive tty
+# -f             RESERVED TO --failfast (stop on first failure)
 # -k             keep current logfile
+# -J             load travisrc library (only in bash scripts)
 # -l file        set logfile name
 # -N             create new logfile
 # -n             count and display # unit tests (do no test, return success)
+# -p             RESERVED TO --pattern to test
 # -q             run tests in quiet mode (no echo)
-# -s number      set last test number (do run test, return test result)
+# -r number      restart count next to number (do run test, return test result)
+# -s number      set last test number (do run test, return test result) (MUST BECOME -r)
 # -V             show version (do no test, return success); version on unit test should be the same of tested software
 # -v             verbose mode
 # -z number      set total # in displayed tests
@@ -44,7 +48,7 @@
 # ctr;            test counter
 # opt_dry_run:    dry-run (do nothing) execution                           "-n"
 # max_test:       # of tests to execute                                    "-z"
-# min_test:       # of test executed before this one                       "-s"
+# min_test:       # of test executed before this one                       "-s" -> "-r"
 # LECHO:          True if echo test result onto std output                 "-e"
 # LNEW:           new log file                                             "-N"
 # opt_noctr:      do not count # tests                                     "-0"
@@ -57,7 +61,7 @@
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.6
+__version__=0.2.7
 
 export opt_dry_run
 export ctr
@@ -83,20 +87,23 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        b         e        k       l      N       n           q        s        V           v           z        0         1)
-    OPTDEST=(opt_help opt_debug opt_echo opt_new logfn  opt_new opt_dry_run opt_echo min_test opt_version opt_verbose max_test opt_noctr run4cover)
-    OPTACTI=(1        1         1        0       "="    1       1           0        "=>"     "*>"        1           "=>"     1         1)
-    OPTDEFL=(0        0         -1       -1      ""     -1      0           -1       ""       ""          0           ""       $Z0       0)
-    OPTMETA=("help"   "debug"   "echo"   "keep"  "file" "new"   "count"     "quiet"  "number" "version"   "verbose"   "number" "no"      "")
+    OPTOPTS=(h        b         e        f        k       J        l      N       n           q        r        s        V           v           z        0         1)
+    OPTDEST=(opt_help opt_debug opt_echo opt_fail opt_new opt_tlib logfn  opt_new opt_dry_run opt_echo min_test min_test opt_version opt_verbose max_test opt_noctr run4cover)
+    OPTACTI=(1        1         1        1        0       1        "="    1       1           0        "=>"     "=>"     "*>"        1           "=>"     1         1)
+    OPTDEFL=(0        0         -1       0        -1      0        ""     -1      0           -1       ""       ""       ""          0           ""       $Z0       0)
+    OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""       "file" "new"   "count"     "quiet"  "number" "number" "version"   "verbose"   "number" "no"      "")
     OPTHELP=("show this help message and exit"\
     "run tests in debug mode"\
      "enable echoing even if not interactive tty"\
+     "stop on first failure"\
      "keep current logfile"\
+     "load travisrc library"\
      "set logfile name"\
      "create new logfile"\
      "count and display # unit tests"\
      "run tests without output (quiet mode)"\
-     "set to counted tests, 1st one next to this"\
+     "restart count next to number"\
+     "see -r"\
      "show version and exit"\
       "verbose mode"\
      "display total # tests when execute them"\
@@ -109,7 +116,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -360,6 +367,7 @@ Z0BUG_init() {
     if [ "${module_id: -5}" == "_test" ]; then
       module_id=${module_id:0: -5}
     fi
+    Z0BUG_pattern="${module_id}_test*"
     Z0BUG_def_tlog_fn="$TESTDIR/${module_id}_test.log"
     export Z0BUG_ctr_list=
 }
@@ -472,9 +480,9 @@ exec_all_tests () {
       basetn=$(basename $testname)
       if [ $sts -eq 0 ]; then
         if [ ${2:-0} -gt 0 ]; then
-          true
+          :
         elif [ "${testname:0:6}" == "__test" ]; then
-          true
+          :
         elif [ "${testname:0:9}" == "__version" ]; then
           local t=${testname:10:1}
           local v=$( echo "$testname"|grep -Eo '[0-9]+\.[0-9]+(\.[0-9abcfr]+)?(\.[0-9abcfr]+)?'|head -n1)
@@ -487,13 +495,6 @@ exec_all_tests () {
             testname=$TESTDIR/$basetn
           fi
           if [ "${basetn: -3}" == ".py" ]; then
-            # if [ ${run4cover:-0} -ne 0 ]; then
-            #   ((ix++))
-            #   c=$(echo $Z0BUG_ctr_list|awk '{print $'$ix'}')
-            # else
-            #   dbgmsg " python $testname -n"
-            #   c=$(python $testname -n)
-            # fi
             if [ ${run4cover:-0} -ne 0 ]; then
               dbgmsg " coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs"
               coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs
@@ -503,9 +504,6 @@ exec_all_tests () {
             fi
             s=$?
           else
-            # dbgmsg " $testname -n"
-            # c=$($testname -n)
-            # dbgmsg "> c=$c"
             dbgmsg " $testname $opt4childs"
             $testname $opt4childs
             s=$?
@@ -539,11 +537,11 @@ Z0BUG_main_file() {
     if [ -n "$2" ]; then
       dbgmsg "- UT list"
       ut_list="$2"
-    elif [[ $THIS =~ ${module_id}_test* ]]; then
+    elif [[ $THIS =~ $Z0BUG_pattern ]]; then
       :
     else
-      dbgmsg "- Search for files ${module_id}_test*"
-      for fn in $TESTDIR/${module_id}_test*; do
+      dbgmsg "- Search for files $Z0BUG_pattern"
+      for fn in $TESTDIR/$Z0BUG_pattern; do
         if [[ $fn =~ \.[a-zA-Z0-9_]{1,3}$ ]]; then
           if [ "${fn: -3}" == ".py" ]; then
             ut_list="$ut_list $fn"
@@ -560,9 +558,11 @@ Z0BUG_main_file() {
       dbgmsg "- [ -z ut_list ]"
       test_num=0
       i=0
-      while [ $i -lt 10 ]; do
+      while [ $i -lt 100 ]; do
         if [ "$(type -t test_0$i)" == "function" ]; then
           ut_list="$ut_list test_0$i"
+        elif [ $i -ge 10 -a "$(type -t test_$i)" == "function" ]; then
+          ut_list="$ut_list test_$i"
         fi
         ((i++))
       done
@@ -576,9 +576,7 @@ Z0BUG_main_file() {
       WLOGCMD=echo
       FLOG=
     fi
-    # if [ ${opt_noctr:-0} -eq 0 -o ${run4cover:-0} -ne 0 ]; then
     exec_tests_4_count "$ut1_list $ut_list"
-    # fi
     opt_verbose=$saved_opt_verbose
     LNEW=$saved_LNEW
     LECHO=$saved_LECHO

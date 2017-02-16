@@ -23,3 +23,5 @@ docs/
 stdout.log
 oca__*
 z0i__*
+*.oca
+*.z0i

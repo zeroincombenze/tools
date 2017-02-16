@@ -26,19 +26,33 @@ __version__=0.1.84
 
 Z0BUG_setup() {
     LCLTEST_RMDIR=
-    for VERSION in 8.0 9.0 10.0; do
+    for VERSION in 7.0 8.0 9.0 10.0; do
       if [ ! -d ~/$VERSION ]; then
         LCLTEST_RMDIR="$LCLTEST_RMDIR $VERSION"
         mkdir -p ~/$VERSION
         mkdir -p ~/$VERSION/l10n-italy
         mkdir -p ~/$VERSION/l10n-italy/l10n_it_vat_registries
+        if [ "$VERSION" == "10.0" ]; then
+          mkdir -p ~/$VERSION/odoo
+          mkdir -p ~/$VERSION/odoo/workflow
+        else
+          mkdir -p ~/$VERSION/openerp
+          mkdir -p ~/$VERSION/openerp/workflow
+        fi
       fi
     done
 }
 
 Z0BUG_teardown() {
-    for VERSION in 8.0 9.0 10.0; do
+    for VERSION in 7.0 8.0 9.0 10.0; do
       if [[ "$LCLTEST_RMDIR" =~ $VERSION ]]; then
+        if [ "$VERSION" == "10.0" ]; then
+          rm -fR ~/$VERSION/odoo/workflow
+          rm -fR ~/$VERSION/odoo
+        else
+          rm -fR ~/$VERSION/openerp/workflow
+          rm -fR ~/$VERSION/openerp
+        fi
         rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries
         rm -fR ~/$VERSION/l10n-italy
         rm -fR ~/$VERSION

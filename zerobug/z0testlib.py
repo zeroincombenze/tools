@@ -60,6 +60,7 @@ Every unit test file may be called with follows switches:
     where:
     -h             this help
     -e             enable echoing even if not interactive tty
+    -f             RESERVED TO --failfast (stop on first failure)
     -k             keep current logfile
     -l file        set logfile name
     -N             create new logfile
@@ -151,7 +152,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -635,6 +636,7 @@ class Z0test(object):
         else:
             self.autorun = True
         self.module_id = id
+        self.pattern = self.module_id + "_test*"
         # If auto regression test is executing
         self.def_tlog_fn = os.path.join(self.test_dir,
                                         self.module_id + "_test.log")
@@ -650,12 +652,15 @@ class Z0test(object):
         -b --debug      run test in debug mode
         -e --echo       set echo
         -h --help       show help
+        -f --failfast   RESERVED TO --failfast (stop on first failure)
         -k --keep       keep current logfile
+        -J              load travisrc library (only in bash scripts)
         -l --logname    set log filename
         -N --new        create new logfile
         -n --dry-run    count and display # unit tests
         -q --quiet      run tests without output (quiet mode)
-        -s --start      count 1st test next to number
+        -r --restart    restart count next to number
+        -s --start      count 1st test next to number (MUST BECOME -r)
         -V --version    show version
         -v --verbose    verbose mode
         -x --qsanity    execute silently test library sanity check and exit
@@ -666,7 +671,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2016 by SHS-AV s.r.l."
+            epilog="© 2015-2017 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-b", "--debug",
                             help="run tests in debug mode",
@@ -1203,12 +1208,12 @@ class Z0test(object):
         if UT is not None and isinstance(UT, list):
             self.dbgmsg(ctx, '- UT list')
             test_list = UT
-        elif not ctx['this'].startswith(self.module_id + '_test') and \
+        elif not ctx['this'].startswith(self.pattern) and \
                 not ctx.get('_run_autotest', False):
-            self.dbgmsg(ctx, '- Search for files %s_test*' % self.module_id)
+            self.dbgmsg(ctx, '- Search for files %s' % self.pattern)
             test_files = os.path.abspath(
                 os.path.join(self.test_dir,
-                             self.module_id + '_test*'))
+                             self.pattern))
             for fn in sorted(glob.glob(test_files)):
                 if len(fn) - fn.rfind('.') <= 4:
                     if fn.endswith('.py'):
