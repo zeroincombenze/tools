@@ -21,8 +21,7 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-
-__version__=0.1.43
+__version__=0.1.44
 
 
 test_00() {
@@ -39,10 +38,19 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
+fi
 UT1_LIST="test_wlog"
 UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
 UT_LIST="$UT_LIST test_00"
 UT_LIST="$UT_LIST test_findpkg test_run test_parseoptargs test_dict1 test_dict2 test_cfg1 test_cfg2 test_cfg3 test_cfg4 test_Makefile"
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
-exit $?
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

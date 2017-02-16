@@ -24,6 +24,18 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.1.29
 
 
+Z0BUG_setup() {
+    # This test could fail because opt_dry_run is parsed by test itself
+    # So opt_dry_run is saved and restored
+    SAVED_OPT_DRY_RUN=$opt_dry_run
+    FOUT=$TESTDIR/z0librc.out
+    FTEST=$TESTDIR/z0librc.test
+}
+
+Z0BUG_teardown() {
+    :
+}
+
 test_01() {
     local tested_opt_dry_run
     OPTOPTS=(h        n            V           v)
@@ -78,7 +90,11 @@ test_02() {
     test_result "cmd mytarget [-V]" "$opt_version" ""
     test_result "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
     test_result "cmd mytarget [-p]" "$opt_path" "~/"
-    test_result "cmd mytarget [-qv]" "$opt_verbose" "-1"
+    if [[ -t 0 || -p /dev/stdin ]]; then
+      test_result "cmd mytarget [-qv]" "$opt_verbose" "0"
+    else
+      test_result "cmd mytarget [-qv]" "$opt_verbose" "1"
+    fi
 
     opt_verbose=-1
     parseoptargs "mytarget" "-q"
@@ -266,12 +282,10 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-# This test could fail because opt_dry_run is parsed by test itself
-# So opt_dry_run is saved and restored
-SAVED_OPT_DRY_RUN=$opt_dry_run
-FOUT=$TESTDIR/z0librc.out
-FTEST=$TESTDIR/z0librc.test
-
-Z0BUG_main_file "" ""
-exit $?
+UT1_LIST=
+UT_LIST=
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts
