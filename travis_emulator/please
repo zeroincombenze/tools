@@ -725,7 +725,7 @@ do_docs() {
 }
 
 do_publish() {
-#do_publish PKGNAME (svg|docs|pypi|testpypi)
+#do_publish PKGNAME (svg|docs|pypi|testpypi|tar)
     wlog "do_publish $1 $2"
     local cmd="do_publish_$2"
     sts=$STS_SUCCESS
@@ -733,7 +733,7 @@ do_publish() {
       eval $cmd "$@"
     else
       echo "Missing object! Use:"
-      echo "> please publish PKGNAME (svg|docs|pypi|testpypi)"
+      echo "> please publish PKGNAME (svg|docs|pypi|testpypi|tar)"
       sts=$STS_FAILED
     fi
     return $sts
@@ -828,6 +828,64 @@ do_publish_docs() {
     rmdir $PRJPATH/html
     if [ -d $PRJPATH/latex ]; then
       rm -fR $PRJPATH/latex
+    fi
+    return $sts
+}
+
+do_publish_tar() {
+#do_publish_tar pgkname tar
+    local sts=$STS_SUCCESS
+    local rpt=pypi
+    local f i n p s v x PKGLIST invalid
+    local SETUP=./setup.sh
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
+        PKGLIST=$(cat setup.py|grep "# PKGLIST="|awk -F= '{print $2}')
+        if [ -n "$PKGLIST" ]; then
+          PKGLIST=${PKGLIST//,/ }
+        else
+          PKGLIST=$(find . -type f|grep -v "/tests/"|grep -v "/conf/"|grep -v ".pyc$"|grep -v "./setup."|grep -v "/__old")
+        fi
+        invalid=
+        for f in $PKGLIST; do
+          if [ -f $f ]; then
+            cp $f $HOME/tmp
+          else
+            invalid=$f
+          fi
+        done
+        if  [ -n "$invalid" ]; then
+          echo "File $f not found"
+          return 1
+        fi
+        p="$n-$v.tar.gz"
+        if [ -f $p ]; then
+           run_traced "rm -f $p"
+        fi
+        echo "# $p">$SETUP
+        f=
+        for i in {2..9}; do
+          x=$(echo $PKGPATH|awk -F/ '{print $'$i'}')
+          if [ -n "$x" ]; then
+            f=$f/$x
+            if [ $i -gt 3 ]; then
+              echo "mkdir -p $f">>$SETUP
+            fi
+          fi
+        done
+        x="-cf"
+        for f in $PKGLIST; do
+          run_traced "tar $x $p $f"
+          x=${x/c/r}
+          echo "cp -p $f $PKGPATH">>$SETUP
+        done
+        chmod +x $SETUP
+        run_traced "tar $x $p $SETUP"
+      fi
     fi
     return $sts
 }

@@ -567,7 +567,7 @@ conf_default() {
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
-    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/"
+    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/"
     set_cfg_def "filediffignore" ".po .pot"
 }
 

@@ -22,12 +22,12 @@ Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.12.3
+__version__=0.1.13
 
 
 Z0BUG_setup() {
     LCLTEST_RMDIR=
-    for VERSION in 8.0 9.0 10.0; do
+    for VERSION in 7.0 8.0 9.0 10.0; do
       if [ ! -d ~/$VERSION ]; then
         LCLTEST_RMDIR="$LCLTEST_RMDIR $VERSION"
         mkdir -p ~/$VERSION
@@ -40,7 +40,7 @@ Z0BUG_setup() {
 }
 
 Z0BUG_teardown() {
-    for VERSION in 8.0 9.0 10.0; do
+    for VERSION in 7.0 8.0 9.0 10.0; do
       if [[ "$LCLTEST_RMDIR" =~ $VERSION ]]; then
         rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries/i18n
         rm -fR ~/$VERSION/l10n-italy/l10n_it_vat_registries
@@ -139,6 +139,8 @@ test_01() {
     cd $CWD
 }
 
+opt_tlib=1
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_zerobug.log $@
@@ -146,17 +148,18 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
-  exit 2
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
 fi
-. $TRAVISLIBDIR
-
-UT1_LIST=""
-UT_LIST=""
-Z0BUG_setup
+UT1_LIST=
+UT_LIST=
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
-Z0BUG_teardown
-exit $?
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts
