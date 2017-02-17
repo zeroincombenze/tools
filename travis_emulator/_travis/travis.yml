@@ -1,5 +1,7 @@
-# Config file travis.yml for no Odoo package test
-# version 0.1.4
+# Config file travis.yml
+# for travis emulator and other PYPI packages
+# Can used both in local travis emulator both in travis environment
+# version 0.1.6
 
 language: python
 sudo: false
@@ -13,8 +15,6 @@ addons:
       - expect-dev  # provides unbuffer utility
       - python-lxml  # because pip installation is slow
       - python-simplejson
-      # - python-serial
-      # - python-yaml
 
 before_install:
   - PYTHONPATH=${PKGPATH}
@@ -31,10 +31,18 @@ virtualenv:
 
 install:
   - git clone --depth=1 https://github.com/zeroincombenze/tools.git
-  - export PATH=${HOME}/tools/travis_emulator/_travis:${PATH}
+  - echo $PWD
+  # Run if local travis emulator and travis emulator itself
+  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" == "travis_emulator" ] && export PATH=${PRJPATH}/_travis:${PATH} || true
+  # Run if local travis emulator and all other packages
+  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" != "travis_emulator" ] && export PATH=${TOOLS_PATH}:${PATH} || true
+  # Run outside local travis emulator or all other packages
+  - [ "${PWD:0:19}" != "/opt/odoo/dev/pypi/" -o "$PKGNAME" != "travis_emulator" ] && export PATH=${TRAVIS_BUILD_DIR}/tools/travis_emulator/_travis:${PATH} || true
+  - echo $PATH
 
 script:
   - travis_run_tests
 
 after_success:
   - travis_after_tests_success
+

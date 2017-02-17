@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.76.3
+#__version__=0.1.76.5
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -274,6 +274,9 @@ init_travis() {
       if [ "$PRJNAME" == "Odoo" ]; then
         ODOO_SETUP="__openerp__.py"
         SETUP=$ODOO_SETUP
+      elif [ -f $PWD/setup.py ]; then
+        SETUP="$PWD/setup.py";
+        REPOSNAME=$(basename $PKGPATH)
       elif [ -f $PKGPATH/setup.py ]; then
         SETUP="$PKGPATH/setup.py";
         REPOSNAME=$(basename $PKGPATH)
@@ -349,7 +352,11 @@ init_travis() {
         PRJPATH=$PKGPATH
       fi
     else
-      PRJPATH=$PKGPATH/$PRJNAME
+      if [ -d $PKGPATH/$PRJNAME ]; then
+        PRJPATH=$PKGPATH/$PRJNAME
+      else
+        PRJPATH=$PKGPATH
+      fi
     fi
     if [ -z "$TOOLS_PATH" ]; then
       if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
@@ -487,7 +494,15 @@ prepare_env_travis() {
         LGITPATH=$(get_cfg_value "" "distpath")
       fi
     fi
-    export LGITPATH=$(expand_path "$LGITPATH")
+    if [ -n "$LGITPATH" ]; then
+      local x="$(readlink -e $PWD/..)"
+      local y=$(dirname $LGITPATH)
+      if [ "$PWD" == "$y" -o "$x" == "$y" ]; then
+        export LGITPATH=$y
+      else
+        export LGITPATH=$(expand_path "$LGITPATH")
+      fi
+    fi
     if [ -x $TDIR/travis ]; then
       export DEVPATH=$TDIR
     else
@@ -530,6 +545,7 @@ do_chkconfig() {
 }
 
 conf_default() {
+# Parameter "EM" prefixed foer EMulation, "RUN" for virtual env
     set_cfg_def "loglevel" "1"
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
@@ -543,12 +559,12 @@ conf_default() {
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
     set_cfg_def "EM_travis_install_nightly" "clone_oca_dependencies \${1}/oca_dependencies.txt"
     # set_cfg_def "EM_travis_run_tests" "true"
-    set_cfg_def "EM_travis_after_tests_success" "run_coverage_test"
+    set_cfg_def "EM_travis_after_tests_success" "init_travis; run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
     set_cfg_def "dbname" "openerp_test"
     set_cfg_def "dbuser" "postgres"
     set_cfg_def "UNBUFFER" "0"
-    set_cfg_def "MQT_UPDT" "2016-01-01"
+    set_cfg_def "MQT_UPDT" "2017-01-01"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
     set_cfg_def "RFLIST__travis_emulator" "autopep8_W503.py beauty dist_pkg please please.man please.py prjdiff replica.sh topep8 travis travisrc vfcp vfdiff wok_doc wok_doc.py"
     set_cfg_def "RDLIST__travis_emulator" "_travis/"
@@ -567,7 +583,7 @@ conf_default() {
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
-    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/"
+    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_*"
     set_cfg_def "filediffignore" ".po .pot"
 }
 
@@ -612,6 +628,8 @@ set_pkgpath() {
     fi
     if [ "$x" ]; then
       if [ "$(basename $x)" == "$(basename $PKGPATH)" -a -f "$x/setup.py" ]; then
+        PKGPATH="$x"
+      elif [ "$(basename $x)" == "tools" -a -f "$PKGPATH/setup.py" ]; then
         PKGPATH="$x"
       fi
     fi
@@ -1139,7 +1157,7 @@ coverage() {
 
 run_regression_test() {
     echo "======== Running regression_test ========"
-    cd $PRJPATH
+    run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ $(echo :$PYTHONPATH:|grep -v ":$PKGPATH:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
@@ -1174,7 +1192,40 @@ run_regression_test() {
     return $sts
 }
 
+
 run_coverage_test() {
+# run_coverage_test pkglist
+    if [ -n "$1" ]; then
+      coverage_combine_n_report $1
+    else
+      run_coverage_1_test
+    fi
+    return $?
+}
+
+coverage_combine_n_report() {
+# coverage_combine_n_report pkglist
+    echo "<<coverage_combine_n_report $1>>"#debug
+    cd $PRJPATH
+    local COVRF=.coverage
+    if [ -f ./$COVRF ]; then
+      rm -f ./$COVRF
+    fi
+    local pkglist=${1//,/ }
+    for p in $pkglist; do
+      if [ -f $p/$COVRF ]; then
+        if [ -f ./$COVRF ]; then
+          run_traced "coverage combine ./$COVRF $p/$COVRF"
+        else
+          run_traced "cp $p/$COVRF ./$COVRF"
+        fi
+      fi
+    done
+    coverage report
+    return $?
+}
+
+run_coverage_1_test() {
     cd $PRJPATH
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ "$PRJNAME" != "Odoo" ]; then

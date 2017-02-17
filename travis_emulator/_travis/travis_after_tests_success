@@ -30,22 +30,23 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.11
+__version__=0.1.12
 
 
-OPTOPTS=(h        j        n            q           t         V           v)
-OPTDEST=(opt_help opt_dprj opt_dry_run  opt_verbose test_mode opt_version opt_verbose)
-OPTACTI=(1        1        1            0           1         "*>"        "+")
-OPTDEFL=(0        0        0            -1          0         ""          -1)
-OPTMETA=("help"   "dprj"   "do nothing" "quiet"     "test"    "version"   "verbose")
+OPTOPTS=(h        j        n            q           r     t         V           v)
+OPTDEST=(opt_help opt_dprj opt_dry_run  opt_verbose opt_r test_mode opt_version opt_verbose)
+OPTACTI=(1        1        1            0           1     1         "*>"        "+")
+OPTDEFL=(0        0        0            -1          01    0         ""          -1)
+OPTMETA=("help"   "dprj"   "do nothing" "quiet"     ""    "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "execute tests in project dir rather in test dir"\
  "do nothing (dry-run)"\
  "silent mode"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
-OPTARGS=(PKGPATH PRJNAME)
+OPTARGS=(pkglist)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -54,13 +55,12 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run coverall after successfull test"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 opts_travis
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 conf_default
 link_cfg $TCONF
 init_travis
@@ -72,7 +72,5 @@ if [ $test_mode -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 check_4_travis
-
 run_coverage_test
-sts=$?
-exit $sts
+exit $?

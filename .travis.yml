@@ -1,32 +1,43 @@
-# Config file .travis.yml
+# Config file travis.yml for no Odoo package test
+# version 0.1.4
 
-sudo: required
 language: python
+sudo: false
 
 python:
   - "2.7"
 
+addons:
+  apt:
+    packages:
+      - expect-dev  # provides unbuffer utility
+      - python-lxml  # because pip installation is slow
+      - python-simplejson
+      # - python-serial
+      # - python-yaml
+
+before_install:
+  - PYTHONPATH=${PKGPATH}
+
 env:
+  global:
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
+
   matrix:
-  - DEV_ENVIRONMENT="pytok" PYTOK_VERSION="0.2" TESTS="0" LINT_CHECK="0"
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" PRJNAME="zerobug"
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" PRJNAME="zar"
 
 virtualenv:
-   system_site_packages: true
+  system_site_packages: true
 
 install:
-  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
-  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  # Coverall works better with pip 7
-  - pip install --upgrade pip
-  # - travis_install_nightly
-  # Python < 2.7.9 needs usrllib3
-  - pip install urllib3[secure]
-  - pip install coveralls
+  - git clone --depth=1 https://github.com/zeroincombenze/tools.git
+  - export PATH=${HOME}/tools/travis_emulator/_travis:${PATH}
 
 script:
-  # - travis_run_tests
-  - cd ./pytok/; SHELL=/bin/bash make travis
+  - cd $PKGPATH/$PRJNAME; travis_run_tests -r
 
 after_success:
-  coveralls
-
+  - cd $PKGPATH/zerobug; travis_after_tests_success
+  - cd $PKGPATH/zar; travis_after_tests_success
+  - cd $PKGPATH; travis_after_tests_success zerobug,zar

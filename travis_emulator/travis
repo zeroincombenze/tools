@@ -13,7 +13,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.76.3
+__version__=0.1.76.5
 
 
 store_cfg_param_value() {
@@ -276,7 +276,6 @@ process_yaml_file() {
         lev=0
         ident=0
       fi
-      # lne=$(echo $line)
       lne=$(echo ${line//$/%%24})
       if [ $lev -eq 0 ]; then
         process_yaml_0
@@ -480,7 +479,7 @@ process_yaml_run_cmd() {
         fi
       elif [ "$p" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ! -d $HOME/maintainer-quality-tools ]; then
-          local MQT_UPDT="2016-00-00"
+          local MQT_UPDT="2017-00-00"
         else
           local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
         fi
@@ -545,14 +544,16 @@ process_yaml_run_cmd() {
     elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sh" ]; then
       xcmd="# $xcmd"
     else
-      local xlint xtest xtfex xpkg
+      local xlint xtest xtfex xpkg xcd
       if [ -z "$REPOSNAME" ]; then
         local p=$PKGPATH
       else
         local p=$(readlink -e $PRJPATH/../$REPOSNAME/)
       fi
       for i in 0 1 2 3 4 5; do
-        if [[ "${x[$i]}" =~ LINT_CHECK=.1. ]]; then
+        if [[ "${x[$i]}" =~ cd ]]; then
+          xcd=1
+        elif [[ "${x[$i]}" =~ LINT_CHECK=.1. ]]; then
           xlint=1
         elif [[ "${x[$i]}" =~ LINT_CHECK=.0. ]]; then
           xlint=0
@@ -573,7 +574,7 @@ process_yaml_run_cmd() {
         else
           for xpkg in travis_install_nightly travis_run_tests travis_after_tests_success; do
             if [ "${x[$i]}" == "$xpkg" ]; then
-              if [ "$xlint" != "1" ]; then
+              if [ "$xlint" != "1" -a "$xcd" != "1" ]; then
                 if [ ${opt_virt:-0} -eq 0 ]; then
                   xtlcmd=$(get_cfg_value "" "EM_$xpkg")
                 else
@@ -745,7 +746,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default), setup or chkconfig"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 

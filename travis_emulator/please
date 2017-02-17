@@ -836,8 +836,11 @@ do_publish_tar() {
 #do_publish_tar pgkname tar
     local sts=$STS_SUCCESS
     local rpt=pypi
-    local f i n p s v x PKGLIST invalid
+    local f i l n p s v x y PKGLIST invalid PASSED
     local SETUP=./setup.sh
+    local xx="$(get_cfg_value 0 filedel)"
+    local yy="$(get_cfg_value 0 fileignore)"
+    xx="$xx $yy"
     if [ "$PRJNAME" != "Odoo" ]; then
       run_traced "cd $PKGPATH"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -848,7 +851,17 @@ do_publish_tar() {
         if [ -n "$PKGLIST" ]; then
           PKGLIST=${PKGLIST//,/ }
         else
-          PKGLIST=$(find . -type f|grep -v "/tests/"|grep -v "/conf/"|grep -v ".pyc$"|grep -v "./setup."|grep -v "/__old")
+          x="find . -type f"
+          for f in $xx "setup.*"; do
+            if [ "${f: -1}" == "/" ]; then
+              x="$x -not -path '*/$f*'"
+            else
+              x="$x -not -name '*$f'"
+            fi
+          done
+          eval $x >./tmp.log
+          PKGLIST="$(cat ./tmp.log)"
+          rm -f ./tmp.log
         fi
         invalid=
         for f in $PKGLIST; do
@@ -869,7 +882,7 @@ do_publish_tar() {
         echo "# $p">$SETUP
         f=
         for i in {2..9}; do
-          x=$(echo $PKGPATH|awk -F/ '{print $'$i'}')
+          x=$(echo $PRJPATH|awk -F/ '{print $'$i'}')
           if [ -n "$x" ]; then
             f=$f/$x
             if [ $i -gt 3 ]; then
@@ -877,14 +890,33 @@ do_publish_tar() {
             fi
           fi
         done
+        l=${#PKGPATH}
+        f=".${PRJPATH:l}"
+        l=${#f}
+        ((l++))
+        PASSED=
         x="-cf"
         for f in $PKGLIST; do
+          y=$(dirname ./${f:l})
+          if [ "$y" != "." ]; then
+            y=$(dirname ${f:l})
+            if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
+              :
+            else
+              echo "mkdir -p $PRJPATH/$y">>$SETUP
+              PASSED="$PASSED $y"
+            fi
+            y=$y/
+          else
+            y=
+          fi
           run_traced "tar $x $p $f"
           x=${x/c/r}
-          echo "cp -p $f $PKGPATH">>$SETUP
+          echo "cp -p $f $PKGPATH/$y">>$SETUP
         done
         chmod +x $SETUP
         run_traced "tar $x $p $SETUP"
+        run_traced "rm -f $SETUP"
       fi
     fi
     return $sts
