@@ -4,17 +4,21 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
   fi
 done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
-Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR . .. $HOME/dev $TDIR/../../zerobug")
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 

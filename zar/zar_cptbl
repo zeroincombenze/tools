@@ -9,7 +9,7 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -24,7 +24,7 @@ fi
 # TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 # RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__="0.1.10"
+__version__=0.1.11
 
 
 OPTOPTS=(h        d        l       n            s        t        U          V           v)

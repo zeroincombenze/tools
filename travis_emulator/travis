@@ -29,7 +29,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc $TDIR . .. $HOME/dev $TDIR/../../travis_emulator)
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR . .. $HOME/dev $TDIR/../../travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2

@@ -45,7 +45,7 @@ install:
   - echo $PATH
   - which travis_run_tests
   - travis_run_tests -tv
-  - travis_after_tests_success -tv
+  # - travis_after_tests_success -tv
 
 script:
   - cd $DEV_ENVIRONMENT; travis_run_tests ${OPTS}
@@ -54,3 +54,4 @@ after_success:
   - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
+

@@ -1,19 +1,29 @@
 #!/bin/bash
-
-if [ -f z0librc ]; then
-. ./z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-
+# -*- coding: utf-8 -*-
+# xuname: enhanced uname
 # Detect and print more OS informations than uname command
-# Simple how to use z0librc library 
+# Simple how to use z0librc library
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This free software is released under GNU Affero GPL3
+#
 
-__version__="0.1.8"
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+
+__version__=0.1.9
+
 
 # Main program
 OPTOPTS=(h        a       c       d       f        i       k       m       p       r       s       v       V           x)

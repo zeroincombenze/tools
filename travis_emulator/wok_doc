@@ -4,21 +4,25 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-if [ -f $TDIR/z0librc ]; then
-. $TDIR/z0librc
-elif [ -f ./z0librc ]; then
-. ./z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
 fi
 
-__version__=0.1.5
+__version__=0.1.6
+
 
 # main
 OPTOPTS=(h        n            V           v)
@@ -39,7 +43,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Write module documentation\nTemporary: do not use in production!"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -z "$module" ]; then

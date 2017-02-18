@@ -1,13 +1,5 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-if [ -f z0librc ]; then
-. ./z0librc
-elif [ -f ~/z0librc ]; then
-. ~/z0librc
-else
-. /etc/z0librc
-fi
-
 ##############################################################################
 #
 #    Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -27,7 +19,23 @@ fi
 #
 ##############################################################################
 
-__version__=0.1.4
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+
+__version__=0.1.5
+
 if [ "$OPTARGS_TEST_1_2" ]; then
   test_1_2=$OPTARGS_TEST_1_2
 else
