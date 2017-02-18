@@ -13,7 +13,7 @@ THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
   echo "[ -e $x/z0librc ]"
-  readlink -e $Z0LIBDIR
+  readlink -e $x
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
