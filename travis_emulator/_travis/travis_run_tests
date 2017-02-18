@@ -12,6 +12,8 @@
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in "$TDIR" "$TDIR/.." "." ".." "$HOME/tools/z0lib" "/etc"; do
+  echo "[ -e $x/z0librc ]"
+  dir -h $x/z0librc
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
