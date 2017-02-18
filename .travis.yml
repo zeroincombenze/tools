@@ -37,7 +37,8 @@ virtualenv:
 install:
   - git clone --depth=1 https://github.com/zeroincombenze/tools.git
   - echo $TRAVIS_BUILD_DIR
-  - find . -type d -not -name ".*" -exec dir -lhd '{}' \;
+  - $PWD
+  - find . -type f -name travis_run_tests
   # Run if local travis emulator and travis emulator itself
   # - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" == "travis_emulator" ] && export PATH=${PRJPATH}/_travis:$PATH || true
   # Run if local travis emulator and all other packages
