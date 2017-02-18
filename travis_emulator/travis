@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.77
+__version__=0.1.77.1
 
 
 store_cfg_param_value() {
@@ -145,6 +145,7 @@ process_yaml_do() {
       local lne="$1"
     fi
     if [ "${lne:0:1}" == "\"" -a "${lne: -1}" == "\"" ]; then
+      lne=${lne//\\\"/\"}
       lne=$(process_yaml_unquote "${lne:1: -1}")
     else
       lne=$(process_yaml_unquote "$lne")

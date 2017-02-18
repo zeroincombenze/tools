@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
@@ -25,13 +25,13 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.83
+__version__=0.1.83.2
 
 TCONF=$TDIR/.travis.conf
 # main
 OPTOPTS=(h        C         c        d        F         f         n            P         p         q           R         S        u       V           v           W          w         -)
 OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_force opt_dry_run  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "*>"      "="      0           "*>"      "=>"    1       "*"         "+"         "=>"       "*>"      "1>")
+OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
 OPTDEFL=(1        ""        ""       0        0         0         0            ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
 OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   ""        "do nothing" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
@@ -61,7 +61,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Copy package for distribution"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
@@ -70,8 +70,8 @@ DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
-init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
 prepare_env_travis ""
 sts=$STS_SUCCESS
 
@@ -274,12 +274,12 @@ fi
 if [ $opt_fetch -eq 0 ]; then
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $PKGPATH); do
-      if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH\""; fi
+      # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH\""; fi
       robocopy "$PKGPATH/$f" "$LGITPATH"
     done
   else
     for f in $(dir $PKGPATH); do
-      if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH/$f\""; fi
+      # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH/$f\""; fi
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
@@ -291,17 +291,25 @@ else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do
       if [[ ! $f =~ .*~ ]]; then
-        if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$PKGNAME/$f\""; fi
+        # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$PKGNAME/$f\""; fi
         robocopy "$LGITPATH/$f" "$PKGPATH/$PKGNAME/$f"
       fi
     done
   else
     for f in $(dir $LGITPATH); do
       if [[ ! $f =~ .*~ ]]; then
-        if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$f\""; fi
+        # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$LGITPATH/$f\" \"$PKGPATH/$f\""; fi
         robocopy "$LGITPATH/$f" "$PKGPATH/$f"
       fi
     done
   fi
 fi
+LGITPATH=$(readlink -e $LGITPATH/..)
+for f in $(dir $LGITPATH); do
+  if [ -d $LGITPATH/$f ]; then
+    if [ ! -f $LGITPATH/$f/z0librc ]; then
+      run_traced "ln -s $LGITPATH/z0lib/z0librc $LGITPATH/$f/z0librc"
+    fi
+  fi
+done
 exit $STS_SUCCESS
