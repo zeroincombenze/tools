@@ -25,7 +25,7 @@ else
 fi
 . $TDIR/travisrc
 
-__version__=0.1.83.2
+__version__=0.1.83.3
 
 TCONF=$TDIR/.travis.conf
 # main
@@ -312,4 +312,7 @@ for f in $(dir $LGITPATH); do
     fi
   fi
 done
+if [ ! -f $LGITPATH/travis_emulator/_travis/z0librc ]; then
+  run_traced "ln -s $LGITPATH/z0lib/z0librc $LGITPATH/travis_emulator/_travis/z0librc"
+fi
 exit $STS_SUCCESS

@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.38.1
+__version__=0.1.38.
 
 #
 # General Purpose options:
