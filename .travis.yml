@@ -21,11 +21,11 @@ addons:
 
 before_install:
   - PYTHONPATH=${TRAVIS_BUILD_DIR}
-  - OPTS="$OPTS"
+  - OPTS=
 
 env:
   global:
-  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0" OPTS=""
 
   matrix:
   - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zerobug TESTS="1"
