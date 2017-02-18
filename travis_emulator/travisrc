@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.77.1
+#__version__=0.1.77.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -645,6 +645,14 @@ update_dev() {
               fi
             fi
           fi
+        fi
+        if [ "$x" == "z0librc" ]; then
+          if [ -z "$opt_dpath" ]; then
+            XLGITPATH=$(readlink -e $LGITPATH/..)
+          else
+            XLGITPATH=$LGITPATH
+          fi
+          run_traced "cp $PKGPATH/$PKGNAME/$x $XLGITPATH/$x"
         fi
       done
       if [ -n "$RDLIST" ]; then
