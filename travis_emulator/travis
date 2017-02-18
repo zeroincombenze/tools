@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.76.5
+__version__=0.1.77
 
 
 store_cfg_param_value() {
@@ -259,7 +259,7 @@ process_yaml_file() {
     local linex=
     local a b i r
     while IFS="#" read -r line r || [ -n "$line" ]; do
-      if [ "${line: -1}" != " " -a -n "$r" ]; then
+      if [ -n "$line" -a "${line: -1}" != " " -a -n "$r" ]; then
         line="$line#$r"
         r=
       fi
@@ -550,7 +550,7 @@ process_yaml_run_cmd() {
       else
         local p=$(readlink -e $PRJPATH/../$REPOSNAME/)
       fi
-      for i in 0 1 2 3 4 5; do
+      for i in {0..9}; do
         if [[ "${x[$i]}" =~ cd ]]; then
           xcd=1
         elif [[ "${x[$i]}" =~ LINT_CHECK=.1. ]]; then
@@ -560,6 +560,8 @@ process_yaml_run_cmd() {
         elif [[ "${x[$i]}" =~ TRANSIFEX=.1. ]]; then
           # xtfex=1
           xcmd="# $xcmd"
+        elif [[ "${x[$i]}" =~ TESTS=.1. ]]; then
+          xtest=1
         elif [[ "${x[$i]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
           xcmd="# $xcmd"
         elif [[ "${x[$i]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
@@ -571,10 +573,14 @@ process_yaml_run_cmd() {
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/OCA/OCB/|/opt/odoo/$BRANCH/|g')"
           fi
+        elif [ "${x[$i]}" == "\${OPTS}" ]; then
+          xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"
+          x[$i]=$OPTS
         else
           for xpkg in travis_install_nightly travis_run_tests travis_after_tests_success; do
             if [ "${x[$i]}" == "$xpkg" ]; then
-              if [ "$xlint" != "1" -a "$xcd" != "1" ]; then
+              xtlcmd="$xpkg"
+              if [ "$xlint" != "1" -o "$xtest" == "1" ] && [ "$xcd" != "1" -a $opt_force -eq 0 ]; then
                 if [ ${opt_virt:-0} -eq 0 ]; then
                   xtlcmd=$(get_cfg_value "" "EM_$xpkg")
                 else
@@ -589,16 +595,33 @@ process_yaml_run_cmd() {
                   xcmd="# $xcmd"
                 fi
                 xcmd="$(echo $xcmd|sed -e 's|\${1}|'$p'|g')"
+                if [ -z "$xtlcmd" ]; then
+                  xtlcmd="$xpkg"
+                else
+                  OPTS=
+                fi
+              fi
+              if [ "$xtlcmd" == "travis_run_tests" ]; then
+                OPTS=$(inherits_travis_opts "" "T")
+              elif [ "$xtlcmd" == "travis_after_tests_success" ]; then
+                OPTS=$(inherits_travis_opts "" "A")
               fi
             fi
           done
         fi
       done
     fi
-    if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
-       wlog "## $c"
+    if [ "$action" == "parseyaml" ]; then
+       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
+         echo "## $c"
+       fi
+       echo "$xcmd"
+    else
+      if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
+         wlog "## $c"
+      fi
+      run_traced "$xcmd"
     fi
-    run_traced "$xcmd"
     return $?
 }
 
@@ -634,6 +657,9 @@ process_yaml() {
          fi
       done
       wlog "===== [Initialize] ====="
+      if [ "$PRJNAME" == "Odoo" ]; then
+        run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
+      fi
       for p in ${!PIPPKGVER[*]}; do
         lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
         if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
@@ -641,7 +667,6 @@ process_yaml() {
           sts=1
         fi
       done
-      run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
       if [ $sts -eq $STS_SUCCESS ]; then
         v=$(pip --version|grep -Eo [0-9]+|head -n1)
         if [ $v -ge 7 ]; then
@@ -713,6 +738,22 @@ process_yaml() {
     return $sts
 }
 
+process_yaml_echo() {
+# process_yaml_echo(lev, line)
+    local lev=$1
+    ((lev++))
+    local lm="            "
+    lm=${lm:0:$lev}
+    local lne="$2"
+    if [ $opt_dprj -ne 0 ]; then
+      echo -n "$lm- "
+      process_yaml_run_cmd "$line $lne"
+    else
+      local line="- $(process_yaml_quote_xtl $lne)"
+      echo "$lm$line"
+    fi
+}
+
 checkpid() {
     [ -f $1 ] || return 1
     local pid=`cat $1`
@@ -721,16 +762,17 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        H        j        m       n            q           r     V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_virt opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1        1        1       "1>"         0           1     "*>"        "+")
-OPTDEFL=(0        9.0        ""       -1       0        0       0            -1          0     ""          -1)
-OPTMETA=("help"   "branch"   "file"   ""       "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
+OPTOPTS=(h        b          c        f         H        j        m       n            q           r     V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
+OPTACTI=(1        "="        "="      1         1        1        1       "1>"         0           1     "*>"        "+")
+OPTDEFL=(0        9.0        ""       0         -1       0        0       0            -1          0     ""          -1)
+OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
  "configuration file (def .travis.conf)"\
+ "force yaml to run w/o cmd subst"\
  "use virtualenv to run tests"\
- "execute tests in project dir rather in test dir"\
+ "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
  "silent mode"\
@@ -745,7 +787,7 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default), setup or chkconfig"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default), setup, chkconfig or parseyaml"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
@@ -772,21 +814,49 @@ link_cfg $TCONF
 
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 if [ "$action" == "parseyaml" ]; then
+  init_travis
+  prepare_env_travis "$action"
+  check_4_travis
+  if [ -z "$sub" ]; then
+    sub=$PRJPATH/.travis.yml
+    if [ ! -f $sub ]; then
+      sub=$TOOLS_PATH/travis.yml
+    fi
+  fi
   process_yaml_file "$sub"
+  echo "addons:"
+  echo "  apt:"
+  echo "    packages:"
+  for lne in $YML_packages; do
+    process_yaml_echo 3 "$lne"
+  done
+  echo "before_install:"
+  for lne in $YML_before_install; do
+    process_yaml_echo 1 "$lne"
+  done
   echo "env:"
   for lne in $YML_env; do
-    line="  - $(process_yaml_quote_xtl $lne)"
-    echo "$line"
+    process_yaml_echo 1 "$lne"
   done
   echo "  global:"
   for lne in $YML_global; do
-    line="  - $(process_yaml_quote_xtl $lne)"
-    echo "$line"
+    process_yaml_echo 1 "$lne"
   done
   echo "  matrix:"
   for lne in $YML_matrix; do
-    line="  - $(process_yaml_quote_xtl $lne)"
-    echo "$line"
+    process_yaml_echo 1 "$lne"
+  done
+  echo "install:"
+  for lne in $YML_install; do
+    process_yaml_echo 1 "$lne"
+  done
+  echo "script:"
+  for lne in $YML_script; do
+    process_yaml_echo 1 "$lne"
+  done
+  echo "after_success:"
+  for lne in $YML_after; do
+    process_yaml_echo 1 "$lne"
   done
   sts=$STS_SUCCESS
   exit $sts

@@ -1,7 +1,10 @@
 # Config file travis.yml
-# for travis emulator and other PYPI packages
+# for tool package
 # Can used both in local travis emulator both in travis environment
-# version 0.1.6
+# version 0.1.6.1
+# Notice: in local travis emulator macroes are substituted at 2 layers:
+# - format: ${macro] are replaced before execution (at travis.ynl read)
+# - format: $macro are replace by shell during execution
 
 language: python
 sudo: false
@@ -17,14 +20,16 @@ addons:
       - python-simplejson
 
 before_install:
-  - PYTHONPATH=${PKGPATH}
+  - PYTHONPATH=${TRAVIS_BUILD_DIR}
+  - OPTS="$OPTS"
 
 env:
   global:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
-  - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${PKGNAME} TESTS="1"
+  - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zerobug TESTS="1"
+  - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zar TESTS="1"
 
 virtualenv:
   system_site_packages: true
@@ -32,16 +37,17 @@ virtualenv:
 install:
   - git clone --depth=1 https://github.com/zeroincombenze/tools.git
   # Run if local travis emulator and travis emulator itself
-  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" == "travis_emulator" ] && export PATH=$PRJPATH/_travis:${PATH} || true
+  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" == "travis_emulator" ] && export PATH=${PRJPATH}/_travis:$PATH || true
   # Run if local travis emulator and all other packages
-  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" != "travis_emulator" ] && export PATH=$TOOLS_PATH:${PATH} || true
+  - [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" -a "$PKGNAME" != "travis_emulator" ] && export PATH=${TOOLS_PATH}:$PATH || true
   # Run outside local travis emulator or all other packages
-  - [ "${PWD:0:19}" != "/opt/odoo/dev/pypi/" ] && export PATH=$TRAVIS_BUILD_DIR/tools/travis_emulator/_travis:${PATH} || true
+  - [ "${PWD:0:19}" != "/opt/odoo/dev/pypi/" ] && export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH || true
   - echo $PATH
 
 script:
-  - travis_run_tests
+  - cd $DEV_ENVIRONMENT; travis_run_tests ${OPTS}
 
 after_success:
-  - travis_after_tests_success
-
+  - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}

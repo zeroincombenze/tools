@@ -85,8 +85,8 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $TCONF
-init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
 prepare_env_travis ""
 sts=$STS_SUCCESS
 if [ $test_mode -gt 0 ]; then

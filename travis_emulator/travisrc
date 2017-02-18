@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.76.5
+#__version__=0.1.77
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -103,72 +103,6 @@ inherits_travis_opts() {
       done
     fi
 
-    # if [ $(echo $TOOLS_PATH|grep -v "/maintainer-quality-tools/"  2>/dev/null) ]; then
-      # if [[ $e =~ B ]]; then
-      #   opts="${opts}B"
-      # fi
-      # if [[ $e =~ C ]]; then
-      #   opts="${opts}C"
-      # fi
-      # if [[ $e =~ F ]]; then
-      #   opts="${opts}F"
-      # fi
-      # if [[ $e =~ K ]]; then
-      #   opts="${opts}K"
-      # fi
-      # if [[ $e =~ P ]]; then
-      #   opts="${opts}P"
-      # fi
-      # if [[ $e =~ m ]]; then
-      #   opts="${opts}m"
-      # fi
-      # if [[ $e =~ R ]]; then
-      #   opts="${opts}R"
-      # fi
-      # if [[ $e =~ T ]]; then
-      #   opts="${opts}T"
-      # fi
-      # if [[ $e =~ d ]]; then
-      #   if [ ${opt_diff:-0} -gt 0 ]; then
-      #     opts="${opts}d"
-      #   fi
-      # fi
-      # if [[ $e =~ j ]]; then
-      #   if [ ${opt_dprj:-0} -gt 0 ]; then
-      #     opts="${opts}j"
-      #   fi
-      # fi
-      # if [[ $e =~ n ]]; then
-      #   if [ ${opt_dry_run:-0} -gt 0 ]; then
-      #     opts="${opts}n"
-      #   fi
-      # fi
-      # if [[ $e =~ q ]]; then
-      #   if [ ${opt_verbose:-0} -eq 0 ]; then
-      #     opts="${opts}q"
-      #   fi
-      # fi
-      # if [[ $e =~ r ]]; then
-      #   if [ ${opt_r:-0} -gt 0 ]; then
-      #     opts="${opts}r"
-      #   fi
-      # fi
-      # if [[ $e =~ u ]]; then
-      #   if [ ${opt_uop:-0} -gt 0 ]; then
-      #     opts="${opts}u"
-      #   fi
-      # fi
-      # if [[ $e =~ v ]]; then
-      #   if [ ${opt_verbose:-0} -gt 0 ]; then
-      #     opts="${opts}v"
-      #   fi
-      # fi
-      # if [[ $e =~ c ]]; then
-      #   if [ -n "$opt_conf" ]; then
-      #     opts="${opts}c$TCONF"
-      #   fi
-      # fi
-    # else
     if [ "$2" == "T" ]; then
       if [[ $e =~ [BK] ]]; then
         export BASH_CHECK="1"
@@ -298,9 +232,9 @@ init_travis() {
       fi
     else
       if [ -n "$SETUP" -a -f $SETUP ]; then
-        if [ -z "$PRJNAME" ]; then
-          PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-        fi
+        # if [ -z "$PRJNAME" ]; then
+        PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+        # fi
         prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
         if [ "$prjversion" == "version" ]; then
           prjversion=""
@@ -445,7 +379,7 @@ drop_virtual_env() {
 
 prepare_env_travis() {
     local action="$1"
-    if [[ $action =~ (check|test|all) ]]; then
+    if [[ $action =~ (check|test|all|coverage) ]]; then
       if [ ${opt_r:-0} -gt 0 ]; then
         if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
           run_traced "export PATH=$TOOLS_PATH:$PATH"
@@ -917,7 +851,6 @@ robocopy() {
             local optrsync="-abzhe"
           fi
           local optssh="$3"
-          # echo "\$ rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
           run_traced "rsync $opts_dry_run $optrsync \"$optssh\" $opts_upd --del --copy-links $XLFS $ff $2$v"
         else
           if [ ${opt_verbose:-0} -gt 0 ]; then
@@ -926,14 +859,11 @@ robocopy() {
             local optrsync="-ab"
           fi
           local optssh=""
-          # echo "\$ rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
           run_traced "rsync $opts_dry_run $optrsync $opts_upd --del --copy-links $XLFS $ff $2$v"
         fi
       else
         if [ "${3:0:3}" == "ssh" ]; then
           local optssh="${3:3}"
-          # echo "((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2"
-          # ((${opt_dry_run:-0}))||scp -Bp $optssh $ff $2
           run_traced "scp -Bp $optssh $ff $2"
         else
           if [ ! -d "$2" ]; then
@@ -941,8 +871,6 @@ robocopy() {
           fi
           diff -q $ff $2$v &>/dev/null
           if [ $? -ne 0 ]; then
-            # echo "${opt_dry_run:-0}||cp -L $ff $2$v"
-            # ((${opt_dry_run:-0}))||cp -L $ff $2$v
             run_traced "cp -L $ff $2$v"
           fi
         fi
@@ -1159,14 +1087,15 @@ run_regression_test() {
     echo "======== Running regression_test ========"
     run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      local OPTS=$(inherits_travis_opts "" "T")
       if [ $(echo :$PYTHONPATH:|grep -v ":$PKGPATH:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
       fi
       if [ -f ./tests/all_tests ]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
-          ./tests/all_tests
+          ./tests/all_tests $OPTS
         else
-          cd ./tests; ./all_tests
+          cd ./tests; ./all_tests $OPTS
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
@@ -1205,7 +1134,6 @@ run_coverage_test() {
 
 coverage_combine_n_report() {
 # coverage_combine_n_report pkglist
-    echo "<<coverage_combine_n_report $1>>"#debug
     cd $PRJPATH
     local COVRF=.coverage
     if [ -f ./$COVRF ]; then

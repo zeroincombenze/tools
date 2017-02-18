@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.12
+__version__=0.1.12.2
 
 
 OPTOPTS=(h        j        n            q           r     t         V           v)
@@ -63,8 +63,8 @@ opts_travis
 CFG_init
 conf_default
 link_cfg $TCONF
-init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
 prepare_env_travis "coverage"
 sts=$STS_SUCCESS
 if [ $test_mode -gt 0 ]; then
@@ -72,5 +72,5 @@ if [ $test_mode -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 check_4_travis
-run_coverage_test
+run_coverage_test $pkglist
 exit $?
