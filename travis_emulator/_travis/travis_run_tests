@@ -11,7 +11,7 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "$HOME/tools/z0lib" "/etc"; do
+for x in "$TDIR" "$TDIR/.." "." ".." "$TDIR/../../z0lib" "/etc"; do
   echo "[ -e $x/z0librc ]"  #debug
   readlink -e $x            #debug
   if [ -e $x/z0librc ]; then
