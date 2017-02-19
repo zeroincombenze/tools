@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR . .. $HOME/dev $TDIR/../../travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -24,18 +24,30 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR . .. $HOME/dev $TDIR/../../zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.78
+__version__=0.1.78.1
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_travis_em.log $@
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
+fi
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
 fi
 
 UT_LIST="__version_V_${__version__}$RUNDIR/travis"
@@ -44,5 +56,8 @@ UT_LIST="$UT_LIST __version_0_0.2.7_$Z0TLIBDIR/z0testrc"
 UT_LIST="$UT_LIST __version_1_0.1.44$Z0LIBDIR/z0librc"
 # UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_yaml test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
 UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_regex test_dist_pkg test_vfdiff test_vfcp"
-Z0BUG_main_file "" "$UT_LIST"
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
 exit $sts

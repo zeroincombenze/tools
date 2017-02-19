@@ -30,7 +30,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.1.84
+__version__=0.1.84.1
 
 
 TCONF=$TDIR/.travis.conf

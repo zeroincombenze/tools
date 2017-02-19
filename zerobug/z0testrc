@@ -93,7 +93,7 @@ parseoptest() {
     OPTDEFL=(0        0         -1       0        -1      0        ""     -1      0           -1       ""       ""       ""          0           ""       $Z0       0)
     OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""       "file" "new"   "count"     "quiet"  "number" "number" "version"   "verbose"   "number" "no"      "")
     OPTHELP=("show this help message and exit"\
-    "run tests in debug mode"\
+     "run tests in debug mode"\
      "enable echoing even if not interactive tty"\
      "stop on first failure"\
      "keep current logfile"\
@@ -370,6 +370,7 @@ Z0BUG_init() {
     Z0BUG_pattern="${module_id}_test*"
     Z0BUG_def_tlog_fn="$TESTDIR/${module_id}_test.log"
     export Z0BUG_ctr_list=
+    export UT1_LIST=
 }
 export -f Z0BUG_init
 
