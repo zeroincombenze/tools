@@ -163,7 +163,7 @@ init_travis() {
       opts_upd=
     fi
     local x=$(get_cfg_value "" "loglevel")
-    if [ $x -ne -1 ]; then
+    if [ ${x:-1} -ne -1 ]; then
       opt_verbose=$x
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
@@ -383,7 +383,7 @@ drop_virtual_env() {
 prepare_env_travis() {
     local action="$1"
     if [[ $action =~ (check|test|all|test|coverage) ]]; then
-      if [ -n "$TOOLS_PATH" ] then
+      if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
           if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
             run_traced "export PATH=$TOOLS_PATH:$PATH"
@@ -395,7 +395,7 @@ prepare_env_travis() {
         fi
       fi
     fi
-    if [ -n "$DEVPATH" ] then
+    if [ -n "$DEVPATH" ]; then
       if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
         run_traced "export PATH=$DEVPATH:$PATH"
       fi
