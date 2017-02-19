@@ -293,7 +293,7 @@ init_travis() {
         PRJPATH=$PKGPATH
       fi
     fi
-    echo "<<<TOOLS_PATH=$TOOLS_PATH|HOSTENV=$HOSTENV|HOME=$HOME>>>" #debug
+    echo "<<<TOOLS_PATH=$TOOLS_PATH|HOSTENV=$HOSTENV|HOME=$HOME|PKGPATH=$PKGPATH>>>" #debug
     if [ -z "$TOOLS_PATH" ]; then
       if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
         TOOLS_PATH=$TDIR/_travis
@@ -310,7 +310,7 @@ init_travis() {
       elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       elif [ "$HOSTENV" == "travis" ]; then
-        TOOLS_PATH=$PGKPATH/travis_emulator/_travis
+        TOOLS_PATH=$PKGPATH/travis_emulator/_travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
