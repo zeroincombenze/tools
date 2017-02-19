@@ -47,14 +47,17 @@ if __name__ == "__main__":
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
     if os.name == 'posix':
-        UT_LIST = ["__version_0_" + __version__,
-                   "__version_1_0.1.44/etc/z0librc",
-                   "__version_V_0.2.0" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py"),
-                   "__version_v_0.2.1" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py"),
-                   "__version_P_0.2.2" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py")]
+        if os.environ['HOSTENV'] == 'travis':
+            UT_LIST = ["__version_0_" + __version__]
+        else:
+            UT_LIST = ["__version_0_" + __version__,
+                       "__version_1_0.1.44/etc/z0librc"]
+        UT_LIST.append("__version_V_0.2.0" + os.path.join(Z.test_dir,
+                                                          "dummy_01.py"))
+        UT_LIST.append("__version_v_0.2.1" + os.path.join(Z.test_dir,
+                                                          "dummy_01.py"))
+        UT_LIST.append("__version_P_0.2.2" + os.path.join(Z.test_dir,
+                                                          "dummy_01.py"))
     else:                                                   # pragma: no cover
         UT_LIST = ["__version_0_" + __version__,
                    "__version_V_0.2.0" + os.path.join(Z.test_dir,
