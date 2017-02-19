@@ -383,18 +383,22 @@ drop_virtual_env() {
 prepare_env_travis() {
     local action="$1"
     if [[ $action =~ (check|test|all|test|coverage) ]]; then
-      if [ ${opt_r:-0} -gt 0 ]; then
-        if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-          run_traced "export PATH=$TOOLS_PATH:$PATH"
-        fi
-      elif [ "$2" == "-r" ]; then
-        if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
-          run_traced "export PATH=$TOOLS_PATH:$PATH"
+      if [ -n "$TOOLS_PATH" ] then
+        if [ ${opt_r:-0} -gt 0 ]; then
+          if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+            run_traced "export PATH=$TOOLS_PATH:$PATH"
+          fi
+        elif [ "$2" == "-r" ]; then
+          if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+            run_traced "export PATH=$TOOLS_PATH:$PATH"
+          fi
         fi
       fi
     fi
-    if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      run_traced "export PATH=$DEVPATH:$PATH"
+    if [ -n "$DEVPATH" ] then
+      if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
+        run_traced "export PATH=$DEVPATH:$PATH"
+      fi
     fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
