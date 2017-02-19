@@ -1,7 +1,7 @@
 # Config file travis.yml
 # for tool package
 # Can used both in local travis emulator both in travis environment
-# version 0.1.6.3
+# version 0.1.6.4
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro] are replaced before execution (at travis.ynl read)
 # - format: $macro are replace by shell during execution
@@ -28,8 +28,8 @@ env:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
-  - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zerobug TESTS="1"
-  - LINT_CHECK="1" BASH_CHECK="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zar TESTS="1"
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zerobug
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" DEV_ENVIRONMENT=${TRAVIS_BUILD_DIR}/zar
 
 virtualenv:
   system_site_packages: true
@@ -47,7 +47,8 @@ install:
   - echo $PATH
 
 script:
-  - cd $DEV_ENVIRONMENT; travis_run_tests ${OPTS}
+  - cd $DEV_ENVIRONMENT; pwd
+  - travis_run_tests ${OPTS}
 
 after_success:
   - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}

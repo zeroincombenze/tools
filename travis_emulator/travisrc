@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.78.1
+#__version__=0.1.78.2
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -162,8 +162,9 @@ init_travis() {
     else
       opts_upd=
     fi
-    if [ ${opt_verbose:-0} -eq -1 ]; then
-      opt_verbose=$(get_cfg_value "" "loglevel")
+    local x=$(get_cfg_value "" "loglevel")
+    if [ $x -ne -1 ]; then
+      opt_verbose=$x
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
       if [[ -t 0 || -p /dev/stdin ]]; then
@@ -301,6 +302,8 @@ init_travis() {
         TOOLS_PATH=$TDIR/_travis
       elif [ -d $HOME/dev/_travis -a "$PRJNAME" != "Odoo" ]; then
         TOOLS_PATH=$HOME/dev/_travis
+      elif [ "$HOSTENV" == "travis" -n "$TRAVIS_BUILD_DIR" ]; then
+        TOOLS_PATH=$TRAVIS_BUILD_DIR/travis_emulator/_travis
       elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
@@ -480,7 +483,7 @@ do_chkconfig() {
 
 conf_default() {
 # Parameter "EM" prefixed foer EMulation, "RUN" for virtual env
-    set_cfg_def "loglevel" "1"
+    set_cfg_def "loglevel" "-1"
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
     set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
@@ -980,9 +983,6 @@ please_test_pylint() {
         echo "export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}"
       fi
       export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
-      # if [ "$PRJNAME" == "Odoo" ]; then
-      #   touch $MODULES_TO_TEST/__init__.py
-      # fi
       IFS="/" read -a REPO <<< "${ODOO_REPO}"
       export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
       #run pylint command
