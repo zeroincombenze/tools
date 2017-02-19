@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.78.3
+#__version__=0.1.78.4
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -306,10 +306,10 @@ init_travis() {
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/maintainer-quality-tools/travis
-      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       elif [ "$HOSTENV" == "travis" ]; then
         TOOLS_PATH=$PKGPATH/travis_emulator/_travis
+      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
@@ -382,7 +382,7 @@ drop_virtual_env() {
 
 prepare_env_travis() {
     local action="$1"
-    if [[ $action =~ (check|test|all|coverage) ]]; then
+    if [[ $action =~ (check|test|all|test|coverage) ]]; then
       if [ ${opt_r:-0} -gt 0 ]; then
         if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
           run_traced "export PATH=$TOOLS_PATH:$PATH"
