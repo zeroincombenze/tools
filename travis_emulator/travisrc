@@ -302,16 +302,16 @@ init_travis() {
         TOOLS_PATH=$TDIR/_travis
       elif [ -d $HOME/dev/_travis -a "$PRJNAME" != "Odoo" ]; then
         TOOLS_PATH=$HOME/dev/_travis
-      elif [ "$HOSTENV" == "travis" -n "$TRAVIS_BUILD_DIR" ]; then
-        TOOLS_PATH=$PGKPATH/travis_emulator/_travis
       elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/maintainer-quality-tools/travis
       elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
+      elif [ "$HOSTENV" == "travis" ]; then
+        TOOLS_PATH=$PGKPATH/travis_emulator/_travis
       else
-        unset -v TOOLS_PATH
+        TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
       if [ "$PRJNAME" == "Odoo" ]; then
         if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
