@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.78.2
+#__version__=0.1.78.3
 
 MAKEF=/opt/odoo/dev/Makefile
 DIST_CONF=./conf/.local_dist_pkg.conf
@@ -303,7 +303,7 @@ init_travis() {
       elif [ -d $HOME/dev/_travis -a "$PRJNAME" != "Odoo" ]; then
         TOOLS_PATH=$HOME/dev/_travis
       elif [ "$HOSTENV" == "travis" -n "$TRAVIS_BUILD_DIR" ]; then
-        TOOLS_PATH=$TRAVIS_BUILD_DIR/travis_emulator/_travis
+        TOOLS_PATH=$PGKPATH/travis_emulator/_travis
       elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
