@@ -36,12 +36,15 @@ __version__=0.1.15
 
 
 do_test () {
-    if [ $opt_verbose -gt 0 ]; then
-      echo "\$ do_test"
-    fi
     if [ "$PRJNAME" == "Odoo" ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "\$ run_server_test"
+      fi
       run_server_test
     else
+      if [ $opt_verbose -gt 0 ]; then
+        echo "\$ run_regression_test"
+      fi
       run_regression_test
     fi
     sts=$?
