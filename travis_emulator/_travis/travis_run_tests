@@ -27,11 +27,11 @@ if [ -z "$Z0LIBDIR" ]; then
   Z0LIBDIR=$(find . -name z0librc|head -n1)
   . $Z0LIBDIR
 fi
-for x in $TDIR . .. $HOME/dev $HOME/tools/travis_emulator; do
+for x in $TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator; do
   echo "[ -e $x/travisrc ]" #debug
   readlink -e $x            #debug
 done
-TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME/tools/travis_emulator")
+TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   # exit 2
@@ -40,11 +40,11 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-for x in $TDIR . .. $HOME/dev $TDIR/../../zerobug; do
+for x in $TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug; do
   echo "[ -e $x/z0testrc ]" #debug
   readlink -e $x            #debug
 done
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR . .. $HOME/dev $TDIR/../../zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
   echo "Library file zerobug not found!"
   # exit 2
