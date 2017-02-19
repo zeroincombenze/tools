@@ -314,7 +314,7 @@ init_travis() {
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
-      echo "<<<TOOLS_PATH>>>" #debug
+      echo "<<<TOOLS_PATH=$TOOLS_PATH>>>" #debug
       if [ "$PRJNAME" == "Odoo" ]; then
         if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/dev/maintainer-quality-tools/travis
