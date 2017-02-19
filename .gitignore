@@ -16,7 +16,6 @@ dist/
 conf/
 cover/
 **/.coverage
-.coveragerc
 latex/
 html/
 docs/
