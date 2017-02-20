@@ -1,0 +1,244 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Install packages to run travis tests
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.1.15
+
+
+xtl() {
+    if [ "$FH" == "RHEL" ]; then
+      if [ "$1" == "python-dev" -o "$1" == "libffi-dev" ]; then
+        p="${1}el"
+      elif [ "$1" == "build-essential" ]; then
+        p="groupinstall 'Development Tools'"
+      elif [ "$1" == "libssl-dev" ]; then
+        p="openssl-devel"
+      elif [ "$1" == "expect-dev" ]; then
+        p=
+      else
+        p=$1
+      fi
+    else
+      p=$1
+    fi
+    echo $p
+}
+
+pkg_install() {
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      if [ "$FH" == "RHEL" ]; then
+        local xcmd="yum install"
+      else
+        local xcmd="apt-get install"
+      fi
+      local xrem="#"
+      local req=0
+      local xvalid=0
+      local p
+      local sts=0
+      for p in "$@"; do
+        if [ "$p" == "groupinstall" ]; then
+          req=1
+        elif [ $req -ne 0 ]; then
+          xrem="$xrem groupinstall $p"
+        elif [ "${p:0:1}" != "-" ]; then
+          p=$(echo "$p"|grep -Eo '[^!<=>]*'|head -n1)
+          p=${p//\"/}
+          p=$(xtl $p)
+          if [ -n "$p" ]; then
+            if [ "$FH" == "RHEL" ]; then
+              if [ "${p:0:12}" == "groupinstall" ]; then
+                xrem="$xrem $p"
+              elif $(rpm -q $p &>/dev/null); then
+                xrem="$xrem $p"
+              else
+                xcmd="$xcmd $p"
+                xvalid=1
+              fi
+            else
+              if (dpkg-query -W $p &>/dev/null); then
+                xrem="$xrem $p"
+              else
+                xcmd="$xcmd $p"
+                xvalid=1
+              fi
+            fi
+          fi
+        else
+          xcmd="$xcmd $p"
+        fi
+      done
+      if [ $xvalid -ne 0 ]; then
+        if [ "$xrem" != "#" ]; then
+          xcmd="$xcmd $xrem"
+        fi
+      else
+        xcmd="$xrem"
+      fi
+      run_traced "$xcmd"
+      sts=$?
+    fi
+    return $sts
+}
+
+pip_install() {
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      local xcmd="pip install"
+      local xrem="#"
+      local req=0
+      local xvalid=0
+      local p
+      local sts=0
+      for p in "$@"; do
+        if [ "$p" == "-r" -o "$p" == "--requirement" ]; then
+          req=1
+        elif [ $req -ne 0 ]; then
+          req=0
+          xcmd="$xcmd -r $p"
+          local z=$p
+          while IFS=# read -r p r || [ -n "$p" ]; do
+            if [ -n "$p" ]; then
+              if [ "${p:0:4}" == "http" ]; then
+                p=$(basename $p)
+                p=$(echo $p|grep -Eo '[a-zA-Z0-9_]*'|head -n1)
+              fi
+              p=$(echo "$p"|grep -Eo '[^!<=>\[]*'|head -n1)
+              p=${p//\"/}
+              p=$(xtl $p)
+              if [ -n "$p" ]; then
+                if $(pip show $p &>/dev/null); then
+                  xrem="$xrem $p"
+                else
+                  xcmd="$xcmd $p"
+                  xvalid=1
+                fi
+              fi
+            fi
+          done < $z
+        elif [ "${p:0:1}" != "-" ]; then
+          p=$(echo "$p"|grep -Eo '[^!<=>]*'|head -n1)
+          p=${p//\"/}
+          p=$(xtl $p)
+          if [ -n "$p" ]; then
+            if [ "$p" == "requests[security]" ]; then
+              if [ "$TRAVIS" == "true" -o  ${opt_virt:-0} -ne 0 ]; then
+                xcmd="$xcmd $p"
+                xvalid=1
+              else
+                xrem="$xrem $p"
+              fi
+            elif $(pip show $p &>/dev/null); then
+              xrem="$xrem $p"
+            else
+              xcmd="$xcmd $p"
+              xvalid=1
+            fi
+          fi
+        else
+          xcmd="$xcmd $p"
+        fi
+      done
+      if [ $xvalid -ne 0 ]; then
+        if [ "$xrem" != "#" ]; then
+          xcmd="$xcmd $xrem"
+        fi
+      else
+        xcmd="$xrem"
+      fi
+      run_traced "$xcmd"
+      sts=$?
+    fi
+    return $sts
+}
+
+
+OPTOPTS=(h        c        j        K         n            q           r     T        t         V           v)
+OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "="      1        1         1            0           1     1        1         "*>"        "+")
+OPTDEFL=(0        ""       0        0         0            -1          0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
+OPTHELP=("this help"\
+ "configuration file (def .travis.conf)"\
+ "execute tests in project dir rather in test dir"\
+ "do bash, flake8 and pylint checks"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
+ "do regression tests"\
+ "test mode (implies dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(pkg PRJNAME)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Install packages to run travis tests"\
+  "(C) 2016-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+prepare_env_travis "test"
+sts=$STS_SUCCESS
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
+fi
+check_4_travis
+FH=$(xuname -f)
+pkg_install gcc build-essential libssl-dev libffi-dev python-dev
+sts=$?
+if [ $sts -eq 0 ]; then
+  pkg_install expect-dev
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
+  pip_install 'requests[security]' pyOpenSSL ndg-httpsclient pyasn1 cryptography
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
+  pip_install -q flake8 pylint
+  sts=$?
+fi
+if [ $sts -eq 0 ]; then
+  pip_install zerobug coverage coveralls
+  sts=$?
+fi
+exit $sts

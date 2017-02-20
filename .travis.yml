@@ -17,7 +17,7 @@ python:
 addons:
   apt:
     packages:
-      - build-essential libssl-dev libffi-dev python-dev
+      # - build-essential libssl-dev libffi-dev python-dev
       - expect-dev  # provides unbuffer utility
       - python-lxml  # because pip installation is slow
       - python-simplejson
@@ -38,12 +38,12 @@ virtualenv:
   system_site_packages: true
 
 install:
-  - pip install 'requests[security]'
-  - pip install pyOpenSSL ndg-httpsclient pyasn1 cryptography
-  - pip install -q flake8 pylint
-  - pip install coverage coveralls
+  # - pip install 'requests[security]'
+  # - pip install pyOpenSSL ndg-httpsclient pyasn1 cryptography
+  # - pip install -q flake8 pylint
+  # - pip install coverage coveralls
   - git clone --depth=1 https://github.com/zeroincombenze/tools.git
-  - pip install zerobug
+  # - pip install zerobug
   # Run if local travis emulator and travis emulator itself
   - "[ \"${PWD:0:19}\" == \"/opt/odoo/dev/pypi/\" -a \"$PKGNAME\" == \"travis_emulator\" ] && export PATH=${PRJPATH}/_travis:$PATH || true"
   # Run if local travis emulator and all other packages
@@ -51,6 +51,7 @@ install:
   # Run outside local travis emulator or all other packages
   - "[ \"${PWD:0:19}\" != \"/opt/odoo/dev/pypi/\" ] && export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH || true"
   - echo $PATH
+  - travis_install_env -v
 
 script:
   - cd $DEV_ENVIRONMENT; pwd
