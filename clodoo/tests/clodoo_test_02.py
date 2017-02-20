@@ -82,8 +82,9 @@ class Test():
 
     def test_02(self, z0ctx):
         if not ctx['dry_run']:
-            os0.muteshell("/opt/odoo/dev/pypi/zar/zar/pg_db_active -wa " +
-                          self.dbtest)
+            if os.environ.get("TRAVIS", "") != "true":
+                os0.muteshell("/opt/odoo/dev/pypi/zar/zar/pg_db_active -wa " +
+                              self.dbtest)
             os0.muteshell("dropdb -Upostgres --if-exists " + self.dbtest)
             cmd = self.cmd + ['-A=new_db'] + ['-d=' + self.dbtest]
             p = Popen(cmd,
