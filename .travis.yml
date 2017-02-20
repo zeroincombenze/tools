@@ -8,6 +8,8 @@
 
 language: python
 sudo: false
+service_name: travis-ci
+repo_token: AQglFthqKCKG7RUWEepZlMROp5ZixJVYx
 
 python:
   - "2.7"
