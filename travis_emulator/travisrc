@@ -1160,7 +1160,12 @@ coverage_combine_n_report() {
       fi
     done
     coverage report
-    return $?
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      coveralls
+      sts=$STS_SUCCESS
+    fi
+    return $sts
 }
 
 run_coverage_1_test() {
@@ -1182,7 +1187,7 @@ run_coverage_1_test() {
           else
             coverage report
           fi
-          sts=$STS_SUCCESS
+          sts=$?
         elif [ -f ./tests/test_$PRJNAME.py ]; then
           coverage erase
           if [ ${opt_verbose:-0} -gt 0 ]; then
@@ -1205,9 +1210,13 @@ run_coverage_1_test() {
           else
             coverage report
           fi
-          sts=$STS_SUCCESS
+          sts=$?
         else
           sts=$STS_FAILED
+        fi
+        if [ $sts -eq $STS_SUCCESS ]; then
+          coveralls
+          sts=$STS_SUCCESS
         fi
       else
         if [ ${opt_mis:-0} -gt 0 ]; then
@@ -1215,7 +1224,7 @@ run_coverage_1_test() {
         else
           coverage report
         fi
-        sts=$STS_SUCCESS
+        sts=$?
       fi
     else
       sts=$STS_SUCCESS
