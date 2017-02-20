@@ -43,8 +43,9 @@ opts_travis() {
     if [ ${test_mode:-0} -gt 0 ]; then
       opt_dry_run=1
     fi
-    local x=$(A=${PWD#*/*/}; echo ${A%%/*})
-    if [ "$x" == "travis" ]; then
+    # local x=$(A=${PWD#*/*/}; echo ${A%%/*})
+    # if [ "$x" == "travis" ]; then
+    if [ "$TRAVIS" == "true" ]; then
       HOSTENV=travis
     else
       HOSTENV=local
@@ -306,7 +307,8 @@ init_travis() {
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/maintainer-quality-tools/travis
-      elif [ "$HOSTENV" == "travis" ]; then
+      # elif [ "$HOSTENV" == "travis" ]; then
+      elif [ "$TRAVIS" == "true" ]; then
         TOOLS_PATH=$PKGPATH/travis_emulator/_travis
       elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
