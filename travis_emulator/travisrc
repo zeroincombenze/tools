@@ -1164,8 +1164,10 @@ coverage_combine_n_report() {
     coverage report
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
-      coveralls
-      sts=$STS_SUCCESS
+      if [ -n "$COVERALLS_REPO_TOKEN" ]; then
+        COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
+        sts=$STS_SUCCESS
+      fi
     fi
     return $sts
 }
@@ -1217,8 +1219,10 @@ run_coverage_1_test() {
           sts=$STS_FAILED
         fi
         if [ $sts -eq $STS_SUCCESS ]; then
-          coveralls
-          sts=$STS_SUCCESS
+          if [ -n "$COVERALLS_REPO_TOKEN" ]; then
+            COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
+            sts=$STS_SUCCESS
+          fi
         fi
       else
         if [ ${opt_mis:-0} -gt 0 ]; then

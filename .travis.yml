@@ -1,7 +1,7 @@
 # Config file travis.yml
 # for tool package
 # Can used both in local travis emulator both in travis environment
-# version 0.1.6.4
+# version 0.1.7
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro] are replaced before execution (at travis.ynl read)
 # - format: $macro are replace by shell during execution
