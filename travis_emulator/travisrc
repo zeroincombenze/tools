@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.79
+#__version__=0.1.80
 
 MAKEF=/opt/odoo/dev/Makefile
-DIST_CONF=./conf/.local_dist_pkg.conf
+# DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
 
 opts_travis() {
@@ -13,6 +13,10 @@ opts_travis() {
       TCONF=$opt_conf
     else
       TCONF=$TDIR/.travis.conf
+    fi
+    DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
+    if [ -z "$DIST_CONF" ]; then
+      DIST_CONF=$(readlink -f $PKGPATH/../conf/.local_dist_pkg.conf)
     fi
     if [ -n "$pkg" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
@@ -783,14 +787,6 @@ robocopy_init() {
       fi
       a_append "^.*" ""
     fi
-    # if [ "$DIST_CONF" ]; then
-    #   local xx=$(grep "^ignore *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    #   local yy=$(grep "^ignorediff *=" $DIST_CONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    # fi
-    # if [ -z "$xx" -a "$TCONF" ]; then
-    #   local xx=$(grep "^ignore *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    #   local yy=$(grep "^ignorediff *=" $TCONF 2>/dev/null|awk -F"[a-z0-9 ]=" '{print $2}'|tr -d "\"'\r\n")
-    # fi
     local xx="$(get_cfg_value 0 ignore)"
     local yy="$(get_cfg_value 0 ignorediff)"
     if [ -z "$xx" ]; then

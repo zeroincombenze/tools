@@ -18,10 +18,13 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR . .. $HOME/dev $TDIR/../../zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-
 __version__=0.1.77
 
 

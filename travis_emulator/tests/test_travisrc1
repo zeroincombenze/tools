@@ -25,7 +25,6 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-
 __version__=0.1.2
 
 
@@ -248,8 +247,6 @@ if [ ${opt_tlib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-
-
 UT1_LIST=""
 UT_LIST=""
 Z0BUG_setup

@@ -21,10 +21,9 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.15
+__version__=0.1.16
 
 
-TCONF=$TDIR/.$THIS.conf
 
 OPTOPTS=(h        c        n            s       V           v           0       1       2)
 OPTDEST=(opt_help opt_conf opt_dry_run  opt_sel opt_version opt_verbose opt_sts opt_sts opt_2nd)
@@ -54,10 +53,11 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
-eval $(init_cfg)
-eval $(active_cfg)
+DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
+CFG_init
 conf_default
-link_cfg $TCONF
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 prepare_env_travis ""

@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR . .. $HOME/dev $TDIR/../../travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -30,8 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-
-__version__=0.1.40
+__version__=0.1.41
 
 
 #
@@ -1052,11 +1051,16 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
+DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
 CFG_init
 conf_default
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+# Follow code must be executed at main level
 set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
 set_cfg_def "DEV_SVG" "/opt/odoo/dev/svg"
 set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
+# /End Included Block/
 link_cfg $TCONF
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi

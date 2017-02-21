@@ -37,8 +37,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-
-__version__=0.1.79
+__version__=0.1.80
 
 
 store_cfg_param_value() {
@@ -809,11 +808,13 @@ else
   exit $STS_FAILED
 fi
 opts_travis
+DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
 CFG_init
 conf_default
-link_cfg $TCONF
-
+link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+
 if [ "$action" == "parseyaml" ]; then
   init_travis
   prepare_env_travis "$action"
