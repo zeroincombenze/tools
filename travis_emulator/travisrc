@@ -1043,7 +1043,7 @@ ant_add_trap() {
     local f1=$(readlink -f $1)
     if [ -n "$f1" -a -f "$f1" ]; then
       ant_rm_trap "$f1"
-      echo "trap \"echo [\$LINENO] \$0:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
+      echo "trap \"echo [\$LINENO] \$BASH_SOURCE:\$BASH_COMMAND>>$FHIST\" DEBUG">$f1.sh
       local line=
       while IFS=\~ read -r line || [ -n "$line" ]; do
         echo "$line">>$f1.sh

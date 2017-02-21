@@ -3,7 +3,7 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -17,11 +17,14 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-
-__version__=0.1.25
+__version__=0.1.25.1
 
 
 test_01() {
@@ -70,7 +73,7 @@ test_01() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       wlog "Since now, test messages are store in $FLOG"
     fi
-    test_result "echoing with wlog (1)" "$TESTDIR/test_z0librc.log" "$FLOG"
+    test_result "echoing with wlog (1)" "$TESTDIR/test_z0lib.log" "$FLOG"
     if [ "$LECHO" == "echo" ]; then
       test_result "echoing with wlog (2)" "echo" "$FLOG_ECHO"
     else
@@ -84,6 +87,11 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-Z0BUG_main_file "" ""
-exit $?
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
+fi
