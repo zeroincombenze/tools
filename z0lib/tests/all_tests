@@ -52,7 +52,7 @@ fi
 UT1_LIST="test_wlog"
 UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
 UT_LIST="$UT_LIST test_00"
-UT_LIST="$UT_LIST test_findpkg test_run test_parseoptargs test_dict1 test_dict2 test_cfg1 test_cfg2 test_cfg3 test_cfg4"
+UT_LIST="$UT_LIST test_findpkg test_run test_parseoptargs test_dict1 test_dict2 test_cfg1 test_cfg2 test_cfg3 test_cfg4 test_Makefile"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

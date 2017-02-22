@@ -58,8 +58,8 @@ def test_gtin():
 
 test_gtin()
 code_len='8'
-code='0001000'
-nums='130'
+code='00011266'
+nums='2'
 start_code = int(code)
 code_len = int(code_len)
 nums = int(nums)
