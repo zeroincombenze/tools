@@ -30,7 +30,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.2.70.7"
+__version__ = "0.2.70.8"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -81,40 +81,42 @@ class Test():
         return sts
 
     def test_02(self, z0ctx):
-        if not ctx['dry_run']:
-            if os.environ.get("TRAVIS", "") != "true":
-                os0.muteshell("/opt/odoo/dev/pypi/zar/zar/pg_db_active -wa " +
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            if not ctx['dry_run']:
+                if os.environ.get("TRAVIS", "") != "true":
+                    os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
+                                  self.dbtest)
+                os0.muteshell("dropdb -Upostgres --if-exists " + self.dbtest)
+                cmd = self.cmd + ['-A=new_db'] + ['-d=' + self.dbtest]
+                p = Popen(cmd,
+                          stdin=PIPE,
+                          stdout=PIPE,
+                          stderr=PIPE)
+                res, err = p.communicate()
+                res = self.check_4_db()
+            else:
+                res = True
+            sts = self.Z.test_result(z0ctx,
+                                     "Create DB",
+                                     True,
+                                     res)
+            if not ctx['dry_run']:
+                os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
                               self.dbtest)
-            os0.muteshell("dropdb -Upostgres --if-exists " + self.dbtest)
-            cmd = self.cmd + ['-A=new_db'] + ['-d=' + self.dbtest]
-            p = Popen(cmd,
-                      stdin=PIPE,
-                      stdout=PIPE,
-                      stderr=PIPE)
-            res, err = p.communicate()
-            res = self.check_4_db()
-        else:
-            res = True
-        sts = self.Z.test_result(z0ctx,
-                                 "Create DB",
-                                 True,
-                                 res)
-        if not ctx['dry_run']:
-            os0.muteshell("/opt/odoo/dev/pypi/zar/zar/pg_db_active -wa " +
-                          self.dbtest)
-            cmd = self.cmd + ['-A=drop_db'] + ['-d=' + self.dbtest]
-            p = Popen(cmd,
-                      stdin=PIPE,
-                      stdout=PIPE,
-                      stderr=PIPE)
-            res, err = p.communicate()
-            res = self.check_4_db()
-        else:
-            res = False
-        sts = self.Z.test_result(z0ctx,
-                                 "Drop DB",
-                                 False,
-                                 res)
+                cmd = self.cmd + ['-A=drop_db'] + ['-d=' + self.dbtest]
+                p = Popen(cmd,
+                          stdin=PIPE,
+                          stdout=PIPE,
+                          stderr=PIPE)
+                res, err = p.communicate()
+                res = self.check_4_db()
+            else:
+                res = False
+            sts = self.Z.test_result(z0ctx,
+                                     "Drop DB",
+                                     False,
+                                     res)
         return sts
 
 

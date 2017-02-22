@@ -258,6 +258,7 @@ def default_conf(ctx):
               'login_password': 'Ec{fu',
               'login2_user': 'admin',
               'login2_password': 'admin',
+              'admin_passwd': 'admin',
               'db_host': 'localhost',
               'svc_protocol': 'xmlrpc',
               'xmlrpc_port': '8069',

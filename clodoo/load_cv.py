@@ -97,7 +97,6 @@ FLDS_LIST = ('Number',
              # 'file1_fulltext'
              )
 
-# os0.set_codeset('latin_1')
 cursor = cnx.cursor()
 cursor.execute('select count(' + FLDS_LIST[0] + ') from ea')
 my_field = cursor.next()
@@ -112,10 +111,7 @@ for field in FLDS_LIST:
     sqlcmd = sqlcmd + sep + field
     sep = ','
 sqlcmd = sqlcmd + ' from ea'
-# sqlcmd = sqlcmd + ' order by ' + FLDS_LIST[0]
 cursor.execute(sqlcmd)
-## fd = open('/opt/odoo/cv.txt', 'w')
-## last_number = 0
 num_rec = 0
 for my_field in cursor:
     num_rec += 1
@@ -153,12 +149,10 @@ for my_field in cursor:
         vals['description'] = vals['description'].replace('\n\n', '\n')
         vals['description'] = vals['description'].replace('\n\n', '\n')
         description = vals['description'].replace('\n', '\\n')
-    #     vals['notes'] = vals['description']
         del vals['description']
     ids = oerp.search(model, [('company_id', '=', COMPANY_ID),
                               ('cv_number', '=', vals['cv_number'])])
     if len(ids):
-        # print "write "
         try:
             oerp.write(model, [ids[0]], vals)
         except:
@@ -167,19 +161,10 @@ for my_field in cursor:
         for id in ids[1:]:
             oerp.unlink(model, [id])
     else:
-        # print "oerp.create(%s, %s)" % (model, vals)
         try:
             oerp.create(model, vals)
         except:
             print vals['cv_number']
             print vals
-    # cv_number = int(vals['cv_number'])
-    # while last_number < (cv_number - 1):
-    #     fd.write('\n')
-    #     last_number += 1
-    # fd.write(os0.b(description))
-    # fd.write('\n')
-    # last_number += 1
 cursor.close()
-# fd.close()
 cnx.close()

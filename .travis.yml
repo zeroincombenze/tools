@@ -28,7 +28,7 @@ env:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
-  # - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug
@@ -54,7 +54,7 @@ script:
   - travis_run_tests ${OPTS}
 
 after_success:
-  # - cd ${TRAVIS_BUILD_DIR}/clodoo; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}/clodoo; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}/z0lib; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
