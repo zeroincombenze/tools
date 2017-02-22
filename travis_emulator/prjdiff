@@ -53,7 +53,6 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 opts_travis
-DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

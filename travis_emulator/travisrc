@@ -2,22 +2,13 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.80
+#__version__=0.1.80.1
 
 MAKEF=/opt/odoo/dev/Makefile
 # DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
 
 opts_travis() {
-    if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
-      TCONF=$opt_conf
-    else
-      TCONF=$TDIR/.travis.conf
-    fi
-    DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
-    if [ -z "$DIST_CONF" ]; then
-      DIST_CONF=$(readlink -f $PKGPATH/../conf/.local_dist_pkg.conf)
-    fi
     if [ -n "$pkg" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
         PKGPATH=${pkg:6}
@@ -41,6 +32,15 @@ opts_travis() {
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
     set_pkgname $PKGPATH
+    if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+      TCONF=$opt_conf
+    else
+      TCONF=$TDIR/.travis.conf
+    fi
+    DIST_CONF=$(readlink -f $PKGPATH/conf/.local_dist_pkg.conf)
+    if [ -z "$DIST_CONF" ]; then
+      DIST_CONF=$(readlink -f $PKGPATH/../conf/.local_dist_pkg.conf)
+    fi
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
     fi
