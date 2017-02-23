@@ -11,7 +11,7 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "$HOME/tools/z0lib" "/etc"; do
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -23,16 +23,8 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-# TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR . .. $HOME/dev $HOME/tools/travis_emulator")
-# if [ -z "$TRAVISLIBDIR" ]; then
-#   echo "Library file travisrc not found!"
-#   exit 2
-# fi
-# . $TRAVISLIBDIR
-# TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-# RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.23.1
+__version__=0.1.24.3
 
 
 detached_login () {
@@ -68,7 +60,10 @@ kill_daemon () {
 set_db_list () {
     if [ -z "$DBLIST" ]; then
       wlog "Creating DB list ..."
-      DBLIST=$(psql -Uodoo -l|grep "^ *\(demo\|zero.*\|zi[0-9]\{8\}\) *. odoo *"|awk '{print $1}'|tr "\n" " ")
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "psql -U$PG_USER -l|grep '^ *\$DBFILTER *. $DB_USER *'|awk '{print $1}'|tr '\n' ' '"
+      fi
+      DBLIST=$(psql -U$PG_USER -l|grep "^ *\$DBFILTER *. $DB_USER *"|awk '{print $1}'|tr "\n" " ")
       DB_ix=0
     fi
 }
@@ -139,8 +134,21 @@ conf_default () {
     set_cfg_def "HUPTST_CTR" "3"
     set_cfg_def "HUPTST_TAIL" "0"
     set_cfg_def "DEBUG_MODE" "0"
+    set_cfg_def "DBFILTER" ".*"
+    set_cfg_def "PG_USER" "odoo"
+    set_cfg_def "DB_USER" "odoo"
+    TCONF=/etc/odoo/oe_watchdog.conf
+    if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
+      TCONF=/etc/oe_watchdog.conf
+    fi
+    if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
+      if [ -d /etc/odoo ]; then
+        TCONF=/etc/odoo/oe_watchdog.conf
+      else
+        TCONF=/etc/oe_watchdog.conf
+      fi
+    fi
 }
-
 
 
 OPTOPTS=(h        D      K        n            s            V           v           X)
@@ -190,23 +198,9 @@ if [ $opt_lxs -gt 0 ]; then
   wlog "Odoo server watchdog $__version__ starting ..."
 fi
 
-# opts_travis
 CFG_init
 conf_default
-TCONF=/etc/odoo/oe_watchdog.conf
-if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
-  TCONF=/etc/oe_watchdog.conf
-fi
-if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
-  if [ -d /etc/odoo ]; then
-    TCONF=/etc/odoo/oe_watchdog.conf
-  else
-    TCONF=/etc/oe_watchdog.conf
-  fi
-fi
 link_cfg $TCONF
-# init_travis
-# prepare_env_travis ""
 sts=$STS_SUCCESS
 
 if [ -n "$opt_svc_name" ]; then
@@ -218,6 +212,9 @@ CLODIR=$(get_cfg_value "" "CLODIR")
 CLOBIN=$(get_cfg_value "" "CLOBIN")
 ODOO_CONF=$(get_cfg_value "" "ODOO_CONF")
 ODOO_LOG=$(get_cfg_value "" "ODOO_LOG")
+DBFILTER=$(get_cfg_value "" "DBFILTER")
+PG_USER=$(get_cfg_value "" "PG_USER")
+DB_USER=$(get_cfg_value "" "DB_USER")
 MAX_RETRY=$(get_cfg_value "" "MAX_RETRY")
 if [ $MAX_RETRY -gt 5 -o $MAX_RETRY -lt 1 ]; then
   MAX_RETRY=3
@@ -265,8 +262,6 @@ if [ ! -f clodoo.conf ]; then
   cat <<EOF >clodoo.conf
 [options]
 actions=unit_test
-login_user=$login_user
-login_password=$login_password
 dbfilter=.*
 EOF
 fi
@@ -287,6 +282,9 @@ wlog "HELLO_CTR=$HELLO_CTR"
 wlog "HUPTST_CTR=$HUPTST_CTR"
 wlog "HUPTST_TAIL=$HUPTST_TAIL"
 wlog "login_user=$login_user"
+wlog "DBFILTER=$DBFILTER"
+wlog "PG_USER=$PG_USER"
+wlog "DB_USER=$DB_USER"
 
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000

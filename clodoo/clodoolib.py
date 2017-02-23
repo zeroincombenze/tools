@@ -96,6 +96,7 @@ LX_CFG_SB = ('install_modules',
 # list of pure boolean parameters in [options] of config file
 LX_CFG_B = ('set_passepartout',
             'check_balance',
+            'draft_recs',
             'setup_banks',
             'setup_account_journal',
             'setup_partners',
@@ -122,7 +123,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.10.2"
+__version__ = "0.1.10.3"
 
 
 #############################################################################
@@ -273,6 +274,7 @@ def default_conf(ctx):
               'lang': 'en_US',
               'date_start': dts_start,
               'date_stop': dts_stop,
+              'draft_recs': '0',
               'account_code': '000000',
               'adm_uids': '1',
               'set_passepartout': '0',
