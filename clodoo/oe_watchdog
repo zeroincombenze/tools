@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.24.3
+__version__=0.1.25.8
 
 
 detached_login () {
@@ -59,12 +59,24 @@ kill_daemon () {
 
 set_db_list () {
     if [ -z "$DBLIST" ]; then
-      wlog "Creating DB list ..."
       if [ $DEBUG_MODE -ne 0 ]; then
-        elog "psql -U$PG_USER -l|grep '^ *\$DBFILTER *. $DB_USER *'|awk '{print $1}'|tr '\n' ' '"
+        elog "Creating DB list ..."
       fi
-      DBLIST=$(psql -U$PG_USER -l|grep "^ *\$DBFILTER *. $DB_USER *"|awk '{print $1}'|tr "\n" " ")
+      DBF="${DBFILTER//|/\|}"
+      DBF="${DBF//(/\(}"
+      DBF="${DBF//)/\)}"
+      DBF="${DBF//\{/\\{}"
+      DBF="${DBF//\}/\}}"
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "psql -U$PG_USER -l|grep \"^ *$DBF *. $DB_USER *\"|awk '{print \$1}'|tr '\n' ' '"
+      fi
+      DBLIST=$(psql -U$PG_USER -l|grep "^ *$DBF *. $DB_USER *"|awk '{print $1}'|tr '\n' ' ')
       DB_ix=0
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "($DBLIST)"
+      else
+        wlog "DBLIST=($DBLIST)"
+      fi
     fi
 }
 
@@ -73,6 +85,9 @@ select_db () {
     local c=0
     dbname=""
     for d in $DBLIST; do
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "[ $c -eq $DB_ix ] && ((DB_ix++)) && dbname=\"$d\""
+      fi
       if [ $c -eq $DB_ix ]; then
         ((DB_ix++))
         dbname="$d"
@@ -95,24 +110,39 @@ test_db () {
         dbname="demo"
       fi
     fi
-    if [ $DEBUG_MODE -ne 0 ]; then
-      elog "clodoo.py $opts -d=$dbname -A=unit_test"
+    if [ $TOT_FAIL_ctr -gt $TOT_OK ]; then
+      :
+    else
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "clodoo.py $opts -d=$dbname -A=unit_test"
+      else
+        wlog "Check for DB $dbname"
+      fi
+      clodoo.py $opts -d=$dbname -A=unit_test
+      sts=$?
+      if [ $sts -eq $STS_SUCCESS ]; then
+        DBSTS[$dbname]='on+'
+      else
+        DBSTS[$dbname]='OFF'
+      fi
     fi
-    clodoo.py $opts -d=$dbname -A=unit_test
-    sts=$?
+
 }
 
 
 test_hang_up () {
+    if [ $DEBUG_MODE -ne 0 ]; then
+      elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'RuntimeError: maximum recursion depth exceeded'"
+    fi
     HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
     if [ -z "$HANG_UP" ]; then
+      if [ $DEBUG_MODE -ne 0 ]; then
+        elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'FATAL: *connection slots.*reserved for.*superuser'"
+      fi
       HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
       if [ -n "$HANG_UP" ]; then
-        local c=$(pg_db_active -c)
-        if [ $c -gt 10 ]; then
-          let c="$c-10"
-        fi
-        pg_db_active -k -u $c>>$LOGFILE
+        pg_db_active -k>>$LOGFILE
+        sleep 10
       fi
     fi
 }
@@ -262,10 +292,16 @@ if [ ! -f clodoo.conf ]; then
   cat <<EOF >clodoo.conf
 [options]
 actions=unit_test
-dbfilter=.*
+dbfilter=$DBFILTER
+login_user=$login_user
+login_password=$login_password
 EOF
+else
+  sed -i -e "s|^dbfilter *=.*|dbfilter=$DBFILTER|" clodoo.conf
+  sed -i -e "s|^actions *=.*|actions=unit_test|" clodoo.conf
 fi
 DBLIST=""
+declare -A DBSTS
 if [ $opt_verbose -gt -0 ]; then
    opts=-v
 else
@@ -308,8 +344,7 @@ while [ $ctr -gt 0 ]; do
   test_db
   HANG_UP=
   if [ $sts -ne 0 ]; then
-    dt=$(date)
-    wlog "$dt Warning: invalid response"
+    wlog "Warning: invalid response"
     test_hang_up
   elif [ $huptstctr -eq 0 ]; then
     test_hang_up
@@ -321,8 +356,7 @@ while [ $ctr -gt 0 ]; do
     ctr2=0
     huptstctr=$HUPTST_CTR
     sts=1
-    dt=$(date)
-    wlog "$dt Warning: hang-up detected"
+    wlog "Warning: hang-up detected"
   else
     ctr2=$MAX_RETRY
   fi
@@ -335,9 +369,10 @@ while [ $ctr -gt 0 ]; do
     OK_ctr=0
     ((FAIL_ctr++))
     ((TOT_FAIL_ctr++))
-    service $svc_name restart>>$LOGFILE
-    dt=$(date)
-    wlog "$dt $HANG_UP"
+    wlog "\$ service $svc_name restart"
+    service $svc_name restart
+    wlog "Hang-up message: $HANG_UP"
+    sleep 5
   else
     ((OK_ctr++))
     FAIL_ctr=0
@@ -345,17 +380,24 @@ while [ $ctr -gt 0 ]; do
   fi
   if [ $FAIL_ctr -ge 3 ]; then
     wlog "???? SERVICE FAILURE ????"
-    service $svc_name stop>>$LOGFILE
-    sleep 15
+    wlog "\$ service $svc_name stop"
+    service $svc_name stop
+    sleep 10
     kill_daemon
-    sleep 15
-    service $svc_name start>>$LOGFILE
+    sleep 10
+    wlog "\$ service $svc_name start"
+    service $svc_name start
   fi
   ((ctr--))
   if [ $ctr -gt 0 ]; then
     if [ $helloctr -eq 0 ]; then
       helloctr=$HELLO_CTR
       wlog "Odoo server watchdog $__version__ is running"
+      c=0
+      for d in ${!DBS[*]};do
+        ((c++))
+        wlog " $c) DB $d status: ${DBS[$d]}"
+      done
     else
       ((helloctr--))
     fi

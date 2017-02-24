@@ -4,7 +4,7 @@
 #
 # chkconfig: 345 95 05
 # description: oe_watchdog-server server
-# version: 0.1.24
+# version: 0.1.25.1
 # pidfile: /var/run/odoo/oe_watchdog.pid
 # config: /etc/odoo/oe_watchdog.conf
 ### BEGIN INIT INFO
@@ -55,7 +55,7 @@ done
 
 NAME=oe_watchdog-server
 DESC="Odoo Service watchdog"
-USER=root
+USER=odoo
 # pidfile
 PIDFILE=/var/run/odoo/oe_watchdog.pid
 LOCKFILE=/var/lock/subsys/${NAME}

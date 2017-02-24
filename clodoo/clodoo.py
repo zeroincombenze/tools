@@ -46,7 +46,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.9"
+__version__ = "0.2.70.10"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1110,8 +1110,8 @@ def act_check_taxes(oerp, ctx):
     msg = u"Check for taxes; period: " \
         + ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
     company_id = ctx['company_id']
     period_ids = oerp.search('account.period',
                              [('company_id', '=', company_id),
@@ -1133,7 +1133,7 @@ def act_check_taxes(oerp, ctx):
         msg_burst(4, "Move    ", move_ctr, num_moves)
         tax_code_obj = move_line_obj.tax_code_id
         if tax_code_obj:
-            move_hdr_id = move_line_obj.move_id.id
+            # move_hdr_id = move_line_obj.move_id.id
             code = tax_code_obj.code
             level = '9'
             add_on_account(tax_balance,
@@ -1143,7 +1143,7 @@ def act_check_taxes(oerp, ctx):
                            move_line_obj.debit)
             while tax_code_obj.parent_id:
                 tax_code_obj = tax_code_obj.parent_id
-                parent_code = tax_code_obj.code
+                code = tax_code_obj.code
                 level = str(int(level - 1))
                 add_on_account(tax_balance,
                                level,
@@ -1154,7 +1154,7 @@ def act_check_taxes(oerp, ctx):
     for level in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
         ident = '%-' + str(int(level) + 1) + 's'
         ident = ident + ' %' + str(15 - int(level)) + 'f'
-        msg = s % (level, tax_balance[level])
+        msg = ident % (level, tax_balance[level])
         msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
