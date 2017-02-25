@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -23,7 +23,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.13
+__version__=0.1.13.1
 
 
 db_active() {
@@ -103,7 +103,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Check/kill for postgres DB sessions"\
-  "(C) 2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ $pool -lt 1 ]; then
@@ -129,8 +129,11 @@ elif [ $act_kill4db -ne 0 -a -n "$DB" ]; then
   loop_ctr=1
   sleep_tm=0
   if [ $opt_lock -gt 0 ]; then
+    if [ $opt_verbose -gt 0 ]; then
+      echo "Revoce access from $DB"
+    fi
     sqlc="REVOKE CONNECT ON DATABASE $DB FROM PUBLIC, odoo;"
-    psql -Upostgres -tc "$sqlc"
+    psql -Upostgres -tc "$sqlc" &>/dev/null
   fi
 elif [ $wait_db -ne 0 -a -n "$DB" ]; then
   act=-c
@@ -178,7 +181,7 @@ while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
           fi
           kill $pid
           sqlc="select pg_terminate_backend(pid) from pg_stat_activity where pid=$pid;"
-          psql -Upostgres -tc "$sqlc"
+          psql -Upostgres -tc "$sqlc" &>/dev/null
         else
           ((loop_ctr++))
         fi
@@ -214,7 +217,10 @@ if [ $wait_db -ne 0 -a -n "$DB" ]; then
   sleep 1
 fi
 if [ $opt_grant -gt 0 -a -n "$DB" ]; then
+  if [ $opt_verbose -gt 0 ]; then
+    echo "Grant access to $DB"
+  fi
   sqlc="GRANT CONNECT ON DATABASE $DB TO PUBLIC, odoo;"
-  psql -Upostgres -tc "$sqlc"
+  psql -Upostgres -tc "$sqlc" &>/dev/null
 fi
 exit $sts

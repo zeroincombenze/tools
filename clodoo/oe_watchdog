@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.25.8
+__version__=0.1.25.9
 
 
 detached_login () {
@@ -394,9 +394,9 @@ while [ $ctr -gt 0 ]; do
       helloctr=$HELLO_CTR
       wlog "Odoo server watchdog $__version__ is running"
       c=0
-      for d in ${!DBS[*]};do
+      for d in ${!DBSTS[*]};do
         ((c++))
-        wlog " $c) DB $d status: ${DBS[$d]}"
+        wlog " $c) DB $d status: ${DBSTS[$d]}"
       done
     else
       ((helloctr--))

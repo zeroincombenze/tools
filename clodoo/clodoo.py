@@ -46,7 +46,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.10"
+__version__ = "0.2.70.11"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1117,6 +1117,23 @@ def act_check_taxes(oerp, ctx):
                              [('company_id', '=', company_id),
                               ('date_start', '>=', ctx['date_start']),
                               ('date_stop', '<=', ctx['date_stop'])])
+    # model = 'account.tax'
+    # ids = oerp.search(model,
+    #                   [('company_id', '=', company_id)])
+    # base_vat = {}
+    # vat_base = {}
+    # base_vat_nc = {}
+    # vat_base_nc = {}
+    # for id in ids:
+    #     tax_obj = oerp.browse(model, id)
+    #     id_imp = tax_obj.base_code_id.id
+    #     id_iva = tax_obj.tax_code_id.id
+    #     base_vat[id_imp] = id_iva
+    #     vat_base[id_iva] = id_imp
+    #     id_imp_nc = tax_obj.ref_base_code_id.id
+    #     id_iva_nc = tax_obj.ref_tax_code_id.id
+    #     base_vat_nc[id_imp_nc] = id_iva_nc
+    #     vat_base_nc[id_iva_nc] = id_imp_nc
     STATES = STATES_2_DRAFT
     if ctx['draft_recs']:
         STATES.append('draft')
@@ -1134,28 +1151,38 @@ def act_check_taxes(oerp, ctx):
         tax_code_obj = move_line_obj.tax_code_id
         if tax_code_obj:
             # move_hdr_id = move_line_obj.move_id.id
-            code = tax_code_obj.code
             level = '9'
-            add_on_account(tax_balance,
-                           level,
-                           code,
-                           move_line_obj.credit,
-                           move_line_obj.debit)
-            while tax_code_obj.parent_id:
-                tax_code_obj = tax_code_obj.parent_id
+            while True:
                 code = tax_code_obj.code
-                level = str(int(level - 1))
+                name = tax_code_obj.name
+                if isinstance(code, basestring):
+                    x = code
+                else:
+                    x = ''
+                if isinstance(name, basestring):
+                    x = x + ' - ' + name
                 add_on_account(tax_balance,
                                level,
-                               code,
-                               move_line_obj.credit,
-                               move_line_obj.debit)
-
+                               x,
+                               move_line_obj.tax_amount,
+                               0)
+                if not tax_code_obj.parent_id:
+                    break
+                tax_code_obj = tax_code_obj.parent_id
+                level = str(int(level) - 1)
+    format = ctx.get('format', 'csv')
     for level in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
-        ident = '%-' + str(int(level) + 1) + 's'
-        ident = ident + ' %' + str(15 - int(level)) + 'f'
-        msg = ident % (level, tax_balance[level])
-        msg_log(ctx, ctx['level'], msg)
+        if level in tax_balance:
+            if format == 'csv':
+                ident = '%s,%s,%.2f'
+            else:
+                ident = '%-' + str(int(level) + 1) + 's'
+                x = str(65 - int(level))
+                ident = ident + ' %-' + x + '.' + x + 's'
+                ident = ident + ' %13.2f'
+            for kk in sorted(tax_balance[level]):
+                msg = ident % (level, kk, tax_balance[level][kk])
+                msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
