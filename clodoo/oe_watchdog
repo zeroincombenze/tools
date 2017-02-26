@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.25.9
+__version__=0.1.25.11
 
 
 detached_login () {
@@ -97,7 +97,7 @@ select_db () {
     done
 }
 
-test_db () {
+test_db_svr_response () {
     if [ -n "$opt_DB" ]; then
       dbname="$opt_DB"
     else
@@ -110,23 +110,18 @@ test_db () {
         dbname="demo"
       fi
     fi
-    if [ $TOT_FAIL_ctr -gt $TOT_OK ]; then
-      :
+    if [ $DEBUG_MODE -ne 0 ]; then
+      elog "clodoo.py $opts -d=$dbname -A=unit_test"
     else
-      if [ $DEBUG_MODE -ne 0 ]; then
-        elog "clodoo.py $opts -d=$dbname -A=unit_test"
-      else
-        wlog "Check for DB $dbname"
-      fi
-      clodoo.py $opts -d=$dbname -A=unit_test
-      sts=$?
-      if [ $sts -eq $STS_SUCCESS ]; then
-        DBSTS[$dbname]='on+'
-      else
-        DBSTS[$dbname]='OFF'
-      fi
+      wlog "Check for DB $dbname"
     fi
-
+    clodoo.py $opts -d=$dbname -A=unit_test
+    sts=$?
+    if [ $sts -eq $STS_SUCCESS ]; then
+      ((DBSTS[$dbname]++))
+    else
+      ((DBSTS[$dbname]--))
+    fi
 }
 
 
@@ -142,7 +137,6 @@ test_hang_up () {
       HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
       if [ -n "$HANG_UP" ]; then
         pg_db_active -k>>$LOGFILE
-        sleep 10
       fi
     fi
 }
@@ -160,6 +154,7 @@ conf_default () {
     set_cfg_def "ODOO_LOG" "/var/log/odoo/odoo-server.log"
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
+    set_cfg_def "TIME_WAIT" "10"
     set_cfg_def "HELLO_CTR" "21"
     set_cfg_def "HUPTST_CTR" "3"
     set_cfg_def "HUPTST_TAIL" "0"
@@ -225,7 +220,7 @@ fi
 if [ $opt_lxs -gt 0 ]; then
   chmod +r $LOGFILE
   echo $$ > $PIDFILE
-  wlog "Odoo server watchdog $__version__ starting ..."
+  wlog "********** Odoo server watchdog $__version__ starting ... **********"
 fi
 
 CFG_init
@@ -253,6 +248,11 @@ TIME_SLEEP=$(get_cfg_value "" "TIME_SLEEP")
 if [ $TIME_SLEEP -gt 300 -o $TIME_SLEEP -lt 30 ]; then
   TIME_SLEEP=90
 fi
+TIME_WAIT=$(get_cfg_value "" "TIME_WAIT")
+if [ $TIME_WAIT -gt 15 -o $TIME_WAIT -lt 5 ]; then
+  TIME_WAIT=10
+fi
+let TIME_SWAIT="$TIME_WAIT/2"
 HELLO_CTR=$(get_cfg_value "" "HELLO_CTR")
 if [ $HELLO_CTR -gt 30 -o $HELLO_CTR -lt 3 ]; then
   TIME_SLEEP=21
@@ -300,8 +300,6 @@ else
   sed -i -e "s|^dbfilter *=.*|dbfilter=$DBFILTER|" clodoo.conf
   sed -i -e "s|^actions *=.*|actions=unit_test|" clodoo.conf
 fi
-DBLIST=""
-declare -A DBSTS
 if [ $opt_verbose -gt -0 ]; then
    opts=-v
 else
@@ -314,6 +312,7 @@ wlog "ODOO_CONF=$ODOO_CONF"
 wlog "ODOO_LOG=$ODOO_LOG"
 wlog "MAX_RETRY=$MAX_RETRY"
 wlog "TIME_SLEEP=$TIME_SLEEP"
+wlog "TIME_WAIT=$TIME_WAIT"
 wlog "HELLO_CTR=$HELLO_CTR"
 wlog "HUPTST_CTR=$HUPTST_CTR"
 wlog "HUPTST_TAIL=$HUPTST_TAIL"
@@ -322,6 +321,8 @@ wlog "DBFILTER=$DBFILTER"
 wlog "PG_USER=$PG_USER"
 wlog "DB_USER=$DB_USER"
 
+DBLIST=""
+declare -A DBSTS
 if [ $opt_lxs -gt 0 ]; then
   ctr=5256000
 else
@@ -341,7 +342,7 @@ while [ $ctr -gt 0 ]; do
   else
      pg_db_active -k >>$LOGFILE
   fi
-  test_db
+  test_db_svr_response
   HANG_UP=
   if [ $sts -ne 0 ]; then
     wlog "Warning: invalid response"
@@ -362,31 +363,36 @@ while [ $ctr -gt 0 ]; do
   fi
   while [ $sts -ne 0 -a $ctr2 -gt 0 ]; do
     ((ctr2--))
-    sleep 5
-    test_db
+    sleep $TIME_SWAIT
+    test_db_svr_response
   done
   if [ $sts -ne 0 ]; then
     OK_ctr=0
     ((FAIL_ctr++))
     ((TOT_FAIL_ctr++))
-    wlog "\$ service $svc_name restart"
-    service $svc_name restart
-    wlog "Hang-up message: $HANG_UP"
-    sleep 5
+    if [ $TOT_OK -gt $TOT_FAIL_ctr -a ${DBSTS[$dbname]:-0} -gt 0 ]; then
+      wlog "\$ service $svc_name restart"
+      service $svc_name restart
+      wlog "Hang-up message: $HANG_UP"
+      sleep $TIME_WAIT
+    else
+      FAIL_ctr=0
+    fi
   else
     ((OK_ctr++))
     FAIL_ctr=0
     ((TOT_OK_ctr++))
   fi
-  if [ $FAIL_ctr -ge 3 ]; then
+  if [ $FAIL_ctr -ge $MAX_RETRY ]; then
     wlog "???? SERVICE FAILURE ????"
     wlog "\$ service $svc_name stop"
     service $svc_name stop
-    sleep 10
+    sleep $TIME_WAIT
     kill_daemon
-    sleep 10
+    sleep $TIME_SWAIT
     wlog "\$ service $svc_name start"
     service $svc_name start
+    sleep $TIME_WAIT
   fi
   ((ctr--))
   if [ $ctr -gt 0 ]; then
@@ -396,7 +402,14 @@ while [ $ctr -gt 0 ]; do
       c=0
       for d in ${!DBSTS[*]};do
         ((c++))
-        wlog " $c) DB $d status: ${DBSTS[$d]}"
+        if [ ${DBSTS[$d]} -gt 0 ]; then
+          dbsts="active"
+        elif [ ${DBSTS[$d]} -eq 0 ]; then
+          dbsts="idle"
+        else
+          dbsts="OFF"
+        fi
+        wlog " $c) DB $d: $dbsts (${DBSTS[$d]})"
       done
     else
       ((helloctr--))
