@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.2
+__version__=0.1.41.3
 
 
 #
@@ -800,7 +800,6 @@ do_distribution() {
     else
       local f1=
       echo "File .travis.yml not found!"
-      sts=$STS_FAILED
     fi
     if [ $opt_orig -gt 0 ]; then
       if [ "$2" == "oca" ]; then
@@ -818,8 +817,10 @@ do_distribution() {
         run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
       fi
     fi
-    cvt_file $f1 $2 "travis"
-    sts=$?
+    if [ -n "$f1" ]; then
+      cvt_file $f1 $2 "travis"
+      sts=$?
+    fi
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ -f ./README.md ]; then
         local f1=./README.md
@@ -832,8 +833,10 @@ do_distribution() {
       else
         local f1=
       fi
-      cvt_file $f1 $2 "readme"
-      sts=$?
+      if [ -n "$f1" ]; then
+        cvt_file $f1 $2 "readme"
+        sts=$?
+      fi
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       f1=oca_dependencies.txt
