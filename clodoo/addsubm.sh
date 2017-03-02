@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.29.4
+__version__=0.1.29.5
 
 
 set_dstpath() {
@@ -282,7 +282,7 @@ else
          MODNAME=${MODNAME:0: -4}
       fi
       rmdir_if_exists $MODNAME $new_odoo_ver $rq_oev
-      if [ "$rq_oev" == "$new_odoo_ver" ]; then
+      if [ -n "$new_odoo_ver" -a "$rq_oev" == "$new_odoo_ver" ]; then
         git_opts="-b $odoo_ver"
         if [ $opt_one -gt 0 ]; then
           git_opts="$git_opts --single-branch --depth=1"
@@ -333,7 +333,7 @@ else
   run_traced "cd $HOME/$new_odoo_ver"
 fi
 run_traced "cd $HOME/$odoo_ver"
-if [ "$rq_oev" == "$new_odoo_ver" ]; then
+if [ "$MODNAME" != "OCB" -a "$rq_oev" == "$new_odoo_ver" ]; then
   x=$(git submodule status 2>/dev/null|grep $MODNAME)
   if [ -z "$x" ]; then
     run_traced "git submodule add -f $pkg_URL $MODNAME/"
