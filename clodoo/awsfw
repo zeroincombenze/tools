@@ -1,0 +1,102 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# AWS firewall
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+
+__version__=0.1.1
+
+
+conf_default() {
+    TCONF=$TDIR/.$THIS
+    set_cfg_def "AWS_ACCESS_KEY_ID" "ABCDEFGHIJKLMNOPQRST"
+    set_cfg_def "AWS_SECRET_ACCESS_KEY" "abcdefghijklmnopqrstuvwxyz0123456789ABCD"
+    set_cfg_def "GROUP_IDS" "ab-01234567"
+    set_cfg_def "REGION" "eu-west-1"
+}
+
+OPTOPTS=(h        c                   l             n            q           t         V           v)
+OPTDEST=(opt_help opt_conf            opt_log       opt_dry_run  opt_verbose test_mode opt_version opt_verbose)
+OPTACTI=(1        "="                 "="           "1>"         0           1         "*>"        "+" )
+OPTDEFL=(1        "$TDIR/.$THIS.conf" "~/awsfw.log" 0            -1          0         ""          -1)
+OPTMETA=("help"   "filename"          "filename"    "do nothing" "verbose"   ""        "version"   "silent")
+OPTHELP=("this help"\
+ "configuration file (def $TDIR/.$THIS.conf)"\
+ "log filename (def ~/awsfw.log)"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "test mode (implies dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(act param1 param2 param3)
+
+parseoptargs "$@"
+
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "AWS Firewall"\
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+CFG_init
+conf_default
+link_cfg $opt_conf
+if [ ${opt_verbose:-0} -gt 0 ]; then
+  set_tlog_file "$opt_log" "" "echo"
+else
+  set_tlog_file "$opt_log"
+fi
+export AWS_ACCESS_KEY_ID=$(get_cfg_value 0 AWS_ACCESS_KEY_ID)
+export AWS_SECRET_ACCESS_KEY=$(get_cfg_value 0 AWS_SECRET_ACCESS_KEY)
+GROUP_IDS=$(get_cfg_value 0 GROUP_IDS)
+REGION=$(get_cfg_value 0 REGION)
+sts=$STS_SUCCESS
+if [ "$act" == "show" ]; then
+  curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+)
+  echo "Current IP: $curip"
+elif [ "$act" == "enable" ]; then
+  curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+)
+  if [ -z "$param1" ]; then
+    echo "Missed new IP"
+    sts=1
+  else
+    if [[ $param1 =~ [0-9.]+[0-9.]+[0-9.]+[0-9.]/[0-9.]+ ]]; then
+      newip=$param1
+    else
+      newip=$param1/32
+    fi
+    if [ "$curip" == "$newip" ]; then
+      echo "Curent and new IP are the same!"
+      sts=1
+    else
+      aws ec2 revoke-security-group-ingress --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$curip'"}],"UserIdGroupPairs": []}]'
+      aws ec2 authorize-security-group-ingress --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$newip'"}],"UserIdGroupPairs": []}]'
+    fi
+  fi
+else
+  echo "invalid action, use: $THIS show|enable"
+  sts=1
+fi
+exit $sts

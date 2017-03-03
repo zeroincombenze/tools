@@ -20,25 +20,25 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="0.1.11"
+__version__="0.1.12"
 
 
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        d        n            o       u       V           v           q)
-OPTDEST=(opt_help opt_diff opt_dry_run  opt_oca opt_uop opt_version opt_verbose opt_verbose)
-OPTACTI=(1        1        1            1       1       "*>"        1           0)
-OPTDEFL=(1        0        0            0       0       ""          0           0)
-OPTMETA=("help"   "diff"   "do nothing" "oca"   "uop"   "version"   "verbose"   "silent")
+OPTOPTS=(h        d        n            o       q           u       V           v)
+OPTDEST=(opt_help opt_diff opt_dry_run  opt_out opt_verbose opt_uop opt_version opt_verbose)
+OPTACTI=(1        1        1            "="     0           1       "*>"        "+")
+OPTDEFL=(1        0        0            ""      -1          0       ""          -1)
+OPTMETA=("help"   "diff"   "do nothing" "file"  "silent"   "uop"   "version"    "verbose")
 OPTHELP=("this help"\
  "show diff"\
  "do nothing (dry-run)"\
- "use oca-autopep8 rather than autopep8"\
+ "output filename, leave source unchanged (def source becomes .bak)"\
+ "silent mode"\
  "check for unary operator W503"\
  "show version"\
- "verbose mode"\
- "silent mode")
+ "verbose mode")
 OPTARGS=(pathname basename)
 
 parseoptargs "$@"
@@ -82,18 +82,29 @@ for fl in $(find $path -type f -name "$selfl"); do
     rm -f $f.new
   else
     if [ $opt_dry_run -eq 0 ]; then
-      mv $f $f.bak
-      mv $f.new $f
-      if [ $opt_diff -gt 0 ]; then
-        diff $f.bak $f
+      if [ -n "$opt_out" ]; then
+        mv $f.new $opt_out
+        if [ $opt_diff -gt 0 ]; then
+          diff $f $opt_out
+        fi
+      else
+        cp -p $f $f.bak
+        mv $f.new $f
+        if [ $opt_diff -gt 0 ]; then
+          diff $f.bak $f
+        fi
       fi
-      echo "File $f in $p converted"
+      if [ $opt_verbose -gt 0 ]; then
+        echo "File $f in $p converted"
+      fi
     else
       if [ $opt_diff -gt 0 ]; then
         diff $f $f.new
       fi
       rm -f $f.new
-      echo "File $f in $p should be converted"
+      if [ $opt_verbose -gt 0 ]; then
+        echo "File $f in $p should be converted"
+      fi
     fi
   fi
 done

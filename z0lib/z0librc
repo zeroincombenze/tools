@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.45
+#__version__=0.1.46
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -214,6 +214,7 @@ export -f xuname
 #      1.st character:
 #      0    Set variable to zero (false)
 #      1    Set variable to 1 (true)
+#      +    Increase variable value (like -vv for more verbose)
 #      *    Set variable with option switch name itself (i.e. -h)
 #      =    Set variable to following option value
 #      2.nd character:
@@ -303,7 +304,9 @@ parseoptargs() {
       export opt_help=1
     fi
     if [ ${opt_verbose:-0} -eq -1 ]; then
-      if [[ -t 0 || -p /dev/stdin ]]; then
+      if [ "$VERBOSE_MODE" == "1" -o "$VERBOSE_MODE" == "0" ]; then
+        opt_verbose=$VERBOSE_MODE
+      elif [[ -t 0 || -p /dev/stdin ]]; then
         opt_verbose=0
       else
         opt_verbose=1
@@ -326,7 +329,7 @@ print_help() {
     while ((jy<${#OPTOPTS[*]})); do
       local a=${OPTACTI[jy]}
       a=${a:0:1}
-      if [ "$a" == "0" -o "$a" == "1" -o "$a" == "*" ]; then
+      if [ "$a" == "0" -o "$a" == "1" -o "$a" == "+" -o "$a" == "*" ]; then
         if [ "$xx" == "]" ]; then
           xx="][-"
         fi

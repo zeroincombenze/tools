@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.4
+__version__=0.1.5
 
 
 cvt_file() {
@@ -301,7 +301,6 @@ EOF
 blk_21() {
     cat <<EOF >>$1
 opts_travis
-DIST_CONF=\$(readlink -f \$PKGPATH/conf/.local_dist_pkg.conf)
 CFG_init
 conf_default
 link_cfg \$DIST_CONF \$TCONF

@@ -16,12 +16,6 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
-  exit 2
-fi
-. $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
@@ -31,11 +25,55 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.80.1
+__version__=0.1.12
+
+test_01() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_01
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_01.out
+      cat <<EOF >$TESTSRC
+from osv import osv
+import decimal_precision
+from tools.translate import _
+import netsvc
+import pooler
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      cat <<EOF >$TESTRES
+from openerp.osv import osv
+import openerp.addons.decimal_precision
+from openerp.tools.translate import _
+from openerp import netsvc
+from openerp import pooler
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      $RUNDIR/topep8 -q -u $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8" "$TESTOUT" "$TESTRES" "diff -B"
+}
+
+Z0BUG_setup() {
+    :
+}
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_travis_em.log "$@ -J"
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
@@ -48,12 +86,8 @@ if [ ${opt_tlib:-0} -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
-UT_LIST="__version_V_${__version__}$RUNDIR/travis"
-UT_LIST="$UT_LIST __version_1_${__version__}$RUNDIR/travisrc"
-UT_LIST="$UT_LIST __version_0_0.2.8_$Z0TLIBDIR/z0testrc"
-UT_LIST="$UT_LIST __version_1_0.1.46$Z0LIBDIR/z0librc"
-# UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_autopep8 test_yaml test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
-UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_regex test_dist_pkg test_vfdiff test_vfcp"
+UT1_LIST=""
+UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

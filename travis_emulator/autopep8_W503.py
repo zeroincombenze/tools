@@ -27,10 +27,11 @@ import sys
 import re
 
 
-__version__ = "0.1.7"
+__version__ = "0.1.12"
 
 
 def update_to_8(line):
+    line = line.rstrip()
     if re.match("^from osv import", line):
         line = line.replace("from osv import",
                             "from openerp.osv import")
@@ -76,8 +77,25 @@ def exec_W503(filepy):
     while n > 2 and lines[n] == "" and lines[n - 1] == "":
         del lines[n]
         n = len(lines) - 1
+    empty_line = 0
     for n in range(len(lines)):
-        lines[n] = update_to_8(lines[n])
+        if lines[n] == "":
+            empty_line += 1
+        else:
+            empty_line = 0
+            if re.match("^report_sxw.report_sxw", lines[n]):
+                if empty_line == 1:
+                    line.insert(n,'')
+                elif empty_line > 2:
+                    del line[n - 1]
+                    n -= 1
+            elif re.match("^[a-zA-Z0-9_]+\(\)", lines[n]):
+                if empty_line == 1:
+                    line.insert(n,'')
+                elif empty_line > 2:
+                    del line[n - 1]
+                    n -= 1
+            lines[n] = update_to_8(lines[n])
         ln = lines[n].strip()
         if ln == "or":
             tk = "or"
