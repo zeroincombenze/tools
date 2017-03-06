@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.3
+__version__=0.1.41.13
 
 
 #
@@ -197,7 +197,7 @@ add_copyright() {
       echo "">>$1
       echo "----">>$1
       echo "">>$1
-      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/)">>$1
+      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)">>$1
       echo "">>$1
       echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
       echo "mission is to support the collaborative development of Odoo features and">>$1
@@ -207,9 +207,149 @@ add_copyright() {
       echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
       echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
       echo "is mainly designed for Italian law and markeplace.">>$1
-      echo "Everytime, every Odoo DB and customized code can be replicated on local server.">>$1
+      echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
       echo "">>$1
       echo "[//]: # (end copyright)">>$1
+    fi
+}
+
+build_pkgurl() {
+# build_pkgurl(pkgname zero|oca URL|UPSTREAM|RPT|OPTS|ASM)
+    local MODNAME=$1
+    local RPT=$2
+    local ITEM=$3
+    if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
+      local ODOO_RPT="https://github.com/acespritech"
+      local ODOO_UPSTREAM=
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
+      if [ "$RPT" == "zero-http" ]; then
+        local ODOO_RPT="https://github.com/zeroincombenze"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      else
+        local ODOO_RPT="git@github.com:zeroincombenze"
+        local OPTS_GIT=""
+        local OPTS_ASM=
+      fi
+      local ODOO_UPSTREAM=
+    elif [ "$RPT" == "oca" ]; then
+      local ODOO_RPT="https://github.com/OCA"
+      local ODOO_UPSTREAM=
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
+      local ODOO_RPT="git@github.com:zeroincombenze"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT=""
+      local OPTS_ASM=""
+    elif [ "$RPT" == "zero-http" ]; then
+      local ODOO_RPT="https://github.com/zeroincombenze"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    else
+      echo "Odoo repository is one of oca|zero|zero-http|zero-git"
+      sts=1
+      exit $sts
+    fi
+    if [ "$ITEM" == "RPT" ]; then
+      echo "$ODOO_RPT"
+    elif [ "$ITEM" == "URL" ]; then
+      local pkg_URL="$ODOO_RPT/$MODNAME.git"
+      echo "$pkg_URL"
+    elif [ "$ITEM" == "UPSTREAM" ]; then
+      if [ -n "$ODOO_UPSTREAM" ]; then
+        local pkg_URL="$ODOO_UPSTREAM/$MODNAME.git"
+      else
+        local pkg_URL=
+      fi
+      echo "$pkg_URL"
+    elif [ "$ITEM" == "OPTS" ]; then
+      echo "$OPTS_GIT"
+    elif [ "$ITEM" == "ASM" ]; then
+      echo "$OPTS_ASM"
+    else
+      echo ""
+    fi
+}
+
+cvt_doxygenconf() {
+    local fn=$1
+    if [ -f $fn ]; then
+      local fntmp=$fn.tmp
+      rm -f $fntmp
+      local line lne submod url p v
+      while IFS= read -r line r || [ -n "$line" ]; do
+        if [[ $line =~ ^PROJECT_NAME ]]; then
+          line="PROJECT_NAME           = \"$PRJNAME\""
+        elif [[ $line =~ ^PROJECT_BRIEF ]]; then
+          line="PROJECT_BRIEF          = \"$prjdesc\""
+        elif [[ $line =~ ^HTML_COLORSTYLE_HUE ]]; then
+          line="HTML_COLORSTYLE_HUE    = 93"
+        elif [[ $line =~ ^HTML_COLORSTYLE_SAT ]]; then
+          line="HTML_COLORSTYLE_SAT    = 87"
+        elif [[ $line =~ ^HTML_COLORSTYLE_GAMMA ]]; then
+          line="HTML_COLORSTYLE_GAMMA  = 120"
+        elif [[ $line =~ ^HTML_COLORSTYLE_GAMMA ]]; then
+          line="HTML_COLORSTYLE_GAMMA  = 120"
+        elif [[ $line =~ ^JAVADOC_AUTOBRIEF ]]; then
+          line="JAVADOC_AUTOBRIEF      = YES"
+        elif [[ $line =~ ^OPTIMIZE_OUTPUT_JAVA ]]; then
+          line="OPTIMIZE_OUTPUT_JAVA   = YES"
+        elif [[ $line =~ ^EXTRACT_STATIC ]]; then
+          line="EXTRACT_STATIC         = YES"
+        elif [[ $line =~ ^FILTER_SOURCE_FILES ]]; then
+          line="FILTER_SOURCE_FILES    = YES"
+        elif [[ $line =~ ^INPUT_FILTER ]]; then
+          line="INPUT_FILTER           = /usr/bin/doxypy.py"
+        elif [[ $line =~ ^HTML_TIMESTAMP ]]; then
+          line="HTML_TIMESTAMP         = YES"
+        fi
+        echo "$line">>$fntmp
+      done < "$fn"
+      if [ "$(diff -q $fn $fntmp)" ]; then
+        run_traced "cp -p $fn $fn.bak"
+        run_traced "mv $fntmp $fn"
+      else
+        rm -f $fntmp
+      fi
+    fi
+}
+
+cvt_gitmodule() {
+    if [ -f .gitmodules ]; then
+      local fn=.gitmodules
+      local fntmp=$fn.tmp
+      rm -f $fntmp
+      local line lne submod url p v
+      while IFS= read -r line r || [ -n "$line" ]; do
+        if [ "${line:0:1}" == "[" -a "${line: -1}" == "]" ]; then
+          lne="${line:1: -1}"
+          read p v <<<"$lne"
+          submod=${v//\"/}
+        else
+          lne=$(echo $line)
+          IFS== read p v <<<$lne
+          lne=$(echo $p)
+          if [ "$lne" == "url" ]; then
+            url=$(build_pkgurl $submod zero-http URL)
+            lne=$(echo $v)
+            if [ "$lne" != "$url" ]; then
+              v="${line//$lne/$url}"
+              line="$v"
+            fi
+          fi
+        fi
+        echo "$line">>$fntmp
+      done < "$fn"
+      if [ "$(diff -q $fn $fntmp)" ]; then
+        run_traced "cp -p $fn $fn.bak"
+        run_traced "mv $fntmp $fn"
+      else
+        rm -f $fntmp
+      fi
     fi
 }
 
@@ -256,7 +396,6 @@ cvt_readme() {
       if [[ "$line" =~ ^\.\.[[:space:]][|_] ]]; then
         line="⌂"
       elif [[ "$line" =~ ^\.\.[[:space:]][a-zA-Z_]+ ]]; then
-        echo "<<$line>>" #debug
         line="⌂"
         ignnextlines=2
       elif [ $ignnextlines -gt 0 ] && [[ "$line" =~ ^[[:space:]]+: ]]; then
@@ -412,6 +551,16 @@ cvt_readme() {
           line="⌂"
         else
           Iclimate=1
+        fi
+      elif [[ "$line" =~ https://img.shields.io/badge/licence-AGPL ]]; then
+        Ibutton=1
+        if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+          line="⌂"
+        elif [ $Ilicense -ne 0 ]; then
+          line="⌂"
+        else
+          Ilicense=1
+          line="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
         fi
       elif [[ "$line" =~ \|license.agpl\| ]]; then
         Irst=1
@@ -579,6 +728,8 @@ cvt_readme() {
       [ "$lne1" != "⌂" ] && echo "$lne1">>$fntmp
       if [ $Icright -ne 2 -a "$line" != "⌂" ]; then
         line="$(echo -n "$line"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
+        line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
         echo "$line">>$fntmp
         if [ -z "$line" ]; then nleof=1; else nleof=0; fi
       fi
@@ -687,7 +838,7 @@ cvt_readme() {
     fi
     # set +x #debug
     if [ "$(diff -q $fn $fntmp)" ]; then
-      run_traced "mv $fn $fn.bak"
+      run_traced "cp -p $fn $fn.bak"
       run_traced "mv $fntmp $fn"
     else
       rm -f $fntmp
@@ -735,7 +886,8 @@ cvt_file() {
           mm_z0i=l10n_it_bbone
           cat $f1|sed -e 's:'$mm_z0i':'$mm_oca':'>$fntmp
           if [ "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
+            run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_z0i':'$mm_oca':' $f1"
+            run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
           fi
           rm -f $fntmp
         fi
@@ -769,7 +921,8 @@ cvt_file() {
           mm_z0i=l10n_it_bbone
           cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
           if [ "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$mm_oca':'$mm_z0i':' $f1"
+            run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_oca':'$mm_z0i':' $f1"
+            run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
           fi
           rm -f $fntmp
         fi
@@ -793,6 +946,7 @@ do_distribution() {
 # do_distribution(PKGNAME oca|zero)
     wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
+    cvt_gitmodule
     if [ -f ./.travis.yml ]; then
       local f1=./.travis.yml
     elif [ -f ../.travis.yml ]; then
@@ -902,8 +1056,9 @@ EOF
 }
 
 do_synchro() {
-    wlog "do_synchro $1 $2"
-    if [ "$2" == "oca" ]; then
+    wlog "do_synchro $1 $2 \"$3\""
+    local f
+    if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
         if [ "$PKGNAME" == "l10n-italy" ]; then
@@ -912,10 +1067,16 @@ do_synchro() {
           fi
         fi
         run_traced "git checkout $BRANCH"
-        do_distribution "$PKGNAME" "$2"
+        do_distribution "$PKGNAME" "oca"
         git status
         git remote -v
         run_traced "git pull --no-edit upstream $BRANCH"
+        if [ "$2" == "zero-merged" ]; then
+          do_distribution "$PKGNAME" "zero"
+        fi
+        for f in $(find $PKGPATH -type f -exec grep -l ">>>>" '{}' \;); do
+          echo "Warning: see file $f"
+        done
       fi
     elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
@@ -929,7 +1090,13 @@ do_synchro() {
         fi
         local x=($git status -s)
         if [ -n "$x" ]; then
-          run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
+          if [ -n "$3" ]; then
+            run_traced "git commit -am \"$3\""
+          elif [ $opt_diff -ne 0 ]; then
+            run_traced "git commit -am \"[SYNCHRO] Update documentation\""
+          else
+            run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
+          fi
         fi
         git remote -v
         run_traced "git push"
@@ -942,13 +1109,9 @@ do_synchro() {
       fi
     else
       echo "Missed parameter! use:"
-      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero"
+      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|zero-merged"
       sts=$STS_FAILED
     fi
-
-
-
-
 }
 
 do_docs() {
@@ -960,6 +1123,7 @@ do_docs() {
       doxygen -g $doxygen_conf
       vim $doxygen_conf
     fi
+    cvt_doxygenconf $doxygen_conf
     doxygen $doxygen_conf
     return $?
 }
@@ -1274,7 +1438,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "check for unary operator W503"\
  "show version end exit"\
  "verbose mode")
-OPTARGS=(action pkg sub1 sub2)
+OPTARGS=(action pkg sub1 sub2 sub3)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -1374,9 +1538,9 @@ elif [ "$action" == "config" ]; then
 elif [ "$action" == "coverage" ]; then
   do_coverage "$PKGNAME" "$sub1" "$sub2"
   sts=$?
-elif [ "$action" == "distribution" ]; then
-  do_distribution "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
+# elif [ "$action" == "distribution" ]; then
+#   do_distribution "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
 elif [ "$action" == "diff" ]; then
   do_diff "$PKGNAME" "$sub1" "$sub2"
   sts=$?
@@ -1418,7 +1582,7 @@ elif [ "$action" == "wep" ]; then
 else
   cmd="do_$action"
   if [ "$(type -t $cmd)" == "function" ]; then
-    eval $cmd "$PKGNAME" "$sub1" "$sub2"
+    eval $cmd "$PKGNAME" "$sub1" "$sub2" "$sub3"
     sts=$?
   else
     echo "Invalid action!"
