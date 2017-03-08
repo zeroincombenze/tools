@@ -41,7 +41,7 @@ Sparse python source code
 .. _codecov status: https://codecov.io/gh/zeroincombenze/tools/branch/master
 .. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-tools.svg
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt
-.. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-tools.svg
+.. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-tools.svg
 .. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt
 .. image::  http://www.shs-av.com/wp-content/chat_with_us.png
    :alt: Join the chat at https://www.zeroincombenze.it/chi-siamo/contatti/

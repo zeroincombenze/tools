@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-#__version__=0.1.80.1
+#__version__=0.1.80.2
 
 MAKEF=/opt/odoo/dev/Makefile
 # DIST_CONF=./conf/.local_dist_pkg.conf
@@ -494,8 +494,16 @@ do_chkconfig() {
 conf_default() {
 # Parameter "EM" prefixed foer EMulation, "RUN" for virtual env
     set_cfg_def "loglevel" "-1"
-    set_cfg_def "DEV_HOST" "shsdev16"
-    set_cfg_def "PRD_HOST" "shsprd14"
+    if [ -n "$HOSTNAME_DEV" ]; then
+      set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
+    else
+      set_cfg_def "DEV_HOST" "shsde[a-z][0-9]*"
+    fi
+    if [ -n "$HOSTNAME_PRD" ]; then
+      set_cfg_def "DEV_HOST" "$HOSTNAME_PRD"
+    else
+      set_cfg_def "PRD_HOST" "shsprd[0-9]*"
+    fi
     set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
     set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
     set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py"

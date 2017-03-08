@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.13
+__version__=0.1.41.14
 
 
 #
@@ -192,7 +192,7 @@ move() {
 
 add_copyright() {
 #add_copyright(file)
-    if [ $opt_dry_run -eq 0 ]; then
+    if [ "$PRJNAME" == "Odoo" ]; then
       echo "[//]: # (copyright)">>$1
       echo "">>$1
       echo "----">>$1
@@ -209,6 +209,15 @@ add_copyright() {
       echo "is mainly designed for Italian law and markeplace.">>$1
       echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
       echo "">>$1
+      echo "[//]: # (end copyright)">>$1
+    else
+      echo "<PRJNAME=$PRJNAME>" #debug
+      echo "[//]: # (copyright)">>$1
+      echo "">>$1
+      echo "----">>$1
+      echo "">>$1
+      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      echo "This free software is released under GNU Affero GPL3">>$1
       echo "[//]: # (end copyright)">>$1
     fi
 }
@@ -273,6 +282,18 @@ build_pkgurl() {
     else
       echo ""
     fi
+}
+
+expand_macro() {
+    local t p v lne lne1
+    lne="$1"
+    for t in {1..9} LNK_DOCS BTN_DOCS LNK_HELP BTN_HELP;do
+      p=\${$t}
+      v=${M[$t]}
+      lne1="${lne//$p/$v}"
+      lne="$lne1"
+    done
+    echo -n "$lne"
 }
 
 cvt_doxygenconf() {
@@ -361,13 +382,12 @@ cvt_readme() {
     local fntmp=$fn.tmp
     local wf=0 nleof=0 Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
     local Irst=0
-    local line lne1 lne2 repository txtrepos ver
+    local line lne1 lne2 repository txtrepos ver v w
     local ignnextlines=0
     local helpname=
     if [ "$PKGNAME" == "l10n-italy-supplemental" -o "$PKGNAME" == "l10n-italy" ]; then
       helpname=FI
     fi
-    rm -f $fntmp
     if [ -n "$BRANCH" ]; then
       ver=$(echo $BRANCH|grep -Eo '[0-9]+'|head -n1)
     else
@@ -387,6 +407,47 @@ cvt_readme() {
       local Icht=0
       local Icright=0
     fi
+    unset M[*]
+    declare -gA M
+    M[1]=$repository
+    if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+      M[2]=$PKGNAME
+    else
+      M[2]=tools
+    fi
+    M[3]=$BRANCH
+    M[4]=$ver
+    M[5]=$helpname
+    M[8]=$txt1repos
+    M[9]=$txt2repos
+    if [ "$PRJNAME" == "Odoo" ]; then
+      v=${M[3]}
+      M[LNK_DOCS]=Odoo/dev/$v
+      M[BTN_DOCS]=button-docs-$v
+    elif [ "$PKGNAME" == "tools" ]; then
+      v=${M[2]}
+      M[LNK_DOCS]=Python/opt
+      M[BTN_DOCS]=button-docs-$v
+    else
+      v=${M[2]}
+      M[LNK_DOCS]=Python/opt/$v
+      M[BTN_DOCS]=button-docs-$v
+    fi
+    if [ "$PRJNAME" == "Odoo" ]; then
+      v=${M[3]}
+      w=${M[5]}
+      M[LNK_HELP]=Odoo/$v/man/$w
+      M[BTN_HELP]=button-help-$v
+    elif [ "$PKGNAME" == "tools" ]; then
+      v=${M[2]}
+      M[LNK_HELP]=Python/opt
+      M[BTN_HELP]=button-help-$v
+    else
+      v=${M[2]}
+      M[LNK_HELP]=Python/opt/$v/help
+      M[BTN_HELP]=button-help-$v
+    fi
+    rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
       lne1="⌂"
@@ -430,7 +491,11 @@ cvt_readme() {
           line="⌂"
         else
           Icoverage=1
-          line="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/\${2}?branch=\${3})"
+          if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+            line="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/\${2}?branch=\${3})"
+          else
+            line="[![Coverage Status](https://coveralls.io/\${8}/\${1}/tools/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/tools?branch=\${3})"
+          fi
         fi
       elif [[ $line =~ \|coverage.status\| ]]; then
         Irst=1
@@ -451,7 +516,11 @@ cvt_readme() {
         else
           Ibutton=1
           Icodecov=1
-          line="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
+          if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+            line="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
+          else
+            line="[![codecov](https://codecov.io/gh/\${1}/tools/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/tools/branch/\${3})"
+          fi
         fi
       elif [[ "$line" =~ \|codecov.status\| ]]; then
         Irst=1
@@ -464,7 +533,7 @@ cvt_readme() {
           Icodecov=1
           line="|codecov.status|_"
         fi
-      elif [[ "$line" =~ Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/Odoo/dev/) ]]; then
+      elif [[ "$line" =~ Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/) ]]; then
         Ibutton=1
         if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
           line="⌂"
@@ -472,7 +541,7 @@ cvt_readme() {
           line="⌂"
         else
           Idocs=1
-          if [[ "$line" =~ Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/Odoo/dev/) ]]; then
+          if [[ "$line" =~ Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/) ]]; then
             line="⌂"
           fi
         fi
@@ -489,7 +558,7 @@ cvt_readme() {
             line="⌂"
           fi
         fi
-      elif [[ "$line" =~ Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/.*/Odoo/.*/man/) ]]; then
+      elif [[ "$line" =~ Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/) ]]; then
         Ibutton=1
         if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
           line="⌂"
@@ -497,7 +566,7 @@ cvt_readme() {
           line="⌂"
         else
           Ihelp=1
-          if [[ "$line" =~ Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/.*/Odoo/.*/man/) ]]; then
+          if [[ "$line" =~ Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/) ]]; then
             line="⌂"
           fi
         fi
@@ -639,7 +708,8 @@ cvt_readme() {
             lne1="|build status|_"
           else
             lne1="[![Build Status](https://travis-ci.org/\${1}/\${2}.svg?branch=\${3})](https://travis-ci.org/\${1}/\${2})"
-            lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1=$(expand_macro "$lne1")
           fi
           echo "$lne1">>$fntmp
         fi
@@ -649,7 +719,8 @@ cvt_readme() {
             lne1="|license agpl|_"
           else
             lne1="[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)"
-            lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1=$(expand_macro "$lne1")
           fi
           echo "$lne1">>$fntmp
         fi
@@ -658,7 +729,11 @@ cvt_readme() {
           if [ $Irst -ne 0 ]; then
             lne1="|coverage status|_"
           else
-            lne1="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/\${2}?branch=\${3})"
+            if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+              lne1="[![Coverage Status](https://coveralls.io/\${8}/\${1}/\${2}/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/\${2}?branch=\${3})"
+            else
+              lne1="[![Coverage Status](https://coveralls.io/\${8}/\${1}/tools/badge.svg?branch=\${3})](https://coveralls.io/\${9}/\${1}/tools?branch=\${3})"
+            fi
             lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           fi
           echo "$lne1">>$fntmp
@@ -668,14 +743,19 @@ cvt_readme() {
           if [ $Irst -ne 0 ]; then
             lne1="|codecov status|_"
           else
-            lne1="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
+            if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+              lne1="[![codecov](https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/\${2}/branch/\${3})"
+            else
+              lne1="[![codecov](https://codecov.io/gh/\${1}/tools/branch/\${3}/graph/badge.svg)](https://codecov.io/gh/\${1}/tools/branch/\${3})"
+            fi
             lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
           fi
           echo "$lne1">>$fntmp
         fi
         if [ $IOCA -eq 0 ]; then
           IOCA=1
-          if [ $Irst -eq 0 ]; then
+          # if [ $Irst -eq 0 ]; then
+          if [ "$PRJNAME" == "Odoo" ]; then
             if [ "$PKGNAME" != "l10n-italy-supplemental" ]; then
               lne1="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-\${4}.svg)](https://github.com/OCA/\${2}/tree/\${3})"
               lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
@@ -688,14 +768,9 @@ cvt_readme() {
           if [ $Irst -ne 0 ]; then
             lne1="|technical doc|_"
           else
-            if [ "$PRJNAME" == "Odoo" ]; then
-              lne1="[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/dev/${3})"
-            elif [ "$PKGNAME" == "tools" ]; then
-              lne1="[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg)](http://wiki.zeroincombenze.org/en/Python/opt)"
-            else
-              lne1="[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg)](http://wiki.zeroincombenze.org/en/Python/opt/\${2})"
-            fi
-            lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1="[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/\${BTN_DOCS}.svg)](http://wiki.zeroincombenze.org/en/\${LNK_DOCS})"
+            # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1=$(expand_macro "$lne1")
           fi
           echo "$lne1">>$fntmp
         fi
@@ -704,26 +779,22 @@ cvt_readme() {
           if [ $Irst -ne 0 ]; then
             lne1="|help zeroincombenze|_"
           else
-            if [ "$PRJNAME" == "Odoo" ]; then
-              lne1="[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${4}.svg)](http://wiki.zeroincombenze.org/en/Odoo/\${3}/man/\${5})"
-            elif [ "$PKGNAME" == "tools" ]; then
-              lne1="[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${2}.svg)](http://wiki.zeroincombenze.org/en/Python/opt)"
-            else
-              lne1="[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${2}.svg)](http://wiki.zeroincombenze.org/en/Python/opt/\${2}/help)"
-            fi
-            lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1="[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/\${BTN_HELP}.svg)](http://wiki.zeroincombenze.org/en/\${LNK_HELP})"
+            # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+            lne1=$(expand_macro "$lne1")
           fi
           echo "$lne1">>$fntmp
         fi
         if [ $Itryit -eq 0 ]; then
           Itryit=1
-          if [ $Irst -eq 0 ]; then
+          # if [ $Irst -eq 0 ]; then
+          if [ "$PRJNAME" == "Odoo" ]; then
             lne1="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-\${4}.svg)](http://erp\${4}.zeroincombenze.it)"
             lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
             echo "$lne1">>$fntmp
           fi
         fi
-        lne1="⌂"
+        lne1=""
       fi
       [ "$lne1" != "⌂" ] && echo "$lne1">>$fntmp
       if [ $Icright -ne 2 -a "$line" != "⌂" ]; then
@@ -754,10 +825,12 @@ cvt_readme() {
     else
       if [ $Ibuild -eq 1 ]; then
         lne1=".. |build status| image:: https://travis-ci.org/\${1}/\${2}.svg"
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
         lne1=".. _build status: https://travis-ci.org/\${1}/\${2}"
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
       fi
       if [ $Ilicense -eq 1 ]; then
@@ -777,51 +850,39 @@ cvt_readme() {
         echo "$lne1">>$fntmp
       fi
       if [ $Icodecov -eq 1 ]; then
-        lne1=".. |codecov status| image:: https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg"
+        if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+          lne1=".. |codecov status| image:: https://codecov.io/gh/\${1}/\${2}/branch/\${3}/graph/badge.svg"
+        else
+          lne1=".. |codecov status| image:: https://codecov.io/gh/\${1}/tools/branch/\${3}/graph/badge.svg"
+        fi
         lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
         echo "$lne1">>$fntmp
-        lne1=".. _codecov status: https://codecov.io/gh/\${1}/\${2}/branch/\${3}"
+        if [ "$PRJNAME" == "Odoo" -o "$PRJNAME" == "tools" ]; then
+          lne1=".. _codecov status: https://codecov.io/gh/\${1}/\${2}/branch/\${3}"
+        else
+          lne1=".. _codecov status: https://codecov.io/gh/\${1}/tools/branch/\${3}"
+        fi
         lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
         echo "$lne1">>$fntmp
       fi
       if [ $Idocs -eq 1 ]; then
-        if [ "$PRJNAME" == "Odoo" ]; then
-          lne1=".. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${4}.svg"
-        elif [ "$PKGNAME" == "tools" ]; then
-          lne1=".. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg"
-        else
-          lne1=".. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg"
-        fi
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=".. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/\${BTN_DOCS}.svg"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
-        if [ "$PRJNAME" == "Odoo" ]; then
-          lne1=".. _technical doc: http://wiki.zeroincombenze.org/en/Odoo/dev/${3}"
-        elif [ "$PKGNAME" == "tools" ]; then
-          lne1=".. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt"
-        else
-          lne1=".. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt/\${2}"
-        fi
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=".. _technical doc: http://wiki.zeroincombenze.org/en/\${LNK_DOCS}"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
       fi
       if [ $Ihelp -eq 1 ]; then
-        if [ "$PRJNAME" == "Odoo" ]; then
-          lne1=".. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-\${4}.svg"
-        elif [ "$PKGNAME" == "tools" ]; then
-          lne1=".. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg"
-        else
-          lne1=".. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-\${2}.svg"
-        fi
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=".. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/\${BTN_HELP}.svg"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
-        if [ "$PRJNAME" == "Odoo" ]; then
-          lne1=".. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Odoo/\${3}/man/\${5}"
-        elif [ "$PKGNAME" == "tools" ]; then
-          lne1=".. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt"
-        else
-          lne1=".. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt/\${2}/help"
-        fi
-        lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=".. _help zeroincombenze: http://wiki.zeroincombenze.org/en/\${LNK_HELP}"
+        # lne1="$(echo -n "$lne1"|sed -e 's|\${1}|'$repository'|g' -e 's|\${2}|'$PKGNAME'|g' -e 's|\${3}|'$BRANCH'|g'  -e 's|\${4}|'$ver'|g' -e 's|\${5}|'$helpname'|g' -e 's|\${8}|'$txt1repos'|g' -e 's|\${9}|'$txt2repos'|g')"
+        lne1=$(expand_macro "$lne1")
         echo "$lne1">>$fntmp
       fi
       if [ $Icht -eq 0 ]; then
@@ -836,12 +897,13 @@ cvt_readme() {
         echo "$lne1">>$fntmp
       fi
     fi
-    # set +x #debug
-    if [ "$(diff -q $fn $fntmp)" ]; then
-      run_traced "cp -p $fn $fn.bak"
-      run_traced "mv $fntmp $fn"
-    else
-      rm -f $fntmp
+    if [ ${test_mode:-0} -eq 0 ]; then
+      if [ "$(diff -q $fn $fntmp)" ]; then
+        run_traced "cp -p $fn $fn.bak"
+        run_traced "mv $fntmp $fn"
+      else
+        rm -f $fntmp
+      fi
     fi
 }
 
@@ -947,14 +1009,7 @@ do_distribution() {
     wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
     cvt_gitmodule
-    if [ -f ./.travis.yml ]; then
-      local f1=./.travis.yml
-    elif [ -f ../.travis.yml ]; then
-      local f1=../.travis.yml
-    else
-      local f1=
-      echo "File .travis.yml not found!"
-    fi
+    local f1=$(findpkg ".travis.yml" ". ..")
     if [ $opt_orig -gt 0 ]; then
       if [ "$2" == "oca" ]; then
          local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
@@ -976,16 +1031,13 @@ do_distribution() {
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      if [ -f ./README.md ]; then
-        local f1=./README.md
-      elif [ -f ../README.md ]; then
-        local f1=../README.md
-      elif [ -f ./README.rst ]; then
-        local f1=./README.rst
-      elif [ -f ../README.rst ]; then
-        local f1=../README.rst
+      if [ ${test_mode:-0} -ne 0 ]; then
+        f1=$(findpkg "README" "res tests/res")
       else
-        local f1=
+        f1=$(findpkg "README.md" ". ..")
+        if [ -z "$f1" ]; then
+          f1=$(findpkg "README.rst" ". ..")
+        fi
       fi
       if [ -n "$f1" ]; then
         cvt_file $f1 $2 "readme"

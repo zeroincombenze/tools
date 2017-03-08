@@ -1,0 +1,96 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+__version__=0.1.41.14
+
+
+test_01() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$TESTDIR/res/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_01.out
+      cat <<EOF >$TESTSRC
+TEST_TRAVIS
+===========
+
+
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-tools.svg)](http://wiki.zeroincombenze.org/en/Python/opt/tools)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-tools.svg)](http://wiki.zeroincombenze.org/en/Python/opt/tools/help)
+
+TEST_TRAVIS
+===========
+
+
+[//]: # (copyright)
+
+----
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+This free software is released under GNU Affero GPL3
+[//]: # (end copyright)
+[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)
+EOF
+      $RUNDIR/please -qt distribution . zero
+    fi
+    test_result "please distribution" "$TESTOUT" "$TESTRES" "diff -B"
+}
+
+Z0BUG_setup() {
+    :
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg "travisrc" "$TDIR $TDIR/..")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
+fi
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

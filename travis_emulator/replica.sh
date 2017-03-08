@@ -1,10 +1,16 @@
-__version__=0.1.6
+__version__=0.1.8
 if [ "$1" == "-V" ]; then
   echo $__version__
   exit 0
 fi
 echo "replica"
-if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
+if [ "${HOSTNAME:0:6}" == "shsdef" ]; then
+  src="dev"
+  tgthost="fff17prd"
+elif [ "$HOSTNAME" == "fff17prd" ]; then
+  src="prd"
+  tgthost="shsdef16"
+elif [ "${HOSTNAME:0:6}" == "shsdev" ]; then
   src="dev"
   tgthost="shsprd16"
 elif [ "${HOSTNAME:0:6}" == "shsprd" ]; then
@@ -20,7 +26,7 @@ elif [ "$HOSTNAME" == "erp-copia" ]; then
   src="dev"
   tgthost="erp"
 else
-  echo "Unknow machine role"
+  echo "Unknown machine role"
   exit 1
 fi
 cwd="$PWD"
