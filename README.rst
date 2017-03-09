@@ -31,14 +31,6 @@ Sparse python source code
 
 
 
-[//]: # (copyright)
-
-----
-
-**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
-This free software is released under GNU Affero GPL3
-[//]: # (end copyright)
-
 .. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
 .. _build status: https://travis-ci.org/zeroincombenze/tools
 .. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg

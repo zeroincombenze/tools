@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.16
+__version__=0.1.41.17
 
 
 #
@@ -253,9 +253,13 @@ build_pkgurl() {
 }
 
 add_copyright() {
-#add_copyright(file)
+#add_copyright(file rst)
     if [ "$PRJNAME" == "Odoo" ]; then
-      echo "[//]: # (copyright)">>$1
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (copyright)">>$1
+      else
+        echo "[//]: # (copyright)">>$1
+      fi
       echo "">>$1
       echo "----">>$1
       echo "">>$1
@@ -271,15 +275,27 @@ add_copyright() {
       echo "is mainly designed for Italian law and markeplace.">>$1
       echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
       echo "">>$1
-      echo "[//]: # (end copyright)">>$1
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (end copyright)">>$1
+      else
+        echo "[//]: # (end copyright)">>$1
+      fi
     else
-      echo "[//]: # (copyright)">>$1
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (copyright)">>$1
+      else
+        echo "[//]: # (copyright)">>$1
+      fi
       echo "">>$1
       echo "----">>$1
       echo "">>$1
       echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
       echo "This free software is released under GNU Affero GPL3">>$1
-      echo "[//]: # (end copyright)">>$1
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (end copyright)">>$1
+      else
+        echo "[//]: # (end copyright)">>$1
+      fi
     fi
 }
 
@@ -561,16 +577,22 @@ cvt_readme() {
     ACT[22]="rstBTN_tryit"
     TKNS[51]="\[//\]:.*#.*copyright"
     REPL[51]=""
-    ACT[51]="BEGIN__cright"
+    ACT[51]="md_BEG_cright"
     TKNS[52]="\[//\]:.*#.*end.copyright"
     REPL[52]=""
-    ACT[52]="END____cright"
-    TKNS[53]="chat.with.us"
-    REPL[53]="[![chat with us]"
-    ACT[53]="md_BTN_chat"
-    TKNS[54]="\|chat.with.us\|"
+    ACT[52]="md_END_cright"
+    TKNS[53]="\[//\]:.*#.*copyright"
+    REPL[53]=""
+    ACT[53]="rstBEG_cright"
+    TKNS[54]="\[//\]:.*#.*end.copyright"
     REPL[54]=""
-    ACT[54]="rstBTN_chat"
+    ACT[54]="rstEND_cright"
+    TKNS[55]="chat.with.us"
+    REPL[55]="[![chat with us]"
+    ACT[55]="md_BTN_chat"
+    TKNS[56]="\|chat.with.us\|"
+    REPL[56]=""
+    ACT[56]="rstBTN_chat"
     local ONLY_OCA="Irunbot Iclimate"
     local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat"
     local ONLY_ODOO="IOCA Itryit"
@@ -581,7 +603,7 @@ cvt_readme() {
       lne2="⌂"
       Ibutton=0
       # local xxline="$line"
-      for i in {0..22} {51..54}; do
+      for i in {0..22} {51..56}; do
         p=${TKNS[$i]}
         if [[ $line =~ $p ]]; then
           if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPLC" ]; then
@@ -619,15 +641,15 @@ cvt_readme() {
                 line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
               fi
             fi
-          elif [ "${ACT[$i]}" == "BEGIN__cright" ]; then
+          elif [ "${ACT[$i]}" == "md_BEG_cright" -o "${ACT[$i]}" == "rstBEG_cright" ]; then
             if [ $Icright -eq 0 ]; then
               Icright=2
             fi
             line="⌂"
-          elif [ "${ACT[$i]}" == "END____cright" ]; then
+          elif [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
             if [ $Icright -eq 2 ]; then
               Icright=3
-              add_copyright $fntmp
+              add_copyright $fntmp $Irst
             fi
             line="⌂"
           fi
@@ -674,13 +696,13 @@ cvt_readme() {
         if [ -z "$lne2" ]; then preline=0; else preline=1; fi
       fi
     done < "$fn"
-    for i in {51..54}; do
+    for i in {51..56}; do
       p=${TKNS[$i]}
-      if [ "${ACT[$i]}" == "END____cright" ]; then
+      if [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
         if [ $Icright -eq 0 ]; then
           [ $preline -ne 0 ] && echo "">>$fntmp
           Icright=3
-          add_copyright $fntmp
+          add_copyright $fntmp $Irst
           preline=1
         fi
       elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -690,7 +712,7 @@ cvt_readme() {
       fi
     done
     [ $preline -ne 0 ] && preline=0 && echo "">>$fntmp
-    for i in {0..22} {51..54}; do
+    for i in {0..22} {51..56}; do
       p=${TKNS[$i]}
       if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
         v="${ACT[$i]}"
