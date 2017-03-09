@@ -31,7 +31,15 @@ Sparse python source code
 
 
 
-.. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg
+[//]: # (copyright)
+
+----
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+This free software is released under GNU Affero GPL3
+[//]: # (end copyright)
+
+.. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
 .. _build status: https://travis-ci.org/zeroincombenze/tools
 .. |license agpl| image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
 .. _license agpl: http://www.gnu.org/licenses/agpl-3.0.html
@@ -43,6 +51,5 @@ Sparse python source code
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt
 .. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-tools.svg
 .. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt
-.. image::  http://www.shs-av.com/wp-content/chat_with_us.png
-   :alt: Join the chat at https://www.zeroincombenze.it/chi-siamo/contatti/
-   :target:  https://www.zeroincombenze.it/chi-siamo/contatti/
+.. image:: http://www.shs-av.com/wp-content/chat_with_us.png
+   :target: https://www.zeroincombenze.it/chi-siamo/contatti
