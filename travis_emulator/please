@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.19
+__version__=0.1.41.20
 
 
 #
@@ -263,19 +263,37 @@ add_copyright() {
       echo "">>$1
       echo "----">>$1
       echo "">>$1
-      echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**Odoo** is a trademark of  \`Odoo S.A.">>$1
+        echo "<https://www.odoo.com/>\`_.">>$1
+        echo "(formerly OpenERP, formerly TinyERP)">>$1
+      else
+        echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)">>$1
+      fi
       echo "">>$1
-      echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**OCA**, or the  \`Odoo Community Association">>$1
+        echo "<http://odoo-community.org/>\`_.">>$1
+        echo "is a nonprofit organization whose">>$1
+      else
+        echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
+      fi
       echo "mission is to support the collaborative development of Odoo features and">>$1
       echo "promote its widespread use.">>$1
       echo "">>$1
-      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
+        echo "<http://www.shs-av.com/>\`_.">>$1
+      else
+        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      fi
       echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
       echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
       echo "is mainly designed for Italian law and markeplace.">>$1
       echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
       echo "">>$1
       if [ $2 -eq 1 ]; then
+        echo "">>$1
         echo ".. [//]: # (end copyright)">>$1
       else
         echo "[//]: # (end copyright)">>$1
@@ -289,9 +307,15 @@ add_copyright() {
       echo "">>$1
       echo "----">>$1
       echo "">>$1
-      echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
+        echo "<http://www.shs-av.com/>\`_.">>$1
+      else
+        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      fi
       echo "This free software is released under GNU Affero GPL3">>$1
       if [ $2 -eq 1 ]; then
+        echo "">>$1
         echo ".. [//]: # (end copyright)">>$1
       else
         echo "[//]: # (end copyright)">>$1
