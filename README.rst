@@ -35,8 +35,10 @@ Sparse python source code
 
 ----
 
-**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+**zeroincombenze®** is a trademark of `SHS-AV s.r.l.
+<http://www.shs-av.com/>`_.
 This free software is released under GNU Affero GPL3
+
 .. [//]: # (end copyright)
 
 .. |build status| image:: https://travis-ci.org/zeroincombenze/tools.svg?branch=master
