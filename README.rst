@@ -27,8 +27,8 @@ Sparse python source code
 +----------+-----------------------------------------------------------+
 | z0lib    | Simple general purpose bash library                       |
 +----------+-----------------------------------------------------------+
-
-
+| zerobug  | Zeroincombenze® CT framework for python and bash programs |
++----------+-----------------------------------------------------------+
 
 
 .. [//]: # (copyright)
