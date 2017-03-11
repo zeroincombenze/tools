@@ -55,5 +55,5 @@ Odoo is a trademark of Odoo S.A.
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt
 .. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-tools.svg
 .. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt
-.. image:: http://www.shs-av.com/wp-content/chat_with_us.gif
+.. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b

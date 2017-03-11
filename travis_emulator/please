@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.22
+__version__=0.1.41.23
 
 
 #
@@ -549,7 +549,7 @@ cvt_readme() {
     fi
     local CHAT_HOME=$(get_cfg_value 0 "CHAT_HOME")
     M[LNK_CHAT]="$CHAT_HOME"
-    M[BTN_CHAT]="http://www.shs-av.com/wp-content/chat_with_us.gif"
+    M[BTN_CHAT]="https://www.shs-av.com/wp-content/chat_with_us.gif"
 
     TKNS[0]="^\.\.[[:space:]][|_]"
     REPL[0]="⌂"
