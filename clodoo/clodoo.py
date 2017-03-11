@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
 #
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.it>)
+#
+#    Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
 #    All Rights Reserved
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,10 +18,83 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-##############################################################################
-"""
-    Massive operations on Zeroincombenze(R) / Odoo databases
+#
+"""@mainpage
+Massive operations on Zeroincombenze(R) / Odoo databases
+========================================================
 
+Clodoo is a tool can do some massive operation on 1 or more Odoo database to:
+
+- create consistent database to run tests
+- repeat consistent action on many databases
+- repeat above actions on every new database
+
+It is called by bash console, there is no funcion on web/GUI interface.
+
+It requires OERPLIB.
+
+Tool syntax:
+
+    $ clodoo.py [-h] [-A actions] [-c file] [-d regex] [-n] [-p dir]
+                [-P password] [-q] [-r port] [-U username] [-v] [-V]
+
+    where:
+      -h, --help            show this help message and exit
+      -A actions, --action-to-do actions
+                            action to do (use list_actions to dir)
+      -c file, --config file
+                            configuration command file
+      -d regex, --dbfilter regex
+                            DB filter
+      -n, --dry-run         test execution mode
+      -p dir, --data-path dir
+                            Import file path
+      -P password, --pwd password
+                            login password
+      -q, --quiet           run silently
+      -r port, --xmlrpc-port port
+                            xmlrpc port
+      -U username, --user username
+                            login username
+      -v, --verbose         run with debugging output
+      -V, --version         show program's version number and exit
+
+Action may be one of:
+
+- check_balance
+- check_config
+- check_partners
+- check_taxes
+- drop_db
+- echo_company
+- echo_db
+- echo_user
+- import_config_file
+- import_file
+- install_chart_of_account
+- install_language
+- install_modules
+- list_actions
+- list_companies
+- list_db
+- list_users
+- new_db
+- per_company
+- per_db
+- per_user
+- run_unit_tests
+- set_4_cscs
+- set_periods
+- show_company_params
+- show_db_params
+- show_params
+- show_user_params
+- uninstall_modules
+- unit_test
+- update_modules
+- upgrade_modules
+- wep_company
+- wep_db
 """
 
 # import pdb

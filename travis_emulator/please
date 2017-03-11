@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.20
+__version__=0.1.41.22
 
 
 #
@@ -313,7 +313,9 @@ add_copyright() {
       else
         echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
       fi
-      echo "This free software is released under GNU Affero GPL3">>$1
+      echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
+      echo "">>$1
+      echo "Odoo is a trademark of Odoo S.A.">>$1
       if [ $2 -eq 1 ]; then
         echo "">>$1
         echo ".. [//]: # (end copyright)">>$1
@@ -545,8 +547,9 @@ cvt_readme() {
       M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt/$PKGNAME/help"
       M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$PKGNAME.svg"
     fi
-    M[LNK_CHAT]="https://www.zeroincombenze.it/chi-siamo/contatti"
-    M[BTN_CHAT]="http://www.shs-av.com/wp-content/chat_with_us.png"
+    local CHAT_HOME=$(get_cfg_value 0 "CHAT_HOME")
+    M[LNK_CHAT]="$CHAT_HOME"
+    M[BTN_CHAT]="http://www.shs-av.com/wp-content/chat_with_us.gif"
 
     TKNS[0]="^\.\.[[:space:]][|_]"
     REPL[0]="⌂"

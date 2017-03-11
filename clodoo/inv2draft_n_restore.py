@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 import oerplib
 import clodoo
+from pyexpat import model
 
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 oerp = oerplib.OERP()
 try:
@@ -122,16 +123,26 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
 ctx = {}
 ctx['level'] = 4
 ctx['dry_run'] = False
-company_id = 3
-inv_id = raw_input('Type invoice ID? ')
+action = raw_input('Action (Byte,drafttoCancel,Draft,setNumber,Quit,Reset)? ')
+if action not in ('B','C','D','N','R'):
+    print "Invalid action: use B for Byte, C for preare 2 Cancel, D for Draft, R for Reset, ..."
+    sys.exit(1)
+# company_id = raw_input('Company ID? ')
+# if company_id == "":
+#     company_id = "0"
+# company_id = int(company_id)
+inv_id = raw_input('Invoice ID? ')
 if inv_id == "":
     exit()
 inv_id = int(inv_id)
-res = raw_input('Will you reset invoice number (yes,no)?')
-inv_obj = oerp.browse('account.invoice', inv_id)
+
+model='account.invoice'
+inv_obj = oerp.browse(model, inv_id)
 print "Numb=%s, supply num=%s, ref=%s" % (inv_obj.number,
                                           inv_obj.supplier_invoice_number,
-                                          inv_obj.name)
+                                          inv_obj.name,
+                                          inv_obj.company_id)
+company_id = inv_obj.company_id
 invoices = [inv_id]
 print ">> Get info cur invoice %s" % str(invoices)
 reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
@@ -140,9 +151,14 @@ print ">> Unreconcile cur invoices"
 clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
 print ">> Draft cur invoices"
 clodoo.upd_invoices_2_draft(oerp, move_dict, ctx)
-if res == 'yes':
+if action == 'R' or action == 'C':
     print ">> Reset invoice number"
     oerp.write('account.invoice', [inv_id], {'internal_number': ''})
+elif action == 'N':
+    number = raw_input('New invoice number? ')
+    oerp.write('account.invoice', [inv_id], {'internal_number': number})
+if action != 'B' and action != 'R':
+    exit()
 res = raw_input('Press RET to continue ..')
 print ">> Posted"
 clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)

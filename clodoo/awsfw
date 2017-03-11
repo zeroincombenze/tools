@@ -22,8 +22,53 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.2
+__version__=0.1.4
 
+get_remote_ip() {
+#get_remote_ip(1|net)
+    local newip x
+    newip=$(who am i|awk '{print $5}')
+    x=${newip//(/}
+    newip=${x//)/}
+    if [ "$1" != "1" ]; then
+      newip=$newip/32
+    fi
+    echo $newip
+}
+
+get_ip() {
+# get_ip(param 1|net)
+    local newip x
+    if [ "$1" == "mysship" ]; then
+      newip=$(get_remote_ip $2)
+    elif [ "$1" == "public" ]; then
+      newip=$(dig +short myip.opendns.com @resolver1.opendns.com)
+      if [ "$2" != "1" ]; then
+        newip=$newip/32
+      fi
+    elif [ "$1" == "localhost" ]; then
+      newip=$(hostname -I)
+      if [ "$2" != "1" ]; then
+        newip=$newip/32
+      fi
+    elif [[ $1 =~ [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+ ]]; then
+      if [ "$2" != "1" ]; then
+        newip=$1
+      else
+        x=$newip
+        newip=$(echo $x|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)
+      fi
+    elif [[ $1 =~ [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+      if [ "$2" != "1" ]; then
+        newip=$1/32
+      else
+        newip=$1
+      fi
+    else
+      newip=$1
+    fi
+    echo $newip
+}
 
 conf_default() {
     TCONF=$TDIR/.$THIS
@@ -39,7 +84,7 @@ OPTACTI=(1        "="                 "="           "1>"         0           1  
 OPTDEFL=(1        "$TDIR/.$THIS.conf" "~/awsfw.log" 0            -1          0         ""          -1)
 OPTMETA=("help"   "filename"          "filename"    "do nothing" "verbose"   ""        "version"   "silent")
 OPTHELP=("this help"\
- "configuration file (def $TDIR/.$THIS.conf)"\
+ "aws configuration file (def $TDIR/.$THIS.conf)"\
  "log filename (def ~/awsfw.log)"\
  "do nothing (dry-run)"\
  "silent mode"\
@@ -54,8 +99,9 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
+HLPCMDLIST="help|allow|enable|mysship|show"
 if [ $opt_help -gt 0 ]; then
-  print_help "AWS Firewall\n act may be on of show|enable"\
+  print_help "AWS or local Firewall\n act may be on of $HLPCMDLIST"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -68,6 +114,7 @@ if [ ${opt_verbose:-0} -gt 0 ]; then
 else
   set_tlog_file "$opt_log"
 fi
+HLPIPFMT="IP|localhost|public|mysship"
 export AWS_ACCESS_KEY_ID=$(get_cfg_value 0 AWS_ACCESS_KEY_ID)
 export AWS_SECRET_ACCESS_KEY=$(get_cfg_value 0 AWS_SECRET_ACCESS_KEY)
 GROUP_IDS=$(get_cfg_value 0 GROUP_IDS)
@@ -77,23 +124,13 @@ if [ "$act" == "show" ]; then
   curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+)
   echo "Current IP: $curip"
 elif [ "$act" == "enable" ]; then
-  curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+)
   if [ -z "$param1" ]; then
     echo "Missed new IP"
-    echo "use $THIS enable IP|ssh|public"
+    echo "use $THIS enable $HLPIPFMT"
     sts=1
   else
-    if [ "$param1" == "ssh" ]; then
-      newip=$(who am i|awk '{print $5}')
-      x=${newip//(/}
-      newip=${x//)/}/32
-    elif [ "$param1" == "public" ]; then
-      newip=$(dig +short myip.opendns.com @resolver1.opendns.com)
-    elif [[ $param1 =~ [0-9.]+[0-9.]+[0-9.]+[0-9.]/[0-9.]+ ]]; then
-      newip=$param1
-    else
-      newip=$param1/32
-    fi
+    curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+)
+    newip=$(get_ip $param1)
     if [ "$curip" == "$newip" ]; then
       echo "Current and new IP are the same!"
       sts=1
@@ -112,8 +149,46 @@ elif [ "$act" == "enable" ]; then
       fi
     fi
   fi
+elif [ "$act" == "allow" ]; then
+  if [ -z "$param1" ]; then
+    echo "Missed new IP"
+    echo "use $THIS allow $HLPIPFMT"
+    sts=1
+  else
+    if [ "$param1" == "localhost" ]; then
+      curip=$(grep -A1 'myself' /etc/hosts.allow|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)
+    else
+      curip=$(grep -A1 'ADSL from owner' /etc/hosts.allow|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)
+    fi
+    if [ -n "$curip" ]; then
+      newip=$(get_ip $param1 1)
+      if [ "$curip" == "$newip" ]; then
+        echo "Current and new IP are the same!"
+        sts=1
+      else
+        if [ $opt_dry_run -eq 0 ]; then
+          sed -i -e "s/$curip/$newip/" /etc/hosts.allow
+          echo "Please restart ssh service (i.e service ssh[d] restart)"
+        else
+          echo "\$ sed -i -e s/$curip/$newip/ /etc/hosts.allow"
+        fi
+      fi
+    fi
+  fi
+elif [ "$act" == "mysship" ]; then
+  newip=$(get_remote_ip 1)
+  echo "remote console ip is $newip"
+elif [ "$act" == "help" ]; then
+  y=${HLPCMDLIST//|/ }
+  for x in $y; do
+    if [ "$x" == "enable" -o "$x" == "allow" ]; then
+      echo "$THIS $x $HLPIPFMT"
+    elif [ "$x" != "help" ]; then
+      echo "$THIS $x"
+    fi
+  done
 else
-  echo "invalid action, use: $THIS show|enable"
+  echo "invalid action, use: $THIS $HLPCMDLIST"
   sts=1
 fi
 exit $sts

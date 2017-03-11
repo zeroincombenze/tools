@@ -37,7 +37,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.80.2
+__version__=0.1.80.3
 
 
 store_cfg_param_value() {

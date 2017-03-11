@@ -37,7 +37,9 @@ Sparse python source code
 
 **zeroincombenze®** is a trademark of `SHS-AV s.r.l.
 <http://www.shs-av.com/>`_.
-This free software is released under GNU Affero GPL3
+which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.
+
+Odoo is a trademark of Odoo S.A.
 
 .. [//]: # (end copyright)
 
@@ -53,5 +55,5 @@ This free software is released under GNU Affero GPL3
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt
 .. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-tools.svg
 .. _help zeroincombenze: http://wiki.zeroincombenze.org/en/Python/opt
-.. image:: http://www.shs-av.com/wp-content/chat_with_us.png
-   :target: https://www.zeroincombenze.it/chi-siamo/contatti
+.. image:: http://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
