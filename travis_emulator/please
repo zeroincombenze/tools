@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.23
+__version__=0.1.41.24
 
 
 #
@@ -551,73 +551,73 @@ cvt_readme() {
     M[LNK_CHAT]="$CHAT_HOME"
     M[BTN_CHAT]="https://www.shs-av.com/wp-content/chat_with_us.gif"
 
-    TKNS[0]="^\.\.[[:space:]][|_]"
+    TKNS[0]="^\.\.[[:space:]][|_][a-zA-Z_]+"
     REPL[0]="⌂"
     ACT[0]="REPL"
-    TKNS[1]="^\.\.[[:space:]][a-zA-Z_]+"
+    TKNS[1]="^\.\.[[:space:]]image::.*chat_with_us"
     REPL[1]="⌂"
-    ACT[1]="REPLC"
+    ACT[1]="REPL1"
     TKNS[2]="^[[:space:]]+:[a-zA-Z_]+:"
     REPL[2]="⌂"
     ACT[2]="REPLC"
     TKNS[3]="Build.Status.*https://travis-ci.org/"
     REPL[3]="[![Build Status]"
     ACT[3]="md_BTN_build"
-    TKNS[4]="\|build.status\|"
+    TKNS[4]="^\|build.status\|"
     REPL[4]="|build status|_"
     ACT[4]="rstBTN_build"
     TKNS[5]="https://img.shields.io/badge/licence-AGPL"
     REPL[5]="[![license agpl]"
     ACT[5]="md_BTN_license"
-    TKNS[6]="\|license.agpl\|"
+    TKNS[6]="^\|license.agpl\|"
     REPL[6]="|license agpl|_"
     ACT[6]="rstBTN_license"
     TKNS[7]="Coverage.Status.*https://coveralls.io/"
     REPL[7]="[![Coverage Status]"
     ACT[7]="md_BTN_coverage"
-    TKNS[8]="\|coverage.status\|"
+    TKNS[8]="^\|coverage.status\|"
     REPL[8]="|coverage status|_"
     ACT[8]="rstBTN_coverage"
     TKNS[9]="codecov.*https://codecov.io/gh/"
     REPL[9]="[![codecov]"
     ACT[9]="md_BTN_codecov"
-    TKNS[10]="\|codecov.status\|"
+    TKNS[10]="^\|codecov.status\|"
     REPL[10]="|codecov status|_"
     ACT[10]="rstBTN_codecov"
     TKNS[11]="OCA_project.*https://github.com/OCA/"
     REPL[11]="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-$ver.svg)](https://github.com/OCA/$v/tree/$BRANCH)"
     ACT[11]="md_BTN_OCA"
-    TKNS[12]="\|oca.project\|"
+    TKNS[12]="^\|oca.project\|"
     REPL[12]="|oca project|_"
     ACT[12]="rstBTN_OCA"
     TKNS[13]="Code.Climate.*https://codeclimate.com/github/"
     REPL[13]="Code.Climate  https://codeclimate.com/github/"
     ACT[13]="md_BTN_climate"
-    TKNS[14]="\|code.climate\|"
+    TKNS[14]="^\|code.climate\|"
     REPL[14]="|code climate|_"
     ACT[14]="rstBTN_climate"
     TKNS[15]="Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/)"
     REPL[15]="[![Tech Doc]"
     ACT[15]="md_BTN_docs"
-    TKNS[16]="\|technical.doc\|"
+    TKNS[16]="^\|technical.doc\|"
     REPL[16]="|technical doc|_"
     ACT[16]="rstBTN_docs"
     TKNS[17]="Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/)"
     REPL[17]="[![Help]"
     ACT[17]="md_BTN_help"
-    TKNS[18]="\|help.zeroincombenze\|"
+    TKNS[18]="^\|help.zeroincombenze\|"
     REPL[18]="|help zeroincombenze|_"
     ACT[18]="rstBTN_help"
     TKNS[19]="Runbot.Status.*https://runbot.odoo-community.org/"
     REPL[19]="Runbot Status  https://runbot.odoo-community.org/"
     ACT[19]="md_BTN_runbot"
-    TKNS[20]="\|runbot.status\|"
+    TKNS[20]="^\|runbot.status\|"
     REPL[20]="|runbot status|_"
     ACT[20]="rstBTN_runbot"
     TKNS[21]="try.it.*http(s)?://www.zeroincombenze.it"
     REPL[21]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](http://erp$ver.zeroincombenze.it)"
     ACT[21]="md_BTN_tryit"
-    TKNS[22]="\|try.it\|"
+    TKNS[22]="^\|try.it\|"
     REPL[22]="|try it|_"
     ACT[22]="rstBTN_tryit"
     TKNS[51]="\[//\]:.*#.*end.copyright"
@@ -635,7 +635,7 @@ cvt_readme() {
     TKNS[55]="chat.with.us"
     REPL[55]="[![chat with us]"
     ACT[55]="md_BTN_chat"
-    TKNS[56]="\|chat.with.us\|"
+    TKNS[56]="^\|chat.with.us\|"
     REPL[56]=""
     ACT[56]="rstBTN_chat"
     local ONLY_OCA="Irunbot Iclimate"
@@ -648,18 +648,23 @@ cvt_readme() {
       lne2="⌂"
       Ibutton=0
       # local xxline="$line"
-      for i in {0..22} {51..56}; do
+      for i in {1..22} {51..56}; do
         p=${TKNS[$i]}
         if [[ $line =~ $p ]]; then
-          if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPLC" ]; then
-            if [ "${ACT[$i]}" == "REPLC" ]; then
-              ((ignnextlines--))
+          if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
+            if [ "${ACT[$i]}" == "REPL1" ]; then
+              ignnextlines=1
             fi
             line="${REPL[$i]}"
+          elif [ "${ACT[$i]}" == "REPLC" ]; then
+            if [ $ignnextlines -ne 0 ]; then
+              line="${REPL[$i]}"
+            fi
           elif [[ "${ACT[$i]}" =~ md_BTN ]] || [[ "${ACT[$i]}" =~ rstBTN ]]; then
             if [[ "${ACT[$i]}" =~ rstBTN ]]; then
               Irst=1
             fi
+            ignnextlines=0
             v="${ACT[$i]}"
             v="I${v:7}"
             Ibutton=1
@@ -699,6 +704,23 @@ cvt_readme() {
             line="⌂"
           fi
           break
+        elif [ -n "$line" ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
+          p=${TKNS[$i]}
+          p="..[[:space:]]${p:1}"
+          if [[ $line =~ $p ]]; then
+            ignnextlines=0
+            line="${REPL[0]}"
+            break
+          else
+            p=${TKNS[$i]}
+            p="..[[:space:]]_${p:3}"
+            p=${p/\\\|/:}
+            if [[ $line =~ $p ]]; then
+              ignnextlines=0
+              line="${REPL[0]}"
+              break
+            fi
+          fi
         fi
       done
       if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
@@ -757,7 +779,7 @@ cvt_readme() {
       fi
     done
     [ $preline -ne 0 ] && preline=0 && echo "">>$fntmp
-    for i in {0..22} {51..56}; do
+    for i in {1..22} {51..56}; do
       p=${TKNS[$i]}
       if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
         v="${ACT[$i]}"
