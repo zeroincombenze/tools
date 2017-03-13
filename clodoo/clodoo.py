@@ -2044,6 +2044,12 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
             msg = u"Restore invoices to validated %s " % invoices
             msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
+                # try:
+                #     oerp.execute('account.invoice',
+                #                  "button_reset_taxes",
+                #                  [inv_id])
+                # except:
+                #     pass
                 try:
                     oerp.exec_workflow(model,
                                        'invoice_open',
