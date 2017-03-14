@@ -5,7 +5,7 @@ import clodoo
 # import pdb
 
 
-__version__ = "0.1.5.8"
+__version__ = "0.1.5.10"
 
 oerp = oerplib.OERP()
 try:
@@ -199,10 +199,23 @@ def ask4target():
     print "           :I: to search for invoice id (default if number)"
     print "           :N: to search for invoice number (default if text)"
     print "Use number for id or [num,num,...] for ID(s)"
-    print " i.e. ':A:33' means search for invoices which have account id  33"
-    print " ':C:3199%' search for invoices which have account code like 3199"
-    print " 123 manage invoice which has ID 123"
+    print " i.e. ':A:33' means search for invoices which have account id 33"
+    print "  ':C:319%' search for invoices with account code like '319%'"
+    print "  ':A:[4,6]' search for invoices whic have account id in 4 or 6"
+    print "  '123' manage invoice which has ID 123"
     return raw_input('Please, type [prefix]ID(s)/Number/Account? ')
+
+
+def print_invoice_info(inv_id):
+    model = 'account.invoice'
+    inv_obj = oerp.browse(model, inv_id)
+    print "Id=%d, Num=%s(%s), supply n.=%s, ref=%s cid=%d" % (
+        inv_id,
+        inv_obj.number,
+        inv_obj.internal_number,
+        inv_obj.supplier_invoice_number,
+        inv_obj.name,
+        inv_obj.company_id)
 
 
 ctx = {}
@@ -212,7 +225,7 @@ print "Invoice set Draft and Restore - %s" % __version__
 while True:
     msg = "Byte,Cancel[+],Draft,Help,Number[+],Quit,Replace[+],RB? "
     action = raw_input(msg)
-    if action not in ('B', 'C', 'C+', 'D', 'N', 'N+', 'R', 'R+', 'RB'):
+    if action not in ('B', 'C', 'C+', 'D', 'D+', 'N', 'N+', 'R', 'R+', 'RB'):
         if action == "Q":
             exit()
         print "Type B for Byte: set state to draft and restore prior status"
@@ -228,6 +241,11 @@ while True:
         print "Action Byte, C+, N+ and R+ ask for user action,"
         print "then restore prior status (with reconciliation)"
         continue
+    if action == 'R':
+        msg = "Replace without restore: are you sure (yes,no)?"
+        dummy = raw_input(msg)
+        if not dummy or (dummy[0] != 'y' and dummy[0] != 'Y'):
+            action = 'R+'
     if len(action) == 1:
         action = action + "!"
 
@@ -261,13 +279,11 @@ while True:
             if isinstance(account_id, list):
                 ids = get_ids_from_params(model0,
                                           company_id,
-                                          # P1=('period_id', 'in', period_ids),
                                           P1=('account_id', 'in', account_id)
                                           )
             else:
                 ids = get_ids_from_params(model0,
                                           company_id,
-                                          # P1=('period_id', 'in', period_ids),
                                           P1=('account_id', '=', account_id)
                                           )
             invoices = []
@@ -312,11 +328,14 @@ while True:
             if line[0:4] == 'inv=':
                 if inv_id:
                     invoices.append(inv_id)
-                    reconcile_dict[inv_id] = reconciles
-                    for state in moves:
-                        if len(moves[state]):
-                            move_dict[state] = list(set(move_dict[state]) |
-                                                    set(moves[state]))
+                    if inv_id in reconciles:
+                        reconcile_dict[inv_id] = reconciles[inv_id]
+                        for state in moves:
+                            if len(moves[state]):
+                                move_dict[state] = list(set(move_dict[state]) |
+                                                        set(moves[state]))
+                    else:
+                        print "**** Invalid rollback structure****"
                 inv_id = int(line[4:])
                 reconciles = {}
                 moves = {}
@@ -326,11 +345,14 @@ while True:
                 moves = eval(line[4:])
         if inv_id:
             invoices.append(inv_id)
-            reconcile_dict[inv_id] = reconciles
-            for state in moves:
-                if len(moves[state]):
-                    move_dict[state] = list(set(move_dict[state]) |
-                                            set(moves[state]))
+            if inv_id in reconciles:
+                reconcile_dict[inv_id] = reconciles[inv_id]
+                for state in moves:
+                    if len(moves[state]):
+                        move_dict[state] = list(set(move_dict[state]) |
+                                                set(moves[state]))
+            else:
+                print "**** Invalid rollback structure****"
         fd.close()
     else:
         if len(invoices) == 0:
@@ -367,42 +389,30 @@ while True:
 
     if action[0] == 'C':
         print ">> Cancel invoice number"
+        for inv_id in invoices:
+            print_invoice_info(inv_id)
         oerp.write('account.invoice', invoices, {'internal_number': ''})
     elif action[0] == 'N':
         for inv_id in invoices:
-            inv_obj = oerp.browse(model, inv_id)
-            print "Num=%s, supply n.=%s, ref=%s cid=%d" % (
-                inv_obj.number,
-                inv_obj.supplier_invoice_number,
-                inv_obj.name,
-                inv_obj.company_id)
+            print_invoice_info(inv_id)
             number = raw_input('New invoice number? ')
             oerp.write(model, [inv_id],
                        {'internal_number': number})
     elif action[0] == 'R' and action != 'RB':
         # pdb.set_trace()
         for inv_id in invoices:
-            inv_obj = oerp.browse(model, inv_id)
-            print "Num=%s, supply n.=%s, ref=%s cid=%d" % (
-                inv_obj.number,
-                inv_obj.supplier_invoice_number,
-                inv_obj.name,
-                inv_obj.company_id)
+            print_invoice_info(inv_id)
             ids = get_ids_from_params(model0,
                                       company_id,
                                       P1=('invoice_id', '=', inv_id)
                                       )
             oerp.write(model0, ids,
                        {'account_id': new_account_id})
-    if action[0] != 'N' and action[0] != 'R' and action != 'RB':
+    if action == 'RB' or \
+            (action[0] != 'C' and action[0] != 'N' and action[0] != 'R'):
         for inv_id in invoices:
-            inv_obj = oerp.browse(model, inv_id)
-            print "Num=%s, supply n.=%s, ref=%s cid=%d" % (
-                inv_obj.number,
-                inv_obj.supplier_invoice_number,
-                inv_obj.name,
-                inv_obj.company_id)
-    if action != 'B' and action != 'RB' and action[1] != '+':
+            print_invoice_info(inv_id)
+    if action[0] != 'B' and action != 'RB' and action[1] != '+':
         continue
     res = raw_input('Press RET to continue ..')
     for inv_id in invoices:
@@ -417,13 +427,14 @@ while True:
     print ">> Reconcile "
     for inv_id in invoices:
         reconciles = reconcile_dict[inv_id]
-        try:
-            cur_reconciles, cur_reconcile_dict = \
-                clodoo.refresh_reconcile_from_inv(oerp,
-                                                  inv_id,
-                                                  reconciles,
-                                                  ctx)
-            clodoo.reconcile_invoices(oerp, cur_reconcile_dict, ctx)
-        except:
-            print "**** Warning invoice %d ****" % inv_id
-            print reconciles
+        if len(reconciles):
+            try:
+                cur_reconciles, cur_reconcile_dict = \
+                    clodoo.refresh_reconcile_from_inv(oerp,
+                                                      inv_id,
+                                                      reconciles,
+                                                      ctx)
+                clodoo.reconcile_invoices(oerp, cur_reconcile_dict, ctx)
+            except:
+                print "**** Warning invoice %d ****" % inv_id
+                print reconciles
