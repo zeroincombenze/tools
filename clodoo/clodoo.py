@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.11"
+__version__ = "0.2.70.18"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1316,8 +1316,8 @@ def act_check_balance(oerp, ctx):
                     acctype_obj.report_type != parent_acctype_obj.report_type:
                 warn_rec = "Mismatch"
 
-        code = account_obj.code.encode('utf-8')
-        clf3 = acctype_obj.name.encode('utf-8')
+        code = account_obj.code
+        clf3 = acctype_obj.name
         clf = acctype_obj.report_type
         if clf == "asset":
             clf2 = "attivo"
@@ -1337,27 +1337,33 @@ def act_check_balance(oerp, ctx):
 
         if (account_obj.company_id.id != company_id):
             msg = u"Invalid company account {0} in {1:>6} {2}".format(
-                code,
+                os0.u(code),
                 move_line_id,
-                move_line_obj.ref)
+                os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
         if (account_tax_obj and account_tax_obj.company_id.id != company_id):
             msg = u"Invalid company account tax {0} in {1:>6} {2}".format(
-                code,
+                os0.u(code),
                 move_line_id,
-                move_line_obj.ref)
+                os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
         if (journal_obj and journal_obj.company_id.id != company_id):
             msg = u"Invalid company journal {0} in {1:>6} {2}".format(
-                code,
+                os0.u(code),
                 move_line_id,
-                move_line_obj.ref)
+                os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
 
         if move_line_obj.partner_id and \
                 move_line_obj.partner_id.id:
             partner_id = move_line_obj.partner_id.id
-            kk = "X " + str(partner_id)
+            if clf3 == "Crediti":
+                kk = 'C'
+            elif clf3 == "Debiti":
+                kk = 'S'
+            else:
+                kk = 'X'
+            kk = kk + '\n' + code + '\n' + str(partner_id)
             if kk not in acc_partners:
                 acc_partners[kk] = 0
             acc_partners[kk] += move_line_obj.credit
@@ -1410,7 +1416,7 @@ def act_check_balance(oerp, ctx):
                 warn_rec,
                 move_hdr_id,
                 move_line_id,
-                move_line_obj.ref)
+                os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
             warn_rec = False
 
@@ -1432,39 +1438,43 @@ def act_check_balance(oerp, ctx):
             dbt_amt = 0.0
             for sublevel in acc_balance[level]:
                 if acc_balance[level][sublevel] > 0:
-                    msg = "{0} {1:<16} {2:11.2f}".format(
-                        ident,
-                        sublevel,
+                    msg = u"{0} {1:<16} {2:11.2f}".format(
+                        os0.u(ident),
+                        os0.u(sublevel),
                         acc_balance[level][sublevel])
                     msg_log(ctx, ctx['level'], msg)
                     crd_amt += acc_balance[level][sublevel]
                 elif acc_balance[level][sublevel] < 0:
-                    msg = "{0} {1:<16} {2:11}{3:11.2f}".format(
-                        ident,
-                        sublevel,
+                    msg = u"{0} {1:<16} {2:11}{3:11.2f}".format(
+                        os0.u(ident),
+                        os0.u(sublevel),
                         '',
                         -acc_balance[level][sublevel])
                     msg_log(ctx, ctx['level'], msg)
                     dbt_amt -= acc_balance[level][sublevel]
                 else:
-                    msg = "{0} {1:<16} {2:11.2f}{3:11.2f}".format(
-                        ident,
-                        sublevel,
+                    msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
+                        os0.u(ident),
+                        os0.u(sublevel),
                         0,
                         0)
                     msg_log(ctx, ctx['level'], msg)
-            msg = "{0} {1:<16} {2:11.2f}{3:11.2f}".format(
-                ident,
+            msg = u"{0} {1:<16} {2:11.2f}{3:11.2f}".format(
+                os0.u(ident),
                 '---------------',
                 crd_amt,
                 dbt_amt)
             msg_log(ctx, ctx['level'], msg)
+        level = '9'
         for kk in sorted(acc_partners):
-            partner_id = int(kk.split(" ")[1])
-            partner_obj = oerp.browse('res.partner', partner_id)
-            print u"{0:<12} {1:<50} {2:11.2f}".format(kk.decode('utf-8'),
-                                                      partner_obj.name,
-                                                      acc_partners[kk])
+            if acc_partners[kk] != 0.0:
+                partner_id = int(kk.split('\n')[2])
+                partner_obj = oerp.browse('res.partner', partner_id)
+                msg = u"{0:<16} {1:<60} {2:11.2f}".format(
+                    os0.u(kk.replace('\n', '.')),
+                    os0.u(partner_obj.name),
+                    acc_partners[kk])
+                msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
@@ -3513,7 +3523,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     except:
                         os0.wlog(u"!!write error!")
             else:
-                msg = u"insert " + name_new.decode('utf-8')
+                msg = u"insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
                     if not o_model.get('hide_cid', False):

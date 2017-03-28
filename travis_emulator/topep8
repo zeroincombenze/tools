@@ -20,7 +20,83 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="0.1.12.4"
+__version__="0.1.12.5"
+
+
+format_xml() {
+    local fn=$1
+    if [ -f $fn ]; then
+      local fntmp=$fn.new
+      rm -f $fntmp
+      local line lne lm level o c k x nxtlm lm1 comment
+      comment=0
+      nxtlm=0
+      level=0
+      while IFS= read -r line || [ -n "$line" ]; do
+        lne=$(echo $line)
+        line=
+        if [ $comment -eq 0 ]; then
+          lm1=$nxtlm
+          lm=
+          x=$((level*4))
+          [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
+        fi
+        if [ "${lne:0:6}" == "<?xml " ]; then
+          level=0
+          line="$lne"
+        elif [ "${lne:0:9}" == "<openerp>" -o "${lne:0:10}" == "</openerp>" ]; then
+          level=0
+          line="$lne"
+        elif [ "${lne:0:3}" == "-->" ]; then
+          line="$lm$lne"
+          comment=0
+        elif [ "${lne:0:4}" == "<!--" ]; then
+          line="$lm$lne"
+          if [ "${lne: -3}" != "-->" ]; then
+            nxtlm=${#lm}
+            let nxtlm="$nxtlm+4"
+            comment=1
+          fi
+        else
+          o=$(echo $lne|grep -Eo "<[a-zA-Z0-9-]+"|wc -l)
+          c=$(echo $lne|grep -Eo "</[a-zA-Z0-9-]+"|wc -l)
+          k=$(echo $lne|grep -Eo "/>"|wc -l)
+          let c="$c+$k"
+          if [ $o -gt $c ]; then
+            ((level++))
+          elif [ $c -gt $o ]; then
+            if [ $level -gt 0 ]; then
+              ((level--))
+              lm=
+              x=$((level*4))
+              [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
+            fi
+          fi
+        fi
+        # echo "$level)$lne" #debug
+        if [ -z "$line" ]; then
+          if [ -z "$lne" ]; then
+            line="$lne"
+          elif [ "${lne:0:1}" == "<" ]; then
+            line="$lm$lne"
+            x=$(echo "$line"|grep -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
+            nxtlm=${#x}
+          else
+            lm=
+            [ $lm1 -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$lm1}
+            line="$lm$lne"
+          fi
+        fi
+        echo "$line">>$fntmp
+      done < "$fn"
+      # if [ "$(diff -q $fn $fntmp)" ]; then
+      #   run_traced "cp -p $fn $fn.bak"
+      #   run_traced "mv $fntmp $fn"
+      # else
+      #   rm -f $fntmp
+      # fi
+    fi
+}
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -73,14 +149,19 @@ for fl in $(find $path -type f -name "$selfl"); do
     echo "Reading $f in $p"
   fi
   cd $p
-  autopep8 $f|sed 's/ $/\n/'>$f.new
-  if [ $opt_uop -gt 0 ]; then
-    python $TDIR/autopep8_W503.py $f.new
-  fi
-  d=$(diff -q $f $f.new)
-  if [ -z "$d" ]; then
-    rm -f $f.new
+  if [ "${f: -4}" == ".xml" ]; then
+    format_xml $f
   else
+    autopep8 $f|sed 's/ $/\n/'>$f.new
+    if [ $opt_uop -gt 0 ]; then
+      python $TDIR/autopep8_W503.py $f.new
+    fi
+  fi
+  if [ "$(diff -q $f $f.new)" ]; then
+  # d=$(diff -q $f $f.new)
+  # if [ -z "$d" ]; then
+  #   rm -f $f.new
+  # else
     if [ $opt_dry_run -eq 0 ]; then
       if [ -n "$opt_out" ]; then
         mv $f.new $opt_out
@@ -106,6 +187,8 @@ for fl in $(find $path -type f -name "$selfl"); do
         echo "File $f in $p should be converted"
       fi
     fi
+  else
+    rm -f $f.new
   fi
 done
 cd $HOMEDIR

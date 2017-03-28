@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.24
+__version__=0.1.41.25
 
 
 #
@@ -411,7 +411,7 @@ cvt_doxygenconf() {
         fi
         echo "$line">>$fntmp
       done < "$fn"
-      if [ "$(diff -q $fn $fntmp)" ]; then
+      if [ -n "$(diff -q $fn $fntmp)" ]; then
         run_traced "cp -p $fn $fn.bak"
         run_traced "mv $fntmp $fn"
       else
@@ -446,7 +446,7 @@ cvt_gitmodule() {
         fi
         echo "$line">>$fntmp
       done < "$fn"
-      if [ "$(diff -q $fn $fntmp)" ]; then
+      if [ -n "$(diff -q $fn $fntmp)" ]; then
         run_traced "cp -p $fn $fn.bak"
         run_traced "mv $fntmp $fn"
       else
@@ -802,7 +802,7 @@ cvt_readme() {
       fi
     done
     if [ ${test_mode:-0} -eq 0 ]; then
-      if [ "$(diff -q $fn $fntmp)" ]; then
+      if [ -n "$(diff -q $fn $fntmp)" ]; then
         run_traced "cp -p $fn $fn.bak"
         run_traced "mv $fntmp $fn"
       else
@@ -843,15 +843,20 @@ cvt_file() {
         fi
         if [ "$3" == "travis" ]; then
           cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
+          if [ -n "$(diff -q $f1 $fntmp)" ]; then
             run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
           fi
           rm -f $fntmp
         elif [ "$3" == "manifest" ]; then
-          mm_oca=l10n_it_base
-          mm_z0i=l10n_it_bbone
+          mm_oca=l10n_it_bbone
+          if [ $opt_uop -gt 0 ]; then
+            mm_z0i=l10n_it_bbone
+          else
+            mm_z0i=l10n_it_base
+          fi
           cat $f1|sed -e 's:'$mm_z0i':'$mm_oca':'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
+          if [ -n "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
             run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_z0i':'$mm_oca':' $f1"
             run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
           fi
@@ -876,7 +881,7 @@ cvt_file() {
         if [ "$3" == "travis" ]; then
           local fntmp=$f1.tmp
           cat $f1|sed -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
+          if [ -n "$(diff -q $f1 $fntmp)" ]; then
             run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
           fi
           rm -f $fntmp
@@ -884,9 +889,14 @@ cvt_file() {
           cvt_readme $f1 $2
         elif [ "$3" == "manifest" ]; then
           mm_oca=l10n_it_base
-          mm_z0i=l10n_it_bbone
+          if [ $opt_uop -gt 0 ]; then
+            mm_z0i=l10n_it_base
+          else
+            mm_z0i=l10n_it_bbone
+          fi
           cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
-          if [ "$(diff -q $f1 $fntmp)" ]; then
+          if [ -n "$(diff -q $f1 $fntmp)" ]; then
+            run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
             run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_oca':'$mm_z0i':' $f1"
             run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
           fi
@@ -1389,9 +1399,9 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "declare local git path"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file)"\
- "files include in annotate test"\
+ "files to include in annotate test"\
  "test mode (implies dry-run)"\
- "check for unary operator W503"\
+ "check for unary operator W503 or no OCA/zero module translation"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action pkg sub1 sub2 sub3)

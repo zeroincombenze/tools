@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11
+__version__=0.1.14
 
 
 OPTOPTS=(h        d        l       n            s        t        U          V           v)
@@ -86,14 +86,36 @@ wlog "DEV=$HOST_DEV"
 opt_tbl=${opt_tbl//./_}
 PID=$$
 tmpfn=./tmp$PID
+echo "Stats before copy ..."
 psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
-psql -U$opt_user -tec "select count(id) from $opt_tbl" $opt_src
+OLDNXT=$(psql -U$opt_user -tc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
+psql -U$opt_user -tec "select max(id) from $opt_tbl;" $opt_dst
+psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src
+CTRBEF=$(psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src)
+echo "Copy data from source DB $opt_src"
 run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
+echo "Paste data into destination DB $opt_dst"
 run_traced "psql -U$opt_user -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
-psql -U$opt_user -tec "select count(id) from $opt_tbl" $opt_dst
-NXTID=$(psql -U$opt_user -tc "select max(id) from $opt_tbl" $opt_dst)
-((NXTID++))
+echo "Resulting stats ..."
+psql -U$opt_user -tec "select max(id) from $opt_tbl;" $opt_dst
+psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_dst
+NXTID=$(psql -U$opt_user -tc "select max(id) from $opt_tbl;" $opt_dst)
+# ((NXTID++))
+if [ $OLDNXT -gt $NXTID ]; then
+  NXTID=$OLDNXT
+fi
 psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
 run_traced "psql -U$opt_user -d $opt_dst -c \"alter sequence ${opt_tbl}_id_seq restart $NXTID;\""
+echo "Currently stats after copy ..."
+psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
+psql -U$opt_user -tec "select max(id) from $opt_tbl;" $opt_dst
+psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src
+CTRAFT=$(psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src)
+let DIF="$CTRAFT-$CTRBEF"
+if [ $DIF -eq 0 ]; then
+  echo "Non record inserted"
+else
+  echo "$DIF new records inserted"
+fi
 rm -f $tmpfn.*
 exit 0
