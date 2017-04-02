@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.4
+__version__=0.1.5
 
 get_remote_ip() {
 #get_remote_ip(1|net)
@@ -139,13 +139,13 @@ elif [ "$act" == "enable" ]; then
         echo "Revoke IP $curip"
       fi
       if [ $opt_dry_run -eq 0 ]; then
-        aws ec2 revoke-security-group-ingress --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$curip'"}],"UserIdGroupPairs": []}]'
+        aws ec2 revoke-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$curip'"}],"UserIdGroupPairs": []}]'
       fi
       if [ $opt_verbose -gt 0 ]; then
         echo "Authorize IP $newip"
       fi
       if [ $opt_dry_run -eq 0 ]; then
-        aws ec2 authorize-security-group-ingress --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$newip'"}],"UserIdGroupPairs": []}]'
+        aws ec2 authorize-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$newip'"}],"UserIdGroupPairs": []}]'
       fi
     fi
   fi

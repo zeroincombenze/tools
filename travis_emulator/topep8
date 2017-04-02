@@ -20,7 +20,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="0.1.12.5"
+__version__="0.1.12.6"
 
 
 format_xml() {
@@ -30,31 +30,34 @@ format_xml() {
       rm -f $fntmp
       local line lne lm level o c k x nxtlm lm1 comment
       comment=0
+      act=0
       nxtlm=0
       level=0
       while IFS= read -r line || [ -n "$line" ]; do
         lne=$(echo $line)
-        line=
         if [ $comment -eq 0 ]; then
+          line=
           lm1=$nxtlm
           lm=
           x=$((level*4))
           [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
         fi
-        if [ "${lne:0:6}" == "<?xml " ]; then
+        if [ "${lne:0:3}" == "-->" ]; then
+          # line="$lm$lne"
+          comment=0
+        elif [ $comment -ne 0 ]; then
+          :
+        elif [ "${lne:0:6}" == "<?xml " ]; then
           level=0
           line="$lne"
         elif [ "${lne:0:9}" == "<openerp>" -o "${lne:0:10}" == "</openerp>" ]; then
           level=0
           line="$lne"
-        elif [ "${lne:0:3}" == "-->" ]; then
-          line="$lm$lne"
-          comment=0
         elif [ "${lne:0:4}" == "<!--" ]; then
           line="$lm$lne"
           if [ "${lne: -3}" != "-->" ]; then
             nxtlm=${#lm}
-            let nxtlm="$nxtlm+4"
+            # let nxtlm="$nxtlm+4"
             comment=1
           fi
         else
@@ -71,6 +74,13 @@ format_xml() {
               x=$((level*4))
               [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
             fi
+          fi
+          if [[ lne =~ "<record.*model=.ir.actions.act_window." ]]; then
+            act=1
+          elif [ $act -gt 0 ] && [[ lne =~ "<field.*name=.type.*>ir.actions.act_window.*/field" ]]; then
+            line=
+            lne=
+            act=0
           fi
         fi
         # echo "$level)$lne" #debug

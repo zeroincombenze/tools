@@ -27,7 +27,7 @@ import sys
 import re
 
 
-__version__ = "0.1.12.4"
+__version__ = "0.1.12.6"
 
 
 def update_to_8(line):
@@ -59,6 +59,35 @@ def update_to_8(line):
     return line
 
 
+def hide_debug(line):
+    open_stmt = 0
+    if re.match("^ +tndb\.", line):
+        line = line.replace("tndb.",
+                            "# tndb.")
+        if line[-1] != ')':
+            open_stmt = 1
+    if re.match("^ +pdb\.", line):
+        line = line.replace("pdb.",
+                            "# pdb.")
+    if re.match("^import pdb", line):
+        line = line.replace("import",
+                            "# import")
+    if re.match("^from tndb", line):
+        line = line.replace("from tndb",
+                            "# from tndb")
+    return line, open_stmt
+
+
+def hide_close_line(line, open_stmt):
+    if open_stmt:
+        if line[-1] == ')':
+            open_stmt = 0
+        else:
+            open_stmt = 1
+        line = "# " + line
+    return line, open_stmt
+
+
 def move_tk_line_up(tk, n, lines):
     if n > 0:
         i = lines[n].find(tk)
@@ -83,6 +112,7 @@ def exec_W503(filepy):
     fd.close()
     lines = source.split('\n')
     empty_line = 0
+    open_stmt = 0
     n = 0
     while n < len(lines):
         if lines[n] == "":
@@ -96,7 +126,7 @@ def exec_W503(filepy):
                     n -= 1
                 else:
                     while empty_line < 2:
-                        lines.insert(n,'')
+                        lines.insert(n, '')
                         empty_line += 1
                         n += 1
             elif re.match("^[a-zA-Z0-9_]+.*\(\)$", lines[n]):
@@ -106,11 +136,15 @@ def exec_W503(filepy):
                     n -= 1
                 else:
                     while empty_line < 2:
-                        lines.insert(n,'')
+                        lines.insert(n, '')
                         empty_line += 1
                         n += 1
             empty_line = 0
-            lines[n] = update_to_8(lines[n])
+            if open_stmt:
+                lines[n], open_stmt = hide_close_line(lines[n], open_stmt)
+            else:
+                lines[n], open_stmt = hide_debug(lines[n])
+                lines[n] = update_to_8(lines[n])
         ln = lines[n].strip()
         if ln == "or":
             tk = "or"

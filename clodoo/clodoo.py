@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.18"
+__version__ = "0.2.70.19"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -960,7 +960,7 @@ def act_uninstall_modules(oerp, ctx):
 
             ids = oerp.search('ir.module.module',
                               [('name', '=', m),
-                               ('state', '=', 'uninstalled')],
+                               ('state', '!=', 'installed')],
                               context=context)
             if len(ids):
                 module_obj = oerp.browse('ir.module.module', ids[0])

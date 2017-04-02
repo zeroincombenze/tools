@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.41.25
+__version__=0.1.41.26
 
 
 #
@@ -892,7 +892,8 @@ cvt_file() {
           if [ $opt_uop -gt 0 ]; then
             mm_z0i=l10n_it_base
           else
-            mm_z0i=l10n_it_bbone
+            # mm_z0i=l10n_it_bbone
+            mm_z0i=l10n_it_base
           fi
           cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
           if [ -n "$(diff -q $f1 $fntmp)" ]; then
