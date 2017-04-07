@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.46
+#__version__=0.1.46.1
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -205,6 +205,11 @@ export -f xuname
 #      h help       Show help               opt_help
 #      n no         Do nothing (only test)  opt_dry_run
 #      V version    Show app version        opt_version
+#   OPTLONG  array with long option (with double dash)
+#      Common option (description and default variable):
+#      --help       Show help               opt_help
+#      --dry-run    Do nothing (only test)  opt_dry_run
+#      --version    Show app version        opt_version
 #   OPTDEST  array of destination variables (matches one to one OPTOPTS)
 #      Recommend variables:
 #      opt_help     show help (int)
@@ -219,7 +224,7 @@ export -f xuname
 #      =    Set variable to following option value
 #      2.nd character:
 #      >    executive command (disable help and version)
-#   OPTDEFL  array with default values, '#' means no defalt value (matches one to one OPTOPTS)
+#   OPTDEFL  array with default values, '#' means no default value (matches one to one OPTOPTS)
 #   OPTMETA  array with meta help to build help (matches one to one OPTOPTS)
 #   OPTHELP  array with parameters description to build help (matches one to one OPTOPTS)
 #   OPTARGS  array of destination variables of positional arguments (set OPTARGS=() if no args)
@@ -227,7 +232,7 @@ export -f xuname
 parseoptargs() {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
-    local jy=0
+    local jy=0 f=0 a b v
     while ((jy<${#OPTDEST[*]})); do
       if [ "${OPTDEFL[jy]}" != "#" ]; then
         export ${OPTDEST[jy]}="${OPTDEFL[jy]}"
@@ -244,17 +249,53 @@ parseoptargs() {
     local failed=0
     while ((ii<=$#)); do
       local oo="${!ii}"
-      if [ "${oo:0:1}" == "-" ]; then
+      if [ "${oo:0:2}" == "--" -a "$o" != "--" ]; then
+        IFS=\= read a v <<<$oo
+        jy=0
+        f=0
+        while ((jy<${#OPTLONG[*]})); do
+          if [ "${a:2}" == ${OPTLONG[jy]} ]; then
+            f=1
+            a=${OPTACTI[jy]}
+            b=${a:1:1}
+            if [ "$b" == ">" ]; then
+               export opt_help=0
+               export opt_version=""
+            fi
+            a=${a:0:1}
+            if [ "$a" == "0" -o "$a" == "1" ]; then
+              export ${OPTDEST[jy]}=$a
+            elif [ "$a" == "+" ]; then
+              if [ ${!OPTDEST[jy]} -lt 0 ]; then export ${OPTDEST[jy]}=0; fi
+              ((${OPTDEST[jy]}++))
+              export ${OPTDEST[jy]}
+            elif [ "$a" == "=" ]; then
+              if [ -n "$v" ]; then
+                export ${OPTDEST[jy]}=$v
+              else
+                ((++ii))
+                export ${OPTDEST[jy]}="${!ii}"
+              fi
+            fi
+            jy=${#OPTOPTS[*]}
+          else
+            ((++jy))
+          fi
+        done
+        if [ $f -eq 0 ]; then
+          local failed=1
+        fi
+      elif [ "${oo:0:1}" == "-" ]; then
         local jj=1
         while ((jj<${#oo})); do
           jy=0
-          local f=0
+          f=0
           while ((jy<${#OPTOPTS[*]})); do
             if [ "${oo:jj:1}" == ${OPTOPTS[jy]} ]; then
               # set -x
               f=1
-              local a=${OPTACTI[jy]}
-              local b=${a:1:1}
+              a=${OPTACTI[jy]}
+              b=${a:1:1}
               if [ "$b" == ">" ]; then
                  export opt_help=0
                  export opt_version=""
@@ -410,6 +451,15 @@ wlog() {
 }
 export -f wlog
 
+##############################################################################
+# Write log on file $FLOG without echo
+slog() {
+    local dt=$(date +"%F %H:%M:%S")
+    if [ -n "$FLOG" ]; then
+      echo $dt "$@">>$FLOG
+    fi
+}
+export -f wlog
 
 ##############################################################################
 # Echo meassage and write log on file $FLOG: see set_tlog_file function
@@ -938,7 +988,7 @@ _read_cfg_file() {
     s=
     d=
     while IFS="#" read -r lne r || [ -n "$lne" ]; do
-      if [ -n "$lne" -a "${lne: -1}" != " " -a -n "$r" ]; then
+      if [ -n "$lne" -a -n "$r" ] && [ "${lne: -1}" != " " ]; then
         lne="$lne#$r"
         r=
       fi

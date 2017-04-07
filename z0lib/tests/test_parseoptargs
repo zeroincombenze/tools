@@ -93,7 +93,9 @@ test_02() {
     test_result "cmd mytarget [-V]" "$opt_version" ""
     test_result "cmd mytarget [-n]" "$tested_opt_dry_run" "0"
     test_result "cmd mytarget [-p]" "$opt_path" "~/"
-    if [[ -t 0 || -p /dev/stdin ]]; then
+    if [ "$VERBOSE_MODE" == "1" -o "$VERBOSE_MODE" == "0" ]; then
+      test_result "cmd mytarget [-qv]" "$opt_verbose" "$VERBOSE_MODE"
+    elif [[ -t 0 || -p /dev/stdin ]]; then
       test_result "cmd mytarget [-qv]" "$opt_verbose" "0"
     else
       test_result "cmd mytarget [-qv]" "$opt_verbose" "1"

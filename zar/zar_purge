@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.24
+__version__=1.3.24.5
 
 
 detached_login() {
@@ -72,12 +72,209 @@ detached_login() {
     wlog "PATH=$PATH"
 }
 
-OPTOPTS=(h        K        k          l       m          n            U          V           v)
-OPTDEST=(opt_help opt_cron opt_keep   opt_log opt_km     opt_dry_run  opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="        "="     "="        "1"          "="        "*>"        1)
-OPTDEFL=(0        0        ""         ""      ""         0            "postgres" ""          0)
-OPTMETA=("help"   "cron"   "# copies" "file"  "# copies" "do nothing" "username" "version"   "verbose")
+init_vars() {
+#init_vars(dbsel)
+    dbsel=$1
+    declare -g PGDIR DBCKDIR HOST_PRD HOST_DEV BCKFORMAT TAR_EXT TAR_OPT
+    declare -g REST2 TEST_DB NEWDBS REDB DBSEL
+    declare -g DBA DBB DBC DBD DBE DBF DBG DBH
+    declare -g NCA NCB NCC NCD NCE NCF NCG NCH
+    declare -g NAA NAB NAC NAD NAE NAF NAG NAH
+    local sfx selsfx XDB
+    PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+    if [ -z "$PGDIR" ]; then
+      wlog "No postgres directory found!"
+      exit 1
+    fi
+    DBCKDIR="$PGDIR/backups"
+    HOST_PRD=$(get_cfg_value 0 production_host)
+    HOST_DEV=$(get_cfg_value 0 development_host)
+    BCKFORMAT="$(get_cfg_value 0 bckformat)"
+    TAR_EXT=$(get_cfg_value 0 tar_ext)
+    TAR_OPT=$(get_cfg_value 0 tar_opt)
+    REST2="$(get_cfg_value 0 enable_restore)"
+    TEST_DB="$(get_cfg_value 0 test_db)"
+    NEWDBS=$(get_cfg_value 0 bck_db)
+    REDB="($TEST_DB|${NEWDBS//,/|})"
+    if [ -z $REDB ]; then
+      REDB="test"
+    fi
+    selsfx=
+    for sfx in A B C D E F G H; do
+      if [ "$HOSTNAME" == "$HOST_PRD" ]; then
+        eval DB$sfx="$(get_cfg_value 0 PRD_DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_monthly)"
+      elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+        eval DB$sfx="$(get_cfg_value 0 DEV_DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_monthly)"
+      fi
+      if [ -z "$DB$sfx" ]; then
+        eval DB$sfx="$(get_cfg_value 0 DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
+      fi
+      if [ -n "$dbsel" ]; then
+        x=DB$sfx
+        XDB=${!x}
+        if [[ $dbsel =~ $XDB ]]; then
+          selsfx=$sfx
+        else
+          eval DB$sfx=
+          eval NC$sfx=
+          eval NA$sfx=
+        fi
+      fi
+    done
+    if [ -n "$dbsel" -a -z "$selsfx" ]; then
+      DBA="$(get_cfg_value 0 dbfilter)"
+      NCA=$(get_cfg_value 0 keep_recent)
+      NAA=$(get_cfg_value 0 keep_monthly)
+    fi
+    DBSEL=
+    for sfx in A B C D E F G H; do
+      x=DB$sfx
+      XDB=${!x}
+      if [ -n "$XDB" ]; then
+        if [ -z "$DBSEL" ]; then
+          DBSEL="$XDB"
+        elif [ "$DBSEL" != "$XDB" ]; then
+          DBSEL=".*"
+          break
+        fi
+      fi
+    done
+    if [[ "$opt_keep" =~ [0-9]+ ]]; then
+      NCA=$opt_keep
+    fi
+    if [[ "$opt_km" =~ [0-9]+ ]]; then
+      NAA=$opt_km
+    fi
+}
+
+set_db_vars() {
+#set_db_vars(db)
+    dbsel=$1
+    declare -g XDB XNC XNA
+    local sfx x
+    for sfx in A B C D E F G H; do
+      x=DB${sfx}
+      XDB=${!x}
+      x=NC${sfx}
+      XNC=${!x}
+      x=NA${sfx}
+      XNA=${!x}
+      if [ -n "$XDB" ] && [[ $db =~ $XDB ]]; then
+        break
+      fi
+   done
+}
+
+expand_tar() {
+#expand_tar(db)
+    local src x
+    local db=$1
+    if [ "$BCKFORMAT" != "0" ]; then
+      src=$db
+      for x in $TAR_EXT; do
+        if [ -f $db$x ]; then
+          src=$db$x
+          break
+        fi
+      done
+      run_traced "tar $TAR_OPT -xf $src"
+      chown postgres:postgres $src
+    fi
+}
+
+compress_tar() {
+#compress_tar(db sqlfname)
+    local src x sts fn
+    local db=$1
+    chown postgres:postgres $db-*.sql
+    if [ "$BCKFORMAT" != "0" ]; then
+      src=$db
+      x=$(echo $TAR_EXT|awk '{print $1}')
+      src=$db$x
+      run_traced "tar $TAR_OPT -cf $src $db-*.sql"
+      sts=$?
+      if [ $sts -eq $STS_SUCCESS -a -n "$2" ]; then
+        wlog "removing archived files"
+        for fn in $db-*.sql; do
+          if [ "$fn" != "$2" ]; then
+            rm -f $fn
+          fi
+        done
+      fi
+    fi
+}
+
+create_db_list() {
+# create_db_list(dbsel pgsql_dir bck_dir bck_db)
+    local dblist=
+    local files fn db sfx f x
+    local dbsel=$1
+    if [ -z $3 ]; then
+      local DBCKDIR="$PGDIR/backups"
+    else
+      local DBCKDIR=$3
+    fi
+    if [ -n "$dbsel" ]; then
+      if [ "$BCKFORMAT" == "0" ]; then
+        files=$DBCKDIR/*.sql
+      else
+        for x in $TAR_EXT; do
+          files="$files $DBCKDIR/*$x"
+        done
+      fi
+      for fn in $files; do
+        if [ "$BCKFORMAT" == "0" ]; then
+          dbf=${fn%%-*}
+          x=$(basename $dbf)
+        else
+          x=$(basename $fn)
+        fi
+        db=${x%.*}
+        for sfx in A B C D E F G H; do
+          x=DB$sfx
+          XDB=${!x}
+          if [[ $db =~ $XDB ]]; then
+            if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+              :
+            else
+              dblist="$dblist $db"
+            fi
+          fi
+        done
+      done
+    fi
+    echo "$dblist"
+}
+
+conf_default() {
+    set_cfg_def "bckformat" "0"
+    set_cfg_def "dbfilter" ".*"
+    set_cfg_def "test_db" "test"
+    set_cfg_def "tar_ext" ".gz .bz2 .tar"
+    set_cfg_def "tar_opt" ""
+    local DBFA="demo"
+    local DBFB="zi[0-9]+"
+    for sfx in A B C D E F G H; do
+      set_cfg_def "DB${sfx}_filter" "DBF${sfx}"
+      set_cfg_def "DB${sfx}_keep_recent" "30"
+      set_cfg_def "DB${sfx}_keep_monthly" "12"
+    done
+}
+
+
+OPTOPTS=(h        c        K        k          l       m          n            U          V           v)
+OPTDEST=(opt_help opt_conf opt_cron opt_keep   opt_log opt_km     opt_dry_run  opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      1        "="        "="     "="        "1"          "="        "*>"        1)
+OPTDEFL=(0        ""       0        ""         ""      ""         0            "postgres" ""          0)
+OPTMETA=("help"   "file"   "cron"   "# copies" "file"  "# copies" "do nothing" "username" "version"   "verbose")
 OPTHELP=("this help"\
+ "configuration file (def zar.conf)"\
  "run in cron environment"\
  "keep # recent copies of db (max 60)"\
  "log filename (def /var/log/bckdb.log)"\
@@ -106,9 +303,14 @@ if [ -z "$opt_log" ]; then
 else
   publog=$opt_log
 fi
-FCONF=$TDIR/zar.conf
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  FCONF=$opt_conf
+else
+  FCONF=$TDIR/zar.conf
+fi
 CFG_init
-if [ ${opt_verbose:-0} -gt 0 ]; then
+conf_default
+if [ ${opt_verbose:-0} -gt 0 -o ${opt_dry_run:-0} -gt 0  ]; then
   set_tlog_file "$publog" "" "echo"
 else
   set_tlog_file "$publog"
@@ -119,158 +321,79 @@ fi
 link_cfg $FCONF
 wlog "Starting purge backup $__version__ by $opt_user"
 
-PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
-DBCKDIR="$PGDIR/backups"
-HOST_PRD=$(get_cfg_value 0 production_host)
-HOST_DEV=$(get_cfg_value 0 development_host)
+init_vars "$dbsel"
+dblist=$(create_db_list "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
-if [ -z "$dbsel" ]; then
-  dbsel="$(get_cfg_value 0 dbfilter)"
-fi
-for sfx in A B C D; do
-  if [ "$HOSTNAME" == "$HOST_PRD" ]; then
-    eval DB$sfx="$(get_cfg_value 0 PRD_DB${sfx}_filter)"
-    eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
-    eval NA$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_monthly)"
-  elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
-    eval DB$sfx="$(get_cfg_value 0 DEV_DB${sfx}_filter)"
-    eval NC$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_recent)"
-    eval NA$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_monthly)"
-  fi
-  if [ -z "$DB$sfx" ]; then
-    eval DB$sfx="$(get_cfg_value 0 DB${sfx}_filter)"
-    eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
-    eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
-  fi
-done
-if [ -z "$DBA" ]; then
-  DBA="$dbsel"
-  NCA=$(get_cfg_value 0 keep_recent)
-  if [ -z "$NCA" ]; then
-    NCA=30
-  fi
-  NAA=$(get_cfg_value 0 keep_monthly)
-  if [ -z "$NAA" ]; then
-    NAA=12
-  fi
-fi
-
-if [[ "$opt_keep" =~ [0-9]+ ]]; then
-  NCA=$opt_keep
-fi
-if [[ "$opt_km" =~ [0-9]+ ]]; then
-  NAA=$opt_km
-fi
-dblist=""
-if [ $opt_dry_run -gt 0 ]; then
-  [ -n "$DBA" ] && echo "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
-  [ -n "$DBB" ] && echo "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
-  [ -n "$DBC" ] && echo "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
-  [ -n "$DBD" ] && echo "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
+if [ "$BCKFORMAT" == "0" ]; then
+  wlog "Backup keep sql files"
 else
-  [ -n "$DBA" ] && wlog "Keep $NCA recent copies copies and $NAA monthly copies of $DBA"
-  [ -n "$DBB" ] && wlog "Keep $NCB recent copies copies and $NAB monthly copies of $DBB"
-  [ -n "$DBC" ] && wlog "Keep $NCC recent copies copies and $NAC monthly copies of $DBC"
-  [ -n "$DBD" ] && wlog "Keep $NCD recent copies copies and $NAD monthly copies of $DBD"
+  wlog "Backup compress into tar files"
 fi
-ctr=0
-for fn in $(dir $DBCKDIR/*.sql)
-do
-  dbf=${fn%%-*}
-  db=$(basename $dbf)
-  f=0
-  if [[ $db =~ $DBA ]]; then
-    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-      :
-    else
-      dblist="$dblist $db"
-      f=1
-    fi
-    range=$NCA
-  elif [[ $db =~ $DBB ]]; then
-    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-      :
-    else
-      dblist="$dblist $db"
-      f=1
-    fi
-    range=$NCB
-  elif [[ $db =~ $DBC ]]; then
-    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-      :
-    else
-      dblist="$dblist $db"
-      f=1
-    fi
-    range=$NCC
-  elif [[ $db =~ $DBD ]]; then
-    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-      :
-    else
-      dblist="$dblist $db"
-      f=1
-    fi
-    range=$NCD
-  fi
-  if [ $f -gt 0 -a -n "$range" ]; then
-    for i in {90..1}; do
-      dtc=$(date -d "today - $i day" +%Y%m%d)
-      dd=$(date -d "today - $i day" +%d)
-      if [ "$dd" != "01" -a $i -gt $range ]
-      then
-        if [ -f "$dbf-$dtc.sql" ]; then
-          if [ $opt_dry_run -gt 0 ]; then
-            echo "File $dbf-$dtc.sql should be deleted!"
-          else
-            wlog "File $dbf-$dtc.sql deleted!"
-            rm -f $dbf-$dtc.sql
-            ((ctr++))
-          fi
-        fi
-      fi
-    done
-  fi
+wlog "Purge DB:$dblist"
+dovalid=0
+for sfx in A B C D E F G H; do
+  x=DB${sfx}
+  XDB=${!x}
+  x=NC${sfx}
+  XNC=${!x}
+  x=NA${sfx}
+  XNA=${!x}
+  [ -n "$XDB" ] && wlog "Keep $XNC recent copies copies and $XNA monthly copies of $XDB"
+  [ -n "$XDB" ] && dovalid=1
 done
-mm=$(date -d today +%m)
-mm=${mm#0}
-for i in {1..12}; do
-  if [ $mm -lt $i ]; then
-    ((d=$mm+12-$i))
-    yy=$(date -d "today - 1 year" +%Y)
-  else
-    ((d=$mm-$i))
-    yy=$(date -d today +%Y)
-  fi
-  dtc=$(printf "%04d%02d%02d" $yy $i 1)
+ctr=0
+CWD=$PWD
+cd $DBCKDIR
+if [ $dovalid -gt 0 ]; then
   for db in $dblist; do
-    if [[ $db =~ $DBA ]]; then
-      f=1
-      range=$NAA
-    elif [[ $db =~ $DBB ]]; then
-      f=1
-      range=$NAB
-    elif [[ $db =~ $DBC ]]; then
-      f=1
-      range=$NAC
-    elif [[ $db =~ $DBD ]]; then
-      f=1
-      range=$NAD
-    fi
-    if [ $f -gt 0 -a -n "$range" ]; then
-      if [ $d -ge $range ]; then
-        if [ -f "$DBCKDIR/${db}-$dtc.sql" ]; then
-          if [ $opt_dry_run -gt 0 ]; then
-            echo "File $DBCKDIR/${db}-$dtc.sql should be deleted!"
-          else
-            wlog "File $DBCKDIR/${db}-$dtc.sql deleted!"
-            rm -f $DBCKDIR/${db}-$dtc.sql
-            ((ctr++))
+    set_db_vars "$db"
+    range=$XNC
+    if [ -n "$range" ]; then
+      expand_tar $db
+      for i in {180..1}; do
+        dtc=$(date -d "today - $i day" +%Y%m%d)
+        dd=$(date -d "today - $i day" +%d)
+        if [ "$dd" != "01" -a $i -gt $range ]; then
+          if [ -f "$db-$dtc.sql" ]; then
+            if [ $opt_dry_run -gt 0 ]; then
+              echo "File $db-$dtc.sql should be deleted!"
+            else
+              wlog "File $db-$dtc.sql deleted!"
+              rm -f $db-$dtc.sql
+              ((ctr++))
+            fi
           fi
         fi
-      fi
+      done
+      mm=$(date -d today +%m)
+      mm=${mm#0}
+      for i in {1..12}; do
+        if [ $mm -lt $i ]; then
+          ((d=$mm+12-$i))
+          yy=$(date -d "today - 1 year" +%Y)
+        else
+          ((d=$mm-$i))
+          yy=$(date -d today +%Y)
+        fi
+        dtc=$(printf "%04d%02d%02d" $yy $i 1)
+        if [ $d -ge $range ]; then
+          if [ -f "${db}-$dtc.sql" ]; then
+            if [ $opt_dry_run -gt 0 ]; then
+              echo "File $DBCKDIR/${db}-$dtc.sql should be deleted!"
+            else
+              wlog "File $DBCKDIR/${db}-$dtc.sql deleted!"
+              rm -f $DBCKDIR/${db}-$dtc.sql
+              ((ctr++))
+            fi
+          fi
+        fi
+      done
+      dtc=$(date -d "today - $i day" +%Y%m%d)
+      compress_tar $db "$db-$dtc.sql"
     fi
   done
-done
+fi
+cd $CWD
 wlog "All $ctr databases are purged!"
 exit 0

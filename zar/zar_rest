@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.23
+__version__=1.3.23.1
 
 
 detached_login() {
@@ -235,14 +235,23 @@ stop_services() {
     return 0
 }
 
+conf_default() {
+    set_cfg_def "bckformat" "0"
+    set_cfg_def "dbfilter" ".*"
+    set_cfg_def "test_db" "test"
+    set_cfg_def "tar_ext" ".gz .bz2 .tar"
+    set_cfg_def "tar_opt" ""
+}
 
-OPTOPTS=(h        K        l       m        n            o        R       U          V           v)
-OPTDEST=(opt_help opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst opt_user   opt_version opt_verbose)
-OPTACTI=(1        1        "="     1        1            "="      1       "="        "*>"        1)
-OPTDEFL=(0        0        ""      -1       0            ""       0       "postgres" ""          0)
-OPTMETA=("help"   "cron"   "file" "mail"    "do nothing" "fname"  ""      "username" "version"   "verbose")
+
+OPTOPTS=(h        c        K        l       m        n            o        R       U          V           v)
+OPTDEST=(opt_help opt_conf opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      1        "="     1        1            "="      1       "="        "*>"        1)
+OPTDEFL=(0        ""       0        ""      -1       0            ""       0       "postgres" ""          0)
+OPTMETA=("help"   "file"   "cron"   "file" "mail"    "do nothing" "fname"  ""      "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
+ "configuration file (def zar.conf)"\
  "log filename (def /var/log/zar/restdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
@@ -271,8 +280,13 @@ if [ -z "$opt_log" ]; then
 else
   publog=$opt_log
 fi
-FCONF=$TDIR/zar.conf
+if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+  FCONF=$opt_conf
+else
+  FCONF=$TDIR/zar.conf
+fi
 CFG_init
+conf_default
 if [ ${opt_verbose:-0} -gt 0 ]; then
   set_tlog_file "$publog" "" "echo"
 else
@@ -326,6 +340,7 @@ elif [ "$newdb" == "*" ]; then
 else
   NEWDBS=$newdb
 fi
+BCKFORMAT="$(get_cfg_value 0 bckformat)"
 if [ -z "$OLDDB" -o -z "$NEWDBS" ]; then
   print_help
   exit
