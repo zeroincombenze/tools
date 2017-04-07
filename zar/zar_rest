@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.23.1
+__version__=1.3.23.2
 
 
 detached_login() {
@@ -72,6 +72,231 @@ detached_login() {
     wlog "PATH=$PATH"
 }
 
+init_vars() {
+#init_vars(dbsel)
+    dbsel=$1
+    declare -g PGDIR DBCKDIR HOST_PRD HOST_DEV BCKFORMAT TAR_EXT TAR_OPT
+    declare -g REST2 TEST_DB NEWDBS REDB OE_OWN
+    declare -g DBA DBB DBC DBD DBE DBF DBG DBH
+    declare -g NCA NCB NCC NCD NCE NCF NCG NCH
+    declare -g NAA NAB NAC NAD NAE NAF NAG NAH
+    local sfx selsfx XDB
+    PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
+    if [ -z "$PGDIR" ]; then
+      wlog "No postgres directory found!"
+      exit 1
+    fi
+    DBCKDIR="$PGDIR/backups"
+    HOST_PRD=$(get_cfg_value 0 production_host)
+    HOST_DEV=$(get_cfg_value 0 development_host)
+    BCKFORMAT="$(get_cfg_value 0 bckformat)"
+    TAR_EXT=$(get_cfg_value 0 tar_ext)
+    TAR_OPT=$(get_cfg_value 0 tar_opt)
+    REST2="$(get_cfg_value 0 enable_restore)"
+    TEST_DB="$(get_cfg_value 0 test_db)"
+    NEWDBS=$(get_cfg_value 0 bck_db)
+    REDB="($TEST_DB|${NEWDBS//,/|})"
+    if [ -z $REDB ]; then
+      REDB="test"
+    fi
+    OE_OWN=$(get_cfg_value 0 db_user)
+    PG_OWN=$(get_cfg_value 0 pg_user)
+    ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
+    ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
+    ODOO_RPC_XMLPORT="$(get_cfg_value 0 odoo_rpc_xmlport)"
+    ODOO_VERSION="$(get_cfg_value 0 odoo_version)"
+    ODOO_RPC_PWD="$(get_cfg_value 0 odoo_rpc_pwd)"
+    selsfx=
+    for sfx in A B C D E F G H; do
+      if [ "$HOSTNAME" == "$HOST_PRD" ]; then
+        eval DB$sfx="$(get_cfg_value 0 PRD_DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_monthly)"
+      elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+        eval DB$sfx="$(get_cfg_value 0 DEV_DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_monthly)"
+      fi
+      if [ -z "$DB$sfx" ]; then
+        eval DB$sfx="$(get_cfg_value 0 DB${sfx}_filter)"
+        eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
+        eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
+      fi
+      if [ -n "$dbsel" -o  $opt_ex -ne 0 ]; then
+        x=DB$sfx
+        XDB=${!x}
+        if [ -n "$dbsel" ] && [[ $dbsel =~ $XDB ]]; then
+          selsfx=$sfx
+        else
+          eval DB$sfx=
+          eval NC$sfx=
+          eval NA$sfx=
+        fi
+      fi
+    done
+    if [ -n "$dbsel" -a -z "$selsfx" -a $opt_ex -eq 0 ]; then
+      DBA="$(get_cfg_value 0 dbfilter)"
+      NCA=$(get_cfg_value 0 keep_recent)
+      NAA=$(get_cfg_value 0 keep_monthly)
+    fi
+    if [ $opt_ex -eq 0 ]; then
+      DBSEL=
+      for sfx in A B C D E F G H; do
+        x=DB$sfx
+        XDB=${!x}
+        if [ -n "$XDB" ]; then
+          if [ -z "$DBSEL" ]; then
+            DBSEL="$XDB"
+          elif [ "$DBSEL" != "$XDB" ]; then
+            DBSEL=".*"
+            break
+          fi
+        fi
+      done
+    else
+      DBSEL=$dbsel
+    fi
+    if [[ "$opt_keep" =~ [0-9]+ ]]; then
+      NCA=$opt_keep
+    fi
+    if [[ "$opt_km" =~ [0-9]+ ]]; then
+      NAA=$opt_km
+    fi
+}
+
+set_db_vars() {
+#set_db_vars(db)
+    dbsel=$1
+    declare -g XDB XNC XNA
+    local sfx x
+    for sfx in A B C D E F G H; do
+      x=DB${sfx}
+      XDB=${!x}
+      x=NC${sfx}
+      XNC=${!x}
+      x=NA${sfx}
+      XNA=${!x}
+      if [ -n "$XDB" ] && [[ $db =~ $XDB ]]; then
+        break
+      fi
+   done
+}
+
+expand_tar() {
+#expand_tar(db)
+    local src x
+    local db=$1
+    if [ "$BCKFORMAT" != "0" ]; then
+      src=$db
+      for x in $TAR_EXT; do
+        if [ -f $db$x ]; then
+          src=$db$x
+          break
+        fi
+      done
+      run_traced "tar $TAR_OPT -xf $src"
+      if [ -f "$src" ]; then
+        chown $PG_OWN $src
+      fi
+    fi
+}
+
+compress_tar() {
+#compress_tar(db sqlfname)
+    local src x sts fn
+    local db=$1
+    if [ -f "$db-*.sql" ]; then
+      chown $PG_OWN $db-*.sql
+    fi
+    if [ "$BCKFORMAT" != "0" ]; then
+      src=$db
+      x=$(echo $TAR_EXT|awk '{print $1}')
+      src=$db$x
+      run_traced "tar $TAR_OPT -cf $src $db-*.sql"
+      sts=$?
+      if [ $sts -eq $STS_SUCCESS -a -n "$2" ]; then
+        wlog "removing archived files"
+        for fn in $db-*.sql; do
+          if [ "$fn" != "$2" ]; then
+            rm -f $fn
+          fi
+        done
+      fi
+    fi
+}
+
+create_db_list() {
+# create_db_list(dbsel pgsql_dir bck_dir bck_db)
+    local dblist=
+    local files fn db sfx f x
+    local dbsel=$1
+    if [ -z $3 ]; then
+      local DBCKDIR="$PGDIR/backups"
+    else
+      local DBCKDIR=$3
+    fi
+    if [ -n "$dbsel" ]; then
+      if [ "$BCKFORMAT" == "0" ]; then
+        files=$DBCKDIR/*.sql
+      else
+        for x in $TAR_EXT; do
+          files="$files $DBCKDIR/*$x"
+        done
+      fi
+      for fn in $files; do
+        if [ "$BCKFORMAT" == "0" ]; then
+          dbf=${fn%%-*}
+          x=$(basename $dbf)
+        else
+          x=$(basename $fn)
+        fi
+        db=${x%.*}
+        for sfx in A B C D E F G H; do
+          x=DB$sfx
+          XDB=${!x}
+          if [ -n "$XDB" ]; then
+            if [[ $db =~ $XDB ]]; then
+              if [ $opt_ex -ne 0 ]; then
+                if [[ " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
+                  :
+                else
+                  dblist="$dblist $dbsel"
+                fi
+              else
+                if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+                  :
+                else
+                  dblist="$dblist $db"
+                fi
+              fi
+            fi
+          fi
+        done
+      done
+    fi
+    echo "$dblist"
+}
+
+conf_default() {
+    set_cfg_def "bckformat" "0"
+    set_cfg_def "dbfilter" ".*"
+    set_cfg_def "test_db" "test"
+    set_cfg_def "tar_ext" ".gz .bz2 .tar"
+    set_cfg_def "tar_opt" ""
+    set_cfg_def "db_user" "odoo"
+    set_cfg_def "pg_user" "postgres:postgres"
+    local DBFB="zi[0-9]+"
+    for sfx in A B C D E F G H; do
+      set_cfg_def "DB${sfx}_filter" "DBF${sfx}"
+      set_cfg_def "DB${sfx}_keep_recent" "30"
+      set_cfg_def "DB${sfx}_keep_monthly" "12"
+    done
+    set_cfg_def "odoo_rpc_host" "localhost"
+    set_cfg_def "odoo_rpc_protocol" "xmlrpc"
+    set_cfg_def "odoo_rpc_xmlport" "8069"
+    set_cfg_def "odoo_version" "7.0"
+    set_cfg_def "odoo_rpc_pwd" "admin"
+}
 
 kill_process() {
     sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$NEWDB' and pid<>pg_backend_pid();"
@@ -235,22 +460,15 @@ stop_services() {
     return 0
 }
 
-conf_default() {
-    set_cfg_def "bckformat" "0"
-    set_cfg_def "dbfilter" ".*"
-    set_cfg_def "test_db" "test"
-    set_cfg_def "tar_ext" ".gz .bz2 .tar"
-    set_cfg_def "tar_opt" ""
-}
 
-
-OPTOPTS=(h        c        K        l       m        n            o        R       U          V           v)
-OPTDEST=(opt_help opt_conf opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst opt_user   opt_version opt_verbose)
-OPTACTI=(1        "="      1        "="     1        1            "="      1       "="        "*>"        1)
-OPTDEFL=(0        ""       0        ""      -1       0            ""       0       "postgres" ""          0)
-OPTMETA=("help"   "file"   "cron"   "file" "mail"    "do nothing" "fname"  ""      "username" "version"   "verbose")
+OPTOPTS=(h        c        e      K        l       m        n            o        R       U          V           v)
+OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      1      1        "="     1        1            "="      1       "="        "*>"        1)
+OPTDEFL=(0        ""       1      0        ""      -1       0            ""       0       "postgres" ""          0)
+OPTMETA=("help"   "file"   ""     "cron"   "file" "mail"    "do nothing" "fname"  ""      "username" "version"   "verbose")
 OPTHELP=("this help"\
  "run in cron environment"\
+ "exact DB name (rather matches DB name)"\
  "configuration file (def zar.conf)"\
  "log filename (def /var/log/zar/restdb.log)"\
  "disable mail server on target DB"\
@@ -300,56 +518,33 @@ if [ $opt_rst -gt 0 ]; then
   stop_services "$olddb"
   exit $?
 fi
-wlog "Starting restore/duplicate $__version__ by $opt_user"
+wlog "=== Starting restore/duplicate $__version__ by $opt_user ==="
 
-DBCKDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4" "backups")
-if [ -z "$DBCKDIR" ]; then
-  wlog "No postgres backup directory found!"
-  exit 1
+init_vars "$olddb"
+dblist=$(create_db_list "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
+if [ "$BCKFORMAT" == "0" ]; then
+  wlog "-- Backup keep sql files --"
+else
+  wlog "-- Backup compress into tar files --"
 fi
-wlog "Found $DBCKDIR directory"
-HOST_PRD=$(get_cfg_value 0 production_host)
-HOST_DEV=$(get_cfg_value 0 development_host)
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
-OWN=$(get_cfg_value 0 db_user)
-if [ -z "$OWN" ]; then
-  OWN=odoo
-fi
-wlog "OWN=$OWN"
-if [ -n "$opt_name" ]; then
-   if [ -z "$olddb" ]; then
-     echo "Missing DB name, when restore from file!"
-     exit 1
-   elif [ -z "$newdb" ]; then
-     newdb=$olddb
-   fi
-fi
-if [ -z "$olddb" ]; then
-  OLDDB=$(get_cfg_value 0 db_name)
-else
-  OLDDB=$olddb
-fi
-if [ -z "$newdb" ]; then
-  NEWDBS=$(get_cfg_value 0 bck_db)
-  if [ "$NEWDBS" == "*" ]; then
-    NEWDBS=$OLDDB
-  fi
-elif [ "$newdb" == "*" ]; then
-  NEWDBS=$OLDDB
-else
+wlog "TEST_DB=$TEST_DB"
+wlog "OE_OWN=$OE_OWN"
+wlog "- DB to Restore:$dblist"
+if [ -n "$newdb" ]; then
   NEWDBS=$newdb
+else
+  NEWDBS=${NEWDBS//|/,}
+  NEWDBS=${NEWDBS//(/}
+  NEWDBS=${NEWDBS//)/}
+  NEWDBS=${NEWDBS//^/}
+  NEWDBS=${NEWDBS//$/}
 fi
-BCKFORMAT="$(get_cfg_value 0 bckformat)"
-if [ -z "$OLDDB" -o -z "$NEWDBS" ]; then
+if [ -z "$DBSEL" -o -z "$NEWDBS" ]; then
   print_help
   exit
 fi
-TEST_DB="$(get_cfg_value 0 test_db)"
-if [ -z "$TEST_DB" ]; then
-  TEST_DB="$(get_cfg_value 0 bck_db)"
-fi
-wlog "TEST_DB=$TEST_DB"
 if [[ $seldate =~ [0-9]{8} ]]; then
   NDAYSB=$seldate
 elif [ "$HOSTNAME" == "$HOST_PRD" ]; then
@@ -363,108 +558,112 @@ fi
 if [ -z "$NDAYSB" ]; then
   NDAYSB=yesterday
 fi
-ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
-if [ -z "$ODOO_RPC_HOST" ]; then ODOO_RPC_HOST=localhost; fi
-ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
-if [ -z "$ODOO_RPC_PROTOCOL" ]; then ODOO_RPC_PROTOCOL=xmlrpc; fi
-ODOO_RPC_XMLPORT="$(get_cfg_value 0 odoo_rpc_xmlport)"
-if [ -z "$ODOO_RPC_XMLPORT" ]; then ODOO_RPC_XMLPORT=8069; fi
-ODOO_VERSION="$(get_cfg_value 0 odoo_version)"
-if [ -z "$ODOO_VERSION" ]; then ODOO_VERSION=7.0; fi
-ODOO_RPC_PWD="$(get_cfg_value 0 odoo_rpc_pwd)"
-if [ -z "$ODOO_RPC_PWD" ]; then ODOO_RPC_PWD=admin; fi
+dovalid=0
+for sfx in A B C D E F G H; do
+  x=DB${sfx}
+  XDB=${!x}
+  [ -n "$XDB" ] && dovalid=1
+done
 ctr=0
 passed=""
-for NEWDB in ${NEWDBS//,/ }; do
-  for ND in ${NDAYSB//,/ }; do
-    if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
-       continue
-    fi
-    if [ -z "$opt_name" ]; then
-      if [[ $ND =~ [0-9]{8} ]]; then
-        dtdb=$ND
-      elif [[ $ND =~ [0-9]+ ]]; then
-        NDAYB=-${ND}day
-        dtdb=$(date -d $NDAYB +"%Y%m%d")
-      else
-        dtdb=$(date -d yesterday +"%Y%m%d")
-      fi
-      if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
-         continue
-      fi
-    else
-      dtdb="00000000"
-    fi
-    if [ $opt_mail -eq -1 ]; then
-      opt_mail=0
-      if [ "$HOSTNAME" == "$HOST_DEV" ]; then
-        opt_mail=1
-        wlog "Restored DB is set for test because Development Host"
-      elif [[ $NEWDB =~ $TEST_DB ]]; then
-        opt_mail=1
-        wlog "Restored DB is set for test as classificated"
-      fi
-    fi
-    if [ -z "$opt_name" ]; then
-      sqlfname=$DBCKDIR/$OLDDB-$dtdb.sql
-    else
-      sqlfname=$opt_name
-    fi
-    echo "Searching $sqlfname"
-    if [ ! -f $sqlfname ]; then
-      echo "No sql file found!!!"
-      exit 1
-    fi
-    if [ $opt_dry_run -eq 0 ]; then
-      wlog "Restore/duplicate $sqlfname $NEWDB"
-    else
-      echo "Should restore $sqlfname $NEWDB"
-    fi
-    if [ "$NEWDB" == "$OLDDB" -a "$dtdb" != "00000000" ]; then
-      backup_db $OLDDB
-    fi
-    pycmd=$HOME/$NEWDB.py
-    echo "import oerplib">$pycmd
-    echo "oerp = oerplib.OERP(server='$ODOO_RPC_HOST',">>$pycmd
-    echo "                    protocol='$ODOO_RPC_PROTOCOL',">>$pycmd
-    echo "                    port='$ODOO_RPC_XMLPORT',">>$pycmd
-    echo "                    version='$ODOO_VERSION')">>$pycmd
-    echo "oerp.db.drop('$ODOO_RPC_PWD',">>$pycmd
-    echo "             '$NEWDB')">>$pycmd
-    fsql=$HOME/$NEWDB.sql
-    wlog "Prepare file script $fsql ..."
-    echo "\\c postgres">$fsql
-    echo "\\echo Creating new DB $NEWDB">>$fsql
-    echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
-    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
-    echo "\\c $NEWDB">>$fsql
-    echo "\\echo Loading data into DB $NEWDB">>$fsql
-    echo "\\i $sqlfname">>$fsql
-    echo "ALTER DATABASE $NEWDB OWNER TO $OWN;">>$fsql
-    if [ $opt_dry_run -eq 0 ]; then
-      wlog "Starting restore $NEWDB"
-      kill_process
-      python $pycmd
-      if [ $opt_mail -gt 0 ]; then
-        $0 -R "$NEWDB" &
-      fi
-      psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
-      stop_services "$NEWDB" "quick"
-      rm -f $pycmd
-      wlog "Restore $NEWDB terminated"
-      ((ctr++))
+if [ $dovalid -gt 0 ]; then
+  for db in $dblist; do
+    set_db_vars "$db"
+    for NEWDB in ${NEWDBS//,/ }; do
+      for ND in ${NDAYSB//,/ }; do
+        if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
+          continue
+        fi
+        if [ -z "$opt_name" ]; then
+          if [[ $ND =~ [0-9]{8} ]]; then
+            dtdb=$ND
+          elif [[ $ND =~ [0-9]+ ]]; then
+            NDAYB=-${ND}day
+            dtdb=$(date -d $NDAYB +"%Y%m%d")
+          else
+            dtdb=$(date -d yesterday +"%Y%m%d")
+          fi
+          if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+            continue
+          fi
+        else
+          dtdb="00000000"
+        fi
+        if [ $opt_mail -eq -1 ]; then
+          opt_mail=0
+          if [ "$HOSTNAME" == "$HOST_DEV" ]; then
+            opt_mail=1
+            wlog "Restored DB is set for test because Development Host"
+          elif [[ $NEWDB =~ $TEST_DB ]]; then
+            opt_mail=1
+            wlog "Restored DB is set for test as classificated"
+          fi
+        fi
+        if [ -z "$opt_name" ]; then
+          expand_tar $db
+          sqlfname=$DBCKDIR/$DBSEL-$dtdb.sql
+        else
+          sqlfname=$opt_name
+        fi
+        if [ $opt_dry_run -eq 0 ]; then
+          wlog "Restore/duplicate $sqlfname $NEWDB"
+        else
+          echo "File $sqlfname should be restore into $NEWDB"
+        fi
+        if [ ! -f $sqlfname ]; then
+          echo "No file $sqlfname found!"
+          passed="$passed $NEWDB $dtdb"
+          continue
+        fi
+        if [ "$NEWDB" == "$DBSEL" -a "$dtdb" != "00000000" ]; then
+          backup_db $DBSEL
+        fi
+
+        pycmd=$HOME/$NEWDB.py
+        echo "import oerplib">$pycmd
+        echo "oerp = oerplib.OERP(server='$ODOO_RPC_HOST',">>$pycmd
+        echo "                    protocol='$ODOO_RPC_PROTOCOL',">>$pycmd
+        echo "                    port='$ODOO_RPC_XMLPORT',">>$pycmd
+        echo "                    version='$ODOO_VERSION')">>$pycmd
+        echo "oerp.db.drop('$ODOO_RPC_PWD',">>$pycmd
+        echo "             '$NEWDB')">>$pycmd
+        fsql=$HOME/$NEWDB.sql
+        wlog "Prepare file script $fsql ..."
+        echo "\\c postgres">$fsql
+        echo "\\echo Creating new DB $NEWDB">>$fsql
+        echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
+        echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
+        echo "\\c $NEWDB">>$fsql
+        echo "\\echo Loading data into DB $NEWDB">>$fsql
+        echo "\\i $sqlfname">>$fsql
+        echo "ALTER DATABASE $NEWDB OWNER TO $OE_OWN;">>$fsql
+
+        if [ $opt_dry_run -eq 0 ]; then
+          wlog "Starting restore $NEWDB"
+          kill_process
+          python $pycmd
+          if [ $opt_mail -gt 0 ]; then
+            $0 -R "$NEWDB" &
+          fi
+          psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
+          stop_services "$NEWDB" "quick"
+          rm -f $pycmd
+          wlog "Restore $NEWDB terminated"
+          ((ctr++))
+          if [ -n "$opt_name" ]; then
+            break
+          fi
+        fi
+        passed="$passed $NEWDB $dtdb"
+      done
       if [ -n "$opt_name" ]; then
         break
       fi
-    fi
-    passed="$passed $NEWDB $dtdb"
+    done
   done
-  if [ -n "$opt_name" ]; then
-    break
-  fi
-done
+fi
 if [ $opt_dry_run -eq 0 ]; then
   sleep 30
 fi
-wlog "All $ctr databases are restored"
+wlog "== $ctr databases are restored"
 exit 0

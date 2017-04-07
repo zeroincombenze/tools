@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.24.5
+__version__=1.3.24.6
 
 
 detached_login() {
@@ -76,7 +76,7 @@ init_vars() {
 #init_vars(dbsel)
     dbsel=$1
     declare -g PGDIR DBCKDIR HOST_PRD HOST_DEV BCKFORMAT TAR_EXT TAR_OPT
-    declare -g REST2 TEST_DB NEWDBS REDB DBSEL
+    declare -g REST2 TEST_DB NEWDBS REDB OE_OWN
     declare -g DBA DBB DBC DBD DBE DBF DBG DBH
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
     declare -g NAA NAB NAC NAD NAE NAF NAG NAH
@@ -99,6 +99,13 @@ init_vars() {
     if [ -z $REDB ]; then
       REDB="test"
     fi
+    OE_OWN=$(get_cfg_value 0 db_user)
+    PG_OWN=$(get_cfg_value 0 pg_user)
+    ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
+    ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
+    ODOO_RPC_XMLPORT="$(get_cfg_value 0 odoo_rpc_xmlport)"
+    ODOO_VERSION="$(get_cfg_value 0 odoo_version)"
+    ODOO_RPC_PWD="$(get_cfg_value 0 odoo_rpc_pwd)"
     selsfx=
     for sfx in A B C D E F G H; do
       if [ "$HOSTNAME" == "$HOST_PRD" ]; then
@@ -115,10 +122,10 @@ init_vars() {
         eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
         eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
       fi
-      if [ -n "$dbsel" ]; then
+      if [ -n "$dbsel" -o  $opt_ex -ne 0 ]; then
         x=DB$sfx
         XDB=${!x}
-        if [[ $dbsel =~ $XDB ]]; then
+        if [ -n "$dbsel" ] && [[ $dbsel =~ $XDB ]]; then
           selsfx=$sfx
         else
           eval DB$sfx=
@@ -127,24 +134,28 @@ init_vars() {
         fi
       fi
     done
-    if [ -n "$dbsel" -a -z "$selsfx" ]; then
+    if [ -n "$dbsel" -a -z "$selsfx" -a $opt_ex -eq 0 ]; then
       DBA="$(get_cfg_value 0 dbfilter)"
       NCA=$(get_cfg_value 0 keep_recent)
       NAA=$(get_cfg_value 0 keep_monthly)
     fi
-    DBSEL=
-    for sfx in A B C D E F G H; do
-      x=DB$sfx
-      XDB=${!x}
-      if [ -n "$XDB" ]; then
-        if [ -z "$DBSEL" ]; then
-          DBSEL="$XDB"
-        elif [ "$DBSEL" != "$XDB" ]; then
-          DBSEL=".*"
-          break
+    if [ $opt_ex -eq 0 ]; then
+      DBSEL=
+      for sfx in A B C D E F G H; do
+        x=DB$sfx
+        XDB=${!x}
+        if [ -n "$XDB" ]; then
+          if [ -z "$DBSEL" ]; then
+            DBSEL="$XDB"
+          elif [ "$DBSEL" != "$XDB" ]; then
+            DBSEL=".*"
+            break
+          fi
         fi
-      fi
-    done
+      done
+    else
+      DBSEL=$dbsel
+    fi
     if [[ "$opt_keep" =~ [0-9]+ ]]; then
       NCA=$opt_keep
     fi
@@ -184,7 +195,9 @@ expand_tar() {
         fi
       done
       run_traced "tar $TAR_OPT -xf $src"
-      chown postgres:postgres $src
+      if [ -f "$src" ]; then
+        chown $PG_OWN $src
+      fi
     fi
 }
 
@@ -192,7 +205,9 @@ compress_tar() {
 #compress_tar(db sqlfname)
     local src x sts fn
     local db=$1
-    chown postgres:postgres $db-*.sql
+    if [ -f "$db-*.sql" ]; then
+      chown $PG_OWN $db-*.sql
+    fi
     if [ "$BCKFORMAT" != "0" ]; then
       src=$db
       x=$(echo $TAR_EXT|awk '{print $1}')
@@ -239,11 +254,21 @@ create_db_list() {
         for sfx in A B C D E F G H; do
           x=DB$sfx
           XDB=${!x}
-          if [[ $db =~ $XDB ]]; then
-            if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-              :
-            else
-              dblist="$dblist $db"
+          if [ -n "$XDB" ]; then
+            if [[ $db =~ $XDB ]]; then
+              if [ $opt_ex -ne 0 ]; then
+                if [[ " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
+                  :
+                else
+                  dblist="$dblist $dbsel"
+                fi
+              else
+                if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
+                  :
+                else
+                  dblist="$dblist $db"
+                fi
+              fi
             fi
           fi
         done
@@ -258,23 +283,30 @@ conf_default() {
     set_cfg_def "test_db" "test"
     set_cfg_def "tar_ext" ".gz .bz2 .tar"
     set_cfg_def "tar_opt" ""
-    local DBFA="demo"
+    set_cfg_def "db_user" "odoo"
+    set_cfg_def "pg_user" "postgres:postgres"
     local DBFB="zi[0-9]+"
     for sfx in A B C D E F G H; do
       set_cfg_def "DB${sfx}_filter" "DBF${sfx}"
       set_cfg_def "DB${sfx}_keep_recent" "30"
       set_cfg_def "DB${sfx}_keep_monthly" "12"
     done
+    set_cfg_def "odoo_rpc_host" "localhost"
+    set_cfg_def "odoo_rpc_protocol" "xmlrpc"
+    set_cfg_def "odoo_rpc_xmlport" "8069"
+    set_cfg_def "odoo_version" "7.0"
+    set_cfg_def "odoo_rpc_pwd" "admin"
 }
 
 
-OPTOPTS=(h        c        K        k          l       m          n            U          V           v)
-OPTDEST=(opt_help opt_conf opt_cron opt_keep   opt_log opt_km     opt_dry_run  opt_user   opt_version opt_verbose)
-OPTACTI=(1        "="      1        "="        "="     "="        "1"          "="        "*>"        1)
-OPTDEFL=(0        ""       0        ""         ""      ""         0            "postgres" ""          0)
-OPTMETA=("help"   "file"   "cron"   "# copies" "file"  "# copies" "do nothing" "username" "version"   "verbose")
+OPTOPTS=(h        c        e      K        k          l       m          n            U          V           v)
+OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_keep   opt_log opt_km     opt_dry_run  opt_user   opt_version opt_verbose)
+OPTACTI=(1        "="      1      1        "="        "="     "="        "1"          "="        "*>"        1)
+OPTDEFL=(0        ""       0      0        ""         ""      ""         0            "postgres" ""          0)
+OPTMETA=("help"   "file"   ""     "cron"   "# copies" "file"  "# copies" "do nothing" "username" "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def zar.conf)"\
+ "exact DB name (rather matches DB name)"\
  "run in cron environment"\
  "keep # recent copies of db (max 60)"\
  "log filename (def /var/log/bckdb.log)"\
@@ -319,18 +351,18 @@ if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 link_cfg $FCONF
-wlog "Starting purge backup $__version__ by $opt_user"
+wlog "=== Starting purge backup $__version__ by $opt_user ==="
 
 init_vars "$dbsel"
 dblist=$(create_db_list "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
+if [ "$BCKFORMAT" == "0" ]; then
+  wlog "-- Backup keep sql files --"
+else
+  wlog "-- Backup compress into tar files --"
+fi
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
-if [ "$BCKFORMAT" == "0" ]; then
-  wlog "Backup keep sql files"
-else
-  wlog "Backup compress into tar files"
-fi
-wlog "Purge DB:$dblist"
+wlog "- Files of DB to Purge:$dblist"
 dovalid=0
 for sfx in A B C D E F G H; do
   x=DB${sfx}
@@ -395,5 +427,5 @@ if [ $dovalid -gt 0 ]; then
   done
 fi
 cd $CWD
-wlog "All $ctr databases are purged!"
+wlog "== $ctr files are purged!"
 exit 0
