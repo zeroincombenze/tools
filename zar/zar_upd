@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=1.3.23
+__version__=1.3.24
 
 
 detached_login() {
@@ -97,14 +97,13 @@ if [ -z "$opt_log" ]; then
 else
   publog=$opt_log
 fi
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 set_tlog_file "$publog"
 if [ $opt_cron -gt 0 ]; then
   detached_login "$@"
 fi
 
-FLIST="zar_bck zar_cptbl zar_rest zar_purge zar_upd pg_db_active"
+FLIST="zarrc zar_bck zar_cptbl zar_rest zar_purge zar_upd pg_db_active"
 GZFN=zar.gz
 if [ "$action" == "build" -o "$action" == "build_last" ]; then
   wlog "Build ZAR suite $__version__ by $USER"
@@ -141,9 +140,11 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
     chown root:root *
   fi
   for f in $FLIST cronow; do
-    v=$($HOME/tmp/$f -V)
-    echo "$f $v"
-    wlog "$f $v"
+    if [ "$f" != "zarrc" ]; then
+      v=$($HOME/tmp/$f -V)
+      echo "$f $v"
+      wlog "$f $v"
+    fi
   done
   x="-cf"
   tar $x $GZFN $FLIST
@@ -209,9 +210,11 @@ for f in $FLIST cronow; do
     wlog "Installing $f in $PGHOME/"
     mv ./$f $PGHOME/
     chown postgres:postgres $PGHOME/$f
-    v=$($PGHOME/$f -V)
-    echo "$f $v"
-    wlog "$f $v"
+    if [ "$f" != "zarrc" ]; then
+      v=$($PGHOME/$f -V)
+      echo "$f $v"
+      wlog "$f $v"
+    fi
   else
     wlog "No file $f downloaded"
     echo "No file $f downloaded"
