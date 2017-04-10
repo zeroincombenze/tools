@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.19"
+__version__ = "0.2.70.20"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1478,6 +1478,45 @@ def act_check_balance(oerp, ctx):
     return STS_SUCCESS
 
 
+def act_set_4_cscs(oerp, ctx):
+    msg = u"Set for cscs"
+    msg_log(ctx, ctx['level'], msg)
+    # sts = analyze_invoices(oerp, ctx, 'out_invoice')
+    # if sts == STS_SUCCESS:
+    #    sts = analyze_invoices(oerp, ctx, 'in_invoice')
+    sts = set_account_type(oerp, ctx)
+    return sts
+
+
+def act_upgrade_l10n_it_base(oerp, ctx):
+    msg = u"Upgrade module l10n_it_base"
+    msg_log(ctx, ctx['level'], msg)
+    sts = act_update_modules(oerp, ctx)
+    ctx['install_modules'] = 'l10n_it_base,l10n_it_bbone'
+    sts = act_install_modules(oerp, ctx)
+    if sts != STS_SUCCESS:
+        return sts
+    ctx['upgrade_modules'] = 'l10n_it_base,l10n_it_bbone'
+    sts = act_upgrade_modules(oerp, ctx)
+    if sts != STS_SUCCESS:
+        return sts
+    sts = cvt_ur_ui_view(oerp,
+                         'l10n_it_bbone',
+                         'l10n_it_base',
+                         'res.city',
+                         ctx)
+    if sts != STS_SUCCESS:
+        return sts
+    for model in ('res.country', 'res.region',
+                  'res.country.state', 'res.province', 'res.city'):
+        sts = cvt_ir_model_data(oerp,
+                                'l10n_it_bbone',
+                                'l10n_it_base',
+                                model,
+                                ctx)
+    return sts
+
+
 def read_last_fiscalyear(oerp, company_id, ctx):
     model = 'account.fiscalyear'
     fiscalyear_ids = oerp.search(model,
@@ -1655,16 +1694,6 @@ def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
     o = (last_stop.year - 1) % 100
     name = name.replace(str(o), str(n))
     return name, date_start, date_stop
-
-
-def act_set_4_cscs(oerp, ctx):
-    msg = u"Set for cscs"
-    msg_log(ctx, ctx['level'], msg)
-    # sts = analyze_invoices(oerp, ctx, 'out_invoice')
-    # if sts == STS_SUCCESS:
-    #    sts = analyze_invoices(oerp, ctx, 'in_invoice')
-    sts = set_account_type(oerp, ctx)
-    return sts
 
 
 def get_payment_info(oerp, move_line_obj, ctx):
@@ -2221,6 +2250,82 @@ def upd_acc_2_bank(oerp, accounts, ctx):
             msg = u"Cannot update accounts"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
+    return STS_SUCCESS
+
+
+def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
+    model = 'ir.ui.view'
+    name = old_module + '.%'
+    ids = oerp.search(model, [('xml_id', '=like', old_module),
+                              ('model', '=', model_name)])
+    for id in ids:
+        view = oerp.browse(model, id)
+        oerp.unlink(model_name, [id])
+        msg = u"Remove view id %d/%s of %s " % (id,
+                                                view.name,
+                                                view.xml_id)
+        msg_log(ctx, ctx['level'], msg)
+    return STS_SUCCESS
+
+
+def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
+    model = 'ir.model.data'
+    ids = oerp.search(model, [('module', '=', old_module),
+                               ('model', '=', model_name)])
+    for id in ids:
+        seq_name = oerp.browse(model, id)
+        name = seq_name.name
+        res_id = seq_name.res_id
+        display = seq_name.display_name
+        cname = seq_name.complete_name
+        new_ids = oerp.search(model, [('module', '=', new_module),
+                                      ('model', '=', model_name),
+                                      ('name', '=', name)])
+        if len(new_ids):
+            new_seq_name = oerp.browse(model, new_ids[0])
+            new_res_id = new_seq_name.res_id
+            new_display = new_seq_name.display_name
+            new_cname = new_seq_name.complete_name
+        else:
+            new_seq_name = False
+            new_res_id = False
+            new_display = False
+            new_cname = False
+        if not new_seq_name:
+            new_cname = new_module + '.' + name
+            oerp.write(model, [id], {'module': new_module,
+                                     'complete_name': new_cname})
+            msg = u"Update module name of id %d" % id
+            msg_log(ctx, ctx['level'], msg)
+        elif res_id != new_res_id:
+            msg = u"Name %s/%s has two different res_ids %d %d" % (name,
+                                                                   display,
+                                                                   res_id,
+                                                                   new_res_id)
+            msg_log(ctx, ctx['level'], msg)
+            if model_name == 'res.city':
+                oerp.unlink(model_name, [res_id])
+                msg = u"Remove record id %d/%s of %s " % (res_id,
+                                                          display,
+                                                          model_name)
+                msg_log(ctx, ctx['level'], msg)
+                oerp.unlink(model, [id])
+                msg = u"Remove duplicate id %d (%s)" % (id, cname)
+                msg_log(ctx, ctx['level'], msg)
+        elif new_display != new_new_display:
+            msg = u"Name %d has two different display %s %s" % (name,
+                                                                display,
+                                                                new_display)
+            msg_log(ctx, ctx['level'], msg)
+        else:
+            if not new_cname:
+                new_cname = new_module + '.' + name
+                oerp.write(model, new_ids, {'complete_name': new_cname})
+                msg = u"Update complete name of id %d" % new_ids[0]
+                msg_log(ctx, ctx['level'], msg)
+            oerp.unlink(model, [id])
+            msg = u"Remove duplicate id %d of %s " % (id, cname)
+            msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
