@@ -20,7 +20,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="0.1.12.6"
+__version__="0.1.12.8"
 
 
 format_xml() {
@@ -59,6 +59,10 @@ format_xml() {
             nxtlm=${#lm}
             # let nxtlm="$nxtlm+4"
             comment=1
+          fi
+        elif [ "${lne:0:10}" == "<templates" ]; then
+          if [ $level -gt 0 ]; then
+            ((level++))
           fi
         else
           o=$(echo $lne|grep -Eo "<[a-zA-Z0-9-]+"|wc -l)
@@ -112,15 +116,16 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        d        n            o       q           u       V           v)
-OPTDEST=(opt_help opt_diff opt_dry_run  opt_out opt_verbose opt_uop opt_version opt_verbose)
-OPTACTI=(1        1        1            "="     0           1       "*>"        "+")
-OPTDEFL=(1        0        0            ""      -1          0       ""          -1)
-OPTMETA=("help"   "diff"   "do nothing" "file"  "silent"   "uop"   "version"    "verbose")
+OPTOPTS=(h        b         d        n            o       q           u       V           v)
+OPTDEST=(opt_help opt_debug opt_diff opt_dry_run  opt_out opt_verbose opt_uop opt_version opt_verbose)
+OPTACTI=(1        1         1        1            "="     0           1       "*>"        "+")
+OPTDEFL=(1        0         0        0            ""      -1          0       ""          -1)
+OPTMETA=("help"   "bug"     "diff"   "do nothing" "file"  "silent"   "uop"   "version"    "verbose")
 OPTHELP=("this help"\
+ "activate debug statements"\
  "show diff"\
  "do nothing (dry-run)"\
- "output filename, leave source unchanged (def source becomes .bak)"\
+ "output filename, leave source unchanged rather than source becomes .bak"\
  "silent mode"\
  "check for unary operator W503"\
  "show version"\
@@ -149,8 +154,14 @@ else
   path=$(readlink -f $path)
   selfl=$(basename $pathname)
 fi
+opt_out=$(readlink -f $opt_out)
 sts=1
 HOMEDIR=$PWD
+if [ $opt_debug -ne 0 ]; then
+  OPTS=-b
+else
+  OPTS=
+fi
 for fl in $(find $path -type f -name "$selfl"); do
   sts=0
   p=$(dirname $fl)
@@ -162,16 +173,15 @@ for fl in $(find $path -type f -name "$selfl"); do
   if [ "${f: -4}" == ".xml" ]; then
     format_xml $f
   else
-    autopep8 $f|sed 's/ $/\n/'>$f.new
     if [ $opt_uop -gt 0 ]; then
-      python $TDIR/autopep8_W503.py $f.new
+      python $TDIR/autopep8_W503.py $f $f.tmp $OPTS
+      autopep8 $f.tmp|sed 's/ $/\n/'>$f.new
+      rm -f $f.tmp
+    else
+      autopep8 $f|sed 's/ $/\n/'>$f.new
     fi
   fi
   if [ "$(diff -q $f $f.new)" ]; then
-  # d=$(diff -q $f $f.new)
-  # if [ -z "$d" ]; then
-  #   rm -f $f.new
-  # else
     if [ $opt_dry_run -eq 0 ]; then
       if [ -n "$opt_out" ]; then
         mv $f.new $opt_out

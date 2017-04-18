@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.9
+__version__=0.1.13
 
 
 get_odoo_service_name() {
@@ -108,10 +108,10 @@ update_base_sass() {
       fsrc="$theme.sass"
     fi
     if [ ! -f "$fsrc" ]; then
-      fsrc="base.sass"
+      fsrc="$opt_sass"
     fi
     if [ ! -f "$fsrc" ]; then
-      echo "No file base.sass found!"
+      echo "No file $opt_sass found!"
       return
     fi
     [ $opt_verbose -gt 0 ] && echo "Reading $fsrc ..."
@@ -194,34 +194,38 @@ update_base_sass() {
       fi
     done < "$fsrc"
     if [ ! -f Makefile ]; then
-      echo "base.css: base.sass" > Makefile
-      echo -e "\tsass --trace -t expanded base.sass base.css" >> Makefile
+      echo "$opt_css: $opt_sass" > Makefile
+      echo -e "\tsass --trace -t expanded $opt_sass $opt_css" >> Makefile
     fi
-    # if [ ${opt_dry_run:-0} -eq 0 ]; then
     if [ "$fsrc" == "base.sass" -a ! -f "openerp.sass" ]; then
       run_traced "cp -p $fsrc openerp.sass"
     fi
-    run_traced "mv -f $fsrc $fsrc.bak"
-    run_traced "mv -f $ftmp base.sass"
-    run_traced "make"
-    run_traced "chown odoo:odoo base.sass base.css $fsrc.bak"
-    svname=$(get_odoo_service_name $odoo_ver)
-    run_traced "service $svname restart"
-    # fi
+    if [ $opt_force -ne 0 ] || [ -n "$(diff -q $ftmp $fsrc)" ] || [ -n "$(diff -q $ftmp $opt_sass)" ]; then
+      run_traced "mv -f $fsrc $fsrc.bak"
+      run_traced "mv -f $ftmp $opt_sass"
+      run_traced "sass --trace -t expanded $opt_sass $opt_css"
+      run_traced "chown odoo:odoo $opt_sass $opt_css $fsrc.bak"
+      svname=$(get_odoo_service_name $odoo_ver)
+      run_traced "service $svname restart"
+    elif [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $fntmp
+    fi
 }
 
 
-OPTOPTS=(h        c        d          l        n            q           T         V           v)
-OPTDEST=(opt_help opt_conf opt_webdir opt_list opt_dry_run  opt_verbose test_mode opt_version opt_verbose )
-OPTACTI=(1        "="      "="        1        1            0           1         "*>"        "+")
-OPTDEFL=(1        ""       ""         0        0            -1          0         ""          -1)
-OPTMETA=("help"   "file"   "dir"      "list"   "do nothing" "quit"      "test"    "version"   "verbose")
+OPTOPTS=(h        c        d          f         l        n            q           s           T         V           v)
+OPTDEST=(opt_help opt_conf opt_webdir opt_force opt_list opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose )
+OPTACTI=(1        "="      "="        1         1        1            0           "="         1         "*>"        "+")
+OPTDEFL=(1        ""       ""         0         0        0            -1          "base.sass" 0         ""          -1)
+OPTMETA=("help"   "file"   "dir"      ""        "list"   "do nothing" "quit"      "file"      "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "odoo web dir (def. /opt/odoo/{odoo_ver}/addons/web/static/src/css)"\
+ "force generation of css file"\
  "list themes"\
  "do nothing (dry-run)"\
  "silent mode"\
+ "target sass file (def=base.sass)"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
@@ -280,14 +284,24 @@ elif [[ $HOSTNAME =~ $HOSTNAME_DEV ]]; then
 else
   tgt=""
 fi
+if [ "${opt_sass: -5}" != ".sass" ]; then
+  opt_sass=$opt_sass.sass
+fi
 if [ -z "$opt_webdir" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_webdir=$TESTDIR/themes
   else
-    sass=$(findpkg base.sass "/opt/odoo/$odoo_ver/addons/web/static/src/css /opt/odoo/$odoo_ver")
-    opt_webdir=$(dirname $sass)
+    sass=$(findpkg $opt_sass "/opt/odoo/$odoo_ver/addons/web/static/src/css /opt/odoo/$odoo_ver")
+    if [ -n "$sass" ]; then
+      opt_webdir=$(dirname $sass)
+    fi
   fi
 fi
+if [ -z "$opt_webdir" ]; then
+  echo "No valid skin found (Missed $opt_sass)!"
+  exit 1
+fi
+opt_css=${opt_sass:0: -5}.css
 if [ $opt_list -ne 0 ]; then
   list_themes "$themedirlist" "$odoo_ver" "$opt_webdir"
 else

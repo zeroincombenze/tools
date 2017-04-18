@@ -27,26 +27,26 @@ import sys
 import re
 
 
-__version__ = "0.1.12.6"
+__version__ = "0.1.12.8"
 
 
 def update_to_8(line):
     line = line.rstrip()
     if re.match("^from osv import", line):
         line = line.replace("from osv import",
-                            "from openerp.osv import")
+                            "from openerp.osv import", 1)
     if re.match("^import decimal_precision", line):
         line = line.replace("import decimal_precision",
-                            "import openerp.addons.decimal_precision")
+                            "import openerp.addons.decimal_precision", 1)
     if re.match("^from tools.translate import", line):
         line = line.replace("from tools.translate import",
-                            "from openerp.tools.translate import")
+                            "from openerp.tools.translate import", 1)
     if re.match("^import netsvc", line):
         line = line.replace("import netsvc",
-                            "from openerp import netsvc")
+                            "from openerp import netsvc", 1)
     if re.match("^import pooler", line):
         line = line.replace("import pooler",
-                            "from openerp import pooler")
+                            "from openerp import pooler", 1)
     if re.match("OpenERP", line):
         line = line.replace("OpenERP",
                             "Odoo")
@@ -59,32 +59,65 @@ def update_to_8(line):
     return line
 
 
+def recall_debug(line):
+    open_stmt = 0
+    if re.match("^ +# tndb\.", line):
+        line = line.replace("# tndb.",
+                            "tndb.", 1)
+        if line[-1] != ')':
+            while line[open_stmt] == ' ':
+                open_stmt += 1
+            open_stmt += 1
+    if re.match("^ +# pdb\.", line):
+        line = line.replace("# pdb.",
+                            "pdb.", 1)
+    if re.match("^# import pdb", line):
+        line = line.replace("# import",
+                            "import", 1)
+    if re.match("^# from tndb", line):
+        line = line.replace("# from tndb",
+                            "from tndb", 1)
+    return line, open_stmt
+
+
+def recall_close_line(line, open_stmt):
+    if open_stmt:
+        lm = ' ' * (open_stmt - 1)
+        lm1 = lm + '# '
+        line = line.replace(lm1, lm, 1)
+        if line[-1] == ')':
+            open_stmt = 0
+    return line, open_stmt
+
+
 def hide_debug(line):
     open_stmt = 0
     if re.match("^ +tndb\.", line):
         line = line.replace("tndb.",
-                            "# tndb.")
+                            "# tndb.", 1)
         if line[-1] != ')':
-            open_stmt = 1
+            while line[open_stmt] == ' ':
+                open_stmt += 1
+            open_stmt += 1
     if re.match("^ +pdb\.", line):
         line = line.replace("pdb.",
-                            "# pdb.")
+                            "# pdb.", 1)
     if re.match("^import pdb", line):
         line = line.replace("import",
-                            "# import")
+                            "# import", 1)
     if re.match("^from tndb", line):
         line = line.replace("from tndb",
-                            "# from tndb")
+                            "# from tndb", 1)
     return line, open_stmt
 
 
 def hide_close_line(line, open_stmt):
     if open_stmt:
+        lm = ' ' * (open_stmt - 1)
+        lm1 = lm + '# '
+        line = line.replace(lm, lm1, 1)
         if line[-1] == ')':
             open_stmt = 0
-        else:
-            open_stmt = 1
-        line = "# " + line
     return line, open_stmt
 
 
@@ -106,8 +139,8 @@ def move_tk_line_up(tk, n, lines):
             lines[n] = lines[n] + " " + tk
 
 
-def exec_W503(filepy):
-    fd = open(filepy, 'r')
+def exec_W503(src_filepy, dst_filepy, opts):
+    fd = open(src_filepy, 'r')
     source = fd.read()
     fd.close()
     lines = source.split('\n')
@@ -141,9 +174,17 @@ def exec_W503(filepy):
                         n += 1
             empty_line = 0
             if open_stmt:
-                lines[n], open_stmt = hide_close_line(lines[n], open_stmt)
+                if opts == '-b':
+                    lines[n], open_stmt = recall_close_line(lines[n],
+                                                            open_stmt)
+                else:
+                    lines[n], open_stmt = hide_close_line(lines[n],
+                                                          open_stmt)
             else:
-                lines[n], open_stmt = hide_debug(lines[n])
+                if opts == '-b':
+                    lines[n], open_stmt = recall_debug(lines[n])
+                else:
+                    lines[n], open_stmt = hide_debug(lines[n])
                 lines[n] = update_to_8(lines[n])
         ln = lines[n].strip()
         if ln == "or":
@@ -163,7 +204,7 @@ def exec_W503(filepy):
     while n > 2 and lines[n] == "" and lines[n - 1] == "":
         del lines[n]
         n = len(lines) - 1
-    fd = open(filepy, 'w')
+    fd = open(dst_filepy, 'w')
     for n in range(len(lines)):
         if n == len(lines) - 1:
             ln = lines[n]
@@ -175,6 +216,18 @@ def exec_W503(filepy):
 
 
 if __name__ == "__main__":
-    filepy = sys.argv[1]
-    sts = exec_W503(filepy)
+    # pdb.set_trace()
+    opts = False
+    if len(sys.argv) <= 1:
+        print "Missing filename: use autopep8 src [dst] [-b]!"
+        sts = 2
+    else:
+        src_filepy = sys.argv[1]
+        if len(sys.argv) > 2:
+            dst_filepy = sys.argv[2]
+            if len(sys.argv) > 3:
+                opts = sys.argv[3]
+        else:
+            dst_filepy = src_filepy
+        sts = exec_W503(src_filepy, dst_filepy, opts)
     sys.exit(sts)

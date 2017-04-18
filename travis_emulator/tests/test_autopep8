@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.12.4
+__version__=0.1.12.8
 
 test_01() {
     local TESTOUT TESTRES TESTFN
@@ -36,14 +36,20 @@ test_01() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTDIR/res/*_01.out
       cat <<EOF >$TESTSRC
+import pdb
 from osv import osv
 import decimal_precision
 from tools.translate import _
 import netsvc
 import pooler
+from tndb import tndb
 
 class res_user():
     def __init__(self):
+        tndb.wstamp()
+        pdb.set_trace()
+        tndb.wlog('return',
+                  object)
         return (
             object.field1
             and object.field2
@@ -59,21 +65,26 @@ report_sxw.report_sxw(
     parser=autopep8)
 EOF
       cat <<EOF >$TESTRES
+# import pdb
 from openerp.osv import osv
 import openerp.addons.decimal_precision
 from openerp.tools.translate import _
 from openerp import netsvc
 from openerp import pooler
+# from tndb import tndb
 
 
 class res_user():
     def __init__(self):
+        # tndb.wstamp()
+        # pdb.set_trace()
+        # tndb.wlog('return',
+        #           object)
         return (
             object.field1 and
             object.field2 or
             ''
         )
-
 
 
 class res_user():
@@ -87,7 +98,84 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -q -u $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8" "$TESTOUT" "$TESTRES" "diff -B"
+    test_result "autopep8" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_02() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_02
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_02.out
+      cat <<EOF >$TESTSRC
+# import pdb
+from openerp.osv import osv
+import openerp.addons.decimal_precision
+from openerp.tools.translate import _
+from openerp import netsvc
+from openerp import pooler
+# from tndb import tndb
+
+
+class res_user():
+    def __init__(self):
+        # tndb.wstamp()
+        # pdb.set_trace()
+        # tndb.wlog('return',
+        #           object)
+        return (
+            object.field1
+            and object.field2
+            or ''
+        )
+
+
+class res_user():
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      cat <<EOF >$TESTRES
+import pdb
+from openerp.osv import osv
+import openerp.addons.decimal_precision
+from openerp.tools.translate import _
+from openerp import netsvc
+from openerp import pooler
+from tndb import tndb
+
+
+class res_user():
+    def __init__(self):
+        tndb.wstamp()
+        pdb.set_trace()
+        tndb.wlog('return',
+                  object)
+        return (
+            object.field1 and
+            object.field2 or
+            ''
+        )
+
+
+class res_user():
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      $RUNDIR/topep8 -qb -u $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -b" "$TESTOUT" "$TESTRES" "diff"
 }
 
 Z0BUG_setup() {
