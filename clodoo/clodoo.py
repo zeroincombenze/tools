@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.20"
+__version__ = "0.2.70.22"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1492,19 +1492,40 @@ def act_upgrade_l10n_it_base(oerp, ctx):
     msg = u"Upgrade module l10n_it_base"
     msg_log(ctx, ctx['level'], msg)
     sts = act_update_modules(oerp, ctx)
-    ctx['install_modules'] = 'l10n_it_base,l10n_it_bbone'
-    sts = act_install_modules(oerp, ctx)
-    if sts != STS_SUCCESS:
-        return sts
-    ctx['upgrade_modules'] = 'l10n_it_base,l10n_it_bbone'
-    sts = act_upgrade_modules(oerp, ctx)
-    if sts != STS_SUCCESS:
-        return sts
     sts = cvt_ur_ui_view(oerp,
                          'l10n_it_bbone',
                          'l10n_it_base',
                          'res.city',
                          ctx)
+    if sts != STS_SUCCESS:
+        return sts
+    model = 'ir.module.module'
+    ids = oerp.search(model,
+                      [('name', 'in', ['l10n_it_spesometro',
+                                       'zeroincombenze',
+                                       'l10n_it_base_crm',
+                                       'l10n_it_vat_registries',
+                                       'l10n_it_fiscalcode',
+                                       'l10n_it_rea',
+                                       'l10n_it_fatturapa',
+                                       'l10n_it_bbone'])])
+    prior_state = {}
+    l10n_it_bb_id = 0
+    for id in ids:
+        module_obj = oerp.browse(model, id)
+        prior_state[id] = module_obj.state
+        if module_obj.name == 'l10n_it_bbone':
+            l10n_it_bb_id = id
+        oerp.write(model, [id], {'state': 'uninstalled'})
+    ctx['install_modules'] = 'l10n_it_base'
+    sts = act_install_modules(oerp, ctx)
+    oerp.write(model, [l10n_it_bb_id], {'state': prior_state[l10n_it_bb_id]})
+    ctx['install_modules'] = 'l10n_it_bbone'
+    sts = act_install_modules(oerp, ctx)
+    for id in prior_state:
+        if id != l10n_it_bb_id:
+            state = prior_state[id]
+            oerp.write(model, [id], {'state': state})
     if sts != STS_SUCCESS:
         return sts
     for model in ('res.country', 'res.region',
@@ -1514,6 +1535,10 @@ def act_upgrade_l10n_it_base(oerp, ctx):
                                 'l10n_it_base',
                                 model,
                                 ctx)
+    ctx['upgrade_modules'] = 'l10n_it_base'
+    sts = act_upgrade_modules(oerp, ctx)
+    ctx['upgrade_modules'] = 'l10n_it_bbone,l10n_it_fiscalcode'
+    sts = act_upgrade_modules(oerp, ctx)
     return sts
 
 
@@ -2256,11 +2281,13 @@ def upd_acc_2_bank(oerp, accounts, ctx):
 def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
     model = 'ir.ui.view'
     name = old_module + '.%'
-    ids = oerp.search(model, [('xml_id', '=like', old_module),
+    id1 = oerp.search(model, [('xml_id', '=like', old_module),
                               ('model', '=', model_name)])
+    id2 = oerp.search(model, [('arch', '=like', '%it_partner_updated%')])
+    ids = id1 + id2
     for id in ids:
         view = oerp.browse(model, id)
-        oerp.unlink(model_name, [id])
+        oerp.unlink(model, [id])
         msg = u"Remove view id %d/%s of %s " % (id,
                                                 view.name,
                                                 view.xml_id)

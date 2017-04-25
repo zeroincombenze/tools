@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.15
 
 
 get_odoo_service_name() {
@@ -206,6 +206,11 @@ update_base_sass() {
       run_traced "sass --trace -t expanded $opt_sass $opt_css"
       run_traced "chown odoo:odoo $opt_sass $opt_css $fsrc.bak"
       svname=$(get_odoo_service_name $odoo_ver)
+      if [ "$theme" == "odoo" ]; then
+        run_traced "sed -ie 's:^web_skin *=:# web_skin =:' /etc/odoo/$svname.conf"
+      else
+        run_traced "sed -ie 's:^[# ]*web_skin *=.*:web_skin = $theme:' /etc/odoo/$svname.conf"
+      fi
       run_traced "service $svname restart"
     elif [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $fntmp
@@ -266,6 +271,9 @@ else
     else
       COLORFILE=$(findpkg "odoo_theme_$theme.conf" "$TDIR/themes $TDIR/../themes ./themes ../themes")
     fi
+  fi
+  if [ -n "$COLORFILE" -a $opt_verbose -gt 0 ]; then
+    echo "$THIS -c $COLORFILE"
   fi
 fi
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then

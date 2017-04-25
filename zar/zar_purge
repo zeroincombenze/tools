@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.25
+__version__=1.3.26
 
 
 OPTOPTS=(h        c        e      K        k          l       m          n            T         U          V           v)
@@ -109,6 +109,11 @@ if [ $dovalid -gt 0 ]; then
       expand_tar $db
       for fn in $db-*.sql; do
         dtc=${fn: -12: -4}
+        if [[ $dtc =~ ^[0-9]+$ ]]; then
+          :
+        else
+          dtc=99991231
+        fi
         dd=${dtc: -2}
         if [ $dd -ne 1 -a $dtc -lt $mindate_r ] || [ $dd -eq 1 -a $dtc -lt $mindate_a ]; then
           if [ $opt_dry_run -gt 0 ]; then

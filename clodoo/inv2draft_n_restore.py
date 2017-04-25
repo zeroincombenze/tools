@@ -5,7 +5,7 @@ import clodoo
 # import pdb
 
 
-__version__ = "0.1.5.21"
+__version__ = "0.1.5.22"
 
 oerp = oerplib.OERP()
 try:
@@ -296,7 +296,7 @@ for search_mode in (':A:', ':C:'):
 for search_mode in (':I:', ':N:', ':P:'):
     HDRDTL[search_mode] = 'H'
 INVMOV = {}
-for action in ('P', 'U'):
+for action in ('P', 'U', 'X'):
     INVMOV[action] = 'M'
 for action in ('B', 'C', 'D', 'N', 'R', 'S', 'V'):
     INVMOV[action] = 'I'
@@ -316,25 +316,27 @@ company_id = 0
 year = 0
 period_ids = []
 while True:
-    msg = "Cancel,Draft,Number,Quit,UnPublish,Replace,Status,Validate,RB? "
+    msg = "Cancel,Draft,Number,Quit,UnPublish,Replace,Sts,Validate,teXt,RB? "
     msg = msg + "[!?+] "
     action = raw_input(msg)
     if action == '':
         action = 'H'
     elif action != 'Q' and len(action) == 1:
         action = action + act2
-    if action[0] not in ('B', 'C', 'D', 'N', 'P', 'R', 'S', 'U', 'V'):
+    if action[0] not in ('B', 'C', 'D', 'N', 'P', 'R', 'S', 'U', 'V', 'X'):
         if action == 'Q':
             exit()
         print "Type B* for Bite: set state to draft and restore prior status"
-        print "Type C* for Cancel: set state to draft cancel number"
+        print "Type C* for Cancel: set state to draft and cancel number"
         print "Type D* for Draft: set state to draft (keep internal_number)"
         print "Type N* for Number: set invoice to draft and ask for new number"
         print "Type P* for publish movements"
         print "Type S* for change invoice payment status"
         print "Type R* for Replace account in invoices"
         print "Type V* for validate invoices"
-        print "* may be ! or +"
+        print "Type X* for copy header reference into line"
+        print "* may be ! or + or ?"
+        print "? means do nothing"
         print "! means do action and end"
         print "+ means do action, ask for user and restore prior status" + \
               " (with reconciliation)"
@@ -431,7 +433,7 @@ while True:
                         P3 = set_where_int('x_payment_status',
                                            inv_status,
                                            condnot=True)
-                    elif action[0] in ('P', 'U', 'V'):
+                    elif action[0] in ('P', 'U', 'V', 'X'):
                         actsrc = actsrc[0] + 'H'
                         if actsrc in STSNAME['draft']:
                             if action[0] == 'U':
@@ -523,13 +525,17 @@ while True:
                     new_account_id = int(target_acc)
                 except:
                     continue
-
-        print rec_ids
+        # print rec_ids
+        for id in rec_ids:
+            if action[0] in ('P', 'U', 'X'):
+                print_move_info(id)
+            else:
+                print_invoice_info(id)
         res = raw_input('Press RET to process ..')
         if action[0] == 'V':
             reconcile_dict = rec_ids
             move_dict = {}
-        elif action[0] in ('P', 'U'):
+        elif action[0] in ('P', 'U', 'X'):
             pass
         else:
             print ">> Get info cur invoice %s" % str(rec_ids)
@@ -548,17 +554,12 @@ while True:
                 print ">> Draft cur invoices"
                 clodoo.upd_invoices_2_draft(oerp, move_dict, ctx)
     if action[1] == '?':
-        for id in rec_ids:
-            if action[0] in ('P', 'U'):
-                print_move_info(id)
-            else:
-                print_invoice_info(id)
         continue
 
     if action[0] == 'C':
         print ">> Cancel invoice number"
         for inv_id in rec_ids:
-            print_invoice_info(inv_id)
+            print "Cancelling Invoice number of %d" % inv_id
         oerp.write('account.invoice', rec_ids, {'internal_number': ''})
     elif action[0] == 'N':
         for inv_id in rec_ids:
@@ -592,7 +593,18 @@ while True:
             print_move_info(move_id)
         print ">> Draft"
         clodoo.upd_payments_2_draft(oerp, rec_ids, ctx)
-    if action[0] != 'B' and action != 'RB' and action[1] != '+':
+    elif action[0] == 'X':
+        for move_id in rec_ids:
+            print_move_info(move_id)
+            inv_obj = oerp.browse(MODEL['MH'], move_id)
+            ref = inv_obj.ref
+            moves = oerp.search(MODEL['MD'], [('move_id',
+                                               '=',
+                                               move_id)])
+            oerp.write(MODEL['MD'], moves,
+                       {'ref': ref})
+    if action[0] == 'X' or (action[0] != 'B' and
+            action != 'RB' and action[1] != '+'):
         continue
     res = raw_input('Press RET to restore status ..')
     if action[0] == 'P':
