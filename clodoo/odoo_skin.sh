@@ -10,7 +10,7 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib $TDIR/../z0lib /etc; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -30,8 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-
-__version__=0.1.15
+__version__=0.1.17
 
 
 get_odoo_service_name() {
@@ -282,8 +281,7 @@ fi
 opts_travis
 CFG_init
 conf_default
-
-link_cfg $COLORFILE $TCONF
+link_cfg $COLORFILE $TCONF                                      # No Std Code
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 if [[ $HOSTNAME =~ $HOSTNAME_PRD ]]; then
   tgt="prd"

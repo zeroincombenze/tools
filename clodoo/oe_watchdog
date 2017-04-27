@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.25.11
+__version__=0.1.25.12
 
 
 detached_login () {
@@ -125,17 +125,17 @@ test_db_svr_response () {
 }
 
 
-test_hang_up () {
+test_hung_up () {
     if [ $DEBUG_MODE -ne 0 ]; then
       elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'RuntimeError: maximum recursion depth exceeded'"
     fi
-    HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
-    if [ -z "$HANG_UP" ]; then
+    HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    if [ -z "$HUNG_UP" ]; then
       if [ $DEBUG_MODE -ne 0 ]; then
         elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'FATAL: *connection slots.*reserved for.*superuser'"
       fi
-      HANG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
-      if [ -n "$HANG_UP" ]; then
+      HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
+      if [ -n "$HUNG_UP" ]; then
         pg_db_active -k>>$LOGFILE
       fi
     fi
@@ -343,21 +343,21 @@ while [ $ctr -gt 0 ]; do
      pg_db_active -k >>$LOGFILE
   fi
   test_db_svr_response
-  HANG_UP=
+  HUNG_UP=
   if [ $sts -ne 0 ]; then
     wlog "Warning: invalid response"
-    test_hang_up
+    test_hung_up
   elif [ $huptstctr -eq 0 ]; then
-    test_hang_up
+    test_hung_up
     huptstctr=$HUPTST_CTR
   else
     ((huptstctr--))
   fi
-  if [ -n "$HANG_UP" ]; then
+  if [ -n "$HUNG_UP" ]; then
     ctr2=0
     huptstctr=$HUPTST_CTR
     sts=1
-    wlog "Warning: hang-up detected"
+    wlog "Warning: hung-up detected"
   else
     ctr2=$MAX_RETRY
   fi
@@ -370,10 +370,10 @@ while [ $ctr -gt 0 ]; do
     OK_ctr=0
     ((FAIL_ctr++))
     ((TOT_FAIL_ctr++))
-    if [ $TOT_OK -gt $TOT_FAIL_ctr -a ${DBSTS[$dbname]:-0} -gt 0 ]; then
+    if [ $TOT_OK_ctr -gt $TOT_FAIL_ctr -a ${DBSTS[$dbname]:-0} -gt 0 ]; then
       wlog "\$ service $svc_name restart"
       service $svc_name restart
-      wlog "Hang-up message: $HANG_UP"
+      wlog "Hang-up message: $HUNG_UP"
       sleep $TIME_WAIT
     else
       FAIL_ctr=0

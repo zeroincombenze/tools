@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.22"
+__version__ = "0.2.70.25"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -883,6 +883,11 @@ def act_update_modules(oerp, ctx):
     msg = u"Update module list"
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
+        model = 'ir.module.module'
+        ids = oerp.search(model,
+                          [('name', '=like', '__old_%')])
+        if len(ids):
+            oerp.unlink(model, ids)
         oerp.execute('base.module.update',
                      "update_module",
                      [])
@@ -934,42 +939,38 @@ def act_uninstall_modules(oerp, ctx):
     module_list = ctx['uninstall_modules'].split(',')
     context = get_context(ctx)
     done = 0
+    model = 'ir.module.module'
     for m in module_list:
         if m == "":
             continue
-        ids = oerp.search('ir.module.module',
+        ids = oerp.search(model,
                           [('name', '=', m),
                            ('state', '=', 'installed')],
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
-                if m != 'l10n_it_base':  # debug
-                    try:
-                        oerp.execute('ir.module.module',
-                                     "button_immediate_uninstall",
-                                     ids)
-                        msg = "name={0}".format(m)
-                        msg_log(ctx, ctx['level'] + 1, msg)
-                        done += 1
-                    except:
-                        msg = "!Module {0} not uninstallable!".format(m)
-                        msg_log(ctx, ctx['level'] + 1, msg)
+                try:
+                    oerp.execute(model,
+                                 "button_immediate_uninstall",
+                                 ids)
+                    msg = "name={0}".format(m)
+                    msg_log(ctx, ctx['level'] + 1, msg)
+                    done += 1
+                except:
+                    msg = "!Module {0} not uninstallable!".format(m)
+                    msg_log(ctx, ctx['level'] + 1, msg)
             else:
                 msg = "Module {0} already uninstalled!".format(m)
                 msg_log(ctx, ctx['level'] + 1, msg)
-
-            ids = oerp.search('ir.module.module',
+            ids = oerp.search(model,
                               [('name', '=', m),
-                               ('state', '!=', 'installed')],
+                               ('state', '==', 'uninstalled')],
                               context=context)
             if len(ids):
-                module_obj = oerp.browse('ir.module.module', ids[0])
-                oerp.unlink_record(module_obj)
-
+                oerp.unlink(model, ids)
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
-
     if done > 0:
         time.sleep(done)
     return STS_SUCCESS
@@ -982,17 +983,18 @@ def act_install_modules(oerp, ctx):
     module_list = ctx['install_modules'].split(',')
     context = get_context(ctx)
     done = 0
+    model = 'ir.module.module'
     for m in module_list:
         if m == "":
             continue
-        ids = oerp.search('ir.module.module',
+        ids = oerp.search(model,
                           [('name', '=', m),
                            ('state', '=', 'uninstalled')],
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
                 try:
-                    oerp.execute('ir.module.module',
+                    oerp.execute(model,
                                  "button_immediate_install",
                                  ids)
                     msg = "name={0}".format(m)
@@ -1013,7 +1015,6 @@ def act_install_modules(oerp, ctx):
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
-
     if done > 0:
         time.sleep(done)
     return STS_SUCCESS
@@ -1492,16 +1493,10 @@ def act_upgrade_l10n_it_base(oerp, ctx):
     msg = u"Upgrade module l10n_it_base"
     msg_log(ctx, ctx['level'], msg)
     sts = act_update_modules(oerp, ctx)
-    sts = cvt_ur_ui_view(oerp,
-                         'l10n_it_bbone',
-                         'l10n_it_base',
-                         'res.city',
-                         ctx)
-    if sts != STS_SUCCESS:
-        return sts
     model = 'ir.module.module'
     ids = oerp.search(model,
-                      [('name', 'in', ['l10n_it_spesometro',
+                      [('name', 'in', ['l10n_it_base',
+                                       'l10n_it_spesometro',
                                        'zeroincombenze',
                                        'l10n_it_base_crm',
                                        'l10n_it_vat_registries',
@@ -1511,34 +1506,57 @@ def act_upgrade_l10n_it_base(oerp, ctx):
                                        'l10n_it_bbone'])])
     prior_state = {}
     l10n_it_bb_id = 0
+    l10n_it_bb_state = ''
+    l10n_it_base_state = ''
     for id in ids:
         module_obj = oerp.browse(model, id)
         prior_state[id] = module_obj.state
-        if module_obj.name == 'l10n_it_bbone':
-            l10n_it_bb_id = id
-        oerp.write(model, [id], {'state': 'uninstalled'})
-    ctx['install_modules'] = 'l10n_it_base'
-    sts = act_install_modules(oerp, ctx)
-    oerp.write(model, [l10n_it_bb_id], {'state': prior_state[l10n_it_bb_id]})
-    ctx['install_modules'] = 'l10n_it_bbone'
-    sts = act_install_modules(oerp, ctx)
+        if module_obj.name == 'l10n_it_base':
+            l10n_it_base_state = module_obj.state
+        else:
+            if module_obj.name == 'l10n_it_bbone':
+                l10n_it_bb_id = id
+                l10n_it_bb_state = module_obj.state
+            oerp.write(model, [id], {'state': 'uninstalled'})
+    if l10n_it_bb_state == 'installed' and l10n_it_base_state == 'installed':
+        sts = cvt_ur_ui_view(oerp,
+                             'l10n_it_bbone',
+                             'l10n_it_base',
+                             'res.city',
+                             ctx)
+    if l10n_it_bb_state == 'installed':
+        for model in ('res.country',
+                      'res.region',
+                      'res.country.state',
+                      'res.province',
+                      'res.city'):
+            sts = cvt_ir_model_data(oerp,
+                                    'l10n_it_bbone',
+                                    'l10n_it_base',
+                                    model,
+                                    ctx)
+    model = 'ir.module.module'
     for id in prior_state:
-        if id != l10n_it_bb_id:
-            state = prior_state[id]
-            oerp.write(model, [id], {'state': state})
-    if sts != STS_SUCCESS:
-        return sts
-    for model in ('res.country', 'res.region',
-                  'res.country.state', 'res.province', 'res.city'):
-        sts = cvt_ir_model_data(oerp,
-                                'l10n_it_bbone',
-                                'l10n_it_base',
-                                model,
-                                ctx)
-    ctx['upgrade_modules'] = 'l10n_it_base'
-    sts = act_upgrade_modules(oerp, ctx)
-    ctx['upgrade_modules'] = 'l10n_it_bbone,l10n_it_fiscalcode'
-    sts = act_upgrade_modules(oerp, ctx)
+        state = prior_state[id]
+        oerp.write(model, [id], {'state': state})
+    if l10n_it_base_state == 'installed':
+        ctx['upgrade_modules'] = 'l10n_it_base'
+        sts = act_upgrade_modules(oerp, ctx)
+    if l10n_it_bb_state == 'installed':
+        ctx['upgrade_modules'] = 'l10n_it_bbone'
+        sts = act_upgrade_modules(oerp, ctx)
+    ctx['upgrade_modules'] = ''
+    s = ''
+    for id in prior_state:
+        module_obj = oerp.browse(model, id)
+        if module_obj.name != 'l10n_it_base' and \
+                module_obj.name != 'l10n_it_bbone' and \
+                module_obj.name != 'zeroincombenze':
+            ctx['upgrade_modules'] += s
+            ctx['upgrade_modules'] += module_obj.name
+            s = ','
+    if ctx['upgrade_modules']:
+        sts = act_upgrade_modules(oerp, ctx)
     return sts
 
 
@@ -2284,14 +2302,21 @@ def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
     id1 = oerp.search(model, [('xml_id', '=like', old_module),
                               ('model', '=', model_name)])
     id2 = oerp.search(model, [('arch', '=like', '%it_partner_updated%')])
-    ids = id1 + id2
+    id3 = oerp.search(model, [('arch', '=like', '%birthday%'),
+                              '|',
+                              ('xml_id', '=like', old_module),
+                              ('xml_id', '=like', new_module)])
+    ids = list(set(id1 + id2 + id3))
     for id in ids:
-        view = oerp.browse(model, id)
-        oerp.unlink(model, [id])
-        msg = u"Remove view id %d/%s of %s " % (id,
-                                                view.name,
-                                                view.xml_id)
-        msg_log(ctx, ctx['level'], msg)
+        try:
+            view = oerp.browse(model, id)
+            oerp.unlink(model, [id])
+            msg = u"Remove view id %d/%s of %s " % (id,
+                                                    view.name,
+                                                    view.xml_id)
+            msg_log(ctx, ctx['level'], msg)
+        except:
+            pass
     return STS_SUCCESS
 
 

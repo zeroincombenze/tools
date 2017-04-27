@@ -3,7 +3,7 @@
 
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -13,11 +13,10 @@ for x in "$TDIR" "." ".." "~" "/etc"; do
 done
 if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
-  exit 1
+  exit 2
 fi
 
-
-__version__=0.1.6.1
+__version__=0.1.7
 
 OPTOPTS=(h        d        m           n            t         s        U         V           v           x)
 OPTDEST=(opt_help opt_db   opt_modules opt_dry_run  opt_touch opt_stop opt_user  opt_version opt_verbose opt_xport)
