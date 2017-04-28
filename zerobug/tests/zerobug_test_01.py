@@ -30,7 +30,7 @@ import sys
 # pdb.set_trace()
 from zerobug import Z0test
 
-__version__ = "0.2.8"
+__version__ = "0.2.9"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -51,7 +51,7 @@ if __name__ == "__main__":
             UT_LIST = ["__version_0_" + __version__]
         else:
             UT_LIST = ["__version_0_" + __version__,
-                       "__version_1_0.1.46.1/etc/z0librc"]
+                       "__version_1_0.1.47/etc/z0librc"]
         UT_LIST.append("__version_V_0.2.0" + os.path.join(Z.test_dir,
                                                           "dummy_01.py"))
         UT_LIST.append("__version_v_0.2.1" + os.path.join(Z.test_dir,
