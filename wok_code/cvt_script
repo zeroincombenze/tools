@@ -1,0 +1,353 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Upgrade bash script in z0lib environment
+#
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $TDIR/../zerobug $TDIR/../../zerobug  . .. $HOME/dev")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.1.8
+
+
+cvt_file() {
+# cvt_file(file)
+    local f1=$1
+    local fntmp=$f1.tmp
+    local bakfn=$f1.bak
+    local x y empty line
+    local z0bug_sh=0
+    sts=$STS_SUCCESS
+    local prc=0
+    if [ -n "$f1" ]; then
+      if [ -x "$f1" ]; then
+         if [ $opt_tlib -ne 0 ]; then
+           OPTS_J=" -J"
+         else
+           OPTS_J=
+         fi
+         local incl=0
+         local empty=0
+         rm -f $fntmp
+         while IFS= read -r line r || [ -n "$line" ]; do
+           if [ $opt_keep -eq 0 ] && [[ $line =~ ^__version__=.* ]]; then
+             if [ $opt_lev3 -eq 0 ]; then
+               x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\(\.[0-9]*\)?|awk -F. '{print $4}')
+               ((x++))
+               y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2"."$3}')"
+               line="__version__=$y.$x"
+             else
+               x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|awk -F. '{print $3}')
+               ((x++))
+               y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2}')"
+               line="__version__=$y.$x"
+             fi
+           fi
+           if [ $prc -eq 0 ]; then
+             if [[ $line =~ ^THIS.*basename.* ]]; then
+               prc=1
+               blk_1 "$fntmp"
+               empy=0
+             else
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 1 ]; then
+             if [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
+               prc=2
+               blk_2 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
+               prc=3
+               blk_3 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^__version__.* ]]; then
+               if [ $empy -eq 0 ]; then
+                 echo "">>$fntmp
+               fi
+               prc=5
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 2 ]; then
+             if [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
+               prc=3
+               blk_3 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^__version__.* ]]; then
+               prc=5
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 3 ]; then
+             if [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
+               prc=4
+               blk_4 "$fntmp"
+               empy=0
+               z0bug_sh=1
+             elif [[ $line =~ ^__version__.* ]]; then
+               prc=5
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 4 ]; then
+             if [[ $line =~ ^__version__.* ]]; then
+               prc=5
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 5 ]; then
+             if [[ $line =~ ^Z0BUG_init ]]; then
+               prc=11
+               blk_11 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^opts_travis ]]; then
+               prc=21
+               blk_21 "$fntmp"
+             elif [[ $line =~ ^TCONF=.* ]]; then
+               :
+             else
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 11 ]; then
+             if [[ $line =~ ^UT1?_LIST=.* ]]; then
+               prc=12
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 12 ]; then
+             if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
+               prc=13
+               blk_13 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^Z0BUG_main_file.* ]]; then
+               blk_13 "$fntmp"
+               prc=14
+               blk_14 "$fntmp"
+               empy=0
+             else
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 13 ]; then
+             # echo "$incl) $line" #debug
+             if [[ $line =~ ^Z0BUG_main_file.* ]]; then
+               prc=14
+               blk_14 "$fntmp"
+               empy=0
+             elif [[ $line =~ ^#.End.Include.Block.* ]]; then
+               echo "$line">>$fntmp
+               incl=0
+             elif [[ $line =~ ^#.Follow.code.must.be.executed.* ]]; then
+               echo "$line">>$fntmp
+               incl=1
+             elif [ $incl -gt 0 ]; then
+               echo "$line">>$fntmp
+             fi
+           elif [ $prc -eq 14 ]; then
+             :
+           elif [ $prc -eq 21 ]; then
+             if [[ $line =~ ^init_travis ]]; then
+               echo "$line">>$fntmp
+               prc=22
+             elif [[ $line =~ ^#.End.Include.Block.* ]]; then
+               echo "$line">>$fntmp
+               incl=0
+             elif [[ $line =~ ^#.Follow.code.must.be.executed.* ]]; then
+               echo "$line">>$fntmp
+               incl=1
+             elif [ $incl -gt 0 ]; then
+               echo "$line">>$fntmp
+             fi
+           elif [ "${line:0:1}" == "#" ]; then
+             echo "$line">>$fntmp
+             empy=0
+           elif [ -z "$line" ]; then
+             echo "$line">>$fntmp
+             empy=1
+           else
+             echo "$line">>$fntmp
+             empy=0
+           fi
+         done < $f1
+      else
+        echo "File $f1 not found or not executable!"
+        sts=2
+      fi
+    fi
+    if [ -f $fntmp ]; then
+      diff $f1 $fntmp
+      if [ $? -eq 0 ]; then
+        dummy='n'
+      else
+        read -p "Confirm (Y/N)? " dummy
+      fi
+      if [ "$dummy" == "Y" -o "$dummy" == "y" ]; then
+        cp -p $f1 $bakfn
+        mv $fntmp $f1
+        chmod +x $f1
+        if [ $opt_verbose -gt 0 ]; then
+          echo "File $f1 upgraded"
+        fi
+      else
+        rm -f $fntmp
+        echo "Upgrade of $f1 discarded!"
+      fi
+    fi
+    return $sts
+}
+
+blk_1() {
+    cat <<EOF >>$1
+THIS=\$(basename \$0)
+TDIR=\$(readlink -f \$(dirname \$0))
+for x in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib . .. /etc; do
+  if [ -e \$x/z0librc ]; then
+    . \$x/z0librc
+    Z0LIBDIR=\$x
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "\$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+EOF
+}
+
+blk_2() {
+    cat <<EOF >>$1
+TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../travis_emulator \$TDIR/../../travis_emulator . .. \$HOME/dev")
+if [ -z "\$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. \$TRAVISLIBDIR
+EOF
+}
+
+blk_3() {
+    cat <<EOF >>$1
+TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
+RUNDIR=\$(readlink -e \$TESTDIR/..)
+EOF
+}
+
+blk_4() {
+    cat <<EOF >>$1
+Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$TDIR/.. \$TDIR/../zerobug \$TDIR/../../zerobug  . .. \$HOME/dev")
+if [ -z "\$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. \$Z0TLIBDIR
+Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
+EOF
+}
+
+
+blk_11() {
+    cat <<EOF >>$1
+Z0BUG_init
+parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@$OPTS_J"
+sts=\$?
+if [ \$sts -ne 127 ]; then
+  exit \$sts
+fi
+if [ \${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../travis_emulator \$TDIR/../../travis_emulator . .. \$HOME/dev")
+  if [ -z "\$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . \$TRAVISLIBDIR
+fi
+EOF
+}
+
+blk_13() {
+    cat <<EOF >>$1
+if [ "\$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+EOF
+}
+
+blk_14() {
+    cat <<EOF >>$1
+Z0BUG_main_file "\$UT1_LIST" "\$UT_LIST"
+sts=\$?
+if [ "\$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit \$sts
+EOF
+}
+
+
+blk_21() {
+    cat <<EOF >>$1
+opts_travis
+CFG_init
+conf_default
+link_cfg \$DIST_CONF \$TCONF
+if [ \$opt_verbose -gt 1 ]; then set -x; fi
+EOF
+}
+
+
+OPTOPTS=(h        J        K        k        n           m         q           V           v           y)
+OPTDEST=(opt_help opt_tlib opt_lev3 opt_keep opt_dry_run opt_id    opt_verbose opt_version opt_verbose opt_yes)
+OPTACTI=(1        1        1        1        1           "="       0           "*"         "+"         1)
+OPTDEFL=(1        0        0        0        0           "UNKNOWN" -1          ""          -1          0)
+OPTMETA=("help"   ""       ""       ""       "noop"      "name"    "quiet"     "version"   "verbose"   "")
+OPTHELP=("this help"\
+ "load travisrc library"\
+ "set script version format n.n.n"\
+ "Keep script version"\
+ "do nothing (dry-run)"\
+ "module name"\
+ "silent mode"\
+ "show version end exit"\
+ "verbose mode"\
+ "assume yes")
+OPTARGS=(src)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Update bash script"\
+  "(C) 2016-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $TCONF
+init_travis
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+prepare_env_travis
+
+cvt_file $src
+
+sts=$STS_SUCCESS
+exit $sts
