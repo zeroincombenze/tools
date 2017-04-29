@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.25"
+__version__ = "0.2.70.26"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -365,16 +365,16 @@ def lexec_name(action):
     return act
 
 
-def add_on_account(acc_balance, level, code, credit, debit):
+def add_on_account(acc_balance, level, code, debit, credit):
     if level not in acc_balance:
         acc_balance[level] = {}
     if code:
         if code in acc_balance[level]:
-            acc_balance[level][code] += credit
-            acc_balance[level][code] -= debit
+            acc_balance[level][code] += debit
+            acc_balance[level][code] -= credit
         else:
-            acc_balance[level][code] = credit
-            acc_balance[level][code] -= debit
+            acc_balance[level][code] = debit
+            acc_balance[level][code] -= credit
 
 
 def action_id(lexec):
@@ -1026,13 +1026,21 @@ def act_install_language(oerp, ctx):
     msg = u"Install language %s" % lang
     msg_log(ctx, ctx['level'], msg)
     if lang != 'en_US':
-        vals = {}
-        vals['lang'] = lang
-        vals['overwrite'] = False
-        id = oerp.create('base.language.install',
-                         vals)
-        oerp.execute('base.language.install',
-                     'lang_install',
+        model = 'res.lang'
+        ids = oerp.search(model, [('code', '=', lang)])
+        if len(ids) == 0:
+            vals = {}
+            vals['lang'] = lang
+            vals['overwrite'] = False
+            id = oerp.create('base.language.install',
+                             vals)
+            oerp.execute('base.language.install',
+                         'lang_install',
+                         [id])
+        id = oerp.create('base.update.translations',
+                         {'lang': lang})
+        oerp.execute('base.update.translations',
+                     'act_update',
                      [id])
     return STS_SUCCESS
 
@@ -1367,50 +1375,50 @@ def act_check_balance(oerp, ctx):
             kk = kk + '\n' + code + '\n' + str(partner_id)
             if kk not in acc_partners:
                 acc_partners[kk] = 0
-            acc_partners[kk] += move_line_obj.credit
-            acc_partners[kk] -= move_line_obj.debit
+            acc_partners[kk] += move_line_obj.debit
+            acc_partners[kk] -= move_line_obj.credit
 
         level = '9'
         add_on_account(acc_balance,
                        level,
                        code,
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         level = '8'
         add_on_account(acc_balance,
                        level,
                        parent_code,
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         level = '4'
         add_on_account(acc_balance,
                        level,
                        clf3,
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         level = '2'
         add_on_account(acc_balance,
                        level,
                        clf2,
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         level = '1'
         add_on_account(acc_balance,
                        level,
                        clf1,
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         level = '0'
         add_on_account(acc_balance,
                        level,
                        '_',
-                       move_line_obj.credit,
-                       move_line_obj.debit)
+                       move_line_obj.debit,
+                       move_line_obj.credit)
 
         if warn_rec:
             msg = u"Because {0:8} look at {1:>6}/{2:>6} record {3}".format(

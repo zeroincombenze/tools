@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.25.12
+__version__=0.1.25.15
 
 
 detached_login () {
@@ -127,14 +127,32 @@ test_db_svr_response () {
 
 test_hung_up () {
     if [ $DEBUG_MODE -ne 0 ]; then
-      elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'RuntimeError: maximum recursion depth exceeded'"
+      # elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'RuntimeError: maximum recursion depth exceeded'"
+      elog "cat $ODOO_LOG|grep -n 'RuntimeError: maximum recursion depth exceeded'|tail -n1"
     fi
-    HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    # HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    HUNG_UP=$(cat $ODOO_LOG|grep -n "RuntimeError: maximum recursion depth exceeded"|tail -n1)
+    if [ -n "$HUNG_UP" ]; then
+      if [ "$HUNG_UP" == "$LAST_HUP_DEEP" ]; then
+        HUNG_UP=
+      else
+        LAST_HUP_DEEP="$HUNG_UP"
+      fi
+    fi
     if [ -z "$HUNG_UP" ]; then
       if [ $DEBUG_MODE -ne 0 ]; then
-        elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'FATAL: *connection slots.*reserved for.*superuser'"
+        # elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'FATAL: *connection slots.*reserved for.*superuser'"
+        elog "cat $ODOO_LOG|grep -n 'FATAL: *connection slots.*reserved for.*superuser'|tail -n1"
       fi
-      HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
+      # HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
+      HUNG_UP=$(cat $ODOO_LOG|grep -n "FATAL: *connection slots.*reserved for.*superuser"|tail -n1)
+      if [ -n "$HUNG_UP" ]; then
+        if [ "$HUNG_UP" == "$LAST_HUP_SLOT" ]; then
+          HUNG_UP=
+        else
+          LAST_HUP_SLOT="$HUNG_UP"
+        fi
+      fi
       if [ -n "$HUNG_UP" ]; then
         pg_db_active -k>>$LOGFILE
       fi
@@ -315,7 +333,7 @@ wlog "TIME_SLEEP=$TIME_SLEEP"
 wlog "TIME_WAIT=$TIME_WAIT"
 wlog "HELLO_CTR=$HELLO_CTR"
 wlog "HUPTST_CTR=$HUPTST_CTR"
-wlog "HUPTST_TAIL=$HUPTST_TAIL"
+# wlog "HUPTST_TAIL=$HUPTST_TAIL"
 wlog "login_user=$login_user"
 wlog "DBFILTER=$DBFILTER"
 wlog "PG_USER=$PG_USER"
@@ -336,6 +354,8 @@ TOT_OK_ctr=0
 TOT_FAIL_ctr=0
 DB_ix=0
 PATH=$CLOBIN:$PATH
+LAST_HUP_DEEP=
+LAST_HUP_SLOT=
 while [ $ctr -gt 0 ]; do
   if [ $DEBUG_MODE -ne 0 ]; then
      pg_db_active -k -v >>$LOGFILE
@@ -373,7 +393,7 @@ while [ $ctr -gt 0 ]; do
     if [ $TOT_OK_ctr -gt $TOT_FAIL_ctr -a ${DBSTS[$dbname]:-0} -gt 0 ]; then
       wlog "\$ service $svc_name restart"
       service $svc_name restart
-      wlog "Hang-up message: $HUNG_UP"
+      wlog "Hung-up message: $HUNG_UP"
       sleep $TIME_WAIT
     else
       FAIL_ctr=0
