@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.70.26"
+__version__ = "0.2.71"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1345,20 +1345,23 @@ def act_check_balance(oerp, ctx):
             clf1 = "unknown"
 
         if (account_obj.company_id.id != company_id):
-            msg = u"Invalid company account {0} in {1:>6} {2}".format(
+            msg = u"Invalid company account {0} in {1:>6}/{2:>6}  {3}".format(
                 os0.u(code),
+                move_hdr_id,
                 move_line_id,
                 os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
         if (account_tax_obj and account_tax_obj.company_id.id != company_id):
-            msg = u"Invalid company account tax {0} in {1:>6} {2}".format(
-                os0.u(code),
-                move_line_id,
-                os0.u(move_line_obj.ref))
+            msg = u"Invalid company account tax {0} in {1:>6}/{2:>6}  {3}".\
+                format(os0.u(code),
+                       move_hdr_id,
+                       move_line_id,
+                       os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
         if (journal_obj and journal_obj.company_id.id != company_id):
-            msg = u"Invalid company journal {0} in {1:>6} {2}".format(
+            msg = u"Invalid company journal {0} in {1:>6}/{2:>6}  {3}".format(
                 os0.u(code),
+                move_hdr_id,
                 move_line_id,
                 os0.u(move_line_obj.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -1497,6 +1500,96 @@ def act_set_4_cscs(oerp, ctx):
     return sts
 
 
+def act_update_4_next_generation(oerp, ctx):
+    msg = u"Upgrade next generation"
+    msg_log(ctx, ctx['level'], msg)
+    model = 'ir.module.module'
+    model2 = 'ir.module.module.dependency'
+    ids = oerp.search(model, [('state', '=', 'uninstallable')])
+    for id in ids:
+        try:
+            oerp.unlink(model, [id])
+        except:
+            pass
+    sts = act_update_modules(oerp, ctx)
+    ids = oerp.search(model, [])
+    for id in ids:
+        module = oerp.read(model, [id], ['name', 'dependencies_id'])
+        if module[0]['dependencies_id']:
+            for id2 in module[0]['dependencies_id']:
+                module2 = oerp.read(model2, [id2], ['name'])
+                if len(module2) == 0:
+                    msg = 'dependency %d (%s) not found!' % (id2,
+                                                             module[0]['name'])
+                    msg_log(ctx, ctx['level'], msg)
+                    oerp.write(model, [id],
+                               {'dependencies_id': [(2, id2)]})
+    ids = oerp.search(model,
+                      ['|',
+                       ('state', '=', 'installed'),
+                       ('state', '=', 'to upgrade')])
+    module_ids = []
+    for id in ids:
+        module_ids.append(id)
+        oerp.write(model, [id], {'state': 'to upgrade'})
+    for module in ('base', 'web', 'base_setup',
+                   'report_webkit', 'base_status', 'board', 'base_iban',
+                   'process', 'decimal_precision', 'plugin',
+                   'web_gantt', 'web_diagram', 'web_kanban', 'web_graph',
+                   'web_calendar', 'web_analytics', 'web_color',
+                   'web_export_view', 'base_import', 'web_gantt_chart',
+                   'mail', 'email_template', 'analytic',
+                   'product', 'account', 'knowledge',
+                   'document', 'fetchmail'):
+        ids = oerp.search(model,
+                          [('name', '=', module)])
+        if len(ids) and ids[0] in module_ids:
+            msg = 'Check for %s' % (module)
+            msg_log(ctx, ctx['level'], msg)
+            id = ids[0]
+            ix = module_ids.index(id)
+            del module_ids[ix]
+            oerp.write(model, [id], {'state': 'installed'})
+            ctx['upgrade_modules'] = module
+            act_upgrade_modules(oerp, ctx)
+    again = True
+    max_depth = 16
+    msg = 'Analyzing all dependencies'
+    msg_log(ctx, ctx['level'], msg)
+    while again:
+        again = False
+        max_depth -= 1
+        if max_depth == 0:
+            msg = 'Module inheritance too deep'
+            msg_log(ctx, ctx['level'], msg)
+            break
+        noop = False
+        for id in module_ids:
+            module = oerp.read(model, [id], ['name',
+                                             'state',
+                                             'dependencies_id'])
+            msg = 'Check for %s (%s)' % (module[0]['name'],
+                                         module[0]['state'])
+            msg_log(ctx, ctx['level'], msg)
+            if module[0]['state'] != 'installed':
+                if module[0]['dependencies_id']:
+                    for id2 in module[0]['dependencies_id']:
+                        module2 = oerp.read(model2, [id2], ['name', 'state'])
+                        if module2[0]['state'] != 'installed':
+                            noop = True
+                            break
+                if noop:
+                    noop = False
+                    continue
+                ix = module_ids.index(id)
+                del module_ids[ix]
+                oerp.write(model, [id], {'state': 'installed'})
+                ctx['upgrade_modules'] = module[0]['name']
+                act_upgrade_modules(oerp, ctx)
+                again = True
+    return sts
+
+
 def act_upgrade_l10n_it_base(oerp, ctx):
     msg = u"Upgrade module l10n_it_base"
     msg_log(ctx, ctx['level'], msg)
@@ -1513,7 +1606,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
                                        'l10n_it_fatturapa',
                                        'l10n_it_bbone'])])
     prior_state = {}
-    l10n_it_bb_id = 0
+    # l10n_it_bb_id = 0
     l10n_it_bb_state = ''
     l10n_it_base_state = ''
     for id in ids:
@@ -1523,7 +1616,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
             l10n_it_base_state = module_obj.state
         else:
             if module_obj.name == 'l10n_it_bbone':
-                l10n_it_bb_id = id
+                # l10n_it_bb_id = id
                 l10n_it_bb_state = module_obj.state
             oerp.write(model, [id], {'state': 'uninstalled'})
     if l10n_it_bb_state == 'installed' and l10n_it_base_state == 'installed':
@@ -2306,7 +2399,7 @@ def upd_acc_2_bank(oerp, accounts, ctx):
 
 def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
     model = 'ir.ui.view'
-    name = old_module + '.%'
+    # name = old_module + '.%'
     id1 = oerp.search(model, [('xml_id', '=like', old_module),
                               ('model', '=', model_name)])
     id2 = oerp.search(model, [('arch', '=like', '%it_partner_updated%')])
@@ -2331,7 +2424,7 @@ def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
 def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
     model = 'ir.model.data'
     ids = oerp.search(model, [('module', '=', old_module),
-                               ('model', '=', model_name)])
+                              ('model', '=', model_name)])
     for id in ids:
         seq_name = oerp.browse(model, id)
         name = seq_name.name
@@ -2372,7 +2465,7 @@ def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
                 oerp.unlink(model, [id])
                 msg = u"Remove duplicate id %d (%s)" % (id, cname)
                 msg_log(ctx, ctx['level'], msg)
-        elif new_display != new_new_display:
+        elif display != new_display:
             msg = u"Name %d has two different display %s %s" % (name,
                                                                 display,
                                                                 new_display)

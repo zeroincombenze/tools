@@ -5,7 +5,7 @@ import clodoo
 # import pdb
 
 
-__version__ = "0.1.5.22"
+__version__ = "0.1.5.23"
 
 oerp = oerplib.OERP()
 try:
@@ -604,7 +604,7 @@ while True:
             oerp.write(MODEL['MD'], moves,
                        {'ref': ref})
     if action[0] == 'X' or (action[0] != 'B' and
-            action != 'RB' and action[1] != '+'):
+                            action != 'RB' and action[1] != '+'):
         continue
     res = raw_input('Press RET to restore status ..')
     if action[0] == 'P':

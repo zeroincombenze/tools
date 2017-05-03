@@ -30,7 +30,8 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.42
+
+__version__=0.1.42.1
 
 
 #
@@ -71,10 +72,17 @@ do_annotate() {
     return $sts
 }
 
+do_autope8() {
+    local opts=$(inherits_travis_opts "" "8")
+    run_traced "topep8 $opts $PKGPATH"
+    return $?
+}
+
 do_check() {
     wlog "do_check \"$1\" \"$2\" \"$3\""
+    local sts=$STS_FAILED
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "K" "T")
+      local opts=$(inherits_travis_opts "K" "T")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -1083,16 +1091,23 @@ do_synchro() {
 
 do_docs() {
     wlog "do_docs $1"
-    sts=$STS_SUCCESS
+    local sts=$STS_SUCCESS
     local doxygen_conf
     doxygen_conf=.${1}_doc.conf
     if [ ! -f $doxygen_conf ]; then
       doxygen -g $doxygen_conf
       vim $doxygen_conf
     fi
+    sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
     cvt_doxygenconf $doxygen_conf
     doxygen $doxygen_conf
-    return $?
+    sts=$?
+    if [ $opt_verbose -gt 0 ]; then
+      echo ""
+      echo -e "Use: \e[1m$THIS publish $1 docs\e[0m"
+      echo "     to publish this documentation on docs.zeroincombenze.org/$1"
+    fi
+    return $sts
 }
 
 do_publish() {
@@ -1186,6 +1201,10 @@ do_publish_svg() {
 do_publish_docs() {
 #do_publish_svg pgkname docs
     local sts=$STS_FAILED
+    if [ $EUID -ne 0 ]; then
+      echo "!!Error: no privilege to publish documentation!!"
+      return $sts
+    fi
     local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
     if [ -d $HTML_DOCS_DIR/$1 ]; then
       run_traced "rm -fR $HTML_DOCS_DIR/$1"
@@ -1199,6 +1218,10 @@ do_publish_docs() {
     rmdir $PRJPATH/html
     if [ -d $PRJPATH/latex ]; then
       rm -fR $PRJPATH/latex
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      echo ""
+      echo -e "see \e[1mdocs.zeroincombenze.org/$1\e[0m webpage"
     fi
     return $sts
 }
@@ -1443,18 +1466,15 @@ if [ "$action" == "help" ]; then
 elif [ "$action" == "annotate" ]; then
   do_annotate "$PKGNAME" "$opt_srcs"
   sts=$?
-elif [ "$action" == "autopep8" ]; then
-  opts=$(inherits_travis_opts "" "8")
-  if [ "$PRJNAME" == "Odoo" ]; then
-    opts="$opts -o"
-  fi
-  if [ $opt_verbose -gt 0 ]; then
-    echo "topep8 $PKGPATH $opts"
-  fi
-  topep8 "$PKGPATH" "$opts"
-elif [ "$action" == "check" ]; then
-  do_check "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
+# elif [ "$action" == "autopep8" ]; then
+#   opts=$(inherits_travis_opts "" "8")
+#   if [ $opt_verbose -gt 0 ]; then
+#     echo "topep8 $PKGPATH $opts"
+#   fi
+#   topep8 "$PKGPATH" "$opts"
+# elif [ "$action" == "check" ]; then
+#   do_check "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
 elif [ "$action" == "chkconfig" ]; then
   do_chkconfig
   sts=$STS_SUCCESS
