@@ -5,26 +5,33 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
   fi
 done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
-Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $TDIR/../zerobug $TDIR/../../zerobug  . .. $HOME/dev")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-
-
-__version__=0.2.1.19
+__version__=0.2.1.20
 
 test_run () {
 # test_run(msg,package,disto,cmd)
     # set -x #debug
+    TPRODUCT="$RUNDIR/lisa -T"
     local msg="$1"
     local Package=$(echo "$2"|grep -Eo '[^!<=>]*'|head -n1)
     local Disto="$3"
@@ -302,6 +309,10 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 > systemctl start postgresql
 > chkconfig postgresql on
 # yum -y install php
+> yum -y install python-pip
+#
+> yum -y install python-wheel
+> pip install wheel
 # yum -y install python
 EOF
   test_run "install $Package" "$Package" "$Disto" "install"
@@ -309,26 +320,26 @@ EOF
   Package=odoo
   for ver in 7.0 8.0 9.0 10.0; do
     opt_e=
-    if [ "$ver" == "10.0" ]; then
-      echo "odoo should be installed by git">$TESTDIR/res/odoo__$Disto.08.test
-    else
-      echo "odoo: $ver">$TESTDIR/res/odoo__$Disto.08.test
-    fi
+    # if [ "$ver" == "10.0" ]; then
+    #   echo "odoo should be installed by git">$TESTDIR/res/odoo__$Disto.08.test
+    # else
+    echo "odoo: $ver">$TESTDIR/res/odoo__$Disto.08.test
+    # fi
     test_run "version $Package==$ver" "$Package==$ver" "$Disto" "version"
   done
   echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
   test_run "version $Package<9.0" "$Package<9.0" "$Disto" "version"
-  echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  echo "odoo: 10.0">$TESTDIR/res/odoo__$Disto.08.test
   test_run "version $Package>7.0" "$Package>7.0" "$Disto" "version"
   echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
   test_run "version $Package<=8.0" "$Package<=8.0" "$Disto" "version"
-  echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  echo "odoo: 10.0">$TESTDIR/res/odoo__$Disto.08.test
   test_run "version $Package>=8.0" "$Package>=8.0" "$Disto" "version"
+  echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package<>10.0" "$Package<>10.0" "$Disto" "version"
+  # echo "odoo: 9.0">$TESTDIR/res/odoo__$Disto.08.test
+  test_run "version $Package!=10.0" "$Package!=10.0" "$Disto" "version"
   echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
-  test_run "version $Package<>9.0" "$Package<>9.0" "$Disto" "version"
-  # echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
-  test_run "version $Package!=9.0" "$Package!=9.0" "$Disto" "version"
-  # echo "odoo: 8.0">$TESTDIR/res/odoo__$Disto.08.test
   test_run "version $Package>7.0<9.0" "$Package>7.0<9.0" "$Disto" "version"
 
   cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
@@ -346,24 +357,9 @@ EOF
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 8.0
 > cd /tmp
-> echo "l10n-italy-supplemental/">>.gitignore
-> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 8.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
-> cd /opt/odoo
-> cd /tmp
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
-> cd /opt/odoo
-> cd /tmp
-> echo "account-financial-tools/">>.gitignore
-> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 8.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
-> cd /opt/odoo
-> cd /tmp
-> echo "account-financial-reporting/">>.gitignore
-> git clone https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/ -b 8.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/
 > cd /opt/odoo
 > cd /tmp
 > echo "account-invoicing/">>.gitignore
@@ -386,19 +382,24 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
 > cd /opt/odoo
 > cd /tmp
+> echo "l10n-italy/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 8.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
+> cd /opt/odoo
+> cd /tmp
 > echo "partner-contact/">>.gitignore
 > git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
 > cd /opt/odoo
 > cd /tmp
-> echo "stock-logistics-workflow/">>.gitignore
-> git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 8.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
+> echo "web/">>.gitignore
+> git clone https://github.com/zeroincombenze/web.git web/ -b 8.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/web.git web/
 > cd /opt/odoo
 > cd /tmp
-> echo "webkit-tools/">>.gitignore
-> git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 8.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> echo "website/">>.gitignore
+> git clone https://github.com/zeroincombenze/website.git website/ -b 8.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
 > chkconfig odoo-server on
@@ -421,24 +422,19 @@ EOF
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 7.0
 > cd /tmp
-> echo "l10n-italy-supplemental/">>.gitignore
-> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
-> cd /opt/odoo
-> cd /tmp
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
 > cd /opt/odoo
 > cd /tmp
-> echo "account-financial-tools/">>.gitignore
-> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
-> cd /opt/odoo
-> cd /tmp
 > echo "account-financial-reporting/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-financial-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
 > cd /opt/odoo
 > cd /tmp
 > echo "account-invoicing/">>.gitignore
@@ -456,9 +452,24 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
 > cd /opt/odoo
 > cd /tmp
+> echo "connector/">>.gitignore
+> git clone https://github.com/zeroincombenze/connector.git connector/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/connector.git connector/
+> cd /opt/odoo
+> cd /tmp
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
+> cd /opt/odoo
+> cd /tmp
+> echo "l10n-italy/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
+> cd /opt/odoo
+> cd /tmp
+> echo "l10n-italy-supplemental/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
 > cd /opt/odoo
 > cd /tmp
 > echo "partner-contact/">>.gitignore
@@ -466,14 +477,59 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
 > cd /opt/odoo
 > cd /tmp
+> echo "product-attribute/">>.gitignore
+> git clone https://github.com/zeroincombenze/product-attribute.git product-attribute/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/product-attribute.git product-attribute/
+> cd /opt/odoo
+> cd /tmp
+> echo "reporting-engine/">>.gitignore
+> git clone https://github.com/zeroincombenze/reporting-engine.git reporting-engine/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/reporting-engine.git reporting-engine/
+> cd /opt/odoo
+> cd /tmp
+> echo "report-print-send/">>.gitignore
+> git clone https://github.com/zeroincombenze/report-print-send.git report-print-send/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/report-print-send.git report-print-send/
+> cd /opt/odoo
+> cd /tmp
+> echo "server-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/server-tools.git server-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/server-tools.git server-tools/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-barcode/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-barcode.git stock-logistics-barcode/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-barcode.git stock-logistics-barcode/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-tracking/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-tracking.git stock-logistics-tracking/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-tracking.git stock-logistics-tracking/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-warehouse/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-warehouse.git stock-logistics-warehouse/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-warehouse.git stock-logistics-warehouse/
+> cd /opt/odoo
+> cd /tmp
 > echo "stock-logistics-workflow/">>.gitignore
 > git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
 > cd /opt/odoo
 > cd /tmp
+> echo "web/">>.gitignore
+> git clone https://github.com/zeroincombenze/web.git web/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/web.git web/
+> cd /opt/odoo
+> cd /tmp
 > echo "webkit-tools/">>.gitignore
 > git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> cd /opt/odoo
+> cd /tmp
+> echo "website/">>.gitignore
+> git clone https://github.com/zeroincombenze/website.git website/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
 > chkconfig odoo-server on
@@ -484,13 +540,22 @@ fi
 }
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log $@
+parseoptest -l$TESTDIR/test_lisa.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-TPRODUCT="$RUNDIR/lisa -T"
-
-Z0BUG_main_file "" ""
-exit $?
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
+fi
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

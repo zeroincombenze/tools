@@ -61,7 +61,7 @@
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.9
+__version__=0.2.9.1
 
 export opt_dry_run
 export ctr
@@ -294,7 +294,7 @@ test_result () {
       if $($4 $2 $3 &>/dev/null); then
         if [ "$5" == "str-z" ]; then
           if [ -n "$($4 $2 $3)" ]; then
-            echo "Test failed: $4 '$2' '$3'"
+            echo "$THIS> Test failed: $4 '$2' '$3'"
             teststs=$STS_FAILED
             if [ "$Z0BUG_on_error" == "continue" ]; then
               return $STS_FAILED
@@ -304,7 +304,7 @@ test_result () {
           fi
         elif [ "$5" == "str-n" ]; then
           if [ -z "$($4 $2 $3)" ]; then
-            echo "Test failed: $4 '$2' '$3'"
+            echo "$THIS> Test failed: $4 '$2' '$3'"
             teststs=$STS_FAILED
             if [ "$Z0BUG_on_error" == "continue" ]; then
               return $STS_FAILED
@@ -314,7 +314,7 @@ test_result () {
           fi
         fi
       else
-        echo "Test failed: $4 '$2' '$3'"
+        echo "$THIS> Test failed: $4 '$2' '$3'"
         teststs=$STS_FAILED
         if [ "$Z0BUG_on_error" == "continue" ]; then
           return $STS_FAILED
@@ -324,7 +324,7 @@ test_result () {
       fi
     else
       if [ "$2" != "$3" ]; then
-        echo "Test '$1' failed: expected '$2', found '$3'"
+        echo "$THIS> Test '$1' failed: expected '$2', found '$3'"
         teststs=$STS_FAILED
         if [ "$Z0BUG_on_error" == "continue" ]; then
           return $STS_FAILED

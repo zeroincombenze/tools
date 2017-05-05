@@ -32,15 +32,16 @@
 #               like Debian and Ubuntu
 # [_Ubuntu12_] -> Parameters for Ubuntu 12.xx
 # [_Ubuntu14_] -> Parameters for Ubuntu 14.xx
+# [_Ubuntu16_] -> Parameters for Ubuntu 16.xx
 # [_CentOS6_] -> Parameters for CentOS 6.xx
 # [_CentOS7_] -> Parameters for CentOS 7.xx
 # Other distribution are not yet tested, but lisa is designed to run with all
 # Linux distributions; syntax for sections running in other Linux distribution
 # is the same you can see above (name + major version)
-# Warning! Order of sections is very important.
+# Warning! Order of sections is very important!
 # The first section must be always [_Linux_]
-# After that you must insret section of families (RHEL and/or Debian)
-# Section of specific family must be above the all previous three sections.
+# After that you must insert section of families (RHEL and/or Debian)
+# Section of specific distributions must always be added after.
 #
 # **Parameters**
 # Every parameter has format name=value
@@ -60,7 +61,7 @@
 lisa_ReqPkgList=wget,git
 # REAL_OSSERVICE declares OS command to run/stop services. Value are: (service|systemctl)
 REAL_OSSERVICE=service
-# REAL_pkgname, wher pkgname is specific package name declares the real name
+# REAL_pkgname, where pkgname is specific package name declares the real name
 # of package. I.e. apache name is httpd in RHEL family and apache2 in Debian family
 # This parameter help end user to install package on every distribution, even
 # if it supplies wrong name. Please look at REAL_apache2 and REAL_httpd
@@ -90,7 +91,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson
 # Packages cloned by git
-GIT_PKGS=lisa,odoo,pandoc
+GIT_PKGS=odoo,pandoc
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf
 # Standard packages (intalled by yum or apt-get)
@@ -185,6 +186,13 @@ REAL_mariadb-server=mysql-server
 # mariadb does non exists in Ubuntu14
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
+
+
+[_Ubuntu16_]
+# mariadb does non exists in Ubuntu16?
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+REAL_OSSERVICE=systemctl
 
 
 [_CentOS6_]

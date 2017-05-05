@@ -12,24 +12,19 @@
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 7.0
 > cd /tmp
-> echo "l10n-italy-supplemental/">>.gitignore
-> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
-> cd /opt/odoo
-> cd /tmp
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
 > cd /opt/odoo
 > cd /tmp
-> echo "account-financial-tools/">>.gitignore
-> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --single-branch --depth=1
-> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
-> cd /opt/odoo
-> cd /tmp
 > echo "account-financial-reporting/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-financial-reporting.git account-financial-reporting/
+> cd /opt/odoo
+> cd /tmp
+> echo "account-financial-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/account-financial-tools.git account-financial-tools/
 > cd /opt/odoo
 > cd /tmp
 > echo "account-invoicing/">>.gitignore
@@ -47,9 +42,24 @@
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
 > cd /opt/odoo
 > cd /tmp
+> echo "connector/">>.gitignore
+> git clone https://github.com/zeroincombenze/connector.git connector/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/connector.git connector/
+> cd /opt/odoo
+> cd /tmp
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
+> cd /opt/odoo
+> cd /tmp
+> echo "l10n-italy/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
+> cd /opt/odoo
+> cd /tmp
+> echo "l10n-italy-supplemental/">>.gitignore
+> git clone https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/l10n-italy-supplemental.git l10n-italy-supplemental/
 > cd /opt/odoo
 > cd /tmp
 > echo "partner-contact/">>.gitignore
@@ -57,14 +67,59 @@
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
 > cd /opt/odoo
 > cd /tmp
+> echo "product-attribute/">>.gitignore
+> git clone https://github.com/zeroincombenze/product-attribute.git product-attribute/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/product-attribute.git product-attribute/
+> cd /opt/odoo
+> cd /tmp
+> echo "reporting-engine/">>.gitignore
+> git clone https://github.com/zeroincombenze/reporting-engine.git reporting-engine/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/reporting-engine.git reporting-engine/
+> cd /opt/odoo
+> cd /tmp
+> echo "report-print-send/">>.gitignore
+> git clone https://github.com/zeroincombenze/report-print-send.git report-print-send/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/report-print-send.git report-print-send/
+> cd /opt/odoo
+> cd /tmp
+> echo "server-tools/">>.gitignore
+> git clone https://github.com/zeroincombenze/server-tools.git server-tools/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/server-tools.git server-tools/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-barcode/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-barcode.git stock-logistics-barcode/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-barcode.git stock-logistics-barcode/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-tracking/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-tracking.git stock-logistics-tracking/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-tracking.git stock-logistics-tracking/
+> cd /opt/odoo
+> cd /tmp
+> echo "stock-logistics-warehouse/">>.gitignore
+> git clone https://github.com/zeroincombenze/stock-logistics-warehouse.git stock-logistics-warehouse/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/stock-logistics-warehouse.git stock-logistics-warehouse/
+> cd /opt/odoo
+> cd /tmp
 > echo "stock-logistics-workflow/">>.gitignore
 > git clone https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/stock-logistics-workflow.git stock-logistics-workflow/
 > cd /opt/odoo
 > cd /tmp
+> echo "web/">>.gitignore
+> git clone https://github.com/zeroincombenze/web.git web/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/web.git web/
+> cd /opt/odoo
+> cd /tmp
 > echo "webkit-tools/">>.gitignore
 > git clone https://github.com/zeroincombenze/webkit-tools.git webkit-tools/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/webkit-tools.git webkit-tools/
+> cd /opt/odoo
+> cd /tmp
+> echo "website/">>.gitignore
+> git clone https://github.com/zeroincombenze/website.git website/ -b 7.0 --single-branch --depth=1
+> git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
 > chkconfig odoo-server on

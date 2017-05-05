@@ -5,26 +5,33 @@
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
   fi
 done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-TRAVISDIR=$(findpkg "" "$TDIR . .. $HOME/dev" "_travis")
-Z0TLIBDIR=$(findpkg "z0testrc" "$TDIR . .. $HOME/dev")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $TDIR/../zerobug $TDIR/../../zerobug  . .. $HOME/dev")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-
-
-__version__=0.2.1.1
+__version__=0.2.1.2
 
 test_run () {
 # test_run(msg,package,disto,cmd)
     # set -x #debug
+    TPRODUCT="$RUNDIR/lisa -T"
     local msg="$1"
     if [ "$2" == "." ]; then
       local Package="_"
@@ -123,9 +130,10 @@ EOF
 > cp $RUNDIR/lisa /usr/bin
 > cp $RUNDIR/lisa.man /usr/bin
 > cp $RUNDIR/lisa_bld_ods /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/*.lish /etc/lisa
 > chmod +x /usr/bin/lisa*
 EOF
-  for f in lisa.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+  for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
     if [ -f $RUNDIR/$f ]; then
       echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa.06.test
     fi
@@ -326,13 +334,22 @@ done
 }
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log $@
+parseoptest -l$TESTDIR/test_lisa.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-
-TPRODUCT="$RUNDIR/lisa -T"
-
-Z0BUG_main_file "" ""
-exit $?
+if [ ${opt_tlib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . $TRAVISLIBDIR
+fi
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

@@ -11,16 +11,16 @@
 # or visit http://wiki.zeroincombenze.org/en/Lisa webpage
 # for furthermore information
 #
-[Linux]
+[_Linux_]
 
 
-[Debian]
+[_Debian_]
 ReqPkgList=pip,wheel
 
 
-[CentOS7]
+[_CentOS7_]
 ReqPkgList=pip,wheel
 
 
-[CentOS6]
+[_CentOS6_]
 ReqPkgList=pip

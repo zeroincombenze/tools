@@ -1,11 +1,11 @@
 xtl_id=odoo
 xtl_Id=Odoo
-xtl_name=${xtl_id}-server
+xtl_name=${xtl_id}
 xtl_pidfile=/var/run/${xtl_id}/${xtl_name}.pid
 xtl_logfile=/var/log/${xtl_id}/${xtl_name}.log
 xtl_cfgfile=/etc/${xtl_id}/${xtl_name}.conf
 xtl_altcfgfile=/etc/${xtl_name}.conf
-xtl_version=7.0
+xtl_version=10.0
 xtl_user=odoo
 xtl_test=0
 #!/bin/bash
@@ -24,7 +24,7 @@ xtl_test=0
 # Required-Stop:        postgresql
 # Should-Start:         $network
 # Should-Stop:          $network
-# Default-Start:        [2] 3 4 5
+# Default-Start:        3 4 5
 # Default-Stop:         0 1 6
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
@@ -64,19 +64,20 @@ fi
 
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
-DAEMON=/opt/${USER}/${xtl_version}/openerp-server
-if [ ! -x "$DAEMON" ]; then
-  DAEMON=/opt/${USER}/${xtl_version}/server/openerp-server
-fi
-if [ ! -x "$DAEMON" ]; then
-  DAEMON=/opt/${USER}/${xtl_version}/odoo-server
-fi
-if [ ! -x "$DAEMON" ]; then
-  DAEMON=/usr/bin/openerp-server
-fi
-if [ ! -x "$DAEMON" ]; then
-  DAEMON=/usr/bin/odoo-server
-fi
+# search for startup script
+DAEMON=
+for dn in odoo-bin odoo-server openerp-server odoo openerp; do
+  for dp in /opt/${USER}/${xtl_version} /usr/bin; do
+    DAEMON=$dp/$dn
+    if [ -x "$DAEMON" ]; then
+      break
+    fi
+  done
+  if [ -x "$DAEMON" ]; then
+    break
+  fi
+done
+
 NAME=${xtl_name}
 DESC="${xtl_Id} Server Daemon ($NAME)"
 # Specify config file (Default: ${xtl_cfgfile}).

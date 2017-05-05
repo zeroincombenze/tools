@@ -70,39 +70,50 @@ Action is one of:
 .br
 * build PKGNAME
 .br
-You can issue more action separated by plus simbol: i.e. install+config
+.br
+You can issue more action separated by plus simbol: i.e. \fBinstall+config\fR
 .br
 You can manage many packages in every single command line; package names must be
-separated by comma: i.e. apache2,php5
+separated by comma: i.e. \fBapache2,php5\fR
+.br
+lisa supports package name using a requirement specifier.
+Generally speaking, a requirement specifier is composed of a required package name
+followed by optional version specifiers and optional installer. i.e:
+.br
+\fBlisa install 'odoo>=7.0<10.0!!pip'\fR
+.br
+Use quotes around package name with specifiers in the shell
+because >, <, and ! are processed by shell itself.
+Specify version, in this version od lisa, is valid only if installer is pip.
+Token !! (double exclamation mark) declare a different installer, if package
+may be installed by different software (i.e. yum/apt-get or pip or git)
 
 \fBinstall\fR
 .RS
 Install selected package(s); before install every package, requirements are checked.
 Requirements are declared by \fIReqPkgList\fR parameter, comma separated. The
-standard installed like apt-get and yum do not be declared; pip, wget, git and
+standard installers like apt-get and yum do not be declared; pip, wget, git and
 other installer software must be declared in order to install.
 .br
 if a package is already installed, is ignored and sub packages are not examined. To install package, \fBlisa\fR choices one
 of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
 To install \fBlisa\fR, for the first time download files in /tmp and type \fI./lisa install lisa\fR
 .br
-See http://wiki.zeroincombenze.org/en/Product page for furthermore informations.
+See http://wiki.zeroincombenze.org/en/Lisa page for furthermore informations.
 .br
-With optional switch -D and -w, more other packages are added to installation list.
-If package name is LAMP, \fBlisa\fR installes gcc compiler.
+With optional switch -D and -w, also other packages are added to installation list.
+If package name is LAMP, \fBlisa\fR installes a full server and gcc compiler.
 .br
 When Odoo is required, \fBlisa\fR installes git and issue \fIgit clone\fR command from github.com
 in two ways:
 .br
 1. If -D switch is set (development environment), Odoo is installed and
-deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is 7.0, 8.0 or 9.0;
+deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is 7.0, 8.0, 9.0 or 10.0;
 .br
 2. If no development enviroment is set by -D switch, Odoo
-is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.0 or 8.0 or 9.0;
+is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.0 or 8.0, 9.0 or 10.0;
 .br
-The -O switch select just a specific version of Odoo or all versions (see -O option)
-.br
-The -e switch must be declared to select Odoo repository to clone (see -e option)
+The -o switch must be declared to select Odoo repository to clone (see -o option)
 .br
 The -l switch add localization module during installation; see -l option
 .br
@@ -130,7 +141,7 @@ To update submodules use -l and -s switches
 .br
 \fBconfig\fR
 .RS
-Config package(s) after installation or update. Configuration can issue interactive input request.
+Config package(s) after installation or update. Configuration can issue interactive input requestes.
 .RE
 .br
 
@@ -162,9 +173,9 @@ Optional switch -D and -w can include more packages.
 .br
 \fBwhatis\fR
 .RS
-Display main packages (identified by single hyphen) and dependent packages (with double hyphens) managed by \fBlisa\fR;
+Display installation package tree; main packages is identified by single hyphen, dependent packages by double hyphens;
 Optional switch -D and -w can include development and graphical interface packages too.
-Special swith -E show list of other linux distributions.
+Special swith -E show list for the other linux distributions. it is suppled for training.
 .RE
 .br
 
@@ -201,16 +212,21 @@ If LAMP installation is required, this switch installes gcc compiler
 .TP
 .BR \-E \fIlinux_disto\fR
 This option activate package(s) for selected Linux distribution. It is useful to see which are package name in other
-distribution. \fIlinux_disto\fR may be on of CentOS,CentOS7 or Ubuntu.
+distribution. \fIlinux_disto\fR may be on of CentOS6,CentOS7,Ubuntu12 or Ubuntu14.
 \fBWarning!\fR Use this switch just with command \fIwhatis\fR.
 Do not use this switch in conjuntion of command \fIinstall\fR or \fIupdate\fR because
 operations will fail.
 .TP
-.BR \-e \fIrepo\fR
-This option select Odoo repository from github.com; must be declared if -O switch
-is supplied or if odoo lisa is required.
+.BR \-e \f0-4\fR
+action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)
 .br
-Value of \fIrepo\fR may be \fBodoo\fR,\fBoca\fR or \fBzeroincombenze\fR
+* 0 means exit on error
+.br
+* 1 means ignore error and continue installation
+.br
+* 2 means install not existent package if upgrade required
+.br
+* 3 means install or upgrade in order to be sure package is installed
 .TP
 .BR \-g
 Manage graphical interface packages
@@ -231,9 +247,10 @@ Value of \fIiso3166\fR may be one or more of \fBbe\fR, \fBch\fR, \fBes\fR,
 .BR \-n
 Do nothing (dry-run)
 .TP
-.BR \-O \fIversion\fR
-Select specific Odoo version; \fIversion\fR may be 7 or 8 or 9 or * for all versions;
-for furthermore info about odoo installation see \fBinstall\fR command
+.BR \-o \fIodoo_repo\fR
+This option select Odoo repository from github.com; must be declared if odoo is to be installed.
+.br
+Value of \fIrepo\fR may be \fBodoo\fR,\fBoca\fR or \fBzeroincombenze\fR
 .TP
 .BR \-P \fIpassword\fR
 Default password for users, if added by import command.
@@ -245,11 +262,11 @@ Quiet mode
 This option selects Odoo repositories to add during installation; repository name must be present in github.com;
 i.e. to install OCA/server-tools command line is like follow:
 .br
-\fBlisa install odoo -eOCA -sserver-tools\fR
+\fBlisa install odoo -oOCA -sserver-tools\fR
 .br
 It is possible install more packages, name are comma separated (i.e. -sserver-tools,bank-payment)
 .br
-Sub modules must be all in the same main repository selected by -e switch. It is not possible mix submodules of
+Sub modules must be all in the same main repository selected by -o switch. It is not possible mix submodules of
 different repositories.
 .br
 Follow submodules are added with OCA repository:
@@ -268,15 +285,17 @@ Verbose mode
 assume yes
 .TP
 .BR \-1
-1st installation
+1st installation, do upgrade of all installed modules
 .SH EXAMPLES
 Install a new LAMP server, the 1st time, without ask confirmation
+Install a new LAMP server with apache2,mysql or mariadb,php,python and postgresql,
+without asking confirmation (see option switch -y)
 .RS
 \fBlisa -y1 install LAMP\fR
 .RE
-Install Odoo 9 with Italian localization:
+Install Odoo 8.0 from OCA/OCB repository with Italian localisation:
 .RS
-\fBlisa install odoo -O9 -lit\fR
+\fBproduct -y install 'odoo==8.0' -ooca -lit\fR
 .RE
 .SH SEE ALSO
 apg-get, yum, pip

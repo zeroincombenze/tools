@@ -4,23 +4,25 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-
-if [ -f z0librc ]; then
-  . ./z0librc
-elif [ -f ~/z0librc ]; then
-  . ~/z0librc
-elif [ -f /etc/z0librc ]; then
-  . /etc/z0librc
-else
-  echo "Libreria z0librc non trovata!"
-  exit 1
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
 fi
 
-__version__="0.2.3"
-THIS=$(basename $0)
-TDIR=$(echo $(readlink -f $(dirname $0)))
+__version__="0.2.4"
+
 
 get_arch () {
     if [ "$1" == "CentOS7" -o "$1" == "CentOS" -o "$1" == "RHEL" ]; then
@@ -50,7 +52,7 @@ get_arch () {
 OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
 OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
 OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "9"        ""     ""       ""       "odoo"   ""          0)
+OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "10"        ""     ""       ""       "odoo"   ""          0)
 OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
@@ -60,7 +62,7 @@ OPTHELP=("this help"\
  "multiple version environment (append version to filenames)"\
  "set odoo service name (default {id_name}-server)"\
  "do nothing (dry-run)"\
- "select odoo version: may be 7, 8 or 9"\
+ "select odoo version: may be 7, 8, 9 or 10"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "created test script does nothing (used for debug)"\
  "use template (def /etc/product/odoo-server_{linux_dist})"\
@@ -76,41 +78,80 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+  odoo_fver="$odoo_ver.0"
+elif [[ " 10.0 9.0 8.0 7.0 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+  odoo_fver="$odoo_ver"
+  odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
+elif [[ " v10 v9 v8 v7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+  odoo_fver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1).0
+  odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
+else
+  echo "Invalid Odoo version"
+  exit 1
+fi
 if [ -z "$opt_name" ]; then
-  if [ $opt_mult -gt 0 ]; then
-    opt_name=${opt_id}${odoo_ver}-server
+  if [ "$odoo_ver" == "10" ]; then
+    if [ $opt_mult -gt 0 ]; then
+      opt_name=${opt_id}${odoo_ver}
+    else
+      opt_name=${opt_id}
+    fi
   else
-    opt_name=${opt_id}-server
+    if [ $opt_mult -gt 0 ]; then
+      opt_name=${opt_id}${odoo_ver}-server
+    else
+      opt_name=${opt_id}-server
+    fi
   fi
 fi
-if [ "$odoo_ver" == "7" -o "$odoo_ver" == "8" -o "$odoo_ver" == "9" ]; then
-  odoo_fver="$odoo_ver.0"
-else
-  odoo_fver="$odoo_ver"
-  odoo_ver=$(if $(echo "/$odoo_ver/"|grep "/v9/\|9.0/">/dev/null); then echo "9"; elif $(echo "/$odoo_ver/"|grep "/v8/\|8.0/">/dev/null); then echo "8"; else echo "7"; fi)
-fi
+
 if [ -z "$opt_pid" ]; then
-  if [ $opt_mult -gt 0 ]; then
-    opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
+  if [ "$odoo_ver" == "10" ]; then
+    if [ $opt_mult -gt 0 ]; then
+      opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}.pid
+    else
+      opt_pid=/var/run/${opt_id}/${opt_name}.pid
+    fi
   else
-    opt_pid=/var/run/${opt_id}/${opt_name}.pid
+    if [ $opt_mult -gt 0 ]; then
+      opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
+    else
+      opt_pid=/var/run/${opt_id}/${opt_name}.pid
+    fi
   fi
 fi
 if [ -z "$opt_flog" ]; then
-  if [ $opt_mult -gt 0 ]; then
-    opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
+  if [ "$odoo_ver" == "10" ]; then
+    if [ $opt_mult -gt 0 ]; then
+      opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}.log
+    else
+      opt_flog=/var/log/${opt_id}/${opt_name}.log
+    fi
   else
-    opt_flog=/var/log/${opt_id}/${opt_name}.log
+    if [ $opt_mult -gt 0 ]; then
+      opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
+    else
+      opt_flog=/var/log/${opt_id}/${opt_name}.log
+    fi
   fi
 fi
 if [ -z "$opt_cfg" ]; then
-  if [ $opt_mult -gt 0 ]; then
-    opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
+  if [ "$odoo_ver" == "10" ]; then
+    if [ $opt_mult -gt 0 ]; then
+      opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}.conf
+    else
+      opt_cfg=/etc/${opt_id}/${opt_name}.conf
+    fi
   else
-    opt_cfg=/etc/${opt_id}/${opt_name}.conf
+    if [ $opt_mult -gt 0 ]; then
+      opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
+    else
+      opt_cfg=/etc/${opt_id}/${opt_name}.conf
+    fi
   fi
 fi
 opt_cfg2="$(dirname $opt_cfg)"
@@ -154,7 +195,7 @@ echo "- pidfile is $opt_pid"
 echo "- def.conf.file is $opt_cfg"
 echo "- alt.conf.file is $opt_cfg2"
 src_template=""
-for d in $TDIR . /etc/product; do
+for d in $TDIR . /etc/lisa /etc/product; do
   for p in $FH .;do
     if [ "$p" == "." ]; then
       n=$d/odoo-server

@@ -11,10 +11,11 @@
 # or visit http://wiki.zeroincombenze.org/en/Lisa webpage
 # for furthermore information
 #
-[Linux]
+[_Linux_]
+SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact,web,website
 
-[Debian]
+[_Debian_]
 ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
 
-[CentOS7]
+[_CentOS7_]
 ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup

@@ -4,11 +4,11 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
-# [RHEL] yum groupinstall 'Development Tools
+# [RHEL] yum groupinstall 'Development Tools'
 # [RHEL] yum install gcc libffi-devel python-devel openssl-devel
 # [Debian] apt-get install build-essential
 # [Debian] apt-get install libssl-dev libffi-dev python-dev
@@ -37,8 +37,11 @@
 # per Kaspersky
 # yum install kernel-headers
 # yum install glibc.i686
+#[RHEL] chkconfig
+#[Debian] update-rc.d
 
-__version__="0.2.36.8"
+__version__=0.2.36.10
+
 
 STS_FAILED=1
 STS_SUCCESS=0
@@ -64,147 +67,8 @@ RUNDIR=$(readlink -e $TESTDIR/..)
 conf_default() {
     # ALIAS
     local p x
-    # set_cfg_def "REAL_OSSERVICE" "service" "0" "Debian"
-    # set_cfg_def "REAL_OSSERVICE" "service" "0" "CentOS6"
-    # set_cfg_def "REAL_OSSERVICE" "systemctl" "0" "CentOS7"
-    # set_cfg_def "REAL_apache2" "httpd" "0" "RHEL"
-    # set_cfg_def "REAL_httpd" "apache2" "0" "Debian"
-    # set_cfg_def "REAL_python-pip" "pip" "0"
-    # set_cfg_def "REAL_python-setuptools" "setuptools" "0"
-    # set_cfg_def "REAL_mysql" "mysql-server" "0"
-    # set_cfg_def "REAL_mysql" "mariadb" "0" "CentOS7"
-    # set_cfg_def "REAL_mysql-server" "mariadb-server" "0" "CentOS7"
-    # set_cfg_def "REAL_mariadb" "mysql-server" "0" "CentOS6"
-    # set_cfg_def "REAL_mariadb" "mysql-server" "0" "Debian"
-    # set_cfg_def "REAL_mariadb-server" "mysql-server" "0" "CentOS6"
-    # set_cfg_def "REAL_mariadb-server" "mysql-server" "0" "Debian"
-    # set_cfg_def "REAL_postgres" "postgresql-server" "0" "RHEL"
-    # set_cfg_def "REAL_postgres" "postgresql" "0" "Debian"
-    # set_cfg_def "REAL_postgresql" "postgresql-server" "0" "RHEL"
-    # set_cfg_def "REAL_postgresql-server" "postgresql" "0" "Debian"
-    # set_cfg_def "REAL_pyopenssl" "pyOpenSSL" "0" "RHEL"
-    # set_cfg_def "REAL_php5" "php" "0" "RHEL"
-    # set_cfg_def "REAL_php" "php5" "0" "Debian"
-    # set_cfg_def "REAL_openssh" "openssh-server" "0"
-    # set_cfg_def "REAL_openssh-client" "openssh-clients" "0" "RHEL"
-    # set_cfg_def "REAL_openssh-clients" "openssh-client" "0" "Debian"
-    # set_cfg_def "REAL_beautifulsoup" "BeautifulSoup" "0"
-    # set_cfg_def "REAL_libxml2-python" "python-libxml2" "0" "Debian"
-    # set_cfg_def "REAL_python-libxml2" "libxml2-python" "0" "RHEL"
-    # set_cfg_def "REAL_libxslt-python" "python-libxslt1" "0" "Debian"
-    # set_cfg_def "REAL_python-libxslt1" "libxslt-python" "0" "RHEL"
-    # set_cfg_def "REAL_python-devel" "python-dev" "0" "Debian"
-    # set_cfg_def "REAL_python-dev" "python-devel" "0" "RHEL"
-    # set_cfg_def "REAL_zlib1g-dev" "zlib-devel" "0" "Debian"
-    # set_cfg_def "REAL_zlib-devel" "zlib1g-dev" "0" "RHEL"
-    # set_cfg_def "REAL_libreadline6-dev" "readline-devel" "0" "Debian"
-    # set_cfg_def "REAL_readline-devel" "libreadline6-dev" "0" "RHEL"
-    # set_cfg_def "REAL_php5-mysql" "php-mysql" "0" "RHEL"
-    # set_cfg_def "REAL_php-mysql" "php5-mysql" "0" "Debian"
-    # set_cfg_def "REAL_php5-common" "php-common" "0" "RHEL"
-    # set_cfg_def "REAL_php-common" "php5-common" "0" "Debian"
-    # set_cfg_def "REAL_php5-xml" "php-xml" "0" "RHEL"
-    # set_cfg_def "REAL_php-xml" "php5-xml" "0" "Debian"
-    # set_cfg_def "REAL_php5-cli" "php-cli" "0" "RHEL"
-    # set_cfg_def "REAL_php-cli" "php5-cli" "0" "Debian"
-    # Commands templates
-    # set_cfg_def "VFYLOW" "apachectl php5" "0" "Debian"
-    # set_cfg_def "VFYLOW" "apachectl php" "0" "RHEL"
-    # set_cfg_def "VFYUPP" "ssh lisa" "0"
-    # set_cfg_def "VFYPSX" "pip mysql psql python wkhtmltopdf wget gcc" "0"
-    # set_cfg_def "VFYE2NL" "" "0"
-    # set_cfg_def "VFYERR" "ssh python" "0"
-    # set_cfg_def "NOINQ" "vsftpd postgresql-client-common postgresql-contrib ghostscript odoo" "0"
-    # set_cfg_def "NAME_VIRTUAL" "LAMP" "0"
-    # Packages migrated into pip
-    # PIP_PYSTD_PKGS="dateutil Babel pyparsing beaker psycopg2 reportlab decorator"
-    # PIP_PYSTD_PKGS="$PIP_PYSTD_PKGS docutils feedparser gevent jinja2"
-    # for p in $PIP_PYSTD_PKGS; do
-    #   x=${p,}
-    #   if [ "$p" == "pyparsing" ]; then
-    #     set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
-    #   else
-    #     set_cfg_def "REAL_python-$x" "$p" "0" "Debian"
-    #     set_cfg_def "REAL_python-$x" "$p" "0" "CentOS7"
-    #     # set_cfg_def "REAL_$p" "python-$x" "0" "CentOS6"
-    #   fi
-    #   # if [ "$x" != "$p" ]; then
-    #   #   set_cfg_def "REAL_$x" "$p" "0"
-    #   # fi
-    # done
-    # PIP_PYSTD_PKGS="pip setuptools wheel $PIP_PYSTD_PKGS"
-    # set_cfg_def "PIP_PYSTD_PKGS" "$PIP_PYSTD_PKGS" "0"
-    # p="$PIP_PYSTD_PKGS oerplib virtualenv Babel python-ldap python-openid os0"
-    # p="$p pytok pyasn1 ndg-httpsclient pytz gdata PyYAML xlwt unidecode urllib3"
-    # p="$p passlib unicodecsv pydot vatnumber BeautifulSoup mock lxml"
-    # p="$p simplejson"
-    # if [ "$DISTO" != "CentOS6" ]; then
-    #   p="$p pyparsing beaker psycopg2 reportlab decorator docutils feedparser gevent"
-    #   P="$p jinja2"
-    # fi
-    # set_cfg_def "PIP_PKGS" "$p" "0"
-    # set_cfg_def "GIT_PKGS" "lisa odoo pandoc" "0"
-    # p="lisa wkhtmltopdf"
-    # if [ "$DISTO" == "CentOS6" ]; then
-    #   p="$p python-dateutil"
-    #   set_cfg_def "REAL_dateutil" "python-dateutil" "0" "CentOS6"
-    # fi
-    # set_cfg_def "WGET_PKGS" "$p" "0"
-    # local WGET_PKGS=$p
-    # p=""
-    # for x in $PIP_PYSTD_PKGS;do
-    #   if [[ " $WGET_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
-    #     :
-    #   else
-    #     p="$p python-$x"
-    #   fi
-    # done
-    # p="$p gcc iptables epel-release yum-utils openssh-server"
-    # p="$p postgresql-server python mysql-server postgresql iptables-services"
-    # p="$p php-mysql php-common php-xml bzip2-devel mod_ssl mod_proxy_html"
-    # p="$p openssl-devel libssl-dev docutils-doc libart-2.0-2"
-    # p="$p libcupsfilters1 libcupsimage2 libgs9 libgs9-common"
-    # p="$p ncurses-devel sqlite-devel ghostscript antiword docutils-common"
-    # p="$p libijs-0.35 libjbig2dec0 liblcms2-2 libpaper-utils libpaper1"
-    # p="$p libpoppler44 libtidy-0.99-0 libwebp5 libwebpmux1 poppler-data"
-    # p="$p poppler-utils python-babel python-babel-localedata python-decorator"
-    # p="$p python-docutils python-feedparser python-gevent python-greenlet"
-    # p="$p python-imaging python-jinja2 python-mako python-markupsafe"
-    # p="$p python-pil python-psutil python-pybabel python-pychart"
-    # p="$p python-pygments python-pyinotify python-pyparsing"
-    # p="$p python-pypdf python-renderpm python-reportlab python-reportlab-accel"
-    # p="$p python-roman python-suds python-unittest2"
-    # p="$p python-utidylib python-vobject python-werkzeug wget git"
-    # p="$p libapache2-mod-auth-mysql pyopenssl"
-    # p="$p vsftpd postgresql-client-common postgresql-contrib"
-    # p="$p telnet xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi"
-    # p="$p python-virtualenv libxml2 libjpeg-turbo libtiff libyaml"
-    # p="$p dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
-    # set_cfg_def "STD_PKGS" "$p EVERYTHINGS" "0"
-    # p="httpd mariadb mariadb-server php libxml2-python pyOpenSSL libffi-devel"
-    # p="$p php-cli libxslt-python python-devel readline zlib1g-dev libreadline6-dev"
-    # p="$p php-mysql php-common php-xml php-cli openssh-clients"
-    # p="$p bind-utils"
-    # set_cfg_def "YUM_PKGS" "$p" "0" "RHEL"
-    # p="apache2 php5 python-libxml2 libffi-dev python-openssl build-essential"
-    # p="$p python-libxslt1 python-dev libreadline6 zlib-devel readline-devel"
-    # p="$p php5-mysql php5-common php5-xml php5-cli openssh-client"
-    # set_cfg_def "APT_PKGS" "$p" "0" "Debian"
-    # Packges requirements
-    # set_cfg_def "LAMP_ReqPkgList" "gcc pip iptables" "0" "CentOS7"
-    # set_cfg_def "LAMP_ReqPkgList" "gcc pip" "0"
-    # set_cfg_def "lisa_ReqPkgList" "wget git" "0"
-    # p="git unidecode unicodecsv pydot vatnumber BeautifulSoup"
-    # set_cfg_def "odoo_ReqPkgList" "python postgresql $p" "0" "Debian"
-    # set_cfg_def "odoo_ReqPkgList" "python postgresql-server $p" "0" "RHEL"
-    # set_cfg_def "python_ReqPkgList" "pip wheel" "0" "Debian"
-    # set_cfg_def "python_ReqPkgList" "pip wheel" "0" "CentOS7"
-    # set_cfg_def "python_ReqPkgList" "pip" "0" "CentOS6"
     set_cfg_def "wkhtmltopdf_ReqPkgList" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
     # Bill of packages
-    # set_cfg_def "LAMP" "epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python" "0" "CentOS7"
-    # set_cfg_def "LAMP" "epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python" "0" "CentOS6"
-    # set_cfg_def "LAMP" "pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python" "0" "Debian"
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
@@ -291,14 +155,14 @@ conf_default() {
       set_cfg_def "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
     elif [ "$opt_oed" == "oca" ]; then
       gitrep="OCA/OCB"
-      set_cfg_def "odoo_Branch" "7.0 8.0 9.0" "0"
-      p="account-closing,account-financial-tools,account-financial-reporting,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
-      set_cfg_def "SUBM_odoo" "$p" "0"
+      set_cfg_def "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
+      p="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website"
+      set_cfg_def "odoo_SubPkgList" "$p" "0"
     else
       gitrep="zeroincombenze/OCB"
       set_cfg_def "odoo_Branch" "7.0 8.0" "0"
-      p="l10n-italy-supplemental,account-closing,account-financial-tools,account-financial-reporting,account-invoicing,account-payment,bank-payment,knowledge,partner-contact,stock-logistics-workflow,webkit-tools"
-      set_cfg_def "SUBM_odoo" "$p" "0"
+      p="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy l10n-italy-supplemental partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website"
+      set_cfg_def "odoo_SubPkgList" "$p" "0"
       set_cfg_def "odoo_upstream" "https://github.com/OCA/$addons.git"
     fi
     set_cfg_def "odoo_cmdname" "NULL" "0"
@@ -329,10 +193,6 @@ conf_default() {
     set_cfg_def "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
     set_cfg_def "postgresql-server_cmdname" "psql" "0" "RHEL"
     set_cfg_def "postgresql_cmdname" "psql" "0" "Debian"
-    # set_cfg_def "pip_xtlcmd_install" "apt-get" "0" "Debian"
-    # set_cfg_def "pip_xtlcmd_install" "yum" "0" "RHEL"
-    # set_cfg_def "wheel_xtlcmd_install" "apt-get" "0" "Debian"
-    # set_cfg_def "wheel_xtlcmd_install" "yum" "0" "RHEL"
     set_cfg_def "mysql-server_cmdname" "mysql" "0"
     set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
     set_cfg_def "mysql_cmdname" "mysql" "0"
@@ -341,7 +201,6 @@ conf_default() {
     set_cfg_def "openssh-client_cmdname" "ssh" "0" "Debian"
     set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
     set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
-    # set_cfg_def "lisa_git_LocalRoot" "/tmp" "0"
     set_cfg_def "lisa_git_LocalUser" "odoo" "0"
     set_cfg_def "wkhtmltopdf_wget_URL" "http://download.gna.org/wkhtmltopdf/0.12/0.12.1" "0"
     if [ "$MACHARCH" != "x86_64" ]; then
@@ -361,7 +220,7 @@ conf_default() {
     fi
     set_cfg_def "pandoc_git_URL" "https://github.com/jgm/pandoc.git" "0"
     set_cfg_def "pandoc_git_LocalRoot" "/opt/pandoc" "0"
-    set_cfg_def "SUBM_pandoc" "." "0"
+    set_cfg_def "pandoc_SubPkgList" "." "0"
     # Service names
     set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
@@ -404,7 +263,7 @@ store_cfg_param_value() {
     local p
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$5"
-    elif [[ " ReqPkgList xtlcmd BOP " =~ [[:space:]]$2[[:space:]] ]]; then
+    elif [[ " ReqPkgList SubPkgList xtlcmd BOP " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${5}_$2"
     else
       p="$2"
@@ -435,7 +294,6 @@ get_conf_pkg() {
       # eval $(active_cfg $tid)
     fi
     CONF_FNS[$conf_level]=$1
-    # echo "_read_cfg_file $1 $tid $2"  #debug
     _read_cfg_file "$1" "$tid" "$2"
     # echo "<<${DEFDICT1[LAMP_ReqPkgList]}>>" #debug
 }
@@ -443,8 +301,9 @@ get_conf_pkg() {
 clr_conf_pkg() {
     if  [ $conf_level -gt 0 ]; then
       if  [ $conf_level -le 3 ]; then
-        eval $(init_cfg $conf_level)
-        eval $(active_cfg $conf_level)
+        # eval $(init_cfg $conf_level)
+        # eval $(active_cfg $conf_level)
+        CFG_init $conf_level
       fi
       CONF_FNS[$conf_level]=
       ((conf_level--))
@@ -452,21 +311,30 @@ clr_conf_pkg() {
 }
 
 find_conf_pkg() {
-# find_conf_pkg (pkgname)
-    local x y
+# find_conf_pkg (pkgname [confn])
+    local PKG_CONF SAMPLE FCONF FCONFDEF s
     if [ $test_mode -gt 0 ]; then
-      y="$TESTDIR $TDIR"
+      s="$TESTDIR $TDIR"
+    elif [ -n "$2" ]; then
+      s="$TDIR /etc/lisa /etc"
     else
-      y=". $TDIR /etc/lisa /etc"
+      s=". $TDIR /etc/lisa /etc"
     fi
-    for x in $y; do
-      if [ -e $x/$1.lish  ]; then
-        local PKG_CONF=$(readlink -f $x/$1.lish)
-        break
+    if [ -n "$2" ]; then
+      if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
+        FCONF=$opt_conf
+      else
+        FCONF=$2
       fi
-    done
-    if [ -n "$PKG_CONF" ]; then
-      get_conf_pkg "$PKG_CONF" "$1"
+      FCONFDEF=$2.sample
+      PKG_CONF=$(findpkg "$FCONF" "$s")
+      SAMPLE=$(findpkg "$FCONFDEF" "$s")
+      link_cfg $PKG_CONF $SAMPLE
+    else
+      PKG_CONF=$(findpkg "$1.lish" "$s")
+      if [ -n "$PKG_CONF" ]; then
+        get_conf_pkg "$PKG_CONF" "$1"
+      fi
     fi
 }
 
@@ -1518,9 +1386,9 @@ if [ -f ./z0librc ]; then
   . ./z0librc
   if [ "\$TDIR" != "/usr/bin" ]; then
     if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
-      local cmd="cp"
+      cmd="cp"
     else
-      local cmd="mv"
+      cmd="mv"
     fi
     mkdir -p /etc/\$THIS
     eval \$cmd \$TDIR/\$pkgname /usr/bin
@@ -1626,8 +1494,9 @@ do_dry_install_lisa() {
         run_traced "$cmd $TDIR/$pkgname /usr/bin"
         run_traced "$cmd $TDIR/${pkgname}.man /usr/bin"
         run_traced "$cmd $TDIR/${pkgname}_bld_ods /usr/bin"
+        run_traced "$cmd $TDIR/*.lish /etc/$THIS"
         run_traced "chmod +x /usr/bin/$pkgname*"
-        for f in ${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+        for f in ${pkgname}.conf ${pkgname}.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
           if [ -f $TDIR/$f ]; then
             run_traced "cp $TDIR/$f /etc/$THIS"
           fi
@@ -1852,10 +1721,19 @@ do_dry_install_by_git() {
         done
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        pkg_subm="$(get_prm_value SUBM_${pkgname})"
+        if [ "$pkgname" == "odoo" -a "$opt_oed" == "odoo"  ]; then
+          pkg_subm=
+        else
+          pkg_subm="$(get_prm_value ${pkgname}_SubPkgList)"
+        fi
         if [ -n "$pkg_subm" ]; then
           if [ -n "$branch" ]; then
             run_traced "git checkout $branch"
+          fi
+          if [ "$pkgname" == "odoo" ]; then
+            if [ "$opt_oed" == "zeroincombenze" ]; then
+              pkg_subm="$pkg_subm l10n-italy-supplemental"
+            fi
           fi
           do_dry_install_submodule_by_git $1 "$pkg_subm" $3 $4 "$5"
           s=$?
@@ -2202,7 +2080,7 @@ do_1_tellme_package() {
       local p=$(get_prm_value "${2}_Branch")
       echo "$p"
     elif [ "$4" == "submodules" ]; then
-      local p=$(get_prm_value "SUBM_${2}")
+      local p=$(get_prm_value "${2}_SubPkgList")
       echo "$p"
     elif [ "$4" == "requirements" ]; then
       local p=$(get_prm_value "${2}_ReqPkgList")
@@ -2819,7 +2697,7 @@ __lisa_install_odoo() {
 }
 
 lisa_update_odoo() {
-# lisa_install_lisa
+# lisa_install_odoo
     # init_odoo_env
     if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
       local ov_iter="9 8 7"
@@ -3461,8 +3339,8 @@ test_remove() {
 # main
 OPTOPTS=(h        b       c        D       d         E       e       g       H        I        i      J        L         l          m        n           o       p         P          q         s         T         u       V           v           y       1)
 OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_quiet opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        1         "="       1         "="     "*"         1           1       1)
-OPTDEFL=(1        0       ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         0         ""        0         ""      ""          0           0       0)
+OPTACTI=(1        1       "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        1         "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         0         ""        0         ""      ""          -1           0       0)
 OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4"   "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"   "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "undocumented"\
@@ -3470,7 +3348,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "add development package(s)"\
  "max depth level"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
- "action on error root,dependecies (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
+ "action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
  "add graphical interface package(s)"\
  "[user@]host to export config files"\
  "declare package(s) as installed"\
@@ -3500,7 +3378,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build an Odoo or LAMP server"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
@@ -3518,10 +3396,6 @@ fi
 get_arch "$opt_osf"
 set_tlog_file "$FLOG"
 if [ -n "$opt_odoo" ]; then
-  if [ "$opt_odoo" != "9" -a "$opt_odoo" != "8" -a "$opt_odoo" != "7" -a "$opt_odoo" != "*" ]; then
-    echo "Invalid option value: use -O9 or -O8 or -O7 or -O*"
-    exit $STS_FAILED
-  fi
   if [ "opt_oed" != "odoo" -a "opt_oed" != "oca" -a "opt_oed" != "zeroincombenze" ]; then
     opt_oed="zeroincombenze"
   fi
@@ -3530,32 +3404,16 @@ opt_aaeR=$(echo "0$opt_aae"|awk -F, '{print $1}')
 opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
 
 for tid in 0 1 2 3; do
-  eval $(init_cfg $tid)
-  eval $(active_cfg $tid)
+  # eval $(init_cfg $tid)
+  # eval $(active_cfg $tid)
+  CFG_init $tid
 done
 prdstk_level=0
 conf_level=0
 declare -a CONF_FNS
 conf_default
-FCONFDEF=/etc/lisa/lisa.conf.sample
-if [ $test_mode -gt 0 ]; then
-  FCONF=$TESTDIR/$THIS.conf
-  FCONFDEF=$TESTDIR/$THIS.conf.sample
-elif [ -n "$opt_conf" -a -f "$opt_conf" ]; then
-  FCONF=$opt_conf
-else
-  if [ "$TDIR" == "/usr/bin" ]; then
-    CDIR="/etc/$THIS"
-  else
-    CDIR=$TDIR
-  fi
-  FCONF=$CDIR/$THIS.conf
-fi
 link_cfg $FCONF $FCONFDEF
-opt_osub="account-closing account-financial-tools account-financial-report account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow web webkit-tools website"
-if [ "$opt_oed" == "zeroincombenze" ]; then
-  opt_osub="$opt_osub l10n-italy-supplemental"
-fi
+find_conf_pkg lisa lisa.conf
 if [ -n "$opt_xtly" ]; then
   SIMULATE_YES=" ${opt_xtly//,/ } "
 fi

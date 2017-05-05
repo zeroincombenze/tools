@@ -29,4 +29,8 @@
 > systemctl start postgresql
 > chkconfig postgresql on
 # yum -y install php
+> yum -y install python-pip
+#
+> yum -y install python-wheel
+> pip install wheel
 # yum -y install python
