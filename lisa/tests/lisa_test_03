@@ -55,10 +55,6 @@ test_run() {
       if [ "$Disto" == "CentOS6" -o "$Disto" == "CentOS7" ]; then
         local Package="httpd"
       fi
-    # elif [ "$Package" == "pip" -a "$Disto" != "CentOS6" ]; then
-    #  local Package="python-pip"
-    # elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
-    #   local Package="pip"
     elif [ "$Package" == "mysql" ]; then
       if [ "$Disto" == "CentOS7" ]; then
          local Package="mariadb"

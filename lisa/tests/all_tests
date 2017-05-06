@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.2.36.10
+__version__=0.2.36.11
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log "$@"

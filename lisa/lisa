@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.10
+__version__=0.2.36.11
 
 
 STS_FAILED=1
@@ -72,10 +72,10 @@ conf_default() {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    set_cfg_def "apache2_BOP" "vsftpd" "0" "Debian"
-    set_cfg_def "httpd_BOP" "vsftpd" "0" "CentOS7"
-    set_cfg_def "mariadb_BOP" "mariadb-server" "0" "CentOS7"
-    set_cfg_def "mysql-server_BOP" "libapache2-mod-auth-mysql" "0"
+    # set_cfg_def "apache2_BOP" "vsftpd" "0" "Debian"
+    # set_cfg_def "httpd_BOP" "vsftpd" "0" "CentOS7"
+    # set_cfg_def "mariadb_BOP" "mariadb-server" "0" "CentOS7"
+    # set_cfg_def "mysql-server_BOP" "libapache2-mod-auth-mysql" "0"
     if [ $opt_grf -eq 0 ]; then
       set_cfg_def "postgresql-server_BOP" "postgresql-client-common postgresql-contrib" "0" "RHEL"
       set_cfg_def "postgresql_BOP" "postgresql-client-common postgresql-contrib" "0" "Debian"
@@ -90,8 +90,8 @@ conf_default() {
       set_cfg_def "openssh-server_BOP" "openssh-clients mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
       set_cfg_def "openssh-server_BOP" "openssh-client" "0" "Debian"
     fi
-    set_cfg_def "php5_BOP" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
-    set_cfg_def "php_BOP" "php-mysql php-common php-xml php-cli" "0" "RHEL"
+    # set_cfg_def "php5_BOP" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
+    # set_cfg_def "php_BOP" "php-mysql php-common php-xml php-cli" "0" "RHEL"
     set_cfg_def "PYTHON_LIB_XML" "python-libxslt1 libxml2 python-libxml2 lxml" "0" "Debian"
     set_cfg_def "PYTHON_LIB_XML" "libxslt-python libxml2 libxml2-python lxml" "0" "RHEL"
     p="setuptools python-virtualenv virtualenv"
@@ -268,8 +268,8 @@ store_cfg_param_value() {
     else
       p="$2"
     fi
-    # echo "a_add $1 $p \"$3\""   #debug
-    a_add "$1" "$p" "$3" "$4"
+    # echo "CFG_set $1 $p \"$3\""   #debug
+    CFG_set "$1" "$p" "$3" "$4"
 }
 
 get_conf_pkg() {
@@ -332,6 +332,9 @@ find_conf_pkg() {
       link_cfg $PKG_CONF $SAMPLE
     else
       PKG_CONF=$(findpkg "$1.lish" "$s")
+      if [ -z "$PKG_CONF" ]; then
+        PKG_CONF=$(findpkg "lisa.lish" "$s")
+      fi
       if [ -n "$PKG_CONF" ]; then
         get_conf_pkg "$PKG_CONF" "$1"
       fi
@@ -2345,6 +2348,7 @@ do_act_all_deppkgs() {
     local sts=$STS_SUCCESS
     local s
     local BOPlist="$(get_prm_value ${3}_BOP)"
+    BOPlist="${BOPlist//,/ }"
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  BOPlist=$BOPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
     if [ -n "$BOPlist" -a $prdstk_level -lt $opt_depth ]; then
       ((prdstk_level++))
@@ -2502,6 +2506,7 @@ do_local_function_BOP() {
     [ $sts -eq 127 ] && sts=$s
     [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
     local BOPlist="$(get_prm_value ${4}_BOP)"
+    BOPlist="${BOPlist//,/ }"
     if [ -n "$BOPlist" ] && [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
       if [ $prdstk_level -lt $opt_depth ]; then
         local opts=${5//I/}
