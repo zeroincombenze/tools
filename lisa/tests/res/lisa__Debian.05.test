@@ -1,13 +1,19 @@
 > apt-get -y install wget
 > apt-get -y install git
 > mkdir -p /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/LAMP.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/python.lish /etc/lisa
+> cd /opt/odoo/dev/pypi/lisa/lisa
 > _install_z0librc
+> cd ..

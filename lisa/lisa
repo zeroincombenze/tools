@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.12
+__version__=0.2.36.14
 
 
 STS_FAILED=1
@@ -260,16 +260,16 @@ conf_default() {
 
 store_cfg_param_value() {
 #store_cfg_param_value(tid key value [opt] [section])
-    local p
+    local p dev
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$5"
-    elif [[ " ReqPkgList SubPkgList xtlcmd BOP wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
+    elif [[ " ReqPkgList SubPkgList etcPkgList binPkgList with_z0libr xtlcmd BOP wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${5}_$2"
     else
       p="$2"
     fi
-    # echo "CFG_set $1 $p \"$3\" \"$4\" <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
-    CFG_set "$1" "$p" "$3" "$4"
+    # echo "CFG_set $1 $p \"$3\" \"$4\" $dev <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
+    CFG_set "$1" "$p" "$3" "$4" $dev
 }
 
 get_conf_pkg() {
@@ -289,9 +289,6 @@ get_conf_pkg() {
       tid=3
     else
       tid=$conf_level
-      # echo "init_cfg $tid"  #debug
-      # eval $(init_cfg $tid)
-      # eval $(active_cfg $tid)
     fi
     CONF_FNS[$conf_level]=$1
     _read_cfg_file "$1" "$tid" "$2"
@@ -342,7 +339,7 @@ find_conf_pkg() {
 }
 
 get_prm_value() {
-# get_prm_value(prmname)
+# get_prm_value(prmname [pkgname|list])
 # return: prmvalue; -> disco, vist
     local p
     local x
@@ -474,7 +471,15 @@ get_prm_value() {
         fi
       fi
     fi
-    echo $p
+    if [ -n "$2" ]; then
+      p="${p//,/ }"
+      if [ "$2" != "list" ]; then
+        p="$(echo "$p"|sed -e s:\${pkgname}:$2:g)"
+      fi
+      echo $p
+    else
+      echo $p
+    fi
     # echo "get_prm_value ('$1')::$DISTO($FH)=$p;;">>~/$THIS.his    #debug
 }
 
@@ -483,36 +488,36 @@ init_cfg_pkg() {
 # return:
     # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his    #debug
     local p x
-    LAMP=$(get_prm_value "LAMP")
-    LAMP="${LAMP//,/ }"
-    NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL)"
-    NAME_VIRTUAL="${NAME_VIRTUAL//,/ }"
-    NOINQ="$(get_prm_value NOINQ)"
-    NOINQ="${NOINQ//,/ }"
-    VFYLOW="$(get_prm_value VFYLOW)"
-    VFYLOW="${VFYLOW//,/ }"
-    VFYUPP="$(get_prm_value VFYUPP)"
-    VFYUPP="${VFYUPP//,/ }"
-    VFYPSX="$(get_prm_value VFYPSX)"
-    VFYPSX="${VFYPSX//,/ }"
-    VFYE2NL="$(get_prm_value VFYE2NL)"
-    VFYE2NL="${VFYE2NL//,/ }"
-    VFYERR="$(get_prm_value VFYERR)"
-    VFYERR="${VFYERR//,/ }"
-    PIP_PKGS="$(get_prm_value PIP_PKGS)"
-    PIP_PKGS="${PIP_PKGS//,/ }"
-    GIT_PKGS="$(get_prm_value GIT_PKGS)"
-    GIT_PKGS="${GIT_PKGS//,/ }"
-    WGET_PKGS="$(get_prm_value WGET_PKGS)"
-    WGET_PKGS="${WGET_PKGS//,/ }"
+    LAMP=$(get_prm_value "LAMP" list)
+    # LAMP="${LAMP//,/ }"
+    NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL list)"
+    # NAME_VIRTUAL="${NAME_VIRTUAL//,/ }"
+    NOINQ="$(get_prm_value NOINQ list)"
+    # NOINQ="${NOINQ//,/ }"
+    VFYLOW="$(get_prm_value VFYLOW list)"
+    # VFYLOW="${VFYLOW//,/ }"
+    VFYUPP="$(get_prm_value VFYUPP list)"
+    # VFYUPP="${VFYUPP//,/ }"
+    VFYPSX="$(get_prm_value VFYPSX list)"
+    # VFYPSX="${VFYPSX//,/ }"
+    VFYE2NL="$(get_prm_value VFYE2NL list)"
+    # VFYE2NL="${VFYE2NL//,/ }"
+    VFYERR="$(get_prm_value VFYERR list)"
+    # VFYERR="${VFYERR//,/ }"
+    PIP_PKGS="$(get_prm_value PIP_PKGS list)"
+    # PIP_PKGS="${PIP_PKGS//,/ }"
+    GIT_PKGS="$(get_prm_value GIT_PKGS list)"
+    # GIT_PKGS="${GIT_PKGS//,/ }"
+    WGET_PKGS="$(get_prm_value WGET_PKGS list)"
+    # WGET_PKGS="${WGET_PKGS//,/ }"
     STD_PKGS="$(get_prm_value STD_PKGS)"
     STD_PKGS="${STD_PKGS//,/ } EVERYTHINGS"
-    YUM_PKGS="$(get_prm_value YUM_PKGS)"
-    YUM_PKGS="${YUM_PKGS//,/ }"
-    APT_PKGS="$(get_prm_value APT_PKGS)"
-    APT_PKGS="${APT_PKGS//,/ }"
-    PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS)"
-    PIP_PYSTD_PKGS="${PIP_PYSTD_PKGS//,/ }"
+    YUM_PKGS="$(get_prm_value YUM_PKGS list)"
+    # YUM_PKGS="${YUM_PKGS//,/ }"
+    APT_PKGS="$(get_prm_value APT_PKGS list)"
+    # APT_PKGS="${APT_PKGS//,/ }"
+    PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS list)"
+    # PIP_PYSTD_PKGS="${PIP_PYSTD_PKGS//,/ }"
     for p in $PIP_PYSTD_PKGS; do
       x="python-$p"
       set_cfg_def "${p}_ReqPkgList" "$x" "0"
@@ -565,8 +570,6 @@ get_iter() {
     done
     if [ -n "$p" ]; then
       local iter="${p//,/ }"
-    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$1[[:space:]] ]]; then
-    #   local iter="python-$1 $1"
     else
       local iter="$1"
     fi
@@ -1084,6 +1087,22 @@ get_full_svccmd() {
     echo "$cmd"
 }
 
+get_full_autosvc() {
+# get_full_autosvc(on|off svcname OPTS)
+    local servicecmd=$(get_realname "OSSERVICE" $3)
+    if [ "$servicecmd" == "service" ]; then
+      local cmd="$servicecmd $2 $1"
+    else
+      local cmd="$servicecmd $1 $2"
+    fi
+    if [ "$FH" == "RHEL" ]; then
+      cmd="chkconfig $2 on"
+    else
+      cmd="update-rc.d $2 enable"
+    fi
+    echo "$cmd"
+}
+
 get_full_confn() {
 # get_full_confn(action pkgname OPTS)
     local x p O
@@ -1368,14 +1387,18 @@ add_users() {
     fi
 }
 
-create_setup_lisa() {
-    if [ -z "$1" ]; then
+create_setup() {
+    local pkgname=$1
+    if [ -z "$2" ]; then
       local SETUP=./setup.sh
     else
-      local SETUP=$1
+      local SETUP=$2
     fi
+    local BINLIST="$(get_prm_value ${pkgname}_binPkgList $pkgname)"
+    local PKGLIST="$(get_prm_value ${pkgname}_etcPkgList $pkgname)"
+    local datetime=$(date +"%Y-%m-%d %H:%M")
     cat <<EOF >$SETUP
-# lisa setup $__version__
+# lisa setup $__version__ ($datetime)
 THIS=\$(basename \$0)
 TDIR=\$(readlink -f \$(dirname \$0))
 pkgname=$THIS
@@ -1390,7 +1413,7 @@ if [ \${opt_dry_run:-0} -eq 0 ]; then
 else
   pfx=">"
 fi
-if [ -f ./z0librc -o \$opt_dry_run -gt 0 ]; then
+if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
   [ \$opt_dry_run -gt 0 ] || . ./z0librc
   if [ "\$TDIR" != "/usr/bin" ]; then
     if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
@@ -1400,22 +1423,34 @@ if [ -f ./z0librc -o \$opt_dry_run -gt 0 ]; then
     fi
     [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
     [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\$pkgname /usr/bin"
-    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$pkgname /usr/bin
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\${pkgname}.man /usr/bin"
-    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\${pkgname}.man /usr/bin
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\${pkgname}_bld_ods /usr/bin"
-    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\${pkgname}_bld_ods /usr/bin
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx chmod +x /usr/bin/\$pkgname*"
-    [ \$opt_dry_run -gt 0 ] || chmod +x /usr/bin/\$pkgname*
-    for f in \${pkgname}.conf \${pkgname}.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
+    for f in $BINLIST; do
       if [ -f \$TDIR/\$f ]; then
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx eval cp \$TDIR/\$f /etc/$THIS"
-        [ \$opt_dry_run -gt 0 ] || eval cp \$TDIR/\$f /etc/$THIS
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /usr/bin"
+        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$f /usr/bin
       fi
     done
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx chmod +x /usr/bin/\$pkgname*"
+    [ \$opt_dry_run -gt 0 ] || chmod +x /usr/bin/\$pkgname*
+    for f in $PKGLIST; do
+      if [ -f \$TDIR/\$f ]; then
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /etc/$THIS"
+        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$f /etc/$THIS
+      fi
+    done
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
+    [ \$opt_dry_run -gt 0 ] || cd \$TDIR
     [ \$opt_verbose -gt 0 ] && echo "\$pfx _install_z0librc"
     [ \$opt_dry_run -gt 0 ] || _install_z0librc
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd .."
+    [ \$opt_dry_run -gt 0 ] || cd ..
+    if [ -d "./\$pkgname" ]; then
+      [ \$opt_verbose -gt 0 ] && echo "rm -fR ./\$pkgname"
+      [ \$opt_dry_run -gt 0 ] || rm -fR ./\$pkgname
+    fi
+    if [ -f "./\$pkgname.gz" ]; then
+      [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$pkgname.gz"
+      [ \$opt_dry_run -gt 0 ] || rm -f ./\$pkgname.gz
+    fi
   fi
 else
   echo "Library z0librc not found!"
@@ -1429,11 +1464,11 @@ do_dry_build_package() {
 #do_dry_build_package(action pkgname OPTS)
 # Build a distribution package from current dir
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local fileignore="$(get_prm_value build_fileignore)"
+    local fileignore="$(get_prm_value build_fileignore list)"
     local x PKGLIST
-    fileignore="${fileignore//,/ }"
-    local xx="$(get_prm_value ${pkgname}_build_fileignore)"
-    xx="${xx//,/ }"
+    # fileignore="${fileignore//,/ }"
+    local xx="$(get_prm_value ${pkgname}_build_fileignore list)"
+    # xx="${xx//,/ }"
     fileignore="$fileignore $xx"
     x="find . -type f"
     for f in $fileignore "setup.*"; do
@@ -1455,69 +1490,69 @@ do_dry_build_lisa() {
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
     local package="$2"
     local f x s
-    local PKGLIST="$package $package.man ${package}_bld_ods"
+    local BINLIST="$(get_prm_value ${pkgname}_binPkgList $package)"
+    local PKGLIST="$(get_prm_value ${pkgname}_etcPkgList $package)"
+    if [ -f /tmp/$package ]; then
+      rm -f /tmp/$package
+    elif [ -d /tmp/$package ]; then
+      rm -fR /tmp/$package
+    fi
+    if [ -f /tmp/$package.gz ]; then
+      rm -f /tmp/$package.gz
+    fi
+    run_traced "mkdir /tmp/$package"
     s=0
-    for f in $PKGLIST; do
+    for f in $BINLIST $PKGLIST; do
       if [ ! -f $f ]; then
         s=1
       fi
     done
     if [ $s -eq 0 ]; then
-      create_setup_lisa
       if [ -f $package.gz ]; then
         rm -f $package.gz
       fi
-      x="-cf"
-      run_traced "tar $x $package.gz setup.sh"
-      x=${x/c/r}
-      for f in $PKGLIST; do
-        run_traced "tar $x $package.gz $f"
-      done
-      for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
+      create_setup lisa
+      for f in setup.sh $BINLIST $PKGLIST; do
         if [ -f $f ]; then
-          run_traced "tar $x $package.gz $f"
+          run_traced "cp $f /tmp/$package/"
+        else
+          echo "Missed $PWD/$f"
         fi
       done
-      if [ -L z0librc ]; then
-        rm -f z0librc
-      fi
-      run_traced "cp /etc/z0librc ./"
-      run_traced "chown odoo:odoo z0librc"
-      run_traced "tar $x $package.gz z0librc"
-      if [ -f z0librc ]; then
+      if [ -L z0librc -o -f z0librc ]; then
         run_traced "rm -f z0librc"
       fi
-      if [ -d /var/www/html/mw/download/ ]; then
-        run_traced "chown apache:apache $package.gz"
-        run_traced "mv $package.gz /var/www/html/mw/download/"
-      fi
     else
-      run_traced "cd /tmp"
-      if [ -f ./$package ]; then
-        rm -f ./$package
-      elif [ -d ./$package ]; then
-        rm -fR ./$package
-      fi
-      run_traced "mkdir ./$package"
-      run_traced "cd ./$package"
-      run_traced "cp /usr/bin/$package ./"
-      run_traced "cp /usr/bin/$package.man ./"
-      run_traced "cp /usr/bin/${pkgname}_bld_ods ./"
-      run_traced "cp /etc/z0librc ./"
-      for f in odoo-server_Debian odoo-server_RHEL odoo-server; do
-        if [ -f /usr/bin/$f ]; then
-          run_traced "cp /usr/bin/$f ./"
+      for f in $BINLIST; do
+        if [ -f /opt/odoo/lisa/$f ]; then
+          run_traced "cp /opt/odoo/lisa/$f /tmp/$package/"
+        elif [ -f /usr/bin/$f ]; then
+          run_traced "cp /usr/bin/$f /tmp/$package/"
+        else
+          echo "Missed /usr/bin/$f"
         fi
       done
-      create_setup_lisa
-      run_traced "cd .."
-      x="-cf"
-      run_traced "tar $x $package.gz ./$package"
-      if [ -d /var/www/html/mw/download/ ]; then
-        run_traced "chown apache:apache $package.gz"
-        run_traced "mv $package.gz /var/www/html/mw/download/"
-        run_traced "rm -fR ./$package"
-      fi
+      for f in $PKGLIST; do
+        if [ -f /opt/odoo/lisa/$f ]; then
+          run_traced "cp /opt/odoo/lisa/$f /tmp/$package/"
+        elif [ -f /etc/$package/$f ]; then
+          run_traced "cp /etc/$package/$f /tmp/$package/"
+        else
+          echo "Missed /etc/$package/$f"
+        fi
+      done
+    fi
+    s="$(get_prm_value ${pkgname}_with_z0libr)"
+    if [ ${s:-0} -gt 0 ]; then
+      run_traced "cp /etc/z0librc /tmp/$package/"
+      run_traced "chown odoo:odoo /tmp/$package/z0librc"
+    fi
+    run_traced "cd /tmp"
+    run_traced "tar -cf $package.gz ./$package"
+    if [ -d /var/www/html/mw/download/ ]; then
+      run_traced "chown apache:apache $package.gz"
+      run_traced "mv $package.gz /var/www/html/mw/download/"
+      run_traced "rm -fR ./$package"
     fi
     return $STS_SUCCESS
 }
@@ -1535,7 +1570,7 @@ do_dry_install_lisa() {
     if [ -z "$opt_host" ]; then
       if [ "$TDIR" != "/usr/bin" ]; then
         if [ ! -f $SETUP ]; then
-          create_setup_lisa $SETUP
+          create_setup lisa $SETUP
         fi
         eval $SETUP $OPTS
       fi
@@ -1646,6 +1681,9 @@ do_dry_install_by_wget() {
         LocalTmp=/tmp/$pkgname
       fi
       run_traced "cd /tmp"
+    fi
+    if [ -f "./$pkgname.gz" ]; then
+      run_traced "rm -f ./$pkgname.gz"
     fi
     run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
     do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalRoot$LocalTmp"
@@ -1868,24 +1906,6 @@ do_dry_remove_package() {
 
 }
 
-# do_dry_update_lisa() {
-# # do_dry_update_lisa(action pkgname OPTS)
-#     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
-#     if [ "$TDIR" != "/usr/bin" ]; then
-#       do_dry_install_lisa update $2 $3
-#     else
-#       run_traced "cd /tmp"
-#       if  [ -d /tmp/tools ]; then
-#         rm -fR /tmp/tools
-#       fi
-#       run_traced "git clone https://github.com/zeroincombenze/tools.git"
-#       run_traced "cd /tmp/tools/lisa"
-#       run_traced "exec ./lisa update lisa"
-#       run_traced "rm -fR /tmp/tools"
-#     fi
-#     return $STS_SUCCESS
-# }
-
 do_dry_remove_lisa() {
 # do_dry_remove_lisa(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS; fi    #debug
@@ -1919,6 +1939,9 @@ do_dry_update_by_wget() {
         LocalTmp=/tmp/$pkgname
       fi
       run_traced "cd /tmp"
+    fi
+    if [ -f "./$pkgname.gz" ]; then
+      run_traced "rm -f ./$pkgname.gz"
     fi
     run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
     do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalTmp"
@@ -2066,7 +2089,8 @@ post_dry_install_service() {
     local sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       run_traced "sleep 3"
-      cmd="chkconfig $svcname on"
+      cmd=$(get_full_autosvc on $svcname $3)
+      # cmd="chkconfig $svcname on"
       run_traced "$cmd"
       sts=$?
     fi
@@ -2085,7 +2109,8 @@ post_dry_config_service() {
 # post_dry_config_service(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_config_service($1 $2 $3)">>~/$THIS.his; fi #debug
     local svcname=$(get_prm_value "${2}_svcname")
-    cmd="chkconfig $svcname on"
+    local cmd=$(get_full_autosvc on $svcname $3)
+    # cmd="chkconfig $svcname on"
     run_traced "$cmd"
     sts=$?
     return $sts
@@ -2330,8 +2355,8 @@ satisfy_request() {
     local sts=127
     local s
     local pkgname=$2
-    local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList)"
-    ReqPkgList="${ReqPkgList//,/ }"
+    local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList list)"
+    # ReqPkgList="${ReqPkgList//,/ }"
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "    ${pkgname}_ReqPkgList=$ReqPkgList">>~/$THIS.his; fi    #debug
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "")
     if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
@@ -2409,8 +2434,8 @@ do_act_all_deppkgs() {
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_act_all_deppkgs($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
     local sts=$STS_SUCCESS
     local s
-    local BOPlist="$(get_prm_value ${3}_BOP)"
-    BOPlist="${BOPlist//,/ }"
+    local BOPlist="$(get_prm_value ${3}_BOP list)"
+    # BOPlist="${BOPlist//,/ }"
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  BOPlist=$BOPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
     if [ -n "$BOPlist" -a $prdstk_level -lt $opt_depth ]; then
       ((prdstk_level++))
@@ -2567,8 +2592,8 @@ do_local_function_BOP() {
     s=$?
     [ $sts -eq 127 ] && sts=$s
     [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-    local BOPlist="$(get_prm_value ${4}_BOP)"
-    BOPlist="${BOPlist//,/ }"
+    local BOPlist="$(get_prm_value ${4}_BOP list)"
+    # BOPlist="${BOPlist//,/ }"
     if [ -n "$BOPlist" ] && [ $sts -eq $STS_SUCCESS -o $sts -eq 127 ]; then
       if [ $prdstk_level -lt $opt_depth ]; then
         local opts=${5//I/}
@@ -3041,367 +3066,6 @@ post_config_mariadb-server() {
 }
 
 
-test_install() {
-  fout=~/$THIS.out
-  ftest=~/$THIS.test
-  local jj=0
-  while ((jj<${#PNLX[*]})); do
-    if [ -f $ftest ]; then rm -f $ftest; fi
-    p="${PNLX[jj]}"
-    if [ "$p" == "." ]; then p=; fi
-    ((tst_ctr++))
-    elog "Test $tst_ctr [$FH]: please install '$p'"
-    if [ "$p" == "odoo" ]; then
-      local opt_osub="account-closing account-financial-tools account-invoicing account-payment bank-payment knowledge partner-contact stock-logistics-workflow webkit-tools"
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> # pre_install_odoo failed">>$ftest
-        echo "--> cd /opt/odoo">>$ftest
-        echo "--> git clone https://github.com/odoo/odoo.git 7.0 -b 7.0 --depth 1 --single-branch">>$ftest
-        for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/7.0">>$ftest
-          echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          # echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
-          echo "--> cd /opt/odoo/7.0">>$ftest
-        done
-        echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
-        echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git checkout 7.0">>$ftest
-        echo "--> mkdir -p /etc/odoo">>$ftest
-        echo "--> chown odoo:odoo /etc/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
-        echo "--> mkdir -p /var/log/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
-        echo "--> mkdir -p /var/lib/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
-        echo "--> mkdir -p /var/run/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
-        echo "--> yum -y update python-lxml">>$ftest
-        echo "--> yum -y update python-psycopg2">>$ftest
-        echo "--> yum -y update python-simplejson">>$ftest
-        echo "--> pip  install pytz">>$ftest
-      else
-        echo "--> # pre_install_odoo failed">>$ftest
-        echo "--> cd /opt/odoo">>$ftest
-        echo "--> git clone https://github.com/odoo/odoo.git 7.0 -b 7.0 --depth 1 --single-branch">>$ftest
-        for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/7.0">>$ftest
-          echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          # echo "--> git remote add upstream https://github.com/OCA/${d}.git">>$ftest
-          echo "--> cd /opt/odoo/7.0">>$ftest
-        done
-        echo "--> chown -R odoo:odoo $opt_odoo.0/">>$ftest
-        echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git checkout 7.0">>$ftest
-        echo "--> mkdir -p /etc/odoo">>$ftest
-        echo "--> chown odoo:odoo /etc/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
-        echo "--> mkdir -p /var/log/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
-        echo "--> mkdir -p /var/lib/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
-        echo "--> mkdir -p /var/run/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
-        echo "--> apt-get -y install ghostscript">>$ftest
-        echo "--> apt-get -y install libart-2.0-2">>$ftest
-        # echo "--> apt-get -y install python-libxml2">>$ftest
-        echo "--> apt-get -y install libcupsfilters1">>$ftest
-        echo "--> apt-get -y install libcupsimage2">>$ftest
-        echo "--> apt-get -y install libgs9">>$ftest
-        echo "--> apt-get -y install libgs9-common">>$ftest
-        echo "--> apt-get -y install libijs-0.35">>$ftest
-        echo "--> apt-get -y install libjbig2dec0">>$ftest
-        echo "--> apt-get -y install liblcms2-2">>$ftest
-        echo "--> apt-get -y install libpaper-utils">>$ftest
-        echo "--> apt-get -y install libpaper1">>$ftest
-        echo "--> apt-get -y install libpoppler44">>$ftest
-        echo "--> apt-get -y install libtidy-0.99-0">>$ftest
-        echo "--> apt-get -y install libwebp5">>$ftest
-        echo "--> apt-get -y install libwebpmux1">>$ftest
-        echo "--> apt-get -y install poppler-data">>$ftest
-        echo "--> apt-get -y install poppler-utils">>$ftest
-        echo "--> apt-get -y update python-babel">>$ftest
-        echo "--> apt-get -y upgrade python-babel">>$ftest
-        echo "--> apt-get -y install python-babel-localedata">>$ftest
-        echo "--> pip install python-dateutil">>$ftest
-        echo "--> apt-get -y install python-decorator">>$ftest
-        echo "--> apt-get -y install python-docutils">>$ftest
-        echo "--> apt-get -y install python-feedparser">>$ftest
-        echo "--> apt-get -y install python-gevent">>$ftest
-        echo "--> apt-get -y install python-greenlet">>$ftest
-        echo "--> apt-get -y install python-imaging">>$ftest
-        echo "--> apt-get -y install python-jinja2">>$ftest
-        echo "--> apt-get -y install python-mako">>$ftest
-        echo "--> apt-get -y install python-markupsafe">>$ftest
-        echo "--> pip  install python-openid">>$ftest
-        echo "--> pip  install passlib">>$ftest
-        echo "--> apt-get -y install python-pil">>$ftest
-        echo "--> apt-get -y install python-psutil">>$ftest
-        echo "--> apt-get -y install python-pybabel">>$ftest
-        echo "--> apt-get -y install python-pychart">>$ftest
-        echo "--> apt-get -y install python-pygments">>$ftest
-        echo "--> apt-get -y install python-pyinotify">>$ftest
-        echo "--> apt-get -y install python-pyparsing">>$ftest
-        echo "--> apt-get -y install python-pypdf">>$ftest
-        echo "--> apt-get -y install python-renderpm">>$ftest
-        echo "--> apt-get -y install python-reportlab">>$ftest
-        echo "--> apt-get -y install python-reportlab-accel">>$ftest
-        echo "--> apt-get -y install python-roman">>$ftest
-        echo "--> apt-get -y install python-suds">>$ftest
-        echo "--> apt-get -y install python-unittest2">>$ftest
-        echo "--> apt-get -y install python-utidylib">>$ftest
-        echo "--> apt-get -y install python-vobject">>$ftest
-        echo "--> apt-get -y install python-werkzeug">>$ftest
-        echo "--> apt-get -y install docutils-common">>$ftest
-        echo "--> apt-get -y install docutils-doc">>$ftest
-        echo "--> pip  install unidecode">>$ftest
-        local pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
-        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
-        echo "--> cd /tmp">>$ftest
-        echo "--> wget $URL/$pn">>$ftest
-        echo "--> apt-get update $pn">>$ftest
-        echo "--> apt-get upgrade $pn">>$ftest
-        echo "--> rm -f $pn">>$ftest
-        echo "--> pip  install unicodecsv">>$ftest
-        echo "--> pip  install pydot">>$ftest
-        echo "--> pip  install vatnumber">>$ftest
-        echo "--> pip  install BeautifulSoup">>$ftest
-      fi
-    fi
-    if [ "$p" ]; then
-      please install $p>$fout
-      if [ "$(diff -q $fout $ftest)" ]; then
-        elog "Test Failed"
-        exit $STS_FAILED
-      fi
-    fi
-    ((++jj))
-  done
-  if [ -f $fout ]; then rm -f $fout; fi
-  if [ -f $ftest ]; then rm -f $ftest; fi
-}
-
-test_update() {
-  fout=~/$THIS.out
-  ftest=~/$THIS.test
-  local jj=0
-  while ((jj<${#PNLX[*]})); do
-    if [ -f $ftest ]; then rm -f $ftest; fi
-    p="${PNLX[jj]}"
-    if [ "$p" == "odoo" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git pull origin 7.0">>$ftest
-        for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/7.0">>$ftest
-          echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          echo "--> cd /opt/odoo/7.0">>$ftest
-        done
-        echo "--> git checkout 7.0">>$ftest
-        echo "--> mkdir -p /etc/odoo">>$ftest
-        echo "--> chown odoo:odoo /etc/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
-        echo "--> mkdir -p /var/log/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
-        echo "--> mkdir -p /var/lib/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
-        echo "--> mkdir -p /var/run/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
-        echo "--> pip  install Babel">>$ftest
-        echo "--> yum -y install dejavu-fonts-common">>$ftest
-        echo "--> yum -y install dejavu-sans-fonts">>$ftest
-        echo "--> yum -y install fontpackages-filesystem">>$ftest
-        # echo "--> yum -y install jbigkit-libs">>$ftest
-        echo "--> yum -y install libjpeg-turbo">>$ftest
-        echo "--> yum -y install libtiff">>$ftest
-        # echo "--> yum -y install libwebp">>$ftest
-        # echo "--> yum -y install libxml2-python">>$ftest
-        # echo "--> yum -y install libxslt-python">>$ftest
-        echo "--> yum -y install libyaml">>$ftest
-        echo "--> pip  install passlib">>$ftest
-        echo "--> yum -y install pyOpenSSL">>$ftest
-        echo "--> yum -y install pychart">>$ftest
-        echo "--> yum -y install pyparsing">>$ftest
-        echo "--> yum -y update python-babel">>$ftest
-        echo "--> yum -y install python-beaker">>$ftest
-        echo "--> pip install python-dateutil">>$ftest
-        echo "--> yum -y install python-docutils">>$ftest
-        echo "--> yum -y install python-feedparser">>$ftest
-        echo "--> yum -y install python-jinja2">>$ftest
-        echo "--> pip  install python-ldap">>$ftest
-        echo "--> yum -y update python-lxml">>$ftest
-        echo "--> yum -y install python-mako">>$ftest
-        echo "--> yum -y install python-markupsafe">>$ftest
-        echo "--> pip  install python-openid">>$ftest
-        ## echo "--> pip  install passlib">>$ftest
-        # echo "--> yum -y install python-paste">>$ftest
-        # echo "--> yum -y install python-pillow">>$ftest
-        echo "--> yum -y install python-psutil">>$ftest
-        echo "--> yum -y update python-psycopg2">>$ftest
-        echo "--> yum -y install python-reportlab">>$ftest
-        # echo "--> yum -y install python-requests">>$ftest
-        echo "--> yum -y update python-simplejson">>$ftest
-        # echo "--> yum -y install python-six">>$ftest
-        # echo "--> yum -y install python-tempita">>$ftest
-        echo "--> yum -y install python-unittest2">>$ftest
-        echo "--> pip  install urllib3">>$ftest
-        echo "--> yum -y install python-vobject">>$ftest
-        echo "--> yum -y install python-werkzeug">>$ftest
-        echo "--> pip  install pytz">>$ftest
-        echo "--> pip  install unidecode">>$ftest
-        local pn="wkhtmltox-0.12.2.1_linux-centos7-amd64.rpm"
-        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
-        echo "--> cd /tmp">>$ftest
-        echo "--> wget $URL/$pn">>$ftest
-        echo "--> rpm -U $pn">>$ftest
-        echo "--> rm -f $pn">>$ftest
-      else
-        echo "--> cd /opt/odoo/7.0">>$ftest
-        echo "--> git pull origin 7.0">>$ftest
-        for d in ${opt_osub//,/ }; do
-          echo "--> cd /opt/odoo/7.0">>$ftest
-          echo "--> echo \"$d/\">>.gitignore">>$ftest
-          echo "--> git clone -b 7.0 https://github.com/OCA/${d}.git ${d} --depth 1 --single-branch">>$ftest
-          echo "--> git submodule add -b 7.0 -f https://github.com/OCA/${d}.git ${d}">>$ftest
-          echo "--> cd /opt/odoo/7.0">>$ftest
-        done
-        echo "--> git checkout 7.0">>$ftest
-        echo "--> mkdir -p /etc/odoo">>$ftest
-        echo "--> chown odoo:odoo /etc/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /etc/odoo">>$ftest
-        echo "--> mkdir -p /var/log/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/log/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/log/odoo">>$ftest
-        echo "--> mkdir -p /var/lib/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/lib/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/lib/odoo">>$ftest
-        echo "--> mkdir -p /var/run/odoo">>$ftest
-        echo "--> chown odoo:odoo /var/run/odoo">>$ftest
-        echo "--> chmod -R u+rw,g+r,o+r /var/run/odoo">>$ftest
-        echo "--> apt-get -y install ghostscript">>$ftest
-        echo "--> apt-get -y install libart-2.0-2">>$ftest
-        # echo "--> apt-get -y install python-libxml2">>$ftest
-        echo "--> apt-get -y install libcupsfilters1">>$ftest
-        echo "--> apt-get -y install libcupsimage2">>$ftest
-        echo "--> apt-get -y install libgs9">>$ftest
-        echo "--> apt-get -y install libgs9-common">>$ftest
-        echo "--> apt-get -y install libijs-0.35">>$ftest
-        echo "--> apt-get -y install libjbig2dec0">>$ftest
-        echo "--> apt-get -y install liblcms2-2">>$ftest
-        echo "--> apt-get -y install libpaper-utils">>$ftest
-        echo "--> apt-get -y install libpaper1">>$ftest
-        echo "--> apt-get -y install libpoppler44">>$ftest
-        echo "--> apt-get -y install libtidy-0.99-0">>$ftest
-        echo "--> apt-get -y install libwebp5">>$ftest
-        echo "--> apt-get -y install libwebpmux1">>$ftest
-        echo "--> apt-get -y install poppler-data">>$ftest
-        echo "--> apt-get -y install poppler-utils">>$ftest
-        echo "--> apt-get -y update python-babel">>$ftest
-        echo "--> apt-get -y upgrade python-babel">>$ftest
-        echo "--> apt-get -y install python-babel-localedata">>$ftest
-        echo "--> pip install python-dateutil">>$ftest
-        echo "--> apt-get -y install python-decorator">>$ftest
-        echo "--> apt-get -y install python-docutils">>$ftest
-        echo "--> apt-get -y install python-feedparser">>$ftest
-        echo "--> apt-get -y install python-gevent">>$ftest
-        echo "--> apt-get -y install python-greenlet">>$ftest
-        echo "--> apt-get -y install python-imaging">>$ftest
-        echo "--> apt-get -y install python-jinja2">>$ftest
-        echo "--> apt-get -y install python-mako">>$ftest
-        echo "--> apt-get -y install python-markupsafe">>$ftest
-        echo "--> pip  install python-openid">>$ftest
-        echo "--> pip  install passlib">>$ftest
-        echo "--> apt-get -y install python-pil">>$ftest
-        echo "--> apt-get -y install python-psutil">>$ftest
-        echo "--> apt-get -y install python-pybabel">>$ftest
-        echo "--> apt-get -y install python-pychart">>$ftest
-        echo "--> apt-get -y install python-pygments">>$ftest
-        echo "--> apt-get -y install python-pyinotify">>$ftest
-        echo "--> apt-get -y install python-pyparsing">>$ftest
-        echo "--> apt-get -y install python-pypdf">>$ftest
-        echo "--> apt-get -y install python-renderpm">>$ftest
-        echo "--> apt-get -y install python-reportlab">>$ftest
-        echo "--> apt-get -y install python-reportlab-accel">>$ftest
-        echo "--> apt-get -y install python-roman">>$ftest
-        echo "--> apt-get -y install python-suds">>$ftest
-        echo "--> apt-get -y install python-unittest2">>$ftest
-        echo "--> apt-get -y install python-utidylib">>$ftest
-        echo "--> apt-get -y install python-vobject">>$ftest
-        echo "--> apt-get -y install python-werkzeug">>$ftest
-        echo "--> apt-get -y install docutils-common">>$ftest
-        echo "--> apt-get -y install docutils-doc">>$ftest
-        echo "--> pip  install unidecode">>$ftest
-        local pn="wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
-        local URL="http://download.gna.org/wkhtmltopdf/0.12/0.12.2.1"
-        echo "--> cd /tmp">>$ftest
-        echo "--> wget $URL/$pn">>$ftest
-        echo "--> apt-get update $pn">>$ftest
-        echo "--> apt-get upgrade $pn">>$ftest
-        echo "--> rm -f $pn">>$ftest
-      fi
-    fi
-    please update $p>$fout
-    if [ "$(diff -q $fout $ftest)" ]; then
-      elog "Test Failed"
-      exit $STS_FAILED
-    fi
-    ((++jj))
-  done
-  if [ -f $fout ]; then rm -f $fout; fi
-  if [ -f $ftest ]; then rm -f $ftest; fi
-}
-
-test_remove() {
-  fout=~/$THIS.out
-  ftest=~/$THIS.test
-  local jj=0
-  while ((jj<${#PNLX[*]})); do
-    if [ -f $ftest ]; then rm -f $ftest; fi
-    p="${PNLX[jj]}"
-    if [ "$p" == "." ]; then p=; fi
-    ((tst_ctr++))
-    elog "Test $tst_ctr [$FH]: 'please remove $p'"
-    if [ "$p" == "odoo" ]; then
-      if [ "$FH" == "RHEL" ]; then
-        echo "--> yum -y remove odoo">>$ftest
-        echo "python-babel should be removed">>$ftest
-        echo "python-lxml should be removed">>$ftest
-        echo "python-psycopg2 should be removed">>$ftest
-        echo "python-simplejson should be removed">>$ftest
-        echo "wkhtmltopdf should be removed">>$ftest
-      else
-        echo "--> apt-get -y remove odoo">>$ftest
-        echo "python-babel should be removed">>$ftest
-        echo "wkhtmltopdf should be removed">>$ftest
-        echo "--> apt-get autoremove">>$ftest
-      fi
-    fi
-    if [ "$p" ]; then
-      please remove $p>$fout
-      if [ "$(diff -q $fout $ftest)" ]; then
-        elog "Test Failed"
-        exit $STS_FAILED
-      fi
-    fi
-    ((++jj))
-  done
-  if [ -f $fout ]; then rm -f $fout; fi
-  if [ -f $ftest ]; then rm -f $ftest; fi
-}
 
 # main
 OPTOPTS=(h        b       c        D       d         E       e       g       H        I        i      J        L         l          m        n           o       p         P          q           s         T         u       V           v           y       1)

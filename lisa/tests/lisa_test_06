@@ -131,17 +131,22 @@ EOF
 > tar -xf lisa.gz
 > ./setup.sh -nv
 > mkdir -p /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
 EOF
   for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
     if [ -f $RUNDIR/$f ]; then
-      echo "> eval cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa.06.test
+      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa.06.test
     fi
   done
+  for f in $RUNDIR/*.lish; do
+    echo "> cp $f /etc/lisa">>$TESTDIR/res/lisa.06.test
+  done
+  echo "> cd $RUNDIR">>$TESTDIR/res/lisa.06.test
   echo "> _install_z0librc">>$TESTDIR/res/lisa.06.test
+  echo "> cd ..">>$TESTDIR/res/lisa.06.test
   echo "> rm -f lisa.gz">>$TESTDIR/res/lisa.06.test
 #
   cat <<EOF >$TESTDIR/res/apache2__Debian.06.test
@@ -152,7 +157,7 @@ EOF
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 > service vsftpd start
-> chkconfig vsftpd on
+> update-rc.d vsftpd enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
 EOF
   cat <<EOF >$TESTDIR/res/httpd__CentOS7.06.test

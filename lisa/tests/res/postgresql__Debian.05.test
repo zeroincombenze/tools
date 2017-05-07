@@ -2,4 +2,4 @@
 > apt-get -y install postgresql-client-common
 > apt-get -y install postgresql-contrib
 > service postgresql start
-> chkconfig postgresql on
+> update-rc.d postgresql enable

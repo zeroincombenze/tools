@@ -120,38 +120,46 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > yum -y install wget
 > yum -y install git
 > mkdir -p /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
 EOF
   cat <<EOF >$TESTDIR/res/lisa__Debian.05.test
 > apt-get -y install wget
 > apt-get -y install git
 > mkdir -p /etc/lisa
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
-> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
 EOF
   for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
     if [ -f $RUNDIR/$f ]; then
-      echo "> eval cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
-      echo "> eval cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
+      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
+      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
     fi
   done
+  for f in $RUNDIR/*.lish; do
+    echo "> cp $f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
+    echo "> cp $f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
+  done
+  echo "> cd $RUNDIR">>$TESTDIR/res/lisa__RHEL.05.test
+  echo "> cd $RUNDIR">>$TESTDIR/res/lisa__Debian.05.test
   echo "> _install_z0librc">>$TESTDIR/res/lisa__RHEL.05.test
   echo "> _install_z0librc">>$TESTDIR/res/lisa__Debian.05.test
+  echo "> cd ..">>$TESTDIR/res/lisa__RHEL.05.test
+  echo "> cd ..">>$TESTDIR/res/lisa__Debian.05.test
 #
   cat <<EOF >$TESTDIR/res/apache2__Debian.05.test
 > apt-get -y install apache2
 > apt-get -y install vsftpd
 > service apache2 start
-> chkconfig apache2 on
+> update-rc.d apache2 enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 > service vsftpd start
-> chkconfig vsftpd on
+> update-rc.d vsftpd enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 21 -j ACCEPT
 EOF
   cat <<EOF >$TESTDIR/res/httpd__CentOS7.05.test
@@ -191,7 +199,7 @@ EOF
 > apt-get -y install postgresql-client-common
 > apt-get -y install postgresql-contrib
 > service postgresql start
-> chkconfig postgresql on
+> update-rc.d postgresql enable
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS7.05.test
 > yum -y install python-pip
@@ -218,7 +226,7 @@ EOF
 > apt-get -y install openssh-server
 > apt-get -y install openssh-client
 > service ssh start
-> chkconfig ssh on
+> update-rc.d ssh enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__CentOS7.05.test
@@ -336,7 +344,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > apt-get -y install openssh-client
 > apt-get -y install telnet
 > service ssh start
-> chkconfig ssh on
+> update-rc.d ssh enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__CentOS7.05.test
