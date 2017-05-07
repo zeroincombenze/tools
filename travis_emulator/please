@@ -97,8 +97,9 @@ do_check() {
 
 do_test() {
     wlog "do_test"
+    local sts=$STS_FAILED
     if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      opts=$(inherits_travis_opts "T" "T")
+      local opts=$(inherits_travis_opts "T" "T")
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
     elif [ $opt_r -gt 0 ]; then
@@ -114,11 +115,10 @@ do_test() {
 
 do_diff() {
     wlog "do_diff \"$1\" \"$2\" \"$3\""
-    opt_diff=1
-    opts=$(inherits_travis_opts "" "D")
-    dist_pkg $opts $PKGNAME;
-    sts=$?
-    return $sts
+    local opt_diff=1
+    local opts=$(inherits_travis_opts "" "D")
+    run_traced "dist_pkg $opts $PKGNAME"
+    return $?
 }
 
 
@@ -1528,9 +1528,9 @@ elif [ "$action" == "coverage" ]; then
 # elif [ "$action" == "distribution" ]; then
 #   do_distribution "$PKGNAME" "$sub1" "$sub2"
 #   sts=$?
-elif [ "$action" == "diff" ]; then
-  do_diff "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
+# elif [ "$action" == "diff" ]; then
+#   do_diff "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
 elif [ "$action" == "if-fetch" ]; then
   opt_dry_run=1
   do_fetch "$PKGNAME" "$sub1" "$sub2"
@@ -1552,9 +1552,9 @@ elif [ "$action" == "if-replace" ]; then
 elif [ "$action" == "replace" ]; then
   do_replace "$PKGNAME" "$sub1" "$sub2"
   sts=$?
-elif [ "$action" == "test" ]; then
-  do_test "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
+# elif [ "$action" == "test" ]; then
+#   do_test "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
 elif [ "$action" == "travis" ]; then
   do_travis "$PKGNAME" "$sub1" "$sub2"
   sts=$?

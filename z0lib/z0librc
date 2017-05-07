@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.47
+#__version__=0.1.48
 STS_FAILED=1
 STS_SUCCESS=0
 
@@ -977,16 +977,22 @@ export -f set_cfg_def
 
 
 _read_cfg_file() {
-#read_cfg_file(file $tid [section])
-    local key val lne x r t s d
+#read_cfg_file(file $tid [section[debug]])
+    local key val lne x r t s d b dev
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
     else
       store_param=CFG_set
     fi
+    if [ ${4:-0} -gt 0 ]; then
+      dev="_DEV"
+    else
+      dev=" "
+    fi
     t=1
     s=
     d=
+    b=
     while IFS="#" read -r lne r || [ -n "$lne" ]; do
       if [ -n "$lne" -a -n "$r" ] && [ "${lne: -1}" != " " ]; then
         lne="$lne#$r"
@@ -1015,6 +1021,26 @@ _read_cfg_file() {
           elif [ -z "$3" -a "${s:0:1}" != "_" -a "${s:0: -1}" != "_" ]; then
             t=1
             d=
+          elif [ "$s" == "_Linux${dev}_" ]; then
+            t=1
+            s="$3"
+            d=
+            b=1
+          elif [ "$s" == "_${XU_DISTO}${dev}_" ]; then
+            t=1
+            s="$3"
+            d=-d
+            b=1
+          elif [ "$s" == "_${XU_FH}${dev}_" ]; then
+            t=1
+            s="$3"
+            d=-f
+            b=1
+          elif [ "$s" == "$3${dev}" ]; then
+            t=1
+            s="$3"
+            d=
+            b=1
           fi
         elif [ $t -gt 0 ]; then
           IFS== read -r kk val <<<"$lne"
@@ -1026,7 +1052,7 @@ _read_cfg_file() {
               x=$(echo $x)
               val="${val:0:-1}$x"
             done
-            $store_param $2 $kk "$val" "$d" "$s"
+            $store_param $2 $kk "$val" "$d" "$s" "$b"
             if [ "$kk" == "CONFN" ]; then
               CONFN="$val"
             fi
@@ -1037,7 +1063,7 @@ _read_cfg_file() {
 }
 
 link_cfg() {
-# link_cfg(file_cfg,[file_def,[tid,[section]]])
+# link_cfg(file_cfg,[file_def,[tid,[section[debug]]]])
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
       local tid=$3
@@ -1047,11 +1073,11 @@ link_cfg() {
     if [ -n "$2" ]; then
       if [ -f $2.sample ]; then
         CFG_set "$tid" "CONFND" "$2.sample"
-        _read_cfg_file "$2.sample" "$tid" "$4"
+        _read_cfg_file "$2.sample" "$tid" "$4" "$5"
       fi
       if [ -f $2 ]; then
         CFG_set "$tid" "CONFND" "$2"
-        _read_cfg_file "$2" "$tid" "$4"
+        _read_cfg_file "$2" "$tid" "$4" "$5"
       fi
     fi
     if [ -n "$1" ]; then
@@ -1059,10 +1085,10 @@ link_cfg() {
       CONFN="$1"
       if [ -f $1.sample ]; then
         CFG_set "$tid" "CONFND" "$1.sample"
-        _read_cfg_file "$1.sample" "$tid" "$4"
+        _read_cfg_file "$1.sample" "$tid" "$4" "$5"
       fi
       if [ -f "$CONFN" ]; then
-        _read_cfg_file "$CONFN" "$tid" "$4"
+        _read_cfg_file "$CONFN" "$tid" "$4" "$5"
       fi
     fi
     $SET_X

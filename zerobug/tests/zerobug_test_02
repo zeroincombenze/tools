@@ -44,7 +44,7 @@ if [ ${opt_tlib:-0} -ne 0 ]; then
 fi
 UT1_LIST=""
 UT_LIST="__version_0_${__version__}$Z0TLIBDIR/z0testrc"
-UT_LIST="$UT_LIST __version_1_0.1.47$Z0LIBDIR/z0librc"
+UT_LIST="$UT_LIST __version_1_0.1.48$Z0LIBDIR/z0librc"
 UT_LIST="$UT_LIST __version_V_0.2.0$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_v_0.2.1$TESTDIR/dummy_01.py"
 UT_LIST="$UT_LIST __version_P_0.2.2$TESTDIR/dummy_01.py"

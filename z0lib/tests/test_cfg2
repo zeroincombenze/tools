@@ -24,15 +24,19 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.28
+__version__=0.1.28.1
 
 
 PASSED=0
 
 store_cfg_param_value() {
-#store_cfg_param_value(tid key value [opt] [section])
-    PASSED=1
-    CFG_set "$1" "$2" "$3" "$4"
+#store_cfg_param_value(tid key value [opt] [section] [dev])
+    if [ ${6:-0} -gt 0 ]; then
+      PASSED=2
+    else
+      PASSED=1
+    fi
+    CFG_set "$1" "$2" "$3" "$4" "$6"
 }
 
 test_01() {
@@ -40,28 +44,58 @@ test_01() {
       CFG_init $tid
       FCONF="$TESTDIR/test.conf"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ -f $FCONF ]; then rm -f $FCONF; fi
-        echo "#">$FCONF.sample
-        echo "param1=Invalid">$FCONF
-        local FH=$(xuname "-f")
-        local x=$(xuname "-v")
-        local v=$(echo $x|awk -F. '{print $1}')
-        local DISTO=$(xuname "-d")$v
-        echo "[_${DISTO}_]">>$FCONF
-        echo "param1=Right">>$FCONF
-        if [ "$DISTO" == "CentOS7" ]; then
-          echo "[_Ubuntu14_]">>$FCONF
-        else
-          echo "[_CentOS7_]">>$FCONF
-        fi
-        echo "param1=Wrong">>$FCONF
         link_cfg $FCONF "" $tid
       fi
       TRES=$(get_cfg_value $tid "param1")
       test_result "find param1 OS ($tid)" "Right" "$TRES"
       test_result "param managed" "1" "$PASSED"
       PASSED=0
+      TRES=$(get_cfg_value $tid "param2")
+      test_result "find param2 OS ($tid)" "NoDebug" "$TRES"
     done
+}
+
+test_02() {
+    for tid in 0; do
+      CFG_init $tid
+      FCONF="$TESTDIR/test.conf"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        link_cfg $FCONF "" $tid "" "1"
+      fi
+      TRES=$(get_cfg_value $tid "param1")
+      test_result "find param1 OS ($tid)" "Right" "$TRES"
+      TRES=$(get_cfg_value $tid "param2")
+      test_result "find param2 OS ($tid)" "Debug" "$TRES"
+      test_result "param managed" "2" "$PASSED"
+      PASSED=0
+    done
+}
+
+Z0BUG_setup() {
+    FCONF="$TESTDIR/test.conf"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ -f $FCONF ]; then rm -f $FCONF; fi
+      echo "#">$FCONF.sample
+      echo "param1=Invalid">>$FCONF
+      local FH=$(xuname "-f")
+      local x=$(xuname "-v")
+      local v=$(echo $x|awk -F. '{print $1}')
+      local DISTO=$(xuname "-d")$v
+      echo "">>$FCONF
+      echo "[_${DISTO}_]">>$FCONF
+      echo "param1=Right">>$FCONF
+      echo "param2=NoDebug">>$FCONF
+      echo "[_${DISTO}_DEV_]">>$FCONF
+      echo "param2=Debug">>$FCONF
+      echo "">>$FCONF
+      if [ "$DISTO" == "CentOS7" ]; then
+        echo "[_Ubuntu14_]">>$FCONF
+      else
+        echo "[_CentOS7_]">>$FCONF
+      fi
+      echo "param1=Wrong">>$FCONF
+      echo "param2=WrongDebug">>$FCONF
+    fi
 }
 
 
