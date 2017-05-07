@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.11
+__version__=0.2.36.12
 
 
 STS_FAILED=1
@@ -263,12 +263,12 @@ store_cfg_param_value() {
     local p
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$5"
-    elif [[ " ReqPkgList SubPkgList xtlcmd BOP " =~ [[:space:]]$2[[:space:]] ]]; then
+    elif [[ " ReqPkgList SubPkgList xtlcmd BOP wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${5}_$2"
     else
       p="$2"
     fi
-    # echo "CFG_set $1 $p \"$3\""   #debug
+    # echo "CFG_set $1 $p \"$3\" \"$4\" <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
     CFG_set "$1" "$p" "$3" "$4"
 }
 
@@ -527,7 +527,7 @@ init_cfg_pkg() {
 }
 
 print_title() {
-    if [ $opt_quiet -eq 0 ]; then
+    if [ $opt_verbose -gt 0 -a $test_mode -eq 0 ]; then
       wlog "$1"
     fi
 }
@@ -1030,25 +1030,13 @@ get_act_xtlcmd() {
 
 get_full_xtlcmd() {
 # get_full_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
-    local xtlcmd=$(get_act_xtlcmd $2 "$1" $3 $4 $5)
+    local xtlcmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_act_xtlcmd($2 $1 $3)">>~/$THIS.his; fi    #debug
     local pkg lop lreqver rop rreqver branch x pkgURL subpkg
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     local p=" $2"
     if [ "$2" == "EVERYTHINGS" ]; then
       p=""
-    # elif [[ " pip setuptools wheel " =~ [[:space:]]$2[[:space:]] ]] && [ "$1" == "install" -o "$1" == "remove" ] && [ "$DISTO" != "CentOS6" ]; then
-    #   p=" python-$2"
-    # elif [ "$2" == "pip" -a "$1" == "install" -a "$DISTO" != "CentOS6" ]; then
-    #     p=" python-$2"
-    # elif [ "$2" == "pip" -a "$1" == "remove" -a "$DISTO" != "CentOS6" ]; then
-    #     p=" python-$2"
-    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] && [[ $3 =~ p ]]; then
-    #   p=" python-$2"
-    # elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
-    #   if [ "$1" == "install" -o "$1" == "remove" ]; then
-    #     p=" python-$2"
-    #   fi
     fi
     if [ "$xtlcmd" == "yum" -o "$xtlcmd" == "apt-get" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
@@ -1381,38 +1369,90 @@ add_users() {
 }
 
 create_setup_lisa() {
-cat <<EOF >./setup.sh
+    if [ -z "$1" ]; then
+      local SETUP=./setup.sh
+    else
+      local SETUP=$1
+    fi
+    cat <<EOF >$SETUP
+# lisa setup $__version__
 THIS=\$(basename \$0)
 TDIR=\$(readlink -f \$(dirname \$0))
-pkgname=\$THIS
-if [ -f ./z0librc ]; then
-  . ./z0librc
+pkgname=$THIS
+opt_verbose=0
+opt_dry_run=0
+if [ "\${1:0:1}" == "-" ]; then
+  if [[ "\$1" =~ v ]]; then opt_verbose=1; fi
+  if [[ "\$1" =~ n ]]; then opt_dry_run=1; fi
+fi
+if [ \${opt_dry_run:-0} -eq 0 ]; then
+  pfx="\\\$"
+else
+  pfx=">"
+fi
+if [ -f ./z0librc -o \$opt_dry_run -gt 0 ]; then
+  [ \$opt_dry_run -gt 0 ] || . ./z0librc
   if [ "\$TDIR" != "/usr/bin" ]; then
     if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
-      cmd="cp"
+      cpmv="cp"
     else
-      cmd="mv"
+      cpmv="mv"
     fi
-    mkdir -p /etc/\$THIS
-    eval \$cmd \$TDIR/\$pkgname /usr/bin
-    eval \$cmd \$TDIR/\${pkgname}.man /usr/bin
-    eval \$cmd \$TDIR/\${pkgname}_bld_ods /usr/bin
-    chmod +x /usr/bin/\$pkgname*
-    for f in \${pkgname}.conf odoo-server_Debian odoo-server_RHEL odoo-server; do
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
+    [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\$pkgname /usr/bin"
+    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$pkgname /usr/bin
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\${pkgname}.man /usr/bin"
+    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\${pkgname}.man /usr/bin
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx eval \$cpmv \$TDIR/\${pkgname}_bld_ods /usr/bin"
+    [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\${pkgname}_bld_ods /usr/bin
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx chmod +x /usr/bin/\$pkgname*"
+    [ \$opt_dry_run -gt 0 ] || chmod +x /usr/bin/\$pkgname*
+    for f in \${pkgname}.conf \${pkgname}.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
       if [ -f \$TDIR/\$f ]; then
-        eval cp \$TDIR/\$f /etc/\$THIS
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx eval cp \$TDIR/\$f /etc/$THIS"
+        [ \$opt_dry_run -gt 0 ] || eval cp \$TDIR/\$f /etc/$THIS
       fi
     done
-    _install_z0librc
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx _install_z0librc"
+    [ \$opt_dry_run -gt 0 ] || _install_z0librc
   fi
+else
+  echo "Library z0librc not found!"
+  exit 1
 fi
 EOF
-chmod +x ./setup.sh
+    chmod +x ./setup.sh
+}
+
+do_dry_build_package() {
+#do_dry_build_package(action pkgname OPTS)
+# Build a distribution package from current dir
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local fileignore="$(get_prm_value build_fileignore)"
+    local x PKGLIST
+    fileignore="${fileignore//,/ }"
+    local xx="$(get_prm_value ${pkgname}_build_fileignore)"
+    xx="${xx//,/ }"
+    fileignore="$fileignore $xx"
+    x="find . -type f"
+    for f in $fileignore "setup.*"; do
+      if [ "${f: -1}" == "/" ]; then
+        x="$x -not -path '*/$f*'"
+      else
+        x="$x -not -name '*$f'"
+      fi
+    done
+    eval $x >./tmp.log
+    PKGLIST="$(cat ./tmp.log)"
+    rm -f ./tmp.log
+    rm -fR $HOME/tmp
+    mkdir -p $HOME/tmp
 }
 
 do_dry_build_lisa() {
 # do_dry_build_lisa(action pkgname OPTS)
-if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
     local package="$2"
     local f x s
     local PKGLIST="$package $package.man ${package}_bld_ods"
@@ -1486,25 +1526,18 @@ do_dry_install_lisa() {
 # do_dry_install_lisa(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
     local pkgname=$2
+    local SETUP=$TDIR/setup.sh
+    local cmd
+    local OPTS=
+    if [ $opt_dry_run -gt 0 ]; then OPTS=${OPTS}n; fi
+    if [ $opt_verbose -gt 0 ]; then OPTS=${OPTS}v; fi
+    if [ -n "$OPTS" ]; then OPTS=-${OPTS}; fi
     if [ -z "$opt_host" ]; then
       if [ "$TDIR" != "/usr/bin" ]; then
-        if [ "${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
-          local cmd="cp"
-        else
-          local cmd="mv"
+        if [ ! -f $SETUP ]; then
+          create_setup_lisa $SETUP
         fi
-        run_traced "mkdir -p /etc/$THIS"
-        run_traced "$cmd $TDIR/$pkgname /usr/bin"
-        run_traced "$cmd $TDIR/${pkgname}.man /usr/bin"
-        run_traced "$cmd $TDIR/${pkgname}_bld_ods /usr/bin"
-        run_traced "$cmd $TDIR/*.lish /etc/$THIS"
-        run_traced "chmod +x /usr/bin/$pkgname*"
-        for f in ${pkgname}.conf ${pkgname}.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
-          if [ -f $TDIR/$f ]; then
-            run_traced "cp $TDIR/$f /etc/$THIS"
-          fi
-        done
-        run_traced "_install_z0librc"
+        eval $SETUP $OPTS
       fi
     else
       if [ "opt_if" ]; then
@@ -1523,51 +1556,100 @@ do_dry_install_lisa() {
     return $STS_SUCCESS
 }
 
+
+do_deploy_package() {
+# do_deploy_package(action pkgname OPTS pkg_xname LocalTmp)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_wget($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local pkgname=$2
+    local pkg_xname=$4
+    local LocalTmp=$5
+    local sts=
+    local OPTS=
+    if [ $opt_dry_run -gt 0 ]; then OPTS=${OPTS}n; fi
+    if [ $opt_verbose -gt 0 ]; then OPTS=${OPTS}v; fi
+    if [ -n "$OPTS" ]; then OPTS=-${OPTS}; fi
+    if [ "${LocalTmp:0:4}" == "/tmp" ]; then
+      if [ -d "$LocalTmp/$pkgname" ]; then
+        run_traced "rm -fR $LocalTmp/$pkgname"
+      elif [ -f "$LocalTmp/$pkgname" ]; then
+        run_traced "rm -f $LocalTmp/$pkgname"
+      fi
+    fi
+    if [ "${pkgname:0:7}" == "python-" -o "${pkg_xname: -7}"  == ".tar.gz" ]; then
+      local s="$pkgname~~~~~~pip"
+      local cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      run_traced "$cmd"
+      sts=$?
+    elif [ "${pkg_xname: -4}" == ".rpm" ]; then
+      # run_traced "rpm -i $pkg_xname"
+      local s="$pkgname~~~~~~yum"
+      local cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      run_traced "$cmd"
+      sts=$?
+    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
+      # run_traced "apt-get install $pkg_xname"
+      local s="$pkgname~~~~~~apt-get"
+      local cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      run_traced "$cmd"
+      sts=$?
+      if [ "$1" == "update" ]; then
+        cmd="${cmd/update/upgrade}"
+        run_traced "$cmd"
+        sts=$?
+      fi
+    else
+      run_traced "tar -xf $pkg_xname"
+      if [ $test_mode -gt 0 ]; then
+        cd $RUNDIR
+      elif [ -d "$LocalTmp" ]; then
+        cd $LocalTmp
+      fi
+      if [ -f ./setup.sh ]; then
+        [ $opt_dry_run -gt 0 ] && echo "> ./setup.sh $OPTS"
+        ./setup.sh $OPTS
+        sts=$?
+      elif [ -f ./setup.py ]; then
+        run_traced "python ./setup.py"
+        sts=$?
+      else
+        echo "Invalid package $pkg_xname"
+        sts=1
+      fi
+    fi
+    run_traced "rm -f $pkg_xname"
+    return $sts
+}
+
 do_dry_install_by_wget() {
 # do_dry_install_by_wget(action pkgname OPTS)
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_wget($1 $2 $3)">>~/$THIS.his; fi    #debug
     local pkgname=$2
     local xtlcmd=wget
     local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
-    local pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
-    local pkg_xname="$(get_prm_value ${pkgname}_${xtlcmd}_xname)"
+    local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
+    local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
+    local pkg_xname=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
     local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
     if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
-      elog "*** Package $pkgname not found for this hardware"
+      elog "*** Package $pkgname not found for this OS version"
       elog "    wget $pkg_xname from URL=$pkg_URL"
       return 2
     fi
     if [ -n "$LocalRoot" ]; then
+      LocalTmp=
       if [ ! -d $LocalRoot ]; then
         mkdir_traced $LocalRoot
       fi
       run_traced "cd $LocalRoot"
     else
-      if [ -d /tmp/$pkg_xname ]; then
-        run_traced "rm -fR /tmp/$pkg_xname"
-      elif [ -f /tmp/$pkg_xname ]; then
-        run_traced "rm -f /tmp/$pkg_xname"
+      if [ -z "$LocalTmp" ]; then
+        LocalTmp=/tmp/$pkgname
       fi
       run_traced "cd /tmp"
     fi
     run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
-    if [ -d $pkg_xname ]; then
-      cd $pkg_xname
-      if [ -f ./setup.sh ]; then
-        ./setup.sh
-      elif [ -f ./setup.py ]; then
-        python ./setup.py
-      fi
-    elif [ "${pkg_xname: -4}" == ".rpm" ]; then
-      run_traced "rpm -i $pkg_xname"
-    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
-      run_traced "apt-get install $pkg_xname"
-    elif [ "${pkg_xname: -7}"  == ".tar.gz" ]; then
-      run_traced "pip install $pkg_xname"
-    fi
-    local sts=$?
-    run_traced "rm -f $pkg_xname"
-    return $sts
+    do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalRoot$LocalTmp"
+    return $?
 }
 
 
@@ -1764,17 +1846,6 @@ do_dry_install_by_git() {
 do_dry_update_package() {
 # do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
-    # if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$2[[:space:]] ]] &&  [[ " $DETECTED_NOPIP " =~ [[:space:]]$2[[:space:]] ]]; then
-    #   local cmd=$(get_act_xtlcmd python-$2 install $3 $4 "$5")
-    #   if [ -n "$cmd" ]; then
-    #     cmd=$(get_full_xtlcmd $1 python-$2 $3 $4 "$5")
-    #     run_traced "$cmd"
-    #     if [ "${cmd:0:7}" == "apt-get" ]; then
-    #       cmd="${cmd/update/upgrade}"
-    #       run_traced "$cmd"
-    #     fi
-    #   fi
-    # else
       cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
       run_traced "$cmd"
       local sts=$?
@@ -1797,23 +1868,23 @@ do_dry_remove_package() {
 
 }
 
-do_dry_update_lisa() {
-# do_dry_update_lisa(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
-    if [ "$TDIR" != "/usr/bin" ]; then
-      do_dry_install_lisa update $2 $3
-    else
-      run_traced "cd /tmp"
-      if  [ -d /tmp/tools ]; then
-        rm -fR /tmp/tools
-      fi
-      run_traced "git clone https://github.com/zeroincombenze/tools.git"
-      run_traced "cd /tmp/tools/lisa"
-      run_traced "exec ./lisa update lisa"
-      run_traced "rm -fR /tmp/tools"
-    fi
-    return $STS_SUCCESS
-}
+# do_dry_update_lisa() {
+# # do_dry_update_lisa(action pkgname OPTS)
+#     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_lisa($1 $2 $3)">>~/$THIS.his; fi    #debug
+#     if [ "$TDIR" != "/usr/bin" ]; then
+#       do_dry_install_lisa update $2 $3
+#     else
+#       run_traced "cd /tmp"
+#       if  [ -d /tmp/tools ]; then
+#         rm -fR /tmp/tools
+#       fi
+#       run_traced "git clone https://github.com/zeroincombenze/tools.git"
+#       run_traced "cd /tmp/tools/lisa"
+#       run_traced "exec ./lisa update lisa"
+#       run_traced "rm -fR /tmp/tools"
+#     fi
+#     return $STS_SUCCESS
+# }
 
 do_dry_remove_lisa() {
 # do_dry_remove_lisa(action pkgname OPTS)
@@ -1829,10 +1900,12 @@ do_dry_update_by_wget() {
     local pkgname=$2
     local xtlcmd=wget
     local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
-    local pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
-    local pkg_xname="$(get_prm_value ${pkgname}_${xtlcmd}_xname)"
+    local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
+    local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
+    local pkg_xname=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
+    local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
     if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
-      elog "*** Package $pkgname not found for this hardware"
+      elog "*** Package $pkgname not found for this OS version"
       elog "    wget $pkg_xname from URL=$pkg_URL"
       return 2
     fi
@@ -1842,25 +1915,14 @@ do_dry_update_by_wget() {
       fi
       run_traced "cd $LocalRoot"
     else
-      if [ -d /tmp/$pkg_xname ]; then
-        run_traced "rm -fR /tmp/$pkg_xname"
-      elif [ -f /tmp/$pkg_xname ]; then
-        run_traced "rm -f /tmp/$pkg_xname"
+      if [ -z "$LocalTmp" ]; then
+        LocalTmp=/tmp/$pkgname
       fi
       run_traced "cd /tmp"
     fi
-    run_traced "wget $pkg_URL/$pkg_xname"
-    if [ "${pkg_xname: -4}" == ".rpm" ]; then
-      run_traced "rpm -U $pkg_xname"
-    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
-      run_traced "apt-get update $pkg_xname"
-      run_traced "apt-get upgrade $pkg_xname"
-    elif [ "${pkg_xname: -7}"  == ".tar.gz" ]; then
-      run_traced "pip install $pkg_xname --upgrade"
-    fi
-    local sts=$?
-    run_traced "rm -f $pkg_xname"
-    return $sts
+    run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
+    do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalTmp"
+    return $?
 }
 
 
@@ -2180,11 +2242,11 @@ do_dry_version_package() {
       if [ -z "$pkgversion" ]; then
         pkgversion="$pkgname: unknown version"
       fi
-      if [ $opt_quiet -gt 0 ]; then
-        cmd="wlog \"$pkgversion\""
-      else
+      # if [ $opt_quiet -gt 0 ]; then
+      #   cmd="wlog \"$pkgversion\""
+      # else
         cmd="wlog \"$lm$pkgname: $pkgversion\""
-      fi
+      # fi
     fi
     eval $cmd
     return $STS_SUCCESS
@@ -3342,11 +3404,11 @@ test_remove() {
 }
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e       g       H        I        i      J        L         l          m        n           o       p         P          q         s         T         u       V           v           y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_quiet opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        1         "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         0         ""        0         ""      ""          -1           0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4"   "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"   "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e       g       H        I        i      J        L         l          m        n           o       p         P          q           s         T         u       V           v           y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4"   "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "undocumented"\
  "configuration file (def /etc/lisa/lisa.conf)"\

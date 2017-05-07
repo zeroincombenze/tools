@@ -1,12 +1,16 @@
+> cd /tmp
+> wget http://download.zeroincombenze.org/lisa.gz
+> tar -xf lisa.gz
+> ./setup.sh -nv
 > mkdir -p /etc/lisa
-> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
-> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
-> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
-> cp /opt/odoo/dev/pypi/lisa/lisa/*.lish /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
-> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf /etc/lisa
-> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
-> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
-> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
-> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server /etc/lisa
 > _install_z0librc
+> rm -f lisa.gz

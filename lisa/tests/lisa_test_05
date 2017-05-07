@@ -26,7 +26,9 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
 __version__=0.2.1.20
+
 
 test_run () {
 # test_run(msg,package,disto,cmd,opt_d)
@@ -86,12 +88,6 @@ test_run () {
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
     elif [ "$Package" == "openssh-server" ]; then
       opt_ij="-J$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet"
-    # elif [ "$Package" == "dateutil" -a "$Disto" == "CentOS6" ]; then
-    #   Package=python-dateutil
-    #   opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
-    # elif [ "$Package" == "python-dateutil" -a "$Disto" != "CentOS6" ]; then
-    #   Package=dateutil
-    #   opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "dateutil" -o "$Package" == "python-dateutil" ]; then
       opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "python" ]; then
@@ -124,26 +120,24 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > yum -y install wget
 > yum -y install git
 > mkdir -p /etc/lisa
-> cp $RUNDIR/lisa /usr/bin
-> cp $RUNDIR/lisa.man /usr/bin
-> cp $RUNDIR/lisa_bld_ods /usr/bin
-> cp $RUNDIR/*.lish /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
 EOF
   cat <<EOF >$TESTDIR/res/lisa__Debian.05.test
 > apt-get -y install wget
 > apt-get -y install git
 > mkdir -p /etc/lisa
-> cp $RUNDIR/lisa /usr/bin
-> cp $RUNDIR/lisa.man /usr/bin
-> cp $RUNDIR/lisa_bld_ods /usr/bin
-> cp $RUNDIR/*.lish /etc/lisa
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> eval cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > chmod +x /usr/bin/lisa*
 EOF
   for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
     if [ -f $RUNDIR/$f ]; then
-      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
-      echo "> cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
+      echo "> eval cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__RHEL.05.test
+      echo "> eval cp $RUNDIR/$f /etc/lisa">>$TESTDIR/res/lisa__Debian.05.test
     fi
   done
   echo "> _install_z0librc">>$TESTDIR/res/lisa__RHEL.05.test
@@ -255,7 +249,7 @@ EOF
 > apt-get -y install wget
 > cd /tmp
 > wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
-> apt-get install wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> apt-get -y install wkhtmltox-0.12.1_linux-trusty-amd64.deb
 > rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb
 EOF
   cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu12.05.test
@@ -264,7 +258,7 @@ EOF
 > apt-get -y install wget
 > cd /tmp
 > wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-precise-i386.deb
-> apt-get install wkhtmltox-0.12.1_linux-precise-i386.deb
+> apt-get -y install wkhtmltox-0.12.1_linux-precise-i386.deb
 > rm -f wkhtmltox-0.12.1_linux-precise-i386.deb
 EOF
   cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS7.05.test
@@ -273,7 +267,7 @@ EOF
 > yum -y install wget
 > cd /tmp
 > wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-centos7-amd64.rpm
-> rpm -i wkhtmltox-0.12.1_linux-centos7-amd64.rpm
+> yum -y install wkhtmltox-0.12.1_linux-centos7-amd64.rpm
 > rm -f wkhtmltox-0.12.1_linux-centos7-amd64.rpm
 EOF
   cat <<EOF >$TESTDIR/res/wkhtmltopdf__CentOS6.05.test
@@ -282,7 +276,7 @@ EOF
 > yum -y install wget
 > cd /tmp
 > wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-centos6-i386.rpm
-> rpm -i wkhtmltox-0.12.1_linux-centos6-i386.rpm
+> yum -y install wkhtmltox-0.12.1_linux-centos6-i386.rpm
 > rm -f wkhtmltox-0.12.1_linux-centos6-i386.rpm
 EOF
   cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
@@ -441,6 +435,10 @@ Z0BUG_setup() {
       echo "Please, remove wkhtmltopdf file from /tmp"
       exit 1
     fi
+    local CWD=$PWD
+    cd $RUNDIR
+    ./lisa build lisa -qn
+    cd $CWD
 }
 
 
