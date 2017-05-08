@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.14
+__version__=0.2.36.15
 
 
 STS_FAILED=1
@@ -72,10 +72,6 @@ conf_default() {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    # set_cfg_def "apache2_BOP" "vsftpd" "0" "Debian"
-    # set_cfg_def "httpd_BOP" "vsftpd" "0" "CentOS7"
-    # set_cfg_def "mariadb_BOP" "mariadb-server" "0" "CentOS7"
-    # set_cfg_def "mysql-server_BOP" "libapache2-mod-auth-mysql" "0"
     if [ $opt_grf -eq 0 ]; then
       set_cfg_def "postgresql-server_BOP" "postgresql-client-common postgresql-contrib" "0" "RHEL"
       set_cfg_def "postgresql_BOP" "postgresql-client-common postgresql-contrib" "0" "Debian"
@@ -90,8 +86,6 @@ conf_default() {
       set_cfg_def "openssh-server_BOP" "openssh-clients mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
       set_cfg_def "openssh-server_BOP" "openssh-client" "0" "Debian"
     fi
-    # set_cfg_def "php5_BOP" "php5-mysql php5-common php5-xml php5-cli" "0" "Debian"
-    # set_cfg_def "php_BOP" "php-mysql php-common php-xml php-cli" "0" "RHEL"
     set_cfg_def "PYTHON_LIB_XML" "python-libxslt1 libxml2 python-libxml2 lxml" "0" "Debian"
     set_cfg_def "PYTHON_LIB_XML" "libxslt-python libxml2 libxml2-python lxml" "0" "RHEL"
     p="setuptools python-virtualenv virtualenv"
