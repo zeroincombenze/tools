@@ -1,0 +1,57 @@
+# Lisa common data configuration file
+# Please, if you update this configuratione file, send a copy to
+# antoniomaria.vigliotti@gmail.com
+# so your configuration should be shared with other people.
+# Last update: 2017-05-05
+#
+# This file may be deployed in /etc/lisa directory.
+# See /etc/lisa/lisa.conf.sample for example of configuration file
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+
+[_Linux_]
+mysql-server_BOP=libapache2-mod-auth-mysql
+# openssh-server_cmdname=NULL
+# TCP_openssh-server=22
+
+[_Debian_]
+apache2_BOP=vsftpd
+php5_BOP=php5-mysql,php5-common,php5-xml,php5-cli
+# openssh-server_BOP=openssh-client,telnet
+
+[_Debian_DEV_]
+# openssh-server_BOP=openssh-client,telnet
+# openssh-client_cmdname=ssh
+# openssh-server_svcname=ssh
+
+
+[_RHEL_]
+php_BOP=php-mysql,php-common,php-xml,php-cli
+# openssh-server_BOP=openssh-clients,telnet,mod_ssl,mod_proxy_html,iptables-services,bind-utils
+# openssh-clients_cmdname=ssh
+# openssh-server_svcname=sshd
+
+[_RHEL_DEV_]
+# openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
+
+
+[_CentOS7_]
+httpd_BOP=vsftpd
+mariadb_BOP=mariadb-server
+
+
+[_CentOS6_]
+# httpd_BOP=
+
+
+[lisa]
+with_z0libr=1
+binPkgList=${pkgname},${pkgname}.man,${pkgname}_bld_ods
+etcPkgList=${pkgname}.conf,${pkgname}.conf.sample,odoo-server_Debian,odoo-server_RHEL,odoo-server,*.lish
+wget_URL=http://download.zeroincombenze.org
+wget_xname=lisa.gz
+git_URL=https://github.com/zeroincombenze/tools.git
+git_LocalUser=odoo

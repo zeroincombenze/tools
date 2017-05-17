@@ -22,21 +22,22 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.11
+__version__=0.1.12
 
 
-OPTOPTS=(h        b          c        d      n           o       q           t         U        V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_DB opt_dry_run opt_del opt_verbose test_mode opt_user opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "="    1           1       0           1         "="      "*"         "+")
-OPTDEFL=(1        "7.0"      ""       ""     0           0       -1          0         "odoo"   ""          -1)
-OPTMETA=("help"   "branch"   "file"   "name" "noop"      "del"   "quiet"     "test"    "user"   "version"   "verbose")
-OPTHELP=("this help, type '$THIS help' for furthermore info"\
+OPTOPTS=(h        b          c        d      n           o       q           r        t         U          V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_DB opt_dry_run opt_del opt_verbose opt_port test_mode opt_dbuser opt_version opt_verbose)
+OPTACTI=(1        "="        "="      "="    1           1       0           "="      1         "="        "*"         "+")
+OPTDEFL=(1        "7.0"      ""       ""     0           0       -1          8069     0         "odoo"     ""          -1)
+OPTMETA=("help"   "branch"   "file"   "name" "noop"      "del"   "quiet"     "port"   "test"    "user"     "version"   "verbose")
+OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 (def 7.0)"\
- "configration file (if update)"\
- "set database name or regex if update"\
+ "configuration file (only update)"\
+ "set database name or regex when update"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
  "silent mode"\
+ "xmlrpc port"\
  "test mode (implies dry-run)"\
  "db user"\
  "show version end exit"\
@@ -49,7 +50,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Developer shell\nAction may be on of:\ninstall,update"\
+  print_help "Manage Cloud Db(s) \nAction may be on of:\ninstall,update"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -82,14 +83,14 @@ if [ "$action" == "install" ]; then
     echo "Directory conf/ not found!"
     exit 1
   fi
-  CFLOOP="09 00 10 11 13 13 20 21 30"
+  CFLOOP="09 00 10 11 13 14 15 20 21 30"
   for cf in $CFLOOP; do
     if [ ! -f conf/z0_install_$cf.conf ]; then
       echo "Configurarion file z0_install_$cf.conf not found!"
       exit 1
     fi
   done
-  set_odoover_confn $opt_branch $opt_DB
+  set_odoover_confn $opt_branch $opt_DB -q
   for cf in $CFLOOP; do
     if [ "$cf" == "00" ]; then
       if [ -n "$opt_DB" ]; then
@@ -97,8 +98,8 @@ if [ "$action" == "install" ]; then
       else
         optdb=
       fi
-      echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb"
-      clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb
+      echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port"
+      clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
       :
     else
@@ -107,13 +108,12 @@ if [ "$action" == "install" ]; then
       else
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
       fi
-      echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db"
-      clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db
+      echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db  -r $opt_port"
+      clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db -r $opt_port
       sts=$?
     fi
   done
 elif [ "$action" == "update" ]; then
-  # set_odoover_confn $opt_branch $opt_DB
   if [ -f "$opt_conf" ]; then
     cf=$opt_conf
   elif [ -f "$opt_conf.conf" ]; then
@@ -129,11 +129,13 @@ elif [ "$action" == "update" ]; then
     opt_DB=".*"
   fi
   DBlist=
+  found=0
   psql -Upostgres -tl > $HOME/tmp.log
   while IFS=\| read db user a b c; do
+    ((found++))
     db=$(echo $db)
     user=$(echo $user)
-    if [ -n "$db" -a "$user" == "$opt_user" ]; then
+    if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
       if [[ $db =~ $opt_DB ]]; then
         DBlist=$DBlist,$db
       fi
@@ -141,6 +143,15 @@ elif [ "$action" == "update" ]; then
   done < $HOME/tmp.log
   rm -f $HOME/tmp.log
   DBlist=${DBlist:1}
+  if [ -z "$DBlist" ]; then
+    if [ $found -eq 0 ]; then
+      [ $opt_verbose -gt 0 ] && echo "No DB found!"
+    else
+      [ $opt_verbose -gt 0 ] && echo "No DB found, owned by $opt_dbuser!"
+    fi
+    exit 1
+  fi
+  set_odoover_confn $opt_branch $opt_DB -q
   DBlist=${DBlist//,/ }
   W4T=0
   for db in $DBlist; do
@@ -150,8 +161,8 @@ elif [ "$action" == "update" ]; then
       eval $WCMD
     fi
     if [ -n "$cmdlist" ]; then
-      echo "clodoo.py $opts -A $cmdlist -d=$db"
-      clodoo.py $opts -A $cmdlist -d=$db
+      echo "clodoo.py $opts -A $cmdlist -d=$db -r $opt_port"
+      clodoo.py $opts -A $cmdlist -d=$db -r $opt_port
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
         break
@@ -161,8 +172,8 @@ elif [ "$action" == "update" ]; then
         echo "Configuration file $opt_conf not found!"
         exit 1
       fi
-      echo "clodoo.py $opts -c=$cf -d=$db"
-      clodoo.py $opts -c=$cf -d=$db
+      echo "clodoo.py $opts -c=$cf -d=$db -r $opt_port"
+      clodoo.py $opts -c=$cf -d=$db -r $opt_port
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
         break

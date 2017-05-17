@@ -27,7 +27,7 @@ import sys
 import re
 
 
-__version__ = "0.1.12.8"
+__version__ = "0.1.14"
 
 
 def update_to_8(line):
@@ -35,18 +35,21 @@ def update_to_8(line):
     if re.match("^from osv import", line):
         line = line.replace("from osv import",
                             "from openerp.osv import", 1)
-    if re.match("^import decimal_precision", line):
-        line = line.replace("import decimal_precision",
-                            "import openerp.addons.decimal_precision", 1)
     if re.match("^from tools.translate import", line):
         line = line.replace("from tools.translate import",
                             "from openerp.tools.translate import", 1)
-    if re.match("^import netsvc", line):
-        line = line.replace("import netsvc",
-                            "from openerp import netsvc", 1)
-    if re.match("^import pooler", line):
-        line = line.replace("import pooler",
-                            "from openerp import pooler", 1)
+    # if re.match("^import netsvc", line):
+    #     line = line.replace("import netsvc",
+    #                         "from openerp import netsvc", 1)
+    # if re.match("^import pooler", line):
+    #     line = line.replace("import pooler",
+    #                        "from openerp import pooler", 1)
+    if re.match("^import decimal_precision", line):
+        line = line.replace("import decimal_precision",
+                            "import openerp.addons.decimal_precision", 1)
+    elif re.match("^import (api|exceptions|fields/http|loglevels|models|netsvc|pooler|release|sql_db)", line):
+        line = line.replace("import ",
+                           "from openerp import ", 1)
     if re.match("OpenERP", line):
         line = line.replace("OpenERP",
                             "Odoo")

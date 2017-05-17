@@ -48,15 +48,16 @@ class res_user():
     def __init__(self):
         tndb.wstamp()
         pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
         tndb.wlog('return',
-                  object)
+                  partner)
         return (
-            object.field1
-            and object.field2
+            partner.name
+            and partner.city
             or ''
         )
 
-class res_user():
+res_user()
 
 report_sxw.report_sxw(
     'report.test_autopep8',
@@ -66,10 +67,6 @@ report_sxw.report_sxw(
 EOF
       cat <<EOF >$TESTRES
 # import pdb
-from openerp.osv import osv
-import openerp.addons.decimal_precision
-from openerp.tools.translate import _
-from openerp import netsvc
 from openerp import pooler
 # from tndb import tndb
 
@@ -78,16 +75,17 @@ class res_user():
     def __init__(self):
         # tndb.wstamp()
         # pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
         # tndb.wlog('return',
-        #           object)
+        #           partner)
         return (
-            object.field1 and
-            object.field2 or
+            partner.name and
+            partner.city or
             ''
         )
 
 
-class res_user():
+res_user()
 
 
 report_sxw.report_sxw(
@@ -123,16 +121,17 @@ class res_user():
     def __init__(self):
         # tndb.wstamp()
         # pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
         # tndb.wlog('return',
-        #           object)
+        #           partner)
         return (
-            object.field1
-            and object.field2
+            partner.name
+            and partner.city
             or ''
         )
 
 
-class res_user():
+res_user()
 
 
 report_sxw.report_sxw(
@@ -143,28 +142,25 @@ report_sxw.report_sxw(
 EOF
       cat <<EOF >$TESTRES
 import pdb
-from openerp.osv import osv
-import openerp.addons.decimal_precision
-from openerp.tools.translate import _
-from openerp import netsvc
 from openerp import pooler
 from tndb import tndb
 
 
-class res_user():
+class ResUser():
     def __init__(self):
         tndb.wstamp()
         pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
         tndb.wlog('return',
-                  object)
+                  partner)
         return (
-            object.field1 and
-            object.field2 or
+            partner.name and
+            partner.city or
             ''
         )
 
 
-class res_user():
+ResUser()
 
 
 report_sxw.report_sxw(
@@ -173,9 +169,9 @@ report_sxw.report_sxw(
     './autopep8.mako',
     parser=autopep8)
 EOF
-      $RUNDIR/topep8 -qb -u $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qb -c $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b" "$TESTOUT" "$TESTRES" "diff"
+    test_result "autopep8 -bc" "$TESTOUT" "$TESTRES" "diff"
 }
 
 Z0BUG_setup() {

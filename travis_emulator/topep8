@@ -20,7 +20,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.13
+__version__=0.1.14
 
 
 format_xml() {
@@ -116,18 +116,20 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        b         d        n            o       q           u       V           v)
-OPTDEST=(opt_help opt_debug opt_diff opt_dry_run  opt_out opt_verbose opt_uop opt_version opt_verbose)
-OPTACTI=(1        1         1        1            "="     0           1       "*>"        "+")
-OPTDEFL=(1        0         0        0            ""      -1          0       ""          -1)
-OPTMETA=("help"   "bug"     "diff"   "do nothing" "file"  "silent"   "uop"   "version"    "verbose")
+OPTOPTS=(h        a        b         c         d        n            o       q           u       V           v)
+OPTDEST=(opt_help opt_aggr opt_debug opt_Camel opt_diff opt_dry_run  opt_out opt_verbose opt_uop opt_version opt_verbose)
+OPTACTI=(1        "+"      1         1         1        1            "="     0           1       "*>"        "+")
+OPTDEFL=(1        0        0         0         0        0            ""      -1          1       ""          -1)
+OPTMETA=("help"   "aggres" "bug"     "camel"  "diff"   "do nothing" "file"  "silent"   "uop"   "version"    "verbose")
 OPTHELP=("this help"\
+ "enable non-whitespace changes (may issue multiple -a)"\
  "activate debug statements"\
+ "change class name to CamelCase"\
  "show diff"\
  "do nothing (dry-run)"\
  "output filename, leave source unchanged rather than source becomes .bak"\
  "silent mode"\
- "check for unary operator W503"\
+ "check for unary operator W503 (obsolete)"\
  "show version"\
  "verbose mode")
 OPTARGS=(pathname basename)
@@ -173,13 +175,23 @@ for fl in $(find $path -type f -name "$selfl"); do
   if [ "${f: -4}" == ".xml" ]; then
     format_xml $f
   else
+    AP8OPTS="--ignore E501"
+    if [ $opt_aggr -gt 0 ]; then
+      x=$(printf "%${opt_aggr}.${opt_aggr}s" " "|sed y'/ /a/')
+      AP8OPTS="$AP8OPTS -$x"
+    fi
     if [ $opt_uop -gt 0 ]; then
       python $TDIR/autopep8_W503.py $f $f.tmp $OPTS
-      autopep8 $f.tmp|sed 's/ $/\n/'>$f.new
+      autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
       rm -f $f.tmp
     else
-      autopep8 $f|sed 's/ $/\n/'>$f.new
+      autopep8 $AP8OPTS $f|sed 's/ $/\n/'>$f.new
     fi
+    if [ $opt_Camel -gt 0 ]; then
+      oca-autopep8 --select=CW0001 -i $f.new
+    fi
+    oca-autopep8 --select=CW0002 -i $f.new
+    autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new
   fi
   if [ "$(diff -q $f $f.new)" ]; then
     if [ $opt_dry_run -eq 0 ]; then
