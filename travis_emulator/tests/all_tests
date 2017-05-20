@@ -31,7 +31,8 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.81
+
+__version__=0.1.81.7
 
 
 Z0BUG_init

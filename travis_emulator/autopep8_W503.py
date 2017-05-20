@@ -25,6 +25,7 @@
 # import os
 import sys
 import re
+from z0lib import parseoptargs
 
 
 __version__ = "0.1.14"
@@ -38,12 +39,6 @@ def update_to_8(line):
     if re.match("^from tools.translate import", line):
         line = line.replace("from tools.translate import",
                             "from openerp.tools.translate import", 1)
-    # if re.match("^import netsvc", line):
-    #     line = line.replace("import netsvc",
-    #                         "from openerp import netsvc", 1)
-    # if re.match("^import pooler", line):
-    #     line = line.replace("import pooler",
-    #                        "from openerp import pooler", 1)
     if re.match("^import decimal_precision", line):
         line = line.replace("import decimal_precision",
                             "import openerp.addons.decimal_precision", 1)
@@ -142,7 +137,22 @@ def move_tk_line_up(tk, n, lines):
             lines[n] = lines[n] + " " + tk
 
 
-def exec_W503(src_filepy, dst_filepy, opts):
+def split_line(line):
+    # pdb.set_trace()
+    ln1 = line
+    ln2 = ''
+    if line[0] == '#':
+        i = len(line) / 4 * 3
+        if i > 79:
+            i = 79
+        while i > 0 and line[i] != ' ':
+            i -= 1
+        ln1 = line[0:i]
+        ln2 = '#' + line[i:]
+    return ln1, ln2
+
+
+def exec_W503(src_filepy, dst_filepy, ctx):
     fd = open(src_filepy, 'r')
     source = fd.read()
     fd.close()
@@ -177,14 +187,14 @@ def exec_W503(src_filepy, dst_filepy, opts):
                         n += 1
             empty_line = 0
             if open_stmt:
-                if opts == '-b':
+                if ctx['opt_recall_dbg']:
                     lines[n], open_stmt = recall_close_line(lines[n],
                                                             open_stmt)
                 else:
                     lines[n], open_stmt = hide_close_line(lines[n],
                                                           open_stmt)
             else:
-                if opts == '-b':
+                if ctx['opt_recall_dbg']:
                     lines[n], open_stmt = recall_debug(lines[n])
                 else:
                     lines[n], open_stmt = hide_debug(lines[n])
@@ -207,30 +217,47 @@ def exec_W503(src_filepy, dst_filepy, opts):
     while n > 2 and lines[n] == "" and lines[n - 1] == "":
         del lines[n]
         n = len(lines) - 1
-    fd = open(dst_filepy, 'w')
-    for n in range(len(lines)):
-        if n == len(lines) - 1:
-            ln = lines[n]
-        else:
-            ln = lines[n] + "\n"
-        fd.write(ln)
-    fd.close()
+    n = 0
+    while n < len(lines):
+        if len(lines[n]) > 79:
+            ln1, ln2 = split_line(lines[n])
+            if ln2:
+                lines[n] = ln2
+                lines.insert(n, ln1)
+        n += 1
+    if not ctx['dry_run']:
+        fd = open(dst_filepy, 'w')
+        for n in range(len(lines)):
+            if n == len(lines) - 1:
+                ln = lines[n]
+            else:
+                ln = lines[n] + "\n"
+            fd.write(ln)
+        fd.close()
     return 0
 
 
 if __name__ == "__main__":
     # pdb.set_trace()
-    opts = False
-    if len(sys.argv) <= 1:
-        print "Missing filename: use autopep8 src [dst] [-b]!"
-        sts = 2
+    parser = parseoptargs("Topep8",
+                          "© 2015-2017 by SHS-AV s.r.l.",
+                          version=__version__)
+    parser.add_argument('-h')
+    parser.add_argument('-n')
+    parser.add_argument('-V')
+    parser.add_argument('-v')
+    parser.add_argument('-b', '--recall-debug-statements',
+                        action='store_true',
+                        dest='opt_recall_dbg',
+                        default=False)
+    parser.add_argument('src_filepy')
+    parser.add_argument('dst_filepy',
+                        nargs='?')
+    ctx = parser.parseoptargs(sys.argv[1:])
+    src_filepy = ctx['src_filepy']
+    if ctx['dst_filepy']:
+        dst_filepy = ctx['dst_filepy']
     else:
-        src_filepy = sys.argv[1]
-        if len(sys.argv) > 2:
-            dst_filepy = sys.argv[2]
-            if len(sys.argv) > 3:
-                opts = sys.argv[3]
-        else:
-            dst_filepy = src_filepy
-        sts = exec_W503(src_filepy, dst_filepy, opts)
+        dst_filepy = src_filepy
+    sts = exec_W503(src_filepy, dst_filepy, ctx)
     sys.exit(sts)

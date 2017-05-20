@@ -45,6 +45,7 @@ import pooler
 from tndb import tndb
 
 class res_user():
+# This remark is longer than 80 characters in order to split a long line in two smaller lines
     def __init__(self):
         tndb.wstamp()
         pdb.set_trace()
@@ -72,6 +73,8 @@ from openerp import pooler
 
 
 class res_user():
+    # This remark is longer than 80 characters in order to split a long
+    # line in two smaller lines
     def __init__(self):
         # tndb.wstamp()
         # pdb.set_trace()

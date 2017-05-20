@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.1
+__version__=0.1.42.4
 
 
 #
@@ -416,6 +416,10 @@ cvt_doxygenconf() {
           line="INPUT_FILTER           = /usr/bin/doxypy.py"
         elif [[ $line =~ ^HTML_TIMESTAMP ]]; then
           line="HTML_TIMESTAMP         = YES"
+        elif [[ $line =~ ^GENERATE_LATEX ]]; then
+          line="GENERATE_LATEX         = NO"
+        elif [[ $line =~ ^EXCLUDE_PATTERNS ]]; then
+          line="EXCLUDE_PATTERNS       = */tests/* "
         fi
         echo "$line">>$fntmp
       done < "$fn"
@@ -1032,15 +1036,15 @@ EOF
 
 do_synchro() {
     wlog "do_synchro $1 $2 \"$3\""
-    local f
+    local f opts
     if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
-        if [ "$PKGNAME" == "l10n-italy" ]; then
-          if [ -d l10n_it_bbone ]; then
-            run_traced "rm -fR l10n_it_bbone"
-          fi
-        fi
+        # if [ "$PKGNAME" == "l10n-italy" ]; then
+        #   if [ -d l10n_it_bbone ]; then
+        #     run_traced "rm -fR l10n_it_bbone"
+        #   fi
+        # fi
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "oca"
         git status
@@ -1058,11 +1062,11 @@ do_synchro() {
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
-        if [ "$PKGNAME" == "l10n-italy" ]; then
-          if [ ! -d l10n_it_bbone ]; then
-            run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
-          fi
-        fi
+        # if [ "$PKGNAME" == "l10n-italy" ]; then
+        #   if [ ! -d l10n_it_bbone ]; then
+        #     run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
+        #   fi
+        # fi
         local x=($git status -s)
         if [ -n "$x" ]; then
           if [ -n "$3" ]; then
@@ -1074,13 +1078,17 @@ do_synchro() {
           fi
         fi
         git remote -v
-        run_traced "git push"
-        git status
-        if [ "$PKGNAME" == "l10n-italy" ]; then
-          if [ -d l10n_it_bbone ]; then
-            run_traced "rm -fR l10n_it_bbone"
-          fi
+        opts=
+        if [ $opt_force -ne 0 ]; then
+          opts=-f
         fi
+        run_traced "git push $opts"
+        git status
+        # if [ "$PKGNAME" == "l10n-italy" ]; then
+        #   if [ -d l10n_it_bbone ]; then
+        #     run_traced "rm -fR l10n_it_bbone"
+        #   fi
+        # fi
       fi
     else
       echo "Missed parameter! use:"
@@ -1098,9 +1106,9 @@ do_docs() {
       doxygen -g $doxygen_conf
       vim $doxygen_conf
     fi
-    sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
+    # sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
     cvt_doxygenconf $doxygen_conf
-    doxygen $doxygen_conf
+    run_traced "doxygen $doxygen_conf"
     sts=$?
     if [ $opt_verbose -gt 0 ]; then
       echo ""

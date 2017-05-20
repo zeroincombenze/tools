@@ -37,7 +37,8 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.81
+
+__version__=0.1.81.7
 
 
 store_cfg_param_value() {
@@ -413,71 +414,94 @@ process_yaml_after_success() {
 process_yaml_run_cmd() {
 #process_yaml_run_cmd (cmd)
     local xcmd=$(process_yaml_quote_xtl "$1")
-    local c i x s p z sts xtlcmd
+    local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
     c=$xcmd
     read -r -a x<<<"$xcmd"
-    if [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sudo" ]; then
+    ix=0
+    if [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sudo" ]; then
       xcmd="$(echo $xcmd|sed -e 's/sudo //g')"
-      read -r -a x<<<"$xcmd"
+      # read -r -a x<<<"$xcmd"
+      ((ix++))
     fi
-    if [ "$FH" == "Debian" -a "${x[0]}" == "yum" ]; then
+    if [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "if" ]; then
+      ((ix++))
+      while [ -n "${x[$ix]}" ]; do
+        if [ "${x[$ix]}" == "then" ]; then break; fi
+        ((ix++))
+      done
+      ((ix++))
+    fi
+    if [ "$FH" == "Debian" -a "${x[$ix]}" == "yum" ]; then
       xcmd="$(echo $xcmd|sed -e 's/yum /apt-get /g')"
-      x[0]="apt-get"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "apt-get" ]; then
+      x[$ix]="apt-get"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "apt-get" ]; then
       xcmd="$(echo $xcmd|sed -e 's/apt-get /yum /g')"
-      x[0]="yum"
+      x[$ix]="yum"
     fi
-    if [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-serial" ]; then
+    ix1=$ix
+    ((ix1++))
+    ix2=$ix1
+    ((ix2++))
+    if [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-serial" ]; then
       xcmd="$(echo $xcmd|sed -e 's/python-serial/pyserial/g')"
-      x[2]="pyserial"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "libcups2-dev" ]; then
+      x[$ix2]="pyserial"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "libcups2-dev" ]; then
       xcmd="$(echo $xcmd|sed -e 's/libcups2-dev/cups-devel/g')"
-      x[2]="cups-devel"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-yaml" ]; then
+      x[$ix2]="cups-devel"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "unixODBC-dev" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/unixODBC-dev/unixODBC-devel/g')"
+      x[$ix2]="unixODBC-devel"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "unixodbc-dev" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/unixodbc-dev/unixODBC-devel/g')"
+     x[$ix2]="unixODBC-devel"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-mysqldb" ]; then
+      xcmd="$(echo $xcmd|sed -e 's/python-mysqldb/MySQL-python/g')"
+      x[$ix2]="MySQL-python"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-yaml" ]; then
       xcmd="$(echo $xcmd|sed -e 's/python-yaml/PyYAML/g')"
-      x[2]="PyYAML"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-pypdf" ]; then
+      x[$ix2]="PyYAML"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-pypdf" ]; then
       xcmd="$(echo $xcmd|sed -e 's/python-pypdf/pyPdf/g')"
-      x[2]="pyPdf"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "libcups2-devel" ]; then
+      x[$ix2]="pyPdf"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "libcups2-devel" ]; then
       xcmd="$(echo $xcmd|sed -e 's/libcups2-devel/cups-devel/g')"
-      x[2]="cups-devel"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "ruby-sass" ]; then
+      x[$ix2]="cups-devel"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "ruby-sass" ]; then
       xcmd="$(echo $xcmd|sed -e 's/ruby-sass/rubygem-sass/g')"
-      x[2]="rubygem-sass"
-    elif [ "$FH" == "RHEL" -a "${x[0]}" == "yum" -a "${x[2]}" == "python-simplejson" ]; then
+      x[$ix2]="rubygem-sass"
+    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-simplejson" ]; then
       xcmd="$(echo $xcmd|sed -e 's/python-simplejson/python2-simplejson/g')"
-      x[2]="python2-simplejson"
+      x[$ix2]="python2-simplejson"
     fi
-    if [ "${x[0]}" == "yum" -a "${x[1]}" == "install" ]; then
-      if [ "$FH" == "RHEL" -a "${x[2]}" == "expect-dev" ]; then
+    if [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
+      if [ "$FH" == "RHEL" -a "${x[$ix2]}" == "expect-dev" ]; then
         xcmd="# $xcmd"
-      elif [ "$FH" == "RHEL" -a "${x[2]}" == "antiword" ]; then
+      elif [ "$FH" == "RHEL" -a "${x[$ix2]}" == "antiword" ]; then
         xcmd="# $xcmd"
-      elif $(rpm -q ${x[2]} &>/dev/null); then
+      elif $(rpm -q ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
-      elif $(yum info ${x[2]} &>/dev/null); then
-        xcmd="# $xcmd"
-      else
-        xcmd="false; # Warning! TODO> $xcmd"
-      fi
-    elif [ "${x[0]}" == "apt-get" -a "${x[1]}" == "install" ]; then
-      if $(dpkg-query -s ${x[2]} &>/dev/null); then
+      elif $(yum info ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
       else
         xcmd="false; # Warning! TODO> $xcmd"
       fi
-    elif [ "${x[0]}" == "git" -a "${x[1]}" == "clone" ]; then
-      i=2
-      p=${x[$i]}
-      while [ "${p:0:1}" == "-" ]; do ((i++)); p=${x[$i]}; done
-      if [ "$p" == "https://github.com/zeroincombenze/tools.git" ]; then
+    elif [ "${x[$ix]}" == "apt-get" -a "${x[$ix1]}" == "install" ]; then
+      if $(dpkg-query -s ${x[$ix2]} &>/dev/null); then
+        xcmd="# $xcmd"
+      else
+        xcmd="false; # Warning! TODO> $xcmd"
+      fi
+    elif [ "${x[$ix]}" == "git" -a "${x[$ix1]}" == "clone" ]; then
+      ix=$ix2
+      tk=${x[$ix]}
+      while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
+      if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           xcmd="# $xcmd"
         else
           xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
         fi
-      elif [ "$p" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
+      elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ! -d $HOME/maintainer-quality-tools ]; then
           local MQT_UPDT="2017-00-00"
         else
@@ -497,23 +521,23 @@ process_yaml_run_cmd() {
           fi
         fi
       fi
-    elif [ "${x[0]}" == "pip" -a "${x[1]}" == "install" ]; then
+    elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
       if [ ${opt_virt:-0} -eq 0 ]; then
-        i=2
-        p=${x[$i]}
+        ix=$ix2
+        tk=${x[$ix]}
         xcmd="# pip install"
-        while [ -n "$p" ]; do
-          if [ "$p" == "-r" -o "$p" == "--requirement" ]; then
-            ((i++))
-            z=${x[$i]}
-            xcmd="$xcmd -r $z"
-            while IFS=# read -r p r || [ -n "$p" ]; do
-              if [ -n "$p" ]; then
-                if [ "${p:0:4}" == "http" ]; then
-                  p=$(basename $p)
+        while [ -n "${x[$ix]}" ]; do
+          if [ "${x[$ix]}" == "-r" -o "${x[$ix]}" == "--requirement" ]; then
+            ((ix++))
+            pp=${x[$ix]}
+            xcmd="$xcmd -r $pp"
+            while IFS=\# read -r tk r || [ -n "$tk" ]; do
+              if [ -n "$tk" ]; then
+                if [ "${tk:0:4}" == "http" ]; then
+                  p=$(basename $tk)
                   p=$(echo $p|grep -Eo '[a-zA-Z0-9_]*'|head -n1)
                 fi
-                p=$(echo "$p"|grep -Eo '[^!<=>\[]*'|head -n1)
+                p=$(echo "$p"|grep -Eo '[^!<=>\[;]*'|head -n1)
                 p=${p//\"/}
                 if [ "$p" == "transifex-client" ]; then
                   xcmd="$xcmd $p"
@@ -523,62 +547,66 @@ process_yaml_run_cmd() {
                   xcmd="false; $xcmd <$p>"
                 fi
               fi
-            done < $z
-          elif [ "${p:0:1}" != "-" ]; then
-            p=$(echo "${x[$i]}"|grep -Eo '[^!<=>]*'|head -n1)
+              if [ "tk{tk: -1}" == ";" ]; then break; fi
+            done < $pp
+          elif [ "${tk:0:1}" != "-" ]; then
+            p=$(echo "${x[$ix]}"|grep -Eo '[^!<=>;]*'|head -n1)
             p=${p//\"/}
             if $(pip show $p &>/dev/null); then
               xcmd="$xcmd $p"
             else
               xcmd="false; $xcmd <$p>"
             fi
+            if [ "${tk: -1}" == ";" ]; then break; fi
           else
             xcmd="$xcmd $p"
           fi
-          ((i++))
-          p=${x[$i]}
+          ((ix++))
+          tk=${x[$ix]}
         done
       fi
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "ln" -a "${x[1]}" == "-s" -a "${x[2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
       xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[0]}" == "sh" ]; then
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
       xcmd="# $xcmd"
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
+      :
     else
       local xlint xtest xtfex xpkg xcd
       if [ -z "$REPOSNAME" ]; then
-        local p=$PKGPATH
+        pp=$PKGPATH
       else
-        local p=$(readlink -e $PRJPATH/../$REPOSNAME/)
+        pp=$(readlink -e $PRJPATH/../$REPOSNAME/)
       fi
-      for i in {0..9}; do
-        if [[ "${x[$i]}" =~ cd ]]; then
+      while [ -n "${x[$ix]}" ]; do
+        if [[ "${x[$ix]}" =~ cd ]]; then
           xcd=1
-        elif [[ "${x[$i]}" =~ LINT_CHECK=.1. ]]; then
+        elif [[ "${x[$ix]}" =~ LINT_CHECK=.1. ]]; then
           xlint=1
-        elif [[ "${x[$i]}" =~ LINT_CHECK=.0. ]]; then
+        elif [[ "${x[$ix]}" =~ LINT_CHECK=.0. ]]; then
           xlint=0
-        elif [[ "${x[$i]}" =~ TRANSIFEX=.1. ]]; then
+        elif [[ "${x[$ix]}" =~ TRANSIFEX=.1. ]]; then
           # xtfex=1
           xcmd="# $xcmd"
-        elif [[ "${x[$i]}" =~ TESTS=.1. ]]; then
+        elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
-        elif [[ "${x[$i]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
           xcmd="# $xcmd"
-        elif [[ "${x[$i]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd="$(echo $xcmd|sed -e 's|OCA/OCB|local/odoo|g')"
-            x[$i]=local/odoo
+            x[$ix]=local/odoo
           fi
-        elif [[ "${x[$i]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/OCA/OCB/openerp/addons.*/opt/odoo/build/OCA/OCB/addons ]]; then
+        elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/OCA/OCB/openerp/addons.*/opt/odoo/build/OCA/OCB/addons ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/OCA/OCB/|/opt/odoo/$BRANCH/|g')"
           fi
-        elif [ "${x[$i]}" == "\${OPTS}" ]; then
+        elif [ "${x[$ix]}" == "\${OPTS}" ]; then
           xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"
-          x[$i]=$OPTS
+          x[$ix]=$OPTS
         else
           for xpkg in travis_install_nightly travis_run_tests travis_after_tests_success; do
-            if [ "${x[$i]}" == "$xpkg" ]; then
+            if [ "${x[$ix]}" == "$xpkg" ]; then
               xtlcmd="$xpkg"
               if [ "$xlint" != "1" -o "$xtest" == "1" ] && [ "$xcd" != "1" -a $opt_force -eq 0 ]; then
                 if [ ${opt_virt:-0} -eq 0 ]; then
@@ -590,11 +618,11 @@ process_yaml_run_cmd() {
                 if [ -n "$xtlcmd" ]; then
                   xcmd="$(echo $xcmd|sed -e 's|'$xpkg'|'$xtlcmd'|g')"
                   xcmd=$(process_yaml_quote "$xcmd")
-                elif [ -z "$p" ] && [[ "$xtlcmd" =~ \$\{ ]]; then
+                elif [ -z "${x[$ix]}" ] && [[ "$xtlcmd" =~ \$\{ ]]; then
                   xcmd=$(process_yaml_quote "$xcmd")
                   xcmd="# $xcmd"
                 fi
-                xcmd="$(echo $xcmd|sed -e 's|\${1}|'$p'|g')"
+                xcmd="$(echo $xcmd|sed -e 's|\${1}|'$pp'|g')"
                 if [ -z "$xtlcmd" ]; then
                   xtlcmd="$xpkg"
                 else
@@ -609,6 +637,7 @@ process_yaml_run_cmd() {
             fi
           done
         fi
+      ((ix++));
       done
     fi
     if [ "$action" == "parseyaml" ]; then
@@ -892,6 +921,7 @@ PIDFILE=
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ ${opt_virt:-0} -eq 0 ]; then
     PIDFILE=$(get_cfg_value "" "PIDFILE")
+    PIDFILE=$(expand_path "$PIDFILE")
     checkpid "$PIDFILE"
     sts=$?
     if [ $sts -eq 0 ]; then

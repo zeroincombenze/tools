@@ -27,7 +27,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.29
+__version__=0.1.30.1
 
 
 defmodules() {
@@ -119,8 +119,12 @@ do_action() {
         return $sts
       fi
     done
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "upgrade" ]; then
-      if [ "$opt_rpt" == "oca" ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "rebuild_new" ]; then
+      if [ "$oem" == "zeroincombenze" -o "$oem" == "l10n-italy-supplemental" -o "$oem" == "cscs_addons" -o "$oem" == "account_banking_cscs" ]; then
+        ODOO_RPT="https://github.com/zeroincombenze"
+        OPTS_GIT="--depth 1 --single-branch"
+        OPTS_ASM="-1"
+      elif [ "$opt_rpt" == "oca" ]; then
         ODOO_RPT="https://github.com/OCA"
         OPTS_GIT="--depth 1 --single-branch"
         OPTS_ASM="-1"
@@ -148,7 +152,7 @@ do_action() {
       fi
       run_traced "rm -fR $pkgdir"
     fi
-    if [ "$act" == "upgrade" -a -d $pkgdir ]; then
+    if [ "$act" == "rebuild_new" -a -d $pkgdir ]; then
       return $sts
     elif [ "$act" == "build" -a -d $pkgdir ]; then
       echo "BRANCH $oev OF $oem ALREADY EXISTS!"
@@ -160,7 +164,7 @@ do_action() {
     if [ $sts -ne 0 ]; then
       return $sts
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "upgrade" ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "rebuild_new" ]; then
       run_traced "cd $pardir"
       if [ "$oem" == "OCB" ]; then
         run_traced "git clone $ODOO_RPT/OCB.git $oev -b $oev $OPTS_GIT"
@@ -221,7 +225,7 @@ OPTHELP=("this help"\
  "user default module list"\
  "do nothing (dry-run)"\
  "silent mode"\
- "if [re]build|upgrade repository name, one of oca zero-git zero-http"\
+ "if [re]build|rebuild_new repository name, one of oca zero-git zero-http"\
  "no stop after every module/version"\
  "show version"\
  "verbose mode"\
@@ -241,7 +245,7 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: build check clean list oca rebuild remote status upgrade zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: build check clean list oca rebuild rebuild_new remote status zeroincombenze"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
@@ -251,12 +255,12 @@ else
   opt_branch="${opt_branch//,/ }"
 fi
 sub_list=
-excl_list="addons cover debian doc history odoo openerp scripts server setup __to_remove woven_fabric"
+excl_list="addons cover debian doc history odoo openerp node_modules scripts server setup __to_remove woven_fabric"
 if [ -z $opt_excl ]; then
-  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "upgrade" ]; then
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental/10.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze openerp_gantt_chart_modification"
+  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "rebuild_new" ]; then
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental/10.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector"
   else
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze openerp_gantt_chart_modification"
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector"
   fi
 fi
 opt_excl="${opt_excl//,/ }"
@@ -280,7 +284,7 @@ for oem in $opt_excl; do
   fi
 done
 cd
-if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "upgrade" ]; then
+if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "rebuild_new" ]; then
   opt_def=1
 fi
 for oev in $opt_branch; do
