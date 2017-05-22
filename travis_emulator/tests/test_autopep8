@@ -25,7 +25,9 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.13
+
+__version__=0.1.13.5
+
 
 test_01() {
     local TESTOUT TESTRES TESTFN
@@ -44,7 +46,7 @@ import netsvc
 import pooler
 from tndb import tndb
 
-class res_user():
+class res_user(osv.osv):
 # This remark is longer than 80 characters in order to split a long line in two smaller lines
     def __init__(self):
         tndb.wstamp()
@@ -72,7 +74,7 @@ from openerp import pooler
 # from tndb import tndb
 
 
-class res_user():
+class res_user(orm.Model):
     # This remark is longer than 80 characters in order to split a long
     # line in two smaller lines
     def __init__(self):
@@ -97,9 +99,49 @@ report_sxw.report_sxw(
     './autopep8.mako',
     parser=autopep8)
 EOF
-      $RUNDIR/topep8 -q -u $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -q $TESTSRC -o $TESTOUT
     fi
     test_result "autopep8" "$TESTOUT" "$TESTRES" "diff"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+# import pdb
+from odoo.osv import osv
+import odoo.addons.decimal_precision
+from odoo.tools.translate import _
+from odoo import netsvc
+from odoo import pooler
+# from tndb import tndb
+
+
+class res_user(models.Model):
+    # This remark is longer than 80 characters in order to split a long
+    # line in two smaller lines
+    def __init__(self):
+        # tndb.wstamp()
+        # pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
+        # tndb.wlog('return',
+        #           partner)
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )
+
+
+res_user()
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {
@@ -120,7 +162,7 @@ from openerp import pooler
 # from tndb import tndb
 
 
-class res_user():
+class res_user(osv.osv_memory):
     def __init__(self):
         # tndb.wstamp()
         # pdb.set_trace()
@@ -149,7 +191,7 @@ from openerp import pooler
 from tndb import tndb
 
 
-class ResUser():
+class ResUser(orm.TransientModel):
     def __init__(self):
         tndb.wstamp()
         pdb.set_trace()
@@ -172,9 +214,46 @@ report_sxw.report_sxw(
     './autopep8.mako',
     parser=autopep8)
 EOF
-      $RUNDIR/topep8 -qb -c $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qB -c $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -bc" "$TESTOUT" "$TESTRES" "diff"
+    test_result "autopep8 -Bc" "$TESTOUT" "$TESTRES" "diff"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+import pdb
+from odoo.osv import osv
+from odoo.tools.translate import _
+from odoo import netsvc
+from odoo import pooler
+from tndb import tndb
+
+
+class ResUser(models.TransientModel):
+    def __init__(self):
+        tndb.wstamp()
+        pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
+        tndb.wlog('return',
+                  partner)
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )
+
+
+ResUser()
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)
+EOF
+      $RUNDIR/topep8 -qBc -b10.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -Bc -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 Z0BUG_setup() {

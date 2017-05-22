@@ -28,32 +28,91 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14"
+__version__ = "0.1.14.5"
 
 
-def update_to_8(line):
+ISALNUM = re.compile('[A-Za-z_]+')
+ISDOCSEP1 = re.compile('"""')
+ISDOCSEP2 = re.compile("'''")
+
+
+def update_new_api(line):
     line = line.rstrip()
+    if re.match("^ *class.*osv\.osv_memory", line):
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("osv.osv_memory",
+                                "models.TransientModel", 1)
+        else:
+            line = line.replace("osv.osv_memory",
+                                "orm.TransientModel", 1)
+    if re.match("^ *class.*osv\.osv", line):
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("osv.osv",
+                                "models.Model", 1)
+        else:
+            line = line.replace("osv.osv",
+                                "orm.Model", 1)
     if re.match("^from osv import", line):
-        line = line.replace("from osv import",
-                            "from openerp.osv import", 1)
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("from osv import",
+                                "from odoo.osv import", 1)
+        else:
+            line = line.replace("from osv import",
+                                "from openerp.osv import", 1)
     if re.match("^from tools.translate import", line):
-        line = line.replace("from tools.translate import",
-                            "from openerp.tools.translate import", 1)
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("from tools.translate import",
+                                "from odoo.tools.translate import", 1)
+        else:
+            line = line.replace("from tools.translate import",
+                                "from openerp.tools.translate import", 1)
     if re.match("^import decimal_precision", line):
-        line = line.replace("import decimal_precision",
-                            "import openerp.addons.decimal_precision", 1)
-    elif re.match("^import (api|exceptions|fields/http|loglevels|models|netsvc|pooler|release|sql_db)", line):
-        line = line.replace("import ",
-                           "from openerp import ", 1)
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("import decimal_precision",
+                                "import odoo.addons.decimal_precision", 1)
+        else:
+            line = line.replace("import decimal_precision",
+                                "import openerp.addons.decimal_precision", 1)
+    elif re.match("^import (api|exceptions|fields/http|loglevels|models" +
+                  "|netsvc|pooler|release|sql_db)", line):
+        if ctx['odoo_ver'] == '10.0':
+            line = line.replace("import ",
+                                "from odoo import ", 1)
+        else:
+            line = line.replace("import ",
+                                "from openerp import ", 1)
+    if re.match("^from openerp", line) and \
+            ctx['odoo_ver'] == '10.0':
+        line = line.replace("from openerp",
+                            "from odoo", 1)
+        if re.match("^from odoo\.osv import .*orm", line):
+            line = line.replace("orm",
+                                "models", 1)
+    if ctx['odoo_ver'] == '10.0':
+        if re.match("^ *class\.*orm\.", line):
+            line = line.replace("orm",
+                                "models", 1)
+        if re.match("osv\.except_osv", line):
+            line = line.replace("osv.except_osv",
+                                "UserError", 1)
+        if re.match("from odoo\.addons\.web import http", line):
+            line = line.replace("from odoo.addons.web import http",
+                                "from odoo import http", 1)
+        if re.match("openerp\.addons\.web\.http", line):
+            line = line.replace("openerp.addons.web.http",
+                                "odoo.http", 1)
+        if re.match("openerp\.tools\.config", line):
+            line = line.replace("openerp.tools.config",
+                                "odoo.tools.config", 1)
+    if re.match("openerp\.com", line):
+        line = line.replace("openerp.com",
+                            "odoo.com")
     if re.match("OpenERP", line):
         line = line.replace("OpenERP",
                             "Odoo")
     if re.match("formerly Odoo", line):
         line = line.replace("formerly Odoo",
                             "formerly OpenERP")
-    if re.match("openerp\.com", line):
-        line = line.replace("openerp.com",
-                            "odoo.com")
     return line
 
 
@@ -141,18 +200,22 @@ def split_line(line):
     # pdb.set_trace()
     ln1 = line
     ln2 = ''
+    MINLM = 20
     if line[0] == '#':
         i = len(line) / 4 * 3
         if i > 79:
             i = 79
-        while i > 0 and line[i] != ' ':
+        while i > MINLM and line[i] != ' ':
             i -= 1
-        ln1 = line[0:i]
-        ln2 = '#' + line[i:]
+        if i > MINLM:
+            ln1 = line[0:i]
+            ln2 = '#' + line[i:]
     return ln1, ln2
 
 
 def exec_W503(src_filepy, dst_filepy, ctx):
+    if ctx['opt_verbose']:
+        print "Reading %s" % src_filepy
     fd = open(src_filepy, 'r')
     source = fd.read()
     fd.close()
@@ -198,7 +261,7 @@ def exec_W503(src_filepy, dst_filepy, ctx):
                     lines[n], open_stmt = recall_debug(lines[n])
                 else:
                     lines[n], open_stmt = hide_debug(lines[n])
-                lines[n] = update_to_8(lines[n])
+                lines[n] = update_new_api(lines[n])
         ln = lines[n].strip()
         if ln == "or":
             tk = "or"
@@ -214,7 +277,7 @@ def exec_W503(src_filepy, dst_filepy, ctx):
             move_tk_line_up(tk, n, lines)
         n += 1
     n = len(lines) - 1
-    while n > 2 and lines[n] == "" and lines[n - 1] == "":
+    while n > 2 and lines[n] == "":  # and lines[n - 1] == "":
         del lines[n]
         n = len(lines) - 1
     n = 0
@@ -225,14 +288,11 @@ def exec_W503(src_filepy, dst_filepy, ctx):
                 lines[n] = ln2
                 lines.insert(n, ln1)
         n += 1
-    if not ctx['dry_run']:
+    if not ctx['dry_run'] and len(lines):
+        if ctx['opt_verbose']:
+            print "Writing %s" % dst_filepy
         fd = open(dst_filepy, 'w')
-        for n in range(len(lines)):
-            if n == len(lines) - 1:
-                ln = lines[n]
-            else:
-                ln = lines[n] + "\n"
-            fd.write(ln)
+        fd.write(''.join('%s\n' % l for l in lines))
         fd.close()
     return 0
 
@@ -244,12 +304,16 @@ if __name__ == "__main__":
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-n')
+    parser.add_argument('-q')
     parser.add_argument('-V')
     parser.add_argument('-v')
-    parser.add_argument('-b', '--recall-debug-statements',
+    parser.add_argument('-B', '--recall-debug-statements',
                         action='store_true',
                         dest='opt_recall_dbg',
                         default=False)
+    parser.add_argument('-b', '--odoo-branch',
+                        action='store',
+                        dest='odoo_ver')
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')
@@ -260,4 +324,4 @@ if __name__ == "__main__":
     else:
         dst_filepy = src_filepy
     sts = exec_W503(src_filepy, dst_filepy, ctx)
-    sys.exit(sts)
+    # sys.exit(sts)
