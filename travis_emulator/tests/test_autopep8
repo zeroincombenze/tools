@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.13.5
+__version__=0.1.13.6
 
 
 test_01() {
@@ -106,7 +106,7 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # import pdb
-from odoo.osv import osv
+from odoo import osv
 import odoo.addons.decimal_precision
 from odoo.tools.translate import _
 from odoo import netsvc
@@ -221,7 +221,8 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 import pdb
-from odoo.osv import osv
+from odoo import osv
+import odoo.addons.decimal_precision
 from odoo.tools.translate import _
 from odoo import netsvc
 from odoo import pooler
@@ -254,6 +255,50 @@ EOF
       $RUNDIR/topep8 -qBc -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "autopep8 -Bc -b10.0" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_03() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_01
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_01.out
+      cat <<EOF >$TESTSRC
+from openerp.osv import fields, orm
+
+class res_user(osv.osv):
+    _columns = {
+        'is_base': fields.boolean()
+    }
+EOF
+      cat <<EOF >$TESTRES
+from openerp.osv import fields
+
+
+class res_user(orm.Model):
+    _columns = {
+        'is_base': fields.boolean()
+    }
+EOF
+      $RUNDIR/topep8 -q -b8.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -b8.0" "$TESTOUT" "$TESTRES" "diff"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from odoo import fields, models
+
+
+class res_user(models.Model):
+    _columns = {
+        'is_base': fields.boolean()
+    }
+EOF
+      $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 Z0BUG_setup() {

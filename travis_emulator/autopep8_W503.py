@@ -21,8 +21,8 @@
 """recover W503
 """
 
-# import pdb
-# import os
+import pdb
+import os
 import sys
 import re
 from z0lib import parseoptargs
@@ -35,84 +35,138 @@ ISALNUM = re.compile('[A-Za-z_]+')
 ISDOCSEP1 = re.compile('"""')
 ISDOCSEP2 = re.compile("'''")
 
+RULES = """
+IS  ^ *class.*[:tok:]
+V6  osv.osv_memory
+V7  orm.TransientModel
+V10 models.TransientModel
+IS  ^ *class.*[:tok:]
+V6  osv.osv
+V7  orm.Model
+V10 models.Model
+IS  ^[:tok:]
+V6  from osv import
+V7  from openerp.osv import
+V10 from odoo import
+IS  ^from (openerp.osv|odoo) import
+V6  orm
+V8  models
+IS  ^[:tok:]
+V6  from tools.translate import
+V7  from openerp.tools.translate import
+V10 from odoo.tools.translate import
+IS  ^[:tok:]
+V6  import decimal_precision
+V7  import openerp.addons.decimal_precision
+V10 import odoo.addons.decimal_precision
+IS  ^import (api|exceptions|fields|http|loglevels|models|netsvc|pooler|release|sql_db)
+V6  import
+V7  from openerp import
+V10 from odoo import
+IS  ^from (openerp|odoo)\.addons\.web import http
+V6  from openerp.addons.web import http
+V10 from odoo import http
+IS  ^.*import (openerp|odoo)\.addons\.web\.http
+V6  openerp.addons.web.http
+V10 odoo.http
+IS  ^[:tok:]
+V6  from openerp import
+V10 from odoo import
+IS  ^ *class\.*orm\.
+V6  orm
+V10 models
+IS  [:tok:]
+V6  osv.except_osv
+V10 UserError
+IS  [:tok:]
+V6  openerp.tools.config
+V10 odoo.tools.config
+IS  [:tok:]
+V6  openerp.com
+V7  odoo.com
+IS  [:tok:]
+V6  OpenERP
+V7  Odoo
+IS  formerly (OpenERP|Odoo)
+V6  formerly OpenERP
+"""
+IS_META = {}
+IS_META_TXT = {}
+SRC_TOKENS = {}
+TGT_TOKENS = {}
+
+def set_4_ver(ix, tokens, ver):
+    if tokens.get(ver, False):
+        IS_META_TXT[ix + 1] = IS_META_TXT[ix]
+        tok = tokens[ver].replace('.', '\.')
+        IS_META_TXT[ix] = IS_META_TXT[ix].replace('[:tok:]', tok)
+        IS_META[ix] = re.compile(IS_META_TXT[ix])
+        SRC_TOKENS[ix] = tokens[ver]
+    elif ver > 6:
+        tokens[ver] = tokens[ver - 1]
+    return tokens
+
+
+def compile_1_rule(ix, tokens):
+    if not ctx['from_ver']:
+        for ver in (6, 7, 8, 9, 10):
+            if tokens.get(ver, False):
+                tokens = set_4_ver(ix, tokens, ver)
+                tokens2 = {}
+                for ver2 in (6, 7, 8, 9, 10):
+                    if tokens.get(ver2, False):
+                        tokens2[ver2] = tokens[ver2]
+                    else:
+                        if ver2 > 6:
+                            tokens2[ver2] = tokens2[ver2 - 1]
+                        else:
+                            tokens2[ver2] = tokens[ver2]
+                TGT_TOKENS[ix] = tokens2
+                # print "%d if(%s) %s | %s" % (ix, IS_META_TXT[ix], SRC_TOKENS[ix], TGT_TOKENS[ix])  # debug
+                ix += 1
+    else:
+        for ver in (6, 7, 8, 9, 10):
+            if ctx['from_ver'] == ver:
+                tokens = set_4_ver(ix, tokens, ver)
+        TGT_TOKENS[ix] = tokens
+    return ix
+
+def extr_tokens(ix, ctx):
+    tokens = TGT_TOKENS[ix]
+    return SRC_TOKENS[ix], tokens[ctx['to_ver']]
+
+
+def compile_rules(ctx):
+    ix = -1
+    tokens = {}
+    for rule in RULES.split('\n'):
+        id = rule[0:4]
+        value = rule[4:]
+        if id == 'IS  ':
+            if ix >= 0:
+                ix = compile_1_rule(ix, tokens)
+            ix += 1
+            tokens = {}
+            IS_META_TXT[ix] = value
+        elif id == 'V6  ':
+            tokens[6] = value
+        elif id == 'V7  ':
+            tokens[7] = value
+        elif id == 'V8  ':
+            tokens[8] = value
+        elif id == 'V9  ':
+            tokens[9] = value
+        elif id == 'V10 ':
+            tokens[10] = value
+    compile_1_rule(ix, tokens)
+
 
 def update_new_api(line):
+    for ix in IS_META.keys():
+        if IS_META[ix].match(line):
+            src, tgt = extr_tokens(ix, ctx)
+            line = line.replace(src, tgt)
     line = line.rstrip()
-    if re.match("^ *class.*osv\.osv_memory", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("osv.osv_memory",
-                                "models.TransientModel", 1)
-        else:
-            line = line.replace("osv.osv_memory",
-                                "orm.TransientModel", 1)
-    if re.match("^ *class.*osv\.osv", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("osv.osv",
-                                "models.Model", 1)
-        else:
-            line = line.replace("osv.osv",
-                                "orm.Model", 1)
-    if re.match("^from osv import", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("from osv import",
-                                "from odoo.osv import", 1)
-        else:
-            line = line.replace("from osv import",
-                                "from openerp.osv import", 1)
-    if re.match("^from tools.translate import", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("from tools.translate import",
-                                "from odoo.tools.translate import", 1)
-        else:
-            line = line.replace("from tools.translate import",
-                                "from openerp.tools.translate import", 1)
-    if re.match("^import decimal_precision", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("import decimal_precision",
-                                "import odoo.addons.decimal_precision", 1)
-        else:
-            line = line.replace("import decimal_precision",
-                                "import openerp.addons.decimal_precision", 1)
-    elif re.match("^import (api|exceptions|fields/http|loglevels|models" +
-                  "|netsvc|pooler|release|sql_db)", line):
-        if ctx['odoo_ver'] == '10.0':
-            line = line.replace("import ",
-                                "from odoo import ", 1)
-        else:
-            line = line.replace("import ",
-                                "from openerp import ", 1)
-    if re.match("^from openerp", line) and \
-            ctx['odoo_ver'] == '10.0':
-        line = line.replace("from openerp",
-                            "from odoo", 1)
-        if re.match("^from odoo\.osv import .*orm", line):
-            line = line.replace("orm",
-                                "models", 1)
-    if ctx['odoo_ver'] == '10.0':
-        if re.match("^ *class\.*orm\.", line):
-            line = line.replace("orm",
-                                "models", 1)
-        if re.match("osv\.except_osv", line):
-            line = line.replace("osv.except_osv",
-                                "UserError", 1)
-        if re.match("from odoo\.addons\.web import http", line):
-            line = line.replace("from odoo.addons.web import http",
-                                "from odoo import http", 1)
-        if re.match("openerp\.addons\.web\.http", line):
-            line = line.replace("openerp.addons.web.http",
-                                "odoo.http", 1)
-        if re.match("openerp\.tools\.config", line):
-            line = line.replace("openerp.tools.config",
-                                "odoo.tools.config", 1)
-    if re.match("openerp\.com", line):
-        line = line.replace("openerp.com",
-                            "odoo.com")
-    if re.match("OpenERP", line):
-        line = line.replace("OpenERP",
-                            "Odoo")
-    if re.match("formerly Odoo", line):
-        line = line.replace("formerly Odoo",
-                            "formerly OpenERP")
     return line
 
 
@@ -197,7 +251,6 @@ def move_tk_line_up(tk, n, lines):
 
 
 def split_line(line):
-    # pdb.set_trace()
     ln1 = line
     ln2 = ''
     MINLM = 20
@@ -214,6 +267,9 @@ def split_line(line):
 
 
 def exec_W503(src_filepy, dst_filepy, ctx):
+    if ctx['opt_verbose']:
+        print "Compiling rules"
+    compile_rules(ctx)
     if ctx['opt_verbose']:
         print "Reading %s" % src_filepy
     fd = open(src_filepy, 'r')
@@ -314,6 +370,9 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
+    parser.add_argument('-o', '--original-branch',
+                        action='store',
+                        dest='from_odoo_ver')
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')
@@ -323,5 +382,21 @@ if __name__ == "__main__":
         dst_filepy = ctx['dst_filepy']
     else:
         dst_filepy = src_filepy
+    if ctx['odoo_ver']:
+        ctx['to_ver'] = eval(ctx['odoo_ver'])
+    else:
+        ctx['to_ver'] = 7.0
+    if ctx['from_odoo_ver']:
+        ctx['from_ver'] = eval(ctx['from_odoo_ver'])
+    else:
+        ctx['from_ver'] = 0.0
+        # if ctx['to_ver'] == 10.0:
+        #     ctx['from_ver'] = 9.0
+        # elif ctx['to_ver'] == 9.0:
+        #     ctx['from_ver'] = 8.0
+        # elif ctx['to_ver'] == 8.0:
+        #     ctx['from_ver'] = 7.0
+        # else:
+        #     ctx['from_ver'] = 6.0
     sts = exec_W503(src_filepy, dst_filepy, ctx)
     # sys.exit(sts)
