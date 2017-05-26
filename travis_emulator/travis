@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.81.7
+__version__=0.1.81.8
 
 
 store_cfg_param_value() {
@@ -794,10 +794,10 @@ checkpid() {
 OPTOPTS=(h        b          c        f         H        j        m       n            q           r     V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1         1        1        1       "1>"         0           1     "*>"        "+")
-OPTDEFL=(0        9.0        ""       0         -1       0        0       0            -1          0     ""          -1)
+OPTDEFL=(0        10.0       ""       0         -1       0        0       0            -1          0     ""          -1)
 OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""      "do nothing" "verbose"   "res" "version"   "verbose")
 OPTHELP=("this help"\
- "branch: must be 7.0 or 8.0 or 9.0 (def 9.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 or 10.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
  "force yaml to run w/o cmd subst"\
  "use virtualenv to run tests"\

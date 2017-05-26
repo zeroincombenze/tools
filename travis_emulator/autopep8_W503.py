@@ -390,13 +390,5 @@ if __name__ == "__main__":
         ctx['from_ver'] = eval(ctx['from_odoo_ver'])
     else:
         ctx['from_ver'] = 0.0
-        # if ctx['to_ver'] == 10.0:
-        #     ctx['from_ver'] = 9.0
-        # elif ctx['to_ver'] == 9.0:
-        #     ctx['from_ver'] = 8.0
-        # elif ctx['to_ver'] == 8.0:
-        #     ctx['from_ver'] = 7.0
-        # else:
-        #     ctx['from_ver'] = 6.0
     sts = exec_W503(src_filepy, dst_filepy, ctx)
     # sys.exit(sts)

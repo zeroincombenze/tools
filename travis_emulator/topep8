@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.5
+__version__=0.1.14.6
 
 
 format_xml() {
@@ -123,7 +123,7 @@ OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   "do nothing" "f
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "activate debug statements"\
- "odoo branch; may be 7.0,8.0,9.0 or 10.0"\
+ "odoo branch; may be 6.1 7.0 8.0 9.0 or 10.0"\
  "change class name to CamelCase"\
  "show diff"\
  "do nothing (dry-run)"\

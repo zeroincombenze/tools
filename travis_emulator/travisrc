@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.81.7
+#__version__=0.1.81.8
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -265,20 +265,19 @@ init_travis() {
       fi
       set_pkgname $PKGNAME
       BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
-      if [[ $BRANCH =~ ^(7.0|8.0|9.0|10.0)$ ]] ; then
+      if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0)$ ]] ; then
         :
       elif [[ $BRANCH =~ ^(v7|v8|v9|v10)$ ]] ; then
         BRANCH=${BRANCH:1}.0
       else
         BRANCH=7.0
       fi
-      # BRANCH=$(if $(echo "$PWD/"|grep "/v10/\|10.0/">/dev/null); then echo "10.0"; elif $(echo "$PWD/"|grep "/v9/\|9.0/">/dev/null); then echo "9.0"; elif $(echo "$PWD/"|grep "/v8/\|8.0/">/dev/null); then echo "8.0"; else echo "7.0"; fi)
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
       else
         local v l
         local x=1
-        for v in 10.0 9.0 8.0 7.0; do
+        for v in 10.0 9.0 8.0 7.0 6.1; do
           l=${#v}
           if [ ${prjversion:0:l} == "$v" -a $prjversion != "$v" ]; then
             x=0
@@ -597,7 +596,7 @@ set_pkgpath() {
 set_pkgname() {
 #set_pkgname(PKGPATH)
     PKGNAME=$(basename $1)
-    if [[ $PKGNAME =~ ^(v7|7.0|8.0|9.0|10.0)$ ]] ; then
+    if [[ $PKGNAME =~ ^(v7|6.1|7.0|8.0|9.0|10.0)$ ]] ; then
       PKGNAME=OCB
     fi
 }
@@ -784,7 +783,7 @@ robocopy_init() {
         a_append "_travis" ""
       fi
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD|grep -Eo "(v7|7.0|8.0|9.0|10.0)"|head -n1)
+        local p=$(echo $PWD|grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0)"|head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi
