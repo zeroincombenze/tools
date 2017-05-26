@@ -58,7 +58,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "0.1.9"
+__version__ = "0.1.9.1"
 
 
 class CountAction(argparse.Action):
@@ -263,7 +263,9 @@ class parseoptargs():
             if os.environ.get('VERBOSE_MODE', '') in ('0', '1'):
                 ctx[p] = int(os.environ['VERBOSE_MODE'])
             elif os.isatty(0):
-                ctx[0] = 1
+                ctx[p] = 1
+            else:
+                ctx[p] = 0
         # elif p in ctx and ctx[p] == -1:
         #     ctx[0] = 0
         return ctx

@@ -18,6 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+from operator import is_
 """recover W503
 """
 
@@ -28,12 +29,22 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.5"
+__version__ = "0.1.14.6"
 
 
-ISALNUM = re.compile('[A-Za-z_]+')
+ISALNUM = re.compile('[a-zA-Z_][a-zA-Z0-9_]*')
+ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
 ISDOCSEP1 = re.compile('"""')
 ISDOCSEP2 = re.compile("'''")
+IS_ASSIGN = re.compile('[a-zA-Z_][a-zA-Z0-9_]* *=')
+IS_ASSIGN_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]* *=')
+IS_IF_MAIN = re.compile('if __name__ == .__main__.:')
+IS_REP_SXW = re.compile('^report_sxw.report_sxw')
+IS_DEF = re.compile('def +')
+IS_DEF_B = re.compile('^def +')
+IS_CLASS = re.compile('class +')
+IS_CLASS_B = re.compile('^class +')
+
 
 RULES = """
 IS  ^ *class.*[:tok:]
@@ -161,7 +172,7 @@ def compile_rules(ctx):
     compile_1_rule(ix, tokens)
 
 
-def update_new_api(line):
+def update_new_api(line, ctx):
     for ix in IS_META.keys():
         if IS_META[ix].match(line):
             src, tgt = extr_tokens(ix, ctx)
@@ -170,15 +181,15 @@ def update_new_api(line):
     return line
 
 
-def recall_debug(line):
-    open_stmt = 0
+def recall_debug(line, ctx):
+    ctx['open_stmt'] = 0
     if re.match("^ +# tndb\.", line):
         line = line.replace("# tndb.",
                             "tndb.", 1)
         if line[-1] != ')':
-            while line[open_stmt] == ' ':
-                open_stmt += 1
-            open_stmt += 1
+            while line[ctx['open_stmt']] == ' ':
+                ctx['open_stmt'] += 1
+            ctx['open_stmt'] += 1
     if re.match("^ +# pdb\.", line):
         line = line.replace("# pdb.",
                             "pdb.", 1)
@@ -188,28 +199,28 @@ def recall_debug(line):
     if re.match("^# from tndb", line):
         line = line.replace("# from tndb",
                             "from tndb", 1)
-    return line, open_stmt
+    return line, ctx
 
 
-def recall_close_line(line, open_stmt):
-    if open_stmt:
-        lm = ' ' * (open_stmt - 1)
+def recall_close_line(line, ctx):
+    if ctx['open_stmt']:
+        lm = ' ' * (ctx['open_stmt'] - 1)
         lm1 = lm + '# '
         line = line.replace(lm1, lm, 1)
         if line[-1] == ')':
-            open_stmt = 0
-    return line, open_stmt
+            ctx['open_stmt'] = 0
+    return line, ctx
 
 
-def hide_debug(line):
-    open_stmt = 0
+def hide_debug(line, ctx):
+    ctx['open_stmt'] = 0
     if re.match("^ +tndb\.", line):
         line = line.replace("tndb.",
                             "# tndb.", 1)
         if line[-1] != ')':
-            while line[open_stmt] == ' ':
-                open_stmt += 1
-            open_stmt += 1
+            while line[ctx['open_stmt']] == ' ':
+                ctx['open_stmt'] += 1
+            ctx['open_stmt'] += 1
     if re.match("^ +pdb\.", line):
         line = line.replace("pdb.",
                             "# pdb.", 1)
@@ -219,17 +230,17 @@ def hide_debug(line):
     if re.match("^from tndb", line):
         line = line.replace("from tndb",
                             "# from tndb", 1)
-    return line, open_stmt
+    return line, ctx
 
 
-def hide_close_line(line, open_stmt):
-    if open_stmt:
-        lm = ' ' * (open_stmt - 1)
+def hide_close_line(line, ctx):
+    if ctx['open_stmt']:
+        lm = ' ' * (ctx['open_stmt'] - 1)
         lm1 = lm + '# '
         line = line.replace(lm, lm1, 1)
         if line[-1] == ')':
-            open_stmt = 0
-    return line, open_stmt
+            ctx['open_stmt'] = 0
+    return line, ctx
 
 
 def move_tk_line_up(tk, n, lines):
@@ -267,6 +278,7 @@ def split_line(line):
 
 
 def exec_W503(src_filepy, dst_filepy, ctx):
+    # pdb.set_trace()
     if ctx['opt_verbose']:
         print "Compiling rules"
     compile_rules(ctx)
@@ -276,48 +288,62 @@ def exec_W503(src_filepy, dst_filepy, ctx):
     source = fd.read()
     fd.close()
     lines = source.split('\n')
-    empty_line = 0
-    open_stmt = 0
+    ctx['empty_line'] = 0
+    ctx['open_stmt'] = 0
     n = 0
     while n < len(lines):
         if lines[n] == "":
-            empty_line += 1
+            ctx['empty_line'] += 1
         else:
-            if re.match("^report_sxw.report_sxw", lines[n]) or \
-                    re.match("^if __name__ == .__main__.:", lines[n]):
-                if empty_line > 2:
+            # if re.match("^report_sxw.report_sxw", lines[n]) or \
+            #         re.match("^if __name__ == .__main__.:", lines[n]):
+            if IS_IF_MAIN.match(lines[n]) or \
+                    IS_REP_SXW.match(lines[n]) or \
+                    IS_DEF_B.match(lines[n]) or \
+                    IS_CLASS_B.match(lines[n]):
+                if ctx['empty_line'] > 2:
                     del lines[n - 1]
-                    empty_line -= 1
+                    ctx['empty_line'] -= 1
                     n -= 1
                 else:
-                    while empty_line < 2:
+                    while ctx['empty_line'] < 2:
                         lines.insert(n, '')
-                        empty_line += 1
+                        ctx['empty_line'] += 1
                         n += 1
-            elif re.match("^[a-zA-Z0-9_]+.*\(\)$", lines[n]):
-                if empty_line > 2:
+            elif IS_ASSIGN_B.match(lines[n]):
+                if ctx['empty_line'] > 2:
                     del lines[n - 1]
-                    empty_line -= 1
+                    ctx['empty_line'] -= 1
                     n -= 1
-                else:
-                    while empty_line < 2:
+                elif ctx['empty_line']:
+                    while ctx['empty_line'] < 2:
                         lines.insert(n, '')
-                        empty_line += 1
+                        ctx['empty_line'] += 1
                         n += 1
-            empty_line = 0
-            if open_stmt:
+            # elif re.match("^[a-zA-Z0-9_]+.*\(\)$", lines[n]):
+            #     if ctx['empty_line'] > 2:
+            #         del lines[n - 1]
+            #         ctx['empty_line'] -= 1
+            #         n -= 1
+            #     else:
+            #         while ctx['empty_line'] < 2:
+            #             lines.insert(n, '')
+            #             ctx['empty_line'] += 1
+            #             n += 1
+            ctx['empty_line'] = 0
+            if ctx['open_stmt']:
                 if ctx['opt_recall_dbg']:
-                    lines[n], open_stmt = recall_close_line(lines[n],
-                                                            open_stmt)
+                    lines[n], ctx = recall_close_line(lines[n],
+                                                      ctx)
                 else:
-                    lines[n], open_stmt = hide_close_line(lines[n],
-                                                          open_stmt)
+                    lines[n], ctx = hide_close_line(lines[n],
+                                                    ctx)
             else:
                 if ctx['opt_recall_dbg']:
-                    lines[n], open_stmt = recall_debug(lines[n])
+                    lines[n], ctx = recall_debug(lines[n], ctx)
                 else:
-                    lines[n], open_stmt = hide_debug(lines[n])
-                lines[n] = update_new_api(lines[n])
+                    lines[n], ctx = hide_debug(lines[n], ctx)
+                lines[n] = update_new_api(lines[n], ctx)
         ln = lines[n].strip()
         if ln == "or":
             tk = "or"
