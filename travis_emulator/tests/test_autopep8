@@ -50,6 +50,7 @@ from tndb import tndb
 class res_user(osv.osv):
 # This remark is longer than 80 characters in order to split a long line in two smaller lines
     def __init__(self):
+        """ This help doc is longer than 80 characters in order to split a long line in two smaller lines """
         tndb.wstamp()
         pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
@@ -80,6 +81,8 @@ class res_user(orm.Model):
     # This remark is longer than 80 characters in order to split a long
     # line in two smaller lines
     def __init__(self):
+        """ This help doc is longer than 80 characters in order to split a long
+        line in two smaller lines """
         # tndb.wstamp()
         # pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
@@ -121,6 +124,8 @@ class res_user(models.Model):
     # This remark is longer than 80 characters in order to split a long
     # line in two smaller lines
     def __init__(self):
+        """ This help doc is longer than 80 characters in order to split a long
+        line in two smaller lines """
         # tndb.wstamp()
         # pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')

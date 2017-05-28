@@ -21,15 +21,14 @@
 """recover W503
 """
 
-import pdb
+# import pdb
 # import os
 import sys
 import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.7"
-
+__version__ = "0.1.14.8"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -41,14 +40,16 @@ IS_DEF = re.compile('def +')
 IS_CLASS = re.compile('class +')
 
 SYNTAX = {
-    'open_lparen': re.compile('\('),
-    'open_rparen': re.compile('\)'),
-    'open_lbrace': re.compile('\['),
-    'open_rbrace': re.compile('\]'),
-    'open_lbracket': re.compile('\{'),
-    'open_rbracket': re.compile('\}'),
-    'isalnum': re.compile('[a-zA-Z_][\w]*'),
-    'isdigit': re.compile('[\d]+'),
+    'open_lparen': re.compile(' *\('),
+    'open_rparen': re.compile(' *\)'),
+    'open_lbrace': re.compile(' *\['),
+    'open_rbrace': re.compile(' *\]'),
+    'open_lbracket': re.compile(' *\{'),
+    'open_rbracket': re.compile(' *\}'),
+    'isalnum': re.compile(' *[a-zA-Z_][\w]*'),
+    'isdigit': re.compile(' *[\d]+'),
+    'begdoc1': re.compile(' *"""'),
+    'begdoc2': re.compile(' *"""'),
 }
 
 RULES = r"""
@@ -354,14 +355,28 @@ def split_line(line):
     ln2 = ''
     MINLM = 20
     if line[0] == '#':
-        i = len(line) / 4 * 3
-        if i > 79:
-            i = 79
-        while i > MINLM and line[i] != ' ':
-            i -= 1
-        if i > MINLM:
-            ln1 = line[0:i]
-            ln2 = '#' + line[i:]
+        ipos = len(line) / 4 * 3
+        if ipos > 79:
+            ipos = 79
+        while ipos > MINLM and line[ipos] != ' ':
+            ipos -= 1
+        if ipos > MINLM:
+            ln1 = line[0:ipos]
+            ln2 = '#' + line[ipos:]
+    elif SYNTAX['begdoc1'].match(line) or SYNTAX['begdoc2'].match(line):
+        ipos = len(line) / 4 * 3
+        if ipos > 79:
+            ipos = 79
+        while ipos > MINLM and line[ipos] != ' ':
+            ipos -= 1
+        if ipos > MINLM:
+            lm = ''
+            i = 0
+            while line[i] == ' ':
+                lm += ' '
+                i += 1
+            ln1 = line[0:ipos]
+            ln2 = lm + line[ipos:].strip()
     return ln1, ln2
 
 
@@ -401,7 +416,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
         if lines[lineno] == "":
             ctx['empty_line'] += 1
         else:
-            lines, meta = update_4_api(lines, 
+            lines, meta = update_4_api(lines,
                                        lineno,
                                        ctx)
             if meta:
@@ -451,7 +466,6 @@ def parse_file(src_filepy, dst_filepy, ctx):
 
 
 if __name__ == "__main__":
-    # pdb.set_trace()
     parser = parseoptargs("Topep8",
                           "© 2015-2017 by SHS-AV s.r.l.",
                           version=__version__)
