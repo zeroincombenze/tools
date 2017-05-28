@@ -18,12 +18,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from operator import is_
 """recover W503
 """
 
-import pdb
-import os
+# import pdb
+# import os
 import sys
 import re
 from z0lib import parseoptargs
@@ -106,6 +105,7 @@ IS_META_TXT = {}
 SRC_TOKENS = {}
 TGT_TOKENS = {}
 
+
 def set_4_ver(ix, tokens, ver):
     if tokens.get(ver, False):
         IS_META_TXT[ix + 1] = IS_META_TXT[ix]
@@ -141,6 +141,7 @@ def compile_1_rule(ix, tokens):
                 tokens = set_4_ver(ix, tokens, ver)
         TGT_TOKENS[ix] = tokens
     return ix
+
 
 def extr_tokens(ix, ctx):
     tokens = TGT_TOKENS[ix]

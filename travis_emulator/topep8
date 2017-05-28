@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.6
+__version__=0.1.14.7
 
 
 format_xml() {
@@ -191,7 +191,8 @@ for fl in $(find $path -type f -name "$selfl"); do
       AP8OPTS="$AP8OPTS -$x"
     fi
     if [ $opt_uop -gt 0 ]; then
-      python $TDIR/autopep8_W503.py $f $f.tmp $OPTS
+      # python $TDIR/autopep8_W503.py $f $f.tmp $OPTS
+      python $TDIR/topep8.py $f $f.tmp $OPTS
       autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
       rm -f $f.tmp
     else

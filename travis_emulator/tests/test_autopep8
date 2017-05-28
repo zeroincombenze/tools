@@ -38,6 +38,7 @@ test_01() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTDIR/res/*_01.out
       cat <<EOF >$TESTSRC
+# (C) OpenERP (http://openerp.com)
 import pdb
 from osv import osv
 import decimal_precision
@@ -69,6 +70,7 @@ report_sxw.report_sxw(
     parser=autopep8)
 EOF
       cat <<EOF >$TESTRES
+# (C) Odoo (http://odoo.com)
 # import pdb
 from openerp import pooler
 # from tndb import tndb
@@ -105,6 +107,7 @@ EOF
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
+# (C) Odoo (http://odoo.com)
 # import pdb
 from odoo import osv
 import odoo.addons.decimal_precision
@@ -161,6 +164,8 @@ from openerp import netsvc
 from openerp import pooler
 # from tndb import tndb
 
+const1 = 10
+const2 = 20
 
 class res_user(osv.osv_memory):
     def __init__(self):
@@ -189,6 +194,10 @@ EOF
 import pdb
 from openerp import pooler
 from tndb import tndb
+
+
+const1 = 10
+const2 = 20
 
 
 class ResUser(orm.TransientModel):
@@ -227,6 +236,10 @@ from odoo.tools.translate import _
 from odoo import netsvc
 from odoo import pooler
 from tndb import tndb
+
+
+const1 = 10
+const2 = 20
 
 
 class ResUser(models.TransientModel):
