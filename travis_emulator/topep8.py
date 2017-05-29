@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.8"
+__version__ = "0.1.14.9"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -103,6 +103,8 @@ release|sql_db)
  v0     odoo.com
 *IS*    OpenERP
  v0     Odoo
+*IS*    openerp-italia.org
+ v0     odoo-italia.org
 *IS*    formerly Odoo
  v0     formerly OpenERP
 *IS* +2 ^[a-zA-Z_][\w.]* *\(

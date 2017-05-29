@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.81.8
+__version__=0.1.81.9
 
 
 store_cfg_param_value() {
@@ -416,6 +416,11 @@ process_yaml_run_cmd() {
     local xcmd=$(process_yaml_quote_xtl "$1")
     local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
     c=$xcmd
+    if [ "$FH" == "RHEL" ]; then
+      if [[ $xcmd =~ which[[:space:]]nodejs ]]; then
+        xcmd=$(echo "$xcmd"|sed -e s/nodejs/node/g) 
+      fi
+    fi
     read -r -a x<<<"$xcmd"
     ix=0
     if [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sudo" ]; then
@@ -565,6 +570,8 @@ process_yaml_run_cmd() {
           tk=${x[$ix]}
         done
       fi
+    # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
+    #   xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
       xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
