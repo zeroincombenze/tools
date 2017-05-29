@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.13.6
+__version__=0.1.14.10
 
 
 test_01() {
@@ -150,6 +150,31 @@ EOF
       $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
+
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTSRC
+class res_user(models.Model):
+    def __init__(self):
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )
+EOF
+      cat <<EOF >$TESTRES
+
+
+class res_user(osv.osv):
+    def __init__(self):
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )
+EOF
+      $RUNDIR/topep8 -q -b6.1 $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -b6.1" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {

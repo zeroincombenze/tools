@@ -496,12 +496,12 @@ if __name__ == "__main__":
     else:
         dst_filepy = src_filepy
     if ctx['odoo_ver']:
-        ctx['to_ver'] = eval(ctx['odoo_ver'])
+        ctx['to_ver'] = int(eval(ctx['odoo_ver']))
     else:
-        ctx['to_ver'] = 7.0
+        ctx['to_ver'] = 7
     if ctx['from_odoo_ver']:
-        ctx['from_ver'] = eval(ctx['from_odoo_ver'])
+        ctx['from_ver'] = int(eval(ctx['from_odoo_ver']))
     else:
-        ctx['from_ver'] = 0.0
+        ctx['from_ver'] = 0
     sts = parse_file(src_filepy, dst_filepy, ctx)
     # sys.exit(sts)
