@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.9"
+__version__ = "0.1.14.12"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -74,8 +74,12 @@ RULES = r"""
  v10    from odoo.tools.translate import
 *IS*    ^[:tok:]
  v6     import decimal_precision
- v7     import openerp.addons.decimal_precision
+ v8     import openerp.addons.decimal_precision
  v10    import odoo.addons.decimal_precision
+*IS*    ^[:tok:]
+ v6     import openerp.addons.decimal_precision
+ v8     from openerp.addons.decimal_precision import decimal_precision
+ v10    from odoo.addons.decimal_precision import decimal_precision
 *IS*    ^import (api|exceptions|fields|http|loglevels|models|netsvc|pooler|\
 release|sql_db)
  v6     import
@@ -138,6 +142,10 @@ release|sql_db)
  v0     &
 *IS* && ^ +and *
  v0     &
+*IS*del1if context is None:
+ v0     context = {} if context is None else context
+*IS*del1if ctx is None:
+ v0     ctx = {} if ctx is None else ctx
 """
 IS_BADGE = {}
 IS_BADGE_TXT = {}
@@ -291,6 +299,41 @@ def compile_rules(ctx):
                 TGT_TOKENS.get(ii, ''))
 
 
+def write_license_info(lines, ctx):
+    found_author = False
+    if lines[0] != '# -*- coding: utf-8 -*-':
+        lines.insert(0, '# -*- coding: utf-8 -*-')
+    lineno = 1
+    while not re.match('^# *([Cc]opyright|\(C\))', lines[lineno]):
+        if lines[lineno][0] == '#':
+            del lines[lineno]
+        else:
+            break
+    while re.match(
+            '^# *([Cc]opyright|\([Cc]\)|http:|https:|\w+\@[a-zA-z0-9-.]+)',
+            lines[lineno]):
+        found_author = True
+        lineno += 1
+    while lines[lineno][0] == '#':
+        del lines[lineno]
+    if not found_author:
+            lines.insert(
+                lineno,
+                '# Copyright 2017, '
+                'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>')
+            lineno += 1
+            lines.insert(
+                lineno,
+                '# Copyright 2017, '
+                'Associazione Odoo Italia <https://odoo-italia.org>')
+            lineno += 1
+    lines.insert(
+        lineno,
+        '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
+    lineno += 1
+    lines.insert(lineno,'#')
+    return lines
+
 def update_4_api(lines, lineno, ctx):
     line = lines[lineno]
     if ctx['opt_verbose'] > 2:
@@ -413,6 +456,8 @@ def parse_file(src_filepy, dst_filepy, ctx):
     fd.close()
     lines = source.split('\n')
     ctx = init_parse(ctx)
+    if ctx['opt_gpl']:
+        lines = write_license_info(lines, ctx)
     lineno = 0
     while lineno < len(lines):
         if lines[lineno] == "":
@@ -444,6 +489,8 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 elif meta == '||':
                     tk = "or"
                     move_tk_line_up(lines, lineno, tk)
+                elif meta == 'del1':
+                    del lines[lineno + 1]
                 ctx['empty_line'] = 0
         lineno += 1
     lineno = len(lines) - 1
@@ -483,6 +530,10 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
+    parser.add_argument('-G', '--gpl-info',
+                        action='store_true',
+                        dest='opt_gpl',
+                        default=False)
     parser.add_argument('-o', '--original-branch',
                         action='store',
                         dest='from_odoo_ver')

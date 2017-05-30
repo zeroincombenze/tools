@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.5
+__version__=0.1.42.6
 
 
 #
@@ -942,6 +942,9 @@ do_distribution() {
          local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
       elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
         local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
+        if [ ! -f LICENSE ]; then
+          run_traced "cp ~/agpl.txt LICENSE"
+        fi
       else
         local gitprj=
       fi

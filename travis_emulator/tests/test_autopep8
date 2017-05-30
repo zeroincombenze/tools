@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.10
+__version__=0.1.14.12
 
 
 test_01() {
@@ -73,6 +73,7 @@ EOF
       cat <<EOF >$TESTRES
 # (C) Odoo (http://odoo.com)
 # import pdb
+import decimal_precision
 from openerp import pooler
 # from tndb import tndb
 
@@ -198,7 +199,9 @@ const1 = 10
 const2 = 20
 
 class res_user(osv.osv_memory):
-    def __init__(self):
+    def __init__(self, ctx=None):
+        if ctx is None:
+            ctx = {}
         # tndb.wstamp()
         # pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
@@ -222,6 +225,7 @@ report_sxw.report_sxw(
 EOF
       cat <<EOF >$TESTRES
 import pdb
+import decimal_precision
 from openerp import pooler
 from tndb import tndb
 
@@ -231,7 +235,8 @@ const2 = 20
 
 
 class ResUser(orm.TransientModel):
-    def __init__(self):
+    def __init__(self, ctx=None):
+        ctx = {} if ctx is None else ctx
         tndb.wstamp()
         pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
@@ -273,7 +278,8 @@ const2 = 20
 
 
 class ResUser(models.TransientModel):
-    def __init__(self):
+    def __init__(self, ctx=None):
+        ctx = {} if ctx is None else ctx
         tndb.wstamp()
         pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')

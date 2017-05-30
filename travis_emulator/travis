@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.81.9
+__version__=0.1.81.10
 
 
 store_cfg_param_value() {
@@ -570,6 +570,8 @@ process_yaml_run_cmd() {
           tk=${x[$ix]}
         done
       fi
+    elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
+      xcmd="# $xcmd"
     # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
     #   xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
