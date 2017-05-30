@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.12
+__version__=0.1.14.14
 
 
 test_01() {
@@ -79,8 +79,8 @@ from openerp import pooler
 
 
 class res_user(orm.Model):
-    # This remark is longer than 80 characters in order to split a long
-    # line in two smaller lines
+    # This remark is longer than 80 characters in order to split a long line in
+    # two smaller lines
     def __init__(self):
         """ This help doc is longer than 80 characters in order to split a long
         line in two smaller lines """
@@ -122,8 +122,8 @@ from odoo import pooler
 
 
 class res_user(models.Model):
-    # This remark is longer than 80 characters in order to split a long
-    # line in two smaller lines
+    # This remark is longer than 80 characters in order to split a long line in
+    # two smaller lines
     def __init__(self):
         """ This help doc is longer than 80 characters in order to split a long
         line in two smaller lines """
@@ -173,9 +173,9 @@ class res_user(osv.osv):
             ''
         )
 EOF
-      $RUNDIR/topep8 -q -b6.1 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -q -b6.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b6.1" "$TESTOUT" "$TESTRES" "diff"
+    test_result "autopep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {

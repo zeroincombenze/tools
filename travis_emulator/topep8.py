@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.12"
+__version__ = "0.1.14.14"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -40,112 +40,121 @@ IS_DEF = re.compile('def +')
 IS_CLASS = re.compile('class +')
 
 SYNTAX = {
-    'open_lparen': re.compile(' *\('),
-    'open_rparen': re.compile(' *\)'),
-    'open_lbrace': re.compile(' *\['),
-    'open_rbrace': re.compile(' *\]'),
-    'open_lbracket': re.compile(' *\{'),
-    'open_rbracket': re.compile(' *\}'),
-    'isalnum': re.compile(' *[a-zA-Z_][\w]*'),
-    'isdigit': re.compile(' *[\d]+'),
-    'begdoc1': re.compile(' *"""'),
-    'begdoc2': re.compile(' *"""'),
+    'space': re.compile('\s+'),
+    'open_lparen': re.compile('\('),
+    'open_rparen': re.compile('\)'),
+    'open_lbrace': re.compile('\['),
+    'open_rbrace': re.compile('\]'),
+    'open_lbracket': re.compile('\{'),
+    'open_rbracket': re.compile('\}'),
+    'isalnum': re.compile('[a-zA-Z_][\w]*'),
+    'isdigit': re.compile('[\d]+'),
+    'begdoc1': re.compile('"""'),
+    'begdoc2': re.compile('"""'),
+    'begremark': re.compile('#'),
+    'begtxt1': re.compile('"{1,2}($|[^"])'),
+    'begtxt2': re.compile("'{1,2}($|[^'])"),
+    'dot': re.compile('\.'),
+    'comma': re.compile(','),
+    'colon': re.compile(':'),
+    'assign': re.compile('='),
+    'op': re.compile('[!%&-+/|^?<=>]+'),
 }
 
 RULES = r"""
-*IS*    ^ *class.*[:tok:]
- v6     osv.osv_memory
- v7     orm.TransientModel
- v10    models.TransientModel
-*IS*    ^ *class.*[:tok:]
- v6     osv.osv
- v7     orm.Model
- v10    models.Model
-*IS*    ^[:tok:]
- v6     from osv import
- v7     from openerp.osv import
- v10    from odoo import
-*IS*    ^from (openerp.osv|odoo) import
- v6     orm
- v8     models
-*IS*    ^[:tok:]
- v6     from tools.translate import
- v7     from openerp.tools.translate import
- v10    from odoo.tools.translate import
-*IS*    ^[:tok:]
- v6     import decimal_precision
- v8     import openerp.addons.decimal_precision
- v10    import odoo.addons.decimal_precision
-*IS*    ^[:tok:]
- v6     import openerp.addons.decimal_precision
- v8     from openerp.addons.decimal_precision import decimal_precision
- v10    from odoo.addons.decimal_precision import decimal_precision
-*IS*    ^import (api|exceptions|fields|http|loglevels|models|netsvc|pooler|\
-release|sql_db)
- v6     import
- v7     from openerp import
- v10    from odoo import
-*IS*    ^from (openerp|odoo)\.addons\.web import http
- v6     from openerp.addons.web import http
- v10    from odoo import http
-*IS*    ^.*import (openerp|odoo)\.addons\.web\.http
- v6     openerp.addons.web.http
- v10    odoo.http
-*IS*    ^[:tok:]
- v6     from openerp import
- v10    from odoo import
-*IS*    ^ *class\.*orm\.
- v6     orm
- v10    models
-*IS*    [:tok:]
- v6     osv.except_osv
- v10    UserError
-*IS*    [:tok:]
- v6     openerp.tools.config
- v10    odoo.tools.config
-*IS*    openerp.com
- v0     odoo.com
-*IS*    OpenERP
- v0     Odoo
-*IS*    openerp-italia.org
- v0     odoo-italia.org
-*IS*    formerly Odoo
- v0     formerly OpenERP
-*IS* +2 ^[a-zA-Z_][\w.]* *\(
- v0     &
-*IS* +2 ^if __name__ == .__main__.:
- v0     &
-*IS* +2 ^def +
- v0     &
-*IS* +2 ^class +
- v0     &
-*IS* *2 ^[a-zA-Z_][\w.]* *=
- v0     &
+*IS*        ^ *class.*[:tok:]
+ v60        osv.osv_memory
+ v61        orm.TransientModel
+ v100       models.TransientModel
+*IS*        ^ *class.*[:tok:]
+ v60        osv.osv
+ v61        orm.Model
+ v100       models.Model
+*IS*        ^[:tok:]
+ v60        from osv import
+ v70        from openerp.osv import
+ v100       from odoo import
+*IS*        ^from (openerp.osv|odoo) import
+ v60        orm
+ v80        models
+*IS*        ^[:tok:]
+ v60        from tools.translate import
+ v70        from openerp.tools.translate import
+ v100       from odoo.tools.translate import
+*IS*        ^[:tok:]
+ v60        import decimal_precision
+ v80        import openerp.addons.decimal_precision
+ v100       import odoo.addons.decimal_precision
+*IS*        ^[:tok:]
+ v60        import openerp.addons.decimal_precision
+ v80        from openerp.addons.decimal_precision import decimal_precision
+ v100       from odoo.addons.decimal_precision import decimal_precision
+*IS*        ^import (api|exceptions|fields|http|loglevels|models|netsvc|\
+pooler|release|sql_db)
+ v60        import
+ v70        from openerp import
+ v100       from odoo import
+*IS*        ^from (openerp|odoo)\.addons\.web import http
+ v60        from openerp.addons.web import http
+ v100       from odoo import http
+*IS*        ^.*import (openerp|odoo)\.addons\.web\.http
+ v60        openerp.addons.web.http
+ v100       odoo.http
+*IS*        ^[:tok:]
+ v60        from openerp import
+ v100       from odoo import
+*IS*        ^ *class\.*orm\.
+ v60        orm
+ v100       models
+*IS*        [:tok:]
+ v60        osv.except_osv
+ v100       UserError
+*IS*        [:tok:]
+ v60        openerp.tools.config
+ v100       odoo.tools.config
+*IS*   #    openerp.com
+ v0         odoo.com
+*IS*   #    OpenERP
+ v0         Odoo
+*IS*   #    openerp-italia.org
+ v0         odoo-italia.org
+*IS*   #    formerly Odoo
+ v0         formerly OpenERP
+*IS*   +2   ^[a-zA-Z_][\w.]* *\(
+ v0         &
+*IS*   +2   ^if __name__ == .__main__.:
+ v0         &
+*IS*   +2   ^def +
+ v0         &
+*IS*   +2   ^class +
+ v0         &
+*IS*   *2   ^[a-zA-Z_][\w.]* *=
+ v0         &
 #
-*IS* +B ^ +tndb\.
- v0     # tndb.
-*IS* +b ^from tndb
- v0     # from tndb
-*IS* +b ^ +pdb\.
- v0     # pdb.
-*IS* +b ^import pdb
- v0     # import pdb
-*IS* -B # tndb\.
- v0     tndb.
-*IS* -b # from tndb
- v0     from tndb
-*IS* -b # pdb
- v0     pdb
-*IS* -b # import pdb
- v0     import pdb
-*IS* || ^ +or *
- v0     &
-*IS* && ^ +and *
- v0     &
-*IS*del1if context is None:
- v0     context = {} if context is None else context
-*IS*del1if ctx is None:
- v0     ctx = {} if ctx is None else ctx
+*IS*   +B   ^ +tndb\.
+ v0         # tndb.
+*IS*   +b   ^from tndb
+ v0         # from tndb
+*IS*   +b   ^ +pdb\.
+ v0         # pdb.
+*IS*   +b   ^import pdb
+ v0         # import pdb
+*IS*   -B   # tndb\.
+ v0         tndb.
+*IS*   -b   # from tndb
+ v0         from tndb
+*IS*   -b   # pdb
+ v0         pdb
+*IS*   -b   # import pdb
+ v0         import pdb
+*IS*   ||   ^ +or *
+ v0         &
+*IS*   &&   ^ +and *
+ v0         &
+*IS*  del1  if context is None:
+ v0         context = {} if context is None else context
+*IS*  del1  if ctx is None:
+ v0         ctx = {} if ctx is None else ctx
 """
 IS_BADGE = {}
 IS_BADGE_TXT = {}
@@ -173,11 +182,25 @@ def regex2txt(token):
     return tok
 
 
+def prior_ver(ver):
+    if ver == 61:
+        return 60
+    elif ver == 70:
+        return 61
+    return ver - 10
+
+
+def ver2ix(ver):
+    if ver in ('6.0', '6.1', '7.0', '8.0', '9.0', '10.0'):
+        return int(eval(ver) * 10)
+    return 0
+
+
 def set_4_ver(ix, tokens, metas, ver):
     if tokens.get(ver, False):
         if ver == 0:
-            if not tokens.get(6, False):
-                tokens[6] = tokens[0]
+            if not tokens.get(60, False):
+                tokens[60] = tokens[0]
             if IS_BADGE_TXT[ix][0] != '^':
                 SRC_TOKENS[ix] = regex2txt(IS_BADGE_TXT[ix])
             else:
@@ -193,8 +216,8 @@ def set_4_ver(ix, tokens, metas, ver):
         if IS_BADGE_TXT[ix][0] != '^':
             IS_BADGE_TXT[ix] = '.*' + IS_BADGE_TXT[ix]
         IS_BADGE[ix] = re.compile(IS_BADGE_TXT[ix])
-    elif ver > 6:
-        tokens[ver] = tokens[ver - 1]
+    elif ver > 60:
+        tokens[ver] = tokens[prior_ver(ver)]
     if '0' in tokens:
         del tokens[0]
     return tokens
@@ -202,16 +225,16 @@ def set_4_ver(ix, tokens, metas, ver):
 
 def compile_1_rule(ix, tokens, metas):
     if not ctx['from_ver']:
-        for ver in (0, 6, 7, 8, 9, 10):
+        for ver in (0, 60, 61, 70, 80, 90, 100):
             if tokens.get(ver, False):
                 tokens = set_4_ver(ix, tokens, metas, ver)
                 tokens2 = {}
-                for ver2 in (6, 7, 8, 9, 10):
+                for ver2 in (60, 61, 70, 80, 90, 100):
                     if tokens.get(ver2, False):
                         tokens2[ver2] = tokens[ver2]
                     else:
-                        if ver2 > 6:
-                            tokens2[ver2] = tokens2[ver2 - 1]
+                        if ver2 > 60:
+                            tokens2[ver2] = tokens2[prior_ver(ver2)]
                         else:
                             tokens2[ver2] = tokens[ver2]
                 TGT_TOKENS[ix] = tokens2
@@ -220,7 +243,7 @@ def compile_1_rule(ix, tokens, metas):
                 if ix < 0 or (ix in TGT_TOKENS and len(TGT_TOKENS[ix])):
                     ix += 1
     else:
-        for ver in (0, 6, 7, 8, 9, 10):
+        for ver in (0, 60, 61, 70, 80, 90, 100):
             if not ver or ctx['from_ver'] == ver:
                 tokens = set_4_ver(ix, tokens, metas, ver)
         TGT_TOKENS[ix] = tokens
@@ -244,9 +267,9 @@ def compile_rules(ctx):
         if cont_break:
             value += rule
         else:
-            id = rule[0:4]
-            meta = rule[4:8].strip()
-            value = rule[8:]
+            id = rule[0:6].strip()
+            meta = rule[6:12].strip()
+            value = rule[12:]
         if value and value[-1] == '\\':
             value = value[0:-1]
             cont_break = True
@@ -263,24 +286,13 @@ def compile_rules(ctx):
             metas = {}
             IS_BADGE_TXT[ix] = value
             META[ix] = meta
-        elif id == ' v0 ':
+        elif id == 'v0':
             tokens[0] = value
             metas[0] = meta
-        elif id == ' v6 ':
-            tokens[6] = value
-            metas[6] = meta
-        elif id == ' v7 ':
-            tokens[7] = value
-            metas[7] = meta
-        elif id == ' v8 ':
-            tokens[8] = value
-            metas[8] = meta
-        elif id == ' v9 ':
-            tokens[9] = value
-            metas[9] = meta
-        elif id == ' v10':
-            tokens[10] = value
-            metas[10] = meta
+        elif id in ('v60', 'v61', 'v70', 'v80', 'v90', 'v100'):
+            i = int(eval(id[1:]))
+            tokens[i] = value
+            metas[i] = meta
         else:
             print "Invalid rule %d -> %s " % (ix, rule)
     compile_1_rule(ix, tokens, metas)
@@ -331,8 +343,9 @@ def write_license_info(lines, ctx):
         lineno,
         '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
     lineno += 1
-    lines.insert(lineno,'#')
+    lines.insert(lineno, '#')
     return lines
+
 
 def update_4_api(lines, lineno, ctx):
     line = lines[lineno]
@@ -344,11 +357,14 @@ def update_4_api(lines, lineno, ctx):
             continue
         elif META[ix] in ('-B', '-b') and not ctx['opt_recall_dbg']:
             continue
+        elif META[ix] != '#' and ctx['open_doc']:
+            continue
         if IS_BADGE[ix].match(line):
             if ctx['opt_verbose'] > 2:
                 print "> if IS_BADGE[%d]=(%s).match(%s):" % (
                     ix, IS_BADGE_TXT[ix], line)
-                print ">     src, tgt = extr_tokens(%d, ctx)" % ix
+                print ">     src, tgt = extr_tokens(%d, ver['%d'])" % (
+                    ix, ctx['to_ver'])
             src, tgt = extr_tokens(ix, ctx)
             if tgt != '&' and src != tgt:
                 line = line.replace(src, tgt)
@@ -371,7 +387,7 @@ def update_4_api(lines, lineno, ctx):
                         lines[lineno] = line.rstrip()
                         lineno += 1
                         line = lines[lineno].replace(lm, lm1, 1)
-            if META[ix]:
+            if META[ix] and META[ix] != '#':
                 break
     lines[lineno] = line.rstrip()
     return lines, meta
@@ -395,33 +411,88 @@ def move_tk_line_up(lines, lineno, tk):
             lines[lineno] = lines[lineno] + " " + tk
 
 
+def split_eol(line, ipos, istkn):
+    imin = len(line) / 5 + 1
+    ibrk = imin * 4
+    if ibrk > 79:
+        ibrk = 79
+    if imin > ipos and imin < ibrk:
+        while ibrk > imin and line[ibrk] != ' ':
+            ibrk -= 1
+        if ibrk > imin:
+            ln1 = line[0:ibrk]
+            if istkn == 'begremark':
+                lm = ' ' * ipos
+                ln2 = lm + '#' + line[ibrk:]
+            elif istkn in ('begdoc1',
+                           'begdoc2'):
+                lm = ''
+                i = 0
+                while line[i] == ' ':
+                    lm += ' '
+                    i += 1
+                ln2 = lm + line[ibrk:].strip()
+            return ln1, ln2
+    return line, ''
+
+
 def split_line(line):
     ln1 = line
     ln2 = ''
-    MINLM = 20
-    if line[0] == '#':
-        ipos = len(line) / 4 * 3
-        if ipos > 79:
-            ipos = 79
-        while ipos > MINLM and line[ipos] != ' ':
-            ipos -= 1
-        if ipos > MINLM:
-            ln1 = line[0:ipos]
-            ln2 = '#' + line[ipos:]
-    elif SYNTAX['begdoc1'].match(line) or SYNTAX['begdoc2'].match(line):
-        ipos = len(line) / 4 * 3
-        if ipos > 79:
-            ipos = 79
-        while ipos > MINLM and line[ipos] != ' ':
-            ipos -= 1
-        if ipos > MINLM:
-            lm = ''
-            i = 0
-            while line[i] == ' ':
-                lm += ' '
-                i += 1
-            ln1 = line[0:ipos]
-            ln2 = lm + line[ipos:].strip()
+    tabstop = {}
+    ipos = 0
+    # print ">>>%s" % line[ipos:]  #debug
+    while ipos < len(line):
+        unknown = True
+        for istkn in SYNTAX:
+            x = SYNTAX[istkn].match(line[ipos:])
+            if x:
+                unknown = False
+                if istkn in ('dot', 'assign',):
+                    ipos += 1
+                    y = SYNTAX['space'].match(line[ipos:])
+                    if y:
+                        ipos += y.end()
+                    tabstop[ipos] = istkn
+                elif istkn in ('comma',
+                               'colon',
+                               'open_lparen',
+                               'open_rparen',
+                               'open_lbrace',
+                               'open_rbrace',
+                               'open_lbracket',
+                               'open_rbracket',
+                               ):
+                    ipos += 1
+                    tabstop[ipos] = istkn
+                elif istkn != 'space':
+                    # print ">>%s" % line[ipos:]  #debug
+                    tabstop[ipos] = istkn
+                if istkn in ('begremark',
+                             'begdoc1',
+                             'begdoc2'):
+                    ln1, ln2 = split_eol(line, ipos, istkn)
+                    if ln2:
+                        return ln1, ln2
+                    ipos = len(line)
+                elif istkn == 'begtxt1':
+                    x = re.match('.*"', line[ipos:])
+                    if x:
+                        ipos += x.end()
+                    else:
+                        ipos = len(line)
+                elif istkn == 'begtxt2':
+                    x = re.match(".*'", line[ipos:])
+                    if x:
+                        ipos += x.end()
+                    else:
+                        ipos = len(line)
+                else:
+                    ipos += x.end()
+                break
+        if unknown:
+            print "Unknown token %s" % line[ipos:]
+            ipos += 1
     return ln1, ln2
 
 
@@ -431,6 +502,7 @@ def init_parse(ctx):
     compile_rules(ctx)
     ctx['empty_line'] = 0
     ctx['open_stmt'] = 0
+    ctx['open_doc'] = 0
     return ctx
 
 
@@ -460,14 +532,40 @@ def parse_file(src_filepy, dst_filepy, ctx):
         lines = write_license_info(lines, ctx)
     lineno = 0
     while lineno < len(lines):
-        if lines[lineno] == "":
+        if ctx['open_doc'] != 2 and re.match('.*"""', lines[lineno]):
+            if len(lines[lineno]) > 79:
+                ln1, ln2 = split_line(lines[lineno])
+                if ln2:
+                    lines[lineno] = ln2
+                    lines.insert(lineno, ln1)
+            if ctx['open_doc'] == 1:
+                ctx['open_doc'] = 0
+            elif re.match('.*""".*"""', lines[lineno]):
+                pass
+            else:
+                ctx['open_doc'] = 1
+        elif ctx['open_doc'] != 1 and re.match('\s*"""', lines[lineno]):
+            if len(lines[lineno]) > 79:
+                ln1, ln2 = split_line(lines[lineno])
+                if ln2:
+                    lines[lineno] = ln2
+                    lines.insert(lineno, ln1)
+            if ctx['open_doc'] == 2:
+                ctx['open_doc'] = 0
+            elif re.match(".*'''.*'''", lines[lineno]):
+                pass
+            else:
+                ctx['open_doc'] = 2
+        elif ctx['open_doc']:
+            pass
+        elif lines[lineno] == "":
             ctx['empty_line'] += 1
         else:
             lines, meta = update_4_api(lines,
                                        lineno,
                                        ctx)
             if meta:
-                if meta in ('+B', '-B', '+b', '-b'):
+                if meta in ('+B', '-B', '+b', '-b', '#'):
                     pass
                 elif meta[0] == '+':
                     nebef = eval(meta[1])
@@ -492,19 +590,24 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 elif meta == 'del1':
                     del lines[lineno + 1]
                 ctx['empty_line'] = 0
-        lineno += 1
-    lineno = len(lines) - 1
-    while lineno > 2 and lines[lineno] == "":
-        del lines[lineno]
-        lineno = len(lines) - 1
-    lineno = 0
-    while lineno < len(lines):
         if len(lines[lineno]) > 79:
             ln1, ln2 = split_line(lines[lineno])
             if ln2:
                 lines[lineno] = ln2
                 lines.insert(lineno, ln1)
         lineno += 1
+    lineno = len(lines) - 1
+    while lineno > 2 and lines[lineno] == "":
+        del lines[lineno]
+        lineno = len(lines) - 1
+    lineno = 0
+    # while lineno < len(lines):
+    #     if len(lines[lineno]) > 79:
+    #         ln1, ln2 = split_line(lines[lineno])
+    #         if ln2:
+    #             lines[lineno] = ln2
+    #             lines.insert(lineno, ln1)
+    #     lineno += 1
     if not ctx['dry_run'] and len(lines):
         if ctx['opt_verbose']:
             print "Writing %s" % dst_filepy
@@ -547,11 +650,11 @@ if __name__ == "__main__":
     else:
         dst_filepy = src_filepy
     if ctx['odoo_ver']:
-        ctx['to_ver'] = int(eval(ctx['odoo_ver']))
+        ctx['to_ver'] = ver2ix(ctx['odoo_ver'])
     else:
-        ctx['to_ver'] = 7
+        ctx['to_ver'] = 70
     if ctx['from_odoo_ver']:
-        ctx['from_ver'] = int(eval(ctx['from_odoo_ver']))
+        ctx['from_ver'] = ver2ix(ctx['from_odoo_ver'])
     else:
         ctx['from_ver'] = 0
     sts = parse_file(src_filepy, dst_filepy, ctx)
