@@ -21,7 +21,7 @@
 """recover W503
 """
 
-# import pdb
+import pdb
 # import os
 import sys
 import re
@@ -437,6 +437,7 @@ def split_eol(line, ipos, istkn):
 
 
 def split_line(line):
+    # pdb.set_trace()
     ln1 = line
     ln2 = ''
     tabstop = {}
@@ -457,17 +458,27 @@ def split_line(line):
                         return ln1, ln2
                     ipos = len(line)
                 elif istkn == 'begtxt1':
-                    x = re.match('.*"', line[ipos:])
-                    if x:
-                        ipos += x.end()
-                    else:
-                        ipos = len(line)
+                    while x:
+                        x = re.match('("[^"]*")', line[ipos:])
+                        if x:
+                            ipos += x.end()
+                            if line[ipos:ipos + 1] == r'\"':
+                                ipos += 1
+                            else:
+                                x = None
+                        else:
+                            ipos = len(line)
                 elif istkn == 'begtxt2':
-                    x = re.match(".*'", line[ipos:])
-                    if x:
-                        ipos += x.end()
-                    else:
-                        ipos = len(line)
+                    while x:
+                        x = re.match("('[^']*')", line[ipos:])
+                        if x:
+                            ipos += x.end()
+                            if line[ipos:ipos + 1] == r"\'":
+                                ipos += 1
+                            else:
+                                x = None
+                        else:
+                            ipos = len(line)
                 elif x:
                     ipos += x.end()
                 break
@@ -475,23 +486,33 @@ def split_line(line):
             print "Unknown token %s" % line[ipos:]
             ipos += 1
     imin = -1
-    ibrk = -1
+    ibrk1 = -1
+    ibrk2 = -1
+    idnt = 0
     for i in sorted(tabstop):
+        if i >= 79:
+            break
         if imin < 0 and tabstop[i] in ('isalnum', 'begtxt1', 'begtxt2'):
             imin = i
-        elif i < 79 and tabstop[i] in ('lparen',
-                                       'lbrace',
-                                       'lbracket',
-                                       'colon'):
-            if imin >=0:
-                imin += 4
-            ibrk = i + 1
-        elif i < 79 and tabstop[i] in ('comma', ):
-            ibrk = i + 1
+        elif tabstop[i] in ('lparen',
+                            'lbrace',
+                            'lbracket',
+                            'colon'):
+            idnt = 4
+            ibrk1 = i + 1
+        elif tabstop[i] in ('comma', ):
+            idnt = 0
+            ibrk2 = i + 1
+    if imin >=0:
+        imin += idnt
+    if ibrk1 >=0:
+        ibrk = ibrk1
+    else:
+        ibrk = ibrk2
     if imin >= 0 and ibrk >= 0:
         ln1 = line[0:ibrk]
         lm = ' ' * imin
-        ln2 = lm + line[ibrk:]
+        ln2 = lm + line[ibrk:].strip()
     return ln1, ln2
 
 
@@ -610,13 +631,6 @@ def parse_file(src_filepy, dst_filepy, ctx):
         del lines[lineno]
         lineno = len(lines) - 1
     lineno = 0
-    # while lineno < len(lines):
-    #     if len(lines[lineno]) > 79:
-    #         ln1, ln2 = split_line(lines[lineno])
-    #         if ln2:
-    #             lines[lineno] = ln2
-    #             lines.insert(lineno, ln1)
-    #     lineno += 1
     if not ctx['dry_run'] and len(lines):
         if ctx['opt_verbose']:
             print "Writing %s" % dst_filepy
