@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.14"
+__version__ = "0.1.14.16"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -41,12 +41,12 @@ IS_CLASS = re.compile('class +')
 
 SYNTAX = {
     'space': re.compile('\s+'),
-    'open_lparen': re.compile('\('),
-    'open_rparen': re.compile('\)'),
-    'open_lbrace': re.compile('\['),
-    'open_rbrace': re.compile('\]'),
-    'open_lbracket': re.compile('\{'),
-    'open_rbracket': re.compile('\}'),
+    'lparen': re.compile('\('),
+    'rparen': re.compile('\)'),
+    'lbrace': re.compile('\['),
+    'rbrace': re.compile('\]'),
+    'lbracket': re.compile('\{'),
+    'rbracket': re.compile('\}'),
     'isalnum': re.compile('[a-zA-Z_][\w]*'),
     'isdigit': re.compile('[\d]+'),
     'begdoc1': re.compile('"""'),
@@ -441,32 +441,13 @@ def split_line(line):
     ln2 = ''
     tabstop = {}
     ipos = 0
-    # print ">>>%s" % line[ipos:]  #debug
     while ipos < len(line):
         unknown = True
         for istkn in SYNTAX:
             x = SYNTAX[istkn].match(line[ipos:])
             if x:
                 unknown = False
-                if istkn in ('dot', 'assign',):
-                    ipos += 1
-                    y = SYNTAX['space'].match(line[ipos:])
-                    if y:
-                        ipos += y.end()
-                    tabstop[ipos] = istkn
-                elif istkn in ('comma',
-                               'colon',
-                               'open_lparen',
-                               'open_rparen',
-                               'open_lbrace',
-                               'open_rbrace',
-                               'open_lbracket',
-                               'open_rbracket',
-                               ):
-                    ipos += 1
-                    tabstop[ipos] = istkn
-                elif istkn != 'space':
-                    # print ">>%s" % line[ipos:]  #debug
+                if istkn != 'space':
                     tabstop[ipos] = istkn
                 if istkn in ('begremark',
                              'begdoc1',
@@ -487,12 +468,30 @@ def split_line(line):
                         ipos += x.end()
                     else:
                         ipos = len(line)
-                else:
+                elif x:
                     ipos += x.end()
                 break
         if unknown:
             print "Unknown token %s" % line[ipos:]
             ipos += 1
+    imin = -1
+    ibrk = -1
+    for i in sorted(tabstop):
+        if imin < 0 and tabstop[i] in ('isalnum', 'begtxt1', 'begtxt2'):
+            imin = i
+        elif i < 79 and tabstop[i] in ('lparen',
+                                       'lbrace',
+                                       'lbracket',
+                                       'colon'):
+            if imin >=0:
+                imin += 4
+            ibrk = i + 1
+        elif i < 79 and tabstop[i] in ('comma', ):
+            ibrk = i + 1
+    if imin >= 0 and ibrk >= 0:
+        ln1 = line[0:ibrk]
+        lm = ' ' * imin
+        ln2 = lm + line[ibrk:]
     return ln1, ln2
 
 
@@ -544,6 +543,9 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 pass
             else:
                 ctx['open_doc'] = 1
+            lines, meta = update_4_api(lines,
+                                       lineno,
+                                       ctx)
         elif ctx['open_doc'] != 1 and re.match('\s*"""', lines[lineno]):
             if len(lines[lineno]) > 79:
                 ln1, ln2 = split_line(lines[lineno])
@@ -556,8 +558,13 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 pass
             else:
                 ctx['open_doc'] = 2
+            lines, meta = update_4_api(lines,
+                                       lineno,
+                                       ctx)
         elif ctx['open_doc']:
-            pass
+            lines, meta = update_4_api(lines,
+                                       lineno,
+                                       ctx)
         elif lines[lineno] == "":
             ctx['empty_line'] += 1
         else:
@@ -591,6 +598,8 @@ def parse_file(src_filepy, dst_filepy, ctx):
                     del lines[lineno + 1]
                 ctx['empty_line'] = 0
         if len(lines[lineno]) > 79:
+            # import pdb
+            # pdb.set_trace()
             ln1, ln2 = split_line(lines[lineno])
             if ln2:
                 lines[lineno] = ln2

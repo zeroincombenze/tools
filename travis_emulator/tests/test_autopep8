@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.14
+__version__=0.1.14.16
 
 
 test_01() {
@@ -308,12 +308,12 @@ EOF
 
 test_03() {
     local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_01
+    TESTFN=test_autopep_03
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_01.out
+      rm -f $TESTDIR/res/*_03.out
       cat <<EOF >$TESTSRC
 from openerp.osv import fields, orm
 
@@ -348,6 +348,39 @@ EOF
       $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
     fi
     test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_04() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_04
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_04.out
+      cat <<EOF >$TESTSRC
+""" Copyright (C) openerp-italia.org
+"""
+
+Namespace = pyxb.namespace.NamespaceForURI('urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp', create_if_missing=True)
+EOF
+      cat <<EOF >$TESTRES
+# -*- coding: utf-8 -*-
+# Copyright 2017, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# Copyright 2017, Associazione Odoo Italia <https://odoo-italia.org>
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
+""" Copyright (C) odoo-italia.org
+"""
+
+
+Namespace = pyxb.namespace.NamespaceForURI(
+    'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp',
+    create_if_missing=True)
+EOF
+      $RUNDIR/topep8 -q -G $TESTSRC -o $TESTOUT
+    fi
+    test_result "autopep8 -G" "$TESTOUT" "$TESTRES" "diff"
 }
 
 Z0BUG_setup() {
