@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.16"
+__version__ = "0.1.14.17"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -72,14 +72,14 @@ RULES = r"""
  v100       models.Model
 *IS*        ^[:tok:]
  v60        from osv import
- v70        from openerp.osv import
+ v61        from openerp.osv import
  v100       from odoo import
 *IS*        ^from (openerp.osv|odoo) import
  v60        orm
  v80        models
 *IS*        ^[:tok:]
  v60        from tools.translate import
- v70        from openerp.tools.translate import
+ v61        from openerp.tools.translate import
  v100       from odoo.tools.translate import
 *IS*        ^[:tok:]
  v60        import decimal_precision
@@ -92,7 +92,7 @@ RULES = r"""
 *IS*        ^import (api|exceptions|fields|http|loglevels|models|netsvc|\
 pooler|release|sql_db)
  v60        import
- v70        from openerp import
+ v61        from openerp import
  v100       from odoo import
 *IS*        ^from (openerp|odoo)\.addons\.web import http
  v60        from openerp.addons.web import http
@@ -150,6 +150,10 @@ pooler|release|sql_db)
 *IS*   ||   ^ +or *
  v0         &
 *IS*   &&   ^ +and *
+ v0         &
+*IS*   ^+   ^ +\+ *
+ v0         &
+*IS*   ^-   ^ +- *
  v0         &
 *IS*  del1  if context is None:
  v0         context = {} if context is None else context
@@ -614,6 +618,12 @@ def parse_file(src_filepy, dst_filepy, ctx):
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == '||':
                     tk = "or"
+                    move_tk_line_up(lines, lineno, tk)
+                elif meta == '^+':
+                    tk = "+"
+                    move_tk_line_up(lines, lineno, tk)
+                elif meta == '^-':
+                    tk = "-"
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == 'del1':
                     del lines[lineno + 1]
