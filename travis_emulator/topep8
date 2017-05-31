@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.17
+__version__=0.1.14.18
 
 
 format_xml() {

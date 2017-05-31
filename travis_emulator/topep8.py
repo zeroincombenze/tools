@@ -21,14 +21,14 @@
 """recover W503
 """
 
-import pdb
+# import pdb
 # import os
 import sys
 import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.17"
+__version__ = "0.1.14.18"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -70,13 +70,14 @@ RULES = r"""
  v60        osv.osv
  v61        orm.Model
  v100       models.Model
-*IS*        ^[:tok:]
- v60        from osv import
- v61        from openerp.osv import
- v100       from odoo import
-*IS*        ^from (openerp.osv|odoo) import
- v60        orm
- v80        models
+*IS*        import .*[:tok:]
+ v60        osv
+ v61        orm
+ v100       models
+*IS*        ^from [:tok:]
+ v60        osv
+ v61        openerp.osv
+ v100       odoo
 *IS*        ^[:tok:]
  v60        from tools.translate import
  v61        from openerp.tools.translate import
@@ -163,6 +164,8 @@ pooler|release|sql_db)
 IS_BADGE = {}
 IS_BADGE_TXT = {}
 META = {}
+RID = {}
+REPL_CTRS = {}
 SRC_TOKENS = {}
 TGT_TOKENS = {}
 
@@ -216,6 +219,11 @@ def set_4_ver(ix, tokens, metas, ver):
             META[ix] = metas[ver]
         META[ix + 1] = META[ix]
         tok = txt2regex(tokens[ver])
+        i = IS_BADGE_TXT[ix].find('[:tok:]')
+        if i < 0:
+            REPL_CTRS[ix] = 99
+        else:
+            REPL_CTRS[ix] = 1
         IS_BADGE_TXT[ix] = IS_BADGE_TXT[ix].replace('[:tok:]', tok)
         if IS_BADGE_TXT[ix][0] != '^':
             IS_BADGE_TXT[ix] = '.*' + IS_BADGE_TXT[ix]
@@ -227,7 +235,8 @@ def set_4_ver(ix, tokens, metas, ver):
     return tokens
 
 
-def compile_1_rule(ix, tokens, metas):
+def compile_1_rule(ix, rid, tokens, metas):
+    rid += 1
     if not ctx['from_ver']:
         for ver in (0, 60, 61, 70, 80, 90, 100):
             if tokens.get(ver, False):
@@ -242,6 +251,7 @@ def compile_1_rule(ix, tokens, metas):
                         else:
                             tokens2[ver2] = tokens[ver2]
                 TGT_TOKENS[ix] = tokens2
+                RID[ix] = rid
                 if ver == 0:
                     break
                 if ix < 0 or (ix in TGT_TOKENS and len(TGT_TOKENS[ix])):
@@ -251,7 +261,8 @@ def compile_1_rule(ix, tokens, metas):
             if not ver or ctx['from_ver'] == ver:
                 tokens = set_4_ver(ix, tokens, metas, ver)
         TGT_TOKENS[ix] = tokens
-    return ix
+        RID[ix] = rid
+    return ix, rid
 
 
 def extr_tokens(ix, ctx):
@@ -261,6 +272,7 @@ def extr_tokens(ix, ctx):
 
 def compile_rules(ctx):
     ix = -1
+    rid = 0
     tokens = {}
     metas = {}
     cont_break = False
@@ -283,7 +295,7 @@ def compile_rules(ctx):
             continue
         elif id == '*IS*':
             if ix >= 0:
-                ix = compile_1_rule(ix, tokens, metas)
+                ix, rid = compile_1_rule(ix, rid, tokens, metas)
             if ix < 0 or (ix in TGT_TOKENS and len(TGT_TOKENS[ix])):
                 ix += 1
             tokens = {}
@@ -299,16 +311,16 @@ def compile_rules(ctx):
             metas[i] = meta
         else:
             print "Invalid rule %d -> %s " % (ix, rule)
-    compile_1_rule(ix, tokens, metas)
+    compile_1_rule(ix, rid, tokens, metas)
     if ix > 0:
-        if ix not in TGT_TOKENS or ix not in SRC_TOKENS:
+        if ix not in TGT_TOKENS or ix not in SRC_TOKENS or ix not in RID:
             ix -= 1
         elif not TGT_TOKENS[ix] or not SRC_TOKENS[ix]:
             ix -= 1
     if ctx['opt_verbose'] > 1:
         for ii in IS_BADGE_TXT.keys():
-            print "%d [%s] if re.match('%s'): replace('%s'|%s)" % (
-                ii,
+            print "%d.%d [%s] if re.match('%s'): replace('%s'|%s)" % (
+                ii, RID.get(ii, 0),
                 META[ii],
                 IS_BADGE_TXT[ii],
                 SRC_TOKENS.get(ii, ''),
@@ -353,6 +365,7 @@ def write_license_info(lines, ctx):
 
 def update_4_api(lines, lineno, ctx):
     line = lines[lineno]
+    rid = -1
     if ctx['opt_verbose'] > 2:
         print "%s" % line
     meta = ''
@@ -363,7 +376,11 @@ def update_4_api(lines, lineno, ctx):
             continue
         elif META[ix] != '#' and ctx['open_doc']:
             continue
-        if IS_BADGE[ix].match(line):
+        elif RID[ix] == rid:
+            continue
+        x = IS_BADGE[ix].match(line)
+        if x:
+            rid = RID[ix]
             if ctx['opt_verbose'] > 2:
                 print "> if IS_BADGE[%d]=(%s).match(%s):" % (
                     ix, IS_BADGE_TXT[ix], line)
@@ -371,7 +388,14 @@ def update_4_api(lines, lineno, ctx):
                     ix, ctx['to_ver'])
             src, tgt = extr_tokens(ix, ctx)
             if tgt != '&' and src != tgt:
-                line = line.replace(src, tgt)
+                # pdb.set_trace()
+                i = 0
+                if REPL_CTRS[ix] == 1:
+                    i = x.end() - len(src) - 1
+                    if i < 0:
+                        i = 0
+                line = line[0:i] + \
+                    line[i:].replace(src, tgt, REPL_CTRS[ix])
                 if ctx['opt_verbose'] > 2:
                     print ">     '%s'=replace(%s,%s)" % (line, src, tgt)
             meta = META[ix]
@@ -507,9 +531,9 @@ def split_line(line):
         elif tabstop[i] in ('comma', ):
             idnt = 0
             ibrk2 = i + 1
-    if imin >=0:
+    if imin >= 0:
         imin += idnt
-    if ibrk1 >=0:
+    if ibrk1 >= 0:
         ibrk = ibrk1
     else:
         ibrk = ibrk2

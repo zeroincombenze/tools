@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.17
+__version__=0.1.14.18
 
 
 test_01() {
@@ -73,6 +73,7 @@ EOF
       cat <<EOF >$TESTRES
 # (C) Odoo (http://odoo.com)
 # import pdb
+from openerp.osv import orm
 import decimal_precision
 from openerp import pooler
 # from tndb import tndb
@@ -113,7 +114,7 @@ EOF
       cat <<EOF >$TESTRES
 # (C) Odoo (http://odoo.com)
 # import pdb
-from odoo import osv
+from odoo import models
 import odoo.addons.decimal_precision
 from odoo.tools.translate import _
 from odoo import netsvc
@@ -225,6 +226,7 @@ report_sxw.report_sxw(
 EOF
       cat <<EOF >$TESTRES
 import pdb
+from openerp.osv import orm
 import decimal_precision
 from openerp import pooler
 from tndb import tndb
@@ -265,7 +267,7 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 import pdb
-from odoo import osv
+from odoo import models
 import odoo.addons.decimal_precision
 from odoo.tools.translate import _
 from odoo import netsvc
@@ -323,7 +325,7 @@ class res_user(osv.osv):
     }
 EOF
       cat <<EOF >$TESTRES
-from openerp.osv import fields
+from openerp.osv import fields, orm
 
 
 class res_user(orm.Model):
