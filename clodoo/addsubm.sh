@@ -30,7 +30,8 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.30
+
+__version__=0.1.30.1
 
 
 set_dstpath() {
@@ -44,10 +45,11 @@ set_dstpath() {
 }
 
 build_pkgurl() {
-# build_pkgurl(pkgname zero|oca URL|UPSTREAM|RPT|OPTS|ASM)
+# build_pkgurl(pkgname zero|oca URL|UPSTREAM|RPT|OPTS|ASM odoo_ver)
     local MODNAME=$1
     local RPT=$2
     local ITEM=$3
+    local odoo_ver=$4
     if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
       local ODOO_RPT="https://github.com/acespritech"
       local ODOO_UPSTREAM=
@@ -90,6 +92,9 @@ build_pkgurl() {
       local pkg_URL="$ODOO_RPT/$MODNAME.git"
       echo "$pkg_URL"
     elif [ "$ITEM" == "UPSTREAM" ]; then
+      if [ "$odoo_ver" == "6.1" ]; then
+        ODOO_UPSTREAM=
+      fi
       if [ -n "$ODOO_UPSTREAM" ]; then
         local pkg_URL="$ODOO_UPSTREAM/$MODNAME.git"
       else
@@ -138,7 +143,7 @@ set_remote_info() {
     local new_odoo_ver=$2
     local pkg_URL=$3
     local DSTPATH=$(set_dstpath $MODNAME $new_odoo_ver)
-    local UPSTREAM=$(build_pkgurl $MODNAME $opt_rpt UPSTREAM)
+    local UPSTREAM=$(build_pkgurl $MODNAME $opt_rpt UPSTREAM $new_odoo_ver)
     run_traced "cd $DSTPATH"
     local rval=$(git remote -v 2>/dev/null|grep upstream|head -n1|awk '{ print $2}')
     if [ -n "$rval" ]; then
@@ -166,7 +171,7 @@ wep_remote_branch() {
       elif [ $PARSE -gt 0 ]; then
         line="$(echo $line)"
         IFS=" " read v x <<< "$line"
-        if [[ $v =~ (7.0|8.0|9.0|10.0) ]] ; then
+        if [[ $v =~ (6.1|7.0|8.0|9.0|10.0) ]] ; then
           :
         else
           run_traced "git push origin --delete $v"
@@ -234,7 +239,7 @@ if [ -z "$new_odoo_ver" ]; then
     MODNAME=${MODNAME:0: -1}
   fi
   if [ "$pkg_URL" == "$MODNAME" ]; then
-    pkg_URL=$(build_pkgurl $MODNAME $opt_rpt URL)
+    pkg_URL=$(build_pkgurl $MODNAME $opt_rpt URL $odoo_ver)
   fi
   if [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $MODNAME $odoo_ver ""
@@ -242,7 +247,7 @@ if [ -z "$new_odoo_ver" ]; then
     if [ $opt_one -gt 0 ]; then
       git_opts="$git_opts --single-branch --depth=1"
     else
-      x=$(build_pkgurl $MODNAME $opt_rpt OPTS)
+      x=$(build_pkgurl $MODNAME $opt_rpt OPTS $odoo_ver)
       if [ -n "$x" ]; then
         git_opts="$git_opts $x"
       fi
@@ -256,10 +261,10 @@ if [ -z "$new_odoo_ver" ]; then
     wep_remote_branch
   fi
 else
-  if [[ $new_odoo_ver =~ (v7|7.0|8.0|9.0|10.0) ]] ; then
+  if [[ $new_odoo_ver =~ (v7|6.1|7.0|8.0|9.0|10.0) ]] ; then
     :
   else
-    echo "Invalid target version: must be v7 7.0 8.0 9.0 or 10.0"
+    echo "Invalid target version: must be v7 6.1 7.0 8.0 9.0 or 10.0"
     exit 1
   fi
   rq_oev=$(echo $new_odoo_ver|grep -Eo [0-9.]+)
@@ -270,9 +275,9 @@ else
     SRCPATH=~/$odoo_ver/$moduleid
   # elif [ "${moduleid:0:23}" == "https://github.com/OCA/" ]; then
   else
-    pkg_URL=$(build_pkgurl $MODNAME $opt_rpt UPSTREAM)
+    pkg_URL=$(build_pkgurl $MODNAME $opt_rpt UPSTREAM $odoo_ver)
     if [ -z "pkg_URL" ]; then
-      pkg_URL=$(build_pkgurl $MODNAME $opt_rpt URL)
+      pkg_URL=$(build_pkgurl $MODNAME $opt_rpt URL $odoo_ver)
     fi
     if [ -d ~/$new_odoo_ver ]; then
       run_traced "cd $HOME/$new_odoo_ver"
@@ -286,7 +291,7 @@ else
         if [ $opt_one -gt 0 ]; then
           git_opts="$git_opts --single-branch --depth=1"
         else
-          x=$(build_pkgurl $MODNAME $opt_rpt OPTS)
+          x=$(build_pkgurl $MODNAME $opt_rpt OPTS $new_odoo_ver)
           if [ -n "$x" ]; then
             git_opts="$git_opts $x"
           fi

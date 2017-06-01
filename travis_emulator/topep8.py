@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.18"
+__version__ = "0.1.14.19"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -342,7 +342,7 @@ def write_license_info(lines, ctx):
             lines[lineno]):
         found_author = True
         lineno += 1
-    while lines[lineno][0] == '#':
+    while not lines[lineno] or lines[lineno][0] == '#':
         del lines[lineno]
     if not found_author:
             lines.insert(
