@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.19
+__version__=0.1.14.20
 
 
 test_01() {
@@ -108,7 +108,7 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -q $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8" "$TESTOUT" "$TESTRES" "diff"
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -151,7 +151,7 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTSRC
@@ -176,7 +176,7 @@ class res_user(osv.osv):
 EOF
       $RUNDIR/topep8 -q -b6.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {
@@ -262,7 +262,7 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -qB -c $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -Bc" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -Bc" "$TESTOUT" "$TESTRES" "diff"
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -305,7 +305,7 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -qBc -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -Bc -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -Bc -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_03() {
@@ -335,7 +335,7 @@ class res_user(orm.Model):
 EOF
       $RUNDIR/topep8 -q -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -b8.0" "$TESTOUT" "$TESTRES" "diff"
 
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -349,7 +349,7 @@ class res_user(models.Model):
 EOF
       $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_04() {
@@ -405,8 +405,51 @@ class example():
 EOF
       $RUNDIR/topep8 -q -G $TESTSRC -o $TESTOUT
     fi
-    test_result "autopep8 -G" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -G" "$TESTOUT" "$TESTRES" "diff"
 }
+
+test_05() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_05
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_05.out
+      cat <<EOF >$TESTSRC
+from openerp.tests.common import TransactionCase
+
+
+class TestUser(TransactionCase):
+
+    def setUp(self):
+        super(TestUser, self).setUp()
+        self.res_user = self.env['res.user']
+        self.myname = self.res_user.search(
+            [('name', '=', 'Me')]).name
+        self.m1 = self.res_user.create({'name': 'ME'})
+EOF
+      cat <<EOF >$TESTRES
+from openerp.tests.common import TransactionCase
+
+
+class TestUser(TransactionCase):
+    def env7(self, model):
+        return self.registry(model)
+
+    def setUp(self):
+        super(TestUser, self).setUp()
+        self.res_user = self.env['res.user']
+        ids = self.res_user.search(self.cr, self.uid, [(
+            'name', '=', 'Me')]).name
+        self.myname = self.res_user.browse(self.cr, self.uid, ids[0]).name
+        self.m1 = self.res_user.create(self.cr, self.uid, {'name': 'ME'})
+EOF
+      $RUNDIR/topep8 -q -b7.0 -u $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -b7.0 -u" "$TESTOUT" "$TESTRES" "diff"
+}
+
 
 Z0BUG_setup() {
     :

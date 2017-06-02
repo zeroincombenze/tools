@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-"""recover W503
+"""Convert src python to PEP8 with OCA rules
 """
 
 # import pdb
@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.19"
+__version__ = "0.1.14.20"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -121,6 +121,8 @@ pooler|release|sql_db)
  v0         odoo-italia.org
 *IS*   #    formerly Odoo
  v0         formerly OpenERP
+*IS*   -u   class [\w.]+\((TransactionCase|SingleTransactionCase|RpcCase)\)
+ v0         &
 *IS*   +2   ^[a-zA-Z_][\w.]* *\(
  v0         &
 *IS*   +2   ^if __name__ == .__main__.:
@@ -160,6 +162,14 @@ pooler|release|sql_db)
  v0         context = {} if context is None else context
 *IS*  del1  if ctx is None:
  v0         ctx = {} if ctx is None else ctx
+*IS*   -u1  \.search\(
+ v0         &
+*IS*   -u0  \.write\(
+ v0         .write(self.cr, self.uid, 
+*IS*   -u0  \.create\(
+ v0         .create(self.cr, self.uid, 
+*IS*   -u0  \.browse\(
+ v0         .browse(self.cr, self.uid, 
 """
 IS_BADGE = {}
 IS_BADGE_TXT = {}
@@ -185,6 +195,8 @@ def regex2txt(token):
         '.*', '').replace(
         ' *', '').replace(
         ' +', '').replace(
+        '\(', '(').replace(
+        '\)', ')').replace(
         '\.', '.')
     return tok
 
@@ -374,6 +386,8 @@ def update_4_api(lines, lineno, ctx):
             continue
         elif META[ix] in ('-B', '-b') and not ctx['opt_recall_dbg']:
             continue
+        elif META[ix] in ('-u', '-u0', '-u1') and not ctx['opt_ut7']:
+            continue
         elif META[ix] != '#' and ctx['open_doc']:
             continue
         elif RID[ix] == rid:
@@ -388,7 +402,6 @@ def update_4_api(lines, lineno, ctx):
                     ix, ctx['to_ver'])
             src, tgt = extr_tokens(ix, ctx)
             if tgt != '&' and src != tgt:
-                # pdb.set_trace()
                 i = 0
                 if REPL_CTRS[ix] == 1:
                     i = x.end() - len(src) - 1
@@ -621,7 +634,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
                                        lineno,
                                        ctx)
             if meta:
-                if meta in ('+B', '-B', '+b', '-b', '#'):
+                if meta in ('+B', '-B', '+b', '-b', '#', '-u0'):
                     pass
                 elif meta[0] == '+':
                     nebef = eval(meta[1])
@@ -651,10 +664,42 @@ def parse_file(src_filepy, dst_filepy, ctx):
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == 'del1':
                     del lines[lineno + 1]
+                elif meta == '-u':
+                    nebef = 2
+                    lines, lineno, ctx = set_empty_lines(lines,
+                                                         lineno,
+                                                         nebef,
+                                                         True,
+                                                         ctx)
+                    lineno += 1
+                    lines.insert(lineno, '    def env7(self, model):')
+                    lineno += 1
+                    lines.insert(lineno, '        return self.registry(model)')
+                elif meta == '-u1':
+                    line = lines[lineno]
+                    while lines[lineno].find(').') < 0:
+                        del lines[lineno]
+                        line = line + ' ' + lines[lineno].strip()
+                    del lines[lineno]
+                    j = line.find('=')
+                    if j >= 0:
+                        lm = ''
+                        i = 0
+                        while line[i] == ' ':
+                            lm += ' '
+                            i += 1
+                        dvar = line[i:j]
+                        i2 = line.find('search(') + 7
+                        i3 = line.find(').')
+                        line1 = lm + 'ids' + line[j:i2] + \
+                            'self.cr, self.uid,' + \
+                            line[i2:]
+                        line2 = lm + dvar + line[j:i2 - 8] + \
+                            '.browse(ids[0]' + line[i3:]
+                        lines.insert(lineno, line1)
+                        lines.insert(lineno + 1, line2)
                 ctx['empty_line'] = 0
         if len(lines[lineno]) > 79:
-            # import pdb
-            # pdb.set_trace()
             ln1, ln2 = split_line(lines[lineno])
             if ln2:
                 lines[lineno] = ln2
@@ -679,10 +724,6 @@ if __name__ == "__main__":
                           "© 2015-2017 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
-    parser.add_argument('-n')
-    parser.add_argument('-q')
-    parser.add_argument('-V')
-    parser.add_argument('-v')
     parser.add_argument('-B', '--recall-debug-statements',
                         action='store_true',
                         dest='opt_recall_dbg',
@@ -694,9 +735,17 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='opt_gpl',
                         default=False)
+    parser.add_argument('-n')
     parser.add_argument('-o', '--original-branch',
                         action='store',
                         dest='from_odoo_ver')
+    parser.add_argument('-q')
+    parser.add_argument('-u', '--unit-test',
+                        action='store_true',
+                        dest='opt_ut7',
+                        default=False)
+    parser.add_argument('-V')
+    parser.add_argument('-v')
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')
