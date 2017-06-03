@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.20"
+__version__ = "0.1.14.21"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -164,12 +164,18 @@ pooler|release|sql_db)
  v0         ctx = {} if ctx is None else ctx
 *IS*   -u1  \.search\(
  v0         &
+*IS*   -u2  \.env\[
+ v0         .env7( 
 *IS*   -u0  \.write\(
  v0         .write(self.cr, self.uid, 
 *IS*   -u0  \.create\(
  v0         .create(self.cr, self.uid, 
 *IS*   -u0  \.browse\(
  v0         .browse(self.cr, self.uid, 
+*IS*   -u0  \.unlink\(
+ v0         .unlink(self.cr, self.uid, 
+*IS*   -u0  \.find\(\)
+ v0         .find(self.cr, self.uid) 
 """
 IS_BADGE = {}
 IS_BADGE_TXT = {}
@@ -178,6 +184,7 @@ RID = {}
 REPL_CTRS = {}
 SRC_TOKENS = {}
 TGT_TOKENS = {}
+LAST_RID = -1
 
 
 def txt2regex(token):
@@ -197,6 +204,10 @@ def regex2txt(token):
         ' +', '').replace(
         '\(', '(').replace(
         '\)', ')').replace(
+        '\[', '[').replace(
+        '\[', '[').replace(
+        '\{', '}').replace(
+        '\{', '}').replace(
         '\.', '.')
     return tok
 
@@ -386,7 +397,7 @@ def update_4_api(lines, lineno, ctx):
             continue
         elif META[ix] in ('-B', '-b') and not ctx['opt_recall_dbg']:
             continue
-        elif META[ix] in ('-u', '-u0', '-u1') and not ctx['opt_ut7']:
+        elif META[ix] in ('-u', '-u0', '-u1', '-u2') and not ctx['opt_ut7']:
             continue
         elif META[ix] != '#' and ctx['open_doc']:
             continue
@@ -431,7 +442,7 @@ def update_4_api(lines, lineno, ctx):
             if META[ix] and META[ix] != '#':
                 break
     lines[lineno] = line.rstrip()
-    return lines, meta
+    return lines, meta, rid
 
 
 def move_tk_line_up(lines, lineno, tk):
@@ -591,7 +602,9 @@ def parse_file(src_filepy, dst_filepy, ctx):
     ctx = init_parse(ctx)
     if ctx['opt_gpl']:
         lines = write_license_info(lines, ctx)
+    LAST_RID = -1
     lineno = 0
+    del_empty_line = True
     while lineno < len(lines):
         if ctx['open_doc'] != 2 and re.match('.*"""', lines[lineno]):
             if len(lines[lineno]) > 79:
@@ -605,9 +618,10 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 pass
             else:
                 ctx['open_doc'] = 1
-            lines, meta = update_4_api(lines,
-                                       lineno,
-                                       ctx)
+            lines, meta, rid = update_4_api(lines,
+                                            lineno,
+                                            ctx)
+            del_empty_line = False
         elif ctx['open_doc'] != 1 and re.match('\s*"""', lines[lineno]):
             if len(lines[lineno]) > 79:
                 ln1, ln2 = split_line(lines[lineno])
@@ -620,19 +634,26 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 pass
             else:
                 ctx['open_doc'] = 2
-            lines, meta = update_4_api(lines,
-                                       lineno,
-                                       ctx)
+            lines, meta, rid = update_4_api(lines,
+                                            lineno,
+                                            ctx)
+            del_empty_line = False
         elif ctx['open_doc']:
-            lines, meta = update_4_api(lines,
-                                       lineno,
-                                       ctx)
+            lines, meta, rid = update_4_api(lines,
+                                            lineno,
+                                            ctx)
+            del_empty_line = False
         elif lines[lineno] == "":
-            ctx['empty_line'] += 1
+            if del_empty_line:
+                del lines[lineno]
+            else:
+                ctx['empty_line'] += 1
         else:
-            lines, meta = update_4_api(lines,
-                                       lineno,
-                                       ctx)
+            if lines[lineno][0] != '#':
+                del_empty_line = False
+            lines, meta, rid = update_4_api(lines,
+                                            lineno,
+                                            ctx)
             if meta:
                 if meta in ('+B', '-B', '+b', '-b', '#', '-u0'):
                     pass
@@ -648,7 +669,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
                     lines, lineno, ctx = set_empty_lines(lines,
                                                          lineno,
                                                          nebef,
-                                                         False,
+                                                         rid != LAST_RID,
                                                          ctx)
                 elif meta == '&&':
                     tk = "and"
@@ -693,11 +714,13 @@ def parse_file(src_filepy, dst_filepy, ctx):
                         i3 = line.find(').')
                         line1 = lm + 'ids' + line[j:i2] + \
                             'self.cr, self.uid,' + \
-                            line[i2:]
+                            line[i2:i3 + 1]
                         line2 = lm + dvar + line[j:i2 - 8] + \
                             '.browse(ids[0]' + line[i3:]
                         lines.insert(lineno, line1)
                         lines.insert(lineno + 1, line2)
+                elif meta == '-u2':
+                    lines[lineno] = lines[lineno].replace(']', ')')
                 ctx['empty_line'] = 0
         if len(lines[lineno]) > 79:
             ln1, ln2 = split_line(lines[lineno])
@@ -705,6 +728,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 lines[lineno] = ln2
                 lines.insert(lineno, ln1)
         lineno += 1
+        LAST_RID = rid
     lineno = len(lines) - 1
     while lineno > 2 and lines[lineno] == "":
         del lines[lineno]
