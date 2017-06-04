@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.21"
+__version__ = "0.1.14.22"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -58,7 +58,7 @@ SYNTAX = {
     'comma': re.compile(','),
     'colon': re.compile(':'),
     'assign': re.compile('='),
-    'op': re.compile('[!%&-+/|^?<=>]+'),
+    'op': re.compile(r'[\\!%&-+/|^?<=>]+'),
 }
 
 RULES = r"""
@@ -164,19 +164,37 @@ pooler|release|sql_db)
  v0         ctx = {} if ctx is None else ctx
 *IS*   -u1  \.search\(
  v0         &
-*IS*   -u2  \.env\[
- v0         .env7( 
-*IS*   -u0  \.write\(
- v0         .write(self.cr, self.uid, 
-*IS*   -u0  \.create\(
- v0         .create(self.cr, self.uid, 
-*IS*   -u0  \.browse\(
- v0         .browse(self.cr, self.uid, 
-*IS*   -u0  \.unlink\(
- v0         .unlink(self.cr, self.uid, 
-*IS*   -u0  \.find\(\)
- v0         .find(self.cr, self.uid) 
+*IS*   -u1  \.env\[
+ v0         &
+*IS*   -u1  \.write\(
+ v0         &
+*IS*   -u1  \.create\(
+ v0         &
+*IS*   -u1  \.browse\(
+ v0         &
+*IS*   -u1  \.unlink\(
+ v0         &
+*IS*   -u1  \.find\(\)
+ v0         &
+*IS*   -u1  \.env\.ref\(
+ v0         &
 """
+
+SPEC_SYNTAX = {
+    'equ1': [True, '='],
+    'equ2': [True, '.', True, '='],
+    'env1': ['self', '.', 'env', '['],
+    'env2': ['self', '.', 'env', '.', 'ref', '('],
+    'icr1': ['self', '.', True, '.', 'search', '('],
+    'icr2': ['self', '.', True, '.', 'write', '('],
+    'icr3': ['self', '.', True, '.', 'create', '('],
+    'icr4': ['self', '.', True, '.', 'browse', '('],
+    'icr5': ['self', '.', True, '.', 'unlink', '('],
+    'clo1': [')', ],
+    'clo2': [']', ],
+    'clo3': ['}', ],
+}
+
 IS_BADGE = {}
 IS_BADGE_TXT = {}
 META = {}
@@ -386,7 +404,7 @@ def write_license_info(lines, ctx):
     return lines
 
 
-def update_4_api(lines, lineno, ctx):
+def update_4_api(lines, lineno, ctx, ignore=None):
     line = lines[lineno]
     rid = -1
     if ctx['opt_verbose'] > 2:
@@ -397,9 +415,12 @@ def update_4_api(lines, lineno, ctx):
             continue
         elif META[ix] in ('-B', '-b') and not ctx['opt_recall_dbg']:
             continue
-        elif META[ix] in ('-u', '-u0', '-u1', '-u2') and not ctx['opt_ut7']:
+        elif META[ix] in ('-u', '-u0', '-u1', '-u2', '-u3') and \
+                not ctx['opt_ut7']:
             continue
         elif META[ix] != '#' and ctx['open_doc']:
+            continue
+        elif META[ix] == ignore:
             continue
         elif RID[ix] == rid:
             continue
@@ -424,21 +445,28 @@ def update_4_api(lines, lineno, ctx):
                     print ">     '%s'=replace(%s,%s)" % (line, src, tgt)
             meta = META[ix]
             if META[ix] in ('+B', '-B'):
-                if line[-1] != ')':
-                    lm = ''
-                    i = 0
-                    while line[i] == ' ':
-                        lm += ' '
-                        i += 1
+                # pdb.set_trace()
+                tabstop, line_ctrs = parse_tokens_line(line)
+                lm = ' ' * line_ctrs['lm']
+                if META[ix] == '+B':
+                    tabstop, line_ctrs = parse_tokens_line(
+                        line[line_ctrs['lm'] + 1:])
+                if line_ctrs['any_paren'] > 0 or line_ctrs['cont_line']:
                     if META[ix] == '+B':
                         lm1 = lm + '# '
                     else:
                         lm1 = lm
                         lm = lm + '# '
-                    while line and line[-1] != ')':
+                    while line_ctrs['any_paren'] > 0 or line_ctrs['cont_line']:
                         lines[lineno] = line.rstrip()
                         lineno += 1
                         line = lines[lineno].replace(lm, lm1, 1)
+                        tabstop, line_ctrs = parse_tokens_line(line,
+                                                               ctrs=line_ctrs)
+                        if META[ix] == '+B':
+                            tabstop, line_ctrs = parse_tokens_line(
+                                line[line_ctrs['lm'] + 1:],
+                                ctrs=line_ctrs)
             if META[ix] and META[ix] != '#':
                 break
     lines[lineno] = line.rstrip()
@@ -488,11 +516,17 @@ def split_eol(line, ipos, istkn):
     return line, ''
 
 
-def split_line(line):
+def parse_tokens_line(line, ctrs=None):
     # pdb.set_trace()
-    ln1 = line
-    ln2 = ''
     tabstop = {}
+    if ctrs is None:
+        line_ctrs = {}
+        line_ctrs['paren'] = 0
+        line_ctrs['brace'] = 0
+        line_ctrs['bracket'] = 0
+    else:
+        line_ctrs = ctrs
+    line_ctrs['lm'] = 0
     ipos = 0
     while ipos < len(line):
         unknown = True
@@ -500,14 +534,12 @@ def split_line(line):
             x = SYNTAX[istkn].match(line[ipos:])
             if x:
                 unknown = False
-                if istkn != 'space':
-                    tabstop[ipos] = istkn
+                if istkn != 'space' and line_ctrs['lm'] == 0:
+                    line_ctrs['lm'] = ipos
+                tabstop[ipos] = istkn
                 if istkn in ('begremark',
                              'begdoc1',
                              'begdoc2'):
-                    ln1, ln2 = split_eol(line, ipos, istkn)
-                    if ln2:
-                        return ln1, ln2
                     ipos = len(line)
                 elif istkn == 'begtxt1':
                     while x:
@@ -531,30 +563,77 @@ def split_line(line):
                                 x = None
                         else:
                             ipos = len(line)
+                elif istkn == 'lparen':
+                    line_ctrs['paren'] += 1
+                    ipos += x.end()
+                elif istkn == 'rparen':
+                    line_ctrs['paren'] -= 1
+                    ipos += x.end()
+                elif istkn == 'lbrace':
+                    line_ctrs['brace'] += 1
+                    ipos += x.end()
+                elif istkn == 'rbrace':
+                    line_ctrs['brace'] -= 1
+                    ipos += x.end()
+                elif istkn == 'lbracket':
+                    line_ctrs['bracket'] += 1
+                    ipos += x.end()
+                elif istkn == 'rbracket':
+                    line_ctrs['bracket'] -= 1
+                    ipos += x.end()
                 elif x:
                     ipos += x.end()
                 break
         if unknown:
             print "Unknown token %s" % line[ipos:]
             ipos += 1
+    tabstop[len(line)] = 'eol'
+    # i = len(line) - 1
+    if line[-1] == '\\':
+        line_ctrs['cont_line'] = True
+    else:
+        line_ctrs['cont_line'] = False
+    line_ctrs['any_paren'] = line_ctrs['paren'] + \
+        line_ctrs['brace'] + line_ctrs['bracket']
+    return tabstop, line_ctrs
+
+
+def split_line(line):
+    # pdb.set_trace()
+    tabstop, line_ctrs = parse_tokens_line(line)
+    ln1 = line
+    ln2 = ''
     imin = -1
     ibrk1 = -1
     ibrk2 = -1
     idnt = 0
-    for i in sorted(tabstop):
-        if i >= 79:
+    for ipos in sorted(tabstop):
+        if ipos >= 79:
             break
-        if imin < 0 and tabstop[i] in ('isalnum', 'begtxt1', 'begtxt2'):
-            imin = i
-        elif tabstop[i] in ('lparen',
-                            'lbrace',
-                            'lbracket',
-                            'colon'):
+        istkn = tabstop[ipos]
+        if istkn in ('space'):
+            continue
+        elif istkn in ('begremark',
+                       'begdoc1',
+                       'begdoc2'):
+            ln1, ln2 = split_eol(line, ipos, istkn)
+            if ln2:
+                return ln1, ln2
+        # elif istkn == 'begtxt1':
+        #     pass
+        # elif istkn == 'begtxt2':
+        #     pass
+        elif imin < 0 and tabstop[ipos] in ('isalnum', 'begtxt1', 'begtxt2'):
+            imin = ipos
+        elif tabstop[ipos] in ('lparen',
+                               'lbrace',
+                               'lbracket',
+                               'colon'):
             idnt = 4
-            ibrk1 = i + 1
-        elif tabstop[i] in ('comma', ):
+            ibrk1 = ipos + 1
+        elif tabstop[ipos] in ('comma', ):
             idnt = 0
-            ibrk2 = i + 1
+            ibrk2 = ipos + 1
     if imin >= 0:
         imin += idnt
     if ibrk1 >= 0:
@@ -605,6 +684,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
     LAST_RID = -1
     lineno = 0
     del_empty_line = True
+    ignore = None
     while lineno < len(lines):
         if ctx['open_doc'] != 2 and re.match('.*"""', lines[lineno]):
             if len(lines[lineno]) > 79:
@@ -653,9 +733,11 @@ def parse_file(src_filepy, dst_filepy, ctx):
                 del_empty_line = False
             lines, meta, rid = update_4_api(lines,
                                             lineno,
-                                            ctx)
+                                            ctx,
+                                            ignore=ignore)
+            ignore = None
             if meta:
-                if meta in ('+B', '-B', '+b', '-b', '#', '-u0'):
+                if meta in ('+B', '-B', '+b', '-b', '#'):
                     pass
                 elif meta[0] == '+':
                     nebef = eval(meta[1])
@@ -672,20 +754,25 @@ def parse_file(src_filepy, dst_filepy, ctx):
                                                          rid != LAST_RID,
                                                          ctx)
                 elif meta == '&&':
+                    ignore = meta
                     tk = "and"
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == '||':
+                    ignore = meta
                     tk = "or"
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == '^+':
+                    ignore = meta
                     tk = "+"
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == '^-':
+                    ignore = meta
                     tk = "-"
                     move_tk_line_up(lines, lineno, tk)
                 elif meta == 'del1':
                     del lines[lineno + 1]
                 elif meta == '-u':
+                    ignore = meta
                     nebef = 2
                     lines, lineno, ctx = set_empty_lines(lines,
                                                          lineno,
@@ -696,38 +783,179 @@ def parse_file(src_filepy, dst_filepy, ctx):
                     lines.insert(lineno, '    def env7(self, model):')
                     lineno += 1
                     lines.insert(lineno, '        return self.registry(model)')
-                elif meta == '-u1':
+                elif meta in ('-u0', '-u1', '-u2', '-u3'):
+                    ignore = meta
                     line = lines[lineno]
-                    while lines[lineno].find(').') < 0:
+                    tabstop, line_ctrs = parse_tokens_line(line)
+                    if line_ctrs['any_paren'] >= 0:
+                        # lm = ' ' * line_ctrs['lm']
+                        while line_ctrs['any_paren'] > 0 or \
+                                line_ctrs['cont_line']:
+                            if line_ctrs['cont_line']:
+                                line = line[0:-1]
+                            del lines[lineno]
+                            tabstop, line_ctrs = parse_tokens_line(
+                                lines[lineno], ctrs=line_ctrs)
+                            line = line + ' ' + lines[lineno].strip()
                         del lines[lineno]
-                        line = line + ' ' + lines[lineno].strip()
-                    del lines[lineno]
-                    j = line.find('=')
-                    if j >= 0:
-                        lm = ''
-                        i = 0
-                        while line[i] == ' ':
-                            lm += ' '
-                            i += 1
-                        dvar = line[i:j]
-                        i2 = line.find('search(') + 7
-                        i3 = line.find(').')
-                        line1 = lm + 'ids' + line[j:i2] + \
-                            'self.cr, self.uid,' + \
-                            line[i2:i3 + 1]
-                        line2 = lm + dvar + line[j:i2 - 8] + \
-                            '.browse(ids[0]' + line[i3:]
-                        lines.insert(lineno, line1)
-                        lines.insert(lineno + 1, line2)
-                elif meta == '-u2':
-                    lines[lineno] = lines[lineno].replace(']', ')')
+                        tabstop, line_ctrs = parse_tokens_line(line)
+                        # print "<%s>" % (line) #debug
+                        ipos = -1
+                        states = {}
+                        tabstop_rule = {}
+                        tabstop_beg = {}
+                        tabstop_end = {}
+                        paren_ctrs = {}
+                        line_ctrs['paren'] = 0
+                        line_ctrs['brace'] = 0
+                        line_ctrs['bracket'] = 0
+                        paren_ctrs['paren'] = -1
+                        paren_ctrs['brace'] = -1
+                        paren_ctrs['bracket'] = -1
+                        for inxt in sorted(tabstop):
+                            if tabstop[inxt] == 'space':
+                                continue
+                            elif ipos < 0:
+                                ipos = inxt
+                                continue
+                            istkn = tabstop[ipos]
+                            tok = line[ipos:inxt].strip()
+                            if istkn == 'rparen':
+                                line_ctrs['paren'] -= 1
+                            elif istkn == 'rbrace':
+                                line_ctrs['brace'] -= 1
+                            elif istkn == 'rbracket':
+                                line_ctrs['bracket'] -= 1
+                            for ir in SPEC_SYNTAX.keys():
+                                irule = SPEC_SYNTAX[ir]
+                                if ir not in states:
+                                    states[ir] = 0
+                                    tabstop_rule[ir] = ipos
+                                if states[ir] < 0:
+                                    pass
+                                elif isinstance(irule[states[ir]], bool):
+                                    if irule[states[ir]]:
+                                        if states[ir] == 0:
+                                            tabstop_rule[ir] = ipos
+                                        states[ir] += 1
+                                    else:
+                                        states[ir] = 0
+                                elif tok == irule[states[ir]]:
+                                    if states[ir] == 0:
+                                        tabstop_rule[ir] = ipos
+                                    states[ir] += 1
+                                else:
+                                    tabstop_rule[ir] = ipos
+                                    if ir[0:3] == 'equ':
+                                        states[ir] = -1
+                                    else:
+                                        states[ir] = 0
+                                if states[ir] >= len(irule):
+                                    if istkn == 'rparen' and \
+                                            paren_ctrs['paren'] < \
+                                            line_ctrs['paren']:
+                                        states[ir] = 0
+                                    elif istkn == 'rbrace' and \
+                                            paren_ctrs['brace'] < \
+                                            line_ctrs['brace']:
+                                        states[ir] = 0
+                                    elif istkn == 'rbracket' and \
+                                            paren_ctrs['bracket'] < \
+                                            line_ctrs['bracket']:
+                                        states[ir] = 0
+                                if states[ir] >= len(irule):
+                                    if ir[0:3] == 'clo':
+                                        if ir == 'clo1':
+                                            ir1 = paren_ctrs['-paren']
+                                        elif ir == 'clo2':
+                                            ir1 = paren_ctrs['-brace']
+                                        elif ir == 'clo3':
+                                            ir1 = paren_ctrs['-bracket']
+                                        ir1 = '-' + ir1
+                                        tabstop_beg[ir1] = tabstop_rule[ir]
+                                        tabstop_end[ir1] = inxt
+                                        if ir1 == '-icr1':
+                                            tabstop_beg[ir1] += 1
+                                    elif ir[0:3] == 'equ':
+                                        tabstop_beg[ir] = tabstop_rule[ir]
+                                        tabstop_end[ir] = ipos
+                                    # elif ir[0:3] == 'env':
+                                    #     tabstop_beg[ir] = ipos
+                                    #     tabstop_end[ir] = inxt
+                                    elif ir[0:3] == 'icr':
+                                        tabstop_beg[ir] = ipos + 1
+                                        tabstop_end[ir] = inxt
+                                    else:
+                                        tabstop_beg[ir] = tabstop_rule[ir]
+                                        tabstop_end[ir] = inxt
+                                    if ir[0:3] == 'equ':
+                                        states[ir] = -1
+                                    else:
+                                        states[ir] = 0
+                                    if istkn == 'lparen':
+                                        paren_ctrs['paren'] = \
+                                            line_ctrs['paren']
+                                        paren_ctrs['-paren'] = ir
+                                    elif istkn == 'lbrace':
+                                        paren_ctrs['brace'] = \
+                                            line_ctrs['brace']
+                                        paren_ctrs['-brace'] = ir
+                                    elif istkn == 'lbracket':
+                                        paren_ctrs['bracket'] = \
+                                            line_ctrs['bracket']
+                                        paren_ctrs['-bracket'] = ir
+                            if istkn == 'lparen':
+                                line_ctrs['paren'] += 1
+                            elif istkn == 'lbrace':
+                                line_ctrs['brace'] += 1
+                            elif istkn == 'lbracket':
+                                line_ctrs['bracket'] += 1
+                            ipos = inxt
+                        tabstop_rule = {}
+                        line1 = ''
+                        found_srch = False
+                        for ir in tabstop_beg:
+                            ipos = tabstop_beg[ir]
+                            tabstop_rule[ipos] = ir
+                        for ipos in sorted(tabstop_rule, reverse=True):
+                            ir = tabstop_rule[ipos]
+                            if ir == '-icr1':
+                                found_srch = True
+                                line1 = line[ipos:]
+                                line = line[0:ipos]
+                            elif ir[0:4] == '-env':
+                                line = line[0:ipos] + ')' + line[ipos + 1:]
+                            elif ir[0:3] == 'icr':
+                                line = line[0:ipos] + 'self.cr, self.uid, ' + \
+                                    line[ipos:]
+                            elif ir == 'env1':
+                                tok = line[tabstop_beg[ir]:tabstop_end[ir]]
+                                tok = tok.replace('env[', 'env7(')
+                                line = line[0:ipos] + tok + \
+                                    line[tabstop_end[ir]:]
+                            elif ir[0:3] == 'env':
+                                tok = line[tabstop_beg[ir]:tabstop_end[ir]]
+                                tok = tok.replace('self.env.ref(',
+                                                  'self.ref(')
+                                line = line[0:ipos] + tok + \
+                                    line[tabstop_end[ir]:]
+                            elif ir[0:3] == 'equ' and found_srch:
+                                line1 = line[0:tabstop_beg['icr1'] - 7] + \
+                                    'browse(ids[0])' + line1
+                                line = line[0:ipos] + 'ids ' + \
+                                    line[tabstop_end[ir]:]
+                        lines.insert(lineno, line)
+                        if line1:
+                            lines.insert(lineno + 1, line1)
+                        ignore = None
                 ctx['empty_line'] = 0
         if len(lines[lineno]) > 79:
             ln1, ln2 = split_line(lines[lineno])
             if ln2:
                 lines[lineno] = ln2
                 lines.insert(lineno, ln1)
-        lineno += 1
+        if not ignore or not lines[lineno]:
+            lineno += 1
         LAST_RID = rid
     lineno = len(lines) - 1
     while lineno > 2 and lines[lineno] == "":
