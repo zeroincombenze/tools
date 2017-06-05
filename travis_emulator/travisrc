@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.81.10
+#__version__=0.1.81.11
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1483,13 +1483,15 @@ run_svr_test_rm_ln() {
       local n=$(get_cfg_value "" "dbtemplate")_$$
     fi
     local u=$(get_cfg_value "" "dbuser")
-    run_traced "dropdb -U$u --if-exists $n"
+    run_traced "pg_db_active -a $n; dropdb -U$u --if-exists $n"
     if [ ${opt_virt:-0} -eq 0 ]; then
       local n=$(get_cfg_value "" "dbname")
     else
       local n=$(get_cfg_value "" "dbname")_$$
     fi
-    run_traced "dropdb -U$u --if-exists $n"
+    if [ "$2" != "wep" -o $opt_keep -ne 0 ]; then
+      run_traced "pg_db_active -a $n; dropdb -U$u --if-exists $n"
+    fi
     run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
     run_unvirt "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"
     if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
@@ -1497,6 +1499,9 @@ run_svr_test_rm_ln() {
     fi
     run_unvirt "if [ -L $HOME/$PKGNAME-$VERSION ]; then rm -f $HOME/$PKGNAME-$VERSION; fi"
     run_unvirt "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
+    if [ "$2" != "wep" -o $opt_keep -ne 0 ]; then
+      run_unvirt "if [ -L $HOME/odoo-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
+    fi
 }
 
 
@@ -1516,7 +1521,7 @@ run_svr_test_init() {
     coverage erase
     sts=0
     if [ "$PRJNAME" == "Odoo" ]; then
-      run_svr_test_rm_ln
+      run_svr_test_rm_ln init
       cp_n_upd_conf
       clone_dependencies
       sts=$?
@@ -1542,7 +1547,7 @@ EOF
 
 run_svr_test_exit() {
     if [ "$PRJNAME" == "Odoo" ]; then
-      run_svr_test_rm_ln
+      run_svr_test_rm_ln wep
     fi
 }
 
