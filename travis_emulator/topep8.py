@@ -28,7 +28,7 @@ import re
 from z0lib import parseoptargs
 
 
-__version__ = "0.1.14.22"
+__version__ = "0.1.14.23"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -58,7 +58,7 @@ SYNTAX = {
     'comma': re.compile(','),
     'colon': re.compile(':'),
     'assign': re.compile('='),
-    'op': re.compile(r'[\\!%&-+/|^?<=>]+'),
+    'op': re.compile(r'[-\\!%&+/|^?<=>]+'),
 }
 
 RULES = r"""
@@ -190,9 +190,11 @@ SPEC_SYNTAX = {
     'icr3': ['self', '.', True, '.', 'create', '('],
     'icr4': ['self', '.', True, '.', 'browse', '('],
     'icr5': ['self', '.', True, '.', 'unlink', '('],
+    'icr6': ['self', '.', True, '.', 'find', '('],
     'clo1': [')', ],
     'clo2': [']', ],
     'clo3': ['}', ],
+    'clo4': [')', '.', True],
 }
 
 IS_BADGE = {}
@@ -863,9 +865,13 @@ def parse_file(src_filepy, dst_filepy, ctx):
                                             paren_ctrs['bracket'] < \
                                             line_ctrs['bracket']:
                                         states[ir] = 0
+                                    elif ir == 'clo1':
+                                        ir1 = paren_ctrs['-paren']
+                                        if ir == 'icr1' or ir1 == 'env2':
+                                            states[ir] = 0
                                 if states[ir] >= len(irule):
                                     if ir[0:3] == 'clo':
-                                        if ir == 'clo1':
+                                        if ir == 'clo1' or ir == 'clo4':
                                             ir1 = paren_ctrs['-paren']
                                         elif ir == 'clo2':
                                             ir1 = paren_ctrs['-brace']
@@ -874,14 +880,11 @@ def parse_file(src_filepy, dst_filepy, ctx):
                                         ir1 = '-' + ir1
                                         tabstop_beg[ir1] = tabstop_rule[ir]
                                         tabstop_end[ir1] = inxt
-                                        if ir1 == '-icr1':
+                                        if ir1 == '-icr1' or ir1 == '-env2':
                                             tabstop_beg[ir1] += 1
                                     elif ir[0:3] == 'equ':
                                         tabstop_beg[ir] = tabstop_rule[ir]
                                         tabstop_end[ir] = ipos
-                                    # elif ir[0:3] == 'env':
-                                    #     tabstop_beg[ir] = ipos
-                                    #     tabstop_end[ir] = inxt
                                     elif ir[0:3] == 'icr':
                                         tabstop_beg[ir] = ipos + 1
                                         tabstop_end[ir] = inxt
@@ -922,7 +925,9 @@ def parse_file(src_filepy, dst_filepy, ctx):
                             if ir == '-icr1':
                                 found_srch = True
                                 line1 = line[ipos:]
-                                line = line[0:ipos]
+                                line = line[0:ipos] + line[tabstop_end[ir]:]
+                            elif ir == '-env2':
+                                line = line[0:ipos] + line[tabstop_end[ir]:]
                             elif ir[0:4] == '-env':
                                 line = line[0:ipos] + ')' + line[ipos + 1:]
                             elif ir[0:3] == 'icr':

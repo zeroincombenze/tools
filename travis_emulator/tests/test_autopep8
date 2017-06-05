@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.22
+__version__=0.1.14.23
 
 
 test_01() {
@@ -443,7 +443,7 @@ class TestUser(TransactionCase):
         ids = self.res_user.search(self.cr, self.uid, [('name', '=', 'Me')])
         self.myname = self.res_user.browse(self.cr, self.uid, ids[0]).name
         self.m1 = self.res_user.create(self.cr, self.uid, {'name': self.ref(
-            'base.it').id})
+            'base.it')})
 EOF
       $RUNDIR/topep8 -q -b7.0 -u $TESTSRC -o $TESTOUT
     fi
