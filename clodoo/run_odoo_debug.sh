@@ -16,22 +16,27 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.8
+__version__=0.1.10
 
-OPTOPTS=(h        d        m           n            t         s        U         V           v           x)
-OPTDEST=(opt_help opt_db   opt_modules opt_dry_run  opt_touch opt_stop opt_user  opt_version opt_verbose opt_xport)
-OPTACTI=(1        "="      "="         "1"          1         1        "="       "*>"        1           "=")
-OPTDEFL=(1        ""       ""          0            0         0        ""        ""          0           "")
-OPTMETA=("help"   "dbname" "modules"   "do nothing" "touch"   ""       "user"    "version"   "verbose"   "port")
+OPTOPTS=(h        d        e       k        i       l        m           n           s         t         U         V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="         "1"         1         1         "="       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""          0           0         0         ""        ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "do nothing" ""       "touch"   "user"    "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
- "db name to test"\
- "modules to test"\
+ "db name to test (require -m switch)"\
+ "export it translation"\
+ "do not create new DB and keep it after run"\
+ "import it translation"\"\
+ "load it language"
+ "modules to test or translate"\
  "do nothing (dry-run)"\
- "touch config file, do not run odoo"\
  "stop after init"\
+ "touch config file, do not run odoo"\
  "db username"\
  "show version"\
  "verbose mode"\
+ "run as web server"\
  "set odoo xmlrpc port")
 OPTARGS=(odoo_ver)
 
@@ -70,29 +75,71 @@ else
 fi
 create_db=0
 drop_db=0
+if [ $opt_lang -ne 0 ]; then
+  opt_keep=1
+  opt_stop=1
+  if [ -n "$opt_modules" ]; then
+    opt_modules=
+  fi
+elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
+  opt_keep=1
+  if [ -z "$opt_modules" ]; then
+    echo "Missing -m switch"
+    exit 1
+  fi
+fi
 if [ -n "$opt_modules" ]; then
-  mods=${opt_modules//,/ }
-  for m in $mods; do
-    p=$(find /opt/odoo/$odoo_ver$sfx -type d -name $m|head -n1)
-    if [ -f $p/__openerp__.py ]; then
-      f=$p/__openerp__.py
-      x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
-      if [ -n "$x" ]; then
-        opt_modules="$opt_modules,$x"
+  if [ $opt_keep -eq 0 ]; then
+    mods=${opt_modules//,/ }
+    for m in $mods; do
+      p=$(find /opt/odoo/$odoo_ver$sfx -type d -name $m|head -n1)
+      if [ -f $p/__openerp__.py ]; then
+        f=$p/__openerp__.py
+        x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
+        if [ -n "$x" ]; then
+          opt_modules="$opt_modules,$x"
+        fi
+      fi
+    done
+    opts="-i $opt_modules --test-enable"
+    create_db=1
+  elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
+    src=$(find /opt/odoo/$odoo_ver$sfx -type d -name "$opt_modules"|head -n1)
+    if [ -n "$src" ]; then
+      if [ -f $src/i18n/it.po ]; then
+        src=$src/i18n/it.po
+        run_traced "cp $src $src.bak"
+      else
+        src=
       fi
     fi
-  done
-  opts="-i $opt_modules --test-enable"
-  create_db=1
-  if [ $opt_stop -gt 0 ]; then
-    opts="$opts --stop-after-init --test-commit"
-  fi
-  if [ -z "$opt_db" ]; then
-    opt_db="test_openerp"
-    if [ $opt_stop -gt 0 ]; then
-      drop_db=1
+    if [ -z "$src" ]; then
+      echo "Translation file not found!"
+      exit 1
     fi
+    if [ $opt_imp -ne 0 ]; then
+      opts="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
+    else
+      opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
+    fi
+  else
+    opts="-u $opt_modules --test-enable"
   fi
+else
+  if [ $opt_lang -ne 0 ]; then
+    opts=--load-language=it_IT
+  else
+    opts=""
+  fi
+fi
+if [ $opt_web -ne 0 ]; then
+  if [ -z "$opt_xport" -a $opt_web -ne 0 ]; then
+    let opt_xport="8160+$sfxver"
+  fi
+  if [ -z "$opt_user" ]; then
+    opt_user=odoo$sfxver
+  fi
+elif [ -n "$opt_modules" -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_xport" ]; then
     let opt_xport="8070+$sfxver"
   fi
@@ -100,15 +147,25 @@ if [ -n "$opt_modules" ]; then
     opt_user=odoo$sfxver
   fi
 else
-  opts=""
   if [ -z "$opt_user" ]; then
     opt_user=postgres
+  fi
+fi
+if [ $opt_stop -gt 0 ]; then
+  opts="$opts --stop-after-init"
+  if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
+     opts="$opts --test-commit"
+  fi
+fi
+if [ -z "$opt_db" ]; then
+  opt_db="test_openerp"
+  if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
+    drop_db=1
   fi
 fi
 if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
 fi
-
 if [ $opt_verbose -gt 0 -o  $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
   echo "cp $confn ~/.openerp_serverrc"
 fi
@@ -138,12 +195,10 @@ if [ $opt_touch -eq 0 ]; then
     fi
     createdb -U$opt_user $opt_db
   fi
-  if [ "$odoo_ver" != "10.0" ]; then
-    if [ $opt_dry_run -eq 0 ]; then
-      opts="--debug $opts"
-    fi
+  if [ "$odoo_ver" != "10.0" -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
+    opts="--debug $opts"
   fi
-  if [ $opt_verbose -gt 0 -o  $opt_dry_run -gt 0 ]; then
+  if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 ]; then
     echo "$script $opts"
   fi
   if [ $opt_dry_run -eq 0 ]; then
@@ -156,5 +211,10 @@ if [ $opt_touch -eq 0 ]; then
       fi
       dropdb -U$opt_user --if-exists $opt_db
     fi
+  fi
+  if [ $opt_exp -ne 0 ]; then
+    echo "Translation exported to '$src' file"
+  elif [ $opt_imp -ne 0 ]; then
+    echo "Translation imported from '$src' file"
   fi
 fi
