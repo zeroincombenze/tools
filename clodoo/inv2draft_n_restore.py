@@ -5,9 +5,14 @@ import clodoo
 # import pdb
 
 
-__version__ = "0.1.5.23"
+__version__ = "0.1.5.24"
 
-oerp = oerplib.OERP()
+
+xml_port = 8069
+db_name = 'demo'
+user = 'admin'
+passwd = 'admin'
+oe_ver = '7.0'
 try:
     fd = open('./inv2draft_n_restore.conf', 'r')
     lines = fd.read().split('\n')
@@ -19,17 +24,33 @@ try:
             passwd = tkn[1]
         elif tkn[0] == 'db_name':
             database = tkn[1]
+        elif tkn[0] == 'xml_port':
+            xml_port = int(tkn[1])
+        elif tkn[0] == 'oe_version':
+            oe_ver = tkn[1]
     fd.close()
 except:
-    database = raw_input('database? ')
-    user = raw_input('username? ')
-    passwd = raw_input('password? ')
+    database = raw_input('database[def=demo]? ')
+    user = raw_input('username[def=admin]? ')
+    passwd = raw_input('password[def=admin]? ')
+    p = raw_input('port[def=8069]? ')
+    if p:
+        xml_port = int(p)
+    p = raw_input('odoo version[def=7.0]? ')
+    if p:
+        oe_ver = p
+
+oerp = oerplib.OERP(port=xml_port, version=oe_ver)
 uid = oerp.login(user=user,
                  passwd=passwd, database=database)
 fd = open('./inv2draft_n_restore.conf', 'w')
 fd.write('login_user=%s\n' % user)
 fd.write('login_password=%s\n' % passwd)
 fd.write('db_name=%s\n' % database)
+if xml_port != 8069:
+    fd.write('xml_port=%d\n' % xml_port)
+if oe_ver:
+    fd.write('oe_version=%s\n' % oe_ver)
 fd.close()
 
 

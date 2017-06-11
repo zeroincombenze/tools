@@ -54,4 +54,4 @@ etcPkgList=${pkgname}.conf,${pkgname}.conf.sample,odoo-server_Debian,odoo-server
 wget_URL=http://download.zeroincombenze.org
 wget_xname=lisa.gz
 git_URL=https://github.com/zeroincombenze/tools.git
-git_LocalUser=odoo
+git_LocalUser=odoo:odoo

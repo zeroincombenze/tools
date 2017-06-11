@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.15
+__version__=0.2.36.17
 
 
 STS_FAILED=1
@@ -146,7 +146,7 @@ conf_default() {
     set_cfg_def "odoo_BOP" "$p" "0" "CentOS6"
     if [ "$opt_oed" == "odoo" ]; then
       gitrep="odoo/odoo"
-      set_cfg_def "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
+      set_cfg_def "odoo_Branch" "6.1 7.0 8.0 9.0 10.0" "0"
     elif [ "$opt_oed" == "oca" ]; then
       gitrep="OCA/OCB"
       set_cfg_def "odoo_Branch" "7.0 8.0 9.0 10.0" "0"
@@ -154,7 +154,7 @@ conf_default() {
       set_cfg_def "odoo_SubPkgList" "$p" "0"
     else
       gitrep="zeroincombenze/OCB"
-      set_cfg_def "odoo_Branch" "7.0 8.0" "0"
+      set_cfg_def "odoo_Branch" "6.1 7.0 8.0" "0"
       p="account-closing account-financial-reporting account-financial-tools account-invoicing account-payment bank-payment connector knowledge l10n-italy l10n-italy-supplemental partner-contact product-attribute reporting-engine report-print-send server-tools stock-logistics-barcode stock-logistics-tracking stock-logistics-warehouse stock-logistics-workflow web webkit-tools website"
       set_cfg_def "odoo_SubPkgList" "$p" "0"
       set_cfg_def "odoo_upstream" "https://github.com/OCA/$addons.git"
@@ -194,8 +194,8 @@ conf_default() {
     set_cfg_def "openssh-server_cmdname" "NULL" "0"
     set_cfg_def "openssh-client_cmdname" "ssh" "0" "Debian"
     set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
-    set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
-    set_cfg_def "lisa_git_LocalUser" "odoo" "0"
+    # set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
+    # set_cfg_def "lisa_git_LocalUser" "odoo:odoo" "0"
     set_cfg_def "wkhtmltopdf_wget_URL" "http://download.gna.org/wkhtmltopdf/0.12/0.12.1" "0"
     if [ "$MACHARCH" != "x86_64" ]; then
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-i386.deb" "0" "Ubuntu14"
@@ -379,8 +379,6 @@ get_prm_value() {
         x="${1:0: -7}"
         if $(is_virtualname $x); then
           p="lisa"
-        # elif [ "$x" == "pip" ]; then
-        #   p=
         elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="pip"
         elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
@@ -395,7 +393,7 @@ get_prm_value() {
           p="apt-get"
         elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           if [ "$FH" == "RHEL" ]; then
-           p="yum"
+            p="yum"
           elif [ "$FH" == "Debian" ]; then
             p="apt-get"
           else
@@ -483,35 +481,21 @@ init_cfg_pkg() {
     # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his    #debug
     local p x
     LAMP=$(get_prm_value "LAMP" list)
-    # LAMP="${LAMP//,/ }"
     NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL list)"
-    # NAME_VIRTUAL="${NAME_VIRTUAL//,/ }"
     NOINQ="$(get_prm_value NOINQ list)"
-    # NOINQ="${NOINQ//,/ }"
     VFYLOW="$(get_prm_value VFYLOW list)"
-    # VFYLOW="${VFYLOW//,/ }"
     VFYUPP="$(get_prm_value VFYUPP list)"
-    # VFYUPP="${VFYUPP//,/ }"
     VFYPSX="$(get_prm_value VFYPSX list)"
-    # VFYPSX="${VFYPSX//,/ }"
     VFYE2NL="$(get_prm_value VFYE2NL list)"
-    # VFYE2NL="${VFYE2NL//,/ }"
     VFYERR="$(get_prm_value VFYERR list)"
-    # VFYERR="${VFYERR//,/ }"
     PIP_PKGS="$(get_prm_value PIP_PKGS list)"
-    # PIP_PKGS="${PIP_PKGS//,/ }"
     GIT_PKGS="$(get_prm_value GIT_PKGS list)"
-    # GIT_PKGS="${GIT_PKGS//,/ }"
     WGET_PKGS="$(get_prm_value WGET_PKGS list)"
-    # WGET_PKGS="${WGET_PKGS//,/ }"
     STD_PKGS="$(get_prm_value STD_PKGS)"
     STD_PKGS="${STD_PKGS//,/ } EVERYTHINGS"
     YUM_PKGS="$(get_prm_value YUM_PKGS list)"
-    # YUM_PKGS="${YUM_PKGS//,/ }"
     APT_PKGS="$(get_prm_value APT_PKGS list)"
-    # APT_PKGS="${APT_PKGS//,/ }"
     PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS list)"
-    # PIP_PYSTD_PKGS="${PIP_PYSTD_PKGS//,/ }"
     for p in $PIP_PYSTD_PKGS; do
       x="python-$p"
       set_cfg_def "${p}_ReqPkgList" "$x" "0"
@@ -785,6 +769,13 @@ get_specimen() {
     echo "$specimen"
 }
 
+get_odoo_full_ver() {
+    if [ "$1" == "6" ]; then
+      echo "6.1"
+    else
+      echo "$1.0"
+    fi
+}
 
 get_pkg_ver_inq() {
 # get_pkg_ver_inq(pkgname [OPTS])
@@ -937,7 +928,7 @@ get_pkg_ver_git() {
       IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$4"
       pkg_URL=$(get_full_URL "$1" $2 $3 $4 "$5")
       subpkg=$(get_dir_URL "$1" $2 $3 $4 "$5")
-      local pkg_user="$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)"
+      # local pkg_user="$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)"
       local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
       if [ -n "$pkg_URL" ]; then
         do_git_localroot version $1 $2 $3 $4 "$5"
@@ -1271,7 +1262,7 @@ update_hba_conf() {
          echo "local   all         odoo                              peer">>$1.tmp
          echo "host    all         odoo        127.0.0.1/32          trust">>$1.tmp
          echo "host    all         odoo        ::1/128               trust">>$1.tmp
-         for ov in 7 8 9; do
+         for ov in 6 7 8 9 10; do
            echo "local   all         odoo$ov                             trust">>$1.tmp
            echo "host    all         odoo$ov       127.0.0.1/32          trust">>$1.tmp
            echo "host    all         odoo$ov       ::1/128               trust">>$1.tmp
@@ -1689,9 +1680,10 @@ lisa_install_submodule_by_git() {
 # lisa_install_submodule_by_git(pkgs branch action OPTS param [SPECIMEN])
     local opt_osub="$1"
     local ov="$2"
+    local ovf=$(get_odoo_full_ver $ov)
     CWD=$PWD
     for iso in ${opt_osub//,/ }; do
-      run_traced "cd /opt/odoo/$ov.0"
+      run_traced "cd /opt/odoo/$ovf"
       # pn=$(get_locale_name "$iso")
       if [ -z "$pn" ]; then
         if [ ${#iso} -ne 2 ]; then
@@ -1708,15 +1700,15 @@ lisa_install_submodule_by_git() {
         fi
         if [ -d $addons -a $test_mode -eq 0 ]; then
           run_traced "cd $addons"
-          run_traced "git pull origin $ov.0" "odoo"
-          run_traced "cd /opt/odoo/$ov.0"
+          run_traced "git pull origin $ovf" "odoo"
+          run_traced "cd /opt/odoo/$ovf"
         else
-          run_traced "git clone -b $ov.0 $pn $addons $git_opts" "odoo"
-          run_traced "git submodule add -b $ov.0 -f $pn $addons" "odoo"
+          run_traced "git clone -b $ovf $pn $addons $git_opts" "odoo"
+          run_traced "git submodule add -b $ovf -f $pn $addons" "odoo"
           if [ "opt_oed" == "zeroincombenze" ]; then
             run_traced "git remote add upstream https://github.com/OCA/$addons.git" "odoo"
           fi
-          run_traced "cd /opt/odoo/$ov.0"
+          run_traced "cd /opt/odoo/$ovf"
         fi
       fi
     done
@@ -1734,6 +1726,12 @@ do_dry_install_submodule_by_git() {
       IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
       xtlcmd=git
       pkg_user=$(get_prm_value ${pkg}_${xtlcmd}_LocalUser)
+      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
+      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
+      if [ "$pkg_user" == "$USER" ]; then
+        pkg_user=
+        pkg_group=
+      fi
       run_traced "git submodule update --init" "$pkg_user"
     else
       CWD=$PWD
@@ -1760,7 +1758,7 @@ do_dry_install_by_git() {
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3 $4 \"$5\")">>~/$THIS.his; fi    #debug
     local pkgname=$2
     local xtlcmd=git
-    local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p
+    local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p ldir
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     if [[ $3 =~ s ]]; then
       subpkg=$2
@@ -1791,6 +1789,12 @@ do_dry_install_by_git() {
         git_opts="--single-branch --depth=1 $git_opts"
       fi
       pkg_user=$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)
+      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
+      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
+      if [ "$pkg_user" == "$USER" ]; then
+        pkg_user=
+        pkg_group=
+      fi
       if [ -z "subpkg" ]; then
         pkg_branch="$(get_prm_value ${pkgname}_Branch)"
       else
@@ -1803,7 +1807,12 @@ do_dry_install_by_git() {
         branch=
       fi
       if [ -z "$subpkg" ]; then
-        run_traced "git clone $pkg_URL $pkgname $git_opts" "$pkg_user"
+        if [ "$pkgname" == "odoo" -a $opt_mult -gt 0 -a  -n "$branch" ]; then
+          ldir=$branch
+        else
+          ldir=$pkgname
+        fi
+        run_traced "git clone $pkg_URL $ldir $git_opts" "$pkg_user"
         sts=$?
       else
         if [ -f .gitignore -o $test_mode -gt 0 ]; then
@@ -1827,13 +1836,17 @@ do_dry_install_by_git() {
         run_traced "cd $CWD"
       fi
       if [ -n "$pkg_user" ]; then
-        run_traced "chown -R $pkg_user $pkgname/"
+        run_traced "chown -R $pkg_user:$pkg_group $pkgname/"
       fi
       x=$(get_prm_value "${pkgname}_confdirs")
       if [ -n "$x" ]; then
         for p in ${x//,/ }; do
           if [ ! -d $p -o $test_mode -gt 0 ]; then
-            mkdir_traced $p $pkg_user
+            if [ -n "$pkg_user" ]; then
+              mkdir_traced $p $pkg_user:$pkg_group
+            else
+              mkdir_traced $p
+            fi
           fi
         done
       fi
@@ -1849,7 +1862,7 @@ do_dry_install_by_git() {
           fi
           if [ "$pkgname" == "odoo" ]; then
             if [ "$opt_oed" == "zeroincombenze" ]; then
-              pkg_subm="$pkg_subm l10n-italy-supplemental"
+              pkg_subm="$pkg_subm l10n-italy-supplemental account_banking_cscs"
             fi
           fi
           do_dry_install_submodule_by_git $1 "$pkg_subm" $3 $4 "$5"
@@ -2724,7 +2737,7 @@ __lisa_install_odoo() {
     # init_odoo_env
     git_opts=""
     if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-      local ov_iter="9 8 7"
+      local ov_iter="10 9 8 7 6"
     else
       local ov_iter=$opt_odoo
       git_opts="--single-branch"
@@ -2733,16 +2746,17 @@ __lisa_install_odoo() {
       git_opts="--depth 1 $git_opts"
     fi
     for ov in $ov_iter; do
+      local ovf=$(get_odoo_full_ver $ov)
       local xtl=1
       local v=$(_inq "odoo")
-      if [ -n "$v" -a -d /opt/odoo/$ov.0 ]; then
-        cd /opt/odoo/$ov.0
+      if [ -n "$v" -a -d /opt/odoo/$ovf ]; then
+        cd /opt/odoo/$ovf
         git status &>/dev/null
         if [ $? -ne 128 ]; then xtl=0; fi
       fi
       run_traced "cd /opt/odoo"
       if [ $xtl -gt 0 ]; then
-        run_traced "git clone https://github.com/$gitrep.git $ov.0 -b $ov.0 $git_opts" "odoo" #debug
+        run_traced "git clone https://github.com/$gitrep.git $ovf -b $ovf $git_opts" "odoo" #debug
         if [ -n "$opt_osub" ]; then
           lisa_install_submodule_by_git "$opt_osub" "$ov"
         fi
@@ -2753,10 +2767,10 @@ __lisa_install_odoo() {
           lisa_install_submodule_by_git "$opt_locale" "$ov"
         fi
       fi #debug
-      run_traced "chown -R odoo:odoo $ov.0/"
-      run_traced "cd /opt/odoo/$ov.0"
-      run_traced "git checkout $ov.0"
-      if [ $test_mode -eq 0 -a -f /opt/odoo/$ov.0/requirements.txt ]; then
+      run_traced "chown -R odoo:odoo $ovf/"
+      run_traced "cd /opt/odoo/$ovf"
+      run_traced "git checkout $ovf"
+      if [ $test_mode -eq 0 -a -f /opt/odoo/$ovf/requirements.txt ]; then
         local f=/opt/odoo/7.0/requirements.txt
         local p n v r
         while IFS=\= read p n v; do
@@ -2786,14 +2800,15 @@ lisa_update_odoo() {
 # lisa_install_odoo
     # init_odoo_env
     if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-      local ov_iter="9 8 7"
+      local ov_iter="10 9 8 7 6"
     else
       local ov_iter=$opt_odoo
     fi
     for ov in $ov_iter; do
+      local ovf=$(get_odoo_full_ver $ov)
       local xtl=0
-      if [ -d /opt/odoo/$ov.0 ]; then
-        run_traced "cd /opt/odoo/$ov.0"
+      if [ -d /opt/odoo/$ovf ]; then
+        run_traced "cd /opt/odoo/$ovf"
         if [ $test_mode -gt 0 ]; then
           :
         else
@@ -2801,7 +2816,7 @@ lisa_update_odoo() {
         fi
         if [ $? -ne 128 ]; then xtl=1; fi
         if [ $xtl -gt 0 ]; then
-          run_traced "git pull origin $ov.0" "odoo"
+          run_traced "git pull origin $ovf" "odoo"
           if [ $test_mode -eq 0 ]; then
              opt_sub=$(grep "\[submodule" .gitmodules|awk '{print $2}'|tr -d "\"]"|tr "\n" " ")
           fi
@@ -2815,14 +2830,14 @@ lisa_update_odoo() {
             lisa_install_submodule_by_git "$opt_locale" "$ov"
           fi
         fi
-        run_traced "git checkout $ov.0"
+        run_traced "git checkout $ovf"
       fi
     done
 }
 
 lisa_config_odoo() {
     if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-      local ov_iter="9 8 7"
+      local ov_iter="10 9 8 7 6"
       local opt_multi="-m"
     else
       local ov_iter=$opt_odoo
@@ -2859,6 +2874,7 @@ lisa_config_odoo() {
       vi $f_hba
     fi
     for ov in $ov_iter; do
+      local ovf=$(get_odoo_full_ver $ov)
       if [ -n "$opt_multi" ]; then
         uu="odoo$ov"
         echo "*:*:*:$uu:$pwd">>$userhome/.pgpass
@@ -2877,8 +2893,8 @@ lisa_config_odoo() {
       if [ -f /opt/odoo/.openerp_serverrc ]; then
         rm -f /opt/odoo/.openerp_serverrc
       fi
-      cmd="sudo -iuodoo /opt/odoo/$ov.0/openerp-server"
-      cmd="$cmd --addons-path=/opt/odoo/$ov.0/openerp/addons,/opt/odoo/$ov.0/addons"
+      cmd="sudo -iuodoo /opt/odoo/$ovf/openerp-server"
+      cmd="$cmd --addons-path=/opt/odoo/$ovf/openerp/addons,/opt/odoo/$ovf/addons"
       for iso in ${opt_osub//,/ } ${opt_sub//,/ }; do
         # pn=$(get_locale_name "$iso")
         if [ -z "$pn" ]; then
@@ -2886,7 +2902,7 @@ lisa_config_odoo() {
         else
           # addons=$(get_locale_dir "$pn")
           if [ -d $addons ]; then
-            cmd="$cmd,/opt/odoo/$ov.0/$addons"
+            cmd="$cmd,/opt/odoo/$ovf/$addons"
           fi
         fi
       done
@@ -2897,7 +2913,7 @@ lisa_config_odoo() {
         else
           # addons=$(get_locale_dir "$pn")
           if [ -d $addons ]; then
-            cmd="$cmd,/opt/odoo/$ov.0/$addons"
+            cmd="$cmd,/opt/odoo/$ovf/$addons"
           fi
         fi
       done
@@ -3062,18 +3078,18 @@ post_config_mariadb-server() {
 
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e       g       H        I        i      J        L         l          m        n           o       p         P          q           s         T         u       V           v           y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      1       "="       "="     "="     1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       0       ""        ""      ""      0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4"   "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        n           o       p         P          q           s         T         u       V           v           y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="      1       "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       0       ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "undocumented"\
  "configuration file (def /etc/lisa/lisa.conf)"\
  "add development package(s)"\
  "max depth level"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
- "action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
+ "action on parent and dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
  "add graphical interface package(s)"\
  "[user@]host to export config files"\
  "declare package(s) as installed"\
@@ -3256,6 +3272,7 @@ else
   OPTS1ST="install update"
   ECHOCMDS="config install remove status update version"
   TAILMSG="install remove status update"
+  REP_UPDATED=0
   opt_tail=0
   if [ $opt_1st -gt 0 ]; then
     for act in $actions; do

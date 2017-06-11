@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.10
+__version__=0.1.11
 
 OPTOPTS=(h        d        e       k        i       l        m           n           s         t         U         V           v           w       x)
 OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
@@ -146,6 +146,12 @@ elif [ -n "$opt_modules" -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 
   if [ -z "$opt_user" ]; then
     opt_user=odoo$sfxver
   fi
+  if [ -z "$opt_db" ]; then
+    opt_db="test_openerp"
+    if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
+      drop_db=1
+    fi
+  fi
 else
   if [ -z "$opt_user" ]; then
     opt_user=postgres
@@ -155,12 +161,6 @@ if [ $opt_stop -gt 0 ]; then
   opts="$opts --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
      opts="$opts --test-commit"
-  fi
-fi
-if [ -z "$opt_db" ]; then
-  opt_db="test_openerp"
-  if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
-    drop_db=1
   fi
 fi
 if [ -n "$opt_db" ]; then

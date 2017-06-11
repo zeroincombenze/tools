@@ -21,12 +21,9 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79
+__version__=0.1.79.1
 
 
-if [ $EUID -eq 0 -a -d /opt/odoo/tools/z0lib ]; then
-  cd /opt/odoo/tools/z0lib
-fi
 FCONF=$TDIR/.$THIS.conf
 
 # main
@@ -60,7 +57,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-detached_login () {
+detached_login() {
     if [ $opt_cron -gt 0 -a "$SHELL" == "/bin/sh" ]; then
       if [ $opt_dry_run -eq 0 ]; then
         fqcmd=$(readlink -f $0)
@@ -82,7 +79,7 @@ detached_login () {
 }
 
 
-upgrade_myself () {
+upgrade_myself() {
 # THIS is developed on /opt/odoo/dev/pypi/travis_emulator/travis_emulator (DEV_DIR)
 # If regression test ends successfully, is copied to /opt/odoo/tools/travis_emulator (PRD_DIR)
 # Because THIS runs on ~/bin (RUN_DIR), is copied from /opt/odoo/tools/travis_emulator
@@ -140,7 +137,7 @@ upgrade_myself () {
 }
 
 
-test_pkg_pypi () {
+test_pkg_pypi() {
 # test_pkg_pypi(name)
 # return: sts
     if [ ! -d ~/dev/svg ]; then
@@ -194,7 +191,7 @@ test_pkg_pypi () {
 }
 
 
-pkg_pypi_commit () {
+pkg_pypi_commit() {
 # pkg_pypi_commit(name)
 # return: sts
     if [ $opt_dry_run -eq 0 ]; then
@@ -237,7 +234,7 @@ pkg_pypi_commit () {
 }
 
 
-oe_upd_burst () {
+oe_upd_burst() {
     local XX=$(ps -ef|grep "clodoo\.py.*$1.conf"|tail -n1)
     if [ -z "$XX" ]; then
       local clodir=$(get_cfg_value "" "CLODIR")
@@ -307,7 +304,7 @@ oe_upd_burst () {
 }
 
 
-check4env () {
+check4env() {
     if [ ! -d ~/dev/pypi ]; then
       wlog "!? Invalid environment: missing ~/dev/pypi directory!"
       exit 1
@@ -325,7 +322,7 @@ check4env () {
 }
 
 
-cpfiles () {
+cpfiles() {
 # cpfiles(srcpath, tgtpath, files, owner)
     if [ -z "$3" ]; then
       local l="*"
@@ -360,7 +357,7 @@ cpfiles () {
 }
 
 
-scpfiles () {
+scpfiles() {
 # scpfiles(srcpath, tgtpath, files)
     if [ -z "$3" ]; then
       local l="*"
@@ -391,7 +388,7 @@ scpfiles () {
 }
 
 
-mvfiles () {
+mvfiles() {
 # mvfiles(srcpath, tgtpath, files, owner)
     if [ -z "$3" ]; then
       local l="*"
@@ -426,7 +423,7 @@ mvfiles () {
 }
 
 
-generate_svg () {
+generate_svg() {
 # generate_svg(id, result, ver?)
     if [ $opt_dry_run -eq 0 ]; then
       wlog "generate_svg $1[ $2 ] -V$3"
@@ -465,7 +462,7 @@ generate_svg () {
     fi
 }
 
-publish_svg () {
+publish_svg() {
 # publish_svg(src)
     local sts=$STS_FAILED
     if  [ -n "$1" ]; then
@@ -489,56 +486,32 @@ publish_svg () {
     return $sts
 }
 
-synchronize_odoo () {
-    local VERSION=
+synchronize_odoo() {
+# synchronize_odoo ($dow)
     local l=
     local n=
-    for VERSION in 7.0 8.0 9.0; do
+    local dow=$1
+    local VERSION=
+    for VERSION in 6.1 7.0 8.0 9.0 10.0; do
+      n=$(echo $VERSION|grep -Eo [0-9]*|head -n1)
+      let n="$n-5"
+      if [ $n -ne $dow ]; then
+        continue
+      fi
       for d in $HOME/$VERSION/*; do
         if [ -d $d ]; then
           if [ -d $d/.git ]; then
             run_traced "cd $d"
-            l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
-            if [ "${l:0:19}" == "https://github.com/" ]; then
-              n="git@github.com:${l:19}"
-              run_traced "git remote set-url origin $n${l:19}"
-            fi
-            if [ "$d" == "l10n-italy-supplemental" -o "$d" == "zeroincombenze" ]; then
-              l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
-              if [ -n "$l" ]; then
-                run_traced "git remote rm upstream"
-              fi
-              if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-                run_traced "git pull origin $VERSION"
-                run_traced "git push"
-              elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
-                run_traced "git pull"
-              fi
-            else
-              l=$(git remote -v|grep "upstream[[:space:]]"|awk '{print $2}'|head -n1)
-              if [ -z "$l" ]; then
-                l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
-                l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
-                run_traced "git remote add upstream $l"
-              elif [ "${l:0:19}" != "https://github.com/" ]; then
-                l=$(git remote -v|grep "origin[[:space:]]"|awk '{print $2}'|head -n1)
-                l=$(echo "$l"|sed -e s\|git@github.com:zeroincombenze\|https://github.com/OCA\|)
-                run_traced "git remote set-url upstream $l"
-              fi
-              if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-                run_traced "git pull upstream $VERSION"
-                run_traced "git push"
-              elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
-                run_traced "git pull"
-              fi
-            fi
+            run_traced "please synchro . zero-merged"
           fi
         fi
+        run_traced "cd $HOME/$VERSION/"
+        run_traced "please synchro . zero-merged"
       done
     done
 }
 
-exit_n_status () {
+exit_n_status() {
   if [ $sts -eq $STS_SUCCESS ]; then
     generate_svg "$USER" "OK" "$__version__"
     if [ $EUID -eq 0 ]; then
@@ -567,7 +540,7 @@ exit_n_status () {
   exit $sts
 }
 
-conf_default () {
+conf_default() {
     set_cfg_def "DEV_HOST" "shsita16"
     set_cfg_def "PRD_HOST" "shsdef14"
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
@@ -589,8 +562,7 @@ conf_default () {
 }
 
 
-eval $(init_cfg)
-eval $(active_cfg)
+CFG_init
 conf_default
 link_cfg $FCONF
 for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade_dow WWW_DWNLOAD_DIR XFLIST__zar; do
@@ -662,8 +634,11 @@ else
   wlog "++ Test nightly $__version__ is dry-running by $USER ++"
 fi
 if [ $EUID -eq 0 ]; then
-  wlog "> Upgrade z0librc"
-  _install_z0librc
+  if [ -d /opt/odoo/tools/z0lib ]; then
+    cd /opt/odoo/tools/z0lib
+    wlog "> Upgrade z0librc"
+    _install_z0librc
+  fi
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
     udow=$(get_cfg_value "" "upgrade_dow")
     if [ $dow -eq $udow ]; then
@@ -695,7 +670,7 @@ if [ $EUID -eq 0 ]; then
           fi
         done
         service openerp restart
-        for ver in 7 8 9; do
+        for ver in 6 7 8 9 10; do
           service odoo${ver}-server restart
         done
       fi
@@ -708,15 +683,15 @@ if [ $EUID -eq 0 ]; then
       elog "!unpublished svg!!"
     fi
     if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cd /opt/odoo/tools/product/
-      wlog "\$ product package"
-      product package
+      cd /opt/odoo/tools/lisa/
+      wlog "\$ lisa package"
+      lisa package
     fi
-    vbef=$(product -V)
-    wlog "\$ product update product"
-    product update product
-    vaft=$(product -V)
-    wlog "product $vbef upgraded to $vaft"
+    vbef=$(lisa -V)
+    wlog "\$ lisa update lisa"
+    lisa update lisa
+    vaft=$(lisa -V)
+    wlog "lisa $vbef upgraded to $vaft"
     if [ "$HOSTNAME" == "$DEV_HOST" ]; then
       d=$(readlink -f /opt/odoo/mySAP)
       if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
@@ -826,12 +801,7 @@ if [ "$USER" == "odoo" ]; then
   fi
   tm=$(date +%H%M)
   if [ $tm -gt 2100 -o $tm -lt 0300 ]; then
-    synchronize_odoo
-  fi
-  if [ -d /opt/odoo/tools/clodoo ]; then
-    cpfiles "/opt/odoo/tools/clodoo" "/opt/odoo/dev" "clodoo.py clodoocore.py clodoolib.py"
-    s=$?
-    [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    synchronize_odoo $dow
   fi
   if [ -d /opt/odoo/tools/z0tester ]; then
     cpfiles "/opt/odoo/tools/z0tester" "/opt/odoo/dev" "z0testercode.py"
@@ -843,20 +813,6 @@ if [ "$USER" == "odoo" ]; then
     oe_upd_burst "$opt_odoo"
     s=$?
     [ $sts -eq $STS_SUCCESS ]&&sts=$s
-  fi
-fi
-if [ "$USER" == "openerp" ]; then
-  if [ $sts -eq $STS_SUCCESS ]; then
-    if [ $sts -eq $STS_SUCCESS -a -z "$opt_nall" ]; then
-      wlog "Odoo all tests"
-      if [ $opt_dry_run -eq 0 ]; then
-        /opt/odoo/dev/pypi/clodoo/clodoo/odoo_test -Aaqy test
-        if [ -n "$(grep \"$dt\" $ODOO_LTF|grep FAIL)" ]; then
-          sts=$STS_FAILED
-          grep "$dt" $ODOO_LTF|grep FAIL
-        fi
-      fi
-    fi
   fi
 fi
 if [ $opt_9 -gt 0 ]; then

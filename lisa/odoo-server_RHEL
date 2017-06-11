@@ -29,10 +29,10 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.2.5-RHEL
+# version: 0.2.7-RHEL
 # Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
+# (C) 2015-2017 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
@@ -102,6 +102,7 @@ fi
 if [ -f $CONFIGFILE ]; then
     DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 fi
+DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 [ -x $DAEMON ] || exit 0
 # [ -f $CONFIGFILE ] || exit 0
 
