@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.1
+__version__=0.1.79.3
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -165,16 +165,12 @@ test_pkg_pypi() {
       exit 0
     fi
     sts=$STS_SUCCESS
-    cd ~/dev/pypi/$1/$1
-    if [ $opt_dry_run -eq 0 ]; then
-      wlog "\$ please test # $1"
-      please test
-    fi
+    run_traced "cd ~/dev/pypi/$1/$1"
+    run_traced "travis . test # $1"
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ $opt_dry_run -eq 0 ]; then
-        wlog "\$ please wep  # $1"
-        please wep
+        run_traced "please wep  # $1"
         wlog "Package $1: test successfully terminated"
       fi
       if [ -x ./$1 ]; then
@@ -212,23 +208,12 @@ pkg_pypi_commit() {
       exit 0
     fi
     sts=$STS_SUCCESS
-    cd ~/dev/pypi/$1/$1
-    if [ $opt_dry_run -eq 0 ]; then
-      wlog "$ please replace  # $1"
-      if [ $opt_verbose -gt 0 ]; then
-        please replace $opts_verbose &>>~/$THIS.log
-      else
-        please replace &>/dev/null
-      fi
-      if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq $STS_SUCCESS ]; then
-        wlog "$ make commit # $1"
-        # cd ~/dev/pypi/$1; dist_pkg -vC $1 $1; &>>~/$THIS.log
-        if [ $opt_verbose -gt 0 ]; then
-          make -f$HOME/dev/Makefile commit &>>~/$THIS.log
-        else
-          make -f$HOME/dev/Makefile commit &>/dev/null
-        fi
-      fi
+    run_traced "cd ~/dev/pypi/$1/$1"
+    run_traced "please replace  # $1"
+    sts=$?
+    if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq $STS_SUCCESS ]; then
+      run_traced "please commit # $1"
+      run_traced "please push # $1"
     fi
     return $sts
 }
@@ -462,6 +447,7 @@ generate_svg() {
     fi
 }
 
+
 publish_svg() {
 # publish_svg(src)
     local sts=$STS_FAILED
@@ -486,15 +472,16 @@ publish_svg() {
     return $sts
 }
 
+
 synchronize_odoo() {
 # synchronize_odoo ($dow)
-    local l=
-    local n=
+    local l n s
     local dow=$1
     local VERSION=
+    local sts=$STS_SUCCESS
     for VERSION in 6.1 7.0 8.0 9.0 10.0; do
       n=$(echo $VERSION|grep -Eo [0-9]*|head -n1)
-      let n="$n-5"
+      let n="11-$n"
       if [ $n -ne $dow ]; then
         continue
       fi
@@ -503,13 +490,35 @@ synchronize_odoo() {
           if [ -d $d/.git ]; then
             run_traced "cd $d"
             run_traced "please synchro . zero-merged"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            if [ $s -eq $STS_SUCCESS ]; then
+              run_traced "travis"
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+              if [ $s -ne $STS_SUCCESS ]; then
+                wlog "-- travis tes of $d FAILED!"
+              fi
+            else
+              wlog "-- synchronization of $d FAILED!"
+            fi
           fi
         fi
         run_traced "cd $HOME/$VERSION/"
         run_traced "please synchro . zero-merged"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        if [ $s -eq $STS_SUCCESS ]; then
+          run_traced "travis"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          if [ $s -ne $STS_SUCCESS ]; then
+            wlog "-- travis tes of $d FAILED!"
+          fi
+        else
+          wlog "-- synchronization of $d FAILED!"
+        fi
       done
     done
+    retrun $sts
 }
+
 
 exit_n_status() {
   if [ $sts -eq $STS_SUCCESS ]; then
@@ -540,26 +549,29 @@ exit_n_status() {
   exit $sts
 }
 
+
 conf_default() {
-    set_cfg_def "DEV_HOST" "shsita16"
-    set_cfg_def "PRD_HOST" "shsdef14"
+    if [ -n "$HOSTNAME_DEV" ]; then
+      set_cfg_def "DEV_HOST" "$HOSTNAME_DEV"
+    else
+      set_cfg_def "DEV_HOST" "shsde[a-z][0-9]*"
+    fi
+    if [ -n "$HOSTNAME_PRD" ]; then
+      set_cfg_def "DEV_HOST" "$HOSTNAME_PRD"
+    else
+      set_cfg_def "PRD_HOST" "shsprd[0-9]*"
+    fi
     set_cfg_def "ME_BOS" "test_nightly .test_nightly.conf.sample"
     set_cfg_def "MYPKG" "travis_emulator"
     set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
     set_cfg_def "WWW_DWNLOAD_DIR" "/var/www/html/mw/download"
-    if [ "${HOSTNAME:0:6}" == "shsdev" ]; then
-      set_cfg_def "pip_pkgver__reportlab" "3.2.0"
-      set_cfg_def "upgrade_dow" "2"
-    else
-      set_cfg_def "pip_pkgver__reportlab" "3.1.44"
-      set_cfg_def "upgrade_dow" "4"
-    fi
     set_cfg_def "ODOO_SETUP" "__openerp__.py"
-    set_cfg_def "svc_name" "openerp"
+    set_cfg_def "svc_name" "openerp-server"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "SLEEP_TIME" "30"
     set_cfg_def "XFLIST__zar" "bckconf bckconf.py pg_db_active restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py"
 }
+
 
 
 CFG_init
@@ -669,7 +681,10 @@ if [ $EUID -eq 0 ]; then
             pip install $f --upgrade --no-deps
           fi
         done
-        service openerp restart
+        svc=$(get_cfg_value "" "svc_name")
+        if [ -n "$svc" ]; then
+          service $svc restart
+        fi
         for ver in 6 7 8 9 10; do
           service odoo${ver}-server restart
         done
@@ -770,7 +785,7 @@ if [ "$USER" == "odoo" ]; then
           if [ $sts -eq $STS_SUCCESS ]; then
             pkg_pypi_commit $PKGNAME
           fi
-        elif [ $opt_dry_run -eq $STS_SUCCESS ]; then
+        else
           wlog "------------------------------------"
           wlog "Module $PKGNAME uncertificated ($sts)!"
         fi
@@ -781,6 +796,7 @@ if [ "$USER" == "odoo" ]; then
   wlog "cd ~/tools"
   cd ~/tools
   if [ $opt_dry_run -eq 0 ]; then
+    wlog "-- End of package tests, commit results into tool package"
     tm=$(date +%H%M)
     if [ $tm -gt 2000 -o $tm -lt 0600 ]; then
       cmsg="[RUN] test nightly"

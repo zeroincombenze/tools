@@ -20,7 +20,6 @@
 #
 ##############################################################################
 # For software version see main
-from __builtin__ import False
 """
      Test module os0
      This module provide OS indipendent interface
