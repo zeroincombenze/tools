@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.81.12
+__version__=0.1.81.13
 
 
 store_cfg_param_value() {
@@ -540,10 +540,11 @@ process_yaml_run_cmd() {
               if [ -n "$tk" ]; then
                 if [ "${tk:0:4}" == "http" ]; then
                   p=$(basename $tk)
-                  p=$(echo $p|grep -Eo '[a-zA-Z0-9_]*'|head -n1)
+                  tk=$(echo $p|grep -Eo '[a-zA-Z0-9_]*'|head -n1)
                 fi
-                p=$(echo "$p"|grep -Eo '[^!<=>\[;]*'|head -n1)
+                p=$(echo "$tk"|grep -Eo '[^!<=>;\[]*'|head -n1)
                 p=${p//\"/}
+                p=$(echo $p)
                 if [ "$p" == "transifex-client" ]; then
                   xcmd="$xcmd $p"
                 elif $(pip show $p &>/dev/null); then

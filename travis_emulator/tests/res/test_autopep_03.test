@@ -1,0 +1,7 @@
+from odoo import fields, models
+
+
+class res_user(models.Model):
+    _columns = {
+        'is_base': fields.boolean()
+    }

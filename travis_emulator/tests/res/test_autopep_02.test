@@ -1,0 +1,36 @@
+import pdb
+from odoo import models
+import odoo.addons.decimal_precision
+from odoo.tools.translate import _
+from odoo import netsvc
+from odoo import pooler
+from tndb import tndb
+
+
+const1 = 10
+const2 = 20
+
+
+class ResUser(models.TransientModel):
+    def __init__(self, ctx=None):
+        ctx = {} if ctx is None else ctx
+        tndb.wstamp()
+        pdb.set_trace()
+        partner = pooler.get_pool(cr.dbname).get('res.partner')
+        tndb.wlog('return',
+                  partner)
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )
+
+
+ResUser()
+
+
+report_sxw.report_sxw(
+    'report.test_autopep8',
+    'res.partner',
+    './autopep8.mako',
+    parser=autopep8)

@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.81.12
+#__version__=0.1.81.13
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -264,6 +264,9 @@ init_travis() {
         npm config set prefix $NPM_CONFIG_PREFIX
       fi
       set_pkgname $PKGNAME
+      if [ "$PKGNAME" == "OCB" ]; then
+        REPOSNAME=
+      fi
       BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
       if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0)$ ]] ; then
         :

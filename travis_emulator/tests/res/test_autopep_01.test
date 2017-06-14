@@ -1,0 +1,9 @@
+
+
+class res_user(osv.osv):
+    def __init__(self):
+        return (
+            partner.name and
+            partner.city or
+            ''
+        )

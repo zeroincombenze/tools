@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.6
+__version__=0.1.79.7
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -472,6 +472,38 @@ publish_svg() {
 }
 
 
+synchronize_module_odoo() {
+# synchronize_module_odoo(module)
+    local s sts
+    local d=$1
+    if [ -z "$d"]; then
+      PKGNAME=OCB
+      wlog "##### Module OCB"
+    else
+      PKGNAME=$d
+      wlog "##### Module $PWD"
+      run_traced "cd $d"
+    fi
+    run_traced "please synchro . zero-merged"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ $s -eq $STS_SUCCESS ]; then
+      run_traced "travis"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      if [ $s -eq $STS_SUCCESS ]; then
+        PYPKGS[$PKGNAME]='Ok'
+        wlog "### travis test of $PKGNAME success!"
+      else
+        PYPKGS[$PKGNAME]='FAILED'
+        wlog "### travis test of $PKGNAME FAILED!"
+      fi
+    else
+      PYPKGS[$PKGNAME]='Not synchronized'
+      wlog "### synchronization of $PKGNAME FAILED!"
+    fi
+    return $sts
+}
+
+
 synchronize_odoo() {
 # synchronize_odoo ($dow)
     local l n s
@@ -479,7 +511,8 @@ synchronize_odoo() {
     local VERSION=
     local sts=$STS_SUCCESS
     local DOW_SEED=$(get_cfg_value "" "DOW_SEED")
-    declare -A PYPKGS
+    unset PYPKGS
+    declare -gA PYPKGS
     wlog "========================================================"
     wlog "======            Starting Odoo tests             ======"
     for VERSION in 6.1 7.0 8.0 9.0 10.0; do
@@ -492,43 +525,12 @@ synchronize_odoo() {
       for d in $HOME/$VERSION/*; do
         if [ -d $d ]; then
           if [ -d $d/.git ]; then
-            wlog "##### Module $d"
-            run_traced "cd $d"
-            run_traced "please synchro . zero-merged"
+            synchronize_module_odoo $d
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
-            if [ $s -eq $STS_SUCCESS ]; then
-              run_traced "travis"
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
-              if [ $s -eq $STS_SUCCESS ]; then
-                PYPKGS[$PKGNAME]='Ok'
-              else
-                PYPKGS[$PKGNAME]='FAILED'
-                wlog "### travis test of $d FAILED!"
-              fi
-            else
-              PYPKGS[$PKGNAME]='Not synchronized'
-              wlog "### synchronization of $d FAILED!"
-            fi
           fi
         fi
       done
-      PKGNAME=OCB
-      run_traced "cd $HOME/$VERSION/"
-      run_traced "please synchro . zero-merged"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      if [ $s -eq $STS_SUCCESS ]; then
-        run_traced "travis"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        if [ $s -eq $STS_SUCCESS ]; then
-          PYPKGS[$PKGNAME]='Ok'
-        else
-          PYPKGS[$PKGNAME]='FAILED'
-          wlog "### travis tes of $d FAILED!"
-        fi
-      else
-        PYPKGS[$PKGNAME]='Not synchronized'
-        wlog "## synchronization of $d FAILED!"
-      fi
+      synchronize_module_odoo
       wlog "--------------------------------------------------------"
       for PKGNAME in ${!PYPKGS[*]}; do
         x=$(printf "%-64.64s: %s" "$PKGNAME" "${PYPKGS[$PKGNAME]}")
@@ -796,6 +798,7 @@ if [ "$USER" == "odoo" ]; then
   wlog "========================================================"
   wlog "### PYPI Package tests"
   cd ~/dev/pypi
+  unset PYPKGS
   declare -A PYPKGS
   for PKGNAME in *; do
     valid=0

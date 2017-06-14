@@ -1,0 +1,38 @@
+<h2>Scadenzario fiscale per le imprese italiane relativo a ${cur_month} ${cur_year}.</h2>
+<a href="http://www.shs-av.com/wp-content/uploads/2017/02/scadenze_fiscali.png">
+</a><img class="alignright size-full wp-image-2420" src="http://www.shs-av.com/wp-content/uploads/2017/02/scadenze_fiscali.png" alt="" width="300" height="180" />
+Come ogni mese, le imprese italiane sono soggette a numerose scadenze fiscali e IVA che possono essere superate usufruendo dell'innovativo servizio <strong>SHS (Sharing Human Services)</strong> come Zeroincombenze®.
+<h3>${dayw_ivam} ${day_ivam} ${cur_month} ${cur_year}</h3>
+<h4>Adempimenti IVA</h4>
+<p>
+Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di ${pre_month} ${cur_year} e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
+</p><p>
+Chi emette la <strong>fattura elettronica PA</strong> (in via sperimentale) deve inviarle alla PA.
+</p><p>
+I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di ${pre_month} ${pre_year}.
+I dati sono contabilizzati con le chiusure giornaliere nel menù <u>Punto Vendita</u> del <strong>modulo POS</strong>
+</p><p>
+Con la <strong>contabilità on line</strong> è possibile la registrazione delle fatture di importo inferiore ad € 300,00 del mese di ${pre_month} ${cur_year}; possono essere riepilogate sia le fatture attive che le fatture di acquisto.
+</p><p>
+Per il corretto utilizzo del servizio <strong>SHS (Sharing Human Services)</strong> occorre caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, al fine di permettere la validazione in tempo utile dei documenti.
+</p>
+<h3>${dayw_ivap} ${day_ivap} ${cur_month} ${cur_year}</h3>
+<h4>Versamenti IVA</h4>
+<p>
+Tramite la <strong>contabilità on line</strong>, è possibile effettuare il calcolo della liquidazione IVA relativa al mese precedente (${pre_month} ${pre_year}). La funzione è disponibile nel menù di <u>contabilità.</u>
+Il versamento deve essere effettuato utilizzando il modello F24, in modalità telematica con codice <strong>${F24_IVA}</strong>
+</p><p>
+Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro dipendente (codici 1001 e 1013) e per lavoro autonomo (codice tributo 1038 e 1040).
+ Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
+</p>
+<h3>${last_c_dayw} ${last_c_day} ${cur_month} ${cur_year}</h3>
+<p>
+<h4>Comunicazioni</h4>
+Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (${pre_month} ${pre_year}). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
+</p>
+<h4>Altro</h4>
+Scheda carburante:<br>
+Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.
+<br>
+Maggiori informazioni sulle scadenze fiscali sono disponibili sul sito dell'<a title="Scadenze fiscali ${cur_month} ${cur_year}"
+ href="http://www1.agenziaentrate.gov.it/strumenti/scadenzario/main.php" target="_blank">Agenzia delle Entrate</a>.

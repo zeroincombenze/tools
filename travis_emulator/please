@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.7
+__version__=0.1.42.8
 
 
 #
@@ -1056,7 +1056,7 @@ do_synchro() {
         if [ "$2" == "zero-merged" ]; then
           do_distribution "$PKGNAME" "zero"
         fi
-        for f in $(find $PKGPATH -type f -exec grep -l ">>>>" '{}' \;); do
+        for f in $(find $PKGPATH -type f -not -name "*.png" -exec grep -l ">>>>" '{}' \;); do
           echo "Warning: see file $f"
         done
       fi
