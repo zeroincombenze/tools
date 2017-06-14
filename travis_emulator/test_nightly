@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.5
+__version__=0.1.79.6
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -492,7 +492,7 @@ synchronize_odoo() {
       for d in $HOME/$VERSION/*; do
         if [ -d $d ]; then
           if [ -d $d/.git ]; then
-            wlog "------ Module $d ------"
+            wlog "##### Module $d"
             run_traced "cd $d"
             run_traced "please synchro . zero-merged"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -511,31 +511,32 @@ synchronize_odoo() {
             fi
           fi
         fi
-        PKGNAME=OCB
-        run_traced "cd $HOME/$VERSION/"
-        run_traced "please synchro . zero-merged"
+      done
+      PKGNAME=OCB
+      run_traced "cd $HOME/$VERSION/"
+      run_traced "please synchro . zero-merged"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      if [ $s -eq $STS_SUCCESS ]; then
+        run_traced "travis"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         if [ $s -eq $STS_SUCCESS ]; then
-          run_traced "travis"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          if [ $s -eq $STS_SUCCESS ]; then
-            PYPKGS[$PKGNAME]='Ok'
-          else
-            PYPKGS[$PKGNAME]='FAILED'
-            wlog "### travis tes of $d FAILED!"
-          fi
+          PYPKGS[$PKGNAME]='Ok'
         else
-          PYPKGS[$PKGNAME]='Not synchronized'
-          wlog "## synchronization of $d FAILED!"
+          PYPKGS[$PKGNAME]='FAILED'
+          wlog "### travis tes of $d FAILED!"
         fi
-        wlog "--------------------------------------------------------"
-        for PKGNAME in ${!PYPKGS[*]}; do
-          wlog "$VERSION/$PKGNAME: ${PYPKGS[$PKGNAME]}"
-        done
-        wlog "--------------------------------------------------------"
+      else
+        PYPKGS[$PKGNAME]='Not synchronized'
+        wlog "## synchronization of $d FAILED!"
+      fi
+      wlog "--------------------------------------------------------"
+      for PKGNAME in ${!PYPKGS[*]}; do
+        x=$(printf "%-64.64s: %s" "$PKGNAME" "${PYPKGS[$PKGNAME]}")
+        wlog "$x"
       done
+      wlog "--------------------------------------------------------"
     done
-    retrun $sts
+    return $sts
 }
 
 
@@ -823,7 +824,8 @@ if [ "$USER" == "odoo" ]; then
   done
   wlog "-----------------------------------------------------------"
   for PKGNAME in ${!PYPKGS[*]}; do
-    wlog "$PKGNAME: ${PYPKGS[$PKGNAME]}"
+    x=$(printf "%-40.40s: %s" "$PKGNAME" "${PYPKGS[$PKGNAME]}")
+    wlog "$x"
   done
   wlog "-----------------------------------------------------------"
   wlog "### End of package tests, commit results into tool package"
