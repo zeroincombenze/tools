@@ -7,6 +7,8 @@
 #__version__=0.1.48
 STS_FAILED=1
 STS_SUCCESS=0
+# TODO: search python library path
+# for p in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. $(echo -e "import sys\nprint sys.path"|python|tr -d "'[],") /etc; do
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent
