@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.81.11
+#__version__=0.1.81.12
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -907,7 +907,10 @@ clean_dirs() {
     else
       local o=
     fi
-    XXXX=$(get_cfg_value "" "filedel")
+    local XXXX=$(get_cfg_value "" "filedel")
+    if [ "$PWD" == "/opt/odoo/tools" ]; then
+      XXXX="$XXXX *_doc.txt setup.sh pythonhosted-*.zip __old_* __new_*"
+    fi
     for x in $XXXX;do
       if [ "$x" != ".conf" ]; then
         if [ ${opt_dry_run:-0} -gt 0 ]; then

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())
     if os.name == 'posix':
-        if os.environ['HOSTENV'] == 'travis':
+        if os.environ.get('HOSTENV', '') == 'travis':
             UT_LIST = ["__version_0_" + __version__]
         else:
             UT_LIST = ["__version_0_" + __version__,
