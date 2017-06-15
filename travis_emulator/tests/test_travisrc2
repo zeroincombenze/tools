@@ -76,8 +76,8 @@ Z0BUG_setup() {
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
     fi
-    if [ -d ~/$VERSION/dependencies ]; then rm -fR ~/$VERSION/dependencies; fi"
-    if [ -L ~/$VERSION/dependencies ]; then rm -f ~/$VERSION/dependencies; fi"
+    if [ -d ~/$VERSION/dependencies ]; then rm -fR ~/$VERSION/dependencies; fi
+    if [ -L ~/$VERSION/dependencies ]; then rm -f ~/$VERSION/dependencies; fi
 
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
