@@ -26,6 +26,7 @@
 import sys
 import re
 from z0lib import parseoptargs
+import tokenize
 
 
 __version__ = "0.1.14.23"
@@ -676,7 +677,12 @@ def parse_file(src_filepy, dst_filepy, ctx):
     # pdb.set_trace()
     if ctx['opt_verbose']:
         print "Reading %s" % src_filepy
-    fd = open(src_filepy, 'r')
+    fd = open(src_filepy, 'rb')
+    tok_obj = tokenize.generate_tokens(
+        fd.readline,
+        )
+    fd.close()
+    fd = open(src_filepy, 'rb')
     source = fd.read()
     fd.close()
     lines = source.split('\n')

@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.8
+__version__=0.1.79.9
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -853,8 +853,8 @@ if [ "$USER" == "odoo" ]; then
   tm_beg=$(get_cfg_value "" "ODOO_SYNCHRO_BEG")
   tm_end=$(get_cfg_value "" "ODOO_SYNCHRO_END")
   tm=$(date +%H%M)
-  if [ $tm_end -lt $tm_beg ]; then let tm_beg="$tm_beg+2400"; fi
-  wlog "--- Synchronization time $tm_beg > $tm > $tm_end"
+  if [ $tm_end -lt $tm_beg ]; then let tm_end="$tm_end+2400"; fi
+  wlog "--- Synchronization time $tm_beg < $tm < $tm_end"
   if [ $tm -gt $tm_beg -a $tm -lt $tm_end ]; then
     synchronize_odoo $dow
   fi

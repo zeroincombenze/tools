@@ -22,14 +22,14 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.14
+__version__=0.1.17
 
 
-OPTOPTS=(h        d        l       n            s        t        U          V           v)
-OPTDEST=(opt_help opt_dst  opt_log opt_dry_run  opt_src  opt_tbl  opt_user   opt_version opt_verbose)
-OPTACTI=(1        "="      "="     1            "="      "="      "="        "*>"        1)
-OPTDEFL=(0        ""       ""      0            ""       ""       "postgres" ""          0)
-OPTMETA=("help"   "DBname" "file"  "do nothing" "DBname" "table"  "username" "version"   "verbose")
+OPTOPTS=(h        d        l       n            s        t        U          V           v           w)
+OPTDEST=(opt_help opt_dst  opt_log opt_dry_run  opt_src  opt_tbl  opt_user   opt_version opt_verbose opt_wep)
+OPTACTI=(1        "="      "="     1            "="      "="      "="        "*>"        1           1)
+OPTDEFL=(0        ""       ""      0            ""       ""       "postgres" ""          0           0)
+OPTMETA=("help"   "DBname" "file"  "do nothing" "DBname" "table"  "username" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "destination DB name"\
  "log filename (def /var/log/bckdb.log)"\
@@ -38,7 +38,8 @@ OPTHELP=("this help"\
  "table to copy"\
  "username (def postgres)"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "wep destination table before import")
 OPTARGS=()
 
 
@@ -91,9 +92,13 @@ psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
 OLDNXT=$(psql -U$opt_user -tc "select last_value from ${opt_tbl}_id_seq;" $opt_dst)
 psql -U$opt_user -tec "select max(id) from $opt_tbl;" $opt_dst
 psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src
-CTRBEF=$(psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src)
+CTRBEF=$(psql -U$opt_user -tc "select count(id) from $opt_tbl;" $opt_src)
 echo "Copy data from source DB $opt_src"
 run_traced "pg_dump -U$opt_user -a --inserts --disable-triggers -Fp -f $tmpfn.sql -t $opt_tbl $opt_src"
+if [ $opt_wep -ne 0 ]; then
+  echo "Deleting table $opt_tbl from DB $opt_dst"
+  run_traced "psql -U$opt_user -tec \"delete from $opt_tbl;\" $opt_dst"
+fi
 echo "Paste data into destination DB $opt_dst"
 run_traced "psql -U$opt_user -d $opt_dst -f $tmpfn.sql -o $tmpfn.log 2>$tmpfn.err"
 echo "Resulting stats ..."
@@ -110,10 +115,12 @@ echo "Currently stats after copy ..."
 psql -U$opt_user -tec "select last_value from ${opt_tbl}_id_seq;" $opt_dst
 psql -U$opt_user -tec "select max(id) from $opt_tbl;" $opt_dst
 psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src
-CTRAFT=$(psql -U$opt_user -tec "select count(id) from $opt_tbl;" $opt_src)
+CTRAFT=$(psql -U$opt_user -tc "select count(id) from $opt_tbl;" $opt_src)
 let DIF="$CTRAFT-$CTRBEF"
-if [ $DIF -eq 0 ]; then
-  echo "Non record inserted"
+if [ $opt_wep -ne 0 ]; then
+  echo "$CTRAFT records replace $CTRBEF records"
+elif [ $DIF -eq 0 ]; then
+  echo "No new record inserted"
 else
   echo "$DIF new records inserted"
 fi
