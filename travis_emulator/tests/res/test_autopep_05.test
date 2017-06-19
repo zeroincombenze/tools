@@ -1,14 +1,27 @@
-from openerp.tests.common import TransactionCase
+# -*- coding: utf-8 -*-
+# Copyright 2017, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# Copyright 2017, Associazione Odoo Italia <https://odoo-italia.org>
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
+""" Copyright (C) odoo-italia.org
+"""
 
 
-class TestUser(TransactionCase):
-    def env7(self, model):
-        return self.registry(model)
+Namespace = pyxb.namespace.NamespaceForURI(
+    'urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp',
+    create_if_missing=True)
 
-    def setUp(self):
-        super(TestUser, self).setUp()
-        self.res_user = self.env7('res.user')
-        ids = self.res_user.search(self.cr, self.uid, [('name', '=', 'Me')])
-        self.myname = self.res_user.browse(self.cr, self.uid, ids[0]).name
-        self.m1 = self.res_user.create(self.cr, self.uid, {'name': self.ref(
-            'base.it')})
+
+class example():
+    _columns = {
+        'debit_credit_vat_account_line_ids': fields.one2many(
+            'debit.credit.vat.account.line', 'statement_id',
+            'Debit/Credit VAT',
+            help='The accounts containing the debit/credit VAT amount',
+            states={'confirmed': [('readonly', True)], 'paid': [(
+                'readonly', True)], 'draft': [('readonly', False)]}),
+    }
+
+    def test(self):
+        p = 1 * (2 +
+                 3)

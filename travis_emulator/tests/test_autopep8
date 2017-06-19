@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.23
+__version__=0.1.14.24
 
 
 test_01() {
@@ -35,8 +35,36 @@ test_01() {
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
+    TEST2P8=$TESTDIR/res/$TESTFN.2p8
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTDIR/res/*_01.out
+      cat <<EOF >$TEST2P8
+#
+a: ()
+b: class \$name(\$a)
+c: \$name =
+c[0]: A
+c[70]: a
+EOF
+      cat <<EOF >$TESTSRC
+A=1
+EOF
+      cat <<EOF >$TESTRES
+a = 1
+EOF
+      $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -0" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_02() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_02
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_02.out
       cat <<EOF >$TESTSRC
 # (C) OpenERP (http://openerp.com)
 import pdb
@@ -179,14 +207,14 @@ EOF
     test_result "topep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_02() {
+test_03() {
     local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_02
+    TESTFN=test_autopep_03
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_02.out
+      rm -f $TESTDIR/res/*_03.out
       cat <<EOF >$TESTSRC
 # import pdb
 from openerp.osv import osv
@@ -305,17 +333,17 @@ report_sxw.report_sxw(
 EOF
       $RUNDIR/topep8 -qBc -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -Bc -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -Bc -b20.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_03() {
+test_04() {
     local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_03
+    TESTFN=test_autopep_04
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_03.out
+      rm -f $TESTDIR/res/*_04.out
       cat <<EOF >$TESTSRC
 from openerp.osv import fields, orm
 
@@ -352,14 +380,14 @@ EOF
     test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_04() {
+test_05() {
     local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_04
+    TESTFN=test_autopep_05
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_04.out
+      rm -f $TESTDIR/res/*_05.out
       cat <<EOF >$TESTSRC
 """ Copyright (C) openerp-italia.org
 """
@@ -408,14 +436,14 @@ EOF
     test_result "topep8 -G" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_05() {
+test_06() {
     local TESTOUT TESTRES TESTFN
-    TESTFN=test_autopep_05
+    TESTFN=test_autopep_06
     TESTSRC=$TESTDIR/res/$TESTFN.py
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_05.out
+      rm -f $TESTDIR/res/*_06.out
       cat <<EOF >$TESTSRC
 from openerp.tests.common import TransactionCase
 

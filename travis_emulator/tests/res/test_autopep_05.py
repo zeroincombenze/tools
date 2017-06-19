@@ -1,11 +1,12 @@
-from openerp.tests.common import TransactionCase
+""" Copyright (C) openerp-italia.org
+"""
 
+Namespace = pyxb.namespace.NamespaceForURI('urn:www.agenziaentrate.gov.it:specificheTecniche:sco:ivp', create_if_missing=True)
 
-class TestUser(TransactionCase):
-
-    def setUp(self):
-        super(TestUser, self).setUp()
-        self.res_user = self.env['res.user']
-        self.myname = self.res_user.search(
-            [('name', '=', 'Me')]).name
-        self.m1 = self.res_user.create({'name': self.env.ref('base.it').id})
+class example():
+    _columns = {
+        'debit_credit_vat_account_line_ids': fields.one2many('debit.credit.vat.account.line', 'statement_id', 'Debit/Credit VAT', help='The accounts containing the debit/credit VAT amount', states={'confirmed': [('readonly', True)], 'paid': [('readonly', True)], 'draft': [('readonly', False)]}),
+    }
+    def test(self):
+        p = 1 * (2
+            + 3)

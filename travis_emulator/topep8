@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.23
+__version__=0.1.14.24
 
 
 format_xml() {
@@ -115,11 +115,11 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        B         b         c         d        G       n            o       q           u       V           v)
-OPTDEST=(opt_help opt_aggr opt_debug odoo_ver  opt_Camel opt_diff opt_gpl opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose)
-OPTACTI=(1        "+"      1         "="       1         1        1       1            "="     0           1       "*>"        "+")
-OPTDEFL=(1        0        0         ""        0         0        0       0            ""      -1          0       ""          -1)
-OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       "do nothing" "file"  "silent"   "ut7"   "version"    "verbose")
+OPTOPTS=(h        a        B         b         c         d        G       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_debug odoo_ver  opt_Camel opt_diff opt_gpl opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      1         "="       1         1        1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        0         ""        0         0        0       0            ""      -1          0       ""          -1          0)
+OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "activate debug statements"\
@@ -132,7 +132,8 @@ OPTHELP=("this help"\
  "silent mode"\
  "update unit test source to odoo<8.0"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "Undocumented")
 OPTARGS=(pathname basename)
 
 parseoptargs "$@"
@@ -197,7 +198,11 @@ for fl in $(find $path -type f -name "$selfl"); do
       x=$(printf "%${opt_aggr}.${opt_aggr}s" " "|sed y'/ /a/')
       AP8OPTS="$AP8OPTS -$x"
     fi
-    python $TDIR/topep8.py $f $f.tmp $OPTS
+    if [ $opt_z -ne 0 ]; then
+      python $TDIR/to_pep8.py $f $f.tmp $OPTS
+    else
+      python $TDIR/topep8.py $f $f.tmp $OPTS
+    fi
     autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
     rm -f $f.tmp
     if [ $opt_Camel -gt 0 ]; then
