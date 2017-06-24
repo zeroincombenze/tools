@@ -22,7 +22,47 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.12
+
+__version__=0.1.12.2
+
+
+up_oemod() {
+#up_oemod(DB branch)
+    local DB=$1
+    local oe_version=$2
+    local passed_file=./upd_oemod_passed.log
+    local exclusion_file=./upd_oemod_exclude.log
+    local excl_bak_file=./upd_oemod_exclude.bak
+    sts=1
+    errctr=0
+    while [ $sts -ne 0 ]; do
+        psql -Upostgres -c "update ir_module_module set state='uninstalled' where state='to install';" $DB
+        psql -Upostgres -c "update ir_module_module set state='installed' where state='to upgrade';" $DB
+        echo -e "\033[1;32m"; cat $passed_file || true
+        echo -e "\033[1;31m"; cat $exclusion_file || true
+        echo -e "\033[0m";
+        python $TDIR/upd_oemod.py -d $DB -b $oe_version
+        sts=$?
+        if [ $sts -eq 0 -a -f $exclusion_file ]; then
+            if [ -f $excl_bak_file ]; then
+                echo "diff -q $excl_bak_file $exclusion_file"
+                diff -q $excl_bak_file $exclusion_file
+                if [ $? -eq 0 ]; then
+                    rm -f $excl_bak_file
+                    return 1
+                fi
+            fi
+            mv $exclusion_file  $excl_bak_file
+            sts=1
+        else
+           ((errctr++))
+           if [ $errctr -gt 2 ]; then
+             return $sts
+           fi
+        fi
+    done
+    return $sts
+}
 
 
 OPTOPTS=(h        b          c        d      n           o       q           r        t         U          V           v)
@@ -160,7 +200,11 @@ elif [ "$action" == "update" ]; then
     else
       eval $WCMD
     fi
-    if [ -n "$cmdlist" ]; then
+    if [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
+      echo "clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port"
+      clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port
+      up_oemod $db $opt_branch
+    elif [ -n "$cmdlist" ]; then
       echo "clodoo.py $opts -A $cmdlist -d=$db -r $opt_port"
       clodoo.py $opts -A $cmdlist -d=$db -r $opt_port
       sts=$?

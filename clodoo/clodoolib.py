@@ -106,8 +106,8 @@ LX_CFG_B = ('set_passepartout',
             )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lgi_user', 'lgi_pwd',
-            'logfn', 'quiet_mode', 'xmlrpc_port')
+LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang',
+            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ()
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -123,7 +123,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.10.3"
+__version__ = "0.1.10.4"
 
 
 #############################################################################
@@ -445,6 +445,11 @@ def create_parser(version, doc, ctx):
                         dest="dbfilter",
                         metavar="regex",
                         default="")
+    parser.add_argument("-l", "--lang",
+                        help="user language",
+                        dest="lang",
+                        metavar="iso_lang",
+                        default='en_US')
     parser.add_argument("-n", "--dry-run",
                         help="test execution mode",
                         action="store_true",

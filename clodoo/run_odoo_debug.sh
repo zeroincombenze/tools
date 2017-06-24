@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11
+__version__=0.1.11.1
 
 OPTOPTS=(h        d        e       k        i       l        m           n           s         t         U         V           v           w       x)
 OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
@@ -27,7 +27,7 @@ OPTHELP=("this help"\
  "db name to test (require -m switch)"\
  "export it translation"\
  "do not create new DB and keep it after run"\
- "import it translation"\"\
+ "import it translation"\
  "load it language"
  "modules to test or translate"\
  "do nothing (dry-run)"\
@@ -92,7 +92,7 @@ if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
     mods=${opt_modules//,/ }
     for m in $mods; do
-      p=$(find /opt/odoo/$odoo_ver$sfx -type d -name $m|head -n1)
+      p=$(find /opt/odoo/$odoo_ver -type d -name $m|head -n1)
       if [ -f $p/__openerp__.py ]; then
         f=$p/__openerp__.py
         x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
@@ -104,11 +104,13 @@ if [ -n "$opt_modules" ]; then
     opts="-i $opt_modules --test-enable"
     create_db=1
   elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-    src=$(find /opt/odoo/$odoo_ver$sfx -type d -name "$opt_modules"|head -n1)
+    src=$(find /opt/odoo/$odoo_ver -type d -name "$opt_modules"|head -n1)
     if [ -n "$src" ]; then
       if [ -f $src/i18n/it.po ]; then
         src=$src/i18n/it.po
-        run_traced "cp $src $src.bak"
+        if [ $opt_exp -ne 0 ]; then
+          run_traced "cp $src $src.bak"
+        fi
       else
         src=
       fi

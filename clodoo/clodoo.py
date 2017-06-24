@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.71"
+__version__ = "0.2.71.2"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -900,6 +900,8 @@ def act_upgrade_modules(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['upgrade_modules'].split(',')
     context = get_context(ctx)
+    user_lang = get_user_lang(oerp, ctx)
+    cur_lang = user_lang
     done = 0
     for m in module_list:
         if m == "":
@@ -910,6 +912,9 @@ def act_upgrade_modules(oerp, ctx):
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
+                if cur_lang != 'en_US':
+                    cur_lang = 'en_US'
+                    set_user_lang(oerp, cur_lang, ctx)
                 try:
                     oerp.execute('ir.module.module',
                                  "button_immediate_upgrade",
@@ -927,6 +932,8 @@ def act_upgrade_modules(oerp, ctx):
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
 
+    if cur_lang != user_lang:
+        set_user_lang(oerp, user_lang, ctx)
     if done > 0:
         time.sleep(done)
     return STS_SUCCESS
@@ -938,6 +945,8 @@ def act_uninstall_modules(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['uninstall_modules'].split(',')
     context = get_context(ctx)
+    user_lang = get_user_lang(oerp, ctx)
+    cur_lang = user_lang
     done = 0
     model = 'ir.module.module'
     for m in module_list:
@@ -949,6 +958,9 @@ def act_uninstall_modules(oerp, ctx):
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
+                if cur_lang != 'en_US':
+                    cur_lang = 'en_US'
+                    set_user_lang(oerp, cur_lang, ctx)
                 try:
                     oerp.execute(model,
                                  "button_immediate_uninstall",
@@ -971,6 +983,8 @@ def act_uninstall_modules(oerp, ctx):
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
+    if cur_lang != user_lang:
+        set_user_lang(oerp, user_lang, ctx)
     if done > 0:
         time.sleep(done)
     return STS_SUCCESS
@@ -982,6 +996,8 @@ def act_install_modules(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     module_list = ctx['install_modules'].split(',')
     context = get_context(ctx)
+    user_lang = get_user_lang(oerp, ctx)
+    cur_lang = user_lang
     done = 0
     model = 'ir.module.module'
     for m in module_list:
@@ -993,6 +1009,9 @@ def act_install_modules(oerp, ctx):
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
+                if cur_lang != 'en_US':
+                    cur_lang = 'en_US'
+                    set_user_lang(oerp, cur_lang, ctx)
                 try:
                     oerp.execute(model,
                                  "button_immediate_install",
@@ -1015,6 +1034,8 @@ def act_install_modules(oerp, ctx):
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
+    if cur_lang != user_lang:
+        set_user_lang(oerp, user_lang, ctx)
     if done > 0:
         time.sleep(done)
     return STS_SUCCESS
@@ -1942,6 +1963,28 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
         new_reconciles = []
     reconcile_dict = {inv_id: new_reconciles}
     return new_reconciles, reconcile_dict
+
+
+def get_user_lang(oerp, ctx):
+    model = 'res.users'
+    user_id = ctx.get('user_id', 1)
+    user_obj = oerp.browse(model, user_id)
+    if not user_obj:
+        msg = u"!User %s not found" % user_id
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    return oerp.browse(model).lang
+
+
+def set_user_lang(oerp, lang, ctx):
+    model = 'res.users'
+    user_id = ctx.get('user_id', 1)
+    user_obj = oerp.browse(model, user_id)
+    if not user_obj:
+        msg = u"!User %s not found" % user_id
+        msg_log(ctx, ctx['level'] + 2, msg)
+        return STS_FAILED
+    oerp.write('res.users', user_id, {'lang': lang})
 
 
 def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
