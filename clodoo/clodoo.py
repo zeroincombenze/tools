@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.71.2"
+__version__ = "0.2.71.4"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1052,7 +1052,7 @@ def act_install_language(oerp, ctx):
         if len(ids) == 0:
             vals = {}
             vals['lang'] = lang
-            vals['overwrite'] = False
+            vals['overwrite'] = True
             id = oerp.create('base.language.install',
                              vals)
             oerp.execute('base.language.install',
@@ -1973,7 +1973,7 @@ def get_user_lang(oerp, ctx):
         msg = u"!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    return oerp.browse(model).lang
+    return oerp.browse(model, user_id).lang
 
 
 def set_user_lang(oerp, lang, ctx):
