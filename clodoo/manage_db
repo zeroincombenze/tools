@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.12.2
+__version__=0.1.12.3
 
 
 up_oemod() {
@@ -33,6 +33,9 @@ up_oemod() {
     local passed_file=./upd_oemod_passed.log
     local exclusion_file=./upd_oemod_exclude.log
     local excl_bak_file=./upd_oemod_exclude.bak
+    rm -f $passed_file
+    rm -f $exclusion_file
+    rm -f $excl_bak_file
     sts=1
     errctr=0
     while [ $sts -ne 0 ]; do
@@ -90,7 +93,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud Db(s) \nAction may be on of:\ninstall,update"\
+  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
