@@ -40,17 +40,20 @@ test_01() {
       rm -f $TESTDIR/res/*_01.out
       cat <<EOF >$TEST2P8
 #
-a: ()
-b: class \$name(\$a)
-c: \$name =
-c[0]: A
-c[70]: a
+a: \$name =
+a[0]: A
+a[70]: a
+b: ($any)
+c: class \$name(\$b)
 EOF
       cat <<EOF >$TESTSRC
 A=1
+B=A
 EOF
       cat <<EOF >$TESTRES
 a = 1
+
+B = A
 EOF
       $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
     fi

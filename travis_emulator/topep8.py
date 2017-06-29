@@ -678,7 +678,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
     if ctx['opt_verbose']:
         print "Reading %s" % src_filepy
     fd = open(src_filepy, 'rb')
-    tok_obj = tokenize.generate_tokens(
+    tokenize.generate_tokens(
         fd.readline,
         )
     fd.close()
