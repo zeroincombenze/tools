@@ -1,3 +1,6 @@
 a = 1
 
 B = A
+
+
+class MyClass():

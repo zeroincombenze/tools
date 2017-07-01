@@ -43,17 +43,23 @@ test_01() {
 a: \$name =
 a[0]: A
 a[70]: a
-b: ($any)
-c: class \$name(\$b)
+c: class \$name(\$more):
+c[0]: my_class osv.osv_memory
+c[70]: MyClass orm.TransientModel
+c[100]: MyClass models.TransientModel
 EOF
       cat <<EOF >$TESTSRC
 A=1
 B=A
+class my_class():
 EOF
       cat <<EOF >$TESTRES
 a = 1
 
 B = A
+
+
+class MyClass():
 EOF
       $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
     fi
