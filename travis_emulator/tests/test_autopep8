@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.24
+__version__=0.1.14.25
 
 
 test_01() {
@@ -358,7 +358,20 @@ from openerp.osv import fields, orm
 
 class res_user(osv.osv):
     _columns = {
-        'is_base': fields.boolean()
+        'id': fields.integer(),
+        'is_base': fields.boolean(),
+        'classification': fields.char(),
+        'description': fields.text(),
+        'architecture': fields.html(),
+        'amount': fields.float(),
+        'date_rec': fields.date(),
+        'expire': fields.datetime(),
+        'image': fields.binary(),
+        'state': fields.selection(),
+        'ref': fields.reference(),
+        'inv_ids': fields.many2one(),
+        'partner_id': fields.one2many(),
+        'relation': fields.many2many(),
     }
 EOF
       cat <<EOF >$TESTRES
@@ -367,7 +380,20 @@ from openerp.osv import fields, orm
 
 class res_user(orm.Model):
     _columns = {
-        'is_base': fields.boolean()
+        'id': fields.integer(),
+        'is_base': fields.boolean(),
+        'classification': fields.char(),
+        'description': fields.text(),
+        'architecture': fields.html(),
+        'amount': fields.float(),
+        'date_rec': fields.date(),
+        'expire': fields.datetime(),
+        'image': fields.binary(),
+        'state': fields.selection(),
+        'ref': fields.reference(),
+        'inv_ids': fields.many2one(),
+        'partner_id': fields.one2many(),
+        'relation': fields.many2many(),
     }
 EOF
       $RUNDIR/topep8 -q -b8.0 $TESTSRC -o $TESTOUT
@@ -381,7 +407,20 @@ from odoo import fields, models
 
 class res_user(models.Model):
     _columns = {
-        'is_base': fields.boolean()
+        'id': fields.Integer(),
+        'is_base': fields.Boolean(),
+        'classification': fields.Char(),
+        'description': fields.Text(),
+        'architecture': fields.Html(),
+        'amount': fields.Float(),
+        'date_rec': fields.Date(),
+        'expire': fields.Datetime(),
+        'image': fields.Binary(),
+        'state': fields.Selection(),
+        'ref': fields.Reference(),
+        'inv_ids': fields.Many2one(),
+        'partner_id': fields.One2many(),
+        'relation': fields.Many2many(),
     }
 EOF
       $RUNDIR/topep8 -q -b10.0 $TESTSRC -o $TESTOUT

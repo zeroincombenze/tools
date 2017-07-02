@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.14.24"
+__version__ = "0.1.14.25"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -91,6 +91,9 @@ RULES = r"""
  v60        import openerp.addons.decimal_precision
  v80        from openerp.addons.decimal_precision import decimal_precision
  v100       from odoo.addons.decimal_precision import decimal_precision
+*IS*        [:tok:]
+ v60        openerp.addons.base
+ v100       odoo.addons.base
 *IS*        ^import (api|exceptions|fields|http|loglevels|models|netsvc|\
 pooler|release|sql_db)
  v60        import
@@ -114,6 +117,48 @@ pooler|release|sql_db)
 *IS*        [:tok:]
  v60        openerp.tools.config
  v100       odoo.tools.config
+*IS*        [:tok:]
+ v60        fields.boolean
+ v100       fields.Boolean
+*IS*        [:tok:]
+ v60        fields.char
+ v100       fields.Char
+*IS*        [:tok:]
+ v60        fields.text
+ v100       fields.Text
+*IS*        [:tok:]
+ v60        fields.html
+ v100       fields.Html
+*IS*        [:tok:]
+ v60        fields.integer
+ v100       fields.Integer
+*IS*        [:tok:]
+ v60        fields.float
+ v100       fields.Float
+*IS*        [:tok:]
+ v60        fields.date
+ v100       fields.Date
+*IS*        [:tok:]
+ v60        fields.datetime
+ v100       fields.Datetime
+*IS*        [:tok:]
+ v60        fields.binary
+ v100       fields.Binary
+*IS*        [:tok:]
+ v60        fields.selection
+ v100       fields.Selection
+*IS*        [:tok:]
+ v60        fields.reference
+ v100       fields.Reference
+*IS*        [:tok:]
+ v60        fields.many2one
+ v100       fields.Many2one
+*IS*        [:tok:]
+ v60        fields.one2many
+ v100       fields.One2many
+*IS*        [:tok:]
+ v60        fields.many2many
+ v100       fields.Many2many
 *IS*   #    openerp.com
  v0         odoo.com
 *IS*   #    OpenERP
