@@ -1,0 +1,14 @@
+from openerp.tests.common import TransactionCase
+
+
+class TestUser(TransactionCase):
+    def env7(self, model):
+        return self.registry(model)
+
+    def setUp(self):
+        super(TestUser, self).setUp()
+        self.res_user = self.env7('res.user')
+        ids = self.res_user.search(self.cr, self.uid, [('name', '=', 'Me')])
+        self.myname = self.res_user.browse(self.cr, self.uid, ids[0]).name
+        self.m1 = self.res_user.create(self.cr, self.uid, {'name': self.ref(
+            'base.it')})
