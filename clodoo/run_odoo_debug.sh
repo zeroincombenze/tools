@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11.1
+__version__=0.1.11.2
 
 OPTOPTS=(h        d        e       k        i       l        m           n           s         t         U         V           v           w       x)
 OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
@@ -65,12 +65,15 @@ fi
 
 if [ "$odoo_ver" == "10.0" ]; then
   confn=/etc/odoo/${pfx}.conf
+  confn2=/etc/odoo/${pfx2}.conf
   script="/opt/odoo/$odoo_ver$sfx/odoo-bin"
 elif [ "$odoo_ver" == "v7" ]; then
   confn=/etc/odoo/openerp-server.conf
+  confn2=/etc/odoo/openerp-server.conf
   script="/opt/odoo/$odoo_ver$sfx/openerp-server"
 else
   confn=/etc/odoo/${pfx}-server.conf
+  confn2=/etc/odoo/${pfx2}-server.conf
   script="/opt/odoo/$odoo_ver$sfx/openerp-server"
 fi
 create_db=0
@@ -169,10 +172,23 @@ if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
 fi
 if [ $opt_verbose -gt 0 -o  $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
-  echo "cp $confn ~/.openerp_serverrc"
+  if [ -f $confn ]; then
+    echo "cp $confn ~/.openerp_serverrc"
+  else
+    echo "cp $confn2 ~/.openerp_serverrc"
+  fi
 fi
 if [ $opt_dry_run -eq 0 ]; then
-  cp $confn ~/.openerp_serverrc
+  if [ -f $confn ]; then
+    cp $confn ~/.openerp_serverrc
+    opt_multi=1
+  else
+    echo "cp $confn2 ~/.openerp_serverrc"
+    opt_multi=0
+    if [ $opt_web -ne 0 ]; then
+      opt_xport=8069
+    fi
+  fi
   sed -ie 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
   if [ -n "$opt_xport" ]; then
     sed -ie "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc
