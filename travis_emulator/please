@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.8
+__version__=0.1.42.9
 
 
 #
@@ -859,20 +859,20 @@ cvt_file() {
             run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
           fi
           rm -f $fntmp
-        elif [ "$3" == "manifest" ]; then
-          mm_oca=l10n_it_bbone
-          if [ $opt_uop -gt 0 ]; then
-            mm_z0i=l10n_it_bbone
-          else
-            mm_z0i=l10n_it_base
-          fi
-          cat $f1|sed -e 's:'$mm_z0i':'$mm_oca':'>$fntmp
-          if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
-            run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_z0i':'$mm_oca':' $f1"
-            run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
-          fi
-          rm -f $fntmp
+        # elif [ "$3" == "manifest" ]; then
+        #   mm_oca=l10n_it_bbone
+        #   if [ $opt_uop -gt 0 ]; then
+        #     mm_z0i=l10n_it_bbone
+        #   else
+        #     mm_z0i=l10n_it_base
+        #   fi
+        #   cat $f1|sed -e 's:'$mm_z0i':'$mm_oca':'>$fntmp
+        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
+        #     run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
+        #     run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_z0i':'$mm_oca':' $f1"
+        #     run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
+        #   fi
+        #   rm -f $fntmp
         fi
         if [ -f $f1_z0i ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_z0i &>/dev/null
@@ -899,21 +899,21 @@ cvt_file() {
           rm -f $fntmp
         elif [ "$3" == "readme" ]; then
           cvt_readme $f1 $2
-        elif [ "$3" == "manifest" ]; then
-          mm_oca=l10n_it_base
-          if [ $opt_uop -gt 0 ]; then
-            mm_z0i=l10n_it_base
-          else
-            # mm_z0i=l10n_it_bbone
-            mm_z0i=l10n_it_base
-          fi
-          cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
-          if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
-            run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_oca':'$mm_z0i':' $f1"
-            run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
-          fi
-          rm -f $fntmp
+        # elif [ "$3" == "manifest" ]; then
+        #   mm_oca=l10n_it_base
+        #   if [ $opt_uop -gt 0 ]; then
+        #     mm_z0i=l10n_it_base
+        #   else
+        #     # mm_z0i=l10n_it_bbone
+        #     mm_z0i=l10n_it_base
+        #   fi
+        #   cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
+        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
+        #     run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
+        #     run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_oca':'$mm_z0i':' $f1"
+        #     run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
+        #   fi
+        #   rm -f $fntmp
         fi
         if [ -f $f1_oca ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_oca &>/dev/null
