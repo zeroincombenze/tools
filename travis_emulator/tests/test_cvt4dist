@@ -50,6 +50,9 @@ EOF
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
 TEST_TRAVIS
 ===========
 
@@ -94,6 +97,9 @@ EOF
 |codecov status|_
 |technical doc|_
 |help zeroincombenze|_
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
 
 TEST_TRAVIS II
 ==============
@@ -161,6 +167,9 @@ EOF
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
 TEST_TRAVIS III
 ===============
 
@@ -211,6 +220,9 @@ EOF
 |codecov status|_
 |technical doc|_
 |help zeroincombenze|_
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
 
 TEST_TRAVIS IV
 ==============

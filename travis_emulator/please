@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.9
+__version__=0.1.42.10
 
 
 #
@@ -199,7 +199,7 @@ move() {
 }
 
 build_pkgurl() {
-# build_pkgurl(pkgname zero|oca URL|UPSTREAM|RPT|OPTS|ASM)
+# build_pkgurl(pkgname zero|oca|oia URL|UPSTREAM|RPT|OPTS|ASM)
     local MODNAME=$1
     local RPT=$2
     local ITEM=$3
@@ -224,7 +224,7 @@ build_pkgurl() {
       local ODOO_UPSTREAM=
       local OPTS_GIT="--depth 1 --single-branch"
       local OPTS_ASM="-1"
-    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
+    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" -o "$2" == "oia" ]; then
       local ODOO_RPT="git@github.com:zeroincombenze"
       local ODOO_UPSTREAM="https://github.com/OCA"
       local OPTS_GIT=""
@@ -235,7 +235,7 @@ build_pkgurl() {
       local OPTS_GIT="--depth 1 --single-branch"
       local OPTS_ASM="-1"
     else
-      echo "Odoo repository is one of oca|zero|zero-http|zero-git"
+      echo "Odoo repository is one of oca|zero|oia|zero-http|zero-git"
       sts=1
       exit $sts
     fi
@@ -261,7 +261,7 @@ build_pkgurl() {
 }
 
 add_copyright() {
-#add_copyright(file rst)
+#add_copyright(file rst zero|oca|oia)
     if [ "$PRJNAME" == "Odoo" ]; then
       if [ $2 -eq 1 ]; then
         echo ".. [//]: # (copyright)">>$1
@@ -289,17 +289,26 @@ add_copyright() {
       echo "mission is to support the collaborative development of Odoo features and">>$1
       echo "promote its widespread use.">>$1
       echo "">>$1
-      if [ $2 -eq 1 ]; then
-        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
-        echo "<http://www.shs-av.com/>\`_.">>$1
+      if [ "$3" == "oia" ]; then
+        echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)">>$1
+        echo "is the Italian Community Association, is a nonprofit organization whose">>$1
+        echo "mission is to support the collaborative development of Odoo designed for Italian law and markeplace.">>$1
+        echo "Since 2017, Odoo Italia Associazione replaces OCA members of Italy are developping code with legacy license.">>$1
+        echo "Odoo Italia Associazione distributes code only under A-GPL free license.">>$1
+        echo "">>$1
       else
-        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+        if [ $2 -eq 1 ]; then
+          echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
+          echo "<http://www.shs-av.com/>\`_.">>$1
+        else
+          echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+        fi
+        echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
+        echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
+        echo "is mainly designed for Italian law and markeplace.">>$1
+        echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
+        echo "">>$1
       fi
-      echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
-      echo "[Zeroincombenze® distribution](http://wiki.zeroincombenze.org/en/Odoo)">>$1
-      echo "is mainly designed for Italian law and markeplace.">>$1
-      echo "Everytime, every Odoo DB and customized code can be deployed on local server too.">>$1
-      echo "">>$1
       if [ $2 -eq 1 ]; then
         echo "">>$1
         echo ".. [//]: # (end copyright)">>$1
@@ -381,6 +390,8 @@ build_line() {
         x="${M[$w]}"
         line="$line $x"
       fi
+    elif [[ $3 =~ CHPT_ ]]; then
+      :
     fi
     echo "$line"
 }
@@ -468,19 +479,20 @@ cvt_gitmodule() {
 }
 
 cvt_readme() {
-# cvt_readme(file_readme oca|zero)
+# cvt_readme(file_readme oca|zero|oia)
 # params: 1=repository, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
-#         8=(txt1)repos 9=(txt2)repos
+#         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
     local fn=$1
     local fntmp=$fn.tmp
-    local wf=0 preline=0 Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
-    local Icright=0 Irst=0 Ichat=0
-    local line lne1 lne2 repository txtrepos ver i v w x
+    local wf=0 nxtwf=0 preline=0
+    local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
+    local Icright=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0
+    local line lne1 lne2 repository txtrepos ver i v w x y
     local ignnextlines=0
     local helpname=
     unset M[*] TKNS[*] REPL[*] ACT[*]
     declare -gA M
-    declare -a TKNS REPL ACT RHLP
+    declare -a TKNS REPL ACT RHLP WK
     RHLP[0]="FI=l10n-italy-supplemental:l10n-italy"
     RHLP[1]="FI=account-:bank-:analytic:l10n_it"
     RHLP[2]="MM=product-"
@@ -493,7 +505,7 @@ cvt_readme() {
       w=${v//:/ }
       for v in $w; do
         if [[ "$PKGNAME" =~ "$v" ]] || [[ "$REPOSNAME" =~ "$v" ]]; then
-          helpname=$v
+          helpname=$p
           break
         fi
       done
@@ -512,7 +524,7 @@ cvt_readme() {
       repository=OCA
       txt1repos=repos
       txt2repos=r
-    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
       repository=zeroincombenze
       txt1repos=repos/github
       txt2repos=github
@@ -528,9 +540,16 @@ cvt_readme() {
     M[3]=$BRANCH
     M[4]=$ver
     M[5]=$helpname
+    if [ -z "$REPOSNAME" ]; then
+      M[7]=${M[2]}
+    elif [ "$LGITPATH" == "/opt/odoo/tools/$PKGNAME" ]; then    # Just for debug
+      M[7]=${M[2]}
+    else
+      M[7]=$REPOSNAME
+    fi
     M[8]=$txt1repos
     M[9]=$txt2repos
-    v=${M[2]}
+    v=${M[7]}
     M[LNK_BUILD]="https://travis-ci.org/$repository/$v"
     M[BTN_BUILD]="https://travis-ci.org/$repository/$v.svg?branch=$BRANCH"
     M[LNK_LICENSE]="http://www.gnu.org/licenses/agpl-3.0.html"
@@ -540,7 +559,7 @@ cvt_readme() {
     M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH"
     M[BTN_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH/graph/badge.svg"
     if [ "$PRJNAME" == "Odoo" ]; then
-      M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/dev/$BRANCH"
+      M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
       M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$ver.svg"
     elif [ "$PKGNAME" == "tools" ]; then
       M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Python/opt"
@@ -550,7 +569,7 @@ cvt_readme() {
       M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$PKGNAME.svg"
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/$helpname"
+      M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/man/$helpname"
       M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$ver.svg"
     elif [ "$PKGNAME" == "tools" ]; then
       M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt"
@@ -650,8 +669,51 @@ cvt_readme() {
     TKNS[56]="^\|chat.with.us\|"
     REPL[56]=""
     ACT[56]="rstBTN_chat"
+    TKNS[100]="^.*en.*http://www.shs-av.com/wp-content/en_US.png"
+    REPL[100]=""
+    ACT[100]="CHPT_lang_en"
+    TKNS[101]="^.*it.*http://www.shs-av.com/wp-content/it_IT.png"
+    REPL[101]=""
+    ACT[101]="CHPT_lang_it"
+    TKNS[102]="^======="
+    REPL[102]=""
+    ACT[102]="CHPT_102"
+    TKNS[103]="^------"
+    REPL[103]=""
+    ACT[103]="CHPT_103"
+    TKNS[104]="^Installation"
+    REPL[104]=""
+    ACT[104]="CHPT_104"
+    TKNS[105]="^Configuration"
+    REPL[105]=""
+    ACT[105]="CHPT_105"
+    TKNS[106]="^Usage"
+    REPL[106]=""
+    ACT[106]="CHPT_106"
+    TKNS[107]="^Known issues / Roadmap"
+    REPL[107]=""
+    ACT[107]="CHPT_107"
+    TKNS[108]="^Bug Tracker"
+    REPL[108]=""
+    ACT[108]="CHPT_108"
+    TKNS[109]="^Credits"
+    REPL[109]=""
+    ACT[109]="CHPT_109"
+    TKNS[110]="^(\[!\[Odoo Community Association\]\]|\[!\[Odoo Italia Associazione\]\])"
+    REPL[110]=""
+    ACT[110]="CHPT_110"
+    TKNS[111]="^(### |)Contributors"
+    REPL[111]=""
+    ACT[111]="CHPT_111"
+    TKNS[112]="^(### |)Funders"
+    REPL[112]=""
+    ACT[112]="CHPT_113"
+    TKNS[113]="^(### |)Maintainer"
+    REPL[113]=""
+    ACT[113]="CHPT_113"
+
     local ONLY_OCA="Irunbot Iclimate"
-    local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat"
+    local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it"
     local ONLY_ODOO="IOCA Itryit"
     rm -f $fntmp
     # set -x #debug
@@ -659,8 +721,8 @@ cvt_readme() {
       lne1="⌂"
       lne2="⌂"
       Ibutton=0
-      # local xxline="$line"
-      for i in {1..22} {51..56}; do
+      nxtwf=0
+      for i in {1..22} {51..56} {100..113}; do
         p=${TKNS[$i]}
         if [[ $line =~ $p ]]; then
           if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
@@ -683,11 +745,13 @@ cvt_readme() {
             if [ ${!v} -ne 0 ]; then
               line="⌂"
             elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+              if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
                 line="⌂"
               fi
             elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
               if [ "$2" == "oca" ]; then
+                line="⌂"
+              elif [ "$2" == "oia" -a "$v" == "Ichat" ]; then
                 line="⌂"
               fi
             elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
@@ -696,11 +760,38 @@ cvt_readme() {
               fi
             fi
             if [ "$line" != "⌂" ]; then
-              if [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+              if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
                 line="⌂"
               else
                 eval $v=1
                 line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
+              fi
+            fi
+          elif [[ "${ACT[$i]}" =~ CHPT_ ]]; then
+            v="${ACT[$i]}"
+            v="${v:5}"
+            if (($v)); then
+              nxtwf=$v
+            else
+              v=I$v
+              if [ ${!v} -ne 0 ]; then
+                line="⌂"
+              elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+                  line="⌂"
+                fi
+              elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$2" == "oca" ]; then
+                  line="⌂"
+                fi
+              elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$PRJNAME" != "Odoo" ]; then
+                  line="⌂"
+                fi
+              fi
+              if [ "$line" != "⌂" ]; then
+                eval $v=1
+                line=$(build_line $v "$line" "${ACT[$i]}")
               fi
             fi
           elif [ "${ACT[$i]}" == "md_BEG_cright" -o "${ACT[$i]}" == "rstBEG_cright" ]; then
@@ -711,7 +802,7 @@ cvt_readme() {
           elif [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
             if [ $Icright -eq 2 ]; then
               Icright=3
-              add_copyright $fntmp $Irst
+              add_copyright $fntmp $Irst $2
             fi
             line="⌂"
           fi
@@ -735,7 +826,7 @@ cvt_readme() {
           fi
         fi
       done
-      if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+      if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
         lne1="⌂"
         wf=1
         for i in {1..22}; do
@@ -747,7 +838,7 @@ cvt_readme() {
               :
             elif [ $Irst -eq 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
               :
-            elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ] && [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
+            elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ] && [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
               :
             elif [ "$2" == "oca" ] && [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
               :
@@ -767,7 +858,65 @@ cvt_readme() {
         line=$(expand_macro "$line")
         line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
         line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
-        echo "$line">>$fntmp
+        if [ -n "$line" ]; then
+          if [ $wf -eq 1 ]; then
+            if [ $Ilang_en -eq 0 ]; then
+              echo "">>$fntmp
+              echo "[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)">>$fntmp
+              echo "">>$fntmp
+            fi
+            Ilang_en=1
+            if [ $nxtwf -ne 100 ]; then
+              wf=2
+            fi
+          fi
+          if [ $wf -eq 2 ]; then
+            echo "$line">>$fntmp
+            x=${#line}
+            w="================================================================================================"
+            v=${w:0:$x}
+            echo "$v">>$fntmp
+            wf=104
+          elif [ $wf -gt 100 ] && [ $nxtwf -eq 102 -o $nxtwf -eq 103 ]; then
+            :
+          elif [ $wf -lt 100 -o $nxtwf -ge 104 ]; then
+            if [ $wf -lt 104 ]; then
+              wf=104
+            fi
+            while [ $wf -le $nxtwf ]; do
+              if [ $wf -ne 110 ]; then
+                w=${TKNS[$wf]}
+                v=${w:1}
+                if [[ "$w" =~ "###" ]]; then
+                  w="$v"
+                  IFS=")" read x v<<<$w
+                  if [ -z "$v" ]; then v=$x; fi
+                  v="### $v"
+                else
+                  echo "$v">>$fntmp
+                  x=${#v}
+                  w="-----------------------------------------------------------------------------------------------"
+                  v=${w:0:$x}
+                fi
+                echo "$v">>$fntmp
+                echo "">>$fntmp
+              else
+                if [ "$2" == "oca" ]; then
+                  echo "[![Odoo Community Association]]">>$fntmp
+                else
+                  echo "[![Odoo Italia Associazione]]">>$fntmp
+                fi
+                echo "">>$fntmp
+              fi
+              ((wf++))
+            done
+            # echo "$line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        else
+          echo "$line">>$fntmp
+        fi
         if [ -z "$line" ]; then preline=0; else preline=1; fi
       fi
       if [ "$lne2" != "⌂" ]; then
@@ -781,7 +930,7 @@ cvt_readme() {
         if [ $Icright -eq 0 ]; then
           [ $preline -ne 0 ] && echo "">>$fntmp
           Icright=3
-          add_copyright $fntmp $Irst
+          add_copyright $fntmp $Irst $2
           preline=1
         fi
       elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -825,7 +974,7 @@ cvt_readme() {
 
 
 cvt_file() {
-# cvt_file(file oca|zero travis|readme|manifest)
+# cvt_file(file oca|zero|oia travis|readme|manifest)
     local f1=$1
     sts=$STS_SUCCESS
     if [ -n "$f1" ]; then
@@ -859,20 +1008,6 @@ cvt_file() {
             run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
           fi
           rm -f $fntmp
-        # elif [ "$3" == "manifest" ]; then
-        #   mm_oca=l10n_it_bbone
-        #   if [ $opt_uop -gt 0 ]; then
-        #     mm_z0i=l10n_it_bbone
-        #   else
-        #     mm_z0i=l10n_it_base
-        #   fi
-        #   cat $f1|sed -e 's:'$mm_z0i':'$mm_oca':'>$fntmp
-        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
-        #     run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
-        #     run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_z0i':'$mm_oca':' $f1"
-        #     run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
-        #   fi
-        #   rm -f $fntmp
         fi
         if [ -f $f1_z0i ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_z0i &>/dev/null
@@ -880,7 +1015,7 @@ cvt_file() {
             run_traced "rm -f $f1_z0i"
           fi
         fi
-      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
         if [ $opt_orig -gt 0 ]; then
           run_traced "cp -p ./tmp/$ft $f1_z0i"
         fi
@@ -899,21 +1034,6 @@ cvt_file() {
           rm -f $fntmp
         elif [ "$3" == "readme" ]; then
           cvt_readme $f1 $2
-        # elif [ "$3" == "manifest" ]; then
-        #   mm_oca=l10n_it_base
-        #   if [ $opt_uop -gt 0 ]; then
-        #     mm_z0i=l10n_it_base
-        #   else
-        #     # mm_z0i=l10n_it_bbone
-        #     mm_z0i=l10n_it_base
-        #   fi
-        #   cat $f1|sed -e 's:'$mm_oca':'$mm_z0i':'>$fntmp
-        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
-        #     run_traced "sed -i -e 's:'$mm_z0i':'$mm_oca':' $f1"
-        #     run_traced "sed -i -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:' -e 's:'$mm_oca':'$mm_z0i':' $f1"
-        #     run_traced "sed -i -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:' $f1"
-        #   fi
-        #   rm -f $fntmp
         fi
         if [ -f $f1_oca ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_oca &>/dev/null
@@ -924,7 +1044,7 @@ cvt_file() {
       else
         local f1=
         echo "Missed parameter! use:"
-        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero"
+        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero|oia"
         sts=$STS_FAILED
       fi
     fi
@@ -932,7 +1052,7 @@ cvt_file() {
 }
 
 do_distribution() {
-# do_distribution(PKGNAME oca|zero)
+# do_distribution(PKGNAME oca|zero|oia)
     wlog "do_distribution $1 $2"
     sts=$STS_SUCCESS
     cvt_gitmodule
@@ -940,7 +1060,7 @@ do_distribution() {
     if [ $opt_orig -gt 0 ]; then
       if [ "$2" == "oca" ]; then
          local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
-      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
         local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
         if [ ! -f LICENSE ]; then
           run_traced "cp ~/agpl.txt LICENSE"
@@ -1060,7 +1180,7 @@ do_synchro() {
           echo "Warning: see file $f"
         done
       fi
-    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
@@ -1095,7 +1215,7 @@ do_synchro() {
       fi
     else
       echo "Missed parameter! use:"
-      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|zero-merged"
+      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|oia|zero-merged"
       sts=$STS_FAILED
     fi
 }
@@ -1477,15 +1597,6 @@ if [ "$action" == "help" ]; then
 elif [ "$action" == "annotate" ]; then
   do_annotate "$PKGNAME" "$opt_srcs"
   sts=$?
-# elif [ "$action" == "autopep8" ]; then
-#   opts=$(inherits_travis_opts "" "8")
-#   if [ $opt_verbose -gt 0 ]; then
-#     echo "topep8 $PKGPATH $opts"
-#   fi
-#   topep8 "$PKGPATH" "$opts"
-# elif [ "$action" == "check" ]; then
-#   do_check "$PKGNAME" "$sub1" "$sub2"
-#   sts=$?
 elif [ "$action" == "chkconfig" ]; then
   do_chkconfig
   sts=$STS_SUCCESS
