@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.10
+__version__=0.1.42.11
 
 
 #
@@ -291,9 +291,9 @@ add_copyright() {
       echo "">>$1
       if [ "$3" == "oia" ]; then
         echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)">>$1
-        echo "is the Italian Community Association, is a nonprofit organization whose">>$1
-        echo "mission is to support the collaborative development of Odoo designed for Italian law and markeplace.">>$1
-        echo "Since 2017, Odoo Italia Associazione replaces OCA members of Italy are developping code with legacy license.">>$1
+        echo "is the nonprofit Italian Community Association whose mission">>$1
+        echo "is to support the collaborative development of Odoo designed for Italian law and markeplace.">>$1
+        echo "Since 2017, Odoo Italia Associazione replaces OCA members of Italy are developping code under legacy license.">>$1
         echo "Odoo Italia Associazione distributes code only under A-GPL free license.">>$1
         echo "">>$1
       else
