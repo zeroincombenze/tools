@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.81.13
+#__version__=0.1.81.14
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -944,11 +944,15 @@ please_test_bash() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f
       for f in $(find . -type f|tr "\n" " "); do
-        if [ "$(head $f -n1|grep ^\#\![[:space:]]*/bin/bash 2>/dev/null)" ]; then
+        local mime=$(file -b --mime-type $f)
+        # if [ "$(head $f -n1|grep ^\#\![[:space:]]*/bin/bash 2>/dev/null)" ]; then
+        if [ "$mime" == "text/x-shellscript" ]; then
           if [ ${opt_verbose:-0} -gt 0 ]; then
-            elog "$ bash -n $f"
+            # elog "$ bash -n $f"
+            elog "$ shellcheck -e 2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001 $f"
           fi
           bash -n $f
+          if [ $? -eq 0 ]; then shellcheck -e 2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001 $f; fi
           local s=$?
           if [ $sts -eq $STS_SUCCESS ]; then
             if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then

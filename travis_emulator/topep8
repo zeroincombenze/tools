@@ -78,9 +78,9 @@ format_xml() {
               [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
             fi
           fi
-          if [[ lne =~ "<record.*model=.ir.actions.act_window." ]]; then
+          if [[ $lne =~ "<record.*model=.ir.actions.act_window." ]]; then
             act=1
-          elif [ $act -gt 0 ] && [[ lne =~ "<field.*name=.type.*>ir.actions.act_window.*/field" ]]; then
+          elif [ $act -gt 0 ] && [[ $lne =~ "<field.*name=.type.*>ir.actions.act_window.*/field" ]]; then
             line=
             lne=
             act=0

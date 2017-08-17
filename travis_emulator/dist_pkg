@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
-__version__=0.1.86
+__version__=0.1.87
 
 
 
@@ -173,7 +173,7 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
         if [ "$opt_cpush" != "-C" ]; then enabled=0; fi
       fi
       if [ ${enabled:-0} -gt 0 ]; then
-        if [ "tgtparm" ]; then
+        if [ "$tgtparm" ]; then
           declare $y=$(echo "$tgtparm"|sed 's:\\::g')
           if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""; fi
           robocopy "$PKGPATH" "$tgtpath" "ssh $tgtparm"

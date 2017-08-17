@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.6
+__version__=0.1.7
 
 
 OPTOPTS=(h        G         n            V           v)
@@ -33,7 +33,7 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode")
 OPTARGS=(tgtpath)
-parseoptargs $@
+parseoptargs "$@"
 
 if [ "$opt_version" ]; then
   echo "$__version__"

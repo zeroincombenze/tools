@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.9
+__version__=0.1.79.10
 
 
 FCONF=$TDIR/.$THIS.conf
@@ -476,7 +476,7 @@ synchronize_module_odoo() {
 # synchronize_module_odoo(module)
     local s sts
     local d=$1
-    if [ -z "$d"]; then
+    if [ -z "$d" ]; then
       PKGNAME=OCB
       wlog "##### Module OCB"
     else

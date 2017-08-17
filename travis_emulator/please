@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.11
+__version__=0.1.42.12
 
 
 #
@@ -791,6 +791,8 @@ cvt_readme() {
               fi
               if [ "$line" != "⌂" ]; then
                 eval $v=1
+                Ibutton=1
+                wf=2
                 line=$(build_line $v "$line" "${ACT[$i]}")
               fi
             fi
@@ -872,11 +874,13 @@ cvt_readme() {
           fi
           if [ $wf -eq 2 ]; then
             echo "$line">>$fntmp
-            x=${#line}
-            w="================================================================================================"
-            v=${w:0:$x}
-            echo "$v">>$fntmp
-            wf=104
+            if [ $Ibutton -eq 0 ]; then
+              x=${#line}
+              w="================================================================================================"
+              v=${w:0:$x}
+              echo "$v">>$fntmp
+              wf=104
+            fi
           elif [ $wf -gt 100 ] && [ $nxtwf -eq 102 -o $nxtwf -eq 103 ]; then
             :
           elif [ $wf -lt 100 -o $nxtwf -ge 104 ]; then
@@ -991,6 +995,7 @@ cvt_file() {
       fi
       local f1_oca=$(dirname $f1)/${f}.oca
       local f1_z0i=$(dirname $f1)/${f}.z0i
+      local do_proc=0
       local fntmp=$f1.tmp
       if [ "$2" == "oca" ]; then
         if [ $opt_orig -gt 0 ]; then
@@ -999,8 +1004,10 @@ cvt_file() {
         if [ -f $f1_oca ]; then
           move $f1 $f1_z0i
           move $f1_oca $f1
+          do_proc=1
         elif [ $opt_force -ne 0 -a ! -f $f1_z0i ]; then
           run_traced "cp -p $f1 $f1_z0i"
+          do_proc=1
         fi
         if [ "$3" == "travis" ]; then
           cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
@@ -1022,8 +1029,10 @@ cvt_file() {
         if [ -f $f1_z0i ]; then
           move $f1 $f1_oca
           move $f1_z0i $f1
+          do_proc=1
         elif [ $opt_force -ne 0 -a ! -f $f1_oca ]; then
           run_traced "cp -p $f1 $f1_oca"
+          do_proc=1
         fi
         if [ "$3" == "travis" ]; then
           local fntmp=$f1.tmp
@@ -1032,7 +1041,7 @@ cvt_file() {
             run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
           fi
           rm -f $fntmp
-        elif [ "$3" == "readme" ]; then
+        elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
           cvt_readme $f1 $2
         fi
         if [ -f $f1_oca ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
@@ -1163,11 +1172,6 @@ do_synchro() {
     if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
-        # if [ "$PKGNAME" == "l10n-italy" ]; then
-        #   if [ -d l10n_it_bbone ]; then
-        #     run_traced "rm -fR l10n_it_bbone"
-        #   fi
-        # fi
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "oca"
         git status
@@ -1185,11 +1189,6 @@ do_synchro() {
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
         do_distribution "$PKGNAME" "$2"
-        # if [ "$PKGNAME" == "l10n-italy" ]; then
-        #   if [ ! -d l10n_it_bbone ]; then
-        #     run_traced "cp -R ../l10n-italy-supplemental/l10n_it_bbone ./"
-        #   fi
-        # fi
         local x=($git status -s)
         if [ -n "$x" ]; then
           if [ -n "$3" ]; then
@@ -1207,11 +1206,6 @@ do_synchro() {
         fi
         run_traced "git push $opts"
         git status
-        # if [ "$PKGNAME" == "l10n-italy" ]; then
-        #   if [ -d l10n_it_bbone ]; then
-        #     run_traced "rm -fR l10n_it_bbone"
-        #   fi
-        # fi
       fi
     else
       echo "Missed parameter! use:"
@@ -1647,12 +1641,6 @@ elif [ "$action" == "config" ]; then
 elif [ "$action" == "coverage" ]; then
   do_coverage "$PKGNAME" "$sub1" "$sub2"
   sts=$?
-# elif [ "$action" == "distribution" ]; then
-#   do_distribution "$PKGNAME" "$sub1" "$sub2"
-#   sts=$?
-# elif [ "$action" == "diff" ]; then
-#   do_diff "$PKGNAME" "$sub1" "$sub2"
-#   sts=$?
 elif [ "$action" == "if-fetch" ]; then
   opt_dry_run=1
   do_fetch "$PKGNAME" "$sub1" "$sub2"

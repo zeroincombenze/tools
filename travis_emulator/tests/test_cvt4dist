@@ -81,7 +81,7 @@ test_02() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.tmp
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_01.out
+      rm -f $TESTDIR/res/*_02.out
       cat <<EOF >$TESTSRC
 |license agpl|_
 
@@ -144,7 +144,7 @@ test_03() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.tmp
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_01.out
+      rm -f $TESTDIR/res/*_03.out
       cat <<EOF >$TESTSRC
 [![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools/)
 TEST_TRAVIS III
@@ -197,7 +197,7 @@ test_04() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.tmp
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_01.out
+      rm -f $TESTDIR/res/*_04.out
       cat <<EOF >$TESTSRC
 |build status|_
 |license agpl|_
@@ -258,6 +258,81 @@ EOF
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
+
+test_05() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=README
+    TESTSRC=$TESTDIR/res/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.tmp
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*_05.out
+      cat <<EOF >$TESTSRC
+[![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+
+
+[![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+
+[//]: # (copyright)
+
+----
+
+Test style Copyright
+[//]: # (end copyright)
+
+[![chat with us](http://www.shs-av.com/wp-content/chat_with_us.png)](https://www.zeroincombenze.it/chi-siamo/contatti/)
+EOF
+      cat <<EOF >$TESTRES
+[![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
+[![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
+
+
+[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+
+
+[![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+
+TEST_TRAVIS V
+=============
+
+[//]: # (copyright)
+
+----
+
+**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
+which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.
+
+Odoo is a trademark of Odoo S.A.
+[//]: # (end copyright)
+
+[![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
+EOF
+      $RUNDIR/please -qt distribution . zero
+    fi
+    test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
+}
+
 
 Z0BUG_setup() {
     :
