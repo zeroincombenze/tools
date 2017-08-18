@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.81.14
+__version__=0.1.81.15
 
 
 store_cfg_param_value() {
@@ -605,6 +605,11 @@ process_yaml_run_cmd() {
         elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd="$(echo $xcmd|sed -e 's|OCA/OCB|local/odoo|g')"
+            x[$ix]=local/odoo
+          fi
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.zeroincombenze/OCB. ]]; then
+          if [ ${opt_virt:-0} -eq 0 ]; then
+            xcmd="$(echo $xcmd|sed -e 's|zeroincombenze/OCB|local/odoo|g')"
             x[$ix]=local/odoo
           fi
         elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/OCA/OCB/openerp/addons.*/opt/odoo/build/OCA/OCB/addons ]]; then
