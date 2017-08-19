@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.43
+__version__=0.1.44
 
 
 #
@@ -1186,7 +1186,7 @@ do_distribution() {
         echo "repository=$2">>.gitrepname
       fi
       if [ "$USER" != "odoo" ]; then
-        run_traced "sudo -R chown odoo:odoo .git"
+        run_traced "sudo chown -R  odoo:odoo .git"
       fi
     fi
     return $sts
@@ -1272,7 +1272,7 @@ do_synchro() {
         fi
         run_traced "git push $opts"
         if [ "$USER" != "odoo" ]; then
-          run_traced "sudo -R chown odoo:odoo .git"
+          run_traced "sudo chown -R  odoo:odoo .git"
         fi
         git status
       fi
