@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.42.12
+__version__=0.1.43
 
 
 #
@@ -199,10 +199,11 @@ move() {
 }
 
 build_pkgurl() {
-# build_pkgurl(pkgname zero|oca|oia URL|UPSTREAM|RPT|OPTS|ASM)
+# build_pkgurl(pkgname oca|zero|zero-http|zero-git|oia|oia-http URL|RPT|OPTS|ASM|UPSTREAM|RORIGIN|RUPSTREAM)
     local MODNAME=$1
     local RPT=$2
     local ITEM=$3
+    local p r
     if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
       local ODOO_RPT="https://github.com/acespritech"
       local ODOO_UPSTREAM=
@@ -224,8 +225,13 @@ build_pkgurl() {
       local ODOO_UPSTREAM=
       local OPTS_GIT="--depth 1 --single-branch"
       local OPTS_ASM="-1"
-    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" -o "$2" == "oia" ]; then
+    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
       local ODOO_RPT="git@github.com:zeroincombenze"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT=""
+      local OPTS_ASM=""
+    elif [ "$2" == "oia" ]; then
+      local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
       local ODOO_UPSTREAM="https://github.com/OCA"
       local OPTS_GIT=""
       local OPTS_ASM=""
@@ -234,8 +240,13 @@ build_pkgurl() {
       local ODOO_UPSTREAM="https://github.com/OCA"
       local OPTS_GIT="--depth 1 --single-branch"
       local OPTS_ASM="-1"
+    elif [ "$RPT" == "oia-http" ]; then
+      local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
     else
-      echo "Odoo repository is one of oca|zero|oia|zero-http|zero-git"
+      echo "Odoo repository is one of oca|zero|zero-http|zero-git|oia|oia-http"
       sts=1
       exit $sts
     fi
@@ -255,6 +266,11 @@ build_pkgurl() {
       echo "$OPTS_GIT"
     elif [ "$ITEM" == "ASM" ]; then
       echo "$OPTS_ASM"
+    elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
+      p=${ITEM,,}
+      p=${p:1}
+      r=$(git remote -v 2>/dev/null|grep $p|head -n1|awk '{ print $2}')
+      echo "$r"
     else
       echo ""
     fi
@@ -444,9 +460,16 @@ cvt_doxygenconf() {
 }
 
 cvt_gitmodule() {
+#cvt_gitmodule(oca|zero|oia)
     if [ -f .gitmodules ]; then
       local fn=.gitmodules
       local fntmp=$fn.tmp
+      local urlty=
+      if [ "${1:0:3}" == "oia" ]; then
+        urlty=oia-http
+      else
+        urlty=zero-http
+      fi 
       rm -f $fntmp
       local line lne submod url p v
       while IFS= read -r line r || [ -n "$line" ]; do
@@ -459,7 +482,7 @@ cvt_gitmodule() {
           IFS== read p v <<<$lne
           lne=$(echo $p)
           if [ "$lne" == "url" ]; then
-            url=$(build_pkgurl $submod zero-http URL)
+            url=$(build_pkgurl $submod $urlty URL)
             lne=$(echo $v)
             if [ "$lne" != "$url" ]; then
               v="${line//$lne/$url}"
@@ -479,7 +502,7 @@ cvt_gitmodule() {
 }
 
 cvt_readme() {
-# cvt_readme(file_readme oca|zero|oia)
+# cvt_readme(file_readme oca|zero|oia currpt)
 # params: 1=repository, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
 #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
     local fn=$1
@@ -753,6 +776,7 @@ cvt_readme() {
                 line="⌂"
               elif [ "$2" == "oia" -a "$v" == "Ichat" ]; then
                 line="⌂"
+                eval $v=1
               fi
             elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
               if [ "$PRJNAME" != "Odoo" ]; then
@@ -966,7 +990,7 @@ cvt_readme() {
         fi
       fi
     done
-    if [ ${test_mode:-0} -eq 0 ]; then
+    if [ ${test_mode:-0} -eq 0 -a "${RPT:0:4}" != "${3:0:4}" ]; then
       if [ -n "$(diff -q $fn $fntmp)" ]; then
         run_traced "cp -p $fn $fn.bak"
         run_traced "mv $fntmp $fn"
@@ -978,9 +1002,9 @@ cvt_readme() {
 
 
 cvt_file() {
-# cvt_file(file oca|zero|oia travis|readme|manifest)
+# cvt_file(file oca|zero|oia travis|readme|manifest currpt)
     local f1=$1
-    sts=$STS_SUCCESS
+    local sts=$STS_SUCCESS
     if [ -n "$f1" ]; then
       local f=$(basename $f1)
       local d=$(dirname $f1)
@@ -995,7 +1019,11 @@ cvt_file() {
       fi
       local f1_oca=$(dirname $f1)/${f}.oca
       local f1_z0i=$(dirname $f1)/${f}.z0i
-      local do_proc=0
+      if [ "$2" == "$4" ]; then
+        local do_proc=0
+      else
+        local do_proc=1
+      fi
       local fntmp=$f1.tmp
       if [ "$2" == "oca" ]; then
         if [ $opt_orig -gt 0 ]; then
@@ -1010,9 +1038,9 @@ cvt_file() {
           do_proc=1
         fi
         if [ "$3" == "travis" ]; then
-          cat $f1|sed -e 's:^  # - TRANSIFEX="1":  - TRANSIFEX="0":'>$fntmp
+          cat $f1|sed -e 's:^  # - TRANSIFEX="0":  - TRANSIFEX="1":'>$fntmp
           if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:^  # - TRANSIFEX=\"1\":  - TRANSIFEX=\"0\":' $f1"
+            run_traced "sed -i -e 's:^  # - TRANSIFEX=\"0\":  - TRANSIFEX=\"1\":' $f1"
           fi
           rm -f $fntmp
         fi
@@ -1036,13 +1064,13 @@ cvt_file() {
         fi
         if [ "$3" == "travis" ]; then
           local fntmp=$f1.tmp
-          cat $f1|sed -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:'>$fntmp
+          cat $f1|sed -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:'>$fntmp
           if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:^  - TRANSIFEX=\"0\":  # - TRANSIFEX=\"1\":' $f1"
+            run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' $f1"
           fi
           rm -f $fntmp
         elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-          cvt_readme $f1 $2
+          cvt_readme $f1 $2 $4
         fi
         if [ -f $f1_oca ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_oca &>/dev/null
@@ -1053,7 +1081,7 @@ cvt_file() {
       else
         local f1=
         echo "Missed parameter! use:"
-        echo "\$ please distribution PKGNAME|. oca|zeroincombenze|zero|oia"
+        echo "\$ please distribution PKGNAME|. oca|zero|oia"
         sts=$STS_FAILED
       fi
     fi
@@ -1063,8 +1091,12 @@ cvt_file() {
 do_distribution() {
 # do_distribution(PKGNAME oca|zero|oia)
     wlog "do_distribution $1 $2"
-    sts=$STS_SUCCESS
-    cvt_gitmodule
+    local sts=$STS_SUCCESS
+    local currpt=zero
+    if [ -f .gitrepname ]; then
+      currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
+    fi
+    cvt_gitmodule "$2"
     local f1=$(findpkg ".travis.yml" ". ..")
     if [ $opt_orig -gt 0 ]; then
       if [ "$2" == "oca" ]; then
@@ -1086,7 +1118,7 @@ do_distribution() {
       fi
     fi
     if [ -n "$f1" ]; then
-      cvt_file $f1 $2 "travis"
+      cvt_file $f1 $2 "travis" "$currpt"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -1099,19 +1131,19 @@ do_distribution() {
         fi
       fi
       if [ -n "$f1" ]; then
-        cvt_file $f1 $2 "readme"
+        cvt_file $f1 $2 "readme" "$currpt"
         sts=$?
       fi
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       f1=oca_dependencies.txt
-      cvt_file $f1 $2 ""
+      cvt_file $f1 $2 "" "$currpt"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
         f1=$(readlink -e $f)
-        cvt_file $f1 $2 "manifest"
+        cvt_file $f1 $2 "manifest" "$currpt"
         sts=$?
         if [ $sts -ne $STS_SUCCESS ]; then
           break
@@ -1119,8 +1151,42 @@ do_distribution() {
       done
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+      local ro=$(build_pkgurl $1 $2 RORIGIN)
+      local lo=$(build_pkgurl $1 $2 URL)
+      if [ "$ro" != "$lo" ]; then
+        if [ -n "$ro" ]; then
+          run_traced "git remote remove origin"
+        fi
+        if [ -n "$lo" ]; then
+          run_traced "git remote add origin $lo"
+          run_traced "git remote set-url origin $lo"
+        fi
+      fi
+      local ro=$(build_pkgurl $1 $2 RUPSTREAM)
+      local lo=$(build_pkgurl $1 $2 UPSTREAM)
+      if [ "$ro" != "$lo" ]; then
+        if [ -n "$ro" ]; then
+          run_traced "git remote remove upstream"
+        fi
+        if [ -n "$lo" ]; then
+          run_traced "git remote add upstream $lo"
+          run_traced "git remote set-url upstream $lo"
+        fi
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
       if [ -d tmp ]; then
         rm -fR tmp
+      fi
+      if [ -f .gitrepname ]; then
+        if [ "$2" != "$currpt" ]; then
+          run_traced "sed -i -e 's:^repository:repository=$2:' .gitrepname"
+        fi
+      else
+        echo "repository=$2">>.gitrepname
+      fi
+      if [ "$USER" != "odoo" ]; then
+        run_traced "sudo -R chown odoo:odoo .git"
       fi
     fi
     return $sts
@@ -1205,6 +1271,9 @@ do_synchro() {
           opts=-f
         fi
         run_traced "git push $opts"
+        if [ "$USER" != "odoo" ]; then
+          run_traced "sudo -R chown odoo:odoo .git"
+        fi
         git status
       fi
     else

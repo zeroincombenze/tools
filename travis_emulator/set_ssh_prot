@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.7
+__version__=0.1.8
 
 
 OPTOPTS=(h        G         n            V           v)
@@ -54,13 +54,13 @@ if [ ! -d "$tgtpath" ]; then
   echo "Invalid tgtpath"
   exit 1
 fi
-if [ -z "$(grep :$tgtpath: /etc/passwd)" ]; then
+if grep :$tgtpath: /etc/passwd; then
   echo "Invalid tgtpath"
   exit 1
 fi
-user=$(grep \:$tgtpath\: /etc/passwd|awk -F\: '{print $1}')
-rgid=$(grep ^$user\: /etc/passwd|awk -F\: '{print $4}')
-rgroup=$(grep \:$rgid\: /etc/group|awk -F\: '{print $1}')
+user=$(grep :$tgtpath: /etc/passwd|awk -F: '{print $1}')
+rgid=$(grep ^$user: /etc/passwd|awk -F: '{print $4}')
+rgroup=$(grep :$rgid: /etc/group|awk -F: '{print $1}')
 if [ -z $opt_group ]; then
   group=$rgroup
 else
