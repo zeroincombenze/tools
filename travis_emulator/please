@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.45
+__version__=0.1.46
 
 
 #
@@ -1161,6 +1161,11 @@ do_distribution() {
       done
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -f .gitignore ]; then
+        if ! grep -q "\.gitrepname" .gitignore 2>/dev/null; then
+          echo ".gitrepname">>.gitignore
+        fi
+      fi
       local ro=$(build_pkgurl $1 $2 RORIGIN)
       local lo=$(build_pkgurl $1 $2 URL)
       if [ "$ro" != "$lo" ]; then
