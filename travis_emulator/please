@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.46
+__version__=0.1.47
 
 
 #
@@ -589,7 +589,11 @@ cvt_readme() {
     M[BTN_LICENSE]="https://img.shields.io/badge/licence-AGPL--3-blue.svg"
     M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$repository/$v?branch=$BRANCH"
     M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$repository/$v/badge.svg?branch=$BRANCH"
-    M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH"
+    if [ -z "$REPOSNAME" ]; then
+      M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH"
+    else
+      M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH/$PKGNAME"
+    fi
     M[BTN_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH/graph/badge.svg"
     if [ "$PRJNAME" == "Odoo" ]; then
       M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
@@ -1103,11 +1107,12 @@ do_distribution() {
     wlog "do_distribution $1 $2"
     local sts=$STS_SUCCESS
     local currpt=zero
+    local f f1
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
     cvt_gitmodule "$2"
-    local f1=$(findpkg ".travis.yml" ". ..")
+    f1=$(findpkg ".travis.yml" ". ..")
     if [ $opt_orig -gt 0 ]; then
       if [ "$2" == "oca" ]; then
          local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
@@ -1151,14 +1156,30 @@ do_distribution() {
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+      local PKGS=
       for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
-        f1=$(readlink -e $f)
-        cvt_file $f1 $2 "manifest" "$currpt"
-        sts=$?
-        if [ $sts -ne $STS_SUCCESS ]; then
-          break
+        if [ "$f" == "./__openerp__.py" -o "$f" == "__manifest__.py" ]; then
+          f1=$(readlink -e $f)
+          cvt_file $f1 $2 "manifest" "$currpt"
+          sts=$?
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        else
+          f1=$(readlink -e $f)
+          PKGS="$PKGS $f1"
         fi
       done
+      local CCWD=$PWD
+      for f in $PKGS; do 
+        local CWD=$(dirname $f)
+        local PKG=$(basename $CWD)
+        cd $CWD
+        revaluate_travis
+        do_distribution $PKG $2
+      done
+      cd $CCWD
+      revaluate_travis
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       if [ -f .gitignore ]; then
@@ -1166,26 +1187,28 @@ do_distribution() {
           echo ".gitrepname">>.gitignore
         fi
       fi
-      local ro=$(build_pkgurl $1 $2 RORIGIN)
-      local lo=$(build_pkgurl $1 $2 URL)
-      if [ "$ro" != "$lo" ]; then
-        if [ -n "$ro" ]; then
-          run_traced "git remote remove origin"
+      if [ -z "$REPOSNAME" ]; then
+        local ro=$(build_pkgurl $1 $2 RORIGIN)
+        local lo=$(build_pkgurl $1 $2 URL)
+        if [ "$ro" != "$lo" ]; then
+          if [ -n "$ro" ]; then
+            run_traced "git remote remove origin"
+          fi
+          if [ -n "$lo" ]; then
+            run_traced "git remote add origin $lo"
+            run_traced "git remote set-url origin $lo"
+          fi
         fi
-        if [ -n "$lo" ]; then
-          run_traced "git remote add origin $lo"
-          run_traced "git remote set-url origin $lo"
-        fi
-      fi
-      local ro=$(build_pkgurl $1 $2 RUPSTREAM)
-      local lo=$(build_pkgurl $1 $2 UPSTREAM)
-      if [ "$ro" != "$lo" ]; then
-        if [ -n "$ro" ]; then
-          run_traced "git remote remove upstream"
-        fi
-        if [ -n "$lo" ]; then
-          run_traced "git remote add upstream $lo"
-          run_traced "git remote set-url upstream $lo"
+        local ro=$(build_pkgurl $1 $2 RUPSTREAM)
+        local lo=$(build_pkgurl $1 $2 UPSTREAM)
+        if [ "$ro" != "$lo" ]; then
+          if [ -n "$ro" ]; then
+            run_traced "git remote remove upstream"
+          fi
+          if [ -n "$lo" ]; then
+            run_traced "git remote add upstream $lo"
+            run_traced "git remote set-url upstream $lo"
+          fi
         fi
       fi
     fi

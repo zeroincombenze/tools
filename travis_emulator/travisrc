@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.82
+#__version__=0.1.83
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -240,9 +240,7 @@ init_travis() {
       fi
     else
       if [ -n "$SETUP" -a -f $SETUP ]; then
-        # if [ -z "$PRJNAME" ]; then
         PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-        # fi
         prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
         if [ "$prjversion" == "version" ]; then
           prjversion=""
@@ -338,6 +336,18 @@ init_travis() {
       fi
     fi
 }
+
+
+
+revaluate_travis() {
+    PRJNAME=
+    REPOSNAME=
+    PKGPATH=$(set_pkgpath "")
+    PKGNAME=$(basename $PKGPATH)
+    init_travis
+}
+
+
 
 create_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then

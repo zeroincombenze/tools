@@ -46,7 +46,7 @@ EOF
 [![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
 [![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
 [![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
-[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator)
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
@@ -124,7 +124,7 @@ Odoo is a trademark of Odoo S.A.
 .. |coverage status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
 .. _coverage status: https://coveralls.io/github/zeroincombenze/tools?branch=master
 .. |codecov status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg
-.. _codecov status: https://codecov.io/gh/zeroincombenze/tools/branch/master
+.. _codecov status: https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator
 .. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator
 .. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg
@@ -163,7 +163,7 @@ EOF
 [![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
 [![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
 [![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
-[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator)
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
@@ -246,7 +246,7 @@ Odoo is a trademark of Odoo S.A.
 .. |coverage status| image:: https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master
 .. _coverage status: https://coveralls.io/github/zeroincombenze/tools?branch=master
 .. |codecov status| image:: https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg
-.. _codecov status: https://codecov.io/gh/zeroincombenze/tools/branch/master
+.. _codecov status: https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator
 .. |technical doc| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg
 .. _technical doc: http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator
 .. |help zeroincombenze| image:: http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg
@@ -271,7 +271,7 @@ test_05() {
 [![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
 [![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
 [![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
-[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator)
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
@@ -300,7 +300,7 @@ EOF
 [![Build Status](https://travis-ci.org/zeroincombenze/tools.svg?branch=master)](https://travis-ci.org/zeroincombenze/tools)
 [![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
 [![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/tools/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/tools?branch=master)
-[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master)
+[![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master/travis_emulator)
 [![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator)
 [![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-travis_emulator.svg)](http://wiki.zeroincombenze.org/en/Python/opt/travis_emulator/help)
 
