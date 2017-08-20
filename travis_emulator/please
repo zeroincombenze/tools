@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.44
+__version__=0.1.45
 
 
 #
@@ -354,6 +354,16 @@ add_copyright() {
         echo ".. [//]: # (end copyright)">>$1
       else
         echo "[//]: # (end copyright)">>$1
+      fi
+    fi
+}
+
+restore_owner() {
+    if [ "$USER" != "odoo" ]; then
+      if sudo -v &>/dev/null; then
+        run_traced "sudo chown -R odoo:odoo .git"
+      else
+        run_traced "chown -R odoo:odoo .git"
       fi
     fi
 }
@@ -1185,9 +1195,7 @@ do_distribution() {
       else
         echo "repository=$2">>.gitrepname
       fi
-      if [ "$USER" != "odoo" ]; then
-        run_traced "sudo chown -R  odoo:odoo .git"
-      fi
+      restore_owner
     fi
     return $sts
 }
@@ -1271,9 +1279,7 @@ do_synchro() {
           opts=-f
         fi
         run_traced "git push $opts"
-        if [ "$USER" != "odoo" ]; then
-          run_traced "sudo chown -R  odoo:odoo .git"
-        fi
+        restore_owner
         git status
       fi
     else
