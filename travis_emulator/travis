@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.83
+__version__=0.1.84
 
 
 store_cfg_param_value() {
@@ -852,7 +852,7 @@ else
   echo "action should be one of $ACTIONS"
   exit $STS_FAILED
 fi
-opts_travis
+opts_travis "$pkg"
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

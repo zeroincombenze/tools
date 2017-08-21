@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
-__version__=0.1.87
+__version__=0.1.87.1
 
 
 
@@ -70,7 +70,7 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 
-opts_travis
+opts_travis "$pkg"
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

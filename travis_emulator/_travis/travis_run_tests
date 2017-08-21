@@ -32,7 +32,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.15
+__version__=0.1.15.1
 
 
 do_test () {
@@ -84,7 +84,7 @@ fi
 if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
 if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
 if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
-opts_travis
+opts_travis "$pkg"
 CFG_init
 conf_default
 link_cfg $TCONF

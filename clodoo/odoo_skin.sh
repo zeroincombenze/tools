@@ -30,7 +30,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.17
+__version__=0.1.17.1
 
 
 get_odoo_service_name() {
@@ -278,7 +278,7 @@ fi
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then
   opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.conf
 fi
-opts_travis
+opts_travis ""
 CFG_init
 conf_default
 link_cfg $COLORFILE $TCONF                                      # No Std Code

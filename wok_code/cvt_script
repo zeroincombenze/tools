@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.8
+__version__=0.1.8.1
 
 
 cvt_file() {
@@ -339,7 +339,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-opts_travis
+opts_travis ""
 CFG_init
 conf_default
 link_cfg $TCONF

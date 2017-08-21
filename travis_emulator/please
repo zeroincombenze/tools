@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.47
+__version__=0.1.48
 
 
 #
@@ -196,84 +196,6 @@ move() {
 # move(src dst)
     run_traced "cp -p $1 $2"
     run_traced "rm -f $1"
-}
-
-build_pkgurl() {
-# build_pkgurl(pkgname oca|zero|zero-http|zero-git|oia|oia-http URL|RPT|OPTS|ASM|UPSTREAM|RORIGIN|RUPSTREAM)
-    local MODNAME=$1
-    local RPT=$2
-    local ITEM=$3
-    local p r
-    if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
-      local ODOO_RPT="https://github.com/acespritech"
-      local ODOO_UPSTREAM=
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
-      if [ "$RPT" == "zero-http" ]; then
-        local ODOO_RPT="https://github.com/zeroincombenze"
-        local OPTS_GIT="--depth 1 --single-branch"
-        local OPTS_ASM="-1"
-      else
-        local ODOO_RPT="git@github.com:zeroincombenze"
-        local OPTS_GIT=""
-        local OPTS_ASM=
-      fi
-      local ODOO_UPSTREAM=
-    elif [ "$RPT" == "oca" ]; then
-      local ODOO_RPT="https://github.com/OCA"
-      local ODOO_UPSTREAM=
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
-      local ODOO_RPT="git@github.com:zeroincombenze"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT=""
-      local OPTS_ASM=""
-    elif [ "$2" == "oia" ]; then
-      local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT=""
-      local OPTS_ASM=""
-    elif [ "$RPT" == "zero-http" ]; then
-      local ODOO_RPT="https://github.com/zeroincombenze"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$RPT" == "oia-http" ]; then
-      local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    else
-      echo "Odoo repository is one of oca|zero|zero-http|zero-git|oia|oia-http"
-      sts=1
-      exit $sts
-    fi
-    if [ "$ITEM" == "RPT" ]; then
-      echo "$ODOO_RPT"
-    elif [ "$ITEM" == "URL" ]; then
-      local pkg_URL="$ODOO_RPT/$MODNAME.git"
-      echo "$pkg_URL"
-    elif [ "$ITEM" == "UPSTREAM" ]; then
-      if [ -n "$ODOO_UPSTREAM" ]; then
-        local pkg_URL="$ODOO_UPSTREAM/$MODNAME.git"
-      else
-        local pkg_URL=
-      fi
-      echo "$pkg_URL"
-    elif [ "$ITEM" == "OPTS" ]; then
-      echo "$OPTS_GIT"
-    elif [ "$ITEM" == "ASM" ]; then
-      echo "$OPTS_ASM"
-    elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
-      p=${ITEM,,}
-      p=${p:1}
-      r=$(git remote -v 2>/dev/null|grep $p|head -n1|awk '{ print $2}')
-      echo "$r"
-    else
-      echo ""
-    fi
 }
 
 add_copyright() {
@@ -513,14 +435,14 @@ cvt_gitmodule() {
 
 cvt_readme() {
 # cvt_readme(file_readme oca|zero|oia currpt)
-# params: 1=repository, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
+# params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
 #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
     local fn=$1
     local fntmp=$fn.tmp
     local wf=0 nxtwf=0 preline=0
     local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
     local Icright=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0
-    local line lne1 lne2 repository txtrepos ver i v w x y
+    local line lne1 lne2 REMOTEREPO txtrepos ver i v w x y
     local ignnextlines=0
     local helpname=
     unset M[*] TKNS[*] REPL[*] ACT[*]
@@ -554,15 +476,15 @@ cvt_readme() {
       ver=master
     fi
     if [ "$2" == "oca" ]; then
-      repository=OCA
+      REMOTEREPO=OCA
       txt1repos=repos
       txt2repos=r
     elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-      repository=zeroincombenze
+      REMOTEREPO=zeroincombenze
       txt1repos=repos/github
       txt2repos=github
     fi
-    M[1]=$repository
+    M[1]=$REMOTEREPO
     if [ "$PRJNAME" == "tools" -o "$PKGNAME" == "tools" ]; then
       M[2]=tools
     elif [ "$LGITPATH" == "/opt/odoo/tools/$PKGNAME" ]; then    # Just for debug
@@ -583,18 +505,18 @@ cvt_readme() {
     M[8]=$txt1repos
     M[9]=$txt2repos
     v=${M[7]}
-    M[LNK_BUILD]="https://travis-ci.org/$repository/$v"
-    M[BTN_BUILD]="https://travis-ci.org/$repository/$v.svg?branch=$BRANCH"
+    M[LNK_BUILD]="https://travis-ci.org/$REMOTEREPO/$v"
+    M[BTN_BUILD]="https://travis-ci.org/$REMOTEREPO/$v.svg?branch=$BRANCH"
     M[LNK_LICENSE]="http://www.gnu.org/licenses/agpl-3.0.html"
     M[BTN_LICENSE]="https://img.shields.io/badge/licence-AGPL--3-blue.svg"
-    M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$repository/$v?branch=$BRANCH"
-    M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$repository/$v/badge.svg?branch=$BRANCH"
+    M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$REMOTEREPO/$v?branch=$BRANCH"
+    M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$REMOTEREPO/$v/badge.svg?branch=$BRANCH"
     if [ -z "$REPOSNAME" ]; then
-      M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH"
+      M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
     else
-      M[LNK_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH/$PKGNAME"
+      M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
     fi
-    M[BTN_CODECOV]="https://codecov.io/gh/$repository/$v/branch/$BRANCH/graph/badge.svg"
+    M[BTN_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
     if [ "$PRJNAME" == "Odoo" ]; then
       M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
       M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$ver.svg"
@@ -1114,15 +1036,19 @@ do_distribution() {
     cvt_gitmodule "$2"
     f1=$(findpkg ".travis.yml" ". ..")
     if [ $opt_orig -gt 0 ]; then
-      if [ "$2" == "oca" ]; then
-         local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
-      elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-        local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
-        if [ ! -f LICENSE ]; then
-          run_traced "cp ~/agpl.txt LICENSE"
-        fi
-      else
-        local gitprj=
+      # if [ "$2" == "oca" ]; then
+      #   local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
+      # elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+      #   local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
+      #   if [ ! -f LICENSE ]; then
+      #     run_traced "cp ~/agpl.txt LICENSE"
+      #   fi
+      # else
+      #   local gitprj=
+      # fi
+      local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
+      if [ -z "$gitprj" ]; then
+        gitprj=$(build_pkgurl $1 $2 RORIGIN)
       fi
       if [ -z "$gitprj" ]; then
         echo "git project not found!"
@@ -1156,6 +1082,9 @@ do_distribution() {
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
+      if [ ! -f LICENSE ]; then
+        run_traced "cp ~/agpl.txt LICENSE"
+      fi
       local PKGS=
       for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
         if [ "$f" == "./__openerp__.py" -o "$f" == "__manifest__.py" ]; then
@@ -1218,7 +1147,7 @@ do_distribution() {
       fi
       if [ -f .gitrepname ]; then
         if [ "$2" != "$currpt" ]; then
-          run_traced "sed -i -e 's:^repository:repository=$2:' .gitrepname"
+          run_traced "sed -i -e 's:^REMOTEREPO:repository=$2:' .gitrepname"
         fi
       else
         echo "repository=$2">>.gitrepname
@@ -1670,7 +1599,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-opts_travis
+opts_travis "$pkg"
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

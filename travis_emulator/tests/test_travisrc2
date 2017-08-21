@@ -26,16 +26,23 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.83
+__version__=0.1.84
 
 
 save_testenv() {
+#save_testenv(cwd)
     local p
     for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
       eval SAVE_$p=${!p}
     done
     LCLTEST_CWD=$PWD
-    cd $LCLTEST_TMPDIR
+    if [ -z "$1" ]; then
+      cd $LCLTEST_TMPDIR
+    elif [ "$1" == "0" ]; then
+      cd $LCLTEST_TMPDIR0
+    elif [ "$1" == "2" ]; then
+      cd $LCLTEST_TMPDIR2
+    fi
 }
 
 restore_testenv() {
@@ -49,12 +56,13 @@ restore_testenv() {
 }
 
 result_testenv() {
+#result_testenv(cwd)
     local p x
     for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
       eval tested_$p=${!p}
     done
     restore_testenv
-    save_testenv
+    save_testenv $1
 }
 
 Z0BUG_setup() {
@@ -63,14 +71,16 @@ Z0BUG_setup() {
     LCLTEST_PRJNAME="Odoo"
     LCLTEST_REPOSNAME=l10n_italy
     LCLTEST_PKGNAME=l10n_it_base
-    local PKGNAME=$LCLTEST_PKGNAME
-    LCLTEST_PRJPATH=~/dev/odoo/$VERSION/$LCLTEST_REPOSNAME
-    local PKGPATH=$LCLTEST_PRJPATH/$PKGNAME
-    mkdir -p ~/dev/odoo/$VERSION
+    LCLTEST_TMPDIR0=~/dev/odoo/$VERSION
+    LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
+    LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
+    LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
+    mkdir -p $LCLTEST_TMPDIR0
     mkdir -p $LCLTEST_PRJPATH
-    mkdir -p $PKGPATH
-    touch $PKGPATH/__openerp__.py
-    LCLTEST_TMPDIR=$PKGPATH
+    mkdir -p $LCLTEST_TMPDIR
+    mkdir -p $LCLTEST_TMPDIR2
+    touch $LCLTEST_TMPDIR/__openerp__.py
+    touch $LCLTEST_TMPDIR2/__openerp__.py
     LCLTEST_SETUP=__openerp__.py
     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
@@ -100,11 +110,10 @@ EOF
 }
 
 Z0BUG_teardown() {
-    local PKGNAME=$LCLTEST_PKGNAME
-    local PKGPATH=$LCLTEST_PRJPATH/$PKGNAME
-    rm -fR $PKGPATH
+    rm -fR $LCLTEST_TMPDIR2
+    rm -fR $LCLTEST_TMPDIR
     rm -fR $LCLTEST_PRJPATH
-    rm -fR ~/dev/odoo/$VERSION
+    rm -fR $LCLTEST_TMPDIR0
     if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
       rm -f $LCLTEST_ODOO9_SERVER
     fi
@@ -117,10 +126,9 @@ test_01() {
     save_testenv
     local s sts res opts
     opt_conf=
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opts_travis
+      opts_travis ""
       result_testenv
     fi
     res=$TDIR/.travis.conf
@@ -128,7 +136,9 @@ test_01() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.pkgpath" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.repository" "local/" "$repository"
+    test_result "travis.pkgpath" "$LCLTEST_PKGNAME" "$PKGNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.repository" "local/" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
@@ -138,9 +148,9 @@ test_02() {
     save_testenv
     local s sts RES opts
     opt_conf=
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis ""
       opt_verbose=1
       PRJNAME=
       CFG_init
@@ -168,14 +178,12 @@ test_02() {
     test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      # TOOLS_PATH=~/dev/_travis
       opt_verbose=1
       opts=$(inherits_travis_opts "v" "D")
       result_testenv
     fi
     test_result "init_travis opts" "-v" "$opts"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      # TOOLS_PATH=~/maintainer-quality-tools/travis
       opt_verbose=1
       MQT_VERBOSE_MODE=
       inherits_travis_opts "v" "T" >/dev/null
@@ -276,10 +284,9 @@ test_03() {
     export opt_conf=$TESTDIR/test_travis.conf
     if [ -f $opt_conf ]; then rm -f $opt_conf; fi
     touch $opt_conf
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opts_travis
+      opts_travis ""
       result_testenv
     fi
     test_result "travis.conf" "$tested_opt_conf" "$TCONF"
@@ -287,7 +294,7 @@ test_03() {
     res=$LCLTEST_TMPDIR
     test_result "travis.pkgpath" "$res" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.repository" "local/" "$repository"
+    test_result "travis.repository" "local/" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
@@ -297,9 +304,9 @@ test_04() {
     save_testenv
     local s sts res opts
     opt_conf=
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis ""
       opt_verbose=2
       opt_r=1
       TOOLS_PATH=
@@ -354,52 +361,41 @@ test_04() {
 }
 
 test_05() {
-    local SAVED_TMPDIR=$LCLTEST_TMPDIR
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      LCLTEST_TMPDIR=~/dev/odoo/$VERSION
-    fi
-    save_testenv
+    save_testenv "0"
     local s sts res opts
     opt_conf=
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opts_travis
+      opts_travis ""
       opt_verbose=1
       PRJNAME=
       CFG_init
       conf_default
       init_travis
-      result_testenv
+      result_testenv "0"
     fi
-    test_result "travis.pkgpath (OCB)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    test_result "travis.pkgpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.reposname (OCB)" "" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.prjname (OCB)" "OCB" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR" "$PRJPATH"
+    test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR0" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     check_4_travis
-    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    test_result "travis.dstpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    restore_testenv
-    LCLTEST_TMPDIR=$SAVED_TMPDIR
+    restore_testenv "0"
     return $sts
 }
 
 test_06() {
-    local SAVED_TMPDIR=$LCLTEST_TMPDIR
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      LCLTEST_TMPDIR=~/dev/odoo/$VERSION/$LCLTEST_REPOSNAME
-    fi
     save_testenv
     local s sts res opts
     opt_conf=
-    pkg=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opts_travis
+      opts_travis ""
       opt_verbose=1
       PRJNAME=
       CFG_init
@@ -409,17 +405,43 @@ test_06() {
     fi
     test_result "travis.pkgpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.reposname (RPS)" "" "$REPOSNAME"
+    test_result "travis.reposname (RPS)" "$LCLTEST_REPOSNAME" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjname (RPS)" "$LCLTEST_REPOSNAME" "$PKGNAME"
+    test_result "travis.prjname (RPS)" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.prjpath (RPS)" "$LCLTEST_PRJPATH" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    check_4_travis
-    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+     test_result "init_travis.prjname" "$LCLTEST_PRJNAME" "$PRJNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      result_testenv "0"
+      revaluate_travis
+      FLOG_ECHO=echo   # revaluate_travis update FLOG_ECHO and disable test output
+      result_testenv "0"
+    fi
+    test_result "travis.pkgpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.reposname (OCB)" "" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.prjname (OCB)" "OCB" "$PKGNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR0" "$PRJPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      result_testenv "2"
+      revaluate_travis
+      FLOG_ECHO=echo   # revaluate_travis update FLOG_ECHO and disable test output
+      result_testenv "2"
+    fi
+    test_result "travis.pkgpath (unported)" "$LCLTEST_TMPDIR2" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.reposname (unported)" "$LCLTEST_REPOSNAME" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.prjname (unported)" "$LCLTEST_PKGNAME" "$PKGNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "travis.prjpath (unported)" "$LCLTEST_PRJPATH" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
-    LCLTEST_TMPDIR=$SAVED_TMPDIR
     return $sts
 }
 

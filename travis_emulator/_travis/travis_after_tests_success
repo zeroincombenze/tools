@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.15
+__version__=0.1.15.1
 
 
 OPTOPTS=(h        j        n            q           r     t         V           v)
@@ -59,7 +59,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-opts_travis
+opts_travis ""
 CFG_init
 conf_default
 link_cfg $TCONF

@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.83
+#__version__=0.1.84
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -11,26 +11,27 @@ MAKEF=/opt/odoo/dev/Makefile
 XRGI="^(.*\/|)conf\/.*sample$"
 
 opts_travis() {
-    if [ -n "$pkg" ]; then
+#opts_travis(pkgname)
+    if [ -n "$1" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
         PKGPATH=${pkg:6}
-        repository="local/"
+        REMOTEREPO="local/"
       elif [ ${pkg:0:5} == "odoo/" -o ${pkg:0:5} == "ODOO/" ]; then
         PKGPATH=${pkg:5}
-        repository="ODOO/"
+        REMOTEREPO="ODOO/"
       elif [ ${pkg:0:4} == "oca/" -o ${pkg:0:4} == "OCA/" ]; then
         PKGPATH=${pkg:4}
-        repository="OCA/"
+        REMOTEREPO="OCA/"
       else
         PKGPATH=$pkg
-        repository="local/"
+        REMOTEREPO="local/"
       fi
       if [ -z "$PKGPATH" ]; then
         PKGPATH=$PWD
       fi
     else
       PKGPATH=$PWD
-      repository="local/"
+      REMOTEREPO="local/"
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
     set_pkgname $PKGPATH
@@ -191,27 +192,29 @@ init_travis() {
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     SETUP=
     local r=$(basename $(readlink -e ..))
+    if [ "$r" == "__unported__" ]; then
+      r=$(basename $(readlink -e ../..))
+    fi
+    if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
+      r=
+    fi
     for ODOO_SETUP in $ODOO_SETUPS; do
       if [ -f $ODOO_SETUP ]; then
-        if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
-          REPOSNAME=
-        else
-          REPOSNAME=$r
-        fi
+        REPOSNAME=$r
         PRJNAME="Odoo"
         SETUP="$ODOO_SETUP";
         break
       fi
     done
     if [ -z "$SETUP" ]; then
-      if [ -f ./odoo -a -f ./odoo_bin ]; then
+      if [ -d ./odoo -a -f ./odoo_bin ]; then
         REPOSNAME=
         PRJNAME="Odoo"
       elif [ -d ./openerp -a -f ./openerp-server ]; then
         REPOSNAME=
         PRJNAME="Odoo"
-      elif [ "$r" == "odoo" -o "$r" == "openerp" ]; then
-        REPOSNAME=$(basename $(readlink -e ../..))
+      # elif [ "$r" == "odoo" -o "$r" == "openerp" ]; then
+      #   REPOSNAME=$(basename $(readlink -e ../..))
       fi
       if [ "$PRJNAME" == "Odoo" ]; then
         ODOO_SETUP="__openerp__.py"
@@ -290,6 +293,10 @@ init_travis() {
       fi
       if [ -f $ODOO_SETUP ]; then
         PRJPATH=$(readlink -f $PKGPATH/..)
+        local r=$(basename $PRJPATH)
+        if [ "$r" == "__unported__" ]; then
+          PRJPATH=$(readlink -f $PKGPATH/../..)
+        fi
       else
         PRJPATH=$PKGPATH
       fi
@@ -337,8 +344,6 @@ init_travis() {
     fi
 }
 
-
-
 revaluate_travis() {
     PRJNAME=
     REPOSNAME=
@@ -346,8 +351,6 @@ revaluate_travis() {
     PKGNAME=$(basename $PKGPATH)
     init_travis
 }
-
-
 
 create_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then
@@ -358,10 +361,10 @@ create_virtual_env() {
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       cd $TRAVIS_HOME
       source bin/activate
-      if [ -z "$repository" ]; then
+      if [ -z "$REMOTEREPO" ]; then
         TRAVIS_WORK_DIR=local/$REPOSNAME
       else
-        TRAVIS_WORK_DIR=$repository
+        TRAVIS_WORK_DIR=$REMOTEREPO
       fi
       TRAVIS_BUILD_DIR="$TRAVIS_HOME/${TRAVIS_WORK_DIR%%/*}"
       run_traced "mkdir -p $TRAVIS_BUILD_DIR"
@@ -436,9 +439,8 @@ prepare_env_travis() {
     else
       unset -v LINT_CHECK
     fi
-    repository=$repository${PRJNAME,,}
     if [ "$PRJNAME" == "Odoo" ]; then
-      export ODOO_REPO=$repository
+      export ODOO_REPO=$REMOTEREPO${PRJNAME,,}
     fi
     if [ -n "$opt_dpath" ]; then
       LGITPATH="$opt_dpath"
@@ -611,6 +613,131 @@ set_pkgname() {
     PKGNAME=$(basename $1)
     if [[ $PKGNAME =~ ^(v7|6.1|7.0|8.0|9.0|10.0)$ ]] ; then
       PKGNAME=OCB
+    fi
+}
+
+build_pkgurl() {
+# build_pkgurl(pkgname oca|zero|zero-http|zero-git|oia|oia-http URL|RPT|OPTS|ASM|UPSTREAM|RORIGIN|RUPSTREAM)
+    local MODNAME=$1
+    local RPT=$2
+    local ITEM=$3
+    local p r
+    if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
+      local ODOO_RPT="https://github.com/acespritech"
+      local ODOO_UPSTREAM=
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
+      if [ "$RPT" == "zero-http" ]; then
+        local ODOO_RPT="https://github.com/zeroincombenze"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      else
+        local ODOO_RPT="git@github.com:zeroincombenze"
+        local OPTS_GIT=""
+        local OPTS_ASM=
+      fi
+      local ODOO_UPSTREAM=
+    elif [ "$RPT" == "oca" ]; then
+      local ODOO_RPT="https://github.com/OCA"
+      local ODOO_UPSTREAM=
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
+      local ODOO_RPT="git@github.com:zeroincombenze"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT=""
+      local OPTS_ASM=""
+    elif [ "$2" == "oia" ]; then
+      local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT=""
+      local OPTS_ASM=""
+    elif [ "$RPT" == "zero-http" ]; then
+      local ODOO_RPT="https://github.com/zeroincombenze"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    elif [ "$RPT" == "oia-http" ]; then
+      local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
+      local ODOO_UPSTREAM="https://github.com/OCA"
+      local OPTS_GIT="--depth 1 --single-branch"
+      local OPTS_ASM="-1"
+    else
+      echo "Odoo repository is one of oca|zero|zero-http|zero-git|oia|oia-http"
+      sts=1
+      exit $sts
+    fi
+    if [ "$ITEM" == "RPT" ]; then
+      echo "$ODOO_RPT"
+    elif [ "$ITEM" == "URL" ]; then
+      local pkg_URL="$ODOO_RPT/$MODNAME.git"
+      echo "$pkg_URL"
+    elif [ "$ITEM" == "UPSTREAM" ]; then
+      if [ -n "$ODOO_UPSTREAM" ]; then
+        local pkg_URL="$ODOO_UPSTREAM/$MODNAME.git"
+      else
+        local pkg_URL=
+      fi
+      echo "$pkg_URL"
+    elif [ "$ITEM" == "OPTS" ]; then
+      echo "$OPTS_GIT"
+    elif [ "$ITEM" == "ASM" ]; then
+      echo "$OPTS_ASM"
+    elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
+      p=${ITEM,,}
+      p=${p:1}
+      r=$(git remote -v 2>/dev/null|grep $p|head -n1|awk '{ print $2}')
+      echo "$r"
+    else
+      echo ""
+    fi
+}
+
+get_odoo_full_ver() {
+    if [ "$1" == "6" ]; then
+      echo "6.1"
+    else
+      echo "$1.0"
+    fi
+}
+
+build_odoo_param() {
+# build_pkgurl(CONFN| [pwd] [version] [opts])
+    local ITEM=$1
+    if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
+      local MULTIVER=1
+    else
+      local MULTIVER=0
+    fi
+    local p
+    if [ -n "$3"]; then
+      if [[ " 10 9 8 7 6 " =~ [[:space:]]$3[[:space:]] ]]; then
+        local odoo_fver=$(get_odoo_full_ver $odoo_ver)
+      elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$3[[:space:]] ]]; then
+        local odoo_fver="$3"
+        local odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
+      elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$3[[:space:]] ]]; then
+        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
+        odoo_fver=$(get_odoo_full_ver $odoo_ver)
+      else
+        echo "Invalid Odoo version"
+        exit 1
+      fi
+    fi
+    if [ "$ITEM" == "CONFN" ]; then
+      if [ $MULTIVER -ne 0 ]; then
+        if [ $odoo_ver -ge 10 ]; then
+          p=/etc/odoo/odoo${odoo_ver}.conf
+        else
+          p=/etc/odoo/odoo${odoo_ver}-server.conf
+        fi
+      else
+        p=/etc/odoo/odoo-server.conf
+      fi
+      echo "$p"
+    else
+      echo ""
     fi
 }
 
@@ -1509,7 +1636,7 @@ run_svr_test_rm_ln() {
     else
       local n=$(get_cfg_value "" "dbname")_$$
     fi
-    if [ "$2" != "wep" -o $opt_keep -ne 0 ]; then
+    if [ "$2" != "wep" -o ${opt_keep:-0} -ne 0 ]; then
       run_traced "pg_db_active -a $n; dropdb -U$u --if-exists $n"
     fi
     run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
@@ -1519,7 +1646,7 @@ run_svr_test_rm_ln() {
     fi
     run_unvirt "if [ -L $HOME/$PKGNAME-$VERSION ]; then rm -f $HOME/$PKGNAME-$VERSION; fi"
     run_unvirt "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
-    if [ "$2" != "wep" -o $opt_keep -ne 0 ]; then
+    if [ "$2" != "wep" -o ${opt_keep:-0} -ne 0 ]; then
       run_unvirt "if [ -L $HOME/odoo-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
     fi
 }
