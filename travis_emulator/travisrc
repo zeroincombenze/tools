@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.84
+#__version__=0.1.85
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -703,42 +703,77 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_pkgurl(CONFN| [pwd] [version] [opts])
+# build_odoo_param(CONFN|SVCNAME|FLOG|FPID version [find])
     local ITEM=$1
+    local odoo_fver odoo_ver MULTIVER
+    local p p1 p11 p2 p3 p4
     if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
-      local MULTIVER=1
+      MULTIVER=1
     else
-      local MULTIVER=0
+      MULTIVER=0
     fi
-    local p
-    if [ -n "$3"]; then
-      if [[ " 10 9 8 7 6 " =~ [[:space:]]$3[[:space:]] ]]; then
-        local odoo_fver=$(get_odoo_full_ver $odoo_ver)
-      elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$3[[:space:]] ]]; then
-        local odoo_fver="$3"
-        local odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
-      elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$3[[:space:]] ]]; then
+    if [ -n "$2" ]; then
+      if [[ " 10 9 8 7 6 " =~ [[:space:]]$2[[:space:]] ]]; then
+        odoo_ver=$2
+        odoo_fver=$(get_odoo_full_ver $odoo_ver)
+      elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
+        odoo_fver="$2"
+        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
+      elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
       else
         echo "Invalid Odoo version"
-        exit 1
+        # exit 1
       fi
+    else
+      odoo_ver=10
+      odoo_fver=10.0
     fi
     if [ "$ITEM" == "CONFN" ]; then
-      if [ $MULTIVER -ne 0 ]; then
-        if [ $odoo_ver -ge 10 ]; then
-          p=/etc/odoo/odoo${odoo_ver}.conf
-        else
-          p=/etc/odoo/odoo${odoo_ver}-server.conf
-        fi
-      else
-        p=/etc/odoo/odoo-server.conf
-      fi
-      echo "$p"
+      p1=/etc/odoo/
+      p11=/etc/
+      p4=.conf
+    elif [ "$ITEM" == "SVCNAME" ]; then
+      p1=/etc/init.d/
+      p11=
+      p4=
+    elif [ "$ITEM" == "FLOG" ]; then
+      p1=/var/log/odoo/
+      p11=/var/log/
+      p4=.log
+    elif [ "$ITEM" == "FPID" ]; then
+      p1=/var/run/odoo/
+      p11=
+      p4=.pid
     else
-      echo ""
+      echo "Invalid parameter $ITEM"
+      exit 1
     fi
+    if [ $MULTIVER -ne 0 ]; then
+      p2="odoo${odoo_ver}"
+    else
+      p2="odoo"
+    fi
+    if [ $odoo_ver -ge 10 ]; then
+      p3=
+    else
+      p3="-server"
+    fi
+    p="$p1$p2$p3$p4"
+    if [ "$3" == "search" ]; then
+      p=$(findpkg "$p2$p3$p4" "$p1 $p11")
+      if [ -z "$p" ]; then
+        p=$(findpkg "odoo$p3$p4" "$p1 $p11")
+      fi
+      if [ -z "$p" ]; then
+        p=$(findpkg "odoo$p4" "$p1 $p11")
+      fi
+      if [ -z "$p" ]; then
+        p=$(findpkg "openerp$p3$p4" "$p1 $p11")
+      fi
+    fi
+    echo "$p"
 }
 
 install_dev() {
