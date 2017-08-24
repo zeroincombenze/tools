@@ -28,7 +28,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.16
+__version__=0.1.16.1
 
 
 vf_init() {
@@ -272,12 +272,12 @@ get_path_ver() {
           else
             VF_PFX=$result
           fi
-          v=$(echo $t|grep -Eo [0-9]*|head -n1)
+          v=$(echo $t|grep -Eo "[0-9]*"|head -n1)
           VF_OFVER=$v.0
           if [ -z "$VFT_VER" ]; then
             VFT_VER=$VF_OFVER
           fi
-          v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+          v=$(echo $VFT_VER|grep -Eo "[0-9]*"|head -n1)
           t=$(echo $t|sed -e s:odoo[0-9]*:odoo$v:)
           result="$result/$t"
           VF_MSTS=3
@@ -312,7 +312,7 @@ get_path_ver() {
     if [ "${result:0:9}" != "/opt/odoo" -a -n "$VF_FN" ]; then
       if [[ $VF_FN =~ ^odoo[0-9] ]]; then
         VF_PFX=$result
-        v=$(echo $VF_FN|grep -Eo [0-9]*|head -n1)
+        v=$(echo $VF_FN|grep -Eo "[0-9]*"|head -n1)
         VF_OFVER=$v.0
         if [ -z "$VFT_VER" ]; then
           if [ -z "$odoo_ver" ]; then
@@ -321,7 +321,7 @@ get_path_ver() {
             VFT_VER=$odoo_ver
           fi
         fi
-        v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+        v=$(echo $VFT_VER|grep -Eo "[0-9]*"|head -n1)
         VF_FN=$(echo $VF_FN|sed -e s:odoo[0-9]*:odoo$v:)
       fi
     fi

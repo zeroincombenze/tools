@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.25
+__version__=0.1.14.26
 
 
 format_xml() {
@@ -115,11 +115,11 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        B         b         c         d        G       n            o       q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_debug odoo_ver  opt_Camel opt_diff opt_gpl opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1         "="       1         1        1       1            "="     0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0         ""        0         0        0       0            ""      -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
+OPTOPTS=(h        a        B         b         c         d        G       i       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_debug odoo_ver  opt_Camel opt_diff opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      1         "="       1         1        1       1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        0         ""        0         0        0       0       0            ""      -1          0       ""          -1          0)
+OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "activate debug statements"\
@@ -127,6 +127,7 @@ OPTHELP=("this help"\
  "change class name to CamelCase"\
  "show diff"\
  "Write AGPL info into header"\
+ "sort import statements"\
  "do nothing (dry-run)"\
  "output filename, leave source unchanged rather than source becomes .bak"\
  "silent mode"\
@@ -193,52 +194,66 @@ for fl in $(find $path -type f -name "$selfl"); do
   if [ "${f: -4}" == ".xml" ]; then
     format_xml $f
   else
-    AP8OPTS="--ignore E501"
-    if [ $opt_aggr -gt 0 ]; then
-      x=$(printf "%${opt_aggr}.${opt_aggr}s" " "|sed y'/ /a/')
-      AP8OPTS="$AP8OPTS -$x"
-    fi
-    if [ $opt_z -ne 0 ]; then
-      python $TDIR/to_pep8.py $f $f.tmp $OPTS
-    else
-      python $TDIR/topep8.py $f $f.tmp $OPTS
-    fi
-    autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
-    rm -f $f.tmp
-    if [ $opt_Camel -gt 0 ]; then
-      oca-autopep8 --select=CW0001 -i $f.new
-    fi
-    oca-autopep8 --select=CW0002 -i $f.new
-    autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new
-  fi
-  if [ "$(diff -q $f $f.new)" ]; then
-    if [ $opt_dry_run -eq 0 ]; then
-      if [ -n "$opt_out" ]; then
-        mv $f.new $opt_out
-        if [ $opt_diff -gt 0 ]; then
-          diff $f $opt_out
+    local mime=$(file -b --mime-type $f)
+    if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+      AP8OPTS="--ignore E501"
+      if [ $opt_aggr -gt 0 ]; then
+        x=$(printf "%${opt_aggr}.${opt_aggr}s" " "|sed y'/ /a/')
+        AP8OPTS="$AP8OPTS -$x"
+      fi
+      if [ $opt_imp -ne 0 ]; then
+        isort $f -d > $f.new
+        if [ $opt_z -ne 0 ]; then
+          python $TDIR/to_pep8.py $f.new $f.tmp $OPTS
+        else
+          python $TDIR/topep8.py $f.new $f.tmp $OPTS
         fi
       else
-        cp -p $f $f.bak
-        mv $f.new $f
-        if [ $opt_diff -gt 0 ]; then
-          diff $f.bak $f
+        if [ $opt_z -ne 0 ]; then
+          python $TDIR/to_pep8.py $f $f.tmp $OPTS
+        else
+          python $TDIR/topep8.py $f $f.tmp $OPTS
         fi
       fi
-      if [ $opt_verbose -gt 0 ]; then
-        echo "File $f in $p converted"
+      autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
+      rm -f $f.tmp
+      if [ $opt_Camel -gt 0 ]; then
+        oca-autopep8 --select=CW0001 -i $f.new
+      fi
+      oca-autopep8 --select=CW0002 -i $f.new
+      autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new
+    fi
+  fi
+  if [ -f "$f.new" ]; then
+    if [ "$(diff -q $f $f.new)" ]; then
+      if [ $opt_dry_run -eq 0 ]; then
+        if [ -n "$opt_out" ]; then
+          mv $f.new $opt_out
+          if [ $opt_diff -gt 0 ]; then
+            diff $f $opt_out
+          fi
+        else
+          cp -p $f $f.bak
+          mv $f.new $f
+          if [ $opt_diff -gt 0 ]; then
+            diff $f.bak $f
+          fi
+        fi
+        if [ $opt_verbose -gt 0 ]; then
+          echo "File $f in $p converted"
+        fi
+      else
+        if [ $opt_diff -gt 0 ]; then
+          diff $f $f.new
+        fi
+        rm -f $f.new
+        if [ $opt_verbose -gt 0 ]; then
+          echo "File $f in $p should be converted"
+        fi
       fi
     else
-      if [ $opt_diff -gt 0 ]; then
-        diff $f $f.new
-      fi
       rm -f $f.new
-      if [ $opt_verbose -gt 0 ]; then
-        echo "File $f in $p should be converted"
-      fi
     fi
-  else
-    rm -f $f.new
   fi
 done
 cd $HOMEDIR

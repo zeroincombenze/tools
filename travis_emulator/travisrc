@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.85
+#__version__=0.1.85.1
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1683,6 +1683,26 @@ run_svr_test_rm_ln() {
     run_unvirt "if [ -L $HOME/${ODOO_REPO#*/}-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
     if [ "$2" != "wep" -o ${opt_keep:-0} -ne 0 ]; then
       run_unvirt "if [ -L $HOME/odoo-$VERSION ]; then rm -f $HOME/${ODOO_REPO#*/}-$VERSION; fi"
+    fi
+    if [ -f stdout.log ]; then
+      chmod +rw stdout.log
+    fi
+    # some version added some bug; here workaround |TODO solve trouble
+    for d in ~/*; do
+      if [ -L $d ]; then
+        echo $d
+        rm -f $d
+      fi
+    done
+    for d in account-financial-tools bank-payment dependencies l10n-italy LibrERP partner-contact reporting-engine web webkit-tools;do
+      if [ -d ~/$d ]; then
+        echo $d
+        rm -fR ~/$d
+      fi
+    done
+    if [ -L ~/7.0/openerp/addons/decimal_precision ]; then
+      echo "rm -f ~/7.0/openerp/addons/decimal_precision"
+      rm -f ~/7.0/openerp/addons/decimal_precision
     fi
 }
 

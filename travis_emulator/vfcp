@@ -4,7 +4,7 @@
 # Make copy of file to another Odoo version
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -28,7 +28,7 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.17
+__version__=0.1.17.1
 
 
 vf_init() {
@@ -263,12 +263,12 @@ get_path_ver() {
           else
             VF_PFX=$result
           fi
-          v=$(echo $t|grep -Eo [0-9]*|head -n1)
+          v=$(echo $t|grep -Eo "[0-9]*"|head -n1)
           VF_OFVER=$v.0
           if [ -z "$VFT_VER" ]; then
             VFT_VER=$VF_OFVER
           fi
-          v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+          v=$(echo $VFT_VER|grep -Eo "[0-9]*"|head -n1)
           t=$(echo $t|sed -e s:odoo[0-9]*:odoo$v:)
           result="$result/$t"
           VF_MSTS=3
@@ -303,7 +303,7 @@ get_path_ver() {
     if [ "${result:0:9}" != "/opt/odoo" -a -n "$VF_FN" ]; then
       if [[ $VF_FN =~ ^odoo[0-9] ]]; then
         VF_PFX=$result
-        v=$(echo $VF_FN|grep -Eo [0-9]*|head -n1)
+        v=$(echo $VF_FN|grep -Eo "[0-9]*"|head -n1)
         VF_OFVER=$v.0
         if [ -z "$VFT_VER" ]; then
           if [ -z "$odoo_ver" ]; then
@@ -312,7 +312,7 @@ get_path_ver() {
             VFT_VER=$odoo_ver
           fi
         fi
-        v=$(echo $VFT_VER|grep -Eo [0-9]*|head -n1)
+        v=$(echo $VFT_VER|grep -Eo "[0-9]*"|head -n1)
         VF_FN=$(echo $VF_FN|sed -e s:odoo[0-9]*:odoo$v:)
       fi
     fi
@@ -409,7 +409,7 @@ if [ -z "$odoo_ver" -a -z "$source" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Copy file between Odoo versions"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ $opt_all -eq 0 -a $opt_iar -eq 0 ]; then
