@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49
+__version__=0.1.49.2
 
 
 #
@@ -239,9 +239,14 @@ add_copyright() {
         echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)">>$1
         echo "is the nonprofit Italian Community Association whose mission">>$1
         echo "is to support the collaborative development of Odoo designed for Italian law and markeplace.">>$1
-        echo "Since 2017, Odoo Italia Associazione replaces OCA members of Italy are developping code under legacy license.">>$1
-        echo "Odoo Italia Associazione distributes code only under A-GPL free license.">>$1
+        echo "Since 2017, Odoo Italia Associazione replaces OCA members of Italy are developping code under Odoo Proprietary License.">>$1
+        echo "Odoo Italia Associazione distributes code only under AGPL free license.">>$1
         echo "">>$1
+        echo "[Odoo Italia Associazione](https://www.odoo-italia.org/) è un'Associazione senza fine di lucro">>$1
+        echo "che dal 2017 sostituisce gli sviluppatori italiani di OCA che sviluppano">>$1
+        echo "con Odoo Proprietary License a pagamento.">>$1
+        echo "">>$1
+        echo "Odoo Italia Associazione distribuisce il codice esclusivamente con licenza [AGPL](http://www.gnu.org/licenses/agpl-3.0.html)">>$1
       else
         if [ $2 -eq 1 ]; then
           echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
