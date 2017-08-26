@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
 fi
 
-__version__=0.1.14.26
+__version__=0.1.15
 
 
 format_xml() {
@@ -194,7 +194,7 @@ for fl in $(find $path -type f -name "$selfl"); do
   if [ "${f: -4}" == ".xml" ]; then
     format_xml $f
   else
-    local mime=$(file -b --mime-type $f)
+    mime=$(file -b --mime-type $f)
     if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
       AP8OPTS="--ignore E501"
       if [ $opt_aggr -gt 0 ]; then

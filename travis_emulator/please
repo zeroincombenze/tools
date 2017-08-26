@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.48.1
+__version__=0.1.49
 
 
 #
@@ -194,8 +194,16 @@ do_version() {
 
 move() {
 # move(src dst)
+    if [ -f "$2" ]; then rm -f $2; fi
     run_traced "cp -p $1 $2"
     run_traced "rm -f $1"
+}
+
+move_n_bak() {
+# move_n_bak(src dst)
+    if [ -f "$2.bak" ]; then rm -f $2.bak; fi
+    run_traced "cp -p $2 $2.bak"
+    run_traced "mv -f $1 $2"
 }
 
 add_copyright() {
@@ -276,6 +284,24 @@ add_copyright() {
         echo ".. [//]: # (end copyright)">>$1
       else
         echo "[//]: # (end copyright)">>$1
+      fi
+    fi
+}
+
+add_addons() {
+#add_addons(file rst zero|oca|oia)
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (addons)">>$1
+      else
+        echo "[//]: # (addons)">>$1
+      fi
+      gen_addons_table.py inline>>$1
+      if [ $2 -eq 1 ]; then
+        echo "">>$1
+        echo ".. [//]: # (end addons)">>$1
+      else
+        echo "[//]: # (end addons)">>$1
       fi
     fi
 }
@@ -383,8 +409,9 @@ cvt_doxygenconf() {
         echo "$line">>$fntmp
       done < "$fn"
       if [ -n "$(diff -q $fn $fntmp)" ]; then
-        run_traced "cp -p $fn $fn.bak"
-        run_traced "mv $fntmp $fn"
+        # run_traced "cp -p $fn $fn.bak"
+        # run_traced "mv $fntmp $fn"
+        move_n_bak $fntmp $fn
       else
         rm -f $fntmp
       fi
@@ -425,8 +452,9 @@ cvt_gitmodule() {
         echo "$line">>$fntmp
       done < "$fn"
       if [ -n "$(diff -q $fn $fntmp)" ]; then
-        run_traced "cp -p $fn $fn.bak"
-        run_traced "mv $fntmp $fn"
+        # run_traced "cp -p $fn $fn.bak"
+        # run_traced "mv $fntmp $fn"
+        move_n_bak $fntmp $fn
       else
         rm -f $fntmp
       fi
@@ -441,7 +469,7 @@ cvt_readme() {
     local fntmp=$fn.tmp
     local wf=0 nxtwf=0 preline=0
     local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
-    local Icright=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0
+    local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0
     local line lne1 lne2 REMOTEREPO txtrepos ver i v w x y
     local ignnextlines=0
     local helpname=
@@ -470,7 +498,11 @@ cvt_readme() {
       ((i++))
     done
     if [ -n "$BRANCH" ]; then
-      ver=$(echo $BRANCH|grep -Eo '[0-9]+'|head -n1)
+      if [ "$BRANCH" == "master" ]; then
+        ver=$BRANCH
+      else
+        ver=$(echo $BRANCH|grep -Eo '[0-9]+'|head -n1)
+      fi
     else
       BRANCH=master
       ver=master
@@ -479,8 +511,12 @@ cvt_readme() {
       REMOTEREPO=OCA
       txt1repos=repos
       txt2repos=r
-    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
       REMOTEREPO=zeroincombenze
+      txt1repos=repos/github
+      txt2repos=github
+    elif [ "$2" == "oia" ]; then
+      REMOTEREPO=Odoo-Italia-Associazione
       txt1repos=repos/github
       txt2repos=github
     fi
@@ -586,13 +622,13 @@ cvt_readme() {
     TKNS[14]="^\|code.climate\|"
     REPL[14]="|code climate|_"
     ACT[14]="rstBTN_climate"
-    TKNS[15]="Tech.Doc.*(http://www.odoo.com/documentation/|http://wiki.zeroincombenze.org/en/)"
+    TKNS[15]="Tech.Doc.*(https*://www.odoo.com/documentation/|https*://wiki.zeroincombenze.org/en/)"
     REPL[15]="[![Tech Doc]"
     ACT[15]="md_BTN_docs"
     TKNS[16]="^\|technical.doc\|"
     REPL[16]="|technical doc|_"
     ACT[16]="rstBTN_docs"
-    TKNS[17]="Help.*(https://www.odoo.com/forum/|http://wiki.zeroincombenze.org/)"
+    TKNS[17]="Help.*(https*://www.odoo.com/forum/|https*://wiki.zeroincombenze.org/)"
     REPL[17]="[![Help]"
     ACT[17]="md_BTN_help"
     TKNS[18]="^\|help.zeroincombenze\|"
@@ -628,6 +664,18 @@ cvt_readme() {
     TKNS[56]="^\|chat.with.us\|"
     REPL[56]=""
     ACT[56]="rstBTN_chat"
+    TKNS[57]="\[//\]:.*#.*end addons"
+    REPL[57]=""
+    ACT[57]="md_END_addons"
+    TKNS[58]="\[//\]:.*#.*addons"
+    REPL[58]=""
+    ACT[58]="md_BEG_addons"
+    TKNS[59]="\[//\]:.*#.*end addons"
+    REPL[59]=""
+    ACT[59]="rstEND_addons"
+    TKNS[60]="\[//\]:.*#.*addons"
+    REPL[60]=""
+    ACT[60]="rstBEG_addons"
     TKNS[100]="^.*en.*http://www.shs-av.com/wp-content/en_US.png"
     REPL[100]=""
     ACT[100]="CHPT_lang_en"
@@ -677,11 +725,12 @@ cvt_readme() {
     rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
+      # echo "> line=$line" #debug
       lne1="⌂"
       lne2="⌂"
       Ibutton=0
       nxtwf=0
-      for i in {1..22} {51..56} {100..113}; do
+      for i in {1..22} {51..60} {100..113}; do
         p=${TKNS[$i]}
         if [[ $line =~ $p ]]; then
           if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
@@ -767,6 +816,17 @@ cvt_readme() {
               add_copyright $fntmp $Irst $2
             fi
             line="⌂"
+          elif [ "${ACT[$i]}" == "md_BEG_addons" -o "${ACT[$i]}" == "rstBEG_addons" ]; then
+            if [ $Iaddons -eq 0 ]; then
+              Iaddons=2
+              add_addons $fntmp $Irst $2
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
+            if [ $Iaddons -eq 2 ]; then
+              Iaddons=3
+            fi
+            line="⌂"
           fi
           break
         elif [ -n "$line" ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -816,7 +876,8 @@ cvt_readme() {
         done
         [ $preline -ne 0 ] && [ -n "$line" ] && preline=0 && echo "">>$fntmp
       fi
-      if [ $Icright -ne 2 -a "$line" != "⌂" ]; then
+      # echo "> if [ \$Icright=$Icright -ne 2 -a $line != '⌂' ]; then" #debug
+      if [ $Icright -ne 2 -a $Iaddons -ne 2 -a "$line" != "⌂" ]; then
         line=$(expand_macro "$line")
         line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
         line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
@@ -888,13 +949,20 @@ cvt_readme() {
         if [ -z "$lne2" ]; then preline=0; else preline=1; fi
       fi
     done < "$fn"
-    for i in {51..56}; do
+    for i in {51..60}; do
       p=${TKNS[$i]}
       if [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
         if [ $Icright -eq 0 ]; then
           [ $preline -ne 0 ] && echo "">>$fntmp
           Icright=3
           add_copyright $fntmp $Irst $2
+          preline=1
+        fi
+      elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
+        if [ $Iaddons -eq 0 ]; then
+          [ $preline -ne 0 ] && echo "">>$fntmp
+          Iaddons=3
+          add_addons $fntmp $Irst $2
           preline=1
         fi
       elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -904,7 +972,7 @@ cvt_readme() {
       fi
     done
     [ $preline -ne 0 ] && preline=0 && echo "">>$fntmp
-    for i in {1..22} {51..56}; do
+    for i in {1..22} {51..60}; do
       p=${TKNS[$i]}
       if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
         v="${ACT[$i]}"
@@ -928,8 +996,9 @@ cvt_readme() {
     done
     if [ ${test_mode:-0} -eq 0 -a "${RPT:0:4}" != "${3:0:4}" ]; then
       if [ -n "$(diff -q $fn $fntmp)" ]; then
-        run_traced "cp -p $fn $fn.bak"
-        run_traced "mv $fntmp $fn"
+        # run_traced "cp -p $fn $fn.bak"
+        # run_traced "mv $fntmp $fn"
+        move_n_bak $fntmp $fn
       else
         rm -f $fntmp
       fi
@@ -963,6 +1032,7 @@ cvt_file() {
       local fntmp=$f1.tmp
       if [ "$2" == "oca" ]; then
         if [ $opt_orig -gt 0 ]; then
+          if [ -f "$f1_oca" ]; then rm -f $f1_oca; fi
           run_traced "cp -p ./tmp/$ft $f1_oca"
         fi
         if [ -f $f1_oca ]; then
@@ -970,6 +1040,7 @@ cvt_file() {
           move $f1_oca $f1
           do_proc=1
         elif [ $opt_force -ne 0 -a ! -f $f1_z0i ]; then
+          if [ -f "$f1_z0i" ]; then rm -f $f1_z0i; fi
           run_traced "cp -p $f1 $f1_z0i"
           do_proc=1
         fi
@@ -988,6 +1059,7 @@ cvt_file() {
         fi
       elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
         if [ $opt_orig -gt 0 ]; then
+          if [ -f "$f1_z0i" ]; then rm -f $f1_z0i; fi
           run_traced "cp -p ./tmp/$ft $f1_z0i"
         fi
         if [ -f $f1_z0i ]; then
@@ -995,14 +1067,15 @@ cvt_file() {
           move $f1_z0i $f1
           do_proc=1
         elif [ $opt_force -ne 0 -a ! -f $f1_oca ]; then
+          if [ -f "$f1_oca" ]; then rm -f $f1_oca; fi
           run_traced "cp -p $f1 $f1_oca"
           do_proc=1
         fi
         if [ "$3" == "travis" ]; then
           local fntmp=$f1.tmp
-          cat $f1|sed -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:'>$fntmp
+          cat $f1|sed -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":'>$fntmp
           if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' $f1"
+            run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:' $f1"
           fi
           rm -f $fntmp
         elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
@@ -1025,92 +1098,126 @@ cvt_file() {
 }
 
 do_distribution() {
-# do_distribution(PKGNAME oca|zero|oia)
-    wlog "do_distribution $1 $2"
+# do_distribution(PKGNAME oca|zero|oia parent)
+    wlog "do_distribution $1 $2 $3"
     local sts=$STS_SUCCESS
     local currpt=zero
-    local f f1
+    local ORIG=
+    local f f1 x
+    local PD=.
+    if [ ${test_mode:-0} -ne 0 ]; then
+      if [ -d res ]; then
+        PD=res
+      elif [ -d tests/res ]; then
+        PD=tests/res
+      fi
+    fi
+    if [ -n "$3" ]; then
+      local travis_passed=1
+      if [ -d $3/tmp ]; then
+        ORIG=$3/tmp
+      fi
+    else
+      local travis_passed=0
+    fi
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    cvt_gitmodule "$2"
-    f1=$(findpkg ".travis.yml" ". ..")
     if [ $opt_orig -gt 0 ]; then
-      # if [ "$2" == "oca" ]; then
-      #   local gitprj=$(git remote -v|grep upstream|head -n1|awk '{print $2}')
-      # elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-      #   local gitprj=$(git remote -v|grep origin|head -n1|awk '{print $2}')
-      #   if [ ! -f LICENSE ]; then
-      #     run_traced "cp ~/agpl.txt LICENSE"
-      #   fi
-      # else
-      #   local gitprj=
-      # fi
       local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
       if [ -z "$gitprj" ]; then
         gitprj=$(build_pkgurl $1 $2 RORIGIN)
       fi
       if [ -z "$gitprj" ]; then
         echo "git project not found!"
-        f1=
         sts=$STS_FAILED
       else
         run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
+        ORIG=$(readlink -e tmp)
       fi
     fi
-    if [ -n "$f1" ]; then
-      cvt_file $f1 $2 "travis" "$currpt"
-      sts=$?
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ ${test_mode:-0} -ne 0 ]; then
-        f1=$(findpkg "README" "res tests/res")
-      else
-        f1=$(findpkg "README.md" ". ..")
-        if [ -z "$f1" ]; then
-          f1=$(findpkg "README.rst" ". ..")
-        fi
-      fi
-      if [ -n "$f1" ]; then
-        cvt_file $f1 $2 "readme" "$currpt"
+    # echo "> if [ \$travis_passed=$travis_passed -eq 0 ]; then" #debug
+    if [ $travis_passed -eq 0 ]; then
+      # echo ">   cvt_gitmodule $2 $currpt" #debug
+      cvt_gitmodule "$2" "$currpt"
+      if [ $sts -eq $STS_SUCCESS ]; then
+        f1=oca_dependencies.txt
+        # echo ">   cvt_file $f1 $2 '' $currpt" #debug
+        cvt_file $f1 $2 "" "$currpt"
         sts=$?
       fi
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      f1=oca_dependencies.txt
-      cvt_file $f1 $2 "" "$currpt"
-      sts=$?
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ ! -f LICENSE ]; then
-        run_traced "cp ~/agpl.txt LICENSE"
+      if [ $sts -eq $STS_SUCCESS ]; then
+        f1=$(findpkg ".travis.yml" "$PD ..")
+        if [ -n "$f1" ]; then
+          # echo ">   cvt_file $f1 $2 travis $currpt" #debug
+          cvt_file $f1 $2 "travis" "$currpt"
+          sts=$?
+        fi
       fi
-      local PKGS=
-      for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py); do
-        if [ "$f" == "./__openerp__.py" -o "$f" == "__manifest__.py" ]; then
+    fi
+    local PKGS=
+    # echo "> for f in \$(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name 'README*'); do" #debug
+    for f in $(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
+      x=$(dirname $f)
+      # echo ">   if [ $x == '.' ]; then #f=$f" #debug
+      if [ "$x" == "." ]; then
+        if [ ${test_mode:-0} -eq 0 -a ! -f LICENSE ]; then
+          run_traced "cp ~/agpl.txt LICENSE"
+        fi
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
+        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
+          run_traced "cp -p ORIG/$f $f"
+        fi
+        if [ "$f" == "./__openerp__.py" -o "$f" == "./__manifest__.py" ]; then
           f1=$(readlink -e $f)
+          # echo ">   cvt_file $f1 $2 manifest $currpt" #debug
           cvt_file $f1 $2 "manifest" "$currpt"
           sts=$?
           if [ $sts -ne $STS_SUCCESS ]; then
             break
           fi
-        else
+        elif [ "$f" == "./README.md" -o "$f" == "./README.rst" -o "$f" == "./README" ]; then
           f1=$(readlink -e $f)
+          x=$(basename $f1)
+          if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$x" ]; then
+            run_traced "cp -p ORIG/$x $f1"
+          fi
+          # echo ">   cvt_file $f1 $2 readme $currpt" #debug
+          cvt_file $f1 $2 "readme" "$currpt"
+          sts=$?
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        fi
+        travis_passed=1
+      else
+        x=$(readlink -e $f)
+        f1=$(dirname $x)
+        if [[ $PKGS =~ $f1 ]]; then
+          :
+        else
           PKGS="$PKGS $f1"
         fi
-      done
-      local CCWD=$PWD
-      for f in $PKGS; do 
-        local CWD=$(dirname $f)
-        local PKG=$(basename $CWD)
-        cd $CWD
-        revaluate_travis
-        do_distribution $PKG $2
-      done
-      cd $CCWD
+      fi
+    done
+    local CCWD=$PWD
+    # echo "> for f in $PKGS; do" #debug
+    for f in $PKGS; do 
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
+      local PKG=$(basename $f)
+      cd $f
       revaluate_travis
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
+      # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
+      do_distribution $PKG $2 "$CCWD"
+      sts=$?
+    done
+    cd $CCWD
+    revaluate_travis
+    if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
       if [ -f .gitignore ]; then
         if ! grep -q "\.gitrepname" .gitignore 2>/dev/null; then
           echo ".gitrepname">>.gitignore
@@ -1147,7 +1254,7 @@ do_distribution() {
       fi
       if [ -f .gitrepname ]; then
         if [ "$2" != "$currpt" ]; then
-          run_traced "sed -i -e 's:^REMOTEREPO:repository=$2:' .gitrepname"
+          run_traced "sed -i -e 's:^repository *=.*:repository=$2:' .gitrepname"
         fi
       else
         echo "repository=$2">>.gitrepname
@@ -1312,7 +1419,7 @@ mvfiles () {
         cd $1
         for f in $l; do
           if [ -e $1/$f ]; then
-            run_traced "mv $1/$f $2/$f"
+            run_traced "mv -f $1/$f $2/$f"
             if [ $4 ]; then
               run_traced "chown $4 $2/$f"
             fi
@@ -1463,6 +1570,7 @@ do_publish_tar() {
           fi
           run_traced "tar $x $p $f"
           x=${x/c/r}
+          if [ -f "$f" ]; then rm -f $f; fi
           echo "cp -p $f $PKGPATH/$y">>$SETUP
         done
         chmod +x $SETUP

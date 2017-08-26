@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.85.1
+__version__=0.1.86
 
 
 store_cfg_param_value() {

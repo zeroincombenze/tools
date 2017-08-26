@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.85.1
+#__version__=0.1.86
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -192,7 +192,9 @@ init_travis() {
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     SETUP=
     local r=$(basename $(readlink -e ..))
-    if [ "$r" == "__unported__" ]; then
+    if [ ${test_mode:-0} -ne 0 -a "$r" == "tests" ]; then
+      r=tools
+    elif [ "$r" == "__unported__" ]; then
       r=$(basename $(readlink -e ../..))
     fi
     if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
@@ -213,8 +215,6 @@ init_travis() {
       elif [ -d ./openerp -a -f ./openerp-server ]; then
         REPOSNAME=
         PRJNAME="Odoo"
-      # elif [ "$r" == "odoo" -o "$r" == "openerp" ]; then
-      #   REPOSNAME=$(basename $(readlink -e ../..))
       fi
       if [ "$PRJNAME" == "Odoo" ]; then
         ODOO_SETUP="__openerp__.py"
@@ -273,6 +273,8 @@ init_travis() {
         :
       elif [[ $BRANCH =~ ^(v7|v8|v9|v10)$ ]] ; then
         BRANCH=${BRANCH:1}.0
+      elif [ ${test_mode:-0} -ne 0 ]; then
+        BRANCH=master
       else
         BRANCH=7.0
       fi
