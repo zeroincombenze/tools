@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.2
+__version__=0.1.49.3
 
 
 #
@@ -301,7 +301,11 @@ add_addons() {
       else
         echo "[//]: # (addons)">>$1
       fi
-      gen_addons_table.py inline>>$1
+      if [ -d ~/original ]; then
+        $TDIR/gen_addons_table.py inline ~/original>>$1
+      else
+        $TDIR/gen_addons_table.py inline>>$1
+      fi
       if [ $2 -eq 1 ]; then
         echo "">>$1
         echo ".. [//]: # (end addons)">>$1
@@ -591,61 +595,61 @@ cvt_readme() {
     TKNS[2]="^[[:space:]]+:[a-zA-Z_]+:"
     REPL[2]="⌂"
     ACT[2]="REPLC"
-    TKNS[3]="Build.Status.*https://travis-ci.org/"
+    TKNS[3]="^[^a-zA-Z_]*Build.Status.*https://travis-ci.org/"
     REPL[3]="[![Build Status]"
     ACT[3]="md_BTN_build"
     TKNS[4]="^\|build.status\|"
     REPL[4]="|build status|_"
     ACT[4]="rstBTN_build"
-    TKNS[5]="https://img.shields.io/badge/licence-AGPL"
+    TKNS[5]="^[^a-zA-Z_]*license.*https://img.shields.io/badge/licence-AGPL"
     REPL[5]="[![license agpl]"
     ACT[5]="md_BTN_license"
     TKNS[6]="^\|license.agpl\|"
     REPL[6]="|license agpl|_"
     ACT[6]="rstBTN_license"
-    TKNS[7]="Coverage.Status.*https://coveralls.io/"
+    TKNS[7]="^[^a-zA-Z_]*Coverage.Status.*https://coveralls.io/"
     REPL[7]="[![Coverage Status]"
     ACT[7]="md_BTN_coverage"
     TKNS[8]="^\|coverage.status\|"
     REPL[8]="|coverage status|_"
     ACT[8]="rstBTN_coverage"
-    TKNS[9]="codecov.*https://codecov.io/gh/"
+    TKNS[9]="^[^a-zA-Z_]*codecov.*https://codecov.io/gh/"
     REPL[9]="[![codecov]"
     ACT[9]="md_BTN_codecov"
     TKNS[10]="^\|codecov.status\|"
     REPL[10]="|codecov status|_"
     ACT[10]="rstBTN_codecov"
-    TKNS[11]="OCA_project.*https://github.com/OCA/"
+    TKNS[11]="^[^a-zA-Z_]*OCA_project.*https://github.com/OCA/"
     REPL[11]="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-$ver.svg)](https://github.com/OCA/$v/tree/$BRANCH)"
     ACT[11]="md_BTN_OCA"
     TKNS[12]="^\|oca.project\|"
     REPL[12]="|oca project|_"
     ACT[12]="rstBTN_OCA"
-    TKNS[13]="Code.Climate.*https://codeclimate.com/github/"
+    TKNS[13]="^[^a-zA-Z_]*Code.Climate.*https://codeclimate.com/github/"
     REPL[13]="Code.Climate  https://codeclimate.com/github/"
     ACT[13]="md_BTN_climate"
     TKNS[14]="^\|code.climate\|"
     REPL[14]="|code climate|_"
     ACT[14]="rstBTN_climate"
-    TKNS[15]="Tech.Doc.*(https*://www.odoo.com/documentation/|https*://wiki.zeroincombenze.org/en/)"
+    TKNS[15]="^[^a-zA-Z_]*Tech.Doc.*(https*://www.odoo.com/documentation/|https*://wiki.zeroincombenze.org/en/)"
     REPL[15]="[![Tech Doc]"
     ACT[15]="md_BTN_docs"
     TKNS[16]="^\|technical.doc\|"
     REPL[16]="|technical doc|_"
     ACT[16]="rstBTN_docs"
-    TKNS[17]="Help.*(https*://www.odoo.com/forum/|https*://wiki.zeroincombenze.org/)"
+    TKNS[17]="^[^a-zA-Z_]*Help.*(https*://www.odoo.com/forum/|https*://wiki.zeroincombenze.org/)"
     REPL[17]="[![Help]"
     ACT[17]="md_BTN_help"
     TKNS[18]="^\|help.zeroincombenze\|"
     REPL[18]="|help zeroincombenze|_"
     ACT[18]="rstBTN_help"
-    TKNS[19]="Runbot.Status.*https://runbot.odoo-community.org/"
+    TKNS[19]="^[^a-zA-Z_]*(Runbot|Build).Status.*https://runbot.odoo-community.org/"
     REPL[19]="Runbot Status  https://runbot.odoo-community.org/"
     ACT[19]="md_BTN_runbot"
     TKNS[20]="^\|runbot.status\|"
     REPL[20]="|runbot status|_"
     ACT[20]="rstBTN_runbot"
-    TKNS[21]="try.it.*http(s)?://www.zeroincombenze.it"
+    TKNS[21]="^[^a-zA-Z_]*try.it.*http(s)?://www.zeroincombenze.it"
     REPL[21]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](http://erp$ver.zeroincombenze.it)"
     ACT[21]="md_BTN_tryit"
     TKNS[22]="^\|try.it\|"
@@ -657,10 +661,10 @@ cvt_readme() {
     TKNS[52]="\[//\]:.*#.*copyright"
     REPL[52]=""
     ACT[52]="md_BEG_cright"
-    TKNS[53]="\[//\]:.*#.*end.copyright"
+    TKNS[53]="\.\.\[//\]:.*#.*end.copyright"
     REPL[53]=""
     ACT[53]="rstEND_cright"
-    TKNS[54]="\[//\]:.*#.*copyright"
+    TKNS[54]="\.\.\[//\]:.*#.*copyright"
     REPL[54]=""
     ACT[54]="rstBEG_cright"
     TKNS[55]="chat.with.us"
@@ -675,10 +679,10 @@ cvt_readme() {
     TKNS[58]="\[//\]:.*#.*addons"
     REPL[58]=""
     ACT[58]="md_BEG_addons"
-    TKNS[59]="\[//\]:.*#.*end addons"
+    TKNS[59]="\.\.\[//\]:.*#.*end addons"
     REPL[59]=""
     ACT[59]="rstEND_addons"
-    TKNS[60]="\[//\]:.*#.*addons"
+    TKNS[60]="\.\.\[//\]:.*#.*addons"
     REPL[60]=""
     ACT[60]="rstBEG_addons"
     TKNS[100]="^.*en.*http://www.shs-av.com/wp-content/en_US.png"
@@ -737,6 +741,8 @@ cvt_readme() {
       nxtwf=0
       for i in {1..22} {51..60} {100..113}; do
         p=${TKNS[$i]}
+        # if [ $i -le 22 -a $wf -ne 0 ]; then
+        #   :
         if [[ $line =~ $p ]]; then
           if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
             if [ "${ACT[$i]}" == "REPL1" ]; then
@@ -822,12 +828,14 @@ cvt_readme() {
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_BEG_addons" -o "${ACT[$i]}" == "rstBEG_addons" ]; then
+            # echo "> begin <$line>" #debug
             if [ $Iaddons -eq 0 ]; then
               Iaddons=2
               add_addons $fntmp $Irst $2
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
+            # echo "> end <$line>" #debug
             if [ $Iaddons -eq 2 ]; then
               Iaddons=3
             fi
@@ -1029,7 +1037,7 @@ cvt_file() {
       fi
       local f1_oca=$(dirname $f1)/${f}.oca
       local f1_z0i=$(dirname $f1)/${f}.z0i
-      if [ "$2" == "$4" ]; then
+      if [ "$2" == "$4" -a $opt_force -eq 0 ]; then
         local do_proc=0
       else
         local do_proc=1
@@ -1121,6 +1129,8 @@ do_distribution() {
       local travis_passed=1
       if [ -d $3/tmp ]; then
         ORIG=$3/tmp
+      elif [ -d ~/original/$1 ]; then
+        ORIG=~/original/$1
       fi
     else
       local travis_passed=0
@@ -1128,17 +1138,25 @@ do_distribution() {
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    if [ $opt_orig -gt 0 ]; then
-      local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
-      if [ -z "$gitprj" ]; then
-        gitprj=$(build_pkgurl $1 $2 RORIGIN)
-      fi
-      if [ -z "$gitprj" ]; then
-        echo "git project not found!"
-        sts=$STS_FAILED
+    local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
+    if [ -z "$gitprj" ]; then
+      gitprj=$(build_pkgurl $1 $2 RORIGIN)
+    fi
+    if [ $travis_passed -eq 0 ]; then
+      if [ $opt_orig -gt 0 ]; then
+        if [ -z "$gitprj" ]; then
+          echo "git project not found!"
+          sts=$STS_FAILED
+        else
+          run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
+          ORIG=$(readlink -e tmp)
+        fi
       else
-        run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
-        ORIG=$(readlink -e tmp)
+        if [ -d ~/original ]; then rm -fR -d ~/original; fi
+        if [ -n "$gitprj" ]; then
+          run_traced "git clone $gitprj ~/original/$1 -b $BRANCH --depth 1 --single-branch"
+          ORIG=$(readlink -e ~/original/$1)
+        fi
       fi
     fi
     # echo "> if [ \$travis_passed=$travis_passed -eq 0 ]; then" #debug

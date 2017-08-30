@@ -356,7 +356,8 @@ TEST_TRAVIS V
 =============
 
 [//]: # (addons)
-
+Invalid text
+Should be deleted
 [//]: # (end addons)
 
 
