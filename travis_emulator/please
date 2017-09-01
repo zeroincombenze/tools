@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.3
+__version__=0.1.49.4
 
 
 #
@@ -294,18 +294,15 @@ add_copyright() {
 }
 
 add_addons() {
-#add_addons(file rst zero|oca|oia)
+#add_addons(file rst zero|oca|oia ORIG)
     if [ "$PRJNAME" == "Odoo" ]; then
       if [ $2 -eq 1 ]; then
         echo ".. [//]: # (addons)">>$1
       else
         echo "[//]: # (addons)">>$1
       fi
-      if [ -d ~/original ]; then
-        $TDIR/gen_addons_table.py inline ~/original>>$1
-      else
-        $TDIR/gen_addons_table.py inline>>$1
-      fi
+      $TDIR/gen_addons_table.py inline $4
+      $TDIR/gen_addons_table.py inline $4>>$1
       if [ $2 -eq 1 ]; then
         echo "">>$1
         echo ".. [//]: # (end addons)">>$1
@@ -471,7 +468,7 @@ cvt_gitmodule() {
 }
 
 cvt_readme() {
-# cvt_readme(file_readme oca|zero|oia currpt)
+# cvt_readme(file_readme oca|zero|oia currpt ORIG)
 # params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
 #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
     local fn=$1
@@ -831,7 +828,7 @@ cvt_readme() {
             # echo "> begin <$line>" #debug
             if [ $Iaddons -eq 0 ]; then
               Iaddons=2
-              add_addons $fntmp $Irst $2
+              add_addons $fntmp $Irst "$2" "$4"
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
@@ -975,7 +972,7 @@ cvt_readme() {
         if [ $Iaddons -eq 0 ]; then
           [ $preline -ne 0 ] && echo "">>$fntmp
           Iaddons=3
-          add_addons $fntmp $Irst $2
+          add_addons $fntmp $Irst "$2" "$4"
           preline=1
         fi
       elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -1020,7 +1017,7 @@ cvt_readme() {
 
 
 cvt_file() {
-# cvt_file(file oca|zero|oia travis|readme|manifest currpt)
+# cvt_file(file oca|zero|oia travis|readme|manifest currpt ORIG)
     local f1=$1
     local sts=$STS_SUCCESS
     if [ -n "$f1" ]; then
@@ -1092,7 +1089,7 @@ cvt_file() {
           fi
           rm -f $fntmp
         elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-          cvt_readme $f1 $2 $4
+          cvt_readme $f1 "$2" "$4" "$5"
         fi
         if [ -f $f1_oca ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_oca &>/dev/null
@@ -1166,14 +1163,14 @@ do_distribution() {
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=oca_dependencies.txt
         # echo ">   cvt_file $f1 $2 '' $currpt" #debug
-        cvt_file $f1 $2 "" "$currpt"
+        cvt_file $f1 $2 "" "$currpt" "$ORIG"
         sts=$?
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=$(findpkg ".travis.yml" "$PD ..")
         if [ -n "$f1" ]; then
           # echo ">   cvt_file $f1 $2 travis $currpt" #debug
-          cvt_file $f1 $2 "travis" "$currpt"
+          cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
           sts=$?
         fi
       fi
@@ -1196,7 +1193,7 @@ do_distribution() {
         if [ "$f" == "./__openerp__.py" -o "$f" == "./__manifest__.py" ]; then
           f1=$(readlink -e $f)
           # echo ">   cvt_file $f1 $2 manifest $currpt" #debug
-          cvt_file $f1 $2 "manifest" "$currpt"
+          cvt_file $f1 $2 "manifest" "$currpt" "$ORIG"
           sts=$?
           if [ $sts -ne $STS_SUCCESS ]; then
             break
@@ -1208,7 +1205,7 @@ do_distribution() {
             run_traced "cp -p ORIG/$x $f1"
           fi
           # echo ">   cvt_file $f1 $2 readme $currpt" #debug
-          cvt_file $f1 $2 "readme" "$currpt"
+          cvt_file $f1 $2 "readme" "$currpt" "$ORIG"
           sts=$?
           if [ $sts -ne $STS_SUCCESS ]; then
             break
