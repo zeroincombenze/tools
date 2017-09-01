@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.4
+__version__=0.1.49.5
 
 
 #
@@ -45,6 +45,7 @@ __version__=0.1.49.4
 # -F fetch
 # -f force
 # -H use virtualenv
+# -k keep files
 # -K exec bash, flake8 and pylint tests | run cron environ
 # -j exec tests in project dir rather in test dir
 # -m show missing line in report
@@ -301,7 +302,6 @@ add_addons() {
       else
         echo "[//]: # (addons)">>$1
       fi
-      $TDIR/gen_addons_table.py inline $4
       $TDIR/gen_addons_table.py inline $4>>$1
       if [ $2 -eq 1 ]; then
         echo "">>$1
@@ -1269,7 +1269,7 @@ do_distribution() {
       fi
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      if [ -d tmp ]; then
+      if [ -d tmp -a $opt_keep -eq 0 ]; then
         rm -fR tmp
       fi
       if [ -f .gitrepname ]; then
@@ -1700,7 +1700,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
  "execute tests in project dir rather in test dir"\
- "keep coverage statistics in annotate test"\
+ "keep coverage statistics in annotate test/keep original repository"\
  "log file name"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
