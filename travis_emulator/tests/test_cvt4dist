@@ -365,6 +365,12 @@ Should be deleted
 
 TEST_TRAVIS V
 =============
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage | [![codecov](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0) | [![codecov](https://codecov.io/gh/OCA/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n-italy/branch/7.0)
+Test con repository OCA e Odoo | Boh! | Boh!
 
 [//]: # (copyright)
 
@@ -386,7 +392,7 @@ EOF
 [![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-master.svg)](http://erpmaster.zeroincombenze.it)
 
 
-[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)
 
 TEST_TRAVIS V
 =============
@@ -396,10 +402,16 @@ TEST_TRAVIS V
 [//]: # (end addons)
 
 
-[![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
+[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)
 
 TEST_TRAVIS V
 =============
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/tools/branch/master) | [![codecov](https://codecov.io/gh/OCA/tools/branch/master/graph/badge.svg)](https://codecov.io/gh/OCA/tools/branch/master)
+Test compatibilità OCA e Odoo | Si | Si
 
 [//]: # (copyright)
 

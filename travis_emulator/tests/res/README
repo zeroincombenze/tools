@@ -21,6 +21,12 @@ Should be deleted
 
 TEST_TRAVIS V
 =============
+Differenze rispetto localizzazione ufficiale Odoo/OCA
+
+Descrizione | Odoo Italia | OCA
+--- | --- | ---
+Coverage | [![codecov](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0) | [![codecov](https://codecov.io/gh/OCA/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n-italy/branch/7.0)
+Test con repository OCA e Odoo | Boh! | Boh!
 
 [//]: # (copyright)
 

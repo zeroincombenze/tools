@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.5
+__version__=0.1.49.10
 
 
 #
@@ -248,6 +248,7 @@ add_copyright() {
         echo "con Odoo Proprietary License a pagamento.">>$1
         echo "">>$1
         echo "Odoo Italia Associazione distribuisce il codice esclusivamente con licenza [AGPL](http://www.gnu.org/licenses/agpl-3.0.html)">>$1
+        echo "">>$1
       else
         if [ $2 -eq 1 ]; then
           echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
@@ -370,6 +371,10 @@ build_line() {
         x="${M[$w]}"
         line="$line $x"
       fi
+    elif [ "$3" == "CHPT_lang_en" ]; then
+      line="[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)"
+    elif [ "$3" == "CHPT_lang_it" ]; then
+      line="[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)"
     elif [[ $3 =~ CHPT_ ]]; then
       :
     fi
@@ -475,10 +480,11 @@ cvt_readme() {
     local fntmp=$fn.tmp
     local wf=0 nxtwf=0 preline=0
     local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
-    local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0
+    local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0 Idiff=0
     local line lne1 lne2 REMOTEREPO txtrepos ver i v w x y
     local ignnextlines=0
     local helpname=
+    local OCA_REMOTEREPO OCA_txt1repos OCA_txt2repos
     unset M[*] TKNS[*] REPL[*] ACT[*]
     declare -gA M
     declare -a TKNS REPL ACT RHLP WK
@@ -513,10 +519,13 @@ cvt_readme() {
       BRANCH=master
       ver=master
     fi
+    OCA_REMOTEREPO=OCA
+    OCA_txt1repos=repos
+    OCA_txt2repos=r
     if [ "$2" == "oca" ]; then
-      REMOTEREPO=OCA
-      txt1repos=repos
-      txt2repos=r
+      REMOTEREPO=$OCA_REMOTEREPO
+      txt1repos=$OCA_txt1repos
+      txt2repos=OCA_txt2repos
     elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
       REMOTEREPO=zeroincombenze
       txt1repos=repos/github
@@ -553,12 +562,16 @@ cvt_readme() {
     M[BTN_LICENSE]="https://img.shields.io/badge/licence-AGPL--3-blue.svg"
     M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$REMOTEREPO/$v?branch=$BRANCH"
     M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$REMOTEREPO/$v/badge.svg?branch=$BRANCH"
+    M[LNK_OCA_COVERAGE]="https://coveralls.io/$OCA_txt2repos/$OCA_REMOTEREPO/$v?branch=$BRANCH"
+    M[BTN_OCA_COVERAGE]="https://coveralls.io/$OCA_txt1repos/$OCA_REMOTEREPO/$v/badge.svg?branch=$BRANCH"
     if [ -z "$REPOSNAME" ]; then
       M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
     else
       M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
     fi
+    M[LNK_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH"
     M[BTN_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
+    M[BTN_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
     if [ "$PRJNAME" == "Odoo" ]; then
       M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
       M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$ver.svg"
@@ -682,10 +695,19 @@ cvt_readme() {
     TKNS[60]="\.\.\[//\]:.*#.*addons"
     REPL[60]=""
     ACT[60]="rstBEG_addons"
-    TKNS[100]="^.*en.*http://www.shs-av.com/wp-content/en_US.png"
+    TKNS[61]="^Differenze rispetto localizzazione ufficiale Odoo/OCA"
+    REPL[61]=""
+    ACT[61]="md_BEG_diff"
+    TKNS[62]="^Coverage \|"
+    REPL[62]=""
+    ACT[62]="md_diff_1"
+    TKNS[63]="^(Test compatibilità OCA e Odoo|Test con repository OCA e Odoo) \|"
+    REPL[63]=""
+    ACT[63]="md_diff_2"
+    TKNS[100]="^[^a-zA-Z_]*en[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/en_US.png|https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)"
     REPL[100]=""
     ACT[100]="CHPT_lang_en"
-    TKNS[101]="^.*it.*http://www.shs-av.com/wp-content/it_IT.png"
+    TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
     REPL[101]=""
     ACT[101]="CHPT_lang_it"
     TKNS[102]="^======="
@@ -726,8 +748,8 @@ cvt_readme() {
     ACT[113]="CHPT_113"
 
     local ONLY_OCA="Irunbot Iclimate"
-    local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it"
-    local ONLY_ODOO="IOCA Itryit"
+    local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it Idiff"
+    local ONLY_ODOO="IOCA Itryit Iaddons"
     rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
@@ -736,10 +758,8 @@ cvt_readme() {
       lne2="⌂"
       Ibutton=0
       nxtwf=0
-      for i in {1..22} {51..60} {100..113}; do
+      for i in {1..22} {51..63} {100..113}; do
         p=${TKNS[$i]}
-        # if [ $i -le 22 -a $wf -ne 0 ]; then
-        #   :
         if [[ $line =~ $p ]]; then
           if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
             if [ "${ACT[$i]}" == "REPL1" ]; then
@@ -828,15 +848,34 @@ cvt_readme() {
             # echo "> begin <$line>" #debug
             if [ $Iaddons -eq 0 ]; then
               Iaddons=2
-              add_addons $fntmp $Irst "$2" "$4"
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
-            # echo "> end <$line>" #debug
             if [ $Iaddons -eq 2 ]; then
               Iaddons=3
+              add_addons $fntmp $Irst "$2" "$4"
             fi
             line="⌂"
+          elif [ "${ACT[$i]}" == "md_BEG_diff" ]; then
+            if [ $Idiff -eq 0 ]; then
+              Idiff=2
+            fi
+          elif [ "${ACT[$i]}" == "md_diff_1" ]; then
+            if [ $Idiff -eq 2 ]; then
+              if [ "$BRANCH" == "7.0" ]; then
+                line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![Coverage Status](${M[BTN_OCA_COVERAGE]})](${M[LNK_OCA_COVERAGE]})"
+              else
+                line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![codecov](${M[BTN_OCA_CODECOV]})](${M[LNK_OCA_CODECOV]})"
+              fi
+            fi
+          elif [ "${ACT[$i]}" == "md_diff_2" ]; then
+            if [ $Idiff -eq 2 ]; then
+              if [ "$BRANCH" == "7.0" ]; then
+                line="Test compatibilità OCA e Odoo | No | [Errore import decimal precision](https://github.com/OCA/OCB/issues/629)"
+              else
+                line="Test compatibilità OCA e Odoo | Si | Si"
+              fi
+            fi
           fi
           break
         elif [ -n "$line" ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
@@ -959,7 +998,7 @@ cvt_readme() {
         if [ -z "$lne2" ]; then preline=0; else preline=1; fi
       fi
     done < "$fn"
-    for i in {51..60}; do
+    for i in {51..63}; do
       p=${TKNS[$i]}
       if [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
         if [ $Icright -eq 0 ]; then
@@ -982,7 +1021,7 @@ cvt_readme() {
       fi
     done
     [ $preline -ne 0 ] && preline=0 && echo "">>$fntmp
-    for i in {1..22} {51..60}; do
+    for i in {1..22} {51..63}; do
       p=${TKNS[$i]}
       if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
         v="${ACT[$i]}"

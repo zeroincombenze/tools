@@ -5,7 +5,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 THIS=$(basename $0)
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$(readlink -f "$(dirname $0)")
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
@@ -19,7 +19,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.8
+__version__=0.1.9.1
 
 
 OPTOPTS=(h        G         n            V           v)
@@ -46,21 +46,28 @@ if [ $opt_help -gt 0 ]; then
 fi
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 if [ -z "$tgtpath" ]; then
-  echo "Invalid tgtpath"
+  echo "Missed path"
   exit 1
 fi
-tgtpath=$(readlink -e $tgtpath)
+rootpath=$(readlink -e $tgtpath)
+if [ ! -d "$rootpath" ]; then
+  echo "Path does not exist"
+  exit 1
+fi
+if grep -q :$rootpath: /etc/passwd; then
+  :
+else
+  echo "Path is not home directory of any user"
+  exit 1
+fi
+tgtpath=$(readlink -e $rootpath/.ssh)
 if [ ! -d "$tgtpath" ]; then
-  echo "Invalid tgtpath"
+  echo "$rootpath/.ssh does not exist"
   exit 1
 fi
-if grep :$tgtpath: /etc/passwd; then
-  echo "Invalid tgtpath"
-  exit 1
-fi
-user=$(grep :$tgtpath: /etc/passwd|awk -F: '{print $1}')
+user=$(grep :$rootpath: /etc/passwd|head -n1|awk -F: '{print $1}')
 rgid=$(grep ^$user: /etc/passwd|awk -F: '{print $4}')
-rgroup=$(grep :$rgid: /etc/group|awk -F: '{print $1}')
+rgroup=$(grep :$rgid: /etc/group|head -n1|awk -F: '{print $1}')
 if [ -z $opt_group ]; then
   group=$rgroup
 else
@@ -71,30 +78,37 @@ if [ $opt_dry_run -gt 0 ]; then
 else
   opts_dry_run=
 fi
-echo "Set user=$user, group=$group/$rgroup"
-
-echo "<<${tgtpath:0:5}>>"
+echo "Ownership = $user:$group ($rgroup)"
 if [ "${tgtpath:0:5}" == "/opt/" ]; then
   echo "chown $opts_dry_run root:root /opt/"
   (($opt_dry_run))||chown root:root /opt/
   echo "chmod $opts_dry_run u=rwx,g=rx,o=rx /opt/"
   (($opt_dry_run))||chmod u=rwx,g=rx,o=rx /opt/
 fi
-echo "chown $opts_dry_run $user:$group $tgtpath/"
-(($opt_dry_run))||chown $user:$group $tgtpath/
-echo "chmod $opts_dry_run u=rwx,g=rwx,o-rwx $tgtpath/"
-(($opt_dry_run))||chmod u=rwx,g=rwx,o-rwx $tgtpath/
-echo "chown $opts_dry_run $user:$rgroup $tgtpath/.ssh/"
-(($opt_dry_run))||chown $user:$rgroup $tgtpath/.ssh/
-echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath/.ssh/"
-(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath/.ssh/
-echo "chown $opts_dry_run $user:$rgroup $tgtpath/.ssh/*"
-(($opt_dry_run))||chown $user:$rgroup $tgtpath/.ssh/*
-echo "chmod $opts_dry_run u=r,g-rwx,o-rwx $tgtpath/.ssh/*"
-(($opt_dry_run))||chmod u=r,g-rwx,o-rwx $tgtpath/.ssh/*
-echo "chmod $opts_dry_run u=r,g=r,o=r $tgtpath/.ssh/*.pub"
-(($opt_dry_run))||chmod u=r,g=r,o=r $tgtpath/.ssh/*.pub
-
-dir -alhd $tgtpath/ $tgtpath/. $tgtpath/..
-dir -alh $tgtpath/.ssh
+echo "chown $opts_dry_run $user:$group $rootpath"
+(($opt_dry_run))||chown $user:$group $rootpath
+# echo "chmod $opts_dry_run u=rwx,g=rwx,o-rwx $rootpath"
+# (($opt_dry_run))||chmod u=rwx,g=rwx,o-rwx $rootpath
+echo "chown $opts_dry_run $user:$rgroup $tgtpath"
+(($opt_dry_run))||chown $user:$rgroup $tgtpath
+echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath"
+(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath
+echo "chmod $opts_dry_run u=rwx,g-rwx,o-rwx $tgtpath/.."
+(($opt_dry_run))||chmod u=rwx,g-rwx,o-rwx $tgtpath/..
+echo "chown $opts_dry_run $user:$rgroup $tgtpath/*"
+(($opt_dry_run))||chown $user:$rgroup $tgtpath/*
+echo "chmod $opts_dry_run u=r,g-rwx,o-rwx $tgtpath/*"
+(($opt_dry_run))||chmod u=r,g-rwx,o-rwx $tgtpath/*
+echo "chmod $opts_dry_run u=r,g=r,o=r $tgtpath/*.pub"
+(($opt_dry_run))||chmod u=r,g=r,o=r $tgtpath/*.pub
+if [ -f $tgtpath/authorized_keys ]; then
+  echo "chmod $opts_dry_run u=rw,g=r,o=r $tgtpath/authorized_keys"
+  (($opt_dry_run))||chmod u=rw,g=r,o=r $tgtpath/authorized_keys
+fi
+if [ -f $tgtpath/known_hosts ]; then
+  echo "chmod $opts_dry_run u=rw,g=r,o=r $tgtpath/known_hosts"
+  (($opt_dry_run))||chmod u=rw,g=r,o=r $tgtpath/known_hosts
+fi
+dir -alhd $rootpath/ $tgtpath/. $tgtpath/..
+dir -alh $tgtpath/
 exit 0
