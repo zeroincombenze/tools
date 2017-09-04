@@ -179,7 +179,7 @@ if [ $sts -ne 127 ]; then
 fi
 opt_oelib=1
 if [ ${opt_oelib:-0} -ne 0 ]; then
-  ODOOLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
   if [ -z "$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
