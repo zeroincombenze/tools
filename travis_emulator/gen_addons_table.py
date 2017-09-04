@@ -153,7 +153,7 @@ def gen_addons_table(args):
             if unported and installable:
                 raise UserError('%s is in __unported__ but is marked '
                                 'installable.' % addon_path)
-            o_row = ['', ' N/D ', '']
+            o_row = ['', ':x:', '']
             if original_OCA:
                 addon_name = os.path.basename(addon_path)
                 OCA_addon_path = os.path.join(original_OCA, addon_name)
@@ -169,7 +169,7 @@ def gen_addons_table(args):
                 if row[1] != o_row[1]:
                     row.insert(2, o_row[1])
                 else:
-                    row.insert(2, 'Same')
+                    row.insert(2, ':repeat:')
             if installable:
                 rows_available.append(row)
             else:

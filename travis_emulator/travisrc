@@ -559,6 +559,7 @@ conf_default() {
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_*"
     set_cfg_def "filediffignore" ".po .pot"
+    set_cfg_def "shellcheck_exclude" "2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001"
 }
 
 
@@ -1117,16 +1118,20 @@ please_test_bash() {
     sts=$STS_SUCCESS
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local f
+      local shellcheck_exclude=$(get_cfg_value "" "shellcheck_exclude")
       for f in $(find . -type f|tr "\n" " "); do
         local mime=$(file -b --mime-type $f)
         # if [ "$(head $f -n1|grep ^\#\![[:space:]]*/bin/bash 2>/dev/null)" ]; then
         if [ "$mime" == "text/x-shellscript" ]; then
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            # elog "$ bash -n $f"
-            elog "$ shellcheck -e 2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001 $f"
+          if [ "$TRAVIS" != "true" -a ${opt_verbose:-0} -gt 0 ]; then
+            elog "$ shellcheck -e $shellcheck_exclude $f"
           fi
-          bash -n $f
-          if [ $? -eq 0 ]; then shellcheck -e 2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001 $f; fi
+          if [ "$TRAVIS" != "true" ]; then
+            bash -n $f
+            if [ $? -eq 0 ]; then shellcheck -e $shellcheck_exclude $f; fi
+          else
+            bash -n $f
+          fi
           local s=$?
           if [ $sts -eq $STS_SUCCESS ]; then
             if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then

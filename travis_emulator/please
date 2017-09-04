@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.10
+__version__=0.1.49.11
 
 
 #
@@ -871,9 +871,9 @@ cvt_readme() {
           elif [ "${ACT[$i]}" == "md_diff_2" ]; then
             if [ $Idiff -eq 2 ]; then
               if [ "$BRANCH" == "7.0" ]; then
-                line="Test compatibilità OCA e Odoo | No | [Errore import decimal precision](https://github.com/OCA/OCB/issues/629)"
+                line="Test compatibilità OCA e Odoo | :x: | [Errore import decimal precision](https://github.com/OCA/OCB/issues/629)"
               else
-                line="Test compatibilità OCA e Odoo | Si | Si"
+                line="Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:"
               fi
             fi
           fi
