@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.12.3
+__version__=0.1.12.4
 
 
 up_oemod() {
@@ -93,7 +93,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update"\
+  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update\ncmdlist mya be upd_oemod or filename"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi

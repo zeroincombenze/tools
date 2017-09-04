@@ -16,13 +16,13 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11.2
+__version__=0.1.11.3
 
-OPTOPTS=(h        d        e       k        i       l        m           n           s         t         U         V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="         "1"         1         1         "="       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""          0           0         0         ""        ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "do nothing" ""       "touch"   "user"    "version"   "verbose"   0       "port")
+OPTOPTS=(h        d        e       k        i       l        m           n           o         s         t         U         V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="         "1"         "="       1         1         "="       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""          0           ""        0         0         ""        ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "no op"     "file"   ""       "touch"   "user"    "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "db name to test (require -m switch)"\
  "export it translation"\
@@ -31,6 +31,7 @@ OPTHELP=("this help"\
  "load it language"
  "modules to test or translate"\
  "do nothing (dry-run)"\
+ "output file (if export multiple modules)"\
  "stop after init"\
  "touch config file, do not run odoo"\
  "db username"\
@@ -86,6 +87,7 @@ if [ $opt_lang -ne 0 ]; then
   fi
 elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
   opt_keep=1
+  opt_stop=1
   if [ -z "$opt_modules" ]; then
     echo "Missing -m switch"
     exit 1
@@ -106,6 +108,9 @@ if [ -n "$opt_modules" ]; then
     done
     opts="-i $opt_modules --test-enable"
     create_db=1
+  elif [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
+    src=$(readlink -f $opt_ofile)
+    opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
   elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
     src=$(find /opt/odoo/$odoo_ver -type d -name "$opt_modules"|head -n1)
     if [ -n "$src" ]; then
