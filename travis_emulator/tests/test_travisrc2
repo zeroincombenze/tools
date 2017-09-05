@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.86
+__version__=0.1.86.4
 
 
 save_testenv() {
@@ -82,7 +82,11 @@ Z0BUG_setup() {
     touch $LCLTEST_TMPDIR/__openerp__.py
     touch $LCLTEST_TMPDIR2/__openerp__.py
     LCLTEST_SETUP=__openerp__.py
-    LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
+    if [ -d ~/tools/maintainer-quality-tools/travis ]; then
+      LCLTEST_MQT_PATH=$(readlink -f ~/tools/maintainer-quality-tools/travis)
+    else
+      LCLTEST_MQT_PATH=$(readlink -f ~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis)
+    fi
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
@@ -100,6 +104,7 @@ Z0BUG_setup() {
 > if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
 > if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
 > if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
+> rm -fR /opt/odoo/maintainer-quality-tools
 $ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
 > mkdir /opt/odoo/dependencies
 > export INCLUDE=l10n_it_base
@@ -107,9 +112,26 @@ $ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
 > ln -s /opt/odoo/dev/odoo/9.0 /opt/odoo/odoo-9.0
 > ln -s /opt/odoo/dev/odoo/9.0/l10n_italy/l10n_it_base /opt/odoo/l10n_it_base-9.0
 EOF
+    if [ -L ~/maintainer-quality-tools ]; then
+      rm -f ~/maintainer-quality-tools
+    elif [ -d ~/maintainer-quality-tools/ ]; then
+      rm -fR ~/maintainer-quality-tools/
+    elif [ -f ~/maintainer-quality-tools ]; then
+      rm -f ~/maintainer-quality-tools
+    fi
+    if [ ! -L ~/maintainer-quality-tools ]; then
+      if [ -d ~/tools/maintainer-quality-tools/ ]; then
+        ln -s ~/tools/maintainer-quality-tools/ ~/
+      elif [ -d ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
+        ln -s ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ~/
+      else
+        false
+      fi
+    fi
 }
 
 Z0BUG_teardown() {
+    rm -f ~/maintainer-quality-tools
     rm -fR $LCLTEST_TMPDIR2
     rm -fR $LCLTEST_TMPDIR
     rm -fR $LCLTEST_PRJPATH
@@ -155,6 +177,7 @@ test_02() {
       PRJNAME=
       CFG_init
       conf_default
+      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
@@ -313,6 +336,7 @@ test_04() {
       PRJNAME=
       CFG_init
       conf_default
+      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
@@ -371,6 +395,7 @@ test_05() {
       PRJNAME=
       CFG_init
       conf_default
+      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv "0"
     fi
@@ -400,6 +425,7 @@ test_06() {
       PRJNAME=
       CFG_init
       conf_default
+      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
@@ -444,111 +470,6 @@ test_06() {
     restore_testenv
     return $sts
 }
-
-test_06() {
-    local s sts v
-    sts=0
-    opt_mult=0
-    declare -A TRES
-    TRES[6]=/etc/odoo/odoo-server.conf
-    TRES[7]=/etc/odoo/odoo-server.conf
-    TRES[8]=/etc/odoo/odoo-server.conf
-    TRES[9]=/etc/odoo/odoo-server.conf
-    TRES[10]=/etc/odoo/odoo.conf
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param CONFN $v)
-      fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
-          RES=$(build_odoo_param CONFN $v.1)
-        else
-          RES=$(build_odoo_param CONFN $v.0)
-        fi
-      fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    opt_mult=1
-    declare -A TRES
-    TRES[6]=/etc/odoo/odoo6-server.conf
-    TRES[7]=/etc/odoo/odoo7-server.conf
-    TRES[8]=/etc/odoo/odoo8-server.conf
-    TRES[9]=/etc/odoo/odoo9-server.conf
-    TRES[10]=/etc/odoo/odoo10.conf
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param CONFN $v)
-      fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
-          RES=$(build_odoo_param CONFN $v.1)
-        else
-          RES=$(build_odoo_param CONFN $v.0)
-        fi
-      fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    TRES[6]=/var/log/odoo/odoo6-server.log
-    TRES[7]=/var/log/odoo/odoo7-server.log
-    TRES[8]=/var/log/odoo/odoo8-server.log
-    TRES[9]=/var/log/odoo/odoo9-server.log
-    TRES[10]=/var/log/odoo/odoo10.log
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
-          RES=$(build_odoo_param FLOG $v.1)
-        else
-          RES=$(build_odoo_param FLOG $v.0)
-        fi
-      fi
-      test_result "log filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    TRES[6]=/var/run/odoo/odoo6-server.pid
-    TRES[7]=/var/run/odoo/odoo7-server.pid
-    TRES[8]=/var/run/odoo/odoo8-server.pid
-    TRES[9]=/var/run/odoo/odoo9-server.pid
-    TRES[10]=/var/run/odoo/odoo10.pid
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
-          RES=$(build_odoo_param FPID $v.1)
-        else
-          RES=$(build_odoo_param FPID $v.0)
-        fi
-      fi
-      test_result "pid filename $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    TRES[6]=/etc/init.d/odoo6-server
-    TRES[7]=/etc/init.d/odoo7-server
-    TRES[8]=/etc/init.d/odoo8-server
-    TRES[9]=/etc/init.d/odoo9-server
-    TRES[10]=/etc/init.d/odoo10
-    for v in 6 7 8 9 10; do
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
-          RES=$(build_odoo_param SVCNAME $v.1)
-        else
-          RES=$(build_odoo_param SVCNAME $v.0)
-        fi
-      fi
-      test_result "script name $v" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    return $sts
-}
-
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_travis_em.log "$@ -J"

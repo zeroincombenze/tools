@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.86
+#__version__=0.1.86.4
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -331,8 +331,10 @@ init_travis() {
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
       if [ "$PRJNAME" == "Odoo" ]; then
-        if [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
-          MQT_PATH=$HOME/dev/maintainer-quality-tools/travis
+        if [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
+        elif [ -d $HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis
         elif [ -d $HOME/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/maintainer-quality-tools/travis
         elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
@@ -557,8 +559,8 @@ conf_default() {
     set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
-    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_*"
-    set_cfg_def "filediffignore" ".po .pot"
+    set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
+    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca"
     set_cfg_def "shellcheck_exclude" "2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001"
 }
 
@@ -705,79 +707,6 @@ get_odoo_full_ver() {
     fi
 }
 
-build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FLOG|FPID version [find])
-    local ITEM=$1
-    local odoo_fver odoo_ver MULTIVER
-    local p p1 p11 p2 p3 p4
-    if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
-      MULTIVER=1
-    else
-      MULTIVER=0
-    fi
-    if [ -n "$2" ]; then
-      if [[ " 10 9 8 7 6 " =~ [[:space:]]$2[[:space:]] ]]; then
-        odoo_ver=$2
-        odoo_fver=$(get_odoo_full_ver $odoo_ver)
-      elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
-        odoo_fver="$2"
-        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
-      elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
-        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
-        odoo_fver=$(get_odoo_full_ver $odoo_ver)
-      else
-        echo "Invalid Odoo version"
-        # exit 1
-      fi
-    else
-      odoo_ver=10
-      odoo_fver=10.0
-    fi
-    if [ "$ITEM" == "CONFN" ]; then
-      p1=/etc/odoo/
-      p11=/etc/
-      p4=.conf
-    elif [ "$ITEM" == "SVCNAME" ]; then
-      p1=/etc/init.d/
-      p11=
-      p4=
-    elif [ "$ITEM" == "FLOG" ]; then
-      p1=/var/log/odoo/
-      p11=/var/log/
-      p4=.log
-    elif [ "$ITEM" == "FPID" ]; then
-      p1=/var/run/odoo/
-      p11=
-      p4=.pid
-    else
-      echo "Invalid parameter $ITEM"
-      exit 1
-    fi
-    if [ $MULTIVER -ne 0 ]; then
-      p2="odoo${odoo_ver}"
-    else
-      p2="odoo"
-    fi
-    if [ $odoo_ver -ge 10 ]; then
-      p3=
-    else
-      p3="-server"
-    fi
-    p="$p1$p2$p3$p4"
-    if [ "$3" == "search" ]; then
-      p=$(findpkg "$p2$p3$p4" "$p1 $p11")
-      if [ -z "$p" ]; then
-        p=$(findpkg "odoo$p3$p4" "$p1 $p11")
-      fi
-      if [ -z "$p" ]; then
-        p=$(findpkg "odoo$p4" "$p1 $p11")
-      fi
-      if [ -z "$p" ]; then
-        p=$(findpkg "openerp$p3$p4" "$p1 $p11")
-      fi
-    fi
-    echo "$p"
-}
 
 install_dev() {
     if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
@@ -1666,6 +1595,7 @@ clone_dependencies() {
 }
 
 run_svr_test_rm_ln() {
+#run_svr_test_rm_ln(wep|)
     if [ ${opt_virt:-0} -eq 0 ]; then
       local n=$(get_cfg_value "" "dbtemplate")
     else
@@ -1694,22 +1624,21 @@ run_svr_test_rm_ln() {
     if [ -f stdout.log ]; then
       chmod +rw stdout.log
     fi
-    # some version added some bug; here workaround |TODO solve trouble
+    # some version of local travis added some bug; here workaround |TODO solve actual trouble
     for d in ~/*; do
-      if [ -L $d ]; then
-        echo $d
-        rm -f $d
+      if [ -L $d ] && [ "$2" == "wep" -o "$d" != "/opt/odoo/maintainer-quality-tools" ]; then
+        run_traced "rm -f $d"
+      elif [ -d $d ] && [ "$2" == "wep" -o "$d" == "/opt/odoo/maintainer-quality-tools" ]; then
+        run_traced "rm -fR $d"
       fi
     done
     for d in account-financial-tools bank-payment dependencies l10n-italy LibrERP partner-contact reporting-engine web webkit-tools;do
       if [ -d ~/$d ]; then
-        echo $d
-        rm -fR ~/$d
+        run_traced "rm -fR ~/$d"
       fi
     done
     if [ -L ~/7.0/openerp/addons/decimal_precision ]; then
-      echo "rm -f ~/7.0/openerp/addons/decimal_precision"
-      rm -f ~/7.0/openerp/addons/decimal_precision
+      run_traced "rm -f ~/7.0/openerp/addons/decimal_precision"
     fi
 }
 

@@ -6,7 +6,7 @@
 # Deploy:
 # ~/dev                          -> this script
 # ~/dev/_travis                  -> default script (travis_runs_tests, travis_after_tests_success)
-# ~/maintainer-quality-tools -> actual scripts, mainly for Odoo environment by OCA; thery replaces default scripts
+# ~/maintainer-quality-tools -> actual scripts, mainly for Odoo environment by OCA; their replace default scripts
 # When developping travis emulator itself, deployment is:
 # ~/dev/pypi/travis_em/travis_em -> this script
 # ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_runs_tests, travis_after_tests_success)
@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.86
+__version__=0.1.86.4
 
 
 store_cfg_param_value() {
@@ -507,22 +507,36 @@ process_yaml_run_cmd() {
           xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
         fi
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
-        if [ ! -d $HOME/maintainer-quality-tools ]; then
-          local MQT_UPDT="2017-00-00"
-        else
-          local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+        # if [ ! -d $HOME/maintainer-quality-tools ]; then
+        #   local MQT_UPDT="2017-00-00"
+        # else
+        #   local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
+        # fi
+        # local curtm=$(date +"%Y-%m-%d")
+        # if [ "$curtm" == "$MQT_UPDT" ]; then
+        #   xcmd="# $xcmd"
+        # else
+        #   if [ -d $HOME/maintainer-quality-tools/ ]; then
+        #     run_traced "rm -fR $HOME/maintainer-quality-tools/"
+        #   fi
+        #   if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
+        #     sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+        #   else
+        #     echo "MQT_UPDT=$curtm">>$TCONF
+        #   fi
+        # fi
+        if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
+          run_traced "rm -fR $HOME/maintainer-quality-tools/"
+        elif [ -f $HOME/maintainer-quality-tools/ ]; then
+          run_traced "rm -f $HOME/maintainer-quality-tools"
         fi
-        local curtm=$(date +"%Y-%m-%d")
-        if [ "$curtm" == "$MQT_UPDT" ]; then
-          xcmd="# $xcmd"
-        else
-          if [ -d $HOME/maintainer-quality-tools/ ]; then
-            run_traced "rm -fR $HOME/maintainer-quality-tools/"
-          fi
-          if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
-            sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
+        if [ ! -L $HOME/maintainer-quality-tools/ ]; then
+          if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
+            xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
+          elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
+            xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
           else
-            echo "MQT_UPDT=$curtm">>$TCONF
+            xcmd="false"
           fi
         fi
       fi
