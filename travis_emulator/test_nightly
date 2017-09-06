@@ -21,41 +21,8 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.79.10
+__version__=0.1.79.11
 
-
-FCONF=$TDIR/.$THIS.conf
-
-# main
-OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
-OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
-OPTACTI=(1        "*>"      "*>"     1        1           "*>"     1           1        "*>"        1           1     1)
-OPTDEFL=(0        ""        ""       0        0           ""       0           0        ""          0           0     0)
-OPTMETA=("help"   "not_all" "nocld"  "cron"   "noop"      "odoo"   "replica"   "test"   "version"   "verbose"   "x"   "x")
-OPTHELP=("this help"\
- "do not execute all Odoo test"\
- "do not execute clodoo statements"\
- "run in cron environment"\
- "do nothing (dry-run)"\
- "run odoo burst tests"\
- "replica test on Production machine"\
- "show configuration and do nothing (dry-run)"\
- "show version"\
- "verbose mode"\
- "undocumented"\
- "do not upgrade this script")
- OPTARGS=(tgt)
-
-parseoptargs "$@"
-if [ "$opt_version" ]; then
-  echo "$__version__"
-  exit 0
-fi
-if [ $opt_help -gt 0 ]; then
-  print_help "Test nightly"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
-  exit 0
-fi
 
 detached_login() {
     if [ $opt_cron -gt 0 -a "$SHELL" == "/bin/sh" ]; then
@@ -599,6 +566,38 @@ conf_default() {
 }
 
 
+FCONF=$TDIR/.$THIS.conf
+
+# main
+OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
+OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
+OPTACTI=(1        "*>"      "*>"     1        1           "*>"     1           1        "*>"        1           1     1)
+OPTDEFL=(0        ""        ""       0        0           ""       0           0        ""          0           0     0)
+OPTMETA=("help"   "not_all" "nocld"  "cron"   "noop"      "odoo"   "replica"   "test"   "version"   "verbose"   "x"   "x")
+OPTHELP=("this help"\
+ "do not execute all Odoo test"\
+ "do not execute clodoo statements"\
+ "run in cron environment"\
+ "do nothing (dry-run)"\
+ "run odoo burst tests"\
+ "replica test on Production machine"\
+ "show configuration and do nothing (dry-run)"\
+ "show version"\
+ "verbose mode"\
+ "undocumented"\
+ "do not upgrade this script")
+ OPTARGS=(tgt)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Test nightly"\
+  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
 
 CFG_init
 conf_default
@@ -695,6 +694,7 @@ if [ $EUID -eq 0 ]; then
         vmware-config-tools.pl --default
         wlog "\$ pip install --upgrade pip"
         pip install --upgrade pip
+        # pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
         wlog "\$ pip install --upgrade --pre pylint-odoo"
         pip install --upgrade --pre pylint-odoo
         for f in $(pip list|awk '{print $1}'); do

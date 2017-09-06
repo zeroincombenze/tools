@@ -28,7 +28,9 @@ fi
 . $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.16.1
+
+
+__version__=0.1.16.3
 
 
 vf_init() {
@@ -128,8 +130,16 @@ localdiff() {
     local cparv=""
     local sts=$opt_sts
     if [ "$opt_sel" ]; then param="$param -s$opt_sel"; fi
-    if [ $opt_verbose -gt 0 ]; then param="$param -v"; fi
-    if [ $opt_verbose -eq 0 ]; then cparq="$cparq -q"; fi
+    if [ $opt_verbose -gt 0 ]; then
+      param="$param -v"
+    else
+      cparq="$cparq -q"
+    fi
+    if [ $opt_para -ne 0 ]; then
+      cparv="$cparv -y --suppress-common-lines"
+      param="$param -y"
+    fi
+    if [ "$opt_md" ]; then param="$param -m"; fi
     if [ -d $left ]; then
       for f in $(ls -1 $left); do
         if [ $opt_verbose -gt 1 ]; then
@@ -168,7 +178,17 @@ localdiff() {
       else
         if [ -f $right ]; then
           if [[ "$left" =~ $opt_sel ]]; then
-            run_traced "diff $cparv $left $right"
+            local mime=$(file -b --mime-type $left)
+            if [ $opt_md -ne 0  -a "$mime" == "text/x-python" -o "${left: -3}" == ".py" ]; then
+              if [ $opt_verbose -eq 0 ]; then
+                if diff -qZBI'^#' $left $right; then
+                  echo "diff -ZBI'^#' $cparv $left $right"
+                fi
+              fi
+              run_traced "diff -ZBI'^#' $cparv $left $right"
+            else
+              run_traced "diff $cparv $left $right"
+            fi
           else
             run_traced "diff $cparq $left $right"
           fi
@@ -387,15 +407,16 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        a       c        i       n            O         p         r            V           v           w        y        0       1       2)
-OPTDEST=(opt_help opt_all opt_conf opt_iar opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_igns opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       "="      1       1            "="       "="       "="          "*>"        1           1        1        0       1       1)
-OPTDEFL=(0        0       ""       0       0            ""        ""        ""           ""          0           0        0        0       0       0)
-OPTMETA=("help"   ""      "file"   ""      "do nothing" "version" "package" "repository" "version"   "verbose"   ""       "parall" ""      ""      "")
+OPTOPTS=(h        a       c        i       m      n            O         p         r            V           v           w        y        0       1       2)
+OPTDEST=(opt_help opt_all opt_conf opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_igns opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       "="      1       1      1            "="       "="       "="          "*>"        1           1        1        0       1       1)
+OPTDEFL=(0        0       ""       0       0      0            ""        ""        ""           ""          0           0        0        0       0       0)
+OPTMETA=("help"   ""      "file"   ""      ""     "do nothing" "version" "package" "repository" "version"   "verbose"   ""       "parall" ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
  "configuration file (def ~/dev/.travis.conf)"\
  "use internal algorithm rather than standard recursive diff"\
+ "ignore minor difference (i.e. remarks)"\
  "do nothing (dry-run)"\
  "select target Odoo version (may be 7, 8, 9 o 10)"\
  "select package name"\

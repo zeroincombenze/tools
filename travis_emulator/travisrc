@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.86.4
+#__version__=0.1.86.5
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -533,7 +533,8 @@ conf_default() {
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
     set_cfg_def "RUN_travis_run_tests" "travis_run_tests"
     set_cfg_def "RUN_travis_after_tests_success" "travis_after_tests_success"
-    set_cfg_def "EM_travis_install_nightly" "clone_oca_dependencies \${1}/oca_dependencies.txt"
+    # set_cfg_def "EM_travis_install_nightly" "clone_oca_dependencies \${1}/oca_dependencies.txt"
+    set_cfg_def "EM_travis_install_nightly" "emulate_install_nightly \${1}/oca_dependencies.txt"
     # set_cfg_def "EM_travis_run_tests" "true"
     set_cfg_def "EM_travis_after_tests_success" "init_travis; run_coverage_test"
     set_cfg_def "dbtemplate" "openerp_template"
@@ -556,7 +557,7 @@ conf_default() {
       set_cfg_def "upgrade_dow" "4"
     fi
     set_cfg_def "Environment" "bash"
-    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
+    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
@@ -1484,6 +1485,11 @@ cp_n_upd_conf() {
       fi
       echo "$line">>$tgt
     done < "$confn"
+}
+
+emulate_install_nightly() {
+    run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
+    clone_oca_dependencies $1
 }
 
 clone_1_dependence() {

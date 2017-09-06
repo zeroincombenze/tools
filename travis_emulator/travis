@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.86.4
+__version__=0.1.86.5
 
 
 store_cfg_param_value() {
@@ -525,18 +525,20 @@ process_yaml_run_cmd() {
         #     echo "MQT_UPDT=$curtm">>$TCONF
         #   fi
         # fi
-        if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
-          run_traced "rm -fR $HOME/maintainer-quality-tools/"
-        elif [ -f $HOME/maintainer-quality-tools/ ]; then
-          run_traced "rm -f $HOME/maintainer-quality-tools"
-        fi
-        if [ ! -L $HOME/maintainer-quality-tools/ ]; then
-          if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
-            xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
-          elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
-            xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
-          else
-            xcmd="false"
+        if [ ${opt_virt:-0} -eq 0 ]; then
+          if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
+            run_traced "rm -fR $HOME/maintainer-quality-tools/"
+          elif [ -f $HOME/maintainer-quality-tools/ ]; then
+            run_traced "rm -f $HOME/maintainer-quality-tools"
+          fi
+          if [ ! -L $HOME/maintainer-quality-tools/ ]; then
+            if [ -d $HOME/tools/maintainer-quality-tools/ ]; then
+              xcmd="ln -s $HOME/tools/maintainer-quality-tools/ $HOME"
+            elif [ -d $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
+              xcmd="ln -s $HOME/pypi/maintainer-quality-tools/maintainer-quality-tools/ $HOME"
+            else
+              xcmd="false"
+            fi
           fi
         fi
       fi
@@ -715,9 +717,6 @@ process_yaml() {
          fi
       done
       wlog "===== [Initialize] ====="
-      if [ "$PRJNAME" == "Odoo" ]; then
-        run_traced "# pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
-      fi
       for p in ${!PIPPKGVER[*]}; do
         lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
         if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
