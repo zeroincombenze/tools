@@ -32,162 +32,8 @@ import tokenize
 __version__ = "0.1.15"
 
 
-ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
-ISDOCSEP1 = re.compile('"""')
-ISDOCSEP2 = re.compile("'''")
-IS_ASSIGN = re.compile('[a-zA-Z_][a-zA-Z0-9_]* *=')
-IS_ASSIGN_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]* *=')
-IS_DEF = re.compile('def +')
-IS_CLASS = re.compile('class +')
-
-
-RULES = r"""
-*IS*        ^ *class.*[:tok:]
- v60        osv.osv_memory
- v61        orm.TransientModel
- v100       models.TransientModel
-*IS*        ^ *class.*[:tok:]
- v60        osv.osv
- v61        orm.Model
- v100       models.Model
-*IS*        import .*[:tok:]
- v60        osv
- v61        orm
- v100       models
-*IS*        ^from [:tok:]
- v60        osv
- v61        openerp.osv
- v100       odoo
-*IS*        ^[:tok:]
- v60        from tools.translate import
- v61        from openerp.tools.translate import
- v100       from odoo.tools.translate import
-*IS*        ^[:tok:]
- v60        import decimal_precision
- v80        import openerp.addons.decimal_precision
- v100       import odoo.addons.decimal_precision
-*IS*        ^[:tok:]
- v60        import openerp.addons.decimal_precision
- v80        from openerp.addons.decimal_precision import decimal_precision
- v100       from odoo.addons.decimal_precision import decimal_precision
-*IS*        ^import (api|exceptions|fields|http|loglevels|models|netsvc|\
-pooler|release|sql_db)
- v60        import
- v61        from openerp import
- v100       from odoo import
-*IS*        ^from (openerp|odoo)\.addons\.web import http
- v60        from openerp.addons.web import http
- v100       from odoo import http
-*IS*        ^.*import (openerp|odoo)\.addons\.web\.http
- v60        openerp.addons.web.http
- v100       odoo.http
-*IS*        ^[:tok:]
- v60        from openerp import
- v100       from odoo import
-*IS*        ^ *class\.*orm\.
- v60        orm
- v100       models
-*IS*        [:tok:]
- v60        osv.except_osv
- v100       UserError
-*IS*        [:tok:]
- v60        openerp.tools.config
- v100       odoo.tools.config
-*IS*   #    openerp.com
- v0         odoo.com
-*IS*   #    OpenERP
- v0         Odoo
-*IS*   #    openerp-italia.org
- v0         odoo-italia.org
-*IS*   #    formerly Odoo
- v0         formerly OpenERP
-*IS*   -u   class [\w.]+\((TransactionCase|SingleTransactionCase|RpcCase)\)
- v0         &
-*IS*   +2   ^[a-zA-Z_][\w.]* *\(
- v0         &
-*IS*   +2   ^if __name__ == .__main__.:
- v0         &
-*IS*   +2   ^def +
- v0         &
-*IS*   +2   ^class +
- v0         &
-*IS*   *2   ^[a-zA-Z_][\w.]* *=
- v0         &
-#
-*IS*   +B   ^ +tndb\.
- v0         # tndb.
-*IS*   +b   ^from tndb
- v0         # from tndb
-*IS*   +b   ^ +pdb\.
- v0         # pdb.
-*IS*   +b   ^import pdb
- v0         # import pdb
-*IS*   -B   # tndb\.
- v0         tndb.
-*IS*   -b   # from tndb
- v0         from tndb
-*IS*   -b   # pdb
- v0         pdb
-*IS*   -b   # import pdb
- v0         import pdb
-*IS*   ||   ^ +or *
- v0         &
-*IS*   &&   ^ +and *
- v0         &
-*IS*   ^+   ^ +\+ *
- v0         &
-*IS*   ^-   ^ +- *
- v0         &
-*IS*  del1  if context is None:
- v0         context = {} if context is None else context
-*IS*  del1  if ctx is None:
- v0         ctx = {} if ctx is None else ctx
-*IS*   -u1  \.search\(
- v0         &
-*IS*   -u1  \.env\[
- v0         &
-*IS*   -u1  \.write\(
- v0         &
-*IS*   -u1  \.create\(
- v0         &
-*IS*   -u1  \.browse\(
- v0         &
-*IS*   -u1  \.unlink\(
- v0         &
-*IS*   -u1  \.find\(\)
- v0         &
-*IS*   -u1  \.env\.ref\(
- v0         &
-"""
-
-SPEC_SYNTAX = {
-    'equ1': [True, '='],
-    'equ2': [True, '.', True, '='],
-    'env1': ['self', '.', 'env', '['],
-    'env2': ['self', '.', 'env', '.', 'ref', '('],
-    'icr1': ['self', '.', True, '.', 'search', '('],
-    'icr2': ['self', '.', True, '.', 'write', '('],
-    'icr3': ['self', '.', True, '.', 'create', '('],
-    'icr4': ['self', '.', True, '.', 'browse', '('],
-    'icr5': ['self', '.', True, '.', 'unlink', '('],
-    'icr6': ['self', '.', True, '.', 'find', '('],
-    'clo1': [')', ],
-    'clo2': [']', ],
-    'clo3': ['}', ],
-    'clo4': [')', '.', True],
-}
-
-IS_BADGE = {}
-IS_BADGE_TXT = {}
-META = {}
-RID = {}
-REPL_CTRS = {}
-SRC_TOKENS = {}
-TGT_TOKENS = {}
-LAST_RID = -1
-
-
 class topep8():
+
     def __init__(self, src_filepy):
         self.src_filepy = src_filepy
         fd = open(src_filepy, 'rb')
@@ -542,9 +388,10 @@ class topep8():
                      (srow, scol),
                      (erow, ecol)) in enumerate(self.tokenized):
             toktype = self.wash_toktype(toktype, tokval)
-            if toktype in self.ghost:
+            if self.any_paren and toktype in self.ghost:
                 continue
-            # print ">>> %s(%s)" % (tokval, toktype)  # debug
+            if ctx['opt_dbg']:
+                print ">>> %s(%s)" % (tokval, toktype)
             completed = []
             reset = []
             for ir in self.SYTX_KEYW.keys():
@@ -560,14 +407,18 @@ class topep8():
                     if ver <= ctx['to_ver']:
                         tgt_tkns = self.SYTX_PRMS[ir][ver]
                         break
+                # rule parse ended
                 if self.syntax_state[ir] < 0 or \
                         self.syntax_state[ir] >= len(keyw):
                     pass
+                # rule child of parent rule
                 elif tokv[self.syntax_state[ir]] == tokenize.SUBRULE:
                     self.syntax_state[ir] = self.toggle_state(
                         self.syntax_state[ir])
+                # any token is valid
                 elif tokv[self.syntax_state[ir]] == tokenize.ANY:
                     self.syntax_state[ir] += 1
+                # zero, one or more tokens are valid until next match
                 elif tokv[self.syntax_state[ir]] == tokenize.MORE:
                     self.syntax_state[ir] += 1
                     self.syntax_more[ir] = True
@@ -579,6 +430,7 @@ class topep8():
                         if toktype == tokv[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
+                # expression: match until right paren at the same level
                 elif tokv[self.syntax_state[ir]] == tokenize.EXPR:
                     self.syntax_state[ir] += 1
                     self.syntax_more[ir] = self.any_paren + 1
@@ -590,6 +442,7 @@ class topep8():
                         if toktype == tokv[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
+                # matching more ...
                 elif self.syntax_more[ir]:
                     if isinstance(self.syntax_more[ir], bool) or \
                             self.syntax_more[ir] == self.any_paren + 1:
@@ -601,6 +454,7 @@ class topep8():
                             if toktype == tokv[self.syntax_state[ir]]:
                                 self.syntax_state[ir] += 1
                                 self.syntax_more[ir] = False
+                # exact text match
                 elif keyw[self.syntax_state[ir]]:
                     if tokval == keyw[self.syntax_state[ir]]:
                         self.syntax_state[ir] += 1
@@ -608,6 +462,7 @@ class topep8():
                         self.syntax_state[ir] = 0
                         reset.append(ir)
                 elif toktype:
+                    # match token type
                     if toktype == tokv[self.syntax_state[ir]]:
                         if src_tkns and tokval in src_tkns:
                             ix = src_tkns.index(tokval)
@@ -615,26 +470,35 @@ class topep8():
                                 self.syntax_replacement[ir] = {}
                             self.syntax_replacement[ir][tokeno] = tgt_tkns[ix]
                         self.syntax_state[ir] += 1
+                    # does not match
                     else:
                         self.syntax_state[ir] = 0
                         reset.append(ir)
+                # token matches
                 else:
                     # print "    else: self.syntax_state[ir] += 1"   # debug
                     self.syntax_state[ir] += 1
                 if self.syntax_state[ir] >= len(keyw):
                     completed.append(ir)
             for ir in self.SYTX_KEYW.keys():
+                # rule finally matches
                 if ir in completed:
-                    # print "    match_parent_rule(%s, True)" % (ir)  # debug
+                    if ctx['opt_dbg']:
+                        print "    match_parent_rule(%s, True)" % (ir)
                     self.match_parent_rule(ir, True)
+                    # replace src text by replacements
                     for i in self.syntax_replacement[ir]:
                         self.replacements[i] = self.syntax_replacement[ir][i]
                     self.syntax_replacement[ir] = {}
                     self.syntax_state[ir] = 0
+                # rule does not match
                 elif ir in reset:
-                    # print "    match_parent_rule(%s, False)" % (ir)  # debug
+                    if ctx['opt_dbg']:
+                        print "    match_parent_rule(%s, False)" % (ir)
                     self.match_parent_rule(ir, False)
                     self.syntax_replacement[ir] = {}
+                elif ctx['opt_dbg']:
+                    print "    match_rule(%s, evaluating)" % (ir)
             # yield toktype, tokval
 
     def apply_for_rules(self, ctx=None):
@@ -745,6 +609,10 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
+    parser.add_argument('-D', '--show-debug',
+                        action='store_true',
+                        dest='opt_dbg',
+                        default=False)
     parser.add_argument('-G', '--gpl-info',
                         action='store_true',
                         dest='opt_gpl',
