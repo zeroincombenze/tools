@@ -289,6 +289,13 @@ class topep8():
         except:
             pass
 
+    def set_rulefn(self, rule_file):
+        if rule_file.endswith('.py'):
+            rule_file = rule_file[0:-3] + '.2p8'
+        else:
+            rule_file += '.2p8'
+        return rule_file
+
     def compile_rules(self, ctx):
         self.SYTX_KEYW = {}
         self.SYTX_TOKV = {}
@@ -310,12 +317,8 @@ class topep8():
         tokenize.EXPR = tokenize.N_TOKENS + 21
         tokenize.tok_name[tokenize.EXPR] = 'EXPR'
         #
-        rule_file = ctx['src_filepy']
-        if rule_file.endswith('.py'):
-            rule_file = rule_file[0:-3] + '.2p8'
-        else:
-            rule_file += '.2p8'
-        self.read_rules_from_file(rule_file, ctx)
+        self.read_rules_from_file(self.set_rulefn(sys.argv[0]), ctx)
+        self.read_rules_from_file(self.set_rulefn(ctx['src_filepy']), ctx)
 
     def match_parent_rule(self, ir, result):
         for ir1 in self.SYTX_KEYW.keys():
