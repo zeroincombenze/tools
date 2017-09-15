@@ -21,7 +21,7 @@
 """Convert src python to PEP8 with OCA rules
 """
 
-# import pdb
+import pdb
 # import os
 import sys
 import re
@@ -74,7 +74,28 @@ class topep8():
     def init_rules(self):
         self.ghost = [tokenize.INDENT,  tokenize.DEDENT,
                       tokenize.NEWLINE, tokenize.NL]
-        self.SYNTAX = {
+        self.SYNTAX = ['space',
+                       'escape',
+                       'lparen',
+                       'rparen',
+                       'lbrace',
+                       'rbrace',
+                       'lbracket',
+                       'rbracket',
+                       'dot',
+                       'comma',
+                       'colon',
+                       'assign',
+                       'op',
+                       'strdoc1',
+                       'strdoc2',
+                       'string1',
+                       'string2',
+                       'remark_eol',
+                       'fullname',
+                       'int',
+                       'name' ]
+        self.SYNTAX_RE = {
             'space': re.compile(r'\s+'),
             'escape': re.compile(r'\$'),
             'lparen': re.compile(r'\('),
@@ -83,20 +104,21 @@ class topep8():
             'rbrace': re.compile(r'\]'),
             'lbracket': re.compile(r'\{'),
             'rbracket': re.compile(r'\}'),
-            'name': re.compile(r'[a-zA-Z_]\w*'),
-            'isdigit': re.compile(r'[\d]+'),
-            'begdoc1': re.compile(r'"""'),
-            'begdoc2': re.compile(r'"""'),
-            'begremark': re.compile(r'#'),
-            'begtxt1': re.compile(r'"{1,2}($|[^"])'),
-            'endtxt1': re.compile(r'("[^"]*")'),
-            'begtxt2': re.compile(r"'{1,2}($|[^'])"),
-            'endtxt2': re.compile(r"('[^']*')"),
             'dot': re.compile(r'\.'),
             'comma': re.compile(r','),
             'colon': re.compile(r':'),
             'assign': re.compile(r'='),
-            'op': re.compile(r'[-\\!%&+/|^?<=>]+'),
+            'op': re.compile(r'[-\\!%&+/|^?<>]+'),
+            'strdoc1': re.compile(r'"""'),
+            'strdoc2': re.compile(r"'''"),
+            'string1': re.compile(r'"{1,2}($|[^"])'),
+            'endstr1': re.compile(r'("[^"]*")'),
+            'string2': re.compile(r"'{1,2}($|[^'])"),
+            'endstr2': re.compile(r"('[^']*')"),
+            'remark_eol': re.compile(r'#'),
+            'fullname': re.compile(r'([a-zA-Z_]\w*|\.)+'),
+            'int': re.compile(r'[\d]+'),
+            'name': re.compile(r'[a-zA-Z_]\w*'),
         }
 
     def readline(self):
@@ -131,7 +153,7 @@ class topep8():
 
     def parse_escape_rule(self, value, ipos):
         i = ipos
-        x = self.SYNTAX['name'].match(value[i + 1:])
+        x = self.SYNTAX_RE['name'].match(value[i + 1:])
         ipos += x.end() + 1
         tokval = value[i + 1:ipos]
         if tokval in ('name', 'any', 'more', 'expr'):
@@ -147,7 +169,7 @@ class topep8():
         i = ipos
         x = True
         while x:
-            x = self.SYNTAX['endtxt1'].match(value[ipos:])
+            x = self.SYNTAX_RE['endstr1'].match(value[ipos:])
             if x:
                 ipos += x.end()
                 if value[ipos:ipos + 1] == r'\"':
@@ -164,7 +186,7 @@ class topep8():
         i = ipos
         x = True
         while x:
-            x = self.SYNTAX['endtxt2'].match(value[ipos:])
+            x = self.SYNTAX_RE['endstr2'].match(value[ipos:])
             if x:
                 ipos += x.end()
                 if value[ipos:ipos + 1] == r"\'":
@@ -185,7 +207,7 @@ class topep8():
         while ipos < len(value):
             unknown = True
             for istkn in self.SYNTAX:
-                x = self.SYNTAX[istkn].match(value[ipos:])
+                x = self.SYNTAX_RE[istkn].match(value[ipos:])
                 if x:
                     unknown = False
                     toktype = False
@@ -196,19 +218,19 @@ class topep8():
                     elif istkn == 'escape':
                         toktype, tokval, ipos = self.parse_escape_rule(value,
                                                                        ipos)
-                    elif istkn == 'begremark':
+                    elif istkn == 'remark_eol':
                         ipos = len(value)
                         tokval = value[i:ipos]
                         toktype = tokenize.COMMENT
-                    elif istkn in ('begdoc1',
-                                   'begdoc2'):
+                    elif istkn in ('strdoc1',
+                                   'strdoc2'):
                         ipos = len(value)
                         tokval = value[i:ipos]
                         toktype = tokenize.DOC
-                    elif istkn == 'begtxt1':
+                    elif istkn == 'string1':
                         toktype, tokval, ipos = self.parse_txt1_rule(value,
                                                                      ipos)
-                    elif istkn == 'begtxt2':
+                    elif istkn == 'string2':
                         toktype, tokval, ipos = self.parse_txt2_rule(value,
                                                                      ipos)
                     elif istkn == 'name':
@@ -226,7 +248,7 @@ class topep8():
             if toktype:
                 keyw.append(tokval)
                 tokv.append(toktype)
-        if self.SYNTAX['isdigit'].match(meta):
+        if self.SYNTAX_RE['int'].match(meta):
             ver = eval(meta)
             if ir in self.SYTX_KEYW:
                 self.init_rule_prms(ir)
