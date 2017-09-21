@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.86.5
+__version__=0.1.86.6
 
 
 store_cfg_param_value() {
@@ -813,17 +813,17 @@ process_yaml_echo() {
 
 checkpid() {
     [ -f $1 ] || return 1
-    local pid=`cat $1`
+    local pid=$(cat $1)
     [ -d /proc/$pid ] && return 0
     return 1
 }
 
 
-OPTOPTS=(h        b          c        f         H        j        k        m       n            q           r     V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_keep opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose)
-OPTACTI=(1        "="        "="      1         1        1        1        1       "1>"         0           1     "*>"        "+")
-OPTDEFL=(0        10.0       ""       0         -1       0        0        0       0            -1          0     ""          -1)
-OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""       ""      "do nothing" "verbose"   "res" "version"   "verbose")
+OPTOPTS=(h        b          c        f         H        j        k        m       n            q           r     V           v           w)
+OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_keep opt_mis opt_dry_run  opt_verbose opt_r opt_version opt_verbose opt_wait)
+OPTACTI=(1        "="        "="      1         1        1        1        1       "1>"         0           1     "*>"        "+"         1)
+OPTDEFL=(0        10.0       ""       0         -1       0        0        0       0            -1          0     ""          -1          0)
+OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""       ""      "do nothing" "verbose"   "res" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 or 10.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
@@ -836,7 +836,8 @@ OPTHELP=("this help"\
  "silent mode"\
  "run restricted mode (w/o parsing travis.yml file)"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "wait for another instance running")
 OPTARGS=(pkg action sub)
 
 parseoptargs "$@"
@@ -951,12 +952,25 @@ if [ $sts -eq $STS_SUCCESS ]; then
   if [ ${opt_virt:-0} -eq 0 ]; then
     PIDFILE=$(get_cfg_value "" "PIDFILE")
     PIDFILE=$(expand_path "$PIDFILE")
-    checkpid "$PIDFILE"
-    sts=$?
-    if [ $sts -eq 0 ]; then
-      echo "Another instance of travis emulator is running"
-      exit $sts
+    if [ $opt_wait -ne 0 ]; then
+      ctr=1440
+    else
+      ctr=1
     fi
+    while [ $ctr -gt 0 ]; do
+      checkpid "$PIDFILE"
+      sts=$?
+      if [ $sts -eq 0 ]; then
+        echo "Another instance of travis emulator is running"
+        ((ctr--))
+        if [ $ctr -eq 0 ]; then
+          exit $sts
+        fi
+        sleep 60
+      else
+        break
+      fi
+    done
     echo $$>$PIDFILE
   fi
   if [ $opt_r -gt 0 ]; then

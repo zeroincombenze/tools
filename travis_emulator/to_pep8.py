@@ -43,10 +43,10 @@ class topep8():
         self.init_parse()
         self.init_rules()
         self.tokenized = []
-        for (toktype, tokval,
+        for (tokid, tokval,
              (srow, scol),
              (erow, ecol), line) in tokenize.generate_tokens(self.readline):
-            self.tokenized.append([toktype, tokval,
+            self.tokenized.append([tokid, tokval,
                                    (srow, scol),
                                    (erow, ecol)])
 
@@ -65,13 +65,25 @@ class topep8():
         self.prev_col = 0
         self.tokeno = 0
 
-    def toggle_state(self, state):
-        return -1 - state
+    def suspend_state(self, ir):
+        """Set rule state to suspended"""
+        self.syntax_state[ir] = -1 - self.syntax_state[ir]
+        return self.syntax_state[ir]
 
-    def valid_state(self, state):
-        return abs(state + 1)
+    def active_state(self, ir):
+        """Set rule state to active"""
+        self.syntax_state[ir] = abs(self.syntax_state[ir] + 1)
+        return self.syntax_state[ir]
+
+    def cur_valid_state(self, ir):
+        return abs(self.syntax_state[ir] + 1)
+
+    def next_state(self, ir):
+        self.syntax_state[ir] += 1
+        return self.syntax_state[ir]
 
     def init_rules(self):
+        """Configuration .2p8 file syntax initialization"""
         self.ghost = [tokenize.INDENT,  tokenize.DEDENT,
                       tokenize.NEWLINE, tokenize.NL]
         self.SYNTAX = ['space',
@@ -109,12 +121,14 @@ class topep8():
             'colon': re.compile(r':'),
             'assign': re.compile(r'='),
             'op': re.compile(r'[-\\!%&+/|^?<>]+'),
-            'strdoc1': re.compile(r'"""'),
-            'strdoc2': re.compile(r"'''"),
-            'string1': re.compile(r'"{1,2}($|[^"])'),
-            'endstr1': re.compile(r'("[^"]*")'),
-            'string2': re.compile(r"'{1,2}($|[^'])"),
-            'endstr2': re.compile(r"('[^']*')"),
+            'strdoc1': re.compile(r"'''"),
+            'strdoc2': re.compile(r'"""'),
+            'string1': re.compile(r"'{1,2}($|[^'])"),
+            'endstr1': re.compile(r"('[^']*')"),
+            'escstr1': r"\'",
+            'string2': re.compile(r'"{1,2}($|[^"])'),
+            'endstr2': re.compile(r'("[^"]*")'),
+            'escstr2': r'\"',
             'remark_eol': re.compile(r'#'),
             'fullname': re.compile(r'([a-zA-Z_]\w*|\.)+'),
             'int': re.compile(r'[\d]+'),
@@ -122,6 +136,7 @@ class topep8():
         }
 
     def readline(self):
+        """Read next source line"""
         if self.lineno < len(self.lines):
             line = self.lines[self.lineno] + '\n'
             self.lineno += 1
@@ -139,17 +154,47 @@ class topep8():
         if ir not in self.SYTX_PRMS:
             self.SYTX_PRMS[ir] = {}
 
-    def init_rule_tokv(self, ir):
-        if ir not in self.SYTX_TOKV:
-            self.SYTX_TOKV[ir] = []
-        for i, t in enumerate(self.SYTX_KEYW[ir]):
-            if i >= len(self.SYTX_TOKV[ir]):
-                self.SYTX_TOKV[ir].append(tokenize.NOOP)
+    def init_rule_keyids(self, ir):
+        if ir not in self.SYTX_KEYIDS:
+            self.SYTX_KEYIDS[ir] = []
+        for i, t in enumerate(self.SYTX_KEYWORDS[ir]):
+            if i >= len(self.SYTX_KEYIDS[ir]):
+                self.SYTX_KEYIDS[ir].append(tokenize.NOOP)
 
     def init_rule_all(self, ir):
         self.init_rule_state(ir)
         self.init_rule_prms(ir)
-        self.init_rule_tokv(ir)
+        self.init_rule_keyids(ir)
+
+    def check_rule_integrity(self):
+        """Check for rule integrity"""
+        for ir in self.SYTX_KEYWORDS.keys():
+            if ir not in self.SYTX_PRMS[ir]:
+                print "Invalid rule (%s)" % (ir)
+
+    def store_rule(self, ir, keywords, keyids):
+        self.SYTX_KEYWORDS[ir] = keywords
+        self.SYTX_KEYIDS[ir] = keyids
+
+    def store_meta_subrule(self, ir, meta, keywords, keyids):
+        ver = eval(meta)
+        if ir in self.SYTX_KEYWORDS:
+            self.init_rule_prms(ir)
+            self.SYTX_PRMS[ir][ver] = keywords
+        else:
+            print "Invalid rule %s[%s]" % (ir, meta)
+
+    def get_key_n_id_from_rule(self, ir):
+        return self.SYTX_KEYWORDS[ir], self.SYTX_KEYIDS[ir]
+
+    def get_prms_from_rule(self, ir, meta):
+        """Get params of rule matches version <meta>"""
+        prms = False
+        for ver in sorted(self.SYTX_PRMS[ir], reverse=True):
+            if ver <= meta:
+                prms = self.SYTX_PRMS[ir][ver]
+                break
+        return prms
 
     def parse_escape_rule(self, value, ipos):
         i = ipos
@@ -157,13 +202,13 @@ class topep8():
         ipos += x.end() + 1
         tokval = value[i + 1:ipos]
         if tokval in ('name', 'any', 'more', 'expr'):
-            toktype = getattr(tokenize, tokval.upper())
+            tokid = getattr(tokenize, tokval.upper())
             tokval = False
         else:
             print "Unknown token %s" % value[i:]
             tokval = False
-            toktype = tokenize.SUBRULE
-        return toktype, tokval, ipos
+            tokid = tokenize.SUBRULE
+        return tokid, tokval, ipos
 
     def parse_txt1_rule(self, value, ipos):
         i = ipos
@@ -172,15 +217,15 @@ class topep8():
             x = self.SYNTAX_RE['endstr1'].match(value[ipos:])
             if x:
                 ipos += x.end()
-                if value[ipos:ipos + 1] == r'\"':
+                if value[ipos:ipos + 1] == self.SYNTAX_RE['escstr1']:
                     ipos += 1
                 else:
                     x = None
             else:
                 ipos = len(value)
         tokval = value[i:ipos]
-        toktype = tokenize.STRING
-        return toktype, tokval, ipos
+        tokid = tokenize.STRING
+        return tokid, tokval, ipos
 
     def parse_txt2_rule(self, value, ipos):
         i = ipos
@@ -189,20 +234,25 @@ class topep8():
             x = self.SYNTAX_RE['endstr2'].match(value[ipos:])
             if x:
                 ipos += x.end()
-                if value[ipos:ipos + 1] == r"\'":
+                if value[ipos:ipos + 1] == self.SYNTAX_RE['escstr2']:
                     ipos += 1
                 else:
                     x = None
             else:
                 ipos = len(value)
         tokval = value[i:ipos]
-        toktype = tokenize.STRING
-        return toktype, tokval, ipos
+        tokid = tokenize.STRING
+        return tokid, tokval, ipos
 
     def compile_1_rule(self, ir, meta, value):
+        """Compile current rule <ir> for version <meta> parsing <value>
+        All rules are stored in self.SYTX_* variables
+        self.SYTX_KEYWORDS -> dict of every rule keywords
+        self.SYTX_KEYIDS -> dict of every kwyword id as from tokenizer package
+        self.SYTX_PRMS -> dict of params in every version <meta>"""
         # pdb.set_trace()
-        keyw = []
-        tokv = []
+        keywords = []
+        keyids = []
         ipos = 0
         while ipos < len(value):
             unknown = True
@@ -210,61 +260,58 @@ class topep8():
                 x = self.SYNTAX_RE[istkn].match(value[ipos:])
                 if x:
                     unknown = False
-                    toktype = False
+                    tokid = False
                     i = ipos
                     if istkn in ('space', ):
                         ipos += x.end()
                         continue
                     elif istkn == 'escape':
-                        toktype, tokval, ipos = self.parse_escape_rule(value,
+                        tokid, tokval, ipos = self.parse_escape_rule(value,
                                                                        ipos)
                     elif istkn == 'remark_eol':
+                        i += x.end()
                         ipos = len(value)
-                        tokval = value[i:ipos]
-                        toktype = tokenize.COMMENT
+                        tokval = value[i:ipos].strip()
+                        tokid = tokenize.COMMENT
                     elif istkn in ('strdoc1',
                                    'strdoc2'):
+                        i += x.end()
                         ipos = len(value)
-                        tokval = value[i:ipos]
-                        toktype = tokenize.DOC
+                        tokval = value[i:ipos].strip()
+                        tokid = tokenize.DOC
                     elif istkn == 'string1':
-                        toktype, tokval, ipos = self.parse_txt1_rule(value,
+                        tokid, tokval, ipos = self.parse_txt1_rule(value,
                                                                      ipos)
                     elif istkn == 'string2':
-                        toktype, tokval, ipos = self.parse_txt2_rule(value,
+                        tokid, tokval, ipos = self.parse_txt2_rule(value,
                                                                      ipos)
                     elif istkn == 'name':
                         ipos += x.end()
                         tokval = value[i:ipos]
-                        toktype = tokenize.NAME
+                        tokid = tokenize.NAME
                     else:
                         ipos += x.end()
                         tokval = value[i:ipos]
-                        toktype = tokenize.OP
+                        tokid = tokenize.OP
                     break
             if unknown:
                 print "Unknown token %s" % value[ipos:]
                 ipos += 1
-            if toktype:
-                keyw.append(tokval)
-                tokv.append(toktype)
-        if self.SYNTAX_RE['int'].match(meta):
-            ver = eval(meta)
-            if ir in self.SYTX_KEYW:
-                self.init_rule_prms(ir)
-                self.SYTX_PRMS[ir][ver] = keyw
-            else:
-                print "Invalid rule %s[%s]" % (ir, meta)
+            if tokid:
+                keywords.append(tokval)
+                keyids.append(tokid)
+        # match rule against version
+        if meta and self.SYNTAX_RE['int'].match(meta):
+            self.store_meta_subrule(ir, meta, keywords, keyids)
         else:
-            self.SYTX_KEYW[ir] = keyw
-            self.SYTX_TOKV[ir] = tokv
+            self.store_rule(ir, keywords, keyids)
         self.init_rule_all(ir)
 
-    def extr_tokens_from_line(self, rule, value, cont_break):
+    def extr_tokens_from_line(self, rule, meta, value, cont_break):
         if rule[-1] == '\n':
             rule = rule[0: -1]
         id = False
-        meta = False
+        # meta = False
         if not rule:
             pass
         elif rule[0] == '#':
@@ -272,6 +319,7 @@ class topep8():
         elif cont_break:
             value += rule
         else:
+            cont_break = False
             i = rule.find(':')
             if i < 0:
                 value += rule
@@ -280,7 +328,7 @@ class topep8():
                 value = rule[i + 1:].lstrip()
                 i = left.find('[')
                 if i < 0:
-                    meta = ''
+                    meta = False
                     id = left
                 else:
                     j = left.find(']')
@@ -291,8 +339,6 @@ class topep8():
         if value and value[-1] == '\\':
             value = value[0:-1]
             cont_break = True
-        else:
-            cont_break = False
         return id, meta, value, cont_break
 
     def read_rules_from_file(self, rule_file, ctx):
@@ -303,11 +349,12 @@ class topep8():
             cont_break = False
             for rule in fd:
                 id, meta, value, cont_break = self.extr_tokens_from_line(
-                    rule, value, cont_break)
-                if not id:
+                    rule, meta, value, cont_break)
+                if not id or cont_break:
                     continue
                 self.compile_1_rule(id, meta, value)
             fd.close()
+            self.check_rule_integrity()
         except:
             pass
 
@@ -319,13 +366,15 @@ class topep8():
         return rule_file
 
     def compile_rules(self, ctx):
-        self.SYTX_KEYW = {}
-        self.SYTX_TOKV = {}
+        self.SYTX_KEYWORDS = {}
+        self.SYTX_KEYIDS = {}
         self.SYTX_PRMS = {}
         self.syntax_state = {}
         self.syntax_more = {}
-        self.syntax_replacement = {}
-        self.replacements = {}
+        self.rule_re_matches = {}
+        self.rule_re_replaces = {}
+        self.re_matches = []
+        self.re_replaces = {}
         tokenize.NOOP = tokenize.N_TOKENS + 16
         tokenize.tok_name[tokenize.NOOP] = 'NOOP'
         tokenize.SUBRULE = tokenize.N_TOKENS + 17
@@ -343,37 +392,34 @@ class topep8():
         self.read_rules_from_file(self.set_rulefn(ctx['src_filepy']), ctx)
 
     def match_parent_rule(self, ir, result):
-        for ir1 in self.SYTX_KEYW.keys():
+        for ir1 in self.SYTX_KEYWORDS.keys():
             if ir1 == ir:
                 continue
-            keyw = self.SYTX_KEYW[ir1]
-            tokv = self.SYTX_TOKV[ir1]
-            if self.valid_state(self.syntax_state[ir]) >= len(tokv):
+            keywords, tokids = self.get_key_n_id_from_rule(ir)
+            if self.cur_valid_state(ir) >= len(keyids):
                 continue
-            if tokv[self.valid_state(
-                    self.syntax_state[ir])] == tokenize.SUBRULE and \
-                    keyw[self.valid_state(self.syntax_state[ir])] == ir:
-                self.syntax_state[ir] = self.toggle_state(
-                    self.syntax_state[ir])
+            if keyids[self.active_state(ir)] == tokenize.SUBRULE and \
+                    keywords[self.active_state(ir)] == ir:
+                suspend_state(ir)
                 if result:
                     self.syntax_state[ir] += 1
                 else:
                     self.syntax_state[ir] = 0
                 self.match_parent_rule(ir1, result)
 
-    def wash_toktype(self, toktype, tokval):
-        if toktype == tokenize.INDENT:
+    def wash_tokid(self, tokid, tokval):
+        if tokid == tokenize.INDENT:
             self.deep_level += 1
-        elif toktype == tokenize.DEDENT:
+        elif tokid == tokenize.DEDENT:
             self.deep_level -= 1
-        if toktype == tokenize.NL:
+        if tokid == tokenize.NL:
             pass
-        elif toktype == tokenize.NEWLINE:
+        elif tokid == tokenize.NEWLINE:
             pass
-        elif toktype == tokenize.STRING and self.blk_header:
+        elif tokid == tokenize.STRING and self.blk_header:
             if tokval[0:3] == '"""' or tokval[0:3] == "'''":
-                toktype = tokenize.DOC
-        elif toktype == tokenize.OP:
+                tokid = tokenize.DOC
+        elif tokid == tokenize.OP:
             if tokval == '(':
                 self.paren_ctrs += 1
             elif tokval == ')':
@@ -388,10 +434,12 @@ class topep8():
                 self.bracket_ctrs -= 1
             self.any_paren = self.paren_ctrs + self.brace_ctrs + \
                 self.bracket_ctrs
-        return toktype
+        if self.any_paren and tokid in self.ghost:
+            tokid = NOOP
+        return tokid
 
-    def wash_token(self, toktype, tokval, (srow, scol), (erow, ecol)):
-        if toktype in (tokenize.INDENT,  tokenize.DEDENT,
+    def wash_token(self, tokid, tokval, (srow, scol), (erow, ecol)):
+        if tokid in (tokenize.INDENT,  tokenize.DEDENT,
                        tokenize.NEWLINE, tokenize.NL):
             if srow != self.last_row:
                 self.tabstop = {}
@@ -399,101 +447,106 @@ class topep8():
         else:
             self.start = (srow, scol)
             self.stop = (erow, ecol)
-        toktype = self.wash_toktype(toktype, tokval)
-        if toktype != tokenize.COMMENT:
+        tokid = self.wash_tokid(tokid, tokval)
+        if tokid != tokenize.COMMENT:
             self.file_header = False
             self.blk_header = False
-        self.tabstop[scol] = tokenize.tok_name[toktype]
-        return toktype, tokval
+        self.tabstop[scol] = tokenize.tok_name[tokid]
+        return tokid, tokval
+
+    def replace_token(self, ir, tokid, tokval, re_matches, re_replaces):
+        if re_matches and tokval in re_matches:
+            ix = re_matches.index(tokval)
+            if ir not in self.rule_re_replaces:
+                self.rule_re_matches[ir] = {}
+                self.rule_re_replaces[ir] = {}
+            self.rule_re_matches[ir][tokeno] = re_matches[ix]
+            self.rule_re_replaces[ir][tokeno] = re_replaces[ix]
 
     def tokenize_source(self, ctx=None):
         # pdb.set_trace()
         ctx = {} if ctx is None else ctx
-        for tokeno, (toktype, tokval,
+        for tokeno, (tokid, tokval,
                      (srow, scol),
                      (erow, ecol)) in enumerate(self.tokenized):
-            toktype = self.wash_toktype(toktype, tokval)
-            if self.any_paren and toktype in self.ghost:
+            tokid = self.wash_tokid(tokid, tokval)
+            if tokid == tokenize.NOOP:
                 continue
             if ctx['opt_dbg']:
-                print ">>> %s(%s)" % (tokval, toktype)
+                print ">>> %s(%s)" % (tokval, tokid)
             completed = []
             reset = []
-            for ir in self.SYTX_KEYW.keys():
-                keyw = self.SYTX_KEYW[ir]
-                tokv = self.SYTX_TOKV[ir]
-                src_tkns = False
-                for ver in sorted(self.SYTX_PRMS[ir], reverse=True):
-                    if ver <= ctx['from_ver']:
-                        src_tkns = self.SYTX_PRMS[ir][ver]
-                        break
-                tgt_tkns = False
-                for ver in sorted(self.SYTX_PRMS[ir], reverse=True):
-                    if ver <= ctx['to_ver']:
-                        tgt_tkns = self.SYTX_PRMS[ir][ver]
-                        break
+            for ir in self.SYTX_KEYWORDS.keys():
+                keywords, tokids = self.get_key_n_id_from_rule(ir)
+                re_matches = get_prms_from_rule(self, ir, ctx['from_ver'])
+                re_replaces = get_prms_from_rule(self, ir, ctx['to_ver'])
                 # rule parse ended
                 if self.syntax_state[ir] < 0 or \
-                        self.syntax_state[ir] >= len(keyw):
+                        self.syntax_state[ir] >= len(keywords):
                     pass
                 # rule child of parent rule
-                elif tokv[self.syntax_state[ir]] == tokenize.SUBRULE:
-                    self.syntax_state[ir] = self.toggle_state(
-                        self.syntax_state[ir])
+                elif tokids[self.syntax_state[ir]] == tokenize.SUBRULE:
+                    self.suspend_state(ir)
                 # any token is valid
-                elif tokv[self.syntax_state[ir]] == tokenize.ANY:
+                elif tokids[self.syntax_state[ir]] == tokenize.ANY:
                     self.syntax_state[ir] += 1
+                # replace string inside remark
+                elif tokids[self.syntax_state[ir]] == tokenize.COMMENT:
+                    self.replace_token(ir, tokid, tokval,
+                                       re_matches, re_replaces)
                 # zero, one or more tokens are valid until next match
-                elif tokv[self.syntax_state[ir]] == tokenize.MORE:
+                elif tokids[self.syntax_state[ir]] == tokenize.MORE:
                     self.syntax_state[ir] += 1
                     self.syntax_more[ir] = True
-                    if keyw[self.syntax_state[ir]]:
-                        if tokval == keyw[self.syntax_state[ir]]:
+                    if keywords[self.syntax_state[ir]]:
+                        if tokval == keywords[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
-                    elif toktype:
-                        if toktype == tokv[self.syntax_state[ir]]:
+                    elif tokid:
+                        if tokid == tokids[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
                 # expression: match until right paren at the same level
-                elif tokv[self.syntax_state[ir]] == tokenize.EXPR:
+                elif tokids[self.syntax_state[ir]] == tokenize.EXPR:
                     self.syntax_state[ir] += 1
                     self.syntax_more[ir] = self.any_paren + 1
-                    if keyw[self.syntax_state[ir]]:
-                        if tokval == keyw[self.syntax_state[ir]]:
+                    if keywords[self.syntax_state[ir]]:
+                        if tokval == keywords[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
-                    elif toktype:
-                        if toktype == tokv[self.syntax_state[ir]]:
+                    elif tokid:
+                        if tokid == tokids[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
                 # matching more ...
                 elif self.syntax_more[ir]:
                     if isinstance(self.syntax_more[ir], bool) or \
                             self.syntax_more[ir] == self.any_paren + 1:
-                        if keyw[self.syntax_state[ir]]:
-                            if tokval == keyw[self.syntax_state[ir]]:
+                        if keywords[self.syntax_state[ir]]:
+                            if tokval == keywords[self.syntax_state[ir]]:
                                 self.syntax_state[ir] += 1
                                 self.syntax_more[ir] = False
-                        elif toktype:
-                            if toktype == tokv[self.syntax_state[ir]]:
+                        elif tokid:
+                            if tokid == tokids[self.syntax_state[ir]]:
                                 self.syntax_state[ir] += 1
                                 self.syntax_more[ir] = False
                 # exact text match
-                elif keyw[self.syntax_state[ir]]:
-                    if tokval == keyw[self.syntax_state[ir]]:
+                elif keywords[self.syntax_state[ir]]:
+                    if tokval == keywords[self.syntax_state[ir]]:
                         self.syntax_state[ir] += 1
                     else:
                         self.syntax_state[ir] = 0
                         reset.append(ir)
-                elif toktype:
+                elif tokid:
                     # match token type
-                    if toktype == tokv[self.syntax_state[ir]]:
-                        if src_tkns and tokval in src_tkns:
-                            ix = src_tkns.index(tokval)
-                            if ir not in self.syntax_replacement:
-                                self.syntax_replacement[ir] = {}
-                            self.syntax_replacement[ir][tokeno] = tgt_tkns[ix]
+                    if tokid == tokids[self.syntax_state[ir]]:
+                        if re_matches and tokval in re_matches:
+                            ix = re_matches.index(tokval)
+                            if ir not in self.rule_re_replaces:
+                                self.rule_re_matches[ir] = {}
+                                self.rule_re_replaces[ir] = {}
+                            self.rule_re_matches[ir][tokeno] = re_matches[ix]
+                            self.rule_re_replaces[ir][tokeno] = re_replaces[ix]
                         self.syntax_state[ir] += 1
                     # does not match
                     else:
@@ -503,34 +556,37 @@ class topep8():
                 else:
                     # print "    else: self.syntax_state[ir] += 1"   # debug
                     self.syntax_state[ir] += 1
-                if self.syntax_state[ir] >= len(keyw):
+                if self.syntax_state[ir] >= len(keywords):
                     completed.append(ir)
-            for ir in self.SYTX_KEYW.keys():
+            for ir in self.SYTX_KEYWORDS.keys():
                 # rule finally matches
                 if ir in completed:
                     if ctx['opt_dbg']:
                         print "    match_parent_rule(%s, True)" % (ir)
                     self.match_parent_rule(ir, True)
-                    # replace src text by replacements
-                    for i in self.syntax_replacement[ir]:
-                        self.replacements[i] = self.syntax_replacement[ir][i]
-                    self.syntax_replacement[ir] = {}
+                    # replace src text by re_replaces
+                    for i in self.rule_re_replaces[ir]:
+                        self.re_matches[i] = self.rule_re_matches[ir][i]
+                        self.re_replaces[i] = self.rule_re_replaces[ir][i]
+                    self.rule_re_matches[ir] = {}
+                    self.rule_re_replaces[ir] = {}
                     self.syntax_state[ir] = 0
                 # rule does not match
                 elif ir in reset:
                     if ctx['opt_dbg']:
                         print "    match_parent_rule(%s, False)" % (ir)
                     self.match_parent_rule(ir, False)
-                    self.syntax_replacement[ir] = {}
+                    self.rule_re_matches[ir] = {}
+                    self.rule_re_replaces[ir] = {}
                 elif ctx['opt_dbg']:
                     print "    match_rule(%s, evaluating)" % (ir)
-            # yield toktype, tokval
+            # yield tokid, tokval
 
     def apply_for_rules(self, ctx=None):
         ctx = {} if ctx is None else ctx
         self.tokenize_source(ctx=ctx)
-        for tokeno in self.replacements:
-            self.tokenized[tokeno][1] = self.replacements[tokeno]
+        for tokeno in self.re_replaces:
+            self.tokenized[tokeno][1] = self.re_replaces[tokeno]
         self.init_parse()
 
     def next_token(self, ctx=None):
@@ -538,12 +594,12 @@ class topep8():
         ctx = {} if ctx is None else ctx
         if self.tokeno < len(self.tokenized):
             tokenized = self.tokenized[self.tokeno]
-            toktype, tokval = self.wash_token(tokenized[0],
-                                              tokenized[1],
-                                              tokenized[2],
-                                              tokenized[3])
+            tokid, tokval = self.wash_token(tokenized[0],
+                                            tokenized[1],
+                                            tokenized[2],
+                                            tokenized[3])
             self.tokeno += 1
-            return toktype, tokval
+            return tokid, tokval
         return False, False
 
     def add_whitespace(self, start):
@@ -558,7 +614,7 @@ class topep8():
             ln += ' ' * col_offset
         return ln
 
-    def untoken(self, toktype, tokval):
+    def untoken(self, tokid, tokval):
         ln = self.add_whitespace(self.start)
         ln += tokval
         row, col = self.stop
@@ -608,11 +664,11 @@ def parse_file(ctx=None):
     target = ""
     EOF = False
     while not EOF:
-        toktype, tokval = source.next_token(ctx=ctx)
-        if toktype is False:
+        tokid, tokval = source.next_token(ctx=ctx)
+        if tokid is False:
             EOF = True
         else:
-            target += source.untoken(toktype, tokval)
+            target += source.untoken(tokid, tokval)
     if not ctx['dry_run']:
         if ctx['opt_verbose']:
             print "Writing %s" % dst_filepy
