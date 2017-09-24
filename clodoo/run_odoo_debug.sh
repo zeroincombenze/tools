@@ -16,7 +16,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11.3
+__version__=0.1.11.4
 
 OPTOPTS=(h        d        e       k        i       l        m           n           o         s         t         U         V           v           w       x)
 OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
@@ -57,8 +57,14 @@ if [ "$odoo_ver" == "v7" ]; then
   pfx="openerp"
   pfx2=
   sfx="/server"
+  if [ -z "$opt_user" ]; then
+    opt_user=odoo
+  fi
+  if [ -z "$opt_xport" -a $opt_web -ne 0 ]; then
+    let opt_xport="8069"
+  fi
 else
-  sfxver=$(echo $odoo_ver|grep -Eo [0-9]+|head -n1)
+  sfxver=$(echo $odoo_ver|grep -Eo "[0-9]+"|head -n1)
   pfx="odoo$sfxver"
   pfx2=odoo
   sfx=
