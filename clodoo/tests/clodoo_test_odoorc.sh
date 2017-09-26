@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.0.1
+__version__=0.0.2
 
 
 test_01() {
@@ -33,12 +33,26 @@ test_01() {
     sts=0
     opt_mult=0
     declare -A TRES
+    TRES[6]="6.1"
+    TRES[7]="7.0"
+    TRES[8]="8.0"
+    TRES[9]="9.0"
+    TRES[10]="10.0"
+    TRES[11]="11.0"
+    for v in 6 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $v)
+      fi
+      test_result "full version $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
     TRES[6]=/etc/odoo/odoo-server.conf
     TRES[7]=/etc/odoo/odoo-server.conf
     TRES[8]=/etc/odoo/odoo-server.conf
     TRES[9]=/etc/odoo/odoo-server.conf
     TRES[10]=/etc/odoo/odoo.conf
-    for v in 6 7 8 9 10; do
+    TRES[11]=/etc/odoo/odoo.conf
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param CONFN $v)
       fi
@@ -63,14 +77,15 @@ test_01() {
     TRES[8]=/etc/odoo/odoo8-server.conf
     TRES[9]=/etc/odoo/odoo9-server.conf
     TRES[10]=/etc/odoo/odoo10.conf
-    for v in 6 7 8 9 10; do
+    TRES[11]=/etc/odoo/odoo11.conf
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param CONFN $v)
       fi
       test_result "config filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in 6 7 8 9 10; do
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ $v -eq 6 ]; then
           RES=$(build_odoo_param CONFN $v.1)
@@ -86,7 +101,8 @@ test_01() {
     TRES[8]=/var/log/odoo/odoo8-server.log
     TRES[9]=/var/log/odoo/odoo9-server.log
     TRES[10]=/var/log/odoo/odoo10.log
-    for v in 6 7 8 9 10; do
+    TRES[11]=/var/log/odoo/odoo11.log
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ $v -eq 6 ]; then
           RES=$(build_odoo_param FLOG $v.1)
@@ -102,7 +118,8 @@ test_01() {
     TRES[8]=/var/run/odoo/odoo8-server.pid
     TRES[9]=/var/run/odoo/odoo9-server.pid
     TRES[10]=/var/run/odoo/odoo10.pid
-    for v in 6 7 8 9 10; do
+    TRES[11]=/var/run/odoo/odoo11.pid
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ $v -eq 6 ]; then
           RES=$(build_odoo_param FPID $v.1)
@@ -118,7 +135,8 @@ test_01() {
     TRES[8]=/etc/init.d/odoo8-server
     TRES[9]=/etc/init.d/odoo9-server
     TRES[10]=/etc/init.d/odoo10
-    for v in 6 7 8 9 10; do
+    TRES[11]=/etc/init.d/odoo11
+    for v in 6 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ $v -eq 6 ]; then
           RES=$(build_odoo_param SVCNAME $v.1)

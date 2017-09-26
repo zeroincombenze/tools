@@ -18,23 +18,24 @@ fi
 
 __version__=0.1.11.4
 
-OPTOPTS=(h        d        e       k        i       l        m           n           o         s         t         U         V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="         "1"         "="       1         1         "="       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""          0           ""        0         0         ""        ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "no op"     "file"   ""       "touch"   "user"    "version"   "verbose"   0       "port")
+OPTOPTS=(h        d        e       k        i       l        m           n           o         s         t         U         u       V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="         "1"         "="       1         1         "="       1       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""          0           ""        0         0         ""        0       ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "no op"     "file"    ""        "touch"   "user"    ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
- "db name to test (require -m switch)"\
- "export it translation"\
+ "db name to test,translate o upgrade (require -m switch)"\
+ "export it translation (conflict with -i -u)"\
  "do not create new DB and keep it after run"\
- "import it translation"\
+ "import it translation (conflict with -e -u)"\
  "load it language"
- "modules to test or translate"\
+ "modules to test, translate or upgrade"\
  "do nothing (dry-run)"\
  "output file (if export multiple modules)"\
  "stop after init"\
  "touch config file, do not run odoo"\
  "db username"\
+ "upgrade module (conflict with -e -i)"\
  "show version"\
  "verbose mode"\
  "run as web server"\
@@ -98,6 +99,16 @@ elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
     echo "Missing -m switch"
     exit 1
   fi
+elif [ $opt_upd -ne 0 ]; then
+  opt_keep=1
+  if [ -z "$opt_modules" ]; then
+    echo "Missing -m switch"
+    exit 1
+  fi
+  if [ -z "$opt_db" ]; then
+    echo "Missing -d switch"
+    exit 1
+  fi
 fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
@@ -138,6 +149,8 @@ if [ -n "$opt_modules" ]; then
     else
       opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
     fi
+  elif [ $opt_upd -ne 0 ]; then
+    opts="-u $opt_modules"
   else
     opts="-u $opt_modules --test-enable"
   fi
@@ -155,7 +168,7 @@ if [ $opt_web -ne 0 ]; then
   if [ -z "$opt_user" ]; then
     opt_user=odoo$sfxver
   fi
-elif [ -n "$opt_modules" -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
+elif [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_xport" ]; then
     let opt_xport="8070+$sfxver"
   fi

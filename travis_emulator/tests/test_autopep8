@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.14.25
+__version__=0.1.15.1
 
 
 test_01() {
@@ -375,10 +375,10 @@ class res_user(osv.osv):
     }
 EOF
       cat <<EOF >$TESTRES
-from openerp.osv import fields, orm
+from openerp.osv import fields, models
 
 
-class res_user(orm.Model):
+class res_user(models.Model):
     _columns = {
         'id': fields.integer(),
         'is_base': fields.boolean(),

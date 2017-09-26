@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.15"
+__version__ = "0.1.15.1"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -66,15 +66,15 @@ RULES = r"""
 *IS*        ^ *class.*[:tok:]
  v60        osv.osv_memory
  v61        orm.TransientModel
- v100       models.TransientModel
+ v80        models.TransientModel
 *IS*        ^ *class.*[:tok:]
  v60        osv.osv
  v61        orm.Model
- v100       models.Model
+ v80        models.Model
 *IS*        import .*[:tok:]
  v60        osv
  v61        orm
- v100       models
+ v80        models
 *IS*        ^from [:tok:]
  v60        osv
  v61        openerp.osv
@@ -110,55 +110,55 @@ pooler|release|sql_db)
  v100       from odoo import
 *IS*        ^ *class\.*orm\.
  v60        orm
- v100       models
+ v80        models
 *IS*        [:tok:]
  v60        osv.except_osv
- v100       UserError
+ v80        UserError
 *IS*        [:tok:]
  v60        openerp.tools.config
  v100       odoo.tools.config
 *IS*        [:tok:]
  v60        fields.boolean
- v100       fields.Boolean
+ v90        fields.Boolean
 *IS*        [:tok:]
  v60        fields.char
- v100       fields.Char
+ v90        fields.Char
 *IS*        [:tok:]
  v60        fields.text
- v100       fields.Text
+ v90        fields.Text
 *IS*        [:tok:]
  v60        fields.html
- v100       fields.Html
+ v90        fields.Html
 *IS*        [:tok:]
  v60        fields.integer
- v100       fields.Integer
+ v90        fields.Integer
 *IS*        [:tok:]
  v60        fields.float
- v100       fields.Float
+ v90        fields.Float
 *IS*        [:tok:]
  v60        fields.date
- v100       fields.Date
+ v90        fields.Date
 *IS*        [:tok:]
  v60        fields.datetime
- v100       fields.Datetime
+ v90        fields.Datetime
 *IS*        [:tok:]
  v60        fields.binary
- v100       fields.Binary
+ v90        fields.Binary
 *IS*        [:tok:]
  v60        fields.selection
- v100       fields.Selection
+ v90        fields.Selection
 *IS*        [:tok:]
  v60        fields.reference
- v100       fields.Reference
+ v90        fields.Reference
 *IS*        [:tok:]
  v60        fields.many2one
- v100       fields.Many2one
+ v90        fields.Many2one
 *IS*        [:tok:]
  v60        fields.one2many
- v100       fields.One2many
+ v90        fields.One2many
 *IS*        [:tok:]
  v60        fields.many2many
- v100       fields.Many2many
+ v90        fields.Many2many
 *IS*   #    openerp.com
  v0         odoo.com
 *IS*   #    OpenERP

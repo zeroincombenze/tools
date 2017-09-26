@@ -5,11 +5,19 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.0.1
+#__version__=0.0.2
 
+
+get_odoo_full_ver() {
+    if [ "$1" == "6" ]; then
+      echo "6.1"
+    else
+      echo "$1.0"
+    fi
+}
 
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FLOG|FPID version [find])
+# build_odoo_param(CONFN|SVCNAME|FLOG|FPID|FULLVER version [find])
     local ITEM=$1
     local odoo_fver odoo_ver MULTIVER
     local p p1 p11 p2 p3 p4
@@ -19,13 +27,13 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [ -n "$2" ]; then
-      if [[ " 10 9 8 7 6 " =~ [[:space:]]$2[[:space:]] ]]; then
+      if [[ " 11 10 9 8 7 6 " =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_ver=$2
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
-      elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
+      elif [[ " 11.0 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_fver="$2"
         odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
-      elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
+      elif [[ " v11 v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
       else
@@ -36,7 +44,10 @@ build_odoo_param() {
       odoo_ver=10
       odoo_fver=10.0
     fi
-    if [ "$ITEM" == "CONFN" ]; then
+    if [ "$ITEM" == "FULLVER" ]; then
+      echo "$odoo_fver"
+      return
+    elif [ "$ITEM" == "CONFN" ]; then
       p1=/etc/odoo/
       p11=/etc/
       p4=.conf
