@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.12.5
+__version__=0.1.12.6
 
 
 up_oemod() {
@@ -93,7 +93,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update\ncmdlist my be upd_oemod,translation or filename"\
+  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,module,update\ncmdlist of updatemay be upd_oemod,translation or filename\ncmdlist of module is module name"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -109,15 +109,18 @@ else
   WCMD="sleep $SLEEP_TIME"
 fi
 sts=$STS_SUCCESS
+if [[ $opt_branch =~ ^(11|10|9|8|7)$ ]]; then
+  opt_branch=$opt_branch.0
+  odoo_fver=$opt_branch
+elif [[ $opt_branch =~ ^(11\.0|10\.0|9\.0|8\.0|7\.0)$ ]]; then
+  odoo_fver=$opt_branch
+elif [ "$opt_branch" == "v7" ]; then
+  odoo_fver=7.0
+else
+  echo "Invalid Odoo version"
+  exit 1
+fi
 if [ "$action" == "install" ]; then
-  if [[ $opt_branch =~ ^(10|9|8|7)$ ]]; then
-    opt_branch=$opt_branch.0
-  elif [[ $opt_branch =~ ^(10\.0|9\.0|8\.0|7\.0)$ ]]; then
-    :
-  else
-    echo "Invalid Odoo version"
-    exit 1
-  fi
   if [ ! -d data ]; then
     echo "Directory data/ not found!"
     exit 1
@@ -133,7 +136,7 @@ if [ "$action" == "install" ]; then
       exit 1
     fi
   done
-  set_odoover_confn $opt_branch $opt_DB -q
+  set_odoover_confn $odoo_fver $opt_DB -q
   for cf in $CFLOOP; do
     if [ "$cf" == "00" ]; then
       if [ -n "$opt_DB" ]; then
@@ -156,7 +159,7 @@ if [ "$action" == "install" ]; then
       sts=$?
     fi
   done
-elif [ "$action" == "update" ]; then
+elif [ "$action" == "update" -o "$action" == "module" ]; then
   if [ -f "$opt_conf" ]; then
     cf=$opt_conf
   elif [ -f "$opt_conf.conf" ]; then
@@ -194,7 +197,7 @@ elif [ "$action" == "update" ]; then
     fi
     exit 1
   fi
-  set_odoover_confn $opt_branch $opt_DB -q
+  set_odoover_confn $odoo_fver $opt_DB -q
   DBlist=${DBlist//,/ }
   W4T=0
   for db in $DBlist; do
@@ -203,7 +206,10 @@ elif [ "$action" == "update" ]; then
     else
       eval $WCMD
     fi
-    if [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
+    if [ "$action" == "module" ]; then
+      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s"
+      $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+    elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
       echo "clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port"
       clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port
       up_oemod $db $opt_branch

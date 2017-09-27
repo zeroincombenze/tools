@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.49.11
+__version__=0.1.50
 
 
 #
@@ -478,7 +478,7 @@ cvt_readme() {
 #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
     local fn=$1
     local fntmp=$fn.tmp
-    local wf=0 nxtwf=0 preline=0
+    local wf=0 nxtwf=0 prewf=0 preline=0
     local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
     local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0 Idiff=0
     local line lne1 lne2 REMOTEREPO txtrepos ver i v w x y
@@ -742,7 +742,7 @@ cvt_readme() {
     ACT[111]="CHPT_111"
     TKNS[112]="^(### |)Funders"
     REPL[112]=""
-    ACT[112]="CHPT_113"
+    ACT[112]="CHPT_112"
     TKNS[113]="^(### |)Maintainer"
     REPL[113]=""
     ACT[113]="CHPT_113"
@@ -753,10 +753,11 @@ cvt_readme() {
     rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
-      # echo "> line=$line" #debug
+      # echo "$wf/$nxtwf/$prewf> line=$line" #debug
       lne1="⌂"
       lne2="⌂"
       Ibutton=0
+      prewf=$nxtwf
       nxtwf=0
       for i in {1..22} {51..63} {100..113}; do
         p=${TKNS[$i]}
@@ -931,6 +932,7 @@ cvt_readme() {
         line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
         line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
         if [ -n "$line" ]; then
+          # [ $wf -ge 104 ] && echo "> if [ -n \"$line\" ]; then" #debug
           if [ $wf -eq 1 ]; then
             if [ $Ilang_en -eq 0 ]; then
               echo "">>$fntmp
@@ -942,9 +944,10 @@ cvt_readme() {
               wf=2
             fi
           fi
+          # [ $wf -ge 104 ] && echo ">   if [ \$wf=$wf -eq 2 ]; then" #debug
           if [ $wf -eq 2 ]; then
             echo "$line">>$fntmp
-            if [ $Ibutton -eq 0 ]; then
+            if [ $Ibutton -eq 0 ] && [[ $line =~ ^[A-Za-z] ]]; then
               x=${#line}
               w="================================================================================================"
               v=${w:0:$x}
@@ -952,8 +955,10 @@ cvt_readme() {
               wf=104
             fi
           elif [ $wf -gt 100 ] && [ $nxtwf -eq 102 -o $nxtwf -eq 103 ]; then
+            # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -gt 100 ] && [ \$nxtwf=$nxtwf -eq 102 -o \$nxtwf -eq 103 ]; then" #debug
             :
           elif [ $wf -lt 100 -o $nxtwf -ge 104 ]; then
+            # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -lt 100 -o \$nxtwf=$nxtwf -ge 104 ]; then" #debug
             if [ $wf -lt 104 ]; then
               wf=104
             fi
@@ -973,22 +978,30 @@ cvt_readme() {
                   v=${w:0:$x}
                 fi
                 echo "$v">>$fntmp
-                echo "">>$fntmp
+                # echo "">>$fntmp
+                ((wf++))
+                if [ $wf -le $nxtwf ]; then echo "">>$fntmp; fi
               else
-                if [ "$2" == "oca" ]; then
-                  echo "[![Odoo Community Association]]">>$fntmp
-                else
-                  echo "[![Odoo Italia Associazione]]">>$fntmp
-                fi
-                echo "">>$fntmp
+                ((wf++))
+                # if [ "$2" == "oca" ]; then
+                #   echo "[![Odoo Community Association]]">>$fntmp
+                # else
+                #   echo "[![Odoo Italia Associazione]]">>$fntmp
+                # fi
+                # echo "">>$fntmp
               fi
-              ((wf++))
             done
             # echo "$line">>$fntmp
           else
+            if [ $prewf -ge 104 ];then
+              # echo ">  echo ''" #debug
+              echo "">>$fntmp
+            fi
+            # [ $wf -ge 104 ] && echo ">   else" #debug
             echo "$line">>$fntmp
           fi
         else
+          # [ $wf -ge 104 ] && echo "> else" #debug
           echo "$line">>$fntmp
         fi
         if [ -z "$line" ]; then preline=0; else preline=1; fi

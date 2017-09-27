@@ -66,8 +66,10 @@ Z0BUG_setup() {
     LCLTEST_TMPDIR=$(readlink -e $RUNDIR/..)
     if [ -f $PWD/setup.py ]; then
       LCLTEST_SETUP=$PWD/setup.py
+      rm -f $PWD/__openerp__.py
     else
       LCLTEST_SETUP=$LCLTEST_TMPDIR/setup.py
+      rm -f $LCLTEST_TMPDIR/__openerp__.py
     fi
     LCLTEST_MQT_PATH=
 

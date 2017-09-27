@@ -8,8 +8,10 @@
 
 [![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
 
-TEST_TRAVIS V
-=============
+[![icon](static/src/img/icon.png)](https://travis-ci.org/zeroincombenze)
+
+TEST_TRAVIS VI
+==============
 
 [//]: # (addons)
 Invalid text
@@ -19,14 +21,35 @@ Should be deleted
 
 [![it](http://www.shs-av.com/wp-content/it_IT.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)
 
-TEST_TRAVIS V
-=============
+TEST_TRAVIS VI
+==============
+
 Differenze rispetto localizzazione ufficiale Odoo/OCA
 
 Descrizione | Odoo Italia | OCA
 --- | --- | ---
 Coverage | [![codecov](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n-italy/branch/7.0) | [![codecov](https://codecov.io/gh/OCA/l10n-italy/branch/7.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n-italy/branch/7.0)
 Test con repository OCA e Odoo | Boh! | Boh!
+
+Installation
+------------
+
+* pip install zerobug
+
+Credits
+-------
+
+### Contributors
+
+* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
+
+### Funders
+
+This module has been financially supported by
+
+* SHS-AV s.r.l. <https://www.zeroincombenze.it/>
+
+### Maintainer
 
 [//]: # (copyright)
 
