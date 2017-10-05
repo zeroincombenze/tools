@@ -5,21 +5,28 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.0.2
+#__version__=0.1.0
 
 
 get_odoo_full_ver() {
-    if [ "$1" == "6" ]; then
+    local v=$(echo $1|grep -Eo "[0-9]*"|head -n1)
+    if [ "$v" == "6" ]; then
       echo "6.1"
     else
-      echo "$1.0"
+      echo "$v.0"
     fi
 }
 
+get_odoo_major_ver() {
+    local v=$(echo $1|grep -Eo "[0-9]*"|head -n1)
+    echo "$v"
+}
+
+
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FLOG|FPID|FULLVER version [find])
+# build_odoo_param(CONFN|SVCNAME|FLOG|FPID|FULLVER|MAJVER|SCRIPT version [find])
     local ITEM=$1
-    local odoo_fver odoo_ver MULTIVER
+    local odoo_fver odoo_ver odoo_vid MULTIVER
     local p p1 p11 p2 p3 p4
     if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
       MULTIVER=1
@@ -32,20 +39,25 @@ build_odoo_param() {
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
       elif [[ " 11.0 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_fver="$2"
-        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
+        odoo_ver=$(get_odoo_major_ver $odoo_fver)
       elif [[ " v11 v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
-        odoo_ver=$(echo $odoo_fver|grep -Eo "[0-9]*"|head -n1)
+        odoo_ver=$(get_odoo_major_ver $2)
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
       else
         echo "Invalid Odoo version"
         # exit 1
       fi
+      odoo_vid=$2
     else
       odoo_ver=10
       odoo_fver=10.0
+      odoo_vid=10.0
     fi
     if [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
+      return
+    elif [ "$ITEM" == "MAJVER" ]; then
+      echo "$odoo_ver"
       return
     elif [ "$ITEM" == "CONFN" ]; then
       p1=/etc/odoo/
@@ -63,12 +75,20 @@ build_odoo_param() {
       p1=/var/run/odoo/
       p11=
       p4=.pid
+    elif [ "$ITEM" == "SCRIPT" ]; then
+      p1=/opt/odoo/$odoo_vid
+      p11=
+      p4=
     else
       echo "Invalid parameter $ITEM"
       exit 1
     fi
     if [ $MULTIVER -ne 0 ]; then
-      p2="odoo${odoo_ver}"
+      if [ "$odoo_vid" == "v7" ]; then
+        p2=openerp
+      else
+        p2="odoo${odoo_ver}"
+      fi
     else
       p2="odoo"
     fi

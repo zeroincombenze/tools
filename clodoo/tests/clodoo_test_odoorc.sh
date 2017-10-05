@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.0.2
+__version__=0.1.0
 
 
 test_01() {
@@ -46,6 +46,21 @@ test_01() {
       test_result "full version $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    TRES[v7]="7"
+    TRES[6.1]="6"
+    TRES[7.0]="7"
+    TRES[8.0]="8"
+    TRES[9.0]="9"
+    TRES[10.0]="10"
+    TRES[11.0]="11"
+    for v in 6.1 v7 7.0 8.0 9.0 10.0 11.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param MAJVER $v)
+      fi
+      test_result "major version $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=/etc/odoo/odoo-server.conf
     TRES[6]=/etc/odoo/odoo-server.conf
     TRES[7]=/etc/odoo/odoo-server.conf
     TRES[8]=/etc/odoo/odoo-server.conf
@@ -59,9 +74,11 @@ test_01() {
       test_result "config filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in 6 7 8 9 10; do
+    for v in 6 v7 7 8 9 10; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param CONFN $v)
+        elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param CONFN $v.1)
         else
           RES=$(build_odoo_param CONFN $v.0)
@@ -72,6 +89,7 @@ test_01() {
     done
     opt_mult=1
     declare -A TRES
+    TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/odoo6-server.conf
     TRES[7]=/etc/odoo/odoo7-server.conf
     TRES[8]=/etc/odoo/odoo8-server.conf
@@ -85,9 +103,11 @@ test_01() {
       test_result "config filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    for v in 6 7 8 9 10 11; do
+    for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param CONFN $v)
+        elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param CONFN $v.1)
         else
           RES=$(build_odoo_param CONFN $v.0)
@@ -96,15 +116,18 @@ test_01() {
       test_result "config filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    TRES[v7]=/var/log/odoo/openerp-server.log
     TRES[6]=/var/log/odoo/odoo6-server.log
     TRES[7]=/var/log/odoo/odoo7-server.log
     TRES[8]=/var/log/odoo/odoo8-server.log
     TRES[9]=/var/log/odoo/odoo9-server.log
     TRES[10]=/var/log/odoo/odoo10.log
     TRES[11]=/var/log/odoo/odoo11.log
-    for v in 6 7 8 9 10 11; do
+    for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param FLOG $v)
+        elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param FLOG $v.1)
         else
           RES=$(build_odoo_param FLOG $v.0)
@@ -113,15 +136,18 @@ test_01() {
       test_result "log filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    TRES[v7]=/var/run/odoo/openerp-server.pid
     TRES[6]=/var/run/odoo/odoo6-server.pid
     TRES[7]=/var/run/odoo/odoo7-server.pid
     TRES[8]=/var/run/odoo/odoo8-server.pid
     TRES[9]=/var/run/odoo/odoo9-server.pid
     TRES[10]=/var/run/odoo/odoo10.pid
     TRES[11]=/var/run/odoo/odoo11.pid
-    for v in 6 7 8 9 10 11; do
+    for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param FPID $v)
+        elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param FPID $v.1)
         else
           RES=$(build_odoo_param FPID $v.0)
@@ -130,21 +156,24 @@ test_01() {
       test_result "pid filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    TRES[v7]=/etc/init.d/openerp-server
     TRES[6]=/etc/init.d/odoo6-server
     TRES[7]=/etc/init.d/odoo7-server
     TRES[8]=/etc/init.d/odoo8-server
     TRES[9]=/etc/init.d/odoo9-server
     TRES[10]=/etc/init.d/odoo10
     TRES[11]=/etc/init.d/odoo11
-    for v in 6 7 8 9 10 11; do
+    for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ $v -eq 6 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param SVCNAME $v)
+        elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param SVCNAME $v.1)
         else
           RES=$(build_odoo_param SVCNAME $v.0)
         fi
       fi
-      test_result "script name $v" "${TRES[$v]}" "$RES"
+      test_result "service name $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts

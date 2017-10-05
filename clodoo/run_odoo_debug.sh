@@ -15,14 +15,21 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
-__version__=0.1.11.4
+__version__=0.1.11.5
 
-OPTOPTS=(h        d        e       k        i       l        m           n           o         s         t         U         u       V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="         "1"         "="       1         1         "="       1       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""          0           ""        0         0         ""        0       ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   "no op"     "file"    ""        "touch"   "user"    ""      "version"   "verbose"   0       "port")
+
+OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="         1         "1"         "="       1         1         "="       1       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""          -1        0           ""        0         0         ""        0       ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   ""        "no op"     "file"    ""        "touch"   "user"    ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "db name to test,translate o upgrade (require -m switch)"\
  "export it translation (conflict with -i -u)"\
@@ -30,6 +37,7 @@ OPTHELP=("this help"\
  "import it translation (conflict with -e -u)"\
  "load it language"
  "modules to test, translate or upgrade"\
+ "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "output file (if export multiple modules)"\
  "stop after init"\
@@ -53,6 +61,16 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+odoo_ver=$(build_odoo_param FULLVER $odoo_fver)
+if [ $opt_multi -lt 0 ]; then
+  if [ "$HOSTNAME{0:3}" == "shs" ]; then
+    opt_multi=1
+  else
+    opt_multi=0
+  fi
+fi
+
 if [ "$odoo_ver" == "v7" ]; then
   sfxver=7
   pfx="openerp"
@@ -71,6 +89,9 @@ else
   sfx=
 fi
 
+confn=$(build_odoo_param CONFN $odoo_ver search)
+script=$(build_odoo_param CONFN $odoo_ver search)
+
 if [ "$odoo_ver" == "10.0" ]; then
   confn=/etc/odoo/${pfx}.conf
   confn2=/etc/odoo/${pfx2}.conf
@@ -84,6 +105,7 @@ else
   confn2=/etc/odoo/${pfx2}-server.conf
   script="/opt/odoo/$odoo_ver$sfx/openerp-server"
 fi
+
 create_db=0
 drop_db=0
 if [ $opt_lang -ne 0 ]; then
