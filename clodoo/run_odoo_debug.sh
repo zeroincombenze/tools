@@ -22,7 +22,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.11.5
+__version__=0.1.12
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
@@ -193,8 +193,6 @@ fi
 if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
   echo "cp $confn ~/.openerp_serverrc"
 fi
-echo "$script $opts -U$opt_user -r$opt_xport"  # debug
-exit 1
 
 if [ $opt_dry_run -eq 0 ]; then
   cp $confn ~/.openerp_serverrc
