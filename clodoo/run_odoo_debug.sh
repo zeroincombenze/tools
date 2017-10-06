@@ -48,7 +48,7 @@ OPTHELP=("this help"\
  "verbose mode"\
  "run as web server"\
  "set odoo xmlrpc port")
-OPTARGS=(odoo_ver)
+OPTARGS=(odoo_vid)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -61,49 +61,33 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param FULLVER $odoo_fver)
 if [ $opt_multi -lt 0 ]; then
-  if [ "$HOSTNAME{0:3}" == "shs" ]; then
+  c=0
+  for v in 6 v7 7 8 9 10 11; do
+    odoo_bin=$(build_odoo_param BIN $v search)
+    if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+      ((c++))
+    fi
+  done
+  if [ $c -gt 2 ]; then
     opt_multi=1
   else
     opt_multi=0
   fi
 fi
+confn=$(build_odoo_param CONFN $odoo_vid search)
+script=$(build_odoo_param BIN $odoo_vid search)
+odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+manifest=$(build_odoo_param MANIFEST $odoo_vid search)
 
-if [ "$odoo_ver" == "v7" ]; then
-  sfxver=7
-  pfx="openerp"
-  pfx2=
-  sfx="/server"
-  if [ -z "$opt_user" ]; then
-    opt_user=odoo
-  fi
-  if [ -z "$opt_xport" -a $opt_web -ne 0 ]; then
-    let opt_xport="8069"
-  fi
+if [ $opt_web -ne 0 ]; then
+  rpcport=$(build_odoo_param RPCPORT $odoo_vid)
+  odoo_user=$(build_odoo_param USER $odoo_vid)
 else
-  sfxver=$(echo $odoo_ver|grep -Eo "[0-9]+"|head -n1)
-  pfx="odoo$sfxver"
-  pfx2=odoo
-  sfx=
-fi
-
-confn=$(build_odoo_param CONFN $odoo_ver search)
-script=$(build_odoo_param CONFN $odoo_ver search)
-
-if [ "$odoo_ver" == "10.0" ]; then
-  confn=/etc/odoo/${pfx}.conf
-  confn2=/etc/odoo/${pfx2}.conf
-  script="/opt/odoo/$odoo_ver$sfx/odoo-bin"
-elif [ "$odoo_ver" == "v7" ]; then
-  confn=/etc/odoo/openerp-server.conf
-  confn2=/etc/odoo/openerp-server.conf
-  script="/opt/odoo/$odoo_ver$sfx/openerp-server"
-else
-  confn=/etc/odoo/${pfx}-server.conf
-  confn2=/etc/odoo/${pfx2}-server.conf
-  script="/opt/odoo/$odoo_ver$sfx/openerp-server"
+  rpcport=$(build_odoo_param RPCPORT $odoo_vid debug)
+  odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi
 
 create_db=0
@@ -136,9 +120,9 @@ if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
     mods=${opt_modules//,/ }
     for m in $mods; do
-      p=$(find /opt/odoo/$odoo_ver -type d -name $m|head -n1)
-      if [ -f $p/__openerp__.py ]; then
-        f=$p/__openerp__.py
+      p=$(find $odoo_root -type d -name $m|head -n1)
+      if [ -f $p/$manifest ]; then
+        f=$p/$manifest
         x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
         if [ -n "$x" ]; then
           opt_modules="$opt_modules,$x"
@@ -151,7 +135,7 @@ if [ -n "$opt_modules" ]; then
     src=$(readlink -f $opt_ofile)
     opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
   elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-    src=$(find /opt/odoo/$odoo_ver -type d -name "$opt_modules"|head -n1)
+    src=$(find $odoo_root -type d -name "$opt_modules"|head -n1)
     if [ -n "$src" ]; then
       if [ -f $src/i18n/it.po ]; then
         src=$src/i18n/it.po
@@ -183,29 +167,18 @@ else
     opts=""
   fi
 fi
-if [ $opt_web -ne 0 ]; then
-  if [ -z "$opt_xport" -a $opt_web -ne 0 ]; then
-    let opt_xport="8160+$sfxver"
-  fi
-  if [ -z "$opt_user" ]; then
-    opt_user=odoo$sfxver
-  fi
-elif [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
-  if [ -z "$opt_xport" ]; then
-    let opt_xport="8070+$sfxver"
-  fi
-  if [ -z "$opt_user" ]; then
-    opt_user=odoo$sfxver
-  fi
+if [ -z "$opt_xport" ]; then
+  opt_xport=$rpcport
+fi
+if [ -z "$opt_user" ]; then
+  opt_user=$odoo_user
+fi
+if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_db" ]; then
     opt_db="test_openerp"
     if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
       drop_db=1
     fi
-  fi
-else
-  if [ -z "$opt_user" ]; then
-    opt_user=postgres
   fi
 fi
 if [ $opt_stop -gt 0 ]; then
@@ -217,24 +190,14 @@ fi
 if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
 fi
-if [ $opt_verbose -gt 0 -o  $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
-  if [ -f $confn ]; then
-    echo "cp $confn ~/.openerp_serverrc"
-  else
-    echo "cp $confn2 ~/.openerp_serverrc"
-  fi
+if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
+  echo "cp $confn ~/.openerp_serverrc"
 fi
+echo "$script $opts -U$opt_user -r$opt_xport"  # debug
+exit 1
+
 if [ $opt_dry_run -eq 0 ]; then
-  if [ -f $confn ]; then
-    cp $confn ~/.openerp_serverrc
-    opt_multi=1
-  else
-    echo "cp $confn2 ~/.openerp_serverrc"
-    opt_multi=0
-    if [ $opt_web -ne 0 ]; then
-      opt_xport=8069
-    fi
-  fi
+  cp $confn ~/.openerp_serverrc
   sed -ie 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
   if [ -n "$opt_xport" ]; then
     sed -ie "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc

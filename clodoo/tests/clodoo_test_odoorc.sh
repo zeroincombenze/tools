@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.0
+__version__=0.2.0
 
 
 test_01() {
@@ -60,8 +60,8 @@ test_01() {
       test_result "major version $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    TRES[v7]=/etc/odoo/odoo-server.conf
-    TRES[6]=/etc/odoo/odoo-server.conf
+    TRES[v7]=/etc/odoo/openerp-server.conf
+    TRES[6]=/etc/odoo/openerp-server.conf
     TRES[7]=/etc/odoo/odoo-server.conf
     TRES[8]=/etc/odoo/odoo-server.conf
     TRES[9]=/etc/odoo/odoo-server.conf
@@ -174,6 +174,106 @@ test_01() {
         fi
       fi
       test_result "service name $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=/opt/odoo/v7/server/openerp-server
+    TRES[6]=/opt/odoo/6.1/server/openerp-server
+    TRES[7]=/opt/odoo/7.0/server/openerp-server
+    TRES[8]=/opt/odoo/8.0/openerp-server
+    TRES[9]=/opt/odoo/9.0/openerp-server
+    TRES[10]=/opt/odoo/10.0/odoo-bin
+    TRES[11]=/opt/odoo/11.0/odoo-bin
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param BIN $v)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param BIN $v.1)
+        else
+          RES=$(build_odoo_param BIN $v.0)
+        fi
+      fi
+      test_result "script name $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=/opt/odoo/v7
+    TRES[6]=/opt/odoo/6.1
+    TRES[7]=/opt/odoo/7.0
+    TRES[8]=/opt/odoo/8.0
+    TRES[9]=/opt/odoo/9.0
+    TRES[10]=/opt/odoo/10.0
+    TRES[11]=/opt/odoo/11.0
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param ROOT $v)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param ROOT $v.1)
+        else
+          RES=$(build_odoo_param ROOT $v.0)
+        fi
+      fi
+      test_result "root dir $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=__openerp__.py
+    TRES[6]=__openerp__.py
+    TRES[7]=__openerp__.py
+    TRES[8]=__openerp__.py
+    TRES[9]=__openerp__.py
+    TRES[10]=__manifest__.py
+    TRES[11]=__manifest__.py
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param MANIFEST $v)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param MANIFEST $v.1)
+        else
+          RES=$(build_odoo_param MANIFEST $v.0)
+        fi
+      fi
+      test_result "manifest $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=8069
+    TRES[6]=8166
+    TRES[7]=8167
+    TRES[8]=8168
+    TRES[9]=8169
+    TRES[10]=8170
+    TRES[11]=8171
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param RPCPORT $v)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param RPCPORT $v.1)
+        else
+          RES=$(build_odoo_param RPCPORT $v.0)
+        fi
+      fi
+      test_result "rpcport $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=odoo7
+    TRES[6]=odoo6
+    TRES[7]=odoo7
+    TRES[8]=odoo8
+    TRES[9]=odoo9
+    TRES[10]=odoo10
+    TRES[11]=odoo11
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param USER $v debug)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param USER $v.1 debug)
+        else
+          RES=$(build_odoo_param USER $v.0 debug)
+        fi
+      fi
+      test_result "user $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts

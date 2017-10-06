@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.1.0
+#__version__=0.2.0
 
 
 get_odoo_full_ver() {
@@ -24,7 +24,7 @@ get_odoo_major_ver() {
 
 
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FLOG|FPID|FULLVER|MAJVER|SCRIPT version [find])
+# build_odoo_param(CONFN|SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug}])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER
     local p p1 p11 p2 p3 p4
@@ -37,17 +37,19 @@ build_odoo_param() {
       if [[ " 11 10 9 8 7 6 " =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_ver=$2
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
+        odoo_vid=$odoo_fver
       elif [[ " 11.0 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_fver="$2"
         odoo_ver=$(get_odoo_major_ver $odoo_fver)
+        odoo_vid=$2
       elif [[ " v11 v10 v9 v8 v7 v6" =~ [[:space:]]$2[[:space:]] ]]; then
         odoo_ver=$(get_odoo_major_ver $2)
         odoo_fver=$(get_odoo_full_ver $odoo_ver)
+        odoo_vid=$2
       else
         echo "Invalid Odoo version"
         # exit 1
       fi
-      odoo_vid=$2
     else
       odoo_ver=10
       odoo_fver=10.0
@@ -58,6 +60,38 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "MAJVER" ]; then
       echo "$odoo_ver"
+      return
+    elif [ "$ITEM" == "ROOT" ]; then
+      echo "/opt/odoo/$odoo_vid"
+      return
+    elif [ "$ITEM" == "MANIFEST" ]; then
+      if [ $odoo_ver -ge 10 ]; then
+        echo "__manifest__.py"
+      else
+        echo "__openerp__.py"
+      fi
+      return
+    elif [ "$ITEM" == "USER" ]; then
+      if [ "$3" == "debug" -a $MULTIVER -ne 0 ]; then
+        p="odoo$odoo_ver"
+      elif [ $odoo_ver -lt 7 ]; then
+        p="openerp"
+      else
+        p="odoo"
+      fi
+      echo $p
+      return
+    elif [ "$ITEM" == "RPCPORT" ]; then
+      if [ "$3" == "debug" ]; then
+        let p="8070+$odoo_ver"
+      elif [ "$odoo_vid" == "v7" ]; then
+        p=8069
+      elif [ $MULTIVER -ne 0 ]; then
+        let p="8160+$odoo_ver"
+      else
+        p=8069
+      fi
+      echo $p
       return
     elif [ "$ITEM" == "CONFN" ]; then
       p1=/etc/odoo/
@@ -73,27 +107,43 @@ build_odoo_param() {
       p4=.log
     elif [ "$ITEM" == "FPID" ]; then
       p1=/var/run/odoo/
-      p11=
+      p11=/var/run/
       p4=.pid
-    elif [ "$ITEM" == "SCRIPT" ]; then
-      p1=/opt/odoo/$odoo_vid
-      p11=
+    elif [ "$ITEM" == "BIN" ]; then
+      if [ $odoo_ver -le 7 ]; then
+        p1=/opt/odoo/$odoo_vid/server/
+        p11=/opt/odoo/$odoo_vid/
+      else
+        p1=/opt/odoo/$odoo_vid/
+      fi
       p4=
     else
       echo "Invalid parameter $ITEM"
       exit 1
     fi
-    if [ $MULTIVER -ne 0 ]; then
+    if [ $MULTIVER -ne 0 -a "$ITEM" != "BIN" ]; then
       if [ "$odoo_vid" == "v7" ]; then
         p2=openerp
       else
         p2="odoo${odoo_ver}"
       fi
+    elif [ $MULTIVER -ne 0 -a "$ITEM" == "BIN" ]; then
+      if [ $odoo_ver -ge 10 ]; then
+        p2=odoo
+      else
+        p2=openerp
+      fi
+    elif [ $odoo_ver -lt 7 -o "$odoo_vid" == "v7" ]; then
+      p2=openerp
     else
       p2="odoo"
     fi
     if [ $odoo_ver -ge 10 ]; then
-      p3=
+      if [ "$ITEM" == "BIN" ]; then
+        p3=-bin
+      else
+        p3=
+      fi
     else
       p3="-server"
     fi
@@ -103,11 +153,16 @@ build_odoo_param() {
       if [ -z "$p" ]; then
         p=$(findpkg "odoo$p3$p4" "$p1 $p11")
       fi
-      if [ -z "$p" ]; then
+      if [ -z "$p" -a $odoo_ver -lt 7 ]; then
+        p=$(findpkg "openerp$p4" "$p1 $p11")
+        if [ -z "$p" ]; then
+          p=$(findpkg "odoo$p3$p4" "$p1 $p11")
+        fi
+      elif [ -z "$p" -a $odoo_ver -ge 7 ]; then
         p=$(findpkg "odoo$p4" "$p1 $p11")
-      fi
-      if [ -z "$p" ]; then
-        p=$(findpkg "openerp$p3$p4" "$p1 $p11")
+        if [ -z "$p" ]; then
+          p=$(findpkg "openerp$p3$p4" "$p1 $p11")
+        fi
       fi
     fi
     echo "$p"
