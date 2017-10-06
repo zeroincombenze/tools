@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.2.0
+__version__=0.2.1
 
 
 test_01() {
@@ -256,7 +256,7 @@ test_01() {
       test_result "rpcport $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    TRES[v7]=odoo7
+    TRES[v7]=odoo
     TRES[6]=odoo6
     TRES[7]=odoo7
     TRES[8]=odoo8

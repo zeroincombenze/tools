@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.2.0
+#__version__=0.2.1
 
 
 get_odoo_full_ver() {
@@ -72,7 +72,9 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [ "$3" == "debug" -a $MULTIVER -ne 0 ]; then
+      if [ "$odoo_vid" == "v7" ]; then
+        p="odoo"
+      elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
       elif [ $odoo_ver -lt 7 ]; then
         p="openerp"
@@ -83,7 +85,8 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
-        let p="8070+$odoo_ver"
+        # let p="8070+$odoo_ver"
+        let p="18060+$odoo_ver"
       elif [ "$odoo_vid" == "v7" ]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
