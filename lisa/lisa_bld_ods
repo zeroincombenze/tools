@@ -20,8 +20,14 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
-__version__="0.2.4.1"
+__version__="0.2.4.2"
 
 
 get_arch () {
@@ -48,14 +54,6 @@ get_arch () {
     fi
 }
 
-get_odoo_full_ver() {
-    if [ "$1" == "6" ]; then
-      echo "6.1"
-    else
-      echo "$1.0"
-    fi
-}
-
 
 OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
 OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
@@ -70,7 +68,7 @@ OPTHELP=("this help"\
  "multiple version environment (append version to filenames)"\
  "set odoo service name (default {id_name}-server)"\
  "do nothing (dry-run)"\
- "select odoo version: may be 6, 7, 8, 9 or 10"\
+ "select odoo version: may be 6, 7, 8, 9, 10 or 11"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "created test script does nothing (used for debug)"\
  "use template (def /etc/product/odoo-server_{linux_dist})"\
@@ -89,14 +87,16 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [[ " 10 9 8 7 6 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
-  odoo_fver=$(get_odoo_full_ver $odoo_ver)
-elif [[ " 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+if [[ " 11 10 9 8 7 6 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+  # odoo_fver=$(get_odoo_full_ver $odoo_ver)
+  odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+elif [[ " 11.0 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_fver="$odoo_ver"
   odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
-elif [[ " v10 v9 v8 v7 v6" =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+elif [[ " v11 v10 v9 v8 v7 v6" =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
-  odoo_fver=$(get_odoo_full_ver $odoo_ver)
+  # odoo_fver=$(get_odoo_full_ver $odoo_ver)
+  odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
 else
   echo "Invalid Odoo version"
   exit 1
@@ -118,54 +118,58 @@ if [ -z "$opt_name" ]; then
 fi
 
 if [ -z "$opt_pid" ]; then
-  if [ "$odoo_ver" == "10" ]; then
-    if [ $opt_mult -gt 0 ]; then
-      opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}.pid
-    else
-      opt_pid=/var/run/${opt_id}/${opt_name}.pid
-    fi
-  else
-    if [ $opt_mult -gt 0 ]; then
-      opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
-    else
-      opt_pid=/var/run/${opt_id}/${opt_name}.pid
-    fi
-  fi
+  opt_pid=$(build_odoo_param FPID $odoo_ver)
+  # if [ "$odoo_ver" == "10" ]; then
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}.pid
+  #   else
+  #     opt_pid=/var/run/${opt_id}/${opt_name}.pid
+  #   fi
+  # else
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
+  #  else
+  #     opt_pid=/var/run/${opt_id}/${opt_name}.pid
+  #   fi
+  # fi
 fi
 if [ -z "$opt_flog" ]; then
-  if [ "$odoo_ver" == "10" ]; then
-    if [ $opt_mult -gt 0 ]; then
-      opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}.log
-    else
-      opt_flog=/var/log/${opt_id}/${opt_name}.log
-    fi
-  else
-    if [ $opt_mult -gt 0 ]; then
-      opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
-    else
-      opt_flog=/var/log/${opt_id}/${opt_name}.log
-    fi
-  fi
+  opt_flog=$(build_odoo_param FLOG $odoo_ver)
+  # if [ "$odoo_ver" == "10" ]; then
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}.log
+  #   else
+  #     opt_flog=/var/log/${opt_id}/${opt_name}.log
+  #   fi
+  # else
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
+  #   else
+  #     opt_flog=/var/log/${opt_id}/${opt_name}.log
+  #   fi
+  # fi
 fi
 if [ -z "$opt_cfg" ]; then
-  if [ "$odoo_ver" == "10" ]; then
-    if [ $opt_mult -gt 0 ]; then
-      opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}.conf
-    else
-      opt_cfg=/etc/${opt_id}/${opt_name}.conf
-    fi
-  else
-    if [ $opt_mult -gt 0 ]; then
-      opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
-    else
-      opt_cfg=/etc/${opt_id}/${opt_name}.conf
-    fi
-  fi
+  opt_cfg=$(build_odoo_param CONFN $odoo_ver)
+  # if [ "$odoo_ver" == "10" ]; then
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}.conf
+  #   else
+  #     opt_cfg=/etc/${opt_id}/${opt_name}.conf
+  #   fi
+  # else
+  #   if [ $opt_mult -gt 0 ]; then
+  #     opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
+  #   else
+  #     opt_cfg=/etc/${opt_id}/${opt_name}.conf
+  #   fi
+  # fi
 fi
 opt_cfg2="$(dirname $opt_cfg)"
 opt_cfg2="$(readlink -m $opt_cfg2/..)/$(basename $opt_cfg)"
 if [ -z "$script_name" ]; then
-  script_name=${opt_name}
+  # script_name=${opt_name}
+  script_name=$(build_odoo_param SVCNAME $odoo_ver)
 fi
 if [ -n "$opt_osf" ]; then
   get_arch "$opt_osf"
@@ -305,7 +309,7 @@ if [ $opt_dry_run -eq 0 ]; then
   fi
   mv -f $script_name.tmp $script_name
   chmod +x $script_name
-  d=$(basename $script_name)
+  d=$(dirname $script_name)
   if [ "$d" != "/etc/init.d" ]; then
     echo "To make active created script, you must type \"mv $script_name /etc/init.d\""
   fi

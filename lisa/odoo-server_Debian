@@ -29,7 +29,7 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.2.7-Debian
+# version: 0.2.8-Debian
 # Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
@@ -67,7 +67,7 @@ USER=${xtl_user}
 # search for startup script
 DAEMON=
 for dn in odoo-bin odoo-server openerp-server odoo openerp; do
-  for dp in /opt/${USER}/${xtl_version} /usr/bin; do
+  for dp in /opt/${USER}/${xtl_version} /opt/${USER}/ODOO-${xtl_version} /opt/${USER}/odoo-${xtl_version} /usr/bin; do
     DAEMON=$dp/$dn
     if [ -x "$DAEMON" ]; then
       break
