@@ -7,7 +7,7 @@ import pdb
 from pdb import Pdb
 import code
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
@@ -177,6 +177,37 @@ MARKER_OTHERS = ['DPR633',
                  'no',
                  'No',] + MARKER_REGIME
 
+# OCA Italy
+CODE_ITEM_OCA = {'prefix': 'IV',
+                 'pfx_credit': 'C',
+                 'pfx_debit': 'D',
+                 'pfx_later_credit': 'P',
+                 'pfx_later_debit': 'S',
+                 'pfx_det': 'det',
+                 'pfx_ind': 'ind',
+                 'sfx_amt': 'I',
+                 'sfx_det_amt': 'I',
+                 'sfx_undet_amt': 'I',
+                 'sfx_vat': '',
+                 'sfx_det': '',
+                 'sfx_undet': 'N',
+                }
+# Zeroincombenze
+CODE_ITEM_OIA = {'prefix': 'IT',
+                 'pfx_credit': 'C',
+                 'pfx_debit': 'D',
+                 'pfx_later_credit': 'P',
+                 'pfx_later_debit': 'S',
+                 'pfx_det': 'd',
+                 'pfx_ind': '',
+                 'sfx_amt': 'D',
+                 'sfx_det_amt': 'D',
+                 'sfx_undet_amt': 'I',
+                 'sfx_vat': 'V',
+                 'sfx_det': 'V',
+                 'sfx_undet': 'N',
+                }
+
 
 def pdet2pind(value):
     return str(100 - int(value))
@@ -279,34 +310,6 @@ def set_code_meaning(code, chash=None):
     - detr: deductible quote
     - vat_apply: (apply, | no_vat)
     """
-    # OCA Italy
-    CODE_ITEM_OCA = {'prefix': 'IV',
-                     'pfx_credit': 'C',
-                     'pfx_debit': 'D',
-                     'pfx_later_credit': 'P',
-                     'pfx_later_debit': 'S',
-                     'pfx_det': 'det',
-                     'sfx_amt': 'I',
-                     'sfx_det_amt': 'I',
-                     'sfx_undet_amt': 'I',
-                     'sfx_vat': '',
-                     'sfx_det': '',
-                     'sfx_undet': 'N',
-                    }
-    # Zeroincombenze
-    CODE_ITEM_OIA = {'prefix': 'IT',
-                     'pfx_credit': 'C',
-                     'pfx_debit': 'D',
-                     'pfx_later_credit': 'P',
-                     'pfx_later_debit': 'S',
-                     'pfx_det': 'd',
-                     'sfx_amt': 'D',
-                     'sfx_det_amt': 'D',
-                     'sfx_undet_amt': 'I',
-                     'sfx_vat': 'V',
-                     'sfx_det': 'V',
-                     'sfx_undet': 'N',
-                    }
     code_meaning = {}
     for p in ('crddbt', 'type', 'code_aliq', 'aliq', 'vat_apply', 'pind'):
         code_meaning[p] = ''
@@ -344,23 +347,24 @@ def set_code_meaning(code, chash=None):
         else:
             code_meaning['crddbt'] = '?'
         type_def = False
-        if code[-1] == CODE_ITEM['sfx_amt']:
-            code_meaning['type'] = 'amt'
-        elif code[-1] == CODE_ITEM['sfx_undet_amt']:
-            code_meaning['type'] = 'undet_amt'
-            code_meaning['pind'] = '100'
-        elif code[-1] == CODE_ITEM['sfx_det_amt']:
-            code_meaning['type'] = 'det_amt'
-        elif code[-1] == CODE_ITEM['sfx_vat']:
-            code_meaning['type'] = 'vat'
-        elif code[-1] == CODE_ITEM['sfx_undet']:
-            code_meaning['type'] = 'undet'
-            code_meaning['pind'] = '100'
-        elif code[-1] == CODE_ITEM['sfx_det']:
-            code_meaning['type'] = 'det'
-        else:
-            code_meaning['type'] = 'vat'
-            type_def = True
+        if code_meaning['owner'] == 'OIA':
+            if code[-1] == CODE_ITEM['sfx_amt']:
+                code_meaning['type'] = 'amt'
+            elif code[-1] == CODE_ITEM['sfx_undet_amt']:
+                code_meaning['type'] = 'undet_amt'
+                code_meaning['pind'] = '100'
+            elif code[-1] == CODE_ITEM['sfx_det_amt']:
+                code_meaning['type'] = 'det_amt'
+            elif code[-1] == CODE_ITEM['sfx_vat']:
+                code_meaning['type'] = 'vat'
+            elif code[-1] == CODE_ITEM['sfx_undet']:
+                code_meaning['type'] = 'undet'
+                code_meaning['pind'] = '100'
+            elif code[-1] == CODE_ITEM['sfx_det']:
+                code_meaning['type'] = 'det'
+            else:
+                code_meaning['type'] = 'vat'
+                type_def = True
         ipos += 1
         code_meaning['aliq'] = '?'
         x = VAT_SYNTAX['5_NUMBER'].match(code[ipos:])
@@ -399,6 +403,13 @@ def set_code_meaning(code, chash=None):
                 i = ipos
                 ipos += x.end()
                 code_meaning['pind'] = pdet2pind(code[i:ipos])
+        elif ipos < len(code) and code[ipos].startswith(CODE_ITEM['pfx_ind']):
+            ipos += len(CODE_ITEM['pfx_ind'])
+            x = VAT_SYNTAX['5_NUMBER'].match(code[ipos:])
+            if x:
+                i = ipos
+                ipos += x.end()
+                code_meaning['pind'] = code[i:ipos]
     return code_meaning, CODE_ITEM
 
 
@@ -711,7 +722,8 @@ def hint_code_des(code, des, chash=None):
         print "<<<Code %s not managed>>>" % code
         newcode = code
         newdes = des
-    return newcode, newdes
+    proposed = build_code(code_meaning, CODE_ITEM_OIA)
+    return newcode, newdes, proposed
 
 
 oerp, uid = oerp_set_env()
@@ -731,7 +743,7 @@ for company_id in company_ids:
         print RED, company_id, tax.code, tax.name, CLEAR
         # if tax.code == 'IVC00art15acservI':
         #     pdb.set_trace()
-        newcode, newdes = hint_code_des(tax.code, tax.name)
+        newcode, newdes, proposed = hint_code_des(tax.code, tax.name)
         print GREEN, company_id, newcode, newdes, CLEAR
         if newcode != tax.code:
             print "^^^^^ ??????"
