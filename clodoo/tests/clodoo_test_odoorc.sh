@@ -276,6 +276,19 @@ test_01() {
       test_result "user $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    TRES[6.1]="6.1"
+    TRES[7.0]="7.0"
+    TRES[8.0]="8.0"
+    TRES[9.0]="9.0"
+    TRES[10.0]="10.0"
+    TRES[11.0]="11.0"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER ODOO-$v debug)
+      fi
+      # test_result "naming ODOO-$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
     return $sts
 }
 

@@ -85,10 +85,11 @@ test_copy() {
       fi
     fi
     TRES=$(eval $cmd)
-    test_result "cp $msg1 $msg2" "$6" "$TRES"
+    test_result "$PWD>cp $msg1 $msg2" "$6" "$TRES"
 }
 
 test_01() {
+    # if [ $opt_dry_run -ne 0 ]; then set -x; fi  #debug
     local s t
     export opt_conf=$TESTDIR/test_travis.conf
     if [ -f $opt_conf ]; then rm -f $opt_conf; fi
