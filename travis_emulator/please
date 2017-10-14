@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.50.1
+__version__=0.1.50.2
 
 
 #
@@ -1390,7 +1390,7 @@ do_synchro() {
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
-        # do_distribution "$PKGNAME" "$2"
+        do_distribution "$PKGNAME" "$2"
         local x=($git status -s)
         if [ -n "$x" ]; then
           if [ -n "$3" ]; then
@@ -1401,13 +1401,15 @@ do_synchro() {
             run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
           fi
         fi
-        git remote -v
         opts=
-        if [ $opt_force -ne 0 ]; then
+        if [ "$2" == "oia" ]; then
+          opts="-f --all"
+        elif [ $opt_force -ne 0 ]; then
           opts=-f
         fi
         run_traced "git push $opts"
         restore_owner
+        git remote -v
         git status
       fi
     else
