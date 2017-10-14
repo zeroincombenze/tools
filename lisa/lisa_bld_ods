@@ -280,6 +280,8 @@ while IFS=\| read -r line; do
     elif [ "$prm" == "xtl_altcfgfile" ]; then
       declare $prm="$opt_cfg2"
     elif [ "$prm" == "xtl_version" ]; then
+      declare $prm="$odoo_vid"
+    elif [ "$prm" == "xtl_fversion" ]; then
       declare $prm="$odoo_fver"
     elif [ "$prm" == "xtl_user" ]; then
       declare $prm="$opt_user"

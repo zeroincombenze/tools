@@ -22,7 +22,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.0
+__version__=0.2.1
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
@@ -65,7 +65,7 @@ odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param FULLVER $odoo_fver)
 if [ $opt_multi -lt 0 ]; then
   c=0
-  for v in 6 v7 7 8 9 10 11; do
+  for v in 6.1 v7 7.0 8.0 9.0 10.0 11.0; do
     odoo_bin=$(build_odoo_param BIN $v search)
     if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
       ((c++))

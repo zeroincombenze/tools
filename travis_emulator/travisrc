@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.86.6
+#__version__=0.1.86.7
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -562,7 +562,7 @@ conf_default() {
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
     set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca"
-    set_cfg_def "shellcheck_exclude" "2086,2004,2088,2034,1001,2116,2051,2129,2119,2045,1083,2063,2076,2001"
+    set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
 }
 
 
@@ -699,15 +699,6 @@ build_pkgurl() {
       echo ""
     fi
 }
-
-get_odoo_full_ver() {
-    if [ "$1" == "6" ]; then
-      echo "6.1"
-    else
-      echo "$1.0"
-    fi
-}
-
 
 install_dev() {
     if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then

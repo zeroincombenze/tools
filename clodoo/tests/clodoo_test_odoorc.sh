@@ -3,7 +3,7 @@
 # Regression tests on clodoo
 #
 THIS=$(basename $0)
-TDIR=$(readlink -f $(dirname $0))
+TDIR=$(readlink -f "$(dirname $0)")
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.2.1
+__version__=0.3.0
 
 
 test_01() {
@@ -166,6 +166,26 @@ test_01() {
     for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
+          RES=$(build_odoo_param FULL_SVCNAME $v)
+        elif [ $v -eq 6 ]; then
+          RES=$(build_odoo_param FULL_SVCNAME $v.1)
+        else
+          RES=$(build_odoo_param FULL_SVCNAME $v.0)
+        fi
+      fi
+      test_result "service name $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[v7]=openerp-server
+    TRES[6]=odoo6-server
+    TRES[7]=odoo7-server
+    TRES[8]=odoo8-server
+    TRES[9]=odoo9-server
+    TRES[10]=odoo10
+    TRES[11]=odoo11
+    for v in 6 v7 7 8 9 10 11; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        if [ "$v" == "v7" ]; then
           RES=$(build_odoo_param SVCNAME $v)
         elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param SVCNAME $v.1)
@@ -178,7 +198,7 @@ test_01() {
     done
     TRES[v7]=/opt/odoo/v7/server/openerp-server
     TRES[6]=/opt/odoo/6.1/server/openerp-server
-    TRES[7]=/opt/odoo/7.0/server/openerp-server
+    TRES[7]=/opt/odoo/7.0/openerp-server
     TRES[8]=/opt/odoo/8.0/openerp-server
     TRES[9]=/opt/odoo/9.0/openerp-server
     TRES[10]=/opt/odoo/10.0/odoo-bin
@@ -284,9 +304,9 @@ test_01() {
     TRES[11.0]="11.0"
     for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param FULLVER ODOO-$v debug)
+        RES=$(build_odoo_param "FULLVER" "ODOO-$v" "debug")
       fi
-      # test_result "naming ODOO-$v" "${TRES[$v]}" "$RES"
+      test_result "naming ODOO-$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
