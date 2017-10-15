@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.50.2
+__version__=0.1.51
 
 
 #
@@ -303,7 +303,7 @@ add_addons() {
       else
         echo "[//]: # (addons)">>$1
       fi
-      $TDIR/gen_addons_table.py inline $4>>$1
+      $TDIR/gen_addons_table.py addons $4>>$1
       if [ $2 -eq 1 ]; then
         echo "">>$1
         echo ".. [//]: # (end addons)">>$1
@@ -710,10 +710,10 @@ cvt_readme() {
     TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
     REPL[101]=""
     ACT[101]="CHPT_lang_it"
-    TKNS[102]="^======="
+    TKNS[102]="^======"
     REPL[102]=""
     ACT[102]="CHPT_102"
-    TKNS[103]="^------"
+    TKNS[103]="^-----"
     REPL[103]=""
     ACT[103]="CHPT_103"
     TKNS[104]="^Installation"
@@ -753,7 +753,7 @@ cvt_readme() {
     rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
-      # echo "$wf/$nxtwf/$prewf> line=$line" #debug
+      # echo "$prewf/$wf/$nxtwf> line=$line" #debug
       lne1="⌂"
       lne2="⌂"
       Ibutton=0

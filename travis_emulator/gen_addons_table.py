@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
-This script replaces markers in the README.md files
-of an OCA repository with the list of addons present
-in the repository. It preserves the marker so it
-can be run again.
+This script replaces markers in the README.md files of an Odoo repository
+with the list of addons present in the repository. It preserves the marker
+so it can be run again.
 The script must be run from the root of the repository,
 where the README.md file can be found.
+Based on OCA code it is changed for Odoo Italia Associazione.
+Cmdline parameters:
+    gen_addons_table.py [{addons|}] [OCA_original_dir]
 Markers in README.md must have the form:
 [//]: # (addons)
-does not matter, will be replaced by the script
+Insert list of modules with version and description; if path supplied, insert
+OCA version of module
 [//]: # (end addons)
 """
 
@@ -22,12 +25,18 @@ import sys
 
 MARKERS = r'(\[//\]: # \(addons\))|(\[//\]: # \(end addons\))'
 MANIFESTS = ('__openerp__.py', '__manifest__.py')
-__version__ = "0.1.0.3"
+__version__ = "0.1.1.0"
 
 
 class UserError(Exception):
     def __init__(self, msg):
         self.msg = msg
+
+
+def extract_des(description):
+    description_en = ''
+    description_it = ''
+    return description_en, description_it
 
 
 def sanitize_cell(s):
@@ -101,30 +110,36 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     readme = ''.join(parts)
     open(readme_path, 'w').write(readme)
 
-def get_values_from_manifest(addon_path, manifest_path):
+def get_values_from_manifest(addon_path, manifest_path, element):
     manifest = ast.literal_eval(open(manifest_path).read())
     addon_name = os.path.basename(addon_path)
     link = '[%s](%s/)' % (addon_name, addon_path)
     version = manifest.get('version') or ''
     summary = manifest.get('summary') or manifest.get('name')
     summary = sanitize_cell(summary)
+    # description = manifest.get('description') or ''
+    # description_en, description_it = extract_des(description)
     installable = manifest.get('installable', True)
-    if not installable:
+    if not installable and version != 'deprecated':
         version = version + ' (unported)'
     return [link, version, summary],  installable
 
 def gen_addons_table(args):
-    inline = True
-    original_OCA = False
-    if len(args) == 0 or args[0] != "inline":
+    if len(args) and args[0] in ('addons', ):
+        inline = True
+        element = args[0]
+    else:
         inline = False
+        element = 'addons'
         readme_path = 'README.md'
         if not os.path.isfile(readme_path):
             raise UserError('%s not found' % readme_path)
-    elif len(args) >= 2 and os.path.isdir(args[1]):
-         original_OCA = args[1]
+    if len(args) >= 2 and os.path.isdir(args[1]):
+        original_OCA = args[1]
+    else:
+        original_OCA = False
     # list addons in . and __unported__
-    addon_paths = []  # list of (addon_path, unported)
+    addon_paths = []
     for addon_path in os.listdir('.'):
         addon_paths.append((addon_path, False))
     unported_directory = '__unported__'
@@ -149,7 +164,8 @@ def gen_addons_table(args):
                 break
         if has_manifest:
             row, installable = get_values_from_manifest(addon_path,
-                                                        manifest_path)
+                                                        manifest_path,
+                                                        element)
             if unported and installable:
                 raise UserError('%s is in __unported__ but is marked '
                                 'installable.' % addon_path)
@@ -165,7 +181,7 @@ def gen_addons_table(args):
                         break
                 if o_has_manifest:
                     o_row, o_installable = get_values_from_manifest(
-                        OCA_addon_path, o_manifest_path)
+                        OCA_addon_path, o_manifest_path, 'addons')
                 if row[1] != o_row[1]:
                     row.insert(2, o_row[1])
                 else:

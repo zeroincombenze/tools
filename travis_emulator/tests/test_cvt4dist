@@ -25,7 +25,7 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.50
+__version__=0.1.51
 
 
 test_01() {
@@ -486,6 +486,11 @@ Installation
 
 * pip install zerobug
 
+Usage
+-----
+
+For furthermore information, please visit http://wiki.zeroincombenze.org/it/Odoo
+
 Credits
 -------
 
@@ -555,6 +560,8 @@ Configuration
 
 Usage
 -----
+
+For furthermore information, please visit http://wiki.zeroincombenze.org/it/Odoo
 
 Known issues / Roadmap
 ----------------------
