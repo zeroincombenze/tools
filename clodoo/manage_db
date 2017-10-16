@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.12.6
+__version__=0.1.13
 
 
 up_oemod() {
@@ -93,7 +93,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,module,update\ncmdlist of updatemay be upd_oemod,translation or filename\ncmdlist of module is module name"\
+  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,module,update\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module is module name"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -207,7 +207,7 @@ elif [ "$action" == "update" -o "$action" == "module" ]; then
       eval $WCMD
     fi
     if [ "$action" == "module" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s"
+      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -sk"
       $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
     elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
       echo "clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port"
