@@ -123,7 +123,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.10.4"
+__version__ = "0.1.11"
 
 
 #############################################################################
@@ -369,6 +369,8 @@ def create_params_dict(ctx):
     if opt_obj.dbfilter != "":
         ctx['dbfilter'] = opt_obj.dbfilter
         ctx['multi_db'] = True
+    if opt_obj.upgrade_modules:
+        ctx['upgrade_modules'] = opt_obj.upgrade_modules
     if opt_obj.data_path != "":
         ctx['data_path'] = opt_obj.data_path
     return ctx
@@ -480,6 +482,11 @@ def create_parser(version, doc, ctx):
                         dest="lgi_user",
                         metavar="username",
                         default=None)
+    parser.add_argument("-u", "--upgrade-modules",
+                        help="Module list to upgrade",
+                        dest="upgrade_modules",
+                        metavar="list",
+                        default="")
     parser.add_argument("-v", "--verbose",
                         help="run with debugging output",
                         action="store_true",

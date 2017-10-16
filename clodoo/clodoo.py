@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.71.4"
+__version__ = "0.2.72"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1

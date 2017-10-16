@@ -20,10 +20,16 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.15
 
 
 up_oemod() {
@@ -74,7 +80,7 @@ OPTACTI=(1        "="        "="      "="    1           1       0           "="
 OPTDEFL=(1        "7.0"      ""       ""     0           0       -1          8069     0         "odoo"     ""          -1)
 OPTMETA=("help"   "branch"   "file"   "name" "noop"      "del"   "quiet"     "port"   "test"    "user"     "version"   "verbose")
 OPTHELP=("this help"\
- "branch: must be 7.0 or 8.0 or 9.0 or 10.0 (def 7.0)"\
+ "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def 7.0)"\
  "configuration file (only update)"\
  "set database name or regex when update"\
  "do nothing (dry-run)"\
@@ -93,7 +99,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,module,update\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module is module name"\
+  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update,upgrade,module,translate\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -109,17 +115,9 @@ else
   WCMD="sleep $SLEEP_TIME"
 fi
 sts=$STS_SUCCESS
-if [[ $opt_branch =~ ^(11|10|9|8|7)$ ]]; then
-  opt_branch=$opt_branch.0
-  odoo_fver=$opt_branch
-elif [[ $opt_branch =~ ^(11\.0|10\.0|9\.0|8\.0|7\.0)$ ]]; then
-  odoo_fver=$opt_branch
-elif [ "$opt_branch" == "v7" ]; then
-  odoo_fver=7.0
-else
-  echo "Invalid Odoo version"
-  exit 1
-fi
+odoo_fver=$(build_odoo_param FULLVER $opt_branch)
+odoo_ver=$(build_odoo_param FULLVER $opt_branch)
+odoo_vid=$opt_branch
 if [ "$action" == "install" ]; then
   if [ ! -d data ]; then
     echo "Directory data/ not found!"
@@ -144,8 +142,8 @@ if [ "$action" == "install" ]; then
       else
         optdb=
       fi
-      echo "clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port"
-      clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port
+      echo "$TDIR/clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port"
+      $TDIR/clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_port
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
       :
     else
@@ -154,12 +152,12 @@ if [ "$action" == "install" ]; then
       else
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
       fi
-      echo "clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db  -r $opt_port"
-      clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db -r $opt_port
+      echo "$TDIR/clodoo.py  $opts -c=conf/z0_install_$cf.conf -d=$db  -r $opt_port"
+      $TDIR/clodoo.py $opts -c=conf/z0_install_$cf.conf -d=$db -r $opt_port
       sts=$?
     fi
   done
-elif [ "$action" == "update" -o "$action" == "module" ]; then
+elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate" -o "$action" == "upgrade" ]; then
   if [ -f "$opt_conf" ]; then
     cf=$opt_conf
   elif [ -f "$opt_conf.conf" ]; then
@@ -208,17 +206,29 @@ elif [ "$action" == "update" -o "$action" == "module" ]; then
     fi
     if [ "$action" == "module" ]; then
       echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -sk"
-      $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+    elif [ "$action" == "upgrade" ]; then
+      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -sk"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+      echo "$TDIR/clodoo.py $opts -A upgrade_modules -u $cmdlist -d=$db -r $opt_port"
+      $TDIR/clodoo.py $opts -A upgrade_modules -u $cmdlist -d=$db -r $opt_port
+      sts=$?
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
+    elif [ "$action" == "translate" ]; then
+      echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -l -d $db
     elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
-      echo "clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port"
-      clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port
-      up_oemod $db $opt_branch
+      echo "$TDIR/clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port"
+      $TDIR/clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_port
+      [ $opt_dry_run -ne 0 ] || up_oemod $db $opt_branch
     elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -l"
-      $TDIR/run_odoo_debug.sh $opt_branch -l
+      echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -l -d $db
     elif [ -n "$cmdlist" ]; then
-      echo "clodoo.py $opts -A $cmdlist -d=$db -r $opt_port"
-      clodoo.py $opts -A $cmdlist -d=$db -r $opt_port
+      echo "$TDIR/clodoo.py $opts -A $cmdlist -d=$db -r $opt_port"
+      $TDIR/clodoo.py $opts -A $cmdlist -d=$db -r $opt_port
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
         break
@@ -228,8 +238,8 @@ elif [ "$action" == "update" -o "$action" == "module" ]; then
         echo "Configuration file $opt_conf not found!"
         exit 1
       fi
-      echo "clodoo.py $opts -c=$cf -d=$db -r $opt_port"
-      clodoo.py $opts -c=$cf -d=$db -r $opt_port
+      echo "$TDIR/clodoo.py $opts -c=$cf -d=$db -r $opt_port"
+      $TDIR/clodoo.py $opts -c=$cf -d=$db -r $opt_port
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
         break
