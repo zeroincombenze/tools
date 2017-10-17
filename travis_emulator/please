@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.51
+__version__=0.1.51.1
 
 
 #
@@ -1606,7 +1606,7 @@ do_publish_tar() {
         echo "# $p">$SETUP
         f=
         for i in {2..9}; do
-          x=$(echo $PRJPATH|awk -F/ '{print $'$i '}')
+          x=$(echo $PRJPATH|awk -F/ '{print $'$i'}')
           if [ -n "$x" ]; then
             f=$f/$x
             if [ $i -gt 3 ]; then
