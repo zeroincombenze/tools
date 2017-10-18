@@ -196,7 +196,33 @@ class topep8():
                 break
         return prms
 
-    def parse_escape_rule(self, value, ipos):
+    def parse_eol_rule(self, value, ipos, x):
+        i = ipos + x.end()
+        ipos = len(value)
+        tokval = value[i:ipos].strip()
+        return tokval, ipos
+
+    def parse_doc_rule(self, value, ipos, x):
+        """Found triple quote, all inside next triple quote is doc"""
+        tokval, ipos = self.parse_eol_rule(value, ipos, x)
+        tokid = tokenize.DOC
+        return tokid, tokval, ipos
+
+    def parse_remarkeol_rule(self, value, ipos, x):
+        """Found token # (hash), all following it until eol is comment"""
+        tokval, ipos = self.parse_eol_rule(value, ipos, x)
+        tokid = tokenize.COMMENT
+        return tokid, tokval, ipos
+
+    def parse_escape_rule(self, value, ipos, x):
+        """Escape token replaces single python keyword. Escape rule may be:
+        $any     means any python token
+        $more    means zero, one o more python tokens
+                 (until token following $more in rule is matched)
+        $name    means any python name
+        $expr    means all tokens until global paren level decreases
+        Every other value means current rule depends on another rule.
+        """
         i = ipos
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         ipos += x.end() + 1
@@ -205,19 +231,19 @@ class topep8():
             tokid = getattr(tokenize, tokval.upper())
             tokval = False
         else:
-            print "Unknown token %s" % value[i:]
+            # print "Unknown token %s" % value[i:]
             tokval = False
             tokid = tokenize.SUBRULE
         return tokid, tokval, ipos
 
-    def parse_txt1_rule(self, value, ipos):
+    def parse_txt_rule(self, value, ipos, endtok, esctok):
         i = ipos
         x = True
         while x:
-            x = self.SYNTAX_RE['endstr1'].match(value[ipos:])
+            x = self.SYNTAX_RE[endtok].match(value[ipos:])
             if x:
                 ipos += x.end()
-                if value[ipos:ipos + 1] == self.SYNTAX_RE['escstr1']:
+                if value[ipos:ipos + 1] == self.SYNTAX_RE[esctok]:
                     ipos += 1
                 else:
                     x = None
@@ -227,29 +253,25 @@ class topep8():
         tokid = tokenize.STRING
         return tokid, tokval, ipos
 
+    def parse_txt1_rule(self, value, ipos):
+        return parse_txt_rule(self, value, ipos, 'endstr1', 'escstr1')
+
     def parse_txt2_rule(self, value, ipos):
+        return parse_txt_rule(self, value, ipos, 'endstr2', 'escstr2')
+
+    def parse_generic_rule(self, value, ipos, x, token_name):
         i = ipos
-        x = True
-        while x:
-            x = self.SYNTAX_RE['endstr2'].match(value[ipos:])
-            if x:
-                ipos += x.end()
-                if value[ipos:ipos + 1] == self.SYNTAX_RE['escstr2']:
-                    ipos += 1
-                else:
-                    x = None
-            else:
-                ipos = len(value)
+        ipos += x.end()
         tokval = value[i:ipos]
-        tokid = tokenize.STRING
+        tokid = token_name
         return tokid, tokval, ipos
 
     def compile_1_rule(self, ir, meta, value):
         """Compile current rule <ir> for version <meta> parsing <value>
         All rules are stored in self.SYTX_* variables
-        self.SYTX_KEYWORDS -> dict of every rule keywords
-        self.SYTX_KEYIDS -> dict of every kwyword id as from tokenizer package
-        self.SYTX_PRMS -> dict of params in every version <meta>"""
+        self.SYTX_KEYWORDS -> dict of all rule keywords
+        self.SYTX_KEYIDS -> dict of all keyword ids as from tokenizer package
+        self.SYTX_PRMS -> dict of params for every version <meta>"""
         # pdb.set_trace()
         keywords = []
         keyids = []
@@ -267,32 +289,26 @@ class topep8():
                         continue
                     elif istkn == 'escape':
                         tokid, tokval, ipos = self.parse_escape_rule(value,
-                                                                       ipos)
+                                                                     ipos)
                     elif istkn == 'remark_eol':
-                        i += x.end()
-                        ipos = len(value)
-                        tokval = value[i:ipos].strip()
-                        tokid = tokenize.COMMENT
+                        tokid, tokval, ipos = self.parse_remarkeol_rule(value,
+                                                                        ipos)
                     elif istkn in ('strdoc1',
                                    'strdoc2'):
-                        i += x.end()
-                        ipos = len(value)
-                        tokval = value[i:ipos].strip()
-                        tokid = tokenize.DOC
+                        tokid, tokval, ipos = self.parse_doc_rule(value,
+                                                                  ipos)
                     elif istkn == 'string1':
                         tokid, tokval, ipos = self.parse_txt1_rule(value,
-                                                                     ipos)
+                                                                   ipos)
                     elif istkn == 'string2':
                         tokid, tokval, ipos = self.parse_txt2_rule(value,
-                                                                     ipos)
+                                                                   ipos)
                     elif istkn == 'name':
-                        ipos += x.end()
-                        tokval = value[i:ipos]
-                        tokid = tokenize.NAME
+                        tokid, tokval, ipos = self.parse_generic_rule(
+                            value, ipos, x, tokenize.NAME)
                     else:
-                        ipos += x.end()
-                        tokval = value[i:ipos]
-                        tokid = tokenize.OP
+                        tokid, tokval, ipos = self.parse_generic_rule(
+                            value, ipos, x, tokenize.OP)
                     break
             if unknown:
                 print "Unknown token %s" % value[ipos:]
@@ -308,7 +324,7 @@ class topep8():
         self.init_rule_all(ir)
 
     def extr_tokens_from_line(self, rule, meta, value, cont_break):
-        if rule[-1] == '\n':
+        if rule and rule[-1] == '\n':
             rule = rule[0: -1]
         id = False
         # meta = False
@@ -465,7 +481,7 @@ class topep8():
 
     def tokenize_source(self, ctx=None):
         # pdb.set_trace()
-        ctx = {} if ctx is None else ctx
+        ctx = ctx or {}
         for tokeno, (tokid, tokval,
                      (srow, scol),
                      (erow, ecol)) in enumerate(self.tokenized):
@@ -583,7 +599,7 @@ class topep8():
             # yield tokid, tokval
 
     def apply_for_rules(self, ctx=None):
-        ctx = {} if ctx is None else ctx
+        ctx = ctx or {}
         self.tokenize_source(ctx=ctx)
         for tokeno in self.re_replaces:
             self.tokenized[tokeno][1] = self.re_replaces[tokeno]
