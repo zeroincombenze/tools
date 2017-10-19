@@ -5,6 +5,7 @@
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
@@ -20,12 +21,13 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.2.2
+__version__=0.2.3
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.$$.tmp
 CRONTAB_TMP2=~/$THIS.crontab.$$_2.tmp
 VIM_RC=~/$THIS.vim
+
 
 extract_cmdline() {
     local cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
@@ -99,6 +101,7 @@ cron_runow() {
       fi
     fi
     extract_cmdline
+    cronline="$SK_CMD"
     if [ $opt_edit -eq 0 ]; then
       if [ $opt_dry_run -gt 0 ]; then
         echo "crontab statement simulated by DRY_RUN:"
@@ -253,7 +256,7 @@ elif [ "$opt_action" == "-w" ]; then
   cron_wait
   sts=$?
 else
-  print_help "Run now a selected cron statement from crontab"\
+  print_help "Submit now to crontab a selected cron statement"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   sts=1
 fi

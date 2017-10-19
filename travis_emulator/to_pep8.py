@@ -65,22 +65,66 @@ class topep8():
         self.prev_col = 0
         self.tokeno = 0
 
-    def suspend_state(self, ir):
+    def reset_state(self, ir):
+        self.syntax_state[ir] = 0
+        self.syntax_more[ir] = False
+
+    def set_suspended(self, ir):
         """Set rule state to suspended"""
         self.syntax_state[ir] = -1 - self.syntax_state[ir]
-        return self.syntax_state[ir]
 
-    def active_state(self, ir):
+    def set_active(self, ir):
         """Set rule state to active"""
         self.syntax_state[ir] = abs(self.syntax_state[ir] + 1)
         return self.syntax_state[ir]
 
-    def cur_valid_state(self, ir):
-        return abs(self.syntax_state[ir] + 1)
-
-    def next_state(self, ir):
+    def advance_state(self, ir):
+        """Advance state to next"""
         self.syntax_state[ir] += 1
         return self.syntax_state[ir]
+
+    def set_waiting_4_more(self, ir):
+        """Set rule waiting for match to end token"""
+        self.syntax_state[ir] += 1
+        self.syntax_more[ir] = True
+
+    def cur_state(self, ir):
+        """Get current rule state"""
+        return self.syntax_state[ir]
+
+    def cur_valid_state(self, ir):
+        """Get current active/valid rule state"""
+        return abs(self.syntax_state[ir] + 1)
+
+    def is_active(self, ir):
+        """Check for active rule"""
+        keywords, tokids = self.get_key_n_id_from_rule(ir)
+        if self.cur_state(ir) < 0 or \
+                self.cur_state(ir) >= len(keywords):
+            return False
+        return True
+
+    def cur_tokid(self, ir):
+        keywords, tokids = self.get_key_n_id_from_rule(ir)
+        return tokids[self.cur_state(ir)]
+
+    def cur_tokval(self, ir):
+        keywords, tokids = self.get_key_n_id_from_rule(ir)
+        return keywords[self.cur_state(ir)]
+
+    def matches(self, ir, tokid, tokval, ctx):
+        """Check if tokval matches rule token or tokid matches rule id"""
+        if tokval == self.cur_tokval(ir):
+            # exact text match
+            self.advance_state(ir)
+            return True
+        elif tokid == self.cur_tokid(ir):
+            # match token type
+            self.advance_state(ir)
+            return True
+        else:
+            self.reset_state(ir)
+        return False
 
     def init_rules(self):
         """Configuration .2p8 file syntax initialization"""
@@ -147,6 +191,8 @@ class topep8():
     def init_rule_state(self, ir):
         if ir not in self.syntax_state:
             self.syntax_state[ir] = 0
+        if ir not in self_min_max:
+            self.syntax_min_max = [1, 1]
         if ir not in self.syntax_more:
             self.syntax_more[ir] = False
 
@@ -387,6 +433,7 @@ class topep8():
         self.SYTX_PRMS = {}
         self.syntax_state = {}
         self.syntax_more = {}
+        self.syntax_min_max = {}
         self.rule_re_matches = {}
         self.rule_re_replaces = {}
         self.re_matches = []
@@ -414,9 +461,9 @@ class topep8():
             keywords, tokids = self.get_key_n_id_from_rule(ir)
             if self.cur_valid_state(ir) >= len(keyids):
                 continue
-            if keyids[self.active_state(ir)] == tokenize.SUBRULE and \
-                    keywords[self.active_state(ir)] == ir:
-                suspend_state(ir)
+            if keyids[self.set_active(ir)] == tokenize.SUBRULE and \
+                    keywords[self.set_active(ir)] == ir:
+                set_suspended(ir)
                 if result:
                     self.syntax_state[ir] += 1
                 else:
@@ -490,30 +537,28 @@ class topep8():
                 continue
             if ctx['opt_dbg']:
                 print ">>> %s(%s)" % (tokval, tokid)
-            completed = []
-            reset = []
+            completed_rules = []
+            reset_rules = []
             for ir in self.SYTX_KEYWORDS.keys():
                 keywords, tokids = self.get_key_n_id_from_rule(ir)
-                re_matches = get_prms_from_rule(self, ir, ctx['from_ver'])
-                re_replaces = get_prms_from_rule(self, ir, ctx['to_ver'])
+                re_matches = self.get_prms_from_rule(ir, ctx['from_ver'])
+                re_replaces = self.get_prms_from_rule(ir, ctx['to_ver'])
                 # rule parse ended
-                if self.syntax_state[ir] < 0 or \
-                        self.syntax_state[ir] >= len(keywords):
+                if not self.is_active(ir):
                     pass
-                # rule child of parent rule
-                elif tokids[self.syntax_state[ir]] == tokenize.SUBRULE:
-                    self.suspend_state(ir)
+                # rule child of parent rule: wait for parent result
+                elif self.cur_tokid(ir) == tokenize.SUBRULE:
+                    self.set_suspended(ir)
                 # any token is valid
-                elif tokids[self.syntax_state[ir]] == tokenize.ANY:
-                    self.syntax_state[ir] += 1
+                elif self.cur_tokid(ir) == tokenize.ANY:
+                    self.advance_state(ir)
                 # replace string inside remark
-                elif tokids[self.syntax_state[ir]] == tokenize.COMMENT:
+                elif self.cur_tokid(ir) == tokenize.COMMENT:
                     self.replace_token(ir, tokid, tokval,
                                        re_matches, re_replaces)
                 # zero, one or more tokens are valid until next match
-                elif tokids[self.syntax_state[ir]] == tokenize.MORE:
-                    self.syntax_state[ir] += 1
-                    self.syntax_more[ir] = True
+                elif self.cur_tokid(ir) == tokenize.MORE:
+                    self.set_waiting_4_more(ir)
                     if keywords[self.syntax_state[ir]]:
                         if tokval == keywords[self.syntax_state[ir]]:
                             self.syntax_state[ir] += 1
@@ -535,6 +580,8 @@ class topep8():
                             self.syntax_state[ir] += 1
                             self.syntax_more[ir] = False
                 # matching more ...
+                # elif self.matches(ir, tokid, tokval, ctx):
+                #     pass
                 elif self.syntax_more[ir]:
                     if isinstance(self.syntax_more[ir], bool) or \
                             self.syntax_more[ir] == self.any_paren + 1:
@@ -552,7 +599,7 @@ class topep8():
                         self.syntax_state[ir] += 1
                     else:
                         self.syntax_state[ir] = 0
-                        reset.append(ir)
+                        reset_rules.append(ir)
                 elif tokid:
                     # match token type
                     if tokid == tokids[self.syntax_state[ir]]:
@@ -567,16 +614,16 @@ class topep8():
                     # does not match
                     else:
                         self.syntax_state[ir] = 0
-                        reset.append(ir)
+                        reset_rules.append(ir)
                 # token matches
                 else:
                     # print "    else: self.syntax_state[ir] += 1"   # debug
                     self.syntax_state[ir] += 1
                 if self.syntax_state[ir] >= len(keywords):
-                    completed.append(ir)
+                    completed_rules.append(ir)
             for ir in self.SYTX_KEYWORDS.keys():
                 # rule finally matches
-                if ir in completed:
+                if ir in completed_rules:
                     if ctx['opt_dbg']:
                         print "    match_parent_rule(%s, True)" % (ir)
                     self.match_parent_rule(ir, True)
@@ -588,7 +635,7 @@ class topep8():
                     self.rule_re_replaces[ir] = {}
                     self.syntax_state[ir] = 0
                 # rule does not match
-                elif ir in reset:
+                elif ir in reset_rules:
                     if ctx['opt_dbg']:
                         print "    match_parent_rule(%s, False)" % (ir)
                     self.match_parent_rule(ir, False)

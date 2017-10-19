@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.72"
+__version__ = "0.2.72.3"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -1511,6 +1511,20 @@ def act_check_balance(oerp, ctx):
     return STS_SUCCESS
 
 
+def act_recompute_tax_balance(oerp, ctx):
+    msg = u"Recompute tax balance"
+    msg_log(ctx, ctx['level'], msg)
+    sts = recompute_tax_balance(oerp, ctx)
+    return sts
+
+
+def act_recompute_balance(oerp, ctx):
+    msg = u"Recompute balance"
+    msg_log(ctx, ctx['level'], msg)
+    sts = recompute_balance(oerp, ctx)
+    return sts
+
+
 def act_set_4_cscs(oerp, ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
@@ -2270,19 +2284,19 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
             msg = u"Restore invoices to validated %s " % invoices
             msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
-                # try:
-                #     oerp.execute('account.invoice',
-                #                  "button_reset_taxes",
-                #                  [inv_id])
-                # except:
-                #     pass
+                try:
+                    oerp.execute('account.invoice',
+                                 'button_compute',
+                                 [inv_id])
+                    oerp.execute('account.invoice',
+                                 "button_reset_taxes",
+                                 [inv_id])
+                except:
+                    pass
                 try:
                     oerp.exec_workflow(model,
                                        'invoice_open',
                                        inv_id)
-                    # oerp.execute(model,
-                    #              "invoice_validate",
-                    #              invoices)
                 except:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
@@ -2615,6 +2629,104 @@ def set_account_type(oerp, ctx):
                     refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx)
                 sts = reconcile_invoices(oerp, new_reconcile_dict, ctx)
     return sts
+
+
+def recompute_tax_balance(oerp, ctx):
+    sts = STS_SUCCESS
+    company_id = ctx['company_id']
+    model = 'account.period'
+    period_ids = oerp.search(model,
+                             [('company_id', '=', company_id),
+                              ('date_start', '>=', ctx['date_start']),
+                              ('date_stop', '<=', ctx['date_stop'])])
+    if ctx['custom_act'] == 'cscs':
+        model = 'account.tax'
+        tax_00_sell = oerp.search(model, [('description', '=', '00%VDCServ')])
+        tax_00_pur = oerp.search(model, [('description', '=', '00%ACCServ')])
+
+    model = 'account.invoice'
+    model2 = 'account.invoice.line'
+    invoice_ids = oerp.search(model, [('period_id', 'in', period_ids),
+                                      ('state', '!=', 'draft'),
+                                      ('state', '!=', 'cancel')])
+    num_moves = len(invoice_ids)
+    move_ctr = 0
+    for invoice_id in invoice_ids:
+        move_ctr += 1
+        msg_burst(ctx['level'], "Processing ", move_ctr, len(num_moves))
+        rec_ids = [invoice_id]
+        reconcile_dict, move_dict = get_reconcile_from_invoices(
+            oerp, rec_ids, ctx)
+        unreconcile_invoices(oerp, reconcile_dict, ctx)
+        upd_invoices_2_draft(oerp, move_dict, ctx)
+        line_ids = oerp.search(model2, [('invoice_id', '=', invoice_id)])
+        if ctx['custom_act'] == 'cscs':
+            for line_id in line_ids:
+                line = oerp.browse(model2, line_id)
+                if not line.invoice_line_tax_id:
+                    type = oerp.browse(model, invoice_id).type
+                    tax = False
+                    if type in ('in_invoice', 'in_refund'):
+                        tax = [(6, 0, tax_00_pur)]
+                    elif type in ('out_invoice', 'out_refund'):
+                        tax = [(6, 0, tax_00_sell)]
+                    if tax:
+                        oerp.write(model2, [line_id],
+                                   {'invoice_line_tax_id': tax})
+        upd_invoices_2_posted(oerp, move_dict, ctx)
+        reconciles = reconcile_dict[invoice_id]
+        if len(reconciles):
+            try:
+                cur_reconciles, cur_reconcile_dict = \
+                    refresh_reconcile_from_inv(oerp,
+                                               invoice_id,
+                                               reconciles,
+                                               ctx)
+                reconcile_invoices(oerp,
+                                   cur_reconcile_dict,
+                                   ctx)
+            except:
+                msg = u"**** Warning invoice %d ****" % invoice_id
+                msg_log(ctx, ctx['level'], msg)
+    return sts
+
+
+def recompute_balance(oerp, ctx):
+    company_id = ctx['company_id']
+    model = 'account.period'
+    period_ids = oerp.search(model,
+                             [('company_id', '=', company_id),
+                              ('date_start', '>=', ctx['date_start']),
+                              ('date_stop', '<=', ctx['date_stop'])])
+    model = 'account.move'
+    move_ids = oerp.search(model, [('period_id', 'in', period_ids),
+                                   ('state', '!=', 'draft')])
+    num_moves = len(invoice_ids)
+    move_ctr = 0
+    for move_id in move_ids:
+        move_ctr += 1
+        msg_burst(ctx['level'], "Processing ", move_ctr, len(num_moves))
+        try:
+            # msg = u"Update payments to draft %d" % move_id
+            # msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.move',
+                         "button_cancel",
+                         [move_id])
+        except:
+            msg = u"Cannot update payment status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+        try:
+            # msg = u"Restore payments to posted %d" % move_id
+            # msg_log(ctx, ctx['level'], msg)
+            oerp.execute('account.move',
+                         "button_validate",
+                         [move_id])
+        except:
+            msg = u"Cannot restore payment status"
+            msg_log(ctx, ctx['level'], msg)
+            return STS_FAILED
+    return STS_SUCCESS
 
 
 def append_2_where(oerp, model, code, op, value, where, ctx):
