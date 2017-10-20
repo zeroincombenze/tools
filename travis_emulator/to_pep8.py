@@ -192,7 +192,7 @@ class topep8():
         if ir not in self.syntax_state:
             self.syntax_state[ir] = 0
         if ir not in self_min_max:
-            self.syntax_min_max = [1, 1]
+            self.syntax_min_max[ir] = [1, 1]
         if ir not in self.syntax_more:
             self.syntax_more[ir] = False
 
@@ -269,18 +269,29 @@ class topep8():
         $expr    means all tokens until global paren level decreases
         Every other value means current rule depends on another rule.
         """
+        min_max = [1, 1]
         i = ipos
+        if value[i + 1] == '?':
+            return [0, 1], -1, False, ipos + 1
+        elif value[i + 1] == '*':
+            return [0, -1], -1, False, ipos + 1
+        elif value[i + 1] == '+':
+            return [1, -1], -1, False, ipos + 1
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         ipos += x.end() + 1
         tokval = value[i + 1:ipos]
-        if tokval in ('name', 'any', 'more', 'expr'):
+        if tokval in ('name', 'any'):
             tokid = getattr(tokenize, tokval.upper())
             tokval = False
+        elif tokval in ('more', 'expr'):
+            tokid = getattr(tokenize, tokval.upper())
+            tokval = False
+            min_max = [1, -1]
         else:
             # print "Unknown token %s" % value[i:]
             tokval = False
             tokid = tokenize.SUBRULE
-        return tokid, tokval, ipos
+        return min_max, tokid, tokval, ipos
 
     def parse_txt_rule(self, value, ipos, endtok, esctok):
         i = ipos
@@ -315,12 +326,15 @@ class topep8():
     def compile_1_rule(self, ir, meta, value):
         """Compile current rule <ir> for version <meta> parsing <value>
         All rules are stored in self.SYTX_* variables
-        self.SYTX_KEYWORDS -> dict of all rule keywords
+        self.SYTX_KEYWORDS -> dict of all keywords of rule
         self.SYTX_KEYIDS -> dict of all keyword ids as from tokenizer package
-        self.SYTX_PRMS -> dict of params for every version <meta>"""
+        self.SYTX_PRMS -> dict of params list for every version <meta>
+        self.SYTX_CTR -> Min/Max repetiotion of every keyword/ids
+                         (-1 means no limit)"""
         # pdb.set_trace()
         keywords = []
         keyids = []
+        ctr = []
         ipos = 0
         while ipos < len(value):
             unknown = True
@@ -329,13 +343,17 @@ class topep8():
                 if x:
                     unknown = False
                     tokid = False
+                    min_max = [1,1]
                     i = ipos
                     if istkn in ('space', ):
                         ipos += x.end()
                         continue
                     elif istkn == 'escape':
-                        tokid, tokval, ipos = self.parse_escape_rule(value,
-                                                                     ipos)
+                        min_max, tokid, tokval, ipos = self.parse_escape_rule(
+                            value, ipos)
+                        if tokid == -1:
+                            ctr[-1] = min_max
+                            continue
                     elif istkn == 'remark_eol':
                         tokid, tokval, ipos = self.parse_remarkeol_rule(value,
                                                                         ipos)
@@ -362,6 +380,7 @@ class topep8():
             if tokid:
                 keywords.append(tokval)
                 keyids.append(tokid)
+                ctr.append(min_max)
         # match rule against version
         if meta and self.SYNTAX_RE['int'].match(meta):
             self.store_meta_subrule(ir, meta, keywords, keyids)
@@ -431,6 +450,7 @@ class topep8():
         self.SYTX_KEYWORDS = {}
         self.SYTX_KEYIDS = {}
         self.SYTX_PRMS = {}
+        self.SYTX_CTR = {}
         self.syntax_state = {}
         self.syntax_more = {}
         self.syntax_min_max = {}

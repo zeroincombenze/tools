@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.51.1
+__version__=0.1.51.3
 
 
 #
@@ -1564,9 +1564,14 @@ do_publish_tar() {
     local SETUP=./setup.sh
     local xx="$(get_cfg_value 0 filedel)"
     local yy="$(get_cfg_value 0 fileignore)"
-    xx="$xx $yy"
+    if [ $opt_keep -ne 0 ]; then
+      xx="$xx $yy"
+    else
+      xx="$xx $yy tests/"
+    fi
     if [ "$PRJNAME" != "Odoo" ]; then
       run_traced "cd $PKGPATH"
+      # run_traced "mkdir -p tmp"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
       v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
@@ -1590,7 +1595,8 @@ do_publish_tar() {
         invalid=
         for f in $PKGLIST; do
           if [ -f $f ]; then
-            cp $f $HOME/tmp
+            :
+            #cp $f $PKGPATH/tmp
           else
             invalid=$f
           fi
@@ -1615,7 +1621,7 @@ do_publish_tar() {
           fi
         done
         l=${#PKGPATH}
-        f=".${PRJPATH:l}"
+        f=".${PRJPATH:l}"  # subroot
         l=${#f}
         ((l++))
         PASSED=
@@ -1636,7 +1642,7 @@ do_publish_tar() {
           fi
           run_traced "tar $x $p $f"
           x=${x/c/r}
-          if [ -f "$f" ]; then rm -f $f; fi
+          # if [ -f "$f" ]; then rm -f $f; fi
           echo "cp -p $f $PKGPATH/$y">>$SETUP
         done
         chmod +x $SETUP
@@ -1746,7 +1752,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
  "execute tests in project dir rather in test dir"\
- "keep coverage statistics in annotate test/keep original repository"\
+ "keep coverage statistics in annotate test/keep original repository or tests/ in publish"\
  "log file name"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
