@@ -6,9 +6,9 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -27,7 +27,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__="0.2.4.2"
+__version__=0.2.5.2
 
 
 get_arch () {
@@ -56,9 +56,9 @@ get_arch () {
 
 
 OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
-OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_ver  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_vid  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
 OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       "odoo"    ""       0        ""       0            "10"        ""     ""       ""       "odoo"   ""          0)
+OPTDEFL=(1        ""      ""       ""        ""       0        ""       0            "10"        ""     ""       ""       "odoo"   ""          0)
 OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
@@ -87,89 +87,31 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [[ " 11 10 9 8 7 6 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
-  # odoo_fver=$(get_odoo_full_ver $odoo_ver)
-  odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
-elif [[ " 11.0 10.0 9.0 8.0 7.0 6.1 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
-  odoo_fver="$odoo_ver"
-  odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
-elif [[ " v11 v10 v9 v8 v7 v6" =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
-  odoo_ver=$(echo $odoo_fver|grep -Eo [0-9]*|head -n1)
-  # odoo_fver=$(get_odoo_full_ver $odoo_ver)
-  odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
-else
-  echo "Invalid Odoo version"
-  exit 1
-fi
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 if [ -z "$opt_name" ]; then
-  if [ "$odoo_ver" == "10" ]; then
-    if [ $opt_mult -gt 0 ]; then
-      opt_name=${opt_id}${odoo_ver}
-    else
-      opt_name=${opt_id}
-    fi
+  opt_name=$(build_odoo_param SVCNAME $odoo_vid)
+fi
+if [ -z "$opt_id" ]; then
+  if [ "${opt_name:0:7}" == "openerp" ]; then
+    opt_id="openerp"
   else
-    if [ $opt_mult -gt 0 ]; then
-      opt_name=${opt_id}${odoo_ver}-server
-    else
-      opt_name=${opt_id}-server
-    fi
+    opt_id="odoo"
   fi
 fi
-
 if [ -z "$opt_pid" ]; then
-  opt_pid=$(build_odoo_param FPID $odoo_ver)
-  # if [ "$odoo_ver" == "10" ]; then
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}.pid
-  #   else
-  #     opt_pid=/var/run/${opt_id}/${opt_name}.pid
-  #   fi
-  # else
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_pid=/var/run/${opt_id}/${opt_id}${odoo_ver}-server.pid
-  #  else
-  #     opt_pid=/var/run/${opt_id}/${opt_name}.pid
-  #   fi
-  # fi
+  opt_pid=$(build_odoo_param FPID $odoo_vid)
 fi
 if [ -z "$opt_flog" ]; then
-  opt_flog=$(build_odoo_param FLOG $odoo_ver)
-  # if [ "$odoo_ver" == "10" ]; then
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}.log
-  #   else
-  #     opt_flog=/var/log/${opt_id}/${opt_name}.log
-  #   fi
-  # else
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_flog=/var/log/${opt_id}/${opt_id}${odoo_ver}-server.log
-  #   else
-  #     opt_flog=/var/log/${opt_id}/${opt_name}.log
-  #   fi
-  # fi
+  opt_flog=$(build_odoo_param FLOG $odoo_vid)
 fi
 if [ -z "$opt_cfg" ]; then
-  opt_cfg=$(build_odoo_param CONFN $odoo_ver)
-  # if [ "$odoo_ver" == "10" ]; then
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}.conf
-  #   else
-  #     opt_cfg=/etc/${opt_id}/${opt_name}.conf
-  #   fi
-  # else
-  #   if [ $opt_mult -gt 0 ]; then
-  #     opt_cfg=/etc/${opt_id}/${opt_id}${odoo_ver}-server.conf
-  #   else
-  #     opt_cfg=/etc/${opt_id}/${opt_name}.conf
-  #   fi
-  # fi
+  opt_cfg=$(build_odoo_param CONFN $odoo_vid)
 fi
 opt_cfg2="$(dirname $opt_cfg)"
 opt_cfg2="$(readlink -m $opt_cfg2/..)/$(basename $opt_cfg)"
 if [ -z "$script_name" ]; then
-  # script_name=${opt_name}
-  script_name=$(build_odoo_param SVCNAME $odoo_ver)
+  script_name=$(build_odoo_param FULL_SVCNAME $odoo_vid)
 fi
 if [ -n "$opt_osf" ]; then
   get_arch "$opt_osf"
@@ -194,14 +136,14 @@ if [ -n "$CFG_FILE" ]; then
   cfg_logfile=$(echo $cfg_logfile)
   if [ -n "$cfg_pidfile" -a "$cfg_pidfile" != "$opt_pid" ]; then
     echo "??? Mismatch pidfile configuration!?!?!?"
-    echo "Found $cfg_pidfile in configuratione file rather than $opt_pid"
+    echo "Found $cfg_pidfile in configuration file rather than $opt_pid"
   fi
   if [ -n "$cfg_logfile" -a "$cfg_logfile" != "$opt_flog" ]; then
     echo "??? Mismatch logfile configuration!?!?!?"
     echo "Found $cfg_logfile in configuration file rather than $opt_flog"
   fi
 fi
-echo "Building $script_name for $FH Linux distribution"
+echo "Building $script_name for $opt_name service under $FH Linux distribution"
 echo "- logfile is $opt_flog"
 echo "- pidfile is $opt_pid"
 echo "- def.conf.file is $opt_cfg"

@@ -1,1 +1,2 @@
 LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by lisa)
+ confn=/opt/odoo/dev/pypi/lisa/lisa/LAMP.lish

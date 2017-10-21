@@ -26,7 +26,18 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.36.17
+__version__=0.2.36.19
+
+
+Z0BUG_setup() {
+    if [ ! -d $TESTDIR/res ]; then
+      mkdir -p $TESTDIR/res
+    fi
+}
+
+Z0BUG_teardown() {
+    :
+}
 
 
 Z0BUG_init

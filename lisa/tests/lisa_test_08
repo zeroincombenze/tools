@@ -3,7 +3,7 @@
 # Regression tests on lisa
 # Check for odoo
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
@@ -26,7 +26,8 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.2.1.20
+
+__version__=0.2.1.21
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -83,10 +84,12 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 odoo (install by git)
  service=odoo-server
 EOF
+  echo " confn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__Debian.08.test
   cat <<EOF >$TESTDIR/res/odoo__RHEL.08.test
 odoo (install by git)
  service=odoo-server
 EOF
+  echo " confn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__RHEL.08.test
 fi
 Real_FH=$(xuname "-f")
 x=$(xuname "-v")
@@ -729,18 +732,26 @@ fi
 }
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log "$@"
+parseoptest -l$TESTDIR/test_lisa.log "$@" 
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-if [ ${opt_tlib:-0} -ne 0 ]; then
+if [ ${opt_tjlib:-0} -ne 0 ]; then
   TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
   if [ -z "$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
   fi
   . $TRAVISLIBDIR
+fi
+if [ ${opt_oelib:-0} -ne 0 ]; then
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
+    exit 2
+  fi
+  . $ODOOLIBDIR
 fi
 UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi

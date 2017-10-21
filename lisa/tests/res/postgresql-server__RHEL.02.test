@@ -1,4 +1,5 @@
 postgresql-server (install by yum)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
+ confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

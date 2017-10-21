@@ -1,3 +1,4 @@
 pip (install by pip)
  command=pip
- get ver=pip --version
+ get_ver=pip --version
+ confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

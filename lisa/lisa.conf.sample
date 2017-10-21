@@ -1,26 +1,26 @@
-# Please, do not update lisa.conf.sample file
-# because is replaced when lisa is upgraded.
-# Copy lisa.conf.sample to lisa.conf and edit lisa.conf file
-# Please, if you update this configuratione file, send a copy to
+# Please, do not update lisa.conf.sample file because may be replaced;
+# copy this lisa.conf.sample to lisa.conf and edit lisa.conf file.
+# Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
-# so your configuration should be shared with other people.
-# Last update: 2016-09-16
+# in order to share your configuration with other people.
+# Last update: 2017-10-21
 #
 # This is lisa configuration file, deployed in /etc/lisa directory
-# It is global file configuration, with global definitions or default values.
-# Values in this file are evaluated in every time of execution but may be
-# overridden by values in package specific configuration file in time
-# of package management.
+# It contains global and default definitions and values.
+# Values in this file are evaluated in every time of execution
+# but they may be overridden by definitions in specific configuration package file
+# at the time of package process.
 #
 # **Specific configuration file**
-# Every package may have an own configuration file named PKGNAME.lish where
+# Every package may have an own configuration file, named PKGNAME.lish where
 # PKGNAME is the name of package; i.e. apache2.lish
-# In these files may be just parameters beginning by package name (see
+# These files should contains just parameters beginning by package name (see
 # Parameters below)
 # In these files, package name is non mandatory; i.e. parameter
 # apache2_ReqPkgList may be also written ReqPkgList
-# Specific configuration files are searched in current directory, then in
-# /etc/lisa so you can declare you own specific configuration file without
+# Specific configuration package file are searched in current directory,
+# then in execution directory and then in /etc/lisa.
+# You can use you own configuration package in current directory, without
 # change standard file supplied by lisa installation.
 #
 # **Sections**
@@ -39,12 +39,12 @@
 # Linux distributions; syntax for sections running in other Linux distribution
 # is the same you can see above (name + major version)
 # Warning! Order of sections is very important!
-# The first section must be always [_Linux_]
+# The first section MUST ALWAYS BE [_Linux_]
 # After that you must insert section of families (RHEL and/or Debian)
 # Section of specific distributions must always be added after.
 #
 # **Parameters**
-# Every parameter has format name=value
+# Every parameter is in format name=value
 # Parameters beginning with package name (i.e. apache2_ReqPkgList) should be
 # insert in specific package configuration file.
 # Parameters ending with package name (REAL_apache2) or without package name
@@ -55,11 +55,12 @@
 # or visit http://wiki.zeroincombenze.org/en/Lisa webpage
 # for furthermore information
 #
+# *** Parameters list ***
+# REAL_OSSERVICE declares OS command to run/stop services. Value are: (service|systemctl)
 
 [_Linux_]
 # lisa itself needs wget o git
 lisa_ReqPkgList=wget,git
-# REAL_OSSERVICE declares OS command to run/stop services. Value are: (service|systemctl)
 REAL_OSSERVICE=service
 # REAL_pkgname, where pkgname is specific package name declares the real name
 # of package. I.e. apache name is httpd in RHEL family and apache2 in Debian family
@@ -192,6 +193,7 @@ REAL_mariadb-server=mysql-server
 # mariadb does non exists in Ubuntu16?
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
+# Ubuntu16 use systemctl instead of service command
 REAL_OSSERVICE=systemctl
 
 

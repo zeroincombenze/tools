@@ -3,7 +3,7 @@
 # Regression tests on lisa
 # Check for commands & info
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
@@ -26,7 +26,8 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.2.1.26
+
+__version__=0.2.1.27
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -73,208 +74,248 @@ test_01() {
 lisa (install by wget)
 EOF
       echo " command=$RUNDIR/lisa">>$TESTDIR/res/lisa.02.test
-      echo " get ver=$RUNDIR/lisa -V">>$TESTDIR/res/lisa.02.test
+      echo " get_ver=$RUNDIR/lisa -V">>$TESTDIR/res/lisa.02.test
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/lisa.02.test
       cat <<EOF >$TESTDIR/res/LAMP__Debian.02.test
 LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by lisa)
 EOF
+      echo " confn=$RUNDIR/LAMP.lish">>$TESTDIR/res/LAMP__Debian.02.test
       cat <<EOF >$TESTDIR/res/LAMP__CentOS6.02.test
 LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python) (install by lisa)
 EOF
+      echo " confn=$RUNDIR/LAMP.lish">>$TESTDIR/res/LAMP__CentOS6.02.test
       cat <<EOF >$TESTDIR/res/LAMP__CentOS7.02.test
 LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python) (install by lisa)
 EOF
+      echo " confn=$RUNDIR/LAMP.lish">>$TESTDIR/res/LAMP__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/httpd__RHEL.02.test
 httpd (install by yum)
  service=httpd
  command=apachectl
- get ver=apachectl -v
+ get_ver=apachectl -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/httpd__RHEL.02.test
       cat <<EOF >$TESTDIR/res/apache2__RHEL.02.test
 apache2=httpd (install by yum)
  service=httpd
  command=apachectl
- get ver=apachectl -v
+ get_ver=apachectl -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/apache2__RHEL.02.test
       cat <<EOF >$TESTDIR/res/httpd__Debian.02.test
 httpd=apache2 (install by apt-get)
  service=apache2
  command=apachectl
- get ver=apachectl -v
+ get_ver=apachectl -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/httpd__Debian.02.test
       cat <<EOF >$TESTDIR/res/apache2__Debian.02.test
 apache2 (install by apt-get)
  service=apache2
  command=apachectl
- get ver=apachectl -v
+ get_ver=apachectl -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/apache2__Debian.02.test
       cat <<EOF >$TESTDIR/res/pip__Debian.02.test
 pip (install by pip)
  command=pip
- get ver=pip --version
+ get_ver=pip --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/pip__Debian.02.test
       cat <<EOF >$TESTDIR/res/pip__CentOS7.02.test
 pip (install by pip)
  command=pip
- get ver=pip --version
+ get_ver=pip --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/pip__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/pip__CentOS6.02.test
 pip (install by pip)
  command=pip
- get ver=pip --version
+ get_ver=pip --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/pip__CentOS6.02.test
       cat <<EOF >$TESTDIR/res/python-pip__CentOS7.02.test
 python-pip (install by yum)
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/python-pip__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/python-pip__CentOS6.02.test
 python-pip (install by yum)
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/python-pip__CentOS6.02.test
       cat <<EOF >$TESTDIR/res/python-pip__Debian.02.test
 python-pip (install by apt-get)
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/python-pip__Debian.02.test
       cat <<EOF >$TESTDIR/res/mysql__Debian.02.test
 mysql=mysql-server (install by apt-get)
  service=mysql
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql__Debian.02.test
       cat <<EOF >$TESTDIR/res/mysql__CentOS7.02.test
 mysql=mariadb (install by yum)
  service=mariadb
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/mysql__CentOS6.02.test
 mysql=mysql-server (install by yum)
  service=mysqld
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql__CentOS6.02.test
       cat <<EOF >$TESTDIR/res/mysql-server__Debian.02.test
 mysql-server (install by apt-get)
  service=mysql
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql-server__Debian.02.test
       cat <<EOF >$TESTDIR/res/mysql-server__CentOS7.02.test
 mysql-server=mariadb-server (install by yum)
  service=mariadb
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql-server__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/mysql-server__CentOS6.02.test
 mysql-server (install by yum)
  service=mysqld
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+     echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mysql-server__CentOS6.02.test
      cat <<EOF >$TESTDIR/res/mariadb__Debian.02.test
 mariadb=mysql-server (install by apt-get)
  service=mysql
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb__Debian.02.test
       cat <<EOF >$TESTDIR/res/mariadb__CentOS7.02.test
 mariadb (install by yum)
  service=mariadb
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/mariadb__CentOS6.02.test
 mariadb=mysql-server (install by yum)
  service=mysqld
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
-     cat <<EOF >$TESTDIR/res/mariadb-server__Debian.02.test
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb__CentOS6.02.test
+      cat <<EOF >$TESTDIR/res/mariadb-server__Debian.02.test
 mariadb-server=mysql-server (install by apt-get)
  service=mysql
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb-server__Debian.02.test
       cat <<EOF >$TESTDIR/res/mariadb-server__CentOS7.02.test
 mariadb-server (install by yum)
  service=mariadb
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb-server__CentOS7.02.test
       cat <<EOF >$TESTDIR/res/mariadb-server__CentOS6.02.test
 mariadb-server=mysql-server (install by yum)
  service=mysqld
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/mariadb-server__CentOS6.02.test
       cat <<EOF >$TESTDIR/res/postgres__RHEL.02.test
 postgres=postgresql-server (install by yum)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgres__RHEL.02.test
       cat <<EOF >$TESTDIR/res/postgres__Debian.02.test
 postgres=postgresql (install by apt-get)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgres__Debian.02.test
       cat <<EOF >$TESTDIR/res/postgresql__RHEL.02.test
 postgresql=postgresql-server (install by yum)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgresql__RHEL.02.test
       cat <<EOF >$TESTDIR/res/postgresql__Debian.02.test
 postgresql (install by apt-get)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgresql__Debian.02.test
       cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.02.test
 postgresql-server (install by yum)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgresql-server__RHEL.02.test
       cat <<EOF >$TESTDIR/res/postgresql-server__Debian.02.test
 postgresql-server=postgresql (install by apt-get)
  service=postgresql
  command=psql
- get ver=psql --version
+ get_ver=psql --version
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/postgresql-server__Debian.02.test
       cat <<EOF >$TESTDIR/res/php__Debian.02.test
 php=php5 (install by apt-get)
  command=php5
- get ver=php5 -v
+ get_ver=php5 -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/php__Debian.02.test
       cat <<EOF >$TESTDIR/res/php__RHEL.02.test
 php (install by yum)
  command=php
- get ver=php -v
+ get_ver=php -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/php__RHEL.02.test
       cat <<EOF >$TESTDIR/res/php5__RHEL.02.test
 php5=php (install by yum)
  command=php
- get ver=php -v
+ get_ver=php -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/php5__RHEL.02.test
       cat <<EOF >$TESTDIR/res/php5__Debian.02.test
 php5 (install by apt-get)
  command=php5
- get ver=php5 -v
+ get_ver=php5 -v
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/php5__Debian.02.test
       cat <<EOF >$TESTDIR/res/openssh__RHEL.02.test
 openssh=openssh-server (install by yum)
  service=sshd
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/openssh__RHEL.02.test
       cat <<EOF >$TESTDIR/res/openssh__Debian.02.test
 openssh=openssh-server (install by apt-get)
  service=ssh
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/openssh__Debian.02.test
       cat <<EOF >$TESTDIR/res/openssh-server__RHEL.02.test
 openssh-server (install by yum)
  service=sshd
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/openssh-server__RHEL.02.test
       cat <<EOF >$TESTDIR/res/openssh-server__Debian.02.test
 openssh-server (install by apt-get)
  service=ssh
 EOF
+      echo " confn=$RUNDIR/lisa.lish">>$TESTDIR/res/openssh-server__Debian.02.test
     fi
     Real_FH=$(xuname "-f")
     x=$(xuname "-v")
@@ -291,24 +332,32 @@ EOF
          else
            opt_e="-E$Disto"
          fi
-         test_run "info $Package $opt_e" "$Package" "$Disto" "diff"
+         test_run "info $Package $opt_e" "$Package" "$Disto" "diff -b"
       done
     done
 }
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_lisa.log "$@"
+parseoptest -l$TESTDIR/test_lisa.log "$@" 
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-if [ ${opt_tlib:-0} -ne 0 ]; then
+if [ ${opt_tjlib:-0} -ne 0 ]; then
   TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
   if [ -z "$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
   fi
   . $TRAVISLIBDIR
+fi
+if [ ${opt_oelib:-0} -ne 0 ]; then
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
+    exit 2
+  fi
+  . $ODOOLIBDIR
 fi
 UT1_LIST=""
 UT_LIST=""

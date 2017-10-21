@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.51.3
+__version__=0.1.52.1
 
 
 #
@@ -1440,21 +1440,6 @@ do_docs() {
     return $sts
 }
 
-do_publish() {
-#do_publish PKGNAME (svg|docs|pypi|testpypi|tar)
-    wlog "do_publish $1 $2"
-    local cmd="do_publish_$2"
-    sts=$STS_SUCCESS
-    if [ "$(type -t $cmd)" == "function" ]; then
-      eval $cmd "$@"
-    else
-      echo "Missing object! Use:"
-      echo "> please publish PKGNAME (svg|docs|pypi|testpypi|tar)"
-      sts=$STS_FAILED
-    fi
-    return $sts
-}
-
 do_register() {
 #do_register PKGNAME (pypi|testpypi)
     wlog "do_register $1 $2"
@@ -1506,58 +1491,31 @@ mvfiles () {
     return $sts
 }
 
-do_publish_svg() {
-#do_publish_svg pgkname svg (prd|dev)
-    local sts=$STS_FAILED
-    local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
-    local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
-    if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      local tgt="prd"
-    elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      local tgt="dev"
-    else
-      local tgt=""
-    fi
-    mvfiles "$DEV_SVG" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
-    local sts=$?
-    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
-      local s=$?
-      [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    fi
-    return $sts
+create_pubblished_index() {
+# create_pubblished_index(index_dir) {
+    local f
+    run_traced "cd $1"
+    cat <<EOF >index.html
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title>Speed Test</title>
+    </head>
+    <body>
+    <table>
+EOF
+    for f in *; do
+      if [ "$f" != "index.html" ]; then
+        echo "        <tr><td>$f</td></tr>">>index.html
+      fi
+    done
+    echo "    </body>">>index.html
+    echo "</html>">>index.html
 }
 
-do_publish_docs() {
-#do_publish_svg pgkname docs
-    local sts=$STS_FAILED
-    if [ $EUID -ne 0 ]; then
-      echo "!!Error: no privilege to publish documentation!!"
-      return $sts
-    fi
-    local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
-    if [ -d $HTML_DOCS_DIR/$1 ]; then
-      run_traced "rm -fR $HTML_DOCS_DIR/$1"
-    fi
-    if [ ! -d $HTML_DOCS_DIR/$1 ]; then
-      run_traced "mkdir -p $HTML_DOCS_DIR/$1"
-      run_traced "chown apache:apache $HTML_DOCS_DIR/$1"
-    fi
-    mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
-    local sts=$?
-    rmdir $PRJPATH/html
-    if [ -d $PRJPATH/latex ]; then
-      rm -fR $PRJPATH/latex
-    fi
-    if [ $opt_verbose -gt 0 ]; then
-      echo ""
-      echo -e "see \e[1mdocs.zeroincombenze.org/$1\e[0m webpage"
-    fi
-    return $sts
-}
 
-do_publish_tar() {
-#do_publish_tar pgkname tar
+do_build() {
+#do_build pgkname tar
     local sts=$STS_SUCCESS
     local rpt=pypi
     local f i l n p s v x y PKGLIST invalid PASSED
@@ -1574,12 +1532,16 @@ do_publish_tar() {
       # run_traced "mkdir -p tmp"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
-      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
       if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
         PKGLIST=$(cat setup.py|grep "# PKGLIST="|awk -F= '{print $2}')
         if [ -n "$PKGLIST" ]; then
           PKGLIST=${PKGLIST//,/ }
         else
+          if [ "$PRJNAME" != "lisa" ]; then
+            cp ../../clodoo/clodoo/odoorc ./
+            cp ../../z0lib/z0lib/z0librc ./
+          fi
           x="find . -type f"
           for f in $xx "setup.*"; do
             if [ "${f: -1}" == "/" ]; then
@@ -1646,8 +1608,135 @@ do_publish_tar() {
           echo "cp -p $f $PKGPATH/$y">>$SETUP
         done
         chmod +x $SETUP
+        if [ -x $PRJPATH/setup.sh ]; then
+          run_traced "cp $PRJPATH/setup.sh $SETUP"
+        fi
         run_traced "tar $x $p $SETUP"
         run_traced "rm -f $SETUP"
+      fi
+    fi
+    return $sts
+}
+
+do_publish() {
+#do_publish PKGNAME (docs|download|pypi|svg|testpypi|tar)
+    wlog "do_publish $1 $2"
+    local cmd="do_publish_$2"
+    sts=$STS_SUCCESS
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$@"
+    else
+      echo "Missing object! Use:"
+      echo "> please publish PKGNAME (docs|download|pypi|svg|testpypi|tar)"
+      echo "publish doc      -> publish generate docs to website (require system privileges)"
+      echo "   type 'please docs' to generate docs files"
+      echo "publish download -> publish tarball to download (require system privileges)"
+      echo "   type 'please build' to generate tarball file"
+      echo "publish pypi     -> publish package to pypi website (require system privileges)"
+      echo "publish svg      -> publish test result svg file (require system privileges)"
+      echo "publish tar      -> write a tarball with package files"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
+do_publish_svg() {
+#do_publish_svg pgkname svg (prd|dev)
+    local sts=$STS_FAILED
+    local HTML_SVG_DIR=$(get_cfg_value 0 "HTML_SVG_DIR")
+    local DEV_SVG=$(get_cfg_value 0 "DEV_SVG")
+    if [ $EUID -ne 0 ]; then
+      echo "!!Error: no privilege to publish svg!!"
+      return $sts
+    fi
+    if [ "$HOSTNAME" == "$PRD_HOST" ]; then
+      local tgt="prd"
+    elif [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      local tgt="dev"
+    else
+      local tgt=""
+    fi
+    if [ ! -d $HTML_SVG_DIR ]; then
+      run_traced "mkdir -p $HTML_SVG_DIR"
+      run_traced "chown apache:apache $HTML_SVG_DIR"
+      if [ ! -d $HTML_SVG_DIR/$tgt ]; then
+        run_traced "mkdir -p $HTML_SVG_DIR/$tgt"
+        run_traced "chown apache:apache $HTML_SVG_DIR/$tgt"
+      fi
+    fi
+    mvfiles "$DEV_SVG" "$HTML_SVG_DIR/$tgt" "*.svg" "apache:apache"
+    local sts=$?
+    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+      scpfiles "$HTML_SVG_DIR/$tgt" "$PRD_HOST:$HTML_SVG_DIR/$tgt" "*.svg"
+      local s=$?
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    fi
+    return $sts
+}
+
+do_publish_docs() {
+#do_publish_svg pgkname docs
+    local sts=$STS_FAILED
+    if [ $EUID -ne 0 ]; then
+      echo "!!Error: no privilege to publish documentation!!"
+      return $sts
+    fi
+    local HTML_DOCS_DIR=$(get_cfg_value "" "HTML_DOCS_DIR")
+    if [ -d $HTML_DOCS_DIR/$1 ]; then
+      run_traced "rm -fR $HTML_DOCS_DIR/$1"
+    fi
+    if [ ! -d $HTML_DOCS_DIR/$1 ]; then
+      run_traced "mkdir -p $HTML_DOCS_DIR/$1"
+      run_traced "chown apache:apache $HTML_DOCS_DIR/$1"
+    fi
+    mvfiles "$PRJPATH/html" "$HTML_DOCS_DIR/$1" "" "apache:apache"
+    local sts=$?
+    rmdir $PRJPATH/html
+    if [ -d $PRJPATH/latex ]; then
+      rm -fR $PRJPATH/latex
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      echo ""
+      echo -e "see \e[1mdocs.zeroincombenze.org/$1\e[0m webpage"
+    fi
+    return $sts
+}
+
+do_publish_download() {
+#do_publish_download pgkname
+    local f n s v
+    local sts=$STS_FAILED
+    if [ $EUID -ne 0 ]; then
+      echo "!!Error: no privilege to publish download!!"
+      return $sts
+    fi
+    local HTML_DOWNLOAD_DIR=$(get_cfg_value "" "HTML_DOWNLOAD_DIR")
+    if [ "$PRJNAME" != "Odoo" ]; then
+      if [ ! -d $HTML_DOWNLOAD_DIR ]; then
+        run_traced "mkdir -p $HTML_DOWNLOAD_DIR"
+        run_traced "chown apache:apache $HTML_DOWNLOAD_DIR"
+      fi
+      run_traced "cd $PKGPATH"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+      f=$(ls -1 $n*$v*tar.gz)
+      # f=$n*$v*tar.gz
+      if [ -n "$f" -a -f "$f" ]; then
+        mvfiles "$PKGPATH" "$HTML_DOWNLOAD_DIR" "$f" "apache:apache"
+        sts=$?
+        if [ $sts -eq $STS_SUCCESS ]; then
+          run_traced "cp $HTML_DOWNLOAD_DIR/$f $HTML_DOWNLOAD_DIR/$n.tar.gz"
+          run_traced "chown apache:apache $HTML_DOWNLOAD_DIR/$n.tar.gz"
+          create_pubblished_index "$HTML_DOWNLOAD_DIR"
+          if [ $opt_verbose -gt 0 ]; then
+            echo ""
+            echo -e "You can download this package typing"
+            echo -e "\$ wget http://download.zeroincombenze.org/$n.tar.gz"
+          fi
+        fi
+      else
+        echo "Source $n*$v*tar.gz file non found!"
       fi
     fi
     return $sts
@@ -1772,7 +1861,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|annotate|autopep8|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|synchro|test|travis|version|wep"
+HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|synchro|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -1788,6 +1877,7 @@ if [ $opt_verbose -gt 1 ]; then set -x; fi
 set_cfg_def "HTML_SVG_DIR" "/var/www/html/wp-zi/wp-content/uploads/ci-ct"
 set_cfg_def "DEV_SVG" "/opt/odoo/dev/svg"
 set_cfg_def "HTML_DOCS_DIR" "/var/www/html/mw/html"
+set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
 # /End Included Block/
 link_cfg $TCONF
 init_travis

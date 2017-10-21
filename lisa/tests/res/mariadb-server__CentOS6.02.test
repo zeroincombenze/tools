@@ -1,4 +1,5 @@
 mariadb-server=mysql-server (install by yum)
  service=mysqld
  command=mysql
- get ver=mysql --version
+ get_ver=mysql --version
+ confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

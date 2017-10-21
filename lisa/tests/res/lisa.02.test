@@ -1,3 +1,4 @@
 lisa (install by wget)
  command=/opt/odoo/dev/pypi/lisa/lisa/lisa
- get ver=/opt/odoo/dev/pypi/lisa/lisa/lisa -V
+ get_ver=/opt/odoo/dev/pypi/lisa/lisa/lisa -V
+ confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

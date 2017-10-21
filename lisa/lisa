@@ -40,12 +40,6 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-__version__=0.2.36.17
-
-
-STS_FAILED=1
-STS_SUCCESS=0
-
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
@@ -62,6 +56,12 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.2.36.19
+
+
+STS_FAILED=1
+STS_SUCCESS=0
 
 
 conf_default() {
@@ -303,7 +303,7 @@ clr_conf_pkg() {
 
 find_conf_pkg() {
 # find_conf_pkg (pkgname [confn])
-    local PKG_CONF SAMPLE FCONF FCONFDEF s
+    local FCONF FCONFDEF s
     if [ $test_mode -gt 0 ]; then
       s="$TESTDIR $TDIR"
     elif [ -n "$2" ]; then
@@ -322,7 +322,23 @@ find_conf_pkg() {
       SAMPLE=$(findpkg "$FCONFDEF" "$s")
       link_cfg $PKG_CONF $SAMPLE
     else
+      SAMPLE=
       PKG_CONF=$(findpkg "$1.lish" "$s")
+      if [ -z "$PKG_CONF" ]; then
+        if [ "${1: -7}" == "-server" ]; then
+          FCONF=${1:0: -7}
+          PKG_CONF=$(findpkg "$FCONF" "$s")
+        elif [ "${1: -1}" == "d" ]; then
+          FCONF=${1:0: -1}
+          PKG_CONF=$(findpkg "$FCONF" "$s")
+        elif [ "${1: -4}" == "-dev" ]; then
+          FCONF=${1:0: -4}
+          PKG_CONF=$(findpkg "$FCONF" "$s")
+        elif [ "${1: -6}" == "-devel" ]; then
+          FCONF=${1:0: -6}
+          PKG_CONF=$(findpkg "$FCONF" "$s")
+        fi
+      fi
       if [ -z "$PKG_CONF" ]; then
         PKG_CONF=$(findpkg "lisa.lish" "$s")
       fi
@@ -1382,9 +1398,11 @@ create_setup() {
     local BINLIST="$(get_prm_value ${pkgname}_binPkgList $pkgname)"
     local PKGLIST="$(get_prm_value ${pkgname}_etcPkgList $pkgname)"
     local datetime=$(date +"%Y-%m-%d %H:%M")
+    cp ../../clodoo/clodoo/odoorc ./
+    cp ../../z0lib/z0lib/z0librc ./
     cat <<EOF >$SETUP
 # lisa setup $__version__ ($datetime)
-THIS=\$(basename \$0)
+THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 pkgname=$THIS
 opt_verbose=0
@@ -1399,7 +1417,7 @@ else
   pfx=">"
 fi
 if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
-  [ \$opt_dry_run -gt 0 ] || . ./z0librc
+  [ \$opt_dry_run -gt 0 ] || . \$TDIR/z0librc
   if [ "\$TDIR" != "/usr/bin" ]; then
     if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
       cpmv="cp"
@@ -2229,7 +2247,10 @@ do_1_info_package() {
       echo " command=$cmdname"
     fi
     if [ -n "$vfycmd" ]; then
-      echo " get ver=$vfycmd"
+      echo " get_ver=$vfycmd"
+    fi
+    if [ -n "$PKG_CONF" ]; then
+      echo " confn=$PKG_CONF $SAMPLE"
     fi
     return $STS_SUCCESS
 }
@@ -3042,18 +3063,20 @@ post_update_odoo() {
     post_install_odoo
 }
 
-post_config_postgresql() {
+pre_config_postgresql() {
     run_traced "service $2 initdb"
-    run_traced "chkconfig $1 on"
 }
 
-post_config_postgresql-server() {
+pre_config_postgresql-server() {
     if [ "$DISTO" == "CentOS7" ]; then
       run_traced "postgresql-setup initdb"
     else
       run_traced "service $2 initdb"
     fi
-    run_traced "chkconfig $2 on"
+}
+
+post_config_postgresql() {
+    run_traced "chkconfig $1 on"
 }
 
 post_config_mysql-server() {

@@ -1,1 +1,2 @@
 python-pip (install by apt-get)
+ confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
