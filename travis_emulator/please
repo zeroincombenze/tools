@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.1
+__version__=0.1.52.2
 
 
 #
@@ -1538,7 +1538,7 @@ do_build() {
         if [ -n "$PKGLIST" ]; then
           PKGLIST=${PKGLIST//,/ }
         else
-          if [ "$PRJNAME" != "lisa" ]; then
+          if [ "$PRJNAME" == "lisa" ]; then
             cp ../../clodoo/clodoo/odoorc ./
             cp ../../z0lib/z0lib/z0librc ./
           fi
