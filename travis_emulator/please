@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.2
+__version__=0.1.52.4
 
 
 #
@@ -66,132 +66,6 @@ __version__=0.1.52.2
 # -W whatis
 # -w wep
 
-do_annotate() {
-    wlog "do_annotate"
-    run_annotate_test "-T"
-    sts=$?
-    return $sts
-}
-
-do_autope8() {
-    local opts=$(inherits_travis_opts "" "8")
-    run_traced "topep8 $opts $PKGPATH"
-    return $?
-}
-
-do_check() {
-    wlog "do_check \"$1\" \"$2\" \"$3\""
-    local sts=$STS_FAILED
-    if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      local opts=$(inherits_travis_opts "K" "T")
-      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
-    elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-K"
-      sts=$?
-    else
-      sts=127
-    fi
-    return $sts
-}
-
-
-do_test() {
-    wlog "do_test"
-    local sts=$STS_FAILED
-    if [ -x $TOOLS_PATH/travis_run_tests ]; then
-      local opts=$(inherits_travis_opts "T" "T")
-      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
-      if [ $? -ne 0 ]; then sts=$?; fi
-    elif [ $opt_r -gt 0 ]; then
-      please_run_tests "-T"
-      sts=$?
-    else
-      test_sts=$STS_FAILED
-      sts=$test_sts
-    fi
-    return $sts
-}
-
-
-do_diff() {
-    wlog "do_diff \"$1\" \"$2\" \"$3\""
-    local opt_diff=1
-    local opts=$(inherits_travis_opts "" "D")
-    run_traced "dist_pkg $opts $PKGNAME"
-    return $?
-}
-
-
-do_replace() {
-    opts=$(inherits_travis_opts "R" "D")
-    opt_dry_run=0
-    run_traced "dist_pkg $opts $1"
-    sts=$?
-    return $sts
-}
-
-
-do_commit() {
-    opts=$(inherits_travis_opts "C" "D")
-    opt_dry_run=0
-    run_traced "dist_pkg $opts $1"
-    sts=$?
-    return $sts
-}
-
-
-do_push() {
-    opts=$(inherits_travis_opts "P" "D")
-    opt_dry_run=0
-    run_traced "dist_pkg $opts $1"
-    sts=$?
-    return $sts
-}
-
-
-do_fetch() {
-    opts=$(inherits_travis_opts "F" "D")
-    opt_dry_run=0
-    run_traced "dist_pkg $opts $1"
-    sts=$?
-    return $sts
-}
-
-
-do_coverage() {
-    wlog "do_coverage \"$1\" \"$2\" \"$3\""
-    run_coverage_test
-    sts=$?
-    return $sts
-}
-
-
-do_travis() {
-    wlog "do_travis \"$1\" \"$2\" \"$3\""
-    if [ $opt_r -gt 0 ]; then
-      please_run_tests "-KT"
-    else
-      opts=$(inherits_travis_opts "c" "E")
-      if [ -n "$opts" ]; then
-        travis "$opts" "$@"
-      else
-        travis "$@"
-      fi
-    fi
-    sts=$?
-    return $sts
-}
-
-do_version() {
-    cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
-    if [ "$PRJNAME" != "Odoo" ]; then
-      echo "Project $PRJNAME V$prjversion [$PKGNAME] answer:";
-      cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
-    else
-      echo "Project $PRJNAME V$BRANCH [$PKGNAME $prjversion]";
-    fi;
-}
 
 move() {
 # move(src dst)
@@ -1151,310 +1025,6 @@ cvt_file() {
     return $sts
 }
 
-do_distribution() {
-# do_distribution(PKGNAME oca|zero|oia parent)
-    wlog "do_distribution $1 $2 $3"
-    local sts=$STS_SUCCESS
-    local currpt=zero
-    local ORIG=
-    local f f1 x
-    local PD=.
-    if [ ${test_mode:-0} -ne 0 ]; then
-      if [ -d res ]; then
-        PD=res
-      elif [ -d tests/res ]; then
-        PD=tests/res
-      fi
-    fi
-    if [ -n "$3" ]; then
-      local travis_passed=1
-      if [ -d $3/tmp ]; then
-        ORIG=$3/tmp
-      elif [ -d ~/original/$1 ]; then
-        ORIG=~/original/$1
-      fi
-    else
-      local travis_passed=0
-    fi
-    if [ -f .gitrepname ]; then
-      currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
-    fi
-    local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
-    if [ -z "$gitprj" ]; then
-      gitprj=$(build_pkgurl $1 $2 RORIGIN)
-    fi
-    if [ $travis_passed -eq 0 ]; then
-      if [ $opt_orig -gt 0 ]; then
-        if [ -z "$gitprj" ]; then
-          echo "git project not found!"
-          sts=$STS_FAILED
-        else
-          run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
-          ORIG=$(readlink -e tmp)
-        fi
-      else
-        if [ -d ~/original ]; then rm -fR -d ~/original; fi
-        if [ -n "$gitprj" ]; then
-          run_traced "git clone $gitprj ~/original/$1 -b $BRANCH --depth 1 --single-branch"
-          ORIG=$(readlink -e ~/original/$1)
-        fi
-      fi
-    fi
-    # echo "> if [ \$travis_passed=$travis_passed -eq 0 ]; then" #debug
-    if [ $travis_passed -eq 0 ]; then
-      # echo ">   cvt_gitmodule $2 $currpt" #debug
-      cvt_gitmodule "$2" "$currpt"
-      if [ $sts -eq $STS_SUCCESS ]; then
-        f1=oca_dependencies.txt
-        # echo ">   cvt_file $f1 $2 '' $currpt" #debug
-        cvt_file $f1 $2 "" "$currpt" "$ORIG"
-        sts=$?
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        f1=$(findpkg ".travis.yml" "$PD ..")
-        if [ -n "$f1" ]; then
-          # echo ">   cvt_file $f1 $2 travis $currpt" #debug
-          cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
-          sts=$?
-        fi
-      fi
-    fi
-    local PKGS=
-    # echo "> for f in \$(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name 'README*'); do" #debug
-    for f in $(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
-      x=$(dirname $f)
-      # echo ">   if [ $x == '.' ]; then #f=$f" #debug
-      if [ "$x" == "." ]; then
-        if [ ${test_mode:-0} -eq 0 -a ! -f LICENSE ]; then
-          run_traced "cp ~/agpl.txt LICENSE"
-        fi
-        if [ $sts -ne $STS_SUCCESS ]; then
-          break
-        fi
-        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
-          run_traced "cp -p ORIG/$f $f"
-        fi
-        if [ "$f" == "./__openerp__.py" -o "$f" == "./__manifest__.py" ]; then
-          f1=$(readlink -e $f)
-          # echo ">   cvt_file $f1 $2 manifest $currpt" #debug
-          cvt_file $f1 $2 "manifest" "$currpt" "$ORIG"
-          sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
-        elif [ "$f" == "./README.md" -o "$f" == "./README.rst" -o "$f" == "./README" ]; then
-          f1=$(readlink -e $f)
-          x=$(basename $f1)
-          if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$x" ]; then
-            run_traced "cp -p ORIG/$x $f1"
-          fi
-          # echo ">   cvt_file $f1 $2 readme $currpt" #debug
-          cvt_file $f1 $2 "readme" "$currpt" "$ORIG"
-          sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
-        fi
-        travis_passed=1
-      else
-        x=$(readlink -e $f)
-        f1=$(dirname $x)
-        if [[ $PKGS =~ $f1 ]]; then
-          :
-        else
-          PKGS="$PKGS $f1"
-        fi
-      fi
-    done
-    local CCWD=$PWD
-    # echo "> for f in $PKGS; do" #debug
-    for f in $PKGS; do 
-      if [ $sts -ne $STS_SUCCESS ]; then
-        break
-      fi
-      local PKG=$(basename $f)
-      cd $f
-      revaluate_travis
-      # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
-      do_distribution $PKG $2 "$CCWD"
-      sts=$?
-    done
-    cd $CCWD
-    revaluate_travis
-    if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
-      if [ -f .gitignore ]; then
-        if ! grep -q "\.gitrepname" .gitignore 2>/dev/null; then
-          echo ".gitrepname">>.gitignore
-        fi
-      fi
-      if [ -z "$REPOSNAME" ]; then
-        local ro=$(build_pkgurl $1 $2 RORIGIN)
-        local lo=$(build_pkgurl $1 $2 URL)
-        if [ "$ro" != "$lo" ]; then
-          if [ -n "$ro" ]; then
-            run_traced "git remote remove origin"
-          fi
-          if [ -n "$lo" ]; then
-            run_traced "git remote add origin $lo"
-            run_traced "git remote set-url origin $lo"
-          fi
-        fi
-        local ro=$(build_pkgurl $1 $2 RUPSTREAM)
-        local lo=$(build_pkgurl $1 $2 UPSTREAM)
-        if [ "$ro" != "$lo" ]; then
-          if [ -n "$ro" ]; then
-            run_traced "git remote remove upstream"
-          fi
-          if [ -n "$lo" ]; then
-            run_traced "git remote add upstream $lo"
-            run_traced "git remote set-url upstream $lo"
-          fi
-        fi
-      fi
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ -d tmp -a $opt_keep -eq 0 ]; then
-        rm -fR tmp
-      fi
-      if [ -f .gitrepname ]; then
-        if [ "$2" != "$currpt" ]; then
-          run_traced "sed -i -e 's:^repository *=.*:repository=$2:' .gitrepname"
-        fi
-      else
-        echo "repository=$2">>.gitrepname
-      fi
-      restore_owner
-    fi
-    return $sts
-}
-
-do_pythonhosted() {
-    wlog "do_pythonhosted $1 $2 $3"
-    sts=$STS_SUCCESS
-    if [ -z "$2" ]; then
-      echo "Missing URL! use:"
-      echo "> please pythonhosted PKGNAME URL"
-      return $STS_FAILED
-    fi
-    local URL=$2
-    if [ "${URL: -1}" != "/" ]; then
-      local URL=$URL/
-    fi
-    local TITLE="$3"
-    local CWD=$PWD
-    run_traced "cd $PKGPATH"
-cat <<EOF >index.html
-<!DOCTYPE HTML>
-   <head>
-       <meta http-equiv="refresh" content="0; $URL">
-       <script type="text/javascript">
-           top.location.href = "$URL"
-       </script>
-       <title>Redirect</title>
-   </head>
-   <body>
-       Please wait for a moment .. <a href='$URL' $2</a>
-   </body>
-</html>
-EOF
-    run_traced "zip -j pythonhosted-$PKGNAME.zip index.html"
-    if [ -f index.html ]; then
-      rm -f index.html
-    fi
-    cd $CWD
-    if [ -f $PKGPATH/pythonhosted-$PKGNAME.zip ]; then
-      echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypi webpage of project"
-    fi
-    return $sts
-}
-
-do_synchro() {
-    wlog "do_synchro $1 $2 \"$3\""
-    local f opts
-    if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
-      if [ "$PRJNAME" == "Odoo" ]; then
-        clean_dirs "$PKGPATH"
-        run_traced "git checkout $BRANCH"
-        do_distribution "$PKGNAME" "oca"
-        git status
-        git remote -v
-        run_traced "git pull --no-edit upstream $BRANCH"
-        if [ "$2" == "zero-merged" ]; then
-          do_distribution "$PKGNAME" "zero"
-        fi
-        for f in $(find $PKGPATH -type f -not -name "*.png" -exec grep -l ">>>>" '{}' \;); do
-          echo "Warning: see file $f"
-        done
-      fi
-    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
-      if [ "$PRJNAME" == "Odoo" ]; then
-        clean_dirs "$PKGPATH"
-        run_traced "git checkout $BRANCH"
-        do_distribution "$PKGNAME" "$2"
-        local x=($git status -s)
-        if [ -n "$x" ]; then
-          if [ -n "$3" ]; then
-            run_traced "git commit -am \"$3\""
-          elif [ $opt_diff -ne 0 ]; then
-            run_traced "git commit -am \"[SYNCHRO] Update documentation\""
-          else
-            run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
-          fi
-        fi
-        opts=
-        if [ "$2" == "oia" ]; then
-          opts="-f --all"
-        elif [ $opt_force -ne 0 ]; then
-          opts=-f
-        fi
-        run_traced "git push $opts"
-        restore_owner
-        git remote -v
-        git status
-      fi
-    else
-      echo "Missed parameter! use:"
-      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|oia|zero-merged"
-      sts=$STS_FAILED
-    fi
-}
-
-do_docs() {
-    wlog "do_docs $1"
-    local sts=$STS_SUCCESS
-    local doxygen_conf
-    doxygen_conf=.${1}_doc.conf
-    if [ ! -f $doxygen_conf ]; then
-      doxygen -g $doxygen_conf
-      vim $doxygen_conf
-    fi
-    # sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
-    cvt_doxygenconf $doxygen_conf
-    run_traced "doxygen $doxygen_conf"
-    sts=$?
-    if [ $opt_verbose -gt 0 ]; then
-      echo ""
-      echo -e "Use: \e[1m$THIS publish $1 docs\e[0m"
-      echo "     to publish this documentation on docs.zeroincombenze.org/$1"
-    fi
-    return $sts
-}
-
-do_register() {
-#do_register PKGNAME (pypi|testpypi)
-    wlog "do_register $1 $2"
-    local cmd="do_register_$2"
-    sts=$STS_SUCCESS
-    if [ "$(type -t $cmd)" == "function" ]; then
-      eval $cmd "$@"
-    else
-      echo "Missing object! Use:"
-      echo "> please register PKGNAME (pypi|testpypi)"
-      sts=$STS_FAILED
-    fi
-    return $sts
-}
-
 mvfiles () {
 # mvfiles(srcpath, tgtpath, files, owner)
     if [ -z "$3" ]; then
@@ -1513,110 +1083,6 @@ EOF
     echo "</html>">>index.html
 }
 
-
-do_build() {
-#do_build pgkname tar
-    local sts=$STS_SUCCESS
-    local rpt=pypi
-    local f i l n p s v x y PKGLIST invalid PASSED
-    local SETUP=./setup.sh
-    local xx="$(get_cfg_value 0 filedel)"
-    local yy="$(get_cfg_value 0 fileignore)"
-    if [ $opt_keep -ne 0 ]; then
-      xx="$xx $yy"
-    else
-      xx="$xx $yy tests/"
-    fi
-    if [ "$PRJNAME" != "Odoo" ]; then
-      run_traced "cd $PKGPATH"
-      # run_traced "mkdir -p tmp"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
-      v=$(cat setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
-      if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
-        PKGLIST=$(cat setup.py|grep "# PKGLIST="|awk -F= '{print $2}')
-        if [ -n "$PKGLIST" ]; then
-          PKGLIST=${PKGLIST//,/ }
-        else
-          if [ "$PRJNAME" == "lisa" ]; then
-            cp ../../clodoo/clodoo/odoorc ./
-            cp ../../z0lib/z0lib/z0librc ./
-          fi
-          x="find . -type f"
-          for f in $xx "setup.*"; do
-            if [ "${f: -1}" == "/" ]; then
-              x="$x -not -path '*/$f*'"
-            else
-              x="$x -not -name '*$f'"
-            fi
-          done
-          eval $x >./tmp.log
-          PKGLIST="$(cat ./tmp.log)"
-          rm -f ./tmp.log
-        fi
-        invalid=
-        for f in $PKGLIST; do
-          if [ -f $f ]; then
-            :
-            #cp $f $PKGPATH/tmp
-          else
-            invalid=$f
-          fi
-        done
-        if  [ -n "$invalid" ]; then
-          echo "File $f not found"
-          return 1
-        fi
-        p="$n-$v.tar.gz"
-        if [ -f $p ]; then
-           run_traced "rm -f $p"
-        fi
-        echo "# $p">$SETUP
-        f=
-        for i in {2..9}; do
-          x=$(echo $PRJPATH|awk -F/ '{print $'$i'}')
-          if [ -n "$x" ]; then
-            f=$f/$x
-            if [ $i -gt 3 ]; then
-              echo "mkdir -p $f">>$SETUP
-            fi
-          fi
-        done
-        l=${#PKGPATH}
-        f=".${PRJPATH:l}"  # subroot
-        l=${#f}
-        ((l++))
-        PASSED=
-        x="-cf"
-        for f in $PKGLIST; do
-          y=$(dirname ./${f:l})
-          if [ "$y" != "." ]; then
-            y=$(dirname ${f:l})
-            if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
-              :
-            else
-              echo "mkdir -p $PRJPATH/$y">>$SETUP
-              PASSED="$PASSED $y"
-            fi
-            y=$y/
-          else
-            y=
-          fi
-          run_traced "tar $x $p $f"
-          x=${x/c/r}
-          # if [ -f "$f" ]; then rm -f $f; fi
-          echo "cp -p $f $PKGPATH/$y">>$SETUP
-        done
-        chmod +x $SETUP
-        if [ -x $PRJPATH/setup.sh ]; then
-          run_traced "cp $PRJPATH/setup.sh $SETUP"
-        fi
-        run_traced "tar $x $p $SETUP"
-        run_traced "rm -f $SETUP"
-      fi
-    fi
-    return $sts
-}
 
 do_publish() {
 #do_publish PKGNAME (docs|download|pypi|svg|testpypi|tar)
@@ -1830,6 +1296,560 @@ do_register_testpypi() {
     return $sts
 }
 
+
+do_annotate() {
+    wlog "do_annotate"
+    run_annotate_test "-T"
+    sts=$?
+    return $sts
+}
+
+do_autope8() {
+    local opts=$(inherits_travis_opts "" "8")
+    run_traced "topep8 $opts $PKGPATH"
+    return $?
+}
+
+do_build() {
+#do_build pgkname tar
+    local sts=$STS_SUCCESS
+    local rpt=pypi
+    local f i l n p s v x y PKGLIST invalid PASSED
+    local SETUP=./setup.sh
+    local xx="$(get_cfg_value 0 filedel)"
+    local yy="$(get_cfg_value 0 fileignore)"
+    if [ $opt_keep -ne 0 ]; then
+      xx="$xx $yy"
+    else
+      xx="$xx $yy tests/"
+    fi
+    if [ "$PRJNAME" != "Odoo" ]; then
+      run_traced "cd $PKGPATH"
+      # run_traced "mkdir -p tmp"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+      v=$(cat setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+      if [ ! -f "$n*$v*tar.gz" -o $opt_force -gt 0 ]; then
+        PKGLIST=$(cat setup.py|grep "# PKGLIST="|awk -F= '{print $2}')
+        if [ -n "$PKGLIST" ]; then
+          PKGLIST=${PKGLIST//,/ }
+        else
+          if [ "$PRJNAME" == "lisa" ]; then
+            cp ../../clodoo/clodoo/odoorc ./
+            cp ../../z0lib/z0lib/z0librc ./
+          fi
+          x="find . -type f"
+          for f in $xx "setup.*"; do
+            if [ "${f: -1}" == "/" ]; then
+              x="$x -not -path '*/$f*'"
+            else
+              x="$x -not -name '*$f'"
+            fi
+          done
+          eval $x >./tmp.log
+          PKGLIST="$(cat ./tmp.log)"
+          rm -f ./tmp.log
+        fi
+        invalid=
+        for f in $PKGLIST; do
+          if [ -f $f ]; then
+            :
+            #cp $f $PKGPATH/tmp
+          else
+            invalid=$f
+          fi
+        done
+        if  [ -n "$invalid" ]; then
+          echo "File $f not found"
+          return 1
+        fi
+        p="$n-$v.tar.gz"
+        if [ -f $p ]; then
+           run_traced "rm -f $p"
+        fi
+        echo "# $p">$SETUP
+        f=
+        for i in {2..9}; do
+          x=$(echo $PRJPATH|awk -F/ '{print $'$i'}')
+          if [ -n "$x" ]; then
+            f=$f/$x
+            if [ $i -gt 3 ]; then
+              echo "mkdir -p $f">>$SETUP
+            fi
+          fi
+        done
+        l=${#PKGPATH}
+        f=".${PRJPATH:l}"  # subroot
+        l=${#f}
+        ((l++))
+        PASSED=
+        x="-cf"
+        for f in $PKGLIST; do
+          y=$(dirname ./${f:l})
+          if [ "$y" != "." ]; then
+            y=$(dirname ${f:l})
+            if [[ " $PASSED " =~ [[:space:]]$y[[:space:]] ]]; then
+              :
+            else
+              echo "mkdir -p $PRJPATH/$y">>$SETUP
+              PASSED="$PASSED $y"
+            fi
+            y=$y/
+          else
+            y=
+          fi
+          run_traced "tar $x $p $f"
+          x=${x/c/r}
+          # if [ -f "$f" ]; then rm -f $f; fi
+          echo "cp -p $f $PKGPATH/$y">>$SETUP
+        done
+        chmod +x $SETUP
+        if [ -x $PRJPATH/setup.sh ]; then
+          run_traced "cp $PRJPATH/setup.sh $SETUP"
+        fi
+        run_traced "tar $x $p $SETUP"
+        run_traced "rm -f $SETUP"
+      fi
+    fi
+    return $sts
+}
+
+do_check() {
+    wlog "do_check \"$1\" \"$2\" \"$3\""
+    local sts=$STS_FAILED
+    if [ -x $TOOLS_PATH/travis_run_tests ]; then
+      local opts=$(inherits_travis_opts "K" "T")
+      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
+      if [ $? -ne 0 ]; then sts=$?; fi
+    elif [ $opt_r -gt 0 ]; then
+      please_run_tests "-K"
+      sts=$?
+    else
+      sts=127
+    fi
+    return $sts
+}
+
+do_coverage() {
+    wlog "do_coverage \"$1\" \"$2\" \"$3\""
+    run_coverage_test
+    sts=$?
+    return $sts
+}
+
+do_commit() {
+    opts=$(inherits_travis_opts "C" "D")
+    opt_dry_run=0
+    run_traced "dist_pkg $opts $1"
+    sts=$?
+    return $sts
+}
+
+do_diff() {
+    wlog "do_diff \"$1\" \"$2\" \"$3\""
+    local opt_diff=1
+    local opts=$(inherits_travis_opts "" "D")
+    run_traced "dist_pkg $opts $PKGNAME"
+    return $?
+}
+
+do_distribution() {
+# do_distribution(PKGNAME oca|zero|oia parent)
+    wlog "do_distribution $1 $2 $3"
+    local sts=$STS_SUCCESS
+    local currpt=zero
+    local ORIG=
+    local f f1 x
+    local PD=.
+    if [ ${test_mode:-0} -ne 0 ]; then
+      if [ -d res ]; then
+        PD=res
+      elif [ -d tests/res ]; then
+        PD=tests/res
+      fi
+    fi
+    if [ -n "$3" ]; then
+      local travis_passed=1
+      if [ -d $3/tmp ]; then
+        ORIG=$3/tmp
+      elif [ -d ~/original/$1 ]; then
+        ORIG=~/original/$1
+      fi
+    else
+      local travis_passed=0
+    fi
+    if [ -f .gitrepname ]; then
+      currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
+    fi
+    local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
+    if [ -z "$gitprj" ]; then
+      gitprj=$(build_pkgurl $1 $2 RORIGIN)
+    fi
+    if [ $travis_passed -eq 0 ]; then
+      if [ $opt_orig -gt 0 ]; then
+        if [ -z "$gitprj" ]; then
+          echo "git project not found!"
+          sts=$STS_FAILED
+        else
+          run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
+          ORIG=$(readlink -e tmp)
+        fi
+      else
+        if [ -d ~/original ]; then rm -fR -d ~/original; fi
+        if [ -n "$gitprj" ]; then
+          run_traced "git clone $gitprj ~/original/$1 -b $BRANCH --depth 1 --single-branch"
+          ORIG=$(readlink -e ~/original/$1)
+        fi
+      fi
+    fi
+    # echo "> if [ \$travis_passed=$travis_passed -eq 0 ]; then" #debug
+    if [ $travis_passed -eq 0 ]; then
+      # echo ">   cvt_gitmodule $2 $currpt" #debug
+      cvt_gitmodule "$2" "$currpt"
+      if [ $sts -eq $STS_SUCCESS ]; then
+        f1=oca_dependencies.txt
+        # echo ">   cvt_file $f1 $2 '' $currpt" #debug
+        cvt_file $f1 $2 "" "$currpt" "$ORIG"
+        sts=$?
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        f1=$(findpkg ".travis.yml" "$PD ..")
+        if [ -n "$f1" ]; then
+          # echo ">   cvt_file $f1 $2 travis $currpt" #debug
+          cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
+          sts=$?
+        fi
+      fi
+    fi
+    local PKGS=
+    # echo "> for f in \$(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name 'README*'); do" #debug
+    for f in $(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
+      x=$(dirname $f)
+      # echo ">   if [ $x == '.' ]; then #f=$f" #debug
+      if [ "$x" == "." ]; then
+        if [ ${test_mode:-0} -eq 0 -a ! -f LICENSE ]; then
+          run_traced "cp ~/agpl.txt LICENSE"
+        fi
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
+        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
+          run_traced "cp -p ORIG/$f $f"
+        fi
+        if [ "$f" == "./__openerp__.py" -o "$f" == "./__manifest__.py" ]; then
+          f1=$(readlink -e $f)
+          # echo ">   cvt_file $f1 $2 manifest $currpt" #debug
+          cvt_file $f1 $2 "manifest" "$currpt" "$ORIG"
+          sts=$?
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        elif [ "$f" == "./README.md" -o "$f" == "./README.rst" -o "$f" == "./README" ]; then
+          f1=$(readlink -e $f)
+          x=$(basename $f1)
+          if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$x" ]; then
+            run_traced "cp -p ORIG/$x $f1"
+          fi
+          # echo ">   cvt_file $f1 $2 readme $currpt" #debug
+          cvt_file $f1 $2 "readme" "$currpt" "$ORIG"
+          sts=$?
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        fi
+        travis_passed=1
+      else
+        x=$(readlink -e $f)
+        f1=$(dirname $x)
+        if [[ $PKGS =~ $f1 ]]; then
+          :
+        else
+          PKGS="$PKGS $f1"
+        fi
+      fi
+    done
+    local CCWD=$PWD
+    # echo "> for f in $PKGS; do" #debug
+    for f in $PKGS; do 
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
+      local PKG=$(basename $f)
+      cd $f
+      revaluate_travis
+      # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
+      do_distribution $PKG $2 "$CCWD"
+      sts=$?
+    done
+    cd $CCWD
+    revaluate_travis
+    if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
+      if [ -f .gitignore ]; then
+        if ! grep -q "\.gitrepname" .gitignore 2>/dev/null; then
+          echo ".gitrepname">>.gitignore
+        fi
+      fi
+      if [ -z "$REPOSNAME" ]; then
+        local ro=$(build_pkgurl $1 $2 RORIGIN)
+        local lo=$(build_pkgurl $1 $2 URL)
+        if [ "$ro" != "$lo" ]; then
+          if [ -n "$ro" ]; then
+            run_traced "git remote remove origin"
+          fi
+          if [ -n "$lo" ]; then
+            run_traced "git remote add origin $lo"
+            run_traced "git remote set-url origin $lo"
+          fi
+        fi
+        local ro=$(build_pkgurl $1 $2 RUPSTREAM)
+        local lo=$(build_pkgurl $1 $2 UPSTREAM)
+        if [ "$ro" != "$lo" ]; then
+          if [ -n "$ro" ]; then
+            run_traced "git remote remove upstream"
+          fi
+          if [ -n "$lo" ]; then
+            run_traced "git remote add upstream $lo"
+            run_traced "git remote set-url upstream $lo"
+          fi
+        fi
+      fi
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -d tmp -a $opt_keep -eq 0 ]; then
+        rm -fR tmp
+      fi
+      if [ -f .gitrepname ]; then
+        if [ "$2" != "$currpt" ]; then
+          run_traced "sed -i -e 's:^repository *=.*:repository=$2:' .gitrepname"
+        fi
+      else
+        echo "repository=$2">>.gitrepname
+      fi
+      restore_owner
+    fi
+    return $sts
+}
+
+do_docs() {
+    wlog "do_docs $1"
+    local sts=$STS_SUCCESS
+    local doxygen_conf
+    doxygen_conf=.${1}_doc.conf
+    if [ ! -f $doxygen_conf ]; then
+      doxygen -g $doxygen_conf
+      vim $doxygen_conf
+    fi
+    # sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
+    cvt_doxygenconf $doxygen_conf
+    run_traced "doxygen $doxygen_conf"
+    sts=$?
+    if [ $opt_verbose -gt 0 ]; then
+      echo ""
+      echo -e "Use: \e[1m$THIS publish $1 docs\e[0m"
+      echo "     to publish this documentation on docs.zeroincombenze.org/$1"
+    fi
+    return $sts
+}
+
+do_download_rep() {
+    wlog "do_download_rep $1"
+    local full_rep local_rep
+    local ORIG=~/original
+    if [ -z "$opt_branch" ]; then
+      echo "MIssed Odoo Version"
+      exit 1
+    fi
+    if [ "${1:0:4}" == "http" ]; then
+      full_rep=$1
+      local_rep=$(basename $1)
+      if [ "${local_rep: -4}" == ".git" ]; then
+         local_rep=${local_rep:0: -4}
+      fi
+    else
+      full_rep=https://github.com/zeroincombenze/$1
+      local_rep=$1
+    fi
+    [ -d $ORIG ] || mkdir -p $ORIG
+    pushd $ORIG >/dev/null
+    [ -d "$local_rep" ] && rm -fR $local_rep/
+    run_traced "git clone $full_rep $local_rep/ -b $opt_branch --single-branch"
+    popd >/dev/null
+}
+
+do_fetch() {
+    opts=$(inherits_travis_opts "F" "D")
+    opt_dry_run=0
+    run_traced "dist_pkg $opts $1"
+    sts=$?
+    return $sts
+}
+
+do_push() {
+    opts=$(inherits_travis_opts "P" "D")
+    opt_dry_run=0
+    run_traced "dist_pkg $opts $1"
+    sts=$?
+    return $sts
+}
+
+do_pythonhosted() {
+    wlog "do_pythonhosted $1 $2 $3"
+    sts=$STS_SUCCESS
+    if [ -z "$2" ]; then
+      echo "Missing URL! use:"
+      echo "> please pythonhosted PKGNAME URL"
+      return $STS_FAILED
+    fi
+    local URL=$2
+    if [ "${URL: -1}" != "/" ]; then
+      local URL=$URL/
+    fi
+    local TITLE="$3"
+    local CWD=$PWD
+    run_traced "cd $PKGPATH"
+cat <<EOF >index.html
+<!DOCTYPE HTML>
+   <head>
+       <meta http-equiv="refresh" content="0; $URL">
+       <script type="text/javascript">
+           top.location.href = "$URL"
+       </script>
+       <title>Redirect</title>
+   </head>
+   <body>
+       Please wait for a moment .. <a href='$URL' $2</a>
+   </body>
+</html>
+EOF
+    run_traced "zip -j pythonhosted-$PKGNAME.zip index.html"
+    if [ -f index.html ]; then
+      rm -f index.html
+    fi
+    cd $CWD
+    if [ -f $PKGPATH/pythonhosted-$PKGNAME.zip ]; then
+      echo "Now you can download $PKGPATH/pythonhosted-$PKGNAME.zip in pypi webpage of project"
+    fi
+    return $sts
+}
+
+do_register() {
+#do_register PKGNAME (pypi|testpypi)
+    wlog "do_register $1 $2"
+    local cmd="do_register_$2"
+    sts=$STS_SUCCESS
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$@"
+    else
+      echo "Missing object! Use:"
+      echo "> please register PKGNAME (pypi|testpypi)"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
+do_replace() {
+    opts=$(inherits_travis_opts "R" "D")
+    opt_dry_run=0
+    run_traced "dist_pkg $opts $1"
+    sts=$?
+    return $sts
+}
+
+do_synchro() {
+    wlog "do_synchro $1 $2 \"$3\""
+    local f opts
+    if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        clean_dirs "$PKGPATH"
+        run_traced "git checkout $BRANCH"
+        do_distribution "$PKGNAME" "oca"
+        git status
+        git remote -v
+        run_traced "git pull --no-edit upstream $BRANCH"
+        if [ "$2" == "zero-merged" ]; then
+          do_distribution "$PKGNAME" "zero"
+        fi
+        for f in $(find $PKGPATH -type f -not -name "*.png" -exec grep -l ">>>>" '{}' \;); do
+          echo "Warning: see file $f"
+        done
+      fi
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+      if [ "$PRJNAME" == "Odoo" ]; then
+        clean_dirs "$PKGPATH"
+        run_traced "git checkout $BRANCH"
+        do_distribution "$PKGNAME" "$2"
+        local x=($git status -s)
+        if [ -n "$x" ]; then
+          if [ -n "$3" ]; then
+            run_traced "git commit -am \"$3\""
+          elif [ $opt_diff -ne 0 ]; then
+            run_traced "git commit -am \"[SYNCHRO] Update documentation\""
+          else
+            run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
+          fi
+        fi
+        opts=
+        if [ "$2" == "oia" ]; then
+          opts="-f --all"
+        elif [ $opt_force -ne 0 ]; then
+          opts=-f
+        fi
+        run_traced "git push $opts"
+        restore_owner
+        git remote -v
+        git status
+      fi
+    else
+      echo "Missed parameter! use:"
+      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|oia|zero-merged"
+      sts=$STS_FAILED
+    fi
+}
+
+do_test() {
+    wlog "do_test"
+    local sts=$STS_FAILED
+    if [ -x $TOOLS_PATH/travis_run_tests ]; then
+      local opts=$(inherits_travis_opts "T" "T")
+      run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
+      if [ $? -ne 0 ]; then sts=$?; fi
+    elif [ $opt_r -gt 0 ]; then
+      please_run_tests "-T"
+      sts=$?
+    else
+      test_sts=$STS_FAILED
+      sts=$test_sts
+    fi
+    return $sts
+}
+
+do_travis() {
+    wlog "do_travis \"$1\" \"$2\" \"$3\""
+    if [ $opt_r -gt 0 ]; then
+      please_run_tests "-KT"
+    else
+      opts=$(inherits_travis_opts "c" "E")
+      if [ -n "$opts" ]; then
+        travis "$opts" "$@"
+      else
+        travis "$@"
+      fi
+    fi
+    sts=$?
+    return $sts
+}
+
+do_version() {
+    cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
+    if [ "$PRJNAME" != "Odoo" ]; then
+      echo "Project $PRJNAME V$prjversion [$PKGNAME] answer:";
+      cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
+    else
+      echo "Project $PRJNAME V$BRANCH [$PKGNAME $prjversion]";
+    fi;
+}
+
+
 OPTOPTS=(h        b          c        d        f         j        k        L         m       n           O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1         1        1        "="       1       1           1        "="       0           1     "="      1         1       "*"         "+")
@@ -1861,7 +1881,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-commit]|config|coverage|diff|distribution|docs|[if-]fetch|[if-push]|[if-replace]|publish|pythonhosted|synchro|test|travis|version|wep"
+HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|download_rep|[if-]fetch|[if-]push|[if-]replace|publish|pythonhosted|synchro|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -1890,12 +1910,6 @@ sts_pylint=127
 test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
-elif [ "$action" == "annotate" ]; then
-  do_annotate "$PKGNAME" "$opt_srcs"
-  sts=$?
-elif [ "$action" == "chkconfig" ]; then
-  do_chkconfig
-  sts=$STS_SUCCESS
 elif [ "$action" == "if-commit" ]; then
   opt_dry_run=1
   do_commit "$PKGNAME" "$sub1" "$sub2"
@@ -1950,25 +1964,8 @@ elif [ "$action" == "if-fetch" ]; then
 elif [ "$action" == "fetch" ]; then
   do_fetch "$PKGNAME" "$sub1" "$sub2"
   sts=$?
-elif [ "$action" == "if-push" ]; then
-  opt_dry_run=1
-  do_push "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "push" ]; then
-  do_push "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "if-replace" ]; then
-  opt_dry_run=1
-  do_replace "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "replace" ]; then
-  do_replace "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
 elif [ "$action" == "travis" ]; then
   do_travis "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "version" ]; then
-  do_version "$PKGNAME" "$sub1" "$sub2"
   sts=$?
 elif [ "$action" == "wep" ]; then
   if [ $opt_verbose -gt 0 ]; then
@@ -1976,7 +1973,12 @@ elif [ "$action" == "wep" ]; then
   fi
   clean_dirs "$PKGPATH"
 else
-  cmd="do_$action"
+  if [ "${action:0:3}"  == "if-" ]; then
+    opt_dry_run=1
+    cmd="do_${action:3}"
+  else
+    cmd="do_$action"
+  fi
   if [ "$(type -t $cmd)" == "function" ]; then
     eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
     sts=$?
