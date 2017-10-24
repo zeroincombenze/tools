@@ -22,7 +22,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.1
+__version__=0.2.1.1
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
@@ -116,6 +116,9 @@ elif [ $opt_upd -ne 0 ]; then
     exit 1
   fi
 fi
+if [ -z "$opt_user" ]; then
+  opt_user=$odoo_user
+fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
     mods=${opt_modules//,/ }
@@ -131,34 +134,52 @@ if [ -n "$opt_modules" ]; then
     done
     opts="-i $opt_modules --test-enable"
     create_db=1
-  elif [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
-    src=$(readlink -f $opt_ofile)
-    opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
-  elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-    src=$(find $odoo_root -type d -name "$opt_modules"|head -n1)
-    if [ -n "$src" ]; then
-      if [ -f $src/i18n/it.po ]; then
-        src=$src/i18n/it.po
-        if [ $opt_exp -ne 0 ]; then
-          run_traced "cp $src $src.bak"
-        fi
-      else
-        src=
-      fi
-    fi
-    if [ -z "$src" ]; then
-      echo "Translation file not found!"
-      exit 1
-    fi
-    if [ $opt_imp -ne 0 ]; then
-      opts="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
-    else
-      opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
-    fi
-  elif [ $opt_upd -ne 0 ]; then
-    opts="-u $opt_modules"
   else
-    opts="-u $opt_modules --test-enable"
+    mods=${opt_modules//,/ }
+    opti=
+    xi=-i
+    optu=
+    xu=-u
+    for m in $mods; do
+      r=$(psql -U$opt_user prove7 -tc "select state from ir_module_module where name='$m';")
+      if [[ $r =~ uninstalled ]]; then
+        opti="$opti$xi$m"
+        xi=,
+      else
+        optu="$optu$xu$m"
+        xu=,
+      fi
+    done
+    optsiu="$opti $optu"
+    if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
+      src=$(readlink -f $opt_ofile)
+      opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
+    elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
+      src=$(find $odoo_root -type d -name "$opt_modules"|head -n1)
+      if [ -n "$src" ]; then
+        if [ -f $src/i18n/it.po ]; then
+          src=$src/i18n/it.po
+          if [ $opt_exp -ne 0 ]; then
+            run_traced "cp $src $src.bak"
+          fi
+        else
+          src=
+        fi
+      fi
+      if [ -z "$src" ]; then
+        echo "Translation file not found!"
+        exit 1
+      fi
+      if [ $opt_imp -ne 0 ]; then
+        opts="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
+      else
+        opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
+      fi
+    elif [ $opt_upd -ne 0 ]; then
+      opts="$optsiu"
+    else
+      opts="$optsiu --test-enable"
+    fi
   fi
 else
   if [ $opt_lang -ne 0 ]; then
@@ -169,9 +190,6 @@ else
 fi
 if [ -z "$opt_xport" ]; then
   opt_xport=$rpcport
-fi
-if [ -z "$opt_user" ]; then
-  opt_user=$odoo_user
 fi
 if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_db" ]; then
