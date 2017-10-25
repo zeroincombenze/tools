@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.15.1"
+__version__ = "0.1.15.2"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -421,19 +421,21 @@ def write_license_info(lines, ctx):
     if lines[0] != '# -*- coding: utf-8 -*-':
         lines.insert(0, '# -*- coding: utf-8 -*-')
     lineno = 1
-    while not re.match('^# *([Cc]opyright|\(C\))', lines[lineno]):
+    while not re.match('^# *([Cc]opyright|\(C\)|©)', lines[lineno]):
         if lines[lineno][0] == '#':
             del lines[lineno]
         else:
             break
     while re.match(
-            '^# *([Cc]opyright|\([Cc]\)|http:|https:|\w+\@[a-zA-z0-9-.]+)',
+            '^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)',
             lines[lineno]):
         found_author = True
+        lines[lineno] = lines[lineno].replace(
+            '(C)', 'Copyright').replace('©', 'Copyright')
         lineno += 1
     while not lines[lineno] or lines[lineno][0] == '#':
         del lines[lineno]
-    if not found_author:
+    if not found_author or ctx['opt_oia']:
             lines.insert(
                 lineno,
                 '# Copyright 2017, '
@@ -1032,6 +1034,10 @@ if __name__ == "__main__":
                           "© 2015-2017 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
+    parser.add_argument('-A', '--odoo-italia-associazione',
+                        action='store_true',
+                        dest='opt_oia',
+                        default=False)
     parser.add_argument('-B', '--recall-debug-statements',
                         action='store_true',
                         dest='opt_recall_dbg',

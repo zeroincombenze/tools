@@ -5,7 +5,7 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
@@ -17,9 +17,16 @@ for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
 done
 if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
+  exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
-__version__=0.1.15
+__version__=0.1.15.2
 
 
 format_xml() {
@@ -51,7 +58,18 @@ format_xml() {
           line="$lne"
         elif [ "${lne:0:9}" == "<openerp>" -o "${lne:0:10}" == "</openerp>" ]; then
           level=0
-          line="$lne"
+          if [  $odoo_ver -ge 10 ]; then
+            line="${lne//openerp/odoo}"
+          else
+            line="$lne"
+          fi
+        elif [ "${lne:0:9}" == "<odoo>" -o "${lne:0:10}" == "</odoo>" ]; then
+          level=0
+          if [  $odoo_ver -ge 10 ]; then
+            line="${lne//odoo/openerp}"
+          else
+            line="$lne"
+          fi
         elif [ "${lne:0:4}" == "<!--" ]; then
           line="$lm$lne"
           if [ "${lne: -3}" != "-->" ]; then
@@ -115,13 +133,14 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        B         b         c         d        G       i       n            o       q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_debug odoo_ver  opt_Camel opt_diff opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1         "="       1         1        1       1       1            "="     0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0         ""        0         0        0       0       0            ""      -1          0       ""          -1          0)
+OPTOPTS=(h        a        A       B         b         c         d        G       i       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_diff opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      1       1         "="       1         1        1       1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        0       0         ""        0         0        0       0       0            ""      -1          0       ""          -1          0)
 OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
+ "add Odoo Ialia Associazione Copyright"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 or 10.0"\
  "change class name to CamelCase"\
@@ -154,14 +173,18 @@ if [ -d "$pathname" ]; then
   else
     selfl="$basename"
   fi
+  optfnd="-type f"
 else
   path=$(dirname $pathname)
   path=$(readlink -f $path)
   selfl=$(basename $pathname)
+  optfnd="-maxdepth 1 -type f"
 fi
 if [ -n "$opt_out" ]; then
   opt_out=$(readlink -f $opt_out)
 fi
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 sts=1
 HOMEDIR=$PWD
 if [ $opt_debug -ne 0 ]; then
@@ -177,13 +200,17 @@ fi
 if [ $opt_gpl -gt 0 ]; then
   OPTS="$OPTS -G"
 fi
+if [ $opt_oia -gt 0 ]; then
+  OPTS="$OPTS -A"
+fi
 if [ $opt_ut7 -gt 0 ]; then
   OPTS="$OPTS -u"
 fi
-if [ -n "$odoo_ver" ]; then
-  OPTS="$OPTS -b$odoo_ver"
+if [ -n "$odoo_vid" ]; then
+  OPTS="$OPTS -b$odoo_fver"
 fi
-for fl in $(find $path -type f -name "$selfl"); do
+LIST="$(find $path $optfnd -name "$selfl")"
+for fl in $LIST; do
   sts=0
   p=$(dirname $fl)
   f=$(basename $fl)
@@ -203,6 +230,7 @@ for fl in $(find $path -type f -name "$selfl"); do
       fi
       if [ $opt_imp -ne 0 ]; then
         isort $f -d > $f.new
+        if grep -q "Skipped [0-9]* files" $f.new; then cp $f $f.new; fi
         if [ $opt_z -ne 0 ]; then
           python $TDIR/to_pep8.py $f.new $f.tmp $OPTS
         else
