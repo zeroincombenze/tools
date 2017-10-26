@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.86.7
+__version__=0.1.86.8
 
 
 store_cfg_param_value() {
@@ -507,27 +507,10 @@ process_yaml_run_cmd() {
           xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
         fi
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
-        # if [ ! -d $HOME/maintainer-quality-tools ]; then
-        #   local MQT_UPDT="2017-00-00"
-        # else
-        #   local MQT_UPDT=$(get_cfg_value "" "MQT_UPDT")
-        # fi
-        # local curtm=$(date +"%Y-%m-%d")
-        # if [ "$curtm" == "$MQT_UPDT" ]; then
-        #   xcmd="# $xcmd"
-        # else
-        #   if [ -d $HOME/maintainer-quality-tools/ ]; then
-        #     run_traced "rm -fR $HOME/maintainer-quality-tools/"
-        #   fi
-        #   if [ "$(grep ^MQT_UPDT $TCONF)" ]; then
-        #     sed -i "s|^MQT_UPDT *=.*|MQT_UPDT=$curtm|" $TCONF
-        #   else
-        #     echo "MQT_UPDT=$curtm">>$TCONF
-        #   fi
-        # fi
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
-            run_traced "rm -fR $HOME/maintainer-quality-tools/"
+            # run_traced "rm -fR $HOME/maintainer-quality-tools/"
+            :
           elif [ -f $HOME/maintainer-quality-tools/ ]; then
             run_traced "rm -f $HOME/maintainer-quality-tools"
           fi
