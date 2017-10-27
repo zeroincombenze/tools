@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.15.1
+__version__=0.1.15.4
 
 
 test_01() {
@@ -37,7 +37,7 @@ test_01() {
     TESTOUT=$TESTDIR/res/$TESTFN.out
     TEST2P8=$TESTDIR/res/$TESTFN.2p8
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_01.out
+      rm -f $TESTOUT
       cat <<EOF >$TEST2P8
 #
 a: \$name =
@@ -73,7 +73,7 @@ test_02() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_02.out
+      rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 # (C) OpenERP (http://openerp.com)
 import pdb
@@ -91,6 +91,10 @@ class res_user(osv.osv):
         tndb.wstamp()
         pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
+        try:
+            order = partner.order
+        except:
+            pass
         tndb.wlog('return',
                   partner)
         return (
@@ -125,6 +129,10 @@ class res_user(orm.Model):
         # tndb.wstamp()
         # pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
+        try:
+            order = partner.order
+        except:                                              # pragma: no cover
+            pass
         # tndb.wlog('return',
         #           partner)
         return (
@@ -168,6 +176,10 @@ class res_user(models.Model):
         # tndb.wstamp()
         # pdb.set_trace()
         partner = pooler.get_pool(cr.dbname).get('res.partner')
+        try:
+            order = partner.order
+        except:                                              # pragma: no cover
+            pass
         # tndb.wlog('return',
         #           partner)
         return (
@@ -223,7 +235,7 @@ test_03() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_03.out
+      rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 # import pdb
 from openerp.osv import osv
@@ -352,7 +364,7 @@ test_04() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_04.out
+      rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 from openerp.osv import fields, orm
 
@@ -435,7 +447,7 @@ test_05() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_05.out
+      rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 """ Copyright (C) openerp-italia.org
 """
@@ -452,8 +464,10 @@ class example():
 EOF
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
+#
 # Copyright 2017, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 # Copyright 2017, Associazione Odoo Italia <https://odoo-italia.org>
+#
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 """ Copyright (C) odoo-italia.org
@@ -491,7 +505,7 @@ test_06() {
     TESTRES=$TESTDIR/res/$TESTFN.test
     TESTOUT=$TESTDIR/res/$TESTFN.out
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $TESTDIR/res/*_06.out
+      rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 from openerp.tests.common import TransactionCase
 
@@ -524,6 +538,47 @@ EOF
       $RUNDIR/topep8 -q -b7.0 -u $TESTSRC -o $TESTOUT
     fi
     test_result "topep8 -b7.0 -u" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+test_07() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_07
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTSRC
+# Copyright antoniov <antoniov@libero.it>
+#     (C) antoniov <antoniov@libero.it>
+# Copyright (C) antoniov <antoniomaria.vigliotti@gmail.com>
+# Copyright 2013-2017 antoniov <antoniomaria.vigliotti@gmail.com>
+#
+# [2013: antoniov] First version
+# 
+
+__version__='0.1.2'
+EOF
+      cat <<EOF >$TESTRES
+# -*- coding: utf-8 -*-
+#
+# Copyright antoniov <antoniov@libero.it>
+# Copyright antoniov <antoniov@libero.it>
+# Copyright antoniov <antoniomaria.vigliotti@gmail.com>
+# Copyright 2013-2017, antoniov <antoniomaria.vigliotti@gmail.com>
+#
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
+# [2013: antoniov] First version
+#
+
+
+__version__ = '0.1.2'
+EOF
+      $RUNDIR/topep8 -q -b7.0 -G $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -b7.0 -G" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

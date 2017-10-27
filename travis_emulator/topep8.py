@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.15.2"
+__version__ = "0.1.15.4"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -196,9 +196,9 @@ pooler|release|sql_db)
  v0         pdb
 *IS*   -b   # import pdb
  v0         import pdb
-*IS*   ||   ^ +or *
+*IS*   ||   ^( +or +.*| +or)$
  v0         &
-*IS*   &&   ^ +and *
+*IS*   &&   ^( +and +.*| +and)$
  v0         &
 *IS*   ^+   ^ +\+ *
  v0         &
@@ -223,6 +223,8 @@ pooler|release|sql_db)
 *IS*   -u1  \.find\(\)
  v0         &
 *IS*   -u1  \.env\.ref\(
+ v0         &
+*IS*  trvs  ^ *except[ :]
  v0         &
 """
 
@@ -418,6 +420,7 @@ def compile_rules(ctx):
 
 def write_license_info(lines, ctx):
     found_author = False
+    found_oia = False
     if lines[0] != '# -*- coding: utf-8 -*-':
         lines.insert(0, '# -*- coding: utf-8 -*-')
     lineno = 1
@@ -426,16 +429,38 @@ def write_license_info(lines, ctx):
             del lines[lineno]
         else:
             break
+    lines.insert(lineno, '#')
+    lineno += 1
     while re.match(
             '^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)',
             lines[lineno]):
         found_author = True
+        if lines[lineno].find(
+                'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>'):
+            found_oia = True
+        if lines[lineno].find('Copyright') < 0:
+            lines[lineno] = lines[lineno].replace(
+                '(C)', 'Copyright').replace('©', 'Copyright')
+        else:
+            lines[lineno] = lines[lineno].replace(
+                '(C)', '').replace('©', '')
         lines[lineno] = lines[lineno].replace(
-            '(C)', 'Copyright').replace('©', 'Copyright')
+            'Copyright  ', 'Copyright ').replace(
+                '#  ', '# ').replace(
+                '#  ', '# ').replace(
+                '#  ', '# ').replace(
+                '#  ', '# ')
+        if re.match('^# Copyright [0-9]+', lines[lineno]):
+            x = re.search('[-0-9]+', lines[lineno])
+            if x:
+                i = x.end()
+                if lines[lineno][i] != ',':
+                    lines[lineno] = lines[lineno][0:i] + ',' + lines[lineno][i:]
         lineno += 1
-    while not lines[lineno] or lines[lineno][0] == '#':
+    while not lines[lineno] or lines[lineno] == '#' or re.match(
+                '^# License AGPL', lines[lineno]):
         del lines[lineno]
-    if not found_author or ctx['opt_oia']:
+    if not found_author or (ctx['opt_oia'] and not found_oia):
             lines.insert(
                 lineno,
                 '# Copyright 2017, '
@@ -446,6 +471,8 @@ def write_license_info(lines, ctx):
                 '# Copyright 2017, '
                 'Associazione Odoo Italia <https://odoo-italia.org>')
             lineno += 1
+    lines.insert(lineno, '#')
+    lineno += 1
     lines.insert(
         lineno,
         '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
@@ -454,7 +481,7 @@ def write_license_info(lines, ctx):
     return lines
 
 
-def update_4_api(lines, lineno, ctx, ignore=None):
+def update_4_api(lines, lineno, ctx, ignore=None, select=None):
     line = lines[lineno]
     rid = -1
     if ctx['opt_verbose'] > 2:
@@ -470,9 +497,14 @@ def update_4_api(lines, lineno, ctx, ignore=None):
             continue
         elif META[ix] != '#' and ctx['open_doc']:
             continue
+        elif META[ix] == '#' and not ctx['open_doc'] and \
+                line and line[0] != '#':
+            continue
         elif META[ix] == ignore:
             continue
         elif RID[ix] == rid:
+            continue
+        elif select and META[ix] != select:
             continue
         x = IS_BADGE[ix].match(line)
         if x:
@@ -517,6 +549,12 @@ def update_4_api(lines, lineno, ctx, ignore=None):
                             tabstop, line_ctrs = parse_tokens_line(
                                 line[line_ctrs['lm'] + 1:],
                                 ctrs=line_ctrs)
+            elif META[ix] == 'trvs':
+                tok = '# pragma: no cover'
+                if lines[lineno].find(tok) < 0:
+                    spc = ' ' * 79
+                    i = 79 - len(tok)
+                    line = (line + spc)[0:i] + tok
             if META[ix] and META[ix] != '#':
                 break
     lines[lineno] = line.rstrip()
@@ -781,6 +819,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
         elif lines[lineno] == "":
             if del_empty_line:
                 del lines[lineno]
+                lineno -= 1
             else:
                 ctx['empty_line'] += 1
         else:

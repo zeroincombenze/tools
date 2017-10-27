@@ -60,8 +60,10 @@ cvt_file() {
          rm -f $fntmp
          while IFS= read -r line r || [ -n "$line" ]; do
            # echo "$prc>$line"  #debug
-           if [ $opt_keep -lt 10 ] && [[ $line =~ ^__version__=.* ]]; then
-             if [ $opt_lev3 -eq 0 ]; then
+           if [ $prc -lt 10 ] && [[ $line =~ ^__version__=.* ]]; then
+             if [ $opt_keep -ne 0 ]; then
+               line_ver="$line"
+             elif [ $opt_lev3 -eq 0 ]; then
                x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\(\.[0-9]*\)?|awk -F. '{print $4}')
                ((x++))
                y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2"."$3}')"

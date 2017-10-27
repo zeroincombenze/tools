@@ -75,6 +75,7 @@ Z0BUG_setup() {
     LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
     LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
     LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
+    mkdir -p /opt/odoo/maintainer-quality-tools
     mkdir -p $LCLTEST_TMPDIR0
     mkdir -p $LCLTEST_PRJPATH
     mkdir -p $LCLTEST_TMPDIR
@@ -104,6 +105,7 @@ Z0BUG_setup() {
 > if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
 > if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
 > if [ -L /opt/odoo/odoo-9.0 ]; then rm -f /opt/odoo/odoo-9.0; fi
+> rm -fR /opt/odoo/maintainer-quality-tools
 $ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
 > mkdir /opt/odoo/dependencies
 > export INCLUDE=l10n_it_base
