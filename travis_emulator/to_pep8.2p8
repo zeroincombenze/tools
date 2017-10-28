@@ -1,0 +1,45 @@
+#
+# topep8 configuration file
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# Every rule start with RULE_NAME: STATEMENTS
+#   where: RULE_NAME is the technical name
+#   and STATEMENTS are python intructions to match rule
+# After this line there are one or more declaration matcho Odoo version
+# format: RULE_NAME[VER]: REPLACING_TOKENS
+#   where VER matches Odoo version:
+#     0 -> all version, 61 -> 6.1, 70 -> 7.0, 80 -> 8.0, 90 -> 9.0, 100 -> 10.0
+#   REPLACING_TOKENS are python intructions to replace
+# Example:
+#   c:      class $name($more):
+#   c[0]:   osv.osv_memory
+#   c[70]:  orm.TransientModel
+#   c[100]: models.TransientModel
+# In above example source 10.0 "class myexample(models.TransientModel)"
+# is translated into "class myexample(orm.TransientModel)" for Odoo from 7.0 to 9.0
+# and "class myexample(osv.osv_memory)" for odoo 6.1
+# Warning: hash symbol # means remark both in this configuration file both in rules
+# If hash symbol # is at leftmost column is configuratione file remark (this line)
+# If hash symbol # is after colon means rule for remark; i.e:
+#   remark: #
+#
+# You can use in python instructions in STATEMENTS some macro:
+# $any: match any python token
+# $more: match zero, one or more python tokens until token following $more is matched
+# $name: match any python name, i.e. a but not "a"
+#
+# ------------------------------------------------------------------------------
+#
+# Rule class memory
+class_memory: class $name($more):
+class_memory[0]: osv.osv
+class_memory[70]: orm.Model
+class_memory[100]: models.Model
+#
+# Rule class transient memory
+class_transient: class $name($more):
+class_transient[0]: osv.osv_memory
+class_transient[70]: orm.TransientModel
+class_transient[100]: models.TransientModel
