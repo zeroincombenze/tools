@@ -39,6 +39,7 @@ test_run() {
     local cmd="$4"
     local FH=
     local opt_e="-E$Disto"
+    local opt_ij=
     if [ "$Disto" == "." ]; then
         local FH=$Real_FH
         local Disto=$Real_DISTO
@@ -72,6 +73,8 @@ test_run() {
       local Package="php"
     elif [ "$Package" == "openssh" ]; then
       local Package="openssh-server"
+    elif [ "$Package" == "postgresql-server" ]; then
+      opt_ij="-g"
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [ -f $TESTDIR/res/${Package}__${Disto}.03.test ]; then
@@ -85,7 +88,7 @@ test_run() {
         echo "File test comparison ${Package}__${Disto} not found!"
       fi
       rm -f $TESTDIR/lisa.out
-      eval $TPRODUCT $opt_e whatis $2 >$TESTDIR/lisa.out
+      eval $TPRODUCT $opt_e $opt_ij whatis $2>$TESTDIR/lisa.out
       # eval $TPRODUCT $opt_e whatis $2
     fi
     # set +x #debug
@@ -251,11 +254,13 @@ EOF
 postgresql (by apt-get)(psql --version)
 --postgresql-client-common (by apt-get)
 --postgresql-contrib (by apt-get)
+--pgadmin3 (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/postgresql-server__RHEL.03.test
 postgresql-server (by yum)(psql --version)
 --postgresql-client-common (by yum)
 --postgresql-contrib (by yum)
+--pgadmin3 (by yum)
 EOF
   cat <<EOF >$TESTDIR/res/php__RHEL.03.test
 php (by yum)(php -v)

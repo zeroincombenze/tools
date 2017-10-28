@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.86.8
+#__version__=0.1.86.9
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -627,7 +627,7 @@ build_pkgurl() {
     local MODNAME=$1
     local RPT=$2
     local ITEM=$3
-    local p r
+    local p r x y
     if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
       local ODOO_RPT="https://github.com/acespritech"
       local ODOO_UPSTREAM=
@@ -693,7 +693,11 @@ build_pkgurl() {
     elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
       p=${ITEM,,}
       p=${p:1}
-      r=$(git remote -v 2>/dev/null|grep $p|head -n1|awk '{ print $2}')
+      IFS=- read x y <<<$RPT
+      r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
+      if [  -z "$r" ]; then
+        r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
+      fi
       echo "$r"
     else
       echo ""

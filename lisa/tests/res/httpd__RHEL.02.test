@@ -2,4 +2,4 @@ httpd (install by yum)
  service=httpd
  command=apachectl
  get_ver=apachectl -v
- confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+ infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

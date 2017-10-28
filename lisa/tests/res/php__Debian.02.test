@@ -1,4 +1,4 @@
 php=php5 (install by apt-get)
  command=php5
  get_ver=php5 -v
- confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+ infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

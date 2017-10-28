@@ -1,4 +1,4 @@
 pip (install by pip)
  command=pip
  get_ver=pip --version
- confn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+ infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

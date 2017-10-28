@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.4
+__version__=0.1.52.6
 
 
 #
@@ -1789,12 +1789,15 @@ do_synchro() {
           fi
         fi
         opts=
-        if [ "$2" == "oia" ]; then
-          opts="-f --all"
-        elif [ $opt_force -ne 0 ]; then
-          opts=-f
+        if [ $opt_force -ne 0 ]; then
+          if [ "$2" == "oia" -a $opt_dprj -gt 0 ]; then
+            opts="-f --all"
+          else
+            opts=-f
+          fi
         fi
-        run_traced "git push $opts"
+        local ro=$(build_pkgurl $1 $2 RORIGIN)
+        run_traced "git push $opts $ro"
         restore_owner
         git remote -v
         git status
@@ -1860,7 +1863,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "configuration file (def .travis.conf)"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
- "execute tests in project dir rather in test dir"\
+ "execute tests in project dir rather in test dir/old style synchro"\
  "keep coverage statistics in annotate test/keep original repository or tests/ in publish"\
  "log file name"\
  "show missing line in report coverage"\
@@ -1927,9 +1930,11 @@ elif [ "$action" == "config" ]; then
     cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
   elif [ "$sub1" == "current" ]; then
     cfgfn=$DIST_CONF
+  elif [ "$sub1" == "zero" -o "$sub1" == "oia" ]; then
+    cfgfn=
   else
     echo "Missed parameter! use:"
-    echo "\$ please config PKGNAME|. global|repository|local|current [del]"
+    echo "\$ please config PKGNAME|. global|repository|local|current|zero|oia [del]"
       sts=$STS_FAILED
   fi
   if [ $sts -eq $STS_SUCCESS ]; then
@@ -1951,7 +1956,13 @@ elif [ "$action" == "config" ]; then
         run_traced "vim $cfgfn"
       fi
     else
-      echo "Invalid configuration!"
+      r="origin_$sub1"
+      x=$(git remote|grep $r)
+      if [ -z "$x" ]; then
+        ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+        run_traced "git remote add $r $ro"
+        run_traced "git remote set-url --add --push $r $ro"
+      fi
     fi
   fi
 elif [ "$action" == "coverage" ]; then

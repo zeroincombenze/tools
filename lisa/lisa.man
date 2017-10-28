@@ -2,13 +2,13 @@
 .\" Contact antoniomaria.vigliotti@gmail.com to correct errors or typos.
 .TH lisa 8
 .SH NAME
-lisa \- create and/or manage a LAMP or Odoo server
+lisa \- create and/or manage a LAMP and/or Odoo server
 .SH SYNOPSIS
 lisa [options] actions packages [param]
 .SH DESCRIPTION
 \fBlisa\fR means Linux Install Simplifier App; it is an interactive tool to
 install, update, remove, query and manage software for building a complete LAMP
-or Odoo server.
+and/or Odoo server.
 .br
 LAMP means \fBLinux\fR \fIApache\fR \fIMysql\fR (now \fIMariadb\fR) \fIPHP\fR;
 in recent times, \fIPython\fR and \fIPostgresql\fR were added.
@@ -16,18 +16,18 @@ in recent times, \fIPython\fR and \fIPostgresql\fR were added.
 Please pay attention software name may be replaced by \fBlisa\fR, based on
 Linux distribution and version, in order to build server in standard way,
 everytime and everywhere; i.e. when you type \fIlisa install apache2\fR and your
-machine is running CentOS, your command is replaced by \fIlisa install httpd\fR
-because apache2 package is called httpd on CentOS.
+machine is running CentOS, your command is substituted by \fIlisa install httpd\fR
+because apache2 package is httpd on CentOS.
 .br
 \fBlisa\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR,
-\fIpip\fR and \fIgit\fR and other commands, because it is not a real package installer.
+\fIpip\fR, \fIgit\fR, \fIwget\fRand other commands, because it is not a real package installer.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros,
 \fBapt-get\fR on Ubuntu and Debian family distros. May be \fBlisa\fR installs
 some other package if required by installation process, like \fBpip\fR or \fBgit\fR
 or \fBwget\fR.
 .br
 \fBlisa\fR is very useful to manage all the packages needed to build a complete
-LAMP server or Odoo server and to check the real installation status.
+LAMP server and/or Odoo server and to check the real installation status.
 
 \fBlisa\fR retrieves information about package from package configuration file.
 It is a simple text file, named PKGNAME.lish where PKGNAME is the name of package;
@@ -39,11 +39,13 @@ Package configuration file describes your package, dependencies and installation
 requirement in simple way.
 Type \fIlisa whatis PKGNAME\fR command to see how PKGNAME is defined.
 .br
+See /etc/lisa/lisa.conf.sample to understand how to build your package configuration file.
+.br
 All operations are traced in \fI/var/log/lisa.log\fR; option -L can set another tracelog.
 .br
 Using -n switch, you can simply use \fIlisa\fR just to see which command you
 should issue to manage PKGNAME software. If you use the tool stdout2wiki you can
-write your installation script or your documentation about installation-
+write your installation script or your documentation about installation.
 
 
 Action is one of:
@@ -71,7 +73,7 @@ Action is one of:
 * build PKGNAME
 .br
 .br
-You can issue more action separated by plus simbol: i.e. \fBinstall+config\fR
+You can issue more actions separated by plus simbol: i.e. \fBinstall+config\fR
 .br
 You can manage many packages in every single command line; package names must be
 separated by comma: i.e. \fBapache2,php5\fR

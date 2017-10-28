@@ -226,6 +226,8 @@ pooler|release|sql_db)
  v0         &
 *IS*  trvs  ^ *except[ :]
  v0         &
+*IS*  trvs  ^ *raise[ ]
+ v0         &
 """
 
 SPEC_SYNTAX = {
@@ -419,6 +421,7 @@ def compile_rules(ctx):
 
 
 def write_license_info(lines, ctx):
+    auth_antoniov = 'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>'
     found_author = False
     found_oia = False
     if lines[0] != '# -*- coding: utf-8 -*-':
@@ -435,8 +438,7 @@ def write_license_info(lines, ctx):
             '^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)',
             lines[lineno]):
         found_author = True
-        if lines[lineno].find(
-                'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>'):
+        if lines[lineno].find(auth_antoniov) >= 0:
             found_oia = True
         if lines[lineno].find('Copyright') < 0:
             lines[lineno] = lines[lineno].replace(
@@ -463,8 +465,7 @@ def write_license_info(lines, ctx):
     if not found_author or (ctx['opt_oia'] and not found_oia):
             lines.insert(
                 lineno,
-                '# Copyright 2017, '
-                'Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>')
+                '# Copyright 2017, %s' % auth_antoniov)
             lineno += 1
             lines.insert(
                 lineno,

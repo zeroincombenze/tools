@@ -84,12 +84,12 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 odoo (install by git)
  service=odoo-server
 EOF
-  echo " confn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__Debian.08.test
+  echo " infn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__Debian.08.test
   cat <<EOF >$TESTDIR/res/odoo__RHEL.08.test
 odoo (install by git)
  service=odoo-server
 EOF
-  echo " confn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__RHEL.08.test
+  echo " infn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__RHEL.08.test
 fi
 Real_FH=$(xuname "-f")
 x=$(xuname "-v")
@@ -286,7 +286,7 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 #
 > yum install iptables
 > systemctl start iptables
-> chkconfig iptables on
+> systemctl enable iptables
 > yum -y install epel-release
 > yum -y install python-pip
 #
@@ -299,18 +299,19 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 > pip install ndg-httpsclient
 # yum -y install openssh-server
 # systemctl start sshd
-> chkconfig sshd on
+> systemctl enable sshd
 > yum -y install httpd
 > systemctl start httpd
-> chkconfig httpd on
+> systemctl enable httpd
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 443 -j ACCEPT
 > yum -y install mariadb
 > systemctl start mariadb
-> chkconfig mariadb on
+> systemctl enable mariadb
 > yum -y install postgresql-server
+> postgresql-setup initdb
 > systemctl start postgresql
-> chkconfig postgresql on
+> systemctl enable postgresql
 # yum -y install php
 > yum -y install python-pip
 #
@@ -402,7 +403,7 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
-> chkconfig odoo-server on
+> systemctl enable odoo-server
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
 EOF
   else
@@ -466,7 +467,7 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
-> chkconfig odoo-server on
+> systemctl enable odoo-server
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
 EOF
   fi
@@ -594,7 +595,7 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
-> chkconfig odoo-server on
+> systemctl enable odoo-server
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
 EOF
   else
@@ -723,7 +724,7 @@ EOF
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
-> chkconfig odoo-server on
+> systemctl enable odoo-server
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT
 EOF
   fi

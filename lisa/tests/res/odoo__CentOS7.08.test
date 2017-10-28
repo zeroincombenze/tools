@@ -118,5 +118,5 @@
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
 > cd /opt/odoo
 > systemctl start odoo-server
-> chkconfig odoo-server on
+> systemctl enable odoo-server
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 8069 -j ACCEPT

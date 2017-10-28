@@ -1,2 +1,2 @@
 LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by lisa)
- confn=/opt/odoo/dev/pypi/lisa/lisa/LAMP.lish
+ infn=/opt/odoo/dev/pypi/lisa/lisa/LAMP.lish

@@ -1,5 +1,6 @@
 > yum -y install postgresql-server
 # yum -y install postgresql-client-common
 # yum -y install postgresql-contrib
+> postgresql-setup initdb
 > systemctl start postgresql
-> chkconfig postgresql on
+> systemctl enable postgresql
