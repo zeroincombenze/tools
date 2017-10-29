@@ -22,7 +22,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11
+__version__=0.1.11.1
 
 
 # Main program
@@ -46,7 +46,7 @@ OPTHELP=("this help"\
  "show xuname version"\
  "print Linux distribution description (empty on Unix)")
 OPTARGS=(src tgt)
-parseoptargs $@
+parseoptargs "$@"
 
 if [ "$opt_version" ]
 then

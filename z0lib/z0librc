@@ -4,11 +4,10 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.48
+#__version__=0.2.0
 STS_FAILED=1
 STS_SUCCESS=0
-# TODO: search python library path
-# for p in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. $(echo -e "import sys\nprint sys.path"|python|tr -d "'[],") /etc; do
+PYTHONPATH=$(echo -e "import sys\nprint sys.path"|python|tr -d "'[],")
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent
@@ -77,68 +76,68 @@ xuname() {
 # You can find more help about this function on
 # http://wiki.zeroincombenze.org/en/Linux/dev
   if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-  OS=`uname -s`
-  REV=`uname -r`
-  MACH=`uname -m`
+  OS=$(uname -s)
+  REV=$(uname -r)
+  MACH=$(uname -m)
   KERNEL="$REV"
   VER=""
   DIST=""
-  ARCH=`uname -p`
+  ARCH=$(uname -p)
   FAMILY=""
   XDES=""
 
   if [ "${OS}" = "SunOS" ]; then
     OS=Solaris
-    ARCH=`uname -p`
-    VER=`uname -v`
-    OSSTR="${OS} ${REV}(${ARCH} `uname -v`)"
+    ARCH=$(uname -p)
+    VER=$(uname -v)
+    OSSTR="${OS} ${REV}(${ARCH} $(uname -v))"
   elif [ "${OS}" = "AIX" ]; then
-    OSSTR="${OS} `oslevel` (`oslevel -r`)"
+    OSSTR="${OS} $(oslevel) ($(oslevel -r))"
   elif [ "${OS}" = "Linux" ]; then
-    KERNEL=`uname -r`
+    KERNEL=$(uname -r)
     CODENAME=""
     if [ -f /etc/vmware-release ]; then
       DIST='VMWare'
-      CODENAME=`cat /etc/vmware-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/vmware-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/vmware-release | sed s/.*release\ // | sed s/\ .*//)
     elif [ -f /etc/centos-release ]; then
       DIST='CentOS'
       XDES=$(cat /etc/centos-release|tr -d " \n")
-      CODENAME=`cat /etc/centos-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/centos-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/centos-release | sed s/.*release\ // | sed s/\ .*//)
       FAMILY="RHEL"
     elif [ -f /etc/gentoo-release ]; then
       DIST='Gentoo'
-      CODENAME=`cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/gentoo-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/gentoo-release | sed s/.*release\ // | sed s/\ .*//)
     elif [ -f /etc/redhat-release ]; then
       DIST='RedHat'
-      CODENAME=`cat /etc/redhat-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/redhat-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/redhat-release | sed s/.*release\ // | sed s/\ .*//)
       FAMILY="RHEL"
     elif [ -f /etc/SUSE-release ]; then
       DIST="SuSE"
-      CODENAME=`cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//`
-      VER=`cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //`
+      CODENAME=$(cat /etc/SUSE-release | tr "\n" ' '| sed s/VERSION.*//)
+      VER=$(cat /etc/SUSE-release | tr "\n" ' ' | sed s/.*=\ //)
       FAMILY="RHEL"
     elif [ -f /etc/SuSE-release ]; then
       DIST="SuSE"
-      CODENAME=`cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//`
-      VER=`cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //`
+      CODENAME=$(cat /etc/SuSE-release | tr "\n" ' '| sed s/VERSION.*//)
+      VER=$(cat /etc/SuSE-release | tr "\n" ' ' | sed s/.*=\ //)
       FAMILY="RHEL"
     elif [ -f /etc/mandriva-release ]; then
       DIST='Mandriva'
-      CODENAME=`cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/mandriva-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/mandriva-release | sed s/.*release\ // | sed s/\ .*//)
       FAMILY="RHEL"
     elif [ -f /etc/mandrake-release ]; then
       DIST='Mandrake'
-      CODENAME=`cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/mandrake-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/mandrake-release | sed s/.*release\ // | sed s/\ .*//)
     elif [ -f /etc/fedora-release ]; then
       DIST="Fedora"
-      CODENAME=`cat /etc/fedora-release | sed s/.*\(// | sed s/\)//`
-      VER=`cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//`
+      CODENAME=$(cat /etc/fedora-release | sed s/.*\(// | sed s/\)//)
+      VER=$(cat /etc/fedora-release | sed s/.*release\ // | sed s/\ .*//)
       FAMILY="RHEL"
     elif [ -f /etc/slackware-version ]; then
       DIST="Slackware"
@@ -162,7 +161,7 @@ xuname() {
       FAMILY="Debian"
     fi
     if [ -f /etc/UnitedLinux-release ]; then
-      DIST="${DIST}[`cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//`]"
+      DIST="${DIST}[$(cat /etc/UnitedLinux-release | tr "\n" ' ' | sed s/VERSION.*//)]"
     fi
     OSSTR="${OS} ${DIST} ${VER}(${CODENAME} ${KERNEL} ${MACH})"
   fi
@@ -252,7 +251,7 @@ parseoptargs() {
     while ((ii<=$#)); do
       local oo="${!ii}"
       if [ "${oo:0:2}" == "--" -a "$o" != "--" ]; then
-        IFS=\= read a v <<<$oo
+        IFS== read a v <<<$oo
         jy=0
         f=0
         while ((jy<${#OPTLONG[*]})); do
@@ -1096,3 +1095,124 @@ link_cfg() {
     $SET_X
 }
 export -f link_cfg
+
+
+##############################################################################
+# Parse and manage URL(s) and/or filename
+# Parse a URL o filename, default value and return part of URL
+# Parameter $1:
+#    URL or filename to parse
+# Parameter $2:
+#    URL or filename with default values
+# Parameter $3:
+#    List of one or more ±KEYWORDS to select or ignore part of URL
+#    +ALL      must be followed by -KEYWORDS to exclude part of URL
+#    ±PROT     include/esclude protocol; i.e. protocol of "http://example.com/a/b.c:8080" id "http:"
+#    ±DOMAIN   include/esclude domain; i.e. domain of "http://example.com/a/b.c:8080" id "example.com"
+#    ±FULLNAME include/esclude fullname; i.e. fullname of "http://example.com/a/b.c:8080" id "/a/b"
+#    ±DIRNAME  include/esclude dirname; i.e. dirname of "http://example.com/a/b.c:8080" id "/a"
+#    ±BASENAME include/esclude basename; i.e. basename of "http://example.com/a/b.c:8080" id "b.c"
+#    ±NAME     include/esclude simple name; i.e. name of "http://example.com/a/b.c:8080" id "b"
+#    ±EXT      include/esclude extension name; i.e. extension of "http://example.com/a/b.c:8080" id ".c"
+#    ±PORT     include/esclude port; i.e. port of "http://example.com/a/b.c:8080" id "8080"
+#    if FULLNAME is supplied, DIRNAME and BASENAME are ignored
+#    if BASENAME is supplied, NAME and EXT are ignored
+#    +ABS      convert relative FULLNAME to absolute fullname
+#
+parse_URL() {
+#parse_URL(URL default ALL|±PROT|±DOMAIN|±FULLNAME|±DIRNAME|±BASENAME|±PORT)
+    local O dbase ddom dext dfn dmurl dname dpath dport dprot vbase vdom vext vfn vmurl vname vpath vport vprot x URL
+    O=$IFS
+    IFS=: read vprot vmurl vport<<<"$1"
+    [[ -z "$vmurl" ]] && vmurl="$vprot" vprot=
+    [[ -n "$vprot" ]] && vprot="$vprot:"
+    if [ -n "$vprot" -o "${vmurl:0:2}" == "//" ]; then
+      [ "${vmurl: -1}" != "/" ] && vmurl="$vmurl/"
+      [ "${vmurl:0:2}" == "//" ] && x="${vmurl:2}" || x="$vmurl"
+      vdom="${x%%/*}"
+      vfn="${x#*/}"
+      [ "${vfn: -1}" == "/" ] && vfn="${vfn:0: -1}"
+      [ -n "$vfn"  ] && vfn="/$vfn"
+    else
+      vdom=
+      vfn=$vmurl
+      vmurl=
+    fi
+    if [ -n "$vfn" ]; then
+      if [[ $3 =~ \+ABS ]]; then vfn=$(readlink -f $vfn); fi
+      vpath=$(dirname $vfn) || vpath=
+      vbase=$(basename $vfn) || vbase=
+      if [ -n "$vbase" ]; then
+        vname="${vbase%%.*}"
+        vext="${vbase#*.}"
+        [ "$vext" == "$vname" ] && vext=
+        [ -n "$vext"  ] && vext=".$vext"
+      fi
+    fi
+    IFS=: read dprot dmurl dport<<<"$2"
+    [[ -z "$dmurl" ]] && dmurl="$dprot" dprot=
+    [[ -n "$dprot" ]] && vprot="$dprot:"
+    if [ -n "$dprot" -o "${dmurl:0:2}" == "//" ]; then
+      [ "${dmurl: -1}" != "/" ] && dmurl="$dmurl/"
+      [ "${dmurl:0:2}" == "//" ] && x="${dmurl:2}" || x="$dmurl"
+      ddom="${x%%/*}"
+      dfn="${x#*/}"
+      [ "${dfn: -1}" == "/" ] && dfn="${dfn:0: -1}"
+      [ -n "$dfn"  ] && dfn="/$dfn"
+    else
+      ddom=
+      dfn=$dmurl
+      dmurl=
+    fi
+    if [ -n "$dfn" ]; then
+      if [[ $3 =~ \+ABS ]]; then dfn=$(readlink -f $dfn); fi
+      dpath=$(dirname $dfn) || dpath=
+      dbase=$(basename $dfn) || dbase=
+      if [ -n "$dbase" ]; then
+        dname="${dbase%%.*}"
+        dext="${dbase#*.}"
+        [ "$dext" == "$dname" ] && dext=
+        [ -n "$dext"  ] && dext=".$dext"
+      fi
+    fi
+    IFS=$O
+    URL=
+    if ! [[ $3 =~ -PROT ]] && [[ $3 =~ (\+ALL|\+PROT) ]]; then
+      if [[ -n "$vprot" ]]; then URL="$URL$vprot"; else URL="$URL$dprot"; fi
+    fi
+    if ! [[ $3 =~ -DOMAIN ]] && [[ $3 =~ (\+ALL|\+DOMAIN) ]];then
+      [[ -n "$URL" ]] && URL="$URL//"
+      if [[ -n "$vdom" ]]; then URL="$URL$vdom"; else URL="$URL$ddom"; fi
+    fi
+    if [[ $3 =~ FULLNAME ]]; then
+      if ! [[  $3 =~ -FULLNAME ]] && [[ $3 =~ (\+ALL|\+FULLNAME) ]]; then
+        if [[ -n "$vpath" ]]; then URL="$URL$vpath"; else URL="$URL$dpath"; fi
+        [[ -n "$URL" ]] && URL="$URL/"
+        if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
+        if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
+      fi
+    else
+      if ! [[ $3 =~ -DIRNAME ]] && [[ $3 =~ (\+ALL|\+DIRNAME) ]]; then
+        if [[ -n "$vpath" ]]; then URL="$URL$vpath"; else URL="$URL$dpath"; fi
+      fi
+      if ! [[ $3 =~ -BASENAME ]] &&  [[ $3 =~ (\+ALL|\+BASENAME) ]]; then
+        [[ -n "$URL" ]] && URL="$URL/"
+        if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
+        if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
+      else
+        if ! [[ $3 =~ -NAME ]] &&  [[ $3 =~ (\+ALL|\+NAME) ]]; then
+          [[ -n "$URL" ]] && URL="$URL/"
+          if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
+        fi
+        if ! [[ $3 =~ -EXT ]] &&  [[ $3 =~ (\+ALL|\+EXT) ]]; then
+          if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
+        fi
+      fi
+    fi
+    if ! [[ $3 =~ -PORT ]] && [[ $3 =~ (\+ALL|\+PORT) ]]; then
+      [[ -n "$URL" ]] && URL="$URL:"
+      if [[ -n "$vport" ]]; then URL="$URL$vport"; else URL="$URL$dport"; fi
+    fi
+    echo "$URL"
+}
+export -f parse_URL

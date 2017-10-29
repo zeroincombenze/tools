@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Regression tests on z0lib
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
@@ -24,7 +24,8 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.1.27
+
+__version__=0.1.27.1
 
 
 PASSED=0
@@ -67,18 +68,26 @@ test_01() {
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_z0lib.log "$@"
+parseoptest -l$TESTDIR/test_z0lib.log "$@" 
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-if [ ${opt_tlib:-0} -ne 0 ]; then
+if [ ${opt_tjlib:-0} -ne 0 ]; then
   TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
   if [ -z "$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
   fi
   . $TRAVISLIBDIR
+fi
+if [ ${opt_oelib:-0} -ne 0 ]; then
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
+    exit 2
+  fi
+  . $ODOOLIBDIR
 fi
 UT1_LIST=
 UT_LIST=
