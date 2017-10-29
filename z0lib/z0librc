@@ -4,10 +4,10 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.0
+#__version__=0.2.0.1
 STS_FAILED=1
 STS_SUCCESS=0
-PYTHONPATH=$(echo -e "import sys\nprint sys.path"|python|tr -d "'[],")
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
 
 ##############################################################################
 # Install this lib file in /etc if version is more recent

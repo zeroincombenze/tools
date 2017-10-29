@@ -1220,7 +1220,7 @@ run_regression_test() {
     run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       local OPTS=$(inherits_travis_opts "" "T")
-      if [ $(echo :$PYTHONPATH:|grep -v ":$PKGPATH:"  2>/dev/null) ]; then
+      if [ $(echo ":$PYTHONPATH:"|grep -qv ":$PKGPATH:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
       fi
       if [ -f ./tests/all_tests ]; then

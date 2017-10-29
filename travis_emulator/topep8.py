@@ -448,10 +448,10 @@ def write_license_info(lines, ctx):
                 '(C)', '').replace('©', '')
         lines[lineno] = lines[lineno].replace(
             'Copyright  ', 'Copyright ').replace(
-                '#  ', '# ').replace(
-                '#  ', '# ').replace(
-                '#  ', '# ').replace(
-                '#  ', '# ')
+                '(<', '<').replace(
+                '>)  ', '>')
+        while lines[lineno][0:3] == '#  ':
+            lines[lineno] = lines[lineno].replace('#  ', '# ')
         if re.match('^# Copyright [0-9]+', lines[lineno]):
             x = re.search('[-0-9]+', lines[lineno])
             if x:

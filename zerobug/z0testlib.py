@@ -599,7 +599,6 @@ class Z0test(object):
     """
 
     def __init__(self, argv=None, id=None, version=None, autorun=False):
-        # pdb.set_trace()
         self.autorun = autorun
         this_fqn = self.get_this_fqn()
         if argv is None:
