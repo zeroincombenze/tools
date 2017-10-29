@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.6
+__version__=0.1.52.8
 
 
 #
@@ -1656,7 +1656,7 @@ do_download_rep() {
     local full_rep local_rep
     local ORIG=~/original
     if [ -z "$opt_branch" ]; then
-      echo "MIssed Odoo Version"
+      echo "Missed Odoo Version"
       exit 1
     fi
     if [ "${1:0:4}" == "http" ]; then
@@ -1666,7 +1666,7 @@ do_download_rep() {
          local_rep=${local_rep:0: -4}
       fi
     else
-      full_rep=https://github.com/zeroincombenze/$1
+      full_rep=git@github.com:zeroincombenze/$1.git
       local_rep=$1
     fi
     [ -d $ORIG ] || mkdir -p $ORIG

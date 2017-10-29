@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.15.4"
+__version__ = "0.1.15.5"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -479,6 +479,19 @@ def write_license_info(lines, ctx):
         '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
     lineno += 1
     lines.insert(lineno, '#')
+    while lines[lineno] and lines[lineno][0] == '#' and not re.match(
+                '^# .*This program is free software', lines[lineno]):
+        lineno += 1
+    if lines[lineno] and re.match(
+                '^# .*This program is free software', lines[lineno]):
+        while lines[lineno] and not re.match(
+                    '^# .*http://www.gnu.org/licenses', lines[lineno]):
+            del lines[lineno]
+        if lines[lineno] and re.match(
+                    '^# .*http://www.gnu.org/licenses', lines[lineno]):
+            del lines[lineno]
+        while lines[lineno] == "#" or lines[lineno][0:4] == '####':
+            del lines[lineno]
     return lines
 
 
