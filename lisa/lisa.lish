@@ -48,10 +48,11 @@ mariadb_BOP=mariadb-server
 
 
 [lisa]
-with_z0libr=1
-with_odoorc=1
-binPkgList=${pkgname},${pkgname}.man,${pkgname}_bld_ods
-etcPkgList=${pkgname}.conf.sample,odoo-server_Debian,odoo-server_RHEL,odoo-server,*.lish
+build_with_z0libr=1
+build_with_odoorc=1
+build_PkgList=/dev/null
+binPkgList=lisa,lisa.man,lisa_bld_ods
+etcPkgList=lisa.conf.sample,odoo-server_Debian,odoo-server_RHEL,odoo-server,*.lish
 wget_URL=http://download.zeroincombenze.org
 wget_xname=lisa.tar.gz
 git_URL=https://github.com/zeroincombenze/tools.git

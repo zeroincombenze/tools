@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.20
+__version__=0.2.36.22
 
 
 STS_FAILED=1
@@ -487,13 +487,13 @@ get_prm_value() {
     else
       echo $p
     fi
-    # echo "get_prm_value ('$1')::$DISTO($FH)=$p;;">>~/$THIS.his    #debug
+    # echo "get_prm_value ('$1')::$DISTO($FH)=$p;;">>~/$THIS.his
 }
 
 init_cfg_pkg() {
 # init_cfg_pkg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
-    # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his    #debug
+    # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his
     local p x
     LAMP=$(get_prm_value "LAMP" list)
     NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL list)"
@@ -1034,7 +1034,7 @@ get_act_xtlcmd() {
 get_full_xtlcmd() {
 # get_full_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
     local xtlcmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_act_xtlcmd($2 $1 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_act_xtlcmd($2 $1 $3)">>~/$THIS.his
     local pkg lop lreqver p rop rreqver branch x pkgURL subpkg
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     p=" $2"
@@ -1052,6 +1052,7 @@ get_full_xtlcmd() {
         xtlcmd="$xtlcmd install$p$lop$lreqver$rop$rreqver --upgrade"
       else
         xtlcmd="$xtlcmd $1$p$lop$lreqver$rop$rreqver"
+        xtlcmd="${xtlcmd/remove/uninstall}"
       fi
     fi
     if [[ $3 =~ I ]]; then
@@ -1086,7 +1087,7 @@ get_full_svccmd() {
         cmd="# $cmd"
       fi
     fi
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$cmd=get_full_svccmd($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$cmd=get_full_svccmd($1 $2 $3)">>~/$THIS.his
     echo "$cmd"
 }
 
@@ -1133,7 +1134,7 @@ get_full_confn() {
         fi
       fi
     fi
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$confn=get_full_confn($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$confn=get_full_confn($1 $2 $3)">>~/$THIS.his
     echo "$confn"
 }
 
@@ -1405,13 +1406,19 @@ create_setup() {
     local ETCLIST="$(get_prm_value ${pkgname}_etcPkgList $pkgname)"
     local datetime=$(date +"%Y-%m-%d %H:%M")
     if [ "$pkgname" == "lisa" ]; then
-      cp ../../clodoo/clodoo/odoorc ./
-      cp ../../z0lib/z0lib/z0librc ./
+      if [ $opt_dev -gt 0 ]; then
+        cp ../../z0lib/z0lib/z0librc ./
+        cp ../../clodoo/clodoo/odoorc ./
+      else
+        cp /etc/z0librc ./
+        cp /etc/odoorc ./
+      fi
       cat <<EOF >$SETUP
 # lisa setup $__version__ ($datetime)
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 pkgname=$THIS
+tarball=$pkgname.tar.gz
 opt_verbose=0
 opt_dry_run=0
 if [ "\${1:0:1}" == "-" ]; then
@@ -1457,9 +1464,9 @@ if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
       [ \$opt_verbose -gt 0 ] && echo "rm -fR ./\$pkgname"
       [ \$opt_dry_run -gt 0 ] || rm -fR ./\$pkgname
     fi
-    if [ -f "./\$pkgname.gz" ]; then
-      [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$pkgname.gz"
-      [ \$opt_dry_run -gt 0 ] || rm -f ./\$pkgname.gz
+    if [ -f "./\$tarball" ]; then
+      [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$tarball"
+      [ \$opt_dry_run -gt 0 ] || rm -f ./\$tarball
     fi
   fi
 else
@@ -1473,7 +1480,7 @@ EOF
 
 create_pkglist() {
 # create_pkglist(pkgname pkgpath)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "create_pkglist($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "create_pkglist($1 $2 $3)">>~/$THIS.his
     local pkgname=$1
     local fileignore="$(get_prm_value build_fileignore list)"
     local x xx PKGLIST BINLIST ETCLIST Z0LIB OELIB PKGPATH=$2
@@ -1516,10 +1523,11 @@ create_pkglist() {
 do_dry_build_package() {
 #do_dry_build_package(action pkgname OPTS)
 # Build a distribution package from current dir
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his
     local package="$2"
     local O s x PKGLIST
-    local tarball=$package.tar.gz
+    # local tarball=$package.tar.gz
+    local tarball=$(get_prm_value ${pkgname}_install_xname)
     local SETUP=./setup.sh
     PKGLIST=$(create_pkglist $1)
     echo "<<<$PKGLIST>>>"
@@ -1556,7 +1564,7 @@ do_dry_build_package() {
 
 do_dry_build_lisa() {
 # do_dry_build_lisa(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his
     local package="$2"
     local f s x
     local tarball=$package.tar.gz
@@ -1862,16 +1870,6 @@ do_dry_update_package() {
     return $sts
 }
 
-do_dry_remove_package() {
-# do_dry_remove_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_package($1 $2 $3)">>~/$THIS.his; fi #debug
-    local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his; fi    #debug
-    run_traced "$cmd"
-    return $?
-
-}
-
 do_dry_remove_lisa() {
 # do_dry_remove_lisa(action pkgname OPTS)
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS    #debug
@@ -1888,11 +1886,11 @@ do_dry_update_by_wget() {
     local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
     local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
     local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
-    local pkg_xname=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
+    local tarball=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
     local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
-    if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
+    if [ -z "$tarball" -o -z "$pkg_URL" ]; then
       elog "*** Package $pkgname not found for this OS version"
-      elog "    wget $pkg_xname from URL=$pkg_URL"
+      elog "    wget $tarball from URL=$pkg_URL"
       return 2
     fi
     if [ -n "$LocalRoot" ]; then
@@ -1906,11 +1904,12 @@ do_dry_update_by_wget() {
       fi
       run_traced "cd /tmp"
     fi
-    if [ -f "./$pkgname.gz" ]; then
-      run_traced "rm -f ./$pkgname.gz"
+    if [ -f "./$tarball" ]; then
+      run_traced "rm -f ./$tarball"
     fi
-    run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
-    do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalTmp"
+    run_traced "wget $pkg_URL/$tarball$pkg_md5"
+    do_deploy_package $1 $pkgname "$3" $tarball "$LocalTmp"
+    run_traced "rm -f $tarball"
     return $?
 }
 
@@ -2657,15 +2656,20 @@ post_config_mariadb-server() {
 }
 
 do_deploy_package() {
-# do_deploy_package(action pkgname OPTS pkg_xname LocalTmp)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_deploy_package($1 $2 $3 $4 $5)">>~/$THIS.his    #debug
+# do_deploy_package(action pkgname OPTS tarball LocalTmp)
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_deploy_package($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgname=$2
-    local pkg_xname=$4
+    local tarball=$4
     local LocalTmp=$5
     local cmd OPTS s sts
     [ $opt_dry_run -gt 0 ] && OPTS=${OPTS}n
     [ $opt_verbose -gt 0 ] && PTS=${OPTS}v
     [ -n "$OPTS" ] && OPTS=-${OPTS}
+    if [ $test_mode -gt 0 ]; then
+      cd $RUNDIR
+    elif [ -d "$LocalTmp" ]; then
+      cd $LocalTmp
+    fi
     if [ "${LocalTmp:0:4}" == "/tmp" ]; then
       if [ -d "$LocalTmp/$pkgname" ]; then
         run_traced "rm -fR $LocalTmp/$pkgname"
@@ -2673,14 +2677,14 @@ do_deploy_package() {
         run_traced "rm -f $LocalTmp/$pkgname"
       fi
     fi
-    if [ "${pkg_xname: -4}" == ".rpm" ]; then
+    if [ "${tarball: -4}" == ".rpm" ]; then
       s="$pkgname~~~~~~yum"
-      cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
       run_traced "$cmd"
       sts=$?
-    elif [ "${pkg_xname: -4}"  == ".deb" ]; then
+    elif [ "${tarball: -4}"  == ".deb" ]; then
       s="$pkgname~~~~~~apt-get"
-      cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
       run_traced "$cmd"
       sts=$?
       if [ "$1" == "update" ]; then
@@ -2690,21 +2694,20 @@ do_deploy_package() {
       fi
     elif [ "${pkgname:0:7}" == "python-" ]; then
       local s="$pkgname~~~~~~pip"
-      local cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+      local cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
       run_traced "$cmd"
       sts=$?
     else
-      run_traced "tar -xf $pkg_xname"
-      if [ $test_mode -gt 0 ]; then
-        cd $RUNDIR
-      elif [ -d "$LocalTmp" ]; then
-        cd $LocalTmp
+      run_traced "tar -xf $tarball"
+      if [ -d ./$pkgname ]; then
+        run_traced "cd ./$pkgname"
       fi
-      if [ "$pkgname" == "$2" -a "$TDIR" != "/usr/bin" -a ! -f ./setup.sh ]; then
+      if [ "$pkgname" == "lisa" -a "$TDIR" != "/usr/bin" -a ! -f ./setup.sh ]; then
         create_setup lisa $SETUP
       fi
       if [ -f ./setup.sh ]; then
         [ $opt_dry_run -gt 0 ] && echo "> ./setup.sh $OPTS"
+        [ $opt_dry_run -eq 0 -a $opt_verbose -gt 0 ] && echo "\$ ./setup.sh $OPTS"
         ./setup.sh $OPTS
         sts=$?
       elif [ -f ./setup.py ]; then
@@ -2712,28 +2715,28 @@ do_deploy_package() {
         sts=$?
       else
         s="$pkgname~~~~~~pip"
-        cmd=$(get_full_xtlcmd $1 $pkg_xname "$3" "" "$s")
+        cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
         run_traced "$cmd"
         sts=$?
       fi
     fi
-    run_traced "rm -f $pkg_xname"
     return $sts
 }
 
 do_dry_install_by_wget() {
 # do_dry_install_by_wget(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_wget($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_wget($1 $2 $3)">>~/$THIS.his
+    local sts
     local pkgname=$2
     local xtlcmd=wget
     local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
     local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
     local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
-    local pkg_xname=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
+    local tarball=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
     local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
-    if [ -z "$pkg_xname" -o -z "$pkg_URL" ]; then
+    if [ -z "$tarball" -o -z "$pkg_URL" ]; then
       elog "*** Package $pkgname not found for this OS version"
-      elog "    wget $pkg_xname from URL=$pkg_URL"
+      elog "    wget $tarball from URL=$pkg_URL"
       return 2
     fi
     if [ -n "$LocalRoot" ]; then
@@ -2748,17 +2751,19 @@ do_dry_install_by_wget() {
       fi
       run_traced "cd /tmp"
     fi
-    if [ -f "./$pkgname.gz" ]; then
-      run_traced "rm -f ./$pkgname.gz"
+    if [ -f "./$tarball" ]; then
+      run_traced "rm -f ./$tarball"
     fi
-    run_traced "wget $pkg_URL/$pkg_xname$pkg_md5"
-    do_deploy_package $1 $pkgname "$3" $pkg_xname "$LocalRoot$LocalTmp"
+    run_traced "wget $pkg_URL/$tarball$pkg_md5"
+    do_deploy_package $1 $pkgname "$3" $tarball "$LocalRoot$LocalTmp"
+    sts=$?
+    run_traced "rm -f $tarball"
     return $?
 }
 
 post_dry_config_service() {
 # post_dry_config_service(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_config_service($1 $2 $3)">>~/$THIS.his #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_config_service($1 $2 $3)">>~/$THIS.his
     local svcname=$(get_prm_value "${2}_svcname")
     local cmd=$(get_full_svccmd restart $svcname $3)
     run_traced "$cmd"
@@ -2770,7 +2775,7 @@ post_dry_config_service() {
 
 post_dry_install_service() {
 # post_dry_install_service(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_install_service($1 $2 $3)">>~/$THIS.his #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_install_service($1 $2 $3)">>~/$THIS.his
     local init_cmd=$(get_prm_value "${2}_init_svcname")
     local svcname=$(get_prm_value "${2}_svcname")
     local act cmd svcname sts x
@@ -2803,7 +2808,7 @@ post_dry_install_service() {
 
 do_dry_config_package() {
 # do_dry_config_package(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_config_package($1 $2 $3)">>~/$THIS.his #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_config_package($1 $2 $3)">>~/$THIS.his
     local confn=$(get_full_confn $1 $2 $3)
     if [ -n "$confn" ]; then
       if [ $opt_dry_run -eq 0 ]; then
@@ -2817,9 +2822,9 @@ do_dry_config_package() {
 
 do_dry_install_package() {
 # do_dry_install_package(action pkgname OPTS [param] [SPECIMEN])
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_package($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_package($1 $2 $3)">>~/$THIS.his
     local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his
     run_traced "$cmd"
     return $?
 }
@@ -2827,7 +2832,7 @@ do_dry_install_package() {
 do_1_info_package() {
 # do_1_info_package(action pkgname OPTS [param] [SPECIMEN])
 # - info receives cmdline pkgname, no realname
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his
     local pkgname=$(get_realname "$2" $3)
     local pkglist=$(please tellme $2 $3 realname)
     local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
@@ -2861,9 +2866,18 @@ do_1_info_package() {
     return $STS_SUCCESS
 }
 
+do_dry_remove_package() {
+# do_dry_remove_package(action pkgname OPTS [param] [SPECIMEN])
+     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_package($1 $2 $3)">>~/$THIS.his
+    local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his
+    run_traced "$cmd"
+    return $?
+}
+
 do_local_function() {
 # do_local_function(prefix svcname action pkgname OPTS [param] [SPECIMEN])
-    [[ $5 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function($1 $2 $3 $4 $5 $6 $7)">>~/$THIS.his    #debug
+    [[ $5 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function($1 $2 $3 $4 $5 $6 $7)">>~/$THIS.his
     local act c cmd d D ij pkg s sts=127 x X xtlcmd
     if [[ $5 =~ I ]]; then
       ij=I
@@ -2978,7 +2992,7 @@ do_local_function() {
 
 do_local_function_BOP() {
 # do_local_function_BOP(prefix svcname action pkgname OPTS [param] [SPECIMEN])
-    [[ $5 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function_BOP($1 $2 $3 $4 $5 $6 $7)">>~/$THIS.his    #debug
+    [[ $5 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_local_function_BOP($1 $2 $3 $4 $5 $6 $7)">>~/$THIS.his
     local s sts=127
     if [ "$1" == "pre_" ]; then
       satisfy_request $3 $4 $5 $6 "$7"
@@ -3002,7 +3016,7 @@ do_local_function_BOP() {
 
 do_iter_prod() {
 # do_iter_prod(action pkgname OPTS [param] [SPECIMEN])
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_iter_prod($1 $2 $3 $4 $5)">>~/$THIS.his #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_iter_prod($1 $2 $3 $4 $5)">>~/$THIS.his
     local pfx=$(get_pfxaction $1)
     local act=$(get_realaction $1)
     local pkgname=$(get_realname $2 $act $3)
@@ -3357,7 +3371,7 @@ else
         echo "Unknow action $act"
         exit $sts
       elif [ $sts -ne $STS_SUCCESS ]; then
-        echo "Error in $act $package"
+        echo "!!Error $sts in $act $package!"
         exit $sts
       fi
     done

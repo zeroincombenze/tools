@@ -74,10 +74,11 @@
 #     specific remove command when different from upgrade utility
 # <pkgname>_build_fileignore
 #     file list (comma separated) to ignore when build tarball
-#     (parameter ignored if PKGLIST supplied)
-# <pkgname>_build_PKGLIST
+#     (parameter ignored if PkgList supplied)
+# <pkgname>_build_PkgList
 #     file list (comma separated) to include when build tarball
 #     (default include all files and directories)
+#     Value /dev/null means no file list
 # <pkgname>_build_PKGPATH
 #     package path where search files to build tarball
 # <pkgname>_binPkgList

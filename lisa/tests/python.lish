@@ -12,7 +12,7 @@
 # for furthermore information
 #
 [_Linux_]
-
+SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact.web,website
 
 [_Debian_]
 ReqPkgList=pip,wheel

@@ -128,7 +128,6 @@ EOF
 EOF
   cat <<EOF >$TESTDIR/res/lisa.06.test
 > cd /tmp
-> rm -f ./lisa.gz
 > wget http://download.zeroincombenze.org/lisa.tar.gz
 > tar -xf lisa.tar.gz
 > ./setup.sh -n
