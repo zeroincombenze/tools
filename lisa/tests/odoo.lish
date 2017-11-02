@@ -12,10 +12,16 @@
 # for furthermore information
 #
 [_Linux_]
-SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact,web,website
+SubPkgList=account-closing,account-invoicing,account-payment,bank-payment\
+,knowledge,l10n-italy,partner-contact,web,website
+git_LocalRoot=/opt/odoo
+git_LocalDir=odoo-$version
+git_LocalUser=odoo:odoo
 
 [_Debian_]
-ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber\
+,BeautifulSoup
 
 [_CentOS7_]
-ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
+,BeautifulSoup

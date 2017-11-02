@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.22
+__version__=0.2.36.24
 
 
 STS_FAILED=1
@@ -154,8 +154,8 @@ conf_default() {
     fi
     set_cfg_def "odoo_cmdname" "NULL" "0"
     set_cfg_def "odoo_git_URL" "https://github.com/$gitrep.git" "0"
-    set_cfg_def "odoo_git_LocalRoot" "/opt/odoo" "0"
-    set_cfg_def "odoo_git_LocalUser" "odoo:odoo" "0"
+    # set_cfg_def "odoo_git_LocalRoot" "/opt/odoo" "0"
+    # set_cfg_def "odoo_git_LocalUser" "odoo:odoo" "0"
     set_cfg_def "odoo_confdirs" "/etc/odoo,/var/log/odoo,/var/run/odoo" "0"
     # odoo locale
     p=${gitrep%/*}
@@ -250,12 +250,17 @@ store_cfg_param_value() {
     local p dev
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$5"
-    elif [[ " ReqPkgList SubPkgList etcPkgList binPkgList with_z0libr xtlcmd xtlcmd_install xtlcmd_remove BOP BOP_GRF_ADD build_fileignore build_PKGLIST build_PKGPATH build_with_z0libr build_with_odoorc cmdname FINDCFN confn install_LocalRoot install_LocalTmp install_md5 install_URL install_xname init_svcname svcname wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
+    elif [[ " BOP BOP_GRF_ADD build_fileignore build_PKGLIST build_PKGPATH build_with_z0libr build_with_odoorc binPkgList\
+ cmdname confn etcPkgList FINDCFN git_LocalRoot git_LocalUser install_LocalRoot install_LocalTmp install_md5 install_URL\
+ install_xname init_svcname ReqPkgList svcname SubPkgList with_z0libr xtlcmd xtlcmd_install xtlcmd_remove wget_URL\
+ wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${5}_$2"
     else
       p="$2"
     fi
-    # echo "CFG_set $1 $p \"$3\" \"$4\" $dev <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
+    # if [ "$2" == "git_LocalRoot" ]; then  #debug
+    #   echo "CFG_set $1 $p \"$3\" \"$4\" $dev <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
+    # fi  #debug
     CFG_set "$1" "$p" "$3" "$4" $dev
 }
 
@@ -295,7 +300,7 @@ clr_conf_pkg() {
 }
 
 set_from_conf_pkg() {
-# set_from_conf_pkg (pkgname [confn])
+# set_from_conf_pkg (pkgname [confn] [opts]])
     local FCONF FCONFDEF sdir
     if [ $test_mode -gt 0 ]; then
       sdir="$TESTDIR $TDIR"
@@ -305,15 +310,17 @@ set_from_conf_pkg() {
       sdir=". $TDIR /etc/lisa /etc"
     fi
     if [ -n "$2" ]; then
+      local pkgname=$(get_realname $2)
       if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
         FCONF=$opt_conf
       else
-        FCONF=$2
+        FCONF=$pkgname
       fi
-      FCONFDEF=$2.sample
+      FCONFDEF=$pkgname.sample
       PKG_CONF=$(findpkg "$FCONF" "$sdir")
       SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
       link_cfg $PKG_CONF $SAMPLE
+      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3) link_cfg $PKG_CONF $SAMPLE">>~/$THIS.his
     else
       SAMPLE=
       FCONF=
@@ -340,6 +347,7 @@ set_from_conf_pkg() {
       if [ -n "$PKG_CONF" ]; then
         get_conf_pkg "$PKG_CONF" "$1"
       fi
+      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3) link_cfg $PKG_CONF $1">>~/$THIS.his
     fi
 }
 
@@ -574,7 +582,7 @@ get_iter() {
       fi
     fi
   fi
-  if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$iter=get_iter($1 $2)">>~/$THIS.his; fi #debug
+  [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$iter=get_iter($1 $2)">>~/$THIS.his
   echo "$iter"
 }
 
@@ -1185,20 +1193,20 @@ get_full_LocalRoot() {
     else
       LocalRoot="$(get_prm_value ${2}_${xtlcmd}_LocalRoot)"
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$LocalRoot=get_full_LocalRoot($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$LocalRoot=get_full_LocalRoot($1 $2 $3 $4 $5)">>~/$THIS.his
     echo "$LocalRoot"
 }
 
 do_git_localroot() {
 # do_git_localroot(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "do_git_localroot($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "do_git_localroot($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgname="$2"
     local xtlcmd=git
-    # local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
     local LocalRoot=$(get_full_LocalRoot "$1" $2 $3 $4 "$5")
     local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
     local pkg lop lreqver rop rreqver branch v
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    local LocalDir="$(get_prm_value ${pkgname}_LocalDir)"
     local sts=$STS_FAILED
     if [ -n "$LocalRoot" ]; then
       local pgkpath=
@@ -1643,537 +1651,6 @@ do_dry_build_lisa() {
     return $STS_SUCCESS
 }
 
-lisa_install_submodule_by_git() {
-# lisa_install_submodule_by_git(pkgs branch action OPTS param [SPECIMEN])
-    local opt_osub="$1"
-    local ov="$2"
-    local ovf=$(get_odoo_full_ver $ov)
-    CWD=$PWD
-    for iso in ${opt_osub//,/ }; do
-      run_traced "cd /opt/odoo/$ovf"
-      # pn=$(get_locale_name "$iso")
-      if [ -z "$pn" ]; then
-        if [ ${#iso} -ne 2 ]; then
-          elog  "Invalid submodule name $iso"
-        else
-          elog  "Invalid $iso in -l $opt_locale switch"
-        fi
-      else
-        # addons=$(get_locale_dir "$pn")
-        if [ -f .gitignore -o $test_mode -gt 0 ]; then
-          if [ -z "$(grep "$addons/" .gitignore 2>/dev/null)" -o $test_mode -gt 0 ]; then
-            run_traced "echo \"$addons/\">>.gitignore"
-          fi
-        fi
-        if [ -d $addons -a $test_mode -eq 0 ]; then
-          run_traced "cd $addons"
-          run_traced "git pull origin $ovf" "odoo"
-          run_traced "cd /opt/odoo/$ovf"
-        else
-          run_traced "git clone -b $ovf $pn $addons $git_opts" "odoo"
-          run_traced "git submodule add -b $ovf -f $pn $addons" "odoo"
-          if [ "opt_oed" == "zeroincombenze" ]; then
-            run_traced "git remote add upstream https://github.com/OCA/$addons.git" "odoo"
-          fi
-          run_traced "cd /opt/odoo/$ovf"
-        fi
-      fi
-    done
-    cd $CWD
-}
-
-do_dry_install_submodule_by_git() {
-# do_dry_install_submodule_by_git(action pks OPTS param [SPECIMEN])
-# specimen contains top module name and version
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_submodule_by_git($1 \"$2\" $3 $4 \"$5\")">>~/$THIS.his; fi    #debug
-    local sts=$STS_SUCCESS
-    local s
-    if [ "$2" == "." ]; then
-      local xtlcmd pkg_user pkg lop lreqver rop rreqver branch x p
-      IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-      xtlcmd=git
-      pkg_user=$(get_prm_value ${pkg}_${xtlcmd}_LocalUser)
-      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
-      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
-      if [ "$pkg_user" == "$USER" ]; then
-        pkg_user=
-        pkg_group=
-      fi
-      run_traced "git submodule update --init" "$pkg_user"
-    else
-      CWD=$PWD
-      for pkgname in ${2//,/ }; do
-        cd $CWD
-        # do_1_status_package $1 $pkgname ${3}s $4 "$5"
-        # sts=$?
-        do_dry_install_by_git $1 $pkgname ${3}s $4 "$5"
-        s=$?
-        if [ $s -ne $STS_SUCCESS ]; then
-          sts=$s
-          break
-        fi
-      done
-      cd $CWD
-    fi
-    return $sts
-}
-
-
-do_dry_install_by_git() {
-# do_dry_install_by_git(action pkgname OPTS param [SPECIMEN])
-# if install submodule (OPTS =~ s) specimen contains top module name and version
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3 $4 \"$5\")">>~/$THIS.his; fi    #debug
-    local pkgname=$2
-    local xtlcmd=git
-    local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p ldir
-    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    if [[ $3 =~ s ]]; then
-      subpkg=$2
-      pkgname=${pkg}__$2
-      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
-      if [ -z "$pkg_URL" ]; then
-         pkg_URL="$(get_prm_value ${pkg}_${xtlcmd}_URL)"
-         pkg_URL=${pkg_URL%/*}/$subpkg.git
-      else
-        subpkg=$(basename $pkg_URL)
-        if [ "${subpkg: -4}" == ".git" ]; then
-          subpkg=${subpkg:0: -4}
-        fi
-      fi
-    else
-      subpkg=
-      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
-    fi
-    if [ -z "$pkg_URL" ]; then
-      elog "*** Package $pkgname not found for this platform"
-      elog "    git $pkg_name from URL=$pkg_URL"
-      return 2
-    fi
-    do_git_localroot $1 $2 $3 $4 "$5"
-    if [ $? -eq $STS_SUCCESS ]; then
-      git_opts=""
-      if [ $opt_dev -eq 0 ]; then
-        git_opts="--single-branch --depth=1 $git_opts"
-      fi
-      pkg_user=$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)
-      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
-      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
-      if [ "$pkg_user" == "$USER" ]; then
-        pkg_user=
-        pkg_group=
-      fi
-      if [ -z "subpkg" ]; then
-        pkg_branch="$(get_prm_value ${pkgname}_Branch)"
-      else
-        pkg_branch="$(get_prm_value ${pkg}_Branch)"
-      fi
-      if [ -n "$pkg_branch" ]; then
-        git_opts="-b $branch $git_opts"
-        # target_dir=version
-      else
-        branch=
-      fi
-      if [ -z "$subpkg" ]; then
-        if [ "$pkgname" == "odoo" -a $opt_mult -gt 0 -a  -n "$branch" ]; then
-          ldir=$branch
-        else
-          ldir=$pkgname
-        fi
-        run_traced "git clone $pkg_URL $ldir $git_opts" "$pkg_user"
-        sts=$?
-      else
-        if [ -f .gitignore -o $test_mode -gt 0 ]; then
-          if [ -z "$(grep "$subpkg/" .gitignore 2>/dev/null)" -o $test_mode -gt 0 ]; then
-            run_traced "echo \"$subpkg/\">>.gitignore"
-          fi
-        fi
-        if [ -d $subpkg -a $test_mode -eq 0 ]; then
-          run_traced "cd $subpkg"
-          run_traced "git pull origin $branch" "$pkg_user"
-          sts=$?
-        else
-          run_traced "git clone $pkg_URL $subpkg/ $git_opts" "$pkg_user"
-          sts=$?
-          run_traced "git submodule add -f $pkg_URL $subpkg/" "$pkg_user"
-          x=$(get_prm_value "$pkgname_upstream")
-          if [ -n "$x" ]; then
-            run_traced "git remote add upstream $x" "$pkg_user"
-          fi
-        fi
-        run_traced "cd $CWD"
-      fi
-      if [ -n "$pkg_user" ]; then
-        run_traced "chown -R $pkg_user:$pkg_group $pkgname/"
-      fi
-      x=$(get_prm_value "${pkgname}_confdirs")
-      if [ -n "$x" ]; then
-        for p in ${x//,/ }; do
-          if [ ! -d $p -o $test_mode -gt 0 ]; then
-            if [ -n "$pkg_user" ]; then
-              mkdir_traced $p $pkg_user:$pkg_group
-            else
-              mkdir_traced $p
-            fi
-          fi
-        done
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        if [ "$pkgname" == "odoo" -a "$opt_oed" == "odoo"  ]; then
-          pkg_subm=
-        else
-          pkg_subm="$(get_prm_value ${pkgname}_SubPkgList)"
-        fi
-        if [ -n "$pkg_subm" ]; then
-          if [ -n "$branch" ]; then
-            run_traced "git checkout $branch"
-          fi
-          if [ "$pkgname" == "odoo" ]; then
-            if [ "$opt_oed" == "zeroincombenze" ]; then
-              pkg_subm="$pkg_subm l10n-italy-supplemental account_banking_cscs"
-            fi
-          fi
-          do_dry_install_submodule_by_git $1 "$pkg_subm" $3 $4 "$5"
-          s=$?
-          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-        fi
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -z "$subpkg" -a -n "$opt_locale" ]; then
-          do_dry_install_submodule_by_git $1 "$opt_locale" $3 $4 "$5"
-          s=$?
-          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-        fi
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -n "$opt_sub" ]; then
-          do_dry_install_submodule_by_git $1 "$opt_sub" $3 $4 "$5"
-          s=$?
-          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
-        fi
-      fi
-    fi
-    return $sts
-}
-
-do_dry_update_package() {
-# do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
-      cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-      run_traced "$cmd"
-      local sts=$?
-      if [ "${cmd:0:7}" == "apt-get" ]; then
-        cmd="${cmd/update/upgrade}"
-        run_traced "$cmd"
-        sts=$?
-      fi
-    # fi
-    return $sts
-}
-
-do_dry_remove_lisa() {
-# do_dry_remove_lisa(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS    #debug
-    run_traced "rm /usr/bin/$2"
-    run_traced "rm /usr/bin/${2}.*"
-    return $STS_SUCCESS
-}
-
-do_dry_update_by_wget() {
-# do_update_by_wget(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_by_wget($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local pkgname=$2
-    local xtlcmd=wget
-    local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
-    local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
-    local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
-    local tarball=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
-    local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
-    if [ -z "$tarball" -o -z "$pkg_URL" ]; then
-      elog "*** Package $pkgname not found for this OS version"
-      elog "    wget $tarball from URL=$pkg_URL"
-      return 2
-    fi
-    if [ -n "$LocalRoot" ]; then
-      if [ ! -d $LocalRoot ]; then
-        mkdir_traced $LocalRoot
-      fi
-      run_traced "cd $LocalRoot"
-    else
-      if [ -z "$LocalTmp" ]; then
-        LocalTmp=/tmp/$pkgname
-      fi
-      run_traced "cd /tmp"
-    fi
-    if [ -f "./$tarball" ]; then
-      run_traced "rm -f ./$tarball"
-    fi
-    run_traced "wget $pkg_URL/$tarball$pkg_md5"
-    do_deploy_package $1 $pkgname "$3" $tarball "$LocalTmp"
-    run_traced "rm -f $tarball"
-    return $?
-}
-
-pre_install_LAMP() {
-# pre_install_LAMP(action pkgname OPTS)
-    if [ $opt_dev -gt 0 ]; then
-      if [ "$FH" == "RHEL" ]; then
-        run_traced "yum $opt_yes groupinstall \"Development tools\""
-      fi
-    fi
-    return $STS_SUCCESS
-}
-
-pre_update_LAMP() {
-    pre_install_LAMP
-}
-
-do_whatis_ports() {
-# do_whatis_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_whatis_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local lm x=$((prdstk_level*2+1))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    local X="$(get_prm_value TCP_$2)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        test_msg "$lm TCP port $port"
-      done
-    fi
-    local X="$(get_prm_value UDP_$pkgname)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        test_msg "$lm UDP port $port"
-      done
-    fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_whatis_ports">>~/$THIS.his; fi    #debug
-    return $STS_SUCCESS
-}
-
-post_install_ports() {
-# post_install_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_install_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local X="$(get_prm_value TCP_$2)"
-    if [ -n "$X" ]; then
-      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-        for port in $X; do
-          enable_port $port tcp $3
-        done
-      elif [ "$1" == "remove" ]; then
-        for port in $X; do
-          disable_port $port tcp $3
-        done
-      elif [ "$1" == "whatis" ]; then
-        for port in $X; do
-          test_msg "- TCP port $port"
-        done
-      fi
-    fi
-    local X="$(get_prm_value UDP_$pkgname)"
-    if [ -n "$X" ]; then
-      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
-        for port in $X; do
-          enable_port $port udp
-        done
-      elif [ "$1" == "remove" ]; then
-        for port in $X; do
-          disable_port $port tcp
-        done
-      elif [ "$1" == "whatis" ]; then
-        for port in $X; do
-          test_msg "- UDP port $port"
-        done
-      fi
-    fi
-    return $STS_SUCCESS
-}
-
-post_update_ports() {
-# post_update_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_update_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local X="$(get_prm_value TCP_$2)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        enable_port $port tcp $3
-      done
-    fi
-    local X="$(get_prm_value UDP_$pkgname)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        enable_port $port udp $3
-      done
-    fi
-    return $STS_SUCCESS
-}
-
-
-post_remove_ports() {
-# post_remove_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_remove_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local X="$(get_prm_value TCP_$2)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        disable_port $port tcp $3
-      done
-    fi
-    local X="$(get_prm_value UDP_$pkgname)"
-    if [ -n "$X" ]; then
-      for port in $X; do
-        disable_port $port tcp $3
-      done
-    fi
-    return $STS_SUCCESS
-}
-
-post_dry_update_service() {
-# post_dry_update_service(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi #debug
-    local svcname=$(get_prm_value "${2}_svcname")
-    local cmd=$(get_full_svccmd restart $svcname $3)
-    run_traced "$cmd"
-    local sts=$?
-    return $sts
-}
-
-pre_dry_remove_service() {
-# pre_dry_remove_service(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi #debug
-    local svcname=$(get_prm_value "${2}_svcname")
-    local cmd=$(get_full_svccmd stop $svcname $3)
-    run_traced "$cmd"
-    local sts=$?
-    return $sts
-}
-
-do_1_tellme_package() {
-# do_1_tellme_package(action pkgname OPTS param [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
-    local pkg lop lreqver rop rreqver branch x xtlcmd
-    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    local pkgname=$(get_realname "$2" $3)
-    local sts=$STS_SUCCESS
-    if [ "$4" == "realname" ]; then
-      local iter=$(get_iter $pkgname $3)
-      if [ "$2" == "$iter" ]; then
-        echo "$2"
-      elif [ "$pkgname" == "$iter" ]; then
-        echo "$2=$pkgname"
-      else
-        echo "$2=($iter)"
-      fi
-      if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_1_tellme_package">>~/$THIS.his; fi    #debug
-      return $STS_SUCCESS
-    elif [ "$4" == "installer" ]; then
-      local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
-      echo "$xtlcmd"
-    elif [ "$4" == "vfycmd" ]; then
-      local vfycmd=$(get_prm_value "${2}_vfycmd")
-      echo "$vfycmd"
-    elif [ "$4" == "confn" ]; then
-      local confn=$(get_full_confn $1 $pkgname $3)
-      echo "$confn"
-    elif [ "$4" == "cmdname" ]; then
-      local cmdname=$(get_prm_value "${2}_cmdname")
-      echo "$cmdname"
-    elif [ "$4" == "branches" ]; then
-      local p=$(get_prm_value "${2}_Branch")
-      echo "$p"
-    elif [ "$4" == "submodules" ]; then
-      local p=$(get_prm_value "${2}_SubPkgList")
-      echo "$p"
-    elif [ "$4" == "requirements" ]; then
-      local p=$(get_prm_value "${2}_ReqPkgList")
-      echo "$p"
-    elif [ "$4" == "confdirs" ]; then
-      local p=$(get_prm_value "${2}_confdirs")
-      echo "$p"
-    else
-      echo "Invalid param: branches|cmdname|confdirs|confn|installer|realname|requirements|submodules|vfycmd"
-      sts=$STS_FAILED
-    fi
-    return $sts
-}
-
-do_1_status_package() {
-# do_1_status_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
-    local pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
-    [ -n "$pkgversion" ]
-    return $?
-}
-
-do_dry_status_package() {
-# do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
-    local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    do_1_status_package "$@"
-    sts=$?
-    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
-    if [ $sts -eq $STS_SUCCESS ]; then
-      local cmd="wlog \"$lm$pkgname: installed by $xtlcmd\""
-    else
-      local cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
-    fi
-    eval $cmd
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #dry_status_package">>~/$THIS.his; fi    #debug
-    return $STS_SUCCESS
-}
-
-do_dry_version_package() {
-# do_dry_version_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_version_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
-    local pkgversion
-    local xtlcmd
-    local cmd
-    local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    do_1_status_package "$@"
-    if [ $? -ne $STS_SUCCESS ]; then
-      local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
-      if [ -z "$xtlcmd" ]; then
-        xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
-      fi
-      cmd="wlog \"$lm$pkgname should be installed by $xtlcmd\""
-    else
-      pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
-      if [ -z "$pkgversion" ]; then
-        pkgversion="$pkgname: unknown version"
-      fi
-      # if [ $opt_quiet -gt 0 ]; then
-      #   cmd="wlog \"$pkgversion\""
-      # else
-        cmd="wlog \"$lm$pkgname: $pkgversion\""
-      # fi
-    fi
-    eval $cmd
-    return $STS_SUCCESS
-}
-
-do_dry_whatis_package() {
-# do_dry_whatis_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
-    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
-    if [ -z "$xtlcmd" ]; then
-      xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
-    fi
-    local svcname=$(get_prm_value "${2}_svcname")
-    local cmdname=$(get_prm_value "${2}_cmdname")
-    local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
-    if [ -n "$vfycmd" ]; then
-      local msg="$lm$2 (by $xtlcmd)($vfycmd)"
-    else
-      local msg="$lm$2 (by $xtlcmd)"
-    fi
-    test_msg "$msg"
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_dry_whatis_package">>~/$THIS.his; fi    #debug
-    return $STS_SUCCESS
-}
-
 end_remove() {
 # end_remove(action OPTS)
     local cmd=
@@ -2540,7 +2017,444 @@ lisa_config_odoo() {
     done
 }
 
-pre_config_odoo() {
+post_config_mysql-server() {
+    if [ "$FH" == "RHEL" ]; then
+      run_traced "mysql_secure_installation"
+      run_traced "chkconfig mysqld on"
+    else
+      for cmd in mysql_install_db mysql_secure_installation; do
+        run_traced "$cmd"
+      done
+      run_traced "chkconfig mysql on"
+    fi
+}
+
+post_config_mariadb-server() {
+    if [ "$FH" == "RHEL" ]; then
+      run_traced "mysql_secure_installation"
+    fi
+    run_traced "chkconfig mariadb on"
+}
+
+lisa_install_submodule_by_git() {
+# lisa_install_submodule_by_git(pkgs branch action OPTS param [SPECIMEN])
+    local opt_osub="$1"
+    local ov="$2"
+    local ovf=$(get_odoo_full_ver $ov)
+    CWD=$PWD
+    for iso in ${opt_osub//,/ }; do
+      run_traced "cd /opt/odoo/$ovf"
+      # pn=$(get_locale_name "$iso")
+      if [ -z "$pn" ]; then
+        if [ ${#iso} -ne 2 ]; then
+          elog  "Invalid submodule name $iso"
+        else
+          elog  "Invalid $iso in -l $opt_locale switch"
+        fi
+      else
+        # addons=$(get_locale_dir "$pn")
+        if [ -f .gitignore -o $test_mode -gt 0 ]; then
+          if [ -z "$(grep "$addons/" .gitignore 2>/dev/null)" -o $test_mode -gt 0 ]; then
+            run_traced "echo \"$addons/\">>.gitignore"
+          fi
+        fi
+        if [ -d $addons -a $test_mode -eq 0 ]; then
+          run_traced "cd $addons"
+          run_traced "git pull origin $ovf" "odoo"
+          run_traced "cd /opt/odoo/$ovf"
+        else
+          run_traced "git clone -b $ovf $pn $addons $git_opts" "odoo"
+          run_traced "git submodule add -b $ovf -f $pn $addons" "odoo"
+          if [ "opt_oed" == "zeroincombenze" ]; then
+            run_traced "git remote add upstream https://github.com/OCA/$addons.git" "odoo"
+          fi
+          run_traced "cd /opt/odoo/$ovf"
+        fi
+      fi
+    done
+    cd $CWD
+}
+
+do_dry_install_submodule_by_git() {
+# do_dry_install_submodule_by_git(action pks OPTS param [SPECIMEN])
+# specimen contains top module name and version
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_submodule_by_git($1 \"$2\" $3 $4 \"$5\")">>~/$THIS.his; fi    #debug
+    local sts=$STS_SUCCESS
+    local s
+    if [ "$2" == "." ]; then
+      local xtlcmd pkg_user pkg lop lreqver rop rreqver branch x p
+      IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+      xtlcmd=git
+      pkg_user=$(get_prm_value ${pkg}_${xtlcmd}_LocalUser)
+      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
+      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
+      if [ "$pkg_user" == "$USER" ]; then
+        pkg_user=
+        pkg_group=
+      fi
+      run_traced "git submodule update --init" "$pkg_user"
+    else
+      CWD=$PWD
+      for pkgname in ${2//,/ }; do
+        cd $CWD
+        # do_1_status_package $1 $pkgname ${3}s $4 "$5"
+        # sts=$?
+        do_dry_install_by_git $1 $pkgname ${3}s $4 "$5"
+        s=$?
+        if [ $s -ne $STS_SUCCESS ]; then
+          sts=$s
+          break
+        fi
+      done
+      cd $CWD
+    fi
+    return $sts
+}
+
+
+do_dry_install_by_git() {
+# do_dry_install_by_git(action pkgname OPTS param [SPECIMEN])
+# if install submodule (OPTS =~ s) specimen contains top module name and version
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3 $4 \"$5\")">>~/$THIS.his
+    local pkgname=$2
+    local xtlcmd=git
+    local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p ldir
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    if [[ $3 =~ s ]]; then
+      subpkg=$2
+      pkgname=${pkg}__$2
+      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
+      if [ -z "$pkg_URL" ]; then
+         pkg_URL="$(get_prm_value ${pkg}_${xtlcmd}_URL)"
+         pkg_URL=${pkg_URL%/*}/$subpkg.git
+      else
+        subpkg=$(basename $pkg_URL)
+        if [ "${subpkg: -4}" == ".git" ]; then
+          subpkg=${subpkg:0: -4}
+        fi
+      fi
+    else
+      subpkg=
+      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
+    fi
+    if [ -z "$pkg_URL" ]; then
+      elog "*** Package $pkgname not found for this platform"
+      elog "    git $pkg_name from URL=$pkg_URL"
+      return 2
+    fi
+    do_git_localroot $1 $2 $3 $4 "$5"
+    if [ $? -eq $STS_SUCCESS ]; then
+      git_opts=""
+      if [ $opt_dev -eq 0 ]; then
+        git_opts="--single-branch --depth=1 $git_opts"
+      fi
+      pkg_user=$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)
+      pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
+      pkg_user=$(echo $pkg_user|awk -F: '{print $1}')
+      if [ "$pkg_user" == "$USER" ]; then
+        pkg_user=
+        pkg_group=
+      fi
+      if [ -z "subpkg" ]; then
+        pkg_branch="$(get_prm_value ${pkgname}_Branch)"
+      else
+        pkg_branch="$(get_prm_value ${pkg}_Branch)"
+      fi
+      if [ -n "$pkg_branch" ]; then
+        git_opts="-b $branch $git_opts"
+      else
+        branch=
+      fi
+      if [ -z "$subpkg" ]; then
+        if [ "$pkgname" == "odoo" -a $opt_mult -gt 0 -a  -n "$branch" ]; then
+          ldir=$branch
+        else
+          ldir=$pkgname
+        fi
+        run_traced "git clone $pkg_URL $ldir $git_opts" "$pkg_user"
+        sts=$?
+      else
+        if [ -f .gitignore -o $test_mode -gt 0 ]; then
+          if [ -z "$(grep "$subpkg/" .gitignore 2>/dev/null)" -o $test_mode -gt 0 ]; then
+            run_traced "echo \"$subpkg/\">>.gitignore"
+          fi
+        fi
+        if [ -d $subpkg -a $test_mode -eq 0 ]; then
+          run_traced "cd $subpkg"
+          run_traced "git pull origin $branch" "$pkg_user"
+          sts=$?
+        else
+          run_traced "git clone $pkg_URL $subpkg/ $git_opts" "$pkg_user"
+          sts=$?
+          run_traced "git submodule add -f $pkg_URL $subpkg/" "$pkg_user"
+          x=$(get_prm_value "$pkgname_upstream")
+          if [ -n "$x" ]; then
+            run_traced "git remote add upstream $x" "$pkg_user"
+          fi
+        fi
+        run_traced "cd $CWD"
+      fi
+      if [ -n "$pkg_user" ]; then
+        run_traced "chown -R $pkg_user:$pkg_group $pkgname/"
+      fi
+      x=$(get_prm_value "${pkgname}_confdirs")
+      if [ -n "$x" ]; then
+        for p in ${x//,/ }; do
+          if [ ! -d $p -o $test_mode -gt 0 ]; then
+            if [ -n "$pkg_user" ]; then
+              mkdir_traced $p $pkg_user:$pkg_group
+            else
+              mkdir_traced $p
+            fi
+          fi
+        done
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        if [ "$pkgname" == "odoo" -a "$opt_oed" == "odoo"  ]; then
+          pkg_subm=
+        else
+          pkg_subm="$(get_prm_value ${pkgname}_SubPkgList)"
+        fi
+        if [ -n "$pkg_subm" ]; then
+          if [ -n "$branch" ]; then
+            run_traced "git checkout $branch"
+          fi
+          if [ "$pkgname" == "odoo" ]; then
+            if [ "$opt_oed" == "zeroincombenze" ]; then
+              pkg_subm="$pkg_subm l10n-italy-supplemental account_banking_cscs"
+            fi
+          fi
+          do_dry_install_submodule_by_git $1 "$pkg_subm" $3 $4 "$5"
+          s=$?
+          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+        fi
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        if [ -z "$subpkg" -a -n "$opt_locale" ]; then
+          do_dry_install_submodule_by_git $1 "$opt_locale" $3 $4 "$5"
+          s=$?
+          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+        fi
+      fi
+      if [ $sts -eq $STS_SUCCESS ]; then
+        if [ -n "$opt_sub" ]; then
+          do_dry_install_submodule_by_git $1 "$opt_sub" $3 $4 "$5"
+          s=$?
+          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+        fi
+      fi
+    fi
+    return $sts
+}
+
+do_dry_update_package() {
+# do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
+      cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+      run_traced "$cmd"
+      local sts=$?
+      if [ "${cmd:0:7}" == "apt-get" ]; then
+        cmd="${cmd/update/upgrade}"
+        run_traced "$cmd"
+        sts=$?
+      fi
+    # fi
+    return $sts
+}
+
+do_dry_remove_lisa() {
+# do_dry_remove_lisa(action pkgname OPTS)
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS    #debug
+    run_traced "rm /usr/bin/$2"
+    run_traced "rm /usr/bin/${2}.*"
+    return $STS_SUCCESS
+}
+
+do_dry_update_by_wget() {
+# do_update_by_wget(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_by_wget($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local pkgname=$2
+    local xtlcmd=wget
+    local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
+    local LocalTmp="$(get_prm_value ${pkgname}_${xtlcmd}_LocalTmp)"
+    local pkg_URL=$(get_prm_value ${pkgname}_${xtlcmd}_URL)
+    local tarball=$(get_prm_value ${pkgname}_${xtlcmd}_xname)
+    local pkg_md5="$(get_prm_value ${pkgname}_${xtlcmd}_md5)"
+    if [ -z "$tarball" -o -z "$pkg_URL" ]; then
+      elog "*** Package $pkgname not found for this OS version"
+      elog "    wget $tarball from URL=$pkg_URL"
+      return 2
+    fi
+    if [ -n "$LocalRoot" ]; then
+      if [ ! -d $LocalRoot ]; then
+        mkdir_traced $LocalRoot
+      fi
+      run_traced "cd $LocalRoot"
+    else
+      if [ -z "$LocalTmp" ]; then
+        LocalTmp=/tmp/$pkgname
+      fi
+      run_traced "cd /tmp"
+    fi
+    if [ -f "./$tarball" ]; then
+      run_traced "rm -f ./$tarball"
+    fi
+    run_traced "wget $pkg_URL/$tarball$pkg_md5"
+    do_deploy_package $1 $pkgname "$3" $tarball "$LocalTmp"
+    run_traced "rm -f $tarball"
+    return $?
+}
+
+do_whatis_ports() {
+# do_whatis_ports(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_whatis_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    local lm x=$((prdstk_level*2+1))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
+    local X="$(get_prm_value TCP_$2)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        test_msg "$lm TCP port $port"
+      done
+    fi
+    local X="$(get_prm_value UDP_$pkgname)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        test_msg "$lm UDP port $port"
+      done
+    fi
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_whatis_ports">>~/$THIS.his; fi    #debug
+    return $STS_SUCCESS
+}
+
+post_install_ports() {
+# post_install_ports(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_install_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    local X="$(get_prm_value TCP_$2)"
+    if [ -n "$X" ]; then
+      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
+        for port in $X; do
+          enable_port $port tcp $3
+        done
+      elif [ "$1" == "remove" ]; then
+        for port in $X; do
+          disable_port $port tcp $3
+        done
+      elif [ "$1" == "whatis" ]; then
+        for port in $X; do
+          test_msg "- TCP port $port"
+        done
+      fi
+    fi
+    local X="$(get_prm_value UDP_$pkgname)"
+    if [ -n "$X" ]; then
+      if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
+        for port in $X; do
+          enable_port $port udp
+        done
+      elif [ "$1" == "remove" ]; then
+        for port in $X; do
+          disable_port $port tcp
+        done
+      elif [ "$1" == "whatis" ]; then
+        for port in $X; do
+          test_msg "- UDP port $port"
+        done
+      fi
+    fi
+    return $STS_SUCCESS
+}
+
+post_update_ports() {
+# post_update_ports(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_update_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    local X="$(get_prm_value TCP_$2)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        enable_port $port tcp $3
+      done
+    fi
+    local X="$(get_prm_value UDP_$pkgname)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        enable_port $port udp $3
+      done
+    fi
+    return $STS_SUCCESS
+}
+
+
+post_remove_ports() {
+# post_remove_ports(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_remove_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    local X="$(get_prm_value TCP_$2)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        disable_port $port tcp $3
+      done
+    fi
+    local X="$(get_prm_value UDP_$pkgname)"
+    if [ -n "$X" ]; then
+      for port in $X; do
+        disable_port $port tcp $3
+      done
+    fi
+    return $STS_SUCCESS
+}
+
+post_dry_update_service() {
+# post_dry_update_service(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi #debug
+    local svcname=$(get_prm_value "${2}_svcname")
+    local cmd=$(get_full_svccmd restart $svcname $3)
+    run_traced "$cmd"
+    local sts=$?
+    return $sts
+}
+
+pre_dry_install_LAMP() {
+# pre_dry_install_LAMP(action pkgname OPTS)
+    if [ $opt_dev -gt 0 ]; then
+      if [ "$FH" == "RHEL" ]; then
+        run_traced "yum $opt_yes groupinstall \"Development tools\""
+      fi
+    fi
+    return $STS_SUCCESS
+}
+
+pre_dry_install_odoo() {
+    if [ "$FH" == "RHEL" ]; then
+      if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
+        run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
+      fi
+    elif [ "$FH" == "Debian" ]; then
+      if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
+        run_traced "wget -O - https://nightly.odoo.com/odoo.key | apt-key add -"
+      fi
+      if [ -z "$(cat /etc/apt/sources.list|grep 'nightly.odoo.com' 2>/dev/null)" ]; then
+       run_traced "echo 'deb http://nightly.odoo.com/8.0/nightly/deb/ ./' >> /etc/apt/sources.list"
+      fi
+    fi
+    pre_dry_config_odoo
+}
+
+pre_dry_update_LAMP() {
+    pre_dry_install_LAMP
+}
+
+pre_dry_remove_service() {
+# pre_dry_remove_service(action pkgname OPTS)
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi #debug
+    local svcname=$(get_prm_value "${2}_svcname")
+    local cmd=$(get_full_svccmd stop $svcname $3)
+    run_traced "$cmd"
+    local sts=$?
+    return $sts
+}
+
+pre_dry_config_odoo() {
+    ODOO_UID=$(get_prm_value "ODOO_UID")
+    ODOO_GID=$(get_prm_value "ODOO_GID")
     sysfile=/etc/group
     group=odoo
     if [ "$ODOO_GID" ]; then
@@ -2598,28 +2512,7 @@ pre_config_odoo() {
     fi
 }
 
-post_config_odoo() {
-    local r=$(get_realname postresql) #tny!!
-    run_traced "service $r restart"
-}
-
-pre_install_odoo() {
-    if [ "$FH" == "RHEL" ]; then
-      if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
-        run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
-      fi
-    elif [ "$FH" == "Debian" ]; then
-      if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
-        run_traced "wget -O - https://nightly.odoo.com/odoo.key | apt-key add -"
-      fi
-      if [ -z "$(cat /etc/apt/sources.list|grep 'nightly.odoo.com' 2>/dev/null)" ]; then
-       run_traced "echo 'deb http://nightly.odoo.com/8.0/nightly/deb/ ./' >> /etc/apt/sources.list"
-      fi
-    fi
-    pre_config_odoo
-}
-
-post_install_odoo() {
+post_dry_install_odoo() {
     local p
     p=etc
     run_traced "mkdir -p /$p/odoo"
@@ -2632,27 +2525,81 @@ post_install_odoo() {
     done
 }
 
-post_update_odoo() {
-    post_install_odoo
+post_dry_update_odoo() {
+    post_dry_install_odoo
 }
 
-post_config_mysql-server() {
-    if [ "$FH" == "RHEL" ]; then
-      run_traced "mysql_secure_installation"
-      run_traced "chkconfig mysqld on"
+do_dry_status_package() {
+# do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
+    do_1_status_package "$@"
+    sts=$?
+    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+    if [ $sts -eq $STS_SUCCESS ]; then
+      local cmd="wlog \"$lm$pkgname: installed by $xtlcmd\""
     else
-      for cmd in mysql_install_db mysql_secure_installation; do
-        run_traced "$cmd"
-      done
-      run_traced "chkconfig mysql on"
+      local cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
     fi
+    eval $cmd
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #dry_status_package">>~/$THIS.his; fi    #debug
+    return $STS_SUCCESS
 }
 
-post_config_mariadb-server() {
-    if [ "$FH" == "RHEL" ]; then
-      run_traced "mysql_secure_installation"
+do_dry_version_package() {
+# do_dry_version_package(action pkgname OPTS [param] [SPECIMEN])
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_version_package($1 $2 $3 $4 $5)">>~/$THIS.his
+    local pkgversion
+    local xtlcmd
+    local cmd
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
+    do_1_status_package "$@"
+    if [ $? -ne $STS_SUCCESS ]; then
+      local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+      if [ -z "$xtlcmd" ]; then
+        xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
+      fi
+      cmd="wlog \"$lm$pkgname should be installed by $xtlcmd\""
+    else
+      pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
+      if [ -z "$pkgversion" ]; then
+        pkgversion="$pkgname: unknown version"
+      fi
+      # if [ $opt_quiet -gt 0 ]; then
+      #   cmd="wlog \"$pkgversion\""
+      # else
+        cmd="wlog \"$lm$pkgname: $pkgversion\""
+      # fi
     fi
-    run_traced "chkconfig mariadb on"
+    eval $cmd
+    return $STS_SUCCESS
+}
+
+do_dry_whatis_package() {
+# do_dry_whatis_package(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his; fi    #debug
+    local lm x=$((prdstk_level*2))
+    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
+    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
+    if [ -z "$xtlcmd" ]; then
+      xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
+    fi
+    local svcname=$(get_prm_value "${2}_svcname")
+    local cmdname=$(get_prm_value "${2}_cmdname")
+    local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+    if [ -n "$vfycmd" ]; then
+      local msg="$lm$2 (by $xtlcmd)($vfycmd)"
+    else
+      local msg="$lm$2 (by $xtlcmd)"
+    fi
+    test_msg "$msg"
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_dry_whatis_package">>~/$THIS.his; fi    #debug
+    return $STS_SUCCESS
 }
 
 do_deploy_package() {
@@ -2826,6 +2773,66 @@ do_dry_install_package() {
     local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his
     run_traced "$cmd"
+    return $?
+}
+
+do_1_tellme_package() {
+# do_1_tellme_package(action pkgname OPTS param [SPECIMEN])
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his
+    local pkg lop lreqver rop rreqver branch x xtlcmd
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    local pkgname=$(get_realname "$2" $3)
+    local sts=$STS_SUCCESS
+    if [ "$4" == "realname" ]; then
+      local iter=$(get_iter $pkgname $3)
+      if [ "$2" == "$iter" ]; then
+        echo "$2"
+      elif [ "$pkgname" == "$iter" ]; then
+        echo "$2=$pkgname"
+      else
+        echo "$2=($iter)"
+      fi
+      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_1_tellme_package">>~/$THIS.his
+      return $STS_SUCCESS
+    elif [ "$4" == "installer" ]; then
+      local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
+      echo "$xtlcmd"
+    elif [ "$4" == "vfycmd" ]; then
+      local vfycmd=$(get_prm_value "${2}_vfycmd")
+      echo "$vfycmd"
+    elif [ "$4" == "confn" ]; then
+      local confn=$(get_full_confn $1 $pkgname $3)
+      echo "$confn"
+    elif [ "$4" == "cmdname" ]; then
+      local cmdname=$(get_prm_value "${2}_cmdname")
+      echo "$cmdname"
+    elif [ "$4" == "branches" ]; then
+      local p=$(get_prm_value "${2}_Branch")
+      echo "$p"
+    elif [ "$4" == "submodules" ]; then
+      local p=$(get_prm_value "${2}_SubPkgList")
+      echo "$p"
+    elif [ "$4" == "requirements" ]; then
+      local p=$(get_prm_value "${2}_ReqPkgList")
+      echo "$p"
+    elif [ "$4" == "confdirs" ]; then
+      local p=$(get_prm_value "${2}_confdirs")
+      echo "$p"
+    elif [ "$4" == "localroot" ]; then
+      local p=$(get_full_LocalRoot 'install' $pkgname)
+      echo "$p"
+    else
+      echo "Invalid param: branches|cmdname|confdirs|confn|installer|localroot|realname|requirements|submodules|vfycmd"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
+do_1_status_package() {
+# do_1_status_package(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    local pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
+    [ -n "$pkgversion" ]
     return $?
 }
 
@@ -3024,6 +3031,7 @@ do_iter_prod() {
     if [[ $3 =~ [qQ] ]]; then
       return 127
     fi
+    set_from_conf_pkg "$pkgname" "" $3
     if [ "$act" == "info" ]; then
       return 127
     fi
@@ -3060,7 +3068,6 @@ please() {
     if [ -z "$conf_level" ]; then conf_level=0; fi
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "please($1 $2 $3 $4 $5)">>~/$THIS.his; fi #debug
     local act BOPcmd BOPcmd1 BOPcmd2 ij lm pfx pkgname s specimen svcname x
-    set_from_conf_pkg "$2"
     do_iter_prod "$@"
     local sts=$?
     if [ $sts -ne 127 ]; then
@@ -3075,7 +3082,7 @@ please() {
       pkgname=$2
     else
       pkgname=$(get_realname $2 "$act" $3)
-      set_from_conf_pkg "$2"
+      # set_from_conf_pkg "$2"
     fi
     specimen=$(get_specimen $2 "$act" $3)
     if [ -n "$5" -a -z "$specimen" ]; then
