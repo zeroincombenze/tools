@@ -344,7 +344,7 @@ EOF
   if [ "$USER" == "odoo" ]; then
   cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
 > cd /opt/odoo
-> git clone https://github.com/zeroincombenze/OCB.git odoo -b 8.0 --single-branch --depth=1
+> git clone https://github.com/zeroincombenze/OCB.git 8.0 -b 8.0 --single-branch --depth=1
 > mkdir -p /etc/odoo
 > chmod u+rwx,g=rx,o=rx /etc/odoo/
 > mkdir -p /var/log/odoo
@@ -352,51 +352,42 @@ EOF
 > mkdir -p /var/run/odoo
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 8.0
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-invoicing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "bank-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "l10n-italy/">>.gitignore
 > git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "partner-contact/">>.gitignore
 > git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "web/">>.gitignore
 > git clone https://github.com/zeroincombenze/web.git web/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/web.git web/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "website/">>.gitignore
 > git clone https://github.com/zeroincombenze/website.git website/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
-> cd /opt/odoo
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo
 > chmod -R u+rw,g+r,o+r /etc/odoo
@@ -414,7 +405,7 @@ EOF
   else
   cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
 > cd /opt/odoo
-> sudo -uodoo:odoo git clone https://github.com/zeroincombenze/OCB.git odoo -b 8.0 --single-branch --depth=1
+> sudo -uodoo:odoo git clone https://github.com/zeroincombenze/OCB.git 8.0 -b 8.0 --single-branch --depth=1
 > chown -R odoo:odoo odoo/
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo/
@@ -426,51 +417,42 @@ EOF
 > chown odoo:odoo /var/run/odoo/
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 8.0
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-invoicing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "account-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "bank-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "l10n-italy/">>.gitignore
 > git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "partner-contact/">>.gitignore
 > git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "web/">>.gitignore
 > git clone https://github.com/zeroincombenze/web.git web/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/web.git web/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/8.0
 > echo "website/">>.gitignore
 > git clone https://github.com/zeroincombenze/website.git website/ -b 8.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
-> cd /opt/odoo
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo
 > chmod -R u+rw,g+r,o+r /etc/odoo
@@ -491,7 +473,7 @@ EOF
   if [ "$USER" == "odoo" ]; then
   cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
 > cd /opt/odoo
-> git clone https://github.com/zeroincombenze/OCB.git odoo -b 7.0 --single-branch --depth=1
+> git clone https://github.com/zeroincombenze/OCB.git 7.0 -b 7.0 --single-branch --depth=1
 > mkdir -p /etc/odoo
 > chmod u+rwx,g=rx,o=rx /etc/odoo/
 > mkdir -p /var/log/odoo
@@ -499,51 +481,42 @@ EOF
 > mkdir -p /var/run/odoo
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 7.0
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-invoicing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "bank-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "l10n-italy/">>.gitignore
 > git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "partner-contact/">>.gitignore
 > git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "web/">>.gitignore
 > git clone https://github.com/zeroincombenze/web.git web/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/web.git web/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "website/">>.gitignore
 > git clone https://github.com/zeroincombenze/website.git website/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
-> cd /opt/odoo
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo
 > chmod -R u+rw,g+r,o+r /etc/odoo
@@ -561,7 +534,7 @@ EOF
   else
   cat <<EOF >$TESTDIR/res/odoo__$Disto.08.test
 > cd /opt/odoo
-> sudo -uodoo:odoo git clone https://github.com/zeroincombenze/OCB.git odoo -b 7.0 --single-branch --depth=1
+> sudo -uodoo:odoo git clone https://github.com/zeroincombenze/OCB.git 7.0 -b 7.0 --single-branch --depth=1
 > chown -R odoo:odoo odoo/
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo/
@@ -573,51 +546,42 @@ EOF
 > chown odoo:odoo /var/run/odoo/
 > chmod u+rwx,g=rx,o=rx /var/run/odoo/
 > git checkout 7.0
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-closing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-closing.git account-closing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-closing.git account-closing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-invoicing/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-invoicing.git account-invoicing/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-invoicing.git account-invoicing/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "account-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/account-payment.git account-payment/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/account-payment.git account-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "bank-payment/">>.gitignore
 > git clone https://github.com/zeroincombenze/bank-payment.git bank-payment/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/bank-payment.git bank-payment/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "knowledge/">>.gitignore
 > git clone https://github.com/zeroincombenze/knowledge.git knowledge/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/knowledge.git knowledge/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "l10n-italy/">>.gitignore
 > git clone https://github.com/zeroincombenze/l10n-italy.git l10n-italy/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/l10n-italy.git l10n-italy/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "partner-contact/">>.gitignore
 > git clone https://github.com/zeroincombenze/partner-contact.git partner-contact/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/partner-contact.git partner-contact/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "web/">>.gitignore
 > git clone https://github.com/zeroincombenze/web.git web/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/web.git web/
-> cd /opt/odoo
-> cd /tmp
+> cd /opt/odoo/7.0
 > echo "website/">>.gitignore
 > git clone https://github.com/zeroincombenze/website.git website/ -b 7.0 --single-branch --depth=1
 > git submodule add -f https://github.com/zeroincombenze/website.git website/
-> cd /opt/odoo
 > mkdir -p /etc/odoo
 > chown odoo:odoo /etc/odoo
 > chmod -R u+rw,g+r,o+r /etc/odoo
@@ -636,6 +600,15 @@ EOF
   test_run "install $Package<8.0" "$Package<8.0" "$Disto" "install"
 fi
 }
+
+Z0BUG_setup() {
+    :
+}
+
+Z0BUG_teardown() {
+    :
+}
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log "$@" 

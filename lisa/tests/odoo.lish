@@ -15,7 +15,7 @@
 SubPkgList=account-closing,account-invoicing,account-payment,bank-payment\
 ,knowledge,l10n-italy,partner-contact,web,website
 git_LocalRoot=/opt/odoo
-git_LocalDir=odoo-$version
+git_LocalDir=${version}
 git_LocalUser=odoo:odoo
 
 [_Debian_]

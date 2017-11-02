@@ -118,11 +118,13 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   cat <<EOF >$TESTDIR/res/lisa__Debian.07.test
 > rm /usr/bin/lisa
 > rm /usr/bin/lisa.*
+> rm /usr/bin/lisa_*
 > apt-get autoremove
 EOF
   cat <<EOF >$TESTDIR/res/lisa__RHEL.07.test
 > rm /usr/bin/lisa
 > rm /usr/bin/lisa.*
+> rm /usr/bin/lisa_*
 EOF
   cat <<EOF >$TESTDIR/res/apache2__Debian.07.test
 > service apache2 stop

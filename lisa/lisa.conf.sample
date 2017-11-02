@@ -66,12 +66,8 @@
 # <pkgname>_BOP_GRF_ADD
 #     declare graphical supplemental subpackages to install or upgrade after
 #     installation or upgrade <pkgname> if -g switch supplied
-# <pkgname>_xtlcmd
-#     actual install/upgrade/remove command, one of yum,apt-get,pip,git,wget
-# <pkgname>_xtlcmd_install
-#     specific install command when different from upgrade utility
-# <pkgname>_xtlcmd_remove
-#     specific remove command when different from upgrade utility
+# <pkgname>_binPkgList
+#     file list (comma separated) in /bin or /usr/bin to include when buil tarball
 # <pkgname>_build_fileignore
 #     file list (comma separated) to ignore when build tarball
 #     (parameter ignored if PkgList supplied)
@@ -81,32 +77,46 @@
 #     Value /dev/null means no file list
 # <pkgname>_build_PKGPATH
 #     package path where search files to build tarball
-# <pkgname>_binPkgList
-#     file list (comma separated) in /bin or /usr/bin to include when buil tarball
-# <pkgname>_etcPkgList
-#     file list (comma separated) in /etc/<pkgname> or /etc to include
-#     when buil tarball
 # <pkgname>_build_with_z0libr  build package must include z0libr library
 # <pkgname>_build_with_odoorc  build package must include odoorc library
 # <pkgname>_cmdname            shell cmd to manage <pkgname>
+# <pkgname>_confn              <pkgname> configuration filename
+# <pkgname>_etcPkgList
+#     file list (comma separated) in /etc/<pkgname> or /etc to include
+#     when buil tarball
 # <pkgname>_FINDCFN
 #     paths to find configuration filename, format is "level1;level2;..."
 #     every level contains directory lista (space separed)
 #     example: "/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
-# <pkgname>_confn              configuration filename
-# <pkgname>_install_LocalRoot  main directory where package is deployed
+# <pkgname>_git_LocalDir
+#     directory of <pkgname> (it is under <pkgname>_git_LocalRoot parameter)
+#     may be contain one macro of: $version
+# <pkgname>_git_LocalRoot      path root where execute git clone command
+# <pkgname>_git_LocalUser
+#     user to execute git commands (if not supplied current user is issued)
+#     format must be <user:group>
+# <pkgname>_git_URL            URL from download package file (git installer)
+# <pkgname>_init_svcname
+#     commnad to issue before start service after installation
+# <pkgname>_install_LocalRoot
+#     main directory where package is deployed when wget is installer
 # <pkgname>_install_LocalTmp
 #     local temporary directory during install (default /tmp)
 # <pkgname>_install_md5        if supplied, complete URL with md5
-# <pkgname>_install_URL        URL from download package file (wget or git)
 # <pkgname>_install_xname
-#     filename to download from URL (appended to URL before download)
+#     filename to download from URL (appended to URL before wget download)
 # <pkgname>_ReqPkgList
 #     required package list (comma separated) must be installed
 #     before install <pkgname>
 # <pkgname>_svcname            if present declare name of service of <pkgname>
-# <pkgname>_init_svcname
-#     commnad to issue before start service after installation
+# <pkgname>_xtlcmd
+#     actual install/upgrade/remove command, one of yum,apt-get,pip,git,wget
+# <pkgname>_xtlcmd_install
+#     specific install command when different from upgrade utility
+# <pkgname>_xtlcmd_remove
+#     specific remove command when different from upgrade utility
+# <pkgname>_wget_URL           URL from download package file (wget installer)
+# wget_xname
 #
 
 

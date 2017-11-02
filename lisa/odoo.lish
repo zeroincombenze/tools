@@ -17,7 +17,7 @@ SubPkgList=account-closing,account-financial-reporting,account-financial-tools,a
 ODOO_UID=497
 ODOO_GID=497
 git_LocalRoot=/opt/odoo
-git_LocalDir=odoo-$version
+git_LocalDir=odoo-${version}
 git_LocalUser=odoo:odoo
 
 [_Debian_]

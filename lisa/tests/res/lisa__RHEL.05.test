@@ -1,7 +1,3 @@
 > yum -y install wget
 > yum -y install git
-> cd /tmp
-> wget http://download.zeroincombenze.org/lisa.tar.gz
-> tar -xf lisa.tar.gz
 > ./setup.sh -n
-> rm -f lisa.tar.gz

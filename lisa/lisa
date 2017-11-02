@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.24
+__version__=0.2.36.25
 
 
 STS_FAILED=1
@@ -189,7 +189,7 @@ conf_default() {
     set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
     # set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
     # set_cfg_def "lisa_git_LocalUser" "odoo:odoo" "0"
-    set_cfg_def "wkhtmltopdf_wget_URL" "http://download.gna.org/wkhtmltopdf/0.12/0.12.1" "0"
+    set_cfg_def "wkhtmltopdf_wget_URL" "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1"
     if [ "$MACHARCH" != "x86_64" ]; then
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-trusty-i386.deb" "0" "Ubuntu14"
       set_cfg_def "wkhtmltopdf_wget_xname" "wkhtmltox-0.12.1_linux-precise-i386.deb" "0" "Ubuntu12"
@@ -250,10 +250,11 @@ store_cfg_param_value() {
     local p dev
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${2}_$5"
-    elif [[ " BOP BOP_GRF_ADD build_fileignore build_PKGLIST build_PKGPATH build_with_z0libr build_with_odoorc binPkgList\
- cmdname confn etcPkgList FINDCFN git_LocalRoot git_LocalUser install_LocalRoot install_LocalTmp install_md5 install_URL\
- install_xname init_svcname ReqPkgList svcname SubPkgList with_z0libr xtlcmd xtlcmd_install xtlcmd_remove wget_URL\
- wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
+    elif [[ " BOP BOP_GRF_ADD binPkgList build_fileignore build_PkgList build_PKGPATH\
+ build_with_z0libr build_with_odoorc cmdname confn etcPkgList FINDCFN git_LocalDir\
+ git_LocalRoot git_LocalUser git_URL init_svcname install_LocalRoot install_LocalTmp\
+ install_md5 install_xname ReqPkgList svcname SubPkgList with_z0libr xtlcmd xtlcmd_install\
+ xtlcmd_remove wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
       p="${5}_$2"
     else
       p="$2"
@@ -834,7 +835,7 @@ get_pkg_ver_inq() {
         declare $X="$pkgversion"
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_inq($1 $2)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_inq($1 $2)">>~/$THIS.his
     echo $pkgversion
 }
 
@@ -864,7 +865,7 @@ get_pkg_ver_pip() {
         declare $X="$pkgversion"
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_pip($1 $2)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_pip($1 $2)">>~/$THIS.his
     echo $pkgversion
 }
 
@@ -894,7 +895,7 @@ get_pkg_ver_rpm() {
         declare $X="$pkgversion"
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_rpm($1 $2)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_rpm($1 $2)">>~/$THIS.his
     echo $pkgversion
 }
 
@@ -928,7 +929,7 @@ get_pkg_ver_dpkg() {
         declare $X="$pkgversion"
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_dkpg($1 $2)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_dkpg($1 $2)">>~/$THIS.his
     echo $pkgversion
 }
 
@@ -951,7 +952,6 @@ get_pkg_ver_git() {
       IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$4"
       pkg_URL=$(get_full_URL "$1" $2 $3 $4 "$5")
       subpkg=$(get_dir_URL "$1" $2 $3 $4 "$5")
-      # local pkg_user="$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)"
       local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
       if [ -n "$pkg_URL" ]; then
         do_git_localroot version $1 $2 $3 $4 "$5"
@@ -968,14 +968,14 @@ get_pkg_ver_git() {
         fi
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_git($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_git($1 $2 $3 $4 $5)">>~/$THIS.his
     echo $pkgversion
 }
 
 get_pkg_ver() {
 # get_pkg_ver(pkgname [OPTS] [param] [SPECIMEN])
 # return: pkgversion
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "get_pkg_ver($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "get_pkg_ver($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgname=$1
     local ij
     if [ "$1" == "EVERYTHINGS" ]; then
@@ -1010,8 +1010,14 @@ get_pkg_ver() {
         fi
       fi
     fi
-    if [[ $2 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$pkgversion=get_pkg_ver($1 $2)">>~/$THIS.his; fi    #debug
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$pkgversion=get_pkg_ver($1 $2)">>~/$THIS.his
     echo $pkgversion
+}
+
+expand_param() {
+# expand_param(value,version)
+    local x="${1//\$\{version\}/$2}"
+    echo "$x"
 }
 
 get_act_xtlcmd() {
@@ -1035,7 +1041,7 @@ get_act_xtlcmd() {
     if [ "$xtlcmd" == "$1" ] && [ "$2" == "install" -o "$2" == "remove" ]; then
       xtlcmd=
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xtlcmd=get_act_xtlcmd($1 $2 $3)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xtlcmd=get_act_xtlcmd($1 $2 $3)">>~/$THIS.his
     echo "$xtlcmd"
 }
 
@@ -1074,7 +1080,7 @@ get_full_xtlcmd() {
     elif [ -z "$xtlcmd" ]; then
       xtlcmd="#"
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_full_xtlcmd($1 $2 $3)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_full_xtlcmd($1 $2 $3)">>~/$THIS.his
     echo "$xtlcmd"
 }
 
@@ -1161,7 +1167,7 @@ get_dir_URL() {
         fi
       fi
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$subpkg=get_dir_URL($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$subpkg=get_dir_URL($1 $2 $3 $4 $5)">>~/$THIS.his
     echo "$subpkg"
 }
 
@@ -1179,7 +1185,7 @@ get_full_URL() {
     else
       pkg_URL="$(get_prm_value ${2}_${xtlcmd}_URL)"
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$pkg_URL=get_full_URL($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$pkg_URL=get_full_URL($1 $2 $3 $4 $5)">>~/$THIS.his
     echo "$pkg_URL"
 }
 
@@ -1202,12 +1208,20 @@ do_git_localroot() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "do_git_localroot($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgname="$2"
     local xtlcmd=git
-    local LocalRoot=$(get_full_LocalRoot "$1" $2 $3 $4 "$5")
-    local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
-    local pkg lop lreqver rop rreqver branch v
+    local pkg lop lreqver rop rreqver branch v LocalDir
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    local LocalDir="$(get_prm_value ${pkgname}_LocalDir)"
     local sts=$STS_FAILED
+    if [[ $3 =~ s ]] && [ -n "$branch" ]; then
+      local LocalRoot=$(get_full_LocalRoot "$1" ${pkg} $3 $4 "$5")
+      local pkg_branch="$(get_prm_value ${pkg}_Branch)"
+      local pLocalDir="$(get_prm_value ${pkg}_${xtlcmd}_LocalDir)"
+      [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $branch)
+    else
+      local LocalRoot=$(get_full_LocalRoot "$1" ${pkgname} $3 $4 "$5")
+      local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
+      local pLocalDir="$(get_prm_value ${pkgname}_${xtlcmd}_LocalDir)"
+      [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $branch)
+    fi
     if [ -n "$LocalRoot" ]; then
       local pgkpath=
       if [ "$1" == "install" ]; then
@@ -1215,7 +1229,7 @@ do_git_localroot() {
           mkdir_traced $LocalRoot
         fi
         if [[ $3 =~ s ]] && [ -n "$branch" ]; then
-          pgkpath=$LocalRoot/$branch
+          pgkpath=$LocalRoot/$LocalDir
         else
           pgkpath=$LocalRoot
         fi
@@ -1223,12 +1237,14 @@ do_git_localroot() {
       if [ -d $LocalRoot -a "$1" != "install" ]; then
         if [ -n "$pkg_branch" ]; then
           if [ -n "$branch" -a "$1" != "version" ]; then
-            pgkpath=$LocalRoot/$branch
+            pgkpath=$LocalRoot/$LocalDir
           else
             for v in $pkg_branch; do
-              if [ -d $LocalRoot/$v ]; then
+              LocalDir=$v
+              [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $v)
+              if [ -d $LocalRoot/$LocalDir ]; then
                 if $(cmp_ver "$v" "$lop" "$lreqver") && $(cmp_ver "$v" "$rop" "$rreqver"); then
-                  pgkpath=$LocalRoot/$v
+                  pgkpath=$LocalRoot/$LocalDir
                 fi
               fi
             done
@@ -1259,6 +1275,34 @@ do_git_localroot() {
       sts=$?
     fi
     return $sts
+}
+
+
+add_oca_dependencies() {
+# add_oca_dependencies(action pks OPTS [param] [SPECIMEN])
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "oca_dependencies($1 $2 $3 $4 $5)">>~/$THIS.his
+    local pkgs="$2"
+    local xtlcmd=git
+    local pkg lop lreqver rop rreqver branch LocalDir f n p v subpkg add_pkgs
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    local sts=$STS_FAILED
+    local LocalRoot=$(get_full_LocalRoot "$1" ${pkg} $3 $4 "$5")
+    local pLocalDir="$(get_prm_value ${pkg}_${xtlcmd}_LocalDir)"
+    [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $branch)
+    add_pkgs=
+    for subpkg in $pkgs; do
+      if [ $test_mode -eq 0 -a -f $LocalRoot/$LocalDir/$subpkg/oca_dependencies.txt ]; then
+        f=$LocalRoot/$LocalDir/$subpkg/oca_dependencies.txt
+        while IFS=\= read p n v; do
+          if [[ " $pkgs " =~ [[:space:]]$o[[:space:]] ]]; then
+            :
+          else
+            add_pkgs="$add_pkgs $p"
+          fi
+        done < $f
+      fi
+    done
+    echo $add_pkgs
 }
 
 update_hba_conf() {
@@ -1538,7 +1582,6 @@ do_dry_build_package() {
     local tarball=$(get_prm_value ${pkgname}_install_xname)
     local SETUP=./setup.sh
     PKGLIST=$(create_pkglist $1)
-    echo "<<<$PKGLIST>>>"
     s=0
     for f in $PKGLIST; do
       if [ ! -f $f ]; then
@@ -1702,13 +1745,13 @@ cmp_ver() {
 
 satisfy_request() {
 # satisfy_request(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "satisfy_request($1 $2 $3)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "satisfy_request($1 $2 $3)">>~/$THIS.his
     local sts=127
     local s
     local pkgname=$2
     local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList list)"
     # ReqPkgList="${ReqPkgList//,/ }"
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "    ${pkgname}_ReqPkgList=$ReqPkgList">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "    ${pkgname}_ReqPkgList=$ReqPkgList">>~/$THIS.his
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "")
     if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
       if [[ "$ReqPkgList" =~ $xtlcmd ]]; then
@@ -1717,7 +1760,7 @@ satisfy_request() {
         local ReqPkgList="$ReqPkgList $xtlcmd"
       fi
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  REQ=$ReqPkgList">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  REQ=$ReqPkgList">>~/$THIS.his
     if [ "$1" == "install" -a -n "$ReqPkgList" ]; then
       ((prdstk_level++))
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
@@ -1734,7 +1777,7 @@ satisfy_request() {
       done
       ((prdstk_level--))
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #satisfy_request">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #satisfy_request">>~/$THIS.his
     return $sts
 }
 
@@ -1801,70 +1844,6 @@ do_act_all_deppkgs() {
     fi
     if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_act_all_deppkgs">>~/$THIS.his; fi    #debug
     return $sts
-}
-
-__lisa_install_odoo() {
-# lisa_install_odoo::pkgname opt_yes xtlcmd, stscmd STD_PKGS
-    # init_odoo_env
-    git_opts=""
-    if [ "$opt_odoo" == "*" -o -z "$opt_odoo" ]; then
-      local ov_iter="10 9 8 7 6"
-    else
-      local ov_iter=$opt_odoo
-      git_opts="--single-branch"
-    fi
-    if [ $opt_dev -eq 0 ]; then
-      git_opts="--depth 1 $git_opts"
-    fi
-    for ov in $ov_iter; do
-      local ovf=$(get_odoo_full_ver $ov)
-      local xtl=1
-      local v=$(_inq "odoo")
-      if [ -n "$v" -a -d /opt/odoo/$ovf ]; then
-        cd /opt/odoo/$ovf
-        git status &>/dev/null
-        if [ $? -ne 128 ]; then xtl=0; fi
-      fi
-      run_traced "cd /opt/odoo"
-      if [ $xtl -gt 0 ]; then
-        run_traced "git clone https://github.com/$gitrep.git $ovf -b $ovf $git_opts" "odoo" #debug
-        if [ -n "$opt_osub" ]; then
-          lisa_install_submodule_by_git "$opt_osub" "$ov"
-        fi
-        if [ -n "$opt_sub" ]; then
-          lisa_install_submodule_by_git "$opt_sub" "$ov"
-        fi
-        if [ -n "$opt_locale" ]; then
-          lisa_install_submodule_by_git "$opt_locale" "$ov"
-        fi
-      fi #debug
-      run_traced "chown -R odoo:odoo $ovf/"
-      run_traced "cd /opt/odoo/$ovf"
-      run_traced "git checkout $ovf"
-      if [ $test_mode -eq 0 -a -f /opt/odoo/$ovf/requirements.txt ]; then
-        local f=/opt/odoo/7.0/requirements.txt
-        local p n v r
-        while IFS=\= read p n v; do
-          r=$(lisa -q version $p)
-          r=$(echo $r)
-          if [ "$r" == "$v" ]; then
-            elog "Package $p $r already installed"
-          else
-            r=$(lisa -q status $p|grep "could be")
-            if [ -z "$r" ]; then
-              run_traced "pip install $p --upgrade"
-            else
-              run_traced "pip install $p"
-            fi
-            r=$(lisa -q version $p)
-            r=$(echo $r)
-            if [ "$r" != "$v" ]; then
-              elog "Package $p has invalid version $r: required $v"
-            fi
-          fi
-        done < $f
-      fi
-    done
 }
 
 lisa_update_odoo() {
@@ -2078,12 +2057,12 @@ lisa_install_submodule_by_git() {
 do_dry_install_submodule_by_git() {
 # do_dry_install_submodule_by_git(action pks OPTS param [SPECIMEN])
 # specimen contains top module name and version
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_submodule_by_git($1 \"$2\" $3 $4 \"$5\")">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_submodule_by_git($1 \"$2\" $3 $4 \"$5\")">>~/$THIS.his
     local sts=$STS_SUCCESS
     local s
+    local xtlcmd pkg_user pkg lop lreqver rop rreqver branch x p
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     if [ "$2" == "." ]; then
-      local xtlcmd pkg_user pkg lop lreqver rop rreqver branch x p
-      IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
       xtlcmd=git
       pkg_user=$(get_prm_value ${pkg}_${xtlcmd}_LocalUser)
       pkg_group=$(echo $pkg_user:$pkg_user|awk -F: '{print $2}')
@@ -2095,6 +2074,9 @@ do_dry_install_submodule_by_git() {
       run_traced "git submodule update --init" "$pkg_user"
     else
       CWD=$PWD
+      if [ -n "$branch" ]; then
+        run_traced "git checkout $branch"
+      fi
       for pkgname in ${2//,/ }; do
         cd $CWD
         # do_1_status_package $1 $pkgname ${3}s $4 "$5"
@@ -2118,8 +2100,10 @@ do_dry_install_by_git() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3 $4 \"$5\")">>~/$THIS.his
     local pkgname=$2
     local xtlcmd=git
-    local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p ldir
+    local f s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch n x p LocalDir add_subpkgs
+    local pLocalDir="$(get_prm_value ${pkgname}_${xtlcmd}_LocalDir)"
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $branch)
     if [[ $3 =~ s ]]; then
       subpkg=$2
       pkgname=${pkg}__$2
@@ -2166,12 +2150,7 @@ do_dry_install_by_git() {
         branch=
       fi
       if [ -z "$subpkg" ]; then
-        if [ "$pkgname" == "odoo" -a $opt_mult -gt 0 -a  -n "$branch" ]; then
-          ldir=$branch
-        else
-          ldir=$pkgname
-        fi
-        run_traced "git clone $pkg_URL $ldir $git_opts" "$pkg_user"
+        run_traced "git clone $pkg_URL $LocalDir $git_opts" "$pkg_user"
         sts=$?
       else
         if [ -f .gitignore -o $test_mode -gt 0 ]; then
@@ -2192,7 +2171,6 @@ do_dry_install_by_git() {
             run_traced "git remote add upstream $x" "$pkg_user"
           fi
         fi
-        run_traced "cd $CWD"
       fi
       if [ -n "$pkg_user" ]; then
         run_traced "chown -R $pkg_user:$pkg_group $pkgname/"
@@ -2215,10 +2193,7 @@ do_dry_install_by_git() {
         else
           pkg_subm="$(get_prm_value ${pkgname}_SubPkgList)"
         fi
-        if [ -n "$pkg_subm" ]; then
-          if [ -n "$branch" ]; then
-            run_traced "git checkout $branch"
-          fi
+        if [ -n "$pkg_subm" -a $opt_nake -eq 0 ]; then
           if [ "$pkgname" == "odoo" ]; then
             if [ "$opt_oed" == "zeroincombenze" ]; then
               pkg_subm="$pkg_subm l10n-italy-supplemental account_banking_cscs"
@@ -2230,15 +2205,23 @@ do_dry_install_by_git() {
         fi
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -z "$subpkg" -a -n "$opt_locale" ]; then
+        if [ -z "$subpkg" -a -n "$opt_locale" -a $opt_nake -eq 0 ]; then
           do_dry_install_submodule_by_git $1 "$opt_locale" $3 $4 "$5"
           s=$?
           [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
         fi
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -n "$opt_sub" ]; then
+        if [ -n "$opt_sub" -a $opt_nake -eq 0 ]; then
           do_dry_install_submodule_by_git $1 "$opt_sub" $3 $4 "$5"
+          s=$?
+          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+        fi
+      fi
+      if [ $sts -eq $STS_SUCCESS -a "$pkgname" == "odoo" -a "$opt_oed" != "odoo" ]; then
+        add_subpkgs=$(add_oca_dependencies $1 "$pkg_subm $subpkg $opt_sub" $3 $4 "$5")
+        if [  -n "$add_subpkgs" ]; then
+          do_dry_install_submodule_by_git $1 "$add_subpkgs" $3 $4 "$5"
           s=$?
           [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
         fi
@@ -2267,6 +2250,7 @@ do_dry_remove_lisa() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS    #debug
     run_traced "rm /usr/bin/$2"
     run_traced "rm /usr/bin/${2}.*"
+    run_traced "rm /usr/bin/${2}_*"
     return $STS_SUCCESS
 }
 
@@ -2670,6 +2654,27 @@ do_deploy_package() {
     return $sts
 }
 
+do_dry_install_lisa() {
+# check if 1.st installation 
+    local OPTS sts
+    [ $opt_dry_run -gt 0 ] && OPTS=${OPTS}n
+    [ $opt_verbose -gt 0 ] && PTS=${OPTS}v
+    [ -n "$OPTS" ] && OPTS=-${OPTS}
+    if [ "$TDIR" != "/usr/bin" -a ! -f ./setup.sh ]; then
+      create_setup lisa ./setup.sh
+    fi
+    if [ "$TDIR" != "/usr/bin" -a -f ./setup.sh ]; then
+      [ $opt_dry_run -gt 0 ] && echo "> ./setup.sh $OPTS"
+      [ $opt_dry_run -eq 0 -a $opt_verbose -gt 0 ] && echo "\$ ./setup.sh $OPTS"
+      ./setup.sh $OPTS
+      sts=$?
+    else
+      echo "!! File ./setup.sh not found!"
+      sts=$STS_FAILED
+    fi
+    return $sts
+}
+
 do_dry_install_by_wget() {
 # do_dry_install_by_wget(action pkgname OPTS)
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_wget($1 $2 $3)">>~/$THIS.his
@@ -2821,8 +2826,15 @@ do_1_tellme_package() {
     elif [ "$4" == "localroot" ]; then
       local p=$(get_full_LocalRoot 'install' $pkgname)
       echo "$p"
+    elif [ "$4" == "localdir" ]; then
+      local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
+      x="$(get_prm_value ${pkgname}_${xtlcmd}_LocalDir)"
+      [ -n "$x" ] && p=$(expand_param $x $branch)
+      echo "$p"
+    elif [ "$4" == "infn" ]; then
+      echo "$PKG_CONF $SAMPLE"
     else
-      echo "Invalid param: branches|cmdname|confdirs|confn|installer|localroot|realname|requirements|submodules|vfycmd"
+      echo "Invalid param: branches|cmdname|confdirs|confn|infn|installer|localdir|localroot|realname|requirements|submodules|vfycmd"
       sts=$STS_FAILED
     fi
     return $sts
@@ -3141,11 +3153,11 @@ please() {
 
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        n           o       p         P          q           s         T         u       V           v           y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      1       "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       0       ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           s         T         u       V           v           y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="      1       "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       0       ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "undocumented"\
  "configuration file (def /etc/lisa/lisa.conf)"\
@@ -3161,6 +3173,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "log file name (def /var/log/lisa.log)"\
  "include localization module for odoo; use ISO3166 country code"\
  "multiple version environment (append version to filenames)"\
+ "do nake installation (do not install submodules)"\
  "do nothing (dry-run)"\
  "select odoo family distribution; may be odoo,oca,zeroincombenze"\
  "do not use pip if found std package "\
@@ -3208,8 +3221,6 @@ opt_aaeR=$(echo "0$opt_aae"|awk -F, '{print $1}')
 opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
 
 for tid in 0 1 2 3; do
-  # eval $(init_cfg $tid)
-  # eval $(active_cfg $tid)
   CFG_init $tid
 done
 prdstk_level=0
@@ -3247,8 +3258,6 @@ if [ $test_mode -gt 0 -a "$action" != "update" ]; then
     SIMULATE_NO="$SIMULATE_NO port_tcp_22"
   fi
 fi
-ODOO_UID=$(get_prm_value "ODOO_UID")
-ODOO_GID=$(get_prm_value "ODOO_GID")
 if [ -z "$opt_depth" ]; then
   opt_depth=999
 fi

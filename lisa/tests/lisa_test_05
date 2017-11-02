@@ -119,20 +119,12 @@ test_01() {
       cat <<EOF >$TESTDIR/res/lisa__RHEL.05.test
 > yum -y install wget
 > yum -y install git
-> cd /tmp
-> wget http://download.zeroincombenze.org/lisa.tar.gz
-> tar -xf lisa.tar.gz
 > ./setup.sh -n
-> rm -f lisa.tar.gz
 EOF
       cat <<EOF >$TESTDIR/res/lisa__Debian.05.test
 > apt-get -y install wget
 > apt-get -y install git
-> cd /tmp
-> wget http://download.zeroincombenze.org/lisa.tar.gz
-> tar -xf lisa.tar.gz
 > ./setup.sh -n
-> rm -f lisa.tar.gz
 EOF
       # for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
       #   if [ -f $RUNDIR/$f ]; then
@@ -259,7 +251,7 @@ EOF
 > apt-get -y install xorg-x11-fonts-75dpi
 > apt-get -y install wget
 > cd /tmp
-> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
 > apt-get -y install wkhtmltox-0.12.1_linux-trusty-amd64.deb
 > rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb
 EOF
@@ -268,7 +260,7 @@ EOF
 > apt-get -y install xorg-x11-fonts-75dpi
 > apt-get -y install wget
 > cd /tmp
-> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-precise-i386.deb
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-precise-i386.deb
 > apt-get -y install wkhtmltox-0.12.1_linux-precise-i386.deb
 > rm -f wkhtmltox-0.12.1_linux-precise-i386.deb
 EOF
@@ -277,7 +269,7 @@ EOF
 > yum -y install xorg-x11-fonts-75dpi
 > yum -y install wget
 > cd /tmp
-> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-centos7-amd64.rpm
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-centos7-amd64.rpm
 > yum -y install wkhtmltox-0.12.1_linux-centos7-amd64.rpm
 > rm -f wkhtmltox-0.12.1_linux-centos7-amd64.rpm
 EOF
@@ -286,7 +278,7 @@ EOF
 > yum -y install xorg-x11-fonts-75dpi
 > yum -y install wget
 > cd /tmp
-> wget http://download.gna.org/wkhtmltopdf/0.12/0.12.1/wkhtmltox-0.12.1_linux-centos6-i386.rpm
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-centos6-i386.rpm
 > yum -y install wkhtmltox-0.12.1_linux-centos6-i386.rpm
 > rm -f wkhtmltox-0.12.1_linux-centos6-i386.rpm
 EOF
