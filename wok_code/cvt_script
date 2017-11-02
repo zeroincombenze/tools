@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.8.3
+__version__=0.1.8.4
 
 
 cvt_file() {
@@ -273,7 +273,7 @@ EOF
 
 blk_2() {
     cat <<EOF >>$1
-ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev")
+ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev /etc")
 if [ -z "\$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
@@ -330,7 +330,7 @@ if [ \${opt_tjlib:-0} -ne 0 ]; then
   . \$TRAVISLIBDIR
 fi
 if [ \${opt_oelib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev")
+  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev /etc")
   if [ -z "\$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
