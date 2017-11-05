@@ -53,7 +53,7 @@ test_run () {
       opt_ij="-d0 -oodoo"
     elif [ "$cmd" == "install" ]; then
       if [ "$Package" == "LAMP" ]; then
-        opt_ij="-Jpip,python-pip,gcc,iptables,epel-release,wheel,yum-utils,libffi-devel,pyOpenSSL,pyasn1,ndg-httpsclient,httpd,mariadb,mysql,postgresql-server -Iopenssh-server,python,php,php5"
+        opt_ij="-Jpip,python-pip,gcc,iptables,epel-release,python-wheel,yum-utils,libffi-devel,pyOpenSSL,pyasn1,ndg-httpsclient,httpd,mariadb,mysql,postgresql-server -Iopenssh-server,python,php,php5"
       elif [ "$Package" == "odoo" ]; then
         opt_ij="-d0 -Jodoo"
       fi
@@ -82,14 +82,16 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   rm -f $TESTDIR/res/*.08.test
   cat <<EOF >$TESTDIR/res/odoo__Debian.08.test
 odoo (install by git)
- service=odoo-server
+  service=odoo-server
+  requirements=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+  infn=$TESTDIR/odoo.lish
 EOF
-  echo " infn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__Debian.08.test
   cat <<EOF >$TESTDIR/res/odoo__RHEL.08.test
 odoo (install by git)
- service=odoo-server
+  service=odoo-server
+  requirements=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+  infn=$TESTDIR/odoo.lish
 EOF
-  echo " infn=$TESTDIR/odoo.lish">>$TESTDIR/res/odoo__RHEL.08.test
 fi
 Real_FH=$(xuname "-f")
 x=$(xuname "-v")
@@ -130,19 +132,19 @@ odoo (by git)
 --poppler-utils (by apt-get)
 --Babel (by pip)
 --python-babel-localedata (by apt-get)
---dateutil (by pip)
---decorator (by pip)
---docutils (by pip)
---feedparser (by pip)
+--python-dateutil (by pip)
+--decorator (by apt-get/pip)
+--docutils (by apt-get/pip)
+--feedparser (by apt-get/pip)
 --python-markupsafe (by apt-get)
 --python-openid (by pip)
 --passlib (by pip)
 --python-pil (by apt-get)
 --python-pyinotify (by apt-get)
---pyparsing (by pip)
+--pyparsing (by apt-get/pip)
 --python-pypdf (by apt-get)
 --python-renderpm (by apt-get)
---reportlab (by pip)
+--reportlab (by apt-get/pip)
 --python-reportlab-accel (by apt-get)
 --python-roman (by apt-get)
 --python-suds (by apt-get)
@@ -176,19 +178,19 @@ odoo (by git)
 --poppler-utils (by apt-get)
 --Babel (by pip)
 --python-babel-localedata (by apt-get)
---dateutil (by pip)
---decorator (by pip)
---docutils (by pip)
---feedparser (by pip)
+--python-dateutil (by pip)
+--decorator (by apt-get/pip)
+--docutils (by apt-get/pip)
+--feedparser (by apt-get/pip)
 --python-markupsafe (by apt-get)
 --python-openid (by pip)
 --passlib (by pip)
 --python-pil (by apt-get)
 --python-pyinotify (by apt-get)
---pyparsing (by pip)
+--pyparsing (by apt-get/pip)
 --python-pypdf (by apt-get)
 --python-renderpm (by apt-get)
---reportlab (by pip)
+--reportlab (by apt-get/pip)
 --python-reportlab-accel (by apt-get)
 --python-roman (by apt-get)
 --python-suds (by apt-get)
@@ -212,19 +214,18 @@ odoo (by git)
 --libyaml (by yum)
 --passlib (by pip)
 --pyOpenSSL (by yum)
---python-pychart (by yum)
---pyparsing (by pip)
---beaker (by pip)
---dateutil (by pip)
---docutils (by pip)
---feedparser (by pip)
---jinja2 (by pip)
---python-ldap (by pip)
+--pyparsing (by yum/pip)
+--beaker (by yum/pip)
+--python-dateutil (by pip)
+--docutils (by yum/pip)
+--feedparser (by yum/pip)
+--jinja2 (by yum/pip)
+--python-ldap (by yum/pip)
 --python-mako (by yum)
 --python-markupsafe (by yum)
 --python-openid (by pip)
---python-psutil (by yum)
---reportlab (by pip)
+--psutil (by pip)
+--reportlab (by yum/pip)
 --python-unittest2 (by yum)
 --urllib3 (by pip)
 --python-vobject (by yum)
@@ -234,7 +235,7 @@ EOF
   cat <<EOF >$TESTDIR/res/odoo__CentOS6.08.test
 odoo (by git)
 - TCP port 8069
---python-babel (by yum)
+--Babel (by pip)
 --dejavu-fonts-common (by yum)
 --dejavu-sans-fonts (by yum)
 --fontpackages-filesystem (by yum)
@@ -243,19 +244,18 @@ odoo (by git)
 --libyaml (by yum)
 --passlib (by pip)
 --pyOpenSSL (by yum)
---python-pychart (by yum)
---pyparsing (by pip)
---beaker (by pip)
+--pyparsing (by yum/pip)
+--beaker (by yum/pip)
 --python-dateutil (by wget)
---python-docutils (by yum)
+--python-docutils (by yum/pip)
 --python-feedparser (by yum)
---python-jinja2 (by yum)
---python-ldap (by pip)
+--python-jinja2 (by yum/pip)
+--python-ldap (by yum/pip)
 --python-mako (by yum)
 --python-markupsafe (by yum)
 --python-openid (by pip)
---python-psutil (by yum)
---python-reportlab (by yum)
+--psutil (by )
+--python-reportlab (by yum/pip)
 --python-unittest2 (by yum)
 --urllib3 (by pip)
 --python-vobject (by yum)
@@ -282,16 +282,18 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
   Package=LAMP
   cat <<EOF >$TESTDIR/res/LAMP__$Disto.08.test
 > yum install gcc
+> yum install epel-release
 > yum install python-pip
-#
+> pip install pip --upgrade
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
 > yum -y install epel-release
+> yum -y install epel-release
 > yum -y install python-pip
-#
+> pip install pip --upgrade
 > yum -y install python-wheel
-> pip install wheel
+> pip install wheel --upgrade
 > yum -y install yum-utils
 > yum -y install libffi-devel
 > yum -y install pyOpenSSL
@@ -313,10 +315,11 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 > systemctl start postgresql
 > systemctl enable postgresql
 # yum -y install php
+> yum -y install epel-release
 > yum -y install python-pip
-#
+> pip install pip --upgrade
 > yum -y install python-wheel
-> pip install wheel
+> pip install wheel --upgrade
 # yum -y install python
 EOF
   test_run "install $Package" "$Package" "$Disto" "install"

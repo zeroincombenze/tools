@@ -1,5 +1,5 @@
 mariadb (install by yum)
- service=mariadb
- command=mysql
- get_ver=mysql --version
- infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+  service=mariadb
+  command=mysql
+  get_ver=mysql --version
+  infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

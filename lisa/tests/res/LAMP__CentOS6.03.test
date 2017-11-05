@@ -1,5 +1,5 @@
 epel-release (by yum)
-pip (by pip)(pip --version)
+pip (by yum/pip)(pip --version)
 yum-utils (by yum)
 openssl-devel (by yum)
 libffi-devel (by yum)

@@ -1,1 +1,1 @@
-> yum -y install python-dateutil
+> pip install python-dateutil

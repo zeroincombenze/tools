@@ -5,13 +5,17 @@
 # in order to share your configuration with other people.
 # Last update: 2017-10-21
 #
+# ---------------------------------------------------------------------
+#
 # This is lisa configuration file, deployed in /etc/lisa directory
 # It contains global and default definitions and values.
 # Values in this file are evaluated in every time of execution
 # but they may be overridden by definitions in specific configuration package
 # file at the time of package process.
 #
+#
 # **Specific configuration file**
+#
 # Every package may have an own configuration file, named PKGNAME.lish where
 # PKGNAME is the name of package; i.e. apache2.lish
 # These files should contains just parameters beginning by package name (see
@@ -23,7 +27,9 @@
 # You can use you own configuration package in current directory, without
 # change standard file supplied by lisa installation.
 #
+#
 # **Sections**
+#
 # Sections declare application environment as follow:
 # [_Linux_] -> Parameters applied running under every Linux distribution
 # [_RHEL_] -> Parameters applied running Red Hat Entreprise Linux family,
@@ -43,7 +49,36 @@
 # After that you must insert section of families (RHEL and/or Debian)
 # Section of specific distributions must always be added after.
 #
+#
+# ** Special name python-PKGNAME **
+#
+# Some python packages were designed before pip and they were designed to install
+# with yum/apt-get. These packages have prefixed with "python-", i.e. python-dateutil
+# After pip is became tah standard installer for python packages, these packages
+# have changed in follow modes:
+# a) Some packages can be installed by pip with same name (i.e. python-dateutil)
+# b) Some packages have changed their name and lost "python-" prefix (i.e. babel, formerly python-babel)
+# c) Some packages must be installed by yum/apt-get (python- prefixed) and upgrade by pip (w/o prefixed, i.e. pip/python-pip itself)
+# d) Some packages must be installed by yum/apt-get and upgrade by pip with same name (i.e pychart)
+# For (a) cases:
+#   - could declare REAL_<pkgname> = python-<pkgname>
+#   - declare pip installer for python-<pkgname>
+# For (b) cases:
+#   - declare REAL_python-<pkgname> = <pkgname>
+#   - declare pip installer for <pkgname>
+# For (c) cases:
+#   - declare <pkgname> as migrate package, see PIP_PYSTD_PKGS parameter
+#     i.e. format: python-<pkgname>/<pkgname>
+#          where yum/apt-get is installation cmd of python-<pkgname>
+#                pip is updgrade cmd of <pkgname>
+# For (d) cases:
+#   - declare <pkgname> as migrate package, see PIP_PYSTD_PKGS parameter
+#     i.e. format: <pkgname>/<pkgname>
+#          where yum/apt-get is installation cmd of <pkgname>
+#                pip is updgrade cmd of <pkgname>
+#
 # **Parameters**
+#
 # Every parameter is in format name=value
 # Parameters beginning with package name (i.e. apache2_ReqPkgList) should be
 # insert in specific package configuration file.
@@ -137,6 +172,9 @@ REAL_mysql=mysql-server
 # Other packages
 REAL_openssh=openssh-server
 REAL_beautifulsoup=BeautifulSoup
+REAL_dateutil=python-dateutil
+REAL_python-babel=Babel
+REAL_python-psutil=psutil
 # Commands templates
 VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
@@ -144,15 +182,18 @@ VFYE2NL=None
 VFYERR=ssh,python
 NOINQ=vsftpd,postgresql-client-common,postgresql-contrib,ghostscript,odoo
 NAME_VIRTUAL=LAMP
-# Packages migrated into pip
-PIP_PYSTD_PKGS=pip,setuptools,wheel,\
-               dateutil,Babel,pyparsing,beaker,psycopg2,reportlab,decorator,\
-               docutils,feedparser,gevent,jinja2
+# Packages migrated into pip; format yum_apt-get_name/pip_name
+PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
+               python-pyparsing/pyparsing,python-beaker/beaker,\
+               python-psycopg2/psycopg2,python-reportlab/reportlab,\
+               python-decorator/decorator,python-docutils/docutils,\
+               feedparser/feedparser,python-gevent/gevent,\
+               python-jinja2/jinja2,python-ldap
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
-    pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
+    Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
-    simplejson
+    simplejson,python-dateutil,psutil,pychart,python-ldap
 # Packages cloned by git
 GIT_PKGS=odoo,pandoc
 # Packages downloaded by wget
@@ -169,7 +210,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          poppler-utils,python-babel,python-babel-localedata,python-decorator,\
          python-docutils,python-feedparser,python-gevent,python-greenlet,\
          python-imaging,python-jinja2,python-mako,python-markupsafe,\
-         python-pil,python-psutil,python-pybabel,python-pychart,\
+         python-pil,python-pybabel,\
          python-pygments,python-pyinotify,python-pyparsing,\
          python-pypdf,python-renderpm,python-reportlab,python-reportlab-accel,\
          python-roman,python-suds,python-unittest2,\
@@ -207,6 +248,7 @@ REAL_libreadline6-dev=readline-devel
 APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib-devel,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client
+pip_BOP=wheel
 
 
 [_RHEL_]
@@ -237,6 +279,9 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,pyOpenSSL,libffi-devel,
          php-cli,libxslt-python,python-devel,readline,zlib1g-dev,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils
+# [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
+pychart_xtlcmd_install=yum
+pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
 
 
 [_Ubuntu12_]
@@ -263,7 +308,6 @@ REAL_OSSERVICE=systemctl
 # mariadb does non exists in CentOS6
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
-REAL_dateutil=python-dateutil
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
@@ -281,3 +325,8 @@ REAL_OSSERVICE=systemctl
 # mysql is replaced by mariadb in CentOS7
 REAL_mysql=mariadb
 REAL_mysql-server=mariadb-server
+epel-release_cmdname=NULL
+python-pip_ReqPkgList=epel-release
+pip_ReqPkgList=epel-release
+python-pip_vfycmd=pip --version
+pip_BOP=wheel

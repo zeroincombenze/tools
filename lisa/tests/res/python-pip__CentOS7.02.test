@@ -1,2 +1,3 @@
-python-pip (install by yum)
- infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+python-pip (install by yum/pip)
+  requirements=epel-release
+  infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

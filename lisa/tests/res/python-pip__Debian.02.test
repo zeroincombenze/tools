@@ -1,2 +1,2 @@
-python-pip (install by apt-get)
- infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+python-pip (install by apt-get/pip)
+  infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish

@@ -1,2 +1,2 @@
-#
+> apt-get -y remove python-pip
 > apt-get autoremove

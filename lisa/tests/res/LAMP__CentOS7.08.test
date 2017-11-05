@@ -1,14 +1,16 @@
 > yum install gcc
+> yum install epel-release
 > yum install python-pip
-#
+> pip install pip --upgrade
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
 > yum -y install epel-release
+> yum -y install epel-release
 > yum -y install python-pip
-#
+> pip install pip --upgrade
 > yum -y install python-wheel
-> pip install wheel
+> pip install wheel --upgrade
 > yum -y install yum-utils
 > yum -y install libffi-devel
 > yum -y install pyOpenSSL
@@ -30,8 +32,9 @@
 > systemctl start postgresql
 > systemctl enable postgresql
 # yum -y install php
+> yum -y install epel-release
 > yum -y install python-pip
-#
+> pip install pip --upgrade
 > yum -y install python-wheel
-> pip install wheel
+> pip install wheel --upgrade
 # yum -y install python

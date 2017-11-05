@@ -17,11 +17,34 @@ SubPkgList=account-closing,account-financial-reporting,account-financial-tools,a
 ODOO_UID=497
 ODOO_GID=497
 git_LocalRoot=/opt/odoo
-git_LocalDir=odoo-${version}
+git_LocalDir=v${version}
 git_LocalUser=odoo:odoo
 
 [_Debian_]
-ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber\
+    ,BeautifulSoup,babel>=1.0,decorator,docutils,feedparser,gevent\
+    ,Jinja2,lxml,mako,mock,passlib,pillow,psutil,psycogreen,psycopg2>=2.2
+    ,python-chart,pydot,pyparsing<2,pypdf,pyserial,python-dateutil\
+    ,python-ldap,python-openid,pytz,pyusb>=1.0.0b1,pyyaml,qrcode\
+    ,reportlab,requests,simplejson,unittest2,vatnumber,vobject,werkzeug,xlwt
+
 
 [_CentOS7_]
-ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,BeautifulSoup
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
+    ,BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil\
+    ,python-decorator,python-docutils,python-feedparser,python-imaging\
+    ,python-jinja2,python-ldap,python-lxml,python-mako,python-mock\
+    ,python-openid,python-passlib,python-psutil,python-psycopg2\
+    ,python-reportlab,python-requests,python-simplejson,python-unittest2\
+    ,python-vobject,python-werkzeug,python-yaml,pytz
+
+
+[_CentOS6_]
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
+    ,BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil\
+    ,python-decorator,python-docutils,python-feedparser,python-imaging\
+    ,python-jinja2,python-ldap,python-lxml,python-mako,python-mock\
+    ,python-openid,python-passlib,python-psutil,python-psycopg2\
+    ,python-reportlab,python-requests,python-simplejson,python-unittest2\
+    ,python-vobject,python-werkzeug,python-yaml,pytz
+    

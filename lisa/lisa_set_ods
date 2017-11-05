@@ -7,21 +7,26 @@
 # (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 
-if [ -f z0librc ]; then
-  . ./z0librc
-elif [ -f ~/z0librc ]; then
-  . ~/z0librc
-elif [ -f /etc/z0librc ]; then
-  . /etc/z0librc
-else
-  echo "Libreria z0librc non trovata!"
-  exit 1
+
+THIS=$(basename $0)
+TDIR=$(readlink -f $(dirname $0))
+for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
+  if [ -e $x/z0librc ]; then
+    . $x/z0librc
+    Z0LIBDIR=$x
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
 fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
 
 __version__="0.1.2"
-THIS=$(basename $0)
-TDIR=$(echo $(readlink -f $(dirname $0)))
-
 
 
 OPTOPTS=(h        I         n            O         U        V           v)

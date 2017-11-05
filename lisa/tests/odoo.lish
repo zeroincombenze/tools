@@ -1,4 +1,4 @@
-# Odoo Configuration file
+# Odoo Configuration file for test unit
 # Please, if you update this configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # so your configuration should be shared with other people.
@@ -23,5 +23,9 @@ ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber\
 ,BeautifulSoup
 
 [_CentOS7_]
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
+,BeautifulSoup
+
+[_CentOS6_]
 ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
 ,BeautifulSoup

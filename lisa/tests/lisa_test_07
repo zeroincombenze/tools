@@ -60,16 +60,7 @@ test_run () {
       fi
       local opt_ij="-I$Package,vsftpd"
     elif [ "$Package" == "pip" -o "$Package" == "python-pip" ]; then
-      # if [ "$FH" == "Debian" ]; then
-      #  local Package="python-pip"
-        local opt_ij="-I$Package,python-pip"
-      # elif [ "$Disto" == "CentOS7" ]; then
-      #   local Package="python-pip"
-      #   local opt_ij="-I$Package"
-      # fi
-    # elif [ "$Package" == "python-pip" -a "$Disto" == "CentOS6" ]; then
-    #   local Package="pip"
-    #   local opt_ij="-I$Package"
+        local opt_ij="-I$Package,python-pip,python-whell,wheel"
     elif [ "$Package" == "postgresql-server" ]; then
       if [ "$FH" == "Debian" ]; then
         local Package="postgresql"
@@ -168,18 +159,24 @@ EOF
 # apt-get -y remove postgresql-contrib
 > apt-get autoremove
 EOF
-  cat <<EOF >$TESTDIR/res/pip.07.test
-#
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.07.test
+> yum -y remove python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/pip__CentOS7.07.test
+> yum -y remove python-pip
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.07.test
-#
+> apt-get -y remove python-pip
 > apt-get autoremove
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.07.test
 > apt-get -y remove python-pip
 > apt-get autoremove
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__RHEL.07.test
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS6.07.test
+> yum -y remove python-pip
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.07.test
 > yum -y remove python-pip
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.07.test
@@ -229,6 +226,23 @@ for Package in lisa apache2 httpd\
   done
 done
 }
+
+Z0BUG_setup() {
+    [ -f /tmp/lisa.tar.gz ] && rm -f /tmp/lisa.tar.gz
+    [ -d /tmp/lisa ] && rm -fR /tmp/lisa
+    [ -f "/tmp/wkhtml*"  ] && rm -f /tmp/wkhtml*
+    if [ -f "/tmp/lisa*"  ]; then
+      echo "Test not executable!"
+      echo "Please, remove lisa file/directory from /tmp"
+      exit 1
+    fi
+    if [ -f "/tmp/wkhtml*"  ]; then
+      echo "Test not executable!"
+      echo "Please, remove wkhtmltopdf file from /tmp"
+      exit 1
+    fi
+}
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log "$@" 

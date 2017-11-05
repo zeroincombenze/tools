@@ -39,7 +39,7 @@ test_run() {
     local cmd="$4"
     local FH=
     local opt_e="-E$Disto"
-    local opt_ij=
+    opt_ij=
     if [ "$Disto" == "." ]; then
         local FH=$Real_FH
         local Disto=$Real_DISTO
@@ -89,7 +89,6 @@ test_run() {
       fi
       rm -f $TESTDIR/lisa.out
       eval $TPRODUCT $opt_e $opt_ij whatis $2>$TESTDIR/lisa.out
-      # eval $TPRODUCT $opt_e whatis $2
     fi
     # set +x #debug
     ci-test "$msg" "$TESTOUT" "$TESTDIR/lisa.out" "$cmd"
@@ -103,7 +102,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 EOF
 echo "lisa (by wget)($RUNDIR/lisa -V)">>$TESTDIR/res/lisa.03.test
   cat <<EOF >$TESTDIR/res/LAMP__Debian.03.test
-pip (by pip)(pip --version)
+pip (by apt-get/pip)(pip --version)
 libffi-dev (by apt-get)
 libssl-dev (by apt-get)
 python-openssl (by apt-get)
@@ -120,7 +119,7 @@ python (by apt-get)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.03.test
 epel-release (by yum)
-pip (by pip)(pip --version)
+pip (by yum/pip)(pip --version)
 yum-utils (by yum)
 openssl-devel (by yum)
 libffi-devel (by yum)
@@ -139,8 +138,8 @@ python (by yum)(python --version)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS7.03.test
 epel-release (by yum)
-pip (by pip)(pip --version)
-wheel (by pip)
+pip (by yum/pip)(pip --version)
+wheel (by yum/pip)
 yum-utils (by yum)
 libffi-devel (by yum)
 pyOpenSSL (by yum)
@@ -195,22 +194,24 @@ apache2 (by apt-get)(apachectl -v)
 --- TCP port 21
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.03.test
-pip (by pip)(pip --version)
+pip (by apt-get/pip)(pip --version)
+--wheel (by apt-get/pip)
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS7.03.test
-pip (by pip)(pip --version)
+pip (by yum/pip)(pip --version)
+--wheel (by yum/pip)
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS6.03.test
-pip (by pip)(pip --version)
+pip (by yum/pip)(pip --version)
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.03.test
-python-pip (by apt-get)
+python-pip (by apt-get/pip)
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.03.test
-python-pip (by yum)
+python-pip (by yum/pip)
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS6.03.test
-python-pip (by yum)
+python-pip (by yum/pip)
 EOF
   cat <<EOF >$TESTDIR/res/mysql-server__Debian.03.test
 mysql-server (by apt-get)(mysql --version)

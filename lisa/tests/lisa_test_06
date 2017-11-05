@@ -66,9 +66,6 @@ test_run () {
     elif [ "$Package" == "pip" ]; then
       local opt_ij="-I$Package,python-pip"
     elif [ "$Package" == "python-pip" ]; then
-      # if [ "$Disto" == "CentOS6" ]; then
-      #  local Package="pip"
-      # fi
       local opt_ij="-I$Package,python-pip"
     elif [ "$Package" == "postgresql-server" ]; then
       if [ "$FH" == "Debian" ]; then
@@ -93,7 +90,7 @@ test_run () {
     elif [ "$Package" == "openssh-server" ]; then
       opt_ij="-I$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils"
     elif [ "$Package" == "python" ]; then
-      opt_ij="-I$Package,python-setuptools,setuptools,python-wheel,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+      opt_ij="-Jpython-wheel,wheel -I$Package,python-setuptools,setuptools,python-pip,pip,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
     elif [ "$Package" == "wkhtmltopdf" ]; then
       opt_ij="-I$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
     fi
@@ -130,7 +127,27 @@ EOF
 > cd /tmp
 > wget http://download.zeroincombenze.org/lisa.tar.gz
 > tar -xf lisa.tar.gz
-> ./setup.sh -n
+> ./setup.sh -nv
+> mkdir -p /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
+> [ -x /usr/bin/lisa ] && chmod +x /usr/bin/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.man /usr/bin
+> [ -x /usr/bin/lisa.man ] && chmod +x /usr/bin/lisa.man
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
+> [ -x /usr/bin/lisa_bld_ods ] && chmod +x /usr/bin/lisa_bld_ods
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/LAMP.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoo.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/postgresql.lish /etc/lisa
+> cp /opt/odoo/dev/pypi/lisa/lisa/python.lish /etc/lisa
+> cd /opt/odoo/dev/pypi/lisa/lisa
+> _install_z0librc
+> cp /opt/odoo/dev/pypi/lisa/lisa/\odoorc /etc
+> cd ..
 > rm -f lisa.tar.gz
 EOF
   # for f in lisa.conf lisa.conf.sample odoo-server_Debian odoo-server_RHEL odoo-server; do
@@ -147,7 +164,7 @@ EOF
   # echo "> rm -f lisa.gz">>$TESTDIR/res/lisa.06.test
 #
   cat <<EOF >$TESTDIR/res/apache2__Debian.06.test
-> apt-get -y update apache2
+> apt-get -y update
 > apt-get -y upgrade apache2
 > apt-get -y install vsftpd
 > service apache2 restart
@@ -186,29 +203,37 @@ EOF
 > service postgresql restart
 EOF
   cat <<EOF >$TESTDIR/res/postgresql__Debian.06.test
-> apt-get -y update postgresql
+> apt-get -y update
 > apt-get -y upgrade postgresql
 > apt-get -y install postgresql-client-common
 > apt-get -y install postgresql-contrib
 > service postgresql restart
 EOF
-  cat <<EOF >$TESTDIR/res/python-pip__RHEL.06.test
-> yum -y update python-pip
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS6.06.test
+> pip install pip --upgrade
+EOF
+  cat <<EOF >$TESTDIR/res/python-pip__CentOS7.06.test
+> pip install pip --upgrade
+> pip install wheel --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.06.test
-> apt-get -y update python-pip
-> apt-get -y upgrade python-pip
+> pip install pip --upgrade
+> pip install wheel --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.06.test
 > pip install pip --upgrade
+> pip install wheel --upgrade
 EOF
-  cat <<EOF >$TESTDIR/res/pip__RHEL.06.test
+  cat <<EOF >$TESTDIR/res/pip__CentOS6.06.test
 > pip install pip --upgrade
 EOF
+  cat <<EOF >$TESTDIR/res/pip__CentOS7.06.test
+> pip install pip --upgrade
+> pip install wheel --upgrade
+EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.06.test
-> apt-get -y update openssh-server
+> apt-get -y update
 > apt-get -y upgrade openssh-server
-> apt-get -y update openssh-client
 > apt-get -y upgrade openssh-client
 > service ssh restart
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
@@ -236,14 +261,14 @@ EOF
   cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu14.06.test
 > cd /tmp
 > wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
-> apt-get -y update wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> apt-get -y update
 > apt-get -y upgrade wkhtmltox-0.12.1_linux-trusty-amd64.deb
 > rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb
 EOF
   cat <<EOF >$TESTDIR/res/wkhtmltopdf__Ubuntu12.06.test
 > cd /tmp
 > wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-precise-i386.deb
-> apt-get -y update wkhtmltox-0.12.1_linux-precise-i386.deb
+> apt-get -y update
 > apt-get -y upgrade wkhtmltox-0.12.1_linux-precise-i386.deb
 > rm -f wkhtmltox-0.12.1_linux-precise-i386.deb
 EOF
@@ -284,19 +309,16 @@ done
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   cat <<EOF >$TESTDIR/res/python__Debian.06.test
-> apt-get -y update python
+> apt-get -y install python-wheel
+> pip install wheel --upgrade
+> apt-get -y update
 > apt-get -y upgrade python
 > pip install setuptools --upgrade
-> apt-get -y update python-virtualenv
 > apt-get -y upgrade python-virtualenv
 > pip install virtualenv --upgrade
-> apt-get -y update libreadline6
 > apt-get -y upgrade libreadline6
-> apt-get -y update python-libxslt1
 > apt-get -y upgrade python-libxslt1
-> apt-get -y update libxml2
 > apt-get -y upgrade libxml2
-> apt-get -y update python-libxml2
 > apt-get -y upgrade python-libxml2
 > pip install lxml --upgrade
 > pip install psycopg2 --upgrade
@@ -308,6 +330,8 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > pip install pytz --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.06.test
+> yum -y install python-wheel
+> pip install wheel --upgrade
 > yum -y update python
 > pip install setuptools --upgrade
 > yum -y update python-virtualenv
@@ -338,6 +362,23 @@ for Package in python; do
   done
 done
 }
+
+Z0BUG_setup() {
+    [ -f /tmp/lisa.tar.gz ] && rm -f /tmp/lisa.tar.gz
+    [ -d /tmp/lisa ] && rm -fR /tmp/lisa
+    [ -f "/tmp/wkhtml*"  ] && rm -f /tmp/wkhtml*
+    if [ -f "/tmp/lisa*"  ]; then
+      echo "Test not executable!"
+      echo "Please, remove lisa file/directory from /tmp"
+      exit 1
+    fi
+    if [ -f "/tmp/wkhtml*"  ]; then
+      echo "Test not executable!"
+      echo "Please, remove wkhtmltopdf file from /tmp"
+      exit 1
+    fi
+}
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_lisa.log "$@"

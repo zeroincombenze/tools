@@ -1,5 +1,5 @@
 postgresql (install by apt-get)
- service=postgresql
- command=psql
- get_ver=psql --version
- infn=/opt/odoo/dev/pypi/lisa/lisa/postgresql.lish
+  service=postgresql
+  command=psql
+  get_ver=psql --version
+  infn=/opt/odoo/dev/pypi/lisa/lisa/postgresql.lish

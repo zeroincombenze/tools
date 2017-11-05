@@ -1,4 +1,4 @@
-pip (by pip)(pip --version)
+pip (by apt-get/pip)(pip --version)
 libffi-dev (by apt-get)
 libssl-dev (by apt-get)
 python-openssl (by apt-get)
