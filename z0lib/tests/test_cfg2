@@ -70,6 +70,19 @@ test_02() {
       test_result "param managed" "2" "$PASSED"
       PASSED=0
     done
+    for tid in 0; do
+      CFG_init $tid
+      FCONF="$TESTDIR/test.conf"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        link_cfg $FCONF "" $tid "" "-D"
+      fi
+      TRES=$(get_cfg_value $tid "param1")
+      test_result "find param1 OS ($tid)" "Right" "$TRES"
+      TRES=$(get_cfg_value $tid "param2")
+      test_result "find param2 OS ($tid)" "Debug" "$TRES"
+      test_result "param managed" "2" "$PASSED"
+      PASSED=0
+    done
 }
 
 Z0BUG_setup() {

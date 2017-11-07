@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.9
+__version__=0.1.52.10
 
 
 #
@@ -1659,16 +1659,16 @@ do_download_rep() {
       echo "Missed Odoo Version"
       exit 1
     fi
-    # dom=$(parse_URL "$1" "" "+DOMAIN")
+    # dom=$(parse_URI "$1" "" "+DOMAIN")
     # if [ -n "$dom" ]; then
     #   full_rep=$1
-    #   local_rep=$(parse_URL "$1" "" "+NAME")
+    #   local_rep=$(parse_URI "$1" "" "+NAME")
     #   # if [ "${local_rep: -4}" == ".git" ]; then
     #   #    local_rep=${local_rep:0: -4}
     #   # fi
     # else
-    full_rep=$(parse_URL "$1" "git@github.com:zeroincombenze/.git" "+ALL")
-    local_rep=$(parse_URL "$1" "" "+NAME")
+    full_rep=$(parse_URI "$1" "git@github.com:zeroincombenze/.git" "+ALL")
+    local_rep=$(parse_URI "$1" "" "+NAME")
     # fi
     [ -d $ORIG ] || mkdir -p $ORIG
     pushd $ORIG >/dev/null
