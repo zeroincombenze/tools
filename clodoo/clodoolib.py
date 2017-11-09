@@ -123,7 +123,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.11"
+__version__ = "0.1.11.1"
 
 
 #############################################################################
@@ -285,7 +285,7 @@ def default_conf(ctx):
               'setup_partner_banks': '0',
               'check_config': '0',
               'exit_onerror': '0',
-              'custom_act': 'cscs',
+              'custom_act': '',
               'install_modules': False,
               'uninstall_modules': False,
               'upgrade_modules': False,

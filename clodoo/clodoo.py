@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.72.7"
+__version__ = "0.2.72.8"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -328,7 +328,7 @@ def get_dblist(oerp):
 
 
 def get_companylist(oerp):
-    return oerp.search('res.company')
+    return oerp.search('res.company', order='id desc')
 
 
 def get_userlist(oerp):
@@ -720,7 +720,7 @@ def act_wep_company(oerp, ctx):
             if company_id == 1:
                 oerp.write(model,
                            [company_id],
-                           {'name': 'Your Company',
+                           {'name': 'Your company %d' % company_id,
                             'street': '',
                             'city': ''})
             else:
@@ -732,7 +732,7 @@ def act_wep_company(oerp, ctx):
                     msg_log(ctx, ctx['level'], msg)
                     oerp.write(model,
                                [company_id],
-                               {'name': 'Do not use',
+                               {'name': 'Do not use %d' % company_id,
                                 'street': '',
                                 'city': ''})
     return sts
@@ -2803,15 +2803,17 @@ def setstate_model_all_records(oerp, model, hide_cid, field_name,
     msg = u"Searching for records to update status in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(oerp, model, hide_cid, exclusion, ctx)
-    where = append_2_where(oerp,
-                           model,
-                           field_name,
-                           '!=',
-                           new_value,
-                           where,
-                           ctx)
+    if validate_field(oerp, model, field_name):
+        where = append_2_where(oerp,
+                               model,
+                               field_name,
+                               '!=',
+                               new_value,
+                               where,
+                               ctx)
     record_ids = oerp.search(model, where)
-    if not ctx['dry_run'] and len(record_ids) > 0:
+    if validate_field(oerp, model, 'state') and \
+            not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
         move_ctr = 0
         for record_id in record_ids:
@@ -2876,15 +2878,17 @@ def reactivate_model_all_records(oerp, model, hide_cid, field_name,
     msg = u"Searching for records to reactivate in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(oerp, model, hide_cid, exclusion, ctx)
-    where = append_2_where(oerp,
-                           model,
-                           field_name,
-                           '=',
-                           sel_value,
-                           where,
-                           ctx)
+    if validate_field(oerp, model, field_name):
+        where = append_2_where(oerp,
+                               model,
+                               field_name,
+                               '=',
+                               sel_value,
+                               where,
+                               ctx)
     record_ids = oerp.search(model, where)
-    if not ctx['dry_run'] and len(record_ids) > 0:
+    if validate_field(oerp, model, 'state') and \
+            not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
         move_ctr = 0
         for record_id in record_ids:
@@ -2918,43 +2922,43 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx,
     incr_lev(ctx)
     if reverse is None:
         reverse = False
-    if reverse:
-        msg = u"Searching for records to reactivate in %s" % model
-        msg_log(ctx, ctx['level'], msg)
+    if validate_field(oerp, model, 'active'):
         where = build_where(oerp, model, hide_cid, exclusion, ctx)
-        where = append_2_where(oerp,
-                               model,
-                               'active',
-                               '=',
-                               False,
-                               where,
-                               ctx)
+        if reverse:
+            msg = u"Searching for records to reactivate in %s" % model
+            msg_log(ctx, ctx['level'], msg)
+            where = append_2_where(oerp,
+                                   model,
+                                   'active',
+                                   '=',
+                                   False,
+                                   where,
+                                   ctx)
 
-    else:
-        msg = u"Searching for records to cancel in %s" % model
-        msg_log(ctx, ctx['level'], msg)
-        where = build_where(oerp, model, hide_cid, exclusion, ctx)
-        where = append_2_where(oerp,
-                               model,
-                               'active',
-                               '=',
-                               True,
-                               where,
-                               ctx)
-    record_ids = oerp.search(model, where)
-    if not ctx['dry_run'] and len(record_ids) > 0:
-        try:
-            if reverse:
-                oerp.write(model,
-                           record_ids,
-                           {'active': True})
-            else:
-                oerp.write(model,
-                           record_ids,
-                           {'active': False})
-        except:
-            if ctx['exit_onerror']:
-                sts = STS_FAILED
+        else:
+            msg = u"Searching for records to cancel in %s" % model
+            msg_log(ctx, ctx['level'], msg)
+            where = append_2_where(oerp,
+                                   model,
+                                   'active',
+                                   '=',
+                                   True,
+                                   where,
+                                   ctx)
+        record_ids = oerp.search(model, where)
+        if not ctx['dry_run'] and len(record_ids) > 0:
+            try:
+                if reverse:
+                    oerp.write(model,
+                               record_ids,
+                               {'active': True})
+                else:
+                    oerp.write(model,
+                               record_ids,
+                               {'active': False})
+            except:
+                if ctx['exit_onerror']:
+                    sts = STS_FAILED
     decr_lev(ctx)
     return sts
 
@@ -3200,9 +3204,22 @@ def reset_menuitem(oerp, ctx):
     return sts
 
 
+def validate_models(oerp, models):
+    cur_models = []
+    for model in models:
+        if oerp.search('ir.model', [('model', '=', model)]):
+            cur_models.append(model)
+    return cur_models
+
+def validate_field(oerp, model, name):
+    if oerp.search('ir.model.fields',
+                   [('model','=', model),
+                    ('name', '=', name)]):
+        return True
+    return False
+
 def remove_company_mail_records(oerp, ctx):
-    models = ('ir.attachment',
-              )
+    models = validate_models(oerp, ('ir.attachment',))
     records2keep = {}
     sts = remove_group_records(oerp, models, records2keep, ctx,
                                hide_cid=False)
@@ -3210,11 +3227,11 @@ def remove_company_mail_records(oerp, ctx):
 
 
 def remove_all_mail_records(oerp, ctx):
-    models = ('mail.message',
-              'mail.mail',
-              'mail.notification',
-              'mail.alias',
-              )
+    models = validate_models(oerp, ('mail.message',
+                                    'mail.mail',
+                                    'mail.notification',
+                                    'mail.alias',
+                                    ))
     records2keep = {}
     sts = remove_group_records(oerp, models, records2keep, ctx,
                                hide_cid=True)
@@ -3222,10 +3239,10 @@ def remove_all_mail_records(oerp, ctx):
 
 
 def remove_all_note_records(oerp, ctx):
-    models = ('note.stage',
-              'note.note',
-              'document.page',
-              )
+    models = validate_models(oerp, ('note.stage',
+                                    'note.note',
+                                    'document.page',
+                                    ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'note.stage': 8}
     else:
@@ -3236,10 +3253,10 @@ def remove_all_note_records(oerp, ctx):
 
 
 def remove_company_crm_records(oerp, ctx):
-    models = ('crm.lead',
-              'crm.helpdesk',
-              'crm.phonecall',
-              )
+    models = validate_models(oerp, ('crm.lead',
+                                    'crm.helpdesk',
+                                    'crm.phonecall',
+                                    ))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
     sts = remove_group_records(oerp, models, records2keep, ctx,
@@ -3248,10 +3265,10 @@ def remove_company_crm_records(oerp, ctx):
 
 
 def remove_all_crm_records(oerp, ctx):
-    models = ('crm.meeting',
-              'calendar.event',
-              'calendar.todo',
-              )
+    models = validate_models(oerp, ('crm.meeting',
+                                    'calendar.event',
+                                    'calendar.todo',
+                                    ))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
     sts = remove_group_records(oerp, models, records2keep, ctx,
@@ -3261,13 +3278,13 @@ def remove_all_crm_records(oerp, ctx):
 
 
 def remove_company_purchases_records(oerp, ctx):
-    models = ('procurement.order',
-              'purchase.order.2',
-              'purchase.order',
-              'purchase.requisition',
-              'product.pricelist.version',
-              'product.pricelist',
-              )
+    models = validate_models(oerp, ('procurement.order',
+                                    'purchase.order.2',
+                                    'purchase.order',
+                                    'purchase.requisition',
+                                    'product.pricelist.version',
+                                    'product.pricelist',
+                                    ))
     records2keep = {}
     special = {'procurement.order': 'reactivate',
                'purchase.order.2': 'wf',
@@ -3292,9 +3309,9 @@ def remove_all_purchases_records(oerp, ctx):
 
 
 def remove_company_sales_records(oerp, ctx):
-    models = ('sale.order',
-              'sale.shop',
-              )
+    models = validate_models(oerp, ('sale.order',
+                                    'sale.shop',
+                                    ))
     records2keep = {'sale.shop': 1}
     special = {'sale.order': 'set_state',
                }
@@ -3313,13 +3330,13 @@ def remove_all_sales_records(oerp, ctx):
 
 
 def remove_company_logistic_records(oerp, ctx):
-    models = ('stock.picking.out',
-              'stock.picking.in',
-              'stock.picking',
-              'stock.move',
-              'stock.location',
-              'stock.warehouse',
-              )
+    models = validate_models(oerp, ('stock.picking.out',
+                                    'stock.picking.in',
+                                    'stock.picking',
+                                    'stock.move',
+                                    'stock.location',
+                                    'stock.warehouse',
+                                    ))
     records2keep = {}
     special = {'stock.picking.out': 'reactivate',
                'stock.picking.in': 'reactivate',
@@ -3351,12 +3368,12 @@ def remove_all_logistic_records(oerp, ctx):
 
 
 def remove_company_project_records(oerp, ctx):
-    models = ('project.task.work',
-              'project.task',
-              'project.project.2',
-              'project.project',
-              'account.analytic.line'
-              )
+    models = validate_models(oerp, ('project.task.work',
+                                    'project.task',
+                                    'project.project.2',
+                                    'project.project',
+                                    'account.analytic.line'
+                                    ))
     records2keep = {}
     if ctx['custom_act'] == 'cscs':
         model = 'project.task'
@@ -3371,14 +3388,22 @@ def remove_company_project_records(oerp, ctx):
                                            3035, 3036, 3037, 3038,
                                            3039, 3040, 3187, 3361,
                                            3504, 3664, 3932)
-    special = {'project.task': 'set_state',
-               'project.project.2': 'reactivate',
-               'project.project': 'set_state',
-               }
-    specparams = {'project.task': ('state', 'cancelled'),
-                  'project.project.2': ('state', 'close', 'set_open'),
-                  'project.project': ('state', 'cancelled')
-                  }
+    if ctx['oe_version'] == '7.0:':
+        special = {'project.task': 'set_state',
+                   'project.project.2': 'reactivate',
+                   'project.project': 'set_state',
+                   }
+        specparams = {'project.task': ('state', 'cancelled'),
+                      'project.project.2': ('state', 'close', 'set_open'),
+                      'project.project': ('state', 'cancelled')
+                      }
+    else:
+        special = {'project.project.2': 'reactivate',
+                   'project.project': 'set_state',
+                   }
+        specparams = {'project.project.2': ('state', 'close', 'set_open'),
+                      'project.project': ('state', 'cancelled')
+                      }
     sts = remove_group_records(oerp, models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
@@ -3387,11 +3412,11 @@ def remove_company_project_records(oerp, ctx):
 
 
 def remove_all_project_records(oerp, ctx):
-    models = ('survey.page',
-              'survey.request',
-              'survey',
-              'project.phase'
-              )
+    models = validate_models(oerp, ('survey.page',
+                                    'survey.request',
+                                    'survey',
+                                    'project.phase'
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3408,12 +3433,12 @@ def remove_company_marketing_records(oerp, ctx):
 
 
 def remove_all_marketing_records(oerp, ctx):
-    models = ('marketing.campaign.workitem',
-              'marketing.campaign.segment',
-              'marketing.campaign',
-              'booking.resource',
-              'campaign.analysis',
-              )
+    models = validate_models(oerp, ('marketing.campaign.workitem',
+                                    'marketing.campaign.segment',
+                                    'marketing.campaign',
+                                    'booking.resource',
+                                    'campaign.analysis',
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3425,12 +3450,12 @@ def remove_all_marketing_records(oerp, ctx):
 
 
 def remove_company_hr_records(oerp, ctx):
-    models = ('hr.expense.expense.2',
-              'hr.expense.expense.3',
-              'hr.expense.expense.4',
-              'hr.expense.expense.5',
-              'hr.expense.expense',
-              )
+    models = validate_models(oerp, ('hr.expense.expense.2',
+                                    'hr.expense.expense.3',
+                                    'hr.expense.expense.4',
+                                    'hr.expense.expense.5',
+                                    'hr.expense.expense',
+                                    ))
     records2keep = {}
     special = {'hr.expense.expense.2': 'wf',
                'hr.expense.expense.3': 'wf',
@@ -3452,18 +3477,18 @@ def remove_company_hr_records(oerp, ctx):
 
 
 def remove_all_hr_records(oerp, ctx):
-    models = ('hr_timesheet_sheet.sheet.account',
-              'hr_timesheet_sheet.sheet',
-              'hr.analytic.timesheet',
-              'hr.expense.line',
-              'hr.contract',
-              'hr.holidays',
-              'hr.payslip',
-              'hr.attendance',
-              'hr.applicant',
-              'hr.department',
-              'hr.employee',
-              )
+    models = validate_models(oerp, ('hr_timesheet_sheet.sheet.account',
+                                    'hr_timesheet_sheet.sheet',
+                                    'hr.analytic.timesheet',
+                                    'hr.expense.line',
+                                    'hr.contract',
+                                    'hr.holidays',
+                                    'hr.payslip',
+                                    'hr.attendance',
+                                    'hr.applicant',
+                                    'hr.department',
+                                    'hr.employee',
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3475,8 +3500,8 @@ def remove_all_hr_records(oerp, ctx):
 
 
 def remove_company_product_records(oerp, ctx):
-    models = ('product.template',
-              )
+    models = validate_models(oerp, ('product.template',
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3488,11 +3513,11 @@ def remove_company_product_records(oerp, ctx):
 
 
 def remove_all_product_records(oerp, ctx):
-    models = ('product.category',
-              'product.uom.categ',
-              'product.uom',
-              'product.product',
-              )
+    models = validate_models(oerp, ('product.category',
+                                    'product.uom.categ',
+                                    'product.uom',
+                                    'product.product',
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3513,9 +3538,9 @@ def remove_all_product_records(oerp, ctx):
 
 
 def remove_company_partner_records(oerp, ctx):
-    models = ('res.partner.bank',
-              'res.partner',
-              )
+    models = validate_models(oerp, ('res.partner.bank',
+                                    'res.partner',
+                                    ))
     company_id = ctx['company_id']
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33523, 33783,
@@ -3536,9 +3561,9 @@ def remove_company_partner_records(oerp, ctx):
 
 
 def remove_company_analytics_records(oerp, ctx):
-    models = ('account.analytic.account',
-              'account.analytic.journal',
-              )
+    models = validate_models(oerp, ('account.analytic.account',
+                                    'account.analytic.journal',
+                                    ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'account.analytic.account': (48, 3932)}
     else:
@@ -3553,9 +3578,9 @@ def remove_company_analytics_records(oerp, ctx):
 
 
 def remove_all_partner_records(oerp, ctx):
-    models = ('res.partner.category',
-              'res.partner'
-              )
+    models = validate_models(oerp, ('res.partner.category',
+                                    'res.partner'
+                                    ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33890, 33523, 33783)}
     else:
@@ -3570,9 +3595,9 @@ def remove_all_partner_records(oerp, ctx):
 
 
 def remove_all_user_records(oerp, ctx):
-    models = ('ir.default',
-              'res.users',
-              )
+    models = validate_models(oerp, ('ir.default',
+                                    'res.users',
+                                    ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.users': (1, 4, 95)}
     else:
@@ -3622,22 +3647,22 @@ def remove_company_account_records(oerp, ctx):
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
         company_id = ctx['company_id']
-        models = ('account.invoice',
-                  'account.move',
-                  'account.voucher',
-                  'payment.order',
-                  'account.bank.statement',
-                  'account.period',
-                  'account.fiscalyear',
-                  'account.banking.account.settings',
-                  'spesometro.comunicazione',
-                  'payment.mode',
-                  'account.fiscal.position',
-                  'account.tax.code',
-                  'account.tax',
-                  'account.journal',
-                  'account.account',
-                  )
+        models = validate_models(oerp, ('account.invoice',
+                                        'account.move',
+                                        'account.voucher',
+                                        'payment.order',
+                                        'account.bank.statement',
+                                        'account.period',
+                                        'account.fiscalyear',
+                                        'account.banking.account.settings',
+                                        'spesometro.comunicazione',
+                                        'payment.mode',
+                                        'account.fiscal.position',
+                                        'account.tax.code',
+                                        'account.tax',
+                                        'account.journal',
+                                        'account.account',
+                                        ))
         if ctx['custom_act'] == 'cscs':
             records2keep = {'account.account': (1, 2, 31, 32,
                                                 54, 55, 109, 158, 159,
@@ -3669,8 +3694,8 @@ def remove_company_account_records(oerp, ctx):
 
 
 def remove_all_account_records(oerp, ctx):
-    models = ('payment.line',
-              )
+    models = validate_models(oerp, ('payment.line',
+                                    ))
     records2keep = {}
     special = {}
     specparams = {}
