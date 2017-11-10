@@ -21,7 +21,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.2.3
+__version__=0.2.3.1
 
 CRONTAB_SAVED=~/$THIS.crontab
 CRONTAB_TMP=~/$THIS.crontab.$$.tmp
@@ -32,8 +32,8 @@ VIM_RC=~/$THIS.vim
 extract_cmdline() {
     local cronline=$(grep "$opt_sel" $CRONTAB_SAVED|head -n1)
     local SUBM_TIME=$(date +"%H:%M" -d"+1 minutes")
-    local SUBM_HH=$(echo $SUBM_TIME|awk -F\: '{print $1}')
-    local SUBM_MM=$(echo $SUBM_TIME|awk -F\: '{print $2}')
+    local SUBM_HH=$(echo $SUBM_TIME|awk -F: '{print $1}')
+    local SUBM_MM=$(echo $SUBM_TIME|awk -F: '{print $2}')
     SK_CMD=
     SK_RCMD=
     SKTIME=

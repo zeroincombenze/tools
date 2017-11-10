@@ -2832,6 +2832,12 @@ def setstate_model_all_records(oerp, model, hide_cid, field_name,
                     oerp.execute(model,
                                  "tender_cancel",
                                  [record_id])
+                elif model == 'procurement.order' and \
+                        field_name == 'state' and \
+                        new_value == 'cancel':
+                    oerp.execute(model,
+                                 "cancel",
+                                 [record_id])
                 elif model == 'account.move' and \
                         field_name == 'state' and \
                         new_value == 'cancel':
@@ -3287,11 +3293,13 @@ def remove_company_purchases_records(oerp, ctx):
                                     ))
     records2keep = {}
     special = {'procurement.order': 'reactivate',
+               'procurement.order.2': 'set_state',
                'purchase.order.2': 'wf',
                'purchase.order': 'set_state',
                'purchase.requisition': 'set_state',
                }
     specparams = {'procurement.order': ('state', 'done', 'draft'),
+                  'procurement.order.2': ('state', 'cancel'),
                   'purchase.order.2': 'state_draft_set',
                   'purchase.order': ('state', 'cancel'),
                   'purchase.requisition': ('state', 'cancel'),
