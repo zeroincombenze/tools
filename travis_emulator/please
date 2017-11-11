@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.11
+__version__=0.1.52.14
 
 
 #
@@ -969,10 +969,6 @@ cvt_file() {
         local do_proc=1
       fi
       local fntmp=$f1.tmp
-      if [ $opt_orig -gt 0 ]; then
-        if [ -f "$f1_new" ]; then rm -f $f1_new; fi
-        run_traced "cp -p ./tmp/$ft $f1_new"
-      fi
       if [ -f $f1_new ]; then
         move $f1 $f1_cur
         move $f1_new $f1
@@ -981,6 +977,12 @@ cvt_file() {
         if [ -f "$f1_cur" ]; then rm -f $f1_cur; fi
         run_traced "cp -p $f1 $f1_cur"
         do_proc=1
+      fi
+      if [ $opt_orig -gt 0 -a -f ./tmp/$ft ]; then
+        # if [ -f "$f1_new" ]; then rm -f $f1_new; fi
+        # run_traced "cp -p ./tmp/$ft $f1_new"
+        run_traced "mv -f $f1 ${f1}.bak"
+        run_traced "cp -p ./tmp/$ft $f1"
       fi
       if [ "$3" == "travis" ]; then
         if [ "$2" == "oca" ]; then
@@ -1647,24 +1649,20 @@ do_docs() {
 }
 
 do_download_rep() {
-    wlog "do_download_rep $1"
+#do_download_rep(pkg [URL])
+    wlog "do_download_rep $1 $2"
     local dom full_rep local_rep
     local ORIG=~/original
     if [ -z "$opt_branch" ]; then
       echo "Missed Odoo Version"
       exit 1
     fi
-    # dom=$(parse_URI "$1" "" "+DOMAIN")
-    # if [ -n "$dom" ]; then
-    #   full_rep=$1
-    #   local_rep=$(parse_URI "$1" "" "+NAME")
-    #   # if [ "${local_rep: -4}" == ".git" ]; then
-    #   #    local_rep=${local_rep:0: -4}
-    #   # fi
-    # else
-    full_rep=$(parse_URI "$1" "git@github.com:zeroincombenze/.git" "+ALL")
-    local_rep=$(parse_URI "$1" "" "+NAME")
-    # fi
+    if [[ -n "$2" ]]; then
+      full_rep=$(parse_URI "$2" "https://github.com/zeroincombenze/.git" "+ALL+LOCAL")
+    else
+      full_rep=$(parse_URI "$1" "https://github.com/zeroincombenze/.git" "+ALL+LOCAL")
+    fi
+    local_rep=$(parse_URI "$full_rep" "" "+NAMEID+LOCAL")
     [ -d $ORIG ] || mkdir -p $ORIG
     pushd $ORIG >/dev/null
     [ -d "$local_rep" ] && rm -fR $local_rep/
@@ -1886,6 +1884,7 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+
 
 opts_travis "$pkg"
 CFG_init

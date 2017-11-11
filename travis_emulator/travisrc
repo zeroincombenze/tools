@@ -569,7 +569,7 @@ conf_default() {
 expand_path() {
 # expand_path (path)
 # return:path
-    local x=$(echo "$1"|sed -e s:\${pkgpath}:$PKGPATH:g -e s:\${pkgname}:$PKGNAME:g -e s:\${prjname}:$PRJNAME:g -e s:\${reposname}:$REPOSNAME:g -e s:\${version}:$BRANCH:g -e s:\${TRAVIS_BUILD_DIR}:$TRAVIS_BUILD_DIR:g  -e s:\${ODOO_REPO}:$ODOO_REPO:g -e s:\${HOME}:$HOME:g)
+    local x=$(echo "$1"|sed -e "s|\${pkgpath}|$PKGPATH|g" -e "s|\${pkgname}|$PKGNAME|g" -e "s|\${prjname}|$PRJNAME|g" -e "s|\${reposname}|$REPOSNAME|g" -e "s|\${version}|$BRANCH|g" -e "s|\${TRAVIS_BUILD_DIR}|$TRAVIS_BUILD_DIR|g"  -e "s|\${ODOO_REPO}|$ODOO_REPO|g" -e "s|\${HOME}|$HOME|g")
     echo $x|sed -e s\|\${PATH}\|$PATH\|g
 }
 
