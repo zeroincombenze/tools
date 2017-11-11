@@ -32,9 +32,6 @@ test_01() {
     local RES TRES URI
     URI="https://www.zeroincombenze.it"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      # set -x #debug
-      # parse_URI "$URI" "" "+PROT" #debug
-      # set +x #debug
       TRES=$(parse_URI "$URI" "" "+PROT")
     fi
     test_result "parse $URI" "https:" "$TRES"
@@ -55,7 +52,7 @@ test_01() {
       TRES=$(parse_URI "$URI" "" "+FULLNAME")
     fi
     test_result "parse $URI" "/main_page/z0" "$TRES"
-    URI="https://www.zeroincombenze.it/main_page/z0:8080"
+    URI="https://www.zeroincombenze.it:8080/main_page/z0"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRES=$(parse_URI "$URI" "" "+PROT")
     fi
@@ -97,25 +94,38 @@ test_01() {
     fi
     test_result "parse $URI" "https://www.zeroincombenze.it/main_page/z0" "$TRES"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      TRES=$(parse_URI "$URI" ".c" "+NAME+EXT")
+      TRES=$(parse_URI "$URI" ".c" "+NAMEID+EXT+LOCAL")
     fi
     test_result "parse $URI" "z0.c" "$TRES"
     RES=$(readlink -f $PWD/..)
     RES="$RES/example.sh"
     URI="../example"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      TRES=$(parse_URI "$URI" ".sh" "+DIRNAME+NAME+EXT+ABS")
+      TRES=$(parse_URI "$URI" ".sh" "+DIRNAME+NAMEID+EXT+LOCAL+ABS")
     fi
     test_result "parse $URI" "$RES" "$TRES"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      TRES=$(parse_URI "$URI" ".sh" "+FULLNAME+ABS")
+      TRES=$(parse_URI "$URI" ".sh" "+FULLNAME+ABS+LOCAL")
     fi
     test_result "parse $URI" "$RES" "$TRES"
-    # URI="git@github.com:zeroincombenze/tools.git"
-    # if [ ${opt_dry_run:-0} -eq 0 ]; then
-    #   TRES=$(parse_URI "$URI" "" "+DOMAIN")
-    # fi
-    # test_result "parse $URI" "github.com" "$TRES"
+    URI="git@github.com:zeroincombenze/tools.git"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRES=$(parse_URI "$URI" "" "+PROT")
+    fi
+    test_result "parse $URI" "git@github.com:" "$TRES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRES=$(parse_URI "$URI" "" "+HOST")
+    fi
+    test_result "parse $URI" "zeroincombenze" "$TRES"
+    URI="tools"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRES=$(parse_URI "$URI" "git@github.com:zeroincombenze/.git" "+LOCAL+ALL")
+    fi
+    test_result "parse $URI" "git@github.com:zeroincombenze/tools.git" "$TRES"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRES=$(parse_URI "$URI" "https://github.com/zeroincombenze/.git" "+LOCAL+ALL")
+    fi
+    test_result "parse $URI" "https://github.com/zeroincombenze/tools.git" "$TRES"
 }
 
 
