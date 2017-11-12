@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.14
+__version__=0.1.52.15
 
 
 #
@@ -346,6 +346,64 @@ cvt_gitmodule() {
     fi
 }
 
+cvt_travis() {
+# cvt_travis(file_readme oca|zero|oia currpt ORIG)
+    local fn=$1
+    local fntmp=$fn.tmp
+    local wf=0
+    local bi_found=0
+    while IFS= read -r line r || [ -n "$line" ]; do
+      if [ "$2" == "oca" ]; then
+        line=${line//  # - TRANSIFEX=\"0\"/  - TRANSIFEX=\"1\"}
+      else
+        line=${line//  - TRANSIFEX=\"1\"/  # - TRANSIFEX=\"0\"}
+      fi
+     if [[ $line =~ ^before_install: ]]; then
+        bi_found=1
+     elif [[ $line =~ ^install: ]]; then
+        if [ $bi_found -eq 0 ]; then
+          echo "before_install:">>$fntmp
+          echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --depth=1">>$fntmp
+          echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
+          echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
+          echo "">>$fntmp
+          wf=2
+        fi
+      elif [[ $line =~ ^[[:space:]][[:space:]]matrix: ]]; then
+        wf=1
+      elif [[ $line =~ ^[a-zA-Z_]+ ]]; then
+        wf=0
+      elif [ $wf -eq 1 ]; then
+        if [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.odoo/odoo. ]]; then
+          if [ "$BRANCH" == "7.0" ]; then
+            line=${line//TESTS=\"1\"/TESTS=\"0\"}
+          else
+            line=${line//TESTS=\"0\"/TESTS=\"1\"}
+          fi
+        elif [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.OCA/OCB. ]]; then
+          if [ "$BRANCH" == "7.0" ]; then
+            line=${line//TESTS=\"1\"/TESTS=\"0\"}
+          else
+            line=${line//TESTS=\"0\"/TESTS=\"1\"}
+          fi
+        fi
+     elif [ $wf -eq 2 ]; then
+       if [[ $line =~  [[:space:]]+.*git[[:space:]]clone[[:space:]].*https://github.com/OCA/maintainer-quality-tools.git ]]; then
+         line=${line//  - git clone/  # - git clone}
+       elif [[ $line =~ [[:space:]]+.*export[[:space:]]+PATH=.*HOME.*/maintainer-quality-tools/travis ]]; then
+         line=${line//  - export /  # - export }
+       fi
+      fi
+      echo "$line">>$fntmp
+    done < "$fn"
+    if [ ${test_mode:-0} -eq 0 -a -n "$(diff -q $fn $fntmp)" ]; then
+      move_n_bak $fntmp $fn
+    else
+      rm -f $fntmp
+    fi
+    set +x #debug
+}
+
 cvt_readme() {
 # cvt_readme(file_readme oca|zero|oia currpt ORIG)
 # params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
@@ -623,7 +681,9 @@ cvt_readme() {
 
     local ONLY_OCA="Irunbot Iclimate"
     local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it Idiff"
+    local ONLY_OIA="Icright IOCA Idocs Ihelp Ilang_en Ilang_it Idiff"
     local ONLY_ODOO="IOCA Itryit Iaddons"
+    local IGNORE_BTNOCA_4_PKG="l10n-italy-supplemental user_contributes"
     rm -f $fntmp
     # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
@@ -656,13 +716,22 @@ cvt_readme() {
             if [ ${!v} -ne 0 ]; then
               line="⌂"
             elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+              if [ "$2" != "oca" ]; then
                 line="⌂"
               fi
             elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
-              if [ "$2" == "oca" ]; then
+              if [ "$2" != "zero" ]; then
                 line="⌂"
-              elif [ "$2" == "oia" -a "$v" == "Ichat" ]; then
+                eval $v=1
+              elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
+                line="⌂"
+                eval $v=1
+              fi
+            elif [[ " $ONLY_OIA " =~ [[:space:]]$v[[:space:]] ]]; then
+              if [ "$2" != "oia" ]; then
+                line="⌂"
+                eval $v=1
+              elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
                 line="⌂"
                 eval $v=1
               fi
@@ -922,10 +991,8 @@ cvt_readme() {
         fi
       fi
     done
-    if [ ${test_mode:-0} -eq 0 -a "${RPT:0:4}" != "${3:0:4}" ]; then
+    if [ ${test_mode:-0} -eq 0 -a "${2:0:4}" != "${3:0:4}" ]; then
       if [ -n "$(diff -q $fn $fntmp)" ]; then
-        # run_traced "cp -p $fn $fn.bak"
-        # run_traced "mv $fntmp $fn"
         move_n_bak $fntmp $fn
       else
         rm -f $fntmp
@@ -985,18 +1052,19 @@ cvt_file() {
         run_traced "cp -p ./tmp/$ft $f1"
       fi
       if [ "$3" == "travis" ]; then
-        if [ "$2" == "oca" ]; then
-          cat $f1|sed -e 's:^  # - TRANSIFEX=.0.:  - TRANSIFEX="1":'>$fntmp
-          if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:^  # - TRANSIFEX=\"0\":  - TRANSIFEX=\"1\":' -e 's:pip install unidecode:pip install unidecode==0.04.17:' $f1"
-          fi
-        else
-          cat $f1|sed -e 's:^  - TRANSIFEX=.1.:  # - TRANSIFEX="0":'>$fntmp
-          if [ -n "$(diff -q $f1 $fntmp)" ]; then
-            run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:' $f1"
-          fi
-        fi
-        rm -f $fntmp
+        # if [ "$2" == "oca" ]; then
+        #   cat $f1|sed -e 's:^  # - TRANSIFEX=.0.:  - TRANSIFEX="1":'>$fntmp
+        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
+        #     run_traced "sed -i -e 's:^  # - TRANSIFEX=\"0\":  - TRANSIFEX=\"1\":' -e 's:pip install unidecode:pip install unidecode==0.04.17:' $f1"
+        #   fi
+        # else
+        #   cat $f1|sed -e 's:^  - TRANSIFEX=.1.:  # - TRANSIFEX="0":'>$fntmp
+        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
+        #     run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:' $f1"
+        #   fi
+        # fi
+        # rm -f $fntmp
+        cvt_travis $f1 "$2" "$4" "$5"
       elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
         cvt_readme $f1 "$2" "$4" "$5"
       fi
@@ -1504,6 +1572,7 @@ do_distribution() {
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=$(findpkg ".travis.yml" "$PD ..")
+        # echo "travis=$f1"  #debug
         if [ -n "$f1" ]; then
           # echo ">   cvt_file $f1 $2 travis $currpt" #debug
           cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
