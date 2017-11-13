@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.15
+__version__=0.1.52.18
 
 
 #
@@ -352,23 +352,40 @@ cvt_travis() {
     local fntmp=$fn.tmp
     local wf=0
     local bi_found=0
+    local git_subm=0
     while IFS= read -r line r || [ -n "$line" ]; do
       if [ "$2" == "oca" ]; then
         line=${line//  # - TRANSIFEX=\"0\"/  - TRANSIFEX=\"1\"}
       else
         line=${line//  - TRANSIFEX=\"1\"/  # - TRANSIFEX=\"0\"}
       fi
-     if [[ $line =~ ^before_install: ]]; then
+      if [[ $line =~ ^before_install: ]]; then
+        wf=4
         bi_found=1
-     elif [[ $line =~ ^install: ]]; then
+      elif [[ $line =~ ^git: ]]; then
+        wf=3
+      elif [[ $line =~ ^addons: ]]; then
+        if [ $wf -ne 3 ]; then
+          echo "git:">>$fntmp
+        fi
+        if [ $git_subm -eq 0 ]; then
+          echo "  submodules: false">>$fntmp
+          echo "">>$fntmp
+        fi
+        wf=0
+      elif [[ $line =~ ^install: ]]; then
         if [ $bi_found -eq 0 ]; then
           echo "before_install:">>$fntmp
+          bi_found=1
+        fi
+        if [ $bi_found -eq 1 ]; then
           echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --depth=1">>$fntmp
           echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
           echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
           echo "">>$fntmp
-          wf=2
+          bi_found=2
         fi
+        wf=2
       elif [[ $line =~ ^[[:space:]][[:space:]]matrix: ]]; then
         wf=1
       elif [[ $line =~ ^[a-zA-Z_]+ ]]; then
@@ -393,6 +410,15 @@ cvt_travis() {
        elif [[ $line =~ [[:space:]]+.*export[[:space:]]+PATH=.*HOME.*/maintainer-quality-tools/travis ]]; then
          line=${line//  - export /  # - export }
        fi
+      elif [ $wf -eq 3 ]; then
+        if [[ $line =~  [[:space:]]+submodules ]]; then
+          line="  submodules: false"
+          git_subm=1
+        fi
+      elif [ $wf -eq 4 ]; then
+       if [[ $line =~  [[:space:]]+.*git[[:space:]]clone[[:space:]].*https://github.com/zeroincombenze/tools.git ]]; then
+         bi_found=2
+       fi
       fi
       echo "$line">>$fntmp
     done < "$fn"
@@ -401,7 +427,6 @@ cvt_travis() {
     else
       rm -f $fntmp
     fi
-    set +x #debug
 }
 
 cvt_readme() {
@@ -1040,30 +1065,16 @@ cvt_file() {
         move $f1 $f1_cur
         move $f1_new $f1
         do_proc=1
-      elif [ $opt_force -ne 0 -a ! -f $f1_cur -a "$3" != "graph" -a "$3" != "xml" ]; then
+      elif [ $opt_force -ne 0 -a ! -f $f1_cur -a "$3" != "graph" -a "$3" != "xml" -a "$3" != "css"  -a "$3" != "sass" ]; then
         if [ -f "$f1_cur" ]; then rm -f $f1_cur; fi
         run_traced "cp -p $f1 $f1_cur"
         do_proc=1
       fi
       if [ $opt_orig -gt 0 -a -f ./tmp/$ft ]; then
-        # if [ -f "$f1_new" ]; then rm -f $f1_new; fi
-        # run_traced "cp -p ./tmp/$ft $f1_new"
         run_traced "mv -f $f1 ${f1}.bak"
         run_traced "cp -p ./tmp/$ft $f1"
       fi
       if [ "$3" == "travis" ]; then
-        # if [ "$2" == "oca" ]; then
-        #   cat $f1|sed -e 's:^  # - TRANSIFEX=.0.:  - TRANSIFEX="1":'>$fntmp
-        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
-        #     run_traced "sed -i -e 's:^  # - TRANSIFEX=\"0\":  - TRANSIFEX=\"1\":' -e 's:pip install unidecode:pip install unidecode==0.04.17:' $f1"
-        #   fi
-        # else
-        #   cat $f1|sed -e 's:^  - TRANSIFEX=.1.:  # - TRANSIFEX="0":'>$fntmp
-        #   if [ -n "$(diff -q $f1 $fntmp)" ]; then
-        #     run_traced "sed -i -e 's:^  - TRANSIFEX=\"1\":  # - TRANSIFEX=\"0\":' -e 's:pip install unidecode==0.04.17:pip install unidecode:' $f1"
-        #   fi
-        # fi
-        # rm -f $fntmp
         cvt_travis $f1 "$2" "$4" "$5"
       elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
         cvt_readme $f1 "$2" "$4" "$5"
@@ -1603,9 +1614,12 @@ do_distribution() {
           if [ $sts -ne $STS_SUCCESS ]; then
             break
           fi
-          for f2 in $(find $PD -type f -name "*.png" -o -name "*.xml"); do
-            if [ "${f2: -4}" == ".xml" ]; then
-              cvt_file $f2 $2 "xml" "$currpt" "$ORIG"
+          for f2 in $(find $PD -type f -name "*.png" -o -name "*.xml" -o -name "*.css" -o -name "*.sass"); do
+            x="${f2: -4}"
+            if [ "$x" == ".xml" -o "$x" == ".css" ]; then
+              cvt_file $f2 $2 "${f2: -3}" "$currpt" "$ORIG"
+            elif [  "${f2: -4}" == ".sass" ]; then
+              cvt_file $f2 $2 "sass" "$currpt" "$ORIG"
             else
               cvt_file $f2 $2 "graph" "$currpt" "$ORIG"
             fi
@@ -1627,11 +1641,16 @@ do_distribution() {
       else
         x=$(readlink -e $f)
         f1=$(dirname $x)
+        x=$(echo $f|awk -F/ '{ print $2}')
+        # set -x  #debug
         if [[ $PKGS =~ $f1 ]]; then
+          :
+        elif [ -f .gitmodules ] && grep -q "submodule[[:space:]].$x" .gitmodules 2>/dev/null; then
           :
         else
           PKGS="$PKGS $f1"
         fi
+        # set +x  #debug
       fi
     done
     local CCWD=$PWD
