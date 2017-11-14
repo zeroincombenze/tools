@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.72.8"
+__version__ = "0.2.73.1"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -186,11 +186,11 @@ def do_login(oerp, ctx):
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     userlist = ctx['login2_user'].split(',')
     userlist.insert(0, ctx['login_user'])
-    if ctx['lgi_user']:
+    if ctx.get('lgi_user'):
         userlist.insert(0, ctx['lgi_user'])
     pwdlist = ctx['login2_password'].split(',')
     pwdlist.insert(0, ctx['login_password'])
-    if ctx['lgi_pwd']:
+    if ctx.get('lgi_pwd'):
         pwdlist.insert(0, ctx['lgi_pwd'])
     user_obj = False
     db_name = get_dbname(ctx, 'login')
@@ -790,11 +790,18 @@ def act_new_db(oerp, ctx):
             msg_log(ctx, ctx['level'], msg)
         if ctx['db_name']:
             try:
-                oerp.db.create_and_wait(ctx['admin_passwd'],
-                                        ctx['db_name'],
-                                        False,
-                                        lang,
-                                        decrypt(ctx['login_password']))
+                if oerp.db.server_version() == '7.0':
+                    oerp.db.create_and_wait(ctx['admin_passwd'],
+                                            ctx['db_name'],
+                                            ctx['with_demo'],
+                                            lang,
+                                            decrypt(ctx['login_password']))
+                else:
+                    oerp.db.create_database(ctx['admin_passwd'],
+                                            ctx['db_name'],
+                                            ctx['with_demo'],
+                                            lang,
+                                            decrypt(ctx['login_password']))
                 ctx['no_warning_pwd'] = True
                 lgiuser = do_login(oerp, ctx)
                 if not lgiuser:
@@ -1214,8 +1221,6 @@ def act_check_taxes(oerp, ctx):
     msg = u"Check for taxes; period: " \
         + ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
-    # import pdb
-    # pdb.set_trace()
     company_id = ctx['company_id']
     period_ids = oerp.search('account.period',
                              [('company_id', '=', company_id),
@@ -4055,13 +4060,14 @@ def setup_config_param(oerp, ctx, user, name, value):
     v = os0.str2bool(value, None)
     if v is not None:
         value = v
-    group_id = oerp.search('res.groups',
+    group_ids = oerp.search('res.groups',
                            [('name', '=', name)],
                            context=context)
-    if len(group_id) != 1:
+    if len(group_ids) != 1:
         msg = u"!Parameter name " + name + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
+    group_id = group_ids[0]
     user_id = oerp.search('res.users',
                           [('login', '=', user)])
     if len(user_id) != 1:
@@ -4073,18 +4079,16 @@ def setup_config_param(oerp, ctx, user, name, value):
         msg = u"!User " + user + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    ids = user_obj.groups_id.ids
-    id = group_id[0]
     vals = {}
     if isinstance(value, bool):
         if value:
-            if id not in ids:
-                vals['groups_id'] = [(4, id)]
+            if group_id not in user_obj.groups_id.ids:
+                vals['groups_id'] = [(4, group_id)]
                 msg = u"%s.%s = True" % (user, name)
                 msg_log(ctx, ctx['level'] + 2, msg)
         else:
-            if id in ids:
-                vals['groups_id'] = [(3, id)]
+            if group_id in user_obj.groups_id.ids:
+                vals['groups_id'] = [(3, group_id)]
                 msg = u"%s.%s = False" % (user, name)
                 msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):

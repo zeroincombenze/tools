@@ -23,16 +23,16 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.7
+__version__=0.1.10
 
 
 set_ver() {
-# set_ver(file, odoo_ver, db_name)
+# set_ver(file odoo_ver db_name [xmlport])
     if [ $opt_verbose -gt 0 ]; then
-      echo "set_ver($1,$2,$3)"
+      echo "set_ver($1 ver=$2 db=$3 port=$4)"
     fi
     local l rem1 rem2 chid lnemod newln prm val sfx prp cup ver fntmp
-    local fn odoo_ver db_name
+    local fn odoo_ver db_name xmlport
     fn=$1
     odoo_ver=$2
     if [ -z "$3" ]; then
@@ -40,6 +40,7 @@ set_ver() {
     else
       db_name=$3
     fi
+    [ -n "$4" ] && xmlport=$4 || xmlport=8069
     ver=_$odoo_ver
     fntmp=$fn.tmp
     if  [ -f $fntmp ]; then
@@ -79,12 +80,14 @@ set_ver() {
           # prp=
         elif [ "$prm" == "$prp" ]; then
           lnemod="  "
+        elif [ "$prm" == "xmlrpc_port" ]; then
+          lnemod="xmlrpc_port=$xmlport"
         elif [ "$sfx" == "$ver" ]; then
           newln="$cup=$val"
         else
           prp=
         fi
-        if [[ $sfx =~ _(10\.0|9\.0|8\.0|7\.0) ]]; then
+        if [[ $sfx =~ _(11\.0|10\.0|9\.0|8\.0|7\.0) ]]; then
           prp=$cup
           # echo "<<<$prp>>>"
         fi
@@ -124,26 +127,29 @@ set_ver() {
 }
 
 
-OPTOPTS=(h        n           k      K      p          q           u           V           v)
-OPTDEST=(opt_help opt_dry_run opt_pp opt_pp opt_lgipwd opt_verbose opt_lgiuser opt_version opt_verbose)
-OPTACTI=(1        1           0      1      "="        0           "="         "*>"        "+")
-OPTDEFL=(0        0           -1     -1     ""         -1          ""          ""           -1)
-OPTMETA=("help"   ""          ""     ""     "passwd"   "quiet"     "user"      "version"   "verbose")
+OPTOPTS=(h        D        f      k      K       n           p          q           r           u           V           v)
+OPTDEST=(opt_help opt_defn opt_fn opt_pp opt_pp  opt_dry_run opt_lgipwd opt_verbose opt_xmlport opt_lgiuser opt_version opt_verbose)
+OPTACTI=(1        1        "="    0      1       1           "="        0           "="         "="         "*>"        "+")
+OPTDEFL=(0        0        ""     -1     -1      0           ""         -1          ""          ""          ""           -1)
+OPTMETA=("help"   ""       "file" ""     ""      ""          "passwd"   "quiet"     "port"      "user"      "version"   "verbose")
 OPTHELP=("this help"\
- "do nothing (dry-run)"\
+ "set default config file"\
+ "set specific filename to set"\
  "reset passepartout"\
  "set passepartout"\
+ "do nothing (dry-run)"\
  "set odoo password"\
  "silent mode"\
+ "set xmprpc port (def=8069)"\
  "set odoo login username"\
  "show version"\
  "verbose mode")
 OPTARGS=(odoo_ver db_name)
 
 parseoptargs "$@"
-if [[ $odoo_ver =~ ^(10|9|8|7)$ ]]; then
+if [[ $odoo_ver =~ ^(11|10|9|8|7)$ ]]; then
   odoo_ver=$odoo_ver.0
-elif [[ $odoo_ver =~ ^(10\.0|9\.0|8\.0|7\.0)$ ]]; then
+elif [[ $odoo_ver =~ ^(11\.0|10\.0|9\.0|8\.0|7\.0)$ ]]; then
   :
 else
   opt_help=1
@@ -157,12 +163,17 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
-
 if [ -n "$opt_lgipwd" ]; then
   opt_lgipwd=${opt_lgipwd//\\!/!}
 fi
-for f in conf/*conf; do
-  set_ver $f $odoo_ver $db_name
-done
-# set_ver conf/z0_install_11.conf $odoo_ver $db_name
+if [ $opt_defn -ne 0 ]; then
+  set_ver ./clodoo.conf $odoo_ver $db_name $opt_xmlport
+elif [ -n "$opt_fn" ]; then
+  set_ver $opt_fn $odoo_ver $db_name $opt_xmlport
+else
+  for f in conf/*conf; do
+    set_ver ./clodoo.conf $odoo_ver $db_name $opt_xmlport
+    set_ver $f $odoo_ver $db_name $opt_xmlport
+  done
+fi
 exit $STS_SUCCESS

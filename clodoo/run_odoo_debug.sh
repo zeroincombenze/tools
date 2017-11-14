@@ -22,7 +22,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.1.1
+__version__=0.2.3
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
@@ -141,7 +141,7 @@ if [ -n "$opt_modules" ]; then
     optu=
     xu=-u
     for m in $mods; do
-      r=$(psql -U$opt_user prove7 -tc "select state from ir_module_module where name='$m';")
+      r=$(psql -U$opt_user $opt_db -tc "select state from ir_module_module where name='$m';")
       if [[ $r =~ uninstalled ]]; then
         opti="$opti$xi$m"
         xi=,
@@ -151,23 +151,35 @@ if [ -n "$opt_modules" ]; then
       fi
     done
     optsiu="$opti $optu"
+    alt=
     if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
       src=$(readlink -f $opt_ofile)
       opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
     elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-      src=$(find $odoo_root -type d -name "$opt_modules"|head -n1)
-      if [ -n "$src" ]; then
-        if [ -f $src/i18n/it.po ]; then
-          src=$src/i18n/it.po
-          if [ $opt_exp -ne 0 ]; then
-            run_traced "cp $src $src.bak"
+      srcs=$(find $odoo_root -type d -name "$opt_modules")
+      f=0
+      for src in $srcs; do
+        if [ -n "$src" ]; then
+          if [ -f $src/i18n/it.po ]; then
+            src=$src/i18n/it.po
+            if [ $opt_exp -ne 0 ]; then
+              run_traced "cp $src $src.bak"
+            fi
+            f=1
+            break
+          else
+            alt=$(find $src/i18n -name '*.po'|head -n1)
+            src=
+            if [ -n "$alt" ]; then fi=1 break; fi
           fi
-        else
-          src=
         fi
-      fi
-      if [ -z "$src" ]; then
+      done
+      # if [ -z "$src" ]; then
+      if [ $f -eq 0 ]; then
         echo "Translation file not found!"
+        if [ -n "$alt" ]; then
+          echo "may be $alt"
+        fi
         exit 1
       fi
       if [ $opt_imp -ne 0 ]; then

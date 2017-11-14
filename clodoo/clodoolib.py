@@ -96,6 +96,7 @@ LX_CFG_SB = ('install_modules',
 # list of pure boolean parameters in [options] of config file
 LX_CFG_B = ('set_passepartout',
             'check_balance',
+            'with_demo',
             'draft_recs',
             'setup_banks',
             'setup_account_journal',
@@ -106,10 +107,10 @@ LX_CFG_B = ('set_passepartout',
             )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang',
+LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
             'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_B = ()
+LX_OPT_B = ('dry_run', 'with_demo')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_N = ()
 # list of opponent options
@@ -123,7 +124,7 @@ DEFDCT = {}
 
 msg_time = time.time()
 
-__version__ = "0.1.11.1"
+__version__ = "0.1.13"
 
 
 #############################################################################
@@ -272,6 +273,7 @@ def default_conf(ctx):
               'companyfilter': '(?![Zz]eroincombenze.*)',
               'userfilter': '.*',
               'lang': 'en_US',
+              'with_demo': '0',
               'date_start': dts_start,
               'date_stop': dts_stop,
               'draft_recs': '0',
@@ -447,6 +449,11 @@ def create_parser(version, doc, ctx):
                         dest="dbfilter",
                         metavar="regex",
                         default="")
+    parser.add_argument("-D", "--with-demo",
+                        help="create db with demo data",
+                        action="store_true",
+                        dest="with_demo",
+                        default=False)
     parser.add_argument("-l", "--lang",
                         help="user language",
                         dest="lang",
