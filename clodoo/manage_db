@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.17
+__version__=0.1.18
 
 
 up_oemod() {
@@ -234,8 +234,8 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
       echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"
       [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -l -d $db
     elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
-      echo "$TDIR/clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_xmlport $opt_with_demo"
-      $TDIR/clodoo.py $opts -c=conf/z0_install_11.conf -d=$db -r $opt_xmlport $opt_with_demo
+      echo "$TDIR/clodoo.py $opts -c=conf/z0_install_10.conf -d=$db -r $opt_xmlport $opt_with_demo"
+      $TDIR/clodoo.py $opts -c=conf/z0_install_10.conf -d=$db -r $opt_xmlport $opt_with_demo
       [ $opt_dry_run -ne 0 ] || up_oemod $db $opt_branch
     elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
       echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"

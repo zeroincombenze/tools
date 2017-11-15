@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.52.18
+__version__=0.1.52.19
 
 
 #
@@ -1062,7 +1062,11 @@ cvt_file() {
       fi
       local fntmp=$f1.tmp
       if [ -f $f1_new ]; then
-        move $f1 $f1_cur
+        if [ -f "$f1_oca" -a  -f "$f1_oia" -a -f "$f1_zoi" ]; then
+          :
+        else
+          move $f1 $f1_cur
+        fi
         move $f1_new $f1
         do_proc=1
       elif [ $opt_force -ne 0 -a ! -f $f1_cur -a "$3" != "graph" -a "$3" != "xml" -a "$3" != "css"  -a "$3" != "sass" ]; then
