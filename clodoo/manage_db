@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.18
+__version__=0.1.19
 
 
 up_oemod() {
@@ -74,16 +74,17 @@ up_oemod() {
 }
 
 
-OPTOPTS=(h        b          c        D             d      n           o       q           r           t         U          V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_with_demo opt_DB opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "*"           "="    1           1       0           "="         1         "="        "*"         "+")
-OPTDEFL=(1        "7.0"      ""       ""            ""     0           0       -1          8069        0         "odoo"     ""          -1)
-OPTMETA=("help"   "branch"   "file"   ""            "name" "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
+OPTOPTS=(h        b          c        D             d      m         n           o       q           r           t         U          V           v)
+OPTDEST=(opt_help opt_branch opt_conf opt_with_demo opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
+OPTACTI=(1        "="        "="      "*"           "="    -1        1           1       0           "="         1         "="        "*"         "+")
+OPTDEFL=(1        "7.0"      ""       ""            ""     1         0           0       -1          ""          0         "odoo"     ""          -1)
+OPTMETA=("help"   "branch"   "file"   ""            "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def 7.0)"\
  "configuration file (only update)"\
  "new db with demo data"\
  "set database name or regex when update"\
+ "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
  "silent mode"\
@@ -93,6 +94,8 @@ OPTHELP=("this help"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action cmdlist)
+PHASE_LIST="09 00 01 10 11 12 13 14 15 16 17 20 21 30 50 51 52 53 61 90 91 92"
+DEMO_PHASE_LIST="50 51 52 53 61"
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -100,8 +103,8 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage Cloud DB(s) \nAction may be on of:\ninstall,update,upgrade,module,translate\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  print_help "Manage Cloud DB(s) \n"\
+  "Action may be on of: install,update,upgrade,module,translate,rename\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename (phase) is old=new\n\n(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 opts=
@@ -116,9 +119,31 @@ else
   WCMD="sleep $SLEEP_TIME"
 fi
 sts=$STS_SUCCESS
-odoo_fver=$(build_odoo_param FULLVER $opt_branch)
-odoo_ver=$(build_odoo_param FULLVER $opt_branch)
 odoo_vid=$opt_branch
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+odoo_ver=$(build_odoo_param FULLVER $odoo_vid)
+if [ $opt_multi -lt 0 ]; then
+  c=0
+  for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+    for p in "" v odoo ODOO; do
+      odoo_bin=$(build_odoo_param BIN $p$v search)
+      if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+        ((c++))
+      fi
+    done
+  done
+  if [ $c -gt 2 ]; then
+    opt_multi=1
+  else
+    opt_multi=0
+  fi
+fi
+if [ -z "$opt_dbuser" ]; then
+  opt_dbuser=$(build_odoo_param USER $odoo_vid)
+fi
+if [ -z "$opt_xmlport" ]; then
+  opt_xmlport=$(build_odoo_param RPCPORT $odoo_vid)
+fi
 if [ "$action" == "install" ]; then
   if [ ! -d data ]; then
     echo "Directory data/ not found!"
@@ -134,12 +159,14 @@ if [ "$action" == "install" ]; then
     else
       CFLOOP="00"
     fi
+  elif [ -n "$cmdlist" ]; then
+    CFLOOP="${cmdlist//,/ }"
   else
-    CFLOOP="09 00 10 11 13 14 15 20 21 30"
+    CFLOOP="$PHASE_LIST"
   fi
   for cf in $CFLOOP; do
     if [ ! -f conf/z0_install_$cf.conf ]; then
-      echo "Configurarion file z0_install_$cf.conf not found!"
+      echo "Configuration file z0_install_$cf.conf not found!"
       exit 1
     fi
   done
@@ -154,6 +181,8 @@ if [ "$action" == "install" ]; then
       echo "$TDIR/clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_xmlport $opt_with_demo"
       $TDIR/clodoo.py $opts -c=conf/z0_install_$cf.conf $optdb -r $opt_xmlport $opt_with_demo
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
+      :
+    elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
       :
     else
       if [ -n "$opt_DB" ]; then
@@ -177,6 +206,14 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
     cf=conf/$opt_conf.conf
   else
     cf=
+  fi
+  if [ -n "$cf" ]; then
+    x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
+    x=${x: -2}
+    if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
+      echo "This file require -D switch to be executed!"
+      exit 1
+    fi
   fi
   if [ -z "$opt_DB" ]; then
     opt_DB=".*"
@@ -260,5 +297,34 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
       fi
     fi
   done
+elif [ "$action" == "rename" ]; then
+  if [  -z "$cmdlist" ]; then
+    echo "Missed phase rename!"
+    echo "$THIS rename old=new"
+    sts=1
+  else
+    IFS== read old new <<< "$cmdlist"
+    confn=$(ls conf/*${old}.conf 2>/dev/null|head -n1)
+    if [ -z "$confn" ]; then
+      echo "phase $old not found!"
+      sts=1
+    else
+      new_confn=${confn/$old/$new}
+      echo "mv $confn $new_confn"
+      mv $confn $new_confn
+      for datafn in $(ls data/*${old}.csv 2>/dev/null); do
+        new_datafn=${datafn/$old/$new}
+        echo "mv $datafn $new_datafn"
+        mv $datafn $new_datafn
+        f=$(basename $datafn)
+        n=$(basename $new_datafn)
+        echo "sed -e \"s|$f|$n|g\" -i $new_confn"
+        sed -e "s|$f|$n|g" -i $new_confn
+      done
+    fi
+  fi
+else
+  echo "Invalid action!"
+  sts=1
 fi
 exit $sts

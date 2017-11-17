@@ -24,7 +24,7 @@
 from os0 import os0
 from clodoolib import debug_msg_log
 
-__version__ = "0.1.9"
+__version__ = "0.1.10"
 
 
 def _get_model_bone(oerp, ctx, o_model):
@@ -472,14 +472,14 @@ def concat_res(res, value):
 
 def is_db_alias(value):
     i = value.find('.') + 1
-    if value[0:i] == "base.":
+    if value[0:i] in ("base.", "multi_company." ):
         return True
     return False
 
 
 def get_model_alias(value):
     i = value.find('.') + 1
-    if value[0:i] == "base.":
+    if value[0:i] in ("base.", "multi_company." ):
         model = "ir.model.data"
         name = ['module', 'name']
         i -= 1

@@ -23,7 +23,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.10
+__version__=0.1.11
 
 
 set_ver() {
@@ -123,6 +123,8 @@ set_ver() {
         mv $fn $fn.bak
         mv $fntmp $fn
       fi
+    else
+      rm -f $fntmp
     fi
 }
 

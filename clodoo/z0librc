@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.1
+#__version__=0.2.1.4
 STS_FAILED=1
 STS_SUCCESS=0
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
@@ -978,14 +978,14 @@ export -f set_cfg_def
 
 
 _read_cfg_file() {
-#read_cfg_file(file $tid [section[debug]])
+#read_cfg_file(file $tid [section[-D]])    -D means debug
     local key val lne x r t s d b dev
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
     else
       store_param=CFG_set
     fi
-    if [ ${4:-0} -gt 0 ]; then
+    if [[ $4 =~ (D|1) ]]; then
       dev="_DEV"
     else
       dev=" "
@@ -1064,7 +1064,7 @@ _read_cfg_file() {
 }
 
 link_cfg() {
-# link_cfg(file_cfg,[file_def,[tid,[section[debug]]]])
+# link_cfg(file_cfg,[file_def,[tid,[section[-D]]]])  -D means debug
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
       local tid=$3
@@ -1098,121 +1098,197 @@ export -f link_cfg
 
 
 ##############################################################################
-# Parse and manage URL(s) and/or filename
-# Parse a URL o filename, default value and return part of URL
+# Parse and manage URI(s) and/or filename
+# Parse an URI o filename, default values and return part of URL
+# Based on Adam Ryczkowski's solution. BASH_REMATCH contains:
+#  0: full value
+#  1: prot:
+#  2: prot
+#  3: //domain
+#  4: //
+#  5: domain (userinfo+host)
+#  6: userinfo@
+#  7: userinfo
+#  8: host
+#  9: : (port introducer)
+# 10: port
+# 11: /fullpath
+# 12: fullpath
+# 13: ? (query introducer)
+# 14: query
+# 15: # (fragment introducer)
+# 16: fragment
+# 17: dirname (no from regex)
+# 18: basename (no from regex)
+# 19: name (no from regex)
+# 20: ext (no from regex)
+#
 # Parameter $1:
-#    URL or filename to parse
+#    URI or filename to parse
 # Parameter $2:
-#    URL or filename with default values
+#    URI or filename with default values
 # Parameter $3:
 #    List of one or more ±KEYWORDS to select or ignore part of URL
-#    +ALL      must be followed by -KEYWORDS to exclude part of URL
-#    ±PROT     include/esclude protocol; i.e. protocol of "http://example.com/a/b.c:8080" id "http:"
-#    ±DOMAIN   include/esclude domain; i.e. domain of "http://example.com/a/b.c:8080" id "example.com"
-#    ±FULLNAME include/esclude fullname; i.e. fullname of "http://example.com/a/b.c:8080" id "/a/b"
-#    ±DIRNAME  include/esclude dirname; i.e. dirname of "http://example.com/a/b.c:8080" id "/a"
-#    ±BASENAME include/esclude basename; i.e. basename of "http://example.com/a/b.c:8080" id "b.c"
-#    ±NAME     include/esclude simple name; i.e. name of "http://example.com/a/b.c:8080" id "b"
-#    ±EXT      include/esclude extension name; i.e. extension of "http://example.com/a/b.c:8080" id ".c"
-#    ±PORT     include/esclude port; i.e. port of "http://example.com/a/b.c:8080" id "8080"
-#    if FULLNAME is supplied, DIRNAME and BASENAME are ignored
-#    if BASENAME is supplied, NAME and EXT are ignored
+#    +ALL      parse all items; must be followed by -KEYWORDS to exclude part of URI
+#    ±PROT     include/esclude protocol; i.e. protocol of "http://u@example.com:8080/a/b.c" is "http:"
+#    ±DOMAIN   include/esclude domain; i.e. domain of "http://u@example.com:8080/a/b.c" is "u@example.com"
+#    ±USER     include/esclude user; i.e. user of "http://u@example.com:8080/a/b.c" is "u"
+#    ±HOST     include/esclude host; i.e. host of "http://u@example.com:8080/a/b.c" is "example.com"
+#    ±FULLNAME include/esclude fullname; i.e. fullname of "http://u@example.com:8080/a/b.c" is "/a/b"
+#    ±DIRNAME  include/esclude dirname; i.e. dirname of "http://u@example.com:8080/a/b.c" is "/a"
+#    ±BASENAME include/esclude basename; i.e. basename of "http://u@example.com:8080/a/b.c" is "b.c"
+#    ±NAMEID   include/esclude simple nameid; i.e. nameid of "http://u@example.com:8080/a/b.c" is "b"
+#    ±EXT      include/esclude extension name; i.e. extension of "http://u@example.com:8080/a/b.c" is ".c"
+#    ±PORT     include/esclude port; i.e. port of "http://u@example.com:8080/a/b.c" is "8080"
+#    if DOMAIN selected, USER and HOST are ignored
+#    if FULLNAME is selected, DIRNAME and BASENAME, NAMEID and EXT are ignored
+#    if BASENAME is selected, NAMEID and EXT are ignored
 #    +ABS      convert relative FULLNAME to absolute fullname
+#    +LOCAL    when URI may be hostname or local filesystem return local filesystem
 #
-parse_URL() {
-#parse_URL(URL default ALL|±PROT|±DOMAIN|±FULLNAME|±DIRNAME|±BASENAME|±PORT)
-    local O dbase ddom dext dfn dmurl dname dpath dport dprot vbase vdom vext vfn vmurl vname vpath vport vprot x URL
-    O=$IFS
-    IFS=: read vprot vmurl vport<<<"$1"
-    [[ -z "$vmurl" ]] && vmurl="$vprot" vprot=
-    [[ -n "$vprot" ]] && vprot="$vprot:"
-    if [ -n "$vprot" -o "${vmurl:0:2}" == "//" ]; then
-      [ "${vmurl: -1}" != "/" ] && vmurl="$vmurl/"
-      [ "${vmurl:0:2}" == "//" ] && x="${vmurl:2}" || x="$vmurl"
-      vdom="${x%%/*}"
-      vfn="${x#*/}"
-      [ "${vfn: -1}" == "/" ] && vfn="${vfn:0: -1}"
-      [ -n "$vfn"  ] && vfn="/$vfn"
-    else
-      vdom=
-      vfn=$vmurl
-      vmurl=
-    fi
-    if [ -n "$vfn" ]; then
-      if [[ $3 =~ \+ABS ]]; then vfn=$(readlink -f $vfn); fi
-      vpath=$(dirname $vfn) || vpath=
-      vbase=$(basename $vfn) || vbase=
-      if [ -n "$vbase" ]; then
-        vname="${vbase%%.*}"
-        vext="${vbase#*.}"
-        [ "$vext" == "$vname" ] && vext=
-        [ -n "$vext"  ] && vext=".$vext"
-      fi
-    fi
-    IFS=: read dprot dmurl dport<<<"$2"
-    [[ -z "$dmurl" ]] && dmurl="$dprot" dprot=
-    [[ -n "$dprot" ]] && vprot="$dprot:"
-    if [ -n "$dprot" -o "${dmurl:0:2}" == "//" ]; then
-      [ "${dmurl: -1}" != "/" ] && dmurl="$dmurl/"
-      [ "${dmurl:0:2}" == "//" ] && x="${dmurl:2}" || x="$dmurl"
-      ddom="${x%%/*}"
-      dfn="${x#*/}"
-      [ "${dfn: -1}" == "/" ] && dfn="${dfn:0: -1}"
-      [ -n "$dfn"  ] && dfn="/$dfn"
-    else
-      ddom=
-      dfn=$dmurl
-      dmurl=
-    fi
-    if [ -n "$dfn" ]; then
-      if [[ $3 =~ \+ABS ]]; then dfn=$(readlink -f $dfn); fi
-      dpath=$(dirname $dfn) || dpath=
-      dbase=$(basename $dfn) || dbase=
-      if [ -n "$dbase" ]; then
-        dname="${dbase%%.*}"
-        dext="${dbase#*.}"
-        [ "$dext" == "$dname" ] && dext=
-        [ -n "$dext"  ] && dext=".$dext"
-      fi
-    fi
-    IFS=$O
-    URL=
-    if ! [[ $3 =~ -PROT ]] && [[ $3 =~ (\+ALL|\+PROT) ]]; then
-      if [[ -n "$vprot" ]]; then URL="$URL$vprot"; else URL="$URL$dprot"; fi
-    fi
-    if ! [[ $3 =~ -DOMAIN ]] && [[ $3 =~ (\+ALL|\+DOMAIN) ]];then
-      [[ -n "$URL" ]] && URL="$URL//"
-      if [[ -n "$vdom" ]]; then URL="$URL$vdom"; else URL="$URL$ddom"; fi
-    fi
-    if [[ $3 =~ FULLNAME ]]; then
-      if ! [[  $3 =~ -FULLNAME ]] && [[ $3 =~ (\+ALL|\+FULLNAME) ]]; then
-        if [[ -n "$vpath" ]]; then URL="$URL$vpath"; else URL="$URL$dpath"; fi
-        [[ -n "$URL" ]] && URL="$URL/"
-        if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
-        if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
-      fi
-    else
-      if ! [[ $3 =~ -DIRNAME ]] && [[ $3 =~ (\+ALL|\+DIRNAME) ]]; then
-        if [[ -n "$vpath" ]]; then URL="$URL$vpath"; else URL="$URL$dpath"; fi
-      fi
-      if ! [[ $3 =~ -BASENAME ]] &&  [[ $3 =~ (\+ALL|\+BASENAME) ]]; then
-        [[ -n "$URL" ]] && URL="$URL/"
-        if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
-        if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
+parse_URI() {
+#parse_URI(URI default ALL|±USER|±PROT|±DOMAIN|±HOST|±FULLNAME|±DIRNAME|±BASENAME|±NAMEID|±EXT|±PORT)
+    local URI_REGEX='^(([^:/?#]+):)?((//)?((([^:/?#]+)@)?([^:/?#]+)))(:([0-9]+))?(/([^?#]*))?(\?([^#]*))?(#(.*))?'
+    local IS_URL1='^(([^:/?#]+):)'
+    local IS_URL2='^//'
+    local IS_MAIL='(([^:/?#]+)@([^:/?#]+))'
+    declare -a D V
+    if [[ $3 =~ \+LOCAL ]]; then
+      if [[ $1 =~ $IS_URL1 || $1 =~ $IS_URL2 ]]; then
+        [[ $1 =~ $URI_REGEX ]]; V=("${BASH_REMATCH[@]}")
       else
-        if ! [[ $3 =~ -NAME ]] &&  [[ $3 =~ (\+ALL|\+NAME) ]]; then
-          [[ -n "$URL" ]] && URL="$URL/"
-          if [[ -n "$vname" ]]; then URL="$URL$vname"; else URL="$URL$dname"; fi
+        V[11]=$1
+        [[ "${1:0:1}" == "/" ]] && V[12]=${1:1} || V[12]=$1
+      fi
+      if [[ $2 =~ $IS_URL1 || $2 =~ $IS_URL2 ]]; then
+        [[ $2 =~ $URI_REGEX ]]; D=("${BASH_REMATCH[@]}")
+      else
+        D[11]=$2
+        [[ "${2:0:1}" == "/" ]] && D[12]=${2:1} || D[12]=$2
+      fi
+    else
+      [[ $1 =~ $URI_REGEX ]]; V=("${BASH_REMATCH[@]}")
+      [[ $2 =~ $URI_REGEX ]]; D=("${BASH_REMATCH[@]}")
+    fi
+    if [ -n "${V[11]}" ]; then
+      if [[ $3 =~ \+ABS ]]; then
+        V[11]=$(readlink -f ${V[11]})
+        V[12]=${V[11]:1}
+      fi
+      V[17]=$(dirname ${V[11]}) || V[17]=
+      [[ "${V[17]}" == "." ]] && V[17]=
+      V[18]=$(basename ${V[11]}) || V[18]=
+      if [ -n "${V[18]}" ]; then
+        V[19]="${V[18]%%.*}"
+        V[20]="${V[18]#*.}"
+        [ "${V[19]}" == "${V[20]}" ] && V[20]=
+        [ -n "${V[20]}"  ] && V[20]=".${V[20]}"
+      fi
+    fi
+    if [ -n "${D[11]}" ]; then
+      if [[ $3 =~ \+ABS ]]; then
+        D[11]=$(readlink -f ${D[11]})
+        D[12]=${D[11]:1}
+      fi
+      D[17]=$(dirname ${D[11]}) || D[17]=
+      [[ "${D[17]}" == "." ]] && D[17]=
+      D[18]=$(basename ${D[11]}) || D[18]=
+      if [ -n "${D[18]}" ]; then
+        D[19]="${D[18]%%.*}"
+        D[20]="${D[18]#*.}"
+        [ "${D[19]}" == "${D[20]}" ] && D[20]=
+        [ -n "${D[20]}"  ] && D[20]=".${D[20]}"
+      fi
+    fi
+    if [[ $3 =~ \+DEBUG ]]; then
+      echo "<<<$1||$2>>>"
+      echo "value        \"${V[0]}\" \"${D[0]}\" \"${BASH_REMATCH[0]}\""
+      echo "prot:        \"${V[1]}\" \"${D[1]}\" \"${BASH_REMATCH[1]}\""
+      echo "prot         \"${V[2]}\" \"${D[2]}\" \"${BASH_REMATCH[2]}\""
+      echo "//domain     \"${V[3]}\" \"${D[3]}\" \"${BASH_REMATCH[3]}\""
+      echo "//           \"${V[4]}\" \"${D[4]}\" \"${BASH_REMATCH[4]}\""
+      echo "domain       \"${V[5]}\" \"${D[5]}\" \"${BASH_REMATCH[5]}\""
+      echo "userinfo@    \"${V[6]}\" \"${D[6]}\" \"${BASH_REMATCH[6]}\""
+      echo "userinfo     \"${V[7]}\" \"${D[7]}\" \"${BASH_REMATCH[7]}\""
+      echo "host         \"${V[8]}\" \"${D[8]}\" \"${BASH_REMATCH[8]}\""
+      echo ":            \"${V[9]}\" \"${D[9]}\" \"${BASH_REMATCH[9]}\""
+      echo "port         \"${V[10]}\" \"${D[10]}\" \"${BASH_REMATCH[10]}\""
+      echo "path         \"${V[11]}\" \"${D[11]}\" \"${BASH_REMATCH[11]}\""
+      echo "rpath        \"${V[12]}\" \"${D[12]}\" \"${BASH_REMATCH[12]}\""
+      echo "?            \"${V[13]}\" \"${D[13]}\" \"${BASH_REMATCH[13]}\""
+      echo "query        \"${V[14]}\" \"${D[14]}\" \"${BASH_REMATCH[14]}\""
+      echo "#            \"${V[15]}\" \"${D[15]}\" \"${BASH_REMATCH[15]}\""
+      echo "fragment     \"${V[16]}\" \"${D[16]}\" \"${BASH_REMATCH[16]}\""
+      echo "dirname      \"${V[17]}\" \"${D[17]}\" \"${BASH_REMATCH[17]}\""
+      echo "basename     \"${V[18]}\" \"${D[18]}\" \"${BASH_REMATCH[18]}\""
+      echo "nameid       \"${V[19]}\" \"${D[19]}\" \"${BASH_REMATCH[19]}\""
+      echo "ext          \"${V[20]}\" \"${D[20]}\" \"${BASH_REMATCH[20]}\""
+      # set -x  #debug
+    fi
+    URL=
+    if [[ ! $3 =~ -PROT && $3 =~ (\+ALL|\+PROT) ]]; then
+      if [[ -n "${V[1]}" ]]; then URL="$URL${V[1]}"; else URL="$URL${D[1]}"; fi
+    fi
+    if [[ ! $3 =~ -DOMAIN ]] && [[ $3 =~ \+DOMAIN ]];then
+      if [[ -n "$URL" ]]; then
+        if [[ -n "${V[5]}" ]]; then URL="$URL${V[4]}${V[5]}"; else URL="$URL${D[4]}${D[5]}"; fi
+      else
+        if [[ -n "${V[5]}" ]]; then URL="$URL${V[5]}"; else URL="$URL${D[5]}"; fi
+      fi
+    else
+      if [[ ! $3 =~ -USER ]] && [[ $3 =~ (\+ALL|\+USER) ]];then
+        if [[ ! $3 =~ -HOST ]] && [[ $3 =~ (\+ALL|\+HOST) ]];then
+          if [[ -n "$URL" ]]; then
+            if [[ -n "${V[6]}" ]]; then URL="$URL${V[4]}${V[6]}"; else URL="$URL${D[4]}${D[6]}"; fi
+          else
+            if [[ -n "${V[6]}" ]]; then URL="$URL${V[6]}"; else URL="$URL${D[6]}"; fi
+          fi
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[8]}"; else URL="$URL${D[8]}"; fi
+        else
+          if [[ -n "$URL" ]]; then
+            if [[ -n "${V[7]}" ]]; then URL="$URL${V[4]}${V[7]}"; else URL="$URL${V[4]}${D[7]}"; fi
+          else
+            if [[ -n "${V[7]}" ]]; then URL="$URL${V[7]}"; else URL="$URL${D[7]}"; fi
+          fi
+        fi
+      elif [[ ! $3 =~ -HOST ]] && [[ $3 =~ \+HOST ]];then
+        if [[ -n "$URL" ]]; then
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[4]}${V[8]}"; else URL="$URL${D[4]}${D[8]}"; fi
+        else
+          if [[ -n "${V[8]}" ]]; then URL="$URL${V[8]}"; else URL="$URL${D[8]}"; fi
+        fi
+      fi
+    fi
+    if [[ ! $3 =~ -PORT && $3 =~ (\+ALL|\+PORT) ]]; then
+      if [[ -n "$URL" ]]; then
+        if [[ -n "${V[9]}" ]]; then URL="$URL${V[9]}"; else URL="$URL${D[9]}"; fi
+      else
+        if [[ -n "${V[10]}" ]]; then URL="$URL${V[10]}"; else URL="$URL${D[10]}"; fi
+      fi
+    fi
+    if [[ ! $3 =~ -FULLNAME && $3 =~ \+FULLNAME ]]; then
+      if [[ -n "${V[17]}" ]]; then URL="$URL${V[17]}"; else URL="$URL${D[17]}"; fi
+      [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+      if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
+      if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
+    else
+      if [[ ! $3 =~ -DIRNAME && $3 =~ (\+ALL|\+DIRNAME) ]]; then
+        if [[ -n "${V[17]}" ]]; then URL="$URL${V[17]}"; else URL="$URL${D[17]}"; fi
+      fi
+      if [[ ! $3 =~ -BASENAME && $3 =~ \+BASENAME ]]; then
+        [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+        if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
+        if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
+      else
+        if [[ ! $3 =~ -NAME && $3 =~ (\+ALL|\+NAME) ]]; then
+          [[ -n "$URL" && "${URL: -1}" != "/" ]] && URL="$URL/"
+          if [[ -n "${V[19]}" ]]; then URL="$URL${V[19]}"; else URL="$URL${D[19]}"; fi
         fi
         if ! [[ $3 =~ -EXT ]] &&  [[ $3 =~ (\+ALL|\+EXT) ]]; then
-          if [[ -n "$vext" ]]; then URL="$URL$vext"; else URL="$URL$dext"; fi
+          if [[ -n "${V[20]}" ]]; then URL="$URL${V[20]}"; else URL="$URL${D[20]}"; fi
         fi
       fi
-    fi
-    if ! [[ $3 =~ -PORT ]] && [[ $3 =~ (\+ALL|\+PORT) ]]; then
-      [[ -n "$URL" ]] && URL="$URL:"
-      if [[ -n "$vport" ]]; then URL="$URL$vport"; else URL="$URL$dport"; fi
     fi
     echo "$URL"
 }
-export -f parse_URL
+export -f parse_URI

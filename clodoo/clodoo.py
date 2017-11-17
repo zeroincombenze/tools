@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.73.1"
+__version__ = "0.2.74"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -781,7 +781,9 @@ def act_new_db(oerp, ctx):
     """Create new DB"""
     sts = STS_SUCCESS
     lang = ctx.get('lang', 'en_US')
-    msg = "Create DB %s [%s]" % (ctx['db_name'], lang)
+    msg = "Create DB %s [lang=%s, demo=%s]" % (ctx['db_name'],
+                                               lang,
+                                               str(ctx['with_demo']))
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         if ctx['db_name'] == 'auto':
