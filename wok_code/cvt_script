@@ -16,6 +16,12 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
@@ -32,9 +38,9 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.8.5
+__version__=0.1.9
 
-
+#//Only human upgradable code/
 cvt_file() {
 # cvt_file(file)
     local f1=$1
@@ -78,7 +84,15 @@ cvt_file() {
                continue
              fi
            fi
-           if [ $prc -eq 0 ]; then
+           if [[ $line =~ ^#[^A-Za-z09_]*Enable.auto.upgrade.code.* ]]; then
+             echo "$line">>$fntmp
+             incl=0
+           elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then
+             echo "$line">>$fntmp
+             incl=1
+           elif [ $incl -eq 1 ]; then
+             echo "$line">>$fntmp
+           elif [ $prc -eq 0 ]; then
              if [[ $line =~ ^THIS.*basename.* ]]; then
                prc=1
                blk_1 "$fntmp"
@@ -190,13 +204,13 @@ cvt_file() {
                prc=14
                blk_14 "$fntmp"
                empy=0
-             elif [[ $line =~ ^#.End.Include.Block.* ]]; then
+             elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
                echo "$line">>$fntmp
                incl=0
-             elif [[ $line =~ ^#.Follow.code.must.be.executed.* ]]; then
+             elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
                echo "$line">>$fntmp
-               incl=1
-             elif [ $incl -gt 0 ]; then
+               incl=2
+             elif [ $incl -eq 2 ]; then
                echo "$line">>$fntmp
              fi
            elif [ $prc -eq 14 ]; then
@@ -205,13 +219,13 @@ cvt_file() {
              if [[ $line =~ ^init_travis ]]; then
                echo "$line">>$fntmp
                prc=22
-             elif [[ $line =~ ^#.End.Include.Block.* ]]; then
+             elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
                echo "$line">>$fntmp
                incl=0
-             elif [[ $line =~ ^#.Follow.code.must.be.executed.* ]]; then
+             elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
                echo "$line">>$fntmp
-               incl=1
-             elif [ $incl -gt 0 ]; then
+               incl=2
+             elif [ $incl -eq 2 ]; then
                echo "$line">>$fntmp
              fi
            elif [ "${line:0:1}" == "#" ]; then
@@ -232,8 +246,10 @@ cvt_file() {
     fi
     if [ -f $fntmp ]; then
       diff $f1 $fntmp
-      if [ $? -eq 0 ]; then
+      if [ $? -eq 0 -o $opt_dry_run -ne 0 ]; then
         dummy='n'
+      elif [ $opt_yes -ne 0 ]; then
+        dummy='y'
       else
         read -p "Confirm (Y/N)? " dummy
       fi
@@ -365,6 +381,7 @@ link_cfg \$DIST_CONF \$TCONF
 if [ \$opt_verbose -gt 1 ]; then set -x; fi
 EOF
 }
+#//Enable.auto.upgrade.code/
 
 
 OPTOPTS=(h        J         K        k        n           m         O         q           U      V           v           y)

@@ -120,7 +120,7 @@ from clodoocore import eval_value
 from clodoocore import get_query_id
 
 
-__version__ = "0.2.74"
+__version__ = "0.2.75"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -4062,9 +4062,15 @@ def setup_config_param(oerp, ctx, user, name, value):
     v = os0.str2bool(value, None)
     if v is not None:
         value = v
-    group_ids = oerp.search('res.groups',
-                           [('name', '=', name)],
-                           context=context)
+    if isinstance(value, bool):
+        group_ids = oerp.search('res.groups',
+                               [('name', '=', name)],
+                               context=context)
+    else:
+        full_name = '%s / %s' % (name, value)
+        group_ids = oerp.search('res.groups',
+                               [('full_name', '=', full_name)],
+                               context=context)
     if len(group_ids) != 1:
         msg = u"!Parameter name " + name + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -4082,17 +4088,19 @@ def setup_config_param(oerp, ctx, user, name, value):
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     vals = {}
-    if isinstance(value, bool):
-        if value:
-            if group_id not in user_obj.groups_id.ids:
-                vals['groups_id'] = [(4, group_id)]
+    if value:
+        if group_id not in user_obj.groups_id.ids:
+            vals['groups_id'] = [(4, group_id)]
+            if isinstance(value, bool):
                 msg = u"%s.%s = True" % (user, name)
-                msg_log(ctx, ctx['level'] + 2, msg)
-        else:
-            if group_id in user_obj.groups_id.ids:
-                vals['groups_id'] = [(3, group_id)]
-                msg = u"%s.%s = False" % (user, name)
-                msg_log(ctx, ctx['level'] + 2, msg)
+            else:
+                msg = u"%s.%s" % (user, full_name)
+            msg_log(ctx, ctx['level'] + 2, msg)
+    else:
+        if group_id in user_obj.groups_id.ids:
+            vals['groups_id'] = [(3, group_id)]
+            msg = u"%s.%s = False" % (user, name)
+            msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         oerp.write('res.users', user_id, vals)
         # ids = oerp.search('ir.module.category',

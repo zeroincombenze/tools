@@ -20,28 +20,34 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.11
+__version__=0.1.12
 
 
 set_ver() {
-# set_ver(file odoo_ver db_name [xmlport])
+# set_ver(file odoo_fver db_name [xmlport])
     if [ $opt_verbose -gt 0 ]; then
       echo "set_ver($1 ver=$2 db=$3 port=$4)"
     fi
     local l rem1 rem2 chid lnemod newln prm val sfx prp cup ver fntmp
-    local fn odoo_ver db_name xmlport
+    local fn odoo_fver db_name xmlport
     fn=$1
-    odoo_ver=$2
+    odoo_fver=$2
     if [ -z "$3" ]; then
       db_name=auto
     else
       db_name=$3
     fi
     [ -n "$4" ] && xmlport=$4 || xmlport=8069
-    ver=_$odoo_ver
+    ver=_$odoo_fver
     fntmp=$fn.tmp
     if  [ -f $fntmp ]; then
       rm -f $fntmp
@@ -64,7 +70,7 @@ set_ver() {
         cup=${prm%_*}
         # echo "<<p=$prm; v=$val; x=$prp; s=$sfx; c=$cup>>" #debug
         if [ "$prm" == "oe_version" ]; then
-          lnemod="oe_version=$odoo_ver"
+          lnemod="oe_version=$odoo_fver"
           # prp=
         elif [ "$prm" == "db_name" -a -n "$db_name" ]; then
           lnemod="db_name=$db_name"
@@ -117,7 +123,7 @@ set_ver() {
     done < $fn
     if [ -n "$(diff -q $fn $fntmp)" ]; then
       if [ $opt_verbose -gt 0 ]; then
-        diff -y $fn $fntmp|less
+        diff --suppress-common-line -y $fn $fntmp
       fi
       if [ $opt_dry_run -eq 0 ]; then
         mv $fn $fn.bak
@@ -129,16 +135,18 @@ set_ver() {
 }
 
 
-OPTOPTS=(h        D        f      k      K       n           p          q           r           u           V           v)
-OPTDEST=(opt_help opt_defn opt_fn opt_pp opt_pp  opt_dry_run opt_lgipwd opt_verbose opt_xmlport opt_lgiuser opt_version opt_verbose)
-OPTACTI=(1        1        "="    0      1       1           "="        0           "="         "="         "*>"        "+")
-OPTDEFL=(0        0        ""     -1     -1      0           ""         -1          ""          ""          ""           -1)
-OPTMETA=("help"   ""       "file" ""     ""      ""          "passwd"   "quiet"     "port"      "user"      "version"   "verbose")
+OPTOPTS=(h        D        E        f      k      K      m         n           p          q           r           u           V           v)
+OPTDEST=(opt_help opt_defn opt_tenv opt_fn opt_pp opt_pp opt_multi opt_dry_run opt_lgipwd opt_verbose opt_xmlport opt_lgiuser opt_version opt_verbose)
+OPTACTI=(1        1        1        "="    0      1      1         1           "="        0           "="         "="         "*>"        "+")
+OPTDEFL=(0        0        0        ""     -1     -1     -1        0           ""         -1          ""          ""          ""           -1)
+OPTMETA=("help"   ""       ""       "file" ""     ""     ""        ""          "passwd"   "quiet"     "port"      "user"      "version"   "verbose")
 OPTHELP=("this help"\
- "set default config file"\
+ "update default config file"\
+ "update test environment config file"\
  "set specific filename to set"\
  "reset passepartout"\
  "set passepartout"\
+ "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "set odoo password"\
  "silent mode"\
@@ -146,14 +154,33 @@ OPTHELP=("this help"\
  "set odoo login username"\
  "show version"\
  "verbose mode")
-OPTARGS=(odoo_ver db_name)
+OPTARGS=(odoo_vid db_name)
 
 parseoptargs "$@"
-if [[ $odoo_ver =~ ^(11|10|9|8|7)$ ]]; then
-  odoo_ver=$odoo_ver.0
-elif [[ $odoo_ver =~ ^(11\.0|10\.0|9\.0|8\.0|7\.0)$ ]]; then
-  :
-else
+if [ -n "$odoo_vid" ]; then
+  odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+  odoo_ver=$(build_odoo_param FULLVER $odoo_vid)
+  if [ $opt_multi -lt 0 ]; then
+    c=0
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for p in "" v odoo ODOO; do
+        odoo_bin=$(build_odoo_param BIN $p$v search)
+        if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+          ((c++))
+        fi
+      done
+    done
+    if [ $c -gt 2 ]; then
+      opt_multi=1
+    else
+      opt_multi=0
+    fi
+  else
+    odoo_fver=
+    odoo_ver=
+  fi
+fi
+if [ -z "$odoo_fver" ]; then
   opt_help=1
 fi
 if [ "$opt_version" ]; then
@@ -169,13 +196,16 @@ if [ -n "$opt_lgipwd" ]; then
   opt_lgipwd=${opt_lgipwd//\\!/!}
 fi
 if [ $opt_defn -ne 0 ]; then
-  set_ver ./clodoo.conf $odoo_ver $db_name $opt_xmlport
+  set_ver ./clodoo.conf $odoo_fver $db_name $opt_xmlport
 elif [ -n "$opt_fn" ]; then
-  set_ver $opt_fn $odoo_ver $db_name $opt_xmlport
+  set_ver $opt_fn $odoo_fver $db_name $opt_xmlport
 else
   for f in conf/*conf; do
-    set_ver ./clodoo.conf $odoo_ver $db_name $opt_xmlport
-    set_ver $f $odoo_ver $db_name $opt_xmlport
+    set_ver ./clodoo.conf $odoo_fver $db_name $opt_xmlport
+    set_ver $f $odoo_fver $db_name $opt_xmlport
   done
+fi
+if [ $opt_tenv ]; then
+  set_ver ./inv2draft_n_restore.conf $odoo_fver $db_name $opt_xmlport
 fi
 exit $STS_SUCCESS
