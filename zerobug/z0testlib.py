@@ -152,7 +152,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.9"
+__version__ = "0.2.10"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 

@@ -26,7 +26,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.15.5
+__version__=0.1.16
 
 
 format_xml() {
@@ -137,7 +137,7 @@ OPTOPTS=(h        a        A       B         b         c         d        G     
 OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_diff opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
 OPTACTI=(1        "+"      1       1         "="       1         1        1       1       1            "="     0           1       "*>"        "+"         1)
 OPTDEFL=(1        0        0       0         ""        0         0        0       0       0            ""      -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" "bug"     "version" "camel"  "diff"   ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
+OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"  "diff"   ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "add Odoo Ialia Associazione Copyright"\

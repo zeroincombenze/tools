@@ -17,6 +17,7 @@ Simple bash library
 
 You can find more info here:
 http://wiki.zeroincombenze.org/en/Linux/dev
+http://docs.zeroincombenze.org/z0lib/
 
 
 .. |build status| image:: https://travis-ci.org/antoniov/tools.svg

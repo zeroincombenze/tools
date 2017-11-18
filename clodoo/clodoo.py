@@ -1,23 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+# Copyright SHS-AV s.r.l. (http://www.shs-av.com/)
 #
-#    Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 #    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 #
 """@mainpage
 Massive operations on Zeroincombenze(R) / Odoo databases
@@ -97,30 +85,25 @@ Action may be one of:
 - wep_db
 """
 
+import calendar
+import csv
 # import pdb
 import os.path
+import re
 import sys
-from os0 import os0
 import time
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
 import calendar
 import oerplib
-import re
-import csv
-from clodoolib import parse_args
-from clodoolib import init_logger
-from clodoolib import msg_log
-from clodoolib import debug_msg_log
-from clodoolib import msg_burst
-from clodoolib import tounicode
-from clodoolib import crypt
-from clodoolib import decrypt
-from clodoocore import import_file_get_hdr
-from clodoocore import eval_value
-from clodoocore import get_query_id
+from os0 import os0
+
+from clodoocore import eval_value, get_query_id, import_file_get_hdr
+from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
+                       msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.75"
+__version__ = "0.2.76"
+
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 STS_FAILED = 1
@@ -173,10 +156,10 @@ def open_connection(ctx):
                             protocol=ctx['svc_protocol'],
                             port=ctx['xmlrpc_port'],
                             version=ctx['oe_version'])
-    except:
+    except BaseException:
         msg = u"!Odoo server is not running!"
         msg_log(ctx, ctx['level'], msg)
-        raise ValueError(msg)
+        raise ValueError(msg)                                # pragma: no cover
     return oerp
 
 
@@ -186,7 +169,7 @@ def do_login(oerp, ctx):
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     userlist = ctx['login2_user'].split(',')
     userlist.insert(0, ctx['login_user'])
-    if ctx.get('lgi_user'):
+    if ctx.get('lgi_user') and ctx['lgi_user'] not in userlist:
         userlist.insert(0, ctx['lgi_user'])
     pwdlist = ctx['login2_password'].split(',')
     pwdlist.insert(0, ctx['login_password'])
@@ -201,14 +184,14 @@ def do_login(oerp, ctx):
                                       passwd=decrypt(pwd),
                                       database=db_name)
                 break
-            except:
+            except BaseException:
                 user_obj = False
             try:
                 user_obj = oerp.login(user=username,
                                       passwd=pwd,
                                       database=db_name)
                 break
-            except:
+            except BaseException:
                 user_obj = False
         if user_obj:
             break
@@ -237,7 +220,7 @@ def do_login(oerp, ctx):
                              .format(tounicode(ctx['db_name']),
                                      tounicode(username),
                                      tounicode(ctx['login_user'])))
-            except:
+            except BaseException:
                 os0.wlog(u"!!write error!")
         if user_obj.email != ctx['zeroadm_mail']:
             user_obj.email = ctx['zeroadm_mail']
@@ -248,7 +231,7 @@ def do_login(oerp, ctx):
                              .format(tounicode(ctx['db_name']),
                                      tounicode(ctx['login2_user']),
                                      tounicode(ctx['login_user'])))
-            except:
+            except BaseException:
                 os0.wlog(u"!!write error!")
     return user_obj
 
@@ -661,7 +644,7 @@ def act_run_unit_tests(oerp, ctx):
         sts = oerp.execute('ir.actions.server',
                            'Run Unit test',
                            'banking_export_pain')
-    except:
+    except BaseException:
         sts = STS_FAILED
     return sts
 
@@ -676,7 +659,7 @@ def act_drop_db(oerp, ctx):
             oerp.db.drop(ctx['admin_passwd'],
                          ctx['db_name'])
             time.sleep(3)
-        except:
+        except BaseException:
             pass
     return sts
 
@@ -727,7 +710,7 @@ def act_wep_company(oerp, ctx):
                 try:
                     oerp.unlink(model,
                                 [company_id])
-                except:
+                except BaseException:
                     msg = u"Cannot remove %s.%d" % (model, company_id)
                     msg_log(ctx, ctx['level'], msg)
                     oerp.write(model,
@@ -808,7 +791,7 @@ def act_new_db(oerp, ctx):
                 lgiuser = do_login(oerp, ctx)
                 if not lgiuser:
                     sts = STS_FAILED
-            except:
+            except BaseException:
                 sts = STS_FAILED
         else:
             sts = STS_FAILED
@@ -931,7 +914,7 @@ def act_upgrade_modules(oerp, ctx):
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
                     done += 1
-                except:
+                except BaseException:
                     msg = "!Module {0} not upgradable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
             else:
@@ -977,7 +960,7 @@ def act_uninstall_modules(oerp, ctx):
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
                     done += 1
-                except:
+                except BaseException:
                     msg = "!Module {0} not uninstallable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
             else:
@@ -1028,7 +1011,7 @@ def act_install_modules(oerp, ctx):
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
                     done += 1
-                except:
+                except BaseException:
                     msg = "!Module {0} not installable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
             else:
@@ -1134,7 +1117,7 @@ def act_check_partners(oerp, ctx):
     for partner_id in partner_ids:
         try:
             partner_obj = oerp.browse('res.partner', partner_id)
-        except:
+        except BaseException:
             msg = u"Wrong partner id=" + str(partner_id)
             msg_log(ctx, ctx['level'], msg)
             continue
@@ -1154,7 +1137,7 @@ def act_check_partners(oerp, ctx):
                 msg_log(ctx, ctx['level'], msg)
                 try:
                     oerp.write('res.partner', partner_id, vals)
-                except:
+                except BaseException:
                     msg = partner_obj.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
             elif iso == "1I" and len(vatn) == 11:
@@ -1165,7 +1148,7 @@ def act_check_partners(oerp, ctx):
                 msg_log(ctx, ctx['level'], msg)
                 try:
                     oerp.write('res.partner', [partner_id], vals)
-                except:
+                except BaseException:
                     msg = partner_obj.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
             elif iso < "AA" or iso > "ZZ":
@@ -1220,8 +1203,8 @@ def act_set_periods(oerp, ctx):
 
 
 def act_check_taxes(oerp, ctx):
-    msg = u"Check for taxes; period: " \
-        + ctx['date_start'] + ".." + ctx['date_stop']
+    msg = u"Check for taxes; period: " + \
+        ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
     period_ids = oerp.search('account.period',
@@ -1298,8 +1281,8 @@ def act_check_taxes(oerp, ctx):
 
 
 def act_check_balance(oerp, ctx):
-    msg = u"Check for balance; period: " \
-        + ctx['date_start'] + ".." + ctx['date_stop']
+    msg = u"Check for balance; period: " + \
+        ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
     period_ids = oerp.search('account.period',
@@ -1488,8 +1471,7 @@ def act_check_balance(oerp, ctx):
                     msg = u"{0} {1:<16} {2:11}{3:11.2f}".format(
                         os0.u(ident),
                         os0.u(sublevel),
-                        '',
-                        -acc_balance[level][sublevel])
+                        '', -acc_balance[level][sublevel])
                     msg_log(ctx, ctx['level'], msg)
                     dbt_amt -= acc_balance[level][sublevel]
                 else:
@@ -1551,7 +1533,7 @@ def act_update_4_next_generation(oerp, ctx):
     for id in ids:
         try:
             oerp.unlink(model, [id])
-        except:
+        except BaseException:
             pass
     sts = act_update_modules(oerp, ctx)
     ids = oerp.search(model, [])
@@ -2088,7 +2070,7 @@ def upd_journals_ena_del(oerp, journals, ctx):
             msg = u"Update journals " + str(journals)
             msg_log(ctx, ctx['level'], msg)
             oerp.write('account.journal', journals, vals)
-        except:
+        except BaseException:
             msg = u"Cannot update journals %s" % str(journals)
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2180,7 +2162,7 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
             vals['period_id'] = period_id
             try:
                 oerp.write(model, [inv_id], vals)
-            except:
+            except BaseException:
                 msg = u"Cannot update registration date of %d" % inv_id
                 msg_log(ctx, ctx['level'], msg)
             if 'registration_date' in vals and move_id:
@@ -2214,7 +2196,7 @@ def upd_invoices_2_cancel(oerp, move_dict, ctx):
                 oerp.execute(model,
                              "action_cancel",
                              invoices)
-            except:
+            except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
                     if oerp.browse(model, inv_id).state == 'paid':
@@ -2222,7 +2204,7 @@ def upd_invoices_2_cancel(oerp, move_dict, ctx):
                             oerp.write(model,
                                        [inv_id],
                                        {'state': 'cancel'})
-                        except:
+                        except BaseException:
                             msg = u"Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
@@ -2247,7 +2229,7 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
                 oerp.execute(model,
                              "action_cancel",
                              invoices)
-            except:
+            except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
                     if oerp.browse(model, inv_id).state == 'paid':
@@ -2256,7 +2238,7 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
                                        [inv_id],
                                        {'state': 'draft'})
                             passed.append(inv_id)
-                        except:
+                        except BaseException:
                             msg = u"Cannot update invoice status (%d)" % inv_id
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
@@ -2266,7 +2248,7 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
                 oerp.execute(model,
                              "action_cancel_draft",
                              invoices)
-            except:
+            except BaseException:
                 msg = u"Cannot update invoice status %s" % str(invoices)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
@@ -2298,13 +2280,13 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
                     oerp.execute('account.invoice',
                                  "button_reset_taxes",
                                  [inv_id])
-                except:
+                except BaseException:
                     pass
                 try:
                     oerp.exec_workflow(model,
                                        'invoice_open',
                                        inv_id)
-                except:
+                except BaseException:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
@@ -2330,7 +2312,7 @@ def upd_payments_2_draft(oerp, move_dict, ctx):
                 oerp.execute('account.move',
                              "button_cancel",
                              payments)
-            except:
+            except BaseException:
                 msg = u"Cannot update payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
@@ -2356,7 +2338,7 @@ def upd_payments_2_posted(oerp, move_dict, ctx):
                 oerp.execute('account.move',
                              "button_validate",
                              payments)
-            except:
+            except BaseException:
                 msg = u"Cannot restore payment status %s" % str(payments)
                 msg_log(ctx, ctx['level'], msg)
                 return STS_FAILED
@@ -2399,7 +2381,7 @@ def unreconcile_invoices(oerp, reconcile_dict, ctx):
                          'trans_unrec',
                          None,
                          context)
-        except:
+        except BaseException:
             msg = u"Cannot update invoice status of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2417,7 +2399,7 @@ def unreconcile_payments(oerp, ctx):
                      'trans_unrec',
                      None,
                      context)
-    except:
+    except BaseException:
         msg = u"Cannot update payment status %s" % str(reconcile_list)
         msg_log(ctx, ctx['level'], msg)
         return STS_FAILED
@@ -2438,7 +2420,7 @@ def reconcile_invoices(oerp, reconcile_dict, ctx):
             #              'reconcile',
             #              reconcile_dict[inv_id],
             #              'manual')
-        except:
+        except BaseException:
             msg = u"Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2454,7 +2436,7 @@ def upd_acc_2_bank(oerp, accounts, ctx):
             msg = u"Update accounts " + str(accounts)
             msg_log(ctx, ctx['level'], msg)
             oerp.write('account.account', accounts, vals)
-        except:
+        except BaseException:
             msg = u"Cannot update accounts %s" % str(accounts)
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2480,7 +2462,7 @@ def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
                                                     view.name,
                                                     view.xml_id)
             msg_log(ctx, ctx['level'], msg)
-        except:
+        except BaseException:
             pass
     return STS_SUCCESS
 
@@ -2692,7 +2674,7 @@ def recompute_tax_balance(oerp, ctx):
                 reconcile_invoices(oerp,
                                    cur_reconcile_dict,
                                    ctx)
-            except:
+            except BaseException:
                 msg = u"**** Warning invoice %d ****" % invoice_id
                 msg_log(ctx, ctx['level'], msg)
     return sts
@@ -2719,7 +2701,7 @@ def recompute_balance(oerp, ctx):
             oerp.execute('account.move',
                          "button_cancel",
                          [move_id])
-        except:
+        except BaseException:
             msg = u"Cannot update payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2729,7 +2711,7 @@ def recompute_balance(oerp, ctx):
             oerp.execute('account.move',
                          "button_validate",
                          [move_id])
-        except:
+        except BaseException:
             msg = u"Cannot restore payment status %d" % move_id
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
@@ -2741,7 +2723,7 @@ def append_2_where(oerp, model, code, op, value, where, ctx):
     return where
 
 
-def build_where(oerp, model,  hide_cid, exclusion, ctx):
+def build_where(oerp, model, hide_cid, exclusion, ctx):
     where = []
     if not hide_cid and 'company_id' in ctx:
         company_id = ctx['company_id']
@@ -2793,7 +2775,7 @@ def workflow_model_all_records(oerp, model, hide_cid, signal, ctx,
             move_ctr += 1
             try:
                 oerp.exec_workflow(model, signal, record_id)
-            except:
+            except BaseException:
                 msg = u"Workflow of %s.%d do not executed" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
@@ -2873,7 +2855,7 @@ def setstate_model_all_records(oerp, model, hide_cid, field_name,
                     oerp.write(model,
                                [record_id],
                                {field_name: new_value})
-            except:
+            except BaseException:
                 msg = u"Cannot update status of %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
@@ -2919,7 +2901,7 @@ def reactivate_model_all_records(oerp, model, hide_cid, field_name,
                     oerp.write(model,
                                [record_id],
                                {field_name: new_value})
-            except:
+            except BaseException:
                 msg = u"Cannot reactivate %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
@@ -2969,7 +2951,7 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx,
                     oerp.write(model,
                                record_ids,
                                {'active': False})
-            except:
+            except BaseException:
                 if ctx['exit_onerror']:
                     sts = STS_FAILED
     decr_lev(ctx)
@@ -2992,7 +2974,7 @@ def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
             try:
                 oerp.unlink(model,
                             [record_id])
-            except:
+            except BaseException:
                 msg = u"Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
@@ -3180,7 +3162,7 @@ def reset_sequence(oerp, ctx):
                             oerp.unlink(model,
                                         [record_id])
                             f_deleted = True
-                        except:
+                        except BaseException:
                             msg = u"Cannot remove %s.%d" % (model, record_id)
                             msg_log(ctx, ctx['level'], msg)
                             if ctx['exit_onerror']:
@@ -3208,7 +3190,7 @@ def reset_menuitem(oerp, ctx):
             try:
                 oerp.unlink(model,
                             [record_id])
-            except:
+            except BaseException:
                 msg = u"Cannot remove %s.%d" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
                 if ctx['exit_onerror']:
@@ -3224,12 +3206,14 @@ def validate_models(oerp, models):
             cur_models.append(model)
     return cur_models
 
+
 def validate_field(oerp, model, name):
     if oerp.search('ir.model.fields',
-                   [('model','=', model),
+                   [('model', '=', model),
                     ('name', '=', name)]):
         return True
     return False
+
 
 def remove_company_mail_records(oerp, ctx):
     models = validate_models(oerp, ('ir.attachment',))
@@ -3397,7 +3381,7 @@ def remove_company_project_records(oerp, ctx):
                                                      '=',
                                                      CV_PROJECT_ID)])
         records2keep['project.task'].append(8771)
-        records2keep['project.project'] = (260,  265,  2869, 3026,
+        records2keep['project.project'] = (260, 265, 2869, 3026,
                                            3027, 3028, 3029, 3030,
                                            3031, 3032, 3033, 3034,
                                            3035, 3036, 3037, 3038,
@@ -3640,9 +3624,9 @@ def remove_company_account_records(oerp, ctx):
                                              '|', ('state',
                                                    '=',
                                                    'paid'),
-                                                  ('state',
-                                                   '=',
-                                                   'open')])
+                                             ('state',
+                                              '=',
+                                              'open')])
             reconcile_dict, move_dict = get_reconcile_from_invoices(oerp,
                                                                     record_ids,
                                                                     ctx)
@@ -3656,7 +3640,7 @@ def remove_company_account_records(oerp, ctx):
             if len(record_ids) > 0:
                 try:
                     sts = upd_invoices_2_cancel(oerp, record_ids, ctx)
-                except:
+                except BaseException:
                     msg = u"Cannot delete invoices"
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
@@ -3973,7 +3957,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                      tounicode(name_old),
                                      tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
-                    except:
+                    except BaseException:
                         os0.wlog(u"!!write error!")
             else:
                 msg = u"insert " + os0.u(name_new)
@@ -3988,7 +3972,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                       tounicode(o_model['name']),
                                       tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
-                    except:
+                    except BaseException:
                         id = None
                         os0.wlog(u"!!write error!")
         csv_fd.close()
@@ -4064,13 +4048,13 @@ def setup_config_param(oerp, ctx, user, name, value):
         value = v
     if isinstance(value, bool):
         group_ids = oerp.search('res.groups',
-                               [('name', '=', name)],
-                               context=context)
+                                [('name', '=', name)],
+                                context=context)
     else:
         full_name = '%s / %s' % (name, value)
         group_ids = oerp.search('res.groups',
-                               [('full_name', '=', full_name)],
-                               context=context)
+                                [('full_name', '=', full_name)],
+                                context=context)
     if len(group_ids) != 1:
         msg = u"!Parameter name " + name + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -4400,4 +4384,3 @@ if __name__ == "__main__":
     sts = main()
     sys.exit(sts)
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

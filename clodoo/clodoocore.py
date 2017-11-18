@@ -1,30 +1,20 @@
 # -*- coding: utf-8 -*-
-##############################################################################
 #
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
+#
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 #    All Rights Reserved
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 """Clodoo core functions
 """
 
 from os0 import os0
+
 from clodoolib import debug_msg_log
 
-__version__ = "0.1.14"
+
+__version__ = "0.1.15"
 
 
 def _get_model_bone(oerp, ctx, o_model):
@@ -173,7 +163,7 @@ def eval_value(oerp, ctx, o_model, name, value):
                      (value[0:2] == "[(" and value[-2:] == ")]")):
                 try:
                     value = eval(value, None, ctx)
-                except:
+                except BaseException:
                     pass
     return value
 
@@ -183,27 +173,27 @@ def expr(oerp, ctx, o_model, code, value):
     if isinstance(value, basestring):
         i, j = get_macro_pos(value)
         if i >= 0 and j > i:
-            v = value[i+2:j]
+            v = value[i + 2:j]
             x, y = get_macro_pos(v)
             while x >= 0 and y > i:
                 v = expr(oerp, ctx, o_model, code, v)
-                value = value[0:i+2] + v + value[j:]
+                value = value[0:i + 2] + v + value[j:]
                 i, j = get_macro_pos(value)
-                v = value[i+2:j]
+                v = value[i + 2:j]
                 x, y = get_macro_pos(v)
             res = ""
             while i >= 0 and j > i:
-                v = value[i+2:j]
+                v = value[i + 2:j]
                 if v.find(':') >= 0:
                     v = _query_expr(oerp, ctx, o_model, code, v)
                 else:
                     try:
                         v = eval(v, None, ctx)
-                    except:
+                    except BaseException:
                         pass
                 if i > 0:
                     res = concat_res(res, value[0:i])
-                value = value[j+1:]
+                value = value[j + 1:]
                 res = concat_res(res, v)
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
@@ -243,7 +233,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
         try:
             o = oerp.browse('ir.model.data', ids[0])
             ids = [o.res_id]
-        except:
+        except BaseException:
             ids = None
     if ids is None:
         return []
@@ -294,7 +284,7 @@ def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
         where.append(('company_id', '=', company_id))
     try:
         ids = oerp.search(model, where)
-    except:
+    except BaseException:
         ids = None
     return ids
 
@@ -438,7 +428,7 @@ def _get_model_parms(oerp, ctx, o_model, value):
             model = None
             try:
                 value = eval(value, None, ctx)
-            except:
+            except BaseException:
                 pass
     else:
         model = value[:i]
@@ -472,14 +462,14 @@ def concat_res(res, value):
 
 def is_db_alias(value):
     i = value.find('.') + 1
-    if value[0:i] in ("base.", "multi_company." ):
+    if value[0:i] in ("base.", "multi_company."):
         return True
     return False
 
 
 def get_model_alias(value):
     i = value.find('.') + 1
-    if value[0:i] in ("base.", "multi_company." ):
+    if value[0:i] in ("base.", "multi_company."):
         model = "ir.model.data"
         name = ['module', 'name']
         i -= 1

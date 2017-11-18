@@ -26,11 +26,11 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.13.1
+__version__=0.2.10
 
 
 test_01() {
-    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11
+    local sts res res1 res2 res3 res4 res5 res6 res7 res8 res9 res10 res11 x
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       dbgmsg ".test_01 - min=$min_test, max=$max_test, ctr=$ctr"
     fi
@@ -81,7 +81,8 @@ test_01() {
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      res=$TESTDIR/${module_id}_test.log
+      x=$TESTDIR/${module_id}_test.log
+      res=$(readlink -m $x)
       test_result "Opt -n (-k)" "$res" "$res5"
       sts=$?
     fi
