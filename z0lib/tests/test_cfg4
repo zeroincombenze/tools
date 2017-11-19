@@ -25,7 +25,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.27.1
+__version__=0.1.27.2
 
 
 PASSED=0
@@ -92,7 +92,7 @@ fi
 UT1_LIST=
 UT_LIST=
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
-# Follow code must be executed at main level sue bash limitations
+# Follow code must be executed at main level due bash limitations
 for tid in 0 1 2 3; do
   eval $(init_cfg $tid)
   eval $(active_cfg $tid)

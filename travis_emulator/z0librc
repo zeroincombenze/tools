@@ -978,7 +978,7 @@ export -f set_cfg_def
 
 
 _read_cfg_file() {
-#read_cfg_file(file $tid [section[-D]])    -D means debug
+#read_cfg_file(file $tid [section] [-D])    -D means debug
     local key val lne x r t s d b dev
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
