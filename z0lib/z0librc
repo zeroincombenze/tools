@@ -979,6 +979,9 @@ export -f set_cfg_def
 
 _read_cfg_file() {
 #read_cfg_file(file $tid [section] [-D])    -D means debug
+    if [[ ! -n "$1"  || ! -f "$1" ]]; then
+      return
+    fi
     local key val lne x r t s d b dev
     if [ "$(type -t store_cfg_param_value)" == "function" ]; then
       store_param=store_cfg_param_value
@@ -1064,7 +1067,7 @@ _read_cfg_file() {
 }
 
 link_cfg() {
-# link_cfg(file_cfg,[file_def,[tid,[section[-D]]]])  -D means debug
+# link_cfg(file_cfg [file_def] [tid] [section] [-D])  -D means debug
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
     if [ "$3" == "0" -o "$3" == "1" -o "$3" == "2" -o "$3" == "3" ]; then
       local tid=$3
