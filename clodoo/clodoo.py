@@ -102,7 +102,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76.1"
+__version__ = "0.2.76.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -658,7 +658,6 @@ def act_drop_db(oerp, ctx):
         try:
             oerp.db.drop(ctx['admin_passwd'],
                          ctx['db_name'])
-            time.sleep(3)
         except BaseException:
             pass
     return sts
@@ -787,6 +786,7 @@ def act_new_db(oerp, ctx):
                                             ctx['with_demo'],
                                             lang,
                                             decrypt(ctx['login_password']))
+                    time.sleep(3)
                 ctx['no_warning_pwd'] = True
                 lgiuser = do_login(oerp, ctx)
                 if not lgiuser:
