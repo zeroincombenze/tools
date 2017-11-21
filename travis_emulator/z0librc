@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.3
+#__version__=0.2.3.1
 STS_FAILED=1
 STS_SUCCESS=0
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
@@ -658,11 +658,18 @@ export -f a_active
 # Parameter $4:
 #    "-d"   key is specific of Linux distribution
 #    "-f"   key is specific of Linux family
-# not ""    specific Linux distribution or family
+#    not "" specific Linux distribution or family
 # Parameter $5:
-#    "-D"   key is specific for development environment
+#    "-D|1"   key is specific for development environment
+# Parameter $6:
+#    Section (reserved ti future use)
 CFG_set() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
+    # if [[ "$3" =~ "[0123]" ]]; then
+    local tid=$3
+    # else
+    #   local tid="3"
+    # fi
     if [ -n "$2" ]; then
       if [ "$4" == "-d" ]; then
         local SFX="__$XU_DISTO"
@@ -674,7 +681,7 @@ CFG_set() {
         local SFX=
       fi
       local key=${2//-/_}
-      if [ "$5" == "-D" ]; then
+      if [[ $5 =~ (D|1) ]]; then
         local SFX="${SFX}__DEV"
       fi
       if [ "$1" == "0" ]; then
@@ -972,7 +979,7 @@ set_cfg_def() {
     else
       local tid="0"
     fi
-    CFG_set "$tid" "$1" "$2" "$4" "$5"
+    CFG_set "$tid" "$1" "$2" "$4" "$5" "$6"
 }
 export -f set_cfg_def
 
@@ -1056,7 +1063,7 @@ _read_cfg_file() {
               x=$(echo $x)
               val="${val:0:-1}$x"
             done
-            $store_param $2 $kk "$val" "$d" "$s" "$b"
+            $store_param $2 "$kk" "$val" "$d" "$b" "$s"
             if [ "$kk" == "CONFN" ]; then
               CONFN="$val"
             fi

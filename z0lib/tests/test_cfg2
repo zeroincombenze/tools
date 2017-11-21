@@ -31,8 +31,8 @@ __version__=0.1.28.2
 PASSED=0
 
 store_cfg_param_value() {
-#store_cfg_param_value(tid key value [opt] [section] [dev])
-    if [ ${6:-0} -gt 0 ]; then
+#store_cfg_param_value(tid key value [-f|-d] [-D|1] [section] )
+    if [ ${5:-0} -gt 0 -o "$5" == "-D" ] ; then
       PASSED=2
     else
       PASSED=1

@@ -102,7 +102,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76"
+__version__ = "0.2.76.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -894,7 +894,6 @@ def act_upgrade_modules(oerp, ctx):
     context = get_context(ctx)
     user_lang = get_user_lang(oerp, ctx)
     cur_lang = user_lang
-    done = 0
     for m in module_list:
         if m == "":
             continue
@@ -913,7 +912,7 @@ def act_upgrade_modules(oerp, ctx):
                                  ids)
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    done += 1
+                    time.sleep(2)
                 except BaseException:
                     msg = "!Module {0} not upgradable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
@@ -926,8 +925,6 @@ def act_upgrade_modules(oerp, ctx):
 
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    if done > 0:
-        time.sleep(done)
     return STS_SUCCESS
 
 
@@ -939,7 +936,6 @@ def act_uninstall_modules(oerp, ctx):
     context = get_context(ctx)
     user_lang = get_user_lang(oerp, ctx)
     cur_lang = user_lang
-    done = 0
     model = 'ir.module.module'
     for m in module_list:
         if m == "":
@@ -959,7 +955,7 @@ def act_uninstall_modules(oerp, ctx):
                                  ids)
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    done += 1
+                    time.sleep(2)
                 except BaseException:
                     msg = "!Module {0} not uninstallable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
@@ -977,8 +973,6 @@ def act_uninstall_modules(oerp, ctx):
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    if done > 0:
-        time.sleep(done)
     return STS_SUCCESS
 
 
@@ -990,7 +984,6 @@ def act_install_modules(oerp, ctx):
     context = get_context(ctx)
     user_lang = get_user_lang(oerp, ctx)
     cur_lang = user_lang
-    done = 0
     model = 'ir.module.module'
     for m in module_list:
         if m == "":
@@ -1010,7 +1003,7 @@ def act_install_modules(oerp, ctx):
                                  ids)
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    done += 1
+                    time.sleep(2)
                 except BaseException:
                     msg = "!Module {0} not installable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
@@ -1028,8 +1021,6 @@ def act_install_modules(oerp, ctx):
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    if done > 0:
-        time.sleep(done)
     return STS_SUCCESS
 
 
