@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.19.1
+__version__=0.1.19.2
 
 
 up_oemod() {
@@ -95,7 +95,7 @@ OPTHELP=("this help"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action cmdlist)
-PHASE_LIST="09 00 01 10 11 12 13 14 15 16 17 20 21 30 50 51 52 53 61 90 91 92"
+PHASE_LIST="09 00 01 10 11 12 13 14 15 16 17 20 21 30 50 51 52 53 54 61 90 91 92"
 DEMO_PHASE_LIST="50 51 52 53 61"
 
 parseoptargs "$@"
