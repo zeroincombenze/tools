@@ -318,7 +318,6 @@ def get_query_id(oerp, ctx, o_model, row):
     """
     msg = "get_query_id()"
     debug_msg_log(ctx, 6, msg)
-    # pdb.set_trace()
     code = o_model['code']
     model, hide_cid = _get_model_bone(oerp, ctx, o_model)
     msg += "model=%s, hide_company=%s" % (model, hide_cid)

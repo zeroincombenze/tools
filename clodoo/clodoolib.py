@@ -73,6 +73,11 @@ LX_CFG_S = ('db_name',
             'chart_of_account',
             'catalog_db',
             'custom_act',
+            # 'model',
+            # 'model_code',
+            # 'model_name',
+            # 'filename',
+            # 'hide_cid',
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
@@ -115,7 +120,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.15"
+__version__ = "0.1.15.1"
 
 
 #############################################################################
@@ -290,7 +295,9 @@ def default_conf(ctx):
               'actions_uu': '',
               'heavy_trx': False,
               'chart_of_account': 'configurable_chart_template',
-              'catalog_db': 'zeroincombenze'}
+              'catalog_db': 'zeroincombenze',
+              # 'model_name': 'name',
+    }
     return DEFDCT
 
 

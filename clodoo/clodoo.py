@@ -490,8 +490,8 @@ def create_local_parms(ctx, action):
     for p in ('model',
               'model_code',
               'model_name',
-              'code',
-              'name',
+              # 'code',
+              # 'name',
               'filename',
               'hide_cid'):
         if conf_obj.has_option(action, p):
