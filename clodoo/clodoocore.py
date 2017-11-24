@@ -14,7 +14,7 @@ from os0 import os0
 from clodoolib import debug_msg_log
 
 
-__version__ = "0.1.15"
+__version__ = "0.1.15.4"
 
 
 def _get_model_bone(oerp, ctx, o_model):
@@ -146,7 +146,7 @@ def eval_value(oerp, ctx, o_model, name, value):
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
-        if is_db_alias(value):
+        if is_db_alias(oerp, value):
             value = expr(oerp,
                          ctx,
                          o_model,
@@ -198,7 +198,7 @@ def expr(oerp, ctx, o_model, code, value):
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
     if isinstance(value, basestring):
-        if is_db_alias(value):
+        if is_db_alias(oerp, value):
             model, name, value, hide_cid = get_model_alias(value)
             ids = _get_simple_query_id(oerp,
                                        ctx,
@@ -375,14 +375,16 @@ def _query_expr(oerp, ctx, o_model, code, value):
     return value
 
 
-def _model_has_company(oerp, ctx, model):
-    res = oerp.search('ir.model.fields',
-                      [('model', '=', model),
-                       ('name', '=', 'company_id')])
-    if len(res):
+def validate_field(oerp, model, name):
+    if oerp.search('ir.model.fields',
+                   [('model', '=', model),
+                    ('name', '=', name)]):
         return True
-    else:
-        return False
+    return False
+
+
+def _model_has_company(oerp, ctx, model):
+    return validate_field(oerp, model, 'company_id')
 
 
 def get_macro_pos(value):
@@ -417,7 +419,7 @@ def _get_model_parms(oerp, ctx, o_model, value):
         if i >= 0:
             hide_cid = True
     if i < 0:
-        n, v = is_db_alias(value)
+        n, v = is_db_alias(oerp, value)
         if n:
             model = "ir.model.data"
             name = ['module', 'name']
@@ -459,22 +461,25 @@ def concat_res(res, value):
     return res
 
 
-def is_db_alias(value):
-    i = value.find('.') + 1
-    if value[0:i] in ("base.", "multi_company."):
+def is_db_alias(oerp, value):
+    model, name, value, hide_cid = get_model_alias(value)
+    if model and name and value and oerp.search(model,
+                                                [(name[0],'=', value[0]),
+                                                 (name[1], '=', value[1])]):
         return True
     return False
 
 
 def get_model_alias(value):
-    i = value.find('.') + 1
-    if value[0:i] in ("base.", "multi_company."):
-        model = "ir.model.data"
-        name = ['module', 'name']
-        i -= 1
-        value = [value[0:i], value[i + 1:]]
-        hide_cid = True
-        return model, name, value, hide_cid
+    if value:
+        i = value.find('.')
+        j = value.find('.', i + 1)
+        if i >=0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
+            model = "ir.model.data"
+            name = ['module', 'name']
+            value = [value[0:i], value[i + 1:]]
+            hide_cid = True
+            return model, name, value, hide_cid
     return None, None, value, None
 
 

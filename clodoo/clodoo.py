@@ -97,12 +97,13 @@ import calendar
 import oerplib
 from os0 import os0
 
-from clodoocore import eval_value, get_query_id, import_file_get_hdr
+from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
+                        validate_field)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76.2"
+__version__ = "0.2.76.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -658,6 +659,7 @@ def act_drop_db(oerp, ctx):
         try:
             oerp.db.drop(ctx['admin_passwd'],
                          ctx['db_name'])
+            time.sleep(3)
         except BaseException:
             pass
     return sts
@@ -3198,12 +3200,12 @@ def validate_models(oerp, models):
     return cur_models
 
 
-def validate_field(oerp, model, name):
-    if oerp.search('ir.model.fields',
-                   [('model', '=', model),
-                    ('name', '=', name)]):
-        return True
-    return False
+# def validate_field(oerp, model, name):
+#     if oerp.search('ir.model.fields',
+#                    [('model', '=', model),
+#                     ('name', '=', name)]):
+#         return True
+#     return False
 
 
 def remove_company_mail_records(oerp, ctx):
