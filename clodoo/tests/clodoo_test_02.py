@@ -30,7 +30,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.2.76.5"
+__version__ = "0.2.76.6"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -45,7 +45,8 @@ class Test():
 
     def __init__(self, zarlib):
         self.Z = zarlib
-        self.cmd = ['python'] + [self.Z.pkg_dir + '/clodoo.py'] + ['-q']
+        self.cmd = ['python'] + [self.Z.pkg_dir + '/clodoo.py'] + \
+            ['-q']  # + [ '-c' + self.Z.test_dir + '/clodoo.conf' ]
         self.dbtest = 'clodoo_test'
 
     def check_4_db(self):
@@ -82,8 +83,8 @@ class Test():
 
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
-        if (os.environ.get("HOSTNAME", "") == "shsdef16" or
-                os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+                #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
             if not ctx['dry_run']:
                 if os.environ.get("TRAVIS", "") != "true":
                     os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +

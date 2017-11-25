@@ -28,11 +28,12 @@ APPLY_CONF = True
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
 ODOO_CONF = ["/etc/odoo/odoo-server.conf",
+             "/etc/odoo/odoo.conf",
              "/etc/odoo-server.conf",
+             "/etc/odoo.conf",
              "/etc/openerp/openerp-server.conf",
              "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf",
-             "/etc/openerp/odoo-server.conf"]
+             "/etc/odoo/openerp-server.conf",]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
@@ -120,7 +121,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.15.5"
+__version__ = "0.1.15.6"
 
 
 #############################################################################
@@ -257,6 +258,7 @@ def default_conf(ctx):
               'login2_user': 'admin',
               'login2_password': 'admin',
               'admin_passwd': 'admin',
+              'db_user': 'postgres',
               'db_host': 'localhost',
               'svc_protocol': 'xmlrpc',
               'xmlrpc_port': '8069',
@@ -301,16 +303,22 @@ def default_conf(ctx):
     return DEFDCT
 
 
-def get_versioned_option(conf_obj, sect, param, is_bool=None):
+def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
     found = False
-    for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
-        vparam = '%s_%s' %(param, sfx)
-        if conf_obj.has_option(conf_obj, vparam):
-            found = True
-            break
+    if conf_obj:
+        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            vparam = '%s_%s' %(param, sfx)
+            if conf_obj.has_option(sect, vparam):
+                found = True
+                break
     if not found:
         vparam = param
+        if not conf_obj or not conf_obj.has_option(sect, vparam):
+            if defval and vparam in defval:
+                return defval[vparam]
+            else:
+                return None
     if is_bool:
         return conf_obj.getboolean(sect, vparam)
     else:
@@ -322,21 +330,17 @@ def create_def_params_dict(ctx):
     opt_obj = ctx.get('_opt_obj', None)
     conf_obj = ctx.get('_conf_obj', None)
     s = "options"
-    if conf_obj:
-        if not conf_obj.has_section(s):
-            conf_obj.add_section(s)
-        for p in LX_CFG_S:
-            ctx[p] = get_versioned_option(conf_obj, s, p)
-        for p in LX_CFG_B:
-            ctx[p] = get_versioned_option(conf_obj, s, p, is_bool=True)
-    else:
-        DEFDCT = default_conf(ctx)
-        for p in LX_CFG_S:
-            if p in DEFDCT:
-                ctx[p] = DEFDCT[p]
-        for p in LX_CFG_B:
-            if p in DEFDCT:
-                ctx[p] = DEFDCT[p]
+    if conf_obj and not conf_obj.has_section(s):
+        conf_obj.add_section(s)
+    DEFDCT = default_conf(ctx)
+    for p in LX_CFG_S:
+        v = get_versioned_option(conf_obj, s, p, defval=DEFDCT)
+        if v is not None:
+            ctx[p] = v
+    for p in LX_CFG_B:
+        v = get_versioned_option(conf_obj, s, p, is_bool=True)
+        if v is not None:
+            ctx[p] = v
     if opt_obj:
         for p in LX_OPT_S:
             if p in LX_OPT_OPPONENT:
@@ -367,6 +371,7 @@ def create_def_params_dict(ctx):
 def create_params_dict(ctx):
     """Create all params dictionary"""
     ctx = create_def_params_dict(ctx)
+    DEFDCT = default_conf(ctx)
     if ctx['dbg_mode'] is None:
         ctx['dbg_mode'] = ctx['run_daemon']
     if not ctx.get('logfn', None):
@@ -377,9 +382,13 @@ def create_params_dict(ctx):
     conf_obj = ctx.get('_conf_obj', None)
     opt_obj = ctx.get('_opt_obj', None)
     s = "options"
-    if not conf_obj.has_section(s):
+    if conf_obj and not conf_obj.has_section(s):
         conf_obj.add_section(s)
-    ctx['db_pwd'] = conf_obj.get(s, "db_password")
+    v = get_versioned_option(conf_obj, s, 'db_password', defval=DEFDCT)
+    if v is not None:
+        ctx['db_pwd'] = v
+    else:
+        ctx['db_pwd'] = ''
     for p in ():
         ctx[p] = conf_obj.getint(s, p)
     if opt_obj.dbfilter != "":

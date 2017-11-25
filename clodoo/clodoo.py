@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76.5"
+__version__ = "0.2.76.6"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -169,7 +169,6 @@ def do_login(oerp, ctx):
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     userlist = ctx['login2_user'].split(',')
-    userlist.insert(0, ctx['login_user'])
     if ctx.get('lgi_user') and ctx['lgi_user'] not in userlist:
         userlist.insert(0, ctx['lgi_user'])
     pwdlist = ctx['login2_password'].split(',')
