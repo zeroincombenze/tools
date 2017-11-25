@@ -40,6 +40,9 @@ Z0BUG_setup() {
     if [ -f "$coveragerc_file" ]; then
       rm -f $coveragerc_file
     fi
+    if [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" ]; then
+      cp -p /opt/odoo/tools/z0lib/z0librc ./
+    fi
 }
 
 Z0BUG_teardown() {

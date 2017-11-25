@@ -120,7 +120,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.15.4"
+__version__ = "0.1.15.5"
 
 
 #############################################################################
@@ -301,6 +301,22 @@ def default_conf(ctx):
     return DEFDCT
 
 
+def get_versioned_option(conf_obj, sect, param, is_bool=None):
+    is_bool = is_bool or False
+    found = False
+    for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+        vparam = '%s_%s' %(param, sfx)
+        if conf_obj.has_option(conf_obj, vparam):
+            found = True
+            break
+    if not found:
+        vparam = param
+    if is_bool:
+        return conf_obj.getboolean(sect, vparam)
+    else:
+        return conf_obj.get(sect, vparam)
+
+
 def create_def_params_dict(ctx):
     """Create default params dictionary"""
     opt_obj = ctx.get('_opt_obj', None)
@@ -310,9 +326,9 @@ def create_def_params_dict(ctx):
         if not conf_obj.has_section(s):
             conf_obj.add_section(s)
         for p in LX_CFG_S:
-            ctx[p] = conf_obj.get(s, p)
+            ctx[p] = get_versioned_option(conf_obj, s, p)
         for p in LX_CFG_B:
-            ctx[p] = conf_obj.getboolean(s, p)
+            ctx[p] = get_versioned_option(conf_obj, s, p, is_bool=True)
     else:
         DEFDCT = default_conf(ctx)
         for p in LX_CFG_S:

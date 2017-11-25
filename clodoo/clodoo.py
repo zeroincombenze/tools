@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76.4"
+__version__ = "0.2.76.5"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
