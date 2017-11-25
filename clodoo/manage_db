@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.20
+__version__=0.1.20.1
 
 
 up_oemod() {
@@ -95,7 +95,7 @@ OPTHELP=("this help"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action cmdlist)
-PHASE_LIST="09 00 01 10 11 12 13 14 15 16 17 20 21 30 50 51 52 53 54 55 61 90 91 92"
+PHASE_LIST="09 00 01 10 11 12 13 14 15 18 19 20 21 22 30 50 51 52 53 54 55 90 91 92"
 DEMO_PHASE_LIST="50 51 52 53 61"
 
 parseoptargs "$@"
@@ -171,7 +171,7 @@ if [ "$action" == "install" ]; then
       exit 1
     fi
   done
-  # echo "$TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv"
+  [ $opt_verbose -gt 0 ] && echo "$TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv"
   $TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv
   for cf in $CFLOOP; do
     if [ "$cf" == "00" ]; then
@@ -185,7 +185,7 @@ if [ "$action" == "install" ]; then
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
       :
     elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
-      :
+      [ $opt_verbose -gt 0 ] && echo "Warning: phase $cf is just for demo (use -D switch to enable)"
     else
       if [ -n "$opt_DB" ]; then
         db=$opt_DB
