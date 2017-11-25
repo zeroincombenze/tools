@@ -121,7 +121,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.15.6"
+__version__ = "0.1.15.7"
 
 
 #############################################################################
@@ -414,30 +414,25 @@ def docstring_summary(docstring):
 def read_config(ctx):
     """Read both user configuration and local configuration."""
     if not ctx.get('conf_fn', None):
-        if CONF_FN:
-            ctx['conf_fn'] = CONF_FN
-        else:
-            ctx['conf_fn'] = "./" + ctx['caller'] + ".conf"
+        ctx['conf_fn'] = "./" + ctx['caller'] + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
+    ctx['conf_fns'] = []
     if ODOO_CONF:
         if isinstance(ODOO_CONF, list):
             found = False
             for f in ODOO_CONF:
                 if os.path.isfile(f):
-                    ctx['conf_fns'] = (f, ctx['conf_fn'])
+                    ctx['conf_fns'].append(f)
                     found = True
                     break
-            if not found:
-                ctx['conf_fns'] = ctx['conf_fn']
-        else:
-            if os.path.isfile(ODOO_CONF):
-                ctx['conf_fns'] = (ODOO_CONF, ctx['conf_fn'])
-            elif os.path.isfile(OE_CONF):
-                ctx['conf_fns'] = (OE_CONF, ctx['conf_fn'])
-            else:
-                ctx['conf_fns'] = ctx['conf_fn']
-    else:
-        ctx['conf_fns'] = ctx['conf_fn']
+        elif os.path.isfile(ODOO_CONF):
+            ctx['conf_fns'].append(ODOO_CONF)
+        elif os.path.isfile(OE_CONF):
+            ctx['conf_fns'].append(OE_CONF)
+        if CONF_FN and CONF_FN not in ctx['conf_fns']:
+            ctx['conf_fns'].append(CONF_FN)
+        if ctx['conf_fn'] not in ctx['conf_fns']:
+            ctx['conf_fns'].append(ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
     return ctx

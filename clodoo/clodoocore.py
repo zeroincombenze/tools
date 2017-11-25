@@ -14,7 +14,7 @@ from os0 import os0
 from clodoolib import debug_msg_log
 
 
-__version__ = "0.1.15.6"
+__version__ = "0.1.15.7"
 
 
 def _get_model_bone(oerp, ctx, o_model):
