@@ -104,7 +104,7 @@ LX_CFG_B = ('set_passepartout',
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
-            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port')
+            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port', 'oe_version')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -121,7 +121,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.15.7"
+__version__ = "0.1.16"
 
 
 #############################################################################
@@ -459,6 +459,11 @@ def create_parser(version, doc, ctx):
                         dest="do_sel_action",
                         metavar="actions",
                         default=None)
+    parser.add_argument("-b", "--odoo-branch",
+                        help="talk server Odoo version",
+                        dest="oe_version",
+                        metavar="version",
+                        default="")
     parser.add_argument("-c", "--config",
                         help="configuration command file",
                         dest="conf_fn",

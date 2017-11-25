@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.76.7"
+__version__ = "0.2.77"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -129,7 +129,9 @@ def print_hdr_msg(ctx):
     msg = u"Do massive operations V" + __version__
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
-    msg = u"Configuration from " + ctx.get('conf_fn', '')
+    msg = u"Configuration from"
+    for f in ctx.get('conf_fns'):
+        msg = msg + ' ' + f
     msg_log(ctx, ctx['level'], msg)
 
 
@@ -168,13 +170,22 @@ def do_login(oerp, ctx):
     """Do a login into DB; try using more usernames and passwords"""
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
-    userlist = ctx['login2_user'].split(',')
-    if ctx.get('lgi_user') and ctx['lgi_user'] not in userlist:
-        userlist.insert(0, ctx['lgi_user'])
-    pwdlist = ctx['login2_password'].split(',')
-    pwdlist.insert(0, ctx['login_password'])
+    userlist = ctx['login_user'].split(',')
+    for u in ctx['login2_user'].split(','):
+        if u not in userlist:
+            userlist.append(u)
+    if ctx.get('lgi_user'):
+        for u in ctx['lgi_user'].split(','):
+            if u not in userlist:
+                userlist.insert(0, u)
+    pwdlist = ctx['login_password'].split(',')
+    for p in ctx['login2_password'].split(','):
+        if p not in pwdlist:
+            pwdlist.append(p)
     if ctx.get('lgi_pwd'):
-        pwdlist.insert(0, ctx['lgi_pwd'])
+        for p in ctx['lgi_pwd'].split(','):
+            if p not in pwdlist:
+                pwdlist.insert(0, p)
     user_obj = False
     db_name = get_dbname(ctx, 'login')
     for username in userlist:
