@@ -121,7 +121,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.16"
+__version__ = "0.1.16.1"
 
 
 #############################################################################
@@ -260,7 +260,7 @@ def default_conf(ctx):
               'admin_passwd': 'admin',
               'db_user': 'postgres',
               'db_host': 'localhost',
-              'svc_protocol': 'xmlrpc',
+              'svc_protocol': '',
               'xmlrpc_port': '8069',
               'oe_version': '7.0',
               'dbfilter': '.*',
@@ -400,6 +400,11 @@ def create_params_dict(ctx):
         ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
         ctx['db_host'] = 'localhost'
+    if not ctx['svc_protocol']:
+        if ctx['oe_version'] in ('9.0', '10.0', '11.0'):
+            ctx['svc_protocol'] = 'jsonrpc'
+        else:
+            ctx['svc_protocol'] = 'xmlrpc'
     return ctx
 
 

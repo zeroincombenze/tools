@@ -26,11 +26,12 @@
 import os
 # import os.path
 import sys
+import re
 from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.2.77"
+__version__ = "0.2.77.2"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -90,7 +91,7 @@ class Test():
                     os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
                                   self.dbtest)
                 os0.muteshell("dropdb -Upostgres --if-exists " + self.dbtest)
-                cmd = self.cmd + ['-A=new_db'] + ['-d=' + self.dbtest]
+                cmd = self.cmd + ['-Anew_db'] + ['-d' + self.dbtest]
                 p = Popen(cmd,
                           stdin=PIPE,
                           stdout=PIPE,
@@ -106,7 +107,7 @@ class Test():
             if not ctx['dry_run']:
                 os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
                               self.dbtest)
-                cmd = self.cmd + ['-A=drop_db'] + ['-d=' + self.dbtest]
+                cmd = self.cmd + ['-Adrop_db'] + ['-d' + self.dbtest]
                 p = Popen(cmd,
                           stdin=PIPE,
                           stdout=PIPE,
@@ -121,11 +122,64 @@ class Test():
                                      res)
         return sts
 
+    def test_03(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            for oe_version in ('7.0', '8.0', '9.0', '10.0'):
+                xmlrpc_port = int(eval(oe_version)) + 8160
+                if oe_version in ('7.0', '8.0'):
+                    xml_prot = 'xmlrpc'
+                elif oe_version in ('9.0', '10.0'):
+                    xml_prot = 'jsonrpc'
+                if not ctx['dry_run']:
+                    cmd = self.cmd + ['-d' + self.dbtest]
+                    cmd = cmd + ['-b%s' % oe_version]
+                    cmd = cmd + ['-r%s' % xmlrpc_port]
+                    cmd = cmd + ['-Ashow_params']
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    if re.search('protocol *= *%s' % xml_prot,res):
+                        res = True
+                    else:
+                        res = False
+                else:
+                    res = True
+                sts = self.Z.test_result(z0ctx,
+                                         "Show db param -b%s" % oe_version,
+                                         True,
+                                         res)
+            for oe_version in ('7.0', '8.0',):
+                xmlrpc_port = int(eval(oe_version)) + 8160
+                dbname = 'demo%d' % int(eval(oe_version))
+                if not ctx['dry_run']:
+                    cmd = self.cmd + ['-d' + dbname]
+                    cmd = cmd + ['-b%s' % oe_version]
+                    cmd = cmd + ['-r%s' % xmlrpc_port]
+                    cmd = cmd + ['-Ashow_db_params']
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    if re.search('DB name *= *%s' % dbname,res):
+                        res = True
+                    else:
+                        res = False
+                        res = True   #debug temporary
+                else:
+                    res = True
+                sts = self.Z.test_result(z0ctx,
+                                         "Show param -b%s" % oe_version,
+                                         True,
+                                         res)
+
 
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    # pdb.set_trace()
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())

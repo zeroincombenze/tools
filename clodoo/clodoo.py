@@ -95,6 +95,7 @@ import time
 from datetime import date, datetime, timedelta
 import calendar
 import oerplib
+import odoorpc
 from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
@@ -103,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.2.77"
+__version__ = "0.2.77.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -155,15 +156,30 @@ def incr_lev(ctx):
 def open_connection(ctx):
     """Open connection to Odoo service"""
     try:
-        oerp = oerplib.OERP(server=ctx['db_host'],
-                            protocol=ctx['svc_protocol'],
-                            port=ctx['xmlrpc_port'],
-                            version=ctx['oe_version'])
+        if ctx['svc_protocol'] == 'jsonrpc':
+            odoo = odoorpc.ODOO(ctx['db_host'],
+                                ctx['svc_protocol'],
+                                ctx['xmlrpc_port'])
+        else:
+            odoo = oerplib.OERP(server=ctx['db_host'],
+                                protocol=ctx['svc_protocol'],
+                                port=ctx['xmlrpc_port'],
+                                version=ctx['oe_version'])
     except BaseException:
-        msg = u"!Odoo server is not running!"
+        msg = u"!Odoo server %s is not running!" % ctx['oe_version']
         msg_log(ctx, ctx['level'], msg)
-        raise ValueError(msg)                                # pragma: no cover
-    return oerp
+        raise RuntimeError(msg)                              # pragma: no cover
+    if ctx['svc_protocol'] == 'jsonrpc':
+        ctx['server_version'] = odoo.version
+    else:
+        ctx['server_version'] = odoo.db.server_version()
+    x = re.match('[0-9]+\.[0-9]+', ctx['server_version'])
+    if ctx['server_version'][0:x.end()] != ctx['oe_version']:
+        msg = u"!Invalid Odoo Server version: expected %s, found %s!" % \
+            (ctx['oe_version'], ctx['server_version'])
+        msg_log(ctx, ctx['level'], msg)
+        raise RuntimeError(msg)                              # pragma: no cover
+    return odoo
 
 
 def do_login(oerp, ctx):
@@ -186,46 +202,58 @@ def do_login(oerp, ctx):
         for p in ctx['lgi_pwd'].split(','):
             if p not in pwdlist:
                 pwdlist.insert(0, p)
-    user_obj = False
+    user = False
     db_name = get_dbname(ctx, 'login')
     for username in userlist:
         for pwd in pwdlist:
             try:
-                user_obj = oerp.login(user=username,
-                                      passwd=decrypt(pwd),
-                                      database=db_name)
+                if ctx['svc_protocol'] == 'jsonrpc':
+                    oerp.login(db_name,
+                               login=username,
+                               password=decrypt(pwd))
+                    user = oerp.env.user
+                else:
+                    user = oerp.login(database=db_name,
+                                      user=username,
+                                      passwd=decrypt(pwd))
                 break
             except BaseException:
-                user_obj = False
+                user = False
             try:
-                user_obj = oerp.login(user=username,
-                                      passwd=pwd,
-                                      database=db_name)
+                if ctx['svc_protocol'] == 'jsonrpc':
+                    oerp.login(db_name,
+                               login=username,
+                               password=pwd)
+                    user = oerp.env.user
+                else:
+                    user = oerp.login(database=db_name,
+                                      user=username,
+                                      passwd=pwd)
                 break
             except BaseException:
-                user_obj = False
-        if user_obj:
+                user = False
+        if user:
             break
-    if not user_obj:
+    if not user:
         if not ctx.get('no_warning_pwd', False):
             os0.wlog(u"!DB={0}: invalid user/pwd"
                      .format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
-        ctx = init_user_ctx(oerp, ctx, user_obj.id)
-        msg = ident_user(oerp, ctx, user_obj.id)
+        ctx = init_user_ctx(oerp, ctx, user)
+        msg = ident_user(oerp, ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
         wrong = False
         if username != ctx['login_user']:
-            user_obj.login = ctx['login_user']
+            user.login = ctx['login_user']
             wrong = True
         if pwd != ctx['login_password']:
-            user_obj.password = decrypt(ctx['login_password'])
+            user.password = decrypt(ctx['login_password'])
             wrong = True
         if wrong:
             try:
-                oerp.write_record(user_obj)
+                oerp.write_record(user)
                 if not ctx.get('no_warning_pwd', False):
                     os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
                              .format(tounicode(ctx['db_name']),
@@ -233,10 +261,10 @@ def do_login(oerp, ctx):
                                      tounicode(ctx['login_user'])))
             except BaseException:
                 os0.wlog(u"!!write error!")
-        if user_obj.email != ctx['zeroadm_mail']:
-            user_obj.email = ctx['zeroadm_mail']
+        if user.email != ctx['zeroadm_mail']:
+            user.email = ctx['zeroadm_mail']
             try:
-                oerp.write_record(user_obj)
+                oerp.write_record(user)
                 if not ctx.get('no_warning_pwd', False):
                     os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
                              .format(tounicode(ctx['db_name']),
@@ -244,7 +272,7 @@ def do_login(oerp, ctx):
                                      tounicode(ctx['login_user'])))
             except BaseException:
                 os0.wlog(u"!!write error!")
-    return user_obj
+    return user
 
 
 def get_context(ctx):
@@ -298,22 +326,21 @@ def init_company_ctx(oerp, ctx, c_id):
     return ctx
 
 
-def init_user_ctx(oerp, ctx, u_id):
-    ctx['user_id'] = u_id
-    user_obj = oerp.browse('res.users', u_id)
-    ctx['user_partner_id'] = user_obj.partner_id
-    ctx['user_name'] = user_obj.partner_id.name
-    ctx['user_company_id'] = user_obj.company_id.id
-    if user_obj.partner_id.country_id:
-        ctx['user_country_id'] = user_obj.partner_id.country_id.id
+def init_user_ctx(oerp, ctx, user):
+    ctx['user_id'] = user.id
+    ctx['user_partner_id'] = user.partner_id.id
+    ctx['user_name'] = user.partner_id.name
+    ctx['user_company_id'] = user.company_id.id
+    if user.partner_id.country_id:
+        ctx['user_country_id'] = user.partner_id.country_id.id
     else:
         ctx['user_country_id'] = 0
     if ctx.get('def_company_id', 0) == 0:
         ctx['def_company_id'] = ctx['user_company_id']
-        ctx['def_company_name'] = user_obj.company_id.name
+        ctx['def_company_name'] = user.company_id.name
     if ctx.get('def_country_id', 0) == 0 and \
-            user_obj.company_id.country_id:
-        ctx['def_country_id'] = user_obj.company_id.country_id.id
+            user.company_id.country_id:
+        ctx['def_country_id'] = user.company_id.country_id.id
     return ctx
 
 
@@ -541,13 +568,16 @@ def ident_company(oerp, ctx, c_id):
 
 
 def ident_user(oerp, ctx, u_id):
-    user_obj = oerp.browse('res.users', u_id)
+    if ctx['svc_protocol'] == 'jsonrpc':
+        user = oerp.env['res.users'].browse(u_id)
+    else:
+        user = oerp.browse('res.users', u_id)
     msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
           u_id,
-          tounicode(user_obj.login),
+          tounicode(user.login),
           tounicode(ctx['user_name']),
-          tounicode(user_obj.partner_id.email),
-          tounicode(user_obj.company_id.name))
+          tounicode(user.partner_id.email),
+          tounicode(user.company_id.name))
     return msg
 
 
@@ -561,7 +591,10 @@ def act_list_actions(oerp, ctx):
 
 
 def act_show_params(oerp, ctx):
-    pwd = raw_input('password ')
+    if ctx['dbg_mode']:
+        pwd = raw_input('password ')
+    else:
+        pwd = False
     print "- hostname      = %s " % ctx['db_host']
     print "- protocol      = %s " % ctx['svc_protocol']
     print "- port          = %s " % ctx['xmlrpc_port']
@@ -621,7 +654,8 @@ def act_show_company_params(oerp, ctx):
 def act_list_users(oerp, ctx):
     user_ids = get_userlist(oerp)
     for u_id in user_ids:
-        ctx = init_user_ctx(oerp, ctx, u_id)
+        user_obj = oerp.browse('res.users', u_id)
+        ctx = init_user_ctx(oerp, ctx, user_obj)
         sts = act_echo_user(oerp, ctx)
     return sts
 
@@ -868,7 +902,7 @@ def act_per_user(oerp, ctx):
     for u_id in user_ids:
         user_obj = oerp.browse('res.users', u_id)
         if re.match(ctx['userfilter'], user_obj.name):
-            ctx = init_user_ctx(oerp, ctx, u_id)
+            ctx = init_user_ctx(oerp, ctx, user_obj)
             msg = ident_user(oerp, ctx, u_id)
             msg_log(ctx, ctx['level'], msg)
             ctx['actions'] = saved_actions
@@ -4360,7 +4394,7 @@ def main():
             msg = u"!No DB name supplied!!"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    elif ctx.get('multi_db', False) and not do_multidb:
+    elif do_conn and ctx.get('multi_db', False) and not do_multidb:
         ctx['actions'] = 'per_db,' + ctx['actions']
         do_multidb = True
     if not do_newdb and do_conn and not do_multidb and ctx['db_name']:
