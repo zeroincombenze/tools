@@ -1,16 +1,16 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# pg_db_active
+# pg_db_act_list
 # manage postgres sessions
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -23,25 +23,35 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.13.1
+__version__=0.1.14
 
 
-db_active() {
-# db_active(-C|-c|-k|-l|-w)  # count_all, count, return older pid to kill, list sessions, return active sess to wait
-    act=$1
+db_act_list() {
+# db_act_list(-C|-c|-k|-l|-w|-z [pos])  # count_all, count, return older pid to kill, list sessions, return active sess to wait
+    local act=$1
+    local sql sqlc sess_ctr LOG wait4 valid_sess db pid w st older
+    local pos=0
+    [ -n "$2" ] && pos=$2
+    if [ "$act" == "-z" ]; then local ord="desc"; else local ord=; fi
+    if [ -z "$DB" ]; then
+      sql="select datname,pid,state_change,waiting,state from pg_stat_activity where pid<>pg_backend_pid() order by state_change $ord;"
+    else
+      sql="select datname,pid,state_change,waiting,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid() order by state_change $ord;"
+    fi
     if [ "$act" == "-c" -o "$act" == "-C" ]; then
       if [ -z "$DB" -o "$act" == "-C" ]; then
-        local sqlc="select count(pid) from pg_stat_activity where pid<>pg_backend_pid();"
+        sqlc="select count(pid) from pg_stat_activity where pid<>pg_backend_pid();"
       else
-        local sqlc="select count(pid) from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
+        sqlc="select count(pid) from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
       fi
       sess_ctr=$(psql -Upostgres -tc "$sqlc"|head -n1)
       sess_ctr=$(echo $sess_ctr)
     else
-      local LOG=~/${THIS}_$$.log
+      LOG=~/${THIS}_$$.log
       psql -Upostgres -tc "$sql" -o $LOG
-      local kill=0
-      local sess_ctr=0
+      wait4=0
+      sess_ctr=0
+      valid_sess=0
       older=0
       while IFS=\| read db pid dt w st; do
         if [ -n "$st" ]; then
@@ -51,17 +61,25 @@ db_active() {
           st=$(echo $st)
           pid=$(echo $pid)
           if [ "$act" == "-l" ]; then
-            echo "($pid) $db $w $st"
+            # echo -e "($pid)\t$db\t$w\t$st"
+            printf "(%6.6s) %-16.16s %2.2s %-8.8s %20.20s\n" "$pid" "$db" "$w" "$st" "$dt"
           fi
-          if [ $older -eq 0 -a "$w" == "f" -a "$st" == "idle" ]; then
-            older=$pid
+          if [ $older -eq 0 -a "$w" == "f" -a "$st" == "idle" -a "$db" != "postgres" ]; then
+            ((valid_sess++))
+            if [ $pos -gt 0 ]; then
+              if [ $valid_sess -eq $pos ]; then
+                older=$pid;
+              fi
+            else
+              older=$pid
+            fi
           fi
           if [ "$db" == "$DB" ]; then
             if [ "$w" != "f" ]; then
-              kill=1
+              wait4=1
             fi
             if [ "${st:0:4}" != "idle" ]; then
-              kill=1
+              wait4=1
             fi
           fi
         fi
@@ -69,20 +87,20 @@ db_active() {
       rm -f $LOG
     fi
     if [ "$act" == "-w" ]; then
-      return $kill
+      return $wait4
     elif [ "$act" == "-c" -o "$act" == "-C" -o "$act" == "-l" ]; then
       echo $sess_ctr
-    elif [ "$act" == "-k" ]; then
+    elif [ "$act" == "-k" -o "$act" == "-z" ]; then
       echo $older
     fi
     return 0
 }
 
-OPTOPTS=(h        a           C        c       G         k        L        p        V           v           w)
-OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock pool     opt_version opt_verbose wait_db)
-OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        "="      "*"         1           1)
-OPTDEFL=(0        0           0        0       0         0        0        -1       ""          0           0)
-OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       "number" "version"   "verbose"   "wait")
+OPTOPTS=(h        a           C        c       G         k        L        n           p        V           v           w       z)
+OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_version opt_verbose wait_db opt_last)
+OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        1           "="      "*"         1           1       1)
+OPTDEFL=(0        0           0        0       0         0        0        0           -1       ""          0           0       0)
+OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" "version"   "verbose"   "wait"  "")
 OPTHELP=("this help"\
  "kill all sessions of DB!"\
  "count all active connections"\
@@ -90,10 +108,12 @@ OPTHELP=("this help"\
  "grant connection to DB"\
  "kill all sessions out of pool"\
  "lock DB to avoid new connections"\
+ "do nothing (dry-run)"\
  "declare # of session pool"\
  "show version end exit"\
  "verbose mode"\
- "wait for DB idle after kill")
+ "wait for DB idle after kill"\
+ "search just for last session")
 OPTARGS=(DB)
 
 parseoptargs "$@"
@@ -113,36 +133,47 @@ fi
 if [ $pool -lt 5 ]; then
   pool=5
 fi
-act=-l
-loop_ctr=1
 sleep_tm=5
+loop_ctr=1
 if [ $act_ctr -ne 0 ]; then
-  act=-c
+  if [ -n "$DB" ]; then
+    act=-c
+  else
+    echo "Missing DB name!"
+    exit 1
+  fi
 elif [ $act_ctra -ne 0 ]; then
   act=-C
 elif [ $act_kill -ne 0 ]; then
   act=-C
   loop_ctr=8
   sleep_tm=1
-elif [ $act_kill4db -ne 0 -a -n "$DB" ]; then
-  act=-c
-  loop_ctr=1
-  sleep_tm=0
-  if [ $opt_lock -gt 0 ]; then
-    if [ $opt_verbose -gt 0 ]; then
-      echo "Revoce access from $DB"
+elif [ $act_kill4db -ne 0 ]; then
+  if [ -n "$DB" ]; then
+    act=-c
+    loop_ctr=1
+    sleep_tm=0
+    if [ $opt_lock -gt 0 ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "Revoce access from $DB"
+      fi
+      if [ $opt_dry_run -eq 0 ]; then
+        sqlc="REVOKE CONNECT ON DATABASE $DB FROM PUBLIC, odoo;"
+        psql -Upostgres -tc "$sqlc" &>/dev/null
+      fi
     fi
-    sqlc="REVOKE CONNECT ON DATABASE $DB FROM PUBLIC, odoo;"
-    psql -Upostgres -tc "$sqlc" &>/dev/null
+  else
+    echo "Missing DB name!"
+    exit 1
   fi
-elif [ $wait_db -ne 0 -a -n "$DB" ]; then
-  act=-c
-  loop_ctr=0
-fi
-if [ -z "$DB" ]; then
-  sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where pid<>pg_backend_pid();"
+elif [ $wait_db -ne 0 ]; then
+  if [ -n "$DB" ]; then
+    act=-c
+  else
+    act=-C
+  fi
 else
-  sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid();"
+  act=-l
 fi
 let threshold="$pool/5"
 let pool_max="$pool-$threshold"
@@ -151,7 +182,7 @@ bias=0
 sts=1
 while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
   if [ $act_kill -ne 0 -o $act_kill4db -ne 0 ]; then
-    sess_ctr=$(db_active "$act")
+    sess_ctr=$(db_act_list "$act")
     if [ $opt_verbose -gt 0 ]; then
       echo "Found $sess_ctr currently active sessions"
     fi
@@ -160,12 +191,16 @@ while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
         killing=1
         if [ $bias -eq 0 ]; then
           bias=1
-          loop_ctr=$sess_ctr
-          ((loop_ctr++))
+          if [ $opt_last -eq 0 ]; then
+            loop_ctr=$sess_ctr
+            ((loop_ctr++))
+          fi
+        elif [ $opt_dry_run -ne 0 ]; then
+          ((bias++))
         fi
       elif [ $sess_ctr -gt $pool_max ]; then
         killing=1
-        bias=1
+        ((bias++))
         loop_ctr=$threshold
       elif [ $sess_ctr -gt $pool_min -a $bias -ne 0 ]; then
         killing=1
@@ -174,24 +209,43 @@ while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
         bias=0
       fi
       if [ $killing -gt 0 ]; then
-        pid=$(db_active "-k")
-        if [ $pid -ne 0 ]; then
-          if [ $opt_verbose -gt 0 ]; then
-            echo "Killing $pid process"
+        if [ $opt_last -ne 0 ]; then
+          if [ $opt_dry_run -ne 0 ]; then
+            pid=$(db_act_list "-z" "$bias")
+          else
+            pid=$(db_act_list "-z")
           fi
-          kill $pid
-          sqlc="select pg_terminate_backend(pid) from pg_stat_activity where pid=$pid;"
-          psql -Upostgres -tc "$sqlc" &>/dev/null
         else
+          if [ $opt_dry_run -ne 0 ]; then
+            pid=$(db_act_list "-k" "$bias")
+          else
+            pid=$(db_act_list "-k")
+          fi
+        fi
+        if [ ${pid:-0} -ne 0 ]; then
+          if [ $opt_dry_run -eq 0 ]; then
+            if [ $opt_verbose -gt 0 ]; then
+              echo "Killing process pid=$pid"
+            fi
+            # kill $pid &>/dev/null
+            sqlc="select pg_terminate_backend(pid) from pg_stat_activity where pid=$pid;"
+            psql -Upostgres -tc "$sqlc" &>/dev/null
+          else
+            echo "Process pid=$pid should be killed"
+            sts=0
+          fi
+        elif [ $opt_dry_run -eq 0 ]; then
           ((loop_ctr++))
         fi
         sts=1
       else
         sts=0
       fi
+    else
+      sts=0
     fi
   else
-    db_active "$act"
+    db_act_list "$act"
     sts=$?
   fi
   ((loop_ctr--))
@@ -204,7 +258,7 @@ if [ $wait_db -ne 0 -a -n "$DB" ]; then
   loop_ctr=3
   sleep_tm=1
   while [ $sts -ne 0 -a $loop_ctr -gt 0 ]; do
-    db_active "$act"
+    db_act_list "$act"
     sts=$?
     ((loop_ctr--))
     if [ $sts -ne 0 ]; then
@@ -220,7 +274,9 @@ if [ $opt_grant -gt 0 -a -n "$DB" ]; then
   if [ $opt_verbose -gt 0 ]; then
     echo "Grant access to $DB"
   fi
-  sqlc="GRANT CONNECT ON DATABASE $DB TO PUBLIC, odoo;"
-  psql -Upostgres -tc "$sqlc" &>/dev/null
+  if [ $opt_dry_run -eq 0 ]; then
+    sqlc="GRANT CONNECT ON DATABASE $DB TO PUBLIC, odoo;"
+    psql -Upostgres -tc "$sqlc" &>/dev/null
+  fi
 fi
 exit $sts

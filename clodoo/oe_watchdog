@@ -9,9 +9,9 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
+for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
   if [ -e $x/z0librc ]; then
     . $x/z0librc
     Z0LIBDIR=$x
@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.25.15
+__version__=0.1.26.1
 
 
 detached_login () {
@@ -62,15 +62,16 @@ set_db_list () {
       if [ $DEBUG_MODE -ne 0 ]; then
         elog "Creating DB list ..."
       fi
-      DBF="${DBFILTER//|/\|}"
-      DBF="${DBF//(/\(}"
-      DBF="${DBF//)/\)}"
-      DBF="${DBF//\{/\\{}"
-      DBF="${DBF//\}/\}}"
+      DBF="$DBFILTER"
+      # DBF="${DBFILTER//|/\|}"
+      # DBF="${DBF//(/\(}"
+      # DBF="${DBF//)/\)}"
+      # DBF="${DBF//\{/\\{}"
+      # DBF="${DBF//\}/\}}"
       if [ $DEBUG_MODE -ne 0 ]; then
-        elog "psql -U$PG_USER -l|grep \"^ *$DBF *. $DB_USER *\"|awk '{print \$1}'|tr '\n' ' '"
+        elog "psql -tU$PG_USER -l|grep -E \"^[[:space:]]+$DBF[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+\"|awk '{print \$1}'|tr '\n' ' '"
       fi
-      DBLIST=$(psql -U$PG_USER -l|grep "^ *$DBF *. $DB_USER *"|awk '{print $1}'|tr '\n' ' ')
+      DBLIST=$(psql -tU$PG_USER -l|grep -E "^[[:space:]]+$DBF[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+"|awk '{print $1}'|tr '\n' ' ')
       DB_ix=0
       if [ $DEBUG_MODE -ne 0 ]; then
         elog "($DBLIST)"
@@ -119,6 +120,7 @@ test_db_svr_response () {
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       ((DBSTS[$dbname]++))
+      pg_db_active -az $dbname>>$LOGFILE
     else
       ((DBSTS[$dbname]--))
     fi
@@ -323,6 +325,7 @@ if [ $opt_verbose -gt -0 ]; then
 else
    opts=-q
 fi
+wlog "TCONF=$TCONF"
 wlog "CLODIR=$clodir"
 wlog "CLOBIN=$CLOBIN"
 wlog "SVC_NAME=$svc_name"
