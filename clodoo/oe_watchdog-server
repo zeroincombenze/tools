@@ -4,7 +4,7 @@
 #
 # chkconfig: 345 95 05
 # description: oe_watchdog-server server
-# version: 0.1.25.14
+# version: 0.1.27
 # pidfile: /var/run/odoo/oe_watchdog.pid
 # config: /etc/odoo/oe_watchdog.conf
 ### BEGIN INIT INFO

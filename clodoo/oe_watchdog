@@ -23,8 +23,14 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
-__version__=0.1.26.1
+__version__=0.1.27.5
 
 
 detached_login () {
@@ -49,49 +55,106 @@ detached_login () {
 }
 
 
-kill_daemon () {
-  local pid=$(netstat -atunp|grep "8069.*LISTEN"|awk '{print $7}'|awk -F/ '{print $1}')
-  if [ -n "$pid" ]; then
-    kill $pid
-  fi
+kill_daemon() {
+# kill_daemon
+    local opt_xmlport=$(build_odoo_param RPCPORT $CUR_ODOO_VER)
+    local pid=$(netstat -atunp|grep "$port.*LISTEN"|awk '{print $7}'|awk -F/ '{print $1}')
+    if [ -n "$pid" ]; then
+      kill $pid
+    fi
 }
 
 
 set_db_list () {
-    if [ -z "$DBLIST" ]; then
+    local c f new_odoo_ver
+    c=0
+    while [ -z "$DBLIST" ]; do
+      if [ $opt_multi -gt 0 ]; then
+        f=0
+        new_odoo_ver=
+        for v in $ODOO_VID 6 7 8 9 10 11; do
+          if [ "$v" == "$CUR_ODOO_VER" ]; then
+            f=1
+          elif [ $f -eq 1]; then
+            new_odoo_ver=$v
+            break
+          fi
+        done
+        if [ -z "$new_odoo_ver" ]; then
+          CUR_ODOO_VER="$ODOO_VID"
+          if [ $DEBUG_MODE -ne 0 ]; then
+            elog "\$ CUR_ODOO_VER=$CUR_ODOO_VER; (($c++))"
+          fi
+          ((c++))
+        else
+          CUR_ODOO_VER=$new_odoo_ver
+          if [ $DEBUG_MODE -ne 0 ]; then
+            elog "\$ CUR_ODOO_VER=$CUR_ODOO_VER"
+          fi
+        fi
+        if [ $c -gt 1 ]; then
+          TIME_SLEEP=300
+          if [ $DEBUG_MODE -ne 0 ]; then
+            elog "\$ TIME_SLEEP=$TIME_SLEEP"
+            elog "\$ DBFILTER=\$(get_cfg_value "" DBFILTER)"
+          fi
+          DBFILTER=$(get_cfg_value "" "DBFILTER")
+          if [ $DEBUG_MODE -ne 0 ]; then
+            elog "\$ if [ -z \"\$DBFILTER=$DBFILTER\" ]; then DBFILTER=\"demo\"; fi"
+          fi
+          if [ -z "$DBFILTER" ]; then
+            DBFILTER="demo"
+          fi
+        else
+          if [ "$CUR_ODOO_VER" == "$ODOO_VID" ]; then
+            DBFILTER=$(get_cfg_value "" "DBFILTER")
+            if [ $DEBUG_MODE -ne 0 ]; then
+              elog "\$ DBFILTER=\$(get_cfg_value "" DBFILTER)"
+            fi
+          else
+            DBFILTER=$(get_cfg_value "" "DBFILTER_$CUR_ODOO_VER")
+            if [ $DEBUG_MODE -ne 0 ]; then
+              elog "\$ DBFILTER=\$(get_cfg_value "" DBFILTER_$CUR_ODOO_VER)"
+            fi
+          fi
+          if [ -z "$DBFILTER" ]; then
+            if [ $DEBUG_MODE -ne 0 ]; then
+              elog "\$ if [ -z \"\$DBFILTER=$DBFILTER\" ]; then DBFILTER=\"demo\"; fi"
+            fi
+            if [ "$CUR_ODOO_VER" == "$ODOO_VID" ]; then
+              DBFILTER="demo"
+            else
+              if [ $DEBUG_MODE -ne 0 ]; then
+                elog "\$ if [ -z \"\$DBFILTER=$DBFILTER\" ]; then DBFILTER=\"demo$CUR_ODOO_VER\"; fi"
+              fi
+              DBFILTER="demo$CUR_ODOO_VER"
+            fi
+          fi
+        fi
+      fi
       if [ $DEBUG_MODE -ne 0 ]; then
         elog "Creating DB list ..."
       fi
-      DBF="$DBFILTER"
-      # DBF="${DBFILTER//|/\|}"
-      # DBF="${DBF//(/\(}"
-      # DBF="${DBF//)/\)}"
-      # DBF="${DBF//\{/\\{}"
-      # DBF="${DBF//\}/\}}"
       if [ $DEBUG_MODE -ne 0 ]; then
-        elog "psql -tU$PG_USER -l|grep -E \"^[[:space:]]+$DBF[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+\"|awk '{print \$1}'|tr '\n' ' '"
+        elog "psql -tU$PG_USER -l|grep -E \"^[[:space:]]+$DBFILTER[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+\"|awk '{print \$1}'|tr '\n' ' '"
       fi
-      DBLIST=$(psql -tU$PG_USER -l|grep -E "^[[:space:]]+$DBF[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+"|awk '{print $1}'|tr '\n' ' ')
+      DBLIST=$(psql -tU$PG_USER -l|grep -E "^[[:space:]]+$DBFILTER[[:space:]]+.[[:space:]]+$DB_USER[[:space:]]+"|awk '{print $1}'|tr '\n' ' ')
       DB_ix=0
-      if [ $DEBUG_MODE -ne 0 ]; then
-        elog "($DBLIST)"
-      else
-        wlog "DBLIST=($DBLIST)"
-      fi
-    fi
+      wlog "DBLIST=($DBLIST)"
+    done
 }
 
 select_db () {
     set_db_list
     local c=0
-    dbname=""
+    DBNAME=""
     for d in $DBLIST; do
       if [ $DEBUG_MODE -ne 0 ]; then
-        elog "[ $c -eq $DB_ix ] && ((DB_ix++)) && dbname=\"$d\""
+        elog "\$ [ $c -eq $DB_ix ] && ((DB_ix++)); DBNAME=\"$d\""
       fi
       if [ $c -eq $DB_ix ]; then
         ((DB_ix++))
-        dbname="$d"
+        DBNAME="$d"
         break
       fi
       ((c++))
@@ -99,40 +162,41 @@ select_db () {
 }
 
 test_db_svr_response () {
+    local odoo_fver=$(build_odoo_param FULLVER $CUR_ODOO_VER)
+    local opt_xmlport=$(build_odoo_param RPCPORT $CUR_ODOO_VER)
     if [ -n "$opt_DB" ]; then
-      dbname="$opt_DB"
+      DBNAME="$opt_DB"
     else
       select_db
-      if [ -z "$dbname" ]; then
+      if [ -z "$DBNAME" ]; then
         DBLIST=""
         select_db
       fi
-      if [ -z "$dbname" ]; then
-        dbname="demo"
+      if [ -z "$DBNAME" ]; then
+        DBNAME="demo"
+        TIME_SLEEP=300
       fi
     fi
-    if [ $DEBUG_MODE -ne 0 ]; then
-      elog "clodoo.py $opts -d=$dbname -A=unit_test"
-    else
-      wlog "Check for DB $dbname"
-    fi
-    clodoo.py $opts -d=$dbname -A=unit_test
+    wlog "\$ clodoo.py $opts -b$odoo_fver -d=$DBNAME -A=unit_test -r$opt_xmlport  # Check for DB $DBNAME"
+    clodoo.py $opts -b$odoo_fver -d=$DBNAME -A=unit_test -r$opt_xmlport
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
-      ((DBSTS[$dbname]++))
-      pg_db_active -az $dbname>>$LOGFILE
+      ((DBSTS[$DBNAME]++))
+      pg_db_active -w &>/dev/null
+      pg_db_active -az $DBNAME>>$LOGFILE
     else
-      ((DBSTS[$dbname]--))
+      ((DBSTS[$DBNAME]--))
     fi
 }
 
 
 test_hung_up () {
-    if [ $DEBUG_MODE -ne 0 ]; then
-      # elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'RuntimeError: maximum recursion depth exceeded'"
-      elog "cat $ODOO_LOG|grep -n 'RuntimeError: maximum recursion depth exceeded'|tail -n1"
+    if [ $opt_multi -gt 0 ]; then
+      ODOO_LOG=$(build_odoo_param FLOG $CUR_ODOO_VER "search")
     fi
-    # HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "RuntimeError: maximum recursion depth exceeded")
+    if [ $DEBUG_MODE -ne 0 ]; then
+      elog "\$ HUNG_UP=\$(cat $ODOO_LOG|grep -n 'RuntimeError: maximum recursion depth exceeded'|tail -n1)"
+    fi
     HUNG_UP=$(cat $ODOO_LOG|grep -n "RuntimeError: maximum recursion depth exceeded"|tail -n1)
     if [ -n "$HUNG_UP" ]; then
       if [ "$HUNG_UP" == "$LAST_HUP_DEEP" ]; then
@@ -143,10 +207,8 @@ test_hung_up () {
     fi
     if [ -z "$HUNG_UP" ]; then
       if [ $DEBUG_MODE -ne 0 ]; then
-        # elog "cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep 'FATAL: *connection slots.*reserved for.*superuser'"
-        elog "cat $ODOO_LOG|grep -n 'FATAL: *connection slots.*reserved for.*superuser'|tail -n1"
+        elog "\$ HUNG_UP=\$(cat $ODOO_LOG|grep -n 'FATAL: *connection slots.*reserved for.*superuser'|tail -n1)"
       fi
-      # HUNG_UP=$(cat $ODOO_LOG|tail -n$HUPTST_TAIL|grep "FATAL: *connection slots.*reserved for.*superuser")
       HUNG_UP=$(cat $ODOO_LOG|grep -n "FATAL: *connection slots.*reserved for.*superuser"|tail -n1)
       if [ -n "$HUNG_UP" ]; then
         if [ "$HUNG_UP" == "$LAST_HUP_SLOT" ]; then
@@ -156,6 +218,7 @@ test_hung_up () {
         fi
       fi
       if [ -n "$HUNG_UP" ]; then
+        wlog "Kill all sessions out of pool!"
         pg_db_active -k>>$LOGFILE
       fi
     fi
@@ -164,14 +227,15 @@ test_hung_up () {
 conf_default () {
     set_cfg_def "DEV_HOST" "shsdev16"
     set_cfg_def "PRD_HOST" "shsprd14"
-    set_cfg_def "ODOO_SETUP" "__openerp__.py"
-    set_cfg_def "svc_name" "odoo-server"
+    # set_cfg_def "ODOO_SETUP" "__openerp__.py"
+    set_cfg_def "SVC_NAME" ""
     set_cfg_def "login_user" "zeroadm"
     set_cfg_def "login_password" "Wg\"0JK!P"
+    set_cfg_def "ODOO_VID" "v7"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "CLOBIN" "/opt/odoo/tools/clodoo"
-    set_cfg_def "ODOO_CONF" "/opt/odoo/odoo-server.conf"
-    set_cfg_def "ODOO_LOG" "/var/log/odoo/odoo-server.log"
+    set_cfg_def "ODOO_CONF" ""
+    set_cfg_def "ODOO_LOG" ""
     set_cfg_def "MAX_RETRY" "3"
     set_cfg_def "TIME_SLEEP" "90"
     set_cfg_def "TIME_WAIT" "10"
@@ -180,8 +244,9 @@ conf_default () {
     set_cfg_def "HUPTST_TAIL" "0"
     set_cfg_def "DEBUG_MODE" "0"
     set_cfg_def "DBFILTER" ".*"
-    set_cfg_def "PG_USER" "odoo"
-    set_cfg_def "DB_USER" "odoo"
+    set_cfg_def "PG_USER" "postgres"
+    set_cfg_def "DB_USER" ""
+    set_cfg_def "ODOO_MULTI_VERSION" "0"
     TCONF=/etc/odoo/oe_watchdog.conf
     if [ ! -f $TCONF -a ! -f $TCONF.sample ]; then
       TCONF=/etc/oe_watchdog.conf
@@ -240,7 +305,7 @@ fi
 if [ $opt_lxs -gt 0 ]; then
   chmod +r $LOGFILE
   echo $$ > $PIDFILE
-  wlog "********** Odoo server watchdog $__version__ starting ... **********"
+  wlog "********** Odoo server watchdog $__version__ starting (pid=$$)... **********"
 fi
 
 CFG_init
@@ -248,18 +313,33 @@ conf_default
 link_cfg $TCONF
 sts=$STS_SUCCESS
 
+ODOO_VID=$(get_cfg_value "" "ODOO_VID")
+CUR_ODOO_VER=$ODOO_VID
+opt_multi=$(get_cfg_value "" "ODOO_MULTI_VERSION")
 if [ -n "$opt_svc_name" ]; then
-  svc_name=$opt_svc_name
+  SVC_NAME=$opt_svc_name
 else
-  svc_name=$(get_cfg_value "" "svc_name")
+  SVC_NAME=$(get_cfg_value "" "SVC_NAME")
+  if [ -z "$SVC_NAME" ]; then
+    SVC_NAME=$(build_odoo_param SVCNAME $CUR_ODOO_VER)
+  fi
 fi
 CLODIR=$(get_cfg_value "" "CLODIR")
 CLOBIN=$(get_cfg_value "" "CLOBIN")
 ODOO_CONF=$(get_cfg_value "" "ODOO_CONF")
+if [ -z "$ODOO_CONF" ]; then
+  ODOO_CONF=$(build_odoo_param CONFN "$CUR_ODOO_VER" "search")
+fi
 ODOO_LOG=$(get_cfg_value "" "ODOO_LOG")
+if [ -z "$ODOO_LOG" ]; then
+  ODOO_LOG=$(build_odoo_param FLOG "$CUR_ODOO_VER" "search")
+fi
 DBFILTER=$(get_cfg_value "" "DBFILTER")
 PG_USER=$(get_cfg_value "" "PG_USER")
 DB_USER=$(get_cfg_value "" "DB_USER")
+if [ -z "$DB_USER" ]; then
+  DB_USER=$(build_odoo_param USER "$CUR_ODOO_VER")
+fi
 MAX_RETRY=$(get_cfg_value "" "MAX_RETRY")
 if [ $MAX_RETRY -gt 5 -o $MAX_RETRY -lt 1 ]; then
   MAX_RETRY=3
@@ -312,7 +392,6 @@ if [ ! -f clodoo.conf ]; then
   cat <<EOF >clodoo.conf
 [options]
 actions=unit_test
-dbfilter=$DBFILTER
 login_user=$login_user
 login_password=$login_password
 EOF
@@ -325,10 +404,12 @@ if [ $opt_verbose -gt -0 ]; then
 else
    opts=-q
 fi
+wlog "login_user=$login_user"
 wlog "TCONF=$TCONF"
 wlog "CLODIR=$clodir"
 wlog "CLOBIN=$CLOBIN"
-wlog "SVC_NAME=$svc_name"
+wlog "SVC_NAME=$SVC_NAME"
+wlog "ODOO_VID=$ODOO_VID"
 wlog "ODOO_CONF=$ODOO_CONF"
 wlog "ODOO_LOG=$ODOO_LOG"
 wlog "MAX_RETRY=$MAX_RETRY"
@@ -336,11 +417,10 @@ wlog "TIME_SLEEP=$TIME_SLEEP"
 wlog "TIME_WAIT=$TIME_WAIT"
 wlog "HELLO_CTR=$HELLO_CTR"
 wlog "HUPTST_CTR=$HUPTST_CTR"
-# wlog "HUPTST_TAIL=$HUPTST_TAIL"
-wlog "login_user=$login_user"
 wlog "DBFILTER=$DBFILTER"
 wlog "PG_USER=$PG_USER"
 wlog "DB_USER=$DB_USER"
+wlog "ODOO_MULTI_VERSION=$opt_multi"
 
 DBLIST=""
 declare -A DBSTS
@@ -393,7 +473,7 @@ while [ $ctr -gt 0 ]; do
     OK_ctr=0
     ((FAIL_ctr++))
     ((TOT_FAIL_ctr++))
-    if [ $TOT_OK_ctr -gt $TOT_FAIL_ctr -a ${DBSTS[$dbname]:-0} -gt 0 ]; then
+    if [ $TOT_OK_ctr -gt $TOT_FAIL_ctr -a ${DBSTS[$DBNAME]:-0} -gt 0 ]; then
       wlog "\$ service $svc_name restart"
       service $svc_name restart
       wlog "Hung-up message: $HUNG_UP"
@@ -421,7 +501,7 @@ while [ $ctr -gt 0 ]; do
   if [ $ctr -gt 0 ]; then
     if [ $helloctr -eq 0 ]; then
       helloctr=$HELLO_CTR
-      wlog "Odoo server watchdog $__version__ is running"
+      wlog "Odoo server watchdog $__version__ is running (pid=$$)"
       c=0
       for d in ${!DBSTS[*]};do
         ((c++))
