@@ -696,6 +696,8 @@ def act_run_unit_tests(oerp, ctx):
 
 def act_drop_db(oerp, ctx):
     """Drop a DB"""
+    import pdb
+    pdb.set_trace()
     sts = STS_SUCCESS
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)

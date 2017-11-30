@@ -151,11 +151,12 @@ class Test():
                                          "Show db param -b%s" % oe_version,
                                          True,
                                          res)
-            for oe_version in ('7.0', '8.0',):
+            for oe_version in ('7.0', '8.0', '9.0', '10.0'):
                 xmlrpc_port = int(eval(oe_version)) + 8160
                 dbname = 'demo%d' % int(eval(oe_version))
                 if not ctx['dry_run']:
                     cmd = self.cmd + ['-d' + dbname]
+                    cmd = cmd + ['-c%s' % '/opt/odoo/clodoo/clodoo.conf']
                     cmd = cmd + ['-b%s' % oe_version]
                     cmd = cmd + ['-r%s' % xmlrpc_port]
                     cmd = cmd + ['-Ashow_db_params']
@@ -168,7 +169,7 @@ class Test():
                         res = True
                     else:
                         res = False
-                        res = True   #debug temporary
+                        # res = True   #debug temporary
                 else:
                     res = True
                 sts = self.Z.test_result(z0ctx,
