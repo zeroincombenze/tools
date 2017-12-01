@@ -151,6 +151,23 @@ def incr_lev(ctx):
 
 
 #############################################################################
+# Primitive version indipendent
+#
+def search78910(oerp, ctx, model, where, order=None, context=None):
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return oerp.env[model].search(where, order=order, context=context)
+    else:
+        return oerp.search(model, where, order=order, context=context)
+
+
+def browse78910(oerp, ctx, model, id):
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return oerp.env[model].browse(id)
+    else:
+        return browse78910(oerp, ctx,model, id)
+
+
+#############################################################################
 # Connection and database
 #
 def open_connection(ctx):
@@ -312,7 +329,7 @@ def init_db_ctx(oerp, ctx, db):
 
 def init_company_ctx(oerp, ctx, c_id):
     ctx['company_id'] = c_id
-    company_obj = oerp.browse('res.company', c_id)
+    company_obj = browse78910(oerp, ctx, 'res.company', c_id)
     ctx['company_name'] = company_obj.name
     if company_obj.country_id:
         ctx['company_country_id'] = company_obj.country_id.id
@@ -348,12 +365,12 @@ def get_dblist(oerp):
     return oerp.db.list()
 
 
-def get_companylist(oerp):
-    return oerp.search('res.company', order='id desc')
+def get_companylist(oerp, ctx):
+    return search78910(oerp, ctx, 'res.company', [], order='id desc')
 
 
-def get_userlist(oerp):
-    return oerp.search('res.users')
+def get_userlist(oerp, ctx):
+    return search78910(oerp, ctx, 'res.users', [])
 
 
 #############################################################################
@@ -568,10 +585,7 @@ def ident_company(oerp, ctx, c_id):
 
 
 def ident_user(oerp, ctx, u_id):
-    if ctx['svc_protocol'] == 'jsonrpc':
-        user = oerp.env['res.users'].browse(u_id)
-    else:
-        user = oerp.browse('res.users', u_id)
+    user = browse78910(oerp, ctx, 'res.users', u_id)
     msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
           u_id,
           tounicode(user.login),
@@ -627,7 +641,7 @@ def act_show_db_params(oerp, ctx):
 
 
 def act_list_companies(oerp, ctx):
-    company_ids = get_companylist(oerp)
+    company_ids = get_companylist(oerp, ctx)
     for c_id in company_ids:
         ctx = init_company_ctx(oerp, ctx, c_id)
         sts = act_echo_company(oerp, ctx)
@@ -652,9 +666,9 @@ def act_show_company_params(oerp, ctx):
 
 
 def act_list_users(oerp, ctx):
-    user_ids = get_userlist(oerp)
+    user_ids = get_userlist(oerp, ctx)
     for u_id in user_ids:
-        user_obj = oerp.browse('res.users', u_id)
+        user_obj = browse78910(oerp, ctx, 'res.users', u_id)
         ctx = init_user_ctx(oerp, ctx, user_obj)
         sts = act_echo_user(oerp, ctx)
     return sts
@@ -696,8 +710,6 @@ def act_run_unit_tests(oerp, ctx):
 
 def act_drop_db(oerp, ctx):
     """Drop a DB"""
-    import pdb
-    pdb.set_trace()
     sts = STS_SUCCESS
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
@@ -822,7 +834,15 @@ def act_new_db(oerp, ctx):
             msg_log(ctx, ctx['level'], msg)
         if ctx['db_name']:
             try:
-                if oerp.db.server_version() == '7.0':
+                if ctx['svc_protocol'] == 'jsonrpc':
+                    oerp.db.create(ctx['admin_passwd'],
+                                   ctx['db_name'],
+                                   ctx['with_demo'],
+                                   lang,
+                                   decrypt(ctx['login_password']))
+                    time.sleep(3)
+
+                elif oerp.db.server_version() == '7.0':
                     oerp.db.create_and_wait(ctx['admin_passwd'],
                                             ctx['db_name'],
                                             ctx['with_demo'],
@@ -878,11 +898,11 @@ def act_per_company(oerp, ctx):
     """iter on companies"""
     if 'actions_mc' in ctx:
         del ctx['actions_mc']
-    company_ids = get_companylist(oerp)
+    company_ids = get_companylist(oerp, ctx)
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for c_id in company_ids:
-        company_obj = oerp.browse('res.company', c_id)
+        company_obj = browse78910(oerp, ctx, 'res.company', c_id)
         if re.match(ctx['companyfilter'], company_obj.name):
             ctx = init_company_ctx(oerp, ctx, c_id)
             msg = ident_company(oerp, ctx, c_id)
@@ -898,11 +918,11 @@ def act_per_user(oerp, ctx):
     """iter on companies"""
     if 'actions_uu' in ctx:
         del ctx['actions_uu']
-    user_ids = get_userlist(oerp)
+    user_ids = get_userlist(oerp, ctx)
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for u_id in user_ids:
-        user_obj = oerp.browse('res.users', u_id)
+        user_obj = browse78910(oerp, ctx, res.users, u_id)
         if re.match(ctx['userfilter'], user_obj.name):
             ctx = init_user_ctx(oerp, ctx, user_obj)
             msg = ident_user(oerp, ctx, u_id)
@@ -924,8 +944,7 @@ def act_update_modules(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         model = 'ir.module.module'
-        ids = oerp.search(model,
-                          [('name', '=like', '__old_%')])
+        ids = search78910(oerp, ctx, model, [('name', '=like', '__old_%')])
         if len(ids):
             oerp.unlink(model, ids)
         oerp.execute('base.module.update',
@@ -945,7 +964,7 @@ def act_upgrade_modules(oerp, ctx):
     for m in module_list:
         if m == "":
             continue
-        ids = oerp.search('ir.module.module',
+        ids = search78910(oerp, ctx, 'ir.module.module',
                           [('name', '=', m),
                            ('state', '=', 'installed')],
                           context=context)
@@ -988,7 +1007,7 @@ def act_uninstall_modules(oerp, ctx):
     for m in module_list:
         if m == "":
             continue
-        ids = oerp.search(model,
+        ids = search78910(oerp, ctx, model,
                           [('name', '=', m),
                            ('state', '=', 'installed')],
                           context=context)
@@ -1042,6 +1061,8 @@ def act_install_modules(oerp, ctx):
                           context=context)
         if not ctx['dry_run']:
             if len(ids):
+                # import pdb
+                # pdb.set_trace()
                 if cur_lang != 'en_US':
                     cur_lang = 'en_US'
                     set_user_lang(oerp, cur_lang, ctx)
@@ -1155,7 +1176,7 @@ def act_check_partners(oerp, ctx):
     rec_ctr = 0
     for partner_id in partner_ids:
         try:
-            partner_obj = oerp.browse('res.partner', partner_id)
+            partner_obj = browse78910(oerp, ctx, 'res.partner', partner_id)
         except BaseException:
             msg = u"Wrong partner id=" + str(partner_id)
             msg_log(ctx, ctx['level'], msg)
@@ -1258,7 +1279,7 @@ def act_check_taxes(oerp, ctx):
     # base_vat_nc = {}
     # vat_base_nc = {}
     # for id in ids:
-    #     tax_obj = oerp.browse(model, id)
+    #     tax_obj = browse78910(oerp, ctx,  model, id)
     #     id_imp = tax_obj.base_code_id.id
     #     id_iva = tax_obj.tax_code_id.id
     #     base_vat[id_imp] = id_iva
@@ -1278,7 +1299,7 @@ def act_check_taxes(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_line_obj = browse78910(oerp, ctx, 'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         tax_code_obj = move_line_obj.tax_code_id
@@ -1340,7 +1361,7 @@ def act_check_balance(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_line_obj = browse78910(oerp, ctx, 'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         warn_rec = False
@@ -1349,14 +1370,14 @@ def act_check_balance(oerp, ctx):
         account_tax_obj = move_line_obj.account_tax_id
         journal_obj = move_line_obj.journal_id
         acctype_id = account_obj.user_type.id
-        acctype_obj = oerp.browse('account.account.type', acctype_id)
+        acctype_obj = browse78910(oerp, ctx, 'account.account.type', acctype_id)
         if acctype_obj.report_type not in ("asset", "liability",
                                            "income", "expense"):
             warn_rec = "Untyped"
         if account_obj.parent_id:
             parent_account_obj = account_obj.parent_id
             parent_acctype_id = parent_account_obj.user_type.id
-            parent_acctype_obj = oerp.browse('account.account.type',
+            parent_acctype_obj = browse78910(oerp, ctx, 'account.account.type',
                                              parent_acctype_id)
             parent_code = parent_account_obj.code
         else:
@@ -1530,7 +1551,7 @@ def act_check_balance(oerp, ctx):
         for kk in sorted(acc_partners):
             if acc_partners[kk] != 0.0:
                 partner_id = int(kk.split('\n')[2])
-                partner_obj = oerp.browse('res.partner', partner_id)
+                partner_obj = browse78910(oerp, ctx, 'res.partner', partner_id)
                 msg = u"{0:<16} {1:<60} {2:11.2f}".format(
                     os0.u(kk.replace('\n', '.')),
                     os0.u(partner_obj.name),
@@ -1673,7 +1694,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
     l10n_it_bb_state = ''
     l10n_it_base_state = ''
     for id in ids:
-        module_obj = oerp.browse(model, id)
+        module_obj = browse78910(oerp, ctx,  model, id)
         prior_state[id] = module_obj.state
         if module_obj.name == 'l10n_it_base':
             l10n_it_base_state = module_obj.state
@@ -1712,7 +1733,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
     ctx['upgrade_modules'] = ''
     s = ''
     for id in prior_state:
-        module_obj = oerp.browse(model, id)
+        module_obj = browse78910(oerp, ctx,  model, id)
         if module_obj.name != 'l10n_it_base' and \
                 module_obj.name != 'l10n_it_bbone' and \
                 module_obj.name != 'zeroincombenze':
@@ -1734,7 +1755,7 @@ def read_last_fiscalyear(oerp, company_id, ctx):
     valid_fiscalyear_id = 0
     process_it = False
     for fiscalyear_id in fiscalyear_ids:
-        fiscalyear = oerp.browse(model, fiscalyear_id)
+        fiscalyear = browse78910(oerp, ctx,  model, fiscalyear_id)
         name = fiscalyear.name
         date_start = fiscalyear.date_start
         date_stop = fiscalyear.date_stop
@@ -1764,7 +1785,7 @@ def add_periods(oerp, company_id, fiscalyear_id,
                               ('date_start', '>=', str(last_start)),
                               ('date_stop', '<=', str(last_stop))])
     for period_id in period_ids:
-        period = oerp.browse(model, period_id)
+        period = browse78910(oerp, ctx,  model, period_id)
         name = period.name
         date_start = period.date_start
         date_stop = period.date_stop
@@ -1803,15 +1824,15 @@ def set_journal_per_year(oerp, ctx):
     fy_name = ''
     last_date = date(1970, 1, 1)
     for id in fy_ids:
-        if oerp.browse(model, id).date_stop > last_date:
-            last_date = oerp.browse(model, id).date_stop
+        if browse78910(oerp, ctx,  model, id).date_stop > last_date:
+            last_date = browse78910(oerp, ctx,model, id).date_stop
             fy_name = str(last_date.year)
     model = 'account.journal'
     journal_ids = oerp.search(model, [('company_id', '=', company_id),
                                       ('type', '!=', 'situation')])
     primary_ir_sequences = []
     for journal_id in journal_ids:
-        id = oerp.browse(model, journal_id)
+        id = browse78910(oerp, ctx,model, journal_id)
         primary_ir_sequences.append(id.sequence_id.id)
     if len(primary_ir_sequences) == 0:
         return
@@ -1819,14 +1840,14 @@ def set_journal_per_year(oerp, ctx):
     ir_ids = oerp.search(model, [('company_id', '=', company_id),
                                  ('id', 'in', primary_ir_sequences)])
     for ir_id in ir_ids:
-        ir_sequence = oerp.browse(model, ir_id)
+        ir_sequence = browse78910(oerp, ctx,model, ir_id)
         fy = []
         for o in ir_sequence.fiscal_ids:
             fy_id = o.fiscalyear_id.id
             fy.append(fy_id)
         for fy_id in fy_ids:
             if fy_id not in fy:
-                fy_name = str(oerp.browse('account.fiscalyear',
+                fy_name = str(browse78910(oerp, ctx,'account.fiscalyear',
                                           fy_id).date_stop.year)
                 vals = {}
                 name = ir_sequence.name
@@ -1858,13 +1879,13 @@ def set_journal_per_year(oerp, ctx):
                                  'fiscalyear_id': fy_id})
         for asf_id in oerp.search('account.sequence.fiscalyear',
                                   [('sequence_main_id', '=', ir_id)]):
-            id = oerp.browse('account.sequence.fiscalyear',
+            id = browse78910(oerp, ctx,'account.sequence.fiscalyear',
                              asf_id).sequence_id.id
-            fy_id = oerp.browse('account.sequence.fiscalyear',
+            fy_id = browse78910(oerp, ctx,'account.sequence.fiscalyear',
                                 asf_id).fiscalyear_id.id
-            fy_name = str(oerp.browse('account.fiscalyear',
+            fy_name = str(browse78910(oerp, ctx,'account.fiscalyear',
                                       fy_id).date_stop.year)
-            name = oerp.browse(model, id).name
+            name = browse78910(oerp, ctx,model, id).name
             if not name.endswith(' ' + fy_name):
                 vals = {}
                 if name.endswith(fy_name):
@@ -1909,7 +1930,7 @@ def get_payment_info(oerp, move_line_obj, ctx):
     """
     move_line_id = move_line_obj.id
     move_id = move_line_obj.move_id.id
-    move_obj = oerp.browse('account.move', move_id)
+    move_obj = browse78910(oerp, ctx,'account.move', move_id)
     mov_state = False
     if move_obj.state in PAY_MOVE_STS_2_DRAFT:
         mov_state = move_obj.state
@@ -1932,7 +1953,7 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
     for state in STATES_2_DRAFT:
         move_dict[state] = []
     model = 'account.invoice'
-    account_invoice_obj = oerp.browse(model,
+    account_invoice_obj = browse78910(oerp, ctx,model,
                                       inv_id)
     if account_invoice_obj.payment_ids:
         partner_id = account_invoice_obj.partner_id.id
@@ -1941,8 +1962,8 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
                                  [('move_id', '=', move_id),
                                   ('partner_id', '=', partner_id), ])
         for move_line_id in move_lines:
-            type = oerp.browse('account.account',
-                               oerp.browse('account.move.line',
+            type = browse78910(oerp, ctx,'account.account',
+                               browse78910(oerp, ctx,'account.move.line',
                                            move_line_id).account_id.id).type
             if type == 'receivable' or type == 'payable':
                 reconciles.append(move_line_id)
@@ -1971,7 +1992,7 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
     # Payment move line (detail) list
     new_reconciles = []
     model = 'account.invoice'
-    account_invoice_obj = oerp.browse(model,
+    account_invoice_obj = browse78910(oerp, ctx,model,
                                       inv_id)
     partner_id = account_invoice_obj.partner_id.id
     if account_invoice_obj.move_id:
@@ -1982,8 +2003,8 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
                              [('move_id', '=', move_id),
                               ('partner_id', '=', partner_id), ])
     for move_line_id in move_lines:
-        type = oerp.browse('account.account',
-                           oerp.browse('account.move.line',
+        type = browse78910(oerp, ctx,'account.account',
+                           browse78910(oerp, ctx,'account.move.line',
                                        move_line_id).account_id.id).type
         if type == 'receivable' or type == 'payable':
             new_reconciles.append(move_line_id)
@@ -1995,7 +2016,7 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
     company_id = account_invoice_obj.company_id.id
     valid_recs = True
     for move_line_id in reconciles[1:]:
-        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_line_obj = browse78910(oerp, ctx,'account.move.line', move_line_id)
         if move_line_obj.partner_id.id != partner_id or \
                 move_line_obj.company_id.id != company_id:
             valid_recs = False
@@ -2010,18 +2031,18 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
 def get_user_lang(oerp, ctx):
     model = 'res.users'
     user_id = ctx.get('user_id', 1)
-    user_obj = oerp.browse(model, user_id)
+    user_obj = browse78910(oerp, ctx,model, user_id)
     if not user_obj:
         msg = u"!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    return oerp.browse(model, user_id).lang
+    return browse78910(oerp, ctx,model, user_id).lang
 
 
 def set_user_lang(oerp, lang, ctx):
     model = 'res.users'
     user_id = ctx.get('user_id', 1)
-    user_obj = oerp.browse(model, user_id)
+    user_obj = browse78910(oerp, ctx,model, user_id)
     if not user_obj:
         msg = u"!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -2238,7 +2259,7 @@ def upd_invoices_2_cancel(oerp, move_dict, ctx):
             except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
-                    if oerp.browse(model, inv_id).state == 'paid':
+                    if browse78910(oerp, ctx,model, inv_id).state == 'paid':
                         try:
                             oerp.write(model,
                                        [inv_id],
@@ -2271,7 +2292,7 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
             except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
-                    if oerp.browse(model, inv_id).state == 'paid':
+                    if browse78910(oerp, ctx,model, inv_id).state == 'paid':
                         try:
                             oerp.write(model,
                                        [inv_id],
@@ -2495,7 +2516,7 @@ def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
     ids = list(set(id1 + id2 + id3))
     for id in ids:
         try:
-            view = oerp.browse(model, id)
+            view = browse78910(oerp, ctx,model, id)
             oerp.unlink(model, [id])
             msg = u"Remove view id %d/%s of %s " % (id,
                                                     view.name,
@@ -2511,7 +2532,7 @@ def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
     ids = oerp.search(model, [('module', '=', old_module),
                               ('model', '=', model_name)])
     for id in ids:
-        seq_name = oerp.browse(model, id)
+        seq_name = browse78910(oerp, ctx,model, id)
         name = seq_name.name
         res_id = seq_name.res_id
         display = seq_name.display_name
@@ -2520,7 +2541,7 @@ def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
                                       ('model', '=', model_name),
                                       ('name', '=', name)])
         if len(new_ids):
-            new_seq_name = oerp.browse(model, new_ids[0])
+            new_seq_name = browse78910(oerp, ctx,model, new_ids[0])
             new_res_id = new_seq_name.res_id
             new_display = new_seq_name.display_name
             new_cname = new_seq_name.complete_name
@@ -2588,7 +2609,7 @@ def set_account_type(oerp, ctx):
     if len(account_ids) == 0:
         return STS_FAILED
     for account_id in account_ids:
-        account = oerp.browse('account.account', account_id)
+        account = browse78910(oerp, ctx,'account.account', account_id)
         msg = u"Account %s %s" % (account.code, account.name)
         msg_log(ctx, ctx['level'], msg)
     move_line_ids = oerp.search('account.move.line',
@@ -2606,7 +2627,7 @@ def set_account_type(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = oerp.browse('account.move.line', move_line_id)
+        move_line_obj = browse78910(oerp, ctx,'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         account_obj = move_line_obj.account_id
@@ -2615,7 +2636,7 @@ def set_account_type(oerp, ctx):
         if not account_obj.parent_id:
             valid = False
         acctype_id = account_obj.user_type.id
-        acctype_obj = oerp.browse('account.account.type', acctype_id)
+        acctype_obj = browse78910(oerp, ctx,'account.account.type', acctype_id)
         if acctype_obj.report_type not in ("asset", "liability",
                                            "income", "expense"):
             valid = False
@@ -2690,9 +2711,9 @@ def recompute_tax_balance(oerp, ctx):
         line_ids = oerp.search(model2, [('invoice_id', '=', invoice_id)])
         if ctx['custom_act'] == 'cscs':
             for line_id in line_ids:
-                line = oerp.browse(model2, line_id)
+                line = browse78910(oerp, ctx,model2, line_id)
                 if not line.invoice_line_tax_id:
-                    type = oerp.browse(model, invoice_id).type
+                    type = browse78910(oerp, ctx,model, invoice_id).type
                     tax = False
                     if type in ('in_invoice', 'in_refund'):
                         tax = [(6, 0, tax_00_pur)]
@@ -3127,7 +3148,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
             record_ids = oerp.search(model, where)
             if len(record_ids):
                 for record_id in record_ids:
-                    obj = oerp.browse(model, record_id)
+                    obj = browse78910(oerp, ctx,model, record_id)
                     date_start = obj.date_start
                     date_stop = obj.date
                     if not date_start:
@@ -3191,7 +3212,7 @@ def reset_sequence(oerp, ctx):
     record_ids = oerp.search(model)
     if not ctx['dry_run']:
         for record_id in record_ids:
-            obj = oerp.browse(model, record_id)
+            obj = browse78910(oerp, ctx,model, record_id)
             f_deleted = False
             if ctx['custom_act'] == 'cscs':
                 for i in (2014, 2015, 2016, 2017):
@@ -3582,11 +3603,11 @@ def remove_company_partner_records(oerp, ctx):
     company_id = ctx['company_id']
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33523, 33783,
-                                        oerp.browse('res.company',
+                                        browse78910(oerp, ctx,'res.company',
                                                     company_id).id),
                         }
     else:
-        records2keep = {'res.partner': oerp.browse('res.company',
+        records2keep = {'res.partner': browse78910(oerp, ctx,'res.company',
                                                    company_id).id
                         }
     special = {}
@@ -3762,7 +3783,7 @@ def analyze_invoices(oerp, ctx, inv_type):
     inv_ctr = 0
     last_seq = 0
     for account_invoice_id in account_invoice_ids:
-        account_invoice_obj = oerp.browse(model,
+        account_invoice_obj = browse78910(oerp, ctx,model,
                                           account_invoice_id)
         inv_ctr += 1
         msg_burst(4,
@@ -3975,7 +3996,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 del vals['id']
             if len(ids):
                 id = ids[0]
-                cur_obj = oerp.browse(o_model['model'], id)
+                cur_obj = browse78910(oerp, ctx,o_model['model'], id)
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -4105,7 +4126,7 @@ def setup_config_param(oerp, ctx, user, name, value):
         msg = u"!User " + user + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    user_obj = oerp.browse('res.users', user_id[0])
+    user_obj = browse78910(oerp, ctx,'res.users', user_id[0])
     if not user_obj:
         msg = u"!User " + user + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -4141,7 +4162,7 @@ def setup_config_param(oerp, ctx, user, name, value):
         #         ctx_label = ""
         #     ctx_sel_name = {}
         #     for id in sorted(ctx_sel_ids):
-        #         cur_obj = oerp.browse('res.groups', id)
+        #         cur_obj = browse78910(oerp, ctx,'res.groups', id)
         #         ctx_sel_name[cur_obj.name] = id
         #     if len(ctx_sel_ids) > 1:
         #         if value in ctx_sel_name:
@@ -4188,7 +4209,7 @@ def install_chart_of_account(oerp, ctx, name):
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     company_id = ctx['company_id']
-    currency_id = oerp.browse('res.company', company_id).currency_id
+    currency_id = browse78910(oerp, ctx,'res.company', company_id).currency_id
     chart_values = {
         'company_id': company_id,
         'currency_id': currency_id,

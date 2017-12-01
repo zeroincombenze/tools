@@ -18,6 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
+import pdb
 """
     Clodoo Regression Test Suite
 """
@@ -49,19 +50,58 @@ class Test():
         self.cmd = ['python'] + [self.Z.pkg_dir + '/clodoo.py'] + \
             ['-q']  # + [ '-c' + self.Z.test_dir + '/clodoo.conf' ]
         self.dbtest = 'clodoo_test'
+        self.module_2_test = 'crm'
 
-    def check_4_db(self):
+    def check_4_db(self, dbname):
         cmd = ['psql'] + ['-Upostgres'] + ['-l']
         p = Popen(cmd,
                   stdin=PIPE,
                   stdout=PIPE,
                   stderr=PIPE)
         res, err = p.communicate()
-        dbname = ' ' + self.dbtest + ' '
+        dbname = ' %s ' % dbname
         if res.find(dbname) >= 0:
             return True
         else:
             return False
+
+    def check_4_module(self, oe_version):
+        user = self.param_by_db(oe_version, field='user')
+        dbname = self.param_by_db(oe_version, field='dbname')
+        sql = "select name from ir_module_module" + \
+              " where name='%s' and state='installed' ;" % \
+              self.module_2_test
+        cmd = 'psql -U%s %s -c"%s"' % (user, dbname, sql)
+        p = Popen(cmd,
+                  stdin=PIPE,
+                  stdout=PIPE,
+                  stderr=PIPE,
+                  shell=True)
+        res, err = p.communicate()
+        module_2_test = ' %s' % self.module_2_test
+        if res.find(module_2_test) >= 0:
+            return True
+        else:
+            return False
+
+    def param_by_db(self, oe_version, field=None):
+        minor_ver = int(eval(oe_version))
+        xmlrpc_port = 8160 + minor_ver
+        dbname = self.dbtest + str(minor_ver)
+        user = 'odoo%d' % minor_ver
+        if field == 'dbname':
+            return dbname
+        elif field == 'user':
+            return user
+        return xmlrpc_port, dbname
+
+    def bulk_cmd(self, oe_version):
+        xmlrpc_port, dbname = self.param_by_db(oe_version)
+        if not ctx['dry_run']:
+            cmd = self.cmd + ['-d' + dbname]
+            cmd = cmd + ['-b%s' % oe_version]
+            cmd = cmd + ['-r%s' % xmlrpc_port]
+        return cmd
 
     def test_01(self, z0ctx):
         req_version = 'clodoo.py %s' % __version__
@@ -83,46 +123,6 @@ class Test():
         return sts
 
     def test_02(self, z0ctx):
-        sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
-                #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
-            if not ctx['dry_run']:
-                if os.environ.get("TRAVIS", "") != "true":
-                    os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
-                                  self.dbtest)
-                os0.muteshell("dropdb -Upostgres --if-exists " + self.dbtest)
-                cmd = self.cmd + ['-Anew_db'] + ['-d' + self.dbtest]
-                p = Popen(cmd,
-                          stdin=PIPE,
-                          stdout=PIPE,
-                          stderr=PIPE)
-                res, err = p.communicate()
-                res = self.check_4_db()
-            else:
-                res = True
-            sts = self.Z.test_result(z0ctx,
-                                     "Create DB",
-                                     True,
-                                     res)
-            if not ctx['dry_run']:
-                os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
-                              self.dbtest)
-                cmd = self.cmd + ['-Adrop_db'] + ['-d' + self.dbtest]
-                p = Popen(cmd,
-                          stdin=PIPE,
-                          stdout=PIPE,
-                          stderr=PIPE)
-                res, err = p.communicate()
-                res = self.check_4_db()
-            else:
-                res = False
-            sts = self.Z.test_result(z0ctx,
-                                     "Drop DB",
-                                     False,
-                                     res)
-        return sts
-
-    def test_03(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
             for oe_version in ('7.0', '8.0', '9.0', '10.0'):
@@ -148,34 +148,119 @@ class Test():
                 else:
                     res = True
                 sts = self.Z.test_result(z0ctx,
-                                         "Show db param -b%s" % oe_version,
+                                         "Show params -b%s" % oe_version,
                                          True,
                                          res)
+
+    def test_03(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+                #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
             for oe_version in ('7.0', '8.0', '9.0', '10.0'):
-                xmlrpc_port = int(eval(oe_version)) + 8160
-                dbname = 'demo%d' % int(eval(oe_version))
                 if not ctx['dry_run']:
-                    cmd = self.cmd + ['-d' + dbname]
-                    cmd = cmd + ['-c%s' % '/opt/odoo/clodoo/clodoo.conf']
-                    cmd = cmd + ['-b%s' % oe_version]
-                    cmd = cmd + ['-r%s' % xmlrpc_port]
-                    cmd = cmd + ['-Ashow_db_params']
+                    cmd = self.bulk_cmd(oe_version)
+                    if os.environ.get("TRAVIS", "") != "true":
+                        xmlrpc_port, dbname = self.param_by_db(oe_version)
+                        os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
+                                      dbname)
+                    os0.muteshell("dropdb -Upostgres --if-exists " + dbname)
+                    cmd = cmd + ['-Anew_db']
                     p = Popen(cmd,
                               stdin=PIPE,
                               stdout=PIPE,
                               stderr=PIPE)
                     res, err = p.communicate()
-                    if re.search('DB name *= *%s' % dbname,res):
-                        res = True
-                    else:
-                        res = False
-                        # res = True   #debug temporary
+                    res = self.check_4_db(dbname)
                 else:
                     res = True
                 sts = self.Z.test_result(z0ctx,
-                                         "Show param -b%s" % oe_version,
+                                         "Create DB -b%s" % oe_version,
                                          True,
                                          res)
+
+                if not ctx['dry_run']:
+                    cmd = self.bulk_cmd(oe_version)
+                    cmd = cmd + ['-Ashow_params']
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    if oe_version in ('7.0', '8.0'):
+                        xml_prot = 'xmlrpc'
+                    elif oe_version in ('9.0', '10.0'):
+                        xml_prot = 'jsonrpc'
+                    if re.search('protocol *= *%s' % xml_prot,res):
+                        res = True
+                    else:
+                        res = False
+                    sts = self.Z.test_result(z0ctx,
+                                             "Show db params -b%s" % oe_version,
+                                             True,
+                                             res)
+        return sts
+
+    def test_04(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            for oe_version in ('7.0', '8.0', '9.0', '10.0'):
+                if not ctx['dry_run']:
+                    res= self.check_4_module(oe_version)
+                else:
+                    res = False
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Module -b%s %s" % (oe_version, self.module_2_test),
+                    False,
+                    res)
+                if not ctx['dry_run']:
+                    codefile = """[options]
+actions=install_modules
+install_modules=%s
+""" % self.module_2_test
+                    fd = open('./test_clodoo.conf', 'w')
+                    fd.write(codefile)
+                    fd.close()
+                    cmd = self.bulk_cmd(oe_version)
+                    cmd = cmd + ['-c./test_clodoo.conf']
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    res= self.check_4_module(oe_version)
+                else:
+                    res= True
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Install -b%s %s" % (oe_version, self.module_2_test),
+                    True,
+                    res)
+
+    def test_05(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            for oe_version in ('7.0', '8.0', '9.0', '10.0'):
+                if not ctx['dry_run']:
+                    if os.environ.get("TRAVIS", "") != "true":
+                        xmlrpc_port, dbname = self.param_by_db(oe_version)
+                        os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
+                                      dbname)
+                    cmd = self.bulk_cmd(oe_version)
+                    cmd = cmd + ['-Adrop_db']
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    res = self.check_4_db(dbname)
+                else:
+                    res = False
+                sts = self.Z.test_result(z0ctx,
+                                         "Drop DB -b%s" % oe_version,
+                                         False,
+                                         res)
+        return sts
 
 
 #
