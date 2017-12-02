@@ -4,10 +4,16 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -16,18 +22,6 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
-if [ -z "$ODOOLIBDIR" ]; then
-  echo "Library file odoorc not found!"
-  exit 2
-fi
-. $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
-  exit 2
-fi
-. $TRAVISLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $TDIR/../zerobug $TDIR/../../zerobug  . .. $HOME/dev")
@@ -38,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.9
+__version__=0.1.11
 
 #//Only human upgradable code/
 cvt_file() {
@@ -51,202 +45,209 @@ cvt_file() {
     local prc=0
     if [ -n "$f1" ]; then
       if [ -x "$f1" ]; then
-         if [ $opt_tjlib -ne 0 ]; then
-           OPTS_J="-J"
-         else
-           OPTS_J=
-         fi
-         if [ $opt_oelib -ne 0 ]; then
-           OPTS_O=" -O"
-         else
-           OPTS_O=
-         fi
-         local incl=0
-         local empty=0
-         rm -f $fntmp
-         while IFS= read -r line r || [ -n "$line" ]; do
-           # echo "$prc>$line"  #debug
-           if [ $prc -lt 10 ] && [[ $line =~ ^__version__=.* ]]; then
-             if [ $opt_keep -ne 0 ]; then
-               line_ver="$line"
-             elif [ $opt_lev3 -eq 0 ]; then
-               x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\(\.[0-9]*\)?|awk -F. '{print $4}')
-               ((x++))
-               y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2"."$3}')"
-               line_ver="__version__=$y.$x"
-             else
-               x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|awk -F. '{print $3}')
-               ((x++))
-               y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2}')"
-               line_ver="__version__=$y.$x"
-             fi
-             if [  $prc -eq 0 ]; then
-               continue
-             fi
-           fi
-           if [[ $line =~ ^#[^A-Za-z09_]*Enable.auto.upgrade.code.* ]]; then
-             echo "$line">>$fntmp
-             incl=0
-           elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then
-             echo "$line">>$fntmp
-             incl=1
-           elif [ $incl -eq 1 ]; then
-             echo "$line">>$fntmp
-           elif [ $prc -eq 0 ]; then
-             if [[ $line =~ ^THIS.*basename.* ]]; then
-               prc=1
-               blk_1 "$fntmp"
-               empy=0
-             else
-               echo "$line">>$fntmp
-             fi
-           elif [ $prc -ge 1 -a $prc -le 9 ]; then
-             if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
-               prc=2
-               if [ $opt_oelib -ne 0 ]; then
-                 blk_2 "$fntmp"
-               fi
-               empy=0
-             elif [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
-               if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
-                 prc=2
-                 blk_2 "$fntmp"
-                 if [  $opt_ut -eq 0 ]; then
-                   opt_oelib=0
-                 fi
-               fi
-               prc=3
-               if [ $opt_tjlib -ne 0 ]; then
-                 blk_3 "$fntmp"
-               fi
-               empy=0
-             elif [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
-               if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
-                 prc=3
-                 blk_3 "$fntmp"
-                 if [  $opt_ut -eq 0 ]; then
-                   opt_tjlib=0
-                 fi
-               fi
-               prc=4
-               blk_4 "$fntmp"
-               empy=0
-             elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
-               prc=5
-               blk_5 "$fntmp"
-               empy=0
-               opt_ut=1
-             elif [[ $line =~ ^__version__.* ]] || [[ $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
-               if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
-                 prc=2
-                 blk_2 "$fntmp"
-                 if [  $opt_ut -eq 0 ]; then
-                   opt_oelib=0
-                 fi
-               fi
-               if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
-                 prc=3
-                 blk_3 "$fntmp"
-                 if [  $opt_ut -eq 0 ]; then
-                   opt_tjlib=0
-                 fi
-               fi
-               if [ $empy -eq 0 ]; then
-                 echo "">>$fntmp
-               fi
-               echo "$line_ver">>$fntmp
-               prc=10
-               if ! [[ $line =~ ^__version__.* ]]; then
-                 echo "$line">>$fntmp
-               fi
-             else
-               :
-             fi
-           elif [ $prc -eq 10 ]; then
-             if [[ $line =~ ^Z0BUG_init ]]; then
-               prc=11
-               blk_11 "$fntmp"
-               empy=0
-             elif [[ $line =~ ^opts_travis ]]; then
-               prc=21
-               blk_21 "$fntmp"
-             elif [[ $line =~ ^TCONF=.* ]]; then
-               :
-             else
-               echo "$line">>$fntmp
-             fi
-           elif [ $prc -eq 11 ]; then
-             if [  -z "$line" ]; then
-               prc=12
-               echo "$line">>$fntmp
-             elif [[ $line =~ ^UT1?_LIST=.* ]]; then
-               prc=12
-               echo "$line">>$fntmp
-             else
-               :
-             fi
-           elif [ $prc -eq 12 ]; then
-             if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
-               prc=13
-               blk_13 "$fntmp"
-               empy=0
-             elif [[ $line =~ ^Z0BUG_main_file.* ]]; then
-               blk_13 "$fntmp"
-               prc=14
-               blk_14 "$fntmp"
-               empy=0
-             else
-               echo "$line">>$fntmp
-             fi
-           elif [ $prc -eq 13 ]; then
-             # echo "$incl) $line" #debug
-             if [[ $line =~ ^Z0BUG_main_file.* ]]; then
-               prc=14
-               blk_14 "$fntmp"
-               empy=0
-             elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
-               echo "$line">>$fntmp
-               incl=0
-             elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
-               echo "$line">>$fntmp
-               incl=2
-             elif [ $incl -eq 2 ]; then
-               echo "$line">>$fntmp
-             fi
-           elif [ $prc -eq 14 ]; then
-             :
-           elif [ $prc -eq 21 ]; then
-             if [[ $line =~ ^init_travis ]]; then
-               echo "$line">>$fntmp
-               prc=22
-             elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
-               echo "$line">>$fntmp
-               incl=0
-             elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
-               echo "$line">>$fntmp
-               incl=2
-             elif [ $incl -eq 2 ]; then
-               echo "$line">>$fntmp
-             fi
-           elif [ "${line:0:1}" == "#" ]; then
-             echo "$line">>$fntmp
-             empy=0
-           elif [ -z "$line" ]; then
-             echo "$line">>$fntmp
-             empy=1
-           else
-             echo "$line">>$fntmp
-             empy=0
-           fi
-         done < $f1
+        OPTS_JO=
+        if [ $opt_tjlib -ne 0 ]; then
+          OPTS_J="-J"
+          OPTS_JO=${OPTS_JO}J
+        else
+          OPTS_J=
+        fi
+        if [ $opt_oelib -ne 0 ]; then
+          OPTS_O="-O"
+          OPTS_JO=${OPTS_JO}O
+        else
+          OPTS_O=
+        fi
+        [ -n "$OPTS_JO" ] && OPTS_JO="-$OPTS_JO"
+        local incl=0
+        local empty=0
+        rm -f $fntmp
+        while IFS= read -r line || [ -n "$line" ]; do
+          while [[ "${line: -1}" == " " ]]; do line="${line:0: -1}"; done
+          # echo "$prc>$line"  #debug
+          if [ $prc -lt 10 ] && [[ $line =~ ^__version__=.* ]]; then
+            if [ $opt_keep -ne 0 ]; then
+              line_ver="$line"
+            elif [ $opt_lev3 -eq 0 ]; then
+              x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+\(\.[0-9]*\)?|awk -F. '{print $4}')
+              ((x++))
+              y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2"."$3}')"
+              line_ver="__version__=$y.$x"
+            else
+              x=$(echo $line|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|awk -F. '{print $3}')
+              ((x++))
+              y="$(echo $line|grep -Eo [0-9.]+|awk -F. '{print $1"."$2}')"
+              line_ver="__version__=$y.$x"
+            fi
+            if [  $prc -eq 0 ]; then
+              continue
+            fi
+          fi
+          if [[ $line =~ ^#[^A-Za-z09_]*Enable.auto.upgrade.code.* ]]; then
+            echo "$line">>$fntmp
+            incl=0
+          elif [[ $line =~ ^#[^A-Za-z09_]*Only.human.upgradable.code.* ]]; then
+            echo "$line">>$fntmp
+            incl=1
+          elif [ $incl -eq 1 ]; then
+            echo "$line">>$fntmp
+          elif [ $prc -eq 0 ]; then
+            if [[ $line =~ ^THIS.*basename.* ]]; then
+              prc=1
+              blk_1 "$fntmp"
+              empy=0
+            else
+              echo "$line">>$fntmp
+            fi
+          elif [ $prc -ge 1 -a $prc -le 9 ]; then
+            if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
+              prc=2
+              if [ $opt_oelib -ne 0 ]; then
+                blk_2 "$fntmp"
+              fi
+              empy=0
+            elif [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
+              if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
+                prc=2
+                blk_2 "$fntmp"
+                if [  $opt_ut -eq 0 ]; then
+                  opt_oelib=0
+                fi
+              fi
+              prc=3
+              if [ $opt_tjlib -ne 0 ]; then
+                blk_3 "$fntmp"
+              fi
+              empy=0
+            elif [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
+              if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
+                prc=3
+                blk_3 "$fntmp"
+                if [  $opt_ut -eq 0 ]; then
+                  opt_tjlib=0
+                fi
+              fi
+              prc=4
+              blk_4 "$fntmp"
+              empy=0
+            elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
+              prc=5
+              blk_5 "$fntmp"
+              empy=0
+              opt_ut=1
+            elif [[ $line =~ ^__version__.* ]] || [[ $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
+              if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
+                prc=2
+                blk_2 "$fntmp"
+                if [  $opt_ut -eq 0 ]; then
+                  opt_oelib=0
+                fi
+              fi
+              if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
+                prc=3
+                blk_3 "$fntmp"
+                if [  $opt_ut -eq 0 ]; then
+                  opt_tjlib=0
+                fi
+              fi
+              if [ $empy -eq 0 ]; then
+                echo "">>$fntmp
+              fi
+              echo "$line_ver">>$fntmp
+              prc=10
+              if ! [[ $line =~ ^__version__.* ]]; then
+                echo "$line">>$fntmp
+              fi
+            else
+              :
+            fi
+          elif [ $prc -eq 10 ]; then
+            if [[ $line =~ ^Z0BUG_init ]]; then
+              prc=11
+              blk_11 "$fntmp"
+              empy=0
+            elif [[ $line =~ ^opts_travis ]]; then
+              prc=21
+              blk_21 "$fntmp"
+            elif [[ $line =~ ^TCONF=.* ]]; then
+              :
+            else
+              echo "$line">>$fntmp
+            fi
+          elif [ $prc -eq 11 ]; then
+            if [  -z "$line" ]; then
+              prc=12
+              echo "$line">>$fntmp
+            elif [[ $line =~ ^UT1?_LIST=.* ]]; then
+              prc=12
+              echo "$line">>$fntmp
+            else
+              :
+            fi
+          elif [ $prc -eq 12 ]; then
+            if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
+              prc=13
+              blk_13 "$fntmp"
+              empy=0
+            elif [[ $line =~ ^Z0BUG_main_file.* ]]; then
+              blk_13 "$fntmp"
+              prc=14
+              blk_14 "$fntmp"
+              empy=0
+            else
+              echo "$line">>$fntmp
+            fi
+          elif [ $prc -eq 13 ]; then
+            # echo "$incl) $line" #debug
+            if [[ $line =~ ^Z0BUG_main_file.* ]]; then
+              prc=14
+              blk_14 "$fntmp"
+              empy=0
+            elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
+              echo "$line">>$fntmp
+              incl=0
+            elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
+              echo "$line">>$fntmp
+              incl=2
+            elif [ $incl -eq 2 ]; then
+              echo "$line">>$fntmp
+            fi
+          elif [ $prc -eq 14 ]; then
+            :
+          elif [ $prc -eq 21 ]; then
+            if [[ $line =~ ^init_travis ]]; then
+              echo "$line">>$fntmp
+              prc=22
+            elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
+              echo "$line">>$fntmp
+              incl=0
+            elif [[ $line =~ ^#[^A-Za-z09_]Follow.code.must.be.executed.* ]]; then
+              echo "$line">>$fntmp
+              incl=2
+            elif [ $incl -eq 2 ]; then
+              echo "$line">>$fntmp
+            fi
+          elif [ "${line:0:1}" == "#" ]; then
+            echo "$line">>$fntmp
+            empy=0
+          elif [ -z "$line" ]; then
+            echo "$line">>$fntmp
+            empy=1
+          else
+            echo "$line">>$fntmp
+            empy=0
+          fi
+        done < $f1
       else
         echo "File $f1 not found or not executable!"
         sts=2
       fi
     fi
     if [ -f $fntmp ]; then
-      diff $f1 $fntmp
-      if [ $? -eq 0 -o $opt_dry_run -ne 0 ]; then
+      diff --suppress-common-line -y $f1 $fntmp
+      if [ $? -eq 0 ]; then
+        dummy='q'
+      elif [ $opt_dry_run -ne 0 ]; then
         dummy='n'
       elif [ $opt_yes -ne 0 ]; then
         dummy='y'
@@ -262,7 +263,13 @@ cvt_file() {
         fi
       else
         rm -f $fntmp
-        echo "Upgrade of $f1 discarded!"
+        if [ $opt_verbose -gt 0 ]; then
+          if [ "$dummy" == "q" ]; then
+            echo "Script $1 already upgraded"
+          else
+            echo "Upgrade of $f1 discarded!"
+          fi
+        fi
       fi
     fi
     return $sts
@@ -272,10 +279,16 @@ blk_1() {
     cat <<EOF >>$1
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for x in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib . .. /etc; do
-  if [ -e \$x/z0librc ]; then
-    . \$x/z0librc
-    Z0LIBDIR=\$x
+PYTHONPATH=\$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYTHONPATH//:/ } /etc; do
+  if [ -e \$d/z0librc ]; then
+    . \$d/z0librc
+    Z0LIBDIR=\$d
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  elif [ -d \$d/z0lib ]; then
+    . \$d/z0lib/z0librc
+    Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
   fi
@@ -332,11 +345,24 @@ EOF
 blk_11() {
     cat <<EOF >>$1
 Z0BUG_init
-parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@" $OPTS_J$OPTS_O
+EOF
+    if [ $opt_tjlib -ne 0 -o $opt_oelib -ne 0 ]; then
+        cat <<EOF >>$1
+parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@" "$OPTS_JO"
+EOF
+    else
+        cat <<EOF >>$1
+parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@"
+EOF
+    fi
+    cat <<EOF >>$1
 sts=\$?
 if [ \$sts -ne 127 ]; then
   exit \$sts
 fi
+EOF
+    if [ $opt_tjlib -ne 0 ]; then
+        cat <<EOF >>$1
 if [ \${opt_tjlib:-0} -ne 0 ]; then
   TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../travis_emulator \$TDIR/../../travis_emulator . .. \$HOME/dev")
   if [ -z "\$TRAVISLIBDIR" ]; then
@@ -345,6 +371,10 @@ if [ \${opt_tjlib:-0} -ne 0 ]; then
   fi
   . \$TRAVISLIBDIR
 fi
+EOF
+    fi
+    if [ $opt_oelib -ne 0 ]; then
+        cat <<EOF >>$1
 if [ \${opt_oelib:-0} -ne 0 ]; then
   ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev /etc")
   if [ -z "\$ODOOLIBDIR" ]; then
@@ -354,6 +384,7 @@ if [ \${opt_oelib:-0} -ne 0 ]; then
   . \$ODOOLIBDIR
 fi
 EOF
+    fi
 }
 
 blk_13() {
@@ -384,24 +415,24 @@ EOF
 #//Enable.auto.upgrade.code/
 
 
-OPTOPTS=(h        J         K        k        n           m         O         q           U      V           v           y)
-OPTDEST=(opt_help opt_tjlib opt_lev3 opt_keep opt_dry_run opt_id    opt_oelib opt_verbose opt_ut opt_version opt_verbose opt_yes)
-OPTACTI=(1        1         1        1        1           "="       1         0           1      "*"         "+"         1)
-OPTDEFL=(1        0         0        0        0           "UNKNOWN" 0         -1          0      ""          -1          0)
-OPTMETA=("help"   ""        ""       ""       "noop"      "name"    ""        "quiet"     ""     "version"   "verbose"   "")
+OPTOPTS=(h        J         K        k        m         n           O         q           U      V           v           y)
+OPTDEST=(opt_help opt_tjlib opt_lev3 opt_keep opt_id    opt_dry_run opt_oelib opt_verbose opt_ut opt_version opt_verbose opt_yes)
+OPTACTI=(1        1         1        1        "="       1           1         0           1      "*"         "+"         1)
+OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0      ""          -1          0)
+OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""     "version"   "verbose"   "")
 OPTHELP=("this help"\
  "load travisrc library"\
  "set script version format n.n.n"\
  "Keep script version"\
- "do nothing (dry-run)"\
  "module name"\
+ "do nothing (dry-run)"\
  "load odoorc library"\
  "silent mode"\
  "unit test with required switch -J and/or -O"\
  "show version end exit"\
  "verbose mode"\
  "assume yes")
-OPTARGS=(src)
+OPTARGS=(bashscript)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -414,15 +445,9 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-opts_travis ""
-CFG_init
-conf_default
-link_cfg $TCONF
-init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-prepare_env_travis
 
-cvt_file $src
+cvt_file $bashscript
 
 sts=$STS_SUCCESS
 exit $sts

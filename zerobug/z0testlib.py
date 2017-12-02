@@ -152,7 +152,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.10"
+__version__ = "0.2.10.1"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -186,12 +186,13 @@ LX_CFG_S = ('opt_debug', 'opt_verbose', 'opt_noctr')
 LX_CFG_B = ('opt_debug', )
 # List of string parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_S = ('opt_echo',     'logfn',
+                'opt_tjlib',    'opt_oelib',
                 'dry_run',      'opt_new',
                 'opt_verbose',  'opt_debug',
                 'opt_noctr',    'run4cover',
                 'max_test',     'min_test')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug')
+LX_OPT_CFG_B = ('qsanity', 'esanity', 'opt_debug', 'opt_tjlib', 'opt_oelib')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_CFG_N = ('ctr', 'max_test', 'min_test')
 # List of string/boolean parameters; may be string or boolean value;
@@ -204,9 +205,11 @@ DEFDCT = {'run4cover': False,
 #
 LX_OPT_ARGS = {'opt_debug': '-b',
                'opt_echo': '-e',
+               'opt_tjlib': '-J',
                'logfn': '-l',
                'dry_run': '-n',
                'opt_new': '-N',
+               'opt_oelib': '-O',
                'min_test': '-s',
                'opt_verbose': '-v',
                'max_test': '-z',
@@ -657,6 +660,7 @@ class Z0test(object):
         -l --logname    set log filename
         -N --new        create new logfile
         -n --dry-run    count and display # unit tests
+        -O              load odoorc library (only in bash scripts)
         -q --quiet      run tests without output (quiet mode)
         -r --restart    restart count next to number
         -s --start      count 1st test next to number (MUST BECOME -r)
@@ -670,7 +674,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2017 by SHS-AV s.r.l."
+            epilog="© 2015-2018 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-b", "--debug",
                             help="run tests in debug mode",
@@ -681,6 +685,11 @@ class Z0test(object):
                             help="enable echoing even if not interactive tty",
                             action="store_true",
                             dest="opt_echo_e",
+                            default=False)
+        parser.add_argument("-J",
+                            help="load travisrc",
+                            action="store_true",
+                            dest="opt_tjlib",
                             default=False)
         parser.add_argument("-k", "--keep",
                             help="keep current logfile",
@@ -700,6 +709,11 @@ class Z0test(object):
                             help="count and display # unit tests",
                             action="store_true",
                             dest="dry_run",
+                            default=False)
+        parser.add_argument("-O",
+                            help="load odoorc",
+                            action="store_true",
+                            dest="opt_oelib",
                             default=False)
         parser.add_argument("-q", "--quiet",
                             help="run tests without output (quiet mode)",

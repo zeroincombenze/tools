@@ -33,6 +33,7 @@
 # -l file        set logfile name
 # -N             create new logfile
 # -n             count and display # unit tests (do no test, return success)
+# -O             load odoorc library (only in bash scripts)
 # -p             RESERVED TO --pattern to test
 # -q             run tests in quiet mode (no echo)
 # -r number      restart count next to number (do run test, return test result)
@@ -58,10 +59,10 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.10
+__version__=0.2.10.1
 
 export opt_dry_run
 export ctr
@@ -79,6 +80,7 @@ export STS_SUCCESS=0
 
 Z0BUG_version=$__version__
 
+
 parseoptest() {
     if [[ -t 0 || -p /dev/stdin ]]; then
       export LECHO=echo
@@ -87,11 +89,11 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        b         e        f        k       J        l      N       n           q        r        s        V           v           z        0         1)
-    OPTDEST=(opt_help opt_debug opt_echo opt_fail opt_new opt_tlib logfn  opt_new opt_dry_run opt_echo min_test min_test opt_version opt_verbose max_test opt_noctr run4cover)
-    OPTACTI=(1        1         1        1        0       1        "="    1       1           0        "=>"     "=>"     "*>"        1           "=>"     1         1)
-    OPTDEFL=(0        0         -1       0        -1      0        ""     -1      0           -1       ""       ""       ""          0           ""       $Z0       0)
-    OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""       "file" "new"   "count"     "quiet"  "number" "number" "version"   "verbose"   "number" "no"      "")
+    OPTOPTS=(h        b         e        f        k       J         l      N       n           O         q        r        s        V           v           z        0         1)
+    OPTDEST=(opt_help opt_debug opt_echo opt_fail opt_new opt_tjlib logfn  opt_new opt_dry_run opt_oelib opt_echo min_test min_test opt_version opt_verbose max_test opt_noctr run4cover)
+    OPTACTI=(1        1         1        1        0       1         "="    1       1           1         0        "=>"     "=>"     "*>"        1           "=>"     1         1)
+    OPTDEFL=(0        0         -1       0        -1      0         ""     -1      0           0         -1       ""       ""       ""          0           ""       $Z0       0)
+    OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  "number" "number" "version"   "verbose"   "number" "no"      "")
     OPTHELP=("show this help message and exit"\
      "run tests in debug mode"\
      "enable echoing even if not interactive tty"\
@@ -101,6 +103,7 @@ parseoptest() {
      "set logfile name"\
      "create new logfile"\
      "count and display # unit tests"\
+     "load odoorc library"\
      "run tests without output (quiet mode)"\
      "restart count next to number"\
      "see -r"\
@@ -110,13 +113,13 @@ parseoptest() {
      "no count # unit tests"\
      "run tests for coverage")
     OPTARGS=()
-    parseoptargs $@
+    parseoptargs "$@"
     if [ "$opt_version" ]; then
       echo "$__version__"
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -226,6 +229,12 @@ inherit_opts() {
     fi
     if [ ${run4cover:-0} -ne 0 ]; then
       args="${args}1"
+    fi
+    if [ ${opt_tjlib:-0} -gt 0 ]; then
+      args="${args}J"
+    fi
+    if [ ${opt_oelib:-0} -gt 0 ]; then
+      args="${args}O"
     fi
     args="${args}kl$logfn"
     args="${args} -s$ctr"
