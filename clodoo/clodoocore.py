@@ -10,14 +10,213 @@
 """
 
 from os0 import os0
+import re
+import oerplib
+import odoorpc
 
 from clodoolib import debug_msg_log
 
+STS_FAILED = 1
+STS_SUCCESS = 0
 
-__version__ = "0.1.16.1"
+__version__ = "0.3.0"
 
 
-def _get_model_bone(oerp, ctx, o_model):
+#############################################################################
+# Connection and database
+#
+def connectL8(ctx):
+    """Open connection to Odoo service"""
+    try:
+        if ctx['svc_protocol'] == 'jsonrpc':
+            odoo = odoorpc.ODOO(ctx['db_host'],
+                                ctx['svc_protocol'],
+                                ctx['xmlrpc_port'])
+        else:
+            odoo = oerplib.OERP(server=ctx['db_host'],
+                                protocol=ctx['svc_protocol'],
+                                port=ctx['xmlrpc_port'],
+                                version=ctx['oe_version'])
+    except BaseException:
+        return u"!Odoo server %s is not running!" % ctx['oe_version']
+    if ctx['svc_protocol'] == 'jsonrpc':
+        ctx['server_version'] = odoo.version
+    else:
+        ctx['server_version'] = odoo.db.server_version()
+    x = re.match('[0-9]+\.[0-9]+', ctx['server_version'])
+    if ctx['server_version'][0:x.end()] != ctx['oe_version']:
+        return u"!Invalid Odoo Server version: expected %s, found %s!" % \
+            (ctx['oe_version'], ctx['server_version'])
+    ctx['odoo_session'] = odoo
+    return True
+
+
+#############################################################################
+# Primitive version indipendent
+#
+def searchL8(ctx, model, where, order=None, context=None):
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return ctx['odoo_session'].env[model].search(where, order=order,
+                                                     context=context)
+    else:
+        return ctx['odoo_session'].search(model, where, order=order,
+                                          context=context)
+
+
+def browseL8(ctx, model, id, context=None):
+    if ctx['svc_protocol'] == 'jsonrpc':
+        res = ctx['odoo_session'].env[model].browse(id)
+    else:
+        res = ctx['odoo_session'].browse(model, id, context=context)
+    return bound_6_to_z0(ctx, model, res)
+
+
+def createL8(ctx, model, vals):
+    vals = bound_z0_to_6(ctx, model, vals)
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return ctx['odoo_session'].env[model].create(vals)
+    else:
+        return ctx['odoo_session'].create(model, vals)
+
+
+def write_recordL8(ctx, record):
+    vals = bound_z0_to_6(ctx, model, vals)
+    if ctx['svc_protocol'] == 'jsonrpc':
+        ctx['odoo_session'].write(record)
+    else:
+        ctx['odoo_session'].write_record(record)
+
+
+def writeL8(ctx, model, ids, vals):
+    vals = bound_z0_to_6(ctx, model, vals)
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return ctx['odoo_session'].env[model].write(ids,
+                                                    vals)
+    else:
+        return ctx['odoo_session'].write(model,
+                                         ids,
+                                         vals)
+
+
+def unlinkL8(ctx, model, ids):
+    if ctx['svc_protocol'] == 'jsonrpc':
+        return ctx['odoo_session'].env[model].unlink(ids)
+    else:
+        return ctx['odoo_session'].unlink(model, ids)
+
+
+def executeL8(ctx, model, action, *args):
+    return ctx['odoo_session'].execute(model,
+                                       action,
+                                       *args)
+
+
+###########################################################
+# Version adaptive functions
+#
+def bound_z0_to_6(ctx, model, vals, btable=None):
+    """Convert universal (z0) format to original (6.1) format.
+    Designed to convert 7.0 record to 6.1,
+    may be used to any Odoo version translation.
+    If btable is empty, build bound table to translate fields.
+    Bound table ha format 6_name=z0_name.
+    6_name is 6.1 field name 
+    z0_name is 7.0 field name or False is does not exist,
+    In res.user, this function always remove country_id field.
+    """
+    if btable:
+        for p in btable:
+            if isinstance(btable[p], basestring):
+                if p not in vals and btable[p] in vals:
+                    vals[p] = vals[btable[p]]
+                if btable[p] in vals:
+                    del vals[btable[p]]
+            else:
+                if p in vals:
+                    del vals[p]
+    elif model == 'res.users':
+        if ctx['oe_version'] == "6.1":
+            btable = {
+                'partner_id': False,
+                'context_lang': 'lang',
+                'context_tz': 'tz',
+                'user_email': 'email',
+                'country_id': False,
+            }
+            return bound_z0_to_6(ctx, model, vals, btable=btable)
+    return vals
+
+
+def bound_6_to_z0(ctx, model, res, btable=None):
+    """Convert browsed res from original (6.1) format to universal (z0) format.
+    Designed to convert 6.1 record to 7.0,
+    may be used to any Odoo version translation.
+    If btable is empty, build bound table to translate fields.
+    Bound table ha format z0_name=6_name.
+    z0_name is 7.0 field name,
+    6_name is 6.1 field name or False is does not exist
+    Field name may have format res_id.name , which refer to another model.
+    In res.user, this function always add country_id field.
+    """
+    if btable:
+        for p in btable:
+            if isinstance(btable[p], basestring):
+                i = btable[p].find('.')
+                if i >= 0:
+                    p1 = btable[p][0:i]
+                    p2 = btable[p][i+1:]
+                    setattr(res, p, res[p1][p2])
+                else:
+                    setattr(res, p, res[btable[p]])
+                # delattr(res, btable[p])
+            else:
+                setattr(res, p, btable[p])
+    elif model == 'res.users':
+        if ctx['oe_version'] == "6.1":
+            btable = {
+                'partner_id': False,
+                'lang': 'context_lang',
+                'tz': 'context_tz',
+                'email': 'user_email',
+                'country_id': 'company_id.country_id',
+            }
+            return bound_6_to_z0(ctx, model, res, btable=btable)
+    return res
+
+
+def get_res_users(ctx, user, field):
+    if field == 'name':
+        if ctx['oe_version'] == "6.1":
+            return user.name
+        else:
+            return user.partner_id.name
+    elif field == 'lang':
+        if ctx['oe_version'] == "6.1":
+            return user.context_lang
+        else:
+            return user.partner_id.lang
+    elif field == 'email':
+        if ctx['oe_version'] == "6.1":
+            return user.user_email
+        else:
+            return user.partner_id.email
+    elif field == 'country_id':
+        if ctx['oe_version'] == "6.1":
+            if user.company_id.country_id:
+                return user.company_id.country_id.id
+            return False
+        else:
+            if user.partner_id.country_id:
+                return user.partner_id.country_id.id
+            elif user.company_id.country_id:
+                return user.company_id.country_id.id
+            return False
+    return user[field]
+
+###########################################################
+# Others
+#
+def _get_model_bone(ctx, o_model):
     """Inherit model structure from a parent model"""
     model = None
     hide_cid = False
@@ -30,8 +229,7 @@ def _get_model_bone(oerp, ctx, o_model):
                 if 'hide_cid' in ctx:
                     hide_cid = ctx['hide_cid']
                 else:
-                    hide_cid = not _model_has_company(oerp,
-                                                      ctx,
+                    hide_cid = not _model_has_company(ctx,
                                                       model)
     if model is None:
         if 'model' in o_model:
@@ -41,15 +239,14 @@ def _get_model_bone(oerp, ctx, o_model):
             if 'hide_cid' in o_model:
                 hide_cid = o_model['hide_cid']
             else:
-                hide_cid = not _model_has_company(oerp,
-                                                  ctx,
+                hide_cid = not _model_has_company(ctx,
                                                   model)
     return model, hide_cid
 
 
-def _import_file_model(oerp, o_model, csv_fn):
+def _import_file_model(ctx, o_model, csv_fn):
     """Get model name of import file"""
-    model, hide_cid = _get_model_bone(oerp, None, o_model)
+    model, hide_cid = _get_model_bone(ctx, o_model)
     if model is None:
         model = os0.nakedname(csv_fn).replace('-', '.').replace('_', '.')
     return model, hide_cid
@@ -117,7 +314,7 @@ def import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
     for n in o_model:
         o_skull[n] = o_model[n]
     csv_obj.fieldnames = row['undef_name']
-    o_skull['model'], o_skull['hide_cid'] = _import_file_model(oerp,
+    o_skull['model'], o_skull['hide_cid'] = _import_file_model(ctx,
                                                                o_model,
                                                                csv_fn)
     o_skull['name'] = _get_model_name(csv_obj.fieldnames,
@@ -146,7 +343,7 @@ def eval_value(oerp, ctx, o_model, name, value):
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
-        if is_db_alias(oerp, value):
+        if is_db_alias(oerp, ctx, value):
             value = expr(oerp,
                          ctx,
                          o_model,
@@ -198,7 +395,7 @@ def expr(oerp, ctx, o_model, code, value):
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
     if isinstance(value, basestring):
-        if is_db_alias(oerp, value):
+        if is_db_alias(oerp, ctx, value):
             model, name, value, hide_cid = get_model_alias(value)
             ids = _get_simple_query_id(oerp,
                                        ctx,
@@ -211,7 +408,7 @@ def expr(oerp, ctx, o_model, code, value):
                     if name == 'id' or isinstance(name, list):
                         value = ids[0]
                     else:
-                        o = oerp.browse(model, ids[0])
+                        o = browseL8(ctx, model, ids[0])
                         value = getattr(o, name)
                 else:
                     value = None
@@ -231,7 +428,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
     ids = _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, '=')
     if model == 'ir.model.data' and len(ids) == 1:
         try:
-            o = oerp.browse('ir.model.data', ids[0])
+            o = browseL8(ctx, 'ir.model.data', ids[0])
             ids = [o.res_id]
         except BaseException:
             ids = None
@@ -283,7 +480,7 @@ def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
     if company_id is not None:
         where.append(('company_id', '=', company_id))
     try:
-        ids = oerp.search(model, where)
+        ids = searchL8(ctx, model, where)
     except BaseException:
         ids = None
     return ids
@@ -319,7 +516,7 @@ def get_query_id(oerp, ctx, o_model, row):
     msg = "get_query_id()"
     debug_msg_log(ctx, 6, msg)
     code = o_model['code']
-    model, hide_cid = _get_model_bone(oerp, ctx, o_model)
+    model, hide_cid = _get_model_bone(ctx, o_model)
     msg += "model=%s, hide_company=%s" % (model, hide_cid)
     value = row.get(code, '')
     if model is None:
@@ -342,8 +539,7 @@ def get_query_id(oerp, ctx, o_model, row):
                                o_skull,
                                'id',
                                row['id'])
-            ids = oerp.search(model,
-                              [('id', '=', value)])
+            ids = searchL8(ctx, model, [('id', '=', value)])
     return ids
 
 
@@ -368,23 +564,24 @@ def _query_expr(oerp, ctx, o_model, code, value):
                 if len(value):
                     value = value[0]
                     if fldname != 'id':
-                        o = oerp.browse(model, value)
+                        o = browseL8(ctx, model, value)
                         value = getattr(o, fldname)
                 else:
                     value = None
     return value
 
 
-def validate_field(oerp, model, name):
-    if oerp.search('ir.model.fields',
-                   [('model', '=', model),
-                    ('name', '=', name)]):
+def validate_field(ctx, model, name):
+    if searchL8(ctx,
+                'ir.model.fields',
+                [('model', '=', model),
+                 ('name', '=', name)]):
         return True
     return False
 
 
-def _model_has_company(oerp, ctx, model):
-    return validate_field(oerp, model, 'company_id')
+def _model_has_company(ctx, model):
+    return validate_field(ctx, model, 'company_id')
 
 
 def get_macro_pos(value):
@@ -406,7 +603,7 @@ def get_macro_pos(value):
 
 def _get_model_parms(oerp, ctx, o_model, value):
     """Extract model parameters and pure value from value and structure"""
-    model, hide_cid = _get_model_bone(oerp, ctx, o_model)
+    model, hide_cid = _get_model_bone(ctx, o_model)
     sep = '::'
     name = 'name'
     fldname = 'id'
@@ -419,7 +616,7 @@ def _get_model_parms(oerp, ctx, o_model, value):
         if i >= 0:
             hide_cid = True
     if i < 0:
-        n, v = is_db_alias(oerp, value)
+        n, v = is_db_alias(oerp, ctx, value)
         if n:
             model = "ir.model.data"
             name = ['module', 'name']
@@ -461,12 +658,20 @@ def concat_res(res, value):
     return res
 
 
-def is_db_alias(oerp, value):
+def is_db_alias(odoo, ctx, value):
     model, name, value, hide_cid = get_model_alias(value)
-    if model and name and value and oerp.search(model,
-                                                [(name[0],'=', value[0]),
-                                                 (name[1], '=', value[1])]):
-        return True
+    if ctx['svc_protocol'] == 'jsonrpc':
+        if model and name and value and odoo.env[model].search(
+                [(name[0], '=', value[0]),
+                 (name[1], '=', value[1])]):
+            return True
+    else:
+        if model and name and value and searchL8(
+                ctx,
+                model,
+                [(name[0], '=', value[0]),
+                 (name[1], '=', value[1])]):
+            return True
     return False
 
 
@@ -474,7 +679,7 @@ def get_model_alias(value):
     if value:
         i = value.find('.')
         j = value.find('.', i + 1)
-        if i >=0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
+        if i >= 0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
             model = "ir.model.data"
             name = ['module', 'name']
             value = [value[0:i], value[i + 1:]]

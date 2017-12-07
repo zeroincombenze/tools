@@ -41,7 +41,7 @@ from clodoo.clodoo import isaction
 from clodoo.clodoo import check_4_actions
 from clodoo.clodoo import do_single_action
 
-__version__ = "0.1.15"
+__version__ = "0.3.0"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -124,7 +124,7 @@ class Oerp():
                 self.db[model]['name'] = 'company_id'
                 self.db[model]['id'] = ID_C_0
 
-    def search(self, model, where):
+    def search(self, model, where, order=None, context=None):
         """Search simulation
         First time simulate null result
         """
@@ -173,7 +173,7 @@ class Oerp():
             return ids
         return[]
 
-    def browse(self, model, ids):
+    def browse(self, model, ids, context=None):
         if model == 'ir.model.data':
             if ids == ID_I:
                 self.res_id = self.db[model]['res_id']
@@ -258,6 +258,8 @@ class Test():
         oerp = Oerp()
         o_model = {}
         ctx = {}
+        ctx['odoo_session'] = oerp
+        ctx['svc_protocol'] = 'xmlrpc'
         if model not in ('res.zero', 'res.two', 'res.four'):
             ctx['def_company_id'] = DEF_CID
             ctx['company_id'] = CID
@@ -303,7 +305,7 @@ class Test():
                            'res.four'):
             oerp, ctx, o_model, csv_obj, csv_fn, row = \
                 self.init_test(model_name)
-            model, hide_cid = _get_model_bone(oerp, None, o_model)
+            model, hide_cid = _get_model_bone(ctx, o_model)
             if sts == TEST_SUCCESS:
                 sts = self.Z.test_result(z0ctx, msg, model_name, model)
             if sts == TEST_SUCCESS:
@@ -316,7 +318,7 @@ class Test():
             oerp, ctx, o_model, csv_obj, csv_fn, row = \
                 self.init_test(model_name)
             del o_model['hide_cid']
-            model, hide_cid = _get_model_bone(oerp, None, o_model)
+            model, hide_cid = _get_model_bone(ctx, o_model)
             sts = self.Z.test_result(z0ctx, msg, model_name, model)
             if sts == TEST_SUCCESS:
                 if model in ('res.zero', 'res.two', 'res.four'):
@@ -328,13 +330,13 @@ class Test():
         for csv_fn in ('res_zero.csv', 'res-zero.csv', 'res.zero.csv'):
             o_model = {}
             if sts == TEST_SUCCESS:
-                model, hide_cid = _import_file_model(oerp, o_model, csv_fn)
+                model, hide_cid = _import_file_model(ctx, o_model, csv_fn)
                 sts = self.Z.test_result(z0ctx, msg, "res.zero", model)
             if sts == TEST_SUCCESS:
                 sts = self.Z.test_result(z0ctx, msg, False, hide_cid)
             if sts == TEST_SUCCESS:
                 o_model['model'] = "res.one"
-                model, hide_cid = _import_file_model(oerp, o_model, csv_fn)
+                model, hide_cid = _import_file_model(ctx, o_model, csv_fn)
                 sts = self.Z.test_result(z0ctx, msg, "res.one", model)
             if sts == TEST_SUCCESS:
                 sts = self.Z.test_result(z0ctx,
@@ -701,8 +703,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 oerp, ctx, o_bones, csv_obj, csv_fn, row = \
                     self.init_test(model)
-                res = _model_has_company(oerp,
-                                         ctx,
+                res = _model_has_company(ctx,
                                          model)
                 if model == "res.zero":
                     tres = False
@@ -862,7 +863,6 @@ class Test():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    # pdb.set_trace()
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
                         version=version())

@@ -34,7 +34,7 @@ try:
         elif tkn[0] == 'oe_project':
             PROJECT_ID = int(tkn[1])
     fd.close()
-except:
+except BaseException:
     MYDB = raw_input('mysql database? ')
     MYUSER = raw_input('mysql username? ')
     MYPWD = raw_input('mysql password? ')
@@ -155,7 +155,7 @@ for my_field in cursor:
     if len(ids):
         try:
             oerp.write(model, [ids[0]], vals)
-        except:
+        except BaseException:
             print vals['cv_number']
             print vals
         for id in ids[1:]:
@@ -163,7 +163,7 @@ for my_field in cursor:
     else:
         try:
             oerp.create(model, vals)
-        except:
+        except BaseException:
             print vals['cv_number']
             print vals
 cursor.close()

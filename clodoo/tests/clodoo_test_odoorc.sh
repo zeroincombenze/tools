@@ -2,12 +2,18 @@
 # -*- coding: utf-8 -*-
 # Regression tests on clodoo
 #
-THIS=$(basename $0)
-TDIR=$(readlink -f "$(dirname $0)")
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -25,7 +31,8 @@ if [ -z "$Z0TLIBDIR" ]; then
 fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
-__version__=0.3.0
+
+__version__=0.3.0.1
 
 
 test_01() {
@@ -352,27 +359,18 @@ Z0BUG_teardown() {
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_clodoo.log "$@ -J"
+parseoptest -l$TESTDIR/test_clodoo.log "$@" "-O"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-opt_oelib=1
 if [ ${opt_oelib:-0} -ne 0 ]; then
-  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
   if [ -z "$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
   fi
   . $ODOOLIBDIR
-fi
-if [ ${opt_tlib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
-  if [ -z "$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
-    exit 2
-  fi
-  . $TRAVISLIBDIR
 fi
 UT1_LIST=
 UT_LIST=""

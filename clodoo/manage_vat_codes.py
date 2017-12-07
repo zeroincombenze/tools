@@ -3,17 +3,18 @@
 import oerplib
 import re
 # import clodoo
-import pdb
-from pdb import Pdb
-import code
+# import pdb
+
 
 __version__ = "0.0.4"
+
 
 RED = "\033[1;31m"
 GREEN = "\033[1;32m"
 YELLOW = "\033[1;33m"
 YELLOW_LIGHT = "\033[33m"
 CLEAR = "\033[0;m"
+
 
 def oerp_set_env(confn=None):
     xml_port = 8069
@@ -39,7 +40,7 @@ def oerp_set_env(confn=None):
             elif tkn[0] == 'oe_version':
                 oe_ver = tkn[1]
         fd.close()
-    except:
+    except:                                                  # pragma: no cover
         write_confn = True
         database = raw_input('database[def=demo]? ')
         user = raw_input('username[def=admin]? ')
@@ -73,17 +74,20 @@ VAT_SYNTAX = {
     '1_DPR': re.compile(r'DPR[.]?633'),
     '2_ABBR': re.compile(r'[A-Z][A-Z.]+[^a-z0-9]'),
     '2_VATP': re.compile(r'[0-9]+%'),
-    '3_LAWITEM': re.compile(r'([0-9][-0-9a-z]+|a[0-9][-0-9a-z]*|l[0-9a]+)|art[0-9][-0-9a-z]*'),
+    '3_LAWITEM': re.compile(
+        r'([0-9][-0-9a-z]+|a[0-9][-0-9a-z]*|l[0-9a]+)|art[0-9][-0-9a-z]*'),
     '4_WORD': re.compile(r'[a-zA-Z]+[.]?'),
     '5_NUMBER': re.compile(r'[0-9]+'),
     '9_LPAREN': re.compile(r'\('),
     '9_RPAREN': re.compile(r'\)'),
 }
 
+
 MARKER_DEBIT = ['debito',
                 'Vend.',
                 'vendite',
                 'Vendite']
+
 
 MARKER_CREDIT = ['credito',
                  'Acq.',
@@ -92,22 +96,28 @@ MARKER_CREDIT = ['credito',
                  'indetraibile',
                  'indetr.',
                  'ind.']
+
+
 MARKER_SUSP = ['sospensione',
                'sospens.',
                'sosp.',
                'Sosp.']
 
+
 MARKER_TAXABLE = ['imponibile',
                   'Imponibile']
+
 
 MARKER_NOTAXABLE = ['NI',
                     'N.I',
                     'N.I.']
 
+
 MARKER_EXCLUSION = ['escluso',
                     'Escluso',
                     'escl.',
                     'Escl.']
+
 
 MARKER_EXEMPTION = ['esente',
                     'Esente',
@@ -116,10 +126,12 @@ MARKER_EXEMPTION = ['esente',
                     'es.',
                     'Es.']
 
+
 MARKER_OUTOFSCOPE = ['fuori',
                      'Fuori',
                      'FC',
                      'F.C.']
+
 
 MARKER_NOOBJ = ['N.Sogg.',
                 'N.Sogg',
@@ -127,8 +139,10 @@ MARKER_NOOBJ = ['N.Sogg.',
                 'Soggetto',
                 'soggetto']
 
+
 MARKER_WOTAX = ['senza',
-                'Senza',]
+                'Senza', ]
+
 
 MARKER_REVCHARGE = ['reverse',
                     'Reverse',
@@ -139,35 +153,43 @@ MARKER_REVCHARGE = ['reverse',
                     'Rev.Charge',
                     'rev.Charge']
 
+
 MARKER_VAT = ['IVA',
               'Iva',
               'I.V.A.']
+
 
 MARKER_UNDEDUCTIBLE = ['indetraibile',
                        'indetr.',
                        'indet.',
                        'ind.']
 
+
 MARKER_DEDUCTIBLE = ['detraibile',
                      'detr.',
                      'det.']
 
+
 MARKER_REG_MINIMO = ['minimo',
                      'Minimo',
                      'min.',
-                     'Min.',]
+                     'Min.', ]
+
 
 MARKER_REG_MARGINE = ['margine',
                       'Margine',
                       'marg.',
-                      'Marg.',]
+                      'Marg.', ]
+
 
 MARKER_SPECIAL = MARKER_REG_MINIMO + MARKER_REG_MARGINE
+
 
 MARKER_REGIME = ['regime',
                  'Regime',
                  'reg.',
-                 'Reg.',]
+                 'Reg.', ]
+
 
 MARKER_OTHERS = ['DPR633',
                  'quota',
@@ -175,9 +197,10 @@ MARKER_OTHERS = ['DPR633',
                  'da',
                  'su',
                  'no',
-                 'No',] + MARKER_REGIME
+                 'No', ] + MARKER_REGIME
 
 # OCA Italy
+
 CODE_ITEM_OCA = {'prefix': 'IV',
                  'pfx_credit': 'C',
                  'pfx_debit': 'D',
@@ -191,8 +214,10 @@ CODE_ITEM_OCA = {'prefix': 'IV',
                  'sfx_vat': '',
                  'sfx_det': '',
                  'sfx_undet': 'N',
-                }
+                 }
 # Zeroincombenze
+
+
 CODE_ITEM_OIA = {'prefix': 'IT',
                  'pfx_credit': 'C',
                  'pfx_debit': 'D',
@@ -206,7 +231,7 @@ CODE_ITEM_OIA = {'prefix': 'IT',
                  'sfx_vat': 'V',
                  'sfx_det': 'V',
                  'sfx_undet': 'N',
-                }
+                 }
 
 
 def pdet2pind(value):
@@ -320,7 +345,7 @@ def set_code_meaning(code, chash=None):
                 continue
             minpos = len(code) - len(c) - 1
             i = code.rfind(c)
-            if minpos >= 0 and  i >= minpos:
+            if minpos >= 0 and i >= minpos:
                 code_meaning['company'] = c
                 j = i + len(c)
                 if j < len(code):
@@ -419,7 +444,8 @@ def set_des_meaning(des):
     - type: (amt | vat | undet_amt | det_amt | undet)
     - aliq: VAT aliquote or VAT application law
     - detr: deductible quote
-    - vat_apply: (imponibile | N.I. | escluso | esente | iva | regime | N.Sogg. | senza IVA | rev.charge)
+    - vat_apply: (
+          imponibile | N.I. | escluso | esente | iva | regime | N.Sogg. | senza IVA | rev.charge)
     - next: next word to append
     - quota: if record is VAT quota (detr | indet)
     """
@@ -560,6 +586,7 @@ def build_code(code_meaning, CODE_ITEM):
         newcode += code_meaning['company'].lower()
     return newcode
 
+
 def build_des(des_meaning, words, tokids):
     newdes = ''
     if des_meaning['vat_apply'] in ('N.I.', 'escluso',
@@ -603,7 +630,7 @@ def build_des(des_meaning, words, tokids):
         if des_meaning['aliq']:
             newdes += ' ' + des_meaning['aliq']
         if des_meaning['crddbt'] == 'credit':
-            if (des_meaning['type'] == 'undet' or 
+            if (des_meaning['type'] == 'undet' or
                     des_meaning['type'] == 'undet_amt') and \
                     'quota' not in des_meaning:
                 newdes += ' indetraibile'
@@ -628,7 +655,7 @@ def build_des(des_meaning, words, tokids):
             else:
                 newdes += ' in sospensione a debito per cassa'
         if des_meaning['pind'] and ('quota' in des_meaning or
-                des_meaning['pind'] not in ('100%', '0%')):
+                                    des_meaning['pind'] not in ('100%', '0%')):
             if 'quota' in des_meaning:
                 if des_meaning['quota'] == 'indet':
                     newdes += ' (quota %s indet.)' % des_meaning['pind']
@@ -661,7 +688,7 @@ def hint_code_des(code, des, chash=None):
                 code_meaning[p] = des_meaning[p]
             elif des_meaning[p] == '?':
                 des_meaning[p] = code_meaning[p]
-            elif p ==  'crddbt':
+            elif p == 'crddbt':
                 if code_meaning[p].startswith('later_') and \
                         code_meaning[p].find(des_meaning[p]) >= 0:
                     des_meaning[p] = 'later_' + des_meaning[p]
@@ -673,7 +700,7 @@ def hint_code_des(code, des, chash=None):
                     des_meaning[p] = code_meaning[p]
                 else:
                     code_des_match = False
-            elif p ==  'type':
+            elif p == 'type':
                 # - type: (amt, vat, undet_amt, undet)
                 if code_meaning[p] == 'undet' and \
                         des_meaning[p] == 'undet_amt':
@@ -686,7 +713,7 @@ def hint_code_des(code, des, chash=None):
                     des_meaning[p] = code_meaning[p]
                 else:
                     code_des_match = False
-            elif p ==  'aliq':
+            elif p == 'aliq':
                 if 'law' in des_meaning and \
                         des_meaning['law'].find(code_meaning['aliq']) >= 0:
                     pass
@@ -696,7 +723,7 @@ def hint_code_des(code, des, chash=None):
                 elif des_meaning['aliq'].isdigit() and \
                         code_meaning['aliq'].find(des_meaning['aliq']) >= 0:
                     pass
-            elif p ==  'vat_apply':
+            elif p == 'vat_apply':
                 if code_meaning[p] == 'apply' and \
                         des_meaning[p] in ('imponibile', 'iva'):
                     code_meaning[p] = des_meaning[p]
@@ -730,6 +757,7 @@ oerp, uid = oerp_set_env()
 ctx = {}
 ctx['level'] = 4
 ctx['dry_run'] = False
+
 
 company_ids = oerp.search('res.company')
 for company_id in company_ids:

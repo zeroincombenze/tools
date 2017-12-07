@@ -62,7 +62,7 @@
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.10.1
+__version__=0.2.11
 
 export opt_dry_run
 export ctr
@@ -534,7 +534,15 @@ export -f exec_all_tests
 
 Z0BUG_main_file() {
 # Z0BUG_main_file ut1_list, ut_list
-    local ut1_list ut_list test_num i fn
+    local ut1_list ut_list test_num i fn x
+    x=$(dirname $RUNDIR)
+    if [ -n "$PYTHONPATH" ]; then
+      if [[ ! :$PYTHONPATH: =~ :$x: ]]; then
+        export PYTHONPATH=$RUNDIR:x
+      fi
+    else
+      export PYTHONPATH=$x
+    fi
     if [ -z "$teststs" ]; then
       Z0BUG_init
     fi

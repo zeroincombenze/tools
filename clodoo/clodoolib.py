@@ -33,7 +33,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
              "/etc/odoo.conf",
              "/etc/openerp/openerp-server.conf",
              "/etc/openerp-server.conf",
-             "/etc/odoo/openerp-server.conf",]
+             "/etc/odoo/openerp-server.conf", ]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
@@ -74,11 +74,11 @@ LX_CFG_S = ('db_name',
             'chart_of_account',
             'catalog_db',
             'custom_act',
-            # 'model',
-            # 'model_code',
-            # 'model_name',
-            # 'filename',
-            # 'hide_cid',
+            'model',
+            'model_code',
+            'model_name',
+            'filename',
+            'hide_cid',
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
@@ -104,7 +104,8 @@ LX_CFG_B = ('set_passepartout',
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
-            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port', 'oe_version')
+            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port',
+            'oe_version')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -121,7 +122,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.1.16.1"
+__version__ = "0.3.0"
 
 
 #############################################################################
@@ -299,7 +300,7 @@ def default_conf(ctx):
               'chart_of_account': 'configurable_chart_template',
               'catalog_db': 'zeroincombenze',
               # 'model_name': 'name',
-    }
+              }
     return DEFDCT
 
 
@@ -308,7 +309,7 @@ def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     found = False
     if conf_obj:
         for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
-            vparam = '%s_%s' %(param, sfx)
+            vparam = '%s_%s' % (param, sfx)
             if conf_obj.has_option(sect, vparam):
                 found = True
                 break
@@ -424,11 +425,9 @@ def read_config(ctx):
     ctx['conf_fns'] = []
     if ODOO_CONF:
         if isinstance(ODOO_CONF, list):
-            found = False
             for f in ODOO_CONF:
                 if os.path.isfile(f):
                     ctx['conf_fns'].append(f)
-                    found = True
                     break
         elif os.path.isfile(ODOO_CONF):
             ctx['conf_fns'].append(ODOO_CONF)

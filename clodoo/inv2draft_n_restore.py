@@ -29,7 +29,7 @@ try:
         elif tkn[0] == 'oe_version':
             oe_ver = tkn[1]
     fd.close()
-except:
+except BaseException:
     database = raw_input('database[def=demo]? ')
     user = raw_input('username[def=admin]? ')
     passwd = raw_input('password[def=admin]? ')
@@ -99,7 +99,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
             oerp.write('account.invoice', tmp_inv_id, {
                        'state': 'cancel', 'number': '', 'internal_number': ''})
             pass
-        except:
+        except BaseException:
             pass
         oerp.unlink('account.invoice', [tmp_inv_id])
     if cur_inv_id:
@@ -155,7 +155,7 @@ def set_type_of_id(id, list=None):
     else:
         try:
             return eval(id)
-        except:
+        except BaseException:
             if list:
                 return []
             else:
@@ -544,7 +544,7 @@ while True:
             else:
                 try:
                     new_account_id = int(target_acc)
-                except:
+                except BaseException:
                     continue
         # print rec_ids
         for id in rec_ids:
@@ -640,7 +640,7 @@ while True:
                 oerp.execute('account.invoice',
                              "button_reset_taxes",
                              [inv_id])
-            except:
+            except BaseException:
                 pass
         print ">> Posted"
         clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
@@ -658,6 +658,6 @@ while True:
                         clodoo.reconcile_invoices(oerp,
                                                   cur_reconcile_dict,
                                                   ctx)
-                    except:
+                    except BaseException:
                         print "**** Warning invoice %d ****" % inv_id
                         print reconciles
