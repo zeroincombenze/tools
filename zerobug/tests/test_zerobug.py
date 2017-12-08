@@ -30,7 +30,7 @@ import sys
 from zerobug import Z0test
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.11"
 
 MODULE_ID = 'zerobug'
 

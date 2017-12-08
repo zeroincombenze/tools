@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -31,14 +31,14 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.53
+__version__=0.2.0
 
 
 #
 # General Purpose options:
 # -A dont exec odoo test
 # -B exec bash test
-# -b branch: must be 6.1 7.0, 8.0, 9.0 or 10.0
+# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 or 11.0
 # -C commit & push | dont exc clodoo test
 # -c configuration file
 # -d diff
@@ -1945,7 +1945,7 @@ OPTACTI=(1        "="        "="      1        1         1        1        "="  
 OPTDEFL=(1        "10.0"     ""       0        0         0        0        ""        0       0           0        ""        -1          0     ""       0         0       ""          -1)
 OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"      ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
- "branch: must be 6.1 7.0 8.0 9.0 or 10.0 (def 10.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
@@ -1973,7 +1973,7 @@ fi
 HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|download_rep|[if-]fetch|[if-]push|[if-]replace|publish|pythonhosted|synchro|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 

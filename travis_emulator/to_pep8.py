@@ -763,7 +763,7 @@ def parse_file(ctx=None):
 
 if __name__ == "__main__":
     parser = parseoptargs("Topep8",
-                          "© 2015-2017 by SHS-AV s.r.l.",
+                          "© 2015-2018 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-B', '--recall-debug-statements',

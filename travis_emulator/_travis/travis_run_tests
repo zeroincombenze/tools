@@ -7,14 +7,20 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -23,7 +29,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. . .. $HOME/dev $TDIR/../../travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -32,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.15.1
+__version__=0.2.0
 
 
 do_test () {
@@ -52,16 +58,17 @@ do_test () {
 }
 
 
-OPTOPTS=(h        c        j        K         n            q           r     T        t         V           v)
-OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        "="      1        1         1            0           1     1        1         "*>"        "+")
-OPTDEFL=(0        ""       0        0         0            -1          0     0        0         ""          -1)
-OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
+OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
+OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "="      1        1         1            1        0           1     1        1         "*>"        "+")
+OPTDEFL=(0        ""       0        0         0            0        -1          0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" ""       "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "execute tests in project dir rather in test dir"\
  "do bash, flake8 and pylint checks"\
  "do nothing (dry-run)"\
+ "prefer python test over bash test when avaiable"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file)"\
  "do regression tests"\
@@ -77,17 +84,17 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run test in travis environment"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
 if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
 if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
-opts_travis "$pkg"
+opts_travis
 CFG_init
 conf_default
-link_cfg $TCONF
+link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 prepare_env_travis "test"

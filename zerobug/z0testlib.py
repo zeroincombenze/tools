@@ -66,7 +66,8 @@ Every unit test file may be called with follows switches:
     -N             create new logfile
     -n             count and display # unit tests (do no test, return success)
     -q             run tests in quiet mode (no echo)
-    -s number      run tests counting 1st test next to number
+    -r number      run tests counting 1st test next to number
+    -s number      run tests counting 1st test next to number (deprecated, MUST BECOME -r)
     -V             show version (do no test, return success);
                    version on unit test should be the same of tested software
     -v             verbose mode
@@ -110,7 +111,7 @@ Every test can inquire internal context.
     dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
     esanity       True if required sanity check with echo                  "-X"
     max_test      # of tests to execute [both bash and python tests]       "-z"
-    min_test      # of test executed before this one                       "-s"
+    min_test      # of test executed before this one                       "-r"
     on_error      behavior after error, 'continue' or 'raise' (default)
     opt_echo      True if echo test result onto std output                 "-e"
     opt_new       new log file [both bash and python tests]                "-N"
@@ -210,7 +211,7 @@ LX_OPT_ARGS = {'opt_debug': '-b',
                'dry_run': '-n',
                'opt_new': '-N',
                'opt_oelib': '-O',
-               'min_test': '-s',
+               'min_test': '-r',
                'opt_verbose': '-v',
                'max_test': '-z',
                'opt_noctr': '-0',
@@ -624,6 +625,17 @@ class Z0test(object):
             else:
                 self.test_dir = self.this_dir
             self.pkg_dir = self.this_dir
+        x = os.path.dirname(self.pkg_dir)
+        PYTHONPATH = os.environ['PYTHONPATH']
+        if x not in sys.path:
+            p = ':%s:' % PYTHONPATH
+            if p.find(':%s:' % x) < 0:
+                PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+        if this == 'test_zerobug':
+            x = '%s/%s' % (self.pkg_dir, 'dummy')
+            PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+        os.putenv('PYTHONPATH', PYTHONPATH)
+        self.PYTHONPATH = PYTHONPATH
         if not id:
             if this[0:5] == 'test_':
                 id = this[5:]
@@ -663,7 +675,7 @@ class Z0test(object):
         -O              load odoorc library (only in bash scripts)
         -q --quiet      run tests without output (quiet mode)
         -r --restart    restart count next to number
-        -s --start      count 1st test next to number (MUST BECOME -r)
+        -s --start      count 1st test next to number (deprecated MUST BECOME -r)
         -V --version    show version
         -v --verbose    verbose mode
         -x --qsanity    execute silently test library sanity check and exit
@@ -720,9 +732,13 @@ class Z0test(object):
                             action="store_false",
                             dest="opt_echo_q",
                             default=True)
-        parser.add_argument("-s", "--start",
+        parser.add_argument("-r", "--restart",
                             help="set to counted tests, 1st one next to this",
                             dest="min_test",
+                            metavar="number")
+        parser.add_argument("-s", "--start",
+                            help="set to counted tests, 1st one next to this",
+                            dest="min_test2",
                             metavar="number")
         parser.add_argument("-V", "--version",
                             action="version",
@@ -844,6 +860,12 @@ class Z0test(object):
                     elif hasattr(opt_obj, 'opt_new_N') and \
                             getattr(opt_obj, 'opt_new_N'):
                         ctx[p] = True
+                    else:
+                        ctx[p] = None
+                elif p == 'min_test':
+                    if hasattr(opt_obj, 'min_test2') and \
+                            getattr(opt_obj, 'min_test2'):
+                        ctx[p] = int(getattr(opt_obj, 'min_test2'))
                     else:
                         ctx[p] = None
                 elif hasattr(opt_obj, p):
@@ -1041,7 +1063,7 @@ class Z0test(object):
                 res, err = p.communicate()
                 try:
                     ctx['ctr'] = int(res)
-                except:                                     # pragma: no cover
+                except BaseException:                        # pragma: no cover
                     ctx['ctr'] = 0
                 self.ctr_list.append(ctx['ctr'])
             self.dbgmsg(ctx, '- testctr=%d+%d' % (testctr, ctx['ctr']))

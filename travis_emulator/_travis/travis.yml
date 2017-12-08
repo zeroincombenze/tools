@@ -1,7 +1,7 @@
 # Config file travis.yml
 # for travis emulator and other PYPI packages
 # Can used both in local travis emulator both in travis environment
-# version 0.1.6.2
+# version 0.2.0
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro] are replaced before execution (at travis.ynl read)
 # - format: $macro are replace by shell during execution
@@ -15,13 +15,15 @@ python:
 addons:
   apt:
     packages:
-      - expect-dev  # provides unbuffer utility
-      - python-lxml  # because pip installation is slow
-      - python-simplejson
+      # - python-lxml  # because pip installation is slow
+      # - python-simplejson
 
 before_install:
   - PYTHONPATH=${TRAVIS_BUILD_DIR}
   - OPTS="$OPTS"
+  - pip install os0
+  - pip install z0lib
+  - pip install zerobug
 
 env:
   global:

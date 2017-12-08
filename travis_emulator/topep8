@@ -3,7 +3,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -26,7 +26,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.16
+__version__=0.2.0
 
 
 format_xml() {
@@ -142,7 +142,7 @@ OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "add Odoo Ialia Associazione Copyright"\
  "activate debug statements"\
- "odoo branch; may be 6.1 7.0 8.0 9.0 or 10.0"\
+ "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
  "change class name to CamelCase"\
  "show diff"\
  "Write AGPL info into header"\
@@ -163,7 +163,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "PEP8 source python file\nfull path name maybe supplied as a single parameter\nor with two separated values (dir + basename)"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ -d "$pathname" ]; then

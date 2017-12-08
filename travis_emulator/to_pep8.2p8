@@ -2,7 +2,7 @@
 # topep8 configuration file
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # Every rule start with RULE_NAME: STATEMENTS
 #   where: RULE_NAME is the technical name

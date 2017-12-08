@@ -37,7 +37,7 @@
 # -p             RESERVED TO --pattern to test
 # -q             run tests in quiet mode (no echo)
 # -r number      restart count next to number (do run test, return test result)
-# -s number      set last test number (do run test, return test result) (MUST BECOME -r)
+# -s number      set last test number (do run test, return test result) (deprecated, MUST BECOME -r)
 # -V             show version (do no test, return success); version on unit test should be the same of tested software
 # -v             verbose mode
 # -z number      set total # in displayed tests
@@ -106,7 +106,7 @@ parseoptest() {
      "load odoorc library"\
      "run tests without output (quiet mode)"\
      "restart count next to number"\
-     "see -r"\
+     "see -r (deprecated)"\
      "show version and exit"\
       "verbose mode"\
      "display total # tests when execute them"\
@@ -376,6 +376,17 @@ Z0BUG_init() {
     if [ "${module_id: -5}" == "_test" ]; then
       module_id=${module_id:0: -5}
     fi
+    local x=$(dirname $RUNDIR)
+    if [ -n "$PYTHONPATH" ]; then
+      if [[ ! :$PYTHONPATH: =~ :$x: ]]; then
+        export PYTHONPATH=$x:$PYTHONPATH
+      fi
+    else
+      export PYTHONPATH=$x
+    fi
+    if [[ "$module_id" == "zerobug" ]]; then
+      export PYTHONPATH=$RUNDIR/dummy:$PYTHONPATH
+    fi
     Z0BUG_pattern="${module_id}_test*"
     Z0BUG_def_tlog_fn="$TESTDIR/${module_id}_test.log"
     export Z0BUG_ctr_list=
@@ -534,15 +545,7 @@ export -f exec_all_tests
 
 Z0BUG_main_file() {
 # Z0BUG_main_file ut1_list, ut_list
-    local ut1_list ut_list test_num i fn x
-    x=$(dirname $RUNDIR)
-    if [ -n "$PYTHONPATH" ]; then
-      if [[ ! :$PYTHONPATH: =~ :$x: ]]; then
-        export PYTHONPATH=$RUNDIR:x
-      fi
-    else
-      export PYTHONPATH=$x
-    fi
+    local ut1_list ut_list test_num i fn
     if [ -z "$teststs" ]; then
       Z0BUG_init
     fi

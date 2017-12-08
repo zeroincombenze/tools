@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.1.87
+#__version__=0.2.0
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -75,10 +75,10 @@ inherits_travis_opts() {
     A[E]="cdjmnqrv"
     A[N]="CKnOR"
     A[P]="cdfjmnOqruv"
-    A[T]="cKjnPqrTv"
+    A[T]="cKjnPpqrTv"
     A[8]="dnquv"
     if [ -n "$2" ]; then
-      for o in C c d F f K j m n O P q R r T u v; do
+      for o in C c d F f K j m n O P p q R r T u v; do
         if [[ ${A[$2]} =~ $o ]]; then
           if [ "$o" == "C" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
@@ -93,6 +93,8 @@ inherits_travis_opts() {
           elif [ "$o" == "n" -a ${opt_dry_run:-0} -gt 0 ]; then
             opts="${opts}$o"
           elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
+            opts="${opts}$o"
+          elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then
             opts="${opts}$o"
           elif [ "$o" == "q" -a ${opt_verbose:-1} -eq 0 ]; then
             opts="${opts}$o"
@@ -269,9 +271,9 @@ init_travis() {
         REPOSNAME=
       fi
       BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
-      if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0)$ ]] ; then
+      if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
         :
-      elif [[ $BRANCH =~ ^(v7|v8|v9|v10)$ ]] ; then
+      elif [[ $BRANCH =~ ^(v7|v8|v9|v10|v11)$ ]] ; then
         BRANCH=${BRANCH:1}.0
       elif [ ${test_mode:-0} -ne 0 ]; then
         BRANCH=master
@@ -283,7 +285,7 @@ init_travis() {
       else
         local v l
         local x=1
-        for v in 10.0 9.0 8.0 7.0 6.1; do
+        for v in 11.0 10.0 9.0 8.0 7.0 6.1; do
           l=${#v}
           if [ ${prjversion:0:l} == "$v" -a $prjversion != "$v" ]; then
             x=0
@@ -412,18 +414,21 @@ prepare_env_travis() {
     if [[ $action =~ (check|test|all|test|coverage) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
-          if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          # if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
             run_traced "export PATH=$TOOLS_PATH:$PATH"
           fi
         elif [ "$2" == "-r" ]; then
-          if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          # if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
+          if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
             run_traced "export PATH=$TOOLS_PATH:$PATH"
           fi
         fi
       fi
     fi
     if [ -n "$DEVPATH" ]; then
-      if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
+      # if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
+      if [[ ! :$PATH: =~ :$DEVPATH: ]]; then
         run_traced "export PATH=$DEVPATH:$PATH"
       fi
     fi
@@ -617,7 +622,7 @@ set_pkgpath() {
 set_pkgname() {
 #set_pkgname(PKGPATH)
     PKGNAME=$(basename $1)
-    if [[ $PKGNAME =~ ^(v7|6.1|7.0|8.0|9.0|10.0)$ ]] ; then
+    if [[ $PKGNAME =~ ^(v7|6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
       PKGNAME=OCB
     fi
 }
@@ -727,7 +732,7 @@ install_dev() {
 
 
 update_dev() {
-    XDPATH=$(echo "$(dirname $MAKEF)")
+    XDPATH=$(dirname $MAKEF)
     ME_BOS=$(get_cfg_value "" "ME_BOS")
     RFLIST=$(get_cfg_value "" "RFLIST__$1")
     RDLIST=$(get_cfg_value "" "RDLIST__$1")
@@ -886,7 +891,7 @@ robocopy_init() {
         a_append "_travis" ""
       fi
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD|grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0)"|head -n1)
+        local p=$(echo $PWD|grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0)"|head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi
@@ -1223,7 +1228,7 @@ run_regression_test() {
       if [ $(echo ":$PYTHONPATH:"|grep -qv ":$PKGPATH:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
       fi
-      if [ -f ./tests/all_tests ]; then
+      if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
           ./tests/all_tests $OPTS
         else

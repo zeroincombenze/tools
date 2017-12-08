@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.1.16"
+__version__ = "0.2.0"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -465,11 +465,11 @@ def write_license_info(lines, ctx):
     if not found_author or (ctx['opt_oia'] and not found_oia):
             lines.insert(
                 lineno,
-                '# Copyright 2017, %s' % auth_antoniov)
+                '# Copyright 2017-2018, %s' % auth_antoniov)
             lineno += 1
             lines.insert(
                 lineno,
-                '# Copyright 2017, '
+                '# Copyright 2017-2018, '
                 'Associazione Odoo Italia <https://odoo-italia.org>')
             lineno += 1
     lines.insert(lineno, '#')
@@ -1084,7 +1084,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
 
 if __name__ == "__main__":
     parser = parseoptargs("Topep8",
-                          "© 2015-2017 by SHS-AV s.r.l.",
+                          "© 2015-2018 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--odoo-italia-associazione',

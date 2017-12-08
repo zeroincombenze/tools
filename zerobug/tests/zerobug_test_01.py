@@ -29,6 +29,8 @@ import os.path
 import sys
 # pdb.set_trace()
 from zerobug import Z0test
+import dummylib
+
 
 __version__ = "0.2.11"
 
