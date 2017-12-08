@@ -21,7 +21,7 @@ addons:
       - python-simplejson
 
 before_install:
-  - PYTHONPATH=${TRAVIS_BUILD_DIR}
+  # - PYTHONPATH=${TRAVIS_BUILD_DIR}
   - OPTS="$OPTS"
   - pip install os0
   - pip install z0lib
