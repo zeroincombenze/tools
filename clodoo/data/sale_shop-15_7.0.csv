@@ -1,0 +1,2 @@
+name,company_id,payment_default_id
+"Your Company",=${company_id},=${account.payment.term:Pagamento immediato}

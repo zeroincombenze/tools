@@ -1,0 +1,4 @@
+id,name,company_id
+,SO006,=${res.company:La Tua Azienda}
+,SO003,=${res.company:La Tua Azienda}
+,SO002,=${res.company:La Tua Azienda}

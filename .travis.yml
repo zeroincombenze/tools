@@ -16,8 +16,9 @@ python:
 addons:
   apt:
     packages:
-      # - python-lxml  # because pip installation is slow
-      # - python-simplejson
+      - expect-dev  # provides unbuffer utility
+      - python-lxml  # because pip installation is slow
+      - python-simplejson
 
 before_install:
   - PYTHONPATH=${TRAVIS_BUILD_DIR}

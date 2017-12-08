@@ -1,0 +1,2 @@
+id,name,country_id,parent_id,currency_id
+,"La Tua Azienda",base.it,base.main_company,base.EUR

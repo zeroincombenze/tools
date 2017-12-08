@@ -1,0 +1,4 @@
+db_type,id,name,vat,country_id,street,zip,city,state_id,is_company,customer,supplier,phone,email,property_account_position
+,,"Prima Infanzia s.r.l.",IT01234560017,base.it,"Via I Maggio, 11",20022,Castano Primo,"=${res.country.state(country_id,code):,MI}",True,False,True,023456789,info@primainfanzia.it,"=${account.fiscal.position:Italia}"
+T,,"Holiday Inn Hotel","NL123456782B90",base.nl,"Hoogoorddreef 66","1101BE",Amsterdam,,True,False,True,,,"=${account.fiscal.position:Regime UE}"
+,,"Notaio Libero Pagato","IT10242670015",base.it,"Str. del Dazio, 1","10151",Torino,,True,False,True,,,"=${account.fiscal.position:Italia}"
