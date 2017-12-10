@@ -87,7 +87,7 @@ Action may be one of:
 
 import calendar
 import csv
-# import pdb
+import pdb
 import os.path
 import re
 import sys
@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.0.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -339,18 +339,18 @@ def get_userlist(oerp, ctx):
 #############################################################################
 # Action interface
 #
-def isaction(oerp, ctx, action):
+def isaction(ctx, action):
     """Return true if valid action"""
     lx_act = ctx['_lx_act']
     if action == '' or action is False or action is None:
         return True
-    elif action in lx_act:
+    elif get_real_actname(ctx, action) in lx_act:
         return True
     else:
         return False
 
 
-def isiteraction(oerp, ctx, action):
+def isiteraction(ctx, action):
     """Return true if interable action"""
     if action == 'per_db' or \
             action == 'per_company' or \
@@ -360,9 +360,9 @@ def isiteraction(oerp, ctx, action):
         return False
 
 
-def lexec_name(action):
+def lexec_name(ctx, action):
     """Return local executable function name from action"""
-    act = "act_" + action
+    act = "act_" + get_real_actname(ctx, action)
     return act
 
 
@@ -394,7 +394,7 @@ def do_group_action(oerp, ctx, action):
         msg_log(ctx, ctx['level'], msg)
     conf_obj = ctx['_conf_obj']
     sts = STS_SUCCESS
-    if conf_obj.has_option(action, 'actions'):
+    if conf_obj.has_option(get_real_actname(ctx, action), 'actions'):
         # Local environment for group actions
         lctx = create_local_parms(ctx, action)
         if not lctx['actions']:
@@ -402,7 +402,7 @@ def do_group_action(oerp, ctx, action):
         incr_lev(ctx)
         actions = lctx['actions'].split(',')
         for act in actions:
-            if isaction(oerp, lctx, act):
+            if isaction(lctx, act):
                 if act == '' or act is False or act is None:
                     break
                 elif act == action:
@@ -426,7 +426,7 @@ def do_group_action(oerp, ctx, action):
 
 def do_single_action(oerp, ctx, action):
     """Do single action (recursive)"""
-    if isaction(oerp, ctx, action):
+    if isaction(ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
         if ctx['db_name'] == 'auto':
@@ -434,12 +434,12 @@ def do_single_action(oerp, ctx, action):
                 ctx['db_name'] = get_dbname(ctx, action)
                 lgiuser = do_login(oerp, ctx)
                 if not lgiuser:
-                    action = "unit_test"
-        act = lexec_name(action)
+                    action = 'unit_test'
+        act = lexec_name(ctx, action)
         if act in list(globals()):
             if action == 'install_modules' and\
                     not ctx.get('module_udpated', False):
-                globals()[lexec_name('update_modules')](oerp, ctx)
+                globals()[lexec_name(ctx, 'update_modules')](oerp, ctx)
                 ctx['module_udpated'] = True
             return globals()[act](oerp, ctx)
         else:
@@ -461,8 +461,8 @@ def do_actions(oerp, ctx):
     else:
         act = None
     while act:
-        if isaction(oerp, ctx, act):
-            if isiteraction(oerp, ctx, act):
+        if isaction(ctx, act):
+            if isiteraction(ctx, act):
                 incr_lev(ctx)
                 if act == 'per_db':
                     ctx['multi_user'] = multiuser(ctx,
@@ -491,8 +491,9 @@ def do_actions(oerp, ctx):
     return sts
 
 
-def create_local_parms(ctx, action):
+def create_local_parms(ctx, act):
     """Create local params dictionary"""
+    action = get_real_actname(ctx, act)
     conf_obj = ctx['_conf_obj']
     lctx = {}
     for n in ctx:
@@ -1065,23 +1066,22 @@ def act_install_language(oerp, ctx):
     lang = ctx.get('lang', 'en_US')
     msg = u"Install language %s" % lang
     msg_log(ctx, ctx['level'], msg)
-    if lang != 'en_US':
-        model = 'res.lang'
-        ids = searchL8(ctx, model, [('code', '=', lang)])
-        if len(ids) == 0:
-            vals = {}
-            vals['lang'] = lang
-            vals['overwrite'] = True
-            id = createL8(ctx, 'base.language.install', vals)
-            executeL8(ctx,
-                      'base.language.install',
-                      'lang_install',
-                      [id])
-        id = createL8(ctx, 'base.update.translations', {'lang': lang})
+    model = 'res.lang'
+    ids = searchL8(ctx, model, [('code', '=', lang)])
+    if len(ids) == 0:
+        vals = {}
+        vals['lang'] = lang
+        vals['overwrite'] = True
+        id = createL8(ctx, 'base.language.install', vals)
         executeL8(ctx,
-                  'base.update.translations',
-                  'act_update',
+                  'base.language.install',
+                  'lang_install',
                   [id])
+    id = createL8(ctx, 'base.update.translations', {'lang': lang})
+    executeL8(ctx,
+              'base.update.translations',
+              'act_update',
+              [id])
     return STS_SUCCESS
 
 
@@ -3882,10 +3882,13 @@ def get_dbname(ctx, action):
     return dbname
 
 
-def get_actioname(actv):
+def get_real_actname(ctx, actv):
     if isinstance(actv, basestring) and \
-            actv[-4:] in ('_7.0', '_8.0', '_9.0', '_10.0'):
-        act = actv[0:-4]
+            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0', '_10.0', '_11.0'):
+        if actv[-3:] == ctx['oe_version']:
+            act = actv[0:-4]
+        else:
+            act = 'unit_test'
     else:
         act = actv
     return act
@@ -3910,6 +3913,10 @@ def import_file(oerp, ctx, o_model, csv_fn):
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
     csv_ffn = ctx['data_path'] + "/" + csv_fn
+    if csv_ffn[-4:] == '.csv':
+        ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
+    if os.path.isfile(ver_csv):
+        csv_ffn = ver_csv
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -3989,9 +3996,12 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if not ctx['heavy_trx']:
                     v = {}
                     for p in vals:
-                        if p != "db_type" and \
-                                vals[p] != cur_obj[p]:
-                            v[p] = vals[p]
+                        if p != "db_type":
+                            if isinstance(cur_obj[p], (int, long, float)) and \
+                                    vals[p].isdigit():
+                                vals[p] = eval(vals[p])
+                            if vals[p] != cur_obj[p]:
+                                v[p] = vals[p]
                     vals = v
                     del v
                 if not ctx['dry_run'] and len(vals):
@@ -4035,6 +4045,10 @@ def import_config_file(oerp, ctx, csv_fn):
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
     csv_ffn = ctx['data_path'] + "/" + csv_fn
+    if csv_ffn[-4:] == '.csv':
+        ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
+    if os.path.isfile(ver_csv):
+        csv_ffn = ver_csv
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -4242,35 +4256,40 @@ def check_actions_list(ctx, lx_act):
     conf_obj = ctx['_conf_obj']
     res = True
     if ctx.get('do_sel_action', False):
-        res = check_actions_1_list(ctx['do_sel_action'],
+        res = check_actions_1_list(ctx,
+                                   ctx['do_sel_action'],
                                    lx_act,
                                    conf_obj)
     elif ctx.get('actions', None):
-        res = check_actions_1_list(ctx['actions'],
+        res = check_actions_1_list(ctx,
+                                   ctx['actions'],
                                    lx_act,
                                    conf_obj)
     if res and ctx.get('actions_db', None):
-        res = check_actions_1_list(ctx['actions_db'],
+        res = check_actions_1_list(ctx,
+                                   ctx['actions_db'],
                                    lx_act,
                                    conf_obj)
     if res and ctx.get('actions_mc', None):
-        res = check_actions_1_list(ctx['actions_mc'],
+        res = check_actions_1_list(ctx,
+                                   ctx['actions_mc'],
                                    lx_act,
                                    conf_obj)
     if res and ctx.get('actions_uu', None):
-        res = check_actions_1_list(ctx['actions_uu'],
+        res = check_actions_1_list(ctx,
+                                   ctx['actions_uu'],
                                    lx_act,
                                    conf_obj)
     return res
 
 
-def check_actions_1_list(list, lx_act, conf_obj):
+def check_actions_1_list(ctx, list, lx_act, conf_obj):
     res = True
     if not list:
         return res
     acts = list.split(',')
     for actv in acts:
-        act = get_actioname(actv)
+        act = get_real_actname(ctx, actv)
         if act == '' or act is False or act is None:
             continue
         elif act in lx_act:
@@ -4278,7 +4297,8 @@ def check_actions_1_list(list, lx_act, conf_obj):
         elif conf_obj.has_section(act):
             if conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                res = check_actions_1_list(actions,
+                res = check_actions_1_list(ctx,
+                                           actions,
                                            lx_act,
                                            conf_obj)
                 if not res:
@@ -4295,29 +4315,34 @@ def check_actions_1_list(list, lx_act, conf_obj):
 def extend_actions_list(ctx, lx_act):
     conf_obj = ctx['_conf_obj']
     if ctx.get('actions', None):
-        lx_act = extend_actions_1_list(ctx['actions'],
+        lx_act = extend_actions_1_list(ctx,
+                                       ctx['actions'],
                                        lx_act,
                                        conf_obj)
     if ctx.get('actions_db', None):
-        lx_act = extend_actions_1_list(ctx['actions_db'],
+        lx_act = extend_actions_1_list(ctx,
+                                       ctx['actions_db'],
                                        lx_act,
                                        conf_obj)
     if ctx.get('actions_mc', None):
-        lx_act = extend_actions_1_list(ctx['actions_mc'],
+        lx_act = extend_actions_1_list(ctx,
+                                       ctx['actions_mc'],
                                        lx_act,
                                        conf_obj)
     if ctx.get('actions_uu', None):
-        lx_act = extend_actions_1_list(ctx['actions_uu'],
+        lx_act = extend_actions_1_list(ctx,
+                                       ctx['actions_uu'],
                                        lx_act,
                                        conf_obj)
     return lx_act
 
 
-def extend_actions_1_list(list, lx_act, conf_obj):
+def extend_actions_1_list(ctx, list, lx_act, conf_obj):
     if not list:
         return lx_act
     acts = list.split(',')
-    for act in acts:
+    for actv in acts:
+        act = get_real_actname(ctx, actv)
         if act == '' or act is False or act is None:
             continue
         elif act in lx_act:
@@ -4326,7 +4351,8 @@ def extend_actions_1_list(list, lx_act, conf_obj):
             lx_act.append(act)
             if conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
-                lx_act = extend_actions_1_list(actions,
+                lx_act = extend_actions_1_list(ctx,
+                                               actions,
                                                lx_act,
                                                conf_obj)
             else:

@@ -31,7 +31,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.3.0"
+__version__ = "0.3.0.1"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1

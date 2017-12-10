@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.13.1
 
 
 set_ver() {
@@ -116,7 +116,9 @@ set_ver() {
             lnemod="xmlrpc_port=$xmlport"
           fi
         elif [ "$sfx" == "$ver" ]; then
-          newln="$cup=$val"
+          if [  $opt_fix -gt 0 ]; then
+            newln="$cup=$val"
+          fi
         else
           prp=
         fi
