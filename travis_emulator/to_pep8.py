@@ -218,9 +218,10 @@ class topep8():
             if ir not in self.SYTX_PRMS[ir]:
                 print "Invalid rule (%s)" % (ir)
 
-    def store_rule(self, ir, keywords, keyids):
+    def store_rule(self, ir, keywords, keyids, ctr):
         self.SYTX_KEYWORDS[ir] = keywords
         self.SYTX_KEYIDS[ir] = keyids
+        self.SYTX_CTR = ctr
 
     def store_meta_subrule(self, ir, meta, keywords, keyids):
         ver = eval(meta)
@@ -260,7 +261,7 @@ class topep8():
         tokid = tokenize.COMMENT
         return tokid, tokval, ipos
 
-    def parse_escape_rule(self, value, ipos, x):
+    def parse_escape_rule(self, value, ipos):
         """Escape token replaces single python keyword. Escape rule may be:
         $any     means any python token
         $more    means zero, one o more python tokens
@@ -385,7 +386,7 @@ class topep8():
         if meta and self.SYNTAX_RE['int'].match(meta):
             self.store_meta_subrule(ir, meta, keywords, keyids)
         else:
-            self.store_rule(ir, keywords, keyids)
+            self.store_rule(ir, keywords, keyids, ctr)
         self.init_rule_all(ir)
 
     def extr_tokens_from_line(self, rule, meta, value, cont_break):
@@ -428,6 +429,7 @@ class topep8():
             fd = open(rule_file, 'r')
             value = ''
             cont_break = False
+            meta = ''
             for rule in fd:
                 id, meta, value, cont_break = self.extr_tokens_from_line(
                     rule, meta, value, cont_break)
@@ -734,7 +736,7 @@ def get_versions(ctx):
 
 def parse_file(ctx=None):
     # pdb.set_trace()
-    ctx = {} if ctx is None else ctx
+    ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
     if ctx['opt_verbose']:

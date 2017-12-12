@@ -502,7 +502,10 @@ def create_local_parms(ctx, act):
               'install_modules',
               'uninstall_modules',
               'upgrade_modules'):
-        if conf_obj.has_option(action, p):
+        pv = get_param_ver(ctx, p)
+        if conf_obj.has_option(action, pv):
+            lctx[p] = conf_obj.get(action, pv)
+        elif conf_obj.has_option(action, p):
             lctx[p] = conf_obj.get(action, p)
         else:
             lctx[p] = False
@@ -513,7 +516,10 @@ def create_local_parms(ctx, act):
               # 'name',
               'filename',
               'hide_cid'):
-        if conf_obj.has_option(action, p):
+        pv = get_param_ver(ctx, p)
+        if conf_obj.has_option(action, pv):
+            lctx[p] = conf_obj.get(action, pv)
+        elif conf_obj.has_option(action, p):
             lctx[p] = conf_obj.get(action, p)
         elif p in lctx:
             del lctx[p]
@@ -522,13 +528,19 @@ def create_local_parms(ctx, act):
               'companyfilter',
               'userfilter',
               'chart_of_account'):
-        if conf_obj.has_option(action, p):
+        pv = get_param_ver(ctx, p)
+        if conf_obj.has_option(action, pv):
+            lctx[p] = conf_obj.get(action, pv)
+        elif conf_obj.has_option(action, p):
             lctx[p] = conf_obj.get(action, p)
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
               'hide_cid'):
-        if p in lctx:
+        pv = get_param_ver(ctx, p)
+        if pv in lctx:
+            lctx[pv] = os0.str2bool(lctx[pv], lctx[pv])
+        elif p in lctx:
             lctx[p] = os0.str2bool(lctx[p], lctx[p])
     return lctx
 
@@ -924,7 +936,7 @@ def act_upgrade_modules(oerp, ctx):
     """Upgrade module from list"""
     msg = u"Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = ctx['upgrade_modules'].split(',')
+    module_list = get_real_paramvalue(ctx, 'upgrade_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -967,7 +979,7 @@ def act_uninstall_modules(oerp, ctx):
     """Uninstall module from list"""
     msg = u"Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = ctx['uninstall_modules'].split(',')
+    module_list = get_real_paramvalue(ctx, 'uninstall_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1016,7 +1028,7 @@ def act_install_modules(oerp, ctx):
     """Install modules from list"""
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = ctx['install_modules'].split(',')
+    module_list = get_real_paramvalue(ctx, 'install_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -3882,6 +3894,22 @@ def get_dbname(ctx, action):
     return dbname
 
 
+def get_param_ver(ctx, param):
+    param_ver = '%s_%s' % (param, ctx['oe_version'])
+    return param_ver
+
+
+def get_real_paramvalue(ctx, param):
+    param_ver = '%s_%s' % (param, ctx['oe_version'])
+    if param_ver in ctx:
+        value = ctx[param_ver]
+    elif param in ctx:
+        value = ctx[param]
+    else:
+        value = False
+    return value
+
+
 def get_real_actname(ctx, actv):
     if isinstance(actv, basestring) and \
             actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0', '_10.0', '_11.0'):
@@ -3997,9 +4025,9 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     v = {}
                     for p in vals:
                         if p != "db_type":
-                            if isinstance(cur_obj[p], (int, long, float)) and \
-                                    vals[p].isdigit():
-                                vals[p] = eval(vals[p])
+                            # if isinstance(cur_obj[p], (int, long, float)) and \
+                            #         vals[p].isdigit():
+                            #     vals[p] = eval(vals[p])
                             if vals[p] != cur_obj[p]:
                                 v[p] = vals[p]
                     vals = v
@@ -4295,7 +4323,16 @@ def check_actions_1_list(ctx, list, lx_act, conf_obj):
         elif act in lx_act:
             continue
         elif conf_obj.has_section(act):
-            if conf_obj.has_option(act, 'actions'):
+            pv = get_param_ver(ctx, 'actions')
+            if conf_obj.has_option(act, pv):
+                actions = conf_obj.get(act, pv)
+                res = check_actions_1_list(ctx,
+                                           actions,
+                                           lx_act,
+                                           conf_obj)
+                if not res:
+                    break
+            elif conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
                 res = check_actions_1_list(ctx,
                                            actions,
@@ -4349,7 +4386,14 @@ def extend_actions_1_list(ctx, list, lx_act, conf_obj):
             continue
         elif conf_obj.has_section(act):
             lx_act.append(act)
-            if conf_obj.has_option(act, 'actions'):
+            pv = get_param_ver(ctx, 'actions')
+            if conf_obj.has_option(act, pv):
+                actions = conf_obj.get(act, pv)
+                lx_act = extend_actions_1_list(ctx,
+                                               actions,
+                                               lx_act,
+                                               conf_obj)
+            elif conf_obj.has_option(act, 'actions'):
                 actions = conf_obj.get(act, 'actions')
                 lx_act = extend_actions_1_list(ctx,
                                                actions,

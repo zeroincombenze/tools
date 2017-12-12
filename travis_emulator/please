@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0
+__version__=0.2.0.1
 
 
 #
@@ -354,11 +354,6 @@ cvt_travis() {
     local bi_found=0
     local git_subm=0
     while IFS= read -r line r || [ -n "$line" ]; do
-      if [ "$2" == "oca" ]; then
-        line=${line//  # - TRANSIFEX=\"0\"/  - TRANSIFEX=\"1\"}
-      else
-        line=${line//  - TRANSIFEX=\"1\"/  # - TRANSIFEX=\"0\"}
-      fi
       if [[ $line =~ ^before_install: ]]; then
         wf=4
         bi_found=1
@@ -391,7 +386,19 @@ cvt_travis() {
       elif [[ $line =~ ^[a-zA-Z_]+ ]]; then
         wf=0
       elif [ $wf -eq 1 ]; then
-        if [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.odoo/odoo. ]]; then
+        if [[ $line =~  [[:space:]]+.*TRANSIFEX= ]]; then
+          if [ "$2" == "oca" ]; then
+            line=${line//  # - TRANSIFEX=\"0\"/  - TRANSIFEX=\"1\"}
+          else
+            line=${line//  - TRANSIFEX=\"1\"/  # - TRANSIFEX=\"0\"}
+          fi
+        elif [[ $line =~  [[:space:]]+.*LINT_CHECK= ]]; then
+          if [ "$BRANCH" == "6.1" ]; then
+            line=${line//  - LINT_CHECK=\"1\"/  # - LINT_CHECK=\"0\"}
+          else
+            line=${line//  # - LINT_CHECK=\"0\"/  - LINT_CHECK=\"1\"}
+          fi
+        elif [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.odoo/odoo. ]]; then
           if [ "$BRANCH" == "7.0" ]; then
             line=${line//TESTS=\"1\"/TESTS=\"0\"}
           else
