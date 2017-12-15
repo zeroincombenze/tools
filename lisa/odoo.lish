@@ -2,7 +2,7 @@
 # Please, if you update this configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # so your configuration should be shared with other people.
-# Last update: 2016-09-16
+# Last update: 2017-11-04
 #
 # This file may be deployed in /etc/lisa directory.
 # See /etc/lisa/lisa.conf.sample for example of configuration file
@@ -13,7 +13,7 @@
 #
 [_Linux_]
 SubPkgList=account-closing,account-financial-reporting,account-financial-tools,account-invoicing,account-payment,bank-payment,connector,knowledge,l10n-italy,partner-contact,product-attribute,reporting-engine,report-print-send,server-tools,stock-logistics-barcode,stock-logistics-tracking,stock-logistics-warehouse,stock-logistics-workflow,web,webkit-tools,website,account-closing,account-financial-reporting,account-financial-tools,account-invoicing,account-payment,bank-payment,connector,knowledge,l10n-italy,partner-contact,product-attribute,reporting-engine,report-print-send,server-tools,stock-logistics-barcode,stock-logistics-tracking,stock-logistics-warehouse,stock-logistics-workflow,web,webkit-tools,website
-# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assinged UID/GID
+# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assingned UID/GID
 ODOO_UID=497
 ODOO_GID=497
 git_LocalRoot=/opt/odoo
@@ -21,22 +21,27 @@ git_LocalDir=v${version}
 git_LocalUser=odoo:odoo
 
 [_Debian_]
-ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber\
-    ,BeautifulSoup,babel>=1.0,decorator,docutils,feedparser,gevent\
-    ,Jinja2,lxml,mako,mock,passlib,pillow,psutil,psycogreen,psycopg2>=2.2
-    ,python-chart,pydot,pyparsing<2,pypdf,pyserial,python-dateutil\
-    ,python-ldap,python-openid,pytz,pyusb>=1.0.0b1,pyyaml,qrcode\
-    ,reportlab,requests,simplejson,unittest2,vatnumber,vobject,werkzeug,xlwt
+ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,\
+    BeautifulSoup,babel>=1.0,decorator,docutils,feedparser,gevent,\
+    Jinja2,lxml,mako,mock,passlib,Pillow==3.4.2,psutil,psycogreen,psycopg2>=2.2,
+    python-chart,pydot,pyparsing<2,pypdf,pyserial,python-dateutil,\
+    python-ldap,python-openid,pytz,pyusb>=1.0.0b1,pyyaml,qrcode,\
+    reportlab,requests,simplejson,unittest2,vatnumber,vobject,werkzeug,xlwt
+
+
+[_RHEL_]
+
 
 
 [_CentOS7_]
-ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
-    ,BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil\
-    ,python-decorator,python-docutils,python-feedparser,python-imaging\
-    ,python-jinja2,python-ldap,python-lxml,python-mako,python-mock\
-    ,python-openid,python-passlib,python-psutil,python-psycopg2\
-    ,python-reportlab,python-requests,python-simplejson,python-unittest2\
-    ,python-vobject,python-werkzeug,python-yaml,pytz
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,\
+    BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil,\
+    python-decorator,python-docutils,python-feedparser,python-imaging,\
+    python-jinja2,python-ldap,python-lxml,python-mako,python-mock,\
+    python-openid,python-passlib,Pillow==3.4.2,python-psutil,python-psycopg2,\
+    python-reportlab,python-requests,python-simplejson,python-unittest2,\
+    python-vobject,python-werkzeug,python-yaml,pytz,pypdf
+
 
 
 [_CentOS6_]
@@ -47,4 +52,3 @@ ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
     ,python-openid,python-passlib,python-psutil,python-psycopg2\
     ,python-reportlab,python-requests,python-simplejson,python-unittest2\
     ,python-vobject,python-werkzeug,python-yaml,pytz
-    

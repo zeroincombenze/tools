@@ -175,6 +175,7 @@ REAL_beautifulsoup=BeautifulSoup
 REAL_dateutil=python-dateutil
 REAL_python-babel=Babel
 REAL_python-psutil=psutil
+REAL_python-requests=requests
 # Commands templates
 VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
@@ -193,7 +194,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
-    simplejson,python-dateutil,psutil,pychart,python-ldap
+    simplejson,python-dateutil,psutil,pychart,python-ldap,pyOpenSSL,requests
 # Packages cloned by git
 GIT_PKGS=odoo,pandoc
 # Packages downloaded by wget
@@ -215,11 +216,13 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          python-pypdf,python-renderpm,python-reportlab,python-reportlab-accel,\
          python-roman,python-suds,python-unittest2,\
          python-utidylib,python-vobject,python-werkzeug,wget,git,\
-         libapache2-mod-auth-mysql,pyopenssl,\
+         libapache2-mod-auth-mysql,\
          vsftpd,postgresql-client-common,postgresql-contrib,\
          telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
          python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem
+openssh-server_cmdname=NULL
+TCP_openssh-server=22
 
 
 [_Debian_]
@@ -249,6 +252,14 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib-devel,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client
 pip_BOP=wheel
+PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
+openssh-server_BOP=openssh-client
+openssh-client_cmdname=ssh
+openssh-server_svcname=ssh
+
+
+[_Debian_DEV_]
+openssh-server_BOP=openssh-client,telnet
 
 
 [_RHEL_]
@@ -275,13 +286,21 @@ REAL_python-libxslt1=libxslt-python
 REAL_zlib-devel=zlib1g-dev
 REAL_readline-devel=libreadline6-dev
 # Standard packages
-YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,pyOpenSSL,libffi-devel,\
+YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,\
          php-cli,libxslt-python,python-devel,readline,zlib1g-dev,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
 pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
+PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml
+openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
+openssh-clients_cmdname=ssh
+openssh-server_svcname=sshd
+
+
+[_RHEL_DEV_]
+openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
 
 
 [_Ubuntu12_]
@@ -314,7 +333,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson,\
     pyparsing,beaker,psycopg2,reportlab,decorator,docutils,feedparser,gevent,\
-    jinja2
+    jinja2,pyOpenSSL
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
 

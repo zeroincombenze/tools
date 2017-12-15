@@ -13,7 +13,7 @@
 > pip install wheel --upgrade
 > yum -y install yum-utils
 > yum -y install libffi-devel
-> yum -y install pyOpenSSL
+> pip install pyOpenSSL
 > pip install pyasn1
 > pip install ndg-httpsclient
 # yum -y install openssh-server

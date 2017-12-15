@@ -30,8 +30,7 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.2.1.22
 
 test_run() {
-# test_run(msg,package,disto,cmd)
-    # set -x #debug
+# test_run(msg package disto cmd)
     TPRODUCT="$RUNDIR/lisa -T"
     local msg="$1"
     local Package=$(echo "$2"|grep -Eo '[^!<=>]*'|head -n1)
@@ -137,7 +136,6 @@ test_01() {
          test_run "realname $Package $opt_e" "$Package" "$Disto" "realname"
       done
     done
-
 
     declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
     TEST_Debian[apache2]="apt-get"

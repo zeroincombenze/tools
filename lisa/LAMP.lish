@@ -2,7 +2,7 @@
 # Please, if you update this configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # so your configuration should be shared with other people.
-# Last update: 2016-09-16
+# Last update: 2017-12-13
 #
 # This file may be deployed in /etc/lisa directory.
 # See /etc/lisa/lisa.conf.sample for example of configuration file
@@ -13,7 +13,7 @@
 #
 
 [_Linux_]
-ReqPkgList=gcc,pip
+LAMP_ReqPkgList=gcc,pip
 
 
 [_Debian_]
@@ -21,7 +21,7 @@ LAMP=pip,LAMP_security,openssh-server,apache2,mysql-server,postgresql,php5,pytho
 
 
 [_CentOS7_]
-ReqPkgList=gcc,pip,iptables
+LAMP_ReqPkgList=gcc,pip,iptables
 LAMP=epel-release,pip,wheel,yum-utils,LAMP_security,openssh-server,httpd,mariadb,postgresql-server,php,python
 
 

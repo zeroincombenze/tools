@@ -213,7 +213,7 @@ odoo (by git)
 --libtiff (by yum)
 --libyaml (by yum)
 --passlib (by pip)
---pyOpenSSL (by yum)
+--pyOpenSSL (by pip)
 --pyparsing (by yum/pip)
 --beaker (by yum/pip)
 --python-dateutil (by pip)
@@ -243,7 +243,7 @@ odoo (by git)
 --libtiff (by yum)
 --libyaml (by yum)
 --passlib (by pip)
---pyOpenSSL (by yum)
+--pyOpenSSL (by pip)
 --pyparsing (by yum/pip)
 --beaker (by yum/pip)
 --python-dateutil (by wget)
@@ -296,7 +296,7 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
 > pip install wheel --upgrade
 > yum -y install yum-utils
 > yum -y install libffi-devel
-> yum -y install pyOpenSSL
+> pip install pyOpenSSL
 > pip install pyasn1
 > pip install ndg-httpsclient
 # yum -y install openssh-server

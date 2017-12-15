@@ -40,7 +40,7 @@
 #[RHEL] chkconfig
 #[Debian] update-rc.d
 
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
   if [ -e $x/z0librc ]; then
@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.26
+__version__=0.2.36.27
 
 
 STS_FAILED=1
@@ -72,32 +72,23 @@ conf_default() {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    if [ $opt_dev -gt 0 ]; then
-      set_cfg_def "openssh-server_BOP" "openssh-clients telnet mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
-      set_cfg_def "openssh-server_BOP" "openssh-client telnet" "0" "Debian"
-    else
-      set_cfg_def "openssh-server_BOP" "openssh-clients mod_ssl mod_proxy_html iptables-services bind-utils" "0" "RHEL"
-      set_cfg_def "openssh-server_BOP" "openssh-client" "0" "Debian"
-    fi
-    set_cfg_def "PYTHON_LIB_XML" "python-libxslt1 libxml2 python-libxml2 lxml" "0" "Debian"
-    set_cfg_def "PYTHON_LIB_XML" "libxslt-python libxml2 libxml2-python lxml" "0" "RHEL"
     p="setuptools python-virtualenv virtualenv"
     p="$p libreadline6 PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
-    p="$p gdata python-ldap pytz"
-    if [ $opt_dev -gt 0 ]; then
+    p="$p gdata python-ldap pytz python-requests"
+    if [ -n "$opt_dev" ]; then
       p="$p python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev"
       p="$p libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev"
-      p="$p liblzma-dev python-requests python-yaml mock"
+      p="$p liblzma-dev python-yaml mock"
     fi
     set_cfg_def "python_BOP" "$p" "0" "Debian"
     p="setuptools python-virtualenv virtualenv readline"
     p="$p PYTHON_LIB_XML simplejson xlwt PyYAML"
-    p="$p gdata python-ldap pytz"
-    if [ $opt_dev -gt 0 ]; then
+    p="$p gdata python-ldap pytz python-requests"
+    if [ -n "$opt_dev" ]; then
       p="$p python-devel openldap-devel zlib-devel bzip2-devel openssl-devel"
       P="$p ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel"
       p="$p libpcap-devel xz-devel postgresql-devel libxml2-devel"
-      p="$p libxslt-devel python-requests python-yaml mock"
+      p="$p libxslt-devel python-yaml mock"
     fi
     set_cfg_def "python_BOP" "$p psycopg2" "0" "CentOS7"
     set_cfg_def "python_BOP" "$p python-psycopg2" "0" "CentOS6"
@@ -105,35 +96,35 @@ conf_default() {
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
     p="$p libwebpmux1 poppler-data poppler-utils Babel python-babel-localedata"
-    p="$p dateutil decorator==3.4.0 docutils==0.12 feedparser==5.1.3"
+    p="$p python-dateutil decorator==3.4.0 docutils==0.12 feedparser==5.1.3"
     P="$p gevent==1.0.2 python-greenlet python-imaging jinja2==2.7.3 python-mako"
     p="$p python-markupsafe python-openid passlib==1.6.2 python-pil"
-    P="$p python-psutil python-pybabel python-pychart python-pygments"
+    P="$p psutil python-pybabel python-pygments"
     p="$p python-pyinotify pyparsing python-pypdf python-renderpm"
     p="$p reportlab==3.1.44 python-reportlab-accel python-roman python-suds"
     p="$p python-unittest2 python-utidylib python-vobject"
     p="$p python-werkzeug docutils-common docutils-doc wkhtmltopdf"
-    if [ $opt_dev -gt 0 ]; then
+    if [ -n "$opt_dev" ]; then
       p="$p oerplib erppeek os0 pytok"
     fi
     set_cfg_def "odoo_BOP" "$p" "0" "Debian"
     p="Babel==1.3 dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib==1.6.2"
-    p="$p pyOpenSSL python-pychart pyparsing beaker dateutil docutils==0.12 feedparser==5.1.3 jinja2==2.7.3"
+    p="$p pyOpenSSL pyparsing beaker python-dateutil docutils==0.12 feedparser==5.1.3 jinja2==2.7.3"
     p="$p python-ldap python-mako python-markupsafe python-openid"
-    p="$p python-psutil reportlab==3.1.44"
+    p="$p psutil reportlab==3.1.44"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
-    if [ $opt_dev -gt 0 ]; then
+    if [ -n "$opt_dev" ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
     fi
     set_cfg_def "odoo_BOP" "$p" "0" "CentOS7"
     p="python-babel dejavu-fonts-common dejavu-sans-fonts fontpackages-filesystem"
     p="$p libjpeg-turbo libtiff libyaml passlib"
-    p="$p pyOpenSSL python-pychart pyparsing beaker dateutil python-docutils python-feedparser python-jinja2"
+    p="$p pyOpenSSL pyparsing beaker python-dateutil python-docutils python-feedparser python-jinja2"
     p="$p python-ldap python-mako python-markupsafe python-openid"
-    p="$p python-psutil python-reportlab"
+    p="$p psutil python-reportlab"
     p="$p python-unittest2 urllib3 python-vobject python-werkzeug wkhtmltopdf"
-    if [ $opt_dev -gt 0 ]; then
+    if [ -n "$opt_dev" ]; then
       p="$p libjpeg-turbo-devel oerplib erppeek os0 pytok"
     fi
     set_cfg_def "odoo_BOP" "$p" "0" "CentOS6"
@@ -184,9 +175,9 @@ conf_default() {
     set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
     set_cfg_def "mysql_cmdname" "mysql" "0"
     set_cfg_def "mariadb_cmdname" "mysql" "0" "CentOS7"
-    set_cfg_def "openssh-server_cmdname" "NULL" "0"
-    set_cfg_def "openssh-client_cmdname" "ssh" "0" "Debian"
-    set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
+    # set_cfg_def "openssh-server_cmdname" "NULL" "0"
+    # set_cfg_def "openssh-client_cmdname" "ssh" "0" "Debian"
+    # set_cfg_def "openssh-clients_cmdname" "ssh" "0" "RHEL"
     # set_cfg_def "lisa_git_URL" "https://github.com/zeroincombenze/tools.git" "0"
     # set_cfg_def "lisa_git_LocalUser" "odoo:odoo" "0"
     set_cfg_def "wkhtmltopdf_wget_URL" "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1"
@@ -219,14 +210,14 @@ conf_default() {
     set_cfg_def "mysql_svcname" "mysqld" "0" "CentOS6"
     # set_cfg_def "postgresql_svcname" "postgresql" "0"
     # set_cfg_def "postgresql-server_svcname" "postgresql" "0"
-    set_cfg_def "openssh-server_svcname" "ssh" "0" "Debian"
-    set_cfg_def "openssh-server_svcname" "sshd" "0" "RHEL"
+    # set_cfg_def "openssh-server_svcname" "ssh" "0" "Debian"
+    # set_cfg_def "openssh-server_svcname" "sshd" "0" "RHEL"
     set_cfg_def "odoo_svcname" "odoo-server" "0"
     # TCP & UDP Ports
     set_cfg_def "TCP_httpd" "80 443" "0" "RHEL"
     set_cfg_def "TCP_apache2" "80 443" "0" "Debian"
     set_cfg_def "TCP_vsftpd" "21" "0"
-    set_cfg_def "TCP_openssh-server" "22" "0"
+    # set_cfg_def "TCP_openssh-server" "22" "0"
     set_cfg_def "TCP_odoo" "8069" "0"
     # Configuration files
     p="/etc/httpd /etc/apache2; conf"
@@ -246,33 +237,41 @@ conf_default() {
 
 
 store_cfg_param_value() {
-#store_cfg_param_value(tid key value [opt] [section])
-    local p dev
+#store_cfg_param_value(tid key value [-d|-f|] [-D|1] [section])
+    local p tid=$1
     if [[ " xyz " =~ [[:space:]]$2[[:space:]] ]]; then
-      p="${2}_$5"
+      p="${2}_$6"
     elif [[ " BOP BOP_GRF_ADD binPkgList build_fileignore build_PkgList build_PKGPATH\
  build_with_z0libr build_with_odoorc cmdname confn etcPkgList FINDCFN git_LocalDir\
  git_LocalRoot git_LocalUser git_URL init_svcname install_LocalRoot install_LocalTmp\
  install_md5 install_xname ReqPkgList svcname SubPkgList with_z0libr xtlcmd xtlcmd_install\
  xtlcmd_remove wget_URL wget_xname " =~ [[:space:]]$2[[:space:]] ]]; then
-      p="${5}_$2"
+      p="${6}_$2"
     else
       p="$2"
+      [[ "${2:0:6}" == "REAL_" ]] && tid="0"
     fi
-    # if [ "$2" == "git_LocalRoot" ]; then  #debug
-    #   echo "CFG_set $1 $p \"$3\" \"$4\" $dev <- store_cfg_param_value($1 $2 $3 $4 $5)"   #debug
-    # fi  #debug
-    CFG_set "$1" "$p" "$3" "$4" $dev
+    [[ $opt_dbg -gt 0 ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> CFG_set \"$tid\" \"$p\" \"$3\" \"$4\" \"$5\" $6 <- store_cfg_param_value($1 $2 $3 $4 $5 $6);">>~/$THIS.his
+    CFG_set "$tid" "$p" "$3" "$4" $5
 }
 
 get_conf_pkg() {
-# get_conf_pkg (file pkgname)
-    if [ -z "$1" ]; then
-      return
+# get_conf_pkg (file sample [section] ][OPTS])
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_conf_pkg(\"$1\" \"$2\" \"$3\" $4)">>~/$THIS.his
+    local opt_dev
+    local confn=$1
+    [[ $4 =~ D ]] && opt_dev="-D"
+    if [ -z "$confn" ]; then
+      if [ "${2: -7}" == ".sample" ]; then
+        confn="${2:0: -7}"
+      else
+        confn=$2
+      fi
     fi
     local tid=1
     while [ $tid -le $conf_level ]; do
-      if [ "$1" == "${CONF_FNS[$tid]}" ]; then
+      if [ "$confn" == "${CONF_FNS[$tid]}" ]; then
+        [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return #get_conf_pkg">>~/$THIS.his
         return
       fi
       ((tid++))
@@ -283,16 +282,17 @@ get_conf_pkg() {
     else
       tid=$conf_level
     fi
-    CONF_FNS[$conf_level]=$1
-    _read_cfg_file "$1" "$tid" "$2"
-    # echo "<<${DEFDICT1[pgadmin3_xtlcmd]}>>" #debug
+    CONF_FNS[$conf_level]=$confn
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  link_cfg \"$1\" \"$2\" \"$tid\" \"$3\" $opt_dev">>~/$THIS.his
+    link_cfg "$1" "$2" "$tid" "$3" "$opt_dev"
+    [[ $opt_dev == "-D" && -n "$2" ]] && link_cfg "$1" "$1" "$tid" "${3}DEV_" "$opt_dev"
+    init_cfg_pkg
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return #get_conf_pkg">>~/$THIS.his
 }
 
 clr_conf_pkg() {
     if  [ $conf_level -gt 0 ]; then
       if  [ $conf_level -le 3 ]; then
-        # eval $(init_cfg $conf_level)
-        # eval $(active_cfg $conf_level)
         CFG_init $conf_level
       fi
       CONF_FNS[$conf_level]=
@@ -302,7 +302,8 @@ clr_conf_pkg() {
 
 set_from_conf_pkg() {
 # set_from_conf_pkg (pkgname [confn] [opts]])
-    local FCONF FCONFDEF sdir
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3)">>~/$THIS.his
+    local FCONF FCONFDEF SAMPLE sdir
     if [ $test_mode -gt 0 ]; then
       sdir="$TESTDIR $TDIR"
     elif [ -n "$2" ]; then
@@ -310,46 +311,49 @@ set_from_conf_pkg() {
     else
       sdir=". $TDIR /etc/lisa /etc"
     fi
+    local pkgname=$(get_realname $1)
     if [ -n "$2" ]; then
-      local pkgname=$(get_realname $2)
       if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
         FCONF=$opt_conf
       else
-        FCONF=$pkgname
+        FCONF=$2
       fi
-      FCONFDEF=$pkgname.sample
-      PKG_CONF=$(findpkg "$FCONF" "$sdir")
-      SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
-      link_cfg $PKG_CONF $SAMPLE
-      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3) link_cfg $PKG_CONF $SAMPLE">>~/$THIS.his
     else
-      SAMPLE=
-      FCONF=
-      PKG_CONF=$(findpkg "$1.lish" "$sdir")
-      if [ -z "$PKG_CONF" ]; then
-        FCONF=$(get_realname "$1")
-        [ -n "$FCONF" ] && PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
-      fi
-      if [ -z "$PKG_CONF" ]; then
-        [ -n "$FCONF" ] || FCONF=$1
-        if [ "${FCONF: -7}" == "-server" ]; then
-          PKG_CONF=$(findpkg "${FCONF:0: -7}.lish" "$sdir")
-        elif [ "${FCONF: -1}" == "d" ]; then
-          PKG_CONF=$(findpkg "${FCONF:0: -1}.lish" "$sdir")
-        elif [ "${FCONF: -4}" == "-dev" ]; then
-          PKG_CONF=$(findpkg "${FCONF:0: -4}.lish" "$sdir")
-        elif [ "${FCONF: -6}" == "-devel" ]; then
-          PKG_CONF=$(findpkg "${FCONF:0: -6}.lish" "$sdir")
-        fi
-      fi
-      if [ -z "$PKG_CONF" ]; then
-        PKG_CONF=$(findpkg "lisa.lish" "$sdir")
+      FCONF=${1}.lish
+    fi
+    FCONFDEF=$FCONF.sample
+    PKG_CONF=$(findpkg "$FCONF" "$sdir")
+    SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
+    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
+      FCONF=$pkgname
+      FCONFDEF=$pkgname.sample
+      [ -n "$FCONF" ] && PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
+      [ -n "$FCONF" ] && SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
+    fi
+    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
+      if [ "${FCONF: -7}" == "-server" ]; then
+        FCONF=${FCONF:0: -7}
+        PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
+      elif [ "${FCONF: -1}" == "d" ]; then
+        FCONF=${FCONF:0: -1}
+        PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
+      elif [ "${FCONF: -4}" == "-dev" ]; then
+        FCONF=${FCONF:0: -4}
+        PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
+      elif [ "${FCONF: -6}" == "-devel" ]; then
+        FCONF=${FCONF:0: -6}
+        PKG_CONF=$(findpkg "$FCONF.lish" "$sdir")
       fi
       if [ -n "$PKG_CONF" ]; then
-        get_conf_pkg "$PKG_CONF" "$1"
+        FCONFDEF=${FCONF}.sample
+        SAMPLE=$(findpkg "$FCONFDEF" "$sdir")
       fi
-      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3) link_cfg $PKG_CONF $1">>~/$THIS.his
     fi
+    if [ -z "$PKG_CONF" -a -z "$SAMPLE" ]; then
+      PKG_CONF=$(findpkg "lisa.lish" "$sdir")
+      SAMPLE=$(findpkg "lisa.lish.sample" "$sdir")
+    fi
+    get_conf_pkg "$PKG_CONF" "$SAMPLE" "" $3
 }
 
 get_prm_value() {
@@ -382,15 +386,8 @@ get_prm_value() {
         x="${1:0: -8}"
         if ! $(is_virtualname $x); then
           p="$x"
-          x=$(get_prm_value "${x}_xtlcmd")
-          if [ "$x" == "pip" -a "$p" != "pip" ]; then
+          if [ "$x" != "pip" ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]/]$x[[:space:]/] ]]; then
             p=""
-          fi
-          if [ "${p:0:7}" == "python-" ]; then
-            x=${p:7}
-            if [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-              p=""
-            fi
           fi
         else
           p=""
@@ -401,7 +398,7 @@ get_prm_value() {
           p="lisa"
         elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="pip"
-        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]/]$x[[:space:]/] ]]; then
           p="pip"
         elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="git"
@@ -411,7 +408,7 @@ get_prm_value() {
           p="yum"
         elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="apt-get"
-        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]/] ]] || [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           if [ "$FH" == "RHEL" ]; then
             p="yum"
           elif [ "$FH" == "Debian" ]; then
@@ -422,35 +419,29 @@ get_prm_value() {
         else
           p=
         fi
-      elif [ "$1" != "stscmd" -a "${1: -7}" == "_stscmd" ]; then
-        x="${1:0: -7}"
+      elif [ "$1" != "_xtlcmd_install" -a "${1: -15}" == "_xtlcmd_install" ]; then
+        x="${1:0: -15}"
         if $(is_virtualname $x); then
           p="lisa"
-        elif [ "$x" == "pip" ]; then
-          p=
-        elif [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]/]$x[[:space:]/] ]]; then
           if [ "$FH" == "RHEL" ]; then
-            p="rpm"
+            p="yum"
           elif [ "$FH" == "Debian" ]; then
-            p="dpkg-query"
+            p="apt-get"
           else
             p="#"
           fi
-        elif [[ " $PIP_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="pip"
-        elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="pip"
-        elif [[ " $GIT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="git"
-        elif [[ " $WGET_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="#"
-        elif [[ " $YUM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="rpm"
-        elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
-          p="dpkg-query"
-        else
-          p=
         fi
+      elif [ "$1" != "stscmd" -a "${1: -7}" == "_stscmd" ]; then
+        x="${1:0: -7}"
+        p=$(get_prm_value "${x}_xtlcmd")
+        p=${p//yum/rpm}
+        p=${p//apt-get/dpkg-query}
+      elif [ "$1" != "_stscmd_install" -a "${1: -15}" == "_stscmd_install" ]; then
+        x="${1:0: -15}"
+        p=$(get_prm_value "${x}_xtlcmd_install")
+        p=${p//yum/rpm}
+        p=${p//apt-get/dpkg-query}
       elif [ "$1" != "_vfycmd" -a "${1: -7}" == "_vfycmd" ]; then
         p="${1:0: -7}"
         x=$(basename $p)
@@ -496,14 +487,12 @@ get_prm_value() {
     else
       echo $p
     fi
-    # echo "get_prm_value ('$1')::$DISTO($FH)=$p;;">>~/$THIS.his
 }
 
 init_cfg_pkg() {
 # init_cfg_pkg (pkgname)::FCONF,NAME*,VFY*,STD*,PIP*,NOINQ*
 # return:
-    # echo "init_cfg_pkg  ('$1')::$FCONF($FH)=$p;;">>~/$THIS.his
-    local p x
+    local l p r x
     LAMP=$(get_prm_value "LAMP" list)
     NAME_VIRTUAL="$(get_prm_value NAME_VIRTUAL list)"
     NOINQ="$(get_prm_value NOINQ list)"
@@ -515,22 +504,10 @@ init_cfg_pkg() {
     PIP_PKGS="$(get_prm_value PIP_PKGS list)"
     GIT_PKGS="$(get_prm_value GIT_PKGS list)"
     WGET_PKGS="$(get_prm_value WGET_PKGS list)"
-    STD_PKGS="$(get_prm_value STD_PKGS)"
-    STD_PKGS="${STD_PKGS//,/ } EVERYTHINGS"
+    STD_PKGS="$(get_prm_value STD_PKGS list) EVERYTHINGS"
     YUM_PKGS="$(get_prm_value YUM_PKGS list)"
     APT_PKGS="$(get_prm_value APT_PKGS list)"
     PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS list)"
-    for p in $PIP_PYSTD_PKGS; do
-      x="python-$p"
-      set_cfg_def "${p}_ReqPkgList" "$x" "0"
-      if [[ " $WGET_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
-        :
-      elif [[ " $STD_PKGS " =~ [[:space:]]python-$x[[:space:]] ]]; then
-        :
-      else
-        STD_PKGS="$STD_PKGS $x"
-      fi
-    done
 }
 
 print_title() {
@@ -667,7 +644,7 @@ get_arch() {
       LXCORE=$(xuname "-c")
       MACHARCH=$(xuname "-m")
       if [ -n "$1" ]; then
-        echo "!!Invalid $1 architecturre: used $DISTO instead!!"
+        echo "!!Invalid $1 architecture: used $DISTO instead!!"
       fi
     fi
     XU_FH="$FH"
@@ -727,28 +704,43 @@ get_pfxaction(){
 get_realname() {
 # get_realname(pkgname [action] [OPTS])
 # return: realname
+    local p pkgname tid
     if [ "$1" == "." ]; then
-      local p="EVERYTHINGS"
+      p="EVERYTHINGS"
     else
-      local pkgname=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
-      local p=$(get_cfg_value "0" REAL_$pkgname)
+      pkgname=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
+      for tid in 0 1 2 3; do
+        p=$(get_cfg_value $tid REAL_$pkgname)
+        if [ -n "$p" ]; then break; fi
+      done
     fi
     if [ -n "$p" ]; then
       pkgname=$p
-    else
+    elif [ "$2" == "install" -o "$2" == "remove" ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]][^/[:space:]]+\/$1[[:space:]] ]]; then
+      IFS=/ read l r <<<$BASH_REMATCH
+      if [ "$l" != "$r" ]; then
+        pkgname=$l
+      fi
+    elif [ "$2" == "update" ] && [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$1\/[^/[:space:]]+[[:space:]] ]]; then
+      IFS=/ read l r <<<$BASH_REMATCH
+      if [ "$l" != "$r" ]; then
+        pkgname=$r
+      fi
+    fi
+    if [ -z "$pkgname" ]; then
       if [ "$FH" == "RHEL" ]; then
-        p=$(get_cfg_value "0" REAL_${1}__Debian)
+        p=$(get_prm_value REAL_${1}__Debian)
         if [ "${p: -4}" == "-dev" ]; then
           pkgname="${p}el"
         fi
       elif [ "$FH" == "Debian" ]; then
-        p=$(get_cfg_value "0" REAL_${1}__RHEL)
+        p=$(get_prm_value REAL_${1}__RHEL)
         if [ "${p: -6}" == "-devel" ]; then
           pkgname="${p:0: -2}"
         fi
       fi
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgname=get_realname($1 $2 $3)">>~/$THIS.his; fi   #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "  $pkgname=get_realname($1 $2 $3)">>~/$THIS.his
     echo $pkgname
 }
 
@@ -789,7 +781,7 @@ get_specimen() {
       fi
       local specimen="$pkg~$lop~$lreqver~$rop~$rreqver~$branch~$xtlcmd"
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$specimen=get_specimen($1 $2 $3)">>~/$THIS.his; fi   #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$specimen=get_specimen($1 $2 $3)">>~/$THIS.his
     echo "$specimen"
 }
 
@@ -805,18 +797,21 @@ get_pkg_ver_inq() {
 # get_pkg_ver_inq(pkgname [OPTS])
 # return: ->  pkgversion
     local pkgname=$1
-    local pkgversion=
     local X="VER__${1//-/_}"
+    local cmdname p pkgversion= vfycmd x
     if [ -n "${!X}" ]; then
       pkgversion="${!X}"
     elif [[ $2 =~ J ]]; then
       :
     else
-      local cmdname=$(get_prm_value "${pkgname}_cmdname")
-      local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+      vfycmd=$(get_prm_value "${pkgname}_vfycmd")
+      cmdname=$(get_prm_value "${pkgname}_cmdname")
+      if [ -z "$vfycmd" ]; then
+        [ -n "$cmdname" ] && vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+      fi
       if [ -n "$vfycmd" ]; then
-        local x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-        local p=$($x &>/dev/null)
+        x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
+        p=$($x &>/dev/null)
         if [ $? -eq $STS_SUCCESS ]; then
           if [[ " $VFYERR " =~ [[:space:]]$cmdname[[:space:]] ]]; then
             pkgversion="$($vfycmd 2>&1 |head -n1)"
@@ -828,8 +823,6 @@ get_pkg_ver_inq() {
         elif [[ $2 =~ I ]]; then
           pkgversion="($pkgname).($vfycmd)"
         fi
-      # elif [[ $2 =~ I ]]; then
-      #   pkgversion="($pkgname).($vfycmd)"
       fi
       if [ "$pkgversion" ]; then
         declare $X="$pkgversion"
@@ -843,7 +836,7 @@ get_pkg_ver_pip() {
 # get_pkg_ver_pip(pkgname [OPTS])
 # return: pkgversion
     local pkgname="$1"
-    local stscmd=$(get_prm_value "${1}_stscmd")
+    local stscmd=pip
     local pkgversion=
     local x=
     local X="VER__${1//-/_}"
@@ -946,27 +939,29 @@ get_pkg_ver_git() {
     elif [[ $2 =~ J ]]; then
       :
     else
-      local xtlcmd=git
-      local git_opts=""
-      local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p
-      IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$4"
-      pkg_URL=$(get_full_URL "$1" $2 $3 $4 "$5")
-      subpkg=$(get_dir_URL "$1" $2 $3 $4 "$5")
-      local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
-      if [ -n "$pkg_URL" ]; then
+      # local xtlcmd=git
+      # local git_opts=""
+      # local s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch x p
+      # IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$4"
+      # pkg_URL=$(get_full_URL "$1" $2 $3 $4 "$5")
+      # subpkg=$(get_dir_URL "$1" $2 $3 $4 "$5")
+      # local pkg_branch="$(get_prm_value ${pkgname}_Branch)"
+      # if [ -n "$pkg_URL" ]; then
         do_git_localroot version $1 $2 $3 $4 "$5"
         if [ $? -eq $STS_SUCCESS ]; then
-          if [ -n "$pkg_branch" ]; then
-            pkgversion=$(basename $PWD)
-          else
-            pkgversion="N/A"
-          fi
+          # if [ -n "$pkg_branch" ]; then
+          #   pkgversion=$(basename $PWD)
+          # else
+          #   pkgversion="N/A"
+          # fi
           git status &>/dev/null
           if [ $? -eq 128 ]; then
             pkgversion=
+          else
+            pkgversion=$(git symbolic-ref --short HEAD)
           fi
         fi
-      fi
+      # fi
     fi
     [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "$pkgversion=get_pkg_ver_git($1 $2 $3 $4 $5)">>~/$THIS.his
     echo $pkgversion
@@ -977,33 +972,34 @@ get_pkg_ver() {
 # return: pkgversion
     [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "get_pkg_ver($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgname=$1
+    local cmd pkgversion stscmd
     local ij
     if [ "$1" == "EVERYTHINGS" ]; then
-      local pkgversion="# $pkgname N/A"
+      pkgversion="# $pkgname N/A"
     elif [[ " $DETECTED_NO " =~ [[:space:]]$1[[:space:]] ]]; then
-      local pkgversion=
+      pkgversion=
       ij=J
     elif [[ " $DETECTED_YES " =~ [[:space:]]$1[[:space:]] ]]; then
       ij=I
-      local pkgversion=$(get_pkg_ver_inq $1 ${2}$ij)
+      pkgversion=$(get_pkg_ver_inq $1 ${2}$ij)
     elif [[ " $SIMULATE_NO " =~ [[:space:]]$1[[:space:]] ]]; then
-      local pkgversion=
+      pkgversion=
       ij=J
     elif [[ " $SIMULATE_YES " =~ [[:space:]]$1[[:space:]] ]]; then
       ij=I
-      local pkgversion=$(get_pkg_ver_inq $1 ${2}$ij)
+      pkgversion=$(get_pkg_ver_inq $1 ${2}$ij)
     else
-      local pkgversion=$(get_pkg_ver_inq $1 $2)
+      pkgversion=$(get_pkg_ver_inq $1 $2)
     fi
     if [ -z "$pkgversion" -a "$ij" != "J" ]; then
       if $(is_virtualname $pkgname); then
         pkgversion="# $pkgname N/A"
       else
-        local stscmd=$(get_prm_value "${1}_stscmd")
+        stscmd=$(get_prm_value "${1}_stscmd")
         if [ "$stscmd" == "dpkg-query" ]; then
-          local cmd="get_pkg_ver_dpkg"
+          cmd="get_pkg_ver_dpkg"
         else
-          local cmd="get_pkg_ver_$stscmd"
+          cmd="get_pkg_ver_$stscmd"
         fi
         if [ "$(type -t $cmd)" == "function" ]; then
           pkgversion=$($cmd $1 $2$ij "$3" "$4")
@@ -1026,7 +1022,7 @@ get_act_xtlcmd() {
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     if [ -n "$x" ]; then
       xtlcmd=$x
-    else
+    elif [  -n "$2" ]; then
       xtlcmd=$(get_prm_value "${1}_xtlcmd_${2}")
     fi
     if [ -z "$xtlcmd"  -a "$2" == "remove" ]; then
@@ -1045,28 +1041,43 @@ get_act_xtlcmd() {
     echo "$xtlcmd"
 }
 
+get_all_xtlcmd() {
+# get_all_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
+    local x xtlcmd
+    x=$(get_act_xtlcmd $2 install "$3" "$4" "$5")
+    xtlcmd=$(get_act_xtlcmd $2 "" "$3" "$4" "$5")
+    if [ -n "$x" -a "$x" != "$xtlcmd" ]; then
+      xtlcmd="$x/$xtlcmd"
+    fi
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xtlcmd=get_all_xtlcmd($1 $2 $3 $4 $5)">>~/$THIS.his
+    echo $xtlcmd
+}
+
 get_full_xtlcmd() {
 # get_full_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
     local xtlcmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_act_xtlcmd($2 $1 $3)">>~/$THIS.his
     local pkg lop lreqver p rop rreqver branch x pkgURL subpkg
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     p=" $2"
     if [ "$2" == "EVERYTHINGS" ]; then
       p=""
     fi
-    if [ -z "$xtlcmd" -a -n "$x" ]; then
-      xtlcmd=$x
-    fi
-    if [ "$xtlcmd" == "yum" -o "$xtlcmd" == "apt-get" ]; then
+    # if [ -z "$xtlcmd" -a -n "$x" ]; then
+    #   xtlcmd=$x
+    # fi
+    pkgURL=$(get_full_URL "$1" "$2" "$3" "$4" "$5")
+    [ -n "$pkgURL" ] && p=" $pkgURL"
+    if [ "$xtlcmd" == "yum" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
       xtlcmd="$xtlcmd $1$p"
+    elif [ "$xtlcmd" == "apt-get" ]; then
+      if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
+      xtlcmd="$xtlcmd ${1/update/upgrade}$p"
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
         xtlcmd="$xtlcmd install$p$lop$lreqver$rop$rreqver --upgrade"
       else
-        xtlcmd="$xtlcmd $1$p$lop$lreqver$rop$rreqver"
-        xtlcmd="${xtlcmd/remove/uninstall}"
+        xtlcmd="$xtlcmd ${1/remove/uninstall}$p$lop$lreqver$rop$rreqver"
       fi
     fi
     if [[ $3 =~ I ]]; then
@@ -1086,7 +1097,7 @@ get_full_xtlcmd() {
 
 get_full_svccmd() {
 # get_full_svccmd(action svcname OPTS)
-    local servicecmd=$(get_realname "OSSERVICE" $3)
+    local servicecmd=$(get_realname "OSSERVICE" "" $3)
     if [ "$servicecmd" == "service" ]; then
       local cmd="$servicecmd $2 $1"
     else
@@ -1107,7 +1118,7 @@ get_full_svccmd() {
 
 get_full_autosvc() {
 # get_full_autosvc(on|off svcname OPTS)
-    local servicecmd=$(get_realname "OSSERVICE" $3)
+    local servicecmd=$(get_realname "OSSERVICE" "" $3)
     local cmd svccmd svcsts=$1
     if [ "$servicecmd" != "service" ]; then
       [ "$1" == "on" ] && svcsts="enable"
@@ -1456,9 +1467,11 @@ create_setup() {
     fi
     local BINLIST="$(get_prm_value ${pkgname}_binPkgList $pkgname)"
     local ETCLIST="$(get_prm_value ${pkgname}_etcPkgList $pkgname)"
+    local RQ_Z0LIB="$(get_prm_value ${pkgname}_build_with_z0libr)"
+    local RQ_OELIB="$(get_prm_value ${pkgname}_build_with_odoorc)"
     local datetime=$(date +"%Y-%m-%d %H:%M")
     if [ "$pkgname" == "lisa" ]; then
-      if [ $opt_dev -gt 0 ]; then
+      if [ -n "$opt_dev" ]; then
         cp ../../z0lib/z0lib/z0librc ./
         cp ../../clodoo/clodoo/odoorc ./
       else
@@ -1496,10 +1509,10 @@ if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
       if [ -f \$TDIR/\$f ]; then
         [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /usr/bin"
         [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$f /usr/bin
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f"
+        [ \$opt_dry_run -gt 0 ] || [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f
       fi
     done
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx chmod +x /usr/bin/\$pkgname*"
-    [ \$opt_dry_run -gt 0 ] || chmod +x /usr/bin/\$pkgname*
     for f in $ETCLIST; do
       if [ -f \$TDIR/\$f ]; then
         [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /etc/$THIS"
@@ -1508,8 +1521,10 @@ if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
     done
     [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
     [ \$opt_dry_run -gt 0 ] || cd \$TDIR
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx _install_z0librc"
-    [ \$opt_dry_run -gt 0 ] || _install_z0librc
+    [ \$opt_verbose -gt 0 -a $RQ_Z0LIB -gt 0 ] && echo "\$pfx _install_z0librc"
+    [ \$opt_dry_run -eq 0 -a $RQ_Z0LIB -gt 0 ] && _install_z0librc
+    [ \$opt_verbose -gt 0  -a $RQ_OELIB -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\odoorc /etc"
+    [ \$opt_dry_run -eq 0 -a $RQ_OELIB -gt 0 ] && eval \$cpmv \$TDIR/\odoorc /etc
     [ \$opt_verbose -gt 0 ] && echo "\$pfx cd .."
     [ \$opt_dry_run -gt 0 ] || cd ..
     if [ -d "./\$pkgname" ]; then
@@ -1750,7 +1765,6 @@ satisfy_request() {
     local s
     local pkgname=$2
     local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList list)"
-    # ReqPkgList="${ReqPkgList//,/ }"
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "    ${pkgname}_ReqPkgList=$ReqPkgList">>~/$THIS.his
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "")
     if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
@@ -1761,7 +1775,7 @@ satisfy_request() {
       fi
     fi
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  REQ=$ReqPkgList">>~/$THIS.his
-    if [ "$1" == "install" -a -n "$ReqPkgList" ]; then
+    if [ -n "$ReqPkgList" -a "$1" != "whatis" -a "$1" != "version" ]; then
       ((prdstk_level++))
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
       for p in $ReqPkgList; do
@@ -1783,7 +1797,7 @@ satisfy_request() {
 
 do_action_subpkg() {
 # do_action_subpkg(pfx action pkgname OPTS [param] [SPECIMEN])
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_action_subpkg($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_action_subpkg($1 $2 $3 $4 $5 $6)">>~/$THIS.his
     local p
     local x
     local rs=$(get_realname $3 $2 $4)
@@ -1810,27 +1824,27 @@ do_action_subpkg() {
         do_action_subpkg "$1" $2 $3 ${opts}Q $5 "$6"
         sts=$?
       fi
-      if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_action_subpkg">>~/$THIS.his; fi    #debug
+      [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_action_subpkg">>~/$THIS.his
       return $sts
     fi
-    verbose_msg "Analyzing $3"
+    if [ "$2" != "whatis" -a "$2" != "version" ]; then
+      verbose_msg "Analyzing $3"
+    fi
     opts=${opts//Q/}
     opts=${opts//q/}
     please $1$2 $3 $opts "$4" "$5" "$6"
     sts=$?
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_action_subpkg">>~/$THIS.his; fi    #debug
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_action_subpkg">>~/$THIS.his
     return $sts
 }
 
 
 do_act_all_deppkgs() {
 # do_act_all_deppkgs(pfx action pkgname OPTS [param] [SPECIMEN])
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_act_all_deppkgs($1 $2 $3 $4)">>~/$THIS.his; fi    #debug
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_act_all_deppkgs($1 $2 $3 $4)">>~/$THIS.his
     local sts=$STS_SUCCESS
     local s
     local BOPlist="$(get_prm_value ${3}_BOP list)"
-    # BOPlist="${BOPlist//,/ }"
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  BOPlist=$BOPlist($prdstk_level<$opt_depth)">>~/$THIS.his; fi    #debug
     if [ -n "$BOPlist" -a $prdstk_level -lt $opt_depth ]; then
       ((prdstk_level++))
       local p
@@ -1842,7 +1856,7 @@ do_act_all_deppkgs() {
       done
       ((prdstk_level--))
     fi
-    if [[ $4 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_act_all_deppkgs">>~/$THIS.his; fi    #debug
+    [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return($sts) #do_act_all_deppkgs">>~/$THIS.his
     return $sts
 }
 
@@ -2098,6 +2112,8 @@ do_dry_install_by_git() {
 # do_dry_install_by_git(action pkgname OPTS param [SPECIMEN])
 # if install submodule (OPTS =~ s) specimen contains top module name and version
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_by_git($1 $2 $3 $4 \"$5\")">>~/$THIS.his
+    local opt_dev
+    [[ $3 =~ D ]] && opt_dev="-D"
     local pkgname=$2
     local xtlcmd=git
     local f s sts pkg_subm subpkg pkg_URL git_opts pkg_user pkg_branch pkg lop lreqver rop rreqver branch n x p LocalDir add_subpkgs
@@ -2129,7 +2145,7 @@ do_dry_install_by_git() {
     do_git_localroot $1 $2 $3 $4 "$5"
     if [ $? -eq $STS_SUCCESS ]; then
       git_opts=""
-      if [ $opt_dev -eq 0 ]; then
+      if [ -n "$opt_dev" ]; then
         git_opts="--single-branch --depth=1 $git_opts"
       fi
       pkg_user=$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)
@@ -2232,22 +2248,22 @@ do_dry_install_by_git() {
 
 do_dry_update_package() {
 # do_dry_update_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his; fi #debug
-      cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-      run_traced "$cmd"
-      local sts=$?
-      if [ "${cmd:0:7}" == "apt-get" ]; then
-        cmd="${cmd/update/upgrade}"
-        run_traced "$cmd"
-        sts=$?
-      fi
-    # fi
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his
+    local cmd0
+    cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    if [ ${UPDATED:-0} -eq 0 ] && [[  $cmd =~ apt-get.*upgrade ]]; then
+      if [[ $3 =~ y ]]; then cmd0="apt-get -y update"; else cmd0="apt-get update"; fi
+      run_traced "$cmd0"
+      UPDATED=1
+    fi
+    run_traced "$cmd"
+    local sts=$?
     return $sts
 }
 
 do_dry_remove_lisa() {
 # do_dry_remove_lisa(action pkgname OPTS)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_remove_lisa($1 $2 $3)">>~/$THIS
     run_traced "rm /usr/bin/$2"
     run_traced "rm /usr/bin/${2}.*"
     run_traced "rm /usr/bin/${2}_*"
@@ -2256,7 +2272,7 @@ do_dry_remove_lisa() {
 
 do_dry_update_by_wget() {
 # do_update_by_wget(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_by_wget($1 $2 $3)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_by_wget($1 $2 $3)">>~/$THIS.his
     local pkgname=$2
     local xtlcmd=wget
     local LocalRoot="$(get_prm_value ${pkgname}_${xtlcmd}_LocalRoot)"
@@ -2291,29 +2307,28 @@ do_dry_update_by_wget() {
 
 do_whatis_ports() {
 # do_whatis_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_whatis_ports($1 $2 $3)">>~/$THIS.his; fi #debug
-    local lm x=$((prdstk_level*2+1))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_whatis_ports($1 $2 $3)">>~/$THIS.his
+    local lm X x=$((prdstk_level*2+1))
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    local X="$(get_prm_value TCP_$2)"
+    X="$(get_prm_value TCP_$2)"
     if [ -n "$X" ]; then
       for port in $X; do
         test_msg "$lm TCP port $port"
       done
     fi
-    local X="$(get_prm_value UDP_$pkgname)"
+    X="$(get_prm_value UDP_$pkgname)"
     if [ -n "$X" ]; then
       for port in $X; do
         test_msg "$lm UDP port $port"
       done
     fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_whatis_ports">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_whatis_ports">>~/$THIS.his
     return $STS_SUCCESS
 }
 
 post_install_ports() {
 # post_install_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_install_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_install_ports($1 $2 $3)">>~/$THIS.his
     local X="$(get_prm_value TCP_$2)"
     if [ -n "$X" ]; then
       if [ "$1" == "install" -o "$1" == "update" -o "$1" == "config" ]; then
@@ -2398,7 +2413,7 @@ post_dry_update_service() {
 
 pre_dry_install_LAMP() {
 # pre_dry_install_LAMP(action pkgname OPTS)
-    if [ $opt_dev -gt 0 ]; then
+    if [[ $3 =~ D ]]; then
       if [ "$FH" == "RHEL" ]; then
         run_traced "yum $opt_yes groupinstall \"Development tools\""
       fi
@@ -2480,7 +2495,7 @@ pre_dry_config_odoo() {
     if [ -z $(grep "^$user:" $sysfile 2>/dev/null) ]; then
       if [ ! -d /opt/odoo ]; then cmd="useradd -m"; else cmd="useradd"; fi
       if [ "$ODOO_UID" ]; then
-        run_traced "$cmd -u "$ODOO_UID" -g odoo -d /opt/odoo -s /bin/bash $user"
+        run_traced "$cmd -u $ODOO_UID -g odoo -d /opt/odoo -s /bin/bash $user"
       else
         run_traced "$cmd -r -g odoo -d /opt/odoo -s /bin/bash $user"
       fi
@@ -2517,7 +2532,6 @@ do_dry_status_package() {
 # do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
     local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
     sts=$?
@@ -2539,7 +2553,6 @@ do_dry_version_package() {
     local xtlcmd
     local cmd
     local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
     if [ $? -ne $STS_SUCCESS ]; then
@@ -2553,11 +2566,7 @@ do_dry_version_package() {
       if [ -z "$pkgversion" ]; then
         pkgversion="$pkgname: unknown version"
       fi
-      # if [ $opt_quiet -gt 0 ]; then
-      #   cmd="wlog \"$pkgversion\""
-      # else
-        cmd="wlog \"$lm$pkgname: $pkgversion\""
-      # fi
+      cmd="wlog \"$lm$pkgname: $pkgversion\""
     fi
     eval $cmd
     return $STS_SUCCESS
@@ -2565,24 +2574,20 @@ do_dry_version_package() {
 
 do_dry_whatis_package() {
 # do_dry_whatis_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his; fi    #debug
-    local lm x=$((prdstk_level*2))
-    # local lm=$(printf "%${x}.${x}s" " "|sed y'/ /-/')
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_whatis_package($1 $2 $3)">>~/$THIS.his
+    local cmdname lm msg svcname vfycmd xtlcmd x=$((prdstk_level*2))
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
-    local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
-    if [ -z "$xtlcmd" ]; then
-      xtlcmd=$(get_act_xtlcmd $2 "" $3 $4 "$5")
-    fi
-    local svcname=$(get_prm_value "${2}_svcname")
-    local cmdname=$(get_prm_value "${2}_cmdname")
-    local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+    xtlcmd=$(get_all_xtlcmd $1 $2 $3 $4 "$5")
+    svcname=$(get_prm_value "${2}_svcname")
+    cmdname=$(get_prm_value "${2}_cmdname")
+    vfycmd=$(get_prm_value "${cmdname}_vfycmd")
     if [ -n "$vfycmd" ]; then
-      local msg="$lm$2 (by $xtlcmd)($vfycmd)"
+      msg="$lm$2 (by $xtlcmd)($vfycmd)"
     else
-      local msg="$lm$2 (by $xtlcmd)"
+      msg="$lm$2 (by $xtlcmd)"
     fi
     test_msg "$msg"
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_dry_whatis_package">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #do_dry_whatis_package">>~/$THIS.his
     return $STS_SUCCESS
 }
 
@@ -2594,7 +2599,7 @@ do_deploy_package() {
     local LocalTmp=$5
     local cmd OPTS s sts
     [ $opt_dry_run -gt 0 ] && OPTS=${OPTS}n
-    [ $opt_verbose -gt 0 ] && PTS=${OPTS}v
+    [ $opt_verbose -gt 0 ] && OPTS=${OPTS}v
     [ -n "$OPTS" ] && OPTS=-${OPTS}
     if [ $test_mode -gt 0 ]; then
       cd $RUNDIR
@@ -2616,19 +2621,22 @@ do_deploy_package() {
     elif [ "${tarball: -4}"  == ".deb" ]; then
       s="$pkgname~~~~~~apt-get"
       cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
+      if [ ${UPDATED:-0} -eq 0 ] && [[  $cmd =~ apt-get.*upgrade ]]; then
+        if [[ $3 =~ y ]]; then cmd0="apt-get -y update"; else cmd0="apt-get update"; fi
+        run_traced "$cmd0"
+        UPDATED=1
+      fi
       run_traced "$cmd"
       sts=$?
-      if [ "$1" == "update" ]; then
-        cmd="${cmd/update/upgrade}"
-        run_traced "$cmd"
-        sts=$?
-      fi
     elif [ "${pkgname:0:7}" == "python-" ]; then
       local s="$pkgname~~~~~~pip"
       local cmd=$(get_full_xtlcmd $1 $tarball "$3" "" "$s")
       run_traced "$cmd"
       sts=$?
     else
+      if [ -d ./$pkgname ]; then
+        run_traced "rm -fR ./$pkgname"
+      fi
       run_traced "tar -xf $tarball"
       if [ -d ./$pkgname ]; then
         run_traced "cd ./$pkgname"
@@ -2656,17 +2664,22 @@ do_deploy_package() {
 
 do_dry_install_lisa() {
 # check if 1.st installation 
-    local OPTS sts
+    local OPTS sts SETUP
     [ $opt_dry_run -gt 0 ] && OPTS=${OPTS}n
-    [ $opt_verbose -gt 0 ] && PTS=${OPTS}v
+    [ $opt_verbose -gt 0 ] && OPTS=${OPTS}v
     [ -n "$OPTS" ] && OPTS=-${OPTS}
-    if [ "$TDIR" != "/usr/bin" -a ! -f ./setup.sh ]; then
-      create_setup lisa ./setup.sh
+    if [ -f ./setup.sh ]; then
+      SETUP=./setup.sh
+    elif [ -f $TDIR/setup.sh ]; then
+      SETUP=$TDIR/setup.sh
+    elif [ "$TDIR" != "/usr/bin" -a ! -f ./setup.sh ]; then
+      SETUP=./setup.sh
+      create_setup lisa $SETUP
     fi
-    if [ "$TDIR" != "/usr/bin" -a -f ./setup.sh ]; then
-      [ $opt_dry_run -gt 0 ] && echo "> ./setup.sh $OPTS"
-      [ $opt_dry_run -eq 0 -a $opt_verbose -gt 0 ] && echo "\$ ./setup.sh $OPTS"
-      ./setup.sh $OPTS
+    if [ "$TDIR" != "/usr/bin" -a -f $SETUP ]; then
+      [ $opt_dry_run -gt 0 ] && echo "> $SETUP $OPTS"
+      [ $opt_dry_run -eq 0 -a $opt_verbose -gt 0 ] && echo "\$ $SETUP $OPTS"
+      $SETUP $OPTS
       sts=$?
     else
       echo "!! File ./setup.sh not found!"
@@ -2775,9 +2788,19 @@ do_dry_config_package() {
 do_dry_install_package() {
 # do_dry_install_package(action pkgname OPTS [param] [SPECIMEN])
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_install_package($1 $2 $3)">>~/$THIS.his
-    local cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
+    local cmd pkgname xcmd
+    cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his
     run_traced "$cmd"
+    cmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
+    pkgname=$(get_realname "$2" "update" $3)
+    # [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $pkgname=get_realname($2 update $3);">>~/$THIS.his
+    xcmd=$(get_act_xtlcmd $pkgname "update" "$3" "$4" "$5")
+    # [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xcmd=get_act_xtlcmd($pkgname update $3 $4 $5);">>~/$THIS.his
+    if [ "$cmd" != "$xcmd" -a "$xcmd" == "pip" ]; then
+      xcmd=$(get_full_xtlcmd "update" $pkgname $3 $4 "$5")
+      run_traced "$xcmd"
+    fi
     return $?
 }
 
@@ -2786,7 +2809,7 @@ do_1_tellme_package() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his
     local pkg lop lreqver rop rreqver branch x xtlcmd
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    local pkgname=$(get_realname "$2" $3)
+    local pkgname=$(get_realname "$2" "" $3)
     local sts=$STS_SUCCESS
     if [ "$4" == "realname" ]; then
       local iter=$(get_iter $pkgname $3)
@@ -2842,7 +2865,7 @@ do_1_tellme_package() {
 
 do_1_status_package() {
 # do_1_status_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_status_package($1 $2 $3 $4 $5)">>~/$THIS.his
     local pkgversion=$(get_pkg_ver $2 $3 $4 "$5")
     [ -n "$pkgversion" ]
     return $?
@@ -2852,15 +2875,14 @@ do_1_info_package() {
 # do_1_info_package(action pkgname OPTS [param] [SPECIMEN])
 # - info receives cmdline pkgname, no realname
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his
-    local pkgname=$(get_realname "$2" $3)
+    local pkgname=$(get_realname "$2" "" $3)
     local pkglist=$(please tellme $2 $3 realname)
-    local xtlcmd=$(get_act_xtlcmd $pkgname install $3 $4 "$5")
-    if [ -z "$xtlcmd" ]; then
-      xtlcmd=$(get_act_xtlcmd $pkgname "" $3 $4 "$5")
-    fi
+    local p=$(get_realname "$2" "install" $3)
+    local xtlcmd=$(get_all_xtlcmd "" $p $3 $4 "$5")
     local svcname=$(get_prm_value "${pkgname}_svcname")
     local cmdname=$(get_prm_value "${pkgname}_cmdname")
     local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+    local req=$(get_prm_value "${2}_ReqPkgList")
     if [[ $pkglist =~ = ]]; then
       echo "$pkglist (install by $xtlcmd)"
     else
@@ -2870,18 +2892,11 @@ do_1_info_package() {
         echo "$2=$pkgname (install by $xtlcmd)"
       fi
     fi
-    if [ -n "$svcname" ]; then
-      echo " service=$svcname"
-    fi
-    if [ -n "$cmdname" ]; then
-      echo " command=$cmdname"
-    fi
-    if [ -n "$vfycmd" ]; then
-      echo " get_ver=$vfycmd"
-    fi
-    if [ -n "$PKG_CONF" ]; then
-      echo " infn=$PKG_CONF $SAMPLE"
-    fi
+    [ -n "$svcname" ] && echo "  service=$svcname"
+    [ -n "$cmdname" ] && echo "  command=$cmdname"
+    [ -n "$vfycmd" ] && echo "  get_ver=$vfycmd"
+    [ -n "$req" ] && echo "  requirements=$req"
+    [ -n "$PKG_CONF" ] && echo "  infn=$PKG_CONF $SAMPLE"
     return $STS_SUCCESS
 }
 
@@ -3043,14 +3058,14 @@ do_iter_prod() {
     if [[ $3 =~ [qQ] ]]; then
       return 127
     fi
-    set_from_conf_pkg "$pkgname" "" $3
+    set_from_conf_pkg "$2" "" $3
     if [ "$act" == "info" ]; then
       return 127
     fi
     iter=$(get_iter $pkgname $3)
     if [ "$act" == "tellme" ]; then
       specimen=$(get_specimen $2 "$act" $3)
-      do_1_tellme_package $1 $2 $3 $4 "$specimen"
+      do_1_tellme_package $1 $2 "$3" "$4" "$specimen"
       return $?
     fi
     if [ "$pkgname" == "$iter" ]; then
@@ -3059,9 +3074,9 @@ do_iter_prod() {
     for p in $iter; do
       if [ "$p" == "$2" -o "$p" == "$pkgname" ]; then
          if [[ $3 =~ b ]]; then local x="-Qb"; else local x="-Q"; fi
-         please $1 $p $x "$4" "$5"
+         please $1 $p "$x" "$4" "$5"
        else
-         please $1 $p $3 "$4" "$5"
+         please $1 $p "$3" "$4" "$5"
        fi
        local sts=$?
        if [ $sts -ne $STS_SUCCESS ]; then
@@ -3078,13 +3093,14 @@ please() {
 # TODO [RHEL] yum search 'pkgname'
     if [ -z "$prdstk_level" ]; then prdstk_level=0; fi
     if [ -z "$conf_level" ]; then conf_level=0; fi
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "please($1 $2 $3 $4 $5)">>~/$THIS.his; fi #debug
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "please($1 $2 $3 $4 $5)">>~/$THIS.his
     local act BOPcmd BOPcmd1 BOPcmd2 ij lm pfx pkgname s specimen svcname x
     do_iter_prod "$@"
     local sts=$?
     if [ $sts -ne 127 ]; then
       return $sts
     fi
+    set_from_conf_pkg "$2" "" $3
     sts=$STS_SUCCESS
     x=$((prdstk_level*2))
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
@@ -3094,7 +3110,6 @@ please() {
       pkgname=$2
     else
       pkgname=$(get_realname $2 "$act" $3)
-      # set_from_conf_pkg "$2"
     fi
     specimen=$(get_specimen $2 "$act" $3)
     if [ -n "$5" -a -z "$specimen" ]; then
@@ -3155,8 +3170,8 @@ please() {
 # main
 OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           s         T         u       V           v           y       1)
 OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      1       "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       0       ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
+OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
 OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "undocumented"\
@@ -3211,7 +3226,7 @@ else
   FLOG=~/$THIS.log
 fi
 get_arch "$opt_osf"
-set_tlog_file "$FLOG"
+set_tlog_file "$FLOG" "" $OPTS
 if [ -n "$opt_odoo" ]; then
   if [ "opt_oed" != "odoo" -a "opt_oed" != "oca" -a "opt_oed" != "zeroincombenze" ]; then
     opt_oed="zeroincombenze"
@@ -3219,6 +3234,7 @@ if [ -n "$opt_odoo" ]; then
 fi
 opt_aaeR=$(echo "0$opt_aae"|awk -F, '{print $1}')
 opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
+UPDATED=0
 
 for tid in 0 1 2 3; do
   CFG_init $tid
@@ -3227,15 +3243,22 @@ prdstk_level=0
 conf_level=0
 declare -a CONF_FNS
 conf_default
-link_cfg $FCONF $FCONFDEF
-set_from_conf_pkg lisa lisa.conf
+# link_cfg $FCONF $FCONFDEF
+if [ ${opt_dbg:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi
+OPTS="-$opt_dev"
+if [ ${opt_grf:-0} -gt 0 ]; then OPTS="${OPTS}g"; fi
+if [ ${opt_dbg:-0} -gt 0 ]; then OPTS="${OPTS}b"; fi
+if [ ${opt_nopip:-0} -gt 0 ]; then OPTS="${OPTS}p"; fi
+OPTS=${OPTS//--/-}
+# get_conf_pkg lisa.conf "" "" $OPTS
+set_from_conf_pkg "lisa" "lisa.conf" $OPTS
 if [ -n "$opt_xtly" ]; then
   SIMULATE_YES=" ${opt_xtly//,/ } "
 fi
 if [ -n "$opt_xtln" ]; then
   SIMULATE_NO=" ${opt_xtln//,/ } "
 fi
-init_cfg_pkg "$pkg"
+# init_cfg_pkg "$pkg"
 if [ $test_mode -gt 0 -a "$action" != "update" ]; then
   if [[ " $SIMULATE_YES " =~ [[:space:]]apache2[[:space:]] ]]; then
     SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443 port_tcp_21"
@@ -3280,15 +3303,9 @@ if [ $test_mode -gt 0 ]; then
   fi
   opt_yes=1
 fi
-OPTS="-"
 if [ ${opt_yes:-0} -gt 0 ]; then OPTS="${OPTS}y"; fi
-if [ ${opt_dev:-0} -gt 0 ]; then OPTS="${OPTS}D"; fi
-if [ ${opt_grf:-0} -gt 0 ]; then OPTS="${OPTS}g"; fi
-if [ ${opt_dbg:-0} -gt 0 ]; then OPTS="${OPTS}b"; fi
-if [ ${opt_nopip:-0} -gt 0 ]; then OPTS="${OPTS}p"; fi
 wlog "# $THIS $__version__ running on $(xuname -a)"
 wlog "# Setup for $FH family"
-if [ ${opt_dbg:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi    #debug
 
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
@@ -3319,15 +3336,15 @@ elif [ "$action" == "import" ]; then
   wlog "Creating users"
   add_users
   ending_msg
-elif [ "$action" == "debug" ]; then
-   echo "[options]">lisa.conf.sample
-   jy=0
-   p=""
-   while ((jy<${#DEFPRM[*]})); do
-     echo "${DEFPRM[jy]}=${DEFVAL[jy]}"
-     echo "${DEFPRM[jy]}=${DEFVAL[jy]}">>lisa.conf.sample
-     ((jy++))
-   done
+# elif [ "$action" == "debug" ]; then
+#    echo "[options]">lisa.conf.sample
+#    jy=0
+#    p=""
+#    while ((jy<${#DEFPRM[*]})); do
+#      echo "${DEFPRM[jy]}=${DEFVAL[jy]}"
+#      echo "${DEFPRM[jy]}=${DEFVAL[jy]}">>lisa.conf.sample
+#     ((jy++))
+#    done
 else
   actions=${action//+/ }
   actions=${actions//,/ }

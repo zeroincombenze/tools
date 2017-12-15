@@ -1,6 +1,6 @@
 > yum -y install wget
 > yum -y install git
-> /opt/odoo/dev/pypi/lisa/lisa/setup.sh -nv
+> ./setup.sh -nv
 > mkdir -p /etc/lisa
 > cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
 > [ -x /usr/bin/lisa ] && chmod +x /usr/bin/lisa
