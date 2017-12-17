@@ -317,10 +317,6 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > apt-get -y upgrade python-virtualenv
 > pip install virtualenv --upgrade
 > apt-get -y upgrade libreadline6
-> apt-get -y upgrade python-libxslt1
-> apt-get -y upgrade libxml2
-> apt-get -y upgrade python-libxml2
-> pip install lxml --upgrade
 > pip install psycopg2 --upgrade
 > pip install simplejson --upgrade
 > pip install xlwt --upgrade
@@ -328,6 +324,7 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 > pip install gdata --upgrade
 > pip install python-ldap --upgrade
 > pip install pytz --upgrade
+> pip install requests --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.06.test
 > yum -y install python-wheel
@@ -337,16 +334,13 @@ EOF
 > yum -y update python-virtualenv
 > pip install virtualenv --upgrade
 > yum -y update readline
-> yum -y update libxslt-python
-> yum -y update libxml2
-> yum -y update libxml2-python
-> pip install lxml --upgrade
 > pip install simplejson --upgrade
 > pip install xlwt --upgrade
 > pip install PyYAML --upgrade
 > pip install gdata --upgrade
 > pip install python-ldap --upgrade
 > pip install pytz --upgrade
+> pip install requests --upgrade
 > pip install psycopg2 --upgrade
 EOF
 fi

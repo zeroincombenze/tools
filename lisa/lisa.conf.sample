@@ -182,7 +182,7 @@ VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
 VFYE2NL=None
 VFYERR=ssh,python
 NOINQ=vsftpd,postgresql-client-common,postgresql-contrib,ghostscript,odoo
-NAME_VIRTUAL=LAMP
+NAME_VIRTUAL=LAMP,PYTHON_LIB_XML
 # Packages migrated into pip; format yum_apt-get_name/pip_name
 PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-pyparsing/pyparsing,python-beaker/beaker,\
@@ -223,6 +223,8 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem
 openssh-server_cmdname=NULL
 TCP_openssh-server=22
+vsftpd_svcname=vsftpd
+TCP_vsftpd=21
 
 
 [_Debian_]
@@ -300,7 +302,7 @@ openssh-server_svcname=sshd
 
 
 [_RHEL_DEV_]
-openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
+openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils,telnet
 
 
 [_Ubuntu12_]

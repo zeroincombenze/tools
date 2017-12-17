@@ -1,8 +1,7 @@
-# Python Configuration file
-# Please, if you update this configuratione file, send a copy to
+# Python Configuration file for regression test
+# DO not use thi configuration file. It is designed just to regression test
 # antoniomaria.vigliotti@gmail.com
-# so your configuration should be shared with other people.
-# Last update: 2016-09-24
+# Last update: 2017-12-15
 #
 # This file may be deployed in /etc/lisa directory.
 # See /etc/lisa/lisa.conf.sample for example of configuration file
@@ -12,7 +11,7 @@
 # for furthermore information
 #
 [_Linux_]
-SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact.web,website
+# SubPkgList=account-closing,account-invoicing,account-payment,bank-payment,knowledge,l10n-italy,partner-contact.web,website
 
 
 [_Debian_]

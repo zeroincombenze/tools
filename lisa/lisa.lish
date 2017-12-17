@@ -19,10 +19,20 @@ mysql-server_BOP=libapache2-mod-auth-mysql
 [_Debian_]
 apache2_BOP=vsftpd
 php5_BOP=php5-mysql,php5-common,php5-xml,php5-cli
+TCP_apache2=80,443
+apache2_cmdname=apachectl
+apache2_svcname=apache2
+apache2_FINDCFN=/etc/apache2 /etc/httpd;
+apache2_confn=apache2.conf
 
 
 [_RHEL_]
 php_BOP=php-mysql,php-common,php-xml,php-cli
+TCP_httpd=80,443
+httpd_cmdname=apachectl
+httpd_svcname=httpd
+httpd_FINDCFN=/etc/httpd /etc/apache2;
+httpd_confn=httpd.conf
 
 
 [_CentOS7_]

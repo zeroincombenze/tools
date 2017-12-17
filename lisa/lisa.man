@@ -13,14 +13,14 @@ and/or Odoo server.
 LAMP means \fBLinux\fR \fIApache\fR \fIMysql\fR (now \fIMariadb\fR) \fIPHP\fR;
 in recent times, \fIPython\fR and \fIPostgresql\fR were added.
 .br
-Please pay attention software name may be replaced by \fBlisa\fR, based on
+Please pay attention, software name may be replaced by \fBlisa\fR, based on
 Linux distribution and version, in order to build server in standard way,
 everytime and everywhere; i.e. when you type \fIlisa install apache2\fR and your
-machine is running CentOS, your command is substituted by \fIlisa install httpd\fR
+machine is running CentOS, your command is replaced by \fIlisa install httpd\fR
 because apache2 package is httpd on CentOS.
 .br
 \fBlisa\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR,
-\fIpip\fR, \fIgit\fR, \fIwget\fRand other commands, because it is not a real package installer.
+\fIpip\fR, \fIgit\fR, \fIwget\fRand other commands, it is not a real package installer.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros,
 \fBapt-get\fR on Ubuntu and Debian family distros. May be \fBlisa\fR installs
 some other package if required by installation process, like \fBpip\fR or \fBgit\fR
@@ -36,12 +36,11 @@ real package name you will manage)
 .br
 You can easily build your personal package and distribute your software.
 Package configuration file describes your package, dependencies and installation
-requirement in simple way.
-Type \fIlisa whatis PKGNAME\fR command to see how PKGNAME is defined.
+requirement in simple way so you can easily edit one
 .br
 See /etc/lisa/lisa.conf.sample to understand how to build your package configuration file.
 .br
-All operations are traced in \fI/var/log/lisa.log\fR; option -L can set another tracelog.
+All operations are traced in \fI/var/log/lisa.log\fR; switch -L can set another tracelog.
 .br
 Using -n switch, you can simply use \fIlisa\fR just to see which command you
 should issue to manage PKGNAME software. If you use the tool stdout2wiki you can
@@ -93,27 +92,33 @@ may be installed by different software (i.e. yum/apt-get or pip or git)
 \fBinstall\fR
 .RS
 Install selected package(s); before install every package, requirements are checked.
-Requirements are declared by \fIReqPkgList\fR parameter, comma separated. The
-standard installers like apt-get and yum do not be declared; pip, wget, git and
-other installer software must be declared in order to install.
+Requirements are declared by \fIReqPkgList\fR parameter, comma separated in
+configuration file. The standard installers apt-get and yum must not be declared;
+pip, wget, git and other installer software must be declared in order to install package.
 .br
-if a package is already installed, is ignored and sub packages are not examined. To install package, \fBlisa\fR choices one
-of \fIyum\fR, \fIapt-get\fR or \fIpip\fR.
-To install \fBlisa\fR, for the first time download files in /tmp and type \fI./lisa install lisa\fR
+With package, may be installed some sub packages, declared by by \fIBOP\fR
+parameter, comma separated in configuration file.
+.br
+If a package is already installed, is ignored and sub packages are not examined.
+This behaviour  may be changed by -e switch. Sub packages may nested.
+Before install package, \fBlisa\fR choices one of \fIyum\fR, \fIapt-get\fR,
+\fIpip\fR or other installer.
 .br
 See http://wiki.zeroincombenze.org/en/Lisa page for furthermore informations.
 .br
 With optional switch -D and -w, also other packages are added to installation list.
 If package name is LAMP, \fBlisa\fR installes a full server and gcc compiler.
 .br
-When Odoo is required, \fBlisa\fR installes git and issue \fIgit clone\fR command from github.com
-in two ways:
+When Odoo is required, \fBlisa\fR installes git and issue \fIgit clone\fR command
+from github.com in two ways:
 .br
 1. If -D switch is set (development environment), Odoo is installed and
-deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is 7.0, 8.0, 9.0 or 10.0;
+deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is
+6.1, 7.0, 8.0, 9.0, 10.0 or 11.0;
 .br
 2. If no development enviroment is set by -D switch, Odoo
-is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is 7.0 or 8.0, 9.0 or 10.0;
+is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is
+6.1, 7.0, 8.0, 9.0, 10.0 or 11.0;
 .br
 The -o switch must be declared to select Odoo repository to clone (see -o option)
 .br
@@ -126,13 +131,15 @@ The -s switch add sub-module during installation; see -s option
 .br
 \fBupdate\fR
 .RS
-Update/upgrade package(s) to last version; means \fIyum update\fR, \fIapt-get upgrade\fR or \fIpip install --upgrade\fR.
-Dependent sub packages will be updated/upgraded too, or installed if needed in order to align LAMP installation.
+Update/upgrade package(s) to last version; means \fIyum update\fR,
+\fIapt-get upgrade\fR or \fIpip install --upgrade\fR.
+Depending sub packages will be updated/upgraded too, or installed if needed
+in order to align package installation.
 Optional switch -D and -w can include more packages to update.
 .br
 This action may be also used to add development packages; i.e. after issued \fIlisa install LAMP\fR
 a full LAMP server is created without development packages. Typing \fIlisa -D update LAMP\fR adds
-develepment packages.
+development packages.
 .br
 When Odoo is required, \fBlisa\fR update issuing \fIgit pull origin\fR command from github.com
 .br
@@ -143,16 +150,17 @@ To update submodules use -l and -s switches
 .br
 \fBconfig\fR
 .RS
-Config package(s) after installation or update. Configuration can issue interactive input requestes.
+Config package(s) after installation or update. Configuration can issue interactive input requests.
 .RE
 .br
 
 .br
 \fBremove\fR
 .RS
-Remove a package but not all dependent sub packages. Notice: it is not possible remove all LAMP packages together
+Remove a package but not all dependent sub packages. -d (max depth) switch can
+modify this behavior.
 .br
-Warning: this command can remove subpackages used by other software.
+Warning: with high depth, this command could remove sub packages used by other software.
 .RE
 .br
 
@@ -175,9 +183,11 @@ Optional switch -D and -w can include more packages.
 .br
 \fBwhatis\fR
 .RS
-Display installation package tree; main packages is identified by single hyphen, dependent packages by double hyphens;
+Display installation package tree; main packages is identified by single hyphen,
+depending packages by double hyphens;
 Optional switch -D and -w can include development and graphical interface packages too.
-Special swith -E show list for the other linux distributions. it is suppled for training.
+Special swith -E show list for the other linux distributions.
+It is supplied for training purpose.
 .RE
 .br
 
@@ -210,14 +220,15 @@ Warning! This command add new users and groups into system
 Manage development package(s) too. With this option, packages like pkg-dev or pkg-devel are included in list.
 Usage for deploy a development machine.
 .br
-If LAMP installation is required, this switch installes gcc compiler
+If LAMP installation is required, this switch installs gcc compiler
 .TP
 .BR \-E \fIlinux_disto\fR
-This option activate package(s) for selected Linux distribution. It is useful to see which are package name in other
-distribution. \fIlinux_disto\fR may be on of CentOS6,CentOS7,Ubuntu12 or Ubuntu14.
-\fBWarning!\fR Use this switch just with command \fIwhatis\fR.
-Do not use this switch in conjuntion of command \fIinstall\fR or \fIupdate\fR because
-operations will fail.
+This option activate package(s) for selected Linux distribution.
+It is useful to see which are package name in other distribution.
+\fIlinux_disto\fR may be one of CentOS6,CentOS7,Ubuntu12 or Ubuntu14.
+\fBWarning!\fR Use this switch just on command \fIwhatis\fR.
+Do not use this switch in conjunction of command \fIinstall\fR or \fIupdate\fR
+because operations could fail.
 .TP
 .BR \-e \f0-4\fR
 action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)
