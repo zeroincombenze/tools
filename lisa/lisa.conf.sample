@@ -103,6 +103,7 @@
 #     installation or upgrade <pkgname> if -g switch supplied
 # <pkgname>_binPkgList
 #     file list (comma separated) in /bin or /usr/bin to include when buil tarball
+# <pkgname>_Branch             valid versions when multiversion package
 # <pkgname>_build_fileignore
 #     file list (comma separated) to ignore when build tarball
 #     (parameter ignored if PkgList supplied)
@@ -137,6 +138,7 @@
 #     main directory where package is deployed when wget is installer
 # <pkgname>_install_LocalTmp
 #     local temporary directory during install (default /tmp)
+# <pkgname>_install_LocalUser  if supplied execute install as specific user (format group:user)
 # <pkgname>_install_md5        if supplied, complete URL with md5
 # <pkgname>_install_xname
 #     filename to download from URL (appended to URL before wget download)

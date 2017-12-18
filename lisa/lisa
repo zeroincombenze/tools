@@ -1051,28 +1051,63 @@ get_all_xtlcmd() {
 get_full_xtlcmd() {
 # get_full_xtlcmd(action pkgname OPTS [param] [SPECIMEN])
     local xtlcmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
-    local pkg lop lreqver p rop rreqver branch x pkgURL subpkg
+    local git_opts pkg LocalDir lop lreqver pLocalDir pkgname rop rreqver branch x pkgURL subpkg
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    p=" $2"
-    if [ "$2" == "EVERYTHINGS" ]; then
-      p=""
+    if [[ $3 =~ s ]]; then
+      subpkg=" $2"
+      pkgname=" ${pkg}__$2"
+      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
+      if [ -z "$pkg_URL" ]; then
+         pkg_URL="$(get_prm_value ${pkg}_${xtlcmd}_URL)"
+         pkg_URL=${pkg_URL%/*}/$subpkg.git
+      else
+        subpkg=$(basename $pkg_URL)
+        if [ "${subpkg: -4}" == ".git" ]; then
+          subpkg=${subpkg:0: -4}
+        fi
+      fi
+    else
+      pkgname=" $2"
+      if [ "$2" == "EVERYTHINGS" ]; then
+        pkgname=""
+      fi
+      pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
     fi
-    # if [ -z "$xtlcmd" -a -n "$x" ]; then
-    #   xtlcmd=$x
-    # fi
-    pkgURL=$(get_full_URL "$1" "$2" "$3" "$4" "$5")
-    [ -n "$pkgURL" ] && p=" $pkgURL"
     if [ "$xtlcmd" == "yum" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
-      xtlcmd="$xtlcmd $1$p"
+      xtlcmd="$xtlcmd $1$pkgname"
     elif [ "$xtlcmd" == "apt-get" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
-      xtlcmd="$xtlcmd ${1/update/upgrade}$p"
+      xtlcmd="$xtlcmd ${1/update/upgrade}$pkgname"
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
-        xtlcmd="$xtlcmd install$p$lop$lreqver$rop$rreqver --upgrade"
+        xtlcmd="$xtlcmd install$pkgname$lop$lreqver$rop$rreqver --upgrade"
       else
-        xtlcmd="$xtlcmd ${1/remove/uninstall}$p$lop$lreqver$rop$rreqver"
+        xtlcmd="$xtlcmd ${1/remove/uninstall}$pkgname$lop$lreqver$rop$rreqver"
+      fi
+    elif [ "$xtlcmd" == "git" ]; then
+      if [[ $3 =~ s ]]; then
+        pLocalDir="$(get_prm_value ${pkg}_${xtlcmd}_LocalDir)"
+        pkg_branch="$(get_prm_value ${pkg}_Branch)"
+      else
+        pLocalDir="$(get_prm_value ${pkgname}_${xtlcmd}_LocalDir)"
+        pkg_branch="$(get_prm_value ${pkgname}_Branch)"
+      fi
+      [ -n "$pLocalDir" ] && LocalDir=$(expand_param $pLocalDir $branch)
+      if [ -z "$opt_dev" ]; then
+        git_opts="--single-branch --depth=1 $git_opts"
+      else
+        git_opts=""
+      fi
+      if [ -n "$pkg_branch" ]; then
+        git_opts="-b $branch $git_opts"
+      else
+        branch=
+      fi
+      if [[ $3 =~ s ]]; then
+        xtlcmd "git clone $pkg_URL $subpkg/ $git_opts"
+      else
+        xtlcmd="git clone $pkg_URL $LocalDir $git_opts"
       fi
     fi
     if [[ $3 =~ I ]]; then
@@ -1158,24 +1193,24 @@ get_full_confn() {
     echo "$confn"
 }
 
-get_dir_URL() {
-# get_dir_URL(action pkgname OPTS [param] [SPECIMEN])
-    local pkg lop lreqver rop rreqver branch x pkgURL subpkg
-    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    local xtlcmd=$(get_act_xtlcmd $2 "$1" $3 $4 $5)
-    subpkg=$2
-    if [[ $3 =~ s ]]; then
-      pkg_URL="$(get_prm_value ${pkg}__${2}_${xtlcmd}_URL)"
-      if [ -n "$pkg_URL" ]; then
-        subpkg=$(basename $pkg_URL)
-        if [ "${subpkg: -4}" == ".git" ]; then
-          subpkg=${subpkg:0: -4}
-        fi
-      fi
-    fi
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$subpkg=get_dir_URL($1 $2 $3 $4 $5)">>~/$THIS.his
-    echo "$subpkg"
-}
+# get_dir_URL() {
+# # get_dir_URL(action pkgname OPTS [param] [SPECIMEN])
+#     local pkg lop lreqver rop rreqver branch x pkgURL subpkg
+#     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+#     local xtlcmd=$(get_act_xtlcmd $2 "$1" $3 $4 $5)
+#     subpkg=$2
+#     if [[ $3 =~ s ]]; then
+#       pkg_URL="$(get_prm_value ${pkg}__${2}_${xtlcmd}_URL)"
+#       if [ -n "$pkg_URL" ]; then
+#         subpkg=$(basename $pkg_URL)
+#         if [ "${subpkg: -4}" == ".git" ]; then
+#           subpkg=${subpkg:0: -4}
+#         fi
+#       fi
+#     fi
+#     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$subpkg=get_dir_URL($1 $2 $3 $4 $5)">>~/$THIS.his
+#     echo "$subpkg"
+# }
 
 get_full_URL() {
 # get_full_URL(action pkgname OPTS [param] [SPECIMEN])
@@ -2134,6 +2169,7 @@ do_dry_install_by_git() {
       subpkg=
       pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
     fi
+    # tny
     if [ -z "$pkg_URL" ]; then
       elog "*** Package $pkgname not found for this platform"
       elog "    git $pkg_name from URL=$pkg_URL"
@@ -2142,7 +2178,7 @@ do_dry_install_by_git() {
     do_git_localroot $1 $2 $3 $4 "$5"
     if [ $? -eq $STS_SUCCESS ]; then
       git_opts=""
-      if [ -n "$opt_dev" ]; then
+      if [ -z "$opt_dev" ]; then
         git_opts="--single-branch --depth=1 $git_opts"
       fi
       pkg_user=$(get_prm_value ${pkgname}_${xtlcmd}_LocalUser)
@@ -3348,15 +3384,6 @@ elif [ "$action" == "import" ]; then
   wlog "Creating users"
   add_users
   ending_msg
-# elif [ "$action" == "debug" ]; then
-#    echo "[options]">lisa.conf.sample
-#    jy=0
-#    p=""
-#    while ((jy<${#DEFPRM[*]})); do
-#      echo "${DEFPRM[jy]}=${DEFVAL[jy]}"
-#      echo "${DEFPRM[jy]}=${DEFVAL[jy]}">>lisa.conf.sample
-#     ((jy++))
-#    done
 else
   actions=${action//+/ }
   actions=${actions//,/ }
