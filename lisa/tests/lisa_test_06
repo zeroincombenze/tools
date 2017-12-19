@@ -311,20 +311,23 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
   cat <<EOF >$TESTDIR/res/python__Debian.06.test
 > apt-get -y install python-wheel
 > pip install wheel --upgrade
+> apt-get -y install xorg-x11-fonts-Type1
+> apt-get -y install xorg-x11-fonts-75dpi
 > apt-get -y update
 > apt-get -y upgrade python
-> pip install setuptools --upgrade
-> apt-get -y upgrade python-virtualenv
-> pip install virtualenv --upgrade
-> apt-get -y upgrade libreadline6
-> pip install psycopg2 --upgrade
-> pip install simplejson --upgrade
-> pip install xlwt --upgrade
-> pip install PyYAML --upgrade
-> pip install gdata --upgrade
-> pip install python-ldap --upgrade
-> pip install pytz --upgrade
-> pip install requests --upgrade
+> apt-get -y install ghostscript
+> apt-get -y install libart-2.0-2
+> apt-get -y install libcupsfilters1
+> apt-get -y install python-unittest2
+> apt-get -y install python-utidylib
+> apt-get -y install python-vobject
+> apt-get -y install python-werkzeug
+> apt-get -y install docutils-common
+> apt-get -y install docutils-doc
+> cd /tmp
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> apt-get -y upgrade wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb
 EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.06.test
 > yum -y install python-wheel
@@ -334,6 +337,7 @@ EOF
 > yum -y update python-virtualenv
 > pip install virtualenv --upgrade
 > yum -y update readline
+> pip install psycopg2 --upgrade
 > pip install simplejson --upgrade
 > pip install xlwt --upgrade
 > pip install PyYAML --upgrade
@@ -341,7 +345,6 @@ EOF
 > pip install python-ldap --upgrade
 > pip install pytz --upgrade
 > pip install requests --upgrade
-> pip install psycopg2 --upgrade
 EOF
 fi
 

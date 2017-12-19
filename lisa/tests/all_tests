@@ -26,7 +26,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.36.28
+__version__=0.2.36.29
 
 
 Z0BUG_setup() {

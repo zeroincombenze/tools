@@ -190,7 +190,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-pyparsing/pyparsing,python-beaker/beaker,\
                python-psycopg2/psycopg2,python-reportlab/reportlab,\
                python-decorator/decorator,python-docutils/docutils,\
-               feedparser/feedparser,python-gevent/gevent,\
+               python-feedparser/feedparser,python-gevent/gevent,\
                python-jinja2/jinja2,python-ldap
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\

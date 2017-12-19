@@ -90,7 +90,7 @@ test_run () {
     elif [ "$Package" == "dateutil" -o "$Package" == "python-dateutil" ]; then
       opt_ij="-Jdateutil,python-dateutil,wget,gcc,git"
     elif [ "$Package" == "python" ]; then
-      opt_ij="-e1 -I$Package,python-pip,pip,python-setuptools,setuptools -Jpython-wheel,wheel,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+      opt_ij="-e1 -I$Package,python-pip,pip,python-setuptools,setuptools -Jpython-wheel,wheel,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz,wkhtmltox_Debian"
     elif [ "$Package" == "wkhtmltopdf" ]; then
       opt_ij="-J$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
     fi
@@ -412,22 +412,22 @@ EOF
       cat <<EOF >$TESTDIR/res/python__Debian.05.test
 > apt-get -y install python-wheel
 > pip install wheel --upgrade
+> apt-get -y install xorg-x11-fonts-Type1
+> apt-get -y install xorg-x11-fonts-75dpi
 # apt-get -y install python
-# apt-get -y install python-setuptools
-> pip install setuptools --upgrade
-> apt-get -y install python-virtualenv
-> pip install virtualenv
-> apt-get -y install libreadline6
-> apt-get -y install python-psycopg2
-> pip install psycopg2 --upgrade
-> pip install simplejson
-> pip install xlwt
-> pip install PyYAML
-> pip install gdata
-> apt-get -y install python-ldap
-> pip install python-ldap --upgrade
-> pip install pytz
-# pip install requests
+> apt-get -y install ghostscript
+> apt-get -y install libart-2.0-2
+> apt-get -y install libcupsfilters1
+> apt-get -y install python-unittest2
+> apt-get -y install python-utidylib
+> apt-get -y install python-vobject
+> apt-get -y install python-werkzeug
+> apt-get -y install docutils-common
+> apt-get -y install docutils-doc
+> cd /tmp
+> wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.1/wkhtmltox-0.12.1_linux-trusty-amd64.deb
+# apt-get -y install wkhtmltox-0.12.1_linux-trusty-amd64.deb
+> rm -f wkhtmltox-0.12.1_linux-trusty-amd64.deb
 EOF
       cat <<EOF >$TESTDIR/res/python__RHEL.05.test
 > yum -y install python-wheel
@@ -438,6 +438,8 @@ EOF
 > yum -y install python-virtualenv
 > pip install virtualenv
 > yum -y install readline
+> yum -y install python-psycopg2
+> pip install psycopg2 --upgrade
 > pip install simplejson
 > pip install xlwt
 > pip install PyYAML
@@ -446,8 +448,6 @@ EOF
 > pip install python-ldap --upgrade
 > pip install pytz
 # pip install requests
-> yum -y install python-psycopg2
-> pip install psycopg2 --upgrade
 EOF
     fi
 
