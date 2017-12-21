@@ -25,31 +25,31 @@ xtl_test=0
 # Required-Stop:        postgresql
 # Should-Start:         $network
 # Should-Stop:          $network
-# Default-Start:        3 4 5
+# Default-Start:        2 3 4 5
 # Default-Stop:         0 1 6
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.3.1-RHEL
-# Warning: this is a customized ${xtl_Id} script, running both on Ubuntu and CentOS
+# version: 0.4.0-RHEL
+# Warning: this is a customized ${xtl_Id} script, running both Linux
+# It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
+# (C) 2015-2018 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
 # Recognize Linux distribution (Ubuntu or CentOS)
-if [ -f /etc/centos-release ]; then
-    DIST="CentOS"
-elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-    DIST=$(grep "DISTRIB_ID" /etc/lsb-release|awk -F"=" '{print $2}'|tr -d "\"', \n")
-    if [ -z "$DIST" ]; then
-       DIST="Ubuntu"
-    fi
-else
-    DIST=""
+OS=$(uname -s)
+FH=""
+if [ "${OS}" = "Linux" ]; then
+  if [ -f /etc/centos-release -o -f /etc/redhat-release -o -f /etc/fedora-release -o -f /etc/SUSE-release -o -f /etc/mandriva-release ]; then
+    FH="RHEL"
+  elif [ -f /etc/lsb-release -o -d /etc/lsb-release.d -o -f /etc/debian_version -o -f /etc/os-release ]; then
+    FH="Debian"
+  fi
 fi
-# Source function library (Only CentOS)
-if [ "$DIST" == "CentOS" ]; then
+# Source function library (Only RHEL)
+if [ "$FH" == "RHEL" ]; then
     if [ -f /etc/init.d/functions ] ; then
         . /etc/init.d/functions
     elif [ -f /etc/rc.d/init.d/functions ] ; then
@@ -58,18 +58,19 @@ if [ "$DIST" == "CentOS" ]; then
         exit 0
     fi
 fi
-# Set path (Only Ubuntu)
-if [ "$DIST" == "Ubuntu" ]; then
-  PATH=/bin:/sbin:/usr/bin
+# Set path (Only Debian)
+if [ "$FH" == "Debian" ]; then
+  PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
+  if [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+  fi
 fi
-
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 # search for execution command script
 DAEMON=
 for dn in odoo-bin openerp-server odoo-server odoo openerp; do
-  for dp in /opt/${USER}/v${xtl_version} /opt/${USER}/${xtl_version} /opt/${USER}/ODOO-${xtl_version} /opt/${USER}/odoo-${xtl_version} /usr/bin; do
-    DAEMON=$dp/$dn
+for dp in /opt/${USER}/v${xtl_version} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion} /usr/bin; do    DAEMON=$dp/$dn
     if [ -x "$DAEMON" ]; then
       break
     elif [ -d "$dp/server" ]; then
@@ -99,14 +100,14 @@ PIDFILE=${xtl_pidfile}
 LOCKFILE=/var/lock/subsys/${NAME}
 LOGFILE=${xtl_logfile}
 # Additional options that are passed to the Daemon.
-if [ "$DIST" == "Ubuntu" ]; then
+if [ "$FH" == "Debian" ]; then
   DAEMON_OPTS="--logfile=$LOGFILE"
 else
   DAEMON_OPTS="--pidfile=$PIDFILE --logfile=$LOGFILE"
 fi
 # check if the ${NAME} conf file is present, then use it
 if [ -f $CONFIGFILE ]; then
-    DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
+  DAEMON_OPTS="-c $CONFIGFILE $DAEMON_OPTS"
 fi
 DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 [ -x $DAEMON ] || exit 0
@@ -117,7 +118,7 @@ RETVAL=0
 
 checkpid() {
     [ -f $PIDFILE ] || return 1
-    pid=`cat $PIDFILE`
+    pid=$(cat $PIDFILE)
     [ -d /proc/$pid ] && return 0
     return 1
 }
@@ -142,7 +143,7 @@ check_privsep_dir() {
 }
 
 
-start_CentOS () {
+start_RHEL () {
     # TODO: CentOS old code, could be removed?
     if [ -d /etc/${xtl_id}/start.d ] ; then
         echo -n "Preparing $DESC: "
@@ -173,7 +174,7 @@ start_CentOS () {
 }
 
 
-start_Ubuntu () {
+start_Debian () {
     check_privsep_dir
     if [ $DRY_RUN -gt 0 ]; then
       echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
@@ -192,10 +193,10 @@ start() {
     if [ "$1" != "mute" ]; then
         echo "Starting ${DESC}: "
     fi
-    if [ "$DIST" == "CentOS" ]; then
-        start_CentOS
-    elif [ "$DIST" == "Ubuntu" ]; then
-        start_Ubuntu
+    if [ "$FH" == "RHEL" ]; then
+        start_RHEL
+    elif [ "$FH" == "Debian" ]; then
+        start_Debian
     else
         echo "Unrecognized Linux distribution"
         exit 1
@@ -205,11 +206,11 @@ start() {
 }
 
 
-stop_CentOS () {
+stop_RHEL () {
   if [ $DRY_RUN -gt 0 ]; then
-    echo "kill -TERM `cat $PIDFILE` > /dev/null 2>&1"
+    echo "kill -TERM \$(cat $PIDFILE) > /dev/null 2>&1"
   else
-      kill -TERM `cat $PIDFILE` > /dev/null 2>&1
+      kill -TERM $(cat $PIDFILE) > /dev/null 2>&1
     fi
   RETVAL=$?
     if [ $RETVAL -eq 0 ] ; then
@@ -231,7 +232,7 @@ stop_CentOS () {
 }
 
 
-stop_Ubuntu () {
+stop_Debian () {
   if [ $DRY_RUN -gt 0 ]; then
     echo "> start-stop-daemon --stop --quiet --pidfile ${PIDFILE} --oknodo"
   else
@@ -248,10 +249,10 @@ stop() {
     if [ "$1" != "mute" ]; then
         echo "Stopping ${DESC}: "
     fi
-    if [ "$DIST" == "CentOS" ]; then
-        stop_CentOS
-    elif [ "$DIST" == "Ubuntu" ]; then
-        stop_Ubuntu
+    if [ "$FH" == "RHEL" ]; then
+        stop_RHEL
+    elif [ "$FH" == "Debian" ]; then
+        stop_Debian
     else
         echo "Unrecognized Linux distribution"
         exit 1
@@ -275,7 +276,7 @@ condrestart() {
 
 status() {
     if [ -f $PIDFILE ] ; then
-        checkpid `cat $PIDFILE`
+        checkpid $(cat $PIDFILE)
         RETVAL=$?
         if [ $RETVAL -eq 0 ] ; then
             echo "$NAME is running..."
@@ -314,9 +315,9 @@ case "${1}" in
         ;;
 
     *)
-        if [ "$DIST" == "CentOS" ]; then
+        if [ "$FH" == "RHEL" ]; then
           echo "Usage: ${NAME} {start|stop|status|restart|condrestart|reload}"
-        elif [ "$DIST" == "Ubuntu" ]; then
+        elif [ "$FH" == "Debian" ]; then
            echo "Usage: ${NAME} {start|stop|status|restart|force-reload}" >&2
         else
           echo "Unrecognized Linux distribution"

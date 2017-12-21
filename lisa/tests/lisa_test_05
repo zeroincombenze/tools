@@ -142,8 +142,8 @@ test_01() {
 > cp /opt/odoo/dev/pypi/lisa/lisa/python.lish /etc/lisa
 > cd /opt/odoo/dev/pypi/lisa/lisa
 > _install_z0librc
-> cp /opt/odoo/dev/pypi/lisa/lisa/\odoorc /etc
-> cd ..
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoorc /etc
+> cd /opt/odoo/dev/pypi/lisa/lisa
 EOF
       cat <<EOF >$TESTDIR/res/lisa__Debian.05.test
 > apt-get -y install wget
@@ -167,8 +167,8 @@ EOF
 > cp /opt/odoo/dev/pypi/lisa/lisa/python.lish /etc/lisa
 > cd /opt/odoo/dev/pypi/lisa/lisa
 > _install_z0librc
-> cp /opt/odoo/dev/pypi/lisa/lisa/\odoorc /etc
-> cd ..
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoorc /etc
+> cd /opt/odoo/dev/pypi/lisa/lisa
 EOF
       cat <<EOF >$TESTDIR/res/apache2__Debian.05.test
 > apt-get -y install apache2

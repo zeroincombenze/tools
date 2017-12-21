@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.29
+__version__=0.2.36.31
 
 
 STS_FAILED=1
@@ -1512,8 +1512,13 @@ create_setup() {
 # lisa setup $__version__ ($datetime)
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-pkgname=$THIS
-tarball=$pkgname.tar.gz
+pkgname=$pkgname
+if [ -d \$TDIR/\$pkgname ]; then
+  SRCDIR=\$TDIR/\$pkgname
+else
+  SRCDIR=\$TDIR
+fi
+tarball=\$pkgname.tar.gz
 opt_verbose=0
 opt_dry_run=0
 if [ "\${1:0:1}" == "-" ]; then
@@ -1525,10 +1530,10 @@ if [ \${opt_dry_run:-0} -eq 0 ]; then
 else
   pfx=">"
 fi
-if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
-  [ \$opt_dry_run -gt 0 ] || . \$TDIR/z0librc
+if [ -f \$SRCDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
+  [ \$opt_dry_run -gt 0 ] || . \$SRCDIR/z0librc
   if [ "\$TDIR" != "/usr/bin" ]; then
-    if [ "\${TDIR:0:14}" == "/opt/odoo/dev/" ]; then
+    if [ "\${TDIR:0:10}" == "/opt/odoo/" ]; then
       cpmv="cp"
     else
       cpmv="mv"
@@ -1536,30 +1541,30 @@ if [ -f \$TDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
     [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
     [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
     for f in $BINLIST; do
-      if [ -f \$TDIR/\$f ]; then
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /usr/bin"
-        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$f /usr/bin
+      if [ -f \$SRCDIR/\$f ]; then
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /usr/bin"
+        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /usr/bin
         [ \$opt_verbose -gt 0 ] && echo "\$pfx [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f"
         [ \$opt_dry_run -gt 0 ] || [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f
       fi
     done
     for f in $ETCLIST; do
-      if [ -f \$TDIR/\$f ]; then
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\$f /etc/$THIS"
-        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$TDIR/\$f /etc/$THIS
+      if [ -f \$SRCDIR/\$f ]; then
+        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /etc/$THIS"
+        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /etc/$THIS
       fi
     done
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
-    [ \$opt_dry_run -gt 0 ] || cd \$TDIR
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$SRCDIR"
+    [ \$opt_dry_run -gt 0 ] || cd \$SRCDIR
     [ \$opt_verbose -gt 0 -a $RQ_Z0LIB -gt 0 ] && echo "\$pfx _install_z0librc"
     [ \$opt_dry_run -eq 0 -a $RQ_Z0LIB -gt 0 ] && _install_z0librc
-    [ \$opt_verbose -gt 0  -a $RQ_OELIB -gt 0 ] && echo "\$pfx \$cpmv \$TDIR/\odoorc /etc"
-    [ \$opt_dry_run -eq 0 -a $RQ_OELIB -gt 0 ] && eval \$cpmv \$TDIR/\odoorc /etc
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd .."
-    [ \$opt_dry_run -gt 0 ] || cd ..
-    if [ -d "./\$pkgname" ]; then
-      [ \$opt_verbose -gt 0 ] && echo "rm -fR ./\$pkgname"
-      [ \$opt_dry_run -gt 0 ] || rm -fR ./\$pkgname
+    [ \$opt_verbose -gt 0  -a $RQ_OELIB -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/odoorc /etc"
+    [ \$opt_dry_run -eq 0 -a $RQ_OELIB -gt 0 ] && eval \$cpmv \$SRCDIR/odoorc /etc
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
+    [ \$opt_dry_run -gt 0 ] || cd \$TDIR
+    if [ -d \$TDIR/\$pkgname ]; then
+      [ \$opt_verbose -gt 0 ] && echo "rm -fR \$TDIR/\$pkgname"
+      [ \$opt_dry_run -gt 0 ] || rm -fR \$TDIR/\$pkgname
     fi
     if [ -f "./\$tarball" ]; then
       [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$tarball"
@@ -2915,28 +2920,33 @@ do_1_info_package() {
 # do_1_info_package(action pkgname OPTS [param] [SPECIMEN])
 # - info receives cmdline pkgname, no realname
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_info_package($1 $2 $3)">>~/$THIS.his
-    local pkgname=$(get_realname "$2" "" $3)
-    local pkglist=$(please tellme $2 $3 realname)
-    local p=$(get_realname "$2" "install" $3)
-    local xtlcmd=$(get_all_xtlcmd "" $p $3 $4 "$5")
-    local svcname=$(get_prm_value "${pkgname}_svcname")
-    local cmdname=$(get_prm_value "${pkgname}_cmdname")
-    local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
-    local req=$(get_prm_value "${2}_ReqPkgList")
-    if [[ $pkglist =~ = ]]; then
-      echo "$pkglist (install by $xtlcmd)"
+    if [ "$2" == "." ]; then
+      echo "lisa $__version__ is running on $DISTO ($FH family)"
+      [ -n "$MACHARCH" ] && echo "Machine architecture is $MACHARCH"
     else
-      if [ "$2" == "$pkgname" ]; then
-        echo "$2 (install by $xtlcmd)"
+      local pkgname=$(get_realname "$2" "" $3)
+      local pkglist=$(please tellme $2 $3 realname)
+      local p=$(get_realname "$2" "install" $3)
+      local xtlcmd=$(get_all_xtlcmd "" $p $3 $4 "$5")
+      local svcname=$(get_prm_value "${pkgname}_svcname")
+      local cmdname=$(get_prm_value "${pkgname}_cmdname")
+      local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+      local req=$(get_prm_value "${2}_ReqPkgList")
+      if [[ $pkglist =~ = ]]; then
+        echo "$pkglist (install by $xtlcmd)"
       else
-        echo "$2=$pkgname (install by $xtlcmd)"
+        if [ "$2" == "$pkgname" ]; then
+          echo "$2 (install by $xtlcmd)"
+        else
+          echo "$2=$pkgname (install by $xtlcmd)"
+        fi
       fi
+      [ -n "$svcname" ] && echo "  service=$svcname"
+      [ -n "$cmdname" ] && echo "  command=$cmdname"
+      [ -n "$vfycmd" ] && echo "  get_ver=$vfycmd"
+      [ -n "$req" ] && echo "  requirements=$req"
+      [ -n "$PKG_CONF" ] && echo "  infn=$PKG_CONF $SAMPLE"
     fi
-    [ -n "$svcname" ] && echo "  service=$svcname"
-    [ -n "$cmdname" ] && echo "  command=$cmdname"
-    [ -n "$vfycmd" ] && echo "  get_ver=$vfycmd"
-    [ -n "$req" ] && echo "  requirements=$req"
-    [ -n "$PKG_CONF" ] && echo "  infn=$PKG_CONF $SAMPLE"
     return $STS_SUCCESS
 }
 

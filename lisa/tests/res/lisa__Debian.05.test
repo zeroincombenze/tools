@@ -19,5 +19,5 @@
 > cp /opt/odoo/dev/pypi/lisa/lisa/python.lish /etc/lisa
 > cd /opt/odoo/dev/pypi/lisa/lisa
 > _install_z0librc
-> cp /opt/odoo/dev/pypi/lisa/lisa/\odoorc /etc
-> cd ..
+> cp /opt/odoo/dev/pypi/lisa/lisa/odoorc /etc
+> cd /opt/odoo/dev/pypi/lisa/lisa

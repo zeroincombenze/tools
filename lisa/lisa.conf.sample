@@ -39,6 +39,10 @@
 # [_Ubuntu12_] -> Parameters for Ubuntu 12.xx
 # [_Ubuntu14_] -> Parameters for Ubuntu 14.xx
 # [_Ubuntu16_] -> Parameters for Ubuntu 16.xx
+# [_Ubuntu17_] -> Parameters for Ubuntu 17.xx
+# [_Debian7_] -> Parameters for Debian 7.xx
+# [_Debian8_] -> Parameters for Debian 8.xx
+# [_Debian9_] -> Parameters for Debian 9.xx
 # [_CentOS6_] -> Parameters for CentOS 6.xx
 # [_CentOS7_] -> Parameters for CentOS 7.xx
 # Other distribution are not yet tested, but lisa is designed to run with all
@@ -321,6 +325,14 @@ REAL_mariadb-server=mysql-server
 
 [_Ubuntu16_]
 # mariadb does non exists in Ubuntu16?
+REAL_mariadb=mysql-server
+REAL_mariadb-server=mysql-server
+# Ubuntu16 use systemctl instead of service command
+REAL_OSSERVICE=systemctl
+
+
+[_Debian9_]
+# mariadb does non exists in Debian9?
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 # Ubuntu16 use systemctl instead of service command
