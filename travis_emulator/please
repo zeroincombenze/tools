@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.1
+__version__=0.2.0.2
 
 
 #
@@ -1388,6 +1388,69 @@ do_autope8() {
     local opts=$(inherits_travis_opts "" "8")
     run_traced "topep8 $opts $PKGPATH"
     return $?
+}
+
+create_pkglist() { 
+# create_pkglist(pkgname type)
+    local PKGLIST Z0LIB OELIB x
+    local xx="$(get_cfg_value 0 filedel)"
+    local yy="$(get_cfg_value 0 fileignore)"
+    if [ $opt_keep -ne 0 ]; then
+      xx="$xx $yy"
+    else
+      xx="$xx $yy tests/"
+    fi
+    if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
+      PKGLIST=$(cat setup.py|grep "# PKGLIST="|awk -F= '{print $2}')
+      if [ -n "PKGLIST" ]; then
+        PKGLIST="${PKGLIST//,/ }"
+      fi
+      if [ "$2" == "etcPkgList" ]; then
+        x=$(cat setup.py|grep "# BUILD_WITH_Z0LIBR="|awk -F= '{print $2}')
+        if [ "$x" == "1" ]; then
+          Z0LIB=$(findpkg z0librc "/etc . ..")
+          [ -z "$Z0LIB" ] && Z0LIB=z0librc
+        fi
+        x=$(cat setup.py|grep "# BUILD_WITH_ODOORC="|awk -F= '{print $2}')
+        if [ "$x" == "1" ]; then
+          OELIB=$(findpkg odoorc "/etc $HOME/dev . ..")
+          [ -z "$OELIB" ] && OELIB=odoorc
+        fi
+      fi
+      if [ -z "$PKGLIST" -a "$2" == "PkgList" ]; then
+        x="find . -type f"
+        for f in $xx "setup.*"; do
+          if [ "${f: -1}" == "/" ]; then
+            x="$x -not -path '*/$f*'"
+          else
+            x="$x -not -name '*$f'"
+          fi
+        done
+        eval $x >./tmp.log
+        PKGLIST="$(cat ./tmp.log|tr '\n' ' ')"
+        rm -f ./tmp.log
+      fi
+    fi
+    echo "$PKGLIST $Z0LIB $OELIB"
+}
+
+add_file_2_pkg() {
+#add_file_2_pkg(pkgname type)
+    local f s
+    local PKGLIST=$(create_pkglist "$1" "$2")
+    s=0
+    for f in $PKGLIST; do
+      if [ -f $f ]; then
+        :
+      elif [ "$2" == "etcPkgList" -a -f /etc/$f ]; then
+        :
+      elif [ ! -f $PKGPATH/$f ]; then
+        s=1
+        echo "File $f not found"
+        break
+      fi
+    done
+    return $s
 }
 
 do_build() {
