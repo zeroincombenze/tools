@@ -227,6 +227,10 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
          python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem
+build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
+                 .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
+                 *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\
+                 latex/,.gz,__old_*,.gitrepname,tests/,__main__.py,__tmp*,*_doc.txt
 openssh-server_cmdname=NULL
 TCP_openssh-server=22
 vsftpd_svcname=vsftpd

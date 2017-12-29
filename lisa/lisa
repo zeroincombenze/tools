@@ -72,26 +72,6 @@ conf_default() {
     set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
     set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
     set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
-    # p="setuptools python-virtualenv virtualenv"
-    # p="$p libreadline6 PYTHON_LIB_XML psycopg2 simplejson xlwt PyYAML"
-    # p="$p gdata python-ldap pytz python-requests"
-    # if [ -n "$opt_dev" ]; then
-    #   p="$p python-dev libsasl2-dev libldap2-dev zlib1g-dev libssl-dev"
-    #   p="$p libreadline6-dev libsqlite3-dev tk-dev libgdbm-dev libpcap-dev"
-    #   p="$p liblzma-dev python-yaml mock"
-    # fi
-    # set_cfg_def "python_BOP" "$p" "0" "Debian"
-    # p="setuptools python-virtualenv virtualenv readline"
-    # p="$p PYTHON_LIB_XML simplejson xlwt PyYAML"
-    # p="$p gdata python-ldap pytz python-requests"
-    # if [ -n "$opt_dev" ]; then
-    #   p="$p python-devel openldap-devel zlib-devel bzip2-devel openssl-devel"
-    #   P="$p ncurses-devel readline-devel sqlite-devel tk-devel gdbm-devel"
-    #   p="$p libpcap-devel xz-devel postgresql-devel libxml2-devel"
-    #   p="$p libxslt-devel python-yaml mock"
-    # fi
-    # set_cfg_def "python_BOP" "$p psycopg2" "0" "CentOS7"
-    # set_cfg_def "python_BOP" "$p python-psycopg2" "0" "CentOS6"
     p="ghostscript libart-2.0-2 libcupsfilters1"
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
@@ -145,8 +125,6 @@ conf_default() {
     fi
     set_cfg_def "odoo_cmdname" "NULL" "0"
     set_cfg_def "odoo_git_URL" "https://github.com/$gitrep.git" "0"
-    # set_cfg_def "odoo_git_LocalRoot" "/opt/odoo" "0"
-    # set_cfg_def "odoo_git_LocalUser" "odoo:odoo" "0"
     set_cfg_def "odoo_confdirs" "/etc/odoo,/var/log/odoo,/var/run/odoo" "0"
     # odoo locale
     p=${gitrep%/*}
@@ -165,9 +143,7 @@ conf_default() {
       set_cfg_def "${THIS}_cmdname" "$0" "0"
       set_cfg_def "${THIS}_vfycmd" "$0 -V" "0"
     fi
-    # set_cfg_def "apache2_cmdname" "apachectl" "0" "Debian"
     set_cfg_def "apache2_LocalRoot" "/var/www/html" "0" "Debian"
-    # set_cfg_def "httpd_cmdname" "apachectl" "0" "RHEL"
     set_cfg_def "httpd_LocalRoot" "/var/www/html" "0" "RHEL"
     set_cfg_def "mysql-server_cmdname" "mysql" "0"
     set_cfg_def "mariadb-server_cmdname" "mysql" "0" "CentOS7"
@@ -193,26 +169,16 @@ conf_default() {
     set_cfg_def "pandoc_git_LocalRoot" "/opt/pandoc" "0"
     set_cfg_def "pandoc_SubPkgList" "." "0"
     # Service names
-    # set_cfg_def "vsftpd_svcname" "vsftpd" "0"
     set_cfg_def "iptables_svcname" "iptables" "0"
-    # set_cfg_def "apache2_svcname" "apache2" "0" "Debian"
-    # set_cfg_def "httpd_svcname" "httpd" "0" "RHEL"
     set_cfg_def "mysql_svcname" "mysql" "0" "Debian"
     set_cfg_def "mariadb_svcname" "mariadb" "0" "CentOS7"
     set_cfg_def "mariadb-server_svcname" "mariadb" "0" "CentOS7"
     set_cfg_def "mysql_svcname" "mysqld" "0" "CentOS6"
     set_cfg_def "odoo_svcname" "odoo-server" "0"
     # TCP & UDP Ports
-    # set_cfg_def "TCP_httpd" "80 443" "0" "RHEL"
-    # set_cfg_def "TCP_apache2" "80 443" "0" "Debian"
-    # set_cfg_def "TCP_vsftpd" "21" "0"
     set_cfg_def "TCP_odoo" "8069" "0"
     # Configuration files
     p="/etc/httpd /etc/apache2; conf"
-    # set_cfg_def "apache2_FINDCFN" "$p" "0" "Debian"
-    # set_cfg_def "apache2_confn" "apache2.conf" "0" "Debian"
-    # set_cfg_def "httpd_FINDCFN" "$p" "0" "RHEL"
-    # set_cfg_def "httpd_confn" "httpd.conf" "0" "RHEL"
     p="/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
     set_cfg_def "postgresql_FINDCFN" "$p" "0" "Debian"
     set_cfg_def "postgresql_confn" "pg_hba.conf" "0" "Debian"
@@ -1495,8 +1461,8 @@ create_setup() {
     else
       local SETUP=$2
     fi
-    local BINLIST="$(get_prm_value ${pkgname}_binPkgList $pkgname)"
-    local ETCLIST="$(get_prm_value ${pkgname}_etcPkgList $pkgname)"
+    local BINLIST="$(get_prm_value ${pkgname}_binPkgList list)"
+    local ETCLIST="$(get_prm_value ${pkgname}_etcPkgList list)"
     local RQ_Z0LIB="$(get_prm_value ${pkgname}_build_with_z0libr)"
     local RQ_OELIB="$(get_prm_value ${pkgname}_build_with_odoorc)"
     local datetime=$(date +"%Y-%m-%d %H:%M")
@@ -1504,9 +1470,9 @@ create_setup() {
       if [ -n "$opt_dev" ]; then
         cp ../../z0lib/z0lib/z0librc ./
         cp ../../clodoo/clodoo/odoorc ./
-      else
-        cp /etc/z0librc ./
-        cp /etc/odoorc ./
+      # else
+      #   cp /etc/z0librc ./
+      #   cp /etc/odoorc ./
       fi
       cat <<EOF >$SETUP
 # lisa setup $__version__ ($datetime)
@@ -1532,44 +1498,46 @@ else
 fi
 if [ -f \$SRCDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
   [ \$opt_dry_run -gt 0 ] || . \$SRCDIR/z0librc
-  if [ "\$TDIR" != "/usr/bin" ]; then
-    if [ "\${TDIR:0:10}" == "/opt/odoo/" ]; then
-      cpmv="cp"
-    else
-      cpmv="mv"
+  if [ "\${TDIR:0:10}" == "/opt/odoo/" ]; then
+    cpmv="cp"
+  else
+    cpmv="mv"
+  fi
+  [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
+  [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
+  for f in $BINLIST; do
+    if [ -f \$SRCDIR/\$f ]; then
+      [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /usr/bin"
+      [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /usr/bin
+      [ \$opt_verbose -gt 0 ] && echo "\$pfx [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f"
+      [[ \$opt_dry_run > 0 && -x /usr/bin/\$f ]] && chmod +x /usr/bin/\$f
     fi
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
-    [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
-    for f in $BINLIST; do
-      if [ -f \$SRCDIR/\$f ]; then
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /usr/bin"
-        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /usr/bin
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f"
-        [ \$opt_dry_run -gt 0 ] || [ -x /usr/bin/\$f ] && chmod +x /usr/bin/\$f
-      fi
-    done
-    for f in $ETCLIST; do
-      if [ -f \$SRCDIR/\$f ]; then
-        [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /etc/$THIS"
-        [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /etc/$THIS
-      fi
-    done
+  done
+  for f in $ETCLIST; do
+    if [ -f \$SRCDIR/\$f ]; then
+      [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /etc/$THIS"
+      [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /etc/$THIS
+    fi
+  done
+  if [ $RQ_Z0LIB -gt 0 ]; then
     [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$SRCDIR"
     [ \$opt_dry_run -gt 0 ] || cd \$SRCDIR
-    [ \$opt_verbose -gt 0 -a $RQ_Z0LIB -gt 0 ] && echo "\$pfx _install_z0librc"
-    [ \$opt_dry_run -eq 0 -a $RQ_Z0LIB -gt 0 ] && _install_z0librc
-    [ \$opt_verbose -gt 0  -a $RQ_OELIB -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/odoorc /etc"
-    [ \$opt_dry_run -eq 0 -a $RQ_OELIB -gt 0 ] && eval \$cpmv \$SRCDIR/odoorc /etc
-    [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
-    [ \$opt_dry_run -gt 0 ] || cd \$TDIR
-    if [ -d \$TDIR/\$pkgname ]; then
-      [ \$opt_verbose -gt 0 ] && echo "rm -fR \$TDIR/\$pkgname"
-      [ \$opt_dry_run -gt 0 ] || rm -fR \$TDIR/\$pkgname
-    fi
-    if [ -f "./\$tarball" ]; then
-      [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$tarball"
-      [ \$opt_dry_run -gt 0 ] || rm -f ./\$tarball
-    fi
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx _install_z0librc"
+    [ \$opt_dry_run -eq 0 ] && _install_z0librc
+  fi
+  if [ $RQ_OELIB -gt 0 ]; then
+    [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/odoorc /etc"
+    [ \$opt_dry_run -eq 0 ] && eval \$cpmv \$SRCDIR/odoorc /etc
+  fi
+  [ \$opt_verbose -gt 0 ] && echo "\$pfx cd \$TDIR"
+  [ \$opt_dry_run -gt 0 ] || cd \$TDIR
+  if [ -d \$TDIR/\$pkgname ]; then
+    [ \$opt_verbose -gt 0 ] && echo "rm -fR \$TDIR/\$pkgname"
+    [ \$opt_dry_run -gt 0 ] || rm -fR \$TDIR/\$pkgname
+  fi
+  if [ -f "./\$tarball" ]; then
+    [ \$opt_verbose -gt 0 ] && echo "rm -f ./\$tarball"
+    [ \$opt_dry_run -gt 0 ] || rm -f ./\$tarball
   fi
 else
   echo "Library z0librc not found!"
@@ -1581,30 +1549,42 @@ EOF
 }
 
 create_pkglist() {
-# create_pkglist(pkgname pkgpath)
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "create_pkglist($1 $2 $3)">>~/$THIS.his
+# create_pkglist(pkgname type OPTS)
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "create_pkglist($1 $2 $3 $4)">>~/$THIS.his
     local pkgname=$1
     local fileignore="$(get_prm_value build_fileignore list)"
-    local x xx PKGLIST BINLIST ETCLIST Z0LIB OELIB PKGPATH=$2
+    local x xx PKGLIST Z0LIB OELIB
+    local PKGPATH=$(get_prm_value ${pkgname}_build_PKGPATH)
     [ -z "$PKGPATH" ] && PKGPATH=.
-    PKGLIST="$(get_prm_value ${pkgname}_build_PKGLIST list)"
-    x="$(get_prm_value ${pkgname}_build_with_z0libr)"
-    if [ "$x" == "1" ]; then
-      Z0LIB=$(findpkg z0librc "/etc . .. $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib")
-      [ -z "$Z0LIB" ] && Z0LIB=z0librc
-    fi
-    x="$(get_prm_value ${pkgname}_build_with_odoorc)"
-    if [ "$x" == "1" ]; then
-      OELIB=$(findpkg odoorc "$HOME/dev . .. $TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo")
-      [ -z "$OELIB" ] && OELIB=odoorc
-    fi
-    BINLIST="$(get_prm_value ${pkgname}_binPkgList list)"
-    ETCLIST="$(get_prm_value ${pkgname}_etcPkgList list)"
-    if [ -n "$PKGLIST" ]; then
-      PKGLIST=${PKGLIST//,/ }
+    if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
+      PKGLIST="$(get_prm_value ${pkgname}_$2 list)"
+      if [ -n "$PKGLIST" ]; then
+        PKGLIST="${PKGLIST//,/ }"
+      fi
+      if [ "$2" == "etcPkgList" ]; then
+        x="$(get_prm_value ${pkgname}_build_with_z0libr)"
+        if [ "$x" == "1" ]; then
+          Z0LIB=$(findpkg z0librc "/etc . .. $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib")
+          [ -z "$Z0LIB" ] && Z0LIB=z0librc
+        fi
+        x="$(get_prm_value ${pkgname}_build_with_odoorc)"
+        if [ "$x" == "1" ]; then
+          OELIB=$(findpkg odoorc "/etc $HOME/dev . .. $TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo")
+          [ -z "$OELIB" ] && OELIB=odoorc
+        fi
+      fi
     else
+      PKGLIST="undefined"
+    fi
+    if [ "$PKGLIST" == "/dev/null" ]; then
+      PKGLIST=
+    elif [ -z "$PKGLIST" -a "$2" == "PkgList" ]; then
       pushd $PKGPATH > /dev/null
       xx="$(get_prm_value ${pkgname}_build_fileignore list)"
+      fileignore="$fileignore z0librc odoorc $xx"
+      xx="$(get_prm_value ${pkgname}_binPkgList $package)"
+      fileignore="$fileignore $xx"
+      xx="$(get_prm_value ${pkgname}_etcPkgList $package)"
       fileignore="$fileignore $xx"
       x="find . -type f"
       for f in $fileignore "setup.*"; do
@@ -1615,12 +1595,50 @@ create_pkglist() {
         fi
       done
       eval $x >./tmp.log
-      PKGLIST="$(cat ./tmp.log)"
+      PKGLIST="$(cat ./tmp.log|tr '\n' ' ')"
       rm -f ./tmp.log
       popd $PKGPATH > /dev/null
     fi
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> PKGLIST=$PKGLIST $BINLIST $ETCLIST $Z0LIB $OELIB">>~/$THIS.his
-    echo "$PKGLIST $BINLIST $ETCLIST $Z0LIB $OELIB"
+    echo "$PKGLIST $Z0LIB $OELIB"
+}
+
+add_file_2_pkg() {
+#add_file_2_pkg(pkgname type OPTS)
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "add_file_2_pkg($1 $2 $3 $4)">>~/$THIS.his
+    local PKGLIST=$(create_pkglist "$1" "$2" "$3")
+    local PKGPATH=$(get_prm_value ${pkgname}_build_PKGPATH)
+    [ -z "$PKGPATH" ] && PKGPATH=.
+    local LocalTmp=/tmp/$package
+    local s=0 f
+    for f in $PKGLIST; do
+      if [ -f $f ]; then
+        :
+      elif [ "$2" == "etcPkgList" -a -f /etc/$f ]; then
+        :
+      elif [ ! -f $PKGPATH/$f ]; then
+        s=1
+        echo "!! Missed $f!"
+        break
+      fi
+    done
+    if [ $s -eq 0 ]; then
+      for f in $PKGLIST; do
+        if [ -f $f ]; then
+          run_traced "cp $f $LocalTmp"
+        elif [ -f $PKGPATH/$f ]; then
+          run_traced "cp $PKGPATH/$f $LocalTmp"
+        elif [ "$2" == "etcPkgList" -a -f /etc/$f ]; then
+          run_traced "cp /etc/$f $LocalTmp"
+        elif [ "$2" == "binPkgList" -a -f /usr/local/bin/$f ]; then
+          run_traced "cp /usr/local/bin/$f $LocalTmp"
+        elif [ "$2" == "binPkgList" -a -f /usr/bin/$f ]; then
+          run_traced "cp /usr/bin/$f $LocalTmp"
+        fi
+        s=$?
+      done
+    fi
+    return $s
 }
 
 do_dry_build_package() {
@@ -1628,50 +1646,62 @@ do_dry_build_package() {
 # Build a distribution package from current dir
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his
     local package="$2"
-    local O s x PKGLIST
-    # local tarball=$package.tar.gz
+    local f n O sts v x PKGLIST
     local tarball=$(get_prm_value ${pkgname}_install_xname)
+    local atarball
+    if [ -z "$tarball" ]; then
+      if [ -f ../setup.py ]; then
+        n=$(cat ../setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+        v=$(cat ../setup.py|grep version|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+        tarball="$n-$v.tar.gz"
+        atarball=$package.tar.gz
+      else
+        tarball=$package.tar.gz
+      fi
+    fi
+    local LocalTmp=/tmp/$package
     local SETUP=./setup.sh
-    PKGLIST=$(create_pkglist $1)
-    s=0
-    for f in $PKGLIST; do
-      if [ ! -f $f ]; then
-        s=1
-        echo "!! Missed $f!"
-      fi
-    done
-    if [ $s -eq 0 ]; then
-      if [ -f /tmp/$package ]; then
-        rm -f /tmp/$package
-      elif [ -d /tmp/$package ]; then
-        rm -fR /tmp/$package
-      fi
-      if [ -f /tmp/$tarball ]; then
-        rm -f /tmp/$tarball
-      fi
-      run_traced "mkdir -p /tmp/$package"
-      for f in $PKGLIST; do
-        run_traced "cp $f /tmp/$package/"
-      done
+    if [ -f $LocalTmp ]; then
+      rm -f $LocalTmp
+    elif [ -d $LocalTmp ]; then
+      rm -fR $LocalTmp
+    fi
+    run_traced "mkdir -p $LocalTmp"
+    add_file_2_pkg "$2" "PkgList" "$3"
+    sts=$?
+    if [ $sts -eq 0 ]; then
+      add_file_2_pkg "$2" "binPkgList" "$3"
+    fi
+    if [ $sts -eq 0 ]; then
+      add_file_2_pkg "$2" "etcPkgList" "$3"
+    fi
+    if [ $sts -eq 0 ]; then
       create_setup $package $SETUP
-      run_traced "cp $SETUP /tmp/$package/"
+      run_traced "cp $SETUP /tmp"
       O=$PWD
       run_traced "cd /tmp"
-      run_traced "tar -cf $tarball ./$package"
+      if [ -f $tarball ]; then
+        rm -f $tarball
+      fi
+      run_traced "tar -cf $tarball ./$package $SETUP"
       run_traced "cd $O"
       run_traced "mv /tmp/$tarball ../"
+      run_traced "rm -f /tmp/$SETUP"
       run_traced "rm -fR /tmp/$package"
+      if [ -n "$atarball" ]; then
+        run_traced "cp ../$tarball ../$atarball"
+      fi
     fi
 }
 
-do_dry_build_lisa() {
+__tmp_do_dry_build_lisa() {
 # do_dry_build_lisa(action pkgname OPTS)
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_lisa($1 $2 $3)">>~/$THIS.his
     local package="$2"
     local f s x
-    local tarball=$package.tar.gz
-    local BINLIST="$(get_prm_value ${pkgname}_binPkgList $package)"
-    local ETCLIST="$(get_prm_value ${pkgname}_etcPkgList $package)"
+    local PKGLIST=$(create_pkglist $2 PkgList)
+    local tarball=$(get_prm_value ${pkgname}_install_xname)
+    [ -z "$tarball" ] && tarball=$package.tar.gz
     if [ -f /tmp/$package ]; then
       rm -f /tmp/$package
     elif [ -d /tmp/$package ]; then
@@ -1682,8 +1712,8 @@ do_dry_build_lisa() {
     fi
     run_traced "mkdir -p /tmp/$package"
     s=0
-    for f in $BINLIST $ETCLIST; do
-      if [ ! -f $TDIR/$f ]; then
+    for f in $PKGLIST; do
+      if [ ! -f $PKGPATH/$f ]; then
         s=1
         break
       fi
@@ -1694,10 +1724,10 @@ do_dry_build_lisa() {
       fi
       create_setup lisa
       for f in setup.sh $BINLIST $ETCLIST; do
-        if [ -f $TDIR/$f ]; then
-          run_traced "cp $TDIR/$f /tmp/$package/"
+        if [ -f $PKGPATH/$f ]; then
+          run_traced "cp $PKGPATH/$f /tmp/$package/"
         else
-          echo "Missed $TDIR/$f"
+          echo "Missed $PKGPATH/$f"
         fi
       done
     else
@@ -1816,14 +1846,17 @@ satisfy_request() {
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
       for p in $ReqPkgList; do
         realname=$(get_realname $p $1 $3)
-        verbose_msg "Analyzing $realname ..."
-        if $(please status $realname $x "$4" ""); then
-          [ $sts -eq 127 ] && sts=$STS_SUCCESS
-        else
-          please install $realname $3 "$4" ""
-          s=$?
-          [ $sts -eq 127 ] && sts=$s
-          [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+        if [[ ! " SATISFIED " =~ [[:space:]]$realname[[:space:]] ]]; then
+          verbose_msg "Analyzing $realname ..."
+          if $(please status $realname $x "$4" ""); then
+            [ $sts -eq 127 ] && sts=$STS_SUCCESS
+          else
+            please install $realname $3 "$4" ""
+            s=$?
+            [ $sts -eq 127 ] && sts=$s
+            [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
+          fi
+          SATISFIED="$SATISFIED $realname"
         fi
       done
       [ $(is_virtualname $2) ] || ((prdstk_level--))
@@ -3317,7 +3350,7 @@ fi
 if [ -n "$opt_xtln" ]; then
   SIMULATE_NO=" ${opt_xtln//,/ } "
 fi
-# init_cfg_pkg "$pkg"
+SATISFIED=
 if [ $test_mode -gt 0 -a "$action" != "update" ]; then
   if [[ " $SIMULATE_YES " =~ [[:space:]]apache2[[:space:]] ]]; then
     SIMULATE_YES="$SIMULATE_YES port_tcp_80 port_tcp_443 port_tcp_21"

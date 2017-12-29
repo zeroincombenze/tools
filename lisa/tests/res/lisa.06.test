@@ -9,6 +9,10 @@
 > [ -x /usr/bin/lisa.man ] && chmod +x /usr/bin/lisa.man
 > cp /opt/odoo/dev/pypi/lisa/lisa/lisa_bld_ods /usr/bin
 > [ -x /usr/bin/lisa_bld_ods ] && chmod +x /usr/bin/lisa_bld_ods
+> cp /opt/odoo/dev/pypi/lisa/lisa/lisa_set_ods /usr/bin
+> [ -x /usr/bin/lisa_set_ods ] && chmod +x /usr/bin/lisa_set_ods
+> cp /opt/odoo/dev/pypi/lisa/lisa/stdout2wiki /usr/bin
+> [ -x /usr/bin/stdout2wiki ] && chmod +x /usr/bin/stdout2wiki
 > cp /opt/odoo/dev/pypi/lisa/lisa/lisa.conf.sample /etc/lisa
 > cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_Debian /etc/lisa
 > cp /opt/odoo/dev/pypi/lisa/lisa/odoo-server_RHEL /etc/lisa
