@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.0.1"
+__version__ = "0.3.0.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1214,7 +1214,7 @@ def act_set_periods(oerp, ctx):
                                  last_stop,
                                  'year',
                                  ctx)
-        code = re.findall('[0-9./-]+', name)
+        code = re.findall('[0-9./-]+', name)[0]
         fiscal_year_id = createL8(ctx, model, {'name': name,
                                                'code': code,
                                                'date_start': str(date_start),
@@ -1785,7 +1785,7 @@ def add_periods(oerp, company_id, fiscalyear_id,
                         ('date_stop', '=', str(date_stop)),
                         ('special', '=', special)])
         if len(ids) == 0:
-            code = re.findall('[0-9./-]+', name)
+            code = re.findall('[0-9./-]+', name)[0]
             createL8(ctx, model, {'name': name,
                                   'code': code,
                                   'fiscalyear_id': fiscalyear_id,
@@ -3216,7 +3216,7 @@ def reset_sequence(oerp, ctx):
     if not ctx['dry_run']:
         exclusion = [('company_id', '!=', 1)]
         remove_model_all_records(oerp, model, True, ctx, exclusion=exclusion)
-    record_ids = searchL8(ctx, model)
+    record_ids = searchL8(ctx, model, [])
     if not ctx['dry_run']:
         for record_id in record_ids:
             obj = browseL8(ctx, model, record_id)

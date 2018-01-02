@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # git report to origin
 # git fetch origin , poi, git reset --hard origin/8.0-ddt-based-on-packaging-preparation_fa
@@ -29,7 +29,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
-__version__=0.2.0
+__version__=0.2.0.2
 
 
 
@@ -66,7 +66,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Copy package for distribution"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
@@ -169,22 +169,24 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
       if [ ${enabled:-0} -eq 0 ]; then
         enabled=$opt_force
       fi
-      if [ ${enabled:-0} -eq 2 ]; then
-        if [ "$opt_cpush" != "-C" ]; then enabled=0; fi
+      if [ ${enabled:-0} -eq 2 -a "$opt_cpush" != "-C" ]; then
+        enabled=0;
+      elif [ ${enabled:-0} -eq 1 -a "$opt_cpush" == "-C" ]; then
+        enabled=0;
       fi
       if [ ${enabled:-0} -gt 0 ]; then
         if [ "$tgtparm" ]; then
           declare $y=$(echo "$tgtparm"|sed 's:\\::g')
-          if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""; fi
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh $tgtparm\""
           robocopy "$PKGPATH" "$tgtpath" "ssh $tgtparm"
         else
-         if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh\""; fi
+          [ $opt_verbose -gt 0 ] && echo "$ robocopy \"$PKGPATH\" \"$tgtpath\" \"ssh\""
           robocopy "$PKGPATH" "$tgtpath" "ssh"
         fi
-      fi
-      f_done=1
-      if [ "$opt_cpush" == "-C" ]; then
-        break
+        f_done=1
+        if [ "$opt_cpush" == "-C" ]; then
+          break
+        fi
       fi
     fi
   done

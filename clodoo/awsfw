@@ -5,14 +5,20 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -22,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.6.1
+__version__=0.1.6.2
 
 get_remote_ip() {
 #get_remote_ip(1|net)
@@ -76,6 +82,7 @@ conf_default() {
     set_cfg_def "AWS_SECRET_ACCESS_KEY" "abcdefghijklmnopqrstuvwxyz0123456789ABCD"
     set_cfg_def "GROUP_IDS" "ab-01234567"
     set_cfg_def "REGION" "eu-west-1"
+    set_cfg_def "INSTANCES_ID" "i-0123456789abcdef0"
 }
 
 OPTOPTS=(h        c                   l             n            q           t         V           v)
@@ -99,10 +106,10 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|allow|enable|mysship|show"
+HLPCMDLIST="help|allow|enable|mysship|show|start|stop"
 if [ $opt_help -gt 0 ]; then
   print_help "AWS or local Firewall\n act may be on of $HLPCMDLIST"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -119,33 +126,45 @@ export AWS_ACCESS_KEY_ID=$(get_cfg_value 0 AWS_ACCESS_KEY_ID)
 export AWS_SECRET_ACCESS_KEY=$(get_cfg_value 0 AWS_SECRET_ACCESS_KEY)
 GROUP_IDS=$(get_cfg_value 0 GROUP_IDS)
 REGION=$(get_cfg_value 0 REGION)
+INSTANCES_ID=$(get_cfg_value 0 INSTANCES-ID)
 sts=$STS_SUCCESS
 if [ "$act" == "show" ]; then
-  curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo "[0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+")
-  echo "Current IP: $curip"
+  if [ $test_mode -gt 0 ]; then
+    echo "aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep CidrIp"
+  else
+    curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo "[0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+")
+    echo "Current IP: $curip"
+  fi
 elif [ "$act" == "enable" ]; then
   if [ -z "$param1" ]; then
     echo "Missed new IP"
     echo "use $THIS enable $HLPIPFMT"
     sts=1
   else
-    curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo "[0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+")
-    newip=$(get_ip $param1)
-    if [ "$curip" == "$newip" ]; then
-      echo "Current and new IP are the same!"
-      sts=1
+    if [ $test_mode -gt 0 ]; then
+      echo "aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep CidrIp|tail -n1|grep -Eo [0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+"
+      newip=$(get_ip $param1)
+      echo "aws ec2 revoke-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{\"IpProtocol\": \"-1\", \"IpRanges\": [{\"CidrIp\": \"'$curip'\"}],\"UserIdGroupPairs\": []}]'"
+      echo "aws ec2 authorize-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{\"IpProtocol\": \"-1\", \"IpRanges\": [{\"CidrIp\": \"'$newip'\"}],\"UserIdGroupPairs\": []}]'"
     else
-      if [ $opt_verbose -gt 0 ]; then
-        echo "Revoke IP $curip"
-      fi
-      if [ $opt_dry_run -eq 0 ]; then
-        aws ec2 revoke-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$curip'"}],"UserIdGroupPairs": []}]'
-      fi
-      if [ $opt_verbose -gt 0 ]; then
-        echo "Authorize IP $newip"
-      fi
-      if [ $opt_dry_run -eq 0 ]; then
-        aws ec2 authorize-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$newip'"}],"UserIdGroupPairs": []}]'
+      curip=$(aws ec2 describe-security-groups --output=json --region=$REGION --group-ids=$GROUP_IDS|grep "CidrIp"|tail -n1|grep -Eo "[0-9.]+[0-9.]+[0-9.]+[0-9]/[0-9]+")
+      newip=$(get_ip $param1)
+      if [ "$curip" == "$newip" ]; then
+        echo "Current and new IP are the same!"
+        sts=1
+      else
+        if [ $opt_verbose -gt 0 ]; then
+          echo "Revoke IP $curip"
+        fi
+        if [ $opt_dry_run -eq 0 ]; then
+          aws ec2 revoke-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$curip'"}],"UserIdGroupPairs": []}]'
+        fi
+        if [ $opt_verbose -gt 0 ]; then
+          echo "Authorize IP $newip"
+        fi
+        if [ $opt_dry_run -eq 0 ]; then
+          aws ec2 authorize-security-group-ingress  --region=$REGION --group-id $GROUP_IDS --ip-permissions '[{"IpProtocol": "-1", "IpRanges": [{"CidrIp": "'$newip'"}],"UserIdGroupPairs": []}]'
+        fi
       fi
     fi
   fi
@@ -160,17 +179,22 @@ elif [ "$act" == "allow" ]; then
     else
       curip=$(grep -A1 'ADSL from owner' /etc/hosts.allow|grep -Eo "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
     fi
-    if [ -n "$curip" ]; then
+    if [ $test_mode -gt 0 ]; then
       newip=$(get_ip $param1 1)
-      if [ "$curip" == "$newip" ]; then
-        echo "Current and new IP are the same!"
-        sts=1
-      else
-        if [ $opt_dry_run -eq 0 ]; then
-          sed -i -e "s/$curip/$newip/" /etc/hosts.allow
-          echo "Please restart ssh service (i.e service ssh[d] restart)"
+      echo "\$ sed -i -e s/$curip/$newip/ /etc/hosts.allow"
+    else
+      if [ -n "$curip" ]; then
+        newip=$(get_ip $param1 1)
+        if [ "$curip" == "$newip" ]; then
+          echo "Current and new IP are the same!"
+          sts=1
         else
-          echo "\$ sed -i -e s/$curip/$newip/ /etc/hosts.allow"
+          if [ $opt_dry_run -eq 0 ]; then
+            sed -i -e "s/$curip/$newip/" /etc/hosts.allow
+            echo "Please restart ssh service (i.e service ssh[d] restart)"
+          else
+            echo "\$ sed -i -e s/$curip/$newip/ /etc/hosts.allow"
+          fi
         fi
       fi
     fi
@@ -178,6 +202,24 @@ elif [ "$act" == "allow" ]; then
 elif [ "$act" == "mysship" ]; then
   newip=$(get_remote_ip 1)
   echo "remote console ip is $newip"
+elif [ "$act" == "start" ]; then
+  if [ $test_mode -gt 0 ]; then
+    echo "aws ec2 start-instances --region=$REGION --instance-ids $INSTANCES_ID"
+  else
+    if [ $opt_verbose -gt 0 ]; then
+      echo "Start instance"
+    fi
+    aws ec2 start-instances --region=$REGION --instance-ids $INSTANCES_ID
+  fi
+elif [ "$act" == "stop" ]; then
+  if [ $test_mode -gt 0 ]; then
+    echo "aws ec2 stop-instances --region=$REGION --instance-ids $INSTANCES_ID"
+  else
+    if [ $opt_verbose -gt 0 ]; then
+      echo "Stop instance"
+    fi
+    aws ec2 stop-instances --region=$REGION --instance-ids $INSTANCES_ID
+  fi
 elif [ "$act" == "help" ]; then
   y=${HLPCMDLIST//|/ }
   for x in $y; do
