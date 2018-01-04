@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.20.1
+__version__=0.1.20.2
 
 
 up_oemod() {
@@ -76,8 +76,8 @@ up_oemod() {
 
 OPTOPTS=(h        b          c        D             E        d      m         n           o       q           r           t         U          V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_with_demo opt_tenv opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "*"           "*"      "="    -1        1           1       0           "="         1         "="        "*"         "+")
-OPTDEFL=(1        "7.0"      ""       ""            ""       ""     1         0           0       -1          ""          0         "odoo"     ""          -1)
+OPTACTI=(1        "="        "="      "*"           "*"      "="    1         1           1       0           "="         1         "="        "*"         "+")
+OPTDEFL=(1        "7.0"      ""       ""            ""       ""     -1        0           0       -1          ""          0         "odoo"     ""          -1)
 OPTMETA=("help"   "branch"   "file"   ""            ""       "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def 7.0)"\

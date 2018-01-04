@@ -6,14 +6,20 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -22,27 +28,29 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
   exit 2
 fi
-. $TRAVISLIBDIR
+. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.17.1
+
+__version__=0.1.17.3
 
 
 get_odoo_service_name() {
 # get_odoo_service_name(odoo_ver)
-    local svcname=
-    if [ "$1" == "v7" ]; then
-      svcname="openerp-server"
-    elif [ "$1" == "10.0" ]; then
-      svcname="odoo10"
-    else
-      svcname="odoo${1:0:1}-server"
-    fi
+    local svcname=$(build_odoo_param SVCNAME $1)
+    # local svcname=
+    # if [ "$1" == "v7" ]; then
+    #   svcname="openerp-server"
+    # elif [ "$1" == "10.0" ]; then
+    #   svcname="odoo10"
+    # else
+    #   svcname="odoo${1:0:1}-server"
+    # fi
     echo $svcname
 }
 
@@ -113,8 +121,8 @@ update_base_sass() {
       echo "No file $opt_sass found!"
       return
     fi
-    [ $opt_verbose -gt 0 ] && echo "Reading $fsrc ..."
     local ftmp="$fsrc.tmp"
+    [ $opt_verbose -gt 0 ] && echo "Reading $fsrc, writing $ftmp ..."
     rm -f $ftmp;
     local lctr=0
     local tk devcol qtcol prdcol svcname
@@ -196,11 +204,15 @@ update_base_sass() {
       echo "$opt_css: $opt_sass" > Makefile
       echo -e "\tsass --trace -t expanded $opt_sass $opt_css" >> Makefile
     fi
-    if [ "$fsrc" == "base.sass" -a ! -f "openerp.sass" ]; then
-      run_traced "cp -p $fsrc openerp.sass"
+    if [ "$fsrc" == "base.sass" -a ! -f "odoo-default.sass" ]; then
+      run_traced "cp -p $fsrc odoo-default.sass"
     fi
     if [ $opt_force -ne 0 ] || [ -n "$(diff -q $ftmp $fsrc)" ] || [ -n "$(diff -q $ftmp $opt_sass)" ]; then
-      run_traced "mv -f $fsrc $fsrc.bak"
+      if [ $opt_diff -ne 0 ]; then
+        echo "diff -y --suppress-common-line $opt_sass $ftmp"
+        diff -y --suppress-common-line $opt_sass $ftmp
+      fi
+      run_traced "cp -f $fsrc $fsrc.bak"
       run_traced "mv -f $ftmp $opt_sass"
       run_traced "sass --trace -t expanded $opt_sass $opt_css"
       run_traced "chown odoo:odoo $opt_sass $opt_css $fsrc.bak"
@@ -211,22 +223,25 @@ update_base_sass() {
         run_traced "sed -ie 's:^[# ]*web_skin *=.*:web_skin = $theme:' /etc/odoo/$svname.conf"
       fi
       run_traced "service $svname restart"
-    elif [ ${opt_dry_run:-0} -eq 0 ]; then
-      rm -f $fntmp
+    else
+      [ $opt_verbose -gt 0 ] && echo "No skin changed"
+      [ ${opt_dry_run:-0} -eq 0 ] && rm -f $fntmp
     fi
 }
 
 
-OPTOPTS=(h        c        d          f         l        n            q           s           T         V           v)
-OPTDEST=(opt_help opt_conf opt_webdir opt_force opt_list opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose )
-OPTACTI=(1        "="      "="        1         1        1            0           "="         1         "*>"        "+")
-OPTDEFL=(1        ""       ""         0         0        0            -1          "base.sass" 0         ""          -1)
-OPTMETA=("help"   "file"   "dir"      ""        "list"   "do nothing" "quit"      "file"      "test"    "version"   "verbose")
+OPTOPTS=(h        c        D        d          f         l        m         n            q           s           T         V           v)
+OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose )
+OPTACTI=(1        "="      1        "="        1         1        1         1            0           "="         1         "*>"        "+")
+OPTDEFL=(1        ""       0        ""         0         0        -1        0            -1          "base.sass" 0         ""          -1)
+OPTMETA=("help"   "file"   "dir"      ""        "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
+ "show diff (implies dry-run)"\
  "odoo web dir (def. /opt/odoo/{odoo_ver}/addons/web/static/src/css)"\
  "force generation of css file"\
  "list themes"\
+ "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "silent mode"\
  "target sass file (def=base.sass)"\
@@ -242,7 +257,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Install odoo theme"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
@@ -250,6 +265,25 @@ if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
 fi
 if [ $test_mode -ne 0 ]; then
   opt_dry_run=1
+fi
+if [ $opt_diff -ne 0 ]; then
+  opt_dry_run=1
+fi
+if [ $opt_multi -lt 0 ]; then
+  c=0
+  for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+    for p in "" v odoo ODOO; do
+      odoo_bin=$(build_odoo_param BIN $p$v search)
+      if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+        ((c++))
+      fi
+    done
+  done
+  if [ $c -gt 2 ]; then
+    opt_multi=1
+  else
+    opt_multi=0
+  fi
 fi
 themedirlist=""
 if [ $opt_list -ne 0 ]; then
@@ -278,9 +312,7 @@ fi
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then
   opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.conf
 fi
-opts_travis ""
 CFG_init
-conf_default
 link_cfg $COLORFILE $TCONF                                      # No Std Code
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 if [[ $HOSTNAME =~ $HOSTNAME_PRD ]]; then
