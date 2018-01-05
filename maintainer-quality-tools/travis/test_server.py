@@ -208,6 +208,15 @@ def cmd_strip_secret(cmd):
     return cmd_secret
 
 
+def get_script_path(server_path, script_name):
+    script_path = os.path.join(server_path, 'server')
+    if os.path.isdir(server_path):
+        script_path = os.path.join(server_path, 'server', script_name)
+    else:
+        script_path = os.path.join(server_path, script_name)
+    return script_path
+
+
 def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                  addons_path, install_options, preinstall_modules=None,
                  unbuffer=True, server_options=None):
@@ -235,7 +244,8 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
     else:
         # unbuffer keeps output colors
         cmd_odoo = ["unbuffer"] if unbuffer else []
-        cmd_odoo += ["%s/%s" % (server_path, script_name),
+        script_path = get_script_path(server_path, script_name)
+        cmd_odoo += [script_path,
                      "-d", db,
                      "--log-level=info",
                      "--stop-after-init",
@@ -367,8 +377,9 @@ def main(argv=None):
                  unbuffer, server_options)
 
     # Running tests
+    script_path = get_script_path(server_path, script_name)
     cmd_odoo_test = ["coverage", "run",
-                     "%s/%s" % (server_path, script_name),
+                     script_path,
                      "-d", database,
                      "--db-filter=^%s$" % database,
                      "--stop-after-init",
