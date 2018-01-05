@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0
+#__version__=0.2.0.1
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -217,6 +217,9 @@ init_travis() {
       elif [ -d ./openerp -a -f ./openerp-server ]; then
         REPOSNAME=
         PRJNAME="Odoo"
+      elif [ -d ./server -a -f ./server/openerp-server ]; then
+        REPOSNAME=
+        PRJNAME="Odoo"
       fi
       if [ "$PRJNAME" == "Odoo" ]; then
         ODOO_SETUP="__openerp__.py"
@@ -256,7 +259,7 @@ init_travis() {
         fi
       fi
     fi
-    if [ "$PRJNAME" == "odoo" ]; then
+    if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
       PRJNAME=Odoo
     fi
     if [ "$PRJNAME" == "Odoo" ]; then

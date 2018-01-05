@@ -321,7 +321,7 @@ def main(argv=None):
               "Using '%s'" % odoo_version)
     test_loghandler = None
     if odoo_version == "6.1":
-        install_options += ["--test-disable"]
+        # install_options += ["--test-disable"]
         test_loglevel = 'test'
     else:
         if test_enable:

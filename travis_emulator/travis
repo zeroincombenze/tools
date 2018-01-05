@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0
+__version__=0.2.0.1
 
 
 store_cfg_param_value() {
@@ -509,8 +509,8 @@ process_yaml_run_cmd() {
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
-            # run_traced "rm -fR $HOME/maintainer-quality-tools/"
             :
+            # run_traced "rm -fR $HOME/maintainer-quality-tools/"
           elif [ -f $HOME/maintainer-quality-tools/ ]; then
             run_traced "rm -f $HOME/maintainer-quality-tools"
           fi
@@ -569,6 +569,11 @@ process_yaml_run_cmd() {
           ((ix++))
           tk=${x[$ix]}
         done
+      fi
+    elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
+      xcmd=${xcmd/mv /cp -r }
+      if [ $opt_dbgmnt -ne 0 ]; then
+        xcmd="$(echo $xcmd|sed -e 's:/tools/:/dev/pypi/maintainer-quality-tools/:')"
       fi
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
@@ -802,11 +807,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        f         H        j        k        m       n            p        q           r     V           v           w)
-OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_keep opt_mis opt_dry_run  opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait)
-OPTACTI=(1        "="        "="      1         1        1        1        1       "1>"         1        0           1     "*>"        "+"         1)
-OPTDEFL=(0        10.0       ""       0         -1       0        0        0       0            0        -1          0     ""          -1          0)
-OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""       ""      "do nothing" ""       "verbose"   "res" "version"   "verbose"   "")
+OPTOPTS=(h        b          c        f         H        j        k        M          m       n            p        q           r     V           v           w)
+OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_keep opt_dbgmnt opt_mis opt_dry_run  opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait)
+OPTACTI=(1        "="        "="      1         1        1        1        1          1       "1>"         1        0           1     "*>"        "+"         1)
+OPTDEFL=(0        10.0       ""       0         -1       0        0        0          0       0            0        -1          0     ""          -1          0)
+OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""       ""         ""      "do nothing" ""       "verbose"   "res" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
@@ -814,6 +819,7 @@ OPTHELP=("this help"\
  "use virtualenv to run tests"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep Db after tests"\
+ "use local MQT"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
  "prefer python test over bash test when avaiable"\
