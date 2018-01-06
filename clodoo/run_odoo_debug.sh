@@ -22,7 +22,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.3
+__version__=0.2.3.1
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
@@ -121,17 +121,56 @@ if [ -z "$opt_user" ]; then
 fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
-    mods=${opt_modules//,/ }
-    for m in $mods; do
-      p=$(find $odoo_root -type d -name $m|head -n1)
-      if [ -f $p/$manifest ]; then
-        f=$p/$manifest
-        x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
-        if [ -n "$x" ]; then
-          opt_modules="$opt_modules,$x"
-        fi
-      fi
-    done
+    # mods=${opt_modules//,/ }
+    # for m in $mods; do
+    #   p=$(find $odoo_root -type d -name $m|head -n1)
+    #   if [ -f $p/$manifest ]; then
+    #     f=$p/$manifest
+    #     x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
+    #     if [ -n "$x" ]; then
+    #       opt_modules="$opt_modules,$x"
+    #     fi
+    #   fi
+    # done
+    addons_list=
+    [ -d $PWD/addons ] && addons_list=$addons_list,$PWD/addons
+    [ -d $PWD/openerp/addons ] && addons_list=$addons_list,$PWD/openerp/addons
+    [ -d $PWD/server/openerp/addons ] && addons_list=$addons_list,$PWD/server/openerp/addons
+    addons_list=${addons_list:1}
+    pushd /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ >/dev/null
+cat <<EOF >./get_test_dependencies.py
+import sys
+from getaddons import get_addons, get_modules, is_installable_module
+from test_server import get_test_dependencies
+ltype=''
+path=''
+addons_list=None
+if len(sys.argv)>1: ltype=sys.argv[1]
+if len(sys.argv)>2: path=sys.argv[2]
+if len(sys.argv)>3: addons_list=sys.argv[3].split(',')
+if ltype == 'mod':
+    paths=path.split(',')
+    res=[]
+    for path in paths:
+        r=get_modules(path)
+        for m in r:
+            if m not in res:
+                res.append(m)
+    print ','.join(res)
+elif ltype == 'dep':
+    res=get_test_dependencies(path, addons_list)
+    print ','.join(res)
+else:
+    print 'get_test_dependencies.py mod|dep path [addons_list]'
+EOF
+    if [ "$opt_modules" == "all" ];then
+      opt_modules=$(python ./get_test_dependencies.py mod $addons_list)
+    fi
+    x=$(python ./get_test_dependencies.py dep $addons_list $opt_modules)
+    if [ -n "$x" ]; then
+      opt_modules="$opt_modules,$x"
+    fi
+    popd >/dev/null
     opts="-i $opt_modules --test-enable"
     create_db=1
   else
