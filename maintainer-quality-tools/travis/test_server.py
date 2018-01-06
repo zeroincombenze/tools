@@ -210,7 +210,7 @@ def cmd_strip_secret(cmd):
 
 def get_script_path(server_path, script_name):
     script_path = os.path.join(server_path, 'server')
-    if os.path.isdir(server_path):
+    if os.path.isdir(script_path):
         script_path = os.path.join(server_path, 'server', script_name)
     else:
         script_path = os.path.join(server_path, script_name)

@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.1
+#__version__=0.2.0.3
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -535,7 +535,7 @@ conf_default() {
     set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
     set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
     set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
-    set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py"
+    set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
     set_cfg_def "ODOO_DEFCONF" ".odoorc"
     set_cfg_def "ODOO_LOGFILE" "False"
     set_cfg_def "RUN_travis_install_nightly" "travis_install_nightly"
@@ -1675,19 +1675,19 @@ run_svr_test_init() {
       local x=$(readlink -e $PRJPATH/..)
       run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
       run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
-      if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-        cat <<EOF >$x/openerp-server
-#!/usr/bin/env python
-import os
-import subprocess
-import sys
-if __name__ == "__main__":
-    sys.path.insert(0,'/opt/odoo/v7/server')
-    import openerp
-    openerp.cli.main()
-EOF
-        chmod +x $x/openerp-server
-      fi
+#       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
+#         cat <<EOF >$x/openerp-server
+# #!/usr/bin/env python
+# import os
+# import subprocess
+# import sys
+# if __name__ == "__main__":
+#     sys.path.insert(0,'/opt/odoo/v7/server')
+#     import openerp
+#     openerp.cli.main()
+# EOF
+#         chmod +x $x/openerp-server
+#       fi
     fi
     return $sts
 }
