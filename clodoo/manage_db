@@ -4,7 +4,7 @@
 # Set Odoo Version in clodo files
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.20.2
+__version__=0.1.20.3
 
 
 up_oemod() {
@@ -105,7 +105,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Manage Cloud DB(s) \n"\
-  "Action may be on of: install,update,upgrade,module,translate,rename\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename (phase) is old=new\n\n(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "Action may be on of: install,update,upgrade,module,translate,rename\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename (phase) is old=new\n\n(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 opts=

@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -30,41 +30,38 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.24
+__version__=1.3.27
 
 
 kill_process() {
-    sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$NEWDB' and pid<>pg_backend_pid();"
-    flog=$HOME/dup4test_proc.log
-    psql -U$opt_user -d postgres -tc "$sql" -o $flog
-    while IFS=\| read db pid pdt w st; do
-      if [ -n "$st" ]; then
-        db=$(echo $db)
-        w=$(echo $w)
-        st=$(echo $st)
-        pid=$(echo $pid)
-        if [ "$db" == "$NEWDB" ]; then
-          if [ "$w" != "f" -a "${st:0:4}" != "idle" ]; then
-            echo "DB non deletable"
-          else
-            echo "killing process $pid"
-            kill $pid
-          fi
-        fi
-      fi
-    done < $flog
-    rm -f $flog
+#kill_process(db)
+    # sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$NEWDB' and pid<>pg_backend_pid();"
+    # flog=$HOME/dup4test_proc.log
+    # psql -U$opt_user -d postgres -tc "$sql" -o $flog
+    # while IFS=\| read db pid pdt w st; do
+    #   if [ -n "$st" ]; then
+    #     db=$(echo $db)
+    #     w=$(echo $w)
+    #     st=$(echo $st)
+    #     pid=$(echo $pid)
+    #     if [ "$db" == "$NEWDB" ]; then
+    #       if [ "$w" != "f" -a "${st:0:4}" != "idle" ]; then
+    #         echo "DB non deletable"
+    #       else
+    #         echo "killing process $pid"
+    #         kill $pid
+    #       fi
+    #     fi
+    #   fi
+    # done < $flog
+    # rm -f $flog
+    run_traced "pg_db_active -a $1 -w"
 }
 
 backup_db() {
     local db=$1
-    if [ $opt_dry_run -gt 0 ]; then
-      wlog "> pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql $db"
-    else
-      kill_process
-      wlog "\$ pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql $db"
-      pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql $db
-    fi
+    kill_process $db
+    run_traced "pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql $db"
 }
 
 check_4_table() {
@@ -76,11 +73,11 @@ check_4_table() {
     if [ "$what" == "exists" ]; then
        x=$(psql -tc "select * from pg_tables where tablename = '$tbl';" $DB)
     elif [ "$what" == "with_data" ]; then
-       x=$(psql -tc "select * from $tbl;" $DB)
+       x=$(psql -tc "select * from $tbl limit 1;" $DB)
     elif [ "$what" == "active_data" ]; then
-       x=$(psql -tc "select * from $tbl where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl limit 1 where active=true;" $DB)
     elif [ "$what" == "reset_data" ]; then
-       x=$(psql -tc "select * from $tbl where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl limit 1 where active=true;" $DB)
     else
        x=""
     fi
@@ -140,17 +137,17 @@ stop_services() {
           res=1
           check_4_table $DB $tbl $act
           if [ $? -eq 0 ]; then
-            wlog ".. Table $tbl $act ok"
+            # wlog ".. Table $tbl $act ok"
             ((wfid++))
             tblwf[$tbl]=$wfid
-             if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
-               # x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
-               x=$(psql -AR\| -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
-               if [ -n "$x" ]; then
-                 svc2run[$tbl]="${svc2run[$tbl]} $x"
-                 # svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
-               fi
-             fi
+            if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
+              # x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
+              x=$(psql -AR\| -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
+              if [ -n "$x" ]; then
+                svc2run[$tbl]="${svc2run[$tbl]} $x"
+                # svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
+              fi
+            fi
           else
             if [ "${tblok[$tbl]}" != "$act" ]; then
               wlog ".. Table $tbl, action $act failed !!"
@@ -185,7 +182,7 @@ stop_services() {
           i=0
           while [ $i -lt $c ]; do
             res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
-            wlog ".. update $tbl set active=true where name='$res';"
+            # wlog ".. update $tbl set active=true where name='$res';"
             psql -tc "update $tbl set active=true where name='$res';" $DB
             ((i++))
           done
@@ -195,6 +192,77 @@ stop_services() {
     return 0
 }
 
+get_sqlfname() {
+# get_sqlfname(db dtdb)
+# current dir must be BCKDIR
+    local db=$1
+    local dtdb=$2
+    if [ -z "$opt_name" ]; then
+      expand_tar $db $db-$dtdb.sql
+      SQLFNAME=$DBCKDIR/$db-$dtdb.sql
+    else
+      SQLFNAME=$opt_name
+    fi
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ "$db" == "$NEWDB" ]; then
+        wlog "Restore $SQLFNAME into $NEWDB"
+      else
+        wlog "Duplicate $SQLFNAME into $NEWDB"
+      fi
+    else
+      if [ "$db" == "$NEWDB" ]; then
+        wlog "File $SQLFNAME should be restored into $NEWDB"
+      else
+        wlog "File $SQLFNAME should be duplicate into $NEWDB"
+      fi
+    fi
+    if [ ! -f $SQLFNAME ]; then
+      wlog "No file $SQLFNAME found!"
+      passed="$passed $NEWDB $dtdb"
+      SQLFNAME=
+    fi
+}
+
+create_script_db_2_restore() {
+# drop_db_2_restore(db fsql)
+    local NEWDB=$1
+    local fsql=$2
+    wlog "Prepare file script $fsql ..."
+    echo "\\c postgres">$fsql
+    echo "\\echo Creating new DB $NEWDB ("$(date "+%Y-%m-%m %H:%M:%S")")">>$fsql
+    echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
+    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
+    echo "\\c $NEWDB">>$fsql
+    echo "\\echo Loading data into DB $NEWDB">>$fsql
+    echo "\\i $SQLFNAME">>$fsql
+    echo "ALTER DATABASE $NEWDB OWNER TO $OE_OWN;">>$fsql
+}
+
+inherit_options() {
+    OPTS=
+    if [ $opt_ex -gt 0 ]; then
+      OPTS=e$OPTS
+    fi
+    if [ $opt_cron -gt 0 ]; then
+      OPTS=K$OPTS
+    fi
+    if [ $opt_dry_run -gt 0 ]; then
+      OPTS=n$OPTS
+    fi
+    if [ $opt_verbose -gt 0 ]; then
+      OPTS=v$OPTS
+    fi
+    if [ -n "$opt_user" ]; then
+      OPTS="${OPTS}U$opt_user"
+    fi
+    if [ -n "$OPTS" ]; then
+      OPTS=-$OPTS
+    fi
+    if [ -n "$opt_conf" -a "$opt_conf" != "$TDIR/zar.conf" ]; then
+      OPTS="$OPTS -c $opt_conf"
+    fi
+}
+
 
 OPTOPTS=(h        c        e      K        l       m        n            o        R       T         U          V           v)
 OPTDEST=(opt_help opt_conf opt_ex opt_cron opt_log opt_mail opt_dry_run  opt_name opt_rst test_mode opt_user   opt_version opt_verbose)
@@ -202,9 +270,9 @@ OPTACTI=(1        "="      1      1        "="     1        1            "="    
 OPTDEFL=(0        ""       1      0        ""      -1       0            ""       0       0          "postgres" ""          0)
 OPTMETA=("help"   "file"   ""     "cron"   "file" "mail"    "do nothing" "fname"  ""      "test"     "username" "version"   "verbose")
 OPTHELP=("this help"\
- "run in cron environment"\
- "exact DB name (rather matches DB name)"\
  "configuration file (def zar.conf)"\
+ "exact DB name (rather matches DB name)"\
+ "run in cron environment"\
  "log filename (def /var/log/zar/restdb.log)"\
  "disable mail server on target DB"\
  "do nothing (dry-run)"\
@@ -226,7 +294,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Restore/duplicate postgres DB"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -242,17 +310,31 @@ fi
 wlog "=== Starting restore/duplicate $__version__ by $opt_user ==="
 
 init_vars "$olddb"
+if [ -z "$DBSEL" ]; then
+  DBSEL=".*"
+  opt_ex=0
+fi
 dblist=$(create_db_list_from_file "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 if [ "$BCKFORMAT" == "0" ]; then
-  wlog "-- Backup keep sql files --"
+  wlog "-- Backupped DBs stored in sql files --"
 else
-  wlog "-- Backup compress into tar files --"
+  wlog "-- Backupped DBs stored in compress tar files --"
 fi
 wlog "PRD=$HOST_PRD"
 wlog "DEV=$HOST_DEV"
 wlog "TEST_DB=$TEST_DB"
 wlog "OE_OWN=$OE_OWN"
 wlog "- DB to Restore:$dblist"
+if [[ ! $HOSTNAME =~ $HOST_PRD && -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+  inherit_options
+  if [ -f $TDIR/zar_purge ]; then
+    cmd=$TDIR/zar_purge
+  else
+    cmd=./zar_purge
+  fi
+  wlog "\$ $cmd $OPTS"
+  eval $cmd $OPTS
+fi
 if [ -n "$newdb" ]; then
   NEWDBS=$newdb
 else
@@ -268,120 +350,107 @@ if [ -z "$DBSEL" -o -z "$NEWDBS" ]; then
 fi
 if [[ $seldate =~ [0-9]{8} ]]; then
   NDAYSB=$seldate
-elif [ "$HOSTNAME" == "$HOST_PRD" ]; then
+elif [[ $HOSTNAME =~ $HOST_PRD ]]; then
   NDAYSB="$(get_cfg_value 0 PRD_num_days_before)"
-elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
   NDAYSB="$(get_cfg_value 0 DEV_num_days_before)"
 fi
 if [ -z "$NDAYSB" ]; then
   NDAYSB="$(get_cfg_value 0 num_days_before)"
 fi
 if [ -z "$NDAYSB" ]; then
-  NDAYSB=yesterday
+  if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+    NDAYSB=yesterday
+  else
+    NDAYSB=today
+  fi
 fi
 dovalid=0
 for sfx in A B C D E F G H; do
   x=DB${sfx}
   XDB=${!x}
-  [ -n "$XDB" ] && dovalid=1
+  [ -n "$XDB" ] && dovalid=1 && break
 done
 ctr=0
 passed=""
 if [ $dovalid -gt 0 ]; then
+  pushd $DBCKDIR >/dev/null
   for db in $dblist; do
     set_db_vars "$db"
-    for NEWDB in ${NEWDBS//,/ }; do
-      for ND in ${NDAYSB//,/ }; do
-        if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
-          continue
-        fi
-        if [ -z "$opt_name" ]; then
-          if [[ $ND =~ [0-9]{8} ]]; then
-            dtdb=$ND
-          elif [[ $ND =~ [0-9]+ ]]; then
-            NDAYB=-${ND}day
-            dtdb=$(date -d $NDAYB +"%Y%m%d")
-          else
-            dtdb=$(date -d yesterday +"%Y%m%d")
-          fi
-          if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+    if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+      for NEWDB in ${NEWDBS//,/ }; do
+        for ND in ${NDAYSB//,/ }; do
+          if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
             continue
           fi
-        else
-          dtdb="00000000"
-        fi
-        if [ $opt_mail -eq -1 ]; then
-          opt_mail=0
-          if [ "$HOSTNAME" == "$HOST_DEV" ]; then
-            opt_mail=1
-            wlog "Restored DB is set for test because Development Host"
-          elif [[ $NEWDB =~ $TEST_DB ]]; then
-            opt_mail=1
-            wlog "Restored DB is set for test as classificated"
+          if [ -z "$opt_name" ]; then
+            if [[ $ND =~ [0-9]{8} ]]; then
+              dtdb=$ND
+            elif [[ $ND =~ [0-9]+ ]]; then
+              NDAYB=-${ND}day
+              dtdb=$(date -d $NDAYB +"%Y%m%d")
+            else
+              dtdb=$(date -d yesterday +"%Y%m%d")
+            fi
+            if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+              continue
+            fi
+          else
+            dtdb="00000000"
           fi
-        fi
-        if [ -z "$opt_name" ]; then
-          expand_tar $db
-          sqlfname=$DBCKDIR/$DBSEL-$dtdb.sql
-        else
-          sqlfname=$opt_name
-        fi
-        if [ $opt_dry_run -eq 0 ]; then
-          wlog "Restore/duplicate $sqlfname $NEWDB"
-        else
-          echo "File $sqlfname should be restored into $NEWDB"
-        fi
-        if [ ! -f $sqlfname ]; then
-          echo "No file $sqlfname found!"
-          passed="$passed $NEWDB $dtdb"
-          continue
-        fi
-        if [ "$NEWDB" == "$DBSEL" -a "$dtdb" != "00000000" ]; then
-          backup_db $DBSEL
-        fi
-
-        pycmd=$HOME/$NEWDB.py
-        echo "import oerplib">$pycmd
-        echo "oerp = oerplib.OERP(server='$ODOO_RPC_HOST',">>$pycmd
-        echo "                    protocol='$ODOO_RPC_PROTOCOL',">>$pycmd
-        echo "                    port='$ODOO_RPC_XMLPORT',">>$pycmd
-        echo "                    version='$ODOO_VERSION')">>$pycmd
-        echo "oerp.db.drop('$ODOO_RPC_PWD',">>$pycmd
-        echo "             '$NEWDB')">>$pycmd
-        fsql=$HOME/$NEWDB.sql
-        wlog "Prepare file script $fsql ..."
-        echo "\\c postgres">$fsql
-        echo "\\echo Creating new DB $NEWDB">>$fsql
-        echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
-        echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
-        echo "\\c $NEWDB">>$fsql
-        echo "\\echo Loading data into DB $NEWDB">>$fsql
-        echo "\\i $sqlfname">>$fsql
-        echo "ALTER DATABASE $NEWDB OWNER TO $OE_OWN;">>$fsql
-
-        if [ $opt_dry_run -eq 0 ]; then
-          wlog "Starting restore $NEWDB"
-          kill_process
-          python $pycmd
-          if [ $opt_mail -gt 0 ]; then
-            $0 -R "$NEWDB" &
+          if [ $opt_mail -eq -1 ]; then
+            opt_mail=0
+            if [[ $NEWDB =~ $TEST_DB ]]; then
+              opt_mail=1
+              wlog "Restored DBs are set for test as classificated"
+            fi
           fi
-          psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log
-          stop_services "$NEWDB" "quick"
-          rm -f $pycmd
-          wlog "Restore $NEWDB terminated"
-          ((ctr++))
-          if [ -n "$opt_name" ]; then
-            break
+          get_sqlfname $db $dtdb
+          if [ -z "$SQLFNAME" ]; then
+            continue
           fi
+          if [ "$NEWDB" == "$DBSEL" -a "$dtdb" != "00000000" ]; then
+            backup_db $DBSEL
+          fi
+        done
+        if [ -n "$opt_name" ]; then
+          break
         fi
-        passed="$passed $NEWDB $dtdb"
       done
+    elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+      dtdb=$(date -d today +"%Y%m%d")
+      NEWDB=$db
+      if [ $opt_mail -eq -1 ]; then
+        opt_mail=1
+        wlog "Restored DBs are set for test because Development Host"
+      fi
+      get_sqlfname $db $dtdb
+      if [ -z "$SQLFNAME" ]; then
+        continue
+      fi
+    fi
+    fsql=$HOME/$NEWDB.sql
+    create_script_db_2_restore "$NEWDB" "$fsql"
+    if [ $opt_dry_run -eq 0 ]; then
+      wlog "Starting restore $NEWDB"
+      if [ $opt_mail -gt 0 ]; then
+        eval $TDIR/$THIS -R "$NEWDB" &
+      fi
+      kill_process $NEWDB
+      run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+      if [ $opt_mail -gt 0 ]; then
+        stop_services "$NEWDB" "quick"
+      fi
+      rm -f $fsql
+      wlog "Restore $NEWDB terminated"
+      ((ctr++))
       if [ -n "$opt_name" ]; then
         break
       fi
-    done
+    fi
+    passed="$passed $NEWDB $dtdb"
   done
+  popd >/dev/null
 fi
 if [ $opt_dry_run -eq 0 ]; then
   sleep 30

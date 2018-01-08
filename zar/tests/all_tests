@@ -76,10 +76,10 @@ if [ ${opt_tlib:-0} -ne 0 ]; then
   . $TRAVISLIBDIR
 fi
 UT1_LIST=
-UT_LIST="__version_1_0.1.48$RUNDIR/zarrc"
-UT_LIST="$UT_LIST __version_V_1.3.25$RUNDIR/zar_bck"
-UT_LIST="$UT_LIST __version_V_1.3.26$RUNDIR/zar_purge"
-UT_LIST="$UT_LIST __version_V_1.3.24$RUNDIR/zar_rest"
+UT_LIST="__version_1_0.1.49$RUNDIR/zarrc"
+UT_LIST="$UT_LIST __version_V_1.3.27$RUNDIR/zar_bck"
+UT_LIST="$UT_LIST __version_V_1.3.27$RUNDIR/zar_purge"
+UT_LIST="$UT_LIST __version_V_1.3.27$RUNDIR/zar_rest"
 UT_LIST="$UT_LIST zar_test_bck_01 zar_test_purge_01 zar_test_rest_01"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
