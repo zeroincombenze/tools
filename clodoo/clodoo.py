@@ -87,7 +87,7 @@ Action may be one of:
 
 import calendar
 import csv
-import pdb
+# import pdb
 import os.path
 import re
 import sys
@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.0.2"
+__version__ = "0.3.0.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1206,7 +1206,7 @@ def act_set_periods(oerp, ctx):
     company_id = ctx['company_id']
     fiscalyear_id, process_it, last_name, last_start, last_stop = \
         read_last_fiscalyear(oerp, company_id, ctx)
-    if fiscalyear_id == 0 and process_it:
+    if process_it and fiscalyear_id == 0:
         name, date_start, date_stop = \
             evaluate_date_n_name(oerp,
                                  last_name,
@@ -1225,14 +1225,6 @@ def act_set_periods(oerp, ctx):
         add_periods(oerp,
                     company_id,
                     fiscal_year_id,
-                    last_name,
-                    last_start,
-                    last_stop,
-                    ctx)
-    elif process_it:
-        add_periods(oerp,
-                    company_id,
-                    fiscalyear_id,
                     last_name,
                     last_start,
                     last_stop,
