@@ -5,7 +5,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
 for x in $TDIR $TDIR/.. . .. $TDIR/../../z0lib /etc; do
@@ -20,8 +20,15 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
-__version__=0.1.79.11
+
+__version__=0.1.79.12
 
 
 detached_login() {
@@ -182,6 +189,21 @@ pkg_pypi_commit() {
       run_traced "please push # $1"
     fi
     return $sts
+}
+
+
+commit_files() {
+#commit_files(pkg file)
+    if [[ -d /opt/odoo/tools/$1 ]]; then
+      cpfiles "/opt/odoo/tools/$1" "/usr/local/bin" "$2" "root:root"
+      s=$?
+      if [ $s -ne $STS_SUCCESS ]; then
+        elog "!unupdated $1!!"
+      fi
+      if [[ -f /root/bin/$2 ]]; then
+        run_traced "rm -f /root/bin/$2"
+      fi
+    fi
 }
 
 
@@ -559,7 +581,7 @@ conf_default() {
     set_cfg_def "svc_name" "openerp-server"
     set_cfg_def "CLODIR" "/opt/odoo/clodoo"
     set_cfg_def "SLEEP_TIME" "30"
-    set_cfg_def "XFLIST__zar" "bckconf bckconf.py pg_db_active restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py updzar zarlib.py"
+    set_cfg_def "XFLIST__zar" "bckconf bckconf.py pg_db_active restconf restconf.py bckwww restwww bckdb bckdb.py restdb restdb.py zarlib.py zar_upd"
     set_cfg_def "DOW_SEED" "11"
     set_cfg_def "ODOO_SYNCHRO_BEG" "2100"
     set_cfg_def "ODOO_SYNCHRO_END" "0300"
@@ -569,21 +591,24 @@ conf_default() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        A         C        K        n           O        R           t        V           v           8     9)
-OPTDEST=(opt_help opt_nall  opt_ncld opt_cron opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_8 opt_9)
-OPTACTI=(1        "*>"      "*>"     1        1           "*>"     1           1        "*>"        1           1     1)
-OPTDEFL=(0        ""        ""       0        0           ""       0           0        ""          0           0     0)
-OPTMETA=("help"   "not_all" "nocld"  "cron"   "noop"      "odoo"   "replica"   "test"   "version"   "verbose"   "x"   "x")
+OPTOPTS=(h        A         C        E        K        I       n           O        R           t        V           v           W          8     9)
+OPTDEST=(opt_help opt_nall  opt_ncld opt_edit opt_cron opt_xtl opt_dry_run opt_odoo opt_replica opt_test opt_version opt_verbose opt_whatis opt_8 opt_9)
+OPTACTI=(1        "*>"      "*>"     1        1        1       1           "*>"     1           1        "*>"        1           "=>"       1     1)
+OPTDEFL=(0        ""        ""       0        0        0       0           ""       0           0        ""          0           ""         0     0)
+OPTMETA=("help"   "not_all" "nocld"  ""       "cron"   ""      "noop"      "odoo"   "replica"   "test"   "version"   "verbose"   "param"    "x"   "x")
 OPTHELP=("this help"\
  "do not execute all Odoo test"\
  "do not execute clodoo statements"\
+ "edit config file"\
  "run in cron environment"\
+ "install this script"\
  "do nothing (dry-run)"\
  "run odoo burst tests"\
  "replica test on Production machine"\
  "show configuration and do nothing (dry-run)"\
  "show version"\
  "verbose mode"\
+ "whatis param value?"\
  "undocumented"\
  "do not upgrade this script")
  OPTARGS=(tgt)
@@ -595,15 +620,94 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Test nightly"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
 CFG_init
 conf_default
 link_cfg $FCONF
-for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade_dow WWW_DWNLOAD_DIR XFLIST__zar; do
-  declare $p=$(get_cfg_value "" "$p")
+GBLS="DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade_dow WWW_DWNLOAD_DIR XFLIST__zar"
+GBLME="ME_BOS PKGSLX"
+if [ $opt_xtl -ne 0 ]; then
+  cat <<EOF >$TDIR/.test_nightly.conf.sample
+[Options]
+# DEV_HOST: Development Hostname; package successfully tested are copied to Production Hostname
+DEV_HOST=shsprd17
+# PRD_HOST: Production Hostname
+PRD_HOST=shsdef16
+# ME_BOS: Myself Bill Of Software to update
+ME_BOS=test_nightly,.test_nightly.conf.sample
+# SVG_TMPL_DIR: SVG templates directory
+SVG_TMPL_DIR=/var/www/svg-templates
+# SVG_TMPL_BTNM: Button OK/Fail name
+SVG_TMPL_BTNM=button-ci-ct.svg
+# PKGSLX: PYPI packages to test nightly
+PKGSLX=clodoo,lisa,os0,pytok,travis_emulator,wok_code,wok_news,z0lib,z0tester,zar,zerobug
+# PKGSLX=travis_emulator,z0lib,zar
+# MYPKG: Package contains test_nightly itself
+MYPKG=travis_emulator
+# HTML_SVG_DIR: directory where http daemon searches SVG to publish
+HTML_SVG_DIR=/var/www/html/wp-zi/wp-content/uploads/ci-ct
+# WWW_DWNLOAD_DIR: directory for public download
+WWW_DWNLOAD_DIR=/var/www/html/mw/download
+# upgrade_dow: day of the week to upgrade all packages
+# Value should be 3 (Wednesday) on Development host and 4 (Thursday) on Production host
+upgrade_dow=5
+#
+# pip_pkgver__{PKG}: version required for package when update
+# reportlab require 3.1.44; on development host is running 3.2.0 to test
+pip_pkgver__babel=1.3
+pip_pkgver__decorator=3.4.0
+pip_pkgver__docutils=0.12
+pip_pkgver__feedparser=5.1.3
+pip_pkgver__gdata=2.0.18
+pip_pkgver__gevent=1.0.2
+pip_pkgver__jinja2=2.7.3
+pip_pkgver__lxml=3.4.1
+pip_pkgver__mako=1.0.1
+pip_pkgver__mock=1.0.1
+pip_pkgver__passlib=1.6.2
+pip_pkgver__pillow=2.7.0
+pip_pkgver__psutil=2.2.0
+pip_pkgver__psycogreen=1.0
+pip_pkgver__psycopg2=2.5.4
+pip_pkgver__pydot=1.0.2
+pip_pkgver__pyparsing=2.0.3
+pip_pkgver__pypdf=1.13
+pip_pkgver__pyserial=2.7
+pip_pkgver__python-dateutil=2.4.0
+pip_pkgver__python-ldap=2.4.19
+pip_pkgver__python-openid=2.2.5
+pip_pkgver__pytz=2014.10
+pip_pkgver__pyusb=1.0.0b2
+pip_pkgver__pyyaml=3.11
+pip_pkgver__qrcode=5.1
+pip_pkgver__reportlab=3.1.44
+pip_pkgver__requests=2.6.0
+pip_pkgver__simplejson=3.5.3
+pip_pkgver__six=1.9.0
+pip_pkgver__unittest2=0.5.1
+pip_pkgver__vatnumber=1.2
+pip_pkgver__werkzeug=0.9.6
+pip_pkgver__xlwt=0.7.5
+
+pip_pkgver__pylint=1.6.4
+pip_pkgver__pylint-plugin-utils=0.2.4
+pip_pkgver__astroid=1.4.8
+pip_pkgver__pygments=2.0.2
+pip_pkgver__restructuredtext_lint=0.12.2
+pip_pkgver__unidecode=0.04.17
+pip_pkgver__pyxb=1.2.4
+EOF
+  exit $STS_SUCCESS
+fi
+if [ $opt_edit -ne 0 ]; then
+  vim $TDIR/.test_nightly.conf
+  exit $STS_SUCCESS
+fi
+for p in $GBLS $GBLME; do
+  declare $p="$(get_cfg_value '' $p)"
   if [ -z "${!p}" ]; then
     generate_svg "$USER" "FAIL" "$__version__"
     elog "!? Invalid configuration parameter $p!!"
@@ -611,10 +715,19 @@ for p in DEV_HOST HTML_SVG_DIR MYPKG PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM upgrade
   fi
 done
 DEV_DIR=/opt/odoo/dev/pypi/$MYPKG/$MYPKG
-for p in ME_BOS PKGSLX; do
-  declare $p="$(get_cfg_value "" "$p")"
+for p in $GBLME; do
+  declare $p="$(get_cfg_value '' $p)"
   declare $p="${!p//,/ }"
 done
+if [[ -n "$opt_whatis" ]]; then
+  REGBLS="(${GBLS// /|}|${GBLME// /|})"
+  if [[ "$opt_whatis" =~ $REGBLS ]]; then
+    echo "${!opt_whatis}"
+  else
+    echo "Unknown!!"
+  fi
+  exit $STS_SUCCESS
+fi
 if [ $opt_8 -gt 0 ]; then
   if [ "$TDIR" != "$tgt" ]; then
     cpfiles "$TDIR" "$tgt" "$ME_BOS"
@@ -627,12 +740,12 @@ if [ $opt_8 -gt 0 ]; then
   exit 1 # never should execute it!
 fi
 if [ $opt_test -gt 0 ]; then
-  for p in DEV_HOST PRD_HOST SVG_TMPL_DIR SVG_TMPL_BTNM WWW_DWNLOAD_DIR; do
+  for p in $GBLS $GBLME; do
     echo "$p=${!p}"
   done
   wlog "Upgrade myself does .."
   for f in $ME_BOS; do
-     echo "\$ cp $TDIR/$f {tgt}/$f"
+     echo "\$ cp $TDIR/$f \${tgt}/$f"
   done
   echo "Test list .."
   for f in $PKGSLX; do
@@ -677,6 +790,12 @@ if [ $EUID -eq 0 ]; then
     wlog "> Upgrade z0librc"
     _install_z0librc
   fi
+  for d in $MYPKG odoo; do
+    if [ ! -d /var/run/$d ]; then
+      run_traced "mkdir /var/run/$d"
+      run_traced "chown odoo:odoo /var/run/$d"
+    fi
+  done
   if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
     udow=$(get_cfg_value "" "upgrade_dow")
     if [ $dow -eq $udow ]; then
@@ -684,84 +803,84 @@ if [ $EUID -eq 0 ]; then
     else
       valid=0
     fi
-    if [ $valid -gt 0 -a $opt_dry_run -eq 0 ]; then
+    sts=$STS_SUCCESS
+    if [ $valid -gt 0 ]; then
+      wlog "Upgrade all packages"
       logtm=$(grep "yum -y update" ~/test_nightly.log|tail -n1|awk '{print $1}')
       curtm=$(date +"%Y-%m-%")
       if [ "$curtm" != "$logtm" ]; then
-        wlog "\$ yum -y update"
-        yum -y update
-        wlog "\$ vmware-config-tools.pl --default"
-        vmware-config-tools.pl --default
-        wlog "\$ pip install --upgrade pip"
-        pip install --upgrade pip
+        run_traced "yum -y update"
+        run_traced "vmware-config-tools.pl --default"
+        run_traced "pip install pip --upgrade"
         # pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
-        wlog "\$ pip install --upgrade --pre pylint-odoo"
-        pip install --upgrade --pre pylint-odoo
-        for f in $(pip list|awk '{print $1}'); do
+        run_traced "pip install pylint-odoo  --pre --upgrade"
+        for f in $(pip list --format=legacy|awk '{print $1}'); do
           f1=${f,,}
           ver=$(get_cfg_value "" "pip_pkgver__$f1")
           if [ -n "$ver" ]; then
-            wlog "\$ pip install $f==$ver --upgrade --no-deps"
-            pip install $f==$ver --upgrade --no-deps
+            run_traced "pip install $f==$ver --upgrade --no-deps"
           else
-            wlog "\$ pip install $f --upgrade --no-deps"
-            pip install $f --upgrade --no-deps
+            run_traced "pip install $f --upgrade --no-deps"
           fi
         done
-        svc=$(get_cfg_value "" "svc_name")
-        if [ -n "$svc" ]; then
-          service $svc restart
-        fi
-        for ver in 6 7 8 9 10; do
-          service odoo${ver}-server restart
+        for ver in v7 6 7 8 9 10; do
+          svcname=$(build_odoo_param SVCNAME $ver)
+          run_traced "service $svcname restart"
         done
       fi
-    fi
-    sts=$STS_SUCCESS
-    d=$(readlink -f /opt/odoo/dev/svg)
-    publish_svg "$d"
-    sts=$?
-    if [ $sts -ne $STS_SUCCESS ]; then
-      elog "!unpublished svg!!"
-    fi
-    if [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      cd /opt/odoo/tools/lisa/
-      wlog "\$ lisa package"
-      lisa package
+      sts=$STS_SUCCESS
+      d=$(readlink -f /opt/odoo/dev/svg)
+      publish_svg "$d"
+      sts=$?
+      if [ $sts -ne $STS_SUCCESS ]; then
+        elog "!unpublished svg!!"
+      fi
+      # if [ "$HOSTNAME" == "$PRD_HOST" ]; then
+      #   cd /opt/odoo/tools/lisa/
+      #   wlog "\$ lisa package"
+      #   lisa package
+      # fi
+    else
+     if [ $udow -lt $dow ]; then
+       ((n=$udow-$udow+6))
+     else
+       ((n=$uudo-$dow))
+     fi
+      elog "Upgrade packages in $n days"
     fi
     vbef=$(lisa -V)
-    wlog "\$ lisa update lisa"
-    lisa update lisa
+    run_traced "lisa update lisa -q"
     vaft=$(lisa -V)
-    wlog "lisa $vbef upgraded to $vaft"
-    if [ "$HOSTNAME" == "$DEV_HOST" ]; then
-      d=$(readlink -f /opt/odoo/mySAP)
-      if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
-        cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
-        s=$?
-        [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    [[ "$vbef" == "$vaft" ]] || wlog "lisa $vbef upgraded to $vaft"
+    # if [ "$HOSTNAME" == "$DEV_HOST" ]; then
+    #   d=$(readlink -f /opt/odoo/mySAP)
+    #   if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
+    #     cpfiles "$d" "$WWW_DWNLOAD_DIR" "explsmw_ftcli.py" "apache:apache"
+    #     s=$?
+    #     [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    #   fi
+    # fi
+    if [[ -d /opt/odoo/tools/zar ]]; then
+      cpfiles "/opt/odoo/tools/zar" "/root" "$XFLIST__zar" "root:root"
+      s=$?
+      if [ $s -ne $STS_SUCCESS ]; then
+        elog "!unupdated zar tool!!"
       fi
-    fi
-    cpfiles "/opt/odoo/tools/zar" "/root" "$XFLIST__zar" "root:root"
-    s=$?
-    if [ $s -ne $STS_SUCCESS ]; then
+    elif [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
       elog "!unupdated zar tool!!"
+      s=$STS_FAILED
     fi
-    [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
-    s=$?
-    if [ $s -ne $STS_SUCCESS ]; then
-      elog "!unupdated wok_code tool!!"
+    [ $sts -eq $STS_SUCCESS ] && sts=$s
+    if [[ -d /opt/odoo/tools/wok_code ]]; then
+      cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
+      s=$?
+      if [ $s -ne $STS_SUCCESS ]; then
+        elog "!unupdated wok_code tool!!"
+      fi
+      [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi
-    [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    cpfiles "/opt/odoo/tools/travis_emulator" "/root/bin" "cronow" "root:root"
-    s=$?
-    if [ $s -ne $STS_SUCCESS ]; then
-      elog "!unupdated travis emulator!!"
-    fi
-    cpfiles "/opt/odoo/tools/zar" "/root/bin" "pg_db_active" "root:root"
-    s=$?
-    [ $sts -eq $STS_SUCCESS ]&&sts=$s
+    commit_files travis_emulator cronow
+    commit_files zar pg_db_active
     if [ $opt_dry_run -eq 0 ]; then
       python /opt/odoo/dev/z0testercode.py
       s=$?
@@ -785,12 +904,12 @@ if [ $EUID -eq 0 ]; then
       fi
       [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      opt_odoo="oe_upgrade"
-      oe_upd_burst "$opt_odoo"
-      s=$?
-      [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    fi
+    # if [ $sts -eq $STS_SUCCESS ]; then
+    #   opt_odoo="oe_upgrade"
+    #   oe_upd_burst "$opt_odoo"
+    #   s=$?
+    #   [ $sts -eq $STS_SUCCESS ] && sts=$s
+    # fi
   fi
 fi
 if [ "$USER" == "odoo" ]; then
@@ -846,8 +965,8 @@ if [ "$USER" == "odoo" ]; then
     run_traced "git commit -am \"$cmsg\""
     if [ "$HOSTNAME" == "$DEV_HOST" -a $sts -eq $STS_SUCCESS ]; then
       run_traced "$ git push"
-    elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
-      run_traced "$ git pull origin"
+    # elif [ "$HOSTNAME" == "$PRD_HOST" ]; then
+    #   run_traced "$ git pull origin"
     fi
   fi
   tm_beg=$(get_cfg_value "" "ODOO_SYNCHRO_BEG")

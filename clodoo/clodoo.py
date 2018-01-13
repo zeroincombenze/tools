@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.0.3"
+__version__ = "0.3.0.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -429,7 +429,7 @@ def do_single_action(oerp, ctx, action):
     if isaction(ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
-        if ctx['db_name'] == 'auto':
+        if ctx.get('db_name', '') == 'auto':
             if action not in ("list_actions", "show_params", "new_db"):
                 ctx['db_name'] = get_dbname(ctx, action)
                 lgiuser = do_login(oerp, ctx)
