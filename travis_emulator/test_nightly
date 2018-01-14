@@ -28,7 +28,7 @@ fi
 . $ODOOLIBDIR
 
 
-__version__=0.1.79.12
+__version__=0.1.79.13
 
 
 detached_login() {
@@ -194,16 +194,21 @@ pkg_pypi_commit() {
 
 commit_files() {
 #commit_files(pkg file)
+    wlog "# Upgrade command $1"
     if [[ -d /opt/odoo/tools/$1 ]]; then
       cpfiles "/opt/odoo/tools/$1" "/usr/local/bin" "$2" "root:root"
-      s=$?
+      local s=$?
       if [ $s -ne $STS_SUCCESS ]; then
         elog "!unupdated $1!!"
       fi
       if [[ -f /root/bin/$2 ]]; then
         run_traced "rm -f /root/bin/$2"
       fi
+      if [[ -f /root/bin/$2 ]]; then
+        run_traced "rm -f /root/$2"
+      fi
     fi
+    return $s
 }
 
 
@@ -399,7 +404,7 @@ mvfiles() {
 generate_svg() {
 # generate_svg(id, result, ver?)
     if [ $opt_dry_run -eq 0 ]; then
-      wlog "### generate_svg $1[ $2 ] -V$3"
+      wlog "## generate_svg $1[ $2 ] -V$3"
     fi
     local sw_id="$1"
     local sw_date=$(date +%d-%m-%Y)
@@ -534,7 +539,7 @@ synchronize_odoo() {
 
 exit_n_status() {
   if [ $sts -eq $STS_SUCCESS ]; then
-    generate_svg "$USER" "OK" "$__version__"
+    generate_svg "$THIS($USER)" "OK" "$__version__"
     if [ $EUID -eq 0 ]; then
       publish_svg "."
     fi
@@ -706,6 +711,20 @@ if [ $opt_edit -ne 0 ]; then
   vim $TDIR/.test_nightly.conf
   exit $STS_SUCCESS
 fi
+c=0
+for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+  for p in "" v odoo ODOO; do
+    odoo_bin=$(build_odoo_param BIN $p$v search)
+    if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+      ((c++))
+    fi
+  done
+done
+if [ $c -gt 2 ]; then
+  opt_multi=1
+else
+  opt_multi=0
+fi
 for p in $GBLS $GBLME; do
   declare $p="$(get_cfg_value '' $p)"
   if [ -z "${!p}" ]; then
@@ -787,7 +806,7 @@ fi
 if [ $EUID -eq 0 ]; then
   if [ -d /opt/odoo/tools/z0lib ]; then
     cd /opt/odoo/tools/z0lib
-    wlog "> Upgrade z0librc"
+    wlog "# Upgrade z0librc"
     _install_z0librc
   fi
   for d in $MYPKG odoo; do
@@ -796,15 +815,19 @@ if [ $EUID -eq 0 ]; then
       run_traced "chown odoo:odoo /var/run/$d"
     fi
   done
-  if [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
+  if [[ ! "$HOSTNAME" =~ "$DEV_HOST" && ! "$HOSTNAME" =~ "$PRD_HOST" ]]; then
+    elog "# Running out of Zeroincombenze environment"
+  else
     udow=$(get_cfg_value "" "upgrade_dow")
-    if [ $dow -eq $udow ]; then
-      valid=1
+    if [ $udow -lt $dow ]; then
+       ((valid=$udow-$udow+6))
     else
-      valid=0
+       ((valid=$uudo-$dow))
     fi
     sts=$STS_SUCCESS
-    if [ $valid -gt 0 ]; then
+    if [ $valid -ne 0 ]; then
+      elog "Upgrade packages in $valid days"
+    else
       wlog "Upgrade all packages"
       logtm=$(grep "yum -y update" ~/test_nightly.log|tail -n1|awk '{print $1}')
       curtm=$(date +"%Y-%m-%")
@@ -840,18 +863,11 @@ if [ $EUID -eq 0 ]; then
       #   wlog "\$ lisa package"
       #   lisa package
       # fi
-    else
-     if [ $udow -lt $dow ]; then
-       ((n=$udow-$udow+6))
-     else
-       ((n=$uudo-$dow))
-     fi
-      elog "Upgrade packages in $n days"
     fi
     vbef=$(lisa -V)
     run_traced "lisa update lisa -q"
     vaft=$(lisa -V)
-    [[ "$vbef" == "$vaft" ]] || wlog "lisa $vbef upgraded to $vaft"
+    [[ "$vbef" == "$vaft" ]] || wlog "# lisa $vbef upgraded to $vaft"
     # if [ "$HOSTNAME" == "$DEV_HOST" ]; then
     #   d=$(readlink -f /opt/odoo/mySAP)
     #   if [ -z "$(grep [[:space:]][[:space:]]pdb.set_trace $d/explsmw_ftcli.py)" ]; then
@@ -860,28 +876,16 @@ if [ $EUID -eq 0 ]; then
     #     [ $sts -eq $STS_SUCCESS ]&&sts=$s
     #   fi
     # fi
-    if [[ -d /opt/odoo/tools/zar ]]; then
-      cpfiles "/opt/odoo/tools/zar" "/root" "$XFLIST__zar" "root:root"
-      s=$?
-      if [ $s -ne $STS_SUCCESS ]; then
-        elog "!unupdated zar tool!!"
-      fi
-    elif [ "$HOSTNAME" == "$DEV_HOST" -o "$HOSTNAME" == "$PRD_HOST" ]; then
-      elog "!unupdated zar tool!!"
-      s=$STS_FAILED
-    fi
-    [ $sts -eq $STS_SUCCESS ] && sts=$s
-    if [[ -d /opt/odoo/tools/wok_code ]]; then
-      cpfiles "/opt/odoo/tools/wok_code" "/root" "av_php" "root:root"
-      s=$?
-      if [ $s -ne $STS_SUCCESS ]; then
-        elog "!unupdated wok_code tool!!"
-      fi
-      [ $sts -eq $STS_SUCCESS ]&&sts=$s
-    fi
+    commit_files zar "$XFLIST__zar"
+    s=$s; [[ $s > 0 ]] && sts=$s
+    commit_files wok_code av_php
+    s=$s; [[ $s > 0 ]] && sts=$s
     commit_files travis_emulator cronow
+    s=$s; [[ $s > 0 ]] && sts=$s
     commit_files zar pg_db_active
+    s=$s; [[ $s > 0 ]] && sts=$s
     if [ $opt_dry_run -eq 0 ]; then
+      wlog "# Python regression test"
       python /opt/odoo/dev/z0testercode.py
       s=$?
       if [ $s -ne $STS_SUCCESS ]; then
@@ -890,6 +894,7 @@ if [ $EUID -eq 0 ]; then
       [ $sts -eq $STS_SUCCESS ]&&sts=$s
     fi
     if [ $opt_dry_run -eq 0 ]; then
+      wlog "# Apache mod_evasive test"
       resi=$(perl /usr/share/doc/mod_evasive-1.10.1/test.pl|head -n1)
       rese=$(perl /usr/share/doc/mod_evasive-1.10.1/test.pl|tail -n1)
       if [ "$(echo $resi|grep -v 200)" ]; then
@@ -899,10 +904,8 @@ if [ $EUID -eq 0 ]; then
       else
         s=$STS_SUCCESS
       fi
-      if [ $s -ne $STS_SUCCESS ]; then
-        elog "!Apache mod_evasive FAILED!!"
-      fi
-      [ $sts -eq $STS_SUCCESS ]&&sts=$s
+      [[ $s > 0 ]] && elog "!Apache mod_evasive FAILED!!"
+      [[ $s > 0 ]] && sts=$s
     fi
     # if [ $sts -eq $STS_SUCCESS ]; then
     #   opt_odoo="oe_upgrade"
