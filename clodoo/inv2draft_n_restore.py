@@ -6,10 +6,10 @@ import clodoo
 # import pdb
 
 
-__version__ = "0.2.0.1"
+__version__ = "0.2.0.2"
 
 
-def oerp_set_env(confn=None):
+def oerp_set_env(confn=None, db=None):
     xmlrpc_port = 8069
     db_name = 'demo'
     user = 'admin'
@@ -52,8 +52,12 @@ def oerp_set_env(confn=None):
             svc_protocol = p
 
     oerp = oerplib.OERP(port=xmlrpc_port, version=oe_ver)
-    uid = oerp.login(user=user,
-                     passwd=passwd, database=database)
+    if db:
+        uid = oerp.login(user=user,
+                         passwd=passwd, database=db)
+    else:
+        uid = oerp.login(user=user,
+                         passwd=passwd, database=database)
     if write_confn:
         fd = open(confn, 'w')
         fd.write('login_user=%s\n' % user)
