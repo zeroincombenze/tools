@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.0.4"
+__version__ = "0.3.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -172,19 +172,19 @@ def do_login(oerp, ctx):
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     userlist = ctx['login_user'].split(',')
     for u in ctx['login2_user'].split(','):
-        if u not in userlist:
+        if u and u not in userlist:
             userlist.append(u)
     if ctx.get('lgi_user'):
         for u in ctx['lgi_user'].split(','):
-            if u not in userlist:
+            if u and u not in userlist:
                 userlist.insert(0, u)
     pwdlist = ctx['login_password'].split(',')
     for p in ctx['login2_password'].split(','):
-        if p not in pwdlist:
+        if p and p not in pwdlist:
             pwdlist.append(p)
     if ctx.get('lgi_pwd'):
         for p in ctx['lgi_pwd'].split(','):
-            if p not in pwdlist:
+            if p and p not in pwdlist:
                 pwdlist.insert(0, p)
     user = False
     db_name = get_dbname(ctx, 'login')
@@ -257,6 +257,84 @@ def do_login(oerp, ctx):
             except BaseException:
                 os0.wlog(u"!!write error!")
     return user
+
+
+def oerp_set_env(confn=None, db=None, ctx=None):
+    P_LIST = ('db_host', 'login_user', 'login_password', 'db_name',
+              'xmlrpc_port', 'oe_version', 'svc_protocol')
+    def oerp_env_def(ctx=None):
+        ctx = ctx or {}
+        if 'db_host' not in ctx or not ctx['db_host']:
+            ctx['db_host'] = 'localhost'
+        if 'db_name' not in ctx or not ctx['db_name']:
+            ctx['db_name'] = 'demo'
+        if 'login_user' not in ctx or not ctx['login_user']:
+            ctx['login_user'] = 'admin'
+        if 'login_password' not in ctx or not ctx['login_password']:
+            ctx['login_password'] = 'admin'
+        if 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
+            ctx['xmlrpc_port'] = 8069
+        if 'oe_version' not in ctx or not ctx['oe_version']:
+            ctx['oe_version'] = '7.0'
+        if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
+            if ctx['oe_version'] in ('6.1', '7.0'):
+                ctx['svc_protocol'] = 'xmlrpc'
+            else:
+                ctx['svc_protocol'] = 'jsonrpc'
+        ctx['level'] = 4
+        if 'dry_run' not in ctx:
+            ctx['dry_run'] = False
+        if 'login2_user' not in ctx:
+            ctx['login2_user'] = ''
+        if 'login2_password' not in ctx:
+            ctx['login2_password'] = ''
+        if 'multi_user' not in ctx:
+            ctx['multi_user'] = False
+        if 'set_passepartout' not in ctx:
+            ctx['set_passepartout'] = False
+        return ctx
+    ctx = oerp_env_def(ctx=ctx)
+    confn = confn or ctx.get('conf_fn', './inv2draft_n_restore.conf')
+    write_confn = False
+    try:
+        fd = open(confn, 'rU')
+        lines = fd.read().split('\n')
+        for line in lines:
+            tkn = line.split('=')
+            for p in P_LIST:
+                if tkn[0] == p:
+                    if p == 'xmlrpc_port':
+                        ctx[p] = int(tkn[1])
+                    else:
+                        ctx[p] = tkn[1]
+        fd.close()
+    except:
+        write_confn = True
+        ctx = oerp_env_def(ctx=ctx)
+        for p in (P_LIST):
+            ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
+        ctx = oerp_env_def(ctx=ctx)
+    oerp = open_connection(ctx)
+    lgiuser = do_login(oerp, ctx)
+    if not lgiuser:
+        raise RuntimeError('Invalid user or password!')      # pragma: no cover
+    uid = lgiuser.id
+    if write_confn:
+        fd = open(confn, 'w')
+        for p in (P_LIST):
+            if p == 'xmlrpc_port':
+                if ctx[p] != 8069:
+                    fd.write('%s=%d\n' % (p, ctx[p]))
+            elif p == 'oe_version' and ctx[p] == '7.0':
+                pass
+            elif p == 'svc_protocol' and ctx[p] == 'xmlrpc':
+                pass
+            elif p == 'db_host' and ctx[p] == 'localhost':
+                pass
+            else:
+                fd.write('%s=%s\n' % (p, ctx[p]))
+        fd.close()
+    return oerp, uid, ctx
 
 
 def get_context(ctx):

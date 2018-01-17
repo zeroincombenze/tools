@@ -3,85 +3,11 @@
 import sys
 import oerplib
 import clodoo
+from z0lib import parseoptargs
 # import pdb
 
 
-__version__ = "0.2.0.2"
-
-
-def oerp_set_env(confn=None, db=None):
-    xmlrpc_port = 8069
-    db_name = 'demo'
-    user = 'admin'
-    passwd = 'admin'
-    oe_ver = '7.0'
-    svc_protocol = ''
-    confn = confn or './inv2draft_n_restore.conf'
-    write_confn = False
-    try:
-        fd = open(confn, 'r')
-        lines = fd.read().split('\n')
-        for line in lines:
-            tkn = line.split('=')
-            if tkn[0] == 'login_user':
-                user = tkn[1]
-            elif tkn[0] == 'login_password':
-                passwd = tkn[1]
-            elif tkn[0] == 'db_name':
-                database = tkn[1]
-            elif tkn[0] == 'xmlrpc_port':
-                xmlrpc_port = int(tkn[1])
-            elif tkn[0] == 'oe_version':
-                oe_ver = tkn[1]
-            elif tkn[0] == 'svc_protocol':
-                svc_protocol = tkn[1]
-        fd.close()
-    except:
-        write_confn = True
-        database = raw_input('database[def=demo]? ')
-        user = raw_input('username[def=admin]? ')
-        passwd = raw_input('password[def=admin]? ')
-        p = raw_input('port[def=8069]? ')
-        if p:
-            xmlrpc_port = int(p)
-        p = raw_input('odoo version[def=7.0]? ')
-        if p:
-            oe_ver = p
-        p = raw_input('protocol(jsonrpc|xmlrpc)? ')
-        if p:
-            svc_protocol = p
-
-    oerp = oerplib.OERP(port=xmlrpc_port, version=oe_ver)
-    if db:
-        uid = oerp.login(user=user,
-                         passwd=passwd, database=db)
-    else:
-        uid = oerp.login(user=user,
-                         passwd=passwd, database=database)
-    if write_confn:
-        fd = open(confn, 'w')
-        fd.write('login_user=%s\n' % user)
-        fd.write('login_password=%s\n' % passwd)
-        fd.write('db_name=%s\n' % database)
-        if xmlrpc_port != 8069:
-            fd.write('xmlrpc_port=%d\n' % xmlrpc_port)
-        if oe_ver:
-            fd.write('oe_version=%s\n' % oe_ver)
-        if svc_protocol:
-            fd.write('svc_protocol=%s\n' % svc_protocol)
-        fd.close()
-
-    ctx = {}
-    ctx['level'] = 4
-    ctx['dry_run'] = False
-    if not svc_protocol:
-        if oe_ver in ('6.1', '7.0'):
-            svc_protocol = 'xmlrpc'
-        else:
-            svc_protocol = 'jsonrpc'
-    ctx['svc_protocol'] = svc_protocol
-    ctx['odoo_session'] = oerp
-    return oerp, uid, ctx
+__version__ = "0.3.0"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
@@ -337,10 +263,21 @@ def print_move_info(inv_id):
         inv_obj.company_id)
 
 
-if len(sys.argv) > 1 and sys.argv[1] == '-V':
-    print __version__
-    sys.exit(0)
-oerp, uid, ctx = oerp_set_env()
+parser = parseoptargs("Set invoice status",
+                      "© 2017-2018 by SHS-AV s.r.l.",
+                      version=__version__)
+parser.add_argument('-h')
+parser.add_argument("-c", "--config",
+                    help="configuration command file",
+                    dest="conf_fn",
+                    metavar="file",
+                    default='./inv2draft_n_restore.conf')
+parser.add_argument('-n')
+parser.add_argument('-q')
+parser.add_argument('-V')
+parser.add_argument('-v')
+ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+oerp, uid, ctx = clodoo.oerp_set_env(ctx=ctx)
 print "Invoice set Draft and Restore - %s" % __version__
 HDRDTL = {}
 for search_mode in (':A:', ':C:'):

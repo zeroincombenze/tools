@@ -58,7 +58,7 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
 OE_CONF = False
 DEFDCT = {}
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 
 class CountAction(argparse.Action):
@@ -159,7 +159,7 @@ class parseoptargs():
         while not valid:
             this_fqn = os.path.abspath(inspect.stack()[i][1])
             this = os0.nakedname(os.path.basename(this_fqn))
-            if this in ("__init__", "pdb", "cmd", "z0testlib"):
+            if this in ("__init__", "pdb", "cmd", "z0testlib", "z0lib"):
                 i += 1
             else:
                 valid = True

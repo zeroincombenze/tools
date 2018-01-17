@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.11.2
+__version__=0.1.12
 
 
 # Main program
@@ -62,7 +62,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Print system information"\
-  "(C) 2015 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 xuname $opt_prm
