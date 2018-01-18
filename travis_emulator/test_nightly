@@ -28,7 +28,7 @@ fi
 . $ODOOLIBDIR
 
 
-__version__=0.1.79.13
+__version__=0.1.79.14
 
 
 detached_login() {
@@ -84,6 +84,8 @@ upgrade_myself() {
             exit 1 # never should execute it!
           fi
           elog "!? Newest version run failed! Run current version"
+        else
+          elog "No newest version found"
         fi
       elif [ "$USER" != "odoo" -a -f $PRD_DIR/$THIS ]; then
         elog "Check for newest version to run"
@@ -104,6 +106,8 @@ upgrade_myself() {
           else
             elog "!New version terminated with error!"
           fi
+        else
+          elog "No newest version found"
         fi
       fi
     fi
@@ -120,9 +124,9 @@ test_pkg_pypi() {
     fi
     if [ $opt_dry_run -eq 0 ]; then
       wlog "-----------------------------------------"
-      wlog "### Required test for $1 package ..."
+      wlog "## Required test for $1 package ..."
     else
-      wlog "### Package $1 should be tested"
+      wlog "## Package $1 should be tested"
     fi
     if [ ! -d ~/dev/pypi/$1 ]; then
       generate_svg "$USER" "WARN" "$__version__"
@@ -144,8 +148,8 @@ test_pkg_pypi() {
     run_traced "travis . test # $1"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ $s -eq $STS_SUCCESS ]; then
+      wlog "## Package $1: test successfully terminated"
       run_traced "please wep  # $1"
-      wlog "### Package $1: test successfully terminated"
       if [ -x ./$1 ]; then
         local ver=$(./$1 -V)
       else
@@ -153,8 +157,8 @@ test_pkg_pypi() {
       fi
       generate_svg "$1" "OK" "$ver"
     else
-      generate_svg "$1" "FAIL"
       wlog "!!!? Package $1: test failed ($sts)! See package log in ~/dev/pypi/$1/$1/tests!!!"
+      generate_svg "$1" "FAIL"
     fi
     return $sts
 }
@@ -797,9 +801,9 @@ ODOO_LTF=~/testlog/result.log
 
 dtme=$(date +"%Y-%m-%d %H:%M:%S")
 if [ $opt_dry_run -eq 0 ]; then
-  wlog "*************************************************************"
+  wlog "**************************************************************"
   wlog "Test nightly $__version__ starting by $USER on $dtme"
-  wlog "*************************************************************"
+  wlog "**************************************************************"
 else
   wlog "+++ Test nightly $__version__ is dry-running by $USER +++"
 fi
@@ -919,7 +923,7 @@ if [ "$USER" == "odoo" ]; then
   (($opt_dry_run))||check4env
   sts=$STS_SUCCESS
   wlog "========================================================"
-  wlog "### PYPI Package tests"
+  wlog "# PYPI Package tests"
   cd ~/dev/pypi
   unset PYPKGS
   declare -A PYPKGS
@@ -943,7 +947,7 @@ if [ "$USER" == "odoo" ]; then
         fi
       else
         wlog "------------------------------------"
-        wlog "### Module $PKGNAME uncertificated!"
+        wlog "## Module $PKGNAME uncertificated!"
       fi
     fi
     cd ~/dev/pypi
