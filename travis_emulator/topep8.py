@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.0.1"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -427,7 +427,8 @@ def write_license_info(lines, ctx):
     if lines[0] != '# -*- coding: utf-8 -*-':
         lines.insert(0, '# -*- coding: utf-8 -*-')
     lineno = 1
-    while not re.match('^# *([Cc]opyright|\(C\)|©)', lines[lineno]):
+    while lines[lineno] and not re.match('^# *([Cc]opyright|\(C\)|©)',
+                                         lines[lineno]):
         if lines[lineno][0] == '#':
             del lines[lineno]
         else:
@@ -459,8 +460,9 @@ def write_license_info(lines, ctx):
                 if lines[lineno][i] != ',':
                     lines[lineno] = lines[lineno][0:i] + ',' + lines[lineno][i:]
         lineno += 1
-    while not lines[lineno] or lines[lineno] == '#' or re.match(
-                '^# License AGPL', lines[lineno]):
+    while lineno < len(lines) and (not lines[lineno] or 
+                                   lines[lineno] == '#' or 
+                                   re.match('^# License AGPL', lines[lineno])):
         del lines[lineno]
     if not found_author or (ctx['opt_oia'] and not found_oia):
             lines.insert(
@@ -479,11 +481,16 @@ def write_license_info(lines, ctx):
         '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
     lineno += 1
     lines.insert(lineno, '#')
-    while lines[lineno] and lines[lineno][0] == '#' and not re.match(
-                '^# .*This program is free software', lines[lineno]):
+    while lineno < len(lines) and (lines[lineno] and 
+                                   lines[lineno][0] == '#' and 
+                                   not re.match(
+                                       '^# .*This program is free software',
+                                       lines[lineno])):
         lineno += 1
-    if lines[lineno] and re.match(
-                '^# .*This program is free software', lines[lineno]):
+    if lineno < len(lines) and (lines[lineno] and 
+                                re.match(
+                                    '^# .*This program is free software',
+                                    lines[lineno])):
         while lines[lineno] and not re.match(
                     '^# .*http://www.gnu.org/licenses', lines[lineno]):
             del lines[lineno]
