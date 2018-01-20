@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.3
+__version__=0.2.0.4
 
 
 #
@@ -1760,15 +1760,17 @@ do_distribution() {
             run_traced "git remote set-url origin $lo"
           fi
         fi
-        local ro=$(build_pkgurl $1 $2 RUPSTREAM)
-        local lo=$(build_pkgurl $1 $2 UPSTREAM)
-        if [ "$ro" != "$lo" ]; then
-          if [ -n "$ro" ]; then
-            run_traced "git remote remove upstream"
-          fi
-          if [ -n "$lo" ]; then
-            run_traced "git remote add upstream $lo"
-            run_traced "git remote set-url upstream $lo"
+        if [ "$1" != "l10n-italy-supplemental" ]; then
+          local ro=$(build_pkgurl $1 $2 RUPSTREAM)
+          local lo=$(build_pkgurl $1 $2 UPSTREAM)
+          if [ "$ro" != "$lo" ]; then
+            if [ -n "$ro" ]; then
+              run_traced "git remote remove upstream"
+            fi
+            if [ -n "$lo" ]; then
+              run_traced "git remote add upstream $lo"
+              run_traced "git remote set-url upstream $lo"
+            fi
           fi
         fi
       fi
