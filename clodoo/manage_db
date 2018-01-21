@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.20.3
+__version__=0.1.20.4
 
 
 up_oemod() {
@@ -73,11 +73,31 @@ up_oemod() {
     return $sts
 }
 
+db_list() {
+    DBlist=
+    local db user a b c
+    local found=0
+    psql -Upostgres -tl > $HOME/tmp.log
+    while IFS=\| read db user a b c; do
+      ((found++))
+      db=$(echo $db)
+      user=$(echo $user)
+      if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
+        if [[ $db =~ $opt_DB ]]; then
+          DBlist=$DBlist,$db
+        fi
+      fi
+    done < $HOME/tmp.log
+    rm -f $HOME/tmp.log
+    DBlist=${DBlist:1}
+    echo "$DBlist"
+}
+
 
 OPTOPTS=(h        b          c        D             E        d      m         n           o       q           r           t         U          V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_with_demo opt_tenv opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
 OPTACTI=(1        "="        "="      "*"           "*"      "="    1         1           1       0           "="         1         "="        "*"         "+")
-OPTDEFL=(1        "7.0"      ""       ""            ""       ""     -1        0           0       -1          ""          0         "odoo"     ""          -1)
+OPTDEFL=(1        "7.0"      ""       ""            ""       ""     -1        0           0       -1          ""          0         ""         ""          -1)
 OPTMETA=("help"   "branch"   "file"   ""            ""       "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def 7.0)"\
@@ -105,7 +125,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Manage Cloud DB(s) \n"\
-  "Action may be on of: install,update,upgrade,module,translate,rename\ncmdlist of update may be upd_oemod,translation or filename\ncmdlist of module,upgrade is module name\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename (phase) is old=new\n\n(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "Action may be on of: install,update,upgrade,module,translate,rename_phase\ncmdlist of update may be upd_oemod,translation or clodoo action\ncmdlist of module,upgrade is module name\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename_phase (phase) is old=new\n\n(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 opts=
@@ -224,21 +244,7 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
     DBlist="$opt_DB -lit_IT"
     found=1
   else
-    DBlist=
-    found=0
-    psql -Upostgres -tl > $HOME/tmp.log
-    while IFS=\| read db user a b c; do
-      ((found++))
-      db=$(echo $db)
-      user=$(echo $user)
-      if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
-        if [[ $db =~ $opt_DB ]]; then
-          DBlist=$DBlist,$db
-        fi
-      fi
-    done < $HOME/tmp.log
-    rm -f $HOME/tmp.log
-    DBlist=${DBlist:1}
+    DBlist=$(db_list)
   fi
   if [ -z "$DBlist" ]; then
     if [ $found -eq 0 ]; then
@@ -248,7 +254,7 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
     fi
     exit 1
   fi
-  $TDIR/set_odoover_confn $odoo_fver $opt_DB -r $opt_xmlport -q $opt_tenv
+  $TDIR/set_odoover_confn $odoo_fver "$opt_DB" -r $opt_xmlport -q $opt_tenv
   DBlist=${DBlist//,/ }
   W4T=0
   for db in $DBlist; do
@@ -299,10 +305,10 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
       fi
     fi
   done
-elif [ "$action" == "rename" ]; then
+elif [ "$action" == "rename_phase" ]; then
   if [  -z "$cmdlist" ]; then
     echo "Missed phase rename!"
-    echo "$THIS rename old=new"
+    echo "$THIS rename_phase old=new"
     sts=1
   else
     IFS== read old new <<< "$cmdlist"
@@ -325,6 +331,19 @@ elif [ "$action" == "rename" ]; then
       done
     fi
   fi
+elif [ "$action" == "rename" ]; then
+  if [ -z "$opt_dbuser" ]; then
+    opt_dbuser=$(build_odoo_param USER $odoo_vid)
+  fi
+  DBlist=$(db_list)
+  DBlist=${DBlist//,/ }
+  for db in $DBlist; do
+    while IFS== read src tgt; do
+      if [ -n "$src" -a -n "$tgt" -a "$src" != "$tgt" ]; then
+        run_traced "psql -U$opt_dbuser -c \"update ir_module_module set name='$tgt' where name='$src';\" $db"
+      fi
+    done < ./moduli_alias.csv
+  done
 else
   echo "Invalid action!"
   sts=1
