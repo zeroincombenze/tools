@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.1.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -3243,11 +3243,12 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
             if model == 'account.fiscalyear':
                 company_id = ctx['company_id']
                 exclusion = [('company_id', '!=', company_id),
-                             ('code', '!=', '2017')]
+                             ('code', '!=', str(datetime.date.today().year))]
             elif model == 'account.period':
                 company_id = ctx['company_id']
                 exclusion = [('company_id', '!=', company_id),
-                             ('code', 'not like', '2017')]
+                             ('code', 'not like',
+                              str(datetime.date.today().year))]
             sts = remove_model_all_records(oerp, model, hide_cid, ctx,
                                            exclusion=exclusion)
         if sts == STS_SUCCESS and act == 'deactivate':
@@ -3292,7 +3293,7 @@ def reset_sequence(oerp, ctx):
             obj = browseL8(ctx, model, record_id)
             f_deleted = False
             if ctx['custom_act'] == 'cscs':
-                for i in (2014, 2015, 2016, 2017):
+                for i in (2014, 2015, 2016, 2017, 2018):
                     x = '/' + str(i) + '/'
                     if obj.prefix and obj.prefix.find(x) > 0:
                         try:

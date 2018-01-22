@@ -122,7 +122,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.1"
+__version__ = "0.3.1.1"
 
 
 #############################################################################
@@ -456,7 +456,7 @@ def create_parser(version, doc, ctx):
     """
     parser = argparse.ArgumentParser(
         description=docstring_summary(doc),
-        epilog="© 2015-2017 by SHS-AV s.r.l."
+        epilog="© 2015-2018 by SHS-AV s.r.l."
                " - http://www.zeroincombenze.org")
     parser.add_argument("-A", "--action-to-do",
                         help="action to do (use list_actions to dir)",

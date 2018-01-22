@@ -19,7 +19,7 @@ from clodoolib import debug_msg_log
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.1"
+__version__ = "0.3.1.1"
 
 
 #############################################################################

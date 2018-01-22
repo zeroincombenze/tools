@@ -22,14 +22,14 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.3.1
+__version__=0.2.3.2
 
 
-OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U         u       V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_user  opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="         1         "1"         "="       1         1         "="       1       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""          -1        0           ""        0         0         ""        0       ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   ""        "no op"     "file"    ""        "touch"   "user"    ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U          u       V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "db name to test,translate o upgrade (require -m switch)"\
  "export it translation (conflict with -i -u)"\
@@ -57,7 +57,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run odoo in debug mode"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -116,8 +116,8 @@ elif [ $opt_upd -ne 0 ]; then
     exit 1
   fi
 fi
-if [ -z "$opt_user" ]; then
-  opt_user=$odoo_user
+if [ -z "$opt_dbuser" ]; then
+  opt_dbuser=$odoo_user
 fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
@@ -180,7 +180,7 @@ EOF
     optu=
     xu=-u
     for m in $mods; do
-      r=$(psql -U$opt_user $opt_db -tc "select state from ir_module_module where name='$m';")
+      r=$(psql -U$opt_dbuser $opt_db -tc "select state from ir_module_module where name='$m';")
       if [[ $r =~ uninstalled ]]; then
         opti="$opti$xi$m"
         xi=,
@@ -269,8 +269,8 @@ if [ $opt_dry_run -eq 0 ]; then
   if [ -n "$opt_xport" ]; then
     sed -ie "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc
   fi
-  if [ -n "$opt_user" ]; then
-    sed -ie "s:^db_user *=.*:db_user = $opt_user:" ~/.openerp_serverrc
+  if [ -n "$opt_dbuser" ]; then
+    sed -ie "s:^db_user *=.*:db_user = $opt_dbuser:" ~/.openerp_serverrc
   fi
   if [ $opt_verbose -gt 0 ]; then
     vim ~/.openerp_serverrc
@@ -279,15 +279,15 @@ fi
 if [ $opt_touch -eq 0 ]; then
   if [ $drop_db -gt 0 ]; then
     if [ $opt_verbose -gt 0 ]; then
-      echo "pg_db_active -a $opt_db; dropdb -U$opt_user --if-exists $opt_db"
+      echo "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
     fi
-    pg_db_active -a $opt_db; dropdb -U$opt_user --if-exists $opt_db
+    pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db
   fi
   if [ $create_db -gt 0 ]; then
     if [ $opt_verbose -gt 0 ]; then
-      echo "createdb -U$opt_user $opt_db"
+      echo "createdb -U$opt_dbuser $opt_db"
     fi
-    createdb -U$opt_user $opt_db
+    createdb -U$opt_dbuser $opt_db
   fi
   if [ "$odoo_ver" != "10.0" -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
     opts="--debug $opts"
@@ -301,9 +301,9 @@ if [ $opt_touch -eq 0 ]; then
   if [ $drop_db -gt 0 ]; then
     if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
       if [ $opt_verbose -gt 0 ]; then
-        echo "dropdb -U$opt_user --if-exists $opt_db"
+        echo "dropdb -U$opt_dbuser --if-exists $opt_db"
       fi
-      dropdb -U$opt_user --if-exists $opt_db
+      dropdb -U$opt_dbuser --if-exists $opt_db
     fi
   fi
   if [ $opt_exp -ne 0 ]; then
