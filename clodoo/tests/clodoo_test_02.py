@@ -31,7 +31,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.3.1.1"
+__version__ = "0.3.1.3"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -319,6 +319,7 @@ db_name=%s
 xmlrpc_port=%s
 oe_version=%s
 """ % (self.login_2_test, dbname, xmlrpc_port, oe_version)
+                    # DB exists, but due -q switch no response means False
                     fd = open(confn, 'w')
                     fd.write(codefile)
                     fd.close()

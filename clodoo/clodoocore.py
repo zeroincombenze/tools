@@ -10,16 +10,42 @@
 """
 
 from os0 import os0
+import datetime
 import re
 import oerplib
 import odoorpc
 
 from clodoolib import debug_msg_log
+try:
+    import psycopg2
+    from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+    postgres_drive = True
+except:
+    postgres_drive = False
 
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.1.1"
+__version__ = "0.3.1.3"
+
+
+#############################################################################
+# Low level (driver) functions
+def psql_connect(ctx):
+    cr = False
+    if postgres_drive and ctx.get('psycopg2', False) != 'False':
+        params = ctx['psycopg2'].split(',')
+        for prm in params:
+            pv = prm.split(':')
+            if pv[0] in ('db_name', 'db_user', 'db_password'):
+                ctx[pv[0]] = pv[1]
+        dbname = ctx['db_name']
+        dbuser = ctx['db_user']
+        pwd = ctx.get('db_password')
+        cnx = psycopg2.connect(dbname=dbname, user=dbuser, password=pwd)
+        cnx.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cr = cnx.cursor()
+    return cr
 
 
 #############################################################################

@@ -115,7 +115,7 @@ OPTHELP=("this help"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action cmdlist)
-PHASE_LIST="09 00 01 10 11 12 13 14 15 18 19 20 21 22 30 50 51 52 53 54 55 90 91 92"
+PHASE_LIST="09 00 01 10 11 12 13 14 15 18 19 20 21 22 30 50 51 52 53 54 55 56 90 91 92"
 DEMO_PHASE_LIST="50 51 52 53 61"
 
 parseoptargs "$@"

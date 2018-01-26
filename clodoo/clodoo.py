@@ -98,12 +98,12 @@ from os0 import os0
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         validate_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
-                        get_res_users)
+                        get_res_users, psql_connect)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.1.1"
+__version__ = "0.3.1.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -132,7 +132,7 @@ def version():
 
 def print_hdr_msg(ctx):
     ctx['level'] = 0
-    msg = u"Do massive operations V" + __version__
+    msg = u"====== Do massive operations V%s ======" % __version__
     msg_log(ctx, ctx['level'], msg)
     incr_lev(ctx)
     msg = u"Configuration from"
@@ -256,6 +256,8 @@ def do_login(oerp, ctx):
                                      tounicode(ctx['login_user'])))
             except BaseException:
                 os0.wlog(u"!!write error!")
+    if user:
+        ctx['_cr'] = psql_connect(ctx)
     return user
 
 
@@ -769,13 +771,23 @@ def act_drop_db(oerp, ctx):
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
-        try:
-            oerp.db.drop(ctx['admin_passwd'],
-                         ctx['db_name'])
-            if ctx['db_name'][0:11] != 'clodoo_test':
-                time.sleep(2)
-        except BaseException:
-            pass
+        try_again = True
+        sts = STS_FAILED
+        while sts != STS_SUCCESS:
+            try:
+                oerp.db.drop(ctx['admin_passwd'],
+                             ctx['db_name'])
+                sts = STS_SUCCESS
+                if ctx['db_name'][0:11] != 'clodoo_test':
+                    time.sleep(2)
+            except BaseException:
+                sts = STS_FAILED
+                if try_again:
+                    cmd = 'pg_db_active -wa %s' % ctx['db_name']
+                    os0.muteshell(cmd, simulate=False, keepout=False)
+                    try_again = False
+                else:
+                    break
     return sts
 
 
@@ -1018,6 +1030,7 @@ def act_upgrade_modules(oerp, ctx):
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
+    sts = STS_SUCCESS
     for m in module_list:
         if m == "":
             continue
@@ -1041,16 +1054,16 @@ def act_upgrade_modules(oerp, ctx):
                 except BaseException:
                     msg = "!Module {0} not upgradable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
+                    sts = STS_FAILED
             else:
                 msg = "Module {0} not installed!".format(m)
                 msg_log(ctx, ctx['level'] + 1, msg)
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
-
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    return STS_SUCCESS
+    return sts
 
 
 def act_uninstall_modules(oerp, ctx):
@@ -1062,6 +1075,7 @@ def act_uninstall_modules(oerp, ctx):
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
     model = 'ir.module.module'
+    sts = STS_SUCCESS
     for m in module_list:
         if m == "":
             continue
@@ -1085,6 +1099,7 @@ def act_uninstall_modules(oerp, ctx):
                 except BaseException:
                     msg = "!Module {0} not uninstallable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
+                    sts = STS_FAILED
             else:
                 msg = "Module {0} already uninstalled!".format(m)
                 msg_log(ctx, ctx['level'] + 1, msg)
@@ -1099,7 +1114,7 @@ def act_uninstall_modules(oerp, ctx):
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    return STS_SUCCESS
+    return sts
 
 
 def act_install_modules(oerp, ctx):
@@ -1111,6 +1126,7 @@ def act_install_modules(oerp, ctx):
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
     model = 'ir.module.module'
+    sts = STS_SUCCESS
     for m in module_list:
         if m == "":
             continue
@@ -1134,6 +1150,7 @@ def act_install_modules(oerp, ctx):
                 except BaseException:
                     msg = "!Module {0} not installable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
+                    sts = STS_FAILED
             else:
                 ids = searchL8(ctx, 'ir.module.module',
                                [('name', '=', m)],
@@ -1142,13 +1159,14 @@ def act_install_modules(oerp, ctx):
                     msg = "Module {0} already installed!".format(m)
                 else:
                     msg = "!Module {0} does not exist!".format(m)
+                    sts = STS_FAILED
                 msg_log(ctx, ctx['level'] + 1, msg)
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
         set_user_lang(oerp, user_lang, ctx)
-    return STS_SUCCESS
+    return sts
 
 
 def act_install_language(oerp, ctx):
@@ -3243,12 +3261,12 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
             if model == 'account.fiscalyear':
                 company_id = ctx['company_id']
                 exclusion = [('company_id', '!=', company_id),
-                             ('code', '!=', str(datetime.date.today().year))]
+                             ('code', '!=', str(date.today().year))]
             elif model == 'account.period':
                 company_id = ctx['company_id']
                 exclusion = [('company_id', '!=', company_id),
                              ('code', 'not like',
-                              str(datetime.date.today().year))]
+                              str(date.today().year))]
             sts = remove_model_all_records(oerp, model, hide_cid, ctx,
                                            exclusion=exclusion)
         if sts == STS_SUCCESS and act == 'deactivate':
@@ -3257,6 +3275,12 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                                                hide_cid,
                                                ctx,
                                                exclusion=exclusion)
+        if ctx.get('_cr'):
+            company_id = ctx['company_id']
+            if model == 'project.task.work':
+                query = "delete from project_task_work"
+                query += " where company_id=%d;" % company_id
+                ctx['_cr'].execute(query)
     return sts
 
 
@@ -4047,7 +4071,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
             # Data for specific db type (i.e. just for test)
             if o_model.get('db_type', ''):
                 if row[o_model['db_type']]:
-                    if row[o_model['db_type']] != ctx['db_type']:
+                    if row[o_model['db_type']].find(ctx['db_type']) < 0:
                         msg = u"Record not imported by invalid db_type"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
@@ -4088,6 +4112,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 del vals['id']
             if len(ids):
                 id = ids[0]
+                ctx['header_id'] = id
                 cur_obj = browseL8(ctx, o_model['model'], id)
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
@@ -4122,6 +4147,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         vals['company_id'] = ctx['company_id']
                     try:
                         id = createL8(ctx, o_model['model'], vals)
+                        ctx['header_id'] = id
                         msg = u"creat id={0}, {1}={2}"\
                               .format(id,
                                       tounicode(o_model['name']),
@@ -4130,6 +4156,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     except BaseException:
                         id = None
                         os0.wlog(u"!!write error!")
+                else:
+                    ctx['header_id'] = -1
         csv_fd.close()
     else:
         msg = u"Import file " + csv_fn + " not found!"
@@ -4214,6 +4242,12 @@ def setup_config_param(oerp, ctx, user, name, value):
         group_ids = searchL8(ctx, 'res.groups',
                              [('full_name', '=', full_name)],
                              context=context)
+        if len(group_ids) == 0 and value == 'See all Leads':
+            value = 'User: All Leads'
+            full_name = '%s / %s' % (name, value)
+            group_ids = searchL8(ctx, 'res.groups',
+                                 [('full_name', '=', full_name)],
+                                 context=context)
     if len(group_ids) != 1:
         msg = u"!Parameter name " + name + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
@@ -4558,9 +4592,9 @@ def main():
         sts = do_actions(oerp, ctx)
     decr_lev(ctx)
     if sts == STS_SUCCESS:
-        msg = u"Operations ended"
+        msg = u"------ Operations ended ------"
     else:
-        msg = u"Last operation FAILED!"
+        msg = u"###??? Last operation FAILED!!! ###???"
     msg_log(ctx, ctx['level'], msg)
     return sts
 

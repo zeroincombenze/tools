@@ -79,6 +79,7 @@ LX_CFG_S = ('db_name',
             'model_name',
             'filename',
             'hide_cid',
+            'psycopg2',
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
@@ -122,7 +123,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.1.1"
+__version__ = "0.3.1.3"
 
 
 #############################################################################
@@ -299,6 +300,7 @@ def default_conf(ctx):
               'heavy_trx': False,
               'chart_of_account': 'configurable_chart_template',
               'catalog_db': 'zeroincombenze',
+              'psycopg2': 'False',
               # 'model_name': 'name',
               }
     return DEFDCT
