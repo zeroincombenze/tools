@@ -25,14 +25,14 @@ except:
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.2"
+__version__ = "0.3.2.1"
 
 
 #############################################################################
 # Low level (driver) functions
 def psql_connect(ctx):
     cr = False
-    if postgres_drive and ctx.get('psycopg2', False) != 'False':
+    if postgres_drive and ctx.get('psycopg2', False):
         params = ctx['psycopg2'].split(',')
         for prm in params:
             pv = prm.split(':')
@@ -298,16 +298,16 @@ def _get_model_code(ctx, o_model):
 
 def _get_model_name(ctx, o_model):
     """Get description field(s) name of  model"""
-    if 'name' in ctx:
-        name = 'name'
-    elif 'code' in ctx:
-        name = 'code'
-    elif 'model_name' in o_model:
+    if 'model_name' in o_model:
         name = o_model['model_name']
     elif 'name' in o_model:
         name = o_model['name']
     elif 'code' in o_model:
         name = o_model['code']
+    elif 'name' in ctx:
+        name = 'name'
+    elif 'code' in ctx:
+        name = 'code'
     else:
         name = 'name'
     return name

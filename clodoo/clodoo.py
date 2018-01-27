@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.2"
+__version__ = "0.3.2.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -594,8 +594,8 @@ def create_local_parms(ctx, act):
     for p in ('model',
               'model_code',
               'model_name',
-              # 'code',
-              # 'name',
+              'model_action',
+              'model_keyids',
               'filename',
               'hide_cid'):
         pv = get_param_ver(ctx, p)
@@ -1007,6 +1007,108 @@ def act_per_user(oerp, ctx):
                 break
     return sts
 
+def act_execute(oerp, ctx):
+    sts = STS_SUCCESS
+    o_model = {}
+    for p in ('model',
+              'model_code',
+              'model_name',
+              'model_action',
+              'model_keyids',
+              'hide_cid'):
+        if p in ctx:
+            o_model[p] = ctx[p]
+    if not o_model.get('model_code') and not o_model.get('model_name'):
+        o_model['model_code'] = 'id'
+    if not o_model.get('model_keyids') and ctx.get('header_id'):
+        o_model['model_keyids'] = ctx['header_id']
+    if not o_model.get('model') or \
+            not o_model.get('model_action') or \
+            not o_model.get('model_keyids'):
+        msg = 'Excecute w/o model or key'
+        msg_log(ctx, ctx['level'] + 1, msg)
+        sts = STS_FAILED
+    else:
+        where = []
+        if o_model.get('model_name'):
+            where.append(
+                [o_model['model_name'], 'like', o_model['model_keyids']])
+            ids = searchL8(ctx, o_model['model'], where)
+        else:
+            ids = [o_model['model_keyids']]
+        try:
+            executeL8(ctx,
+                      o_model['model'],
+                      o_model['model_action'],
+                      ids)
+        except:
+            msg = 'Excecute (%s, %s, %s) Failed!' % (o_model['model'],
+                                                     o_model['model_action'],
+                                                     str(ids))
+            msg_log(ctx, ctx['level'] + 1, msg)
+            sts = STS_FAILED
+    return sts
+
+def act_workflow(oerp, ctx):
+    sts = STS_SUCCESS
+    o_model = {}
+    for p in ('model',
+              'model_code',
+              'model_name',
+              'model_action',
+              'model_keyids',
+              'hide_cid'):
+        if p in ctx:
+            o_model[p] = ctx[p]
+    if not o_model.get('model_code') and not o_model.get('model_name'):
+        o_model['model_code'] = 'id'
+    if not o_model.get('model_keyids') and ctx.get('header_id'):
+        o_model['model_keyids'] = ctx['header_id']
+    if not o_model.get('model') or \
+            not o_model.get('model_action') or \
+            not o_model.get('model_keyids'):
+        msg = 'Excecute w/o model or key'
+        msg_log(ctx, ctx['level'] + 1, msg)
+        sts = STS_FAILED
+    else:
+        where = []
+        if o_model.get('model_name'):
+            where.append(
+                [o_model['model_name'], 'like', o_model['model_keyids']])
+            ids = searchL8(ctx, o_model['model'], where)
+            if len(ids) == 0:
+                msg = 'Excecute w/o model or key'
+                msg_log(ctx, ctx['level'] + 1, msg)
+                sts = STS_FAILED
+                id = 0
+            else:
+                id = ids[0]
+        else:
+            id = o_model['model_keyids']
+        if o_model['model'] == 'account.invoice' and \
+                o_model['model_action'] == 'invoice_open':
+            try:
+                executeL8(ctx,
+                          o_model['model'],
+                          'button_compute',
+                          [id])
+                executeL8(ctx,
+                          o_model['model'],
+                          'button_reset_taxes',
+                          [id])
+            except BaseException:
+                        pass
+        try:
+            oerp.exec_workflow(o_model['model'],
+                               o_model['model_action'],
+                               id)
+        except:
+            msg = 'Workflow (%s, %s, %d) Failed!' % (o_model['model'],
+                                                     o_model['model_action'],
+                                                     id)
+            msg_log(ctx, ctx['level'] + 1, msg)
+            sts = STS_FAILED
+    return sts
 
 def act_update_modules(oerp, ctx):
     """Update module list on DB"""
@@ -1231,6 +1333,24 @@ def act_import_config_file(oerp, ctx):
     msg = u"Import config file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
     return import_config_file(oerp, ctx, csv_fn)
+
+def act_check_coa(oerp, ctx):
+    import pdb
+    pdb.set_trace()
+    msg = u"Check for account reconcile"
+    msg_log(ctx, ctx['level'], msg)
+    model = 'account.account'
+    for acc in browseL8(ctx, model, searchL8(ctx. model, [])):
+        if acc.report_type in ('receivable', 'payable'):
+            reconcile = True
+        elif acc.report_type in ("income", "expense"):
+            reconcile = False
+        else:
+            reconcile = None
+        if reconcile is not None:
+            if acc.reconcile != Reconcile:
+                writeL8(ctx, model, {'reconcile': reconcile})
+    return STS_SUCCESS
 
 
 def act_check_config(oerp, ctx):
@@ -4122,7 +4242,9 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     ctx['header_id'] = id
                 cur_obj = browseL8(ctx, o_model['model'], id)
                 name_old = cur_obj[o_model['name']]
-                msg = u"Update " + str(id) + " " + name_old
+                if not isinstance(name_old, basestring):
+                    name_old = ''
+                msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['heavy_trx']:
                     v = {}
@@ -4138,11 +4260,10 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if not ctx['dry_run'] and len(vals):
                     try:
                         writeL8(ctx, o_model['model'], ids, vals)
-                        msg = u"id={0}, {1}={2}->{3}".\
-                              format(cur_obj.id,
-                                     tounicode(o_model['name']),
-                                     tounicode(name_old),
-                                     tounicode(name_new))
+                        msg = u"id=%d, %s=%s->%s" % (cur_obj.id,
+                                                     o_model['name'],
+                                                     name_old,
+                                                     name_new)
                         msg_log(ctx, ctx['level'] + 1, msg)
                     except BaseException:
                         os0.wlog(u"!!write error!")

@@ -41,7 +41,7 @@ from clodoo.clodoo import isaction
 from clodoo.clodoo import check_4_actions
 from clodoo.clodoo import do_single_action
 
-__version__ = "0.3.2"
+__version__ = "0.3.2.1"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -346,6 +346,9 @@ class Test():
         return sts
 
     def test_02(self, z0ctx):
+        if not ctx['dry_run']:
+            import pdb
+            pdb.set_trace()
         o_model = {}
         msg = '_get_model_name'
         sts = TEST_SUCCESS
@@ -353,7 +356,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 fields = ['a', 'b', n, 'z']
                 name = _get_model_name(fields, o_model)
-                if n == 'other' or n == 'id':
+                if n == 'other':
                     sts = self.Z.test_result(z0ctx, msg, 'name', name)
                 else:
                     sts = self.Z.test_result(z0ctx, msg, n, name)

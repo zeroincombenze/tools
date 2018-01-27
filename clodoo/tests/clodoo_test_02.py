@@ -31,7 +31,7 @@ from os0 import os0
 from subprocess import Popen, PIPE
 from zerobug import Z0test
 
-__version__ = "0.3.2"
+__version__ = "0.3.2.1"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -306,10 +306,6 @@ base.user_root,Administrator,%s,"Amministratore","me@example.com","Europe/Rome",
         if os.environ.get("HOSTNAME", "") == "shsdef16":
             for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
                 if not ctx['dry_run']:
-                    if os.environ.get("TRAVIS", "") != "true":
-                        xmlrpc_port, dbname = self.param_by_db(oe_version)
-                        os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
-                                      dbname)
                     cmd = self.cmd
                     xmlrpc_port, dbname = self.param_by_db(oe_version)
                     codefile = """[options]
@@ -319,10 +315,13 @@ db_name=%s
 xmlrpc_port=%s
 oe_version=%s
 """ % (self.login_2_test, dbname, xmlrpc_port, oe_version)
-                    # DB exists, but due -q switch no response means False
+                    # DB exists, but due -q switch no response returns False
                     fd = open(confn, 'w')
                     fd.write(codefile)
                     fd.close()
+                    if os.environ.get("TRAVIS", "") != "true":
+                        os0.muteshell("/opt/odoo/tools/zar/pg_db_active -wa " +
+                                      dbname)
                     cmd = cmd + ['-c%s' % confn]
                     p = Popen(cmd,
                               stdin=PIPE,
