@@ -1,0 +1,14 @@
+fiscalyear_id,code,name,date_start,date_stop,company_id,special
+=${header_id},=01/${_last_year},=Gennaio ${_last_year},=${_last_year}-01-01,=${_last_year}-01-31,=${company_id},False
+=${header_id},=02/${_last_year},=Febbraio ${_last_year},=${_last_year}-02-01,=${_last_year}-02-28,=${company_id},False
+=${header_id},=03/${_last_year},=Marzo ${_last_year},=${_last_year}-03-01,=${_last_year}-03-31,=${company_id},False
+=${header_id},=04/${_last_year},=Aprile ${_last_year},=${_last_year}-04-01,=${_last_year}-04-30,=${company_id},False
+=${header_id},=05/${_last_year},=Maggio ${_last_year},=${_last_year}-05-01,=${_last_year}-05-31,=${company_id},False
+=${header_id},=06/${_last_year},=Giugno ${_last_year},=${_last_year}-06-01,=${_last_year}-06-30,=${company_id},False
+=${header_id},=07/${_last_year},=Luglio ${_last_year},=${_last_year}-07-01,=${_last_year}-07-31,=${company_id},False
+=${header_id},=08/${_last_year},=Agosto ${_last_year},=${_last_year}-08-01,=${_last_year}-08-31,=${company_id},False
+=${header_id},=09/${_last_year},=Settembre ${_last_year},=${_last_year}-09-01,=${_last_year}-09-30,=${company_id},False
+=${header_id},=10/${_last_year},=Ottobre ${_last_year},=${_last_year}-10-01,=${_last_year}-10-31,=${company_id},False
+=${header_id},=11/${_last_year},=Novembre ${_last_year},=${_last_year}-11-01,=${_last_year}-11-30,=${company_id},False
+=${header_id},=12/${_last_year},=Dicembre ${_last_year},=${_last_year}-12-01,=${_last_year}-12-31,=${company_id},False
+=${header_id},=00/${_last_year},=Apertura ${_last_year},=${_last_year}-01-01,=${_last_year}-01-01,=${company_id},True

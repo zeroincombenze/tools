@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.1.3"
+__version__ = "0.3.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -491,6 +491,8 @@ def do_group_action(oerp, ctx, action):
                     sts = STS_FAILED
                     break
                 sts = do_single_action(oerp, lctx, act)
+                if sts == STS_SUCCESS and 'header_id' in lctx:
+                    ctx['header_id'] = lctx['header_id']
             else:
                 msg = u"Invalid action " + act
                 msg_log(ctx, ctx['level'] + 1, msg)
@@ -4090,8 +4092,12 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                    o_model,
                                    row)
             name_new = ""
+            update_header_id = True
             vals = {}
             for n in row:
+                if isinstance(row[n], basestring) and \
+                        row[n].find('${header_id}') >= 0:
+                    update_header_id = False
                 val = eval_value(oerp,
                                  ctx,
                                  o_model,
@@ -4112,7 +4118,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 del vals['id']
             if len(ids):
                 id = ids[0]
-                ctx['header_id'] = id
+                if update_header_id:
+                    ctx['header_id'] = id
                 cur_obj = browseL8(ctx, o_model['model'], id)
                 name_old = cur_obj[o_model['name']]
                 msg = u"Update " + str(id) + " " + name_old
@@ -4147,7 +4154,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         vals['company_id'] = ctx['company_id']
                     try:
                         id = createL8(ctx, o_model['model'], vals)
-                        ctx['header_id'] = id
+                        if update_header_id:
+                            ctx['header_id'] = id
                         msg = u"creat id={0}, {1}={2}"\
                               .format(id,
                                       tounicode(o_model['name']),
@@ -4536,6 +4544,9 @@ def main():
                      apply_conf=APPLY_CONF,
                      version=version(),
                      doc=__doc__)
+    ctx['_today'] = str(date.today())
+    ctx['_current_year'] = str(date.today().year)
+    ctx['_last_year'] = str(date.today().year - 1)
     if ctx.get('do_sel_action', False):
         ctx['actions'] = ctx['do_sel_action']
     elif not ctx.get('actions', None):

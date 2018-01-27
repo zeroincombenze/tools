@@ -10,7 +10,6 @@
 """
 
 from os0 import os0
-import datetime
 import re
 import oerplib
 import odoorpc
@@ -26,7 +25,7 @@ except:
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.1.3"
+__version__ = "0.3.2"
 
 
 #############################################################################
@@ -388,6 +387,11 @@ def eval_value(oerp, ctx, o_model, name, value):
                     value = eval(value, None, ctx)
                 except BaseException:
                     pass
+        elif value in ('True', 'False'):
+            try:
+                value = eval(value, None, ctx)
+            except BaseException:
+                pass
     return value
 
 
