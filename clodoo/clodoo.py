@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.2.1"
+__version__ = "0.3.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1335,21 +1335,23 @@ def act_import_config_file(oerp, ctx):
     return import_config_file(oerp, ctx, csv_fn)
 
 def act_check_coa(oerp, ctx):
-    import pdb
-    pdb.set_trace()
     msg = u"Check for account reconcile"
     msg_log(ctx, ctx['level'], msg)
     model = 'account.account'
-    for acc in browseL8(ctx, model, searchL8(ctx. model, [])):
-        if acc.report_type in ('receivable', 'payable'):
+    for acc in browseL8(ctx, model, searchL8(ctx, model, [])):
+        if acc.type in ('receivable', 'payable'):
             reconcile = True
-        elif acc.report_type in ("income", "expense"):
+        elif acc.type in ('income', 'expense', 'view', 'liquidity'):
+            reconcile = False
+        elif acc.name.find('IVA') >= 0 or \
+                acc.name.find('VAT') >= 0 or \
+                acc.name.find('TAX') >= 0:
             reconcile = False
         else:
             reconcile = None
         if reconcile is not None:
-            if acc.reconcile != Reconcile:
-                writeL8(ctx, model, {'reconcile': reconcile})
+            if acc.reconcile != reconcile:
+                writeL8(ctx, model, [acc.id], {'reconcile': reconcile})
     return STS_SUCCESS
 
 
@@ -4262,8 +4264,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         writeL8(ctx, o_model['model'], ids, vals)
                         msg = u"id=%d, %s=%s->%s" % (cur_obj.id,
                                                      o_model['name'],
-                                                     name_old,
-                                                     name_new)
+                                                     tounicode(name_old),
+                                                     tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
                     except BaseException:
                         os0.wlog(u"!!write error!")
@@ -4378,19 +4380,19 @@ def setup_config_param(oerp, ctx, user, name, value):
                                  [('full_name', '=', full_name)],
                                  context=context)
     if len(group_ids) != 1:
-        msg = u"!Parameter name " + name + " not found!"
+        msg = u"!Parameter name " + tounicode(name) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     group_id = group_ids[0]
     user_id = searchL8(ctx, 'res.users',
                        [('login', '=', user)])
     if len(user_id) != 1:
-        msg = u"!User " + user + " not found!"
+        msg = u"!User " + tounicode(user) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     user_obj = browseL8(ctx, 'res.users', user_id[0])
     if not user_obj:
-        msg = u"!User " + user + " not found!"
+        msg = u"!User " + tounicode(user) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     vals = {}
@@ -4398,14 +4400,14 @@ def setup_config_param(oerp, ctx, user, name, value):
         if group_id not in user_obj.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
-                msg = u"%s.%s = True" % (user, name)
+                msg = u"%s.%s = True" % (tounicode(user), tounicode(name))
             else:
-                msg = u"%s.%s" % (user, full_name)
+                msg = u"%s.%s" % (tounicode(user), tounicode(full_name))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
         if group_id in user_obj.groups_id.ids:
             vals['groups_id'] = [(3, group_id)]
-            msg = u"%s.%s = False" % (user, name)
+            msg = u"%s.%s = False" % (tounicode(user), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         writeL8(ctx, 'res.users', user_id, vals)
@@ -4460,7 +4462,7 @@ def install_chart_of_account(oerp, ctx, name):
                                  [('name', '=', name)],
                                  context=context)
     if len(chart_template_id) == 0:
-        msg = u"!Invalid chart of account " + name + "!!"
+        msg = u"!Invalid chart of account " + tounicode(name) + "!!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     chart_template_id = chart_template_id[0]

@@ -1,3 +1,0 @@
-name,company_id,location_id
-"La Tua Azienda / Uscita",=${res.company:La Tua Azienda},=${stock.warehouse::WH}
-"La Tua Azienda / Stock",=${res.company:La Tua Azienda},=${stock.warehouse::WH}

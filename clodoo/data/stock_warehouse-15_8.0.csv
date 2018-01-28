@@ -1,2 +1,0 @@
-name,code,company_id,partner_id
-"La Tua Azienda","WH",=${res.company:La Tua Azienda},=${res.partner::La Tua Azienda}

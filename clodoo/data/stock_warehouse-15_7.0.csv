@@ -1,3 +1,0 @@
-id,name,company_id,partner_id
-stock.warehouse0,"Zeroincombenze",=None
-,"La Tua Azienda",=${res.company:La Tua Azienda},=${res.partner::La Tua Azienda}

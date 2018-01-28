@@ -1,0 +1,4 @@
+id,is_company,customer,supplier,type,parent_id,name,email,phone
+base.res_partner_address_1,False,False,False,contact,base.res_partner_1,"Rossi Mario",=None,=None
+base.res_partner_address_17,False,False,False,contact,base.res_partner_10,"Giacobbo Libero",=None,=None
+base.res_partner_address_18,False,False,False,contact,base.res_partner_10,"Martini Vittorio",=None,=None

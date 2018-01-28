@@ -1,2 +1,0 @@
-id,name,company_id
-1,"La Tua Azienda",=${company_id}

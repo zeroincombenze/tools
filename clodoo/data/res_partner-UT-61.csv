@@ -1,2 +1,0 @@
-db_type,id,name,vat,country_id,street,zip,city,state_id,is_company,customer,supplier,phone,email,property_account_position
-T,,"Holiday Inn Hotel","NL123456782B90",base.nl,"Hoogoorddreef 66","1101BE",Amsterdam,,True,False,True,,,"=${account.fiscal.position:Regime UE}"
