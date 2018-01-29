@@ -5,7 +5,7 @@ import oerplib
 import re
 from z0lib import parseoptargs
 # import clodoo
-import pdb
+# import pdb
 
 
 __version__ = "0.0.5"
@@ -194,7 +194,7 @@ CODE_ITEM_TAX = {'prefix': '',
 
 def oerp_set_env(confn=None, db=None, ctx=None):
     xmlrpc_port = 8069
-    db_name = 'demo'
+    database = 'demo'
     user = 'admin'
     passwd = 'admin'
     oe_ver = '7.0'
@@ -219,7 +219,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             elif tkn[0] == 'svc_protocol':
                 svc_protocol = tkn[1]
         fd.close()
-    except:
+    except BaseException:
         write_confn = True
         database = raw_input('database[def=demo]? ')
         user = raw_input('username[def=admin]? ')
@@ -388,7 +388,6 @@ def set_code_meaning(code, chash=None, table=None, defcd=None, is_quota=None):
                     code = code[0:i] + code[j:]
                 else:
                     code = code[0:i]
-    code_subtype = ''
     if table == 'tax.code':
         if not code or code[0:2] == 'IT':
             code_meaning['owner'] = 'OIA'
@@ -447,7 +446,7 @@ def set_code_meaning(code, chash=None, table=None, defcd=None, is_quota=None):
                 ipos -= 2
                 code_meaning['code_aliq'] = code[i:ipos]
                 i += 2
-                ipos +=2
+                ipos += 2
                 code_meaning['pind'] = pdet2pind(code[i:ipos])
             else:
                 code_meaning['code_aliq'] = code[i:ipos]
@@ -525,7 +524,8 @@ def set_des_meaning(des, table=None, is_quota=None):
     - aliq: VAT aliquote or VAT application law
     - detr: deductible quote
     - vat_apply: (
-          imponibile | N.I. | escluso | esente | iva | regime | N.Sogg. | senza IVA | rev.charge)
+        imponibile | N.I. | escluso | esente | iva | regime | N.Sogg. |
+        senza IVA | rev.charge)
     - next: next word to append
     - quota: if record is VAT quota (detr | indet)
     """
@@ -776,9 +776,10 @@ def build_des(des_meaning, words, tokids, table=None):
     return newdes
 
 
-def hint_code_des(code, des, chash=None, table=None, defcd=None, is_quota=None):
+def hint_code_des(code, des, chash=None, table=None, defcd=None,
+                  is_quota=None):
     table = table or 'tax.code'
-    record_sts = 'active'
+    # record_sts = 'active'
     chash = ['Cserv', 'CServ', 'cserv', 'Cstudi', 'Cstudi', 'cstudi']
     code_meaning, CODE_ITEM = set_code_meaning(code, chash=chash,
                                                table=table, defcd=defcd,
@@ -850,9 +851,9 @@ def hint_code_des(code, des, chash=None, table=None, defcd=None, is_quota=None):
                     code_meaning[p] = des_meaning[p]
                 else:
                     code_des_match = False
-    if code_meaning['aliq'] == '20%' or code_meaning['aliq'] == '21%' or \
-            code_meaning['aliq'] == '12%':
-        record_sts = ''
+    # if code_meaning['aliq'] == '20%' or code_meaning['aliq'] == '21%' or \
+    #         code_meaning['aliq'] == '12%':
+    #     record_sts = ''
     if code_des_match:   # debug
         newdes = build_des(des_meaning, words, tokids, table=table)
         newcode = build_code(code_meaning, CODE_ITEM,
@@ -888,7 +889,7 @@ if __name__ == "__main__":
     print
     print 'Analyzing Taxes'
     kk = 'description'
-    table='tax'
+    table = 'tax'
     for company_id in company_ids:
         # pdb.set_trace()
         model = 'account.tax'
@@ -921,7 +922,7 @@ if __name__ == "__main__":
     print
     print 'Analyzing Tax Accounts'
     kk = 'code'
-    table='tax.code'
+    table = 'tax.code'
     for company_id in company_ids:
         # pdb.set_trace()
         model = 'account.tax.code'

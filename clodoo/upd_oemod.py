@@ -36,7 +36,7 @@ def initialize_params(ctx):
             elif tkn[0] == 'oe_version':
                 oe_version = tkn[1]
         fd.close()
-    except:
+    except BaseException:
         write_config_file = True
         if ctx.get('opt_db', None) is None:
             database = raw_input('database[def=demo]? ')
@@ -103,7 +103,7 @@ if __name__ == "__main__":
             if line:
                 passed_list.append(line)
         fd.close()
-    except:
+    except BaseException:
         pass
 
     exclusion_list = []
@@ -114,7 +114,7 @@ if __name__ == "__main__":
             if line:
                 exclusion_list.append(line)
         fd.close()
-    except:
+    except BaseException:
         pass
 
     model = 'ir.module.module'
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                 fd.close()
                 print "%s passed" % module.name
                 time.sleep(1)
-            except:
+            except BaseException:
                 fd = open(exclusion_file, 'a')
                 fd.write('%s\n' % module.name)
                 fd.close()

@@ -19,13 +19,13 @@ try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
     postgres_drive = True
-except:
+except BaseException:
     postgres_drive = False
 
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.3"
+__version__ = "0.3.3.1"
 
 
 #############################################################################
@@ -68,7 +68,7 @@ def connectL8(ctx):
         ctx['server_version'] = odoo.version
     else:
         ctx['server_version'] = odoo.db.server_version()
-    x = re.match('[0-9]+\.[0-9]+', ctx['server_version'])
+    x = re.match(r'[0-9]+\.[0-9]+', ctx['server_version'])
     if ctx['server_version'][0:x.end()] != ctx['oe_version']:
         return u"!Invalid Odoo Server version: expected %s, found %s!" % \
             (ctx['oe_version'], ctx['server_version'])
@@ -105,7 +105,7 @@ def createL8(ctx, model, vals):
 
 
 def write_recordL8(ctx, record):
-    vals = bound_z0_to_6(ctx, model, vals)
+    # vals = bound_z0_to_6(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['odoo_session'].write(record)
     else:
@@ -145,7 +145,7 @@ def bound_z0_to_6(ctx, model, vals, btable=None):
     may be used to any Odoo version translation.
     If btable is empty, build bound table to translate fields.
     Bound table ha format 6_name=z0_name.
-    6_name is 6.1 field name 
+    6_name is 6.1 field name
     z0_name is 7.0 field name or False is does not exist,
     In res.user, this function always remove country_id field.
     """
@@ -237,6 +237,7 @@ def get_res_users(ctx, user, field):
                 return user.company_id.country_id.id
             return False
     return user[field]
+
 
 ###########################################################
 # Others

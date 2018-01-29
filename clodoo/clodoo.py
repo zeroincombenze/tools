@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.3"
+__version__ = "0.3.3.1"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -128,6 +128,28 @@ class Clodoo():
 
 def version():
     return __version__
+
+
+def writelog(xmodel, model, exclusion, all=None):
+    if all:
+        exclusion = [('id', '=', 0)]
+    if exclusion:
+        fd = open('./ir_save_table.csv', 'a')
+        f = exclusion[0][0]
+        if exclusion[0][1] == '!=':
+            op = '='
+        elif exclusion[0][1] == '=':
+            op = '!='
+        else:
+            op = 'in'
+        x = exclusion[0][2]
+        line = '%s,True,%s,True,%s,"%s","%s"\n' % (xmodel,
+                                                   model,
+                                                   f,
+                                                   op,
+                                                   str(x))
+        fd.write(line)
+        fd.close()
 
 
 def print_hdr_msg(ctx):
@@ -264,6 +286,7 @@ def do_login(oerp, ctx):
 def oerp_set_env(confn=None, db=None, ctx=None):
     P_LIST = ('db_host', 'login_user', 'login_password', 'db_name',
               'xmlrpc_port', 'oe_version', 'svc_protocol')
+
     def oerp_env_def(ctx=None):
         ctx = ctx or {}
         if 'db_host' not in ctx or not ctx['db_host']:
@@ -310,7 +333,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                     else:
                         ctx[p] = tkn[1]
         fd.close()
-    except:
+    except BaseException:
         write_confn = True
         ctx = oerp_env_def(ctx=ctx)
         for p in (P_LIST):
@@ -376,13 +399,13 @@ def init_db_ctx(oerp, ctx, db):
 
 def init_company_ctx(oerp, ctx, c_id):
     ctx['company_id'] = c_id
-    company_obj = browseL8(ctx, 'res.company', c_id)
-    ctx['company_name'] = company_obj.name
-    if company_obj.country_id:
-        ctx['company_country_id'] = company_obj.country_id.id
+    company = browseL8(ctx, 'res.company', c_id)
+    ctx['company_name'] = company.name
+    if company.country_id:
+        ctx['company_country_id'] = company.country_id.id
     else:
         ctx['company_country_id'] = 0
-    ctx['company_partner_id'] = company_obj.partner_id.id
+    ctx['company_partner_id'] = company.partner_id.id
     ctx['def_company_id'] = ctx['company_id']
     ctx['def_company_name'] = ctx['company_name']
     if ctx.get('company_country_id', 0) != 0:
@@ -726,8 +749,8 @@ def act_show_company_params(oerp, ctx):
 def act_list_users(oerp, ctx):
     user_ids = get_userlist(oerp, ctx)
     for u_id in user_ids:
-        user_obj = browseL8(ctx, 'res.users', u_id)
-        ctx = init_user_ctx(oerp, ctx, user_obj)
+        user = browseL8(ctx, 'res.users', u_id)
+        ctx = init_user_ctx(oerp, ctx, user)
         sts = act_echo_user(oerp, ctx)
     return sts
 
@@ -972,8 +995,8 @@ def act_per_company(oerp, ctx):
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for c_id in company_ids:
-        company_obj = browseL8(ctx, 'res.company', c_id)
-        if re.match(ctx['companyfilter'], company_obj.name):
+        company = browseL8(ctx, 'res.company', c_id)
+        if re.match(ctx['companyfilter'], company.name):
             ctx = init_company_ctx(oerp, ctx, c_id)
             msg = ident_company(oerp, ctx, c_id)
             msg_log(ctx, ctx['level'], msg)
@@ -992,9 +1015,9 @@ def act_per_user(oerp, ctx):
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for u_id in user_ids:
-        user_obj = browseL8(ctx, 'res.users', u_id)
-        if re.match(ctx['userfilter'], user_obj.name):
-            ctx = init_user_ctx(oerp, ctx, user_obj)
+        user = browseL8(ctx, 'res.users', u_id)
+        if re.match(ctx['userfilter'], user.name):
+            ctx = init_user_ctx(oerp, ctx, user)
             msg = ident_user(oerp, ctx, u_id)
             msg_log(ctx, ctx['level'], msg)
             ctx['actions'] = saved_actions
@@ -1006,6 +1029,7 @@ def act_per_user(oerp, ctx):
             if sts != STS_SUCCESS:
                 break
     return sts
+
 
 def act_execute(oerp, ctx):
     sts = STS_SUCCESS
@@ -1041,13 +1065,14 @@ def act_execute(oerp, ctx):
                       o_model['model'],
                       o_model['model_action'],
                       ids)
-        except:
+        except BaseException:
             msg = 'Excecute (%s, %s, %s) Failed!' % (o_model['model'],
                                                      o_model['model_action'],
                                                      str(ids))
             msg_log(ctx, ctx['level'] + 1, msg)
             sts = STS_FAILED
     return sts
+
 
 def act_workflow(oerp, ctx):
     sts = STS_SUCCESS
@@ -1102,13 +1127,14 @@ def act_workflow(oerp, ctx):
             oerp.exec_workflow(o_model['model'],
                                o_model['model_action'],
                                id)
-        except:
+        except BaseException:
             msg = 'Workflow (%s, %s, %d) Failed!' % (o_model['model'],
                                                      o_model['model_action'],
                                                      id)
             msg_log(ctx, ctx['level'] + 1, msg)
             sts = STS_FAILED
     return sts
+
 
 def act_update_modules(oerp, ctx):
     """Update module list on DB"""
@@ -1334,6 +1360,7 @@ def act_import_config_file(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     return import_config_file(oerp, ctx, csv_fn)
 
+
 def act_check_coa(oerp, ctx):
     msg = u"Check for account reconcile"
     msg_log(ctx, ctx['level'], msg)
@@ -1375,7 +1402,7 @@ def act_check_partners(oerp, ctx):
     rec_ctr = 0
     for partner_id in partner_ids:
         try:
-            partner_obj = browseL8(ctx, 'res.partner', partner_id)
+            partner = browseL8(ctx, 'res.partner', partner_id)
         except BaseException:
             msg = u"Wrong partner id=" + str(partner_id)
             msg_log(ctx, ctx['level'], msg)
@@ -1383,38 +1410,38 @@ def act_check_partners(oerp, ctx):
         rec_ctr += 1
         msg_burst(4, "Partner ",
                   rec_ctr,
-                  partner_obj.name)
-        if partner_obj.vat:
-            iso = partner_obj.vat.upper()[0:2]
-            vatn = partner_obj.vat[2:]
-            if iso >= "00" and iso <= "99" and len(partner_obj.vat) == 11:
+                  partner.name)
+        if partner.vat:
+            iso = partner.vat.upper()[0:2]
+            vatn = partner.vat[2:]
+            if iso >= "00" and iso <= "99" and len(partner.vat) == 11:
                 iso = 'IT'
-                vatn = partner_obj.vat
+                vatn = partner.vat
                 vals = {}
                 vals['vat'] = iso + vatn
-                msg = u"Wrong VAT " + partner_obj.vat
+                msg = u"Wrong VAT " + partner.vat
                 msg_log(ctx, ctx['level'], msg)
                 try:
                     writeL8(ctx, 'res.partner', partner_id, vals)
                 except BaseException:
-                    msg = partner_obj.name + " WRONG VAT"
+                    msg = partner.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
             elif iso == "1I" and len(vatn) == 11:
                 iso = 'IT'
                 vals = {}
                 vals['vat'] = iso + vatn
-                msg = u"Wrong VAT " + partner_obj.vat
+                msg = u"Wrong VAT " + partner.vat
                 msg_log(ctx, ctx['level'], msg)
                 try:
                     writeL8(ctx, 'res.partner', [partner_id], vals)
                 except BaseException:
-                    msg = partner_obj.name + " WRONG VAT"
+                    msg = partner.name + " WRONG VAT"
                     msg_log(ctx, ctx['level'], msg)
             elif iso < "AA" or iso > "ZZ":
-                msg = partner_obj.name + " WRONG VAT"
+                msg = partner.name + " WRONG VAT"
                 msg_log(ctx, ctx['level'], msg)
             elif vatn.strip() == "":
-                msg = partner_obj.name + " WRONG VAT"
+                msg = partner.name + " WRONG VAT"
                 msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
@@ -1490,17 +1517,17 @@ def act_check_taxes(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = browseL8(ctx,
-                                 'account.move.line', move_line_id)
+        move_line = browseL8(ctx,
+                             'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
-        tax_code_obj = move_line_obj.tax_code_id
-        if tax_code_obj:
-            # move_hdr_id = move_line_obj.move_id.id
+        tax_code = move_line.tax_code_id
+        if tax_code:
+            # move_hdr_id = move_line.move_id.id
             level = '9'
             while True:
-                code = tax_code_obj.code
-                name = tax_code_obj.name
+                code = tax_code.code
+                name = tax_code.name
                 if isinstance(code, basestring):
                     x = code
                 else:
@@ -1510,11 +1537,11 @@ def act_check_taxes(oerp, ctx):
                 add_on_account(tax_balance,
                                level,
                                x,
-                               move_line_obj.tax_amount,
+                               move_line.tax_amount,
                                0)
-                if not tax_code_obj.parent_id:
+                if not tax_code.parent_id:
                     break
-                tax_code_obj = tax_code_obj.parent_id
+                tax_code = tax_code.parent_id
                 level = str(int(level) - 1)
     format = ctx.get('format', 'csv')
     for level in ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9'):
@@ -1553,46 +1580,46 @@ def act_check_balance(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = browseL8(ctx,
-                                 'account.move.line', move_line_id)
+        move_line = browseL8(ctx,
+                             'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
         warn_rec = False
-        move_hdr_id = move_line_obj.move_id.id
-        account_obj = move_line_obj.account_id
-        account_tax_obj = move_line_obj.account_tax_id
-        journal_obj = move_line_obj.journal_id
-        acctype_id = account_obj.user_type.id
-        acctype_obj = browseL8(ctx,
-                               'account.account.type', acctype_id)
-        if acctype_obj.report_type not in ("asset", "liability",
-                                           "income", "expense"):
+        move_hdr_id = move_line.move_id.id
+        account = move_line.account_id
+        account_tax = move_line.account_tax_id
+        journal = move_line.journal_id
+        acctype_id = account.user_type.id
+        acc_type = browseL8(ctx,
+                            'account.account.type', acctype_id)
+        if acc_type.report_type not in ("asset", "liability",
+                                        "income", "expense"):
             warn_rec = "Untyped"
-        if account_obj.parent_id:
-            parent_account_obj = account_obj.parent_id
-            parent_acctype_id = parent_account_obj.user_type.id
-            parent_acctype_obj = browseL8(ctx, 'account.account.type',
-                                          parent_acctype_id)
-            parent_code = parent_account_obj.code
+        if account.parent_id:
+            parent_account = account.parent_id
+            parent_acctype_id = parent_account.user_type.id
+            parent_acc_type = browseL8(ctx, 'account.account.type',
+                                       parent_acctype_id)
+            parent_code = parent_account.code
         else:
-            parent_account_obj = None
+            parent_account = None
             parent_acctype_id = 0
-            parent_acctype_obj = None
+            parent_acc_type = None
             parent_code = None
             warn_rec = 'Orphan'
-        if parent_acctype_obj and\
-                parent_acctype_obj.report_type and\
-                parent_acctype_obj.report_type != 'none':
-            if parent_acctype_obj.report_type in ("asset",
-                                                  "liability",
-                                                  "income",
-                                                  "expense") and \
-                    acctype_obj.report_type != parent_acctype_obj.report_type:
+        if parent_acc_type and\
+                parent_acc_type.report_type and\
+                parent_acc_type.report_type != 'none':
+            if parent_acc_type.report_type in ("asset",
+                                               "liability",
+                                               "income",
+                                               "expense") and \
+                    acc_type.report_type != parent_acc_type.report_type:
                 warn_rec = "Mismatch"
 
-        code = account_obj.code
-        clf3 = acctype_obj.name
-        clf = acctype_obj.report_type
+        code = account.code
+        clf3 = acc_type.name
+        clf = acc_type.report_type
         if clf == "asset":
             clf2 = "attivo"
             clf1 = "patrimoniale"
@@ -1609,31 +1636,31 @@ def act_check_balance(oerp, ctx):
             clf2 = "unknown"
             clf1 = "unknown"
 
-        if (account_obj.company_id.id != company_id):
+        if (account.company_id.id != company_id):
             msg = u"Invalid company account {0} in {1:>6}/{2:>6}  {3}".format(
                 os0.u(code),
                 move_hdr_id,
                 move_line_id,
-                os0.u(move_line_obj.ref))
+                os0.u(move_line.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
-        if (account_tax_obj and account_tax_obj.company_id.id != company_id):
+        if (account_tax and account_tax.company_id.id != company_id):
             msg = u"Invalid company account tax {0} in {1:>6}/{2:>6}  {3}".\
                 format(os0.u(code),
                        move_hdr_id,
                        move_line_id,
-                       os0.u(move_line_obj.ref))
+                       os0.u(move_line.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
-        if (journal_obj and journal_obj.company_id.id != company_id):
+        if (journal and journal.company_id.id != company_id):
             msg = u"Invalid company journal {0} in {1:>6}/{2:>6}  {3}".format(
                 os0.u(code),
                 move_hdr_id,
                 move_line_id,
-                os0.u(move_line_obj.ref))
+                os0.u(move_line.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
 
-        if move_line_obj.partner_id and \
-                move_line_obj.partner_id.id:
-            partner_id = move_line_obj.partner_id.id
+        if move_line.partner_id and \
+                move_line.partner_id.id:
+            partner_id = move_line.partner_id.id
             if clf3 == "Crediti":
                 kk = 'C'
             elif clf3 == "Debiti":
@@ -1643,57 +1670,57 @@ def act_check_balance(oerp, ctx):
             kk = kk + '\n' + code + '\n' + str(partner_id)
             if kk not in acc_partners:
                 acc_partners[kk] = 0
-            acc_partners[kk] += move_line_obj.debit
-            acc_partners[kk] -= move_line_obj.credit
+            acc_partners[kk] += move_line.debit
+            acc_partners[kk] -= move_line.credit
 
         level = '9'
         add_on_account(acc_balance,
                        level,
                        code,
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         level = '8'
         add_on_account(acc_balance,
                        level,
                        parent_code,
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         level = '4'
         add_on_account(acc_balance,
                        level,
                        clf3,
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         level = '2'
         add_on_account(acc_balance,
                        level,
                        clf2,
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         level = '1'
         add_on_account(acc_balance,
                        level,
                        clf1,
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         level = '0'
         add_on_account(acc_balance,
                        level,
                        '_',
-                       move_line_obj.debit,
-                       move_line_obj.credit)
+                       move_line.debit,
+                       move_line.credit)
 
         if warn_rec:
             msg = u"Because {0:8} look at {1:>6}/{2:>6} record {3}".format(
                 warn_rec,
                 move_hdr_id,
                 move_line_id,
-                os0.u(move_line_obj.ref))
+                os0.u(move_line.ref))
             msg_log(ctx, ctx['level'] + 1, msg)
             warn_rec = False
 
@@ -1745,10 +1772,10 @@ def act_check_balance(oerp, ctx):
         for kk in sorted(acc_partners):
             if acc_partners[kk] != 0.0:
                 partner_id = int(kk.split('\n')[2])
-                partner_obj = browseL8(ctx, 'res.partner', partner_id)
+                partner = browseL8(ctx, 'res.partner', partner_id)
                 msg = u"{0:<16} {1:<60} {2:11.2f}".format(
                     os0.u(kk.replace('\n', '.')),
-                    os0.u(partner_obj.name),
+                    os0.u(partner.name),
                     acc_partners[kk])
                 msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
@@ -2120,12 +2147,12 @@ def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
     return name, date_start, date_stop
 
 
-def get_payment_info(oerp, move_line_obj, ctx):
+def get_payment_info(oerp, move_line, ctx):
     """Return move (header) and move_line (detail) ids of passed move line
     record and return payment state if needed to become draft
     """
-    move_line_id = move_line_obj.id
-    move_id = move_line_obj.move_id.id
+    move_line_id = move_line.id
+    move_id = move_line.move_id.id
     move_obj = browseL8(ctx, 'account.move', move_id)
     mov_state = False
     if move_obj.state in PAY_MOVE_STS_2_DRAFT:
@@ -2149,28 +2176,28 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
     for state in STATES_2_DRAFT:
         move_dict[state] = []
     model = 'account.invoice'
-    account_invoice_obj = browseL8(ctx, model,
-                                   inv_id)
-    if account_invoice_obj.payment_ids:
-        partner_id = account_invoice_obj.partner_id.id
-        move_id = account_invoice_obj.move_id.id
-        move_lines = searchL8(ctx, 'account.move.line',
-                              [('move_id', '=', move_id),
-                               ('partner_id', '=', partner_id), ])
-        for move_line_id in move_lines:
+    account_invoice = browseL8(ctx, model,
+                               inv_id)
+    if account_invoice.payment_ids:
+        partner_id = account_invoice.partner_id.id
+        move_id = account_invoice.move_id.id
+        move_line_ids = searchL8(ctx, 'account.move.line',
+                                 [('move_id', '=', move_id),
+                                  ('partner_id', '=', partner_id), ])
+        for move_line_id in move_line_ids:
             type = browseL8(ctx, 'account.account',
                             browseL8(ctx, 'account.move.line',
                                      move_line_id).account_id.id).type
             if type == 'receivable' or type == 'payable':
                 reconciles.append(move_line_id)
-        for move_line_obj in account_invoice_obj.payment_ids:
+        for move_line in account_invoice.payment_ids:
             move_id, move_line_id, mov_state = \
-                get_payment_info(oerp, move_line_obj, ctx)
+                get_payment_info(oerp, move_line, ctx)
             reconciles.append(move_line_id)
             if mov_state:
                 move_dict[state].append(move_id)
-    if account_invoice_obj.state in INVOICES_STS_2_DRAFT:
-        move_dict[account_invoice_obj.state].append(inv_id)
+    if account_invoice.state in INVOICES_STS_2_DRAFT:
+        move_dict[account_invoice.state].append(inv_id)
     return reconciles, move_dict
 
 
@@ -2188,34 +2215,34 @@ def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
     # Payment move line (detail) list
     new_reconciles = []
     model = 'account.invoice'
-    account_invoice_obj = browseL8(ctx, model,
-                                   inv_id)
-    partner_id = account_invoice_obj.partner_id.id
-    if account_invoice_obj.move_id:
-        move_id = account_invoice_obj.move_id.id
+    account_invoice = browseL8(ctx, model,
+                               inv_id)
+    partner_id = account_invoice.partner_id.id
+    if account_invoice.move_id:
+        move_id = account_invoice.move_id.id
     else:
         move_id = False
-    move_lines = searchL8(ctx, 'account.move.line',
-                          [('move_id', '=', move_id),
-                           ('partner_id', '=', partner_id), ])
-    for move_line_id in move_lines:
+    move_line_ids = searchL8(ctx, 'account.move.line',
+                             [('move_id', '=', move_id),
+                              ('partner_id', '=', partner_id), ])
+    for move_line_id in move_line_ids:
         type = browseL8(ctx, 'account.account',
                         browseL8(ctx, 'account.move.line',
                                  move_line_id).account_id.id).type
         if type == 'receivable' or type == 'payable':
             new_reconciles.append(move_line_id)
-    partner_id = account_invoice_obj.partner_id.id
-    if account_invoice_obj.move_id:
-        move_id = account_invoice_obj.move_id.id
+    partner_id = account_invoice.partner_id.id
+    if account_invoice.move_id:
+        move_id = account_invoice.move_id.id
     else:
         move_id = False
-    company_id = account_invoice_obj.company_id.id
+    company_id = account_invoice.company_id.id
     valid_recs = True
     for move_line_id in reconciles[1:]:
-        move_line_obj = browseL8(ctx,
-                                 'account.move.line', move_line_id)
-        if move_line_obj.partner_id.id != partner_id or \
-                move_line_obj.company_id.id != company_id:
+        move_line = browseL8(ctx,
+                             'account.move.line', move_line_id)
+        if move_line.partner_id.id != partner_id or \
+                move_line.company_id.id != company_id:
             valid_recs = False
         else:
             new_reconciles.append(move_line_id)
@@ -2239,18 +2266,18 @@ def get_user_lang(ctx):
 def set_user_lang(oerp, lang, ctx):
     model = 'res.users'
     user_id = ctx.get('user_id', 1)
-    user_obj = browseL8(ctx, model, user_id)
-    if not user_obj:
+    user = browseL8(ctx, model, user_id)
+    if not user:
         msg = u"!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     writeL8(ctx, 'res.users', user_id, {'lang': lang})
 
 
-def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
+def get_reconcile_list_from_move_line(oerp, move_line, ctx):
     """Like get_reconcile_from_inv but it is passed move_line id
     If move_line is not of an invoice, returned lists are empties.
-    @param move_line_obj: record of move_line (may be invoice or not)
+    @param move_line: record of move_line (may be invoice or not)
     @return: list of reconciled move lines of passed (included) invoice
     @return: dictionary of posted movements (header) to set to draft state
     """
@@ -2260,7 +2287,7 @@ def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
     move_dict = {}
     for state in STATES_2_DRAFT:
         move_dict[state] = []
-    move_id = move_line_obj.move_id.id
+    move_id = move_line.move_id.id
     model = 'account.invoice'
     invoice_ids = searchL8(ctx, model,
                            [('move_id', '=', move_id)])
@@ -2281,7 +2308,7 @@ def get_reconcile_list_from_move_line(oerp, move_line_obj, ctx):
                 reconcile_dict[inv_id] = reconciles
     else:
         move_id, move_line_id, mov_state = get_payment_info(oerp,
-                                                            move_line_obj,
+                                                            move_line,
                                                             ctx)
         if mov_state:
             move_dict[mov_state].append(move_id)
@@ -2345,12 +2372,12 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
     @ return: min record date
     """
     model = 'account.invoice'
-    invoice_obj = oerp.get(model)
+    invoice_model = oerp.get(model)
     list_keys = {}
     company_id = None
     journal_id = None
     for inv_id in invoices:
-        invoice = invoice_obj.browse(inv_id)
+        invoice = invoice_model.browse(inv_id)
         if not company_id:
             company_id = invoice.company_id.id
         elif invoice.company_id.id != company_id:
@@ -2364,7 +2391,7 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
     for internal_number in sorted(list_keys):
         inv_id = list_keys[internal_number]
         vals = {}
-        invoice = invoice_obj.browse(inv_id)
+        invoice = invoice_model.browse(inv_id)
         date_invoice = invoice.date_invoice
         registration_date = invoice.registration_date
         inv_type = invoice.type
@@ -2427,9 +2454,9 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
                 writeL8(ctx, 'account.move',
                         [move_id],
                         {'date': vals['registration_date']})
-                move_lines = searchL8(ctx, 'account.move.line',
-                                      [('move_id', '=', move_id)])
-                for move_line_id in move_lines:
+                move_line_ids = searchL8(ctx, 'account.move.line',
+                                         [('move_id', '=', move_id)])
+                for move_line_id in move_line_ids:
                     writeL8(ctx, 'account.move.line',
                             [move_line_id],
                             {'date': vals['registration_date']})
@@ -2833,29 +2860,29 @@ def set_account_type(oerp, ctx):
     num_moves = len(move_line_ids)
     move_ctr = 0
     for move_line_id in move_line_ids:
-        move_line_obj = browseL8(ctx, 'account.move.line', move_line_id)
+        move_line = browseL8(ctx, 'account.move.line', move_line_id)
         move_ctr += 1
         msg_burst(4, "Move    ", move_ctr, num_moves)
-        account_obj = move_line_obj.account_id
+        account = move_line.account_id
         valid = True
         # valid = False       # debug
-        if not account_obj.parent_id:
+        if not account.parent_id:
             valid = False
-        acctype_id = account_obj.user_type.id
-        acctype_obj = browseL8(ctx, 'account.account.type', acctype_id)
-        if acctype_obj.report_type not in ("asset", "liability",
-                                           "income", "expense"):
+        acctype_id = account.user_type.id
+        acc_type = browseL8(ctx, 'account.account.type', acctype_id)
+        if acc_type.report_type not in ("asset", "liability",
+                                        "income", "expense"):
             valid = False
         if not valid:
-            account_id = account_obj.id
+            account_id = account.id
             if account_id not in accounts:
                 accounts.append(account_id)
-            if not move_line_obj.journal_id.update_posted:
-                journal_id = move_line_obj.journal_id.id
+            if not move_line.journal_id.update_posted:
+                journal_id = move_line.journal_id.id
                 if journal_id not in journals:
                     journals.append(journal_id)
             inv_reconcile_dict, inv_move_dict = \
-                get_reconcile_list_from_move_line(oerp, move_line_obj, ctx)
+                get_reconcile_list_from_move_line(oerp, move_line, ctx)
             for inv_id in inv_reconcile_dict:
                 if inv_id in reconcile_dict:
                     reconcile_dict[inv_id] = \
@@ -3018,6 +3045,40 @@ def build_where(oerp, model, hide_cid, exclusion, ctx):
                                    where,
                                    ctx)
     return where
+
+
+def sql_where(code, op, value):
+    if isinstance(value, list):
+        query = "%s %s (%s)" % (code, op, value)
+    else:
+        query = "%s %s %s" % (code, op, value)
+    return query
+
+
+def build_sql_where(oerp, model, hide_cid, exclusion, where, ctx):
+    query = ''
+    if not hide_cid and 'company_id' in ctx:
+        company_id = ctx['company_id']
+        query += "company_id=%d" % company_id
+    if exclusion:
+        for rule in exclusion:
+            code = rule[0]
+            op = rule[1]
+            value = rule[2]
+            if query.strip():
+                query += " and %s" % sql_where(code, op, value)
+            else:
+                query = sql_where(code, op, value)
+    if where:
+        if query.strip():
+            query += " and %s" % where
+        else:
+            query = where
+    if query.strip():
+        query = "delete from %s where %s;" % (model.replace('.', '_'), query)
+    else:
+        query = "delete from %s;" % (model.replace('.', '_'))
+    return query
 
 
 def build_exclusion(oerp, model, records2keep, ctx):
@@ -3237,11 +3298,22 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx,
     return sts
 
 
+def hard_del_sql(oerp, model, hide_cid, ctx, where=None, exclusion=None):
+    if ctx.get('_cr'):
+        query = build_sql_where(oerp, model, hide_cid, exclusion, where, ctx)
+        incr_lev(ctx)
+        msg = u">>>%s" % query
+        msg_log(ctx, ctx['level'], msg)
+        decr_lev(ctx)
+        ctx['_cr'].execute(query)
+
+
 def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to delete in %s" % model
     msg_log(ctx, ctx['level'], msg)
+    writelog(model, model, exclusion)
     where = build_where(oerp, model, hide_cid, exclusion, ctx)
     record_ids = searchL8(ctx, model, where)
     if not ctx['dry_run'] and len(record_ids) > 0:
@@ -3260,12 +3332,10 @@ def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
                     sts = STS_FAILED
                     break
 
-        if ctx['custom_act'] == 'cscs' and model == 'project.project':
-            sql = "delete from project_project where state='cancelled'"
-            company_id = ctx['company_id']
-            sql = sql + ' and company_id=' + str(company_id)
-            cmd = PSQL % (sql, ctx['db_name'])
-            os0.muteshell(cmd, simulate=False, keepout=False)
+        if model == 'project.project':
+            hard_del_sql(oerp, model, hide_cid, ctx,
+                         where="state='cancelled'",
+                         exclusion=exclusion)
     decr_lev(ctx)
     return sts
 
@@ -3284,8 +3354,10 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
         else:
             model = xmodel
         if tables2save and model in tables2save:
+            writelog(xmodel, model, [], all=True)
             return sts
         if sts == STS_SUCCESS:
+            writelog(xmodel, model, exclusion)
             if special and xmodel in special:
                 act = special[xmodel]
                 if act == 'deactivate':
@@ -3367,18 +3439,21 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
             record_ids = searchL8(ctx, model, where)
             if len(record_ids):
                 for record_id in record_ids:
-                    obj = browseL8(ctx, model, record_id)
-                    date_start = obj.date_start
-                    date_stop = obj.date
-                    if not date_start:
-                        date_start = date.today()
-                    if not date_stop:
-                        date_stop = date(2013, 7, 15)
-                    if date_start > date_stop:
-                        today = str(date.today())
-                        writeL8(ctx, model,
-                                record_id,
-                                {'date_start': today, 'date': today})
+                    try:
+                        obj = browseL8(ctx, model, record_id)
+                        date_start = obj.date_start
+                        date_stop = obj.date
+                        if not date_start:
+                            date_start = date.today()
+                        if not date_stop:
+                            date_stop = date(2013, 7, 15)
+                        if date_start > date_stop:
+                            today = str(date.today())
+                            writeL8(ctx, model,
+                                    record_id,
+                                    {'date_start': today, 'date': today})
+                    except BaseException:
+                        pass
         if sts == STS_SUCCESS and model == 'account.move' and model == xmodel:
             unreconcile_payments(oerp, ctx)
         if sts == STS_SUCCESS and model == xmodel:
@@ -3399,12 +3474,15 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                                                hide_cid,
                                                ctx,
                                                exclusion=exclusion)
-        if ctx.get('_cr'):
-            company_id = ctx['company_id']
-            if model == 'project.task.work':
-                query = "delete from project_task_work"
-                query += " where company_id=%d;" % company_id
-                ctx['_cr'].execute(query)
+        if model in ('project.task.work',
+                     'account.analytic.line',
+                     'purchase.order',
+                     'sale.order',):
+            if model == 'purchase.order':
+                hard_del_sql(oerp, 'purchase.order.line', hide_cid, ctx)
+            elif model == 'sale.order':
+                hard_del_sql(oerp, 'sale.order.line', hide_cid, ctx)
+            hard_del_sql(oerp, model, hide_cid, ctx, exclusion=exclusion)
     return sts
 
 
@@ -3647,8 +3725,6 @@ def remove_all_logistic_records(oerp, ctx):
 def remove_company_project_records(oerp, ctx):
     models = validate_models(oerp, ctx, ('project.task.work',
                                          'project.task',
-                                         'project.project.2',
-                                         'project.project',
                                          'account.analytic.line'
                                          ))
     records2keep = {}
@@ -3659,28 +3735,12 @@ def remove_company_project_records(oerp, ctx):
                                                   '=',
                                                   CV_PROJECT_ID)])
         records2keep['project.task'].append(8771)
-        records2keep['project.project'] = (260, 265, 2869, 3026,
-                                           3027, 3028, 3029, 3030,
-                                           3031, 3032, 3033, 3034,
-                                           3035, 3036, 3037, 3038,
-                                           3039, 3040, 3187, 3361,
-                                           3504, 3664, 3932)
     if ctx['oe_version'] == '7.0:':
-        special = {'project.task': 'set_state',
-                   'project.project.2': 'reactivate',
-                   'project.project': 'set_state',
-                   }
-        specparams = {'project.task': ('state', 'cancelled'),
-                      'project.project.2': ('state', 'close', 'set_open'),
-                      'project.project': ('state', 'cancelled')
-                      }
+        special = {'project.task': 'set_state', }
+        specparams = {'project.task': ('state', 'cancelled'), }
     else:
-        special = {'project.project.2': 'reactivate',
-                   'project.project': 'set_state',
-                   }
-        specparams = {'project.project.2': ('state', 'close', 'set_open'),
-                      'project.project': ('state', 'cancelled')
-                      }
+        special = {}
+        specparams = {}
     sts = remove_group_records(oerp, models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
@@ -3693,10 +3753,30 @@ def remove_all_project_records(oerp, ctx):
                                          'survey.request',
                                          'survey',
                                          'project.phase'
+                                         'project.project.2',
+                                         'project.project',
                                          ))
     records2keep = {}
-    special = {}
-    specparams = {}
+    records2keep['project.project'] = (260, 265, 2869, 3026,
+                                       3027, 3028, 3029, 3030,
+                                       3031, 3032, 3033, 3034,
+                                       3035, 3036, 3037, 3038,
+                                       3039, 3040, 3187, 3361,
+                                       3504, 3664, 3932)
+    if ctx['oe_version'] == '7.0:':
+        special = {'project.project.2': 'reactivate',
+                   'project.project': 'set_state',
+                   }
+        specparams = {'project.project.2': ('state', 'close', 'set_open'),
+                      'project.project': ('state', 'cancelled')
+                      }
+    else:
+        special = {'project.project.2': 'reactivate',
+                   'project.project': 'set_state',
+                   }
+        specparams = {'project.project.2': ('state', 'close', 'set_open'),
+                      'project.project': ('state', 'cancelled')
+                      }
     sts = remove_group_records(oerp, models, records2keep, ctx,
                                hide_cid=True,
                                special=special,
@@ -3997,34 +4077,34 @@ def analyze_invoices(oerp, ctx, inv_type):
     inv_ctr = 0
     last_seq = 0
     for account_invoice_id in account_invoice_ids:
-        account_invoice_obj = browseL8(ctx, model,
-                                       account_invoice_id)
+        account_invoice = browseL8(ctx, model,
+                                   account_invoice_id)
         inv_ctr += 1
         msg_burst(4,
-                  "Invoice " + account_invoice_obj.internal_number + "      ",
+                  "Invoice " + account_invoice.internal_number + "      ",
                   inv_ctr, num_invs)
         # vals = {}
-        if last_number[:-4] != account_invoice_obj.internal_number[0:-4]:
+        if last_number[:-4] != account_invoice.internal_number[0:-4]:
             last_number = ''
         if last_number == '':
-            last_number = account_invoice_obj.internal_number
+            last_number = account_invoice.internal_number
             last_rec_date = datetime.strptime(ctx['date_start'],
                                               "%Y-%m-%d").date()
             last_seq = 0
         last_seq += 1
-        if str.isdigit(account_invoice_obj.internal_number[-4:]) and \
-                int(account_invoice_obj.internal_number[-4:]) != last_seq:
+        if str.isdigit(account_invoice.internal_number[-4:]) and \
+                int(account_invoice.internal_number[-4:]) != last_seq:
             msg = u"In {0} invalid number sequence {1}".format(
                 account_invoice_id,
-                account_invoice_obj.internal_number)
+                account_invoice.internal_number)
             msg_log(ctx, ctx['level'] + 1, msg)
-            last_seq = int(account_invoice_obj.internal_number[-4:])
+            last_seq = int(account_invoice.internal_number[-4:])
         last_rec_date = put_invoices_record_date(oerp,
                                                  [account_invoice_id],
                                                  last_rec_date,
                                                  ctx)
-        # date_invoice = account_invoice_obj.date_invoice
-        # registration_date = account_invoice_obj.registration_date
+        # date_invoice = account_invoice.date_invoice
+        # registration_date = account_invoice.registration_date
         # if not date_invoice:
         #     vals['date_invoice'] = str(last_rec_date)
         #     date_invoice = last_rec_date
@@ -4035,14 +4115,14 @@ def analyze_invoices(oerp, ctx, inv_type):
         #        registration_date != date_invoice:
         #     msg = u"In {0} invalid registration date {1}".format(
         #         account_invoice_id,
-        #         str(account_invoice_obj.registration_date))
+        #         str(account_invoice.registration_date))
         #     msg_log(ctx, ctx['level'] + 1, msg)
         #     vals['registration_date'] = str(date_invoice)
         #     registration_date = date_invoice
         # elif registration_date < last_rec_date:
         #     msg = u"In {0} invalid registration date {1}".format(
         #         account_invoice_id,
-        #         str(account_invoice_obj.registration_date))
+        #         str(account_invoice.registration_date))
         #     msg_log(ctx, ctx['level'] + 1, msg)
         #     vals['registration_date'] = str(last_rec_date)
         #     registration_date = last_rec_date
@@ -4058,7 +4138,7 @@ def analyze_invoices(oerp, ctx, inv_type):
         #         msg = u"Cannot update registration date"
         #         msg_log(ctx, ctx['level'], msg)
         # last_rec_date = registration_date
-        last_number = account_invoice_obj.internal_number
+        last_number = account_invoice.internal_number
     return STS_SUCCESS
 
 
@@ -4252,7 +4332,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     v = {}
                     for p in vals:
                         if p != "db_type":
-                            # if isinstance(cur_obj[p], (int, long, float)) and \
+                            # if isinstance(cur_obj[p],
+                            #               (int, long, float)) and \
                             #         vals[p].isdigit():
                             #     vals[p] = eval(vals[p])
                             if vals[p] != cur_obj[p]:
@@ -4384,20 +4465,20 @@ def setup_config_param(oerp, ctx, user, name, value):
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     group_id = group_ids[0]
-    user_id = searchL8(ctx, 'res.users',
-                       [('login', '=', user)])
-    if len(user_id) != 1:
+    user_ids = searchL8(ctx, 'res.users',
+                        [('login', '=', user)])
+    if len(user_ids) != 1:
         msg = u"!User " + tounicode(user) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    user_obj = browseL8(ctx, 'res.users', user_id[0])
-    if not user_obj:
+    user = browseL8(ctx, 'res.users', user_ids[0])
+    if not user:
         msg = u"!User " + tounicode(user) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     vals = {}
     if value:
-        if group_id not in user_obj.groups_id.ids:
+        if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
                 msg = u"%s.%s = True" % (tounicode(user), tounicode(name))
@@ -4405,12 +4486,12 @@ def setup_config_param(oerp, ctx, user, name, value):
                 msg = u"%s.%s" % (tounicode(user), tounicode(full_name))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
-        if group_id in user_obj.groups_id.ids:
+        if group_id in user.groups_id.ids:
             vals['groups_id'] = [(3, group_id)]
             msg = u"%s.%s = False" % (tounicode(user), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
-        writeL8(ctx, 'res.users', user_id, vals)
+        writeL8(ctx, 'res.users', user_ids, vals)
         # ids = searchL8(ctx, 'ir.module.category',
         #                   [('name', '=', category)])
         # if len(ids):
