@@ -37,129 +37,131 @@ set_ver() {
     if [ $opt_verbose -gt 0 ]; then
       echo "set_ver($1 ver=$2 db=$3 port=$4)"
     fi
-    local l rem1 rem2 chid lnemod newln prm val sfx prp cup ver fntmp
-    local fn odoo_fver db_name xmlport
-    fn=$1
-    odoo_fver=$2
-    if [ -z "$3" ]; then
-      db_name=auto
-    else
-      db_name=$3
-    fi
-    [ -n "$4" ] && xmlport=$4 || xmlport=8069
-    is_child=${5:-1}
-    ver=_$odoo_fver
-    fntmp=$fn.tmp
-    if  [ -f $fntmp ]; then
-      rm -f $fntmp
-    fi
-    newln=
-    prp=
-    while IFS="#" read -r l rem1; do
-      IFS=; read lne rem2 <<<"$l"
-      chid=${lne:0:1}
-      lnemod="$lne"
-      if [[ $lne =~ ^[[:space:]]*$ ]]; then
-        :
-      elif [ "$chid" == "[" ]; then
-        prp=
+    if [ -f "$1" ]; then
+      local l rem1 rem2 chid lnemod newln prm val sfx prp cup ver fntmp
+      local fn odoo_fver db_name xmlport
+      fn=$1
+      odoo_fver=$2
+      if [ -z "$3" ]; then
+        db_name=auto
       else
-        IFS== read prm val <<<"$lne"
-        # sfx=${prm: -4}
-        sfx=_${prm##*_}
-        # cup=${prm:0: -4}
-        cup=${prm%_*}
-        # echo "<<p=$prm; v=$val; x=$prp; s=$sfx; c=$cup>>" #debug
-        if [ "$prm" == "oe_version" ]; then
-          if [ $is_child -gt 0 ]; then
-            lnemod=" "
-          else
-            lnemod="oe_version=$odoo_fver"
-          fi
-          # prp=
-        elif [ "$prm" == "db_name" ] && [ -n "$db_name" -o $is_child -gt 0 ]; then
-          if [ $is_child -gt 0 ]; then
-            lnemod=" "
-          else
-            lnemod="db_name=$db_name"
-          fi
-          # prp=
-        elif [ "$prm" == "login_user" ] && [ -n "$opt_lgiuser" -o $is_child -gt 0 ]; then
-          if [ $is_child -gt 0 ]; then
-            lnemod=" "
-          else
-            lnemod="login_user=$opt_lgiuser"
-          fi
-          # prp=
-        elif [ "$prm" == "login2_user" -a $is_child -gt 0 ]; then
-          lnemod=" "
-          # prp=
-        elif [ "$prm" == "login_password" ] && [ -n "$opt_lgipwd" -o $is_child -gt 0 ]; then
-          if [ $is_child -gt 0 ]; then
-            lnemod=" "
-          else
-            lnemod="login_password=$opt_lgipwd"
-          fi
-          # prp=
-        elif [ "$prm" == "login2_password" -a $is_child -gt 0 ]; then
-          lnemod=" "
-          # prp=
-        elif [ "$prm" == "set_passepartout" -a $opt_pp -ne -1 ]; then
-          lnemod="set_passepartout=$opt_pp"
-          # prp=
-        elif [ "$prm" == "$prp" ]; then
-          lnemod="  "
-        elif [ "$prm" == "xmlrpc_port" ]; then
-          if [ $is_child -gt 0 ]; then
-            lnemod=" "
-          else
-            lnemod="xmlrpc_port=$xmlport"
-          fi
-        elif [ "$sfx" == "$ver" ]; then
-          if [  $opt_fix -gt 0 ]; then
-            newln="$cup=$val"
-          fi
-        else
-          prp=
-        fi
-        if [[ $sfx =~ _(11\.0|10\.0|9\.0|8\.0|7\.0) ]]; then
-          prp=$cup
-          # echo "<<<$prp>>>"
-        fi
+        db_name=$3
       fi
-      if [ "$lnemod" != "  " ]; then
-        if [ -n "$rem1" ]; then
-          if [ -n "$lnemod" ]; then
-            lnemod="$lnemod #$rem1"
-          else
-            lnemod="#$rem1"
-          fi
-        fi
-        if [ -n "$rem2" ]; then
-          if [ -n "$lnemod" ]; then
-            lnemod="$lnemod #$rem2"
-          else
-            lnemod="#$rem2"
-          fi
-        fi
-        echo "$lnemod">>$fntmp
-      fi
-      if [ -n "$newln" ]; then
-        # echo "$newln"
-        echo "$newln">>$fntmp
+      [ -n "$4" ] && xmlport=$4 || xmlport=8069
+      is_child=${5:-1}
+      ver=_$odoo_fver
+      fntmp=$fn.tmp
+      if  [ -f $fntmp ]; then
+        rm -f $fntmp
       fi
       newln=
-    done < $fn
-    if [ -n "$(diff -q $fn $fntmp)" ]; then
-      if [ $opt_verbose -gt 0 ]; then
-        diff --suppress-common-line -y $fn $fntmp
+      prp=
+      while IFS="#" read -r l rem1; do
+        IFS=; read lne rem2 <<<"$l"
+        chid=${lne:0:1}
+        lnemod="$lne"
+        if [[ $lne =~ ^[[:space:]]*$ ]]; then
+          :
+        elif [ "$chid" == "[" ]; then
+          prp=
+        else
+          IFS== read prm val <<<"$lne"
+          # sfx=${prm: -4}
+          sfx=_${prm##*_}
+          # cup=${prm:0: -4}
+          cup=${prm%_*}
+          # echo "<<p=$prm; v=$val; x=$prp; s=$sfx; c=$cup>>" #debug
+          if [ "$prm" == "oe_version" ]; then
+            if [ $is_child -gt 0 ]; then
+              lnemod=" "
+            else
+              lnemod="oe_version=$odoo_fver"
+            fi
+            # prp=
+          elif [ "$prm" == "db_name" ] && [ -n "$db_name" -o $is_child -gt 0 ]; then
+            if [ $is_child -gt 0 ]; then
+              lnemod=" "
+            else
+              lnemod="db_name=$db_name"
+            fi
+            # prp=
+          elif [ "$prm" == "login_user" ] && [ -n "$opt_lgiuser" -o $is_child -gt 0 ]; then
+            if [ $is_child -gt 0 ]; then
+              lnemod=" "
+            else
+              lnemod="login_user=$opt_lgiuser"
+            fi
+            # prp=
+          elif [ "$prm" == "login2_user" -a $is_child -gt 0 ]; then
+            lnemod=" "
+            # prp=
+          elif [ "$prm" == "login_password" ] && [ -n "$opt_lgipwd" -o $is_child -gt 0 ]; then
+            if [ $is_child -gt 0 ]; then
+              lnemod=" "
+            else
+              lnemod="login_password=$opt_lgipwd"
+            fi
+            # prp=
+          elif [ "$prm" == "login2_password" -a $is_child -gt 0 ]; then
+            lnemod=" "
+            # prp=
+          elif [ "$prm" == "set_passepartout" -a $opt_pp -ne -1 ]; then
+            lnemod="set_passepartout=$opt_pp"
+            # prp=
+          elif [ "$prm" == "$prp" ]; then
+            lnemod="  "
+          elif [ "$prm" == "xmlrpc_port" ]; then
+            if [ $is_child -gt 0 ]; then
+              lnemod=" "
+            else
+              lnemod="xmlrpc_port=$xmlport"
+            fi
+          elif [ "$sfx" == "$ver" ]; then
+            if [  $opt_fix -gt 0 ]; then
+              newln="$cup=$val"
+            fi
+          else
+            prp=
+          fi
+          if [[ $sfx =~ _(11\.0|10\.0|9\.0|8\.0|7\.0) ]]; then
+            prp=$cup
+            # echo "<<<$prp>>>"
+          fi
+        fi
+        if [ "$lnemod" != "  " ]; then
+          if [ -n "$rem1" ]; then
+            if [ -n "$lnemod" ]; then
+              lnemod="$lnemod #$rem1"
+            else
+              lnemod="#$rem1"
+            fi
+          fi
+          if [ -n "$rem2" ]; then
+            if [ -n "$lnemod" ]; then
+              lnemod="$lnemod #$rem2"
+            else
+              lnemod="#$rem2"
+            fi
+          fi
+          echo "$lnemod">>$fntmp
+        fi
+        if [ -n "$newln" ]; then
+          # echo "$newln"
+          echo "$newln">>$fntmp
+        fi
+        newln=
+      done < $fn
+      if [ -n "$(diff -q $fn $fntmp)" ]; then
+        if [ $opt_verbose -gt 0 ]; then
+          diff --suppress-common-line -y $fn $fntmp
+        fi
+        if [ $opt_dry_run -eq 0 ]; then
+          mv $fn $fn.bak
+          mv $fntmp $fn
+        fi
+      else
+        rm -f $fntmp
       fi
-      if [ $opt_dry_run -eq 0 ]; then
-        mv $fn $fn.bak
-        mv $fntmp $fn
-      fi
-    else
-      rm -f $fntmp
     fi
 }
 
