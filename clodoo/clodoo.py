@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.3.1"
+__version__ = "0.3.3.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -285,7 +285,7 @@ def do_login(oerp, ctx):
 
 def oerp_set_env(confn=None, db=None, ctx=None):
     P_LIST = ('db_host', 'login_user', 'login_password', 'db_name',
-              'xmlrpc_port', 'oe_version', 'svc_protocol')
+              'xmlrpc_port', 'oe_version', 'svc_protocol', 'psycopg2')
 
     def oerp_env_def(ctx=None):
         ctx = ctx or {}
@@ -317,6 +317,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             ctx['multi_user'] = False
         if 'set_passepartout' not in ctx:
             ctx['set_passepartout'] = False
+        if 'psycopg2' not in ctx:
+            ctx['psycopg2'] = False
         return ctx
     ctx = oerp_env_def(ctx=ctx)
     confn = confn or ctx.get('conf_fn', './inv2draft_n_restore.conf')
@@ -355,6 +357,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             elif p == 'svc_protocol' and ctx[p] == 'xmlrpc':
                 pass
             elif p == 'db_host' and ctx[p] == 'localhost':
+                pass
+            elif p == 'psycopg2' and not ctx[p]:
                 pass
             else:
                 fd.write('%s=%s\n' % (p, ctx[p]))
@@ -4439,7 +4443,7 @@ def import_config_file(oerp, ctx, csv_fn):
     return STS_SUCCESS
 
 
-def setup_config_param(oerp, ctx, user, name, value):
+def setup_config_param(oerp, ctx, username, name, value):
     context = get_context(ctx)
     sts = STS_SUCCESS
     v = os0.str2bool(value, None)
@@ -4466,14 +4470,14 @@ def setup_config_param(oerp, ctx, user, name, value):
         return STS_FAILED
     group_id = group_ids[0]
     user_ids = searchL8(ctx, 'res.users',
-                        [('login', '=', user)])
+                        [('login', '=', username)])
     if len(user_ids) != 1:
-        msg = u"!User " + tounicode(user) + " not found!"
+        msg = u"!User " + tounicode(username) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     user = browseL8(ctx, 'res.users', user_ids[0])
     if not user:
-        msg = u"!User " + tounicode(user) + " not found!"
+        msg = u"!User " + tounicode(username) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     vals = {}
@@ -4481,14 +4485,14 @@ def setup_config_param(oerp, ctx, user, name, value):
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
-                msg = u"%s.%s = True" % (tounicode(user), tounicode(name))
+                msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
             else:
-                msg = u"%s.%s" % (tounicode(user), tounicode(full_name))
+                msg = u"%s.%s" % (tounicode(username), tounicode(full_name))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
         if group_id in user.groups_id.ids:
             vals['groups_id'] = [(3, group_id)]
-            msg = u"%s.%s = False" % (tounicode(user), tounicode(name))
+            msg = u"%s.%s = False" % (tounicode(username), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         writeL8(ctx, 'res.users', user_ids, vals)
