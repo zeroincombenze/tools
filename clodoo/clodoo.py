@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.3.2"
+__version__ = "0.3.3.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -332,6 +332,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 if tkn[0] == p:
                     if p == 'xmlrpc_port':
                         ctx[p] = int(tkn[1])
+                    elif p == 'db_name' and db:
+                        ctx[p] = db
                     else:
                         ctx[p] = tkn[1]
         fd.close()
@@ -339,7 +341,10 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         write_confn = True
         ctx = oerp_env_def(ctx=ctx)
         for p in (P_LIST):
-            ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
+            if p == 'db_name' and db:
+                ctx[p] = db
+            else:
+                ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
         ctx = oerp_env_def(ctx=ctx)
     oerp = open_connection(ctx)
     lgiuser = do_login(oerp, ctx)
@@ -359,6 +364,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             elif p == 'db_host' and ctx[p] == 'localhost':
                 pass
             elif p == 'psycopg2' and not ctx[p]:
+                pass
+            elif p == 'db_name' and ctx[p] == 'demo':
                 pass
             else:
                 fd.write('%s=%s\n' % (p, ctx[p]))
