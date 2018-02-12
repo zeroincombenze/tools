@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.3.3"
+__version__ = "0.3.3.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -302,9 +302,9 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         if 'oe_version' not in ctx or not ctx['oe_version']:
             ctx['oe_version'] = '7.0'
         if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
-            if ctx['oe_version'] in ('6.1', '7.0'):
+            if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
                 ctx['svc_protocol'] = 'xmlrpc'
-            else:
+            elif ctx.get('oe_version'):
                 ctx['svc_protocol'] = 'jsonrpc'
         ctx['level'] = 4
         if 'dry_run' not in ctx:
