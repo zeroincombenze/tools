@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.3
+#__version__=0.2.0.4
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -63,6 +63,7 @@ inherits_travis_opts() {
 # inherits_travis_opts(opts_enables app)
 # app: After_test,Distribution,Emulator,Nightly,Please,Test,pep8
     local opts=
+    local opt2=
     local o
     if [ -z "$1" ]; then
       local e=
@@ -71,14 +72,14 @@ inherits_travis_opts() {
     fi
     declare -A A
     A[A]="jnqv"
-    A[D]="CcdFfnPqRv"
+    A[D]="CcdFfnoPqRv"
     A[E]="cdjmnqrv"
     A[N]="CKnOR"
     A[P]="cdfjmnOqruv"
     A[T]="cKjnPpqrTv"
     A[8]="dnquv"
     if [ -n "$2" ]; then
-      for o in C c d F f K j m n O P p q R r T u v; do
+      for o in C c d F f K j m n O o P p q R r T u v; do
         if [[ ${A[$2]} =~ $o ]]; then
           if [ "$o" == "C" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
@@ -92,6 +93,8 @@ inherits_travis_opts() {
             opts="${opts}$o"
           elif [ "$o" == "n" -a ${opt_dry_run:-0} -gt 0 ]; then
             opts="${opts}$o"
+          elif [ "$o" == "o" -a -n "$opts2" ]; then
+            opts2="-o$opt_ids"
           elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
           elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then
@@ -141,6 +144,9 @@ inherits_travis_opts() {
     fi
     if [ -n "$opts" ]; then
       opts="-${opts}"
+    fi
+    if [ -n "$opts2" ]; then
+      opts="${opts} ${opts2}"
     fi
     echo "$opts"
 }

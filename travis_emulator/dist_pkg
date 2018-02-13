@@ -29,16 +29,16 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
-__version__=0.2.0.2
+__version__=0.2.0.3
 
 
 
 # main
-OPTOPTS=(h        C         c        d        F         f         n            P         p         q           R         S        u       V           v           W          w         -)
-OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_force opt_dry_run  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
-OPTDEFL=(1        ""        ""       0        0         0         0            ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
-OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   ""        "do nothing" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
+OPTOPTS=(h        C         c        d        F         f         n            o        P         p         q           R         S        u       V           v           W          w         -)
+OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_force opt_dry_run  opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
+OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
+OPTDEFL=(1        ""        ""       0        0         0         0            ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
+OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   ""        "do nothing" "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
  "commit and push to production paths"\
  "configuration file"\
@@ -46,6 +46,7 @@ OPTHELP=("this help"\
  "fetch from local git path"\
  "force copy (with -C -P)"\
  "do nothing (dry-run)"\
+ "push only external project ids (require -P)"\
  "push to external projects"\
  "declare local git path"\
  "silent mode"\
@@ -158,6 +159,11 @@ if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
   robocopy_init "$PRJNAME" "$PKGNAME"
   f_done=0
   for ii in {1..9}; do
+    if [[ -n "$opt_ids" ]]; then
+      if [[ ! "$ii" == "$opt_ids" ]]; then
+        continue
+      fi
+    fi
     declare x=tgt${ii}path
     declare y=tgt${ii}params
     declare tgtpath="$(get_cfg_value 0 $x)"
