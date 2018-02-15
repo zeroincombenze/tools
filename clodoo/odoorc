@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.0.2
+#__version__=0.3.0.3
 
 
 get_odoo_major_ver() {
@@ -39,6 +39,17 @@ build_odoo_param() {
         odoo_fver=$(get_odoo_full_ver "$2")
         odoo_ver=$(get_odoo_major_ver "$odoo_fver")
         odoo_vid="$2"
+      elif [[ "$2" == "OCB" ]]; then
+        if [[ -d ~/OCB/openerp && -f ~/OCB/openerp/release.py ]]; then
+          pushd ~/OCB/openerp &>/dev/null
+          odoo_fver=$(echo -e "import release\nprint release.version\n"|python)
+          popd &>/dev/null
+          odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+          odoo_vid="$2"
+        else
+          echo "Invalid Odoo version"
+          # exit 1
+        fi
       else
         echo "Invalid Odoo version"
         # exit 1

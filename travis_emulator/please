@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.5
+__version__=0.2.0.6
 
 
 #
@@ -1584,7 +1584,7 @@ do_coverage() {
 do_commit() {
     opts=$(inherits_travis_opts "C" "D")
     opt_dry_run=0
-    run_traced "$RUNDIR/dist_pkg $opts $1"
+    run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     return $sts
 }
@@ -1593,7 +1593,7 @@ do_diff() {
     wlog "do_diff \"$1\" \"$2\" \"$3\""
     local opt_diff=1
     local opts=$(inherits_travis_opts "" "D")
-    run_traced "$RUNDIR/dist_pkg $opts $PKGNAME"
+    run_traced "$TDIR/dist_pkg $opts $PKGNAME"
     return $?
 }
 
@@ -1838,7 +1838,7 @@ do_download_rep() {
 do_fetch() {
     opts=$(inherits_travis_opts "F" "D")
     opt_dry_run=0
-    run_traced "$RUNDIR/dist_pkg $opts $1"
+    run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     return $sts
 }
@@ -1846,7 +1846,7 @@ do_fetch() {
 do_push() {
     opts=$(inherits_travis_opts "oP" "D")
     opt_dry_run=0
-    run_traced "$RUNDIR/dist_pkg $opts $1"
+    run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     return $sts
 }
@@ -1909,7 +1909,7 @@ do_register() {
 do_replace() {
     opts=$(inherits_travis_opts "R" "D")
     opt_dry_run=0
-    run_traced "$RUNDIR/dist_pkg $opts $1"
+    run_traced "$TDIR/dist_pkg $opts $1"
     sts=$?
     return $sts
 }
