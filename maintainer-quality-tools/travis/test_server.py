@@ -323,6 +323,7 @@ def main(argv=None):
     test_enable = str2bool(os.environ.get('TEST_ENABLE', True))
     dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
+    travis_debug_mode = os.environ.get('TRAVIS_DEBUG_MODE')
     if not odoo_version:
         # For backward compatibility, take version from parameter
         # if it's not globally set
@@ -344,7 +345,11 @@ def main(argv=None):
     odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
     server_path = get_server_path(odoo_full, odoo_branch or odoo_version,
                                   travis_home)
+    if travis_debug_mode:
+        print("DEBUG: server_path='%s'" % server_path)
     script_name = get_server_script(server_path)
+    if travis_debug_mode:
+        print("DEBUG: script_name='%s'" % script_name)
     addons_path = get_addons_path(travis_dependencies_dir,
                                   travis_build_dir,
                                   server_path)
@@ -393,7 +398,8 @@ def main(argv=None):
     if odoo_unittest:
         to_test_list = tested_addons_list
         cmd_odoo_install = [
-            "%s/%s" % (server_path, script_name),
+            # "%s/%s" % (server_path, script_name),
+            script_path,
             "-d", database,
             "--stop-after-init",
             "--log-level=warn",
@@ -433,6 +439,10 @@ def main(argv=None):
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors
                 command_call = (["unbuffer"] if unbuffer else []) + command
+            # [antoniov: 2018-02-17] bleah!!!
+            if odoo_version == "6.1":
+                subprocess.call(command_call[2:])
+            # [/antoniov]
             print(" ".join(cmd_strip_secret(command_call)))
             pipe = subprocess.Popen(command_call,
                                     stderr=subprocess.STDOUT,
