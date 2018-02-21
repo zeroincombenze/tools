@@ -98,6 +98,7 @@ process_yaml_init() {
     YML_install=
     YML_script=
     YML_after=
+    YML_repo=
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
@@ -164,6 +165,11 @@ process_yaml_do() {
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"
+      if [[ "$lne" =~ ODOO_REPO=.*odoo/odoo && -z "$YML_repo" ]]; then
+        YML_repo=odoo/odoo
+      elif [[ "$lne" =~ ODOO_REPO=.*OCA/OCB ]]; then
+        YML_repo=OCA/OCB
+      fi
     elif [ "$YML_sect" == "before_install" ]; then
       YML_before_install="$YML_before_install $lne"
     elif [ "$YML_sect" == "install" ]; then
@@ -604,7 +610,9 @@ process_yaml_run_cmd() {
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. && ! "$YML_repo" == "odoo/odoo" ]]; then 
+          xcmd="# $xcmd"
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. && ! "$YML_repo" == "OCA/OCB" ]]; then 
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
@@ -698,7 +706,7 @@ process_yaml() {
       if [ -n "${PIPPKGVER[*]}" ]; then
         wlog "\$ PIPPKGVER=\"${!PIPPKGVER[*]}\""
       fi
-      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
+      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH YML_repo; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
