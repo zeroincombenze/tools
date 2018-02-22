@@ -368,36 +368,47 @@ revaluate_travis() {
 }
 
 create_virtual_env() {
-    if [ ${opt_virt:-0} -gt 0 ]; then
-      local HOME_BRANCH=$HOME/$BRANCH
+    TRAVIS_SAVED_HOME=$HOME
+    TRAVIS_HOME=$HOME/VENV_$$
+    local TRAVIS_CWD=$PWD
+    local HOME_BRANCH=$HOME/$BRANCH
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      mkdir -p $TRAVIS_HOME
+      cd $TRAVIS_HOME
+    else
       PKGPATH=$(set_pkgpath "")
-      local TRAVIS_CWD=$PWD
-      TRAVIS_HOME=$HOME/VENV_$$
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       cd $TRAVIS_HOME
       source bin/activate
-      if [ -z "$REMOTEREPO" ]; then
-        TRAVIS_WORK_DIR=local/$REPOSNAME
-      else
-        TRAVIS_WORK_DIR=$REMOTEREPO
-      fi
-      TRAVIS_BUILD_DIR="$TRAVIS_HOME/${TRAVIS_WORK_DIR%%/*}"
-      run_traced "mkdir -p $TRAVIS_BUILD_DIR"
-      TRAVIS_SAVED_HOME=$HOME
-      export HOME=$TRAVIS_HOME
+    fi
+    export HOME=$TRAVIS_HOME
+    mkdir -p $TRAVIS_HOME/build
+    if [ -z "$REMOTEREPO" ]; then
+      TRAVIS_WORK_DIR=local/$PKGNAME
+    else
+      TRAVIS_WORK_DIR=$REMOTEREPO
+    fi
+    mkdir -p $TRAVIS_HOME/build/${TRAVIS_WORK_DIR%%/*}
+    TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_WORK_DIR"
+    mkdir -p $TRAVIS_BUILD_DIR
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      run_traced "ln -s $TRAVIS_CWD $TRAVIS_BUILD_DIR"
+    else
       run_traced "cp -R $TRAVIS_CWD $TRAVIS_BUILD_DIR"
-      # run_traced "mkdir -p $TRAVIS_BUILD_DIR/odoo"
-      # local fn
-      # for fn in addons odoo odoo.py openerp openerp-server openerp-wsgi.py; do
-      #   if [ -d $HOME_BRANCH/$fn ]; then
-      #     run_traced "cp -R $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
-      #   elif [ -f $HOME_BRANCH/$fn ]; then
-      #     run_traced "cp $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
-      #   fi
-      # done
-      # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
-      run_traced "export REPO_CACHED=$HOME_BRANCH"
-      run_traced "cd $HOME"
+    fi
+    # run_traced "mkdir -p $TRAVIS_BUILD_DIR/odoo"
+    # local fn
+    # for fn in addons odoo odoo.py openerp openerp-server openerp-wsgi.py; do
+    #   if [ -d $HOME_BRANCH/$fn ]; then
+    #     run_traced "cp -R $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
+    #   elif [ -f $HOME_BRANCH/$fn ]; then
+    #     run_traced "cp $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
+    #   fi
+    # done
+    # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
+    run_traced "export REPO_CACHED=$HOME_BRANCH"
+    run_traced "cd $HOME"
+    if [ ${opt_virt:-0} -ne 0 ]; then
       FH=$(xuname -f)
       if [ "$FH" == "RHEL" ]; then
         local NODEJS=$(which node)
@@ -409,13 +420,12 @@ create_virtual_env() {
 }
 
 drop_virtual_env() {
+    cd $TRAVIS_HOME
     if [ ${opt_virt:-0} -gt 0 ]; then
-      cd $TRAVIS_HOME
       deactivate
-      cd $TRAVIS_CWD
-      rm -fR $TRAVIS_HOME
-      export HOME=$TRAVIS_SAVED_HOME
     fi
+    cd $TRAVIS_CWD
+    rm -fR $TRAVIS_HOME
 }
 
 prepare_env_travis() {
