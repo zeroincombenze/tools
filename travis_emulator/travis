@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.4
+__version__=0.2.1
 
 
 store_cfg_param_value() {
@@ -453,6 +453,8 @@ process_yaml_run_cmd() {
     ((ix1++))
     ix2=$ix1
     ((ix2++))
+    ix3=$ix2
+    ((ix3++))
     if [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-serial" ]; then
       xcmd="$(echo $xcmd|sed -e 's/python-serial/pyserial/g')"
       x[$ix2]="pyserial"
@@ -541,7 +543,7 @@ process_yaml_run_cmd() {
             ((ix++))
             pp=${x[$ix]}
             xcmd="$xcmd -r $pp"
-            while IFS=\# read -r tk r || [ -n "$tk" ]; do
+            while IFS=# read -r tk r || [ -n "$tk" ]; do
               if [ -n "$tk" ]; then
                 if [ "${tk:0:4}" == "http" ]; then
                   p=$(basename $tk)
@@ -585,8 +587,8 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
     #   xcmd="# $xcmd"
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
-      xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
+      xcmd="${x[$ix]} ${x[$ix1]} /opt/odoo/${VERSION} ${x[$ix3]}"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
@@ -706,7 +708,7 @@ process_yaml() {
       if [ -n "${PIPPKGVER[*]}" ]; then
         wlog "\$ PIPPKGVER=\"${!PIPPKGVER[*]}\""
       fi
-      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH YML_repo; do
+      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS_BUILD_DIR YML_repo; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"

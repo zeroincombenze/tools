@@ -3,7 +3,7 @@
 set -e
 
 if [ "${LINT_CHECK}" != "0" ]; then
-    pip install -q flake8 Click pylint-mccabe
+    pip install -Uq flake8=="3.4.1" Click pylint-mccabe pbr
 
     # Install pylint plugin depends without lxml
     wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt
@@ -122,6 +122,11 @@ clone_result=$?
 if [ "$clone_result" != "0"  ]; then
     echo "Error cloning dependencies"
     exit $clone_result
+fi;
+
+if [[ "${WKHTMLTOPDF_VERSION}" == "" && $(which wkhtmltopdf) != "" ]]; then
+    echo "You have installed wkhtmltopdf but is not patched (probably) then we will to overwrite it"
+    export WKHTMLTOPDF_VERSION="0.12.4"
 fi;
 
 if [ "${WKHTMLTOPDF_VERSION}" != "" ]; then
