@@ -30,31 +30,11 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.27
+__version__=1.3.28
 
 
 kill_process() {
 #kill_process(db)
-    # sql="select datname,pid,xact_start,waiting,state from pg_stat_activity where datname='$NEWDB' and pid<>pg_backend_pid();"
-    # flog=$HOME/dup4test_proc.log
-    # psql -U$opt_user -d postgres -tc "$sql" -o $flog
-    # while IFS=\| read db pid pdt w st; do
-    #   if [ -n "$st" ]; then
-    #     db=$(echo $db)
-    #     w=$(echo $w)
-    #     st=$(echo $st)
-    #     pid=$(echo $pid)
-    #     if [ "$db" == "$NEWDB" ]; then
-    #       if [ "$w" != "f" -a "${st:0:4}" != "idle" ]; then
-    #         echo "DB non deletable"
-    #       else
-    #         echo "killing process $pid"
-    #         kill $pid
-    #       fi
-    #     fi
-    #   fi
-    # done < $flog
-    # rm -f $flog
     run_traced "pg_db_active -a $1 -w"
 }
 
@@ -75,9 +55,9 @@ check_4_table() {
     elif [ "$what" == "with_data" ]; then
        x=$(psql -tc "select * from $tbl limit 1;" $DB)
     elif [ "$what" == "active_data" ]; then
-       x=$(psql -tc "select * from $tbl limit 1 where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
     elif [ "$what" == "reset_data" ]; then
-       x=$(psql -tc "select * from $tbl limit 1 where active=true;" $DB)
+       x=$(psql -tc "select * from $tbl where active=true limit 1;" $DB)
     else
        x=""
     fi
@@ -126,6 +106,7 @@ stop_services() {
     while [ $res -ne 0 -a $MAXC -gt 0 ]; do
       res=0
       wtm=2
+      tnx=0
       for tbl in $SVCS; do
         if [ -z "${tblwf[$tbl]}" ]; then
           wfid=0
@@ -134,23 +115,25 @@ stop_services() {
         fi
         act=${wrkflw[$wfid]}
         if [ "$act" != "Ok" ]; then
+          if [ "$act" == "exists" ]; then
+            tnx=1
+          fi
           res=1
           check_4_table $DB $tbl $act
           if [ $? -eq 0 ]; then
-            # wlog ".. Table $tbl $act ok"
             ((wfid++))
             tblwf[$tbl]=$wfid
             if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
-              # x=$(psql -tc "select id from $tbl where active=true;" $DB|tr "\n" " ")
               x=$(psql -AR\| -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
               if [ -n "$x" ]; then
                 svc2run[$tbl]="${svc2run[$tbl]} $x"
-                # svc2run[$tbl]="$(echo ${svc2run[$tbl]})"
               fi
             fi
           else
             if [ "${tblok[$tbl]}" != "$act" ]; then
-              wlog ".. Table $tbl, action $act failed !!"
+              if [ $act == "exists" ]; then
+                wlog "Table $tbl does not exit !!"
+              fi
               tblok[$tbl]="$act"
               if [ "$act" == "exists" -a $MAXC -lt 75 ]; then
                 let MAXC="$MAXC+5"
@@ -170,19 +153,19 @@ stop_services() {
       if [ $res -ne 0 ]; then
         sleep $wtm
       fi
+      if [ $tnx -eq 0 -a $MAXC -gt 10 ]; then
+        MAXC=10
+      fi
       ((MAXC--))
     done
     for tbl in $SVCS; do
       if [ -n "$2" -a -n "${svc2run[$tbl]}" ]; then
         if [[ " $SVCS2 " =~ [[:space:]]$tbl[[:space:]] ]]; then
-          # wlog ".. update $tbl set active=true where id in (${svc2run[$tbl]});"
-          # psql -tc "update $tbl set active=true where id in (${svc2run[$tbl]});" $DB
           c=$(echo ${svc2run[$tbl]}|awk -F\| '{print NF}')
           x=
           i=0
           while [ $i -lt $c ]; do
             res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
-            # wlog ".. update $tbl set active=true where name='$res';"
             psql -tc "update $tbl set active=true where name='$res';" $DB
             ((i++))
           done
@@ -236,6 +219,7 @@ create_script_db_2_restore() {
     echo "\\echo Loading data into DB $NEWDB">>$fsql
     echo "\\i $SQLFNAME">>$fsql
     echo "ALTER DATABASE $NEWDB OWNER TO $OE_OWN;">>$fsql
+    echo "REASSIGN OWNED BY $OE_OWN TO $OE_OWN;">>$fsql
 }
 
 inherit_options() {
@@ -320,8 +304,8 @@ if [ "$BCKFORMAT" == "0" ]; then
 else
   wlog "-- Backupped DBs stored in compress tar files --"
 fi
-wlog "PRD=$HOST_PRD"
-wlog "DEV=$HOST_DEV"
+wlog "PRD=$HOST_PRD//$URL_PRD"
+wlog "DEV=$HOST_DEV//$URL_DEV"
 wlog "TEST_DB=$TEST_DB"
 wlog "OE_OWN=$OE_OWN"
 wlog "- DB to Restore:$dblist"
@@ -333,7 +317,7 @@ if [[ ! $HOSTNAME =~ $HOST_PRD && -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; t
     cmd=./zar_purge
   fi
   wlog "\$ $cmd $OPTS"
-  eval $cmd $OPTS
+  ## eval $cmd $OPTS   #debug
 fi
 if [ -n "$newdb" ]; then
   NEWDBS=$newdb
@@ -344,9 +328,18 @@ else
   NEWDBS=${NEWDBS//^/}
   NEWDBS=${NEWDBS//$/}
 fi
-if [ -z "$DBSEL" -o -z "$NEWDBS" ]; then
-  print_help
-  exit
+if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+  if [ -z "$DBSEL" -o -z "$NEWDBS" ]; then
+    wlog "Cannot restore due DBSEL=$DBSEL or NEWDBS=$NEWDBS"
+    print_help
+    exit
+  fi
+elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+  if [ -z "$DBSEL" ]; then
+    wlog "Cannot restore due DBSEL=$DBSEL"
+    print_help
+    exit
+  fi
 fi
 if [[ $seldate =~ [0-9]{8} ]]; then
   NDAYSB=$seldate
@@ -451,6 +444,7 @@ if [ $dovalid -gt 0 ]; then
     passed="$passed $NEWDB $dtdb"
   done
   popd >/dev/null
+  find backups/ -name "*.err" -size 0 -delete
 fi
 if [ $opt_dry_run -eq 0 ]; then
   sleep 30

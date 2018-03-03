@@ -41,7 +41,7 @@ from clodoo.clodoo import isaction
 from clodoo.clodoo import check_4_actions
 from clodoo.clodoo import do_single_action
 
-__version__ = "0.3.3.4"
+__version__ = "0.3.4"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1

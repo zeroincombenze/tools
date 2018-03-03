@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.49
+#__version__=0.1.50
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -106,8 +106,10 @@ conf_default() {
 
 init_vars() {
 #init_vars(dbsel)
+    local x
     dbsel=$1
-    declare -g PGDIR DBCKDIR HOST_PRD HOST_DEV BCKFORMAT TAR_EXT TAR_OPT
+    declare -g PGDIR RMTBCKDIR DBCKDIR HOST_PRD HOST_DEV URL_PRD URL_DEV
+    declare -g BCKFORMAT TAR_EXT TAR_OPT
     declare -g REST2 TEST_DB NEWDBS REDB OE_OWN
     declare -g DBA DBB DBC DBD DBE DBF DBG DBH
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
@@ -122,9 +124,33 @@ init_vars() {
         exit 1
       fi
     fi
-    DBCKDIR="$PGDIR/backups"
     HOST_PRD=$(get_cfg_value 0 production_host)
     HOST_DEV=$(get_cfg_value 0 development_host)
+    URL_PRD=$(get_cfg_value 0 URL_production_host)
+    if [ -z "$URL_PRD" ]; then
+      URL_PRD=$HOST_PRD
+    fi
+    URL_DEV=$(get_cfg_value 0 URL_development_host)
+    if [ -z "$URL_DEV" ]; then
+      URL_DEV=$HOST_DEV
+    fi
+    x=$(get_cfg_value 0 bckdir)
+    if [ -z "$x" ]; then
+      x="$PGDIR/backups"
+    fi
+    if [ "${x:0:1}" == "/" ]; then
+      DBCKDIR=$x
+      RMTBCKDIR=$DBCKDIR
+    elif [ "${x:0:2}" == "./" ]; then
+      DBCKDIR="$HOME/${x:1}"
+      RMTBCKDIR="~/${x:1}"
+    elif [ "${x:0:1}" == "~" ]; then
+      DBCKDIR="$HOME/${x:1}"
+      RMTBCKDIR="$x"
+    else
+      DBCKDIR="$PGDIR/$x"
+      RMTBCKDIR=$DBCKDIR
+    fi
     BCKFORMAT="$(get_cfg_value 0 bckformat)"
     TAR_EXT=$(get_cfg_value 0 tar_ext)
     TAR_OPT=$(get_cfg_value 0 tar_opt)
@@ -181,7 +207,7 @@ init_vars() {
       NCA=$(get_cfg_value 0 keep_recent)
       NAA=$(get_cfg_value 0 keep_monthly)
     fi
-    if [ $opt_ex -eq 0 ]; then
+    if [ $opt_ex -eq 0 -a "$ACTION" != "purgedb" ]; then
       DBSEL=
       for sfx in A B C D E F G H; do
         x=DB$sfx
@@ -230,16 +256,17 @@ expand_tar() {
     local src x
     local db=$1
     if [ "$BCKFORMAT" != "0" ]; then
-      src=$db
       for x in $TAR_EXT; do
-        if [ -f $db$x ]; then
+        if [ -f "$db$x" ]; then
           src=$db$x
           break
         fi
       done
-      run_traced "tar $TAR_OPT -xf $src $2"
-      if [ -f "$src" ]; then
-        chown $PG_OWN $src
+      if [ -n "$src" ]; then
+        run_traced "tar $TAR_OPT -xf $src $2"
+        if [ -f "$src" ]; then
+          chown $PG_OWN $src
+        fi
       fi
     fi
 }
@@ -273,11 +300,11 @@ create_db_list_from_pg() {
 # create_db_list_from_pg(dbsel pgsql_dir bck_dir bck_db)
     local dblist=
     local PGDIR=$2
-    local sfx XDB DBCKDIR flst dbsel redb f x
+    local sfx XDB bckdir flst dbsel redb f x
     if [ -z $3 ]; then
-      DBCKDIR="$PGDIR/backups"
+      bckdir="$DBCKDIR"
     else
-      DBCKDIR=$3
+      bckdir=$3
     fi
     flst="$HOME/db_pgsql.lst"
     dbsel=$1
@@ -287,18 +314,18 @@ create_db_list_from_pg() {
         redb="test"
       fi
       if [ $opt_dry_run -eq 0 -o $test_mode -ne 0 ]; then
-        slog "Select DB matches $dbsel in $DBCKDIR"
+        slog "Select DB matches $dbsel in $bckdir"
       fi
       if [ $test_mode -ne 0 ]; then
         echo " invalid        | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">$flst
         echo " zi01234567     | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">>$flst
         echo " test           | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">>$flst
       else
-        psql -U$opt_user -lt -o $flst
+        psql -U$opt_user -Alt -o $flst
       fi
       sort $flst -f -o $flst
       for db in $(awk -F"|" '{ print $1 }' $flst); do
-        db=$(echo $db|sed -e 's/^ *//' -e 's/ *$//')
+        # db=$(echo $db|sed -e 's/^ *//' -e 's/ *$//')
         if [[ $db =~ $redb ]]; then
           slog "DB $db is backup copy"
         else
@@ -347,28 +374,38 @@ create_db_list_from_file() {
     local dbsel=$1
     local dblist=
     local files fn db dbf sfx f x
-    local XDB DBCKDIR redb
+    local XDB bckdir redb valid passed
     if [ -z $3 ]; then
-      DBCKDIR="$PGDIR/backups"
+      bckdir="$DBCKDIR"
     else
-      DBCKDIR=$3
+      bckdir=$3
     fi
-    if [ -n "$dbsel" ]; then
-      if [ "$BCKFORMAT" == "0" ]; then
-        files=$DBCKDIR/*.sql
-      else
-        for x in $TAR_EXT; do
-          files="$files $DBCKDIR/*$x"
-        done
-      fi
-      for fn in $files; do
-        if [ "$BCKFORMAT" == "0" ]; then
-          dbf=${fn%%-*}
-          x=$(basename $dbf)
-        else
-          x=$(basename $fn)
+    files=$bckdir/*.sql
+    if [ "$BCKFORMAT" != "0" ]; then
+      for x in $TAR_EXT; do
+        files="$files $bckdir/*$x"
+      done
+    fi
+    for fn in ${files/\~/$HOME}; do
+      dbf=${fn%%-*}
+      x=$(basename $dbf)
+      db=${x%.*}
+      valid=0
+      if [[ " $passed " =~ [[:space:]]$db[[:space:]] ]]; then
+        :
+      elif [ -z "$dbsel" ]; then
+        valid=1
+      elif [ $opt_ex -ne 0 ]; then
+        if [[ "$db" == "$dbsel" ]]; then
+          valid=1
         fi
-        db=${x%.*}
+      else
+        if [[ " $db " =~ [[:space:]]$dbsel[[:space:]] ]]; then
+          valid=1
+        fi
+      fi
+      if [ $valid -ne 0 ]; then
+        passed="$passed $db"
         for sfx in A B C D E F G H; do
           x=DB$sfx
           XDB=${!x}
@@ -390,7 +427,7 @@ create_db_list_from_file() {
             fi
           fi
         done
-      done
-    fi
+      fi
+    done
     echo "$dblist"
 }

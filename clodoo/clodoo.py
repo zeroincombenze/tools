@@ -103,7 +103,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
 
 
-__version__ = "0.3.3.4"
+__version__ = "0.3.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -332,8 +332,11 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 if tkn[0] == p:
                     if p == 'xmlrpc_port':
                         ctx[p] = int(tkn[1])
-                    elif p == 'db_name' and db:
-                        ctx[p] = db
+                    elif p == 'db_name':
+                        if db:
+                            ctx[p] = db
+                        elif ctx[p] == 'demo':
+                            ctx[p] = tkn[1]
                     else:
                         ctx[p] = tkn[1]
         fd.close()
@@ -678,12 +681,14 @@ def ident_company(oerp, ctx, c_id):
 
 def ident_user(oerp, ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
-    msg = u"User {0:>2} {1}\t'{2}'\t{3}\t[{4}]".format(
-          u_id,
-          tounicode(user.login),
-          tounicode(ctx['user_name']),
-          tounicode(get_res_users(ctx, user, 'email')),
-          tounicode(user.company_id.name))
+    msg = u"DB=%-12.12s  uid=%-3d user=%-12.12s" \
+          u"  email=%-30.30s  company=%-30.30s" % (
+              tounicode(ctx['db_name']),
+              u_id,
+              tounicode(user.login),
+              # tounicode(ctx['user_name']),
+              tounicode(get_res_users(ctx, user, 'email')),
+              tounicode(user.company_id.name))
     return msg
 
 
