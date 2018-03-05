@@ -10,7 +10,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -27,7 +27,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -36,84 +36,9 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0
+__version__=0.2.0.1
 
 
-xtl() {
-    if [ "$FH" == "RHEL" ]; then
-      if [ "$1" == "python-dev" -o "$1" == "libffi-dev" ]; then
-        p="${1}el"
-      elif [ "$1" == "build-essential" ]; then
-        p="groupinstall 'Development Tools'"
-      elif [ "$1" == "libssl-dev" ]; then
-        p="openssl-devel"
-      elif [ "$1" == "expect-dev" ]; then
-        p=
-      else
-        p=$1
-      fi
-    else
-      p=$1
-    fi
-    echo $p
-}
-
-pkg_install() {
-    if [ ${opt_virt:-0} -eq 0 ]; then
-      if [ "$FH" == "RHEL" ]; then
-        local xcmd="yum install"
-      else
-        local xcmd="apt-get install"
-      fi
-      local xrem="#"
-      local req=0
-      local xvalid=0
-      local p
-      local sts=0
-      for p in "$@"; do
-        if [ "$p" == "groupinstall" ]; then
-          req=1
-        elif [ $req -ne 0 ]; then
-          xrem="$xrem groupinstall $p"
-        elif [ "${p:0:1}" != "-" ]; then
-          p=$(echo "$p"|grep -Eo '[^!<=>]*'|head -n1)
-          p=${p//\"/}
-          p=$(xtl $p)
-          if [ -n "$p" ]; then
-            if [ "$FH" == "RHEL" ]; then
-              if [ "${p:0:12}" == "groupinstall" ]; then
-                xrem="$xrem $p"
-              elif $(rpm -q $p &>/dev/null); then
-                xrem="$xrem $p"
-              else
-                xcmd="$xcmd $p"
-                xvalid=1
-              fi
-            else
-              if (dpkg-query -W $p &>/dev/null); then
-                xrem="$xrem $p"
-              else
-                xcmd="$xcmd $p"
-                xvalid=1
-              fi
-            fi
-          fi
-        else
-          xcmd="$xcmd $p"
-        fi
-      done
-      if [ $xvalid -ne 0 ]; then
-        if [ "$xrem" != "#" ]; then
-          xcmd="$xcmd $xrem"
-        fi
-      else
-        xcmd="$xrem"
-      fi
-      run_traced "$xcmd"
-      sts=$?
-    fi
-    return $sts
-}
 
 pip_install() {
     if [ ${opt_virt:-0} -eq 0 ]; then
@@ -185,21 +110,33 @@ pip_install() {
     return $sts
 }
 
+lisa_install() {
+    sts=$STS_SUCCESS
+    if $($LISA status $1 &>/dev/null); then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "## lisa install $1"
+      fi
+    else
+      if [ $opt_verbose -gt 0 ]; then
+        echo "\$ lisa install $1"
+      fi
+      eval $LISA install $1
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+    return $sts
+}
 
-OPTOPTS=(h        c        j        K         n            q           r     T        t         V           v)
-OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        "="      1        1         1            0           1     1        1         "*>"        "+")
-OPTDEFL=(0        ""       0        0         0            -1          0     0        0         ""          -1)
-OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
+OPTOPTS=(h        K         M          n            q           T        V           v)
+OPTDEST=(opt_help opt_check opt_dbgmnt opt_dry_run  opt_verbose opt_regr opt_version opt_verbose)
+OPTACTI=(1        1         1          1            0           1        "*>"        "+")
+OPTDEFL=(0        0         0          0            -1          0        ""          -1)
+OPTMETA=("help"   ""        ""         "do nothing" "qiet"      ""       "version"   "verbose")
 OPTHELP=("this help"\
- "configuration file (def .travis.conf)"\
- "execute tests in project dir rather in test dir"\
  "do bash, flake8 and pylint checks"\
+ "use local MQT"\
  "do nothing (dry-run)"\
  "silent mode"\
- "run rescricted mode (w/o parsing travis.yml file)"\
  "do regression tests"\
- "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
 OPTARGS=(pkg PRJNAME)
@@ -215,6 +152,9 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
+if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
+if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
 opts_travis
 CFG_init
 conf_default
@@ -222,29 +162,125 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 prepare_env_travis "test"
+if [ $opt_dbgmnt -ne 0 ]; then
+  if [ -n "$TRAVIS_SAVED_HOME" ]; then
+    LISA=$TRAVIS_SAVED_HOME/dev/pypi/lisa/lisa/lisa
+  else
+    LISA=$HOME/dev/pypi/lisa/lisa/lisa
+  fi
+else
+  LISA=lisa
+fi
+if [ $opt_verbose -ne 0 ]; then
+  LISA="$LISA -v"
+fi
+if [ $opt_dry_run -ne 0 ]; then
+  LISA="$LISA -n"
+fi
 sts=$STS_SUCCESS
-if [ $test_mode -gt 0 ]; then
-  do_chkconfig
-  exit $STS_SUCCESS
-fi
 check_4_travis
-FH=$(xuname -f)
-pkg_install gcc build-essential libssl-dev libffi-dev python-dev
-sts=$?
+
+if [ ${opt_regr:-0} -gt 0 ]; then
+  LINT_CHECK="0"
+  TESTS="1"
+fi
+if [ ${opt_check:-0} -gt 0 ]; then
+  BASH_CHECK="1"
+  LINT_CHECK="1"
+fi
+if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+
+for p in gcc build-essential libssl-dev libffi-dev python-dev expect-dev nodejs npm; do
+  lisa_install $p
+  s=$?; [ ${s-0} -ne 0 ] && sts=$s
+done
 if [ $sts -eq 0 ]; then
-  pkg_install expect-dev
-  sts=$?
+  for p in 'requests[security]' pyOpenSSL ndg-httpsclient pyasn1 cryptography; do
+    lisa_install $p
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+  done
 fi
 if [ $sts -eq 0 ]; then
-  pip_install 'requests[security]' pyOpenSSL ndg-httpsclient pyasn1 cryptography
-  sts=$?
+  for p in pylint zerobug coverage coveralls; do
+    lisa_install $p
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+  done
 fi
-if [ $sts -eq 0 ]; then
-  pip_install -q flake8 pylint
-  sts=$?
+if [ "${LINT_CHECK}" != "0" -a $sts -eq 0 ]; then
+  for p in flake8=="3.4.1" Click pylint-mccabe pbr; do
+    lisa_install $p
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+  done
+  if [ "$travis" == "true" ]; then
+    lisa_install eslint
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    if [ -d ${HOME}/maintainer-quality-tools/travis ]; then
+      wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt
+      eval $LISA -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    else
+      echo "Invalid development environment!"
+      sts=1
+    fi
+    pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git   # To use last version ever
+    if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+      CURRENT_NODE=$(which node)
+      source ${HOME}/.nvm/nvm.sh
+      nvm install 6
+      ln -sf $(nvm which 6) $CURRENT_NODE
+    fi
+  fi
 fi
-if [ $sts -eq 0 ]; then
-  pip_install zerobug coverage coveralls
-  sts=$?
+if [ "${TESTS}" != "1" ] && [ "${LINT_CHECK}" == "1" ]; then
+    exit $sts
 fi
+
+: ${ODOO_REPO:="odoo/odoo"}
+IFS="/" read -a REPO <<< "${ODOO_REPO}"
+export REMOTE="${REPO[0],,}"
+export REPO_NAME="${REPO[1]}"
+export BRANCH="${ODOO_BRANCH}"
+export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
+
+if [ -z "${REPO_CACHED}"  ]; then
+    export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
+    echo "Installing Odoo $ODOO_URL"
+    wget -nv -O odoo.tar.gz $ODOO_URL
+    tar -xf odoo.tar.gz -C ${HOME}
+else
+    echo "Using Odoo from cache ${REPO_CACHED}"
+    chown $(whoami):$(id -gn) -R ${REPO_CACHED}
+    ln -sf ${REPO_CACHED}/odoo ${ODOO_PATH}
+    cd ${ODOO_PATH}
+    # if [ "x${PULL_REQUEST}" == "x" ] ; then
+    #     git fetch --depth=1 ${REMOTE} ${BRANCH} \
+    #         && git config --local --bool core.bare false \
+    #         && git checkout -b ${BRANCH}-${REMOTE} -qf ${REMOTE}/${BRANCH}
+    # else
+    #     ODOO_URL="https://github.com/${ODOO_REPO}"
+    #    # Is a pull request
+    #    git reset --hard
+    #    git fetch --depth=1 ${REMOTE} $PULL_REQUEST/head:${BRANCH}-${REMOTE} \
+    #         && git config --local --bool core.bare false \
+    #         && git checkout ${BRANCH}-${REMOTE}
+    # fi
+fi
+
+if [ -d ${HOME}/maintainer-quality-tools/travis ]; then
+  ln -s `which nodejs` $HOME/maintainer-quality-tools/travis/node
+  lisa install 'less!!npm'
+  lisa install 'less-plugin-clean-css!!npm'
+elif [ "$travis" == "true" ]; then
+  echo "Invalid development environment!"
+  sts=1
+fi
+  for p in QUnitSuite coveralls codecov pycparser; do
+    lisa_install $p
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+  done
 exit $sts
