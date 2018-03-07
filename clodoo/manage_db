@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.4
+__version__=0.3.4.1
 
 
 up_oemod() {
@@ -77,11 +77,11 @@ db_list() {
     DBlist=
     local db user a b c
     local found=0
-    psql -Upostgres -tl > $HOME/tmp.log
+    psql -Upostgres -Atl > $HOME/tmp.log
     while IFS=\| read db user a b c; do
       ((found++))
-      db=$(echo $db)
-      user=$(echo $user)
+      # db=$(echo $db)
+      # user=$(echo $user)
       if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
         if [[ $db =~ $opt_DB ]]; then
           DBlist=$DBlist,$db
@@ -93,12 +93,25 @@ db_list() {
     echo "$DBlist"
 }
 
+declare_cfloop() {
+    if [ "$opt_conf" == "code/z0_install_00.conf" ]; then
+      if [ $opt_del -ne 0 ]; then
+        CFLOOP="09 00"
+      else
+        CFLOOP="00"
+      fi
+    elif [ -n "$cmdlist" ]; then
+      CFLOOP="${cmdlist//,/ }"
+    else
+      CFLOOP="$PHASE_LIST"
+    fi
+}
 
-OPTOPTS=(h        b          c        D             E        d      m         n           o       q           r           t         U          V           v)
-OPTDEST=(opt_help opt_branch opt_conf opt_with_demo opt_tenv opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
-OPTACTI=(1        "="        "="      "*"           "*"      "="    1         1           1       0           "="         1         "="        "*"         "+")
-OPTDEFL=(1        "7.0"      ""       ""            ""       ""     -1        0           0       -1          ""          0         ""         ""          -1)
-OPTMETA=("help"   "branch"   "file"   ""            ""       "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
+OPTOPTS=(h        b        c        D             E        d      m         n           o       q           r           t         U          V           v)
+OPTDEST=(opt_help odoo_vid opt_conf opt_with_demo opt_tenv opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose)
+OPTACTI=(1        "="      "="      "*"           "*"      "="    1         1           1       0           "="         1         "="        "*"         "+")
+OPTDEFL=(1        "7.0"    ""       ""            ""       ""     -1        0           0       -1          ""          0         ""         ""          -1)
+OPTMETA=("help"   "branch" "file"   ""            ""       "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose")
 OPTHELP=("this help"\
  "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def 7.0)"\
  "configuration file (only update)"\
@@ -140,25 +153,9 @@ else
   WCMD="sleep $SLEEP_TIME"
 fi
 sts=$STS_SUCCESS
-odoo_vid=$opt_branch
+discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
-odoo_ver=$(build_odoo_param FULLVER $odoo_vid)
-if [ $opt_multi -lt 0 ]; then
-  c=0
-  for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
-    for p in "" v odoo- ODOO-; do
-      odoo_bin=$(build_odoo_param BIN $p$v search)
-      if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
-        ((c++))
-      fi
-    done
-  done
-  if [ $c -gt 2 ]; then
-    opt_multi=1
-  else
-    opt_multi=0
-  fi
-fi
+odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
 if [ -z "$opt_dbuser" ]; then
   opt_dbuser=$(build_odoo_param USER $odoo_vid)
 fi
@@ -174,17 +171,7 @@ if [ "$action" == "install" ]; then
     echo "Directory code/ not found!"
     exit 1
   fi
-  if [ "$opt_conf" == "code/z0_install_00.conf" ]; then
-    if [ $opt_del -ne 0 ]; then
-      CFLOOP="09 00"
-    else
-      CFLOOP="00"
-    fi
-  elif [ -n "$cmdlist" ]; then
-    CFLOOP="${cmdlist//,/ }"
-  else
-    CFLOOP="$PHASE_LIST"
-  fi
+  declare_cfloop
   for cf in $CFLOOP; do
     if [ ! -f code/z0_install_$cf.conf ]; then
       echo "Configuration file z0_install_$cf.conf not found!"
@@ -226,6 +213,7 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
   else
     cf=
   fi
+  declare_cfloop
   if [ -n "$cf" ]; then
     x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
     x=${x: -2}
@@ -261,11 +249,11 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
       eval $WCMD
     fi
     if [ "$action" == "module" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -sk"
-      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+      echo "$TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -s
     elif [ "$action" == "upgrade" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -sk"
-      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -um $cmdlist -d $db -s
+      echo "$TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -s
       echo "$TDIR/clodoo.py $opts -A upgrade_modules -b$odoo_fver -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo"
       $TDIR/clodoo.py $opts -A upgrade_modules -b$odoo_fver -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo
       sts=$?
@@ -273,32 +261,43 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
         break
       fi
     elif [ "$action" == "translate" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"
-      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -l -d $db
+      echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -l -d $db
     elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
       echo "$TDIR/clodoo.py $opts -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo"
       $TDIR/clodoo.py $opts -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo
-      [ $opt_dry_run -ne 0 ] || up_oemod $db $opt_branch
+      [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
     elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-      echo "$TDIR/run_odoo_debug.sh $opt_branch -l -d $db"
-      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $opt_branch -l -d $db
-    elif [ -n "$cmdlist" ]; then
-      echo "$TDIR/clodoo.py $opts -A $cmdlist  -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo"
-      $TDIR/clodoo.py $opts -A $cmdlist -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS ]; then
-        break
-      fi
+      echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db"
+      [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -l -d $db
     else
-      if [ -z "$cf" ]; then
-        echo "Configuration file $opt_conf not found!"
-        exit 1
-      fi
-      echo "$TDIR/clodoo.py $opts -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo"
-      $TDIR/clodoo.py $opts -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo
-      sts=$?
-      if [ $sts -ne $STS_SUCCESS ]; then
-        break
+      if [[ -n "$cmdlist" &&  -z "$cf" && "$cmdlist"  =~ [0-9,]+ ]]; then
+        for ph in $CFLOOP; do
+          if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$ph[[:space:]] ]]; then
+            [ $opt_verbose -gt 0 ] && echo "Warning: phase $ph is just for demo (use -D switch to enable)"
+          else
+            run_traced "$TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$ph.conf -d $db -r$opt_xmlport $opt_with_demo"
+            sts=$?
+          fi
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        done
+      elif [ -n "$cmdlist" ]; then
+        echo "$TDIR/clodoo.py $opts -A $cmdlist -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo"
+        $TDIR/clodoo.py $opts -A $cmdlist -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo
+        sts=$?
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
+      else
+        if [ -z "$cf" ]; then
+          echo "Configuration file $opt_conf not found!"
+          exit 1
+        fi
+        echo "$TDIR/clodoo.py $opts -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo"
+        $TDIR/clodoo.py $opts -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo
+        sts=$?
       fi
     fi
   done

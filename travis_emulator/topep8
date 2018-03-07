@@ -7,10 +7,16 @@
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -19,15 +25,142 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
 
-__version__=0.2.0
+__version__=0.2.0.2
+LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
+YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
+
+format_yaml() {
+    local fn=$1
+    if [ -f $fn ]; then
+      local fntmp=$fn.new
+      local fntmpl=$YAML_TMPL
+      rm -f $fntmp
+      local a f line lne p wf=0
+      f=$(readlink -e $fn)
+      p=$(dirname $f)
+      while IFS= read -r line || [ -n "$line" ]; do
+        if [ -n "$odoo_vid" ]; then
+          line=${line/\$TRAVIS_BRANCH/$odoo_fver}
+        fi
+        lne=$(echo $line)
+        if [ -z "$line" ]; then
+          if [ $wf -eq 1 ]; then
+            echo "# Use Zeroincombenze(R) tools">>$fntmp
+            echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1">>$fntmp
+            echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
+            echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
+            wf=0
+          fi
+          echo "$line">>$fntmp
+        elif [ "$line" == "before_install:" ]; then
+          wf=1
+          echo "$line">>$fntmp
+          if [ $opt_debug -ne 0 ]; then
+            echo "  - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
+          fi
+        elif [ "$line" == "install:" ]; then
+          echo "$line">>$fntmp
+          if [ $opt_ut7 -eq 0 ]; then
+            echo "  - ln -s \${HOME}/build/\${ODOO_REPO} \${HOME}/\${ODOO_REPO#*/}-\${VERSION}">>$fntmp
+            echo "  - pip install -r \${HOME}/maintainer-quality-tools/requirements.txt">>$fntmp
+            echo "  - pip install -q QUnitSuite flake8 coveralls pylint \"pywebdav<0.9.8\"">>$fntmp
+            echo "  - export INCLUDE=\$(getaddons.py -m \${HOME}/build/\${ODOO_REPO}/openerp/addons \${HOME}/build/\${ODOO_REPO}/addons)">>$fntmp
+          fi
+          echo "  # tests of document_ftp and delivery fail. The following two are excluded because they depend on delivery">>$fntmp
+          echo "  - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery">>$fntmp
+          echo "  - export INSTALL_OPTIONS=\"--without-demo=account\"">>$fntmp
+          echo "  # - cp \${HOME}/maintainer-quality-tools/cfg/.coveragerc .">>$fntmp
+        elif [ "$line" == "# Odoo yaml template for travis-ci" ]; then
+          :
+        elif [ "$line" == "#   - export TRAVIS_DEBUG_MODE=\"1\"" ]; then
+          if [ $opt_debug -eq 0 ]; then
+            echo "#   - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
+          fi
+        elif [ "$line" == "  - TRANSIFEX=\"1\"" ]; then
+          :
+        elif [ "$line" == "  - TESTS=\"1\" ODOO_REPO=\"OCA/OCB\"" ]; then
+          if [ "$PKGNAME" == "OCB" ]; then
+            echo "  - TESTS=\"1\" ODOO_REPO=\"\$TRAVIS_REPO_SLUG\"">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "  - TESTS=\"1\" ODOO_REPO=\"odoo/odoo\"" ]; then
+          if [ "$PKGNAME" == "OCB" ]; then
+            :
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "  - travis_install_nightly" ]; then
+          if [ "$PKGNAME" == "OCB" ]; then
+            echo "# $line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "# [//]: # (addons)" ]; then
+          a=${a//,/ }
+          for f in $s; do
+            if [ "$f" == "PyXB" ]; then
+              f=$f==1.2.4
+            elif [ "$f" == "Pillow" ]; then
+              f=$f==3.4.2
+            fi
+            echo "  - pip install $f">>$fntmp
+          done
+        elif [ "$line" == "  - LINT_CHECK=\"1\"" ]; then
+          if [ "$PKGNAME" == "OCB" ]; then
+            echo "# $line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "#     Search your packages here:" ]; then
+          for f in expect-dev python-lxml python-simplejson python-serial python-yaml; do
+            echo "      - $f">>$fntmp
+          done
+          echo "$line">>$fntmp
+        elif [ "$line" == "  - ln -s \${HOME}/build/\${ODOO_REPO} \${HOME}/\${ODOO_REPO#*/}-\${VERSION}" ]; then
+          if [ $opt_ut7 -ne 0 ]; then
+            echo "# $line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "  - pip install -r \${HOME}/maintainer-quality-tools/requirements.txt" ]; then
+          if [ $opt_ut7 -ne 0 ]; then
+            echo "# $line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        elif [ "$line" == "  - export INCLUDE=\$(getaddons.py -m \${HOME}/build/\${ODOO_REPO}/openerp/addons \${HOME}/build/\${ODOO_REPO}/addons)" ]; then
+          if [ $opt_ut7 -ne 0 ]; then
+            echo "# $line">>$fntmp
+          else
+            echo "$line">>$fntmp
+          fi
+        else
+          echo "$line">>$fntmp
+        fi
+      done < "$fntmpl"
+    fi
+}
 
 format_xml() {
     local fn=$1
@@ -104,7 +237,6 @@ format_xml() {
             act=0
           fi
         fi
-        # echo "$level)$lne" #debug
         if [ -z "$line" ]; then
           if [ -z "$lne" ]; then
             line="$lne"
@@ -120,12 +252,6 @@ format_xml() {
         fi
         echo "$line">>$fntmp
       done < "$fn"
-      # if [ "$(diff -q $fn $fntmp)" ]; then
-      #   run_traced "cp -p $fn $fn.bak"
-      #   run_traced "mv $fntmp $fn"
-      # else
-      #   rm -f $fntmp
-      # fi
     fi
 }
 
@@ -150,7 +276,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "output filename, leave source unchanged rather than source becomes .bak"\
  "silent mode"\
- "update unit test source to odoo<8.0"\
+ "update unit test source to odoo<8.0 or create yaml old style"\
  "show version"\
  "verbose mode"\
  "Undocumented")
@@ -166,6 +292,14 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+
 if [ -d "$pathname" ]; then
   path=$(readlink -f $pathname)
   if [ -z "$basename" ]; then
@@ -220,6 +354,8 @@ for fl in $LIST; do
   cd $p
   if [ "${f: -4}" == ".xml" ]; then
     format_xml $f
+  elif [ "${f: -4}" == ".yml" ]; then
+    format_yaml $f
   else
     mime=$(file -b --mime-type $f)
     if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then

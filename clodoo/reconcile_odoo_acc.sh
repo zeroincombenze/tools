@@ -28,36 +28,53 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.0
+__version__=0.1.1
 
 
 xec() {
 #xec($val $type [name])
     local val=$1
     local t=$2
+    local parent
     if [ -z "$3" ]; then
       local name="%"
+    elif [ "$3" == "%IMMOBILIZZ%MATERIALI" -o "$3" == "BENI%MATERIALI" ]; then
+      local name="%"
+      parent="*"
     else
       local name="%$3%"
     fi
     local n x
     if [ $odoo_ver -ge 9 ]; then
       sql="select A.id,A.code,A.name,A.internal_type,T.type,A.reconcile from account_account A,account_account_type T where A.user_type_id=T.id and T.type='$t' and A.reconcile<>$val and lower(A.name) like lower('$name');"
+      parent=
     else
-      sql="select A.id,A.code,A.name,A.type,T.code,A.reconcile from account_account A,account_account_type T where A.user_type=T.id and T.code='$t' and A.reconcile<>$val and lower(A.name) like lower('$name');"
+      if [ "$parent" == "*" ]; then
+        parent=$(psql -tc "select id from account_account where type='view' and lower(name) like lower('$3');" $db|tr -d "\n")
+        parent=${parent//  / }
+        parent=$(echo $parent)
+        parent=${parent// /,}
+        sql="select A.id,A.code,A.name,A.type,T.code,A.reconcile from account_account A,account_account_type T where A.user_type=T.id and T.code='$t' and A.reconcile<>$val and parent_id in ($parent);"
+      else
+        sql="select A.id,A.code,A.name,A.type,T.code,A.reconcile from account_account A,account_account_type T where A.user_type=T.id and T.code='$t' and A.reconcile<>$val and lower(A.name) like lower('$name');"
+      fi
     fi
     psql -ec "$sql" $db
-    sql=$(printf "update account_account set reconcile=%s where user_type='%s' and reconcile<>%s and name like '%s';" "$val" "$t" "$val" "$name")
+    if [ -n "$parent" ]; then
+      sql=$(printf "update account_account set reconcile=%s where user_type='%s' and reconcile<>%s and parent_id in ($parent);" "$val" "$t" "$val" "$name")
+    else
+      sql=$(printf "update account_account set reconcile=%s where user_type='%s' and reconcile<>%s and lower(name) like lower('%s');" "$val" "$t" "$val" "$name")
+    fi
     if [ $odoo_ver -ge 9 ]; then
       x=$(psql -tc "select id from account_account_type where type='$t';"  $db)
       n=$(echo $x)
       n=${n// /,}
-      sql=$(printf "update account_account set reconcile=%s where user_type_id in (%s) and reconcile<>%s and name like '%s';" "$val" "$n" "$val" "$name")
+      sql=$(printf "update account_account set reconcile=%s where user_type_id in (%s) and reconcile<>%s and lower(name) like lower('%s');" "$val" "$n" "$val" "$name")
     else
       x=$(psql -tc "select id from account_account_type where code='$t';" $db)
       n=$(echo $x)
       n=${n// /,}
-      sql=$(printf "update account_account set reconcile=%s where user_type in (%s) and reconcile<>%s and name like '%s';" "$val" "$n" "$val" "$name")
+      sql=$(printf "update account_account set reconcile=%s where user_type in (%s) and reconcile<>%s and lower(name) like lower('%s');" "$val" "$n" "$val" "$name")
     fi
     psql -ec "$sql" $db
 }
@@ -105,7 +122,7 @@ for db in $DBlist; do
     for typ in income expense view cash bank; do
       xec "$val" "$typ"
     done
-    for name in "IVA " " IVA" "ratei" "risconti" "FA " "capitale" "riserve"; do
+    for name in "%IMMOBILIZZ%MATERIALI" "BENI%MATERIALI" "IVA " " IVA" "ratei" "risconti" "FA " "capitale" "riserve"; do
       for typ in asset liability; do
         xec "$val" "$typ" "$name"
       done
