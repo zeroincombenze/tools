@@ -125,7 +125,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.4"
+__version__ = "0.3.4.2"
 
 
 #############################################################################
@@ -427,6 +427,8 @@ def read_config(ctx):
         ctx['conf_fn'] = "./" + ctx['caller'] + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
+    if ctx['conf_fn']:
+        ctx['conf_fns'].append(ctx['conf_fn'])
     if ODOO_CONF:
         if isinstance(ODOO_CONF, list):
             for f in ODOO_CONF:
@@ -439,8 +441,6 @@ def read_config(ctx):
             ctx['conf_fns'].append(OE_CONF)
         if CONF_FN and CONF_FN not in ctx['conf_fns']:
             ctx['conf_fns'].append(CONF_FN)
-        if ctx['conf_fn'] not in ctx['conf_fns']:
-            ctx['conf_fns'].append(ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
     return ctx

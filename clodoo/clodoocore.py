@@ -15,6 +15,7 @@ import oerplib
 import odoorpc
 
 from clodoolib import debug_msg_log
+from transodoo import (translate_from_sym, translate_from_to)
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -25,7 +26,7 @@ except BaseException:
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.4"
+__version__ = "0.3.4.2"
 
 
 #############################################################################
@@ -428,6 +429,18 @@ def expr(oerp, ctx, o_model, code, value):
     if isinstance(value, basestring):
         if is_db_alias(oerp, ctx, value):
             model, name, value, hide_cid = get_model_alias(value)
+            if model == 'ir.transodoo':
+                if value[2] and value[2] != '0':
+                    return translate_from_to(ctx,
+                                             value[0],
+                                             value[1],
+                                             value[2],
+                                             ctx['oe_version'])
+                else:
+                    return translate_from_sym(ctx,
+                                              value[0],
+                                              value[1],
+                                              ctx['oe_version'])
             ids = _get_simple_query_id(oerp,
                                        ctx,
                                        model,
@@ -691,6 +704,18 @@ def concat_res(res, value):
 
 def is_db_alias(odoo, ctx, value):
     model, name, value, hide_cid = get_model_alias(value)
+    if model == 'ir.transodoo':
+        if value[2] and value[2] != '0':
+            return translate_from_to(ctx,
+                                     value[0],
+                                     value[1],
+                                     value[2],
+                                     ctx['oe_version']) != ''
+        else:
+            return translate_from_sym(ctx,
+                                      value[0],
+                                      value[1],
+                                      ctx['oe_version']) != ''
     if ctx['svc_protocol'] == 'jsonrpc':
         if model and name and value and odoo.env[model].search(
                 [(name[0], '=', value[0]),
@@ -710,7 +735,15 @@ def get_model_alias(value):
     if value:
         i = value.find('.')
         j = value.find('.', i + 1)
-        if i >= 0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
+        # k = value.find('.', j + 1)
+        if i >= 0 and j >= 0 and value[0] >= 'a' and \
+                value[0] <= 'z' and value[-1].isdigit():
+            model = "ir.transodoo"
+            name = ['module', 'name', 'version']
+            value = [value[0:i], value[i + 1:j], value[j + 1:]]
+            hide_cid = True
+            return model, name, value, hide_cid
+        elif i >= 0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
             model = "ir.model.data"
             name = ['module', 'name']
             value = [value[0:i], value[i + 1:]]

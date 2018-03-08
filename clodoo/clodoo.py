@@ -101,9 +101,10 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         get_res_users, psql_connect)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode)
+from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4"
+__version__ = "0.3.4.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -432,6 +433,8 @@ def init_user_ctx(oerp, ctx, user):
     if ctx['oe_version'] != "6.1":
         ctx['user_partner_id'] = user.partner_id.id
     ctx['user_name'] = get_res_users(ctx, user, 'name')
+    ctx['def_email'] = '%s%s@example.com' % (user.login,
+                                             ctx['oe_version'].split('.')[0])
     ctx['user_company_id'] = user.company_id.id
     ctx['user_country_id'] = get_res_users(ctx, user, 'country_id')
     if ctx.get('def_company_id', 0) == 0:
@@ -4295,6 +4298,10 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         msg = u"Record not imported by invalid db_type"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
+            if o_model['model'] == 'res.users' and 'login' in row:
+                ctx['def_email'] = '%s%s@example.com' % (
+                    row['login'],
+                    ctx['oe_version'].split('.')[0])
             # Does record exist ?
             if o_model['code'] == 'id' and row['id']:
                 o_model['saved_hide_id'] = o_model['hide_id']
@@ -4304,6 +4311,13 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                    o_model,
                                    row)
                 o_model['hide_id'] = o_model['saved_hide_id']
+                if o_model['model'] == 'res.users' and\
+                        'login' not in row and len(ids):
+                    id = ids[0]
+                    cur_obj = browseL8(ctx, o_model['model'], id)
+                    ctx['def_email'] = '%s%s@example.com' % (
+                        cur_obj.login,
+                        ctx['oe_version'].split('.')[0])
             else:
                 ids = get_query_id(oerp,
                                    ctx,
@@ -4461,24 +4475,28 @@ def setup_config_param(oerp, ctx, username, name, value):
     v = os0.str2bool(value, None)
     if v is not None:
         value = v
+    cat_ids = searchL8(ctx, 'ir.module.category',
+                       [('name', '=', name)],
+                       context=context)
+
     if isinstance(value, bool):
         group_ids = searchL8(ctx, 'res.groups',
-                             [('name', '=', name)],
+                             [('category_id', '=', name)],
                              context=context)
     else:
-        full_name = '%s / %s' % (name, value)
         group_ids = searchL8(ctx, 'res.groups',
-                             [('full_name', '=', full_name)],
+                             [('category_id', '=', name),
+                              ('name', '=', value)],
                              context=context)
-        if len(group_ids) == 0 and value == 'See all Leads':
-            value = 'User: All Leads'
-            full_name = '%s / %s' % (name, value)
-            group_ids = searchL8(ctx, 'res.groups',
-                                 [('full_name', '=', full_name)],
-                                 context=context)
     if len(group_ids) != 1:
-        msg = u"!Parameter name " + tounicode(name) + " not found!"
+        if isinstance(value, bool):
+            msg = u"!Parameter name '%s' not found!" % tounicode(name)
+        else:
+            msg = u"!Parameter name '%s/%s' not found!" % (tounicode(name),
+                                                           tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
+        import pdb
+        pdb.set_trace()
         return STS_FAILED
     group_id = group_ids[0]
     user_ids = searchL8(ctx, 'res.users',
@@ -4497,9 +4515,12 @@ def setup_config_param(oerp, ctx, username, name, value):
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
-                msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
+                msg = u"%s.%s = True" % (tounicode(username),
+                                         tounicode(name))
             else:
-                msg = u"%s.%s" % (tounicode(username), tounicode(full_name))
+                msg = u"%s.%s/%s" % (tounicode(username),
+                                     tounicode(name),
+                                     tounicode(value))
             msg_log(ctx, ctx['level'] + 2, msg)
     else:
         if group_id in user.groups_id.ids:
@@ -4764,21 +4785,21 @@ def main():
                      apply_conf=APPLY_CONF,
                      version=version(),
                      doc=__doc__)
+    read_stored_dict(ctx)
     ctx['_today'] = str(date.today())
     ctx['_current_year'] = str(date.today().year)
     ctx['_last_year'] = str(date.today().year - 1)
     if ctx.get('do_sel_action', False):
         ctx['actions'] = ctx['do_sel_action']
-    elif not ctx.get('actions', None):
-        if ctx.get('actions_db', None):
-            ctx['actions'] = 'per_db,' + ctx['actions_db']
-            del ctx['actions_db']
-        elif ctx.get('actions_mc', None):
-            ctx['actions'] = 'per_company,' + ctx['actions_mc']
-            del ctx['actions_mc']
-        elif ctx.get('actions_uu', None):
-            ctx['actions'] = 'per_users,' + ctx['actions_uu']
-            del ctx['actions_uu']
+    elif ctx.get('actions_db', None):
+        ctx['actions'] = 'per_db,' + ctx['actions_db']
+        del ctx['actions_db']
+    elif ctx.get('actions_mc', None):
+        ctx['actions'] = 'per_company,' + ctx['actions_mc']
+        del ctx['actions_mc']
+    elif ctx.get('actions_uu', None):
+        ctx['actions'] = 'per_users,' + ctx['actions_uu']
+        del ctx['actions_uu']
     init_logger(ctx)
     print_hdr_msg(ctx)
     if not check_4_actions(ctx):
