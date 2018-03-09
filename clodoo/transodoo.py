@@ -39,7 +39,7 @@ def transodoo_list(ctx):
     else:
         mindroot = ctx['mindroot']
     for t in mindroot:
-        print '%-20.20s %-20.20s\n    %s' % (t.split('.')[0],
+        print '%-40.40s %-40.40s\n    %s' % (t.split('.')[0],
                                              t.split('.')[1],
                                              mindroot[t])
 
