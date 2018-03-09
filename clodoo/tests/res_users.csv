@@ -1,2 +1,3 @@
 id,name,login,signature,email,tz,lang
-base.user_root,Administrator,administrator,"Amministratore","me@example.com","Europe/Rome","en_US"
+base.user_root,Administrator,administrator,"Amministratore","me@example.com",
+"Europe/Rome","en_US"

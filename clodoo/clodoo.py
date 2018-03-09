@@ -100,11 +100,11 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
-                       msg_log, parse_args, tounicode)
+                       msg_log, parse_args, tounicode, read_config)
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.2"
+__version__ = "0.3.4.5"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -288,7 +288,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
     P_LIST = ('db_host', 'login_user', 'login_password', 'db_name',
               'xmlrpc_port', 'oe_version', 'svc_protocol', 'psycopg2')
 
-    def oerp_env_def(ctx=None):
+    def oerp_env_fill(ctx=None):
         ctx = ctx or {}
         if 'db_host' not in ctx or not ctx['db_host']:
             ctx['db_host'] = 'localhost'
@@ -307,7 +307,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 ctx['svc_protocol'] = 'xmlrpc'
             elif ctx.get('oe_version'):
                 ctx['svc_protocol'] = 'jsonrpc'
-        ctx['level'] = 4
+        if 'level' not in ctx or not ctx['level']:
+            ctx['level'] = 4
         if 'dry_run' not in ctx:
             ctx['dry_run'] = False
         if 'login2_user' not in ctx:
@@ -321,7 +322,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         if 'psycopg2' not in ctx:
             ctx['psycopg2'] = False
         return ctx
-    ctx = oerp_env_def(ctx=ctx)
+    # ctx = oerp_env_fill(ctx=ctx)
     confn = confn or ctx.get('conf_fn', './inv2draft_n_restore.conf')
     write_confn = False
     try:
@@ -336,21 +337,23 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                     elif p == 'db_name':
                         if db:
                             ctx[p] = db
-                        elif ctx[p] == 'demo':
+                        else:
                             ctx[p] = tkn[1]
                     else:
                         ctx[p] = tkn[1]
         fd.close()
     except BaseException:
         write_confn = True
-        ctx = oerp_env_def(ctx=ctx)
+        ctx = oerp_env_fill(ctx=ctx)
         for p in (P_LIST):
             if p == 'db_name' and db:
                 ctx[p] = db
             else:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx = oerp_env_def(ctx=ctx)
+        ctx = oerp_env_fill(ctx=ctx)
+    ctx = oerp_env_fill(ctx=ctx)
     oerp = open_connection(ctx)
+    ctx = read_config(ctx)
     lgiuser = do_login(oerp, ctx)
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')      # pragma: no cover
@@ -4425,6 +4428,7 @@ def import_config_file(oerp, ctx, csv_fn):
                                  fieldnames=[],
                                  restkey='undef_name',
                                  dialect='odoo')
+        select_4_ver = False
         for row in csv_obj:
             if not hdr_read:
                 csv_obj.fieldnames = row['undef_name']
@@ -4436,6 +4440,8 @@ def import_config_file(oerp, ctx, csv_fn):
                     file_valid = False
                 if 'value' not in csv_obj.fieldnames:
                     file_valid = False
+                if 'oe_versions' in csv_obj.fieldnames:
+                    select_4_ver = True
                 if file_valid:
                     continue
                 else:
@@ -4443,6 +4449,15 @@ def import_config_file(oerp, ctx, csv_fn):
                     msg = msg + u" Should be: user,name,value"
                     msg_log(ctx, ctx['level'] + 1, msg)
                     return STS_FAILED
+            if select_4_ver and row['oe_versions'].strip():
+                if row['oe_versions'].find('-') >= 0:
+                    item = '-' + ctx['oe_version']
+                    if row['oe_versions'].find(item) >= 0:
+                        continue
+                else:
+                    item = '+' + ctx['oe_version']
+                    if row['oe_versions'].find(item) < 0:
+                        continue
             user = eval_value(oerp,
                               ctx,
                               None,
@@ -4458,9 +4473,13 @@ def import_config_file(oerp, ctx, csv_fn):
                                None,
                                None,
                                row['value'])
-            sts = setup_config_param(oerp, ctx, user, name, value)
-            if sts != STS_SUCCESS:
-                break
+            if name:
+                sts = setup_config_param(oerp, ctx, user, name, value)
+                if sts != STS_SUCCESS:
+                    break
+            else:
+                msg = u"!Unmanaged parameter %s " % row['name']
+                msg_log(ctx, ctx['level'] + 1, msg)
         csv_fd.close()
     else:
         msg = u"!File " + csv_fn + " not found!"
@@ -4475,17 +4494,16 @@ def setup_config_param(oerp, ctx, username, name, value):
     v = os0.str2bool(value, None)
     if v is not None:
         value = v
-    cat_ids = searchL8(ctx, 'ir.module.category',
-                       [('name', '=', name)],
-                       context=context)
-
     if isinstance(value, bool):
         group_ids = searchL8(ctx, 'res.groups',
-                             [('category_id', '=', name)],
+                             [('name', '=', name)],
                              context=context)
     else:
+        cat_ids = searchL8(ctx, 'ir.module.category',
+                           [('name', '=', name)],
+                           context=context)
         group_ids = searchL8(ctx, 'res.groups',
-                             [('category_id', '=', name),
+                             [('category_id', 'in', cat_ids),
                               ('name', '=', value)],
                              context=context)
     if len(group_ids) != 1:
@@ -4495,10 +4513,7 @@ def setup_config_param(oerp, ctx, username, name, value):
             msg = u"!Parameter name '%s/%s' not found!" % (tounicode(name),
                                                            tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
-        import pdb
-        pdb.set_trace()
         return STS_FAILED
-    group_id = group_ids[0]
     user_ids = searchL8(ctx, 'res.users',
                         [('login', '=', username)])
     if len(user_ids) != 1:
@@ -4510,8 +4525,24 @@ def setup_config_param(oerp, ctx, username, name, value):
         msg = u"!User " + tounicode(username) + " not found!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
+    group_id = group_ids[0]
     vals = {}
-    if value:
+    if isinstance(value, bool):
+        if value and group_id not in user.groups_id.ids:
+            vals['groups_id'] = [(4, group_id)]
+            msg = u"%s.%s = True" % (tounicode(username), tounicode(name))
+            msg_log(ctx, ctx['level'] + 2, msg)
+        elif not value and group_id in user.groups_id.ids:
+            vals['groups_id'] = [(3, group_id)]
+            msg = u"%s.%s = False" % (tounicode(username), tounicode(name))
+            msg_log(ctx, ctx['level'] + 2, msg)
+    else:
+        for id in searchL8(ctx, 'res.groups',
+                           [('category_id', 'in', cat_ids)],
+                           context=context):
+            if id != group_id and id in user.groups_id.ids:
+                vals['groups_id'] = [(3, id)]
+                writeL8(ctx, 'res.users', user_ids, vals)
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
@@ -4521,11 +4552,6 @@ def setup_config_param(oerp, ctx, username, name, value):
                 msg = u"%s.%s/%s" % (tounicode(username),
                                      tounicode(name),
                                      tounicode(value))
-            msg_log(ctx, ctx['level'] + 2, msg)
-    else:
-        if group_id in user.groups_id.ids:
-            vals['groups_id'] = [(3, group_id)]
-            msg = u"%s.%s = False" % (tounicode(username), tounicode(name))
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         writeL8(ctx, 'res.users', user_ids, vals)
@@ -4817,6 +4843,7 @@ def main():
             do_newdb = True
     if do_conn:
         oerp = open_connection(ctx)
+        ctx = read_config(ctx)
     else:
         oerp = None
     ctx['multi_user'] = multiuser(ctx,

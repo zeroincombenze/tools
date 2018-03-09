@@ -9,24 +9,28 @@
 """Clodoo core functions
 """
 
-from os0 import os0
 import re
-import oerplib
+
 import odoorpc
+import oerplib
+from os0 import os0
 
 from clodoolib import debug_msg_log
-from transodoo import (translate_from_sym, translate_from_to)
+from transodoo import translate_from_sym, translate_from_to
+
 try:
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
     postgres_drive = True
-except BaseException:
+except BaseException:                                        # pragma: no cover
     postgres_drive = False
+
 
 STS_FAILED = 1
 STS_SUCCESS = 0
 
-__version__ = "0.3.4.2"
+
+__version__ = "0.3.4.5"
 
 
 #############################################################################
@@ -63,7 +67,7 @@ def connectL8(ctx):
                                 protocol=ctx['svc_protocol'],
                                 port=ctx['xmlrpc_port'],
                                 version=ctx['oe_version'])
-    except BaseException:
+    except BaseException:                                    # pragma: no cover
         return u"!Odoo server %s is not running!" % ctx['oe_version']
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['server_version'] = odoo.version
@@ -190,7 +194,7 @@ def bound_6_to_z0(ctx, model, res, btable=None):
                 i = btable[p].find('.')
                 if i >= 0:
                     p1 = btable[p][0:i]
-                    p2 = btable[p][i+1:]
+                    p2 = btable[p][i + 1:]
                     setattr(res, p, res[p1][p2])
                 else:
                     setattr(res, p, res[btable[p]])
@@ -387,12 +391,12 @@ def eval_value(oerp, ctx, o_model, name, value):
                      (value[0:2] == "[(" and value[-2:] == ")]")):
                 try:
                     value = eval(value, None, ctx)
-                except BaseException:
+                except BaseException:                        # pragma: no cover
                     pass
         elif value in ('True', 'False'):
             try:
                 value = eval(value, None, ctx)
-            except BaseException:
+            except BaseException:                            # pragma: no cover
                 pass
     return value
 
@@ -418,7 +422,7 @@ def expr(oerp, ctx, o_model, code, value):
                 else:
                     try:
                         v = eval(v, None, ctx)
-                    except BaseException:
+                    except BaseException:                    # pragma: no cover
                         pass
                 if i > 0:
                     res = concat_res(res, value[0:i])
@@ -474,7 +478,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
         try:
             o = browseL8(ctx, 'ir.model.data', ids[0])
             ids = [o.res_id]
-        except BaseException:
+        except BaseException:                                # pragma: no cover
             ids = None
     if ids is None:
         return []
@@ -525,7 +529,7 @@ def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
         where.append(('company_id', '=', company_id))
     try:
         ids = searchL8(ctx, model, where)
-    except BaseException:
+    except BaseException:                                    # pragma: no cover
         ids = None
     return ids
 
@@ -670,7 +674,7 @@ def _get_model_parms(oerp, ctx, o_model, value):
             model = None
             try:
                 value = eval(value, None, ctx)
-            except BaseException:
+            except BaseException:                            # pragma: no cover
                 pass
     else:
         model = value[:i]

@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# Copyright 2017-2018, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+#
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 import sys
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # import oerplib
 import clodoo
 from z0lib import parseoptargs
-# import pdb
 
-
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
@@ -54,8 +60,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         try:
             oerp.write('account.invoice', tmp_inv_id, {
                        'state': 'cancel', 'number': '', 'internal_number': ''})
-            pass
-        except BaseException:
+        except BaseException:                                # pragma: no cover
             pass
         oerp.unlink('account.invoice', [tmp_inv_id])
     if cur_inv_id:
@@ -84,7 +89,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     if cur_num and tmp_num and tmp_num != cur_num:
         vals['internal_number'] = tmp_num
     if len(vals):
-        print ">> Update values ", inv_id,  vals
+        print ">> Update values ", inv_id, vals
         oerp.write('account.invoice', inv_id, vals)
     print ">> Posted"
     clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
@@ -111,7 +116,7 @@ def set_type_of_id(id, list=None):
     else:
         try:
             return eval(id)
-        except BaseException:
+        except BaseException:                                # pragma: no cover
             if list:
                 return []
             else:
@@ -266,37 +271,61 @@ def print_move_info(inv_id):
 parser = parseoptargs("Set invoice status",
                       "© 2017-2018 by SHS-AV s.r.l.",
                       version=__version__)
+
+
 parser.add_argument('-h')
+
+
 parser.add_argument("-c", "--config",
                     help="configuration command file",
                     dest="conf_fn",
                     metavar="file",
                     default='./inv2draft_n_restore.conf')
+
+
 parser.add_argument('-n')
+
+
 parser.add_argument('-q')
+
+
 parser.add_argument('-V')
+
+
 parser.add_argument('-v')
+
+
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 oerp, uid, ctx = clodoo.oerp_set_env(ctx=ctx)
 print "Invoice set Draft and Restore - %s" % __version__
+
+
 HDRDTL = {}
 for search_mode in (':A:', ':C:'):
     HDRDTL[search_mode] = 'D'
 for search_mode in (':I:', ':N:', ':P:'):
     HDRDTL[search_mode] = 'H'
+
+
 INVMOV = {}
 for action in ('P', 'U', 'X'):
     INVMOV[action] = 'M'
 for action in ('B', 'C', 'D', 'N', 'R', 'S', 'V'):
     INVMOV[action] = 'I'
+
+
 MODEL = {'MH': 'account.move',
          'MD': 'account.move.line',
          'IH': 'account.invoice',
          'ID': 'account.invoice.line',
          'AC': 'account.account'}
+
+
 STSNAME = {}
 STSNAME['draft'] = {'MD': 'valid', 'MH': 'draft', 'IH': 'draft'}
 STSNAME['cancel'] = {'IH': 'cancel'}
+
+
 NM = {'M': 'name', 'I': 'number'}
 search_mode = ""
 target = ""
@@ -360,7 +389,7 @@ while True:
         if search_mode == ':C:':
             account_id = get_ids_from_code(MODEL['AC'], company_id, target)
         elif search_mode == ':A:':
-            account_id = set_type_of_id(target,  list=True)
+            account_id = set_type_of_id(target, list=True)
         elif search_mode == ':P:':
             partner_id = set_type_of_id(target)
         if search_mode in (':A:', ':C:', ':N:', ':P:'):
@@ -512,7 +541,7 @@ while True:
             else:
                 try:
                     new_account_id = int(target_acc)
-                except BaseException:
+                except BaseException:                        # pragma: no cover
                     continue
         # print rec_ids
         for id in rec_ids:
@@ -608,7 +637,7 @@ while True:
                 oerp.execute('account.invoice',
                              "button_reset_taxes",
                              [inv_id])
-            except BaseException:
+            except BaseException:                            # pragma: no cover
                 pass
         print ">> Posted"
         clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
@@ -626,6 +655,6 @@ while True:
                         clodoo.reconcile_invoices(oerp,
                                                   cur_reconcile_dict,
                                                   ctx)
-                    except BaseException:
+                    except BaseException:                    # pragma: no cover
                         print "**** Warning invoice %d ****" % inv_id
                         print reconciles

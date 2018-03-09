@@ -1,0 +1,17 @@
+model	name	6.1	7.0	8.0	9.0	10.0
+res_groups	MANAGER	Manager	Manager	Manager	Manager	Manager
+res_groups	USER_OWN	User	User	See Own Leads	See Own Leads	User: Own Documents Only
+res_groups	ADMINISTRATION_SETTINGS	Configuration	Settings	Settings	Settings	Settings
+res_groups	SALES	Sales Management	Sales	Sales	Sales	Sales
+res_groups	PROJECT	Project Management	Project	Project	Project	Project
+res_groups	MANAGE_INVENTORY_VALUATION	Manage Inventory valuation	Manage Inventory valuation	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods
+res_groups	WAREHOUSE	Warehouse Management	Warehouse	Warehouse	Warehouse	Warehouse
+res_groups	KNOWLEDGE	Knowledge Management	Knowledge	Knowledge	Knowledge	Knowledge
+res_groups	MANAGE_MULTIPLE_LOCATION	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage multiple stock_locations
+res_groups	MANAGE_LOGISTIC_SERIAL_NUMBERS	Manage Logistic Serial Numbers	Manage Logistic Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
+res_groups	USER_ALL	User - All Leads	See all Leads	See all Leads	See all Leads	User: All Documents
+res_groups	MANAGE_SERIAL_NUMBERS	Manage Serial Numbers	Manage Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
+res_groups	PURCHASES	Purchase Management	Purchases	Purchases	Purchases	Purchases
+res_groups	PURCHASE_PRICELISTS	Purchase Pricelists	Purchase Pricelists	Purchase Pricelists	Pricelists On Product	Pricelists On Product
+res_groups	KNOWLEDGE_USER	User	User	User	Knowledge user	Knowledge user
+res_groups	FINANCIAL_MANAGER	Manager	Financial Manager	Financial Manager	Adviser	Adviser

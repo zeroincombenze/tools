@@ -21,12 +21,14 @@ from datetime import date
 
 from os0 import os0
 
-
-# Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
+
+
 CONF_FN = "./clodoo.conf"
 # Read Odoo configuration file (False or /etc/odoo-server.conf)
+
+
 ODOO_CONF = ["/etc/odoo/odoo-server.conf",
              "/etc/odoo/odoo.conf",
              "/etc/odoo-server.conf",
@@ -35,9 +37,13 @@ ODOO_CONF = ["/etc/odoo/odoo-server.conf",
              "/etc/openerp-server.conf",
              "/etc/odoo/openerp-server.conf", ]
 # Read Odoo configuration file (False or /etc/openerp-server.conf)
+
+
 OE_CONF = False
 # Warning: if following LX have no values LX=(), if have 1 value LX=(value,)
 # list of string parameters in [options] of config file
+
+
 LX_CFG_S = ('db_name',
             'db_user',
             'login_user',
@@ -85,6 +91,8 @@ LX_CFG_S = ('db_name',
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
+
+
 LX_CFG_SB = ('install_modules',
              'uninstall_modules',
              'actions',
@@ -93,6 +101,8 @@ LX_CFG_SB = ('install_modules',
              'actions_uu',
              'heavy_trx')
 # list of pure boolean parameters in [options] of config file
+
+
 LX_CFG_B = ('set_passepartout',
             'check_balance',
             'with_demo',
@@ -106,26 +116,39 @@ LX_CFG_B = ('set_passepartout',
             )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
+
+
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
             'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port',
             'oe_version')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
+
+
 LX_OPT_B = ('dry_run', 'with_demo')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
+
+
 LX_OPT_N = ()
 # list of opponent options
+
+
 LX_OPT_OPPONENT = {}
 # List of string/boolean parameters; may be string or boolean value;
 # must be declared in LX_CFG_S or LX_OPT_S
+
+
 LX_SB = ()
 # switch values of options
+
+
 LX_OPT_ARGS = {}
 DEFDCT = {}
+
 
 msg_time = time.time()
 
 
-__version__ = "0.3.4.2"
+__version__ = "0.3.4.5"
 
 
 #############################################################################
@@ -219,7 +242,7 @@ def ismbcs(t):
         try:
             t = unicode(t)
             return False
-        except BaseException:
+        except BaseException:                                # pragma: no cover
             return True
     return False
 
@@ -232,7 +255,7 @@ def strtype(t):
         try:
             t = unicode(t)
             return 'ascii'
-        except BaseException:
+        except BaseException:                                # pragma: no cover
             return 'mbcs'
     else:
         return None
@@ -427,20 +450,30 @@ def read_config(ctx):
         ctx['conf_fn'] = "./" + ctx['caller'] + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
-    if ctx['conf_fn']:
-        ctx['conf_fns'].append(ctx['conf_fn'])
     if ODOO_CONF:
+        if 'oe_version' in ctx:
+            vid = ctx['oe_version'].split('.')[0]
+            fver = 'odoo' + vid
         if isinstance(ODOO_CONF, list):
             for f in ODOO_CONF:
                 if os.path.isfile(f):
                     ctx['conf_fns'].append(f)
                     break
+                elif 'oe_version' in ctx:
+                    d = os.path.dirname(f)
+                    b = os.path.basename(f)
+                    f = '/'.join([d, b.replace('odoo', fver)])
+                    if os.path.isfile(f):
+                        ctx['conf_fns'].append(f)
+                        break
         elif os.path.isfile(ODOO_CONF):
             ctx['conf_fns'].append(ODOO_CONF)
         elif os.path.isfile(OE_CONF):
             ctx['conf_fns'].append(OE_CONF)
         if CONF_FN and CONF_FN not in ctx['conf_fns']:
             ctx['conf_fns'].append(CONF_FN)
+    if ctx['conf_fn'] not in ctx['conf_fns']:
+        ctx['conf_fns'].append(ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
     return ctx

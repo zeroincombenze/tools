@@ -1,23 +1,11 @@
 # -*- coding: utf-8 -*-
-##############################################################################
 #
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
+#
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 #    All Rights Reserved
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 """
     Clodoo Regression Test Suite
 """
@@ -25,23 +13,17 @@
 # import pdb
 # import os.path
 import sys
-from zerobug import Z0test
 from datetime import date
-from clodoo.clodoocore import _import_file_model
-from clodoo.clodoocore import _get_model_code
-from clodoo.clodoocore import _get_model_name
-from clodoo.clodoocore import _import_file_dbtype
-from clodoo.clodoocore import import_file_get_hdr
-from clodoo.clodoocore import eval_value
-from clodoo.clodoocore import _get_model_bone
-from clodoo.clodoocore import _model_has_company
-from clodoo.clodoocore import get_query_id
-from clodoo.clodoo import create_act_list
-from clodoo.clodoo import isaction
-from clodoo.clodoo import check_4_actions
-from clodoo.clodoo import do_single_action
 
-__version__ = "0.3.4.2"
+from clodoo.clodoo import (check_4_actions, create_act_list, do_single_action,
+                           isaction)
+from clodoo.clodoocore import (_get_model_bone, _get_model_code,
+                               _get_model_name, _import_file_dbtype,
+                               _import_file_model, _model_has_company,
+                               eval_value, get_query_id, import_file_get_hdr)
+from zerobug import Z0test
+__version__ = "0.3.4.5"
+
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -861,7 +843,6 @@ class Test():
 
 
 #
-# Run main if executed as a script
 if __name__ == "__main__":
     Z = Z0test
     ctx = Z.parseoptest(sys.argv[1:],
@@ -869,4 +850,3 @@ if __name__ == "__main__":
     sts = Z.main_local(ctx, Test)
     exit(sts)
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
