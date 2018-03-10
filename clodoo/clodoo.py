@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.5"
+__version__ = "0.3.4.6"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -292,7 +292,9 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         ctx = ctx or {}
         if 'db_host' not in ctx or not ctx['db_host']:
             ctx['db_host'] = 'localhost'
-        if 'db_name' not in ctx or not ctx['db_name']:
+        if db:
+            ctx['db_name'] = db
+        elif 'db_name' not in ctx or not ctx['db_name']:
             ctx['db_name'] = 'demo'
         if 'login_user' not in ctx or not ctx['login_user']:
             ctx['login_user'] = 'admin'
@@ -323,7 +325,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             ctx['psycopg2'] = False
         return ctx
     # ctx = oerp_env_fill(ctx=ctx)
-    confn = confn or ctx.get('conf_fn', './inv2draft_n_restore.conf')
+    ctx = ctx or {}
+    confn = confn or ctx.get('conf_fn', './clodoo.conf')
     write_confn = False
     try:
         fd = open(confn, 'rU')
@@ -334,11 +337,6 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 if tkn[0] == p:
                     if p == 'xmlrpc_port':
                         ctx[p] = int(tkn[1])
-                    elif p == 'db_name':
-                        if db:
-                            ctx[p] = db
-                        else:
-                            ctx[p] = tkn[1]
                     else:
                         ctx[p] = tkn[1]
         fd.close()
