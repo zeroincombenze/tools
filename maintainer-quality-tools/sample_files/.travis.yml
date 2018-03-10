@@ -1,3 +1,5 @@
+# Odoo yaml template for travis-ci
+# __version__=0.1.2
 language: python
 sudo: false
 cache:
@@ -8,52 +10,57 @@ cache:
 python:
   - "2.7"
 
+git:
+  submodules: false
+
 addons:
   apt:
 #    sources:
 #    Search your sources alias here:
 #      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
-      - expect-dev  # provides unbuffer utility
-      - python-lxml  # because pip installation is slow
-      - python-simplejson
-      - python-serial
-      - python-yaml
 #     Search your packages here:
 #       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
 #     For wkhtmltopdf, see the env section below
 
+before_install:
+#   - export TRAVIS_DEBUG_MODE="1"
 # Sometimes complicated website repos need Compass & SaSS:
-#before_install:
 #  - rvm install ruby --latest
 #  - gem install bootstrap-sass
 #  - gem install compass --pre
 
+install:
+#   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+#   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_nightly
+# [//]: # (addons)
+
 env:
   global:
-  - VERSION="10.0" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
+  - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
   # Set this variable to some version existing as linux-generic build on
   # https://github.com/wkhtmltopdf/wkhtmltopdf/releases
   # if you need to install wkhtmltopdf
   # - WKHTMLTOPDF_VERSION="0.12.4"
   # Set the above to install a `wkhtmltopdf` version that is not the one provided
   # by the `pov-wkhtmltopdf` repo.
-  - PHANTOMJS_VERSION="latest"
+  # - PHANTOMJS_VERSION="latest"
   # The above line controls the PhantomJS version that is used for JS testing.
   #   It is not necessary to include this value unless you are altering the default.
   #   Use `OS` to skip the PhantomJS upgrade & use the system version instead.
-  - WEBSITE_REPO="1"
+  # - WEBSITE_REPO="1"
   # Use the above line to install dependencies that are required for website repos:
   # * SASS & Bootstrap-SASS
   # * Compass
-  - TRANSIFEX_USER='transbot@odoo-community.org'
+  # - TRANSIFEX_USER='transbot@odoo-community.org'
   # This line contains the encrypted transifex password
   # To encrypt transifex password, install travis ruby utils with:
   #   $ gem install travis --user-install
   # and use:
   #   $ travis encrypt TRANSIFEX_PASSWORD=your-password -r owner/project
   # Secure list for current OCA projects is in https://github.com/OCA/maintainer-quality-tools/issues/194
-  - secure: PjP88tPSwimBv4tsgn3UcQAD1heK/wcuSaSfhi2xUt/jSrOaTmWzjaW2gH/eKM1ilxPXwlPGyAIShJ2JJdBiA97hQufOeiqxdkWDctnNVVEDx2Tk0BiG3PPYyhXPgUZ+FNOnjZFF3pNWvzXTQaB0Nvz8plqp93Ov/DEyhrCxHDs=
+  # - secure: PjP88tPSwimBv4tsgn3UcQAD1heK/wcuSaSfhi2xUt/jSrOaTmWzjaW2gH/eKM1ilxPXwlPGyAIShJ2JJdBiA97hQufOeiqxdkWDctnNVVEDx2Tk0BiG3PPYyhXPgUZ+FNOnjZFF3pNWvzXTQaB0Nvz8plqp93Ov/DEyhrCxHDs=
   # Use the following lines if you need to manually change the transifex project slug or/and the transifex organization.
   # The default project slug is owner-repo_name-version (with dash in the version string).
   # The default organization is the owner of the repo.
@@ -78,11 +85,6 @@ env:
 
 virtualenv:
   system_site_packages: true
-
-install:
-  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
-  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - travis_install_nightly
 
 script:
   - travis_run_tests

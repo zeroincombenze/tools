@@ -112,3 +112,46 @@ If you want to make a build without tests, you can use the following directive:
 
 You will simply get the databases with packages installed, 
 but whithout running any tests.
+
+Local debug
+-----------
+
+If you declare the following directive in <env global> section:
+`TRAVIS_DEBUG_MODE="1"`
+
+enable debug mode execution; emulatore shows more verbose messages
+
+Tree directory
+--------------
+
+While travis is running this is the tree directory:
+
+    ${HOME}
+    |
+    \___ build (by Travis CI)
+    |    |
+    |    \___ ${TRAVIS_BUILD_DIR}  (by Travis CI}
+    |    |    # github tested project
+    |    |
+    |    \___ ${ODOO_REPO} (by travis_install_nightly of .travis.yml)
+    |         # same of OCA .travis.yml
+    |         # Odoo or OCA repository to check with
+    |
+    \___ maintainer-quality-tools (by .travis.yml)
+    |    # same of OCA .travis.yml
+    |    # moved from ${HOME}/tools/maintainer-quality-tools
+    |    |
+    |    \___ travis (child of maintainer-quality-tools), in PATH
+    |
+    \___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
+    |    # same of OCA .travis.yml
+    |    # symlnk of ${HOME}/build/{ODOO_REPO}
+    |    # Odoo or OCA repository to check with
+    |
+    \___ dependencies (by travis_install_nightly of .travis.yml)
+    |    # Odoo dependencies
+    |
+    \___ tools (by .travis.yml)   # clone of this project
+         |
+         \___ maintainer-quality-tools (child of tools)
+              # moved to ${HOME}/maintainer-quality-tools 

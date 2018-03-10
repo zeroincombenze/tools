@@ -223,7 +223,7 @@ def get_script_path(server_path, script_name):
 
 def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                  addons_path, install_options, preinstall_modules=None,
-                 unbuffer=True, server_options=None):
+                 unbuffer=True, server_options=None, travis_debug_mode=False):
     """
     Setup the base module before running the tests
     if the database template exists then will be used.
@@ -257,10 +257,11 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                      "--init", ','.join(preinstall_modules),
                      ] + install_options + server_options
         print(" ".join(cmd_strip_secret(cmd_odoo)))
-        try:
-            subprocess.check_call(cmd_odoo)
-        except subprocess.CalledProcessError as e:
-            return e.returncode
+        if not travis_debug_mode:
+            try:
+                subprocess.check_call(cmd_odoo)
+            except subprocess.CalledProcessError as e:
+                return e.returncode
     return 0
 
 
@@ -340,7 +341,7 @@ def main(argv=None):
     dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
     # [antoniov: 2018-02-28]
-    travis_debug_mode = os.environ.get('TRAVIS_DEBUG_MODE')
+    travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
     if not odoo_version:
         # For backward compatibility, take version from parameter
         # if it's not globally set
@@ -399,7 +400,7 @@ def main(argv=None):
     print("Modules to preinstall: %s" % preinstall_modules)
     setup_server(dbtemplate, odoo_unittest, tested_addons, server_path,
                  script_name, addons_path, install_options, preinstall_modules,
-                 unbuffer, server_options)
+                 unbuffer, server_options, travis_debug_mode)
 
     # Running tests [antoniov: 2018-02-28]
     script_path = get_script_path(server_path, script_name)
@@ -460,30 +461,33 @@ def main(argv=None):
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors
                 command_call = (["unbuffer"] if unbuffer else []) + command
-            # [antoniov: 2018-02-17] bleah!!!
-            if odoo_version == "6.1":
-                subprocess.call(command_call[2:])
-            # [/antoniov]
-            print(" ".join(cmd_strip_secret(command_call)))
-            pipe = subprocess.Popen(command_call,
-                                    stderr=subprocess.STDOUT,
-                                    stdout=subprocess.PIPE)
-            with open('stdout.log', 'wb') as stdout:
-                for line in iter(pipe.stdout.readline, b''):
-                    stdout.write(line)
-                    print(line.strip().decode('UTF-8'))
-            returncode = pipe.wait()
-            # Find errors, except from failed mails
-            errors = has_test_errors(
-                "stdout.log", database, odoo_version, check_loaded)
-            if returncode != 0:
-                all_errors.append(to_test)
-                print(fail_msg, "Command exited with code %s" % returncode)
-                # If not exists errors then
-                # add an error when returcode!=0
-                # because is really a error.
-                if not errors:
-                    errors += 1
+            if travis_debug_mode:
+                errors = 0
+            else:
+                # [antoniov: 2018-02-17] bleah!!!
+                if odoo_version == "6.1":
+                    subprocess.call(command_call[2:])
+                # [/antoniov]
+                print(" ".join(cmd_strip_secret(command_call)))
+                pipe = subprocess.Popen(command_call,
+                                        stderr=subprocess.STDOUT,
+                                        stdout=subprocess.PIPE)
+                with open('stdout.log', 'wb') as stdout:
+                    for line in iter(pipe.stdout.readline, b''):
+                        stdout.write(line)
+                        print(line.strip().decode('UTF-8'))
+                returncode = pipe.wait()
+                # Find errors, except from failed mails
+                errors = has_test_errors(
+                    "stdout.log", database, odoo_version, check_loaded)
+                if returncode != 0:
+                    all_errors.append(to_test)
+                    print(fail_msg, "Command exited with code %s" % returncode)
+                    # If not exists errors then
+                    # add an error when returcode!=0
+                    # because is really a error.
+                    if not errors:
+                        errors += 1
             if errors:
                 counted_errors += errors
                 all_errors.append(to_test)
