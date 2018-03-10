@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.4
+#__version__=0.2.0.6
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -344,8 +344,10 @@ init_travis() {
       if [ "$PRJNAME" == "Odoo" ]; then
         if [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
-        elif [ -d $HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis ]; then
-          MQT_PATH=$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis
+        # elif [ -d $HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis ]; then
+        #   MQT_PATH=$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis
+        elif [ -d $HOME/dev/pypi/__old_maintainer-quality-tools/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/dev/pypi/__old_maintainer-quality-tools/maintainer-quality-tools/travis
         elif [ -d $HOME/maintainer-quality-tools/travis ]; then
           MQT_PATH=$HOME/maintainer-quality-tools/travis
         elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
