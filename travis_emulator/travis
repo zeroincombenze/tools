@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.6
+__version__=0.2.0.7
 
 
 store_cfg_param_value() {
@@ -501,11 +501,18 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        if [ ${opt_virt:-0} -eq 0 ]; then
-          xcmd="# $xcmd"
+        #TODO if [ ${opt_virt:-0} -eq 0 ]; then
+        #TODO   xcmd="# $xcmd"
+        #TODO else
+        #TODO   xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
+        #TODO fi
+        if [ $opt_dbgmnt -ne 0 ]; then
+          local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
         else
-          xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
+          local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
         fi
+        TRAVIS_MQT_PATH=$(readlink -e $TRAVIS_MQT_PATH/..)
+        xcmd="cp -R $TRAVIS_MQT_PATH $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -698,7 +705,7 @@ process_yaml() {
       if [ -n "${PIPPKGVER[*]}" ]; then
         wlog "\$ PIPPKGVER=\"${!PIPPKGVER[*]}\""
       fi
-      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
+      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_DEF_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
