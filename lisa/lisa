@@ -307,7 +307,7 @@ set_from_conf_pkg() {
       PKG_CONF=$(findpkg "lisa.lish" "$sdir")
       SAMPLE=$(findpkg "lisa.lish.sample" "$sdir")
     fi
-    pkg=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
+    pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
     get_conf_pkg "$PKG_CONF" "$SAMPLE" "$pkg" $3
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return #set_from_conf_pkg">>~/$THIS.his
 }
@@ -364,6 +364,8 @@ get_prm_value() {
           p="yum"
         elif [[ " $APT_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           p="apt-get"
+        elif [[ " $NPM_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
+          p="npm"
         elif [[ " $PIP_PYSTD_PKGS " =~ [[:space:]]$x[[:space:]/] ]] || [[ " $STD_PKGS " =~ [[:space:]]$x[[:space:]] ]]; then
           if [ "$FH" == "RHEL" ]; then
             p="yum"
@@ -463,7 +465,9 @@ init_cfg_pkg() {
     STD_PKGS="$(get_prm_value STD_PKGS list) EVERYTHINGS"
     YUM_PKGS="$(get_prm_value YUM_PKGS list)"
     APT_PKGS="$(get_prm_value APT_PKGS list)"
+    NPM_PKGS="$(get_prm_value NPM_PKGS list)"
     PIP_PYSTD_PKGS="$(get_prm_value PIP_PYSTD_PKGS list)"
+    NA_PKGS="$(get_prm_value NA_PKGS list)"
 }
 
 print_title() {
@@ -487,7 +491,7 @@ test_msg() {
 }
 
 ending_msg() {
-    if [ $test_mode -eq 0 ]; then
+    if [ $opt_verbose -gt 0 -a $test_mode -eq 0 ]; then
       echo "See $FLOG for traced informations"
     fi
 }
@@ -664,7 +668,7 @@ get_realname() {
     if [ "$1" == "." ]; then
       p="EVERYTHINGS"
     else
-      pkgname=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
+      pkgname=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
       for tid in 0 1 2 3; do
         p=$(get_cfg_value $tid REAL_$pkgname)
         if [ -n "$p" ]; then break; fi
@@ -707,14 +711,14 @@ get_specimen() {
     if [ "$1" == "." ]; then
       local specimen="~~~~~~"
     else
-      local c=$(echo "$1"|grep -Eo '[!<=>]*'|wc -l)
+      local c=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|wc -l)
       local i pkg pkgname lop rop lreqver rreqver xtlcmd op p
-      pkg=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n1)
+      pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
       i=1
       while ((i<=c)); do
-        op=$(echo "$1"|grep -Eo '[!<=>]*'|head -n$i|tail -n1)
+        op=$(echo "$1"|grep -Eo '[!<=>\\[]*'|head -n$i|tail -n1)
         ((i++))
-        p=$(echo "$1"|grep -Eo '[^!<=>]*'|head -n$i|tail -n1)
+        p=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n$i|tail -n1)
         if [ "$op" == "!!" ]; then
           xtlcmd=$p
         elif [ -z "$lreqver" ]; then
@@ -761,24 +765,35 @@ get_pkg_ver_inq() {
     elif [[ $2 =~ J ]]; then
       :
     else
-      vfycmd=$(get_prm_value "${pkgname}_vfycmd")
-      cmdname=$(get_prm_value "${pkgname}_cmdname")
-      if [ -z "$vfycmd" ]; then
-        [ -n "$cmdname" ] && vfycmd=$(get_prm_value "${cmdname}_vfycmd")
-      fi
-      if [ -n "$vfycmd" ]; then
-        x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
-        p=$($x &>/dev/null)
-        if [ $? -eq $STS_SUCCESS ]; then
-          if [[ " $VFYERR " =~ [[:space:]]$cmdname[[:space:]] ]]; then
-            pkgversion="$($vfycmd 2>&1 |head -n1)"
-          elif [[ " $VFYE2NL " =~ [[:space:]]$cmdname[[:space:]] ]]; then
-            pkgversion="$($vfycmd|head -n1)"
-          else
-            pkgversion="$($vfycmd 2>/dev/null|head -n1)"
+      if [ "$FH" == "RHEL" -a "$1" == "build-essential" ]; then
+        x=$(yum -e1 group info 'Development Tools' 1>/dev/null|grep -q "Warning.*group.*does not exist")
+        if [ -z "$x" ]; then
+          pkgversion="N/A"
+        else
+          pkgversion=
+        fi
+      elif [[ " $NA_PKGS " =~ [[:space:]]$1[[:space:]] ]]; then
+        pkgversion=N/Y/A
+      else
+        vfycmd=$(get_prm_value "${pkgname}_vfycmd")
+        cmdname=$(get_prm_value "${pkgname}_cmdname")
+        if [ -z "$vfycmd" ]; then
+          [ -n "$cmdname" ] && vfycmd=$(get_prm_value "${cmdname}_vfycmd")
+        fi
+        if [ -n "$vfycmd" ]; then
+          x="$(echo $vfycmd|head -n1|awk -F\| '{print $1}'|awk -F'2>' '{print $1}'|awk -F'&>' '{print $1}')"
+          p=$($x &>/dev/null)
+          if [ $? -eq $STS_SUCCESS ]; then
+            if [[ " $VFYERR " =~ [[:space:]]$cmdname[[:space:]] ]]; then
+              pkgversion="$($vfycmd 2>&1 |head -n1)"
+            elif [[ " $VFYE2NL " =~ [[:space:]]$cmdname[[:space:]] ]]; then
+              pkgversion="$($vfycmd|head -n1)"
+            else
+              pkgversion="$($vfycmd 2>/dev/null|head -n1)"
+            fi
+          elif [[ $2 =~ I ]]; then
+            pkgversion="($pkgname).($vfycmd)"
           fi
-        elif [[ $2 =~ I ]]; then
-          pkgversion="($pkgname).($vfycmd)"
         fi
       fi
       if [ "$pkgversion" ]; then
@@ -793,10 +808,10 @@ get_pkg_ver_pip() {
 # get_pkg_ver_pip(pkgname [OPTS])
 # return: pkgversion
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_pip($1 $2)">>~/$THIS.his
-    local pkgname="$1"
+    local pkgname pkgversion x
     local stscmd=pip
-    local pkgversion=
-    local x=
+    IFS=[ read pkgname x <<< $1
+    x=
     local X="VER__${1//-/_}"
     if [ -n "${!X}" ]; then
       pkgversion="${!X}"
@@ -928,6 +943,25 @@ get_pkg_ver_git() {
     echo $pkgversion
 }
 
+get_pkg_ver_npm() {
+# get_pkg_ver_npm(pkgname [OPTS] [param] [SPECIMEN])
+# return: pkgversion
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_npm($1 $2)">>~/$THIS.his
+    local pkgname="$1"
+    local pkgversion=
+    local x=
+    local X="VER__${1//-/_}"
+    if [ -n "${!X}" ]; then
+      pkgversion="${!X}"
+    elif [[ $2 =~ J ]]; then
+      :
+    else
+      pkgversion=$(npm version|grep $pkgname:|grep -Eo [0-9]+\.[0-9]+\.[0-9]+|head -n1)
+    fi
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $pkgversion=get_pkg_ver_npm($1 $2 $3 $4 $5)">>~/$THIS.his
+    echo $pkgversion
+}
+
 get_pkg_ver() {
 # get_pkg_ver(pkgname [OPTS] [param] [SPECIMEN])
 # return: pkgversion
@@ -1041,7 +1075,17 @@ get_full_xtlcmd() {
     fi
     if [ "$xtlcmd" == "yum" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
-      xtlcmd="$xtlcmd $1$pkgname"
+      if [ "$2" == "build-essential" ]; then
+        if [ "$1" == "install" ]; then
+          xtlcmd="$xtlcmd groupinstall 'Development Tools'"
+        else
+          xtlcmd="$xtlcmd group $1 'Development Tools'"
+        fi
+      elif [[ " $NA_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
+        xtlcmd="# $xtlcmd $1$pkgname"
+      else
+        xtlcmd="$xtlcmd $1$pkgname"
+      fi
     elif [ "$xtlcmd" == "apt-get" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
       xtlcmd="$xtlcmd ${1/update/upgrade}$pkgname"
@@ -1075,6 +1119,9 @@ get_full_xtlcmd() {
       else
         xtlcmd="git clone $pkg_URL $LocalDir $git_opts"
       fi
+    elif [ "$xtlcmd" == "npm" ]; then
+      xtlcmd="$xtlcmd -g";
+      xtlcmd="$xtlcmd ${1/remove/uninstall}$pkgname"
     fi
     if [[ $3 =~ I ]]; then
       if [ "$1" == "install" ]; then
@@ -1639,6 +1686,42 @@ add_file_2_pkg() {
       done
     fi
     return $s
+}
+
+do_dry_build_odoo() {
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_build_package($1 $2 $3)">>~/$THIS.his
+    local v x
+    cat > ~/tmp.py <<EOF
+import ast
+import sys
+
+
+def print_deps(manifest_file, deps_list=None):
+    deps_list = deps_list or {}
+    if manifest_file:
+        manifest = ast.literal_eval(open(manifest_file).read())
+        if manifest.get('external_dependencies'):
+            deps = manifest['external_dependencies']
+            for kw in ('python', 'bin'):
+                if deps.get(kw):
+                    if kw not in deps_list:
+                        deps_list[kw] = []
+                    for item in deps[kw]:
+                        if item not in deps_list[kw]:
+                            deps_list[kw].append(item)
+    return deps_list
+
+deps_list = {}
+for manifest_file in sys.argv[1].split(','):
+    deps_list = print_deps(manifest_file, deps_list=deps_list)
+for kw in ('python', 'bin'):
+    if kw in deps_list:
+        print ','.join(deps_list[kw])
+EOF
+    for v in 6.1 7.0 8.0 9.0 10.0; do
+        x=$(find ~/$v -name __openerp__.py|tr "\n" ",")
+        python ~/tmp.py $x
+    done
 }
 
 do_dry_build_package() {
@@ -2609,15 +2692,19 @@ post_dry_update_odoo() {
 do_dry_status_package() {
 # do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
-    local lm x=$((prdstk_level*2))
+    local cmd lm x=$((prdstk_level*2))
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
     sts=$?
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "$5")
     if [ $sts -eq $STS_SUCCESS ]; then
-      local cmd="wlog \"$lm$pkgname: installed by $xtlcmd\""
+      if [ -z "$xtlcmd" ]; then
+        cmd="wlog \"$lm$pkgname: not (yet) avaiable on this platform\""
+      else
+        cmd="wlog \"$lm$pkgname: installed by $xtlcmd\""
+      fi
     else
-      local cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
+      cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
     fi
     eval $cmd
     if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #dry_status_package">>~/$THIS.his; fi    #debug
@@ -2965,7 +3052,10 @@ do_1_info_package() {
       local cmdname=$(get_prm_value "${pkgname}_cmdname")
       local vfycmd=$(get_prm_value "${cmdname}_vfycmd")
       local req=$(get_prm_value "${2}_ReqPkgList")
-      if [[ $pkglist =~ = ]]; then
+      if [[ " $NA_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
+        echo "Package $2 not (yet) avaiable on this platform"
+        cmdname=
+      elif [[ $pkglist =~ = ]]; then
         echo "$pkglist (install by $xtlcmd)"
       else
         if [ "$2" == "$pkgname" ]; then
@@ -3238,12 +3328,12 @@ please() {
     if [ -z "$pfx" -o "$pfx" == "do_" ]; then
       [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "do_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$specimen"
       s=$?
-      [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$?
+      [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s
     fi
     if [ -z "$pfx" -o "$pfx" == "post_" ]; then
       [ $sts -eq $STS_SUCCESS ] && do_local_function_BOP "post_" "$svcname" "$act" "$pkgname" "$3$ij" "$4" "$specimen"
       s=$?
-      [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$?
+      [ $sts -eq $STS_SUCCESS ] && [ $s -ne 127 ] && [ $s -ne $STS_SUCCESS ] && sts=$s
     fi
     if [ $sts -ne $STS_SUCCESS ] || [[  "$3" =~ q ]]; then
       return $sts
@@ -3260,11 +3350,11 @@ please() {
 
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           s         T         u       V           v           y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""        0         ""      ""          -1           0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
+OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1       1)
+OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1           0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "trace to build configuration"\
  "configuration file (def /etc/lisa/lisa.conf)"\
@@ -3286,6 +3376,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "do not use pip if found std package "\
  "default for users, if added by import command"\
  "quiet mode"\
+ "install from the given requirements file"\
  "install odoo submodules"\
  "test mode (implies dry-run)"\
  "use file to install"\
@@ -3440,12 +3531,20 @@ else
   TITL_update="Update/upgrade package(s)"
   TITL_remove="Remove package package(s)"
   TITL_config="Configure package(s)"
-  SYSPRIV="config install remove status update version"
+  SYSPRIV="config install remove update"
   OPTS1ST="install update"
   ECHOCMDS="config install remove status update version"
   TAILMSG="install remove status update"
   REP_UPDATED=0
   opt_tail=0
+  if [ -n "$opt_req" ]; then
+    if [ ! -f "$opt_req" ]; then
+      elog "File $opt_req not found!"
+      exit $STS_FAILED
+    fi
+    x=$(cat $opt_req|tr "\n" " ")
+    pkgs="$pkgs $x"
+  fi
   if [ $opt_1st -gt 0 ]; then
     for act in $actions; do
       if [[ " $OPTS1ST " =~ [[:space:]]$act[[:space:]] ]]; then
@@ -3487,7 +3586,9 @@ else
         echo "Unknow action $act"
         exit $sts
       elif [ $sts -ne $STS_SUCCESS ]; then
-        echo "!!Error $sts in $act $package!"
+        if [ $opt_verbose -gt 0 ]; then
+          echo "!!Error $sts in $act $package!"
+        fi
         exit $sts
       fi
     done

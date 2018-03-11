@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 THIS=$(basename "$0")
@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.6
+__version__=0.2.6.2
 
 
 get_arch () {
@@ -56,11 +56,11 @@ get_arch () {
 }
 
 
-OPTOPTS=(h        C       E        I         L        m        N        n            O         P       T        t        U        V           v)
-OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_mult opt_name opt_dry_run  odoo_vid  opt_pid opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1        "=>"     1            "=>"      "=>"    "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       ""        ""       0        ""       0            "10"        ""     ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"   "name"   "do nothing" "version" "file"  "test"   "file"   "user"   "version"   "verbose")
+OPTOPTS=(h        C       E        I         L        m         N        n            O         P       S        T        t        U        V           v)
+OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_multi opt_name opt_dry_run  odoo_vid  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1         "=>"     1            "=>"      "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""      ""       ""        ""       0         ""       0            "10"        ""    0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"    "name"   "do nothing" "version" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
@@ -71,6 +71,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "select odoo version: may be 6, 7, 8, 9, 10 or 11"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
+ "use sudo to execute command instead of start-stop-daemon (only Debian)"
  "created test script does nothing (used for debug)"\
  "use template (def /etc/product/odoo-server_{linux_dist})"\
  "odoo service username"\
@@ -85,9 +86,10 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 if [ -z "$opt_name" ]; then
@@ -230,6 +232,12 @@ while IFS=\| read -r line; do
       declare $prm="$opt_user"
     elif [ "$prm" == "xtl_test" ]; then
       if [ "$opt_test" == "-T" ]; then
+        declare $prm="1"
+      else
+        declare $prm="0"
+      fi
+    elif [ "$prm" == "xtl_sudo" ]; then
+      if [ "$opt_sudo" -ne 0 ]; then
         declare $prm="1"
       else
         declare $prm="0"

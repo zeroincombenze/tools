@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.0.1
+#__version__=0.3.0.3
 
 
 get_odoo_major_ver() {
@@ -28,7 +28,7 @@ build_odoo_param() {
 # build_odoo_param(CONFN|SVCNAME|FULL_SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug}])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER
-    local p p1 p11 p2 p3 p4
+    local p p1 p11 p2 p3 p4 ldir
     if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
       MULTIVER=1
     else
@@ -39,14 +39,26 @@ build_odoo_param() {
         odoo_fver=$(get_odoo_full_ver "$2")
         odoo_ver=$(get_odoo_major_ver "$odoo_fver")
         odoo_vid="$2"
-      else
+      elif [[ "$2" == "OCB" ]]; then
+        for ldir in ~/OCB/server/openerp ~/OCB/openerp ~/OCB/odoo; do
+          if [[ -d $ldir && -f $ldir/release.py ]]; then
+            pushd $ldir &>/dev/null
+            odoo_fver=$(echo -e "import release\nprint release.version\n"|python)
+            popd &>/dev/null
+            odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+            odoo_vid="$2"
+            break
+          fi
+        done
+      fi
+      if [[ -z "$odoo_fver" ]]; then
         echo "Invalid Odoo version"
         # exit 1
       fi
     else
-      odoo_ver=10
-      odoo_fver=10.0
-      odoo_vid=10.0
+      odoo_ver=11
+      odoo_fver=11.0
+      odoo_vid=11.0
     fi
     if [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
@@ -78,7 +90,6 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
-        # let p="8070+$odoo_ver"
         let p="18060+$odoo_ver"
       elif [ "${odoo_vid:0:1}" == "v" ]; then
         p=8069
@@ -170,4 +181,22 @@ build_odoo_param() {
       p=$(basename $p)
     fi
     echo "$p"
+}
+
+discover_multi() {
+    local v p
+    local c=0
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for p in "" v odoo ODOO; do
+        odoo_bin=$(build_odoo_param BIN $p$v search)
+        if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+          ((c++))
+        fi
+      done
+    done
+    if [ $c -gt 2 ]; then
+      opt_multi=1
+    else
+      opt_multi=0
+    fi
 }

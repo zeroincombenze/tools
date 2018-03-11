@@ -9,6 +9,7 @@ xtl_version=10.0
 xtl_fversion=10.0
 xtl_user=odoo
 xtl_test=0
+xtl_sudo=0
 #!/bin/bash
 # ${xtl_name}           This shell script takes care of starting and stopping
 #                       ${xtl_Id} server ${xtl_fversion}
@@ -30,14 +31,16 @@ xtl_test=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.0-Debian
+# version: 0.4.3-Deb
 # Warning: this is a customized ${xtl_Id} script, running both Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by zeroincombenze(R) -  http://wiki.zeroincombenze.org/en/Odoo
+# (C) 2015-2018 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}
+# Use sudo to execute command instead of start-stop-daemon (only Debian)
+USE_SUDO=${xtl_sudo}
 # Recognize Linux distribution (Ubuntu or CentOS)
 OS=$(uname -s)
 FH=""
@@ -70,7 +73,7 @@ USER=${xtl_user}
 # search for execution command script
 DAEMON=
 for dn in odoo-bin openerp-server odoo-server odoo openerp; do
-  for dp in /opt/${USER}/v${xtl_version} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion} /usr/bin; do
+  for dp in /usr/local/bin /usr/bin /opt/${USER}/v${xtl_version} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion} /opt/${USER}/OCB; do
     DAEMON=$dp/$dn
     if [ -x "$DAEMON" ]; then
       break
@@ -128,17 +131,32 @@ checkpid() {
 check_privsep_dir() {
     # Create the PrivSep empty dir if necessary
     local PIDDIR=$(dirname $PIDFILE)
-    if [ ! -d $PIDDIR ]; then
-      mkdir $PIDDIR
-      chmod 0755 $PIDDIR
-      chown ${USER}:${USER} $PIDDIR
-    fi
-    if [ "$PIDDIR" != "/var/run" ]; then
-      uu=$(stat -c %U $PIDDIR)
-      if [ "$uu" != "${USER}" ]; then
-        echo "Invalid pid file owner!"
+    if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
+      if [ ! -d $PIDDIR ]; then
+        mkdir $PIDDIR
         chmod 0755 $PIDDIR
         chown ${USER}:${USER} $PIDDIR
+      fi
+    fi
+    if [ ! -f "$PIDFILE" ]; then
+      touch $PIDFILE
+      chmod 0755 $PIDFILE
+      chown ${USER}:${USER} $PIDFILE
+    fi
+    if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
+      uu=$(stat -c %U $PIDDIR)
+      if [ "$uu" != "${USER}" ]; then
+        echo "Invalid pid directory owner!"
+        chmod 0755 $PIDDIR
+        chown ${USER}:${USER} $PIDDIR
+      fi
+    fi
+    if [ -f "$PIDFILE" ]; then
+      uu=$(stat -c %U $PIDFILE)
+      if [ "$uu" != "${USER}" ]; then
+        echo "Invalid pid file owner!"
+        chmod 0755 $PIDFILE
+        chown ${USER}:${USER} $PIDFILE
       fi
     fi
 }
@@ -177,15 +195,24 @@ start_RHEL () {
 
 start_Debian () {
     check_privsep_dir
-    if [ $DRY_RUN -gt 0 ]; then
-      echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+    if [ -z "$USE_SUDO" ] || [ $USE_SUDO -eq 0 ]; then
+      if [ $DRY_RUN -gt 0 ]; then
+        echo "> start-stop-daemon --start --quiet --pidfile ${PIDFILE} --chuid ${USER} --background --make-pidfile --exec ${DAEMON} -- ${DAEMON_OPTS}"
+      else
+        start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
+              --chuid ${USER} --background --make-pidfile \
+              --exec ${DAEMON} -- ${DAEMON_OPTS}
+      fi
+      RETVAL=$?
     else
-      start-stop-daemon --start --quiet --pidfile ${PIDFILE} \
-            --chuid ${USER} --background --make-pidfile \
-            --exec ${DAEMON} -- ${DAEMON_OPTS}
+      if [ $DRY_RUN -gt 0 ]; then
+        echo "> sudo -u ${USER} -bn ${DAEMON} ${DAEMON_OPTS}"
+      else
+        sudo -u ${USER} -bn ${DAEMON} ${DAEMON_OPTS}
+      fi
+      RETVAL=$?
     fi
-    RETVAL=$?
-    echo "${NAME}."
+    # echo "${NAME}."
     return $RETVAL
 }
 
@@ -241,7 +268,7 @@ stop_Debian () {
             --oknodo
     fi
     RETVAL=$?
-    echo "${NAME}."
+    # echo "${NAME}."
     return $RETVAL
 }
 
