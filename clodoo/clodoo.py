@@ -4599,7 +4599,6 @@ def setup_config_param(oerp, ctx, username, name, value):
 def install_chart_of_account(oerp, ctx, name):
     sts = STS_SUCCESS
     context = get_context(ctx)
-    chart_setup_model = 'wizard.multi.charts.accounts'
     chart_template_id = searchL8(ctx, 'account.chart.template',
                                  [('name', '=', name)],
                                  context=context)
@@ -4619,16 +4618,23 @@ def install_chart_of_account(oerp, ctx, name):
         'currency_id': currency_id,
         'chart_template_id': chart_template_id
     }
-    chart_values.update(executeL8(ctx, chart_setup_model,
-                                  'onchange_chart_template_id',
-                                  [],
-                                  1)['value'])
-    chart_setup_id = executeL8(ctx, chart_setup_model,
-                               'create',
-                               chart_values)
-    executeL8(ctx, chart_setup_model,
-              'execute',
-              [chart_setup_id])
+    if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+        chart_setup_model = 'wizard.multi.charts.accounts'
+        chart_values.update(executeL8(ctx, chart_setup_model,
+                                      'onchange_chart_template_id',
+                                      [],
+                                      1)['value'])
+        chart_setup_id = executeL8(ctx, chart_setup_model,
+                                   'create',
+                                   chart_values)
+        executeL8(ctx, chart_setup_model,
+                  'execute',
+                  [chart_setup_id])
+    else:
+        executeL8(ctx,
+                  'account.chart.template',
+                  'try_loading_for_current_company',
+                  [chart_template_id])
     return sts
 
 
