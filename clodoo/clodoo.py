@@ -372,6 +372,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 pass
             elif p == 'db_name' and ctx[p] == 'demo':
                 pass
+            elif p == 'login_password':
+                fd.write('%s=%s\n' % (p, crypt(ctx[p])))
             else:
                 fd.write('%s=%s\n' % (p, ctx[p]))
         fd.close()

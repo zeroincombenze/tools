@@ -421,10 +421,19 @@ def docstring_summary(docstring):
     return text.strip()
 
 
+def fullname_conf(ctx):
+    if ctx.get('conf_fn'):
+        for p in ('.', './confs', './conf', './code'):
+            if os.path.isfile('%s/%s' % (p, ctx['conf_fn'])):
+                ctx['conf_fn'] = '%s/%s' % (p, ctx['conf_fn'])
+                break
+    return ctx
+
+
 def read_config(ctx):
     """Read both user configuration and local configuration."""
     if not ctx.get('conf_fn', None):
-        ctx['conf_fn'] = "./" + ctx.get('caller','clodoo') + ".conf"
+        ctx['conf_fn'] = ctx.get('caller','clodoo') + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
     if ODOO_CONF:
@@ -449,6 +458,7 @@ def read_config(ctx):
             ctx['conf_fns'].append(OE_CONF)
         if CONF_FN and CONF_FN not in ctx['conf_fns']:
             ctx['conf_fns'].append(CONF_FN)
+    ctx = fullname_conf(ctx)
     if ctx['conf_fn'] not in ctx['conf_fns']:
         ctx['conf_fns'].append(ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
@@ -575,6 +585,7 @@ def parse_args(arguments,
     if apply_conf:
         if hasattr(opt_obj, 'conf_fn'):
             ctx['conf_fn'] = opt_obj.conf_fn
+            ctx = fullname_conf(ctx)
         ctx = read_config(ctx)
         opt_obj = parser.parse_args(arguments)
     ctx = create_params_dict(ctx)

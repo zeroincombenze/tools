@@ -4,10 +4,10 @@ import sys
 # import oerplib
 import clodoo
 from z0lib import parseoptargs
-# import pdb
+import pdb
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def get_inv_ids(ctx):
@@ -43,6 +43,37 @@ def get_id_n_number(ctx, rec_ids, ix):
         return ix, '~'
     id = rec_ids[ix]
     return id, clodoo.browseL8(ctx, 'account.invoice', id).number
+
+
+def merge_diff_inv(left_ctx, right_ctx):
+    left_rec_ids = get_inv_ids(left_ctx)
+    right_rec_ids = get_inv_ids(right_ctx)
+    # pdb.set_trace()
+    left_ctx['ix'] = 0
+    right_ctx['ix'] = 0
+    left_ix = next_ix(left_ctx, left_rec_ids)
+    right_ix = next_ix(right_ctx, right_rec_ids)
+    left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
+    right_id, right_number = get_id_n_number(right_ctx, right_rec_ids, right_ix)
+
+    while left_ix >= 0 and right_ix >= 0:
+        if left_number < right_number:
+            print '  > Missing %s' % left_number
+            left_ix = next_ix(left_ctx, left_rec_ids)
+            left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
+        elif left_number > right_number:
+            print '< Missing %s' % right_number
+            right_ix = next_ix(right_ctx, right_rec_ids)
+            right_id, right_number = get_id_n_number(right_ctx,
+                                                     right_rec_ids, right_ix)
+        else:
+            if left_id != right_id:
+                print 'Warning! %s(%d,%d)' % (left_number, left_id, right_id)
+            left_ix = next_ix(left_ctx, left_rec_ids)
+            left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
+            right_ix = next_ix(right_ctx, right_rec_ids)
+            right_id, right_number = get_id_n_number(right_ctx,
+                                                     right_rec_ids, right_ix)
 
 
 parser = parseoptargs("Manage 2 DBs",
@@ -83,31 +114,4 @@ right_ctx['conf_fn'] = right_ctx['right_conf_fn']
 right_oerp, uid, ctx = clodoo.oerp_set_env(ctx=right_ctx)
 left_oerp, uid, ctx = clodoo.oerp_set_env(ctx=left_ctx)
 
-left_rec_ids = get_inv_ids(left_ctx)
-right_rec_ids = get_inv_ids(right_ctx)
-# pdb.set_trace()
-left_ctx['ix'] = 0
-right_ctx['ix'] = 0
-left_ix = next_ix(left_ctx, left_rec_ids)
-right_ix = next_ix(right_ctx, right_rec_ids)
-left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
-right_id, right_number = get_id_n_number(right_ctx, right_rec_ids, right_ix)
-
-while left_ix >= 0 and right_ix >= 0:
-    if left_number < right_number:
-        print '  > Missing %s' % left_number
-        left_ix = next_ix(left_ctx, left_rec_ids)
-        left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
-    elif left_number > right_number:
-        print '< Missing %s' % right_number
-        right_ix = next_ix(right_ctx, right_rec_ids)
-        right_id, right_number = get_id_n_number(right_ctx,
-                                                 right_rec_ids, right_ix)
-    else:
-        if left_id != right_id:
-            print 'Warning! %s(%d,%d)' % (left_number, left_id, right_id)
-        left_ix = next_ix(left_ctx, left_rec_ids)
-        left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
-        right_ix = next_ix(right_ctx, right_rec_ids)
-        right_id, right_number = get_id_n_number(right_ctx,
-                                                 right_rec_ids, right_ix)
+pdb.set_trace()
