@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.6"
+__version__ = "0.3.4.7"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -358,6 +358,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
     uid = lgiuser.id
     if write_confn:
         fd = open(confn, 'w')
+        fd.write('[options]\n')
         for p in (P_LIST):
             if p == 'xmlrpc_port':
                 if ctx[p] != 8069:

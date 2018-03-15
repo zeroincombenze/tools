@@ -30,7 +30,7 @@ from z0lib import parseoptargs
 
 
 __version__ = "0.1.0"
-VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0')
+VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0')
 
 
 def transodoo_list(ctx):
@@ -39,9 +39,13 @@ def transodoo_list(ctx):
     else:
         mindroot = ctx['mindroot']
     for t in mindroot:
-        print '%-40.40s %-40.40s\n    %s' % (t.split('.')[0],
-                                             t.split('.')[1],
-                                             mindroot[t])
+        if t.split('.')[0] == ctx['model']:
+            line = '%s %s\n' % (t.split('.')[0],
+                                t.split('.')[1])
+            for vers in VERSIONS:
+                if not ctx['odoo_ver'] or vers == ctx['odoo_ver']:
+                    line += ' - [%s]="%s"\n' % (vers, mindroot[t][vers])
+            print line
 
 
 def transodoo_build(ctx):
@@ -49,14 +53,15 @@ def transodoo_build(ctx):
         mindroot = {}
     else:
         mindroot = ctx['mindroot']
-    model = ''
+    model = ctx['model']
     while True:
         while not model:
-            model = raw_input('Model (type END to end): ')
-        if model.upper() == 'END':
+            m = raw_input('Model (def=%s, type END to end): ' % model)
+        if m.upper() == 'END':
             ctx['mindroot'] = mindroot
             return 0
-        model = model.replace('.', '_').lower()
+        if m:
+            model = model.replace('.', '_').lower()
         name = ''
         while not name:
             name = raw_input('Name (type END to end): ').upper()
@@ -73,6 +78,8 @@ def transodoo_build(ctx):
                 term = raw_input('Term[%s] (def=%s): ' % (vers, def_term))
                 if not term:
                     term = def_term
+                elif term == '/':
+                    term = ''
                 else:
                     def_term = term
             mindroot[kk][vers] = term
@@ -145,7 +152,10 @@ def read_stored_dict(ctx):
             i = 1
             for vers in VERSIONS:
                 i += 1
-                mindroot[kk][vers] = row[i]
+                if i >= len(row):
+                    mindroot[kk][vers] = row[i - 1]
+                else:
+                    mindroot[kk][vers] = row[i]
     ctx['mindroot'] = mindroot
 
 
@@ -184,6 +194,11 @@ def transodoo(ctx=None):
     elif ctx['action'] == 'list':
         read_stored_dict(ctx)
         transodoo_list(ctx)
+    elif ctx['action'] == 'translate':
+        print translate_from_sym(ctx,
+                                 ctx['model'],
+                                 ctx['sym'],
+                                 ctx['odoo_ver'])
     elif ctx['action'] == 'test':
         read_stored_dict(ctx)
         for vers in VERSIONS:
@@ -211,17 +226,34 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--branch',
                         action='store',
                         dest='odoo_ver',
+                        default='')
+    parser.add_argument('-f', '--from-branch',
+                        action='store',
+                        dest='odoo_src_ver',
                         default='10.0')
     parser.add_argument('-l', '--language',
                         action='store',
                         dest='opt_lang',
                         default='it_IT')
+    parser.add_argument('-m', '--model',
+                        action='store',
+                        dest='model',
+                        default='res.groups')
     parser.add_argument('-n')
     parser.add_argument('-q')
+    parser.add_argument('-s', '--symbol',
+                        action='store',
+                        dest='sym',
+                        default='')
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument('action',
-                        help='build')
+                        help='build,list,test')
     ctx = parser.parseoptargs(sys.argv[1:])
+    ctx['model'] = ctx['model'].replace('.', '_').lower()
+    if ctx['odoo_ver']:
+        if ctx['odoo_ver'] not in VERSIONS:
+            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'], VERSIONS)
+            sys.exit(1)
     sts = transodoo(ctx=ctx)
     exit(sts)

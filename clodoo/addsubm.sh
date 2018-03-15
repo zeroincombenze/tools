@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename $0)
 TDIR=$(readlink -f $(dirname $0))
@@ -31,7 +31,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.31
+__version__=0.1.32
 
 
 set_dstpath() {
@@ -211,7 +211,7 @@ elif [ -z "$odoo_ver" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Add oddo sub module into local repository"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ $opt_verbose -eq -1 ]; then

@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.1
+#__version__=0.3.2
 
 
 get_odoo_major_ver() {
@@ -25,7 +25,7 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FULL_SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug}])
+# build_odoo_param(CONFN|SVCNAME|FULL_SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug|repository}])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER
     local p p1 p11 p2 p3 p4 ldir
@@ -35,7 +35,7 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [ -n "$2" ]; then
-      if [[ $2 =~ (11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6|v11|v10|v9|v8|v7) ]]; then
+      if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         odoo_fver=$(get_odoo_full_ver "$2")
         odoo_ver=$(get_odoo_major_ver "$odoo_fver")
         odoo_vid="$2"
@@ -77,7 +77,7 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [ "${odoo_vid:0:1}" == "v" ]; then
+      if [ "${odoo_vid:0:1}" == "v" -o "${odoo_vid:0:1}" == "V" ]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
@@ -134,7 +134,7 @@ build_odoo_param() {
     if [ $MULTIVER -ne 0 -a "$ITEM" != "BIN" ]; then
       if [ "$odoo_vid" == "v7" -o "$odoo_vid" == "v6" ]; then
         p2=openerp
-      elif [  "${odoo_vid:0:1}" == "v" ]; then
+      elif [ "${odoo_vid:0:1}" == "v" -o "${odoo_vid:0:1}" == "V" ]; then
         p2=odoo
       else
         p2="odoo${odoo_ver}"
@@ -187,10 +187,25 @@ discover_multi() {
     local v p
     local c=0
     for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
-      for p in "" v odoo ODOO; do
+      for p in "" v odoo ocb; do
         odoo_bin=$(build_odoo_param BIN $p$v search)
         if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
           ((c++))
+        else
+          odoo_bin=$(build_odoo_param BIN $p-$v search)
+          if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+            ((c++))
+          else
+            odoo_bin=$(build_odoo_param BIN ${p^^}$v search)
+            if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+              ((c++))
+            else
+              odoo_bin=$(build_odoo_param BIN ${p^^}-$v search)
+              if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+                ((c++))
+              fi
+            fi
+          fi
         fi
       done
     done
