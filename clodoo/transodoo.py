@@ -195,10 +195,18 @@ def transodoo(ctx=None):
         read_stored_dict(ctx)
         transodoo_list(ctx)
     elif ctx['action'] == 'translate':
-        print translate_from_sym(ctx,
-                                 ctx['model'],
-                                 ctx['sym'],
-                                 ctx['odoo_ver'])
+        read_stored_dict(ctx)
+        if ctx['oe_from_ver']:
+            print translate_from_to(ctx,
+                                    ctx['model'],
+                                    ctx['sym'],
+                                    ctx['oe_from_ver'],
+                                    ctx['odoo_ver'])
+        else:
+            print translate_from_sym(ctx,
+                                     ctx['model'],
+                                     ctx['sym'],
+                                     ctx['odoo_ver'])
     elif ctx['action'] == 'test':
         read_stored_dict(ctx)
         for vers in VERSIONS:
@@ -229,7 +237,7 @@ if __name__ == "__main__":
                         default='')
     parser.add_argument('-f', '--from-branch',
                         action='store',
-                        dest='odoo_src_ver',
+                        dest='oe_from_ver',
                         default='10.0')
     parser.add_argument('-l', '--language',
                         action='store',
@@ -248,11 +256,15 @@ if __name__ == "__main__":
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument('action',
-                        help='build,list,test')
+                        help='build,list,translate,test')
     ctx = parser.parseoptargs(sys.argv[1:])
     ctx['model'] = ctx['model'].replace('.', '_').lower()
     if ctx['odoo_ver']:
         if ctx['odoo_ver'] not in VERSIONS:
+            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'], VERSIONS)
+            sys.exit(1)
+    if ctx['oe_from_ver']:
+        if ctx['oe_from_ver'] not in VERSIONS:
             print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'], VERSIONS)
             sys.exit(1)
     sts = transodoo(ctx=ctx)

@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.2
+#__version__=0.3.3.4
 
 
 get_odoo_major_ver() {
@@ -25,10 +25,13 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FULL_SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug|repository}])
+# build_odoo_param(BIN|CONFN|FLOG|FPID|FULLVER|FULL_SVCNAME|MAJVER|MANIFEST|OPTS_ASM|OPTS_GIT|ROOT|RORIGIN|RPCPORT|RPT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|URL_GIT|USER
+#                  version [{search|debug|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-http])
     local ITEM=$1
-    local odoo_fver odoo_ver odoo_vid MULTIVER
-    local p p1 p11 p2 p3 p4 ldir
+    local odoo_fver odoo_ver odoo_vid MULTIVER MODNAME RPT
+    local p p1 p11 p2 p3 p4 ldir r
+    MODNAME=$3
+    [ -z "$4" ] && RPT=zero-git || RPT=$4
     if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
       MULTIVER=1
     else
@@ -60,7 +63,86 @@ build_odoo_param() {
       odoo_fver=11.0
       odoo_vid=11.0
     fi
-    if [ "$ITEM" == "FULLVER" ]; then
+    if [[ "$ITEM" =~ (OPTS_ASM|OPTS_GIT|RORIGIN|RPT|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|URL_GIT) ]]; then
+      if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
+        local ODOO_RPT="https://github.com/acespritech"
+        local ODOO_UPSTREAM=
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
+        if [ "$RPT" == "zero-http" ]; then
+          local ODOO_RPT="https://github.com/zeroincombenze"
+          local OPTS_GIT="--depth 1 --single-branch"
+          local OPTS_ASM="-1"
+        else
+          local ODOO_RPT="git@github.com:zeroincombenze"
+          local OPTS_GIT=""
+          local OPTS_ASM=
+        fi
+        local ODOO_UPSTREAM=
+      elif [ "$RPT" == "oca" ]; then
+        local ODOO_RPT="https://github.com/OCA"
+        local ODOO_UPSTREAM=
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
+        local ODOO_RPT="git@github.com:zeroincombenze"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT=""
+        local OPTS_ASM=""
+      elif [ "$RPT" == "oia" ]; then
+        local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT=""
+        local OPTS_ASM=""
+      elif [ "$RPT" == "zero-http" ]; then
+        local ODOO_RPT="https://github.com/zeroincombenze"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$RPT" == "oia-http" ]; then
+        local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      else
+        echo "Odoo repository is one of oca|oia|oia-http|zero|zero-http|zero-git"
+        # exit 1
+      fi
+      if [ "$ITEM" == "RPT" ]; then
+        echo "$ODOO_RPT"
+      elif [ "$ITEM" == "URL" ]; then
+        echo "$ODOO_RPT/$MODNAME"
+      elif [ "$ITEM" == "URL_GIT" ]; then
+        echo "$ODOO_RPT/$MODNAME.git"
+      elif [ "$ITEM" == "URL_BRANCH" ]; then
+        echo "$ODOO_RPT/$MODNAME/tree/$odoo_fver"
+      elif [ "$ITEM" == "UPSTREAM" ]; then
+        if [ "$odoo_fver" == "6.1" ]; then
+          echo ""
+        elif [ -n "$ODOO_UPSTREAM" ]; then
+          echo "$ODOO_UPSTREAM/$MODNAME.git"
+        else
+          echo ""
+        fi
+      elif [ "$ITEM" == "OPTS_GIT" ]; then
+        echo "$OPTS_GIT"
+      elif [ "$ITEM" == "OPTS_ASM" ]; then
+        echo "$OPTS_ASM"
+      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
+        p=${ITEM,,}
+        p=${p:1}
+        IFS=- read x y <<<$RPT
+        r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
+        if [  -z "$r" ]; then
+          r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
+        fi
+        echo "$r"
+      else
+        echo ""
+      fi
+      return
+    elif [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
       return
     elif [ "$ITEM" == "MAJVER" ]; then
@@ -77,12 +159,12 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [ "${odoo_vid:0:1}" == "v" -o "${odoo_vid:0:1}" == "V" ]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
-      elif [ $odoo_ver -lt 7 ]; then
-        p="openerp"
+      elif [ $odoo_ver -lt 8 ]; then
+        [ -d /opt/openerp -a ! -d /opt/odoo ] && p="openerp" || p="odoo"
       else
         p="odoo"
       fi
@@ -91,7 +173,7 @@ build_odoo_param() {
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
         let p="18060+$odoo_ver"
-      elif [ "${odoo_vid:0:1}" == "v" ]; then
+      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
         let p="8160+$odoo_ver"

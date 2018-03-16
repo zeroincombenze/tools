@@ -27,45 +27,100 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
-if [ -z "$Z0TLIBDIR" ]; then
-  echo "Library file z0testrc not found!"
-  exit 2
-fi
-. $Z0TLIBDIR
-Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.12
+__version__=0.1.13
 
 #//Only human upgradable code/
+# blk1 => z0librc
+# blk2 => odoorc
+# blk3 => travisrc
+# blk4 => zarrc
+# blk8 => TESTDIR= ...
+# blk9 => z0testrc
+
+parse_blk_2() {
+    if [ $prc -lt 2 ]; then
+      prc=2
+      if [ $opt_oeLib -ne 0 ]; then
+        blk_2 "$fntmp"
+        empty=0
+      fi
+    fi
+}
+
+parse_blk_3() {
+    if [ $prc -lt 3 ]; then
+      prc=3
+      if [ $opt_tjLib -ne 0 ]; then
+        blk_3 "$fntmp"
+        empty=0
+      fi
+    fi
+}
+
+parse_blk_4() {
+    if [ $prc -lt 4 ]; then
+      prc=5
+      if [ $opt_zLib -ne 0 ]; then
+        blk_4 "$fntmp"
+        empty=0
+      fi
+    fi
+}
+
+parse_blk_8() {
+    if [ $prc -lt 8 ]; then
+      prc=8
+      if [ $opt_ut -ne 0 ]; then
+        blk_8 "$fntmp"
+        empty=0
+      fi
+    fi
+}
+
+parse_blk_9() {
+    if [ $prc -lt 9 ]; then
+      prc=9
+      if [ $opt_ut -ne 0 ]; then
+        blk_9 "$fntmp"
+        empty=0
+      fi
+    fi
+}
+
 cvt_file() {
 # cvt_file(file)
+    # global empty prc
     local f1=$1
     local fntmp=$f1.tmp
     local bakfn=$f1.bak
-    local x y empty line line_ver
+    local x y line line_ver
     sts=$STS_SUCCESS
-    local prc=0
+    prc=0
     if [ -n "$f1" ]; then
       if [ -x "$f1" ]; then
-        OPTS_JO=
-        if [ $opt_tjlib -ne 0 ]; then
+        OPTS_JOZ=
+        if [ $opt_tjLib -ne 0 ]; then
           OPTS_J="-J"
-          OPTS_JO=${OPTS_JO}J
+          OPTS_JOZ=${OPTS_JOZ}J
         else
           OPTS_J=
         fi
-        if [ $opt_oelib -ne 0 ]; then
+        if [ $opt_oeLib -ne 0 ]; then
           OPTS_O="-O"
-          OPTS_JO=${OPTS_JO}O
+          OPTS_JOZ=${OPTS_JOZ}O
         else
           OPTS_O=
         fi
-        [ -n "$OPTS_JO" ] && OPTS_JO="-$OPTS_JO"
+        if [ $opt_zLib -ne 0 ]; then
+          OPTS_Z="-Z"
+          OPTS_JOZ=${OPTS_JOZ}Z
+        else
+          OPTS_Z=
+        fi
+        [ -n "$OPTS_JOZ" ] && OPTS_JOZ="-$OPTS_JOZ"
         local incl=0
-        local empty=0
+        empty=0
         rm -f $fntmp
         while IFS= read -r line || [ -n "$line" ]; do
           while [[ "${line: -1}" == " " ]]; do line="${line:0: -1}"; done
@@ -100,62 +155,70 @@ cvt_file() {
             if [[ $line =~ ^THIS.*basename.* ]]; then
               prc=1
               blk_1 "$fntmp"
-              empy=0
+              empty=0
             else
               echo "$line">>$fntmp
             fi
           elif [ $prc -ge 1 -a $prc -le 9 ]; then
             if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
-              prc=2
-              if [ $opt_oelib -ne 0 ]; then
-                blk_2 "$fntmp"
-              fi
-              empy=0
+              parse_blk_2
             elif [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
-              if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
-                prc=2
-                blk_2 "$fntmp"
-                if [  $opt_ut -eq 0 ]; then
-                  opt_oelib=0
-                fi
+              if [ $prc -lt 2 ]; then
+                parse_blk_2
               fi
-              prc=3
-              if [ $opt_tjlib -ne 0 ]; then
-                blk_3 "$fntmp"
+              parse_blk_3
+            elif [[ $line =~ ^ZARLIB.*findpkg.*zarrc.* ]]; then
+              if [ $prc -lt 2 ]; then
+                parse_blk_2
               fi
-              empy=0
+              if [ $prc -lt 3 ]; then
+                parse_blk_3
+              fi
+              parse_blk_4
             elif [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
-              if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
-                prc=3
-                blk_3 "$fntmp"
-                if [  $opt_ut -eq 0 ]; then
-                  opt_tjlib=0
-                fi
+              if [ $prc -lt 2 ]; then
+                parse_blk_2
               fi
-              prc=4
-              blk_4 "$fntmp"
-              empy=0
+              if [ $prc -lt 3 ]; then
+                parse_blk_3
+              fi
+              if [ $prc -lt 4 ]; then
+                parse_blk_4
+              fi
+              if [ $opt_ut -ne 0 ]; then
+                parse_blk_8
+              fi
             elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
-              prc=5
-              blk_5 "$fntmp"
-              empy=0
-              opt_ut=1
+              if [ $prc -lt 2 ]; then
+                parse_blk_2
+              fi
+              if [ $prc -lt 3 ]; then
+                parse_blk_3
+              fi
+              if [ $prc -lt 4 ]; then
+                parse_blk_4
+              fi
+              if [ $prc -lt 8 ]; then
+                parse_blk_8
+              fi
+              parse_blk_9
             elif [[ $line =~ ^__version__.* ]] || [[ $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
-              if [ $opt_oelib -ne 0 -a $prc -eq 1 ]; then
-                prc=2
-                blk_2 "$fntmp"
-                if [  $opt_ut -eq 0 ]; then
-                  opt_oelib=0
-                fi
+              if [ $prc -lt 2 ]; then
+                parse_blk_2
               fi
-              if [ $opt_tjlib -ne 0 -a $prc -lt 3 ]; then
-                prc=3
-                blk_3 "$fntmp"
-                if [  $opt_ut -eq 0 ]; then
-                  opt_tjlib=0
-                fi
+              if [ $prc -lt 3 ]; then
+                parse_blk_3
               fi
-              if [ $empy -eq 0 ]; then
+              if [ $prc -lt 4 ]; then
+                parse_blk_4
+              fi
+              if [ $prc -lt 8 ]; then
+                parse_blk_8
+              fi
+              if [ $prc -lt 9 ]; then
+                parse_blk_9
+              fi
+              if [ $empty -eq 0 ]; then
                 echo "">>$fntmp
               fi
               echo "$line_ver">>$fntmp
@@ -166,11 +229,13 @@ cvt_file() {
             else
               :
             fi
+          elif [[ $line =~ ^parseoptargs ]]; then
+            echo "parseoptargs \"\$@\"">>$fntmp
           elif [ $prc -eq 10 ]; then
             if [[ $line =~ ^Z0BUG_init ]]; then
               prc=11
               blk_11 "$fntmp"
-              empy=0
+              empty=0
             elif [[ $line =~ ^opts_travis ]]; then
               prc=21
               blk_21 "$fntmp"
@@ -193,12 +258,12 @@ cvt_file() {
             if [[ $line =~ ^if.*type.*Z0BUG_setup.*function.* ]]; then
               prc=13
               blk_13 "$fntmp"
-              empy=0
+              empty=0
             elif [[ $line =~ ^Z0BUG_main_file.* ]]; then
               blk_13 "$fntmp"
               prc=14
               blk_14 "$fntmp"
-              empy=0
+              empty=0
             else
               echo "$line">>$fntmp
             fi
@@ -207,7 +272,7 @@ cvt_file() {
             if [[ $line =~ ^Z0BUG_main_file.* ]]; then
               prc=14
               blk_14 "$fntmp"
-              empy=0
+              empty=0
             elif [[ $line =~ ^#[^A-Za-z09_]End.Include.Block.* ]]; then
               echo "$line">>$fntmp
               incl=0
@@ -234,13 +299,13 @@ cvt_file() {
             fi
           elif [ "${line:0:1}" == "#" ]; then
             echo "$line">>$fntmp
-            empy=0
+            empty=0
           elif [ -z "$line" ]; then
             echo "$line">>$fntmp
-            empy=1
+            empty=1
           else
             echo "$line">>$fntmp
-            empy=0
+            empty=0
           fi
         done < $f1
       else
@@ -249,7 +314,11 @@ cvt_file() {
       fi
     fi
     if [ -f $fntmp ]; then
-      diff --suppress-common-line -y $f1 $fntmp
+      if [ $opt_verbose -eq 0 -a $opt_yes -ne 0 ]; then
+        diff -q $f1 $fntmp &> /dev/null
+      else
+        diff --suppress-common-line -y $f1 $fntmp
+      fi
       if [ $? -eq 0 ]; then
         dummy='q'
       elif [ $opt_dry_run -ne 0 ]; then
@@ -316,6 +385,21 @@ fi
 EOF
 }
 
+blk_2z() {
+    if [ $opt_oeLib -ne 0 ]; then
+      cat <<EOF >>$1
+if [ \${opt_oeLib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
+  if [ -z "\$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . \$TRAVISLIBDIR
+fi
+EOF
+    fi
+}
+
 blk_3() {
     cat <<EOF >>$1
 TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
@@ -327,14 +411,55 @@ fi
 EOF
 }
 
+blk_3z() {
+    if [ $opt_tjLib -ne 0 ]; then
+      cat <<EOF >>$1
+if [ \$opt_tjLib -ne 0 ]; then
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
+  if [ -z "\$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
+    exit 2
+  fi
+  . \$TRAVISLIBDIR
+fi
+EOF
+   fi
+}
+
 blk_4() {
+    cat <<EOF >>$1
+ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
+if [ -z "\$ZARLIB" ]; then
+  echo "Library file zarrc not found!"
+  exit 2
+fi
+. \$ZARLIB
+EOF
+}
+
+blk_4z() {
+    if [ $opt_zLib -ne 0 ]; then
+    cat <<EOF >>$1
+if [ \$opt_zLib -ne 0 ]; then
+  ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
+  if [ -z "\$ZARLIB" ]; then
+    echo "Library file zarrc not found!"
+    exit 2
+  fi
+  . \$ZARLIB
+fi
+EOF
+    fi
+}
+
+blk_8() {
     cat <<EOF >>$1
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 EOF
 }
 
-blk_5() {
+blk_9() {
     cat <<EOF >>$1
 Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zerobug \$HOME/dev" "zerobug")
 if [ -z "\$Z0TLIBDIR" ]; then
@@ -346,14 +471,13 @@ Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 EOF
 }
 
-
 blk_11() {
     cat <<EOF >>$1
 Z0BUG_init
 EOF
-    if [ $opt_tjlib -ne 0 -o $opt_oelib -ne 0 ]; then
+    if [ $opt_tjLib -ne 0 -o $opt_oeLib -ne 0 -o $opt_zLib -ne 0 ]; then
         cat <<EOF >>$1
-parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@" "$OPTS_JO"
+parseoptest -l\$TESTDIR/test_${opt_id}.log "\$@" "$OPTS_JOZ"
 EOF
     else
         cat <<EOF >>$1
@@ -366,30 +490,10 @@ if [ \$sts -ne 127 ]; then
   exit \$sts
 fi
 EOF
-    if [ $opt_tjlib -ne 0 ]; then
-        cat <<EOF >>$1
-if [ \${opt_tjlib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$TDIR/../travis_emulator \$TDIR/../../travis_emulator . .. \$HOME/dev")
-  if [ -z "\$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
-    exit 2
-  fi
-  . \$TRAVISLIBDIR
-fi
-EOF
-    fi
-    if [ $opt_oelib -ne 0 ]; then
-        cat <<EOF >>$1
-if [ \${opt_oelib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$TDIR/../clodoo \$TDIR/../../clodoo . .. \$HOME/dev /etc")
-  if [ -z "\$ODOOLIBDIR" ]; then
-    echo "Library file odoorc not found!"
-    exit 2
-  fi
-  . \$ODOOLIBDIR
-fi
-EOF
-    fi
+    blk_2z "$1"
+    blk_3z "$1"
+    blk_4z "$1"
+    echo "">>$1
 }
 
 blk_13() {
@@ -420,11 +524,11 @@ EOF
 #//Enable.auto.upgrade.code/
 
 
-OPTOPTS=(h        J         K        k        m         n           O         q           U      V           v           y)
-OPTDEST=(opt_help opt_tjlib opt_lev3 opt_keep opt_id    opt_dry_run opt_oelib opt_verbose opt_ut opt_version opt_verbose opt_yes)
-OPTACTI=(1        1         1        1        "="       1           1         0           1      "*"         "+"         1)
-OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0      ""          -1          0)
-OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""     "version"   "verbose"   "")
+OPTOPTS=(h        J         K        k        m         n           O         q           U      V           v           y       Z)
+OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_ut opt_version opt_verbose opt_yes opt_zLib)
+OPTACTI=(1        1         1        1        "="       1           1         0           1      "*"         "+"         1       1)
+OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0      ""          -1          0       0)
+OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""     "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "load travisrc library"\
  "set script version format n.n.n"\
@@ -436,7 +540,8 @@ OPTHELP=("this help"\
  "unit test with required switch -J and/or -O"\
  "show version end exit"\
  "verbose mode"\
- "assume yes")
+ "assume yes"\
+ "load zar library")
 OPTARGS=(bashscript)
 
 parseoptargs "$@"

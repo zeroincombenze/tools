@@ -41,6 +41,7 @@
 # -V             show version (do no test, return success); version on unit test should be the same of tested software
 # -v             verbose mode
 # -z number      set total # in displayed tests
+# -Z             load zarrc library (only in bash scripts)
 # -0             no count # unit tests
 # (no cmdline) do run test and return test result
 #
@@ -62,7 +63,7 @@
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.11
+__version__=0.2.11.1
 
 export opt_dry_run
 export ctr
@@ -89,11 +90,11 @@ parseoptest() {
       export LECHO=
       local Z0=1
     fi
-    OPTOPTS=(h        b         e        f        k       J         l      N       n           O         q        r        s        V           v           z        0         1)
-    OPTDEST=(opt_help opt_debug opt_echo opt_fail opt_new opt_tjlib logfn  opt_new opt_dry_run opt_oelib opt_echo min_test min_test opt_version opt_verbose max_test opt_noctr run4cover)
-    OPTACTI=(1        1         1        1        0       1         "="    1       1           1         0        "=>"     "=>"     "*>"        1           "=>"     1         1)
-    OPTDEFL=(0        0         -1       0        -1      0         ""     -1      0           0         -1       ""       ""       ""          0           ""       $Z0       0)
-    OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  "number" "number" "version"   "verbose"   "number" "no"      "")
+    OPTOPTS=(h        b         e        f        k       J         l      N       n           O         q        r        s        V           v           z        Z        0         1)
+    OPTDEST=(opt_help opt_debug opt_echo opt_fail opt_new opt_tjLib logfn  opt_new opt_dry_run opt_oeLib opt_echo min_test min_test opt_version opt_verbose max_test opt_zLib opt_noctr run4cover)
+    OPTACTI=(1        1         1        1        0       1         "="    1       1           1         0        "=>"     "=>"     "*>"        1           "=>"     1        1         1)
+    OPTDEFL=(0        0         -1       0        -1      0         ""     -1      0           0         -1       ""       ""       ""          0           ""       0        $Z0       0)
+    OPTMETA=("help"   "debug"   "echo"   ""       "keep"  ""        "file" "new"   "count"     ""        "quiet"  "number" "number" "version"   "verbose"   "number" ""       "no"      "")
     OPTHELP=("show this help message and exit"\
      "run tests in debug mode"\
      "enable echoing even if not interactive tty"\
@@ -110,6 +111,7 @@ parseoptest() {
      "show version and exit"\
       "verbose mode"\
      "display total # tests when execute them"\
+     "load zar library"\
      "no count # unit tests"\
      "run tests for coverage")
     OPTARGS=()
@@ -230,11 +232,14 @@ inherit_opts() {
     if [ ${run4cover:-0} -ne 0 ]; then
       args="${args}1"
     fi
-    if [ ${opt_tjlib:-0} -gt 0 ]; then
+    if [ ${opt_tjLib:-0} -gt 0 ]; then
       args="${args}J"
     fi
-    if [ ${opt_oelib:-0} -gt 0 ]; then
+    if [ ${opt_oeLib:-0} -gt 0 ]; then
       args="${args}O"
+    fi
+    if [ ${opt_zLib:-0} -gt 0 ]; then
+      args="${args}Z"
     fi
     args="${args}kl$logfn"
     args="${args} -s$ctr"

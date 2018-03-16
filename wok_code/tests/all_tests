@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Zerobug
+# Regression tests on clodoo
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -32,18 +32,31 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.11.1
+__version__=0.1.13
+
+
+Z0BUG_setup() {
+    if [ ! -d $TESTDIR/res ]; then
+      mkdir -p $TESTDIR/res
+    fi
+}
+
+Z0BUG_teardown() {
+    :
+}
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_zerobug.log "$@"
+parseoptest -l$TESTDIR/test_wok_code.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
 UT1_LIST=
-UT_LIST=
+UT_LIST="__version_V_$__version__$RUNDIR/cvt_script"
+# UT_LIST="$UT_LIST wok_code_test.py"
+UT_LIST="$UT_LIST test_cvt_script"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

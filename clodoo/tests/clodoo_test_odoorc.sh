@@ -36,7 +36,7 @@ __version__=0.3.3.4
 
 
 test_01() {
-    local s sts v
+    local s sts v w
     sts=0
     opt_mult=0
     declare -A TRES
@@ -52,21 +52,92 @@ test_01() {
       fi
       test_result "full version $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      w="v$v"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="$v.1" || w="$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="v$v.1" || w="v$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="V$v.1" || w="V$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="odoo-$v.1" || w="odoo-$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="odoo-$v.1" || w="ODOO-$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    TRES[v7]="7"
+    return $sts
+}
+
+test_02() {
+    local s sts v w
+    sts=0
+    opt_mult=0
+    declare -A TRES
     TRES[6.1]="6"
     TRES[7.0]="7"
     TRES[8.0]="8"
     TRES[9.0]="9"
     TRES[10.0]="10"
     TRES[11.0]="11"
-    for v in 6.1 v7 7.0 8.0 9.0 10.0 11.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param MAJVER $v)
       fi
       test_result "major version $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      w="v$v"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param MAJVER $w)
+      fi
+      test_result "major version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="odoo-$v.1" || w="OCB-$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param MAJVER $w)
+      fi
+      test_result "major version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    return $sts
+    }
+
+test_03() {
+    local s sts v w
+    sts=0
+    opt_mult=0
+    declare -A TRES
     TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/openerp-server.conf
     TRES[7]=/etc/odoo/odoo-server.conf
@@ -318,6 +389,61 @@ test_01() {
     done
     return $sts
 }
+
+test_04() {
+    local s sts v w
+    sts=0
+    opt_mult=0
+    declare -A TRES
+    z="OCB"
+    TRES[zero]="git@github.com:zeroincombenze/$z"
+    TRES[zero-git]="git@github.com:zeroincombenze/$z"
+    TRES[zero-http]="https://github.com/zeroincombenze/$z"
+    TRES[oca]="https://github.com/OCA/$z"
+    TRES[oia]="git@github.com:Odoo-Italia-Associazione/$z"
+    for w in zero zero-git zero-http oca oia; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param URL $v $z $w)
+        fi
+        test_result "URL $w/$z $v" "${TRES[$w]}" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        #
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param URL_GIT $v $z $w)
+        fi
+        test_result "URL_GIT $w/$z $v" "${TRES[$w]}.git" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        #
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param URL_BRANCH $v $z $w)
+        fi
+        test_result "URL_BRANCH $w/$z $v" "${TRES[$w]}/tree/$v" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    done
+    #
+    TRES[zero]="https://github.com/OCA/$z"
+    TRES[zero-git]="https://github.com/OCA/$z"
+    TRES[zero-http]="https://github.com/OCA/$z"
+    TRES[oca]="https://github.com/OCA/$z"
+    TRES[oia]="https://github.com/OCA/$z"
+    for w in zero zero-git zero-http oca oia; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param UPSTREAM $v $z $w)
+        fi
+        if [ "$v" == "6.1" -o "$w" == "oca" ]; then
+          test_result "UPSTREAM $w/$z $v" "" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        else
+          test_result "UPSTREAM $w/$z $v" "${TRES[$w]}.git" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+      done
+    done
+    return $sts
+    }
 
 Z0BUG_setup() {
     local VERSION=9.0
