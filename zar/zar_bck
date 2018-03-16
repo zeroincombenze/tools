@@ -35,15 +35,8 @@ fi
 . $ZARLIB
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
-if [ -z "$Z0TLIBDIR" ]; then
-  echo "Library file z0testrc not found!"
-  exit 2
-fi
-. $Z0TLIBDIR
-Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.29
+__version__=1.3.29.1
 
 
 inherit_options() {
@@ -60,6 +53,9 @@ inherit_options() {
     if [ $opt_verbose -gt 0 ]; then
       OPTS=v$OPTS
     fi
+    if [ $test_mode -eq 0 ]; then
+      OPTS=T$OPTS
+    fi
     if [ -n "$opt_user" ]; then
       OPTS="${OPTS}U$opt_user"
     fi
@@ -69,6 +65,27 @@ inherit_options() {
     if [ -n "$opt_conf" -a "$opt_conf" != "$TDIR/zar.conf" ]; then
       OPTS="$OPTS -c $opt_conf"
     fi
+}
+
+pg_dump() {
+    local out_fn=
+    local db=
+    while [ -n "$1" ]; do
+      if [ "$1" == "-f" ]; then
+        shift
+        out_fn=$1
+      elif [ "${1:0:1}" != "-" ]; then
+        db=$1
+      fi
+      shift
+    done
+    if [ -n "$db" -a -n "$out_fn" ]; then
+      touch $out_fn
+    fi
+}
+
+scp() {
+    :
 }
 
 

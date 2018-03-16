@@ -79,6 +79,20 @@ test_03() {
 
 Z0BUG_setup() {
     rm -f $TESTDIR/restdb.log
+    rm -f $TESTDIR/backups/*.sql
+    local tod=$(date +%Y%m%d)
+    touch $TESTDIR/backups/zi01234567-$tod.sql
+    touch $TESTDIR/backups/zi01234567.err
+    local CONFN=$TESTDIR/zar.conf
+    cat <<EOF >$CONFN
+DBA_filter=zi01234567
+DBA_keep_recent=7
+DBA_keep_monthly=3
+production_host=$HOSTNAME
+development_host=${HOSTNAME//s/z}-DEV
+bck_db=yesterday
+PRD_num_days_before=0
+EOF
     local cmd="$RUNDIR/zar_rest -T zi01234567"
     OUTF=$TESTDIR/restdb.log
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -88,6 +102,7 @@ Z0BUG_setup() {
       rm -f $OUTF
     fi
 }
+
 
 Z0BUG_teardown() {
     :

@@ -317,9 +317,9 @@ create_db_list_from_pg() {
         slog "Select DB matches $dbsel in $bckdir"
       fi
       if [ $test_mode -ne 0 ]; then
-        echo " invalid        | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">$flst
-        echo " zi01234567     | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">>$flst
-        echo " test           | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 |">>$flst
+        echo "invalid|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|">$flst
+        echo "zi01234567|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|">>$flst
+        echo "test|postgres|UTF8|en_US.UTF-8|en_US.UTF-8 ">>$flst
       else
         psql -U$opt_user -Alt -o $flst
       fi

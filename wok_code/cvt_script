@@ -71,7 +71,7 @@ parse_blk_4() {
 parse_blk_8() {
     if [ $prc -lt 8 ]; then
       prc=8
-      if [ $opt_ut -ne 0 ]; then
+      if [ $opt_UT -ne 0 -o $opt_Test -ne 0 ]; then
         blk_8 "$fntmp"
         empty=0
       fi
@@ -81,7 +81,7 @@ parse_blk_8() {
 parse_blk_9() {
     if [ $prc -lt 9 ]; then
       prc=9
-      if [ $opt_ut -ne 0 ]; then
+      if [ $opt_UT -ne 0 ]; then
         blk_9 "$fntmp"
         empty=0
       fi
@@ -162,11 +162,17 @@ cvt_file() {
           elif [ $prc -ge 1 -a $prc -le 9 ]; then
             if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
               parse_blk_2
+              if [ $opt_oeLib -eq 0 ]; then
+                echo "Warning: found Odoo library w/o -O switch"
+              fi
             elif [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
               if [ $prc -lt 2 ]; then
                 parse_blk_2
               fi
               parse_blk_3
+              if [ $opt_tjLib -eq 0 ]; then
+                echo "Warning: found Travis library w/o -J switch"
+              fi
             elif [[ $line =~ ^ZARLIB.*findpkg.*zarrc.* ]]; then
               if [ $prc -lt 2 ]; then
                 parse_blk_2
@@ -175,6 +181,9 @@ cvt_file() {
                 parse_blk_3
               fi
               parse_blk_4
+              if [ $opt_zLib -eq 0 ]; then
+                echo "Warning: found Zar library w/o -Z switch"
+              fi
             elif [[ $line =~ ^TESTDIR.*findpkg.*TDIR.* ]]; then
               if [ $prc -lt 2 ]; then
                 parse_blk_2
@@ -185,8 +194,10 @@ cvt_file() {
               if [ $prc -lt 4 ]; then
                 parse_blk_4
               fi
-              if [ $opt_ut -ne 0 ]; then
+              if [ $opt_UT -ne 0 -o $opt_Test -ne 0 ]; then
                 parse_blk_8
+              elif [ $opt_Test -eq 0 ]; then
+                echo "Warning: found statements w/o -T switch"
               fi
             elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
               if [ $prc -lt 2 ]; then
@@ -202,6 +213,9 @@ cvt_file() {
                 parse_blk_8
               fi
               parse_blk_9
+              if [ $opt_UT -eq 0 ]; then
+                echo "Warning: found Zerobug library w/o -U switch"
+              fi
             elif [[ $line =~ ^__version__.* ]] || [[ $line =~ ^[a-zA_Z0-9_]+[:space:]*\( ]]; then
               if [ $prc -lt 2 ]; then
                 parse_blk_2
@@ -439,7 +453,7 @@ EOF
 
 blk_4z() {
     if [ $opt_zLib -ne 0 ]; then
-    cat <<EOF >>$1
+      cat <<EOF >>$1
 if [ \$opt_zLib -ne 0 ]; then
   ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
   if [ -z "\$ZARLIB" ]; then
@@ -524,11 +538,11 @@ EOF
 #//Enable.auto.upgrade.code/
 
 
-OPTOPTS=(h        J         K        k        m         n           O         q           U      V           v           y       Z)
-OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_ut opt_version opt_verbose opt_yes opt_zLib)
-OPTACTI=(1        1         1        1        "="       1           1         0           1      "*"         "+"         1       1)
-OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0      ""          -1          0       0)
-OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""     "version"   "verbose"   ""      "")
+OPTOPTS=(h        J         K        k        m         n           O         q           T        U      V           v           y       Z)
+OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_yes opt_zLib)
+OPTACTI=(1        1         1        1        "="       1           1         0           1        1      "*"         "+"         1       1)
+OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0        0      ""          -1          0       0)
+OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "load travisrc library"\
  "set script version format n.n.n"\
@@ -537,7 +551,8 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "load odoorc library"\
  "silent mode"\
- "unit test with required switch -J and/or -O"\
+ "script with test_mode switch"\
+ "unit test script with z0testrc library"\
  "show version end exit"\
  "verbose mode"\
  "assume yes"\
