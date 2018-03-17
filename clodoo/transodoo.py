@@ -261,11 +261,13 @@ if __name__ == "__main__":
     ctx['model'] = ctx['model'].replace('.', '_').lower()
     if ctx['odoo_ver']:
         if ctx['odoo_ver'] not in VERSIONS:
-            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'], VERSIONS)
+            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
+                                                          VERSIONS)
             sys.exit(1)
     if ctx['oe_from_ver']:
         if ctx['oe_from_ver'] not in VERSIONS:
-            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'], VERSIONS)
+            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
+                                                          VERSIONS)
             sys.exit(1)
     sts = transodoo(ctx=ctx)
     exit(sts)

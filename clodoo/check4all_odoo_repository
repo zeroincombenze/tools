@@ -3,14 +3,20 @@
 # Check for all odoo repositories
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -19,15 +25,14 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
   exit 2
 fi
-. $TRAVISLIBDIR
-TESTDIR=$(findpkg "" "$TDIR . .." "tests")
-RUNDIR=$(readlink -e $TESTDIR/..)
-__version__=0.1.30.2
+. $ODOOLIBDIR
+
+__version__=0.1.30.3
 
 
 defmodules() {
@@ -59,14 +64,12 @@ defmodules() {
 }
 
 explore() {
-# explore dir
+# explore(odoo_vid)
     local res=OCB
     for fn in $1/*; do
       if [ -d $fn ]; then
         nm=$(basename $fn)
-        if [[ " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
-          :
-        else
+        if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
           res="$res $nm"
         fi
       fi
@@ -94,19 +97,21 @@ build_pkgurl() {
 }
 
 do_action() {
-#do_action(action, oem, oev)
+#do_action(action, oem, odoo_vid)
     local act=$1
     local oem=$2
-    local oev=$3
+    local odoo_vid=$3
+    local odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+    local odoo_ver=$(build_odoo_param FULLVER $odoo_fver)
     if [ "$oem" == "OCB" ]; then
-      local pkgdir=~/$oev
+      local pkgdir=~/$odoo_vid
       local pardir=~/
     else
-      local pkgdir=~/$oev/$oem
-      local pardir=~/$oev
+      local pkgdir=~/$odoo_vid/$oem
+      local pardir=~/$odoo_vid
     fi
-    local rq_oev=$(echo $oev|grep -Eo [0-9.]+)
-    if [ "$rq_oev" == "7" ]; then rq_oev=7.0; fi
+    local rq_odoo_vid=$(echo $odoo_vid|grep -Eo [0-9.]+)
+    if [ "$rq_odoo_vid" == "7" ]; then rq_odoo_vid=7.0; fi
     if [ $opt_dry_run -ne 0 ]; then
       local opts=-n
     else
@@ -118,17 +123,17 @@ do_action() {
       local opts="${opts} -q"
     fi
     local sts=0
-    if [ "$oem" != "$LAST_OEM" -o "$oev" != "$LAST_OEV" ]; then
-      echo "=====[$oem/$oev]====="
+    if [ "$oem" != "$LAST_OEM" -o "$odoo_vid" != "$LAST_OEV" ]; then
+      echo "=====[$oem/$odoo_vid]====="
       LAST_OEM=$oem
-      LAST_OEV=$oev
+      LAST_OEV=$odoo_vid
     else
        echo "--------------------"
     fi
     local excl="${opt_excl//,/ }"
     local x
     for x in $excl; do
-      if [ "$x" == "$oem" -o "$x" == "$oem/$oev"  -o "$x" == "$oev/$oem"  -o "$x" == "$oem/$rq_oev"  -o "$x" == "$rq_oev/$oem" ]; then
+      if [ "$x" == "$oem" -o "$x" == "$oem/$odoo_vid"  -o "$x" == "$odoo_vid/$oem"  -o "$x" == "$oem/$rq_odoo_vid"  -o "$x" == "$rq_odoo_vid/$oem" ]; then
         return $sts
       fi
     done
@@ -157,7 +162,7 @@ do_action() {
     fi
     if [ "$act" == "rebuild" -a -d $pkgdir ]; then
       if [ $opt_yes -eq 0 ]; then
-        read -p "BRANCH $oev OF $oem already exist! confirm action (yes,no)?" a
+        read -p "BRANCH $odoo_vid OF $oem already exist! confirm action (yes,no)?" a
         if [ "$a" != "yes" ]; then
           sts=1
           return $sts
@@ -168,10 +173,10 @@ do_action() {
     if [ "$act" == "rebuild_new" -a -d $pkgdir ]; then
       return $sts
     elif [ "$act" == "build" -a -d $pkgdir ]; then
-      echo "BRANCH $oev OF $oem ALREADY EXISTS!"
+      echo "BRANCH $odoo_vid OF $oem ALREADY EXISTS!"
       sts=1
     elif [ "$act" != "build" -a "$act" != "rebuild" -a ! -d $pkgdir ]; then
-      echo "BRANCH $oev OF $oem NOT FOUND!"
+      echo "BRANCH $odoo_vid OF $oem NOT FOUND!"
       sts=1
     fi
     if [ $sts -ne 0 ]; then
@@ -180,9 +185,9 @@ do_action() {
     if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "rebuild_new" ]; then
       run_traced "cd $pardir"
       if [ "$oem" == "OCB" ]; then
-        run_traced "git clone $ODOO_RPT/OCB.git $oev -b $oev $OPTS_GIT"
+        run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $OPTS_GIT"
       else
-        addsubm.sh $ODOO_RPT/$oem.git $oev $opts $OPTS_ASM
+        addsubm.sh $ODOO_RPT/$oem.git $odoo_vid $opts $OPTS_ASM
       fi
     else
       run_traced "cd $pkgdir"
@@ -197,7 +202,7 @@ do_action() {
         else
           please wep $opts
           if [ "$oem" != "OCB" ]; then
-            addsubm.sh $oem $oev -r $opts
+            addsubm.sh $oem $odoo_vid -r $opts
           fi
         fi
       elif [ "$act" == "oca" ]; then
@@ -212,8 +217,8 @@ do_action() {
           sts=$?
           if [ $sts -eq 0 ]; then
             local v=$(git branch|grep -Eo [0-9.]+)
-            if [ "$v" != "$rq_oev" ]; then
-              echo "INVALID BRANCH VERSION! Expected $rq_oev, found $v"
+            if [ "$v" != "$rq_odoo_vid" ]; then
+              echo "INVALID BRANCH VERSION! Expected $rq_odoo_vid, found $v"
               sts=1
             fi
           fi
@@ -235,10 +240,10 @@ OPTMETA=("help"   "branch"   "file"   ""      "do nothing" "verbose"   "reposito
 OPTHELP=("this help"\
  "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
- "user default module list"\
+ "default module list"\
  "do nothing (dry-run)"\
  "silent mode"\
- "if [re]build|rebuild_new repository name, one of oca zero-git zero-http"\
+ "if [re]build[_new], repository name, one of oca oia oia-git oia-http zero zero-git zero-http"\
  "no stop after every module/version"\
  "show version"\
  "verbose mode"\
@@ -259,9 +264,11 @@ if [ $opt_verbose -eq -1 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Check for all odoo repositories\nactions may be: build check clean list oca rebuild rebuild_new remote status zeroincombenze"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+
+discover_multi
 if [ -z "$opt_branch" ]; then
   opt_branch="v7 7.0 8.0 9.0 10.0"
 else
@@ -290,9 +297,7 @@ else
   opt_excl="$opt_excl website/7.0"
 fi
 for oem in $opt_excl; do
-  if [[ "$oem" =~ / ]]; then
-    :
-  else
+  if [[ ! "$oem" =~ / ]]; then
     excl_list="$excl_list $oem"
   fi
 done
@@ -300,16 +305,14 @@ cd
 if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "rebuild_new" ]; then
   opt_def=1
 fi
-for oev in $opt_branch; do
+for odoo_vid in $opt_branch; do
   if [ $opt_def -gt 0 ]; then
-    mlist=$(defmodules $oev)
+    mlist=$(defmodules $odoo_vid)
   else
-    mlist=$(explore $oev)
+    mlist=$(explore $odoo_vid)
   fi
   for oem in $mlist; do
-    if [[ " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
-      :
-    else
+    if [[ ! " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
       sub_list="$sub_list $oem"
     fi
   done
@@ -325,9 +328,9 @@ actions="${actions//+/ }"
 actions="${actions//,/ }"
 sts=0
 for oem in $sub_list; do
-  for oev in $opt_branch; do
+  for odoo_vid in $opt_branch; do
     for act in $actions; do
-      do_action $act $oem $oev
+      do_action $act $oem $odoo_vid
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     if [ $sts -ne 0 ]; then

@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.1.50
+#__version__=1.3.30
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -263,7 +263,19 @@ expand_tar() {
         fi
       done
       if [ -n "$src" ]; then
-        run_traced "tar $TAR_OPT -xf $src $2"
+        if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
+          run_traced "tar $TAR_OPT -x${BCKFORMAT}f $src $2"
+        else
+          run_traced "tar $TAR_OPT -xf $src $2"
+        fi
+        if [ $? -ne 0 ]; then
+          for x in z j J ""; do
+            run_traced "tar $TAR_OPT -x${x}f $src $2"
+            if [ $? -eq 0 ]; then
+              break
+            fi
+          done
+        fi
         if [ -f "$src" ]; then
           chown $PG_OWN $src
         fi
@@ -283,7 +295,11 @@ compress_tar() {
       src=$db
       x=$(echo $TAR_EXT|awk '{print $1}')
       src=$db$x
-      run_traced "tar $TAR_OPT -cf $src $db-*.sql"
+      if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
+        run_traced "tar $TAR_OPT -c${BCKFORMAT}f $src $db-*.sql"
+      else
+        run_traced "tar $TAR_OPT -cf $src $db-*.sql"
+      fi
       sts=$?
       if [ $sts -eq $STS_SUCCESS -a -n "$2" ]; then
         wlog "removing archived files"
@@ -325,7 +341,6 @@ create_db_list_from_pg() {
       fi
       sort $flst -f -o $flst
       for db in $(awk -F"|" '{ print $1 }' $flst); do
-        # db=$(echo $db|sed -e 's/^ *//' -e 's/ *$//')
         if [[ $db =~ $redb ]]; then
           slog "DB $db is backup copy"
         else

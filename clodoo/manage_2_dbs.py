@@ -54,13 +54,16 @@ def merge_diff_inv(left_ctx, right_ctx):
     left_ix = next_ix(left_ctx, left_rec_ids)
     right_ix = next_ix(right_ctx, right_rec_ids)
     left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
-    right_id, right_number = get_id_n_number(right_ctx, right_rec_ids, right_ix)
-
+    right_id, right_number = get_id_n_number(right_ctx,
+                                             right_rec_ids,
+                                             right_ix)
     while left_ix >= 0 and right_ix >= 0:
         if left_number < right_number:
             print '  > Missing %s' % left_number
             left_ix = next_ix(left_ctx, left_rec_ids)
-            left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
+            left_id, left_number = get_id_n_number(left_ctx,
+                                                   left_rec_ids,
+                                                   left_ix)
         elif left_number > right_number:
             print '< Missing %s' % right_number
             right_ix = next_ix(right_ctx, right_rec_ids)
@@ -70,10 +73,13 @@ def merge_diff_inv(left_ctx, right_ctx):
             if left_id != right_id:
                 print 'Warning! %s(%d,%d)' % (left_number, left_id, right_id)
             left_ix = next_ix(left_ctx, left_rec_ids)
-            left_id, left_number = get_id_n_number(left_ctx, left_rec_ids, left_ix)
+            left_id, left_number = get_id_n_number(left_ctx,
+                                                   left_rec_ids,
+                                                   left_ix)
             right_ix = next_ix(right_ctx, right_rec_ids)
             right_id, right_number = get_id_n_number(right_ctx,
-                                                     right_rec_ids, right_ix)
+                                                     right_rec_ids,
+                                                     right_ix)
 
 
 parser = parseoptargs("Manage 2 DBs",

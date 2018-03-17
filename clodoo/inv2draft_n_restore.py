@@ -6,14 +6,10 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 import sys
-
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# import oerplib
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.4.7"
+__version__ = "0.3.4.8"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):

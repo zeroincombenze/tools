@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.29.1
+__version__=1.3.30
 
 
 detached_login() {
@@ -80,12 +80,13 @@ detached_login() {
     wlog "PATH=$PATH"
 }
 
-OPTOPTS=(h        K        l       n            V           v)
-OPTDEST=(opt_help opt_cron opt_log opt_dry_run  opt_version opt_verbose)
-OPTACTI=(1        1        "="     1            "*>"        1)
-OPTDEFL=(0        0        ""      0            ""          0)
-OPTMETA=("help"   "cron"   "file"  "do nothing" "version"   "verbose")
+OPTOPTS=(h        f       K        l       n            V           v)
+OPTDEST=(opt_help opt_tar opt_cron opt_log opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        "="     1        "="     1            "*>"        1)
+OPTDEFL=(0        ""      0        ""      0            ""          0)
+OPTMETA=("help"   "file"  "cron"   "file"  "do nothing" "version"   "verbose")
 OPTHELP=("this help"\
+ "use specific tar file"\
  "run in cron environment"\
  "log filename (def /var/log/bckdb.log)"\
  "do nothing (dry-run)"\
@@ -182,8 +183,9 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   cd $CWD
   exit 0
 fi
-if [ $EUID -eq 0 ]; then
+if [ $EUID -ne 0 ]; then
   echo "This command must be executed by root privileges"
+  exit 1
 fi
 wlog "Update ZAR suite $__version__ by $USER"
 PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
@@ -199,16 +201,21 @@ fi
 wlog "Found $PGHOME directory"
 wlog "Found $PGDIR directory"
 cd /tmp
-if [ -f $GZFN ]; then
-  rm -f $GZFN
+if [  -n "$opt_tar" ]; then
+  tar -xvf $opt_tar
+else
+  if [ -f $GZFN ]; then
+    rm -f $GZFN
+  fi
+  wget http://download.zeroincombenze.org/$GZFN
+  if [ ! -f $GZFN ]; then
+    wlog "No file $GZFN downloaded"
+    echo "No file $GZFN downloaded"
+    exit 1
+  fi
+  tar -xvf $GZFN
 fi
-wget http://download.zeroincombenze.org/$GZFN
-if [ ! -f zar.gz ]; then
-  wlog "No file $GZFN downloaded"
-  echo "No file $GZFN downloaded"
-  exit 1
-fi
-tar -xvf $GZFN
+
 if [ "$0" == "$PGHOME/zar_upd" -a -f ./zar_upd ]; then
   mv zar_upd $PGHOME/updzar
   chown postgres:postgres $PGHOME/updzar
@@ -221,13 +228,24 @@ if [ "$TFQN" == "/tmp/zar_upd" ]; then
 fi
 for f in $FLIST cronow; do
   if [ -f ./$f ]; then
-    wlog "Installing $f in $PGHOME/"
-    mv ./$f $PGHOME/
-    chown postgres:postgres $PGHOME/$f
-    if [ "$f" != "zarrc" ]; then
-      v=$($PGHOME/$f -V)
+    if [ "$f" == "pg_db_active" -o "$f" == "cronow" ]; then
+      USRBIN=/usr/local/bin
+      wlog "Installing $f in $USRBIN/"
+      mv ./$f $USRBIN/
+      chown root:root $USRBIN/$f
+      chmod +rx $USRBIN/$f
+      v=$($USRBIN/$f -V)
       echo "$f $v"
       wlog "$f $v"
+    else
+      wlog "Installing $f in $PGHOME/"
+      mv ./$f $PGHOME/
+      chown postgres:postgres $PGHOME/$f
+      if [ "$f" != "zarrc" ]; then
+        v=$($PGHOME/$f -V)
+        echo "$f $v"
+        wlog "$f $v"
+      fi
     fi
   else
     wlog "No file $f downloaded"

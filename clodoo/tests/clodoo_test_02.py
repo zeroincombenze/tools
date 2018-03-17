@@ -23,7 +23,7 @@ from zerobug import Z0test
 from clodoo import clodoo
 
 
-__version__ = "0.3.4.7"
+__version__ = "0.3.4.8"
 
 
 MODULE_ID = 'clodoo'
@@ -60,7 +60,7 @@ class Test():
 
     def check_4_module(self, oe_version):
         xmlrpc_port, dbname = self.param_by_db(oe_version)
-        user = self.param_by_db(oe_version, field='user')
+        # user = self.param_by_db(oe_version, field='user')
         # sql = "select name from ir_module_module" + \
         #       " where name='%s' and state='installed';" % \
         #       self.module_2_test
@@ -234,8 +234,8 @@ oe_version=%s
     def test_04(self, z0ctx):
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
-        datafn = 'res_users.csv'
-        dataffn = '%s/%s' % (self.Z.test_dir, datafn)
+        # datafn = 'res_users.csv'
+        # dataffn = '%s/%s' % (self.Z.test_dir, datafn)
         if os.environ.get("HOSTNAME", "") == "shsdef16":
             for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
                 if not ctx['dry_run']:
@@ -366,4 +366,3 @@ if __name__ == "__main__":
                         version=version())
     sts = Z.main_local(ctx, Test)
     exit(sts)
-

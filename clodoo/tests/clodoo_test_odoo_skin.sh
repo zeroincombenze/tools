@@ -5,7 +5,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -22,9 +22,15 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $TDIR/../zerobug $TDIR/../../zerobug  . .. $HOME/dev")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
   echo "Library file z0testrc not found!"
   exit 2
@@ -32,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.3.4
+__version__=0.3.3.5
 
 
 test_01() {
@@ -100,14 +106,15 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-if [ ${opt_oelib:-0} -ne 0 ]; then
-  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $TDIR/../clodoo $TDIR/../../clodoo . .. $HOME/dev /etc")
-  if [ -z "$ODOOLIBDIR" ]; then
-    echo "Library file odoorc not found!"
+if [ ${opt_oeLib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
+  if [ -z "$TRAVISLIBDIR" ]; then
+    echo "Library file travisrc not found!"
     exit 2
   fi
-  . $ODOOLIBDIR
+  . $TRAVISLIBDIR
 fi
+
 UT1_LIST=
 UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi

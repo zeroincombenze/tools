@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.7"
+__version__ = "0.3.4.8"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -513,9 +513,9 @@ def action_id(lexec):
 
 def do_group_action(oerp, ctx, action):
     """Do group actions (recursive)"""
-    if 'test_unit_mode' not in ctx:
-        msg = u"Do group actions"
-        msg_log(ctx, ctx['level'], msg)
+    if ctx['dbg_mode'] or 'test_unit_mode' not in ctx:
+        msg = u"> do_group_action(%s)" % action
+        msg_log(ctx, ctx['level'] + 1, msg)
     conf_obj = ctx['_conf_obj']
     sts = STS_SUCCESS
     if conf_obj.has_option(get_real_actname(ctx, action), 'actions'):
@@ -555,6 +555,9 @@ def do_single_action(oerp, ctx, action):
     if isaction(ctx, action):
         if action == '' or action is False or action is None:
             return STS_SUCCESS
+        if ctx['dbg_mode']:
+            msg = u"> do_single_action(%s)" % action
+            msg_log(ctx, ctx['level'] + 1, msg)
         if ctx.get('db_name', '') == 'auto':
             if action not in ("list_actions", "show_params", "new_db"):
                 ctx['db_name'] = get_dbname(ctx, action)
@@ -579,6 +582,9 @@ def do_actions(oerp, ctx):
     actions = ctx['actions']
     if not actions:
         return STS_FAILED
+    if ctx['dbg_mode']:
+        msg = u"> do_actions(%s)" % actions
+        msg_log(ctx, ctx['level'] + 1, msg)
     actions = actions.split(',')
     sts = STS_SUCCESS
     if len(actions) > 0:
@@ -988,7 +994,11 @@ def act_per_db(oerp, ctx):
     if 'actions_db' in ctx:
         del ctx['actions_db']
     saved_actions = ctx['actions']
+    if ctx['dbg_mode']:
+        msg = u"> per_db(%s =~ %s)" % (dblist, ctx['dbfilter'])
+        msg_log(ctx, ctx['level'] + 1, msg)
     sts = STS_SUCCESS
+    db_ctr = 0
     for db in sorted(dblist):
         if re.match(ctx['dbfilter'], db):
             ctx = init_db_ctx(oerp, ctx, db)
@@ -1001,12 +1011,17 @@ def act_per_db(oerp, ctx):
                     continue
             lgiuser = do_login(oerp, ctx)
             if lgiuser:
+                db_ctr += 1
                 ctx['actions'] = saved_actions
                 sts = do_actions(oerp, ctx)
             else:
                 sts = STS_FAILED
             if sts != STS_SUCCESS:
                 break
+    if db_ctr == 0:
+        msg = u"No DB matches"
+        msg_log(ctx, ctx['level'], msg)
+        sts = STS_FAILED
     return sts
 
 

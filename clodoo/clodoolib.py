@@ -125,7 +125,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.4.7"
+__version__ = "0.3.4.8"
 
 
 #############################################################################
@@ -433,7 +433,7 @@ def fullname_conf(ctx):
 def read_config(ctx):
     """Read both user configuration and local configuration."""
     if not ctx.get('conf_fn', None):
-        ctx['conf_fn'] = ctx.get('caller','clodoo') + ".conf"
+        ctx['conf_fn'] = ctx.get('caller', 'clodoo') + ".conf"
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
     if ODOO_CONF:

@@ -36,18 +36,18 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.29.1
+__version__=1.3.30.2
 
 
 kill_process() {
 #kill_process(db)
-    run_traced "pg_db_active -a $1 -w"
+    run_traced "pg_db_active -a \"$1\" -w"
 }
 
 backup_db() {
     local db=$1
     kill_process $db
-    run_traced "pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql $db"
+    run_traced "pg_dump -U$opt_user -Fp -f $DBCKDIR/$db-00000000.sql \"$db\""
 }
 
 check_4_table() {
@@ -82,7 +82,7 @@ stop_services() {
       return 1
     fi
     local c i x DB tbl res wtm act wfid SVCS SVCS2
-    DB=$1
+    DB="$1"
     SVCS="$(get_cfg_value 0 services_2_stop)"
     if [ -z "$SVCS" ]; then
       SVCS="ir_mail_server fetchmail_server base_action_rule ir_cron"
@@ -95,6 +95,7 @@ stop_services() {
     else
       SVCS2=${SVCS2//,/ }
     fi
+    unset tblok tblwf
     declare -A tblok tblwf
     if [ -z "${svc2run[*]}" ]; then
       unset svc2run
@@ -102,10 +103,10 @@ stop_services() {
     fi
     wrkflw=("exists" "with_data" "reset_data" "Ok")
     if [ -n "$2" ]; then
-      wlog ". Starting services quick checker on $DB"
+      wlog ". Starting services quick checker on \"$DB\""
       local MAXC=5
     else
-       wlog ".. Starting services checker on $DB ..."
+       wlog ".. Starting services checker on \"$DB\" ..."
       local MAXC=50
     fi
     res=1
@@ -125,12 +126,12 @@ stop_services() {
             tnx=1
           fi
           res=1
-          check_4_table $DB $tbl $act
+          check_4_table "$DB" $tbl $act
           if [ $? -eq 0 ]; then
             ((wfid++))
             tblwf[$tbl]=$wfid
             if [ "$act" == "with_data" -a -z "${svc2run[$tbl]}" ]; then
-              x=$(psql -AR\| -tc "select name from $tbl where active=true;" $DB|tr "\n" " ")
+              x=$(psql -AR\| -tc "select name from $tbl where active=true;" "$DB"|tr "\n" " ")
               if [ -n "$x" ]; then
                 svc2run[$tbl]="${svc2run[$tbl]} $x"
               fi
@@ -172,7 +173,7 @@ stop_services() {
           i=0
           while [ $i -lt $c ]; do
             res="$(echo ${svc2run[$tbl]}|awk -F\| '{print $'$i'}')"
-            psql -tc "update $tbl set active=true where name='$res';" $DB
+            psql -tc "update $tbl set active=true where name='$res';" "$DB"
             ((i++))
           done
         fi
@@ -184,10 +185,10 @@ stop_services() {
 get_sqlfname() {
 # get_sqlfname(db dtdb)
 # current dir must be BCKDIR
-    local db=$1
+    local db="$1"
     local dtdb=$2
     if [ -z "$opt_name" ]; then
-      expand_tar $db $db-$dtdb.sql
+      expand_tar "$db" $db-$dtdb.sql
       SQLFNAME=$DBCKDIR/$db-$dtdb.sql
     else
       SQLFNAME=$opt_name
@@ -214,18 +215,18 @@ get_sqlfname() {
 
 create_script_db_2_restore() {
 # drop_db_2_restore(db fsql)
-    local NEWDB=$1
+    local NEWDB="$1"
     local fsql=$2
     wlog "Prepare file script $fsql ..."
     echo "\\c postgres">$fsql
-    echo "\\echo Creating new DB $NEWDB ("$(date "+%Y-%m-%m %H:%M:%S")")">>$fsql
-    echo "DROP DATABASE IF EXISTS $NEWDB;">>$fsql
-    echo "CREATE DATABASE $NEWDB TEMPLATE template1;">>$fsql
-    echo "\\c $NEWDB">>$fsql
-    echo "\\echo Loading data into DB $NEWDB">>$fsql
+    echo "\\echo Creating new DB \"$NEWDB\" ("$(date "+%Y-%m-%m %H:%M:%S")")">>$fsql
+    echo "DROP DATABASE IF EXISTS \"$NEWDB\";">>$fsql
+    echo "CREATE DATABASE \"$NEWDB\" TEMPLATE template1;">>$fsql
+    echo "\\c \"$NEWDB\"">>$fsql
+    echo "\\echo Loading data into DB \"$NEWDB\"">>$fsql
     echo "\\i $SQLFNAME">>$fsql
-    echo "ALTER DATABASE $NEWDB OWNER TO $OE_OWN;">>$fsql
-    echo "REASSIGN OWNED BY $OE_OWN TO $OE_OWN;">>$fsql
+    echo "ALTER DATABASE \"$NEWDB\" OWNER TO $OE_OWN;">>$fsql
+    echo "REASSIGN OWNED BY $OWNER TO $OE_OWN;">>$fsql
 }
 
 inherit_options() {
@@ -406,7 +407,7 @@ if [ $dovalid -gt 0 ]; then
               wlog "Restored DBs are set for test as classificated"
             fi
           fi
-          get_sqlfname $db $dtdb
+          get_sqlfname "$db" $dtdb
           if [ -z "$SQLFNAME" ]; then
             continue
           fi
@@ -420,12 +421,12 @@ if [ $dovalid -gt 0 ]; then
       done
     elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
       dtdb=$(date -d today +"%Y%m%d")
-      NEWDB=$db
+      NEWDB="$db"
       if [ $opt_mail -eq -1 ]; then
         opt_mail=1
         wlog "Restored DBs are set for test because Development Host"
       fi
-      get_sqlfname $db $dtdb
+      get_sqlfname "$db" $dtdb
       if [ -z "$SQLFNAME" ]; then
         continue
       fi
