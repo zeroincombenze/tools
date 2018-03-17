@@ -242,7 +242,7 @@ inherit_options() {
     if [ $opt_verbose -gt 0 ]; then
       OPTS=v$OPTS
     fi
-    if [ $test_mode -eq 0 ]; then
+    if [ $test_mode -gt 0 ]; then
       OPTS=T$OPTS
     fi
     if [ -n "$opt_user" ]; then
@@ -325,7 +325,7 @@ if [[ ! $HOSTNAME =~ $HOST_PRD && -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; t
     cmd=./zar_purge
   fi
   wlog "\$ $cmd $OPTS"
-  eval $cmd $OPTS   #debug
+  eval $cmd $OPTS
 fi
 if [ -n "$newdb" ]; then
   NEWDBS=$newdb
@@ -438,16 +438,20 @@ if [ $dovalid -gt 0 ]; then
         eval $TDIR/$THIS -R "$NEWDB" &
       fi
       kill_process $NEWDB
-      run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+    fi
+    run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+    if [ $opt_dry_run -eq 0 ]; then
       if [ $opt_mail -gt 0 ]; then
         stop_services "$NEWDB" "quick"
       fi
       rm -f $fsql
       wlog "Restore $NEWDB terminated"
-      ((ctr++))
-      if [ -n "$opt_name" ]; then
-        break
-      fi
+    else
+      wlog "Restore $NEWDB processed"
+    fi
+    ((ctr++))
+    if [ -n "$opt_name" ]; then
+      break
     fi
     passed="$passed $NEWDB $dtdb"
   done

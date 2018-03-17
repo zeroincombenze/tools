@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.29
+__version__=1.3.29.1
 
 
 Z0BUG_setup() {
@@ -95,7 +95,7 @@ UT_LIST="__version_1_0.1.50$RUNDIR/zarrc"
 UT_LIST="$UT_LIST __version_V_$__version__$RUNDIR/zar_bck"
 UT_LIST="$UT_LIST __version_V_$__version__$RUNDIR/zar_purge"
 UT_LIST="$UT_LIST __version_V_$__version__$RUNDIR/zar_rest"
-UT_LIST="$UT_LIST zar_test_bck_01 zar_test_purge_01 zar_test_rest_01"
+UT_LIST="$UT_LIST zar_test_bck_01 zar_test_purge_01 zar_test_rest_01 zar_test_rest_02"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

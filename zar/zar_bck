@@ -53,7 +53,7 @@ inherit_options() {
     if [ $opt_verbose -gt 0 ]; then
       OPTS=v$OPTS
     fi
-    if [ $test_mode -eq 0 ]; then
+    if [ $test_mode -gt 0 ]; then
       OPTS=T$OPTS
     fi
     if [ -n "$opt_user" ]; then

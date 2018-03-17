@@ -127,8 +127,15 @@ Z0BUG_setup() {
     rm -f $TESTDIR/backups/*.sql
     local tod=$(date +%Y%m%d)
     touch $TESTDIR/backups/zi01234567-$tod.sql
-    local dtc=$(date -d "today - 1 month" +%Y%m)01
-    touch $TESTDIR/backups/zi01234567-$dtc.sql
+    local dtc
+    for i in {10..8}; do
+      dtc=$(date -d "today - $i day" +%Y%m%d)
+      touch $TESTDIR/backups/zi01234567-$dtc.sql
+    done
+    for i in {6..4}; do
+      dtc=$(date -d "today - $i month" +%Y%m)01
+      touch $TESTDIR/backups/zi01234567-$dtc.sql
+    done
     touch $TESTDIR/backups/zi01234567.err
     local CONFN=$TESTDIR/zar.conf
     cat <<EOF >$CONFN
