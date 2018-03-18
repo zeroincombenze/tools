@@ -140,7 +140,7 @@ do_action() {
       if [ "$oem" == "OCB" ]; then
         run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $OPTS_GIT"
       else
-        addsubm.sh $ODOO_URL $odoo_vid $opts $OPTS_ASM
+        $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts $OPTS_ASM
       fi
     else
       run_traced "cd $pkgdir"
@@ -155,7 +155,7 @@ do_action() {
         else
           please wep $opts
           if [ "$oem" != "OCB" ]; then
-            addsubm.sh $oem $odoo_vid -r $opts
+            $TDIR/addsubm.sh $oem $odoo_vid -r $opts
           fi
         fi
       elif [ "$act" == "oca" ]; then
