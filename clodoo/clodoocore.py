@@ -712,6 +712,7 @@ def is_db_alias(odoo, ctx, value):
         if value[2] and value[2] != '0':
             return translate_from_to(ctx,
                                      value[0],
+                                     name,
                                      value[1],
                                      value[2],
                                      ctx['oe_version']) != ''

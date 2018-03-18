@@ -341,15 +341,16 @@ test_03() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     TRES[v7]=8069
+    TRES[v8.0]=8069
     TRES[6]=8166
     TRES[7]=8167
     TRES[8]=8168
     TRES[9]=8169
     TRES[10]=8170
     TRES[11]=8171
-    for v in 6 v7 7 8 9 10 11; do
+    for v in 6 v7 v8.0 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ "$v" == "v7" ]; then
+        if [ "${v:0:1}" == "v" ]; then
           RES=$(build_odoo_param RPCPORT $v)
         elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param RPCPORT $v.1)
@@ -361,6 +362,7 @@ test_03() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     TRES[v7]=odoo
+    TRES[v8.0]=odoo
     TRES[6]=odoo6
     TRES[7]=odoo7
     TRES[8]=odoo8
@@ -369,7 +371,7 @@ test_03() {
     TRES[11]=odoo11
     for v in 6 v7 7 8 9 10 11; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
-        if [ "$v" == "v7" ]; then
+        if [ "${v:0:1}" == "v" ]; then
           RES=$(build_odoo_param USER $v debug)
         elif [ $v -eq 6 ]; then
           RES=$(build_odoo_param USER $v.1 debug)
@@ -402,12 +404,19 @@ test_04() {
     opt_mult=0
     declare -A TRES
     z="OCB"
-    TRES[zero]="git@github.com:zeroincombenze/$z"
     TRES[zero-git]="git@github.com:zeroincombenze/$z"
     TRES[zero-http]="https://github.com/zeroincombenze/$z"
     TRES[oca]="https://github.com/OCA/$z"
-    TRES[oia]="git@github.com:Odoo-Italia-Associazione/$z"
-    for w in zero zero-git zero-http oca oia; do
+    TRES[oia-git]="git@github.com:Odoo-Italia-Associazione/$z"
+    TRES[oia-http]="https://github.com/Odoo-Italia-Associazione/$z"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      TRES[zero]=${TRES[zero-git]}
+      TRES[oia]=${TRES[oia-git]}
+    else
+      TRES[zero]=${TRES[zero-http]}
+      TRES[oia]=${TRES[oia-http]}
+    fi
+    for w in zero zero-git zero-http oca oia oia-git oia-http; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param URL $v $z $w)
@@ -416,9 +425,9 @@ test_04() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         #
         if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param URL_GIT $v $z $w)
+          RES=$(build_odoo_param GIT_URL $v $z $w)
         fi
-        test_result "URL_GIT $w/$z $v" "${TRES[$w]}.git" "$RES"
+        test_result "GIT_URL $w/$z $v" "${TRES[$w]}.git" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         #
         if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -429,12 +438,36 @@ test_04() {
       done
     done
     #
+    TRES[zero-git]="git@github.com:zeroincombenze"
+    TRES[zero-http]="https://github.com/zeroincombenze"
+    TRES[oca]="https://github.com/OCA"
+    TRES[oia-git]="git@github.com:Odoo-Italia-Associazione"
+    TRES[oia-http]="https://github.com/Odoo-Italia-Associazione"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      TRES[zero]=${TRES[zero-git]}
+      TRES[oia]=${TRES[oia-git]}
+    else
+      TRES[zero]=${TRES[zero-http]}
+      TRES[oia]=${TRES[oia-http]}
+    fi
+    for w in zero zero-git zero-http oca oia oia-git oia-http; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param GIT_ORG $v $z $w)
+        fi
+        test_result "GIT_ORG $w/$z $v" "${TRES[$w]}" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    done
+    #
     TRES[zero]="https://github.com/OCA/$z"
     TRES[zero-git]="https://github.com/OCA/$z"
     TRES[zero-http]="https://github.com/OCA/$z"
     TRES[oca]="https://github.com/OCA/$z"
     TRES[oia]="https://github.com/OCA/$z"
-    for w in zero zero-git zero-http oca oia; do
+    TRES[oia-git]="https://github.com/OCA/$z"
+    TRES[oia-http]="https://github.com/OCA/$z"
+    for w in zero zero-git zero-http oca oia oia-git oia-http; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param UPSTREAM $v $z $w)
