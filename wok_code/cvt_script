@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.13
+__version__=0.1.14
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -41,7 +41,7 @@ __version__=0.1.13
 parse_blk_2() {
     if [ $prc -lt 2 ]; then
       prc=2
-      if [ $opt_oeLib -ne 0 ]; then
+      if [ $opt_oeLib -ne 0 -a  $opt_UT -eq 0 ]; then
         blk_2 "$fntmp"
         empty=0
       fi
@@ -51,7 +51,7 @@ parse_blk_2() {
 parse_blk_3() {
     if [ $prc -lt 3 ]; then
       prc=3
-      if [ $opt_tjLib -ne 0 ]; then
+      if [ $opt_tjLib -ne 0 -a  $opt_UT -eq 0 ]; then
         blk_3 "$fntmp"
         empty=0
       fi
@@ -61,7 +61,7 @@ parse_blk_3() {
 parse_blk_4() {
     if [ $prc -lt 4 ]; then
       prc=5
-      if [ $opt_zLib -ne 0 ]; then
+      if [ $opt_zLib -ne 0 -a  $opt_UT -eq 0 ]; then
         blk_4 "$fntmp"
         empty=0
       fi
@@ -162,16 +162,16 @@ cvt_file() {
           elif [ $prc -ge 1 -a $prc -le 9 ]; then
             if [[ $line =~ ^ODOOLIBDIR.*findpkg.*odoorc ]]; then
               parse_blk_2
-              if [ $opt_oeLib -eq 0 ]; then
-                echo "Warning: found Odoo library w/o -O switch"
+              if [ $opt_oeLib -eq 0 -a $opt_nowarn -eq 0 ]; then
+                echo "Warning: found Odoo library statements w/o -O switch"
               fi
             elif [[ $line =~ ^TRAVISLIBDIR.*findpkg.*travisrc.* ]]; then
               if [ $prc -lt 2 ]; then
                 parse_blk_2
               fi
               parse_blk_3
-              if [ $opt_tjLib -eq 0 ]; then
-                echo "Warning: found Travis library w/o -J switch"
+              if [ $opt_tjLib -eq 0 -a $opt_nowarn -eq 0 ]; then
+                echo "Warning: found Travis library statements w/o -J switch"
               fi
             elif [[ $line =~ ^ZARLIB.*findpkg.*zarrc.* ]]; then
               if [ $prc -lt 2 ]; then
@@ -196,8 +196,8 @@ cvt_file() {
               fi
               if [ $opt_UT -ne 0 -o $opt_Test -ne 0 ]; then
                 parse_blk_8
-              elif [ $opt_Test -eq 0 ]; then
-                echo "Warning: found statements w/o -T switch"
+              elif [ $opt_Test -eq 0 -a $opt_nowarn -eq 0 ]; then
+                echo "Warning: found statements to remove w/o -T switch"
               fi
             elif [[ $line =~ ^Z0TLIBDIR.*findpkg.*z0testrc.* ]]; then
               if [ $prc -lt 2 ]; then
@@ -403,12 +403,12 @@ blk_2z() {
     if [ $opt_oeLib -ne 0 ]; then
       cat <<EOF >>$1
 if [ \${opt_oeLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
-  if [ -z "\$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
+  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
+  if [ -z "\$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
     exit 2
   fi
-  . \$TRAVISLIBDIR
+  . \$ODOOLIBDIR
 fi
 EOF
     fi
@@ -538,11 +538,11 @@ EOF
 #//Enable.auto.upgrade.code/
 
 
-OPTOPTS=(h        J         K        k        m         n           O         q           T        U      V           v           y       Z)
-OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_yes opt_zLib)
-OPTACTI=(1        1         1        1        "="       1           1         0           1        1      "*"         "+"         1       1)
-OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0        0      ""          -1          0       0)
-OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""      "")
+OPTOPTS=(h        J         K        k        m         n           O         q           T        U      V           v           w          y       Z)
+OPTDEST=(opt_help opt_tjLib opt_lev3 opt_keep opt_id    opt_dry_run opt_oeLib opt_verbose opt_Test opt_UT opt_version opt_verbose opt_nowarn opt_yes opt_zLib)
+OPTACTI=(1        1         1        1        "="       1           1         0           1        1      "*"         "+"         1          1       1)
+OPTDEFL=(1        0         0        0        "UNKNOWN" 0           0         -1          0        0      ""          -1          0          0       0)
+OPTMETA=("help"   ""        ""       ""       "name"    "noop"      ""        "quiet"     ""       ""     "version"   "verbose"   ""         ""      "")
 OPTHELP=("this help"\
  "load travisrc library"\
  "set script version format n.n.n"\
@@ -555,6 +555,7 @@ OPTHELP=("this help"\
  "unit test script with z0testrc library"\
  "show version end exit"\
  "verbose mode"\
+ "suppress warning messages"\
  "assume yes"\
  "load zar library")
 OPTARGS=(bashscript)

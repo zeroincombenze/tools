@@ -1,6 +1,6 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests on clodoo
+# Template of wok_code unit test
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -34,29 +34,33 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
 __version__=0.1.14
 
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        1            "*>"        -1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help" "do nothing (dry-run)" "show version" "verbose mode")
+OPTARGS=()
 
-Z0BUG_setup() {
-    if [ ! -d $TESTDIR/res ]; then
-      mkdir -p $TESTDIR/res
-    fi
-}
-
-Z0BUG_teardown() {
-    :
-}
-
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Unit test cvt_script"  "(C) 2017-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_wok_code.log "$@"
+parseoptest -l$TESTDIR/test_UNKNOWN.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
-UT1_LIST=
-UT_LIST="__version_V_$__version__$RUNDIR/cvt_script"
-# UT_LIST="$UT_LIST wok_code_test.py"
-UT_LIST="$UT_LIST test_cvt_script"
+UT1_LIST=""
+UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

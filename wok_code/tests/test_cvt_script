@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.13
+__version__=0.1.14
 
 
 #//Only human upgradable code/
@@ -63,7 +63,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -113,7 +113,7 @@ if [ -z "\$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -138,7 +138,7 @@ if [ \$opt_help -gt 0 ]; then
 fi
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy $TESTSRC
+      $RUNDIR/cvt_script -kqwy $TESTSRC
     fi
     test_result "cvt_script $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
@@ -170,7 +170,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -226,7 +226,7 @@ if [ -z "\$ODOOLIBDIR" ]; then
 fi
 . \$ODOOLIBDIR
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -251,7 +251,7 @@ if [ \$opt_help -gt 0 ]; then
 fi
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy -O $TESTSRC
+      $RUNDIR/cvt_script -kqwy -O $TESTSRC
     fi
     test_result "cvt_script -O $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
@@ -283,7 +283,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -339,7 +339,7 @@ if [ -z "\$TRAVISLIBDIR" ]; then
 fi
 . \$TRAVISLIBDIR
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -364,7 +364,7 @@ if [ \$opt_help -gt 0 ]; then
 fi
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy -J $TESTSRC
+      $RUNDIR/cvt_script -kqwy -J $TESTSRC
     fi
     test_result "cvt_script -J $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
@@ -396,7 +396,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -452,7 +452,7 @@ if [ -z "\$ZARLIB" ]; then
 fi
 . \$ZARLIB
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -477,7 +477,7 @@ if [ \$opt_help -gt 0 ]; then
 fi
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy -Z $TESTSRC
+      $RUNDIR/cvt_script -kqwy -Z $TESTSRC
     fi
     test_result "cvt_script -Z $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
@@ -509,7 +509,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -582,7 +582,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -622,7 +622,7 @@ if [ "\$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
 exit \$sts
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy -U $TESTSRC
+      $RUNDIR/cvt_script -kqwy -U $TESTSRC
     fi
     test_result "cvt_script -U $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
@@ -630,6 +630,137 @@ EOF
 test_06() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_cvt_06
+    TESTSRC=$TESTDIR/res/$TESTFN
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTSRC
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Example of script
+#
+THIS=\$(basename "\$0")
+TDIR=\$(readlink -f \$(dirname \$0))
+for x in \$TDIR \$TDIR/.. . .. /etc; do
+  if [ -e \$x/z0librc ]; then
+    . \$x/z0librc
+    Z0LIBDIR=\$x
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "\$Z0LIBDIR" ]; then
+  exit 2
+fi
+TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
+RUNDIR=\$(readlink -e \$TESTDIR/..)
+
+__version__=0.1.14
+
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        1            "*>"        -1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=()
+
+parseoptargs \$@
+if [ "\$opt_version" ]; then
+  echo "\$__version__"
+  exit 0
+fi
+if [ \$opt_help -gt 0 ]; then
+  print_help "Unit test cvt_script"\
+  "(C) 2017-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+do_something
+EOF
+      cat <<EOF >$TESTRES
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Example of script
+#
+THIS=\$(basename "\$0")
+TDIR=\$(readlink -f \$(dirname \$0))
+PYTHONPATH=\$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in \$TDIR \$TDIR/.. \${PYTHONPATH//:/ } /etc; do
+  if [ -e \$d/z0librc ]; then
+    . \$d/z0librc
+    Z0LIBDIR=\$d
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  elif [ -d \$d/z0lib ]; then
+    . \$d/z0lib/z0librc
+    Z0LIBDIR=\$d/z0lib
+    Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "\$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
+if [ -z "\$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. \$ODOOLIBDIR
+TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
+if [ -z "\$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. \$TRAVISLIBDIR
+ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
+if [ -z "\$ZARLIB" ]; then
+  echo "Library file zarrc not found!"
+  exit 2
+fi
+. \$ZARLIB
+TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
+RUNDIR=\$(readlink -e \$TESTDIR/..)
+
+__version__=0.1.14
+
+OPTOPTS=(h        n            V           v)
+OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
+OPTACTI=(1        1            "*>"        -1)
+OPTDEFL=(1        0            ""          0)
+OPTMETA=("help"   "do nothing" "version"   "verbose")
+OPTHELP=("this help"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=()
+
+parseoptargs "\$@"
+if [ "\$opt_version" ]; then
+  echo "\$__version__"
+  exit 0
+fi
+if [ \$opt_help -gt 0 ]; then
+  print_help "Unit test cvt_script"\
+  "(C) 2017-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+do_something
+EOF
+      chmod +x $TESTSRC
+      $RUNDIR/cvt_script -kqwy -JOTZ $TESTSRC
+    fi
+    test_result "cvt_script -JOTZ $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
+}
+
+test_07() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_cvt_07
     TESTSRC=$TESTDIR/res/$TESTFN
     TESTRES=$TESTDIR/res/$TESTFN.test
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -654,7 +785,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -717,24 +848,6 @@ if [ -z "\$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
-if [ -z "\$ODOOLIBDIR" ]; then
-  echo "Library file odoorc not found!"
-  exit 2
-fi
-. \$ODOOLIBDIR
-TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
-if [ -z "\$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
-  exit 2
-fi
-. \$TRAVISLIBDIR
-ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
-if [ -z "\$ZARLIB" ]; then
-  echo "Library file zarrc not found!"
-  exit 2
-fi
-. \$ZARLIB
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zerobug \$HOME/dev" "zerobug")
@@ -745,7 +858,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.13
+__version__=0.1.14
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -776,12 +889,12 @@ if [ \$sts -ne 127 ]; then
   exit \$sts
 fi
 if [ \${opt_oeLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
-  if [ -z "\$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
+  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
+  if [ -z "\$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
     exit 2
   fi
-  . \$TRAVISLIBDIR
+  . \$ODOOLIBDIR
 fi
 if [ \$opt_tjLib -ne 0 ]; then
   TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
@@ -809,9 +922,9 @@ if [ "\$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
 exit \$sts
 EOF
       chmod +x $TESTSRC
-      $RUNDIR/cvt_script -kqy -JOUZ $TESTSRC
+      $RUNDIR/cvt_script -kqwy -JOUZT $TESTSRC
     fi
-    test_result "cvt_script -JOUZ $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
+    test_result "cvt_script -JOUZT $TESTSRC" "$TESTSRC" "$TESTRES" "diff"
 }
 
 
