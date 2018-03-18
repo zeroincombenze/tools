@@ -63,7 +63,7 @@
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.11.1
+__version__=0.2.12
 
 export opt_dry_run
 export ctr
@@ -424,7 +424,7 @@ test_version() {
       res=$Z0BUG_version
     fi
     if [ -n "$cmd" ]; then
-      res=$(eval $cmd)
+      res=$(eval $cmd 2>&1)
     fi
     test_result "$msg" "$1" "$res"
     return 0

@@ -32,7 +32,7 @@ from zerobug import Z0test
 import dummylib
 
 
-__version__ = "0.2.11i.1"
+__version__ = "0.2.12"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

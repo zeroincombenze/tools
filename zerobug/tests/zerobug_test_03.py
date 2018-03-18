@@ -27,7 +27,7 @@
 import sys
 from zerobug import Z0test
 
-__version__ = "0.2.11.1"
+__version__ = "0.2.12"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
