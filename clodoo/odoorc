@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.4.9
+#__version__=0.3.4.10
 
 
 INVALID_MODNAMES="addons cover debian doc history odoo openerp node_modules scripts server setup themes __to_remove woven_fabric"
@@ -288,6 +288,7 @@ build_odoo_param() {
 discover_multi() {
     local v p
     local c=0
+    [ ${opt_multi:-0} -ne 0 ] && return
     for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
       for p in "" v odoo ocb; do
         odoo_bin=$(build_odoo_param BIN $p$v search)

@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.30.3
+__version__=0.1.30.4
 
 
 explore() {
@@ -75,6 +75,7 @@ do_action() {
     local odoo_vid=$3
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    local f
     if [ "$oem" == "OCB" ]; then
       local pkgdir=~/$odoo_vid
       local pardir=~/
@@ -113,7 +114,16 @@ do_action() {
       OPTS_GIT=$(build_odoo_param OPTS_GIT $odoo_vid $oem $opt_rpt)
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $oem $opt_rpt)
     fi
-    if [ "$act" == "rebuild" -a -d $pkgdir ]; then
+    if [ "$act" == "requirements" ]; then
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.2.4 pylint==1.6.4 \
+            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4
+        pip install $f --upgrade --no-deps
+      done
+      for f in passlib pyPdf; do
+        lisa install $f
+      done
+      return $sts
+    elif [ "$act" == "rebuild" -a -d $pkgdir ]; then
       if [ $opt_yes -eq 0 ]; then
         read -p "BRANCH $odoo_vid OF $oem already exist! confirm action (yes,no)?" a
         if [ "$a" != "yes" ]; then
@@ -291,8 +301,10 @@ sts=0
 for oem in $sub_list; do
   for odoo_vid in $opt_branch; do
     for act in $actions; do
-      do_action $act $oem $odoo_vid
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      if [ "$act" != "requirements" -o "$oem" != "OCB" ]; then
+        do_action $act $oem $odoo_vid
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
     done
     if [ $sts -ne 0 ]; then
       exit $sts
