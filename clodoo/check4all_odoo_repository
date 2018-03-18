@@ -107,7 +107,7 @@ do_action() {
         return $sts
       fi
     done
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "rebuild_new" ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
       ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $oem $opt_rpt)
       ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $oem $opt_rpt)
       OPTS_GIT=$(build_odoo_param OPTS_GIT $odoo_vid $oem $opt_rpt)
@@ -123,7 +123,7 @@ do_action() {
       fi
       run_traced "rm -fR $pkgdir"
     fi
-    if [ "$act" == "rebuild_new" -a -d $pkgdir ]; then
+    if [ "$act" == "add_new_modules" -a -d $pkgdir ]; then
       return $sts
     elif [ "$act" == "build" -a -d $pkgdir ]; then
       echo "BRANCH $odoo_vid OF $oem ALREADY EXISTS!"
@@ -135,7 +135,7 @@ do_action() {
     if [ $sts -ne 0 ]; then
       return $sts
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "rebuild_new" ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
       run_traced "cd $pardir"
       if [ "$oem" == "OCB" ]; then
         run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $OPTS_GIT"
@@ -162,6 +162,10 @@ do_action() {
         if [ ! -L $pkgdir ]; then
           please synchro . oca $opts
         fi
+      elif [ "$act" == "oia" ]; then
+        if [ ! -L $pkgdir ]; then
+          please synchro . oia $opts
+        fi
       elif [ "$act" == "remote" ]; then
         git remote -v
       elif [ "$act" == "status" ]; then
@@ -175,6 +179,10 @@ do_action() {
               sts=1
             fi
           fi
+        fi
+      elif [ "$act" == "pull" ]; then
+        if [ ! -L $pkgdir ]; then
+          run_traced "git pull origin $odoo_fver"
         fi
       elif [ "$act" == "zeroincombenze" ]; then
         if [ ! -L $pkgdir ]; then
@@ -216,7 +224,7 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: build check clean list oca rebuild rebuild_new remote status zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: add_new_modules build check clean list oca oia pull rebuild remote status zeroincombenze"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
@@ -230,10 +238,10 @@ fi
 sub_list=
 excl_list="$INVALID_MODNAMES"
 if [ -z $opt_excl ]; then
-  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "rebuild_new" ]; then
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental/10.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector"
+  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_new_modules" ]; then
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,connector-odoo2odoo,webhook,interface-github,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
   else
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector"
+    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,survey,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,webhook,interface-github,connector-odoo2odoo,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
   fi
 fi
 opt_excl="${opt_excl//,/ }"
@@ -255,7 +263,7 @@ for oem in $opt_excl; do
   fi
 done
 cd
-if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "rebuild_new" ]; then
+if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_new_modules" ]; then
   opt_def=1
 fi
 for odoo_vid in $opt_branch; do
