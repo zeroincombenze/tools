@@ -22,12 +22,6 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ZARLIB=$(findpkg zarrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zar $HOME/dev")
-if [ -z "$ZARLIB" ]; then
-  echo "Library file zarrc not found!"
-  exit 2
-fi
-. $ZARLIB
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
@@ -38,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.30
+__version__=1.3.31
 
 
 test_01() {
@@ -176,6 +170,7 @@ if [ $opt_zLib -ne 0 ]; then
   fi
   . $ZARLIB
 fi
+
 
 
 

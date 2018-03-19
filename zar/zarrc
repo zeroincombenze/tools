@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.3.30
+#__version__=1.3.31
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -80,17 +80,17 @@ conf_default() {
     if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
       test_mode=1
     fi
-    if [ $test_mode -ne 0 ]; then
+    if [ ${test_mode:-0} -ne 0 ]; then
       opt_dry_run=1
     fi
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       FCONF=$opt_conf
-    elif [ $test_mode -ne 0 ]; then
+    elif [ ${test_mode:-0} -ne 0 ]; then
       FCONF=$TESTDIR/zar.conf
     else
       FCONF=$TDIR/zar.conf
     fi
-    if [ $test_mode -ne 0 ]; then
+    if [ ${test_mode:-0} -ne 0 ]; then
       publog=$TESTDIR/$1.log
     elif [ -z "$opt_log" ]; then
       publog="/var/log/zar/$1.log"
@@ -115,7 +115,7 @@ init_vars() {
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
     declare -g NAA NAB NAC NAD NAE NAF NAG NAH
     local sfx selsfx XDB
-    if [ $test_mode -ne 0 ]; then
+    if [ ${test_mode:-0} -ne 0 ]; then
       PGDIR=$(findpkg "" "$TESTDIR")
     else
       PGDIR=$(findpkg "" "/var/lib" "postgresql  pgsql" "8.2 8.3 9.0 9.1 9.2 9.3 9.4")
@@ -174,14 +174,21 @@ init_vars() {
     ODOO_RPC_PWD="$(get_cfg_value 0 odoo_rpc_pwd)"
     selsfx=
     for sfx in A B C D E F G H; do
-      if [ "$HOSTNAME" == "$HOST_PRD" ]; then
+      if [[ -n "$HOST_DEV" && ! $HOSTNAME =~ $HOST_DEV ]]; then
         eval DB$sfx="'$(get_cfg_value 0 PRD_DB${sfx}_filter)'"
         eval NC$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_recent)"
         eval NA$sfx="$(get_cfg_value 0 PRD_DB${sfx}_keep_monthly)"
-      elif [ "$HOSTNAME" == "$HOST_DEV" ]; then
+        BCK_ENV="PRD"
+      elif [[ -n "$HOST_DEV" && "$HOST_DEV" != "$HOST_PRD" && $HOSTNAME =~ $HOST_DEV ]]; then
         eval DB$sfx="'$(get_cfg_value 0 DEV_DB${sfx}_filter)'"
         eval NC$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_recent)"
         eval NA$sfx="$(get_cfg_value 0 DEV_DB${sfx}_keep_monthly)"
+        BCK_ENV="DEV"
+      else
+        eval DB$sfx=""
+        eval NC$sfx=""
+        eval NA$sfx=""
+        BCK_ENV="U1Q"
       fi
       x=DB$sfx
       XDB=${!x}
@@ -190,7 +197,7 @@ init_vars() {
         eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
         eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
       fi
-      if [ "$ACTION" != "restdb" ] && [ -n "$dbsel" -o  $opt_ex -ne 0 ]; then
+      if [ "$ACTION" != "restdb" ] && [ -n "$dbsel" -o  ${opt_ex:-0} -ne 0 ]; then
         x=DB$sfx
         XDB=${!x}
         if [ -n "$dbsel" -a -n "$XDB" ] && [[ $dbsel =~ $XDB ]]; then
@@ -202,12 +209,12 @@ init_vars() {
         fi
       fi
     done
-    if [ -n "$dbsel" -a -z "$selsfx" -a $opt_ex -eq 0 ]; then
+    if [ -n "$dbsel" -a -z "$selsfx" -a ${opt_ex:-0} -eq 0 ]; then
       DBA="'$(get_cfg_value 0 dbfilter)'"
       NCA=$(get_cfg_value 0 keep_recent)
       NAA=$(get_cfg_value 0 keep_monthly)
     fi
-    if [ $opt_ex -eq 0 -a "$ACTION" != "purgedb" ]; then
+    if [ ${opt_ex:-0} -eq 0 -a "$ACTION" != "purgedb" ]; then
       DBSEL=
       for sfx in A B C D E F G H; do
         x=DB$sfx
@@ -329,10 +336,10 @@ create_db_list_from_pg() {
       if [ -z "$redb" ]; then
         redb="test"
       fi
-      if [ $opt_dry_run -eq 0 -o $test_mode -ne 0 ]; then
+      if [ $opt_dry_run -eq 0 -o ${test_mode:-0} -ne 0 ]; then
         slog "Select DB matches $dbsel in $bckdir"
       fi
-      if [ $test_mode -ne 0 ]; then
+      if [ ${test_mode:-0} -ne 0 ]; then
         echo "invalid|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|">$flst
         echo "zi01234567|postgres|UTF8|en_US.UTF-8|en_US.UTF-8|">>$flst
         echo "test|postgres|UTF8|en_US.UTF-8|en_US.UTF-8 ">>$flst
@@ -350,21 +357,17 @@ create_db_list_from_pg() {
             f=0
             if [ -n "$XDB" ]; then
               if [[ $db =~ $XDB ]]; then
-                if [ $opt_ex -ne 0 ]; then
-                  if [ "$HOSTNAME" == "$HOST_PRD" ]; then
-                    if [[ " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
-                      :
-                    else
+                if [ ${opt_ex:-0} -ne 0 ]; then
+                  if [ "$BCK_ENV" == "PRD" ]; then
+                    if [[ ! " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
                       dblist="$dblist $dbsel"
                       f=1
                     fi
                     break
                   fi
                 else
-                  if [ "$HOSTNAME" == "$HOST_PRD" ]; then
-                    if [[ " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
-                      :
-                    else
+                  if [ "$BCK_ENV" == "PRD" ]; then
+                    if [[ ! " $dblist " =~ [[:space:]]$db[[:space:]] ]]; then
                       dblist="$dblist $db"
                       f=1
                     fi
@@ -395,7 +398,7 @@ create_db_list_from_file() {
     else
       bckdir=$3
     fi
-    files=$bckdir/*.sql
+    files="$bckdir/*.sql"
     if [ "$BCKFORMAT" != "0" ]; then
       for x in $TAR_EXT; do
         files="$files $bckdir/*$x"
@@ -410,7 +413,7 @@ create_db_list_from_file() {
         :
       elif [ -z "$dbsel" ]; then
         valid=1
-      elif [ $opt_ex -ne 0 ]; then
+      elif [ ${opt_ex:-0} -ne 0 ]; then
         if [[ "$db" == "$dbsel" ]]; then
           valid=1
         fi
@@ -426,7 +429,7 @@ create_db_list_from_file() {
           XDB=${!x}
           if [ -n "$XDB" ]; then
             if [[ $db =~ $XDB ]]; then
-              if [ $opt_ex -ne 0 ]; then
+              if [ ${opt_ex:-0} -ne 0 ]; then
                 if [[ " $dblist " =~ [[:space:]]$dbsel[[:space:]] ]]; then
                   :
                 else

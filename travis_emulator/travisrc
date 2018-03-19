@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.7
+#__version__=0.2.0.9
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -63,7 +63,7 @@ inherits_travis_opts() {
 # inherits_travis_opts(opts_enables app)
 # app: After_test,Distribution,Emulator,Nightly,Please,Test,pep8
     local opts=
-    local opt2=
+    local opts2=
     local o
     if [ -z "$1" ]; then
       local e=
@@ -93,8 +93,10 @@ inherits_travis_opts() {
             opts="${opts}$o"
           elif [ "$o" == "n" -a ${opt_dry_run:-0} -gt 0 ]; then
             opts="${opts}$o"
-          elif [ "$o" == "o" -a -n "$opts2" ]; then
-            opts2="-o$opt_ids"
+          elif [ "$o" == "o" ]; then
+            if [ -n "$opt_ids" ]; then
+              opts2="-o$opt_ids"
+            fi
           elif [ "$o" == "P" -a "$opt_cpush" == "-$o" ]; then
             opts="${opts}$o"
           elif [ "$o" == "p" -a "${opt_pyth:-0}" -gt 0 ]; then

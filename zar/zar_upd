@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.30
+__version__=1.3.31
 
 
 detached_login() {
@@ -79,6 +79,87 @@ detached_login() {
     fi
     wlog "PATH=$PATH"
 }
+
+create_conf() {
+    conf_default "bckdb"
+    init_vars ".*"
+    echo "Build configuration"
+    dummy=
+    while [ -z "$dummy" ]; do
+      read -p "Host role (1:Production, 2=Backup, 3=Both): " dummy
+      if [[ $dummy =~ (1|2|3) ]]; then
+        role=$dummy
+      else
+        dummy=
+      fi
+    done
+    if [ "$role" == "1" -o "$role" == "3" ]; then
+      HOST_PRD="$HOSTNAME"
+    elif [ "$role" == "2" ]; then
+      HOST_DEV="$HOSTNAME"
+    fi
+    dummy=
+    if [ "$role" == "2" ]; then
+      while [ -z "$dummy" ]; do
+        read -p "Production host name: " dummy
+        if [ -n "$dummy" ]; then
+          HOST_PRD="$dummy"
+        fi
+      done
+    fi
+    dummy=
+    if [ "$role" == "1" ]; then
+      while [ -z "$dummy" ]; do
+        read -p "Backup host name: " dummy
+        if [ -n "$dummy" ]; then
+          HOST_DEV="$dummy"
+        fi
+      done
+    fi
+    echo "[zar]" > $PGHOME/zar.conf
+    echo "# Host with production role (do backup & purge)" >> $PGHOME/zar.conf
+    echo "production_host=$HOST_PRD" >> $PGHOME/zar.conf
+    echo "# Host with development/backup role (do restore & purge)" >> $PGHOME/zar.conf
+    echo "development_host=$HOST_DEV" >> $PGHOME/zar.conf
+    if [ "$role" != "3" ]; then
+      echo "# Public production host name" >> $PGHOME/zar.conf
+      echo "URL_production_host=$HOST_PRD" >> $PGHOME/zar.conf
+      echo "# Public development/backup host name" >> $PGHOME/zar.conf
+      echo "URL_development_host=$HOST_DEV" >> $PGHOME/zar.conf
+    fi
+    echo "# Backup directory" >> $PGHOME/zar.conf
+    echo "bckdir=$DBCKDIR" >> $PGHOME/zar.conf
+    echo "# Test DBs (exclude from backup/restore)" >> $PGHOME/zar.conf
+    echo "test_db=$TEST_DB" >> $PGHOME/zar.conf
+    echo "# Backup format (0=files 1=tar, z=gzip, j=bzi2, J=xz)" >> $PGHOME/zar.conf
+    echo "bckformat=$BCKFORMAT" >> $PGHOME/zar.conf
+    echo "# tar file extension" >> $PGHOME/zar.conf
+    echo "tar_ext=$TAR_EXT" >> $PGHOME/zar.conf
+    echo "# tar options used with both -x and -c switches" >> $PGHOME/zar.conf
+    echo "tar_opt=$TAR_OPT" >> $PGHOME/zar.conf
+    if [ "$role" != "2" ]; then
+      echo "# enable (1) restore on production host (see <bck_db> for DB name)" >> $PGHOME/zar.conf
+      echo "enable_restore=$REST2" >> $PGHOME/zar.conf
+      echo "# Restored DB on production host (if enabled by <enable_restore>)" >> $PGHOME/zar.conf
+      echo "bck_db=$NEWDBS" >> $PGHOME/zar.conf
+    fi
+    echo "# postgresql username:groupname" >> $PGHOME/zar.conf
+    echo "pg_user=$PG_OWN" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): regex to search DBs" >> $PGHOME/zar.conf
+    echo "DBA_filter=$DBA" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): # of recent daily DB to store" >> $PGHOME/zar.conf
+    echo "DBA_keep_recent=$NCA" >> $PGHOME/zar.conf
+    echo "# Group A of (A-H): # of recent monthly DB to store" >> $PGHOME/zar.conf
+    echo "DBA_keep_monthly=$NAA" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): regex to search DBs" >> $PGHOME/zar.conf
+    echo "DBB_filter=$DBB" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): # of recent daily DB to store" >> $PGHOME/zar.conf
+    echo "DBB_keep_recent=$NCB" >> $PGHOME/zar.conf
+    echo "# Group B of (A-H): # of recent monthly DB to store" >> $PGHOME/zar.conf
+    echo "DBB_keep_monthly=$NAB" >> $PGHOME/zar.conf
+    chown $PG_OWN $PGHOME/zar.conf
+}
+
 
 OPTOPTS=(h        f       K        l       n            V           v)
 OPTDEST=(opt_help opt_tar opt_cron opt_log opt_dry_run  opt_version opt_verbose)
@@ -152,7 +233,7 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   CWD=$PWD
   cd $HOME/tmp
   if [ $EUID -eq 0 ]; then
-    chown root:root *
+    chown root:root ./*
   fi
   for f in $FLIST cronow; do
     if [ "$f" != "zarrc" ]; then
@@ -219,12 +300,12 @@ fi
 if [ "$0" == "$PGHOME/zar_upd" -a -f ./zar_upd ]; then
   mv zar_upd $PGHOME/updzar
   chown postgres:postgres $PGHOME/updzar
-  exec $PGHOME/updzar $@
+  exec $PGHOME/updzar "$@"
 fi
 TFQN=$(readlink -f $0)
 if [ "$TFQN" == "/tmp/zar_upd" ]; then
   mv /tmp/zar_upd $PGHOME/updzar
-  exec $PGHOME/updzar $@
+  exec $PGHOME/updzar "$@"
 fi
 for f in $FLIST cronow; do
   if [ -f ./$f ]; then
@@ -261,5 +342,8 @@ done
 if [ ! -d /var/log/zar ]; then
   mkdir -p /var/log/zar
   chown postgres:postgres /var/log/zar
+fi
+if [ -f $PGHOME/zar_bck -a ! -f $PGHOME/zar.conf ]; then
+  create_conf
 fi
 exit 0

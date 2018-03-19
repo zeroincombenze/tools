@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.30.2
+__version__=1.3.31
 
 
 kill_process() {
@@ -217,9 +217,10 @@ create_script_db_2_restore() {
 # drop_db_2_restore(db fsql)
     local NEWDB="$1"
     local fsql=$2
+    local dtc=$(date "+%Y-%m-%m %H:%M:%S")
     wlog "Prepare file script $fsql ..."
     echo "\\c postgres">$fsql
-    echo "\\echo Creating new DB \"$NEWDB\" ("$(date "+%Y-%m-%m %H:%M:%S")")">>$fsql
+    echo "\\echo Creating new DB \"$NEWDB\" ($dtc)">>$fsql
     echo "DROP DATABASE IF EXISTS \"$NEWDB\";">>$fsql
     echo "CREATE DATABASE \"$NEWDB\" TEMPLATE template1;">>$fsql
     echo "\\c \"$NEWDB\"">>$fsql
@@ -313,12 +314,19 @@ if [ "$BCKFORMAT" == "0" ]; then
 else
   wlog "-- Backupped DBs stored in compress tar files --"
 fi
+if [ "$BCK_ENV" == "PRD" ]; then
+  wlog "-- Production environment --"
+elif [ "$BCK_ENV" == "DEV" ]; then
+  wlog "-- Development/backup environment --"
+else
+  wlog "-- Unique environment w/o dev/backup host --"
+fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
 wlog "TEST_DB=$TEST_DB"
 wlog "OE_OWN=$OE_OWN"
 wlog "- DB to Restore:$dblist"
-if [[ ! $HOSTNAME =~ $HOST_PRD && -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+if [ "$BCK_ENV" == "DEV" ]; then
   inherit_options
   if [ -f $TDIR/zar_purge ]; then
     cmd=$TDIR/zar_purge
@@ -337,13 +345,13 @@ else
   NEWDBS=${NEWDBS//^/}
   NEWDBS=${NEWDBS//$/}
 fi
-if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+if [ "$BCK_ENV" == "PRD" ]; then
   if [ -z "$DBSEL" -o -z "$NEWDBS" ]; then
     wlog "Cannot restore due DBSEL=$DBSEL or NEWDBS=$NEWDBS"
     print_help
     exit
   fi
-elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+elif [ "$BCK_ENV" == "DEV" ]; then
   if [ -z "$DBSEL" ]; then
     wlog "Cannot restore due DBSEL=$DBSEL"
     print_help
@@ -352,16 +360,16 @@ elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
 fi
 if [[ $seldate =~ [0-9]{8} ]]; then
   NDAYSB=$seldate
-elif [[ $HOSTNAME =~ $HOST_PRD ]]; then
+elif [ "$BCK_ENV" == "PRD" ]; then
   NDAYSB="$(get_cfg_value 0 PRD_num_days_before)"
-elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+elif [ "$BCK_ENV" == "DEV" ]; then
   NDAYSB="$(get_cfg_value 0 DEV_num_days_before)"
 fi
 if [ -z "$NDAYSB" ]; then
   NDAYSB="$(get_cfg_value 0 num_days_before)"
 fi
 if [ -z "$NDAYSB" ]; then
-  if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+  if [ "$BCK_ENV" == "PRD" ]; then
     NDAYSB=yesterday
   else
     NDAYSB=today
@@ -379,7 +387,7 @@ if [ $dovalid -gt 0 ]; then
   pushd $DBCKDIR >/dev/null
   for db in $dblist; do
     set_db_vars "$db"
-    if [[ $HOSTNAME =~ $HOST_PRD ]]; then
+    if [ "$BCK_ENV" == "PRD" ]; then
       for NEWDB in ${NEWDBS//,/ }; do
         for ND in ${NDAYSB//,/ }; do
           if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
@@ -419,7 +427,7 @@ if [ $dovalid -gt 0 ]; then
           break
         fi
       done
-    elif [[ -n "$HOST_DEV" && $HOSTNAME =~ $HOST_DEV ]]; then
+    elif [ "$BCK_ENV" == "DEV" ]; then
       dtdb=$(date -d today +"%Y%m%d")
       NEWDB="$db"
       if [ $opt_mail -eq -1 ]; then

@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.9"
+__version__ = "0.3.4.10"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -248,6 +248,7 @@ def do_login(oerp, ctx):
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(oerp, ctx, user)
+        # if not ctx['quiet_mode']:
         msg = ident_user(oerp, ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:

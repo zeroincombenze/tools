@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.1.30.4
+__version__=0.3.4.10
 
 
 explore() {
@@ -94,20 +94,22 @@ do_action() {
       local opts="${opts} -q"
     fi
     local sts=0
-    if [ "$oem" != "$LAST_OEM" -o "$odoo_vid" != "$LAST_VID" ]; then
-      echo "=====[$oem/$odoo_vid]====="
-      LAST_OEM=$oem
-      LAST_VID=$odoo_vid
-    else
-       echo "--------------------"
-    fi
     local excl="${opt_excl//,/ }"
     local x
-    for x in $excl; do
-      if [ "$x" == "$oem" -o "$x" == "$oem/$odoo_vid"  -o "$x" == "$odoo_vid/$oem"  -o "$x" == "$oem/$odoo_fver"  -o "$x" == "$odoo_fver/$oem" ]; then
-        return $sts
+    if [ "$act" != "requirements" ]; then
+      if [ "$oem" != "$LAST_OEM" -o "$odoo_vid" != "$LAST_VID" ]; then
+        echo "=====[$oem/$odoo_vid]====="
+        LAST_OEM=$oem
+        LAST_VID=$odoo_vid
+      else
+        echo "--------------------"
       fi
-    done
+      for x in $excl; do
+        if [ "$x" == "$oem" -o "$x" == "$oem/$odoo_vid"  -o "$x" == "$odoo_vid/$oem"  -o "$x" == "$oem/$odoo_fver"  -o "$x" == "$odoo_fver/$oem" ]; then
+          return $sts
+        fi
+      done
+    fi
     if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
       ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $oem $opt_rpt)
       ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $oem $opt_rpt)
@@ -115,11 +117,11 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $oem $opt_rpt)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.2.4 pylint==1.6.4 \
-            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.10 pylint==1.6.4 \
+            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4; do
         pip install $f --upgrade --no-deps
       done
-      for f in passlib pyPdf; do
+      for f in passlib pyPdf wkhtmltopdf; do
         lisa install $f
       done
       return $sts
@@ -234,7 +236,7 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: add_new_modules build check clean list oca oia pull rebuild remote status zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: add_new_modules build check clean list oca oia pull rebuild requirements status zeroincombenze"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi

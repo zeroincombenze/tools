@@ -23,7 +23,7 @@ from zerobug import Z0test
 from clodoo import clodoo
 
 
-__version__ = "0.3.4.9"
+__version__ = "0.3.4.10"
 
 
 MODULE_ID = 'clodoo'
@@ -130,6 +130,7 @@ oe_version=%s
             cmd = cmd + ['-b%s' % oe_version]
             cmd = cmd + ['-r%s' % xmlrpc_port]
             cmd = cmd + ['-p%s' % self.Z.test_dir]
+            cmd = cmd + ['-q']
         return cmd
 
     def test_01(self, z0ctx):
