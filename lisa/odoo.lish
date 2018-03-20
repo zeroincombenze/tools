@@ -2,7 +2,7 @@
 # Please, if you update this configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # so your configuration should be shared with other people.
-# Last update: 2017-11-04
+# Last update: 2018-03-17
 #
 # This file may be deployed in /etc/lisa directory.
 # See /etc/lisa/lisa.conf.sample for example of configuration file
@@ -18,7 +18,7 @@ SubPkgList=account-closing,account-financial-reporting,account-financial-tools,\
            reporting-engine,report-print-send,server-tools,\
            stock-logistics-barcode,stock-logistics-tracking,stock-logistics-warehouse,stock-logistics-workflow,\
            web,webkit-tools,website
-# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assingned UID/GID
+# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assigned UID/GID
 ODOO_UID=497
 ODOO_GID=497
 git_LocalRoot=/opt/odoo
@@ -29,7 +29,7 @@ git_LocalUser=odoo:odoo
 ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,\
     BeautifulSoup,Babel>=1.0,decorator,docutils,feedparser,gevent==1.0.2,\
     Jinja2,lxml,mako,mock,passlib,Pillow==3.4.2,psutil,psycogreen,psycopg2>=2.2,\
-    python-chart,pydot,pyparsing<2,pypdf,pyserial,python-dateutil,\
+    python-chart,pydot,pyparsing,pyPdf,pyserial,python-dateutil,\
     python-ldap,python-openid,pytz,pyusb>=1.0.0b1,pyyaml,qrcode,\
     reportlab,requests,simplejson,unittest2,vatnumber,vobject,werkzeug,xlwt,\
     jinja2,raven,raven_sanitize_openerp,pyxb,codicefiscale,cups
@@ -73,7 +73,7 @@ ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,\
     python-chart,python-jinja2,python-ldap,python-lxml,python-mako,python-mock,pyserial,\
     python-openid,python-passlib,Pillow==3.4.2,python-psutil,python-psycopg2,\
     python-reportlab,python-requests,python-simplejson,python-unittest2,\
-    python-vobject,python-werkzeug,python-yaml,pytz,pypdf,qrcode,\
+    python-vobject,python-werkzeug,python-yaml,pytz,pyPdf,qrcode,\
     xlwt,raven,raven_sanitize_openerp,pyxb,codicefiscale,cups
 BOP=Babel==1.3,dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
     libjpeg-turbo,libtiff libyaml,passlib==1.6.2,\

@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.4.10
+__version__=0.3.4.12
 
 
 test_01() {
@@ -399,6 +399,50 @@ test_03() {
 }
 
 test_04() {
+    local s sts v w
+    sts=0
+    opt_mult=1
+    declare -A TRES
+    TRES[6.1]="/opt/odoo/6.1"
+    TRES[v7]="/opt/odoo/v7"
+    TRES[7.0]="/opt/odoo/7.0"
+    TRES[v8.0]="/opt/odoo/v8.0"
+    TRES[8.0]="/opt/odoo/8.0"
+    TRES[9.0]="/opt/odoo/9.0"
+    TRES[10.0]="/opt/odoo/10.0"
+    TRES[11.0]="/opt/odoo/11.0"
+    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param ROOT $v "crm")
+      fi
+      test_result "Root $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param HOME $v "OCB")
+      fi
+      test_result "Home $v/OCB" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[6.1]="/opt/odoo/6.1/crm"
+    TRES[v7]="/opt/odoo/v7/crm"
+    TRES[7.0]="/opt/odoo/7.0/crm"
+    TRES[v8.0]="/opt/odoo/v8.0/crm"
+    TRES[8.0]="/opt/odoo/8.0/crm"
+    TRES[9.0]="/opt/odoo/9.0/crm"
+    TRES[10.0]="/opt/odoo/10.0/crm"
+    TRES[11.0]="/opt/odoo/11.0/crm"
+    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param HOME $v "crm")
+      fi
+      test_result "Home $v/crm" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    return $sts
+    }
+
+test_05() {
     local s sts v w
     sts=0
     opt_mult=0

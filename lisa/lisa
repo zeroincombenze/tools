@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.36.31
+__version__=0.2.36.32
 
 
 STS_FAILED=1
@@ -715,7 +715,7 @@ get_specimen() {
       local i pkg pkgname lop rop lreqver rreqver xtlcmd op p
       pkg=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
       i=1
-      while ((i<=c)); do
+      while ((i<c)); do
         op=$(echo "$1"|grep -Eo '[!<=>\\[]*'|head -n$i|tail -n1)
         ((i++))
         p=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n$i|tail -n1)
@@ -873,6 +873,7 @@ get_pkg_ver_dpkg() {
     local pkgname="$1"
     local stscmd=$(get_prm_value "${1}_stscmd")
     local pkgversion=
+    local l
     local x=
     local X="VER__${1//-/_}"
     if [ -n "${!X}" ]; then
@@ -880,13 +881,20 @@ get_pkg_ver_dpkg() {
     elif [[ $2 =~ J ]]; then
       :
     else
-      x="$(${stscmd}-query -f='${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
+      x="$(${stscmd} -f='\${Status}' -W $pkgname 2>/dev/null|awk '{print $3}')"
       sts=$?
       if [ $sts -eq $STS_SUCCESS -a "$x" != "installed" ]; then
         sts=$STS_FAILED
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        pkgversion="$(${stscmd}-query -f='${Version}' -W $pkgname 2>/dev/null|awk -F\- '{print $1}')"
+        pkgversion="$(${stscmd} -W $pkgname 2>/dev/null|awk  -F"\t" '{print $2}')"
+        # l=$(echo "$pkgversion"|grep -ob "ubuntu"|grep -oE '[0-9]+')
+        # if [ -n "$l" ]; then
+        #   pkgversion=${pkgversion:0:l}
+        # fi
+        IFS=: read l x <<<"$pkgversion"
+        [ -n "$x" ] && pkgversion="$x"
+        pkgversion=$(echo "$pkgversion"|grep -Eo '[0-9.]+'|head -n1)
       fi
       if [[ $2 =~ I ]]; then
         if [ -z "$pkgversion" ]; then
@@ -1134,7 +1142,7 @@ get_full_xtlcmd() {
     elif [ -z "$xtlcmd" ]; then
       xtlcmd="#"
     fi
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_full_xtlcmd($1 $2 $3)">>~/$THIS.his
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "$xtlcmd=get_full_xtlcmd($1 $2 $3 $4 $5)">>~/$THIS.his
     echo "$xtlcmd"
 }
 
@@ -1517,9 +1525,6 @@ create_setup() {
       if [ -n "$opt_dev" ]; then
         cp ../../z0lib/z0lib/z0librc ./
         cp ../../clodoo/clodoo/odoorc ./
-      # else
-      #   cp /etc/z0librc ./
-      #   cp /etc/odoorc ./
       fi
       cat <<EOF >$SETUP
 # lisa setup $__version__ ($datetime)
@@ -3193,7 +3198,7 @@ do_local_function() {
     cmd=${1}_${act}_ports
     cmd=${cmd//__/_}
     if [ "$(type -t $cmd)" == "function" ]; then
-      eval $cmd $act $4 $5$ij $6 "$7"
+      eval $cmd $act "'$4'" "$5$ij" "$6" "$7"
       s=$?
       [ $sts -eq 127 ] && sts=$s
       [ $sts -eq $STS_SUCCESS ] && [ $s -ne $STS_SUCCESS ] && sts=$s

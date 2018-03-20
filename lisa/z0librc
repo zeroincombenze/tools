@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.4.1
+#__version__=0.2.5
 STS_FAILED=1
 STS_SUCCESS=0
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
@@ -62,6 +62,9 @@ export -f _install_z0librc
 #    2015-08-27  antoniov    Linux Ubuntu 12.04( 3.13.0-32-generic i686) -> Debian
 #    2015-09-15  antoniov    Linux Ubuntu 14.04(trusty 3.13.0-66-generic x86_64) -> Debian
 #    2015-10-28  antoniov    Linux VMWare VMware(VMware ESX Server 3 2.4.21-57.ELvmnix i686) -> VMWare
+#    2017-12-07  antoniov    Linux 3.2.0-4-amd64 #1 SMP Debian 3.2.96-2 x86_64 GNU/Linux -> Debian
+#    2017-12-07  antoniov    Linux 3.10.0-693.5.2.el7.x86_64 #1 x86_64 x86_64 x86_64 GNU/Linux -> Debian
+#    2017-12-07  antoniov    Linux 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt9-3~deb8u1 (2015-04-24) x86_64 GNU/Linux -> Debian
 #
 # Parameter $1:
 #   -a  print all

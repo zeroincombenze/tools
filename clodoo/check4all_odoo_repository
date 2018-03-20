@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.4.10
+__version__=0.3.4.12
 
 
 explore() {
@@ -49,25 +49,6 @@ explore() {
     echo $res
 }
 
-build_pkgurl() {
-# build_pkgurl(pkgname rpt)
-    local MODNAME=$1
-    local RPT=$2
-    if [ "$RPT" == "oca" ]; then
-      ODOO_RPT="https://github.com/OCA"
-    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
-      ODOO_RPT="git@github.com:zeroincombenze"
-    elif [ "$RPT" == "zero-http" ]; then
-      ODOO_RPT="https://github.com/zeroincombenze"
-    else
-      echo "Odoo repository is one of oca|zero|zero-http|zero-git"
-      sts=1
-      exit $sts
-    fi
-    pkg_URL="$ODOO_RPT/$MODNAME.git"
-    echo "$pkg_URL"
-}
-
 do_action() {
 #do_action(action, oem, odoo_vid)
     local act=$1
@@ -75,23 +56,20 @@ do_action() {
     local odoo_vid=$3
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-    local f
-    if [ "$oem" == "OCB" ]; then
-      local pkgdir=~/$odoo_vid
-      local pardir=~/
+    local f s
+    local pkgdir=$(build_odoo_param HOME $odoo_vid "$oem")
+    local pardir=$(readlink -e $pkgdir)
+    local opts=
+    if [ $opt_verbose -gt 0 ]; then
+      local opts="-v"
     else
-      local pkgdir=~/$odoo_vid/$oem
-      local pardir=~/$odoo_vid
+      local opts="-q"
+    fi
+    if [ $opt_multi -ne 0 ]; then
+      local opts="${opts}m"
     fi
     if [ $opt_dry_run -ne 0 ]; then
-      local opts=-n
-    else
-      local opts=
-    fi
-    if [ $opt_verbose -gt 0 ]; then
-      local opts="${opts} -v"
-    else
-      local opts="${opts} -q"
+      local opts="${opts}n"
     fi
     local sts=0
     local excl="${opt_excl//,/ }"
@@ -113,16 +91,22 @@ do_action() {
     if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
       ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $oem $opt_rpt)
       ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $oem $opt_rpt)
-      OPTS_GIT=$(build_odoo_param OPTS_GIT $odoo_vid $oem $opt_rpt)
+      GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $oem $opt_rpt)
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $oem $opt_rpt)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.10 pylint==1.6.4 \
-            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4; do
-        pip install $f --upgrade --no-deps
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.12 pylint==1.6.4 \
+            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
+        run_traced "pip install $f --upgrade --no-deps"
       done
-      for f in passlib pyPdf wkhtmltopdf; do
-        lisa install $f
+      for f in codicefiscale passlib pyPdf wkhtmltopdf; do
+        lisa status $f &>/dev/null
+        if [ $? -eq 0 ]; then
+          :
+          # run_traced "lisa update $f"
+        else
+          run_traced "lisa install $f"
+        fi
       done
       return $sts
     elif [ "$act" == "rebuild" -a -d $pkgdir ]; then
@@ -150,9 +134,9 @@ do_action() {
     if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
       run_traced "cd $pardir"
       if [ "$oem" == "OCB" ]; then
-        run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $OPTS_GIT"
+        run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $GIT_OPTS"
       else
-        $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts $OPTS_ASM
+        $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts -R $opt_rpt $OPTS_ASM
       fi
     else
       run_traced "cd $pkgdir"
@@ -165,10 +149,10 @@ do_action() {
         if [ -L $pkgdir ]; then
           :
         else
-          please wep $opts
           if [ "$oem" != "OCB" ]; then
-            $TDIR/addsubm.sh $oem $odoo_vid -r $opts
+            please wep $opts
           fi
+          $TDIR/addsubm.sh $oem $odoo_vid $opts -R $opt_rpt -r
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pkgdir ]; then
@@ -205,15 +189,16 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       n            q           R            s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_dry_run  opt_verbose opt_rpt      opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       1            0           "="          1          "*>"        "+"         "="       1)
-OPTDEFL=(0        ""         ""       0       0            -1          ""           0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "do nothing" "verbose"   "repository" ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       m         n            q           R            s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_multi opt_dry_run  opt_verbose opt_rpt      opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       1         1            0           "="          1          "*>"        "+"         "="       1)
+OPTDEFL=(0        ""         ""       0       0         0            -1          "zero"       0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      ""        "do nothing" "verbose"   "repository" ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
  "default module list"\
+ "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "silent mode"\
  "if [re]build[_new], repository name, one of oca oia oia-git oia-http zero zero-git zero-http"\
@@ -291,6 +276,7 @@ for odoo_vid in $opt_branch; do
   done
 done
 if [ "$actions" == "list" -o $opt_verbose -gt 0 ]; then
+  echo "Repository list:"
   echo "$sub_list"
   if [ "$actions" == "list" ]; then
     echo "-x $opt_excl"
@@ -303,7 +289,7 @@ sts=0
 for oem in $sub_list; do
   for odoo_vid in $opt_branch; do
     for act in $actions; do
-      if [ "$act" != "requirements" -o "$oem" != "OCB" ]; then
+      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$oem" == "OCB") ]]; then
         do_action $act $oem $odoo_vid
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi

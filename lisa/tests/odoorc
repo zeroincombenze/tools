@@ -5,7 +5,10 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.3.0
+#__version__=0.2.36.32
+
+
+INVALID_MODNAMES="addons cover debian doc history odoo openerp node_modules scripts server setup themes __to_remove woven_fabric"
 
 
 get_odoo_major_ver() {
@@ -25,30 +28,141 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(CONFN|SVCNAME|FULL_SVCNAME|FLOG|FPID|FULLVER|MAJVER|BIN|ROOT|MANIFEST|RPCPORT|USER version [{search|debug}])
+# build_odoo_param(BIN|CONFN|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_ORG|MAJVER|MANIFEST|OPTS_ASM|OPTS_GIT|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|GIT_URL|USER
+#                  version [{search|debug|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
-    local odoo_fver odoo_ver odoo_vid MULTIVER
-    local p p1 p11 p2 p3 p4
+    local odoo_fver odoo_ver odoo_vid MULTIVER MODNAME GIT_ORG
+    local p p1 p11 p2 p3 p4 ldir r
+    MODNAME=$3
+    [ -z "$4" ] && GIT_ORG=zero || GIT_ORG=$4
+    if [ "$GIT_ORG" == "zero" -o "$GIT_ORG" == "zeroincombenze" ]; then
+      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+        GIT_ORG=zero-git
+      else
+        GIT_ORG=zero-http
+      fi
+    elif [ "$GIT_ORG" == "oia" ]; then
+      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+        GIT_ORG=oia-git
+      else
+        GIT_ORG=oia-http
+      fi
+    fi
     if [ ${opt_mult:-0} -ne 0 -o ${opt_multi:-0} -ne 0 ]; then
       MULTIVER=1
     else
       MULTIVER=0
     fi
     if [ -n "$2" ]; then
-      if [[ $2 =~ (11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         odoo_fver=$(get_odoo_full_ver "$2")
         odoo_ver=$(get_odoo_major_ver "$odoo_fver")
         odoo_vid="$2"
-      else
-        echo "Invalid Odoo version"
+      elif [[ "$2" == "OCB" ]]; then
+        for ldir in ~/OCB/server/openerp ~/OCB/openerp ~/OCB/odoo; do
+          if [[ -d $ldir && -f $ldir/release.py ]]; then
+            pushd $ldir &>/dev/null
+            odoo_fver=$(echo -e "import release\nprint release.version\n"|python)
+            popd &>/dev/null
+            odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+            odoo_vid="$2"
+            break
+          fi
+        done
+      fi
+      if [[ -z "$odoo_fver" ]]; then
+        echo "Invalid Odoo version $2!"
         # exit 1
       fi
     else
-      odoo_ver=10
-      odoo_fver=10.0
-      odoo_vid=10.0
+      odoo_ver=11
+      odoo_fver=11.0
+      odoo_vid=11.0
     fi
-    if [ "$ITEM" == "FULLVER" ]; then
+    if [[ "$ITEM" =~ (OPTS_ASM|OPTS_GIT|RORIGIN|GIT_ORG|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|GIT_URL) ]]; then
+      if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
+        local ODOO_RPT="https://github.com/acespritech"
+        local ODOO_UPSTREAM=
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$MODNAME" == "zeroincombenze" -o "$MODNAME" == "cscs_addons" -o "$MODNAME" == "account_banking_cscs" ]; then
+        local ODOO_RPT="https://github.com/zeroincombenze"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
+        if [ "$GIT_ORG" == "zero-http" ]; then
+          local ODOO_RPT="https://github.com/zeroincombenze"
+          local OPTS_GIT="--depth 1 --single-branch"
+          local OPTS_ASM="-1"
+        else
+          local ODOO_RPT="git@github.com:zeroincombenze"
+          local OPTS_GIT=""
+          local OPTS_ASM=
+        fi
+        local ODOO_UPSTREAM=
+      elif [ "$GIT_ORG" == "oca" ]; then
+        local ODOO_RPT="https://github.com/OCA"
+        local ODOO_UPSTREAM=
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$GIT_ORG" == "zero-git" ]; then
+        local ODOO_RPT="git@github.com:zeroincombenze"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT=""
+        local OPTS_ASM=""
+      elif [ "$GIT_ORG" == "oia-git" ]; then
+        local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT=""
+        local OPTS_ASM=""
+      elif [ "$GIT_ORG" == "zero-http" ]; then
+        local ODOO_RPT="https://github.com/zeroincombenze"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      elif [ "$GIT_ORG" == "oia-http" ]; then
+        local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
+        local ODOO_UPSTREAM="https://github.com/OCA"
+        local OPTS_GIT="--depth 1 --single-branch"
+        local OPTS_ASM="-1"
+      else
+        echo "Invalid $GIT_ORG Odoo org: must be one of oca|oia|oia-git|oia-http|zero|zero-git|zero-http!"
+        # exit 1
+      fi
+      if [ "$ITEM" == "GIT_ORG" ]; then
+        echo "$ODOO_RPT"
+      elif [ "$ITEM" == "URL" ]; then
+        echo "$ODOO_RPT/$MODNAME"
+      elif [ "$ITEM" == "GIT_URL" ]; then
+        echo "$ODOO_RPT/$MODNAME.git"
+      elif [ "$ITEM" == "URL_BRANCH" ]; then
+        echo "$ODOO_RPT/$MODNAME/tree/$odoo_fver"
+      elif [ "$ITEM" == "UPSTREAM" ]; then
+        if [ "$odoo_fver" == "6.1" ]; then
+          echo ""
+        elif [ -n "$ODOO_UPSTREAM" ]; then
+          echo "$ODOO_UPSTREAM/$MODNAME.git"
+        else
+          echo ""
+        fi
+      elif [ "$ITEM" == "OPTS_GIT" ]; then
+        echo "$OPTS_GIT"
+      elif [ "$ITEM" == "OPTS_ASM" ]; then
+        echo "$OPTS_ASM"
+      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
+        p=${ITEM,,}
+        p=${p:1}
+        IFS=- read x y <<<$GIT_ORG
+        r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
+        if [  -z "$r" ]; then
+          r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
+        fi
+        echo "$r"
+      else
+        echo ""
+      fi
+      return
+    elif [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
       return
     elif [ "$ITEM" == "MAJVER" ]; then
@@ -65,12 +179,12 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [ "${odoo_vid:0:1}" == "v" ]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
-      elif [ $odoo_ver -lt 7 ]; then
-        p="openerp"
+      elif [ $odoo_ver -lt 8 ]; then
+        [ -d /opt/openerp -a ! -d /opt/odoo ] && p="openerp" || p="odoo"
       else
         p="odoo"
       fi
@@ -78,9 +192,8 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
-        # let p="8070+$odoo_ver"
         let p="18060+$odoo_ver"
-      elif [ "${odoo_vid:0:1}" == "v" ]; then
+      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
         let p="8160+$odoo_ver"
@@ -117,13 +230,13 @@ build_odoo_param() {
       fi
       p4=
     else
-      echo "Invalid parameter $ITEM"
+      echo "Invalid parameter $ITEM!"
       exit 1
     fi
     if [ $MULTIVER -ne 0 -a "$ITEM" != "BIN" ]; then
       if [ "$odoo_vid" == "v7" -o "$odoo_vid" == "v6" ]; then
         p2=openerp
-      elif [  "${odoo_vid:0:1}" == "v" ]; then
+      elif [ "${odoo_vid:0:1}" == "v" -o "${odoo_vid:0:1}" == "V" ]; then
         p2=odoo
       else
         p2="odoo${odoo_ver}"
@@ -170,4 +283,73 @@ build_odoo_param() {
       p=$(basename $p)
     fi
     echo "$p"
+}
+
+discover_multi() {
+    local v p
+    local c=0
+    [ ${opt_multi:-0} -ne 0 ] && return
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for p in "" v odoo ocb; do
+        odoo_bin=$(build_odoo_param BIN $p$v search)
+        if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+          ((c++))
+        else
+          odoo_bin=$(build_odoo_param BIN $p-$v search)
+          if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+            ((c++))
+          else
+            odoo_bin=$(build_odoo_param BIN ${p^^}$v search)
+            if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+              ((c++))
+            else
+              odoo_bin=$(build_odoo_param BIN ${p^^}-$v search)
+              if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+                ((c++))
+              fi
+            fi
+          fi
+        fi
+      done
+    done
+    if [ $c -gt 2 ]; then
+      opt_multi=1
+    else
+      opt_multi=0
+    fi
+}
+
+
+module_list() {
+#module_list(odoo_fver excl_list)
+    local res=OCB
+    local fn nm v
+    local odoo_fver=$1
+    local excl_list="$2"
+    DEFMLIST="OCB account-closing account-financial-reporting account-financial-tools\
+    account-invoicing account-payment bank-payment connector knowledge l10n-italy\
+    l10n-italy-supplemental partner-contact product-attribute reporting-engine\
+    report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
+    stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
+    7.0/account_banking_cscs account_invoice_create_payment account_payment_approve_invoice\
+    zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
+    project event pylint-odoo operating-unit sale-reporting bank-statement-import\
+    account-invoice-reporting hr hr-timesheet manufacture survey management-system\
+    margin-analysis pos rma queue e-commerce delivery-carrier contract\
+    multi-company vertical-education bank-statement-reconcile vertical-isp\
+    geospatial account-fiscal-rule vertical-association runbot-addons \
+    stock-logistics-reporting project-reporting edi product-variant \
+    manufacture-reporting purchase-reporting intrastat sale-financial \
+    interface-github connector-odoo2odoo webhook product-kitting \
+    7.0/cscs_addons"
+    for fn in $DEFMLIST; do
+      v=$(dirname $fn)
+      if [ "$v" == "." -o "$v" == "$odoo_fver" ]; then
+        nm=$(basename $fn)
+        if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
+          res="$res $nm"
+        fi
+      fi
+    done
+    echo $res
 }
