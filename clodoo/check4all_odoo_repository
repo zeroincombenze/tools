@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.4.12
+__version__=0.3.4.14
 
 
 explore() {
@@ -95,11 +95,11 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $oem $opt_rpt)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.12 pylint==1.6.4 \
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.14 pylint==1.6.4 \
             astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
         run_traced "pip install $f --upgrade --no-deps"
       done
-      for f in codicefiscale passlib pyPdf wkhtmltopdf; do
+      for f in codicefiscale npm passlib pyPdf wkhtmltopdf; do
         lisa status $f &>/dev/null
         if [ $? -eq 0 ]; then
           :
@@ -163,7 +163,11 @@ do_action() {
           please synchro . oia $opts
         fi
       elif [ "$act" == "remote" ]; then
-        git remote -v
+        if $(git status -s &>/dev/null); then
+          git remote -v
+        else
+          echo "No git repository!"
+        fi
       elif [ "$act" == "status" ]; then
         if [ ! -L $pkgdir ]; then
           git status
@@ -171,14 +175,18 @@ do_action() {
           if [ $sts -eq 0 ]; then
             local v=$(git branch|grep -Eo [0-9.]+)
             if [ "$v" != "$odoo_fver" ]; then
-              echo "INVALID BRANCH VERSION! Expected $odoo_fver, found $v"
+              echo "INVALID BRANCH VERSION! Expected '$odoo_fver', found '$v'"
               sts=1
             fi
           fi
         fi
       elif [ "$act" == "pull" ]; then
         if [ ! -L $pkgdir ]; then
-          run_traced "git pull origin $odoo_fver"
+          if $(git status -s &>/dev/null); then
+            run_traced "git pull origin $odoo_fver"
+          else
+            echo "No git repository!"
+          fi
         fi
       elif [ "$act" == "zeroincombenze" ]; then
         if [ ! -L $pkgdir ]; then

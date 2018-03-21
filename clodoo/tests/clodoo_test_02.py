@@ -23,7 +23,7 @@ from zerobug import Z0test
 from clodoo import clodoo
 
 
-__version__ = "0.3.4.12"
+__version__ = "0.3.4.14"
 
 
 MODULE_ID = 'clodoo'

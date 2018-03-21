@@ -10,13 +10,14 @@
 # GIT_PROT  Git protocol (git or https)
 # GIT_URL   URL to download git project (ends with .git)
 # HOME      Specific Odoo module home directory
+# IS_GIT    If GIT repository return "git" otherwise return ""
 # ROOT      Odoo home directory of specific vid/version
 # URL       URL to source git project
 
-#__version__=0.3.4.12
+#__version__=0.3.4.14
 
 
-INVALID_MODNAMES="addons cover debian doc history odoo openerp node_modules scripts server setup themes __to_remove woven_fabric"
+INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
 
 
 get_odoo_major_ver() {
@@ -36,7 +37,7 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|MAJVER|MANIFEST|OPTS_ASM|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER
+# build_odoo_param(BIN|CONFN|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|IS_GIT|MAJVER|MANIFEST|OPTS_ASM|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
@@ -88,10 +89,34 @@ build_odoo_param() {
       odoo_fver=11.0
       odoo_vid=11.0
     fi
-    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|GIT_URL) ]]; then
-      if [ "$RPTNAME" == "openerp_gantt_chart_modification" ]; then
+    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|IS_GIT|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|GIT_URL) ]]; then
+      if [[ " $RPTNAME " =~ " $INVALID_MODNAMES " ]]; then
+        GIT_ORGNM=""
+        GIT_PROT=""
+        ODOO_UPSTREAM=
+      elif [ "$RPTNAME" == "openerp_gantt_chart_modification" ]; then
         GIT_ORGNM="acespritech"
         GIT_PROT="https"
+        ODOO_UPSTREAM=
+      elif [ "$RPTNAME" == "odoomrp-wip" ]; then
+        GIT_ORGNM="odoomrp"
+        GIT_PROT="https"
+        ODOO_UPSTREAM=
+      elif [ "$RPTNAME" == "project" -o "$RPTNAME" == "project-service" ]; then
+        GIT_ORGNM="OCA"
+        GIT_PROT="https"
+        ODOO_UPSTREAM=
+      elif [ "$RPTNAME" == "user_contributes" ]; then
+        GIT_ORGNM="Odoo-Italia-Associazione"
+        if [ "$GIT_ORGID" == "oia-git" ]; then
+          GIT_PROT="git"
+        else
+          GIT_PROT="https"
+        fi
+        ODOO_UPSTREAM=
+      elif [ "$RPTNAME" == "didotech_80" -o "$RPTNAME" == "profiles" -o "$RPTNAME" == "uncovered" -o "$RPTNAME" == "themes" -o "$RPTNAME" == "woven_fabric" ]; then
+        GIT_ORGNM=""
+        GIT_PROT=""
         ODOO_UPSTREAM=
       elif [ "$RPTNAME" == "zeroincombenze" -o "$RPTNAME" == "cscs_addons" -o "$RPTNAME" == "account_banking_cscs" ]; then
         GIT_ORGNM="zeroincombenze"
@@ -128,23 +153,41 @@ build_odoo_param() {
         echo "Invalid $GIT_ORGID Odoo org: must be one of oca|oia|oia-git|oia-http|zero|zero-git|zero-http!"
         # exit 1
       fi
-      if [ "$GIT_PROT" == "git" ]; then
-        GIT_ORG="git@github.com:$GIT_ORGNM"
+      if [ -n "$GIT_PROT" ]; then
+        if [ "$GIT_PROT" == "git" ]; then
+          GIT_ORG="git@github.com:$GIT_ORGNM"
+          GIT_OPTS=""
+          OPTS_ASM=
+        else
+          GIT_ORG="https://github.com/$GIT_ORGNM"
+          GIT_OPTS="--depth 1 --single-branch"
+          OPTS_ASM="-1"
+        fi
+      else
+        GIT_ORG=""
         GIT_OPTS=""
         OPTS_ASM=
-      else
-        GIT_ORG="https://github.com/$GIT_ORGNM"
-        GIT_OPTS="--depth 1 --single-branch"
-        OPTS_ASM="-1"
       fi
       if [ "$ITEM" == "GIT_ORG" ]; then
         echo "$GIT_ORG"
       elif [ "$ITEM" == "URL" ]; then
-        echo "$GIT_ORG/$RPTNAME"
+        if [ -n "$GIT_ORG" ]; then
+          echo "$GIT_ORG/$RPTNAME"
+        else
+          echo ""
+        fi
       elif [ "$ITEM" == "GIT_URL" ]; then
-        echo "$GIT_ORG/$RPTNAME.git"
+        if [ -n "$GIT_ORG" ]; then
+          echo "$GIT_ORG/$RPTNAME.git"
+        else
+          echo ""
+        fi
       elif [ "$ITEM" == "URL_BRANCH" ]; then
-        echo "$GIT_ORG/$RPTNAME/tree/$odoo_fver"
+        if [ -n "$GIT_ORG" ]; then
+          echo "$GIT_ORG/$RPTNAME/tree/$odoo_fver"
+        else
+          echo ""
+        fi
       elif [ "$ITEM" == "UPSTREAM" ]; then
         if [ "$odoo_fver" == "6.1" ]; then
           echo ""
@@ -157,13 +200,21 @@ build_odoo_param() {
         echo "$GIT_OPTS"
       elif [ "$ITEM" == "OPTS_ASM" ]; then
         echo "$OPTS_ASM"
-      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
-        p=${ITEM,,}
-        p=${p:1}
-        IFS=- read x y <<<$GIT_ORG
-        r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
-        if [  -z "$r" ]; then
-          r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
+      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "IS_GIT" ]; then
+        if $(git status -s &>/dev/null); then
+          if [ "$ITEM" == "IS_GIT" ]; then
+            r="git"
+          else
+            p=${ITEM,,}
+            p=${p:1}
+            IFS=- read x y <<<$GIT_ORG
+            r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
+            if [  -z "$r" ]; then
+              r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
+            fi
+          fi
+        else
+          r=
         fi
         echo "$r"
       else
