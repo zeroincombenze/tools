@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.1
+__version__=1.3.31.3
 
 
 detached_login() {
@@ -249,17 +249,22 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   tar $x $GZFN cronow
   if [ $EUID -eq 0 ]; then
     if [ -d /var/www/html/mw/download/ ]; then
+      echo "\$ cp $PWD/$GZFN /var/www/html/mw/download/"
       wlog "\$ cp $GZFN /var/www/html/mw/download/"
       chown apache:apache $GZFN
       mv $GZFN /var/www/html/mw/download/
+      rm -fR $HOME/tmp
+    else
+      echo "Missed http download directory!"
+      echo "See $HOME/tmp/$GZFN file ..."
     fi
-    rm -fR $HOME/tmp
   else
     for f in $FLIST z0librc cronow; do
       if [ -f $HOME/tmp/$f ]; then
         rm -f $HOME/tmp/$f
       fi
     done
+    echo "See $HOME/tmp/$GZFN file ..."
   fi
   cd $CWD
   exit 0
