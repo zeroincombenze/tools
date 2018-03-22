@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.4.14
+__version__=0.3.4.17
 
 
 explore() {
@@ -50,14 +50,14 @@ explore() {
 }
 
 do_action() {
-#do_action(action, oem, odoo_vid)
+#do_action(action, repo, odoo_vid)
     local act=$1
-    local oem=$2
+    local repo=$2
     local odoo_vid=$3
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local f s
-    local pkgdir=$(build_odoo_param HOME $odoo_vid "$oem")
+    local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
     local pardir=$(readlink -e $pkgdir)
     local opts=
     if [ $opt_verbose -gt 0 ]; then
@@ -75,31 +75,32 @@ do_action() {
     local excl="${opt_excl//,/ }"
     local x
     if [ "$act" != "requirements" ]; then
-      if [ "$oem" != "$LAST_OEM" -o "$odoo_vid" != "$LAST_VID" ]; then
-        echo "=====[$oem/$odoo_vid]====="
-        LAST_OEM=$oem
+      if [ "$repo" != "$LAST_REPO" -o "$odoo_vid" != "$LAST_VID" ]; then
+        echo "=====[$odoo_vid/$repo]====="
+        LAST_REPO=$repo
         LAST_VID=$odoo_vid
       else
         echo "--------------------"
       fi
       for x in $excl; do
-        if [ "$x" == "$oem" -o "$x" == "$oem/$odoo_vid"  -o "$x" == "$odoo_vid/$oem"  -o "$x" == "$oem/$odoo_fver"  -o "$x" == "$odoo_fver/$oem" ]; then
+        if [ "$x" == "$repo" -o "$x" == "$repo/$odoo_vid"  -o "$x" == "$odoo_vid/$repo"  -o "$x" == "$repo/$odoo_fver"  -o "$x" == "$odoo_fver/$repo" ]; then
           return $sts
         fi
       done
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
-      ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $oem $opt_rpt)
-      ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $oem $opt_rpt)
-      GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $oem $opt_rpt)
-      OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $oem $opt_rpt)
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_modules" ]; then
+      ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $repo $opt_org)
+      ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
+      GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $opt_org)
+      OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.14 pylint==1.6.4 \
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.17 pylint==1.6.4 \
             astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
         run_traced "pip install $f --upgrade --no-deps"
       done
       for f in codicefiscale npm passlib pyPdf wkhtmltopdf; do
+        echo "Check for $f package ..."
         lisa status $f &>/dev/null
         if [ $? -eq 0 ]; then
           :
@@ -108,10 +109,24 @@ do_action() {
           run_traced "lisa install $f"
         fi
       done
+      cfgfn=$(build_odoo_param CONFN "$odoo_vid")
+      echo "Parsing $cfgfn ..."
+      p=$(build_odoo_param USER "$odoo_vid")
+      [[ ! $(grep "^db_user *= *$p$" $cfgfn) ]] && run_traced "sed -i \"s|^db_user *= *.*|db_user = $p|\" $cfgfn"
+      p=$(build_odoo_param FLOG "$odoo_vid")
+      [[ ! $(grep "^logfile *= $p$" $cfgfn) ]] && run_traced "sed -i \"s|^logfile *= *.*|logfile = $p|\" $cfgfn"
+      p=$(build_odoo_param FPID "$odoo_vid")
+      [[ ! $(grep "^pidfile *= *$p$" $cfgfn) ]] && run_traced "sed -i \"s|^pidfile *= *.*|pidfile = $p|\" $cfgfn"
+      p=$(build_odoo_param RPCPORT "$odoo_vid")
+      [[ ! $(grep "^xmlrpc_port *=.*$p$" $cfgfn) ]] && run_traced "sed -i \"s|^xmlrpc_port *= *.*|xmlrpc_port = $p|\" $cfgfn"
+      if [ $odoo_ver -ge 7 ]; then
+        p=$(build_odoo_param DDIR "$odoo_vid")
+        [[ ! $(grep "^data_dir *= *$p$" $cfgfn 2>/dev/null) ]] && run_traced "sed -i \"s|^data_dir *= *.*|data_dir = $p|\" $cfgfn"
+      fi
       return $sts
     elif [ "$act" == "rebuild" -a -d $pkgdir ]; then
       if [ $opt_yes -eq 0 ]; then
-        read -p "BRANCH $odoo_vid OF $oem already exist! confirm action (yes,no)?" a
+        read -p "BRANCH $odoo_vid OF $repo already exist! confirm action (yes,no)?" a
         if [ "$a" != "yes" ]; then
           sts=1
           return $sts
@@ -119,25 +134,20 @@ do_action() {
       fi
       run_traced "rm -fR $pkgdir"
     fi
-    if [ "$act" == "add_new_modules" -a -d $pkgdir ]; then
+    if [ "$act" == "add_modules" -a -d $pkgdir ]; then
       return $sts
     elif [ "$act" == "build" -a -d $pkgdir ]; then
-      echo "BRANCH $odoo_vid OF $oem ALREADY EXISTS!"
+      echo "BRANCH $odoo_vid OF $repo ALREADY EXISTS!"
       sts=1
-    elif [ "$act" != "build" -a "$act" != "rebuild" -a ! -d $pkgdir ]; then
-      echo "BRANCH $odoo_vid OF $oem NOT FOUND!"
+    elif [ "$act" != "build" -a "$act" != "rebuild" -a "$act" != "add_modules" -a ! -d $pkgdir ]; then
+      echo "BRANCH $odoo_vid OF $repo NOT FOUND!"
       sts=1
     fi
     if [ $sts -ne 0 ]; then
       return $sts
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_new_modules" ]; then
-      run_traced "cd $pardir"
-      if [ "$oem" == "OCB" ]; then
-        run_traced "git clone $ODOO_RPT/OCB.git $odoo_vid -b $odoo_vid $GIT_OPTS"
-      else
-        $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts -R $opt_rpt $OPTS_ASM
-      fi
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_modules" ]; then
+      $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts -O $opt_org $OPTS_ASM
     else
       run_traced "cd $pkgdir"
       if [ "$act" == "check" ]; then
@@ -149,10 +159,10 @@ do_action() {
         if [ -L $pkgdir ]; then
           :
         else
-          if [ "$oem" != "OCB" ]; then
+          if [ "$repo" != "OCB" ]; then
             please wep $opts
           fi
-          $TDIR/addsubm.sh $oem $odoo_vid $opts -R $opt_rpt -r
+          $TDIR/addsubm.sh $repo $odoo_vid $opts -O $opt_org -r
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pkgdir ]; then
@@ -170,9 +180,7 @@ do_action() {
         fi
       elif [ "$act" == "status" ]; then
         if [ ! -L $pkgdir ]; then
-          git status
-          sts=$?
-          if [ $sts -eq 0 ]; then
+          if [ "$(build_odoo_param VCS $odoo_vid)" == "git" ]; then
             local v=$(git branch|grep -Eo [0-9.]+)
             if [ "$v" != "$odoo_fver" ]; then
               echo "INVALID BRANCH VERSION! Expected '$odoo_fver', found '$v'"
@@ -180,7 +188,7 @@ do_action() {
             fi
           fi
         fi
-      elif [ "$act" == "pull" ]; then
+      elif [ "$act" == "upgrade" ]; then
         if [ ! -L $pkgdir ]; then
           if $(git status -s &>/dev/null); then
             run_traced "git pull origin $odoo_fver"
@@ -197,19 +205,19 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       m         n            q           R            s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_multi opt_dry_run  opt_verbose opt_rpt      opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       1         1            0           "="          1          "*>"        "+"         "="       1)
-OPTDEFL=(0        ""         ""       0       0         0            -1          "zero"       0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      ""        "do nothing" "verbose"   "repository" ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       m         n            O         q           s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_multi opt_dry_run  opt_org   opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       1         1            "="   0   1           "*>"        "+"         "="       1)
+OPTDEFL=(0        ""         ""       0       0         0            "zero"    -1          0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      ""        "do nothing" "git-org" "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
  "default module list"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
+ "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
  "silent mode"\
- "if [re]build[_new], repository name, one of oca oia oia-git oia-http zero zero-git zero-http"\
  "no stop after every module/version"\
  "show version"\
  "verbose mode"\
@@ -229,7 +237,7 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: add_new_modules build check clean list oca oia pull rebuild requirements status zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: add_modules build check clean list oca oia rebuild requirements status upgrade zeroincombenze"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
@@ -243,7 +251,7 @@ fi
 sub_list=
 excl_list="$INVALID_MODNAMES"
 if [ -z $opt_excl ]; then
-  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_new_modules" ]; then
+  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_modules" ]; then
     opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,connector-odoo2odoo,webhook,interface-github,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
   else
     opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,survey,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,webhook,interface-github,connector-odoo2odoo,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
@@ -262,13 +270,13 @@ elif [[ " $opt_excl " =~ [[:space:]]7.0/website[[:space:]] ]]; then
 else
   opt_excl="$opt_excl website/7.0"
 fi
-for oem in $opt_excl; do
-  if [[ ! "$oem" =~ / ]]; then
-    excl_list="$excl_list $oem"
+for repo in $opt_excl; do
+  if [[ ! "$repo" =~ / ]]; then
+    excl_list="$excl_list $repo"
   fi
 done
 cd
-if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_new_modules" ]; then
+if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_modules" ]; then
   opt_def=1
 fi
 for odoo_vid in $opt_branch; do
@@ -277,12 +285,19 @@ for odoo_vid in $opt_branch; do
   else
     mlist=$(explore $odoo_vid)
   fi
-  for oem in $mlist; do
-    if [[ ! " $sub_list " =~ [[:space:]]$oem[[:space:]] ]] ; then
-      sub_list="$sub_list $oem"
+  for repo in $mlist; do
+    if [[ ! " $sub_list " =~ [[:space:]]$repo[[:space:]] ]] ; then
+      sub_list="$sub_list $repo"
     fi
   done
 done
+if [ $opt_verbose -gt 0 ]; then
+  if [ $opt_multi -ne 0 ]; then
+    echo "Manage Odoo multi-version environment"
+  else
+    echo "Manage single Odoo version environment"
+  fi
+fi
 if [ "$actions" == "list" -o $opt_verbose -gt 0 ]; then
   echo "Repository list:"
   echo "$sub_list"
@@ -294,20 +309,22 @@ fi
 actions="${actions//+/ }"
 actions="${actions//,/ }"
 sts=0
-for oem in $sub_list; do
+for repo in $sub_list; do
   for odoo_vid in $opt_branch; do
     for act in $actions; do
-      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$oem" == "OCB") ]]; then
-        do_action $act $oem $odoo_vid
+      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$repo" == "OCB") ]]; then
+        do_action $act $repo $odoo_vid
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
     if [ $sts -ne 0 ]; then
       exit $sts
     elif [ $opt_nostop -eq 0 ]; then
-      read -p "Press RET to continue" a
-      if [ "$a" == "q" ]; then
-        exit $sts
+      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$repo" == "OCB") ]]; then
+        read -p "Press RET to continue" a
+        if [ "$a" == "q" ]; then
+          exit $sts
+        fi
       fi
     fi
   done

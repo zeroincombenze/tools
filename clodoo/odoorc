@@ -5,16 +5,17 @@
 # Common function to manage Odoo
 #
 # Item to process:
+# DDIR      Data directory
 # GIT_ORG   URL of git organization of specific Odoo version
 # GIT_ORGNM Name of git organization of specific Odoo version
 # GIT_PROT  Git protocol (git or https)
 # GIT_URL   URL to download git project (ends with .git)
 # HOME      Specific Odoo module home directory
-# IS_GIT    If GIT repository return "git" otherwise return ""
 # ROOT      Odoo home directory of specific vid/version
 # URL       URL to source git project
+# VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.4.14
+#__version__=0.3.4.17
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -37,13 +38,17 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|IS_GIT|MAJVER|MANIFEST|OPTS_ASM|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|MAJVER|MANIFEST|OPTS_ASM|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM ODOO_UPSTREAM
     local p p1 p11 p2 p3 p4 ldir r
-    [ -z "$3" ] && RPTNAME="OCB" || RPTNAME=$3
+    if [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" ]; then
+      RPTNAME=$(basename $PWD)
+    else
+      [ -z "$3" ] && RPTNAME="OCB" || RPTNAME=$3
+    fi
     [ -z "$4" ] && GIT_ORGID="zero" || GIT_ORGID=$4
     if [ "$GIT_ORGID" == "zero" -o "$GIT_ORGID" == "zeroincombenze" ]; then
       if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
@@ -89,7 +94,7 @@ build_odoo_param() {
       odoo_fver=11.0
       odoo_vid=11.0
     fi
-    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|IS_GIT|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|GIT_URL) ]]; then
+    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS) ]]; then
       if [[ " $RPTNAME " =~ " $INVALID_MODNAMES " ]]; then
         GIT_ORGNM=""
         GIT_PROT=""
@@ -102,7 +107,7 @@ build_odoo_param() {
         GIT_ORGNM="odoomrp"
         GIT_PROT="https"
         ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "project" -o "$RPTNAME" == "project-service" ]; then
+      elif [ "$RPTNAME" == "project" -o "$RPTNAME" == "project-service" -o "$RPTNAME" == "sale-workflow" -o "$RPTNAME" == "purchase-workflow" -o "$RPTNAME" == "multi-company" ]; then
         GIT_ORGNM="OCA"
         GIT_PROT="https"
         ODOO_UPSTREAM=
@@ -144,6 +149,7 @@ build_odoo_param() {
         ODOO_UPSTREAM="https://github.com/OCA"
       elif [ "$GIT_ORGID" == "zero-http" ]; then
         GIT_ORGNM="zeroincombenze"
+        GIT_PROT="https"
         ODOO_UPSTREAM="https://github.com/OCA"
       elif [ "$GIT_ORGID" == "oia-http" ]; then
         GIT_ORGNM="Odoo-Italia-Associazione"
@@ -170,24 +176,28 @@ build_odoo_param() {
       fi
       if [ "$ITEM" == "GIT_ORG" ]; then
         echo "$GIT_ORG"
+        return
       elif [ "$ITEM" == "URL" ]; then
         if [ -n "$GIT_ORG" ]; then
           echo "$GIT_ORG/$RPTNAME"
         else
           echo ""
         fi
+        return
       elif [ "$ITEM" == "GIT_URL" ]; then
         if [ -n "$GIT_ORG" ]; then
           echo "$GIT_ORG/$RPTNAME.git"
         else
           echo ""
         fi
+        return
       elif [ "$ITEM" == "URL_BRANCH" ]; then
         if [ -n "$GIT_ORG" ]; then
           echo "$GIT_ORG/$RPTNAME/tree/$odoo_fver"
         else
           echo ""
         fi
+        return
       elif [ "$ITEM" == "UPSTREAM" ]; then
         if [ "$odoo_fver" == "6.1" ]; then
           echo ""
@@ -196,31 +206,31 @@ build_odoo_param() {
         else
           echo ""
         fi
+        return
       elif [ "$ITEM" == "GIT_OPTS" ]; then
         echo "$GIT_OPTS"
+        return
       elif [ "$ITEM" == "OPTS_ASM" ]; then
         echo "$OPTS_ASM"
-      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "IS_GIT" ]; then
+        return
+      elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" ]; then
+        r=
         if $(git status -s &>/dev/null); then
-          if [ "$ITEM" == "IS_GIT" ]; then
+          if [ "$ITEM" == "VCS" ]; then
             r="git"
-          else
+          elif [ -n "$GIT_ORG" ]; then
             p=${ITEM,,}
             p=${p:1}
-            IFS=- read x y <<<$GIT_ORG
-            r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
-            if [  -z "$r" ]; then
+            IFS=- read x y <<<$GIT_ORGID
+            r=$(git remote -v 2>/dev/null|grep "${p}_$x.*push"|head -n1|awk '{ print $2}')
+            if [ -z "$r" ]; then
               r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
             fi
           fi
-        else
-          r=
         fi
         echo "$r"
-      else
-        echo ""
+        return
       fi
-      return
     elif [ "$ITEM" == "FULLVER" ]; then
       echo "$odoo_fver"
       return
@@ -236,6 +246,19 @@ build_odoo_param() {
       else
         echo "/opt/odoo/$odoo_vid/$RPTNAME"
       fi
+      return
+    elif [ "$ITEM" == "DDIR" ]; then
+      p="/opt/odoo/$odoo_vid/.local/share"
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
+        p="$p/Odoo"
+      elif [ $MULTIVER -ne 0 ]; then
+        p="$p/Odoo$odoo_ver"
+      elif [ $odoo_ver -lt 8 ]; then
+        p="/opt/odoo/$odoo_vid/openerp/filestore"
+      else
+        p="$p/Odoo"
+      fi
+      echo $p
       return
     elif [ "$ITEM" == "MANIFEST" ]; then
       if [ $odoo_ver -ge 10 ]; then
@@ -352,26 +375,41 @@ build_odoo_param() {
 }
 
 discover_multi() {
-    local v p
+    local v p m
     local c=0
     [ ${opt_multi:-0} -ne 0 ] && return
     for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      m=$(build_odoo_param MAJVER $v)
       for p in "" v odoo ocb; do
         odoo_bin=$(build_odoo_param BIN $p$v search)
         if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
           ((c++))
         else
-          odoo_bin=$(build_odoo_param BIN $p-$v search)
+          if [ -n "$p" ]; then
+            odoo_bin=$(build_odoo_param BIN $p$m search)
+          fi
           if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
             ((c++))
           else
-            odoo_bin=$(build_odoo_param BIN ${p^^}$v search)
+            odoo_bin=$(build_odoo_param BIN $p-$v search)
             if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
               ((c++))
             else
-              odoo_bin=$(build_odoo_param BIN ${p^^}-$v search)
+              odoo_bin=$(build_odoo_param BIN ${p^^}$v search)
               if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
                 ((c++))
+              else
+                if [ -n "$p" ]; then
+                  odoo_bin=$(build_odoo_param BIN ${p^^}$m search)
+                fi
+                if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+                  ((c++))
+                else
+                  odoo_bin=$(build_odoo_param BIN ${p^^}-$v search)
+                  if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+                    ((c++))
+                  fi
+                fi
               fi
             fi
           fi

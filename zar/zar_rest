@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31
+__version__=1.3.31.1
 
 
 kill_process() {
@@ -227,7 +227,9 @@ create_script_db_2_restore() {
     echo "\\echo Loading data into DB \"$NEWDB\"">>$fsql
     echo "\\i $SQLFNAME">>$fsql
     echo "ALTER DATABASE \"$NEWDB\" OWNER TO $OE_OWN;">>$fsql
-    echo "REASSIGN OWNED BY $OWNER TO $OE_OWN;">>$fsql
+    if [ "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
+      echo "REASSIGN OWNED BY $PRD_OE_OWN TO $DEV_OE_OWN;">>$fsql
+    fi
 }
 
 inherit_options() {

@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.4.14
+__version__=0.3.4.17
 
 
 rmdir_if_exists() {
@@ -63,9 +63,13 @@ rmdir_if_exists() {
         git status -s &>/dev/null
         sts=$?
         if [ $sts -eq 0 -a "$new_vid" == "$odoo_vid" ]; then
-          run_traced "cd $DSTPATH"
+          if [ "$DSTPATH" != "$PWD" ]; then
+            run_traced "cd $DSTPATH"
+          fi
           run_traced "git push origin --delete $odoo_fver"
-          run_traced "cd $CWD"
+          if [ "$CWD" != "$PWD" ]; then
+            run_traced "cd $CWD"
+          fi
         fi
         run_traced "rm -fR $DSTPATH"
       fi
@@ -79,18 +83,18 @@ set_remote_info() {
     local pkg_URL=$3
     local odoo_org=$4
     local UPSTREAM=$(build_odoo_param UPSTREAM $odoo_vid $RPTNAME $odoo_org)
-    local rval sts
-    git status -s &>/dev/null
-    sts=$?
-    if [ $sts -eq 0 ]; then
-      rval=$(git remote -v 2>/dev/null|grep upstream|head -n1|awk '{ print $2}')
-      if [ -n "$rval" ]; then
-        run_traced "git remote remove upstream"
+    local rval
+    if [ "$(build_odoo_param VCS $odoo_vid)" == "git" ]; then
+      rval=$(build_odoo_param RUPSTREAM $odoo_vid)
+      if [[ ! "$rval" == "$UPSTREAM" ]]; then
+        [[ -n "$rval" ]] && run_traced "git remote remove upstream"
+        [[ -n "$UPSTREAM" ]] && run_traced "git remote add upstream $UPSTREAM"
       fi
-      [ -n "$UPSTREAM" ] && run_traced "git remote add upstream $UPSTREAM"
-      rval=$(git remote -v 2>/dev/null|grep origin|head -n1|awk '{ print $2}')
-      [ -n "$rval" ] && run_traced "git remote remove origin"
-      [ -n "$pkg_URL" ] && run_traced "git remote add origin $pkg_URL"
+      rval=$(build_odoo_param RORIGIN $odoo_vid)
+      if [[ ! "$rval" == "$pkg_URL" ]]; then
+        [[ -n "$rval" ]] && run_traced "git remote remove origin"
+        [[ -n "$pkg_URL" ]] && run_traced "git remote add origin $pkg_URL"
+      fi 
     else
       echo "No git repositoy $RPTNAME!"
     fi
@@ -158,20 +162,20 @@ commit_files() {
 }
 
 
-OPTOPTS=(h        b          c        L        m          n            q           r          R            V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_link opt_multi  opt_dry_run  opt_verbose opt_updrmt opt_org      opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1          1            0           1          "="          "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0          0            -1          0          "zero"       ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""         "do nothing" "verbose"   ""         "repository" "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        L        m          n            O         q           r            V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_link opt_multi  opt_dry_run  opt_org   opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1        1          1            "="       0           1          "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0        0          0            "zero"    -1          0          ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""       ""         "do nothing" "git-org" "verbose"   ""         "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "new branch (new_odoo_ver) to create"\
  "configuration file (def .travis.conf)"\
  "create symbolic link rather copy files (if new_odoo_ver supplied)"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
+ "git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
  "silent mode"\
  "do just update remote info (if no new_odoo_ver supplied)"\
- "repository name, one of oca zero-git zero-http (def zero-git)"\
  "show version"\
  "verbose mode"\
  "assume yes"\
@@ -217,8 +221,17 @@ fi
 if [ "$pkg_URL" == "$RPTNAME/" ]; then
   RPTNAME=${RPTNAME:0: -1}
 fi
+if [ $opt_verbose -gt 0 ]; then
+  if [ $opt_multi -ne 0 ]; then
+    echo "Manage Odoo multi-version environment"
+  else
+    echo "Manage single Odoo version environment"
+  fi
+fi
 odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB")
-run_traced "cd $odoo_root"
+if [ "$odoo_root" != "$PWD" ]; then
+  run_traced "cd $odoo_root"
+fi
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then
@@ -238,7 +251,9 @@ if [ -z "$new_odoo_vid" ]; then
     run_traced "git clone $pkg_URL $RPTNAME/ $git_opts"
   fi
   DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME")
-  run_traced "cd $DSTPATH"
+  if [ "$DSTPATH" != "$PWD" ]; then
+    run_traced "cd $DSTPATH"
+  fi
 else
   if [ "$odoo_vid" == "$new_odoo_vid" ]; then
     echo "Same source and target version"
@@ -267,7 +282,9 @@ else
   else
     run_traced "ln -s $SRCPATH/ $DSTROOT"
   fi
-  run_traced "cd $DSTPATH"
+  if [ "$DSTPATH" != "$PWD" ]; then
+    run_traced "cd $DSTPATH"
+  fi
   odoo_root=$(build_odoo_param ROOT $new_odoo_vid "OCB")
   # if [ "$new_odoo_fver" == "$new_odoo_vid" -a "${pkg_URL:0:15}" == "git@github.com:" ]; then
   #   run_traced "git remote update"
@@ -293,10 +310,12 @@ if [ $opt_updrmt -eq 0 ]; then
   commit_files "$new_odoo_fver"
   wep_other_branches "$new_odoo_fver"
 fi
-is_submodule=$(build_odoo_param IS_GIT $new_odoo_vid)
+is_submodule=$(build_odoo_param VCS $new_odoo_vid)
 [ -n "$is_submodule" ] && git_orgnm=$(build_odoo_param RORIGIN $new_odoo_vid) || git_orgnm=
 [ -n "$git_orgnm" ] && git_orgnm=$(dirname $git_orgnm)
-run_traced "cd $odoo_root"
+if [ "$odoo_root" != "$PWD" ]; then
+  run_traced "cd $odoo_root"
+fi
 if [ "$RPTNAME" != "OCB" -a -n "$is_submodule" ]; then
   root_orgnm=$(build_odoo_param RORIGIN $new_odoo_vid)
   [ -n "$root_orgnm" ] && root_orgnm=$(dirname $root_orgnm)
@@ -313,8 +332,9 @@ if [ -z "$(grep "$RPTNAME/" .gitignore 2>/dev/null)" ]; then
    run_traced "echo "$RPTNAME/">>.gitignore"
 fi
 cfgfn=$(build_odoo_param CONFN "$new_odoo_vid")
-if [ -z "$(grep "^addons_path *=.*$RPTNAME" $cfgfn 2>/dev/null)" ]; then
-  run_traced "sed -i \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
+if [ "$RPTNAME" == "OCB" ]; then
+  DSTPATH="$DSTPATH/addons"
 fi
+[[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -ie \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
 rm -f $TMPFILE
 exit 0

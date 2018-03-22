@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.3.31
+#__version__=1.3.31.1
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -62,6 +62,7 @@ conf_default() {
     set_cfg_def "test_db" "test"
     set_cfg_def "tar_ext" ".gz .bz2 .tar"
     set_cfg_def "tar_opt" ""
+    set_cfg_def "pg_dump_opt" ""
     set_cfg_def "db_user" "odoo"
     set_cfg_def "pg_user" "postgres:postgres"
     local DBFA="zi[0-9]+"
@@ -72,6 +73,7 @@ conf_default() {
       set_cfg_def "DB${sfx}_keep_recent" "30"
       set_cfg_def "DB${sfx}_keep_monthly" "12"
     done
+    set_cfg_def "wait_4_prod" "60"
     set_cfg_def "odoo_rpc_host" "localhost"
     set_cfg_def "odoo_rpc_protocol" "xmlrpc"
     set_cfg_def "odoo_rpc_xmlport" "8069"
@@ -109,8 +111,8 @@ init_vars() {
     local x
     dbsel=$1
     declare -g PGDIR RMTBCKDIR DBCKDIR HOST_PRD HOST_DEV URL_PRD URL_DEV
-    declare -g BCKFORMAT TAR_EXT TAR_OPT
-    declare -g REST2 TEST_DB NEWDBS REDB OE_OWN
+    declare -g BCKFORMAT TAR_EXT TAR_OPT PG_DUMP_OPT
+    declare -g REST2 TEST_DB NEWDBS REDB OE_OWN PRD_OE_OWN DEV_OE_OWN
     declare -g DBA DBB DBC DBD DBE DBF DBG DBH
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
     declare -g NAA NAB NAC NAD NAE NAF NAG NAH
@@ -154,6 +156,7 @@ init_vars() {
     BCKFORMAT="$(get_cfg_value 0 bckformat)"
     TAR_EXT=$(get_cfg_value 0 tar_ext)
     TAR_OPT=$(get_cfg_value 0 tar_opt)
+    PG_DUMP_OPT=$(get_cfg_value 0 pg_dump_opt)
     REST2="$(get_cfg_value 0 enable_restore)"
     TEST_DB="$(get_cfg_value 0 test_db)"
     NEWDBS=$(get_cfg_value 0 bck_db)
@@ -166,6 +169,8 @@ init_vars() {
       REDB="test"
     fi
     OE_OWN=$(get_cfg_value 0 db_user)
+    PRD_OE_OWN=$(get_cfg_value 0 PRD_db_user)
+    DEV_OE_OWN=$(get_cfg_value 0 DEV_db_user)
     PG_OWN=$(get_cfg_value 0 pg_user)
     ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
     ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
@@ -236,6 +241,13 @@ init_vars() {
     fi
     if [[ "$opt_km" =~ [0-9]+ ]]; then
       NAA=$opt_km
+    fi
+    if [ -z "$OE_OWN" ]; then
+      if [ "$BCK_ENV" == "PRD" ]; then
+        OE_OWN=$PRD_OE_OWN
+      elif [ "$BCK_ENV" == "DEV" ]; then
+        OE_OWN=$DEV_OE_OWN
+      fi
     fi
 }
 

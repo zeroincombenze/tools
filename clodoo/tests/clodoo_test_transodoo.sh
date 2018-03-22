@@ -22,12 +22,6 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
-if [ -z "$ODOOLIBDIR" ]; then
-  echo "Library file odoorc not found!"
-  exit 2
-fi
-. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
@@ -41,30 +35,35 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.3.4.17
 
 
+test_01() {
+    local k v RES
+    declare -A TRES
+    TRES[6.1]="Sales Management"
+    TRES[7.0]="Sales"
+    TRES[8.0]="Sales"
+    TRES[9.0]="Sales"
+    TRES[10.0]="Sales"
+    TRES[11.0]="Sales"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      RES=$($RUNDIR/transodoo.py translate -m res.groups -s SALES -b$v)
+      test_result "translate SALES $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    k="name"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      RES=$($RUNDIR/transodoo.py translate -m res.groups -k "$k" -s "Sales" -f 7.0 -b$v)
+      test_result "translate $k/Sales from 7.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+}
+
 Z0BUG_setup() {
-    # Just for regression tests
-    coveragerc_file="$RUNDIR/.coveragerc"
-    coveragerc_bak="$RUNDIR/coveragerc.bak"
-    if [ ! -f "$coveragerc_bak" ]; then
-      if [ -f "$coveragerc_file" ]; then
-         mv -f $coveragerc_file $coveragerc_bak
-      fi
-    fi
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    if [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" ]; then
-      cp -p /opt/odoo/tools/z0lib/z0librc ./
-    fi
+    :
 }
 
 Z0BUG_teardown() {
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    if [ -f "$coveragerc_bak" ]; then
-      mv -f $coveragerc_bak $coveragerc_file
-    fi
+    :
 }
 
 
@@ -75,20 +74,19 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 if [ ${opt_oeLib:-0} -ne 0 ]; then
-  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
-  if [ -z "$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
     exit 2
   fi
-  . $TRAVISLIBDIR
+  . $ODOOLIBDIR
 fi
 
+
 UT1_LIST=
-UT_LIST="__version_V_0.1.17.3$RUNDIR/odoo_skin.sh"
-# UT_LIST="$UT_LIST __version_V_0.3.4.17$RUNDIR/transodoo.py"
-UT_LIST="$UT_LIST clodoo_test_01.py clodoo_test_02.py clodoo_test_odoo_skin.sh clodoo_test_odoorc.sh"
+# UT_LIST="__version_V_${__version__}$RUNDIR/transodoo.py"
+UT_LIST=
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
-export PYTHONPATH=/opt/odoo/dev/pypi/zerobug:/opt/odoo/dev/pypi/clodoo
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?
 if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
