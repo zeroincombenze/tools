@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.36.32
+__version__=0.2.37
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -99,7 +99,7 @@ EOF
     Real_DISTO=$(xuname "-d")$v
 
     Package=odoo
-    for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+    for Disto in . Ubuntu14 CentOS7 Ubuntu12; do
       if [ "$Disto" == "." ]; then
         opt_e=
       else
@@ -219,7 +219,7 @@ odoo (by git)
 --python-dateutil (by pip)
 --docutils (by yum/pip)
 --feedparser (by yum/pip)
---jinja2 (by yum/pip)
+--Jinja2 (by yum/pip)
 --python-ldap (by yum/pip)
 --python-mako (by yum)
 --python-markupsafe (by yum)
@@ -249,7 +249,7 @@ odoo (by git)
 --python-dateutil (by wget)
 --python-docutils (by yum/pip)
 --python-feedparser (by yum/pip)
---python-jinja2 (by yum/pip)
+--Jinja2 (by yum/pip)
 --python-ldap (by yum/pip)
 --python-mako (by yum)
 --python-markupsafe (by yum)
@@ -264,7 +264,7 @@ odoo (by git)
 EOF
     fi
 
-    for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+    for Disto in . Ubuntu14 CentOS7 Ubuntu12; do
       if [ "$Disto" == "." ]; then
         opt_e=
       else

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.36.32
+__version__=0.2.37
 
 test_run() {
 # test_run(msg package disto cmd)

@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.36.32
+__version__=0.2.37
 
 
 test_run () {
@@ -448,7 +448,8 @@ EOF
 > yum -y install readline
 > yum -y install python-psycopg2
 > pip install psycopg2 --upgrade
-> pip install simplejson
+> yum -y install python-simplejson
+> pip install python2-simplejson --upgrade
 > pip install xlwt
 > pip install PyYAML
 > pip install gdata

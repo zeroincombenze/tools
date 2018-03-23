@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.3
+__version__=1.3.31.4
 
 
 inherit_options() {
@@ -133,6 +133,7 @@ fi
 wlog "- DB to Backup:$dblist"
 wait_4_prod=$(get_cfg_value 0 wait_4_prod)
 ((ctr_wait=wait_4_prod/3))
+[ $ctr_wait lt 10 ] && ctr_wait=10
 ctr=0
 if [ -n "$dblist" ]; then
   inherit_options

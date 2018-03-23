@@ -8,7 +8,8 @@
 > yum -y install readline
 > yum -y install python-psycopg2
 > pip install psycopg2 --upgrade
-> pip install simplejson
+> yum -y install python-simplejson
+> pip install python2-simplejson --upgrade
 > pip install xlwt
 > pip install PyYAML
 > pip install gdata

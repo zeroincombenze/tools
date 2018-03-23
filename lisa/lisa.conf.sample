@@ -206,7 +206,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-psycopg2/psycopg2,python-reportlab/reportlab,\
                python-decorator/decorator,python-docutils/docutils,\
                python-feedparser/feedparser,python-gevent/gevent,\
-               python-jinja2/jinja2,python-ldap,\
+               python-jinja2/Jinja2,python-ldap,\
                python-simplejson/simplejson,python2-simplejson/simplejson
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
@@ -403,7 +403,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson,\
     pyparsing,beaker,psycopg2,reportlab,decorator,docutils,feedparser,gevent,\
-    jinja2,pyOpenSSL
+    Jinja2,pyOpenSSL
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
 
