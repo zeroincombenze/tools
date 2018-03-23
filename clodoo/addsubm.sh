@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.4.21
+__version__=0.3.4.22
 
 
 rmdir_if_exists() {
@@ -256,32 +256,32 @@ if [ -z "$new_odoo_vid" ]; then
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
-    if [ "$RPTNAME" == "OCB" ]; then
-      cfgfn=$(build_odoo_param CONFN "$odoo_vid")
-      if [ ! -f "$cfgfn" ]; then
-        odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
-        [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc"
-        [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc"
-        user=$(build_odoo_param USER "$odoo_vid")
-        flog=$(build_odoo_param FLOG "$odoo_vid")
-        fpid=$(build_odoo_param FPID "$odoo_vid")
-        rport=$(build_odoo_param RPCPORT "$odoo_vid")
-        if [ $odoo_ver -ge 7 ]; then
-          pdir=$(build_odoo_param DDIR "$odoo_vid")
-          if [ !-d $pdir ]; then
-            run_traced "mkdir $pdir"
-            run_traced "chown odoo:odoo $pdir"
-          fi
-          pdir="-D $pdir"
+  fi
+  if [ "$RPTNAME" == "OCB" ]; then
+    cfgfn=$(build_odoo_param CONFN "$odoo_vid")
+    if [ ! -f "$cfgfn" ]; then
+      odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
+      [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc"
+      [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc"
+      user=$(build_odoo_param USER "$odoo_vid")
+      flog=$(build_odoo_param FLOG "$odoo_vid")
+      fpid=$(build_odoo_param FPID "$odoo_vid")
+      rport=$(build_odoo_param RPCPORT "$odoo_vid")
+      if [ $odoo_ver -ge 7 ]; then
+        pdir=$(build_odoo_param DDIR "$odoo_vid")
+        if [ !-d $pdir ]; then
+          run_traced "mkdir $pdir"
+          run_traced "chown odoo:odoo $pdir"
         fi
-        run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
-        if [ -f ~/.openerp_serverrc ]; then
-          run_traced "mv ~/.openerp_serverrc $cfgfn"
-        elif [ -f ~/.odoorc ]; then
-          run_traced "mv ~/.odoorc $cfgfn"
-        fi
-        run_traced "chown odoo:odoo $cfgfn"
+        pdir="-D $pdir"
       fi
+      run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
+      if [ -f ~/.openerp_serverrc ]; then
+        run_traced "mv ~/.openerp_serverrc $cfgfn"
+      elif [ -f ~/.odoorc ]; then
+        run_traced "mv ~/.odoorc $cfgfn"
+      fi
+      run_traced "chown odoo:odoo $cfgfn"
     fi
   fi
 else
