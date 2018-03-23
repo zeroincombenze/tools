@@ -15,7 +15,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.4.17
+#__version__=0.3.4.18
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -119,7 +119,7 @@ build_odoo_param() {
           GIT_PROT="https"
         fi
         ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "didotech_80" -o "$RPTNAME" == "profiles" -o "$RPTNAME" == "uncovered" -o "$RPTNAME" == "themes" -o "$RPTNAME" == "woven_fabric" ]; then
+      elif [ "$RPTNAME" == "didotech_80" -o "$RPTNAME" == "profiles" -o "$RPTNAME" == "uncovered" -o "$RPTNAME" == "mymodules" -o "$RPTNAME" == "themes" -o "$RPTNAME" == "woven_fabric" ]; then
         GIT_ORGNM=""
         GIT_PROT=""
         ODOO_UPSTREAM=
