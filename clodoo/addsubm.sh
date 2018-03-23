@@ -252,8 +252,8 @@ if [ -z "$new_odoo_vid" ]; then
       run_traced "cd $pardir"
     fi
     pkgdir=$(basename $DSTPATH)
-    run_traced "sudo -uodoo git clone $pkg_URL $pkgdir/ $git_opts"
-    run_traced "chown -R odoo:odoo $DSTPATH"
+    run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
+    # run_traced "chown -R odoo:odoo $DSTPATH"
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
@@ -271,12 +271,12 @@ if [ -z "$new_odoo_vid" ]; then
       if [ $odoo_ver -ge 7 ]; then
         pdir=$(build_odoo_param DDIR "$odoo_vid")
         if [ ! -d $pdir ]; then
-          run_traced "sudo -uodoo mkdir -p $pdir"
-          run_traced "chown odoo:odoo $pdir"
+          run_traced "mkdir -p $pdir"
+          # run_traced "chown odoo:odoo $pdir"
         fi
         pdir="-D $pdir"
       fi
-      run_traced "sudo -uodoo $odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
+      run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
       if [ -f ~/.openerp_serverrc ]; then
         run_traced "mv ~/.openerp_serverrc $cfgfn"
       elif [ -f ~/.odoorc ]; then
