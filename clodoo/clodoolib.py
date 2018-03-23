@@ -42,7 +42,9 @@ LX_CFG_S = ('db_name',
             'db_user',
             'login_user',
             'login2_user',
+            'crypt_password',
             'login_password',
+            'crypt2_password',
             'login2_password',
             'admin_passwd',
             'db_host',
@@ -125,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.4.23"
+__version__ = "0.3.4.24"
 
 
 #############################################################################
@@ -194,7 +196,7 @@ def debug_msg_log(ctx, level, text):
 
 
 def crypt(s):
-    k = "Caserta1959"
+    k = "Caserta1959!TO61TV"
     t = ""
     for i, c in enumerate(s):
         j = ord(k[i])
@@ -204,7 +206,7 @@ def crypt(s):
 
 
 def decrypt(t):
-    k = "Caserta1959"
+    k = "Caserta1959!TO61TV"
     s = ""
     for i, c in enumerate(t):
         j = ord(k[i])
@@ -258,9 +260,11 @@ def default_conf(ctx):
     dts_start = date(y, 1, 1).strftime(dfmt)
     dts_stop = date(y, 12, 31).strftime(dfmt)
     DEFDCT = {'login_user': 'admin',
-              'login_password': 'Ec{fu',
+              'crypt_password': 'Ec{fu',
+              'login_password': '',
               'login2_user': 'admin',
-              'login2_password': 'admin',
+              'crypt2_password': '',
+              'login2_password': '',
               'admin_passwd': 'admin',
               'db_user': 'postgres',
               'db_host': 'localhost',

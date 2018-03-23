@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.23"
+__version__ = "0.3.4.24"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -201,10 +201,14 @@ def do_login(oerp, ctx):
         for u in ctx['lgi_user'].split(','):
             if u and u not in userlist:
                 userlist.insert(0, u)
-    pwdlist = ctx['login_password'].split(',')
-    for p in ctx['login2_password'].split(','):
+    pwdlist = ctx.get('login_password', '').split(',')
+    cryptlist = ctx.get('crypt_password', '').split(',')
+    for p in ctx.get('login2_password', '').split(','):
         if p and p not in pwdlist:
             pwdlist.append(p)
+    for p in ctx.get('crypt2_password', '').split(','):
+        if p and p not in cryptlist:
+            cryptlist.append(p)
     if ctx.get('lgi_pwd'):
         for p in ctx['lgi_pwd'].split(','):
             if p and p not in pwdlist:
@@ -212,7 +216,7 @@ def do_login(oerp, ctx):
     user = False
     db_name = get_dbname(ctx, 'login')
     for username in userlist:
-        for pwd in pwdlist:
+        for pwd in cryptlist:
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
                     oerp.login(db_name,
@@ -225,22 +229,22 @@ def do_login(oerp, ctx):
                                       passwd=decrypt(pwd))
                 break
             except BaseException:
-                user = False
-            try:
-                if ctx['svc_protocol'] == 'jsonrpc':
-                    oerp.login(db_name,
-                               login=username,
-                               password=pwd)
-                    user = oerp.env.user
-                else:
-                    user = oerp.login(database=db_name,
-                                      user=username,
-                                      passwd=pwd)
-                break
-            except BaseException:
-                user = False
-        if user:
-            break
+                pass
+        if not user:
+            for pwd in pwdlist:
+                try:
+                    if ctx['svc_protocol'] == 'jsonrpc':
+                        oerp.login(db_name,
+                                   login=username,
+                                   password=pwd)
+                        user = oerp.env.user
+                    else:
+                        user = oerp.login(database=db_name,
+                                          user=username,
+                                          passwd=pwd)
+                    break
+                except BaseException:
+                    pass
     if not user:
         if not ctx.get('no_warning_pwd', False):
             os0.wlog(u"!DB={0}: invalid user/pwd"
@@ -248,7 +252,6 @@ def do_login(oerp, ctx):
         return
     if not ctx['multi_user']:
         ctx = init_user_ctx(oerp, ctx, user)
-        # if not ctx['quiet_mode']:
         msg = ident_user(oerp, ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
@@ -256,8 +259,11 @@ def do_login(oerp, ctx):
         if username != ctx['login_user']:
             user.login = ctx['login_user']
             wrong = True
-        if pwd != ctx['login_password']:
-            user.password = decrypt(ctx['login_password'])
+        if ctx['crypt_password'] and pwd != ctx['crypt_password']:
+            user.password = decrypt(ctx['crypt_password'])
+            wrong = True
+        elif ctx['login_password'] and pwd != ctx['login_password']:
+            user.password = ctx['login_password']
             wrong = True
         if wrong:
             try:
@@ -286,8 +292,9 @@ def do_login(oerp, ctx):
 
 
 def oerp_set_env(confn=None, db=None, ctx=None):
-    P_LIST = ('db_host', 'login_user', 'login_password', 'db_name',
-              'xmlrpc_port', 'oe_version', 'svc_protocol', 'psycopg2')
+    P_LIST = ('db_host', 'login_user', 'login_password', 'crypt_password',
+              'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
+              'psycopg2')
 
     def oerp_env_fill(ctx=None):
         ctx = ctx or {}
@@ -299,8 +306,9 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             ctx['db_name'] = 'demo'
         if 'login_user' not in ctx or not ctx['login_user']:
             ctx['login_user'] = 'admin'
-        if 'login_password' not in ctx or not ctx['login_password']:
-            ctx['login_password'] = 'admin'
+        if 'crypt_password' not in ctx or not ctx['crypt_password']:
+            if 'login_password' not in ctx or not ctx['login_password']:
+                ctx['crypt_password'] = crypt('admin')
         if 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
             ctx['xmlrpc_port'] = 8069
         if 'oe_version' not in ctx or not ctx['oe_version']:
@@ -374,7 +382,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 pass
             elif p == 'db_name' and ctx[p] == 'demo':
                 pass
-            elif p == 'login_password':
+            elif p == 'crypt_password':
                 fd.write('%s=%s\n' % (p, crypt(ctx[p])))
             else:
                 fd.write('%s=%s\n' % (p, ctx[p]))
@@ -964,7 +972,6 @@ def act_new_db(oerp, ctx):
                                    lang,
                                    decrypt(ctx['login_password']))
                     time.sleep(3)
-
                 elif oerp.db.server_version() == '7.0':
                     oerp.db.create_and_wait(ctx['admin_passwd'],
                                             ctx['db_name'],
@@ -978,12 +985,39 @@ def act_new_db(oerp, ctx):
                                             lang,
                                             decrypt(ctx['login_password']))
                     time.sleep(3)
+            except BaseException:
+                try:
+                    if ctx['svc_protocol'] == 'jsonrpc':
+                        oerp.db.create(ctx['admin_passwd'],
+                                       ctx['db_name'],
+                                       ctx['with_demo'],
+                                       lang,
+                                       ctx['login_password'])
+                        time.sleep(3)
+                    elif oerp.db.server_version() == '7.0':
+                        oerp.db.create_and_wait(ctx['admin_passwd'],
+                                                ctx['db_name'],
+                                                ctx['with_demo'],
+                                                lang,
+                                                ctx['login_password'])
+                    else:
+                        oerp.db.create_database(ctx['admin_passwd'],
+                                                ctx['db_name'],
+                                                ctx['with_demo'],
+                                                lang,
+                                                ctx['login_password'])
+                        time.sleep(3)
+                    ctx['no_warning_pwd'] = True
+                    lgiuser = do_login(oerp, ctx)
+                    if not lgiuser:
+                        sts = STS_FAILED
+                except BaseException:
+                    sts = STS_FAILED
+            if sts == STS_SUCCESS:
                 ctx['no_warning_pwd'] = True
                 lgiuser = do_login(oerp, ctx)
                 if not lgiuser:
                     sts = STS_FAILED
-            except BaseException:
-                sts = STS_FAILED
         else:
             sts = STS_FAILED
     return sts

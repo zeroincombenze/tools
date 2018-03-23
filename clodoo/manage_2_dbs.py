@@ -4,7 +4,7 @@ import sys
 # import oerplib
 import clodoo
 from z0lib import parseoptargs
-import pdb
+# import pdb
 
 
 __version__ = "0.1.1"
@@ -120,4 +120,4 @@ right_ctx['conf_fn'] = right_ctx['right_conf_fn']
 right_oerp, uid, ctx = clodoo.oerp_set_env(ctx=right_ctx)
 left_oerp, uid, ctx = clodoo.oerp_set_env(ctx=left_ctx)
 
-pdb.set_trace()
+# pdb.set_trace()
