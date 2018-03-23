@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.4.22
+__version__=0.3.4.23
 
 
 explore() {
@@ -95,7 +95,7 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.22 pylint==1.6.4 \
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.23 pylint==1.6.4 \
             astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
         run_traced "pip install $f --upgrade --no-deps"
       done

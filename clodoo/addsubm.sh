@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.4.22
+__version__=0.3.4.23
 
 
 rmdir_if_exists() {
@@ -259,6 +259,7 @@ if [ -z "$new_odoo_vid" ]; then
     run_traced "cd $DSTPATH"
   fi
   if [ "$RPTNAME" == "OCB" ]; then
+    discover_multi
     cfgfn=$(build_odoo_param CONFN "$odoo_vid")
     if [ ! -f "$cfgfn" ]; then
       odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
