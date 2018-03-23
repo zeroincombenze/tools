@@ -252,7 +252,8 @@ if [ -z "$new_odoo_vid" ]; then
       run_traced "cd $pardir"
     fi
     pkgdir=$(basename $DSTPATH)
-    run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
+    run_traced "sudo -uodoo git clone $pkg_URL $pkgdir/ $git_opts"
+    run_traced "chown -R odoo:odoo $DSTPATH"
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
@@ -270,7 +271,7 @@ if [ -z "$new_odoo_vid" ]; then
       if [ $odoo_ver -ge 7 ]; then
         pdir=$(build_odoo_param DDIR "$odoo_vid")
         if [ ! -d $pdir ]; then
-          run_traced "mkdir $pdir"
+          run_traced "sudo -uodoo mkdir -p $pdir"
           run_traced "chown odoo:odoo $pdir"
         fi
         pdir="-D $pdir"
