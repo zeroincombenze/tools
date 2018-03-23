@@ -11,11 +11,12 @@
 # GIT_PROT  Git protocol (git or https)
 # GIT_URL   URL to download git project (ends with .git)
 # HOME      Specific Odoo module home directory
+# PARENTDIR Parent directory of specific Odoo module
 # ROOT      Odoo home directory of specific vid/version
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.4.18
+#__version__=0.3.4.21
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -38,7 +39,7 @@ get_odoo_full_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|MAJVER|MANIFEST|OPTS_ASM|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
@@ -247,6 +248,13 @@ build_odoo_param() {
         echo "/opt/odoo/$odoo_vid/$RPTNAME"
       fi
       return
+    elif [ "$ITEM" == "PARENTDIR" ]; then
+      if [ "$RPTNAME" == "OCB" ]; then
+        echo "/opt/odoo"
+      else
+        echo "/opt/odoo/$odoo_vid"
+      fi
+      return
     elif [ "$ITEM" == "DDIR" ]; then
       p="/opt/odoo/$odoo_vid/.local/share"
       if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
@@ -416,7 +424,7 @@ discover_multi() {
         fi
       done
     done
-    if [ $c -gt 2 ]; then
+    if [ $c -gt 1 ]; then
       opt_multi=1
     else
       opt_multi=0

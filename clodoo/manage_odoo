@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.4.18
+__version__=0.3.4.21
 
 
 explore() {
@@ -74,7 +74,7 @@ do_action() {
     local sts=0
     local excl="${opt_excl//,/ }"
     local x
-    if [ "$act" != "requirements" ]; then
+    if [[ ! "$act" == "requirements" && ! "$act" == "check-config" ]]; then
       if [ "$repo" != "$LAST_REPO" -o "$odoo_vid" != "$LAST_VID" ]; then
         echo "=====[$odoo_vid/$repo]====="
         LAST_REPO=$repo
@@ -95,11 +95,11 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.18 pylint==1.6.4 \
+      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.4.21 pylint==1.6.4 \
             astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
         run_traced "pip install $f --upgrade --no-deps"
       done
-      for f in codicefiscale passlib pyPdf wkhtmltopdf npm nodejs; do
+      for f in codicefiscale mock passlib pyPdf wkhtmltopdf npm nodejs; do
         echo "Check for $f package ..."
         lisa status $f &>/dev/null
         if [ $? -eq 0 ]; then
@@ -109,6 +109,8 @@ do_action() {
           run_traced "lisa install $f"
         fi
       done
+      return $sts
+    elif [[ "$act" == "check-config" ]]; then
       cfgfn=$(build_odoo_param CONFN "$odoo_vid")
       echo "Parsing $cfgfn ..."
       p=$(build_odoo_param USER "$odoo_vid")
@@ -200,6 +202,8 @@ do_action() {
         if [ ! -L $pkgdir ]; then
           please synchro . zeroincombenze $opts
         fi
+      else
+        echo "Invalid action!"
       fi
     fi
     return $sts
@@ -211,7 +215,7 @@ OPTACTI=(1        "="        "="      1       1         1            "="   0   1
 OPTDEFL=(0        ""         ""       0       0         0            "zero"    -1          0          ""          -1          ""        0)
 OPTMETA=("help"   "branch"   "file"   ""      ""        "do nothing" "git-org" "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
- "branchs to do action; one or more of v7 7.0 8.0 9.0 10.0 (comma separated)"\
+ "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
  "default module list"\
  "multi-version odoo environment"\
@@ -237,14 +241,14 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: add_modules build check clean list oca oia rebuild requirements status upgrade zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: add_modules build check check-config clean list oca oia rebuild requirements status upgrade zeroincombenze"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
 discover_multi
 if [ -z "$opt_branch" ]; then
-  opt_branch="v7 7.0 8.0 9.0 10.0"
+  opt_branch="6.1 7.0 8.0 9.0 10.0 11.0"
 else
   opt_branch="${opt_branch//,/ }"
 fi
@@ -312,7 +316,7 @@ sts=0
 for repo in $sub_list; do
   for odoo_vid in $opt_branch; do
     for act in $actions; do
-      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$repo" == "OCB") ]]; then
+      if [[ (! "$act" == "requirements" && ! "$act" == "check-config") || "$repo" == "OCB" ]]; then
         do_action $act $repo $odoo_vid
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
@@ -320,7 +324,7 @@ for repo in $sub_list; do
     if [ $sts -ne 0 ]; then
       exit $sts
     elif [ $opt_nostop -eq 0 ]; then
-      if [[ (! "$act" == "requirements") || ("$act" == "requirements" && "$repo" == "OCB") ]]; then
+      if [[ (! "$act" == "requirements" && ! "$act" == "check-config") || "$repo" == "OCB" ]]; then
         read -p "Press RET to continue" a
         if [ "$a" == "q" ]; then
           exit $sts

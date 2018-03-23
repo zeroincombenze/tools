@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.4.18
+__version__=0.3.4.21
 
 
 rmdir_if_exists() {
@@ -213,6 +213,7 @@ fi
 discover_multi
 TMPFILE=$HOME/tmp_$$.out
 odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
 if [ "${RPTNAME: -4}" == ".git" ]; then
@@ -229,14 +230,12 @@ if [ $opt_verbose -gt 0 ]; then
   fi
 fi
 odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB")
-if [ "$odoo_root" != "$PWD" ]; then
-  run_traced "cd $odoo_root"
-fi
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then
     pkg_URL=$(build_odoo_param GIT_URL $odoo_fver $RPTNAME $opt_org)
   fi
+  DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME")
   if [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $RPTNAME $odoo_vid ""
     git_opts="-b $odoo_fver"
@@ -248,11 +247,42 @@ if [ -z "$new_odoo_vid" ]; then
     if [ -n "$x" ]; then
       git_opts="$git_opts $x"
     fi
-    run_traced "git clone $pkg_URL $RPTNAME/ $git_opts"
+    pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME")
+    if [ "$PWD" != "$pardir" ]; then
+      run_traced "cd $pardir"
+    fi
+    pkgdir=$(basename $DSTPATH)
+    run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
   fi
-  DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME")
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
+    if [ "$RPTNAME" == "OCB" ]; then
+      cfgfn=$(build_odoo_param CONFN "$odoo_vid")
+      if [ ! -f "$cfgfn" ]; then
+        odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
+        [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc"
+        [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc"
+        user=$(build_odoo_param USER "$odoo_vid")
+        flog=$(build_odoo_param FLOG "$odoo_vid")
+        fpid=$(build_odoo_param FPID "$odoo_vid")
+        rport=$(build_odoo_param RPCPORT "$odoo_vid")
+        if [ $odoo_ver -ge 7 ]; then
+          pdir=$(build_odoo_param DDIR "$odoo_vid")
+          if [ !-d $pdir ]; then
+            run_traced "mkdir $pdir"
+            run_traced "chown odoo:odoo $pdir"
+          fi
+          pdir="-D $pdir"
+        fi
+        run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
+        if [ -f ~/.openerp_serverrc ]; then
+          run_traced "mv ~/.openerp_serverrc $cfgfn"
+        elif [ -f ~/.odoorc ]; then
+          run_traced "mv ~/.odoorc $cfgfn"
+        fi
+        run_traced "chown odoo:odoo $cfgfn"
+      fi
+    fi
   fi
 else
   if [ "$odoo_vid" == "$new_odoo_vid" ]; then
