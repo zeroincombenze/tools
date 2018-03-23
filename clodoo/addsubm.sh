@@ -269,13 +269,13 @@ if [ -z "$new_odoo_vid" ]; then
       rport=$(build_odoo_param RPCPORT "$odoo_vid")
       if [ $odoo_ver -ge 7 ]; then
         pdir=$(build_odoo_param DDIR "$odoo_vid")
-        if [ !-d $pdir ]; then
+        if [ ! -d $pdir ]; then
           run_traced "mkdir $pdir"
           run_traced "chown odoo:odoo $pdir"
         fi
         pdir="-D $pdir"
       fi
-      run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
+      run_traced "sudo -uodoo $odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
       if [ -f ~/.openerp_serverrc ]; then
         run_traced "mv ~/.openerp_serverrc $cfgfn"
       elif [ -f ~/.odoorc ]; then
