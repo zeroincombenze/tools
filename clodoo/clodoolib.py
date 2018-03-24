@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.5"
+__version__ = "0.3.5.1.1"
 
 
 #############################################################################
@@ -458,16 +458,16 @@ def read_config(ctx):
             fver = 'odoo' + vid
         if isinstance(ODOO_CONF, list):
             for f in ODOO_CONF:
-                if os.path.isfile(f):
-                    ctx['conf_fns'].append(f)
-                    break
-                elif 'oe_version' in ctx:
+                if 'oe_version' in ctx:
                     d = os.path.dirname(f)
                     b = os.path.basename(f)
                     f = '/'.join([d, b.replace('odoo', fver)])
                     if os.path.isfile(f):
                         ctx['conf_fns'].append(f)
                         break
+                if os.path.isfile(f):
+                    ctx['conf_fns'].append(f)
+                    break
         elif os.path.isfile(ODOO_CONF):
             ctx['conf_fns'].append(ODOO_CONF)
         elif os.path.isfile(OE_CONF):
