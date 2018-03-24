@@ -72,7 +72,10 @@ def connectL8(ctx):
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['server_version'] = odoo.version
     else:
-        ctx['server_version'] = odoo.db.server_version()
+        try:
+            ctx['server_version'] = odoo.db.server_version()
+        except BaseException:
+            ctx['server_version'] = odoo.version
     x = re.match(r'[0-9]+\.[0-9]+', ctx['server_version'])
     if ctx['server_version'][0:x.end()] != ctx['oe_version']:
         return u"!Invalid Odoo Server version: expected %s, found %s!" % \

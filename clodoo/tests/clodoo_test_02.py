@@ -21,6 +21,7 @@ from os0 import os0
 
 from zerobug import Z0test
 from clodoo import clodoo
+from clodoo.clodoolib import (crypt, decrypt)
 
 
 __version__ = "0.3.4.24"
@@ -293,8 +294,9 @@ install_modules=%s
                     codefile = """[options]
 actions=import_file
 filename=%s
+crypt_password=%s
 model=res.users
-""" % datafn
+""" % (datafn, crypt('admin'))
                     fd = open(confn, 'w')
                     fd.write(codefile)
                     fd.close()
