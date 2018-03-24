@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.4.24"
+__version__ = "0.3.5"
 
 
 #############################################################################
@@ -270,7 +270,7 @@ def default_conf(ctx):
               'db_host': 'localhost',
               'svc_protocol': '',
               'xmlrpc_port': '8069',
-              'oe_version': '7.0',
+              'oe_version': '11.0',
               'dbfilter': '.*',
               'dbfilterd': 'demo',
               'dbfiltert': 'openerp.*',
@@ -381,7 +381,7 @@ def create_params_dict(ctx):
     """Create all params dictionary"""
     ctx = create_def_params_dict(ctx)
     DEFDCT = default_conf(ctx)
-    if ctx['dbg_mode'] is None:
+    if ctx.get('dbg_mode', None) is None:
         ctx['dbg_mode'] = ctx['run_daemon']
     if not ctx.get('logfn', None):
         if 'tlog' in ctx:
@@ -400,13 +400,14 @@ def create_params_dict(ctx):
         ctx['db_pwd'] = ''
     for p in ():
         ctx[p] = conf_obj.getint(s, p)
-    if opt_obj.dbfilter != "":
-        ctx['dbfilter'] = opt_obj.dbfilter
-        ctx['multi_db'] = True
-    if opt_obj.upgrade_modules:
-        ctx['upgrade_modules'] = opt_obj.upgrade_modules
-    if opt_obj.data_path != "":
-        ctx['data_path'] = opt_obj.data_path
+    if opt_obj:
+        if opt_obj.dbfilter != "":
+            ctx['dbfilter'] = opt_obj.dbfilter
+            ctx['multi_db'] = True
+        if opt_obj.upgrade_modules:
+            ctx['upgrade_modules'] = opt_obj.upgrade_modules
+        if opt_obj.data_path != "":
+            ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
         ctx['db_host'] = 'localhost'
     if not ctx['svc_protocol']:
@@ -414,6 +415,17 @@ def create_params_dict(ctx):
             ctx['svc_protocol'] = 'jsonrpc'
         else:
             ctx['svc_protocol'] = 'xmlrpc'
+    if ctx.get('do_sel_action', False):
+        ctx['actions'] = ctx['do_sel_action']
+    elif ctx.get('actions_db', None):
+        ctx['actions'] = 'per_db,' + ctx['actions_db']
+        del ctx['actions_db']
+    elif ctx.get('actions_mc', None):
+        ctx['actions'] = 'per_company,' + ctx['actions_mc']
+        del ctx['actions_mc']
+    elif ctx.get('actions_uu', None):
+        ctx['actions'] = 'per_users,' + ctx['actions_uu']
+        del ctx['actions_uu']
     return ctx
 
 
@@ -467,6 +479,8 @@ def read_config(ctx):
         ctx['conf_fns'].append(ctx['conf_fn'])
     ctx['conf_fns'] = conf_obj.read(ctx['conf_fns'])
     ctx['_conf_obj'] = conf_obj
+    if 'oe_version' in ctx:
+        ctx = create_params_dict(ctx)
     return ctx
 
 

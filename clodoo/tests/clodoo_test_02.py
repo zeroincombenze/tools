@@ -24,7 +24,7 @@ from clodoo import clodoo
 from clodoo.clodoolib import (crypt, decrypt)
 
 
-__version__ = "0.3.4.24"
+__version__ = "0.3.5"
 
 
 MODULE_ID = 'clodoo'
@@ -61,22 +61,6 @@ class Test():
 
     def check_4_module(self, oe_version):
         xmlrpc_port, dbname = self.param_by_db(oe_version)
-        # user = self.param_by_db(oe_version, field='user')
-        # sql = "select name from ir_module_module" + \
-        #       " where name='%s' and state='installed';" % \
-        #       self.module_2_test
-        # cmd = 'psql -U%s %s -c"%s"' % (user, dbname, sql)
-        # p = Popen(cmd,
-        #           stdin=PIPE,
-        #           stdout=PIPE,
-        #           stderr=PIPE,
-        #           shell=True)
-        # res, err = p.communicate()
-        # module_2_test = ' %s' % self.module_2_test
-        # if res.find(module_2_test) >= 0:
-        #     return True
-        # else:
-        #     return False
         confn = '%s/test_clodoo2.conf' % self.Z.test_dir
         codefile = """[options]
 xmlrpc_port=%d
@@ -131,7 +115,7 @@ oe_version=%s
             cmd = cmd + ['-b%s' % oe_version]
             cmd = cmd + ['-r%s' % xmlrpc_port]
             cmd = cmd + ['-p%s' % self.Z.test_dir]
-            cmd = cmd + ['-q']
+            # cmd = cmd + ['-q']
         return cmd
 
     def test_01(self, z0ctx):

@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.4.24"
+__version__ = "0.3.5"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -298,6 +298,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
 
     def oerp_env_fill(ctx=None):
         ctx = ctx or {}
+        saved = {}
         if 'db_host' not in ctx or not ctx['db_host']:
             ctx['db_host'] = 'localhost'
         if db:
@@ -312,12 +313,20 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         if 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
             ctx['xmlrpc_port'] = 8069
         if 'oe_version' not in ctx or not ctx['oe_version']:
-            ctx['oe_version'] = '7.0'
+            ctx['oe_version'] = '11.0'
         if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
             if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
                 ctx['svc_protocol'] = 'xmlrpc'
             elif ctx.get('oe_version'):
                 ctx['svc_protocol'] = 'jsonrpc'
+        if os.isatty(0):
+            ctx['run_daemon'] = False
+        else:
+            ctx['run_daemon'] = True
+        for p in 'db_name', 'oe_version', 'svc_protocol':
+            saved[p] = ctx[p]
+        ctx['caller'] = ''
+        ctx['dbfilter'] = '.*'
         if 'level' not in ctx or not ctx['level']:
             ctx['level'] = 4
         if 'dry_run' not in ctx:
@@ -336,7 +345,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             ctx['set_passepartout'] = False
         if 'psycopg2' not in ctx:
             ctx['psycopg2'] = False
-        return ctx
+        return ctx, saved
     ctx = ctx or {}
     confn = confn or ctx.get('conf_fn', './clodoo.conf')
     write_confn = False
@@ -354,16 +363,18 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         fd.close()
     except BaseException:
         write_confn = True
-        ctx = oerp_env_fill(ctx=ctx)
+        ctx, saved = oerp_env_fill(ctx=ctx)
         for p in (P_LIST):
             if p == 'db_name' and db:
                 ctx[p] = db
             else:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx = oerp_env_fill(ctx=ctx)
-    ctx = oerp_env_fill(ctx=ctx)
+        ctx,saved = oerp_env_fill(ctx=ctx)
+    ctx,saved = oerp_env_fill(ctx=ctx)
     oerp = open_connection(ctx)
     ctx = read_config(ctx)
+    for p in 'db_name', 'oe_version', 'svc_protocol':
+        ctx[p] = saved[p]
     lgiuser = do_login(oerp, ctx)
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')      # pragma: no cover
@@ -375,7 +386,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             if p == 'xmlrpc_port':
                 if ctx[p] != 8069:
                     fd.write('%s=%d\n' % (p, ctx[p]))
-            elif p == 'oe_version' and ctx[p] == '7.0':
+            elif p == 'oe_version' and ctx[p] == '11.0':
                 pass
             elif p == 'svc_protocol' and ctx[p] == 'xmlrpc':
                 pass
@@ -4858,17 +4869,6 @@ def main():
     ctx['_today'] = str(date.today())
     ctx['_current_year'] = str(date.today().year)
     ctx['_last_year'] = str(date.today().year - 1)
-    if ctx.get('do_sel_action', False):
-        ctx['actions'] = ctx['do_sel_action']
-    elif ctx.get('actions_db', None):
-        ctx['actions'] = 'per_db,' + ctx['actions_db']
-        del ctx['actions_db']
-    elif ctx.get('actions_mc', None):
-        ctx['actions'] = 'per_company,' + ctx['actions_mc']
-        del ctx['actions_mc']
-    elif ctx.get('actions_uu', None):
-        ctx['actions'] = 'per_users,' + ctx['actions_uu']
-        del ctx['actions_uu']
     init_logger(ctx)
     print_hdr_msg(ctx)
     if not check_4_actions(ctx):
