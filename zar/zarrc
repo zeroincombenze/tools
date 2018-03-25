@@ -4,7 +4,8 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=1.3.31.4
+#
+#__version__=1.3.31.5
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -64,6 +65,7 @@ conf_default() {
     set_cfg_def "tar_opt" ""
     set_cfg_def "pg_dump_opt" ""
     set_cfg_def "db_user" "odoo"
+    set_cfg_def "set_original_user" "1"
     set_cfg_def "pg_user" "postgres:postgres"
     local DBFA="zi[0-9]+"
     for sfx in A B C D E F G H; do
@@ -111,7 +113,7 @@ init_vars() {
     local x
     dbsel=$1
     declare -g PGDIR RMTBCKDIR DBCKDIR HOST_PRD HOST_DEV URL_PRD URL_DEV
-    declare -g BCKFORMAT TAR_EXT TAR_OPT PG_DUMP_OPT
+    declare -g BCKFORMAT TAR_EXT TAR_OPT PG_DUMP_OPT ORIG_OWN
     declare -g REST2 TEST_DB NEWDBS REDB OE_OWN PRD_OE_OWN DEV_OE_OWN
     declare -g DBA DBB DBC DBD DBE DBF DBG DBH
     declare -g NCA NCB NCC NCD NCE NCF NCG NCH
@@ -171,6 +173,7 @@ init_vars() {
     OE_OWN=$(get_cfg_value 0 db_user)
     PRD_OE_OWN=$(get_cfg_value 0 PRD_db_user)
     DEV_OE_OWN=$(get_cfg_value 0 DEV_db_user)
+    ORIGINAL_OWN=$(get_cfg_value 0 "set_original_user")
     PG_OWN=$(get_cfg_value 0 pg_user)
     ODOO_RPC_HOST="$(get_cfg_value 0 odoo_rpc_host)"
     ODOO_RPC_PROTOCOL="$(get_cfg_value 0 odoo_rpc_protocol)"
@@ -277,7 +280,7 @@ set_db_vars() {
 expand_tar() {
 #expand_tar(db [sqlfname])
 # current dir must be BCKDIR
-    local src x
+    local src s x
     local db=$1
     if [ "$BCKFORMAT" != "0" ]; then
       for x in $TAR_EXT; do
@@ -287,21 +290,28 @@ expand_tar() {
         fi
       done
       if [ -n "$src" ]; then
-        if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
-          run_traced "tar $TAR_OPT -x${BCKFORMAT}f $src $2"
-        else
-          run_traced "tar $TAR_OPT -xf $src $2"
-        fi
-        if [ $? -ne 0 ]; then
-          for x in z j J ""; do
-            run_traced "tar $TAR_OPT -x${x}f $src $2"
-            if [ $? -eq 0 ]; then
-              break
-            fi
-          done
-        fi
         if [ -f "$src" ]; then
           chown $PG_OWN $src
+          if [[ "zjJ" =~ "$BCKFORMAT" ]]; then
+            run_traced "tar $TAR_OPT -x${BCKFORMAT}f $src $2"
+          else
+            run_traced "tar $TAR_OPT -xf $src $2"
+          fi
+          if [ $? -ne 0 ]; then
+            s=1
+            for x in z j J ""; do
+              if [ "$x" != "$BCKFORMAT" ]; then
+                run_traced "tar $TAR_OPT -x${x}f $src $2"
+                if [ $? -eq 0 ]; then
+                  s=0
+                  break
+                fi
+              fi
+            done
+            if [ $s -ne 0 ]; then
+              run_traced "mv -f $src ${src}.bak"
+            fi
+          fi
         fi
       fi
     fi

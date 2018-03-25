@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.5.1"
+__version__ = "0.3.5.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4378,9 +4378,11 @@ def import_file(oerp, ctx, o_model, csv_fn):
             update_header_id = True
             vals = {}
             for n in row:
-                if isinstance(row[n], basestring) and \
-                        row[n].find('${header_id}') >= 0:
-                    update_header_id = False
+                if isinstance(row[n], basestring):
+                    if row[n].find('${header_id}') >= 0:
+                        update_header_id = False
+                    if row[n].find('$1$!') == 0:
+                        row[n]=decrypt(row[n][4:])
                 val = eval_value(oerp,
                                  ctx,
                                  o_model,
@@ -4887,6 +4889,7 @@ def main():
     if do_conn:
         oerp = open_connection(ctx)
         ctx = read_config(ctx)
+        print_hdr_msg(ctx)
     else:
         oerp = None
     ctx['multi_user'] = multiuser(ctx,

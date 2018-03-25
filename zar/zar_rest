@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.4
+__version__=1.3.31.5
 
 
 kill_process() {
@@ -218,7 +218,14 @@ create_script_db_2_restore() {
     local NEWDB="$1"
     local fsql=$2
     local dtc=$(date "+%Y-%m-%m %H:%M:%S")
+    local owner=
     wlog "Prepare file script $fsql ..."
+    if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
+      owner=$(head $2 -n100|grep -Eo "Owner: *[a-zA-Z]+"|head -n1|awk -F: '{print $2}')
+      owner=$(echo $owner)
+    else
+      owner=$OE_OWN
+    fi
     echo "\\c postgres">$fsql
     echo "\\echo Creating new DB \"$NEWDB\" ($dtc)">>$fsql
     echo "DROP DATABASE IF EXISTS \"$NEWDB\";">>$fsql
@@ -226,10 +233,10 @@ create_script_db_2_restore() {
     echo "\\c \"$NEWDB\"">>$fsql
     echo "\\echo Loading data from $SQLFNAME into DB \"$NEWDB\"">>$fsql
     echo "\\i $SQLFNAME">>$fsql
-    echo "\\echo Set owner of \"$NEWDB\" to $OE_OWN;">>$fsql
+    echo "\\echo Set owner of \"$NEWDB\" to $owner;">>$fsql
     echo "ALTER DATABASE \"$NEWDB\" OWNER TO $OE_OWN;">>$fsql
     if [ "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
-      echo "\\echo Reassign owner from $PRD_OE_OWN to $DEV_OE_OWN">>$fsql
+      echo "\\echo Reassign owner from $PRD_OE_OWN to $owner">>$fsql
       echo "REASSIGN OWNED BY $PRD_OE_OWN TO $DEV_OE_OWN;">>$fsql
     fi
 }
@@ -328,9 +335,13 @@ fi
 wlog "PRD=$HOST_PRD//$URL_PRD"
 wlog "DEV=$HOST_DEV//$URL_DEV"
 wlog "TEST_DB=$TEST_DB"
-wlog "OE_OWN=$OE_OWN"
-wlog "PRD_OE_OWN=$PRD_OE_OWN"
-wlog "DEV_OE_OWN=$DEV_OE_OWN"
+if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
+  wlog "ORIGINAL_OWN=$ORIGINAL_OWN"
+else
+  wlog "OE_OWN=$OE_OWN"
+  wlog "PRD_OE_OWN=$PRD_OE_OWN"
+  wlog "DEV_OE_OWN=$DEV_OE_OWN"
+fi
 wlog "- DB to Restore:$dblist"
 if [ "$BCK_ENV" == "DEV" ]; then
   inherit_options
