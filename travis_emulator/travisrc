@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.9
+#__version__=0.2.0.11
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -784,8 +784,6 @@ update_dev() {
           else
             diff -q $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
             if [ $? -ne 0 ]; then
-              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"; fi
-              # ((${opt_dry_run:-0}))||cp $opts_verbose $PKGPATH/$PKGNAME/$x $XDPATH/$x
               run_traced "cp $PKGPATH/$PKGNAME/$x $XDPATH/$x"
               if [ -x $PKGPATH/$PKGNAME/$x ]; then
                 v1=$($PKGPATH/$PKGNAME/$x -V)
@@ -811,8 +809,6 @@ update_dev() {
           elif [ ${opt_fetch:-0} -eq 0 ]; then
              diff -rq $PKGPATH/$PKGNAME/$x $XDPATH/$x &>/dev/null
              if [ $? -ne 0 ]; then
-               # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"; fi
-               # ((${opt_dry_run:-0}))||cp -R $PKGPATH/$PKGNAME/$x $XDPATH/
                run_traced "cp -R $PKGPATH/$PKGNAME/$x $XDPATH/"
              fi
           fi
@@ -829,8 +825,6 @@ update_dev() {
             elif [ ${opt_fetch:-0} -gt 0 ]; then
               :
             else
-              # if [ ${opt_verbose:-0} -gt 0 ]; then echo "\$ ${opt_dry_run:-0}||cp $PKGPATH/$PKGNAME/$x ~/bin/$x"; fi
-              # ((${opt_dry_run:-0}))||cp $PKGPATH/$PKGNAME/$x ~/bin/$x
               run_traced "cp $PKGPATH/$PKGNAME/$x ~/bin/$x"
             fi
           fi

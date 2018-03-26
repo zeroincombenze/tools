@@ -28,7 +28,7 @@ for ln in res:
 if opt_cont:
     try:
         fd_i = open(fl_noted, 'r')
-    except:
+    except BaseException:
         opt_cont = ''
         fd_i = open(fl_tgt, 'r')
 else:
@@ -89,7 +89,7 @@ fd_i.close()
 fd_o.close()
 try:
     os.remove(fl_noted)
-except:
+except BaseException:
     pass
 os.rename(fl_noted_tmp, fl_noted)
 print "%s: %d/%d = %d%%" % (fl_tgt,

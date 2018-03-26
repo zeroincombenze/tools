@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.9
+__version__=0.2.0.11
 
 
 #
@@ -467,7 +467,7 @@ cvt_readme() {
     i=0
     while [ $i -lt ${#RHLP[@]} ]; do
       x=${RHLP[$i]}
-      IFS=\= read p v<<<$x
+      IFS== read p v<<<$x
       w=${v//:/ }
       for v in $w; do
         if [[ "$PKGNAME" =~ "$v" ]] || [[ "$REPOSNAME" =~ "$v" ]]; then
@@ -2149,6 +2149,9 @@ elif [ "$action" == "wep" ]; then
   if [ $opt_verbose -gt 0 ]; then
     echo "clean_dirs \"$PKGPATH\""
   fi
+  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
+  run_traced "find $PKGPATH -type f -name "*.sh" -exec chmod +x '{}' \;"
+  run_traced "find $PKGPATH -type f -exec grep -l \"#. */usr/bin/env python\" '{}' \;|xargs -I{} chmod +x {}"
   clean_dirs "$PKGPATH"
 else
   if [ "${action:0:3}"  == "if-" ]; then

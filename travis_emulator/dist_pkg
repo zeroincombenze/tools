@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.9
+__version__=0.2.0.11
 
 
 
@@ -246,7 +246,6 @@ if [ "$opt_cpush" == "-w" ]; then
   if [ "$PRJNAME" != "z0lib" ]; then
     if [ -f ./Makefile -a -f /opt/odoo/dev/Makefile ]; then
       rm -f ./Makefile
-      # ln -s /opt/odoo/dev/Makefile ./
     fi
     if [ -f ./z0librc -a -f /etc/z0librc ]; then
       x=$(_install_z0librc -n)

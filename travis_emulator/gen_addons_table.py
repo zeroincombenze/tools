@@ -110,6 +110,7 @@ def replace_in_readme(readme_path, header, rows_available, rows_unported):
     readme = ''.join(parts)
     open(readme_path, 'w').write(readme)
 
+
 def get_values_from_manifest(addon_path, manifest_path, element):
     manifest = ast.literal_eval(open(manifest_path).read())
     addon_name = os.path.basename(addon_path)
@@ -123,6 +124,7 @@ def get_values_from_manifest(addon_path, manifest_path, element):
     if not installable and version != 'deprecated':
         version = version + ' (unported)'
     return [link, version, summary],  installable
+
 
 def gen_addons_table(args):
     if len(args) and args[0] in ('addons', ):
@@ -155,7 +157,7 @@ def gen_addons_table(args):
         header = ('addon', 'version', 'summary')
     rows_available = []
     rows_unported = []
-    rows_original = []
+    # rows_original = []
     for addon_path, unported in addon_paths:
         for manifest_file in MANIFESTS:
             manifest_path = os.path.join(addon_path, manifest_file)
@@ -203,6 +205,7 @@ def main(args):
     except UserError as e:
         print(e.msg)
         exit(1)
+
 
 if __name__ == '__main__':
     args = sys.argv[1:]

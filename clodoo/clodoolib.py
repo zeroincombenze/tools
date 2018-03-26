@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.5.2.1"
+__version__ = "0.3.5.2.2"
 
 
 #############################################################################
@@ -401,12 +401,12 @@ def create_params_dict(ctx):
     for p in ():
         ctx[p] = conf_obj.getint(s, p)
     if opt_obj:
-        if opt_obj.dbfilter != "":
+        if hasattr(opt_obj, 'dbfilter') and opt_obj.dbfilter != "":
             ctx['dbfilter'] = opt_obj.dbfilter
             ctx['multi_db'] = True
-        if opt_obj.upgrade_modules:
+        if hasattr(opt_obj, 'upgrade_modules') and opt_obj.upgrade_modules:
             ctx['upgrade_modules'] = opt_obj.upgrade_modules
-        if opt_obj.data_path != "":
+        if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
         ctx['db_host'] = 'localhost'
