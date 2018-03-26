@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.5
+__version__=1.3.31.6
 
 
 kill_process() {
@@ -221,7 +221,7 @@ create_script_db_2_restore() {
     local owner=
     wlog "Prepare file script $fsql ..."
     if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
-      owner=$(head $2 -n100|grep -Eo "Owner: *[a-zA-Z]+"|head -n1|awk -F: '{print $2}')
+      owner=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z]+"|head -n1|awk -F: '{print $2}')
       owner=$(echo $owner)
     else
       owner=$OE_OWN

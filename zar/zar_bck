@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.5
+__version__=1.3.31.6
 
 
 inherit_options() {
@@ -211,7 +211,7 @@ if [ -n "$dblist" ]; then
       wlog "== $ctr databases should be backupped!"
     fi
   else
-    wlog "== $ctr received from production!"
+    wlog "== $ctr files received from production!"
   fi
   if [ -z "$opt_name" -a $test_mode -eq 0 ]; then
     if [ -f $TDIR/zar_purge ]; then
