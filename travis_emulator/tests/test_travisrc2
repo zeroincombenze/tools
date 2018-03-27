@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.0.11
+__version__=0.2.0.15
 
 
 save_testenv() {
@@ -167,7 +167,7 @@ test_01() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.pkgpath" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.repository" "local/" "$REMOTEREPO"
+    test_result "travis.repository" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
@@ -324,7 +324,7 @@ test_03() {
     res=$LCLTEST_TMPDIR
     test_result "travis.pkgpath" "$res" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.repository" "local/" "$REMOTEREPO"
+    test_result "travis.repository" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
@@ -360,7 +360,7 @@ test_04() {
     if [ -d $TDIR/_travis ]; then
       test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
     else
-      test_result "init_travis \$TOOLS_PATH" "$HOME/dev/_travis" "$TOOLS_PATH"
+      test_result "init_travis \$TOOLS_PATH" "$HOME/maintainer-quality-tools/travis" "$TOOLS_PATH"
     fi
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis \$MQT_PATH" "$LCLTEST_MQT_PATH" "$MQT_PATH"

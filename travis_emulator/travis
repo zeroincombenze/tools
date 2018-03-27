@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.11
+__version__=0.2.0.15
 
 
 store_cfg_param_value() {
@@ -56,7 +56,7 @@ store_cfg_param_value() {
 
 process_local() {
     wlog "=== Simulate YAML test ==="
-    if [ $TOOLS_PATH/travis_run_tests ]; then
+    if [ -f $TOOLS_PATH/travis_run_tests ]; then
       if [ "$action" == "check" ]; then
         opts=$(inherits_travis_opts "K" "T")
       elif [ "$action" == "test" ]; then
@@ -96,14 +96,21 @@ process_yaml_init() {
     YML_matrix=
     YML_packages=
     YML_install=
+    YML_before_script=
     YML_script=
     YML_after=
+    YML_repo=
+    if [ $opt_dbgmnt -ne 0 ]; then
+      YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+    else
+      YML_lisa=lisa
+    fi
+    TRAVIS=false
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
     FH=$(xuname -f)
 }
-
 
 process_yaml_unquote() {
   lne="$(echo $1|sed -e s/\"/%%22/g -e s/\'/%%26/g -e s/\ /%%20/g)"
@@ -137,7 +144,6 @@ process_yaml_xtl_pre() {
 }
 
 process_yaml_do() {
-    # echo "[$YML_sect]" #debug
     local a b i
     if [ "${1:0:1}" == " " ]; then
       local lne="${1:1}"
@@ -164,10 +170,21 @@ process_yaml_do() {
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"
+      if [[ "$lne" =~ ODOO_REPO=.*odoo/odoo && -z "$YML_repo" ]]; then
+        YML_repo=odoo/odoo
+      elif [[ "$lne" =~ ODOO_REPO=.*OCA/OCB ]]; then
+        YML_repo=OCA/OCB
+      fi
     elif [ "$YML_sect" == "before_install" ]; then
       YML_before_install="$YML_before_install $lne"
+      if [[ $lne =~ TRAVIS_DEBUG_MODE= ]]; then
+        lne=$(process_yaml_quote "$lne")
+        export $lne
+      fi
     elif [ "$YML_sect" == "install" ]; then
       YML_install="$YML_install $lne"
+    elif [ "$YML_sect" == "before_script" ]; then
+      YML_before_script="$YML_before_script $lne"
     elif [ "$YML_sect" == "script" ]; then
       YML_script="$YML_script $lne"
     elif [ "$YML_sect" == "after_success" ]; then
@@ -175,7 +192,6 @@ process_yaml_do() {
     else
       local lne="$(echo $1)"
     fi
-    # echo ">>> $lne" #debug
 }
 
 process_yaml_0() {
@@ -290,6 +306,53 @@ process_yaml_file() {
     done < "$YML_FILE"
 }
 
+process_yaml_initialize() {
+    local sts=$STS_SUCCESS
+    local i s line lne X
+    wlog "===== [Initialize] ====="
+    for p in ${!PIPPKGVER[*]}; do
+      lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
+      if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
+        wlog "## pip install $p==${PIPPKGVER[$p]}:$lne1"
+        sts=1
+      fi
+    done
+    if [ $sts -eq $STS_SUCCESS ]; then
+      v=$(pip --version|grep -Eo [0-9]+|head -n1)
+      if [ $v -ge 7 ]; then
+        run_traced "alias pip=\"pip --user $USER\""
+      fi
+      if [ ${opt_virt:-0} -gt 0 ]; then
+        create_virtual_env
+      fi
+      run_svr_test_init
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    fi
+}
+
+process_yaml_exit() {
+    local sts=$STS_SUCCESS
+    local i line lne X
+    wlog "===== [End script] ====="
+    run_svr_test_exit
+    if [ $sts -eq $STS_SUCCESS ]; then
+      process_yaml_after_success
+    fi
+    X="${PKGNAME}__"
+    line=$(get_cfg_value "" "${X}yaml_exit_1")
+    if [ -z "$line" ]; then
+      X=
+    fi
+    for i in {1..9}; do
+      line=$(get_cfg_value "" "${X}yaml_exit_$i")
+      if [ -n "$line" ]; then
+        process_yaml_run_cmd "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
+    done
+    return $sts
+}
+
 process_yaml_before_install() {
     wlog "===== [Before install] ====="
     local sts=$STS_SUCCESS
@@ -356,6 +419,7 @@ process_yaml_before_install() {
 }
 
 process_yaml_install() {
+# process_yaml_install(init)
     wlog "===== [Install] ====="
     local sts=$STS_SUCCESS
     local i s line lne
@@ -374,6 +438,7 @@ process_yaml_install() {
 }
 
 process_yaml_before_script() {
+# process_yaml_before_script(init)
     local sts=$STS_SUCCESS
     local line lne lne1
     line="$1"
@@ -412,7 +477,7 @@ process_yaml_after_success() {
 }
 
 process_yaml_run_cmd() {
-#process_yaml_run_cmd (cmd)
+#process_yaml_run_cmd (cmd init)
     local xcmd=$(process_yaml_quote_xtl "$1")
     local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
     c=$xcmd
@@ -542,7 +607,7 @@ process_yaml_run_cmd() {
             ((ix++))
             pp=${x[$ix]}
             xcmd="$xcmd -r $pp"
-            while IFS=\# read -r tk r || [ -n "$tk" ]; do
+            while IFS=# read -r tk r || [ -n "$tk" ]; do
               if [ -n "$tk" ]; then
                 if [ "${tk:0:4}" == "http" ]; then
                   p=$(basename $tk)
@@ -559,7 +624,6 @@ process_yaml_run_cmd() {
                   xcmd="false; $xcmd <$p>"
                 fi
               fi
-              # if [ "${tk: -1}" == ";" ]; then break; fi
             done < $pp
           elif [ "${tk:0:1}" != "-" ]; then
             p=$(echo "${x[$ix]}"|grep -Eo '[^!<=>;]*'|head -n1)
@@ -907,6 +971,10 @@ if [ "$action" == "parseyaml" ]; then
   for lne in $YML_install; do
     process_yaml_echo 1 "$lne"
   done
+  echo "before_script:"
+  for lne in $YML_before_script; do
+    process_yaml_echo 1 "$lne"
+  done
   echo "script:"
   for lne in $YML_script; do
     process_yaml_echo 1 "$lne"
@@ -974,6 +1042,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
     process_local
     sts=$?
   else
+    # process_yaml | tee ./travis_output.log
     process_yaml
     sts=$?
   fi

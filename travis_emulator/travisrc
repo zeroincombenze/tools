@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.11
+#__version__=0.2.0.15
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -15,23 +15,23 @@ opts_travis() {
     if [ -n "$1" ]; then
       if [ ${pkg:0:6} == "local/" ]; then
         PKGPATH=${pkg:6}
-        REMOTEREPO="local/"
+        REMOTEREPO="local"
       elif [ ${pkg:0:5} == "odoo/" -o ${pkg:0:5} == "ODOO/" ]; then
         PKGPATH=${pkg:5}
-        REMOTEREPO="ODOO/"
+        REMOTEREPO="ODOO"
       elif [ ${pkg:0:4} == "oca/" -o ${pkg:0:4} == "OCA/" ]; then
         PKGPATH=${pkg:4}
-        REMOTEREPO="OCA/"
+        REMOTEREPO="OCA"
       else
         PKGPATH=$pkg
-        REMOTEREPO="local/"
+        REMOTEREPO="local"
       fi
       if [ -z "$PKGPATH" ]; then
         PKGPATH=$PWD
       fi
     else
       PKGPATH=$PWD
-      REMOTEREPO="local/"
+      REMOTEREPO="local"
     fi
     PKGPATH=$(set_pkgpath "$PKGPATH")
     set_pkgname $PKGPATH
@@ -467,7 +467,7 @@ prepare_env_travis() {
       unset -v LINT_CHECK
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      export ODOO_REPO=$REMOTEREPO${PRJNAME,,}
+      export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
     fi
     if [ -n "$opt_dpath" ]; then
       LGITPATH="$opt_dpath"
@@ -1238,7 +1238,11 @@ run_regression_test() {
     echo "======== Running regression_test ========"
     run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      local OPTS=$(inherits_travis_opts "" "T")
+      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+        local OPTS=$(inherits_travis_opts "n" "T")
+      else
+        local OPTS=$(inherits_travis_opts "" "T")
+      fi
       if [ $(echo ":$PYTHONPATH:"|grep -qv ":$PKGPATH:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$PKGPATH"
       fi
@@ -1496,6 +1500,8 @@ cp_n_upd_conf() {
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ .*odoo$odoo_ver-server.log.* ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ ^server_wide_modules[[:space:]]*=[[:space:]] ]]; then
+        line="server_wide_modules = web"
       fi
       echo "$line">>$tgt
     done < "$confn"

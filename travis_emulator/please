@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.11
+__version__=0.2.0.15
 
 
 #
@@ -214,6 +214,12 @@ expand_macro() {
       lne="$lne1"
     done
     echo -n "$lne"
+}
+
+set_executable() {
+  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
+  run_traced "find $PKGPATH -type f -name "*.sh" -exec chmod +x '{}' \;"
+  run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
 }
 
 build_line() {
@@ -1913,6 +1919,7 @@ do_register() {
 }
 
 do_replace() {
+    set_executable
     opts=$(inherits_travis_opts "R" "D")
     opt_dry_run=0
     run_traced "$TDIR/dist_pkg $opts $1"
@@ -1923,6 +1930,7 @@ do_replace() {
 do_synchro() {
     wlog "do_synchro $1 $2 \"$3\""
     local f opts
+    set_executable
     if [ "$2" == "oca" -o "$2" == "zero-merged" ]; then
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
@@ -2149,10 +2157,8 @@ elif [ "$action" == "wep" ]; then
   if [ $opt_verbose -gt 0 ]; then
     echo "clean_dirs \"$PKGPATH\""
   fi
-  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
-  run_traced "find $PKGPATH -type f -name "*.sh" -exec chmod +x '{}' \;"
-  run_traced "find $PKGPATH -type f -exec grep -l \"#. */usr/bin/env python\" '{}' \;|xargs -I{} chmod +x {}"
   clean_dirs "$PKGPATH"
+  set_executable
 else
   if [ "${action:0:3}"  == "if-" ]; then
     opt_dry_run=1
