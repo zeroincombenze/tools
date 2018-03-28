@@ -245,7 +245,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          python-imaging,python-jinja2,python-markupsafe,\
          python-pil,python-pybabel,\
          python-pygments,python-pyinotify,python-pyparsing,\
-         python-renderpm,python-reportlab,python-reportlab-accel,\
+         python-renderpm,python-reportlab-accel,\
          python-roman,python-suds,python-unittest2,\
          python-utidylib,python-vobject,python-werkzeug,wget,git,\
          libapache2-mod-auth-mysql,\
