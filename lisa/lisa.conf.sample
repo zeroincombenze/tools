@@ -212,14 +212,15 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-decorator/decorator,python-docutils/docutils,\
                python-feedparser/feedparser,python-gevent/gevent,\
                python-jinja2/Jinja2,python-ldap,python-lxml/lxml,\
-               python-simplejson/simplejson,python2-simplejson/simplejson
+               python-simplejson/simplejson,python2-simplejson/simplejson,\
+               python-mako/Mako,
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,pyOpenSSL,requests,\
     pyserial,pyPdf,cryptography,flake8,pylint,zerobug,coverage,coveralls,\
-    Click,pylint-mccabe,pbr,Jinja2,Mako,MarkupSafe,Pillow,Werkzeug,argparse,\
+    Click,pylint-mccabe,pbr,Jinja2,MarkupSafe,Pillow,Werkzeug,argparse,\
     Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
     wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
@@ -253,7 +254,8 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
          libcups2-dev,cups-devel,unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
-         python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java
+         python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
+         python-mako
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
                  .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
                  *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\

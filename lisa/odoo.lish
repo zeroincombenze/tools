@@ -38,7 +38,7 @@ BOP=ghostscript,libart-2.0-2,libcupsfilters1,\
     liblcms2-2,libpaper-utils,libpaper1,libpoppler44,libtidy-0.99-0,libwebp5,\
     libwebpmux1,poppler-data,poppler-utils,python-babel-localedata,\
     python-dateutil,decorator==3.4.0,docutils==0.12,feedparser==5.1.3,\
-    python-greenlet,python-imaging,jinja2==2.7.3,python-mako,\
+    python-greenlet,python-imaging,jinja2==2.7.3,\
     python-markupsafe,python-openid,passlib==1.6.2,python-pil,\
     psutil,python-pybabel,python-pygments,\
     python-pyinotify,python-renderpm,\
@@ -53,7 +53,7 @@ BOP=ghostscript,libart-2.0-2,libcupsfilters1,\
     liblcms2-2,libpaper-utils,libpaper1,libpoppler44,libtidy-0.99-0,libwebp5,\
     libwebpmux1,poppler-data,poppler-utils,Babel,python-babel-localedata,\
     python-dateutil,decorator==3.4.0,docutils==0.12,feedparser==5.1.3,\
-    python-greenlet,python-imaging,jinja2==2.7.3,python-mako,\
+    python-greenlet,python-imaging,jinja2==2.7.3,\
     python-markupsafe,python-openid,passlib==1.6.2,python-pil,\
     psutil,python-pybabel,python-pygments,pyusb>=1.0\
     python-pyinotify,python-renderpm,pyyaml,\

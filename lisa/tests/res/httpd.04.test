@@ -1,1 +1,2 @@
-httpd could be installed by yum
+httpd: Server version: Apache/2.4.6 (CentOS)
+--vsftpd: 3.0.2

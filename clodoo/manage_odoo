@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.7
+__version__=0.3.5.8
 
 
 explore() {
@@ -111,12 +111,12 @@ do_action() {
           eval $LISA status $opts $f
           if [ $? -eq 0 ]; then
             :
-            # run_traced "lisa update $f"
+            # run_traced "lisa update -q $f"
           else
-            run_traced "$LISA install $opts $f"
+            run_traced "$LISA install -q $opts $f"
           fi
         else
-          run_traced "pip install $f --upgrade --no-deps"
+          run_traced "pip install -q $f --upgrade --no-deps"
         fi
       done
       return $sts

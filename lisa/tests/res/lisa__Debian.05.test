@@ -1,6 +1,6 @@
 > apt-get -y install wget
 > apt-get -y install git
-> ./setup.sh -nv
+> /opt/odoo/dev/pypi/lisa/lisa/setup.sh -nv
 > mkdir -p /etc/lisa
 > cp /opt/odoo/dev/pypi/lisa/lisa/lisa /usr/bin
 > [ -x /usr/bin/lisa ] && chmod +x /usr/bin/lisa

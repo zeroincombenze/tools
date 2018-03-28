@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.15
+__version__=0.2.0.16
 
 
 #
@@ -218,7 +218,7 @@ expand_macro() {
 
 set_executable() {
   run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
-  run_traced "find $PKGPATH -type f -name "*.sh" -exec chmod +x '{}' \;"
+  run_traced "find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;"
   run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
 }
 
@@ -1950,15 +1950,19 @@ do_synchro() {
       if [ "$PRJNAME" == "Odoo" ]; then
         clean_dirs "$PKGPATH"
         run_traced "git checkout $BRANCH"
+        [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git checkout $BRANCH'"
         do_distribution "$PKGNAME" "$2"
         local x=($git status -s)
         if [ -n "$x" ]; then
           if [ -n "$3" ]; then
             run_traced "git commit -am \"$3\""
+            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"$3\"'"
           elif [ $opt_diff -ne 0 ]; then
             run_traced "git commit -am \"[SYNCHRO] Update documentation\""
+            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Update documentation\"'"
           else
             run_traced "git commit -am \"[SYNCHRO] Synchronizing against OCA repository\""
+            [ "$PKGNAME" == "OCB" ] && run_traced "git submodule foreach 'git commit -am \"[SYNCHRO] Synchronizing against OCA repository\"'"
           fi
         fi
         opts=
