@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.5.10'
+__version__ = '0.3.5.11'
 
 
 REQVERSION = {
@@ -17,7 +17,7 @@ REQVERSION = {
     'psycopg2': '>=2.2',
     'pygments': '==2.0.2',
     'pylint': '==1.6.4',
-    'pylint-plugin-utils': '==0.3.5.10',
+    'pylint-plugin-utils': '==0.3.5.11',
     'pyparsing': '<2',
     'pyxb': '==1.2.4',
     'restructuredtext_lint': '==0.12.2',
@@ -54,6 +54,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pypdf',
                      'pyserial',
                      'pytz',
+                     'reportlab',
                      'werkzeug']
 
 
