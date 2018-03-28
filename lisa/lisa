@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.37.1
+__version__=0.2.37.2
 
 
 STS_FAILED=1
@@ -723,10 +723,10 @@ get_specimen() {
           xtlcmd=$p
         elif [ -z "$lreqver" ]; then
           lreqver=$p
-          lop=$op
+          lop="$op"
         elif [ -z "$rreqver" ]; then
           rreqver=$p
-          rop=$op
+          rop="$op"
         fi
       done
       pkgname=$(get_realname $1 "$2" $3 $4 "$5")
@@ -3498,10 +3498,10 @@ wlog "# Setup for $FH family"
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
 elif [ "$action" == "prepare" ]; then
-  if [ $EUID -ne 0 ]; then
-    elog "This command must be executed by root"
-    exit $STS_FAILED
-  fi
+  # if [ $EUID -ne 0 ]; then
+  #   elog "This command must be executed by root"
+  #   exit $STS_FAILED
+  # fi
   wlog "Preparining group list"
   build_groups_list
   wlog "Preparing user list"
@@ -3515,10 +3515,10 @@ elif [ "$action" == "export" ]; then
   fi
   ending_msg
 elif [ "$action" == "import" ]; then
-  if [ $EUID -ne 0 ]; then
-    elog "This command must be executed by root"
-    exit $STS_FAILED
-  fi
+  # if [ $EUID -ne 0 ]; then
+  #   elog "This command must be executed by root"
+  #   exit $STS_FAILED
+  # fi
   wlog "Creating groups"
   add_groups
   wlog "Creating users"
@@ -3566,12 +3566,12 @@ else
   fi
   opt_tail=0
   for act in $actions; do
-    if [[ " $SYSPRIV " =~ [[:space:]]$act[[:space:]] ]]; then
-      if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
-        elog "This command must be executed by root"
-        exit $STS_FAILED
-      fi
-    fi
+    # if [[ " $SYSPRIV " =~ [[:space:]]$act[[:space:]] ]]; then
+    #   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
+    #     elog "This command must be executed by root"
+    #     exit $STS_FAILED
+    #   fi
+    # fi
     if [[ " $ECHOCMDS " =~ [[:space:]]$act[[:space:]] ]]; then
       set_tlog_file "$FLOG" "" "echo"
     fi
