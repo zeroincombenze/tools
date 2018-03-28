@@ -16,7 +16,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.5.8
+#__version__=0.3.5.9
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
