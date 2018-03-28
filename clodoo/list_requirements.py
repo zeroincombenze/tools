@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.5.9'
+__version__ = '0.3.5.10'
 
 
 REQVERSION = {
@@ -17,7 +17,7 @@ REQVERSION = {
     'psycopg2': '>=2.2',
     'pygments': '==2.0.2',
     'pylint': '==1.6.4',
-    'pylint-plugin-utils': '==0.3.5.9',
+    'pylint-plugin-utils': '==0.3.5.10',
     'pyparsing': '<2',
     'pyxb': '==1.2.4',
     'restructuredtext_lint': '==0.12.2',
@@ -53,7 +53,8 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyparsing',
                      'pypdf',
                      'pyserial',
-                     'pytz',]
+                     'pytz',
+                     'werkzeug']
 
 
 def name_n_version(item, with_version=None):
