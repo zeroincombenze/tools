@@ -32,13 +32,14 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.5
+__version__=0.3.5.6
 
 
 explore() {
 # explore(odoo_vid)
     local res=OCB
-    for fn in $1/*; do
+    local pkgdir=$(build_odoo_param HOME $1)
+    for fn in $pkgdir/*; do
       if [ -d $fn ]; then
         nm=$(basename $fn)
         if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
@@ -95,35 +96,29 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      ODOO_HOME=$(build_odoo_param HOME $odoo_vid $repo $opt_org)
+      ODOO_HOME=$(build_odoo_param HOME $odoo_vid)
+      [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
       reqs=$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)
       reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
-      [ $opt_yes -eq 0 ] && opts='' || opts='-y'
+      opts=
+      [ $opt_yes -ne 0 ] && opts="${opts}y"
+      [ $EUID -eq 0 ] || opts="${opts}T"
+      [ -n "$opts" ] && opts="-$opts"
       for f in $reqs; do
         # echo "Check for $f package ..."
         pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
         if [ "$f" == "$pkg" ]; then
-          lisa status $f
+          eval $LISA status $opts $f
           if [ $? -eq 0 ]; then
             :
             # run_traced "lisa update $f"
           else
-            run_traced "lisa install $opts $f"
+            run_traced "$LISA install $opts $f"
           fi
         else
           run_traced "pip install $f --upgrade --no-deps"
         fi
       done
-      # for f in codicefiscale passlib pyPdf pytz wkhtmltopdf npm nodejs; do
-      #   echo "Check for $f package ..."
-      #   lisa status $f &>/dev/null
-      #   if [ $? -eq 0 ]; then
-      #     :
-      #     # run_traced "lisa update $f"
-      #   else
-      #     run_traced "lisa install $f"
-      #   fi
-      # done
       return $sts
     elif [[ "$act" == "check-config" ]]; then
       cfgfn=$(build_odoo_param CONFN "$odoo_vid")
@@ -294,13 +289,13 @@ for repo in $opt_excl; do
     excl_list="$excl_list $repo"
   fi
 done
-cd
 if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_modules" ]; then
   opt_def=1
 fi
 for odoo_vid in $opt_branch; do
+  odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
   if [ $opt_def -gt 0 ]; then
-    mlist=$(module_list "$odoo_vid" "$excl_list")
+    mlist=$(module_list "$odoo_fver" "$excl_list")
   else
     mlist=$(explore $odoo_vid)
   fi

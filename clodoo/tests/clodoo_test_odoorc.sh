@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.5.5
+__version__=0.3.5.6
 
 
 test_01() {
@@ -527,6 +527,26 @@ test_05() {
     done
     return $sts
     }
+
+test_06() {
+    local s sts v w
+    sts=0
+    opt_mult=1
+    declare -A TRES
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+        cd ~/$v
+        RES=$(build_odoo_param HOME '.')
+        test_result "HOME ./$v" "$PWD" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        #
+        RES=$(build_odoo_param FULLVER '.')
+        test_result "Full version ./$v" "$v" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    fi
+    return $sts
+}
 
 Z0BUG_setup() {
     local VERSION=9.0
