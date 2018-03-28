@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-03-20
+# Last update: 2018-03-28
 #
 # ---------------------------------------------------------------------
 #
@@ -193,6 +193,11 @@ REAL_pillow=Pillow
 REAL_werkzeug=Werkzeug
 REAL_python-chart=Python-Chart
 REAL_qunitsuite=QUnitSuite
+REAL_stdnum=python-stdnum
+REAL_xlsxwriter=XlsxWriter
+REAL_ldap=python-ldap
+REAL_ipy=IPy
+REAL_usb=pyusb
 # Commands templates
 VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
@@ -206,7 +211,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-psycopg2/psycopg2,python-reportlab/reportlab,\
                python-decorator/decorator,python-docutils/docutils,\
                python-feedparser/feedparser,python-gevent/gevent,\
-               python-jinja2/Jinja2,python-ldap,\
+               python-jinja2/Jinja2,python-ldap,python-lxml/lxml,\
                python-simplejson/simplejson,python2-simplejson/simplejson
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
@@ -216,7 +221,9 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     pyserial,pyPdf,cryptography,flake8,pylint,zerobug,coverage,coveralls,\
     Click,pylint-mccabe,pbr,Jinja2,Mako,MarkupSafe,Pillow,Werkzeug,argparse,\
     Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
-    wsgiref,QUnitSuite,codecov,pycparser,codicefiscale
+    wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
+    pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
+    validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -234,10 +241,10 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          libpoppler44,libtidy-0.99-0,libwebp5,libwebpmux1,poppler-data,\
          poppler-utils,python-babel,python-babel-localedata,python-decorator,\
          python-docutils,python-feedparser,python-gevent,python-greenlet,\
-         python-imaging,python-jinja2,python-mako,python-markupsafe,\
+         python-imaging,python-jinja2,python-markupsafe,\
          python-pil,python-pybabel,\
          python-pygments,python-pyinotify,python-pyparsing,\
-         python-pypdf,python-renderpm,python-reportlab,python-reportlab-accel,\
+         python-renderpm,python-reportlab,python-reportlab-accel,\
          python-roman,python-suds,python-unittest2,\
          python-utidylib,python-vobject,python-werkzeug,wget,git,\
          libapache2-mod-auth-mysql,\
@@ -246,7 +253,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
          libcups2-dev,cups-devel,unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
-         python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm
+         python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
                  .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
                  *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\
@@ -326,6 +333,7 @@ REAL_python-libxslt1=libxslt-python
 REAL_zlib1g=zlib
 REAL_zlib1g-dev=zlib-devel
 REAL_readline-devel=libreadline6-dev
+REAL_serial=pyserial
 REAL_python-serial=pyserial
 REAL_libcups2-dev=cups-devel
 REAL_unixodbc=unixODBC

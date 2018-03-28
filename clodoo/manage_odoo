@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.2
+__version__=0.3.5.4
 
 
 explore() {
@@ -95,20 +95,35 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      for f in restructuredtext_lint==0.12.2 pygments==2.0.2 pylint-plugin-utils==0.3.5.2 pylint==1.6.4 \
-            astroid==1.4.8 Pillow==3.4.2 pyxb==1.2.4 odoorpc oerplib os0; do
-        run_traced "pip install $f --upgrade --no-deps"
-      done
-      for f in codicefiscale mock passlib pyPdf wkhtmltopdf npm nodejs; do
-        echo "Check for $f package ..."
-        lisa status $f &>/dev/null
-        if [ $? -eq 0 ]; then
-          :
-          # run_traced "lisa update $f"
+      ODOO_HOME=$(build_odoo_param HOME $odoo_vid $repo $opt_org)
+      reqs=$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)
+      reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
+      [ $opt_yes -eq 0 ] && opts='' || opts='-y'
+      for f in $reqs; do
+        # echo "Check for $f package ..."
+        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+        if [ "$f" == "$pkg" ]; then
+          lisa status $f
+          if [ $? -eq 0 ]; then
+            :
+            # run_traced "lisa update $f"
+          else
+            run_traced "lisa install $opts $f"
+          fi
         else
-          run_traced "lisa install $f"
+          run_traced "pip install $f --upgrade --no-deps"
         fi
       done
+      # for f in codicefiscale passlib pyPdf pytz wkhtmltopdf npm nodejs; do
+      #   echo "Check for $f package ..."
+      #   lisa status $f &>/dev/null
+      #   if [ $? -eq 0 ]; then
+      #     :
+      #     # run_traced "lisa update $f"
+      #   else
+      #     run_traced "lisa install $f"
+      #   fi
+      # done
       return $sts
     elif [[ "$act" == "check-config" ]]; then
       cfgfn=$(build_odoo_param CONFN "$odoo_vid")
