@@ -16,7 +16,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.5.14
+#__version__=0.3.5.15
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -36,6 +36,30 @@ get_odoo_full_ver() {
     else
       echo "$v.0"
     fi
+}
+
+find_odoo_ver() {
+#find_odoo_ver(odoo_vid)
+    local CWD=$PWD
+    local ldir odoo_fver x
+    [ -n "$1" ] && cd $1
+    while [ -z "$odoo_fver" ]; do
+      for ldir in $PWD/server/openerp $PWD/openerp $PWD/odoo; do
+        if [[ -d $ldir && -f $ldir/release.py ]]; then
+          pushd $ldir &>/dev/null
+          x=$(echo -e "import release\nprint release.version\n"|python)
+          odoo_fver=$(get_odoo_full_ver "$x")
+          popd &>/dev/null
+          break
+        fi
+      done
+      if [ "$PWD" == "$HOME" ]; then
+         break
+      fi
+      PWD=$(readlink -f $PWD/..)
+    done
+    cd $CWD
+    echo "$odoo_fver"
 }
 
 build_odoo_param() {
@@ -75,33 +99,13 @@ build_odoo_param() {
     if [ -n "$2" ]; then
       if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         odoo_fver=$(get_odoo_full_ver "$2")
-        odoo_ver=$(get_odoo_major_ver "$odoo_fver")
-        odoo_vid="$2"
       elif [[ "$2" == "OCB" ]]; then
-        for ldir in ~/OCB/server/openerp ~/OCB/openerp ~/OCB/odoo; do
-          if [[ -d $ldir && -f $ldir/release.py ]]; then
-            pushd $ldir &>/dev/null
-            x=$(echo -e "import release\nprint release.version\n"|python)
-            odoo_fver=$(get_odoo_full_ver "$x")
-            popd &>/dev/null
-            odoo_ver=$(get_odoo_major_ver "$odoo_fver")
-            odoo_vid="$2"
-            break
-          fi
-        done
+        odoo_fver=$(find_odoo_ver "~/OCB")
       else
-        for ldir in ./server/openerp ./openerp ./odoo; do
-          if [[ -d $ldir && -f $ldir/release.py ]]; then
-            pushd $ldir &>/dev/null
-            x=$(echo -e "import release\nprint release.version\n"|python)
-            odoo_fver=$(get_odoo_full_ver "$x")
-            popd &>/dev/null
-            odoo_ver=$(get_odoo_major_ver "$odoo_fver")
-            odoo_vid="$2"
-            break
-          fi
-        done
+        odoo_fver=$(find_odoo_ver)
       fi
+      odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+      odoo_vid="$2"
       if [[ -z "$odoo_fver" ]]; then
         echo "Invalid Odoo version $2!"
         # exit 1

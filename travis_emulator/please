@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.17
+__version__=0.2.0.18
 
 
 #
@@ -1658,21 +1658,16 @@ do_distribution() {
         fi
       fi
     fi
-    # echo "> if [ \$travis_passed=$travis_passed -eq 0 ]; then" #debug
     if [ $travis_passed -eq 0 ]; then
-      # echo ">   cvt_gitmodule $2 $currpt" #debug
       cvt_gitmodule "$2" "$currpt"
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=oca_dependencies.txt
-        # echo ">   cvt_file $f1 $2 '' $currpt" #debug
         cvt_file $f1 $2 "" "$currpt" "$ORIG"
         sts=$?
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=$(findpkg ".travis.yml" "$PD ..")
-        # echo "travis=$f1"  #debug
         if [ -n "$f1" ]; then
-          # echo ">   cvt_file $f1 $2 travis $currpt" #debug
           cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
           sts=$?
         fi

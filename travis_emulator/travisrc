@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.17
+#__version__=0.2.0.18
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -758,17 +758,17 @@ update_dev() {
     RFLIST=$(get_cfg_value "" "RFLIST__$1")
     RDLIST=$(get_cfg_value "" "RDLIST__$1")
     local xvalid=1
-    local v1=
-    local v2=
+    local v1= v2= x
     if [ -n "$RFLIST" ]; then
       for x in $RFLIST; do
         if [ ! -f $PKGPATH/$PKGNAME/$x ]; then
           xvalid=0
+          break
         fi
       done
     fi
     if [ $xvalid -eq 0 ]; then
-       echo "Invalid package $1!"
+       echo "Invalid package $1: file $x not found!"
        exit $STS_FAILED
     fi
     if [ -z "$opt_sts" -o "$opt_cpush" != "-w" ]; then
