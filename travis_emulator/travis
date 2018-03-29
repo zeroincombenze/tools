@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.19
+__version__=0.2.0.20
 
 
 store_cfg_param_value() {
@@ -578,7 +578,7 @@ process_yaml_run_cmd() {
           local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
         fi
         TRAVIS_MQT_PATH=$(readlink -e $TRAVIS_MQT_PATH/..)
-        xcmd="cp -R $TRAVIS_MQT_PATH $HOME"
+        xcmd="# cp -R $TRAVIS_MQT_PATH $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -828,6 +828,9 @@ process_yaml() {
         done
       fi
       wlog "===== [End script] ====="
+      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+        read -p "Press RET to continue ..."
+      fi
       run_svr_test_exit
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_after_success

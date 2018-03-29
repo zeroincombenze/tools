@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.19
+#__version__=0.2.0.20
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1692,7 +1692,7 @@ run_svr_test_init() {
       sts=$?
       if [ "$PKGNAME" != "OCB" ]; then
         local x=$(readlink -e $PRJPATH/..)
-        run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+        # run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
         run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
       fi
 #       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
