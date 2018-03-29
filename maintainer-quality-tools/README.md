@@ -10,7 +10,7 @@ Sample travis configuration file (for version 7.0)
 --------------------------------------------------
 
 In order to setup TravisCI continuous integration for your project, just copy the
-content of the [`/sample_files`](https://github.com/OCA/maintainer-quality-tools/tree/master/sample_files)
+content of the [`/sample_files`](https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files)
 to your project’s root directory.
 
 If your project depends on other OCA or other Github repositories, create a file called `oca_dependencies.txt` at the root of your project and list the dependencies there. One per line like so:
@@ -23,8 +23,8 @@ Note on addons path ordering: They will be placed after your own repo, but befor
 Check your .travis file for syntax issues.
 ------------------------------------------
 
-You can test your .travis file in [this linter](http://lint.travis-ci.org/).
-This is very useful when you are improving your file.
+The [lint checker](http://lint.travis-ci.org/) of travis is off-line.
+
 
 Multiple values for environment variable VERSION
 ------------------------------------------------
@@ -119,7 +119,11 @@ Local debug
 If you declare the following directive in <env global> section:
 `TRAVIS_DEBUG_MODE="1"`
 
-enable debug mode execution; emulatore shows more verbose messages
+enable debug mode execution during local session of test.
+Note this feature is just avaiable in locale test; when test is executed in
+travis-ci.org this feature has not effect.
+
+See [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 
 Tree directory
 --------------
