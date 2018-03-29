@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.37.2
+__version__=0.2.37.4
 
 
 STS_FAILED=1
@@ -1415,7 +1415,6 @@ update_hba_conf() {
     else
       vim $1.tmp
     fi
-
 }
 
 build_groups_list() {
@@ -3577,7 +3576,7 @@ else
     fi
     if [ $test_mode -eq 0 ]; then
       X="TITL_$act"
-      if [ -n "${!X}" ]; then
+      if [ $opt_verbose -gt 0 -a -n "${!X}" ]; then
         print_title "${!X}"
       fi
     fi

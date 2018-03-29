@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-03-28
+# Last update: 2018-03-29
 #
 # ---------------------------------------------------------------------
 #
@@ -224,7 +224,8 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
     wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
-    validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev
+    validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
+    configparser
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git

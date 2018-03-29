@@ -26,14 +26,17 @@ PIP_TEST_PACKAGES = ['astroid',
                      'coveralls',
                      'flake8',
                      'pylint',
+                     'PyYAML',
                      'mock',
-                     'pylint-plugin-utils',
+                     # 'pylint-plugin-utils',
                      'QUnitSuite',
-                     'restructuredtext_lint',]
+                     'restructuredtext_lint',
+                     'unittest2']
 RPC_PACKAGES = ['odoorpc',
                 'oerplib',
                 'os0']
 PIP_BASE_PACKAGES = ['Babel',
+                     'configparser',
                      'decorator',
                      'docutils',
                      'feedparser',
@@ -56,6 +59,9 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pytz',
                      'reportlab',
                      'werkzeug']
+
+BIN_BASE_PACKAGES = ['python-simplejson',
+                     'python-ldap']
 
 
 def name_n_version(item, with_version=None):

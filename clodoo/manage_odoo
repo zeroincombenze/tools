@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.11
+__version__=0.3.5.13
 
 
 explore() {
@@ -108,7 +108,7 @@ do_action() {
         # echo "Check for $f package ..."
         pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
         if [ "$f" == "$pkg" ]; then
-          eval $LISA status $opts $f
+          eval $LISA status -q $opts $f
           if [ $? -eq 0 ]; then
             :
             # run_traced "lisa update -q $f"
