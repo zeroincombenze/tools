@@ -139,7 +139,7 @@ While travis is running this is the tree directory:
     |    |
     |    \___ ${ODOO_REPO} (by travis_install_nightly of .travis.yml)
     |         # same of OCA .travis.yml
-    |         # Odoo or OCA repository to check with
+    |         # Odoo or OCA server to check tested project
     |
     \___ maintainer-quality-tools (by .travis.yml)
     |    # same of OCA .travis.yml

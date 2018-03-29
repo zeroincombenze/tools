@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.20
+__version__=0.2.0.21
 
 
 
@@ -83,7 +83,8 @@ if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
   eval $TDIR/travis_install_nightly
 else
   pip install -q os0 z0lib
-  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
+  mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
   eval $TDIR/clone_oca_dependencies
+  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
 fi
 exit $sts
