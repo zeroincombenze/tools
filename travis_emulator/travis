@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.16
+__version__=0.2.0.17
 
 
 store_cfg_param_value() {
@@ -146,15 +146,15 @@ process_yaml_xtl_pre() {
 process_yaml_do() {
     local a b i
     if [ "${1:0:1}" == " " ]; then
-      local lne="${1:1}"
+      local line="${1:1}"
     else
-      local lne="$1"
+      local line="$1"
     fi
-    if [ "${lne:0:1}" == "\"" -a "${lne: -1}" == "\"" ]; then
-      lne=${lne//\\\"/\"}
-      lne=$(process_yaml_unquote "${lne:1: -1}")
+    if [ "${line:0:1}" == "\"" -a "${line: -1}" == "\"" ]; then
+      line=${line//\\\"/\"}
+      local lne=$(process_yaml_unquote "${line:1: -1}")
     else
-      lne=$(process_yaml_unquote "$lne")
+      local lne=$(process_yaml_unquote "$line")
     fi
     if [ "$YML_sect" == "python" ]; then
       lne="#"
@@ -170,10 +170,12 @@ process_yaml_do() {
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"
-      if [[ "$lne" =~ ODOO_REPO=.*odoo/odoo && -z "$YML_repo" ]]; then
+      if [[ "$line" =~ ODOO_REPO=.*odoo/odoo && -z "$YML_repo" ]]; then
         YML_repo=odoo/odoo
-      elif [[ "$lne" =~ ODOO_REPO=.*OCA/OCB ]]; then
+      elif [[ "$line" =~ ODOO_REPO=.*OCA/OCB  && -z "$YML_repo" ]]; then
         YML_repo=OCA/OCB
+      elif [[ "$line" =~ ODOO_REPO=.*zeroincombenze/OCB ]]; then
+        YML_repo=zeroincombenze/OCB
       fi
     elif [ "$YML_sect" == "before_install" ]; then
       YML_before_install="$YML_before_install $lne"
@@ -347,7 +349,6 @@ process_yaml_exit() {
       line=$(get_cfg_value "" "${X}yaml_exit_$i")
       if [ -n "$line" ]; then
         process_yaml_run_cmd "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
     return $sts
@@ -650,8 +651,8 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
     #   xcmd="# $xcmd"
-    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]}" == "/opt/odoo/build/OCA/OCB"  ]; then
-      xcmd="# ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+    elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
+      xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
@@ -675,21 +676,18 @@ process_yaml_run_cmd() {
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. ]]; then
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. && ! "$YML_repo" == "odoo/odoo" ]]; then 
           xcmd="# $xcmd"
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. ]]; then
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. && ! "$YML_repo" == "OCA/OCB" ]]; then 
+          xcmd="# $xcmd"
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
-            xcmd="$(echo $xcmd|sed -e 's|OCA/OCB|local/odoo|g')"
-            x[$ix]=local/odoo
+            xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
+            x[$ix]=$(echo x[$ix]|sed -e "s|$YML_repo|local/odoo|g")
           fi
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.zeroincombenze/OCB. ]]; then
+        elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/.*/OCB/openerp/addons.*/opt/odoo/build/.*/OCB/addons ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
-            xcmd="$(echo $xcmd|sed -e 's|zeroincombenze/OCB|local/odoo|g')"
-            x[$ix]=local/odoo
-          fi
-        elif [[ "${x[$ix]}" =~ INCLUDE=..getaddons.py.*/opt/odoo/build/OCA/OCB/openerp/addons.*/opt/odoo/build/OCA/OCB/addons ]]; then
-          if [ ${opt_virt:-0} -eq 0 ]; then
-            xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/OCA/OCB/|/opt/odoo/$BRANCH/|g')"
+            xcmd="$(echo $xcmd|sed -e 's|/opt/odoo/build/.*/OCB/|/opt/odoo/$BRANCH/|g')"
           fi
         elif [ "${x[$ix]}" == "\${OPTS}" ]; then
           xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"

@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.13
+__version__=0.3.5.14
 
 
 explore() {
@@ -102,12 +102,12 @@ do_action() {
       reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"
-      # [ $EUID -eq 0 ] || opts="${opts}T"
       [ -n "$opts" ] && opts="-$opts"
       for f in $reqs; do
-        # echo "Check for $f package ..."
         pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        if [ "$f" == "$pkg" ]; then
+        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" ]]; then
+          echo "Check for $f"
+        elif [ "$f" == "$pkg" ]; then
           eval $LISA status -q $opts $f
           if [ $? -eq 0 ]; then
             :

@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.16
+#__version__=0.2.0.17
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -335,10 +335,9 @@ init_travis() {
         TOOLS_PATH=$HOME/dev/_travis
       elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
-      elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$HOME/maintainer-quality-tools/travis
-      # elif [ "$HOSTENV" == "travis" ]; then
-      elif [ "$TRAVIS" == "true" ]; then
+      elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
+        TOOLS_PATH=$HOME/tools/maintainer-quality-tools/travis
+      elif [ "$TRAVIS" != "true" ]; then
         TOOLS_PATH=$PKGPATH/travis_emulator/_travis
       elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
@@ -1691,9 +1690,11 @@ run_svr_test_init() {
       cp_n_upd_conf
       clone_dependencies
       sts=$?
-      local x=$(readlink -e $PRJPATH/..)
-      run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-      run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
+      if [ "$PKGNAME" != "OCB" ]; then
+        local x=$(readlink -e $PRJPATH/..)
+        run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+        run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
+      fi
 #       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
 #         cat <<EOF >$x/openerp-server
 # #!/usr/bin/env python
