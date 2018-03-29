@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.21
+__version__=0.2.0.22
 
 
 
@@ -80,11 +80,14 @@ if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
 if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
+  [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
   pip install -q os0 z0lib
   mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
+  [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ $TDIR/clone_oca_dependencies"
   eval $TDIR/clone_oca_dependencies
+  [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
   eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
 fi
 exit $sts

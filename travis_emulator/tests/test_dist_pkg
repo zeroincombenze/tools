@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.0.18
+__version__=0.2.0.19
 
 Z0BUG_setup() {
     if [ ! -d /opt/odoo/7.0 ]; then

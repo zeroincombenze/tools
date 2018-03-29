@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.18
+#__version__=0.2.0.19
 
 
 MAKEF=/opt/odoo/dev/Makefile
