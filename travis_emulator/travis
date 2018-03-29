@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.20
+__version__=0.2.0.21
 
 
 store_cfg_param_value() {
@@ -828,7 +828,7 @@ process_yaml() {
         done
       fi
       wlog "===== [End script] ====="
-      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+      if [ "${TRAVIS_DEBUG_MODE:-0}" == "1" ]; then
         read -p "Press RET to continue ..."
       fi
       run_svr_test_exit
