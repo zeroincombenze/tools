@@ -1,0 +1,89 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Install packages to run travis tests
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2016-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.2.0.19
+
+
+
+OPTOPTS=(h        j        K         n            q           T        t         V           v)
+OPTDEST=(opt_help opt_dprj opt_check opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        1        1         1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0        0         0            -1          0        0         ""          -1)
+OPTMETA=("help"   "dprj"   "check"   "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
+OPTHELP=("this help"\
+ "execute tests in project dir rather in test dir"\
+ "do bash, flake8 and pylint checks"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "do regression tests"\
+ "test mode (implies dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(mode)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Install packages to run travis tests\n if supplied 'oca' executes travis_install_nightly"\
+  "(C) 2016-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+sts=$STS_SUCCESS
+if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
+if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
+if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
+if [ ${opt_regr:-0} -gt 0 ]; then
+  LINT_CHECK="0"
+  TESTS="1"
+fi
+if [ ${opt_check:-0} -gt 0 ]; then
+  BASH_CHECK="1"
+  LINT_CHECK="1"
+fi
+if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
+  eval $TDIR/travis_install_nightly
+else
+  pip install -q os0 z0lib
+  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
+  eval $TDIR/clone_oca_dependencies
+fi
+exit $sts
