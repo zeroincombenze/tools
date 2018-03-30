@@ -2,12 +2,13 @@
 import sys
 from getaddons import get_addons, get_modules, is_installable_module
 from test_server import get_test_dependencies
-ltype=''
-path=''
+__version__ = '0.2.0.25'
+ltype = ''
+path = ''
 addons_list=None
-if len(sys.argv)>1: ltype=sys.argv[1]
-if len(sys.argv)>2: path=sys.argv[2]
-if len(sys.argv)>3: addons_list=sys.argv[3].split(',')
+if len(sys.argv) > 1: ltype=sys.argv[1]
+if len(sys.argv) > 2: path=sys.argv[2]
+if len(sys.argv) > 3: addons_list=sys.argv[3].split(',')
 if ltype == 'mod':
     paths=path.split(',')
     res=[]

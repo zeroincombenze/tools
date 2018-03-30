@@ -1,29 +1,45 @@
 # Config file travis.yml
 # for travis emulator and other PYPI packages
 # Can used both in local travis emulator both in travis environment
-# version 0.2.0
+# version 0.2.2
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro] are replaced before execution (at travis.ynl read)
 # - format: $macro are replace by shell during execution
 
 language: python
 sudo: false
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
 
 python:
   - "2.7"
 
+git:
+  submodules: false
+
 addons:
   apt:
+#    sources:
+#    Search your sources alias here:
+#      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
-      # - python-lxml  # because pip installation is slow
-      # - python-simplejson
+#     Search your packages here:
+#       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
+#     For wkhtmltopdf, see the env section below
 
 before_install:
-  - PYTHONPATH=${TRAVIS_BUILD_DIR}
-  - OPTS="$OPTS"
-  - pip install os0
-  - pip install z0lib
-  - pip install zerobug
+  - export TRAVIS_DEBUG_MODE="1"
+  - cp _R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_env tools
+  - export PYTHONPATH=${TRAVIS_BUILD_DIR}
+  - export OPTS="$OPTS"
+
+install:
+  - export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH
+  - echo $PATH
 
 env:
   global:
@@ -35,18 +51,9 @@ env:
 virtualenv:
   system_site_packages: true
 
-install:
-  - git clone --depth=1 https://github.com/zeroincombenze/tools.git
-  # Run if local travis emulator and travis emulator itself
-  - "[ \"${PWD:0:19}\" == \"/opt/odoo/dev/pypi/\" -a \"$PKGNAME\" == \"travis_emulator\" ] && export PATH=${PRJPATH}/_travis:$PATH || true"
-  # Run if local travis emulator and all other packages
-  - "[ \"${PWD:0:19}\" == \"/opt/odoo/dev/pypi/\" -a \"$PKGNAME\" != \"travis_emulator\" ] && export PATH=${TOOLS_PATH}:$PATH || true"
-  # Run outside local travis emulator or all other packages
-  - "[ \"${PWD:0:19}\" != \"/opt/odoo/dev/pypi/\" ] && export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH || true"
-  - echo $PATH
-
 script:
   - travis_run_tests ${OPTS}
 
 after_success:
   - travis_after_tests_success ${OPTS}
+
