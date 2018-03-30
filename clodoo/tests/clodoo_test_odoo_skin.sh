@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.5.15
+__version__=0.3.5.17
 
 
 test_01() {

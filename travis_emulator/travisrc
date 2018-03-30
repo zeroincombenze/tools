@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.23
+#__version__=0.2.0.24
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1692,9 +1692,11 @@ run_svr_test_init() {
       sts=$?
       if [ "$PKGNAME" != "OCB" ]; then
         local x=$(readlink -e $PRJPATH/..)
-        run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-        run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
+      else
+        local x=$(readlink -e $PRJPATH)
       fi
+      run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+      run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
 #       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
 #         cat <<EOF >$x/openerp-server
 # #!/usr/bin/env python

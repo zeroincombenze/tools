@@ -31,8 +31,13 @@ addons:
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
-  - cp _R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
-  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  # Run if local travis emulator and travis emulator itself
+  - "[ \"${TRAVIS}\" != \"true\" -a \"$PKGNAME\" == \"travis_emulator\" ] && export PATH=${PRJPATH}/_travis:$PATH || true"
+  # Run if local travis emulator and all other packages
+  - "[ \"${TRAVIS}\" != \"true\" -a \"$PKGNAME\" != \"travis_emulator\" ] && export PATH=${TOOLS_PATH}:$PATH || true"
+  # Run outside local travis emulator or all other packages
+  - "[ \"${TRAVIS}\" == \"true\" ] && cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME} || true"
+  - "[ \"${TRAVIS}\" == \"true\" ] && export PATH=${HOME}/maintainer-quality-tools/travis:${PATH} || true"
   - travis_install_env tools
   - export PYTHONPATH=${TRAVIS_BUILD_DIR}
   - export OPTS="$OPTS"

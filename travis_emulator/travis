@@ -11,6 +11,24 @@
 # ~/dev/pypi/travis_em/travis_em -> this script
 # ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_runs_tests, travis_after_tests_success)
 #
+# Yaml file process steps:
+#  1.Initialize from local .travis.conf (not in travis-ci.org)
+#  2.Install packages from <apt addons>
+#  3.Install packages from cache
+#  4.Execute code from <before_install>
+#  5.Execute global from <env global>
+#  6.Execute matrix initialization
+#  7.Execute code from <install>
+#  8.Execute matrix code from <before_script>
+#  9.Execute matrix code from <script>
+# 10.Execute code from <before_cache> (not emulated)
+# 11.Execute code from <after_success> (emulated) o <after_failure> (not emulated)
+# 12.Execute code from <before_deploy> (not emulated)
+# 13.Execute code from <deploy> (not emulated)
+# 14.Execute code from <after_deploy> (not emulated)
+# 15.Execute code from <after_script> (not emulated)
+# 16.Wep from local .travis.conf (not in travis-ci.org)
+#
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -38,7 +56,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.23
+__version__=0.2.0.26
 
 
 store_cfg_param_value() {
@@ -312,41 +330,63 @@ process_yaml_initialize() {
     local sts=$STS_SUCCESS
     local i s line lne X
     wlog "===== [Initialize] ====="
-    for p in ${!PIPPKGVER[*]}; do
-      lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
-      if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
-        wlog "## pip install $p==${PIPPKGVER[$p]}:$lne1"
-        sts=1
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[initialize] from .travis.conf] ------"
+    fi
+    for i in {1..9}; do
+      line=$(get_cfg_value "" "yaml_init_$i")
+      if [ -n "$line" ]; then
+        process_yaml_run_cmd "$line"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[initialize.packages] from .travis.conf] ------"
+    fi
+    X="${PKGNAME}__"
+    line=$(get_cfg_value "" "${X}yaml_init_1")
+    if [ -n "$line" ]; then
+      for i in {1..9}; do
+        line=$(get_cfg_value "" "${X}yaml_init_$i")
+        if [ -n "$line" ]; then
+          process_yaml_run_cmd "$line"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+      done
+    fi
     if [ $sts -eq $STS_SUCCESS ]; then
-      v=$(pip --version|grep -Eo [0-9]+|head -n1)
-      if [ $v -ge 7 ]; then
-        run_traced "alias pip=\"pip --user $USER\""
-      fi
       if [ ${opt_virt:-0} -gt 0 ]; then
         create_virtual_env
       fi
       run_svr_test_init
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
+    return $sts
 }
 
 process_yaml_exit() {
     local sts=$STS_SUCCESS
     local i line lne X
-    wlog "===== [End script] ====="
-    run_svr_test_exit
-    if [ $sts -eq $STS_SUCCESS ]; then
-      process_yaml_after_success
+    wlog "===== [Ending] ====="
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[exit.packages] from .travis.conf] ------"
     fi
+    run_svr_test_exit
     X="${PKGNAME}__"
     line=$(get_cfg_value "" "${X}yaml_exit_1")
-    if [ -z "$line" ]; then
-      X=
+    if [ -n "$line" ]; then
+      for i in {1..9}; do
+        line=$(get_cfg_value "" "${X}yaml_exit_$i")
+        if [ -n "$line" ]; then
+          process_yaml_run_cmd "$line"
+        fi
+      done
+    fi
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[exit] from .travis.conf] ------"
     fi
     for i in {1..9}; do
-      line=$(get_cfg_value "" "${X}yaml_exit_$i")
+      line=$(get_cfg_value "" "yaml_exit_$i")
       if [ -n "$line" ]; then
         process_yaml_run_cmd "$line"
       fi
@@ -358,23 +398,8 @@ process_yaml_before_install() {
     wlog "===== [Before install] ====="
     local sts=$STS_SUCCESS
     local i s line lne X
-    X="${PKGNAME}__"
-    line=$(get_cfg_value "" "${X}yaml_init_1")
-    if [ -z "$line" ]; then
-      X=
-    fi
-    for i in {1..9}; do
-      line=$(get_cfg_value "" "${X}yaml_init_$i")
-      if [ -n "$line" ]; then
-        process_yaml_run_cmd "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
-    done
-    if [ $sts -eq $STS_SUCCESS ]; then
-      for lne in $YML_before_install; do
-        process_yaml_run_cmd "$lne"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[addons.packages] in .travis.yml] ------"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_packages; do
@@ -386,6 +411,18 @@ process_yaml_before_install() {
         process_yaml_run_cmd "$line"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
+    fi
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[before_install] in .travis.yml] ------"
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      for lne in $YML_before_install; do
+        process_yaml_run_cmd "$lne"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    fi
+    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      wlog "------ [[env] in .travis.yml] ------"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_env; do
@@ -471,7 +508,7 @@ process_yaml_after_success() {
     local lne
     for lne in $YML_after; do
       line=$(process_yaml_quote_xtl $lne)
-      process_yaml_run_cmd "$lne"
+      process_yaml_run_cmd "$line"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -481,6 +518,12 @@ process_yaml_run_cmd() {
 #process_yaml_run_cmd (cmd init)
     local xcmd=$(process_yaml_quote_xtl "$1")
     local ix ix1 ix2 c i x s p pp tk z sts xtlcmd
+    local xlint xtest xtfex xpkg xcd
+    if [ -n "$2" ]; then
+      local line1="$(process_yaml_quote_xtl $2) "
+    else
+      local line1
+    fi
     c=$xcmd
     if [ "$FH" == "RHEL" ]; then
       if [[ $xcmd =~ which[[:space:]]nodejs ]]; then
@@ -513,38 +556,25 @@ process_yaml_run_cmd() {
     ((ix1++))
     ix2=$ix1
     ((ix2++))
-    if [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-serial" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/python-serial/pyserial/g')"
-      x[$ix2]="pyserial"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "libcups2-dev" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/libcups2-dev/cups-devel/g')"
-      x[$ix2]="cups-devel"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "unixODBC-dev" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/unixODBC-dev/unixODBC-devel/g')"
-      x[$ix2]="unixODBC-devel"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "unixodbc-dev" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/unixodbc-dev/unixODBC-devel/g')"
-     x[$ix2]="unixODBC-devel"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-mysqldb" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/python-mysqldb/MySQL-python/g')"
-      x[$ix2]="MySQL-python"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-yaml" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/python-yaml/PyYAML/g')"
-      x[$ix2]="PyYAML"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-pypdf" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/python-pypdf/pyPdf/g')"
-      x[$ix2]="pyPdf"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "libcups2-devel" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/libcups2-devel/cups-devel/g')"
-      x[$ix2]="cups-devel"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "ruby-sass" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/ruby-sass/rubygem-sass/g')"
-      x[$ix2]="rubygem-sass"
-    elif [ "$FH" == "RHEL" -a "${x[$ix]}" == "yum" -a "${x[$ix2]}" == "python-simplejson" ]; then
-      xcmd="$(echo $xcmd|sed -e 's/python-simplejson/python2-simplejson/g')"
-      x[$ix2]="python2-simplejson"
+    ix3=$ix2
+    ((ix3++))
+    if [ "${x[$ix]}" == "yum" -o "${x[$ix]}" == "apt-get" ]; then
+      pp="python-serial libcups2-dev cups-devel unixodbc unixODBC unixodbc-dev unixODBC-dev unixODBC-devel"
+      pp="$pp python-mysqldb MYSQL-python python-yaml pyyaml pyYAML PyYAML python-pypdf pypdf pyPdf"
+      pp="$pp ruby-sass rubygem-sass python-simplejson python2-simplejson expect-dev antiword"
+      if [[ $pp =~ ${x[$ix2]} ]]; then
+        xcmd="$(echo $xcmd|sed -e 's/yum/$YML_lisa/g')"
+        xcmd="$(echo $xcmd|sed -e 's/apt-get/$YML_lisa/g')"
+        x[$ix]=$YML_lisa
+      fi
     fi
-    if [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
+    if [ "${x[$ix]}" == "$YML_lisa" -a "${x[$ix1]}" == "install" ]; then
+      if $($YML_lisa status ${x[$ix2]} &>/dev/null); then
+        xcmd="# $xcmd"
+      else
+        xcmd="false; # Warning! TODO> $xcmd"
+      fi
+    elif [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
       if [ "$FH" == "RHEL" -a "${x[$ix2]}" == "expect-dev" ]; then
         xcmd="# $xcmd"
       elif [ "$FH" == "RHEL" -a "${x[$ix2]}" == "antiword" ]; then
@@ -659,7 +689,6 @@ process_yaml_run_cmd() {
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
       :
     else
-      local xlint xtest xtfex xpkg xcd
       if [ -z "$REPOSNAME" ]; then
         pp=$PKGPATH
       else
@@ -774,25 +803,11 @@ process_yaml() {
            wlog "\$ $lne=$lne1"
          fi
       done
-      wlog "===== [Initialize] ====="
-      for p in ${!PIPPKGVER[*]}; do
-        lne1=$(pip show $p|grep ^Version|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)')
-        if [ "${PIPPKGVER[$p]}" != "$lne1" ]; then
-          wlog "## pip install $p==${PIPPKGVER[$p]}:$lne1"
-          sts=1
-        fi
-      done
       if [ $sts -eq $STS_SUCCESS ]; then
-        v=$(pip --version|grep -Eo [0-9]+|head -n1)
-        if [ $v -ge 7 ]; then
-          run_traced "alias pip=\"pip --user $USER\""
-        fi
-        if [ ${opt_virt:-0} -gt 0 ]; then
-          create_virtual_env
-        fi
-        run_svr_test_init
+        process_yaml_initialize
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
+
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_before_install
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -828,26 +843,16 @@ process_yaml() {
           fi
         done
       fi
-      wlog "===== [End script] ====="
-      if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
-        read -p "Press RET to continue ..."
-      fi
-      run_svr_test_exit
       if [ $sts -eq $STS_SUCCESS ]; then
+        wlog "===== [After success] ====="
         process_yaml_after_success
       fi
-      X="${PKGNAME}__"
-      line=$(get_cfg_value "" "${X}yaml_exit_1")
-      if [ -z "$line" ]; then
-        X=
+      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+        read -p "Press RET to continue ..."
       fi
-      for i in {1..9}; do
-        line=$(get_cfg_value "" "${X}yaml_exit_$i")
-        if [ -n "$line" ]; then
-          process_yaml_run_cmd "$line"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        fi
-      done
+      if [ $sts -eq $STS_SUCCESS ]; then
+        process_yaml_exit
+      fi
       drop_virtual_env
     else
       process_local

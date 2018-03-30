@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.5.15
+__version__=0.3.5.17
 
 
 explore() {
@@ -177,8 +177,11 @@ do_action() {
         if [ -L $pkgdir ]; then
           :
         else
-          if [ "$repo" != "OCB" ]; then
-            please wep $opts
+          if [ "$USER" == "odoo" ]; then
+            if [ "$repo" != "OCB" ]; then
+              please wep $opts || true
+            fi
+            list_requirements.py -vPp $pkgdir -o
           fi
           $TDIR/addsubm.sh $repo $odoo_vid $opts -O $opt_org -r
         fi

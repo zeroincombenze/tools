@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.5.11'
+__version__ = '0.3.5.17'
 
 
 REQVERSION = {
@@ -105,6 +105,10 @@ def main():
                         metavar="file list",
                         default="")
     parser.add_argument('-n')
+    parser.add_argument("-o", "--output",
+                        help="Write output to file requirements.txt",
+                        dest="out_file",
+                        action="store_true")
     parser.add_argument("-p", "--path",
                         help="Path to search manifest files",
                         dest="odoo_dir",
@@ -136,6 +140,18 @@ def main():
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    if ctx['out_file']:
+        if not ctx['odoo_dir']:
+            print "Please, declare odoo path to write requirements.txt file!"
+            sys.exit(1)
+        ctx['sep'] = '\n'
+        ctx['with_version'] = True
+        ctx['itypes'] = 'python'
+        ctx['opt_verbose'] = False
+        ctx['base_pkgs'] = False
+        ctx['rpc_pkgs'] = False
+        ctx['test_pkgs'] = False
+        ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
     deps_list = {}
     if ctx['odoo_dir']:
         manifests = []
@@ -177,13 +193,30 @@ def main():
         deps_list = print_deps(manifest_file,
                                deps_list=deps_list,
                                with_version=ctx['with_version'])
-    for kw in ('python', 'bin'):
-        if (ctx['itypes'] == 'both' or kw == ctx['itypes']) and \
-                kw in deps_list:
-            if ctx['opt_verbose']:
-                print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
-            else:
-                print ctx['sep'].join(deps_list[kw])
+    if ctx['out_file']:
+        try:
+            pkgs = open(ctx['opt_fn']).read().split('\n')
+        except:
+            pkgs = []
+        kw = 'python'
+        if kw in deps_list:
+            for p in deps_list['python']:
+                if p not in pkgs:
+                    pkgs.append(p)
+        if len(pkgs):
+            fd = open(ctx['opt_fn'], 'w')
+            fd.write(ctx['sep'].join(pkgs))
+            fd.close()
+        print "Updated %s file" % ctx['opt_fn']
+        print ctx['sep'].join(pkgs)
+    else:
+        for kw in ('python', 'bin'):
+            if (ctx['itypes'] == 'both' or kw == ctx['itypes']) and \
+                    kw in deps_list:
+                if ctx['opt_verbose']:
+                    print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
+                else:
+                    print ctx['sep'].join(deps_list[kw])
 
 
 if __name__ == "__main__":

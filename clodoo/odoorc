@@ -16,7 +16,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.5.15
+#__version__=0.3.5.17
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -106,7 +106,7 @@ build_odoo_param() {
       fi
       odoo_ver=$(get_odoo_major_ver "$odoo_fver")
       odoo_vid="$2"
-      if [[ -z "$odoo_fver" ]]; then
+      if [[ -z "$odoo_fver" && ! "$ITEM" == "HOME" && ! "$2" == "." ]]; then
         echo "Invalid Odoo version $2!"
         # exit 1
       fi

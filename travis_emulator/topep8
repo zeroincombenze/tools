@@ -44,7 +44,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.0.23
+__version__=0.2.0.24
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -75,11 +75,15 @@ format_yaml() {
         if [ -z "$line" ]; then
           if [ "$cur_sect" == "before_install" ]; then
             if [[ !${found[before_install_zero]} == "t" ]]; then
-              echo "# Use Zeroincombenze(R) tools">>$fntmp
+              echo "  # Use Zeroincombenze(R) tools">>$fntmp
               echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --single-branch --depth=1">>$fntmp
               echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
               echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
-              echo "  - travis_install_env">>$fntmp
+              echo "  - travis_install_env oca">>$fntmp
+            fi
+            if [ "$PKGNAME" == "OCB" ]; then
+              echo "  - \"export DISPLAY=:99.0\"">>$fntmp
+              echo "  - \"sh -e /etc/init.d/xvfb start\"">>$fntmp
             fi
             cur_sect=
           fi
