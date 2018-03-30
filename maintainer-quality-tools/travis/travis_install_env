@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.25
+__version__=0.2.1
 
 
 
@@ -79,6 +79,12 @@ if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DI
 if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK}" != "0" ]; then
+  :
+fi
+if [ "${TESTS}" != "1" ]; then
+  exit $sts
+fi
 if [ "$mode" == "tools" ]; then
   if [ "${TRAVIS}" == "true" ]; then
     [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa) || LISA=lisa
@@ -96,6 +102,23 @@ elif [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
+  : ${MQT_TEMPLATE_DB:="openerp_template"}
+  : ${MQT_TEST_DB:="openerp_test"}
+  [[ "$TRAVIS" == "true" ]] ||  pg_db_active -a $MQT_TEMPLATE_DB -w; dropdb $MQT_TEMPLATE_DB || true
+  [[ "$TRAVIS" == "true" ]] ||  pg_db_active -a $MQT_TEST_DB -w; dropdb $MQT_TEST_DB || true
+  : ${ODOO_REPO:="odoo/odoo"}
+  IFS="/" read -a REPO <<< "${ODOO_REPO}"
+  export REMOTE="${REPO[0],,}"
+  export REPO_NAME="${REPO[1]}"
+  if [[ "$TRAVIS" == "true" ]]; then
+    export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
+    echo "Installing Odoo $ODOO_URL"
+    wget -nv -O odoo.tar.gz $ODOO_URL
+    tar -xf odoo.tar.gz -C ${HOME}
+  else
+    echo "> ln -s $TRAVIS_SAVED_HOME/$BRANCH $HOME/${REPO_NAME}-${BRANCH}"
+    ln -s $TRAVIS_SAVED_HOME/$BRANCH $HOME/${REPO_NAME}-${BRANCH}
+  fi
   pip install -q os0 z0lib
   mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"

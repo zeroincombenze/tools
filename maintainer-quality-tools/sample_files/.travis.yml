@@ -1,5 +1,6 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.0.25
+# __version__=0.2.1
+
 language: python
 sudo: false
 cache:
@@ -9,6 +10,9 @@ cache:
 
 python:
   - "2.7"
+
+virtualenv:
+  system_site_packages: true
 
 git:
   submodules: false
@@ -24,67 +28,30 @@ addons:
 #     For wkhtmltopdf, see the env section below
 
 before_install:
-#   - export TRAVIS_DEBUG_MODE="1"
-# Sometimes complicated website repos need Compass & SaSS:
-#  - rvm install ruby --latest
-#  - gem install bootstrap-sass
-#  - gem install compass --pre
+  - export TRAVIS_DEBUG_MODE="1"
+  - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+  - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_env oca
 
 install:
-#   - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
-#   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - travis_install_nightly
-# [//]: # (addons)
+  - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery
 
 env:
   global:
   - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
-  # Set this variable to some version existing as linux-generic build on
-  # https://github.com/wkhtmltopdf/wkhtmltopdf/releases
-  # if you need to install wkhtmltopdf
-  # - WKHTMLTOPDF_VERSION="0.12.4"
-  # Set the above to install a `wkhtmltopdf` version that is not the one provided
-  # by the `pov-wkhtmltopdf` repo.
-  # - PHANTOMJS_VERSION="latest"
-  # The above line controls the PhantomJS version that is used for JS testing.
-  #   It is not necessary to include this value unless you are altering the default.
-  #   Use `OS` to skip the PhantomJS upgrade & use the system version instead.
-  # - WEBSITE_REPO="1"
-  # Use the above line to install dependencies that are required for website repos:
-  # * SASS & Bootstrap-SASS
-  # * Compass
-  # - TRANSIFEX_USER='transbot@odoo-community.org'
-  # This line contains the encrypted transifex password
-  # To encrypt transifex password, install travis ruby utils with:
-  #   $ gem install travis --user-install
-  # and use:
-  #   $ travis encrypt TRANSIFEX_PASSWORD=your-password -r owner/project
-  # Secure list for current OCA projects is in https://github.com/OCA/maintainer-quality-tools/issues/194
-  # - secure: PjP88tPSwimBv4tsgn3UcQAD1heK/wcuSaSfhi2xUt/jSrOaTmWzjaW2gH/eKM1ilxPXwlPGyAIShJ2JJdBiA97hQufOeiqxdkWDctnNVVEDx2Tk0BiG3PPYyhXPgUZ+FNOnjZFF3pNWvzXTQaB0Nvz8plqp93Ov/DEyhrCxHDs=
-  # Use the following lines if you need to manually change the transifex project slug or/and the transifex organization.
-  # The default project slug is owner-repo_name-version (with dash in the version string).
-  # The default organization is the owner of the repo.
-  # The default fill up resources (TM) is True.
-  # The default team is 23907. https://www.transifex.com/organization/oca/team/23907/
-  # - TRANSIFEX_PROJECT_SLUG=
-  # - TRANSIFEX_ORGANIZATION=
-  # - TRANSIFEX_FILL_UP_RESOURCES=
-  # - TRANSIFEX_TEAM=
 
   matrix:
   - LINT_CHECK="1"
-  - TRANSIFEX="1"
   - TESTS="1" ODOO_REPO="odoo/odoo"
   - TESTS="1" ODOO_REPO="OCA/OCB"
+  - TESTS="0" ODOO_REPO="zeroincombenze/OCB"
 # either use the two lines above or the two below. Don't change the default if
 # it's not necessary (it is only necessary if modules in your repository can't
 # be installed in the same database. And you get a huge speed penalty in your
 # tests)
 #  - TESTS="1.0" ODOO_REPO="odoo/odoo" UNIT_TEST="1"
 #  - TESTS="1.0" ODOO_REPO="OCA/OCB" UNIT_TEST="1"
-
-virtualenv:
-  system_site_packages: true
 
 script:
   - travis_run_tests

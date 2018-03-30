@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.24
+#__version__=0.2.1
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -337,10 +337,10 @@ init_travis() {
         TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
       elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/tools/maintainer-quality-tools/travis
-      elif [ "$TRAVIS" != "true" ]; then
-        TOOLS_PATH=$PKGPATH/travis_emulator/_travis
-      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
+      # elif [ "$TRAVIS" != "true" ]; then
+      #   TOOLS_PATH=$PKGPATH/travis_emulator/_travis
+      # elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+      #   TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
@@ -378,54 +378,59 @@ revaluate_travis() {
 }
 
 create_virtual_env() {
-    if [ ${opt_virt:-0} -gt 0 ]; then
-      local HOME_BRANCH=$HOME/$BRANCH
+    export TRAVIS_SAVED_HOME=$HOME
+    TRAVIS_HOME=$HOME/VENV_$$
+    local TRAVIS_CWD=$PWD
+    local HOME_BRANCH=$HOME/$BRANCH
+    export TRAVIS_BRANCH=$BRANCH
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      mkdir -p $TRAVIS_HOME
+      cd $TRAVIS_HOME
+    else
       PKGPATH=$(set_pkgpath "")
-      local TRAVIS_CWD=$PWD
-      TRAVIS_HOME=$HOME/VENV_$$
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       cd $TRAVIS_HOME
       source bin/activate
-      if [ -z "$REMOTEREPO" ]; then
-        TRAVIS_WORK_DIR=local/$REPOSNAME
-      else
-        TRAVIS_WORK_DIR=$REMOTEREPO
+      if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
+        TRAVIS=false
       fi
-      TRAVIS_BUILD_DIR="$TRAVIS_HOME/${TRAVIS_WORK_DIR%%/*}"
-      run_traced "mkdir -p $TRAVIS_BUILD_DIR"
-      TRAVIS_SAVED_HOME=$HOME
-      export HOME=$TRAVIS_HOME
+    fi
+    export HOME=$TRAVIS_HOME
+    mkdir -p $TRAVIS_HOME/build
+    if [ -z "$REMOTEREPO" ]; then
+      TRAVIS_REPO_SLUG=local/$PKGNAME
+    else
+      TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
+    fi
+    mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
+    TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
+    mkdir -p $TRAVIS_BUILD_DIR
+    if [ ${opt_virt:-0} -eq 0 ]; then
+      run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
+    else
       run_traced "cp -R $TRAVIS_CWD $TRAVIS_BUILD_DIR"
-      # run_traced "mkdir -p $TRAVIS_BUILD_DIR/odoo"
-      # local fn
-      # for fn in addons odoo odoo.py openerp openerp-server openerp-wsgi.py; do
-      #   if [ -d $HOME_BRANCH/$fn ]; then
-      #     run_traced "cp -R $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
-      #   elif [ -f $HOME_BRANCH/$fn ]; then
-      #     run_traced "cp $HOME_BRANCH/$fn $TRAVIS_BUILD_DIR/odoo"
-      #   fi
-      # done
-      # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
-      run_traced "export REPO_CACHED=$HOME_BRANCH"
-      run_traced "cd $HOME"
-      FH=$(xuname -f)
-      if [ "$FH" == "RHEL" ]; then
-        local NODEJS=$(which node)
-        if [ -n "$NODEJS" ]; then
-          run_traced "ln -s $NODEJS $TRAVIS_HOME/bin/nodejs"
-        fi
-      fi
+    fi
+    # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
+    # run_traced "export REPO_CACHED=$HOME_BRANCH"
+    run_traced "cd $TRAVIS_BUILD_DIR"
+    if [ "$PRJNAME" != "Odoo" ]; then
+      local dbtemplate=${MQT_TEMPLATE_DB:-openerp_template}
+      pg_db_active -a $dbtemplate; dropdb $dbtemplate --if-exists $n
+      local database=${MQT_TEST_DB:-openerp_test}
+      pg_db_active -a $database; dropdb $database --if-exists $n
     fi
 }
 
 drop_virtual_env() {
-    if [ ${opt_virt:-0} -gt 0 ]; then
-      cd $TRAVIS_HOME
-      deactivate
-      cd $TRAVIS_CWD
-      rm -fR $TRAVIS_HOME
-      export HOME=$TRAVIS_SAVED_HOME
+    if [ -f $HOME/stdout.log ]; then
+      mv -f $HOME/stdout.log $TRAVIS_SAVED_HOME/stdout.log
     fi
+    cd $TRAVIS_HOME
+    if [ ${opt_virt:-0} -gt 0 ]; then
+      deactivate
+    fi
+    cd $TRAVIS_CWD
+    rm -fR $TRAVIS_HOME
 }
 
 prepare_env_travis() {
@@ -1239,7 +1244,7 @@ run_regression_test() {
     echo "======== Running regression_test ========"
     run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
         local OPTS=$(inherits_travis_opts "n" "T")
       else
         local OPTS=$(inherits_travis_opts "" "T")

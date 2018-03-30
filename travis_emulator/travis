@@ -56,7 +56,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.26
+__version__=0.2.1
 
 
 store_cfg_param_value() {
@@ -124,6 +124,7 @@ process_yaml_init() {
       YML_lisa=lisa
     fi
     TRAVIS=false
+    TRAVIS_DEBUG_MODE="0"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
@@ -330,7 +331,7 @@ process_yaml_initialize() {
     local sts=$STS_SUCCESS
     local i s line lne X
     wlog "===== [Initialize] ====="
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[initialize] from .travis.conf] ------"
     fi
     for i in {1..9}; do
@@ -340,7 +341,7 @@ process_yaml_initialize() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
     done
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[initialize.packages] from .travis.conf] ------"
     fi
     X="${PKGNAME}__"
@@ -354,13 +355,6 @@ process_yaml_initialize() {
         fi
       done
     fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ ${opt_virt:-0} -gt 0 ]; then
-        create_virtual_env
-      fi
-      run_svr_test_init
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    fi
     return $sts
 }
 
@@ -368,10 +362,9 @@ process_yaml_exit() {
     local sts=$STS_SUCCESS
     local i line lne X
     wlog "===== [Ending] ====="
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[exit.packages] from .travis.conf] ------"
     fi
-    run_svr_test_exit
     X="${PKGNAME}__"
     line=$(get_cfg_value "" "${X}yaml_exit_1")
     if [ -n "$line" ]; then
@@ -382,7 +375,7 @@ process_yaml_exit() {
         fi
       done
     fi
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[exit] from .travis.conf] ------"
     fi
     for i in {1..9}; do
@@ -398,7 +391,7 @@ process_yaml_before_install() {
     wlog "===== [Before install] ====="
     local sts=$STS_SUCCESS
     local i s line lne X
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[addons.packages] in .travis.yml] ------"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -412,7 +405,7 @@ process_yaml_before_install() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
     fi
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[before_install] in .travis.yml] ------"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -421,7 +414,7 @@ process_yaml_before_install() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
     fi
-    if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[env] in .travis.yml] ------"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -429,28 +422,6 @@ process_yaml_before_install() {
         line="export $(process_yaml_quote_xtl $lne)"
         run_traced "$line"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
-      for lne in $YML_global; do
-        line="export $(process_yaml_quote_xtl $lne)"
-        run_traced "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      done
-      for lne in UNBUFFER; do
-        line=$(get_cfg_value "" "$lne")
-        if [ -n "$line" ]; then
-          line="export $lne=$line"
-          run_traced "$line"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        fi
-      done
-    fi
-    if [ $sts -eq $STS_SUCCESS ]; then
-      for i in {1..9}; do
-        line=$(get_cfg_value "" "yaml_before_install_$i")
-        if [ -n "$line" ]; then
-          process_yaml_run_cmd "$line"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        fi
       done
     fi
     return $sts
@@ -461,16 +432,22 @@ process_yaml_install() {
     wlog "===== [Install] ====="
     local sts=$STS_SUCCESS
     local i s line lne
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+      wlog "------ [[env.global] in .travis.yml] ------"
+    fi
+    for lne in $YML_global; do
+      line="export $(process_yaml_quote_xtl $lne)"
+      run_traced "$line"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+      wlog "------ [[install] in .travis.yml] ------"
+    fi
+    line="export $(process_yaml_quote_xtl $1)"
+    run_traced "$line"
     for lne in $YML_install; do
       process_yaml_run_cmd "$lne"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
-    for i in {1..9}; do
-      line=$(get_cfg_value "" "yaml_install_$i")
-      if [ -n "$line" ]; then
-        process_yaml_run_cmd "$line"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
     done
     return $sts
 }
@@ -478,23 +455,16 @@ process_yaml_install() {
 process_yaml_before_script() {
 # process_yaml_before_script(init)
     local sts=$STS_SUCCESS
-    local line lne lne1
-    line="$1"
-    lne=$(process_yaml_quote $2)
-    if [ "$line" != "$lne" ]; then
-       wlog "===== [Before original script $lne] ====="
-    else
-       wlog "===== [Before script $line] ====="
-    fi
-    if [ -z "$line" -o "${line:0:1}" == "#" ]; then
+    local line1 lne
+    line1=$(process_yaml_quote $1)
+    wlog "===== [Before script $line1] ====="
+    if [ -z "$line1" -o "${line1:0:1}" == "#" ]; then
       sts=127
     else
-      for lne in $YML_global; do
-        lne1="export $(process_yaml_quote_xtl $lne)"
-        run_traced "$lne1"
+      for lne in $YML_before_script; do
+        process_yaml_run_cmd "$lne" "$line1"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
-      line="export $line"
-      run_traced "$line"
     fi
     return $sts
 }
@@ -575,11 +545,7 @@ process_yaml_run_cmd() {
         xcmd="false; # Warning! TODO> $xcmd"
       fi
     elif [ "${x[$ix]}" == "yum" -a "${x[$ix1]}" == "install" ]; then
-      if [ "$FH" == "RHEL" -a "${x[$ix2]}" == "expect-dev" ]; then
-        xcmd="# $xcmd"
-      elif [ "$FH" == "RHEL" -a "${x[$ix2]}" == "antiword" ]; then
-        xcmd="# $xcmd"
-      elif $(rpm -q ${x[$ix2]} &>/dev/null); then
+      if $(rpm -q ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
       elif $(yum info ${x[$ix2]} &>/dev/null); then
         xcmd="# $xcmd"
@@ -597,18 +563,11 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        #TODO if [ ${opt_virt:-0} -eq 0 ]; then
-        #TODO   xcmd="# $xcmd"
-        #TODO else
-        #TODO   xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
-        #TODO fi
-        if [ $opt_dbgmnt -ne 0 ]; then
-          local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
+        if [ ${opt_virt:-0} -eq 0 ]; then
+          xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
         else
-          local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
+          xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
         fi
-        TRAVIS_MQT_PATH=$(readlink -e $TRAVIS_MQT_PATH/..)
-        xcmd="# cp -R $TRAVIS_MQT_PATH $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -673,10 +632,14 @@ process_yaml_run_cmd() {
         done
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-      xcmd=${xcmd/mv /cp -r }
       if [ $opt_dbgmnt -ne 0 ]; then
-        xcmd="$(echo $xcmd|sed -e 's:/tools/:/dev/pypi/maintainer-quality-tools/:')"
+        local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
+      else
+        local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
       fi
+      TRAVIS_MQT_PATH=$(readlink -e $TRAVIS_MQT_PATH/..)
+      xcmd="${x[$ix]} $TRAVIS_MQT_PATH ${HOME}/"
+      xcmd=${xcmd/mv /cp -R }
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
     # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
@@ -702,7 +665,6 @@ process_yaml_run_cmd() {
         elif [[ "${x[$ix]}" =~ LINT_CHECK=.0. ]]; then
           xlint=0
         elif [[ "${x[$ix]}" =~ TRANSIFEX=.1. ]]; then
-          # xtfex=1
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
@@ -732,25 +694,14 @@ process_yaml_run_cmd() {
                 else
                   xtlcmd=$(get_cfg_value "" "RUN_$xpkg")
                 fi
-                xtlcmd=$(process_yaml_unquote "$xtlcmd")
                 if [ -n "$xtlcmd" ]; then
+                  xtlcmd=$(process_yaml_unquote "$xtlcmd")
                   xcmd="$(echo $xcmd|sed -e 's|'$xpkg'|'$xtlcmd'|g')"
                   xcmd=$(process_yaml_quote "$xcmd")
                 elif [ -z "${x[$ix]}" ] && [[ "$xtlcmd" =~ \$\{ ]]; then
                   xcmd=$(process_yaml_quote "$xcmd")
                   xcmd="# $xcmd"
                 fi
-                xcmd="$(echo $xcmd|sed -e 's|\${1}|'$pp'|g')"
-                if [ -z "$xtlcmd" ]; then
-                  xtlcmd="$xpkg"
-                else
-                  OPTS=
-                fi
-              fi
-              if [ "$xtlcmd" == "travis_run_tests" ]; then
-                OPTS=$(inherits_travis_opts "" "T")
-              elif [ "$xtlcmd" == "travis_after_tests_success" ]; then
-                OPTS=$(inherits_travis_opts "" "A")
               fi
             fi
           done
@@ -767,7 +718,7 @@ process_yaml_run_cmd() {
       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
          wlog "## $c"
       fi
-      run_traced "$xcmd"
+      run_traced "$line1$xcmd"
     fi
     return $?
 }
@@ -793,11 +744,10 @@ process_yaml() {
       wlog "=== Process YAML file ==="
       process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
+      create_virtual_env
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
       wlog "===== [System informations] ====="
-      if [ -n "${PIPPKGVER[*]}" ]; then
-        wlog "\$ PIPPKGVER=\"${!PIPPKGVER[*]}\""
-      fi
-      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_DEF_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH; do
+      for lne in HOSTENV TCONF YML_FILE TOOLS_PATH MQT_DEF_PATH MQT_PATH DEVPATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_CWD TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH YML_repo; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
@@ -807,39 +757,41 @@ process_yaml() {
         process_yaml_initialize
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
-
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_before_install
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        process_yaml_install
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        wlog "===== [Script] ====="
         if [ -z "$YML_matrix" ]; then
           YML_matrix=":"
         fi
         for lne in $YML_matrix; do
           if [ "$lne" == ":" ]; then
-            line=
+            line1=
+            lne1=
           else
-            line=$(process_yaml_xtl_pre "$lne")
+            line1="$lne"
+            lne1=$(process_yaml_quote "$lne")
           fi
-          process_yaml_before_script "$line" "$lne"
-          s=$?
-          if [ $s -ne 127 -a $s -ne $STS_SUCCESS ]; then
-            sts=$s
-          else
+          if [ $sts -eq $STS_SUCCESS ]; then
+            run_traced "cd $TRAVIS_BUILD_DIR"
+            process_yaml_install "$line1"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          fi
+          if [ $sts -eq $STS_SUCCESS ]; then
+            process_yaml_before_script "$line1"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          fi
+          if [ $sts -eq $STS_SUCCESS ]; then
+            wlog "===== [Script matrix $lne1] ====="
             for lne in $YML_script; do
-              process_yaml_run_cmd "$line $lne"
+              process_yaml_run_cmd "$lne"
               s=$?; [ ${s-0} -ne 0 ] && sts=$s
+              if [ $sts -ne $STS_SUCCESS ]; then
+                elog "!Script aborted by error!!"
+                break
+              fi
             done
-          fi
-          if [ $sts -ne $STS_SUCCESS ]; then
-            elog "!Script aborted by error!!"
-            break
           fi
         done
       fi
@@ -847,7 +799,7 @@ process_yaml() {
         wlog "===== [After success] ====="
         process_yaml_after_success
       fi
-      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
         read -p "Press RET to continue ..."
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
@@ -870,7 +822,7 @@ process_yaml_echo() {
     local lne="$2"
     if [ $opt_dprj -ne 0 ]; then
       echo -n "$lm- "
-      process_yaml_run_cmd "$line $lne"
+      process_yaml_run_cmd "$lne"
     else
       local line="- $(process_yaml_quote_xtl $lne)"
       echo "$lm$line"

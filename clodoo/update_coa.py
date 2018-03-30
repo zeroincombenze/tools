@@ -8,7 +8,7 @@ import z0lib
 # import pdb
 
 
-__version__ = "0.3.5.17"
+__version__ = "0.3.6"
 
 
 msg_time = time.time()
