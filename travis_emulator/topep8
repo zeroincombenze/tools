@@ -44,7 +44,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.0.21
+__version__=0.2.0.22
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -134,7 +134,7 @@ format_yaml() {
         elif [ "$line" == "install:" ]; then
           cur_sect=${line:0 -1}
           echo "$line">>$fntmp
-          echo "  - ln -s \${HOME}/build/\${ODOO_REPO} \${HOME}/\${ODOO_REPO#*/}-\${VERSION}">>$fntmp
+          # echo "  - ln -s \${HOME}/build/\${ODOO_REPO} \${HOME}/\${ODOO_REPO#*/}-\${VERSION}">>$fntmp
           if [ $opt_ut7 -eq 0 ]; then
             echo "  - export INCLUDE=\$(getaddons.py -m \${HOME}/build/\${ODOO_REPO}/openerp/addons \${HOME}/build/\${ODOO_REPO}/addons)">>$fntmp
           fi

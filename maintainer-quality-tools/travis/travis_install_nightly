@@ -143,10 +143,12 @@ fi;
 #     |___ dependencies/<DependencyRepo1>/
 #     |___ dependencies/<DependencyRepo2>/
 #     |...
-echo "Content of ${HOME}:"
-ls -l ${HOME}
+if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+  echo "Content of ${HOME}:"
+  ls -l ${HOME}
 
-echo "Content of ${HOME}/dependencies:"
-mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
+  echo "Content of ${HOME}/dependencies:"
+  mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
+fi
 
 set +e

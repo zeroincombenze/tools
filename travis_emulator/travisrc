@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.0.21
+#__version__=0.2.0.22
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1239,7 +1239,7 @@ run_regression_test() {
     echo "======== Running regression_test ========"
     run_traced "cd $PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "$TRAVIS_DEBUG_MODE" == "1" ]; then
+      if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
         local OPTS=$(inherits_travis_opts "n" "T")
       else
         local OPTS=$(inherits_travis_opts "" "T")
@@ -1692,7 +1692,7 @@ run_svr_test_init() {
       sts=$?
       if [ "$PKGNAME" != "OCB" ]; then
         local x=$(readlink -e $PRJPATH/..)
-        # run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+        run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
         run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
       fi
 #       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then

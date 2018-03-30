@@ -1,7 +1,7 @@
 # Config file travis.yml
 # for tool package
 # Can used both in local travis emulator both in travis environment
-# version 0.2.0
+# version 0.2.1
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro] are replaced before execution (at travis.ynl read)
 # - format: $macro are replace by shell during execution
@@ -21,21 +21,15 @@ addons:
       - python-simplejson
 
 before_install:
-  # - PYTHONPATH=${TRAVIS_BUILD_DIR}
-  - OPTS="$OPTS"
-  - pip install os0
-  - pip install z0lib
-  - pip install zerobug
-  - pip install oerplib
-  - pip install odoorpc
+  - PYTHONPATH=${TRAVIS_BUILD_DIR}
 
 env:
   global:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
-  # - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/clodoo
-  # - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/clodoo
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zar
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zerobug
 
@@ -45,6 +39,11 @@ virtualenv:
 install:
   - OPTS="-v"
   - git clone --depth=1 https://github.com/zeroincombenze/tools.git
+  - pip install oerplib
+  - pip install odoorpc
+  - pip install os0
+  - pip install zerobug
+  - pip install clodoo
   # Run if local travis emulator and travis emulator itself
   - "[ \"${PWD:0:19}\" == \"/opt/odoo/dev/pypi/\" -a \"$PKGNAME\" == \"travis_emulator\" ] && export PATH=${PRJPATH}/_travis:$PATH || true"
   # Run if local travis emulator and all other packages
@@ -64,3 +63,4 @@ after_success:
   - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
   - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
+

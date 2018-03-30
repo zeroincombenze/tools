@@ -69,7 +69,7 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
 
 
 def run(deps_checkout_dir, build_dir):
-    if os.environ.get('TRAVIS_DEBUG_MODE', ''):
+    if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
         print('check_out="%s"; build="%s"' % (deps_checkout_dir, build_dir))
     dependencies = []
     processed = set()

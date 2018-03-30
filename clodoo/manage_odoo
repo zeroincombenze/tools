@@ -96,16 +96,16 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ ODOO_HOME=\$(build_odoo_param HOME $odoo_vid)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ODOO_HOME=\$(build_odoo_param HOME $odoo_vid)"
       ODOO_HOME=$(build_odoo_param HOME $odoo_vid)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ LISA=$LISA"
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ reqs=\$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ LISA=$LISA"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)"
       reqs=$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ reqs=$reqs"
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
       reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
-      [ "$TRAVIS_DEBUG_MODE" == "1" ] && echo "\$ reqs=$reqs"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"
       [ -n "$opts" ] && opts="-$opts"

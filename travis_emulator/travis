@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.0.21
+__version__=0.2.0.22
 
 
 store_cfg_param_value() {
@@ -652,7 +652,8 @@ process_yaml_run_cmd() {
     # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
     #   xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
-      xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+      # xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+      xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
@@ -828,7 +829,7 @@ process_yaml() {
         done
       fi
       wlog "===== [End script] ====="
-      if [ "${TRAVIS_DEBUG_MODE:-0}" == "1" ]; then
+      if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
         read -p "Press RET to continue ..."
       fi
       run_svr_test_exit

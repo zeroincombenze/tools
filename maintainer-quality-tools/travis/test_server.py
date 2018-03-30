@@ -223,7 +223,7 @@ def get_script_path(server_path, script_name):
 
 def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                  addons_path, install_options, preinstall_modules=None,
-                 unbuffer=True, server_options=None, travis_debug_mode=False):
+                 unbuffer=True, server_options=None, travis_debug_mode=None):
     """
     Setup the base module before running the tests
     if the database template exists then will be used.
@@ -236,6 +236,7 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
     :param install_options: Install options (travis parameter)
     :param server_options: (list) Add these flags to the Odoo server init
     """
+    travis_debug_mode = travis_debug_mode or 0
     if preinstall_modules is None:
         preinstall_modules = ['base']
     if server_options is None:
@@ -257,7 +258,7 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                      "--init", ','.join(preinstall_modules),
                      ] + install_options + server_options
         print(" ".join(cmd_strip_secret(cmd_odoo)))
-        if not travis_debug_mode:
+        if travis_debug_mode < 2:
             try:
                 subprocess.check_call(cmd_odoo)
             except subprocess.CalledProcessError as e:
@@ -461,7 +462,7 @@ def main(argv=None):
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors
                 command_call = (["unbuffer"] if unbuffer else []) + command
-            if travis_debug_mode:
+            if travis_debug_mode > 1:
                 errors = 0
             else:
                 # [antoniov: 2018-02-17] bleah!!!

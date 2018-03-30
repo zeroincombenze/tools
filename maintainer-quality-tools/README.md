@@ -6,6 +6,14 @@ QA Tools for Odoo maintainers (MQT)
 
 The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the quality of Odoo addons.
 
+Differences between this Zeroincombenze® MQT and standard OCA version:
+
+* Zeroincombenze® MQT can aldo test Odoo 6.1 and 7.0; OCA version fails with these versions
+* Zeroincombenze® MQT is designed to run in local environment too, using [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
+* Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
+* OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
+
+
 Sample travis configuration file (for version 7.0)
 --------------------------------------------------
 
@@ -24,6 +32,8 @@ Check your .travis file for syntax issues.
 ------------------------------------------
 
 The [lint checker](http://lint.travis-ci.org/) of travis is off-line.
+
+If you downloaded [Zeroincombenze® tools](https://github.com/zeroincombenze/tools), you can parse .travis.yml using `topep8` command.
 
 
 Multiple values for environment variable VERSION
@@ -113,15 +123,19 @@ If you want to make a build without tests, you can use the following directive:
 You will simply get the databases with packages installed, 
 but whithout running any tests.
 
-Local debug
------------
+MQT debug informations
+----------------------
 
 If you declare the following directive in <env global> section:
 `TRAVIS_DEBUG_MODE="1"`
 
 enable debug mode execution during local session of test.
-Note this feature is just avaiable in locale test; when test is executed in
-travis-ci.org this feature has not effect.
+Note this feature is does not work with OCA MQT. Local test and TravisCI test slightly different behavior.
+
+When MQT is execute in local environment the value
+`TRAVIS_DEBUG_MODE="2"`
+
+does not execute unit test. It is used to debug MQT itself.
 
 See [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 
