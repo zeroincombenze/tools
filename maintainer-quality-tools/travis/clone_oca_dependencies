@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.1.5'
+__version__ = '0.2.1.6'
 
 
 def parse_depfile(depfile, owner='OCA'):
@@ -107,17 +107,12 @@ def run(deps_checkout_dir, build_dir):
             if new_dep_filename not in dependencies:
                 dependencies.append(new_dep_filename)
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-        if os.environ.get('TRAVIS', '') == 'true':
-            print('Installing PYPI packages"%s"' % str(reqfilenames))
-        else:
-            print('Warning: follow PYPI packages "%s" may be not instaled' %
-                  str(reqfilenames))
-    if os.environ.get('TRAVIS', '') == 'true':
-        for reqfilename in reqfilenames:
-            command = ['pip', 'install', '--no-binary', 'pycparser',
-                       '-Ur', reqfilename]
-            _logger.info('Calling %s', ' '.join(command))
-            subprocess.check_call(command)
+        print('Installing PYPI packages from "%s"' % str(reqfilenames))
+    for reqfilename in reqfilenames:
+        command = ['pip', 'install', '--no-binary', 'pycparser',
+                   '-Ur', reqfilename]
+        _logger.info('Calling %s', ' '.join(command))
+        subprocess.check_call(command)
 
 
 if __name__ == '__main__':
