@@ -32,10 +32,11 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.1.8'
+__version__ = '0.2.1.9'
 
 
-def parse_depfile(depfile, owner='OCA'):
+def parse_depfile(depfile, owner=None):
+    owner = owner or 'OCA'
     deps = []
     for line in depfile:
         line = line.strip()
@@ -84,6 +85,8 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
 def run(deps_checkout_dir, build_dir):
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
         print('check_out="%s"; build="%s"' % (deps_checkout_dir, build_dir))
+    odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
+    odoo_org, odoo_repo = odoo_full.split('/')
     dependencies = []
     processed = set()
     depfilename = osp.join(build_dir, 'oca_dependencies.txt')
@@ -92,8 +95,6 @@ def run(deps_checkout_dir, build_dir):
     if osp.isfile(osp.join(build_dir, 'requirements.txt')):
         reqfilenames.append(osp.join(build_dir, 'requirements.txt'))
     for repo in os.listdir(deps_checkout_dir):
-        if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-            print('- examining %s', repo)
         _logger.info('examining %s', repo)
         processed.add(repo)
         depfilename = osp.join(deps_checkout_dir, repo, 'oca_dependencies.txt')
@@ -102,16 +103,12 @@ def run(deps_checkout_dir, build_dir):
         if osp.isfile(reqfilename):
             reqfilenames.append(reqfilename)
     for depfilename in dependencies:
-        if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-            print('-- reading %s', depfilename)
         try:
             with open(depfilename) as depfile:
-                deps = parse_depfile(depfile)
+                deps = parse_depfile(depfile, owner=odoo_org)
         except IOError:
             deps = []
         for depname, url, branch in deps:
-            if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-                print('--- sub-processing %s', depname)
             _logger.info('* processing %s', depname)
             if depname in processed:
                 continue
@@ -122,6 +119,8 @@ def run(deps_checkout_dir, build_dir):
             reqfilename = osp.join(checkout_dir, 'requirements.txt')
             if osp.isfile(reqfilename):
                 reqfilenames.append(reqfilename)
+            else:
+                print('Repository %s without requirement list!' % depname)
             if new_dep_filename not in dependencies:
                 dependencies.append(new_dep_filename)
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
