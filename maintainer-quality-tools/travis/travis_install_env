@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.7
+__version__=0.2.1.8
 
 
 
@@ -149,7 +149,7 @@ else
     fi
   fi
   pip install -q os0 z0lib
-  mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
+  mkdir -p ${HOME}/dependencies
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
   eval $TDIR/clone_oca_dependencies
   sts=$?
@@ -165,7 +165,7 @@ else
     echo "Content of ${TRAVIS_BUILD_DIR}:"
     ls -l ${TRAVIS_BUILD_DIR}
     echo "Content of ${HOME}/dependencies:"
-    mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
+    ls -l ${HOME}/dependencies
   fi
 fi
 exit $sts
