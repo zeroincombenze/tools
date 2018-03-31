@@ -74,7 +74,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
-                     'werkzeug',]
+                     'werkzeug']
 BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
                      'wkhtmltopdf']
@@ -84,7 +84,8 @@ def parse_requirements(reqfile):
     reqlist = []
     for line in reqfile:
         if line and line[0] != '#':
-            reqlist = append(line)
+            reqlist.append(line)
+    return reqlist
 
 
 def name_n_version(item, with_version=None):
@@ -98,20 +99,18 @@ def name_n_version(item, with_version=None):
     return item, versioned
 
 
-def add_package(deps_list, kw, with_version=None):
+def add_package(deps_list, kw, item, with_version=None):
     full_item, versioned = name_n_version(item, with_version=with_version)
     if kw == 'python' and versioned:
         kw = 'python2'
-    if kw not in deps_list:
-        deps_list[kw] = []
     if full_item not in deps_list[kw]:
         deps_list[kw].append(full_item)
-    return dep_list
+    return deps_list
 
 
 def package_from_list(deps_list, kw, PKG_LIST, with_version=None):
     for item in PKG_LIST:
-        deps_list =  add_package(deps_list, kw, with_version=with_version)
+        deps_list = add_package(deps_list, kw, item, with_version=with_version)
     return deps_list
 
 
@@ -122,13 +121,11 @@ def package_from_manifest(deps_list, manifest_file, with_version=None):
             deps = manifest['external_dependencies']
             for kw in ('python', 'bin'):
                 if deps.get(kw):
-                    if kw not in deps_list:
-                        deps_list[kw] = []
                     for item in deps[kw]:
-                        full_item, versioned = name_n_version(
-                            item, with_version=with_version)
-                        if full_item not in deps_list[kw]:
-                            deps_list[kw].append(full_item)
+                        deps_list = add_package(deps_list,
+                                                kw,
+                                                item,
+                                                with_version=with_version)
     return deps_list
 
 
@@ -222,10 +219,12 @@ def main():
     else:
         manifests = ctx['manifests'].split(',')
     deps_list = {}
+    for kw in ('python', 'python2', 'bin'):
+        deps_list[kw] = []
     if ctx['base_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
                                       with_version=ctx['with_version'])
-        deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGE,
+        deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
                                       with_version=ctx['with_version'])
     if ctx['test_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_TEST_PACKAGES,
@@ -240,13 +239,12 @@ def main():
     if ctx['out_file']:
         try:
             pkgs = open(ctx['opt_fn']).read().split('\n')
-        except:
+        except BaseException:
             pkgs = []
         for kw in ('python', 'python2'):
-            if kw in deps_list:
-                for p in deps_list['python']:
-                    if p not in pkgs:
-                        pkgs.append(p)
+            for p in deps_list[kw]:
+                if p not in pkgs:
+                    pkgs.append(p)
         if len(pkgs):
             fd = open(ctx['opt_fn'], 'w')
             fd.write(ctx['sep'].join(pkgs))

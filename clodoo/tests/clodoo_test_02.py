@@ -21,10 +21,10 @@ from os0 import os0
 
 from zerobug import Z0test
 from clodoo import clodoo
-from clodoo.clodoolib import (crypt, decrypt)
+from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.6.2"
+__version__ = "0.3.6.3"
 
 
 MODULE_ID = 'clodoo'

@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.1.9
+# __version__=0.2.1.10
 
 language: python
 sudo: false
@@ -23,18 +23,17 @@ addons:
 #    Search your sources alias here:
 #      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
-#     Search your packages here:
-#       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
-#     For wkhtmltopdf, see the env section below
+      - expect-dev
+      - python-lxml
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
   - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - travis_install_env oca
 
 install:
+  - travis_install_env
   - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery
 
 env:

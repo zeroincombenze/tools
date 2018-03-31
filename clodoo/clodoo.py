@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.2"
+__version__ = "0.3.6.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -369,8 +369,8 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 ctx[p] = db
             else:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx,saved = oerp_env_fill(ctx=ctx)
-    ctx,saved = oerp_env_fill(ctx=ctx)
+        ctx, saved = oerp_env_fill(ctx=ctx)
+    ctx, saved = oerp_env_fill(ctx=ctx)
     oerp = open_connection(ctx)
     ctx = read_config(ctx)
     for p in 'db_name', 'oe_version', 'svc_protocol':
@@ -4382,7 +4382,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     if row[n].find('${header_id}') >= 0:
                         update_header_id = False
                     if row[n].find('$1$!') == 0:
-                        row[n]=decrypt(row[n][4:])
+                        row[n] = decrypt(row[n][4:])
                 val = eval_value(oerp,
                                  ctx,
                                  o_model,
