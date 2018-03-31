@@ -1,5 +1,5 @@
 #!/bin/bash
-__version__=0.2.1.2
+__version__=0.2.1.3
 set -e
 
 if [ "${LINT_CHECK}" != "0" ]; then

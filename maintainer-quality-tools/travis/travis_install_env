@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.2
+__version__=0.2.1.3
 
 
 
@@ -123,6 +123,8 @@ else
   IFS="/" read -a REPO <<< "${ODOO_REPO}"
   export REMOTE="${REPO[0],,}"
   export REPO_NAME="${REPO[1]}"
+  export BRANCH="${ODOO_BRANCH}"
+  [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [[ "$TRAVIS" == "true" ]]; then
     export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
