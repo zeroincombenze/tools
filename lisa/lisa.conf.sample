@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-03-29
+# Last update: 2018-03-31
 #
 # ---------------------------------------------------------------------
 #
@@ -354,6 +354,8 @@ REAL_libxml2-dev=libxml2-devel
 REAL_redis-server=redis
 REAL_libfreetype6=freetype
 REAL_libfreetype6-dev=freetype-devel
+REAL_expect-dev=expect-devel
+REAL_openid=python-openid
 
 redis_svcname=redis
 # Standard packages
@@ -362,7 +364,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel
-NA_PKGS=expect-dev,antiword
+NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
 pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm

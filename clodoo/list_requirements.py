@@ -6,30 +6,44 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.2'
+__version__ = '0.3.6.3'
 
 
 REQVERSION = {
     'astroid': '==1.4.8',
     'Babel': '>=1.0',
+    'decorator': '==3.4.0',
+    'docutils': '==0.12',
+    'feedparser': '==5.1.3',
     'gevent': '==1.0.2',
+    'jinja2': '==2.7.3',
+    'passlib': '==1.6.2',
     'Pillow': '==3.4.2',
     'psycopg2': '>=2.2',
     'pygments': '==2.0.2',
     'pylint': '==1.6.4',
     'pylint-plugin-utils': '==0.3.5.11',
     'pyparsing': '<2',
+    'pyusb': '>=1.0.0b1',
     'pyxb': '==1.2.4',
+    'reportlab': '==3.1.44',
     'restructuredtext_lint': '==0.12.2',
     'wkhtmltopdf': '==0.12.1',
+}
+ALIAS = {
+    'dateutil': 'python-dateutil',
+    'stdnum': 'python-stdnum',
+    'ldap': 'python-ldap',
+    'openid': 'python-openid',
+    'usb': 'pyusb',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'coveralls',
                      'flake8',
-                     'pylint',
-                     'PyYAML',
                      'mock',
+                     'pylint',
                      # 'pylint-plugin-utils',
+                     'PyYAML',
                      'QUnitSuite',
                      'restructuredtext_lint',
                      'unittest2']
@@ -53,6 +67,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'psycopg2-binary',
                      'Python-Chart',
                      'python-dateutil',
+                     'python-openid',
                      'pydot',
                      'pyparsing',
                      'pypdf',
@@ -60,21 +75,47 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pytz',
                      'reportlab',
                      'werkzeug',]
-
 BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
                      'wkhtmltopdf']
 
 
+def parse_requirements(reqfile):
+    reqlist = []
+    for line in reqfile:
+        if line and line[0] != '#':
+            reqlist = append(line)
+
+
 def name_n_version(item, with_version=None):
+    versioned = False
     item = os.path.basename(item).split('.')[0]
+    if item in ALIAS:
+        item = ALIAS[item]
     if with_version and item in REQVERSION:
         item = '%s%s' % (item, REQVERSION[item])
-    return item
+        versioned = True
+    return item, versioned
 
 
-def print_deps(manifest_file, deps_list=None, with_version=None):
-    deps_list = deps_list or {}
+def add_package(deps_list, kw, with_version=None):
+    full_item, versioned = name_n_version(item, with_version=with_version)
+    if kw == 'python' and versioned:
+        kw = 'python2'
+    if kw not in deps_list:
+        deps_list[kw] = []
+    if full_item not in deps_list[kw]:
+        deps_list[kw].append(full_item)
+    return dep_list
+
+
+def package_from_list(deps_list, kw, PKG_LIST, with_version=None):
+    for item in PKG_LIST:
+        deps_list =  add_package(deps_list, kw, with_version=with_version)
+    return deps_list
+
+
+def package_from_manifest(deps_list, manifest_file, with_version=None):
     if manifest_file:
         manifest = ast.literal_eval(open(manifest_file).read())
         if manifest.get('external_dependencies'):
@@ -84,11 +125,22 @@ def print_deps(manifest_file, deps_list=None, with_version=None):
                     if kw not in deps_list:
                         deps_list[kw] = []
                     for item in deps[kw]:
-                        full_item = name_n_version(item,
-                                                   with_version=with_version)
+                        full_item, versioned = name_n_version(
+                            item, with_version=with_version)
                         if full_item not in deps_list[kw]:
                             deps_list[kw].append(full_item)
     return deps_list
+
+
+def add_manifest(root, manifests, files):
+    for f in files:
+        if f == '__openerp__.py':
+            ffn = os.path.join(root, f)
+            manifests.append(ffn)
+        elif f == '__manifest__.py':
+            ffn = os.path.join(root, f)
+            manifests.append(ffn)
+    return manifests
 
 
 def main():
@@ -116,6 +168,10 @@ def main():
                         dest="odoo_dir",
                         metavar="directory",
                         default="")
+    parser.add_argument("-O", "--oca-dependencies-path",
+                        help="Follow oca_dependencies.txt in directory",
+                        metavar="directory",
+                        dest="oca_dependencies")
     parser.add_argument("-P", "--precise",
                         help="Add version to filename",
                         action="store_true",
@@ -153,65 +209,44 @@ def main():
         ctx['base_pkgs'] = False
         ctx['rpc_pkgs'] = False
         ctx['test_pkgs'] = False
+        ctx['oca_dependencies'] = False
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
-    deps_list = {}
     if ctx['odoo_dir']:
         manifests = []
+        if ctx['oca_dependencies']:
+            for root, dirs, files in os.walk(ctx['oca_dependencies'],
+                                             followlinks=True):
+                manifests = add_manifest(root, manifests, files)
         for root, dirs, files in os.walk(ctx['odoo_dir']):
-            for f in files:
-                if f == '__openerp__.py':
-                    ffn = '%s/%s' % (root, f)
-                    manifests.append(ffn)
-                elif f == '__manifest__.py':
-                    ffn = '%s/%s' % (root, f)
-                    manifests.append(ffn)
+            manifests = add_manifest(root, manifests, files)
     else:
         manifests = ctx['manifests'].split(',')
+    deps_list = {}
     if ctx['base_pkgs']:
-        kw = 'python'
-        if kw not in deps_list:
-            deps_list[kw] = []
-        for item in PIP_BASE_PACKAGES:
-            deps_list[kw].append(
-                name_n_version(item,
-                               with_version=ctx['with_version']))
-        kw = 'bin'
-        if kw not in deps_list:
-            deps_list[kw] = []
-        for item in BIN_BASE_PACKAGES:
-            deps_list[kw].append(
-                name_n_version(item,
-                               with_version=ctx['with_version']))
+        deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
+                                      with_version=ctx['with_version'])
+        deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGE,
+                                      with_version=ctx['with_version'])
     if ctx['test_pkgs']:
-        kw = 'python'
-        if kw not in deps_list:
-            deps_list[kw] = []
-        for item in PIP_TEST_PACKAGES:
-            deps_list[kw].append(
-                name_n_version(item,
-                               with_version=ctx['with_version']))
+        deps_list = package_from_list(deps_list, 'python', PIP_TEST_PACKAGES,
+                                      with_version=ctx['with_version'])
     if ctx['rpc_pkgs']:
-        kw = 'python'
-        if kw not in deps_list:
-            deps_list[kw] = []
-        for item in RPC_PACKAGES:
-            deps_list[kw].append(
-                name_n_version(item,
-                               with_version=ctx['with_version']))
+        deps_list = package_from_list(deps_list, 'python', RPC_PACKAGES,
+                                      with_version=ctx['with_version'])
     for manifest_file in manifests:
-        deps_list = print_deps(manifest_file,
-                               deps_list=deps_list,
-                               with_version=ctx['with_version'])
+        deps_list = package_from_manifest(deps_list,
+                                          manifest_file,
+                                          with_version=ctx['with_version'])
     if ctx['out_file']:
         try:
             pkgs = open(ctx['opt_fn']).read().split('\n')
         except:
             pkgs = []
-        kw = 'python'
-        if kw in deps_list:
-            for p in deps_list['python']:
-                if p not in pkgs:
-                    pkgs.append(p)
+        for kw in ('python', 'python2'):
+            if kw in deps_list:
+                for p in deps_list['python']:
+                    if p not in pkgs:
+                        pkgs.append(p)
         if len(pkgs):
             fd = open(ctx['opt_fn'], 'w')
             fd.write(ctx['sep'].join(pkgs))
@@ -219,9 +254,10 @@ def main():
         print "Updated %s file" % ctx['opt_fn']
         print ctx['sep'].join(pkgs)
     else:
+        deps_list['python'] = deps_list['python'] + deps_list['python2']
         for kw in ('python', 'bin'):
-            if (ctx['itypes'] == 'both' or kw == ctx['itypes']) and \
-                    kw in deps_list:
+            if (ctx['itypes'] == 'both' or
+                    kw == ctx['itypes']) and kw in deps_list:
                 if ctx['opt_verbose']:
                     print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
                 else:
