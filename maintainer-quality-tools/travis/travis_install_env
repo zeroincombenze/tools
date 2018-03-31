@@ -30,16 +30,17 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1
+__version__=0.2.1.1
 
 
 
-OPTOPTS=(h        j        K         n            q           T        t         V           v)
-OPTDEST=(opt_help opt_dprj opt_check opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        1        1         1            0           1        1         "*>"        "+")
-OPTDEFL=(0        0        0         0            -1          0        0         ""          -1)
+OPTOPTS=(h        b          j        K         n            q           T        t         V           v)
+OPTDEST=(opt_help opt_branch opt_dprj opt_check opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        1          1        1         1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0          0        0         0            -1          0        0         ""          -1)
 OPTMETA=("help"   "dprj"   "check"   "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
+ "Odoo version"\
  "execute tests in project dir rather in test dir"\
  "do bash, flake8 and pylint checks"\
  "do nothing (dry-run)"\
@@ -102,22 +103,37 @@ elif [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
+  if [ -z "${VERSION}" ] ; then
+    VERSION="$opt_branch"
+  fi
+  if [ -z "${ODOO_BRANCH}"  ] ; then
+    ODOO_BRANCH=${VERSION}
+  fi
   : ${MQT_TEMPLATE_DB:="openerp_template"}
   : ${MQT_TEST_DB:="openerp_test"}
-  [[ "$TRAVIS" == "true" ]] ||  pg_db_active -a $MQT_TEMPLATE_DB -w; dropdb $MQT_TEMPLATE_DB || true
-  [[ "$TRAVIS" == "true" ]] ||  pg_db_active -a $MQT_TEST_DB -w; dropdb $MQT_TEST_DB || true
   : ${ODOO_REPO:="odoo/odoo"}
+  if [[ ! "$TRAVIS" == "true" ]]; then
+    pg_db_active -a $MQT_TEMPLATE_DB -w; dropdb $MQT_TEMPLATE_DB
+    pg_db_active -a $MQT_TEST_DB -w; dropdb $MQT_TEST_DB
+  fi
+  x=$(which nodejs 2>/dev/null)
+  [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+  ln -s $x $HOME/maintainer-quality-tools/travis/node
+  npm install -g less less-plugin-clean-css
   IFS="/" read -a REPO <<< "${ODOO_REPO}"
   export REMOTE="${REPO[0],,}"
   export REPO_NAME="${REPO[1]}"
+  export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [[ "$TRAVIS" == "true" ]]; then
     export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
     echo "Installing Odoo $ODOO_URL"
     wget -nv -O odoo.tar.gz $ODOO_URL
     tar -xf odoo.tar.gz -C ${HOME}
+    pip install --upgrade pip
+    # pip install -q --no-binary pycparser -r ${HOME}/maintainer-quality-tools/requirements.txt
   else
-    echo "> ln -s $TRAVIS_SAVED_HOME/$BRANCH $HOME/${REPO_NAME}-${BRANCH}"
-    ln -s $TRAVIS_SAVED_HOME/$BRANCH $HOME/${REPO_NAME}-${BRANCH}
+    [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "> ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+    ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
   fi
   pip install -q os0 z0lib
   mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
