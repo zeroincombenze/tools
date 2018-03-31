@@ -57,13 +57,23 @@ def parse_depfile(depfile, owner='OCA'):
 
 def git_checkout(deps_checkout_dir, reponame, url, branch):
     checkout_dir = osp.join(deps_checkout_dir, reponame)
-    if not osp.isdir(checkout_dir):
-        command = ['git', 'clone', '-q', url, '-b', branch,
-                   '--single-branch', '--depth=1', checkout_dir]
+    if os.environ.get('TRAVIS', '0') == 'true':
+        if not osp.isdir(checkout_dir):
+            command = ['git', 'clone', '-q', url, '-b', branch,
+                       '--single-branch', '--depth=1', checkout_dir]
+        else:
+            command = ['git', '--git-dir=' + os.path.join(checkout_dir, '.git'),
+                       '--work-tree=' + checkout_dir, 'pull', '--ff-only',
+                       url, branch]
     else:
-        command = ['git', '--git-dir=' + os.path.join(checkout_dir, '.git'),
-                   '--work-tree=' + checkout_dir, 'pull', '--ff-only',
-                   url, branch]
+        srcdir = os.path.join(os.environ.get('TRAVIS_SAVED_HOME',
+                                            '/opt/odoo' ),
+                              branch,
+                              reponame)
+        if not osp.isdir(checkout_dir):
+            command = ['ln', '-s', srcdir, checkout_dir]
+        else:
+            command = ['true', ]
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
         print('Calling %s', ' '.join(command))
     _logger.info('Calling %s', ' '.join(command))
@@ -83,7 +93,7 @@ def run(deps_checkout_dir, build_dir):
         reqfilenames.append(osp.join(build_dir, 'requirements.txt'))
     for repo in os.listdir(deps_checkout_dir):
         if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-            print('examining %s', repo)
+            print('- examining %s', repo)
         _logger.info('examining %s', repo)
         processed.add(repo)
         depfilename = osp.join(deps_checkout_dir, repo, 'oca_dependencies.txt')
@@ -93,7 +103,7 @@ def run(deps_checkout_dir, build_dir):
             reqfilenames.append(reqfilename)
     for depfilename in dependencies:
         if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-            print('- processing %s', depfilename)
+            print('-- reading %s', depfilename)
         try:
             with open(depfilename) as depfile:
                 deps = parse_depfile(depfile)
@@ -101,7 +111,7 @@ def run(deps_checkout_dir, build_dir):
             deps = []
         for depname, url, branch in deps:
             if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-                print('-- processing %s', depname)
+                print('--- sub-processing %s', depname)
             _logger.info('* processing %s', depname)
             if depname in processed:
                 continue

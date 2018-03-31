@@ -116,6 +116,10 @@ def main():
                         dest="odoo_dir",
                         metavar="directory",
                         default="")
+    parser.add_argument("-O", "--oca_dependencies",
+                        help="Follow oca_dependencies.txt",
+                        action="store_true",
+                        dest="oca_dependencies")
     parser.add_argument("-P", "--precise",
                         help="Add version to filename",
                         action="store_true",
@@ -153,6 +157,7 @@ def main():
         ctx['base_pkgs'] = False
         ctx['rpc_pkgs'] = False
         ctx['test_pkgs'] = False
+        ctx['oca_dependencies'] = False
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
     deps_list = {}
     if ctx['odoo_dir']:
@@ -165,6 +170,9 @@ def main():
                 elif f == '__manifest__.py':
                     ffn = '%s/%s' % (root, f)
                     manifests.append(ffn)
+        if os.path.isfile(os.path.join(ctx['odoo_dir'],
+                                       'oca_dependencies.txt')):
+            pass
     else:
         manifests = ctx['manifests'].split(',')
     if ctx['base_pkgs']:
