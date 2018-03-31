@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.4
+__version__=0.2.1.5
 
 
 
@@ -163,6 +163,8 @@ else
   if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
     echo "Content of ${HOME}:"
     ls -l ${HOME}
+    echo "Content of ${TRAVIS_BUILD_DIR}:"
+    ls -l ${TRAVIS_BUILD_DIR}
     echo "Content of ${HOME}/dependencies:"
     mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
   fi
