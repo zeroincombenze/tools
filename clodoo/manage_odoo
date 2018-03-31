@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.1
+__version__=0.3.6.2
 
 
 explore() {
@@ -103,8 +103,8 @@ do_action() {
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)"
       reqs=$($TDIR/list_requirements.py -p $ODOO_HOME -t python -s ' ' -qBPTR)
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
-      reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBPTR)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBTR)"
+      reqs="$reqs $($TDIR/list_requirements.py -p $ODOO_HOME -t bin -s ' ' -qBTR)"
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"
