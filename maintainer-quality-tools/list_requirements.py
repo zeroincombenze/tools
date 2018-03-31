@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6'
+__version__ = '0.3.6.1'
 
 
 REQVERSION = {
@@ -21,6 +21,7 @@ REQVERSION = {
     'pyparsing': '<2',
     'pyxb': '==1.2.4',
     'restructuredtext_lint': '==0.12.2',
+    'wkhtmltopdf': '==0.12.1',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'coveralls',
@@ -58,10 +59,11 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
-                     'werkzeug']
+                     'werkzeug',]
 
-BIN_BASE_PACKAGES = ['python-simplejson',
-                     'python-ldap']
+BIN_BASE_PACKAGES = ['simplejson',
+                     'python-ldap',
+                     'wkhtmltopdf']
 
 
 def name_n_version(item, with_version=None):
@@ -170,6 +172,13 @@ def main():
         if kw not in deps_list:
             deps_list[kw] = []
         for item in PIP_BASE_PACKAGES:
+            deps_list[kw].append(
+                name_n_version(item,
+                               with_version=ctx['with_version']))
+        kw = 'bin'
+        if kw not in deps_list:
+            deps_list[kw] = []
+        for item in BIN_BASE_PACKAGES:
             deps_list[kw].append(
                 name_n_version(item,
                                with_version=ctx['with_version']))

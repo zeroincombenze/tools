@@ -31,7 +31,7 @@ addons:
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
-  - cp _R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
+  - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
 
 
   - export TRAVIS_DEBUG_MODE="1"
