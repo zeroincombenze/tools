@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.1.12'
+__version__ = '0.2.1.13'
 
 
 def parse_depfile(depfile, owner=None):
@@ -44,6 +44,12 @@ def parse_depfile(depfile, owner=None):
             continue
         parts = line.split()
         repo = parts[0]
+        if repo != 'OCB' and owner == 'odoo':
+            cur_owner = 'OCA'
+        elif repo == ' l10n-italy-supplemental':
+            cur_owner = 'zeroincombenze'
+        else:
+            cur_owner = owner
         if len(parts) > 2:
             branch = parts[2]
         else:
@@ -51,7 +57,7 @@ def parse_depfile(depfile, owner=None):
         if len(parts) > 1:
             url = parts[1]
         else:
-            url = 'https://github.com/%s/%s.git' % (owner, repo)
+            url = 'https://github.com/%s/%s.git' % (cur_owner, repo)
         deps.append((repo, url, branch))
     return deps
 
