@@ -44,7 +44,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.2
+__version__=0.2.1.3
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -349,7 +349,7 @@ for fl in $LIST; do
     echo "Reading $f in $p"
   fi
   cd $p
-  if [ "${f: -4}" == ".xml" ]; then
+  if [ "${f: -4}" == ".xml" -o "${f: -4}" == ".xsd" ]; then
     format_xml $f
   elif [ "${f: -4}" == ".yml" ]; then
     format_yaml $f

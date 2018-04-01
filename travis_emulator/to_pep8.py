@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.2"
+__version__ = "0.2.1.3"
 
 
 class topep8():

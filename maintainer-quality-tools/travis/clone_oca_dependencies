@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.1.13'
+__version__ = '0.2.1.14'
 
 
 def parse_depfile(depfile, owner=None):
@@ -44,10 +44,10 @@ def parse_depfile(depfile, owner=None):
             continue
         parts = line.split()
         repo = parts[0]
-        if repo != 'OCB' and owner == 'odoo':
-            cur_owner = 'OCA'
-        elif repo == ' l10n-italy-supplemental':
+        if repo == 'l10n-italy-supplemental':
             cur_owner = 'zeroincombenze'
+        elif repo != 'OCB' and owner == 'odoo':
+            cur_owner = 'OCA'
         else:
             cur_owner = owner
         if len(parts) > 2:
