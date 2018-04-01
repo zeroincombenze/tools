@@ -221,6 +221,25 @@ def get_script_path(server_path, script_name):
     return script_path
 
 
+# [antoniov: 2018-03-31]
+def build_run_cmd_odoo(server_path, script_name, db,
+                       init=None, install_options=None,
+                       server_options=None):
+    script_path = get_script_path(server_path, script_name)
+    if init:
+        preinstall_modules = ','.join(preinstall_modules)
+    cmd_odoo += [script_path,
+                 "-d", db,
+                 "--log-level=info",
+                 "--stop-after-init",
+                 "--init", preinstall_modules]
+    if install_options:
+        cmd_odoo.append(install_options)
+    if server_options:
+        cmd_odoo.append(server_options)
+    return cmd_odoo
+
+
 def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                  addons_path, install_options, preinstall_modules=None,
                  unbuffer=True, server_options=None, travis_debug_mode=None):
@@ -256,7 +275,7 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
                      "--log-level=info",
                      "--stop-after-init",
                      "--init", ','.join(preinstall_modules),
-                     ] + install_options + server_options
+                     ] + install_options + server_options  #1
         print(" ".join(cmd_strip_secret(cmd_odoo)))
         if travis_debug_mode < 2:
             try:
@@ -411,7 +430,7 @@ def main(argv=None):
                      "--db-filter=^%s$" % database,
                      "--stop-after-init",
                      "--log-level", test_loglevel,
-                     ]
+                     ]  #2
 
     if test_loghandler is not None:
         cmd_odoo_test += ['--log-handler', test_loghandler]
@@ -426,7 +445,7 @@ def main(argv=None):
             "-d", database,
             "--stop-after-init",
             "--log-level=warn",
-        ] + install_options + ["--init", None] + server_options
+        ] + install_options + ["--init", None] + server_options  #3
         commands = ((cmd_odoo_install, False),
                     (cmd_odoo_test, True),
                     )
@@ -457,7 +476,7 @@ def main(argv=None):
                 command_call = [item
                                 for item in commands[0][0]
                                 if item not in rm_items] + \
-                    ['--pidfile=/tmp/odoo.pid']
+                    ['--pidfile=/tmp/odoo.pid']  #4
             else:
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors

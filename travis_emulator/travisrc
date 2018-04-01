@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.1.1
+#__version__=0.2.1.2
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1494,8 +1494,8 @@ cp_n_upd_conf() {
         line=$(echo "logfile = $ODOO_LOGFILE")
       elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.*odoo$odoo_ver ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
-      elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9]* ]]; then
-        line="xmlrpc_port = 8079"
+      elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]][0-9A-Za-z]+ ]]; then
+        line="xmlrpc_port = $((18060+$odoo_ver))"
       elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
         line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
       elif [[ $line =~ .*odoo$odoo_ver-server.conf.* ]]; then

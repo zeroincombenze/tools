@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.3'
+__version__ = '0.3.6.5'
 
 
 REQVERSION = {
@@ -46,10 +46,14 @@ PIP_TEST_PACKAGES = ['astroid',
                      'PyYAML',
                      'QUnitSuite',
                      'restructuredtext_lint',
-                     'unittest2']
+                     'unittest2',
+                     ]
+BIN_TEST_PACKAGES = ['expect-dev',
+                     ]
 RPC_PACKAGES = ['odoorpc',
                 'oerplib',
-                'os0']
+                'os0',
+                ]
 PIP_BASE_PACKAGES = ['Babel',
                      'configparser',
                      'decorator',
@@ -74,10 +78,12 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
-                     'werkzeug']
+                     'werkzeug',
+                     ]
 BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
-                     'wkhtmltopdf']
+                     'wkhtmltopdf',
+                     ]
 
 
 def parse_requirements(reqfile):
@@ -225,10 +231,12 @@ def main():
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
                                       with_version=ctx['with_version'])
         deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
-                                      with_version=ctx['with_version'])
+                                      with_version=False)
     if ctx['test_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_TEST_PACKAGES,
                                       with_version=ctx['with_version'])
+        deps_list = package_from_list(deps_list, 'bin', BIN_TEST_PACKAGES,
+                                      with_version=False)
     if ctx['rpc_pkgs']:
         deps_list = package_from_list(deps_list, 'python', RPC_PACKAGES,
                                       with_version=ctx['with_version'])

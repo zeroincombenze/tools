@@ -30,8 +30,72 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.10
+__version__=0.2.1.11
 
+
+cp_n_upd_odoo_conf() {
+    local odoo_ver=$(echo $VERSION|grep -Eo '[0-9]*'|head -n1)
+    if [ $odoo_ver -ge 10 ]; then
+      local tgt=~/.odoorc
+      local atgt=~/.openerp_serverrc
+    else
+      local tgt=~/.openerp_serverrc
+      local atgt=
+    fi
+    [ -f $atgt ] && rm -f $atgt
+    [ -f $tgt ] && rm -f $tgt
+    if [ "$TRAVIS" == "true" ]; then
+       return
+    fi
+    local t="$TRAVIS_SAVED_HOME/$(basename $tgt)"
+    [ -n "$atgt" ] && local at="$TRAVIS_SAVED_HOME/$(basename $atgt)" || local at=
+    [ -f $at ] && rm -f $at
+    [ -f $t ] && rm -f $t
+    return
+    local pfx="odoo$odoo_ver"
+    local pfx2=odoo
+    local sfx=
+    local ODOO_LOGFILE="False"
+    local confn=/etc/odoo/${pfx}-server.conf
+    if [ ! -f $confn ]; then
+      confn=/etc/odoo/${pfx}.conf
+    fi
+    if [ ! -f $confn ]; then
+      confn=/etc/odoo/${pfx2}-server.conf
+    fi
+    if [ ! -f $confn ]; then
+      confn=/etc/odoo/${pfx2}.conf
+    fi
+    if [ ! -f $confn ]; then
+      echo "File $confn not found!"
+      exit 1
+    fi
+    touch $tgt
+    while IFS=\| read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo$odoo_ver ]]; then
+        line=$(echo "$line"|sed -e "s:Odoo$odoo_ver:Odoo-test:")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*[0-9A-Za-z]+  ]]; then
+        line=$(echo "logfile = $ODOO_LOGFILE")
+      elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ ^xmlrpc_port[[:space:]]*=[[:space:]]*[0-9A-Za-z]+ ]]; then
+        line="xmlrpc_port = $((18060+$odoo_ver))"
+      elif [[ $line =~ ^NAME=.*odoo$odoo_ver.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*odoo${odoo_ver}-server.conf.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*$confn.* ]]; then
+        line=$(echo "$line"|sed -e "s:$confn:odoo-test:")
+      elif [[ $line =~ .*odoo${odoo_ver}-server.pid.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ .*odoo${odoo_ver}-server.log.* ]]; then
+        line=$(echo "$line"|sed -e "s:odoo$odoo_ver:odoo-test:")
+      elif [[ $line =~ ^server_wide_modules[[:space:]]*=[[:space:]] ]]; then
+        line="server_wide_modules = web"
+      fi
+      echo "$line">>$tgt
+    done < "$confn"
+}
 
 
 OPTOPTS=(h        b          j        K         n            q           T        t         V           v)
@@ -150,6 +214,7 @@ else
   fi
   pip install -q os0 z0lib
   mkdir -p ${HOME}/dependencies
+  cp_n_upd_odoo_conf
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
   eval $TDIR/clone_oca_dependencies
   sts=$?
