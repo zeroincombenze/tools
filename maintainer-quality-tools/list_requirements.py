@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.4'
+__version__ = '0.3.6.5'
 
 
 REQVERSION = {

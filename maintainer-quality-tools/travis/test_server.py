@@ -394,9 +394,14 @@ def main(argv=None):
     addons_path = get_addons_path(travis_dependencies_dir,
                                   travis_build_dir,
                                   server_path)
+    if os.environ.get('TRAVIS', '0') == 'true':
+        rpcport = '8069'
+    else:
+        rpcport = '18069'
     create_server_conf({
         'addons_path': addons_path,
         'data_dir': data_dir,
+        'xmlrpc_port': rpcport,
     }, odoo_version)
     tested_addons_list = get_addons_to_check(travis_build_dir,
                                              odoo_include,

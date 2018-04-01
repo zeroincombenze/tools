@@ -2,7 +2,7 @@
 import sys
 from getaddons import get_addons, get_modules, is_installable_module
 from test_server import get_test_dependencies
-__version__ = '0.2.1.11'
+__version__ = '0.2.1.12'
 ltype = ''
 path = ''
 addons_list=None
