@@ -16,7 +16,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.6
+#__version__=0.3.6.8
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -103,6 +103,9 @@ build_odoo_param() {
         odoo_fver=$(find_odoo_ver "~/OCB")
       else
         odoo_fver=$(find_odoo_ver)
+      fi
+      if [[ -z "$odoo_fver" && $ODOO_BRANCH =~ (11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
+        odoo_fver=$ODOO_BRANCH
       fi
       odoo_ver=$(get_odoo_major_ver "$odoo_fver")
       odoo_vid="$2"

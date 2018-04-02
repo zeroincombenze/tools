@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.6'
+__version__ = '0.3.6.7'
 
 
 REQVERSION = {
@@ -119,6 +119,7 @@ ALIAS = {
     'usb': 'pyusb',
 }
 PIP_TEST_PACKAGES = ['astroid',
+                     'click',
                      'coveralls',
                      'flake8',
                      'mock',

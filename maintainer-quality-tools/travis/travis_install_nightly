@@ -3,7 +3,7 @@ __version__=0.2.1.16
 set -e
 
 if [ "${LINT_CHECK}" != "0" ]; then
-    pip install -Uq flake8=="3.4.1" Click pylint-mccabe pbr
+    pip install -Uq flake8=="3.4.1" click pylint-mccabe pbr
 
     # Install pylint plugin depends without lxml
     wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt

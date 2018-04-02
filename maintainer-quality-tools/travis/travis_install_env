@@ -148,6 +148,8 @@ if [ "${LINT_CHECK}" != "0" ]; then
   :
 fi
 if [ "${TESTS}" != "1" ]; then
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
+  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
   exit $sts
 fi
 if [ "$mode" == "tools" ]; then

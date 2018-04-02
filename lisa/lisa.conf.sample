@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-03-31
+# Last update: 2018-04-02
 #
 # ---------------------------------------------------------------------
 #
@@ -185,7 +185,7 @@ REAL_python-requests=requests
 REAL_pyyaml=PyYAML
 REAL_pyYAML=PyYAML
 REAL_pypdf=pyPdf
-REAL_click=Click
+REAL_Click=click
 REAL_jinja2=Jinja2
 REAL_mako=Mako
 REAL_markupsafe=MarkupSafe
@@ -220,12 +220,12 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,pyOpenSSL,requests,\
     pyserial,pyPdf,cryptography,flake8,pylint,zerobug,coverage,coveralls,\
-    Click,pylint-mccabe,pbr,Jinja2,MarkupSafe,Pillow,Werkzeug,argparse,\
+    click,pylint-mccabe,pbr,Jinja2,MarkupSafe,Pillow,Werkzeug,argparse,\
     Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
     wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
-    configparser
+    configparser,raven,raven_sanitize_openerp
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -254,7 +254,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
          python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
-         libcups2-dev,cups-devel,unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
+         unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
          python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
          python-mako
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
@@ -295,12 +295,15 @@ REAL_openssl-devel=libssl-dev
 REAL_redis=redis-server
 REAL_freetype=libfreetype6
 REAL_freetype-dev=libfreetype6-dev
+REAL_cups=libcups2
+REAL_cups-devel=libcups2-dev
 redis-server_svcname=redis-server
 # Standard packages
 APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
-         libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,libfreetype6-dev
+         libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
+         libfreetype6-dev,libcups2,libcups2-dev
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
@@ -338,6 +341,7 @@ REAL_zlib1g-dev=zlib-devel
 REAL_readline-devel=libreadline6-dev
 REAL_serial=pyserial
 REAL_python-serial=pyserial
+REAL_libcups2=cups
 REAL_libcups2-dev=cups-devel
 REAL_unixodbc=unixODBC
 REAL_unixodbc-dev=unixODBC-devel
@@ -354,7 +358,6 @@ REAL_libxml2-dev=libxml2-devel
 REAL_redis-server=redis
 REAL_libfreetype6=freetype
 REAL_libfreetype6-dev=freetype-devel
-REAL_expect-dev=expect-devel
 REAL_openid=python-openid
 
 redis_svcname=redis
@@ -363,8 +366,8 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel
-NA_PKGS=antiword
+         freetype,freetype-devel,cups,cups-devel
+NA_PKGS=expect-dev,antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
 pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
