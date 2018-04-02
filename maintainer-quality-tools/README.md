@@ -28,6 +28,7 @@ If your project depends on other OCA or other Github repositories, create a file
 During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.
 
+
 Check your .travis file for syntax issues.
 ------------------------------------------
 
@@ -50,6 +51,7 @@ You can use branch or pull request into environment variable VERSION:
 ```
     VERSION="pull/143" ODOO_REPO="odoo/odoo"
 ```
+
 
 Using custom branch inside odoo repository using ODOO_BRANCH
 ------------------------------------------------------------
@@ -86,6 +88,7 @@ If you do it, it will be simply ignored.
 from coverage check.
 See [maintainer-tools CONTRIBUTING doc](https://github.com/OCA/maintainer-tools/blob/master/CONTRIBUTING.md#tests) for further info on tests.
 
+
 Names used for the test databases
 ---------------------------------
 
@@ -114,6 +117,14 @@ LINT_CHECK="0" variable on the line:
 
     - VERSION="7.0" ODOO_REPO="odoo/odoo" LINT_CHECK="0"
 
+You can execute reduced set of check, in order to evolve your code quality.
+To enable reduced set of check add one of follow lines:
+
+    - LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"
+    - LINT_CHECK="1" LINT_CHECK_LEVEL="REDUCED"
+    - LINT_CHECK="1" LINT_CHECK_LEVEL="AVERAGE"
+    - LINT_CHECK="1" LINT_CHECK_LEVEL="NEARBY"
+
 
 Disable test
 ------------
@@ -122,6 +133,7 @@ If you want to make a build without tests, you can use the following directive:
 
 You will simply get the databases with packages installed, 
 but whithout running any tests.
+
 
 MQT debug informations
 ----------------------
@@ -138,6 +150,7 @@ When MQT is execute in local environment the value
 does not execute unit test. It is used to debug MQT itself.
 
 See [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
+
 
 Tree directory
 --------------

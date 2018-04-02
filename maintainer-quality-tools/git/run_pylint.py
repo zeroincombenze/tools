@@ -20,6 +20,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
+__version__ = '0.2.1.16'
 CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 
@@ -73,6 +74,10 @@ def get_extra_params(odoo_version):
         extra_params.extend([
             '--extra-params', '--valid_odoo_versions=%s' % odoo_version])
 
+    for beta_msg in beta_msgs:
+        extra_params.extend(['--msgs-no-count', beta_msg,
+                             '--extra-params', '--enable=%s' % beta_msg])
+
     odoo_version = odoo_version.replace('.', '')
     version_cfg = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
@@ -84,12 +89,23 @@ def get_extra_params(odoo_version):
         for section in config.sections():
             for option, value in config.items(section):
                 params.extend(['--' + option, value])
-
     for param in params:
         extra_params.extend(['--extra-params', param])
-    for beta_msg in beta_msgs:
-        extra_params.extend(['--msgs-no-count', beta_msg,
-                             '--extra-params', '--enable=%s' % beta_msg])
+
+    exclude_lint = os.environ.get('LINT_CHECK_LEVEL', '')
+    specific_cfg = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_lint)
+    params = []
+    if os.path.isfile(specific_cfg):
+        config = ConfigParser.ConfigParser()
+        config.readfp(open(specific_cfg))
+        for section in config.sections():
+            for option, value in config.items(section):
+                params.extend(['--' + option, value])
+    for param in params:
+        extra_params.extend(['--extra-params', param])
+
     return extra_params
 
 

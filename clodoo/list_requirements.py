@@ -6,29 +6,110 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.5'
+__version__ = '0.3.6.6'
 
 
 REQVERSION = {
     'astroid': '==1.4.8',
-    'Babel': '>=1.0',
-    'decorator': '==3.4.0',
+    'Babel': '==2.3.4',
+    'decorator': '==3.4.0',    # Warning! 10.0 require 4.0.10
     'docutils': '==0.12',
-    'feedparser': '==5.1.3',
-    'gevent': '==1.0.2',
-    'jinja2': '==2.7.3',
-    'passlib': '==1.6.2',
-    'Pillow': '==3.4.2',
-    'psycopg2': '>=2.2',
+    'ebaysdk': '==2.1.4',
+    'feedparser': '==5.1.3',   # Warning! 10.0 require 5.2.1
+    'gevent': '==1.0.2',       # Warning! 10.0 require 1.1.2
+    'greenlet': '==0.4.10',
+    'jcconv': '==0.2.3',
+    'Jinja2': '==2.7.3',       # Warning! 10.0 require 2.8
+    'lxml': '==3.5.0',
+    'Mako': '==1.0.4',
+    'MarkupSafe': '==0.23',
+    'mock': '==2.0.0',
+    'ofxparse': '==0.16',
+    'passlib': '==1.6.2',      # Warning! 10.0 require 1.6.5
+    'Pillow': '==3.4.2',       # Warning! 10.0 require 3.4.1
+    'psutil': '==4.3.1',
+    'psycogreen': '==1.0',
+    'psycopg2': '==2.6.2',
     'pygments': '==2.0.2',
+    'pydot': '==1.2.3',
     'pylint': '==1.6.4',
     'pylint-plugin-utils': '==0.3.5.11',
-    'pyparsing': '<2',
-    'pyusb': '>=1.0.0b1',
+    'pyparsing': '<2',         # Warning! 10.0 require 2.1.10
+    'pyPdf': '==1.13',
+    'pyserial': '==3.1.1',
+    'Python-Chart': '==1.39',
+    'python-dateutil': '==2.5.3',
+    'python-ldap': '==2.4.27',
+    'python-openid': '==2.2.5',
+    'pytz': '==2016.7',
+    'pyusb': '>=1.0.0b1',      # Warning! 10.0 require 1.0.0
     'pyxb': '==1.2.4',
-    'reportlab': '==3.1.44',
+    'PyYAML': '==3.12',
+    'qrcode': '==5.3',
+    'reportlab': '==3.1.44',   # Warning! 10.0 require 3.3.0
+    'requests': '==2.11.1',
     'restructuredtext_lint': '==0.12.2',
+    'six': '==1.10.0',
+    'suds-jurko': '==0.6',
+    'vatnumber': '==1.2',
+    'vobject': '==0.9.3',
+    'Werkzeug': '==0.11.11',
     'wkhtmltopdf': '==0.12.1',
+    'wsgiref': '==0.1.2',
+    'XlsxWriter': '==0.9.3',
+    'xlwt': '==1.1.2',
+    'xlrd': '==1.0.0',
+}
+REQVERSION_10 = {
+    'astroid': '==1.4.8',
+    'Babel': '==2.3.4',
+    'decorator': '==4.0.10',
+    'docutils': '==0.12',
+    'ebaysdk': '==2.1.4',
+    'feedparser': '==5.2.1',
+    'gevent': '==1.1.2',
+    'greenlet': '==0.4.10',
+    'jcconv': '==0.2.3',
+    'Jinja2': '==2.8',
+    'lxml': '==3.5.0',
+    'Mako': '==1.0.4',
+    'MarkupSafe': '==0.23',
+    'mock': '==2.0.0',
+    'ofxparse': '==0.16',
+    'passlib': '==1.6.5',
+    'Pillow': '==3.4.1',
+    'psutil': '==4.3.1',
+    'psycogreen': '==1.0',
+    'psycopg2': '==2.6.2',
+    'pygments': '==2.0.2',
+    'pydot': '==1.2.3',
+    'pylint': '==1.6.4',
+    'pylint-plugin-utils': '==0.3.5.11',
+    'pyparsing': '==2.1.10',
+    'pyPdf': '==1.13',
+    'pyserial': '==3.1.1',
+    'Python-Chart': '==1.39',
+    'python-dateutil': '==2.5.3',
+    'python-ldap': '==2.4.27',
+    'python-openid': '==2.2.5',
+    'pytz': '==2016.7',
+    'pyusb': '==1.0.0',
+    'pyxb': '==1.2.4',
+    'PyYAML': '==3.12',
+    'qrcode': '==5.3',
+    'reportlab': '==3.3.0',
+    'requests': '==2.11.1',
+    'restructuredtext_lint': '==0.12.2',
+    'six': '==1.10.0',
+    'suds-jurko': '==0.6',
+    'vatnumber': '==1.2',
+    'vobject': '==0.9.3',
+    'Werkzeug': '==0.11.11',
+    'wkhtmltopdf': '==0.12.1',
+    'wsgiref': '==0.1.2',
+    'XlsxWriter': '==0.9.3',
+    'xlwt': '==1.1.2',
+    'xlrd': '==1.0.0',
 }
 ALIAS = {
     'dateutil': 'python-dateutil',
@@ -78,7 +159,8 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
-                     'werkzeug',
+                     'vatnumber',
+                     'Werkzeug',
                      ]
 BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
@@ -94,19 +176,26 @@ def parse_requirements(reqfile):
     return reqlist
 
 
-def name_n_version(item, with_version=None):
+def name_n_version(item, with_version=None, odoo_ver=None):
     versioned = False
     item = os.path.basename(item).split('.')[0]
     if item in ALIAS:
         item = ALIAS[item]
-    if with_version and item in REQVERSION:
-        item = '%s%s' % (item, REQVERSION[item])
-        versioned = True
+    if odoo_ver == '10.0':
+        if with_version and item in REQVERSION_10:
+            item = '%s%s' % (item, REQVERSION_10[item])
+            versioned = True
+    else:
+        if with_version and item in REQVERSION:
+            item = '%s%s' % (item, REQVERSION[item])
+            versioned = True
     return item, versioned
 
 
-def add_package(deps_list, kw, item, with_version=None):
-    full_item, versioned = name_n_version(item, with_version=with_version)
+def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
+    full_item, versioned = name_n_version(item,
+                                          with_version=with_version,
+                                          odoo_ver=odoo_ver)
     if kw == 'python' and versioned:
         kw = 'python2'
     if full_item not in deps_list[kw]:
@@ -114,13 +203,17 @@ def add_package(deps_list, kw, item, with_version=None):
     return deps_list
 
 
-def package_from_list(deps_list, kw, PKG_LIST, with_version=None):
+def package_from_list(deps_list, kw, PKG_LIST,
+                      with_version=None, odoo_ver=None):
     for item in PKG_LIST:
-        deps_list = add_package(deps_list, kw, item, with_version=with_version)
+        deps_list = add_package(deps_list, kw, item,
+                                with_version=with_version,
+                                odoo_ver=odoo_ver)
     return deps_list
 
 
-def package_from_manifest(deps_list, manifest_file, with_version=None):
+def package_from_manifest(deps_list, manifest_file,
+                          with_version=None, odoo_ver=None):
     if manifest_file:
         manifest = ast.literal_eval(open(manifest_file).read())
         if manifest.get('external_dependencies'):
@@ -131,7 +224,8 @@ def package_from_manifest(deps_list, manifest_file, with_version=None):
                         deps_list = add_package(deps_list,
                                                 kw,
                                                 item,
-                                                with_version=with_version)
+                                                with_version=with_version,
+                                                odoo_ver=odoo_ver)
     return deps_list
 
 
@@ -152,6 +246,9 @@ def main():
                                 "© 2017-2018 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
+    parser.add_argument('-b', '--odoo-branch',
+                        action='store',
+                        dest='odoo_ver')
     parser.add_argument("-B", "--base-packages",
                         help="Add base packages",
                         action="store_true",
@@ -229,21 +326,27 @@ def main():
         deps_list[kw] = []
     if ctx['base_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
-                                      with_version=ctx['with_version'])
+                                      with_version=ctx['with_version'],
+                                      odoo_ver=ctx['odoo_ver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
-                                      with_version=False)
+                                      with_version=False,
+                                      odoo_ver=ctx['odoo_ver'])
     if ctx['test_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_TEST_PACKAGES,
-                                      with_version=ctx['with_version'])
+                                      with_version=ctx['with_version'],
+                                      odoo_ver=ctx['odoo_ver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_TEST_PACKAGES,
-                                      with_version=False)
+                                      with_version=False,
+                                      odoo_ver=ctx['odoo_ver'])
     if ctx['rpc_pkgs']:
         deps_list = package_from_list(deps_list, 'python', RPC_PACKAGES,
-                                      with_version=ctx['with_version'])
+                                      with_version=ctx['with_version'],
+                                      odoo_ver=ctx['odoo_ver'])
     for manifest_file in manifests:
         deps_list = package_from_manifest(deps_list,
                                           manifest_file,
-                                          with_version=ctx['with_version'])
+                                          with_version=ctx['with_version'],
+                                          odoo_ver=ctx['odoo_ver'])
     if ctx['out_file']:
         try:
             pkgs = open(ctx['opt_fn']).read().split('\n')

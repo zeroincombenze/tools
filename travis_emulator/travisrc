@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.1.3
+#__version__=0.2.1.4
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -323,8 +323,28 @@ init_travis() {
       fi
     fi
     if [ -z "$TOOLS_PATH" ]; then
+      if [ ${opt_dbgmnt:-0} -ne 0 ]; then
+        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
+      else
+        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
+      fi
+      if [ "$PRJNAME" == "Odoo" ]; then
+        if [ -d $MQT_DEF_PATH ]; then
+          MQT_PATH=$MQT_DEF_PATH
+        elif [ -d $HOME/maintainer-quality-tools/travis ]; then
+          MQT_PATH=$HOME/maintainer-quality-tools/travis
+        elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+          MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
+        else
+          unset -v MQT_PATH
+        fi
+      else
+        unset -v MQT_PATH
+      fi
       if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
         TOOLS_PATH=$TDIR/_travis
+      elif [ ${opt_dbgmnt:-0} -ne 0 -a -n "$MQT_PATH" ]; then
+        TOOLS_PATH=$MQT_PATH
       elif [ -d $HOME/maintainer-quality-tools/travis ]; then
         TOOLS_PATH=$HOME/maintainer-quality-tools/travis
       elif [ -d $HOME/dev/_travis -a ${opt_r:-0} -gt 0 ]; then
@@ -343,28 +363,6 @@ init_travis() {
       #   TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
-      fi
-      if [ ${opt_dbgmnt:-0} -ne 0 ]; then
-        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
-      else
-        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
-      fi
-      if [ "$PRJNAME" == "Odoo" ]; then
-        #TODO if [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
-        #TODO  MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
-        #TODO elif [ -d $HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis ]; then
-        #TODO  MQT_PATH=$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis
-        if [ -d $MQT_DEF_PATH ]; then
-          MQT_PATH=$MQT_DEF_PATH
-        elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-          MQT_PATH=$HOME/maintainer-quality-tools/travis
-        elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-          MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
-        else
-          unset -v MQT_PATH
-        fi
-      else
-        unset -v MQT_PATH
       fi
     fi
 }
