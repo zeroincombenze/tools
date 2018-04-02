@@ -11,6 +11,7 @@ Differences between this Zeroincombenze® MQT and standard OCA version:
 * Zeroincombenze® MQT can aldo test Odoo 6.1 and 7.0; OCA version fails with these versions
 * Zeroincombenze® MQT is designed to run in local environment too, using [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 * Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
+* Zeroincombenze® MQT can run reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
 * OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
 
 
