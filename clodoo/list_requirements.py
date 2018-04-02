@@ -119,6 +119,7 @@ ALIAS = {
     'usb': 'pyusb',
 }
 PIP_TEST_PACKAGES = ['astroid',
+                     'click',
                      'coveralls',
                      'flake8',
                      'mock',
