@@ -130,6 +130,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'QUnitSuite',
                      'restructuredtext_lint',
                      'unittest2',
+                     'wrapt',
                      'zerobug',
                      ]
 BIN_TEST_PACKAGES = ['expect-dev',
