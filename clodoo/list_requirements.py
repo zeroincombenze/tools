@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.10'
+__version__ = '0.3.6.11'
 
 
 REQVERSION = {
@@ -130,8 +130,11 @@ PIP_TEST_PACKAGES = ['astroid',
                      'QUnitSuite',
                      'restructuredtext_lint',
                      'unittest2',
+                     'zerobug',
                      ]
 BIN_TEST_PACKAGES = ['expect-dev',
+                     'python-dev',
+                     'python-setuptools',
                      ]
 RPC_PACKAGES = ['odoorpc',
                 'oerplib',
