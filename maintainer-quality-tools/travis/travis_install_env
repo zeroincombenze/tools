@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.17
+__version__=0.2.1.18
 
 
 cp_n_upd_odoo_conf() {
@@ -161,6 +161,7 @@ if [ "$mode" == "tools" ]; then
     fi
   done
 elif [ "${TESTS}" != "1" ]; then
+  pip install -q os0 z0lib
   if [ -z "${VERSION}" ] ; then
     VERSION="$opt_branch"
   fi
