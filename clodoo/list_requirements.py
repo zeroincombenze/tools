@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.9'
+__version__ = '0.3.6.10'
 
 
 REQVERSION = {
@@ -122,6 +122,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'click',
                      'coveralls',
                      'flake8',
+                     'lazy_object_proxy',
                      'mock',
                      'pylint',
                      # 'pylint-plugin-utils',
