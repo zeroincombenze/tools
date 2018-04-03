@@ -225,7 +225,8 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     wsgiref,QUnitSuite,codecov,pycparser,codicefiscale,astroid,pylint,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
-    configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt
+    configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
+    pylint_odoo
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git

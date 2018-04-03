@@ -10,16 +10,18 @@ Python & bash tools
 
 Sparse python and bash source code
 
-| name      | brief                                                                                                           |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
+| name      | brief                                                                           |
+| --------- | ------------------------------------------------------------------------------- |
 | clodoo    | Massive operations to multiple Odoo DBs in cloud. It is used to create configurate Odoo DB and to upgrade more DBs at the same time. No (yet) documented |
-| os0       | Simple os interface checked for OpenVMS too                                                                     |
-| lisa      | Linux Installer Simple App. LAMP and odoo server installer from scratch.                                        |
+| os0       | Simple os interface checked for OpenVMS too                                     |
+| lisa      | Linux Installer Simple App. LAMP and odoo server installer from scratch.        |
 | maintainer-quality-tools | Forked OCA maintainer quality tools. It works with 6.1 and 7.0 Odoo version |
-| pytok     | Simple python token parser (deprecated)                                                                         |
-| wok\_code | Undocumented                                                                                                    |
-| wok\_news | Undocumented                                                                                                    |
-| z0lib     | Simple general purpose bash library                                                                             |
+| pytok           | Simple python token parser (deprecated)                                   |
+| travis_emulator | Travis Emulator on local machine. Check your project before release on TravisCi |
+| wok\_code | Undocumented                                                                    |
+| wok\_news | Undocumented                                                                    |
+| zar       | Zeroincombenze Archive and Restore. Backup your Odoo DBs                        |
+| z0lib     | Simple general purpose bash library                                             |
 
 
 [![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
