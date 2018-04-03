@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.18
+__version__=0.2.1.19
 
 
 cp_n_upd_odoo_conf() {
@@ -180,7 +180,7 @@ else
     VERSION="$opt_branch"
   fi
   if [ -z "${ODOO_BRANCH}"  ] ; then
-    ODOO_BRANCH=${VERSION}
+    export ODOO_BRANCH=${VERSION}
   fi
   : ${MQT_TEMPLATE_DB:="openerp_template"}
   : ${MQT_TEST_DB:="openerp_test"}
