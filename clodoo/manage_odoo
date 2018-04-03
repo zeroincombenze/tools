@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.8
+__version__=0.3.6.9
 
 
 explore() {
@@ -96,16 +96,14 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ODOO_HOME=\$(build_odoo_param HOME $odoo_vid)"
-      ODOO_HOME=$(build_odoo_param HOME $odoo_vid)
       [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ LISA=$LISA"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$($TDIR/list_requirements.py -b$odoo_fver -p $ODOO_HOME $dopts -t python -s ' ' -qBPTR)"
-      reqs=$($TDIR/list_requirements.py -b$odoo_fver -p $ODOO_HOME $dopts -t python -s ' ' -qBPTR)
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+      reqs=$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -b$odoo_fver -p $ODOO_HOME $dopts -t bin -s ' ' -qBTR)"
-      reqs="$reqs $($TDIR/list_requirements.py -b$odoo_fver -p $ODOO_HOME $dopts -t bin -s ' ' -qBTR)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=\$reqs \$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)"
+      reqs="$reqs $($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)"
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ reqs=$reqs"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"

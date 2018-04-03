@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.16
+__version__=0.2.1.17
 
 
 cp_n_upd_odoo_conf() {
@@ -147,11 +147,6 @@ if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRAN
 if [ "${LINT_CHECK}" != "0" ]; then
   :
 fi
-if [ "${TESTS}" != "1" ]; then
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
-  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
-  exit $sts
-fi
 if [ "$mode" == "tools" ]; then
   if [ "${TRAVIS}" == "true" ]; then
     [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa) || LISA=lisa
@@ -165,7 +160,18 @@ if [ "$mode" == "tools" ]; then
       $LISA install -qy $f
     fi
   done
-elif [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
+elif [ "${TESTS}" != "1" ]; then
+  if [ -z "${VERSION}" ] ; then
+    VERSION="$opt_branch"
+  fi
+  if [ -z "${ODOO_BRANCH}"  ] ; then
+    export ODOO_BRANCH=${VERSION}
+  fi
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
+  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
+  exit $sts
+fi
+if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
