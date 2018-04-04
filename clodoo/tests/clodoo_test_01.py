@@ -22,7 +22,7 @@ from clodoo.clodoocore import (_get_model_bone, _get_model_code,
                                _import_file_model, _model_has_company,
                                eval_value, get_query_id, import_file_get_hdr)
 from zerobug import Z0test
-__version__ = "0.3.6.12"
+__version__ = "0.3.6.13"
 
 
 MODULE_ID = 'clodoo'

@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.12'
+__version__ = '0.3.6.13'
 
 
 REQVERSION = {
@@ -66,6 +66,7 @@ REQVERSION_10 = {
     'decorator': '==4.0.10',
     'docutils': '==0.12',
     'ebaysdk': '==2.1.4',
+    'flake8': '==3.4.1',
     'feedparser': '==5.2.1',
     'gevent': '==1.1.2',
     'greenlet': '==0.4.10',
@@ -124,7 +125,9 @@ PIP_TEST_PACKAGES = ['astroid',
                      'flake8',
                      'lazy_object_proxy',
                      'mock',
+                     'pbr',
                      'pylint',
+                     'pylint-mccabe',
                      'pylint_odoo',
                      # 'pylint-plugin-utils',
                      'PyYAML',
@@ -138,7 +141,8 @@ BIN_TEST_PACKAGES = ['expect-dev',
                      'python-dev',
                      'python-setuptools',
                      ]
-RPC_PACKAGES = ['odoorpc',
+RPC_PACKAGES = ['clodoo',
+                'odoorpc',
                 'oerplib',
                 'os0',
                 ]

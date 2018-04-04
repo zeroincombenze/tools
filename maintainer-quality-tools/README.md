@@ -8,11 +8,15 @@ The goal of Maintainer Quality Tools (MQT) is to provide helpers to ensure the q
 
 Differences between this Zeroincombenze® MQT and standard OCA version:
 
-* Zeroincombenze® MQT can aldo test Odoo 6.1 and 7.0; OCA version fails with these versions
+* Zeroincombenze® MQT can also test Odoo 6.1 and 7.0; OCA MQT fails with these versions
 * Zeroincombenze® MQT is designed to run in local environment too, using [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 * Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
 * Zeroincombenze® MQT can run reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
 * OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
+
+Note you can run OCA MQT if you set follow statement in .travis.yml file:
+
+    export MQT_TEST_MODE=oca
 
 
 Sample travis configuration file (for version 7.0)
@@ -28,6 +32,8 @@ If your project depends on other OCA or other Github repositories, create a file
 
 During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.
+
+Note when missed optional_repository_url OCA MQT load OCA repository while Zeroincombenze® MQT search repository in the same owner of your tested project.
 
 
 Check your .travis file for syntax issues.

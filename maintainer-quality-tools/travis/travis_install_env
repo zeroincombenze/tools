@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.20
+__version__=0.2.1.21
 
 
 cp_n_upd_odoo_conf() {
@@ -144,6 +144,10 @@ if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DI
 if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+[ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE dummy <<< "${TRAVIS_REPO_SLUG}"
+MQT_TEST_MODE=${MQT_TEST_MODE,,}
+[[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
+[ -z "$mode" ] && mode=$MQT_TEST_MODE
 if [ "${LINT_CHECK}" != "0" ]; then
   :
 fi
@@ -168,8 +172,8 @@ elif [ "${TESTS}" != "1" ]; then
   if [ -z "${ODOO_BRANCH}"  ] ; then
     export ODOO_BRANCH=${VERSION}
   fi
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
-  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -O$MQT_TEST_MODE"
+  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -O$MQT_TEST_MODE
   exit $sts
 fi
 if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
