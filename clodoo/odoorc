@@ -16,7 +16,7 @@
 # URL       URL to source git project
 # VCS       If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.11
+#__version__=0.3.6.12
 
 
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
@@ -71,7 +71,7 @@ build_odoo_param() {
     local p p1 p11 p2 p3 p4 ldir r x
     if [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" -o "$2" == "." ]; then
       RPTNAME=$(basename $PWD)
-      if [[ $RPTNAME =~ (v|V|odoo|ODOO|ocb|OCB)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $RPTNAME =~ (v|V|odoo|ODOO|ocb|OCB|oca|oia)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         RPTNAME="OCB"
       fi
     else
@@ -97,7 +97,7 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [ -n "$2" ]; then
-      if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB|oca|oia)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         odoo_fver=$(get_odoo_full_ver "$2")
       elif [[ "$2" == "OCB" ]]; then
         odoo_fver=$(find_odoo_ver "~/OCB")
@@ -282,7 +282,7 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "DDIR" ]; then
       p="/opt/odoo/$odoo_vid/.local/share"
-      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
         p="$p/Odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="$p/Odoo$odoo_ver"
@@ -301,7 +301,7 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
@@ -315,7 +315,7 @@ build_odoo_param() {
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
         let p="18060+$odoo_ver"
-      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
+      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
         let p="8160+$odoo_ver"
