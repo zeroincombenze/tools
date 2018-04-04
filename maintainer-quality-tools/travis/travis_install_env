@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.21
+__version__=0.2.1.22
 
 
 cp_n_upd_odoo_conf() {
@@ -165,7 +165,7 @@ if [ "$mode" == "tools" ]; then
     fi
   done
 elif [ "${TESTS}" != "1" ]; then
-  pip install -q os0 z0lib
+  pip install -q os0 z0lib --user
   if [ -z "${VERSION}" ] ; then
     VERSION="$opt_branch"
   fi
@@ -215,7 +215,6 @@ else
       tar -xf odoo.tar.gz -C ${HOME}
     fi
     pip install --upgrade pip
-    # pip install -q --no-binary pycparser -r ${HOME}/maintainer-quality-tools/requirements.txt
   else
     if [[ "$PGKNAME" == "OCB" ]]; then
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "Testes repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
@@ -225,7 +224,7 @@ else
       ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
     fi
   fi
-  pip install -q os0 z0lib
+  pip install -q os0 z0lib --user
   mkdir -p ${HOME}/dependencies
   cp_n_upd_odoo_conf
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
