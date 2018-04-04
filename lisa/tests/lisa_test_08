@@ -27,7 +27,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.37.6
+__version__=0.2.37.7
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -288,10 +288,13 @@ EOF
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
-> yum -y install epel-release
+> yum -y install gcc
 > yum -y install epel-release
 > yum -y install python-pip
 > pip install pip --upgrade
+> yum -y install iptables
+> systemctl start iptables
+> systemctl enable iptables
 > yum -y install python-wheel
 > pip install wheel --upgrade
 > yum -y install yum-utils

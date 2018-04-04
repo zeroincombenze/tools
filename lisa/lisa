@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.37.6
+__version__=0.2.37.7
 
 
 STS_FAILED=1
@@ -1098,13 +1098,13 @@ get_full_xtlcmd() {
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
       xtlcmd="$xtlcmd ${1/update/upgrade}$pkgname"
     elif [ "$xtlcmd" == "pip" ]; then
-      if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
-        xtlcmd="$xtlcmd --user"
-      fi
       if [ "$1" == "update" ]; then
         xtlcmd="$xtlcmd install$pkgname$lop$lreqver$rop$rreqver --upgrade"
       else
         xtlcmd="$xtlcmd ${1/remove/uninstall}$pkgname$lop$lreqver$rop$rreqver"
+      fi
+      if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
+        xtlcmd="$xtlcmd --user"
       fi
     elif [ "$xtlcmd" == "git" ]; then
       if [[ $3 =~ s ]]; then
