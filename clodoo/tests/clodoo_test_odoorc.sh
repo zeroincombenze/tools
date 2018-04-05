@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.6.14
+__version__=0.3.6.15
 
 
 test_01() {
@@ -546,6 +546,67 @@ test_06() {
       done
     fi
     return $sts
+}
+
+test_06() {
+    local s sts v w
+    sts=0
+    opt_mult=1
+    local TRES="OCB account-closing account-financial-reporting account-financial-tools\
+ account-invoicing account-payment bank-payment connector knowledge l10n-italy\
+ l10n-italy-supplemental partner-contact product-attribute reporting-engine\
+ report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
+ stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
+ account_banking_cscs account_invoice_create_payment account_payment_approve_invoice\
+ zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
+ project event pylint-odoo operating-unit sale-reporting bank-statement-import\
+ account-invoice-reporting hr hr-timesheet manufacture survey management-system\
+ margin-analysis pos rma queue e-commerce delivery-carrier contract\
+ multi-company vertical-education bank-statement-reconcile vertical-isp\
+ geospatial account-fiscal-rule vertical-association runbot-addons\
+ stock-logistics-reporting project-reporting edi product-variant\
+ manufacture-reporting purchase-reporting intrastat sale-financial\
+ interface-github connector-odoo2odoo webhook product-kitting\
+ cscs_addons"
+    local RES=$(module_list "7.0")
+    test_result "Module list 7.0" "$TRES" "$RES"
+
+    TRES="OCB account-closing account-financial-reporting account-financial-tools\
+ account-invoicing account-payment bank-payment connector knowledge l10n-italy\
+ l10n-italy-supplemental partner-contact product-attribute reporting-engine\
+ report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
+ stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
+ account_invoice_create_payment account_payment_approve_invoice\
+ zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
+ project event pylint-odoo operating-unit sale-reporting bank-statement-import\
+ account-invoice-reporting hr hr-timesheet manufacture survey management-system\
+ margin-analysis pos rma queue e-commerce delivery-carrier contract\
+ multi-company vertical-education bank-statement-reconcile vertical-isp\
+ geospatial account-fiscal-rule vertical-association runbot-addons\
+ stock-logistics-reporting project-reporting edi product-variant\
+ manufacture-reporting purchase-reporting intrastat sale-financial\
+ interface-github connector-odoo2odoo webhook product-kitting"
+    local RES=$(module_list "8.0")
+    test_result "Module list 8.0" "$TRES" "$RES"
+
+    TRES="OCB account-closing account-financial-reporting account-financial-tools\
+ account-invoicing account-payment bank-payment connector knowledge l10n-italy\
+ partner-contact product-attribute reporting-engine\
+ report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
+ stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
+ account_invoice_create_payment account_payment_approve_invoice\
+ social crm website-cms\
+ event pylint-odoo operating-unit sale-reporting bank-statement-import\
+ account-invoice-reporting hr hr-timesheet manufacture survey management-system\
+ margin-analysis pos rma queue e-commerce delivery-carrier contract\
+ vertical-education bank-statement-reconcile vertical-isp\
+ geospatial account-fiscal-rule vertical-association runbot-addons\
+ stock-logistics-reporting project-reporting edi product-variant\
+ manufacture-reporting purchase-reporting intrastat sale-financial\
+ interface-github connector-odoo2odoo webhook product-kitting"
+    local RES=$(module_list "7.0" "" "oia")
+    test_result "Module list 7.0" "$TRES" "$RES"
+
 }
 
 Z0BUG_setup() {

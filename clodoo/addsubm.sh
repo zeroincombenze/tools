@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.14
+__version__=0.3.6.15
 
 
 rmdir_if_exists() {
@@ -162,11 +162,11 @@ commit_files() {
 }
 
 
-OPTOPTS=(h        b          c        L        m          n            O         q           r            V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_link opt_multi  opt_dry_run  opt_org   opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1          1            "="       0           1          "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0          0            "zero"    -1          0          ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""         "do nothing" "git-org" "verbose"   ""         "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        L        m          n            O         o        q           r            V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_link opt_multi  opt_dry_run  opt_org   opt_only opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1        1          1            "="       1        0           1          "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0        0          0            "zero"    0        -1          0          ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""       ""         "do nothing" "git-org" ""       "verbose"   ""         "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "new branch (new_odoo_ver) to create"\
  "configuration file (def .travis.conf)"\
@@ -174,6 +174,7 @@ OPTHELP=("this help"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
+ "manage only repository of git organization"\
  "silent mode"\
  "do just update remote info (if no new_odoo_ver supplied)"\
  "show version"\
@@ -219,23 +220,33 @@ RPTNAME=$(basename $git_repo)
 if [ "${RPTNAME: -4}" == ".git" ]; then
   RPTNAME=${RPTNAME:0: -4}
 fi
-if [ "$pkg_URL" == "$RPTNAME/" ]; then
+if [ "${RPTNAME: -1}" == "/" ]; then
   RPTNAME=${RPTNAME:0: -1}
 fi
-if [ $opt_verbose -gt 0 ]; then
-  if [ $opt_multi -ne 0 ]; then
-    echo "Manage Odoo multi-version environment"
-  else
-    echo "Manage single Odoo version environment"
-  fi
+if [ "${pkg_URL: -1}" == "/" ]; then
+  pkg_URL=${pkg_URL:0: -1}
 fi
+# if [ $opt_verbose -gt 0 ]; then
+#   if [ $opt_multi -ne 0 ]; then
+#     echo "Manage Odoo multi-version environment"
+#   else
+#     echo "Manage single Odoo version environment"
+#   fi
+# fi
 odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB")
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then
     pkg_URL=$(build_odoo_param GIT_URL $odoo_fver $RPTNAME $opt_org)
   fi
+  ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid $RPTNAME $opt_org)
+  if [ $opt_only -ne 0 ]; then
+    x=$(build_odoo_param GIT_ORGNM $odoo_vid OCB $opt_org)
+  else
+    x=$ORGNM
+  fi
   DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME")
+  [ "$x" != "$ORGNM" ] && exit 0
   if [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $RPTNAME $odoo_vid ""
     git_opts="-b $odoo_fver"
@@ -306,6 +317,13 @@ else
     echo "Cannot evaluate target root!"
     exit 1
   fi
+  ORGNM=$(build_odoo_param GIT_ORGNM $new_odoo_vid $RPTNAME $opt_org)
+  if [ $opt_only -ne 0 ]; then
+    x=$(build_odoo_param GIT_ORGNM $new_odoo_vid OCB $opt_org)
+  else
+    x=$ORGNM
+  fi
+  [ "$x" != "$ORGNM" ] && exit 0
   if [ -d "$DSTPATH" ]; then
     run_traced "rm -fR $DSTPATH"
   fi

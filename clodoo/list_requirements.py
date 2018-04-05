@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.14'
+__version__ = '0.3.6.15'
 
 
 REQVERSION = {
@@ -237,6 +237,15 @@ def package_from_manifest(deps_list, manifest_file,
                                                 item,
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver)
+        if manifest.get('depends'):
+            deps = manifest['depends']
+            kw = 'modules'
+            for item in deps:
+                deps_list = add_package(deps_list,
+                                        kw,
+                                        item,
+                                        with_version=with_version,
+                                        odoo_ver=odoo_ver)
     return deps_list
 
 
@@ -298,7 +307,7 @@ def main():
                         metavar="character",
                         default=",")
     parser.add_argument("-t", "--type",
-                        help="Type of files; may be bin,python or both",
+                        help="Type of files; may be bin,python,both or modules",
                         dest="itypes",
                         metavar="keyword",
                         default="both")
@@ -333,7 +342,7 @@ def main():
     else:
         manifests = ctx['manifests'].split(',')
     deps_list = {}
-    for kw in ('python', 'python2', 'bin'):
+    for kw in ('python', 'python2', 'bin', 'modules'):
         deps_list[kw] = []
     if ctx['base_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
@@ -375,13 +384,14 @@ def main():
         print ctx['sep'].join(pkgs)
     else:
         deps_list['python'] = deps_list['python'] + deps_list['python2']
-        for kw in ('python', 'bin'):
-            if (ctx['itypes'] == 'both' or
-                    kw == ctx['itypes']) and kw in deps_list:
-                if ctx['opt_verbose']:
-                    print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
-                else:
-                    print ctx['sep'].join(deps_list[kw])
+        for kw in ('python', 'bin', 'modules'):
+            if kw in deps_list:
+                if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
+                        kw in ('python', 'bin')):
+                    if ctx['opt_verbose']:
+                        print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
+                    else:
+                        print ctx['sep'].join(deps_list[kw])
 
 
 if __name__ == "__main__":

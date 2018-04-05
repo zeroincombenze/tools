@@ -4,23 +4,61 @@
 # Odoo Library
 # Common function to manage Odoo
 #
-# Item to process:
-# DDIR      Data directory
-# GIT_ORG   URL of git organization of specific Odoo version
-# GIT_ORGNM Name of git organization of specific Odoo version
-# GIT_PROT  Git protocol (git or https)
-# GIT_URL   URL to download git project (ends with .git)
-# HOME      Specific Odoo module home directory
-# PARENTDIR Parent directory of specific Odoo module
-# ROOT      Odoo home directory of specific vid/version
-# URL       URL to source git project
-# VCS       If GIT repository return "git" otherwise return ""
+# Item to process (+ means can be searched):
+# BIN          Name of file to execute Odoo (+)
+# CONFN        Configuration filename (+)
+# DDIR         Data directory
+# FLOG         Log filename (+)
+# FPID         PID filename (+)
+# FULLVER      Odoo version, format like 11.0
+# FULL_SVCNAME Pathname + filename to start/stop Odoo service (+)
+# GIT_OPTS     Git switches to clone Odoo project
+# GIT_ORG      URL of git organization of specific Odoo version
+# GIT_ORGNM    Name of git organization of specific Odoo version
+# GIT_PROT     Git protocol (git or https)
+# GIT_URL      URL to download git project (ends with .git)
+# HOME         Specific Odoo module home directory
+# MAJVER       Major Odoo version
+# MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
+# OPTS_ASM     Undocumented (deprecated)
+# PARENTDIR    Parent directory of specific Odoo module (should be repositoy home directory)
+# ROOT         Odoo home directory of specific vid/version
+# ROROGIN      Remote git origin of Odoo repository
+# RPCPORT      Xmlrpc port in multi-version environment
+# RUPSTREAM    Remote git upstream of Odoo repository
+# SVCNAME      Service name to start/stop Odoo service
+# URL          URL to source git project
+# URL_BRANCH   URL tp specifice version of source git project
+# USER         Postgres username in multi-version environment
+# VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.14
+#__version__=0.3.6.15
 
 
+DEFMLIST="OCB account-closing account-financial-reporting account-financial-tools\
+ account-invoicing account-payment bank-payment connector knowledge l10n-italy\
+ l10n-italy-supplemental partner-contact product-attribute reporting-engine\
+ report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
+ stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
+ 7.0/account_banking_cscs account_invoice_create_payment account_payment_approve_invoice\
+ zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
+ project event pylint-odoo operating-unit sale-reporting bank-statement-import\
+ account-invoice-reporting hr hr-timesheet manufacture survey management-system\
+ margin-analysis pos rma queue e-commerce delivery-carrier contract\
+ multi-company vertical-education bank-statement-reconcile vertical-isp\
+ geospatial account-fiscal-rule vertical-association runbot-addons\
+ stock-logistics-reporting project-reporting edi product-variant\
+ manufacture-reporting purchase-reporting intrastat sale-financial\
+ interface-github connector-odoo2odoo webhook product-kitting\
+ 7.0/cscs_addons"
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
-
+REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
+"OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
+"OCA/commission,Odoo-Italia-Associazione/user_contributes,"\
+"local/didotech_80,local/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
+"local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
+"zeroincombenze/l10n-italy-supplemental,"
+REPT_EXCL_MATRIX="Odoo-Italia-Associazione/OCB"
 
 get_odoo_major_ver() {
     local v=$(echo "$1"|grep -Eo "[0-9]+"|head -n1)
@@ -67,7 +105,8 @@ build_odoo_param() {
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
-    local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM ODOO_UPSTREAM
+    local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
+    local ODOO_UPSTREAM
     local p p1 p11 p2 p3 p4 ldir r x
     if [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" -o "$2" == "." ]; then
       RPTNAME=$(basename $PWD)
@@ -118,70 +157,48 @@ build_odoo_param() {
       odoo_fver=11.0
       odoo_vid=11.0
     fi
-    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS) ]]; then
+    if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS) ]]; then
       if [[ " $RPTNAME " =~ " $INVALID_MODNAMES " ]]; then
         GIT_ORGNM=""
         GIT_PROT=""
         ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "openerp_gantt_chart_modification" ]; then
-        GIT_ORGNM="acespritech"
-        GIT_PROT="https"
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "odoomrp-wip" ]; then
-        GIT_ORGNM="odoomrp"
-        GIT_PROT="https"
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "project" -o "$RPTNAME" == "project-service" -o "$RPTNAME" == "sale-workflow" -o "$RPTNAME" == "purchase-workflow" -o "$RPTNAME" == "multi-company" ]; then
-        GIT_ORGNM="OCA"
-        GIT_PROT="https"
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "user_contributes" ]; then
-        GIT_ORGNM="Odoo-Italia-Associazione"
-        if [ "$GIT_ORGID" == "oia-git" ]; then
-          GIT_PROT="git"
-        else
-          GIT_PROT="https"
-        fi
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "didotech_80" -o "$RPTNAME" == "profiles" -o "$RPTNAME" == "uncovered" -o "$RPTNAME" == "mymodules" -o "$RPTNAME" == "themes" -o "$RPTNAME" == "woven_fabric" ]; then
-        GIT_ORGNM=""
-        GIT_PROT=""
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "zeroincombenze" -o "$RPTNAME" == "cscs_addons" -o "$RPTNAME" == "account_banking_cscs" ]; then
-        GIT_ORGNM="zeroincombenze"
-        GIT_PROT="https"
-        ODOO_UPSTREAM=
-      elif [ "$RPTNAME" == "l10n-italy-supplemental" ]; then
-        GIT_ORGNM="zeroincombenze"
-        if [ "$GIT_ORGID" == "zero-http" ]; then
-          GIT_PROT="https"
-        else
-          GIT_PROT="git"
-        fi
-        ODOO_UPSTREAM=
+      elif [[ "$REPT_ORG_MATRIX" =~ "/$RPTNAME," ]]; then
+        r=$(echo "$REPT_ORG_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$RPTNAME,")
+        r=${r:0: -1}
+        IFS=/ read GIT_ORGNM x <<<$r
       elif [ "$GIT_ORGID" == "oca" ]; then
         GIT_ORGNM="OCA"
-        GIT_PROT="https"
-        local ODOO_UPSTREAM=
-      elif [ "$GIT_ORGID" == "zero-git" ]; then
+      elif [[ " zeroincombenze zero zero-git zero-http " =~ " $GIT_ORGID " ]]; then
         GIT_ORGNM="zeroincombenze"
-        GIT_PROT="git"
-        ODOO_UPSTREAM="https://github.com/OCA"
-      elif [ "$GIT_ORGID" == "oia-git" ]; then
+      elif [[ " oia oia-git oia-http " =~ " $GIT_ORGID " ]]; then
         GIT_ORGNM="Odoo-Italia-Associazione"
-        GIT_PROT="git"
-        ODOO_UPSTREAM="https://github.com/OCA"
-      elif [ "$GIT_ORGID" == "zero-http" ]; then
-        GIT_ORGNM="zeroincombenze"
-        GIT_PROT="https"
-        ODOO_UPSTREAM="https://github.com/OCA"
-      elif [ "$GIT_ORGID" == "oia-http" ]; then
-        GIT_ORGNM="Odoo-Italia-Associazione"
-        GIT_PROT="https"
-        ODOO_UPSTREAM="https://github.com/OCA"
       else
         echo "Invalid $GIT_ORGID Odoo org: must be one of oca|oia|oia-git|oia-http|zero|zero-git|zero-http!"
         # exit 1
+      fi
+      if [ "$GIT_ORGNM" == "OCA" ]; then
+        GIT_PROT="https"
+        ODOO_UPSTREAM=
+      elif [ "$GIT_ORGNM" == "Odoo-Italia-Associazione" ]; then
+        if [ "${GIT_ORGID: -4}" == "-git" ]; then
+          GIT_PROT="git"
+        else
+          GIT_PROT="https"
+        fi
+        ODOO_UPSTREAM="https://github.com/OCA"
+      elif [ "$GIT_ORGNM" == "zeroincombenze" ]; then
+        if [ "${GIT_ORGID: -4}" == "-git" ]; then
+          GIT_PROT="git"
+        else
+          GIT_PROT="https"
+        fi
+        ODOO_UPSTREAM="https://github.com/OCA"
+      elif [ "$GIT_ORGNM" == "local" ]; then
+        GIT_PROT=
+        ODOO_UPSTREAM=
+      else
+        GIT_PROT="https"
+        ODOO_UPSTREAM=
       fi
       if [ -n "$GIT_PROT" ]; then
         if [ "$GIT_PROT" == "git" ]; then
@@ -200,6 +217,9 @@ build_odoo_param() {
       fi
       if [ "$ITEM" == "GIT_ORG" ]; then
         echo "$GIT_ORG"
+        return
+      elif [ "$ITEM" == "GIT_ORGNM" ]; then
+        echo "$GIT_ORGNM"
         return
       elif [ "$ITEM" == "URL" ]; then
         if [ -n "$GIT_ORG" ]; then
@@ -458,33 +478,50 @@ discover_multi() {
 
 
 module_list() {
-#module_list(odoo_fver excl_list)
-    local res=OCB
+#module_list(odoo_fver excl_list [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
+    local res=
     local fn nm v
     local odoo_fver=$1
-    local excl_list="$2"
-    DEFMLIST="OCB account-closing account-financial-reporting account-financial-tools\
-    account-invoicing account-payment bank-payment connector knowledge l10n-italy\
-    l10n-italy-supplemental partner-contact product-attribute reporting-engine\
-    report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
-    stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
-    7.0/account_banking_cscs account_invoice_create_payment account_payment_approve_invoice\
-    zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
-    project event pylint-odoo operating-unit sale-reporting bank-statement-import\
-    account-invoice-reporting hr hr-timesheet manufacture survey management-system\
-    margin-analysis pos rma queue e-commerce delivery-carrier contract\
-    multi-company vertical-education bank-statement-reconcile vertical-isp\
-    geospatial account-fiscal-rule vertical-association runbot-addons \
-    stock-logistics-reporting project-reporting edi product-variant \
-    manufacture-reporting purchase-reporting intrastat sale-financial \
-    interface-github connector-odoo2odoo webhook product-kitting \
-    7.0/cscs_addons"
+    local excl_list="${2//,/ }"
+    local org=$3
+    local GIT_ORGNM
+    if [ -n "$3" ]; then
+      if [[ " zeroincombenze zero zero-git zero-http " =~ " $3 " ]]; then
+        org="zeroincombenze"
+      elif [[ " oia oia-git oia-http " =~ " $3 " ]]; then
+        org="Odoo-Italia-Associazione"
+      else
+        org="OCA"
+      fi
+    else
+      org=
+    fi
     for fn in $DEFMLIST; do
       v=$(dirname $fn)
       if [ "$v" == "." -o "$v" == "$odoo_fver" ]; then
         nm=$(basename $fn)
-        if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
-          res="$res $nm"
+        if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] && ! " $excl_list " =~ [[:space:]]$odoo_fver/$nm[[:space:]] ]]; then
+          if [ -n "$org" ]; then
+            if [[ "$REPT_EXCL_MATRIX" =~ "/$nm," ]]; then
+              r=$(echo "$REPT_EXCL_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
+              r=${r:0: -1}
+              IFS=/ read GIT_ORGNM x <<<$r
+              if [ "$GIT_ORGNM" == "$org" ]; then
+                continue
+              fi
+            elif [[ "$REPT_ORG_MATRIX" =~ "/$nm," ]]; then
+              r=$(echo "$REPT_ORG_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
+              r=${r:0: -1}
+              IFS=/ read GIT_ORGNM x <<<$r
+            else
+              GIT_ORGNM=$org
+            fi
+            if [ "$GIT_ORGNM" == "$org" ]; then
+              res="$res $nm"
+            fi
+          else
+            res="$res $nm"
+          fi
         fi
       fi
     done

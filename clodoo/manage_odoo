@@ -278,24 +278,12 @@ sub_list=
 excl_list="$INVALID_MODNAMES"
 if [ -z $opt_excl ]; then
   if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_modules" ]; then
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,website/7.0,account_banking_cscs/v7,account_banking_cscs/8.0,account_banking_cscs/9.0,account_banking_cscs/10.0,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,connector-odoo2odoo,webhook,interface-github,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
+    opt_excl="v7/OCB"
   else
-    opt_excl="OCB/v7,cscs_addons,l10n-italy/7.0,l10n-italy-supplemental,website/7.0,account_banking_cscs,account_invoice_create_payment,account_payment_approve_invoice,zeroincombenze,openerp_gantt_chart_modification,connector,social,bank-statement-import,pylint-odoo,operating-unit,event,survey,account-invoice-reporting,manufacture,survey,margin-analysis,vertical-association,runbot-addons,intrastat,webhook,interface-github,connector-odoo2odoo,product-kitting,vertical-isp,vertical-education,website-cms,hr,hr-timesheet,management-system,rma,queue,e-commerce,delivery-carrier,bank-statement-reconcile,geospatial,account-fiscal-rule,pos,contract,sale-reporting,purchase-reporting,manufacture-reporting,sale-financial,edi,stock-logistics-reporting,project-reporting,product-variant"
+    opt_excl=""
   fi
 fi
 opt_excl="${opt_excl//,/ }"
-if [[ " $opt_excl " =~ [[:space:]]themes[[:space:]] ]]; then
-  :
-else
-  opt_excl="$opt_excl themes"
-fi
-if [[ " $opt_excl " =~ [[:space:]]website/7.0[[:space:]] ]]; then
-  :
-elif [[ " $opt_excl " =~ [[:space:]]7.0/website[[:space:]] ]]; then
-  :
-else
-  opt_excl="$opt_excl website/7.0"
-fi
 for repo in $opt_excl; do
   if [[ ! "$repo" =~ / ]]; then
     excl_list="$excl_list $repo"
@@ -307,7 +295,7 @@ fi
 for odoo_vid in $opt_branch; do
   odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
   if [ $opt_def -gt 0 ]; then
-    mlist=$(module_list "$odoo_fver" "$excl_list")
+    mlist=$(module_list "$odoo_fver" "$excl_list" "$opt_org")
   else
     mlist=$(explore $odoo_vid)
   fi
