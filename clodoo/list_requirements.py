@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.15'
+__version__ = '0.3.6.16'
 
 
 REQVERSION = {
@@ -29,7 +29,7 @@ REQVERSION = {
     'Pillow': '==3.4.2',       # Warning! 10.0 require 3.4.1
     'psutil': '==4.3.1',
     'psycogreen': '==1.0',
-    'psycopg2': '==2.6.2',
+    'psycopg2': '>=2.0.0',     # Warning! 10.0 require 2.6.2
     'pygments': '==2.0.2',
     'pydot': '==1.2.3',
     'pylint': '==1.6.4',
