@@ -6,7 +6,7 @@ import os
 import z0lib
 
 
-__version__ = '0.3.6.16'
+__version__ = '0.3.6.17'
 
 
 REQVERSION = {
@@ -170,6 +170,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
+                     'stdnum',
                      'vatnumber',
                      'Werkzeug',
                      ]
