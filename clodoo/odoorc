@@ -57,8 +57,34 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "OCA/commission,Odoo-Italia-Associazione/user_contributes,"\
 "local/didotech_80,local/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
-"zeroincombenze/l10n-italy-supplemental,"
-REPT_EXCL_MATRIX="Odoo-Italia-Associazione/OCB"
+"zeroincombenze/l10n-italy-supplemental,OCA/connector,OCA/social,OCA/event,"\
+"OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
+"OCA/e-commerce,OCA/delivery-carrier,OCA/contract,OCA/vertical-education,"\
+"OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,OCA/account-fiscal-rule"\
+"OCA/account-fiscal-rule,OCA/vertical-association,OCA/runbot-addons,"\
+"OCA/stock-logistics-reporting,OCA/project-reporting,OCA/edi,OCA/product-variant,"\
+"OCA/manufacture-reporting,OCA/purchase-reporting,OCA/intrastat,OCA/sale-financial,"\
+"OCA/interface-github,OCA/connector-odoo2odoo,OCA/webhook,OCA/product-kitting"
+REPT_EXCL_MATRIX="Odoo-Italia-Associazione/OCB,Odoo-Italia-Associazione/account-closing,"\
+"Odoo-Italia-Associazione/account-financial-reporting,Odoo-Italia-Associazione/account-financial-tools,"\
+"Odoo-Italia-Associazione/account-invoicing,Odoo-Italia-Associazione/account-payment,"\
+"Odoo-Italia-Associazione/account-payment,Odoo-Italia-Associazione/connector,Odoo-Italia-Associazione/knowledge,"\
+"Odoo-Italia-Associazione/l10n-italy-supplemental,Odoo-Italia-Associazione/partner-contact,"\
+"Odoo-Italia-Associazione/product-attribute,Odoo-Italia-Associazione/reporting-engine,"\
+"Odoo-Italia-Associazione/report-print-send,Odoo-Italia-Associazione/server-tools,"\
+"Odoo-Italia-Associazione/stock-logistics-barcode,"\
+"Odoo-Italia-Associazione/stock-logistics-tracking,Odoo-Italia-Associazione/stock-logistics-warehouse,"\
+"Odoo-Italia-Associazione/stock-logistics-workflow,Odoo-Italia-Associazione/web,"\
+"Odoo-Italia-Associazione/webkit-tools,Odoo-Italia-Associazione/website,"\
+"Odoo-Italia-Associazione/account_invoice_create_payment,Odoo-Italia-Associazione/account_payment_approve_invoice,"\
+"Odoo-Italia-Associazione/crm,Odoo-Italia-Associazione/website-cms,Odoo-Italia-Associazione/sale-reporting,"\
+"Odoo-Italia-Associazione/bank-statement-import,Odoo-Italia-Associazione/account-invoice-reporting,"\
+"Odoo-Italia-Associazione/hr,Odoo-Italia-Associazione/hr-timesheet,"\
+"Odoo-Italia-Associazione/management-system,Odoo-Italia-Associazione/margin-analysis,Odoo-Italia-Associazione/pos,"\
+"zeroincombenze/account_invoice_create_payment,zeroincombenze/account_payment_approve_invoice,"\
+"zeroincombenze/website-cms,zeroincombenze/sale-reporting,zeroincombenze/bank-statement-import,"\
+"zeroincombenze/account-invoice-reporting,zeroincombenze/hr,zeroincombenze/hr-timesheet,"\
+"zeroincombenze/margin-analysis,zeroincombenze/pos,"
 
 get_odoo_major_ver() {
     local v=$(echo "$1"|grep -Eo "[0-9]+"|head -n1)
@@ -162,8 +188,8 @@ build_odoo_param() {
         GIT_ORGNM=""
         GIT_PROT=""
         ODOO_UPSTREAM=
-      elif [[ "$REPT_ORG_MATRIX" =~ "/$RPTNAME," ]]; then
-        r=$(echo "$REPT_ORG_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$RPTNAME,")
+      elif [[ "$REPT_ORG_MATRIX," =~ "/$RPTNAME," ]]; then
+        r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$RPTNAME,")
         r=${r:0: -1}
         IFS=/ read GIT_ORGNM x <<<$r
       elif [ "$GIT_ORGID" == "oca" ]; then
@@ -502,15 +528,17 @@ module_list() {
         nm=$(basename $fn)
         if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] && ! " $excl_list " =~ [[:space:]]$odoo_fver/$nm[[:space:]] ]]; then
           if [ -n "$org" ]; then
-            if [[ "$REPT_EXCL_MATRIX" =~ "/$nm," ]]; then
-              r=$(echo "$REPT_EXCL_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
+            if [[ "$REPT_EXCL_MATRIX," =~ "/$nm," ]]; then
+              r=$(echo "$REPT_EXCL_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
               r=${r:0: -1}
               IFS=/ read GIT_ORGNM x <<<$r
+              echo "<<<$nm==$r>>>"
               if [ "$GIT_ORGNM" == "$org" ]; then
                 continue
               fi
-            elif [[ "$REPT_ORG_MATRIX" =~ "/$nm," ]]; then
-              r=$(echo "$REPT_ORG_MATRIX"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
+            fi
+            if [[ "$REPT_ORG_MATRIX," =~ "/$nm," ]]; then
+              r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
               r=${r:0: -1}
               IFS=/ read GIT_ORGNM x <<<$r
             else
