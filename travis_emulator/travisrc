@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.1.5
+#__version__=0.2.1.6
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -13,28 +13,18 @@ XRGI="^(.*\/|)conf\/.*sample$"
 opts_travis() {
 #opts_travis(pkgname)
     if [ -n "$1" ]; then
-      if [ ${pkg:0:6} == "local/" ]; then
-        PKGPATH=${pkg:6}
-        REMOTEREPO="local"
-      elif [ ${pkg:0:5} == "odoo/" -o ${pkg:0:5} == "ODOO/" ]; then
-        PKGPATH=${pkg:5}
-        REMOTEREPO="ODOO"
-      elif [ ${pkg:0:4} == "oca/" -o ${pkg:0:4} == "OCA/" ]; then
-        PKGPATH=${pkg:4}
-        REMOTEREPO="OCA"
-      else
-        PKGPATH=$pkg
-        REMOTEREPO="local"
-      fi
-      if [ -z "$PKGPATH" ]; then
-        PKGPATH=$PWD
-      fi
+      IFS="/" read REMOTEREPO dummy <<< "$1"
     else
-      PKGPATH=$PWD
       REMOTEREPO="local"
     fi
+    PKGPATH=$PWD
     PKGPATH=$(set_pkgpath "$PKGPATH")
     set_pkgname $PKGPATH
+    if [ -z "$REMOTEREPO" ]; then
+      export TRAVIS_REPO_SLUG=local/$PKGNAME
+    else
+      export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
+    fi
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       TCONF=$opt_conf
     else
@@ -49,13 +39,6 @@ opts_travis() {
     fi
     if [ ${test_mode:-0} -gt 0 ]; then
       opt_dry_run=1
-    fi
-    # local x=$(A=${PWD#*/*/}; echo ${A%%/*})
-    # if [ "$x" == "travis" ]; then
-    if [ "$TRAVIS" == "true" ]; then
-      HOSTENV=travis
-    else
-      HOSTENV=local
     fi
 }
 
@@ -281,16 +264,17 @@ init_travis() {
       if [ "$PKGNAME" == "OCB" ]; then
         REPOSNAME=
       fi
-      BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
-      if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
-        :
-      elif [[ $BRANCH =~ ^(v7|v8|v9|v10|v11)$ ]] ; then
-        BRANCH=${BRANCH:1}.0
-      elif [ ${test_mode:-0} -ne 0 ]; then
-        BRANCH=master
-      else
-        BRANCH=7.0
-      fi
+      BRANCH=$(build_odoo_param FULLVER ".")
+      # BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
+      # if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
+      #   :
+      # elif [[ $BRANCH =~ ^(v7|v8|v9|v10|v11)$ ]] ; then
+      #   BRANCH=${BRANCH:1}.0
+      # elif [ ${test_mode:-0} -ne 0 ]; then
+      #   BRANCH=master
+      # else
+      #   BRANCH=7.0
+      # fi
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
       else
@@ -384,30 +368,24 @@ create_virtual_env() {
     if [ ${opt_virt:-0} -eq 0 ]; then
       mkdir -p $TRAVIS_HOME
       cd $TRAVIS_HOME
+      export TRAVIS=false
     else
       PKGPATH=$(set_pkgpath "")
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       cd $TRAVIS_HOME
       source bin/activate
       if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
-        TRAVIS=false
+        export TRAVIS=true
+      else
+        export TRAVIS=false
       fi
     fi
     export HOME=$TRAVIS_HOME
     mkdir -p $TRAVIS_HOME/build
-    if [ -z "$REMOTEREPO" ]; then
-      TRAVIS_REPO_SLUG=local/$PKGNAME
-    else
-      TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
-    fi
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     mkdir -p $TRAVIS_BUILD_DIR
-    if [ ${opt_virt:-0} -eq 0 ]; then
-      run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
-    else
-      run_traced "cp -R $TRAVIS_CWD $TRAVIS_BUILD_DIR"
-    fi
+    run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
     # run_traced "export REPO_CACHED=$HOME_BRANCH"
     run_traced "cd $TRAVIS_BUILD_DIR"
@@ -510,7 +488,6 @@ prepare_env_travis() {
     export PRJPATH
     export PKGPATH
     export PKGNAME
-    export HOSTENV
     export LGITPATH
 }
 
@@ -527,7 +504,6 @@ check_4_travis() {
 do_chkconfig() {
     echo "Project name   = \"$PRJNAME\""
     echo "Tools path     = \"$TOOLS_PATH\" -r=\"$DEVPATH\""
-    echo "Hosted         = \"$HOSTENV\""
     echo "Branch         = \"$BRANCH\""
     echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
     echo "Version        = \"$prjversion\""
@@ -651,88 +627,6 @@ set_pkgname() {
     fi
 }
 
-build_pkgurl() {
-# build_pkgurl(pkgname oca|zero|zero-http|zero-git|oia|oia-http URL|RPT|OPTS|ASM|UPSTREAM|RORIGIN|RUPSTREAM)
-    local MODNAME=$1
-    local RPT=$2
-    local ITEM=$3
-    local p r x y
-    if [ "$MODNAME" == "openerp_gantt_chart_modification" ]; then
-      local ODOO_RPT="https://github.com/acespritech"
-      local ODOO_UPSTREAM=
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$MODNAME" == "l10n-italy-supplemental" ]; then
-      if [ "$RPT" == "zero-http" ]; then
-        local ODOO_RPT="https://github.com/zeroincombenze"
-        local OPTS_GIT="--depth 1 --single-branch"
-        local OPTS_ASM="-1"
-      else
-        local ODOO_RPT="git@github.com:zeroincombenze"
-        local OPTS_GIT=""
-        local OPTS_ASM=
-      fi
-      local ODOO_UPSTREAM=
-    elif [ "$RPT" == "oca" ]; then
-      local ODOO_RPT="https://github.com/OCA"
-      local ODOO_UPSTREAM=
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$RPT" == "zero" -o "$RPT" == "zeroincombenze" -o "$RPT" == "zero-git" ]; then
-      local ODOO_RPT="git@github.com:zeroincombenze"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT=""
-      local OPTS_ASM=""
-    elif [ "$2" == "oia" ]; then
-      local ODOO_RPT="git@github.com:Odoo-Italia-Associazione"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT=""
-      local OPTS_ASM=""
-    elif [ "$RPT" == "zero-http" ]; then
-      local ODOO_RPT="https://github.com/zeroincombenze"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    elif [ "$RPT" == "oia-http" ]; then
-      local ODOO_RPT="https://github.com/Odoo-Italia-Associazione"
-      local ODOO_UPSTREAM="https://github.com/OCA"
-      local OPTS_GIT="--depth 1 --single-branch"
-      local OPTS_ASM="-1"
-    else
-      echo "Odoo repository is one of oca|zero|zero-http|zero-git|oia|oia-http"
-      sts=1
-      exit $sts
-    fi
-    if [ "$ITEM" == "RPT" ]; then
-      echo "$ODOO_RPT"
-    elif [ "$ITEM" == "URL" ]; then
-      local pkg_URL="$ODOO_RPT/$MODNAME.git"
-      echo "$pkg_URL"
-    elif [ "$ITEM" == "UPSTREAM" ]; then
-      if [ -n "$ODOO_UPSTREAM" ]; then
-        local pkg_URL="$ODOO_UPSTREAM/$MODNAME.git"
-      else
-        local pkg_URL=
-      fi
-      echo "$pkg_URL"
-    elif [ "$ITEM" == "OPTS" ]; then
-      echo "$OPTS_GIT"
-    elif [ "$ITEM" == "ASM" ]; then
-      echo "$OPTS_ASM"
-    elif [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" ]; then
-      p=${ITEM,,}
-      p=${p:1}
-      IFS=- read x y <<<$RPT
-      r=$(git remote -v 2>/dev/null|grep "$p_$x.*push"|head -n1|awk '{ print $2}')
-      if [  -z "$r" ]; then
-        r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
-      fi
-      echo "$r"
-    else
-      echo ""
-    fi
-}
-
 install_dev() {
     if [ "$USER" == "openerp" -o "$USER" == "odoo" ]; then
       local yod=$(date +%Y)
@@ -753,7 +647,6 @@ install_dev() {
       fi
     fi
 }
-
 
 update_dev() {
     XDPATH=$(dirname $MAKEF)

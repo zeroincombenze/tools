@@ -28,6 +28,12 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
@@ -37,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.5
+__version__=0.2.1.6
 
 
 #
@@ -339,7 +345,8 @@ cvt_gitmodule() {
           IFS== read p v <<<$lne
           lne=$(echo $p)
           if [ "$lne" == "url" ]; then
-            url=$(build_pkgurl $submod $urlty URL)
+            # url=$(build_pkgurl $submod $urlty URL)
+            url=$(build_odoo_param URL '' $submod $urlty)
             lne=$(echo $v)
             if [ "$lne" != "$url" ]; then
               v="${line//$lne/$url}"
@@ -1637,9 +1644,11 @@ do_distribution() {
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
+    # local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
+    local gitprj=$(build_odoo_param RUPSTREAM '' $1 $2)
     if [ -z "$gitprj" ]; then
-      gitprj=$(build_pkgurl $1 $2 RORIGIN)
+      # gitprj=$(build_pkgurl $1 $2 RORIGIN)
+      local gitprj=$(build_odoo_param RORIGIN '' $1 $2)
     fi
     if [ $travis_passed -eq 0 ]; then
       if [ $opt_orig -gt 0 ]; then
@@ -1757,8 +1766,10 @@ do_distribution() {
         fi
       fi
       if [ -z "$REPOSNAME" ]; then
-        local ro=$(build_pkgurl $1 $2 RORIGIN)
-        local lo=$(build_pkgurl $1 $2 URL)
+        # local ro=$(build_pkgurl $1 $2 RORIGIN)
+        local ro=$(build_odoo_param RORIGIN '' $1 $2)
+        # local lo=$(build_pkgurl $1 $2 URL)
+        local lo=$(build_odoo_param URL '' $1 $2)
         if [ "$ro" != "$lo" ]; then
           if [ -n "$ro" ]; then
             run_traced "git remote remove origin"
@@ -1769,8 +1780,10 @@ do_distribution() {
           fi
         fi
         if [ "$1" != "l10n-italy-supplemental" ]; then
-          local ro=$(build_pkgurl $1 $2 RUPSTREAM)
-          local lo=$(build_pkgurl $1 $2 UPSTREAM)
+          # local ro=$(build_pkgurl $1 $2 RUPSTREAM)
+          local ro=$(build_odoo_param RUPSTREAM '' $1 $2)
+          # local lo=$(build_pkgurl $1 $2 UPSTREAM)
+          local lo=$(build_odoo_param UPSTREAM '' $1 $2)
           if [ "$ro" != "$lo" ]; then
             if [ -n "$ro" ]; then
               run_traced "git remote remove upstream"
@@ -1968,7 +1981,8 @@ do_synchro() {
             opts=-f
           fi
         fi
-        local ro=$(build_pkgurl $1 $2 RORIGIN)
+        # local ro=$(build_pkgurl $1 $2 RORIGIN)
+        local ro=$(build_odoo_param RORIGIN '' $1 $2)
         run_traced "git push $opts $ro"
         restore_owner
         git remote -v
@@ -2133,7 +2147,8 @@ elif [ "$action" == "config" ]; then
       r="origin_$sub1"
       x=$(git remote|grep $r)
       if [ -z "$x" ]; then
-        ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+        # ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+        local ro=$(build_odoo_param RORIGIN '' $PKGNAME $sub1)
         run_traced "git remote add $r $ro"
         run_traced "git remote set-url --add --push $r $ro"
       fi

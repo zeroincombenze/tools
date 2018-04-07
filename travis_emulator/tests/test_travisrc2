@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.5
+__version__=0.2.1.6
 
 
 save_testenv() {
@@ -374,6 +374,7 @@ test_04() {
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    BRANCH=9.0
     if [ -d ~/9.0 ]; then
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         opt_verbose=1
@@ -479,10 +480,18 @@ test_06() {
 }
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_travis_em.log "$@" "-J"
+parseoptest -l$TESTDIR/test_travis_em.log "$@" "-JO"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
+fi
+if [ ${opt_oeLib:-0} -ne 0 ]; then
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+  if [ -z "$ODOOLIBDIR" ]; then
+    echo "Library file odoorc not found!"
+    exit 2
+  fi
+  . $ODOOLIBDIR
 fi
 if [ $opt_tjLib -ne 0 ]; then
   TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
@@ -492,6 +501,7 @@ if [ $opt_tjLib -ne 0 ]; then
   fi
   . $TRAVISLIBDIR
 fi
+
 
 UT1_LIST=""
 UT_LIST=""

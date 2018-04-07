@@ -33,12 +33,18 @@
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
-THIS=$(basename $0)
+THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib . .. /etc; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -47,7 +53,13 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $TDIR/../travis_emulator $TDIR/../../travis_emulator . .. $HOME/dev")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -56,7 +68,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.5
+__version__=0.2.1.6
 
 
 store_cfg_param_value() {
@@ -123,7 +135,6 @@ process_yaml_init() {
     else
       YML_lisa=lisa
     fi
-    TRAVIS=false
     TRAVIS_DEBUG_MODE="0"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
@@ -497,7 +508,7 @@ process_yaml_run_cmd() {
     c=$xcmd
     if [ "$FH" == "RHEL" ]; then
       if [[ $xcmd =~ which[[:space:]]nodejs ]]; then
-        xcmd=$(echo "$xcmd"|sed -e s/nodejs/node/g) 
+        xcmd=$(echo "$xcmd"|sed -e s/nodejs/node/g)
       fi
     fi
     read -r -a x<<<"$xcmd"
@@ -563,11 +574,7 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        if [ ${opt_virt:-0} -eq 0 ]; then
-          xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
-        else
-          xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
-        fi
+        xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -642,10 +649,10 @@ process_yaml_run_cmd() {
       xcmd=${xcmd/mv /cp -R }
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
-    # elif [ "${x[$ix]}" == "npm" -a "${x[$ix1]}" == "install" ]; then
-    #   xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
       # xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
+      xcmd="# $xcmd"
+    elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "sh" ]; then
       xcmd="# $xcmd"
@@ -668,9 +675,9 @@ process_yaml_run_cmd() {
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. && ! "$YML_repo" == "odoo/odoo" ]]; then 
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. && ! "$YML_repo" == "odoo/odoo" ]]; then
           xcmd="# $xcmd"
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. && ! "$YML_repo" == "OCA/OCB" ]]; then 
+        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. && ! "$YML_repo" == "OCA/OCB" ]]; then
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
@@ -747,7 +754,7 @@ process_yaml() {
       create_virtual_env
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       wlog "===== [System informations] ====="
-      for lne in HOSTENV TCONF YML_FILE YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_CWD TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH; do
+      for lne in TCONF YML_FILE YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_CWD TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
@@ -837,28 +844,29 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        f         H        j        k        M          m       n            p        q           r     V           v           w)
-OPTDEST=(opt_help opt_branch opt_conf opt_force opt_virt opt_dprj opt_keep opt_dbgmnt opt_mis opt_dry_run  opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait)
-OPTACTI=(1        "="        "="      1         1        1        1        1          1       "1>"         1        0           1     "*>"        "+"         1)
-OPTDEFL=(0        10.0       ""       0         -1       0        0        0          0       0            0        -1          0     ""          -1          0)
-OPTMETA=("help"   "branch"   "file"   ""        ""       "dprj"   ""       ""         ""      "do nothing" ""       "verbose"   "res" "version"   "verbose"   "")
+OPTOPTS=(h        b          c        f         j        k        M          m       n            O         p        q           r     V           v           w        W)
+OPTDEST=(opt_help opt_branch opt_conf opt_force opt_dprj opt_keep opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
+OPTACTI=(1        "="        "="      1         1        1        1          1       "1>"         "="       1        0           1     "*>"        "+"         1        1)
+OPTDEFL=(0        10.0       ""       0         0        0        0          0       0            "local"   0        -1          0     ""          -1          0        0)
+OPTMETA=("help"   "branch"   "file"   ""        "dprj"   ""       ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
  "force yaml to run w/o cmd subst"\
- "use virtualenv to run tests"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
- "keep Db after tests"\
+ "keep DB after tests"\
  "use local MQT"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
+ "git organization, i.e. oca or zeroincombenze"\
  "prefer python test over bash test when avaiable"\
  "silent mode"\
  "run restricted mode (w/o parsing travis.yml file)"\
  "show version"\
  "verbose mode"\
- "wait for another instance running")
-OPTARGS=(pkg action sub)
+ "wait for another instance running"\
+ "use virtualenv to run tests")
+OPTARGS=(action sub)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -872,7 +880,6 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 if [ -z "$action" ]; then action=all; fi
-if [ -z $pkg ]; then pkg="."; fi
 ACTIONS="check test all setup chkconfig parseyaml"
 VIRTACTS="check test all"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
@@ -886,7 +893,7 @@ else
   echo "action should be one of $ACTIONS"
   exit $STS_FAILED
 fi
-opts_travis "$pkg"
+opts_travis "$opt_org"
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

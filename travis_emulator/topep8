@@ -37,14 +37,8 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
-if [ -z "$TRAVISLIBDIR" ]; then
-  echo "Library file travisrc not found!"
-  exit 2
-fi
-. $TRAVISLIBDIR
 
-__version__=0.2.1.5
+__version__=0.2.1.6
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -246,7 +240,7 @@ format_xml() {
           fi
         fi
         echo "$line">>$fntmp
-        [ -z "$line" ] && empty=1 || empty=0 
+        [ -z "$line" ] && empty=1 || empty=0
       done < "$fn"
     fi
     [ $empty -eq 0 ] && echo "">>$fntmp
