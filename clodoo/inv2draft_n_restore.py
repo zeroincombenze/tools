@@ -9,7 +9,7 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.6.17"
+__version__ = "0.3.6.18"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
@@ -267,30 +267,21 @@ def print_move_info(inv_id):
 parser = parseoptargs("Set invoice status",
                       "© 2017-2018 by SHS-AV s.r.l.",
                       version=__version__)
-
-
 parser.add_argument('-h')
-
-
 parser.add_argument("-c", "--config",
                     help="configuration command file",
                     dest="conf_fn",
                     metavar="file",
                     default='./inv2draft_n_restore.conf')
-
-
+parser.add_argument("-d", "--dbname",
+                    help="DB name",
+                    dest="db_name",
+                    metavar="file",
+                    default='demo')
 parser.add_argument('-n')
-
-
 parser.add_argument('-q')
-
-
 parser.add_argument('-V')
-
-
 parser.add_argument('-v')
-
-
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 oerp, uid, ctx = clodoo.oerp_set_env(ctx=ctx)
 print "Invoice set Draft and Restore - %s" % __version__

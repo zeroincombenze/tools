@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.6.17
+__version__=0.3.6.18
 
 
 test_01() {
@@ -561,13 +561,24 @@ test_06() {
  zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
  project event pylint-odoo operating-unit sale-reporting bank-statement-import\
  account-invoice-reporting hr hr-timesheet manufacture survey management-system\
- margin-analysis pos rma queue e-commerce delivery-carrier contract\
- multi-company vertical-education bank-statement-reconcile vertical-isp\
- geospatial account-fiscal-rule vertical-association runbot-addons\
- stock-logistics-reporting project-reporting edi product-variant\
- manufacture-reporting purchase-reporting intrastat sale-financial\
- interface-github connector-odoo2odoo webhook product-kitting\
- cscs_addons"
+ margin-analysis pos rma queue e-commerce delivery-carrier contract multi-company\
+ vertical-education bank-statement-reconcile vertical-isp geospatial account-fiscal-rule\
+ vertical-association runbot-addons stock-logistics-reporting project-reporting\
+ edi product-variant manufacture-reporting purchase-reporting intrastat sale-financial\
+ interface-github connector-odoo2odoo webhook product-kitting cscs_addons user_contributes\
+ account-reconcile OpenUpgrade account-analytic server-brand server-auth\
+ maintainer-quality-tools odoo-sentinel openupgradelib donation server-ux\
+ stock-logistics-transport connector-interfaces connector-infor maintainer-tools\
+ currency connector-telephony server-env connector-prestashop ddmrp website-themes\
+ ansible-odoo mis-builder connector-lengow business-requirement margin-analysis\
+ connector-magento connector-cmis account-consolidation connector-ecommerce\
+ server-backend vertical-medical vertical-hotel community-data-files apps-store\
+ project-agile connector-woocommerce account-budgeting odoorpc oca-custom\
+ calendar oca-decorators vertical-ngo connector-redmine vertical-abbey\
+ maintenance odoo-sphinx-autodoc vertical-travel vertical-edition vertical-construction\
+ vertical-community vertical-agriculture infrastructure-dns dotnet connector-salesforce\
+ connector-sage connector-lims connector-accountedge vertical-realestate\
+ connector-magento-php-extension"
     local RES=$(module_list "7.0")
     test_result "Module list 7.0" "$TRES" "$RES"
 
@@ -576,37 +587,36 @@ test_06() {
  l10n-italy-supplemental partner-contact product-attribute reporting-engine\
  report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
  stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
- account_invoice_create_payment account_payment_approve_invoice\
- zeroincombenze social sale-workflow commission purchase-workflow crm website-cms\
- project event pylint-odoo operating-unit sale-reporting bank-statement-import\
+ account_invoice_create_payment account_payment_approve_invoice zeroincombenze\
+ social sale-workflow commission purchase-workflow crm website-cms project event\
+ pylint-odoo operating-unit sale-reporting bank-statement-import\
  account-invoice-reporting hr hr-timesheet manufacture survey management-system\
  margin-analysis pos rma queue e-commerce delivery-carrier contract\
  multi-company vertical-education bank-statement-reconcile vertical-isp\
  geospatial account-fiscal-rule vertical-association runbot-addons\
  stock-logistics-reporting project-reporting edi product-variant\
  manufacture-reporting purchase-reporting intrastat sale-financial\
- interface-github connector-odoo2odoo webhook product-kitting"
+ interface-github connector-odoo2odoo webhook product-kitting user_contributes\
+ account-reconcile OpenUpgrade account-analytic server-brand\
+ server-auth maintainer-quality-tools odoo-sentinel openupgradelib donation\
+ server-ux stock-logistics-transport connector-interfaces connector-infor\
+ maintainer-tools currency connector-telephony server-env connector-prestashop\
+ ddmrp website-themes ansible-odoo mis-builder connector-lengow\
+ business-requirement margin-analysis connector-magento connector-cmis\
+ account-consolidation connector-ecommerce server-backend vertical-medical\
+ vertical-hotel community-data-files apps-store project-agile\
+ connector-woocommerce account-budgeting odoorpc oca-custom calendar\
+ oca-decorators vertical-ngo connector-redmine vertical-abbey maintenance\
+ odoo-sphinx-autodoc vertical-travel vertical-edition vertical-construction\
+ vertical-community vertical-agriculture infrastructure-dns dotnet\
+ connector-salesforce connector-sage connector-lims connector-accountedge\
+ vertical-realestate connector-magento-php-extension"
     local RES=$(module_list "8.0")
     test_result "Module list 8.0" "$TRES" "$RES"
 
-    TRES="OCB account-closing account-financial-reporting account-financial-tools\
- account-invoicing account-payment bank-payment connector knowledge l10n-italy\
- partner-contact product-attribute reporting-engine\
- report-print-send server-tools stock-logistics-barcode stock-logistics-tracking\
- stock-logistics-warehouse stock-logistics-workflow web webkit-tools website\
- account_invoice_create_payment account_payment_approve_invoice\
- social crm website-cms\
- event pylint-odoo operating-unit sale-reporting bank-statement-import\
- account-invoice-reporting hr hr-timesheet manufacture survey management-system\
- margin-analysis pos rma queue e-commerce delivery-carrier contract\
- vertical-education bank-statement-reconcile vertical-isp\
- geospatial account-fiscal-rule vertical-association runbot-addons\
- stock-logistics-reporting project-reporting edi product-variant\
- manufacture-reporting purchase-reporting intrastat sale-financial\
- interface-github connector-odoo2odoo webhook product-kitting"
+    TRES="bank-payment l10n-italy user_contributes"
     local RES=$(module_list "7.0" "" "oia")
     test_result "Module list 7.0" "$TRES" "$RES"
-
 }
 
 Z0BUG_setup() {

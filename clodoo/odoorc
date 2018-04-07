@@ -32,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.17
+#__version__=0.3.6.18
 
 
 DEFMLIST="OCB account-closing account-financial-reporting account-financial-tools\
@@ -50,7 +50,19 @@ DEFMLIST="OCB account-closing account-financial-reporting account-financial-tool
  stock-logistics-reporting project-reporting edi product-variant\
  manufacture-reporting purchase-reporting intrastat sale-financial\
  interface-github connector-odoo2odoo webhook product-kitting\
- 7.0/cscs_addons"
+ 7.0/cscs_addons user_contributes account-reconcile OpenUpgrade account-analytic\
+ server-brand server-auth maintainer-quality-tools odoo-sentinel openupgradelib\
+ donation server-ux stock-logistics-transport connector-interfaces connector-infor\
+ maintainer-tools currency connector-telephony server-env connector-prestashop\
+ ddmrp website-themes ansible-odoo mis-builder connector-lengow business-requirement\
+ margin-analysis connector-magento connector-cmis account-consolidation\
+ connector-ecommerce server-backend vertical-medical vertical-hotel community-data-files\
+ apps-store project-agile connector-woocommerce account-budgeting odoorpc oca-custom\
+ calendar oca-decorators vertical-ngo connector-redmine vertical-abbey maintenance\
+ odoo-sphinx-autodoc vertical-travel vertical-edition vertical-construction\
+ vertical-community vertical-agriculture infrastructure-dns dotnet connector-salesforce\
+ connector-sage connector-lims connector-accountedge vertical-realestate\
+ connector-magento-php-extension"
 INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
@@ -60,11 +72,27 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "zeroincombenze/l10n-italy-supplemental,OCA/connector,OCA/social,OCA/event,"\
 "OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
 "OCA/e-commerce,OCA/delivery-carrier,OCA/contract,OCA/vertical-education,"\
-"OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,OCA/account-fiscal-rule"\
+"OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,"\
 "OCA/account-fiscal-rule,OCA/vertical-association,OCA/runbot-addons,"\
 "OCA/stock-logistics-reporting,OCA/project-reporting,OCA/edi,OCA/product-variant,"\
 "OCA/manufacture-reporting,OCA/purchase-reporting,OCA/intrastat,OCA/sale-financial,"\
-"OCA/interface-github,OCA/connector-odoo2odoo,OCA/webhook,OCA/product-kitting"
+"OCA/interface-github,OCA/connector-odoo2odoo,OCA/webhook,OCA/product-kitting,"\
+"OCA/account-reconcile,OCA/OpenUpgrade,OCA/account-analytic,OCA/server-brand,"\
+"OCA/server-auth,OCA/maintainer-quality-tools,OCA/odoo-sentinel,OCA/openupgradelib,"\
+"OCA/donation,OCA/server-ux,OCA/stock-logistics-transport,OCA/connector-interfaces,"\
+"OCA/connector-infor,OCA/maintainer-tools,OCA/currency,OCA/connector-telephony,"\
+"OCA/server-env,OCA/connector-prestashop,OCA/ddmrp,OCA/website-themes,"\
+"OCA/ansible-odoo,OCA/mis-builder,OCA/connector-lengow,OCA/business-requirement,"\
+"OCA/margin-analysis,OCA/connector-magento,OCA/connector-cmis,OCA/account-consolidation,"\
+"OCA/connector-ecommerce,OCA/server-backend,OCA/vertical-medical,OCA/vertical-hotel,"\
+"OCA/community-data-files,OCA/apps-store,OCA/project-agile,OCA/connector-woocommerce,"\
+"OCA/account-budgeting,OCA/odoorpc,OCA/oca-custom,OCA/calendar,OCA/oca-decorators,"\
+"OCA/vertical-ngo,OCA/connector-redmine,OCA/vertical-abbey,OCA/maintenance,"\
+"OCA/odoo-sphinx-autodoc,OCA/vertical-travel,OCA/vertical-edition,"\
+"OCA/vertical-construction,OCA/vertical-community,OCA/vertical-agriculture,"\
+"OCA/infrastructure-dns,OCA/dotnet,OCA/connector-salesforce,OCA/connector-sage,"\
+"OCA/connector-lims,OCA/connector-accountedge,OCA/vertical-realestate,"\
+"OCA/connector-magento-php-extension"
 REPT_EXCL_MATRIX="Odoo-Italia-Associazione/OCB,Odoo-Italia-Associazione/account-closing,"\
 "Odoo-Italia-Associazione/account-financial-reporting,Odoo-Italia-Associazione/account-financial-tools,"\
 "Odoo-Italia-Associazione/account-invoicing,Odoo-Italia-Associazione/account-payment,"\
@@ -529,18 +557,25 @@ module_list() {
         if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] && ! " $excl_list " =~ [[:space:]]$odoo_fver/$nm[[:space:]] ]]; then
           if [ -n "$org" ]; then
             if [[ "$REPT_EXCL_MATRIX," =~ "/$nm," ]]; then
-              r=$(echo "$REPT_EXCL_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
-              r=${r:0: -1}
-              IFS=/ read GIT_ORGNM x <<<$r
-              echo "<<<$nm==$r>>>"
+              for r in $(echo "$REPT_EXCL_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,"); do
+                r=${r:0: -1}
+                IFS=/ read GIT_ORGNM x <<<$r
+                if [ "$GIT_ORGNM" == "$org" ]; then
+                  break
+                fi
+              done
               if [ "$GIT_ORGNM" == "$org" ]; then
                 continue
               fi
             fi
             if [[ "$REPT_ORG_MATRIX," =~ "/$nm," ]]; then
-              r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,")
-              r=${r:0: -1}
-              IFS=/ read GIT_ORGNM x <<<$r
+              for r in $(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$nm,"); do
+                r=${r:0: -1}
+                IFS=/ read GIT_ORGNM x <<<$r
+                if [ "$GIT_ORGNM" == "$org" ]; then
+                  break
+                fi
+              done
             else
               GIT_ORGNM=$org
             fi

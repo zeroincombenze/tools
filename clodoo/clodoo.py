@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.17"
+__version__ = "0.3.6.18"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -296,7 +296,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
               'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
               'psycopg2')
 
-    def oerp_env_fill(ctx=None):
+    def oerp_env_fill(db=None, ctx=None):
         ctx = ctx or {}
         saved = {}
         if 'db_host' not in ctx or not ctx['db_host']:
@@ -354,6 +354,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         lines = fd.read().split('\n')
         for line in lines:
             tkn = line.split('=')
+            tkn = map(lambda x:x.strip(), tkn)
             for p in P_LIST:
                 if tkn[0] == p:
                     if p == 'xmlrpc_port':
@@ -363,14 +364,14 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         fd.close()
     except BaseException:
         write_confn = True
-        ctx, saved = oerp_env_fill(ctx=ctx)
+        ctx, saved = oerp_env_fill(db=db, ctx=ctx)
         for p in (P_LIST):
             if p == 'db_name' and db:
                 ctx[p] = db
             else:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx, saved = oerp_env_fill(ctx=ctx)
-    ctx, saved = oerp_env_fill(ctx=ctx)
+        ctx, saved = oerp_env_fill(db=db, ctx=ctx)
+    ctx, saved = oerp_env_fill(db=db, ctx=ctx)
     oerp = open_connection(ctx)
     ctx = read_config(ctx)
     for p in 'db_name', 'oe_version', 'svc_protocol':
