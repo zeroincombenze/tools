@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.22
+__version__=0.2.1.23
 
 
 cp_n_upd_odoo_conf() {
@@ -154,6 +154,8 @@ fi
 if [ "$mode" == "tools" ]; then
   if [ "${TRAVIS}" == "true" ]; then
     [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa) || LISA=lisa
+  elif [ -n "$YML_lisa" ]; then
+    LISA=$YML_lisa
   else
     LISA=$HOME/tools/lisa/lisa
   fi
@@ -172,8 +174,15 @@ elif [ "${TESTS}" != "1" ]; then
   if [ -z "${ODOO_BRANCH}"  ] ; then
     export ODOO_BRANCH=${VERSION}
   fi
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -O$MQT_TEST_MODE"
-  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -O$MQT_TEST_MODE
+  if [ "${TRAVIS}" == "true" ]; then
+    [ -f $TDIR/../../clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TDIR/../../clodoo/manage_odoo) || MGRODOO=manage_odoo
+  elif [ -n "$YML_mgrodoo" ]; then
+    MGRODOO=$YML_mgrodoo
+  else
+    MGRODOO=$HOME/tools/clodoo/manage_odoo
+  fi
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+  eval $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
   exit $sts
 fi
 if [ "$TRAVIS" == "true" -a "$mode" == "oca" ]; then
@@ -234,8 +243,15 @@ else
     echo "Error cloning dependencies"
     exit $sts
   fi
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero"
-  eval ${HOME}/tools/clodoo/manage_odoo requirements -b'.' -vsy -Ozero
+  if [ "${TRAVIS}" == "true" ]; then
+    [ -f $TDIR/../../clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TDIR/../../clodoo/manage_odoo) || MGRODOO=manage_odoo
+  elif [ -n "$YML_mgrodoo" ]; then
+    MGRODOO=$YML_mgrodoo
+  else
+    MGRODOO=$HOME/tools/clodoo/manage_odoo
+  fi
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -Ozero"
+  eval $MGRODOO requirements -b'.' -vsy -Ozero
   if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
     echo "Content of ${HOME}:"
     ls -l ${HOME}

@@ -32,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.18
+#__version__=0.3.6.20
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -166,7 +166,7 @@ build_odoo_param() {
     local p p1 p11 p2 p3 p4 ldir r x
     if [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" -o "$2" == "." ]; then
       RPTNAME=$(basename $PWD)
-      if [[ $RPTNAME =~ (v|V|odoo|ODOO|ocb|OCB|oca|oia)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $RPTNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         RPTNAME="OCB"
       fi
     else
@@ -192,7 +192,7 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [ -n "$2" ]; then
-      if [[ $2 =~ (v|V|odoo|ODOO|ocb|OCB|oca|oia)?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $2 =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         odoo_fver=$(get_odoo_full_ver "$2")
       elif [[ "$2" == "OCB" ]]; then
         odoo_fver=$(find_odoo_ver "~/OCB")

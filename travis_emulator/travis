@@ -68,7 +68,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.6
+__version__=0.2.1.8
 
 
 store_cfg_param_value() {
@@ -130,10 +130,16 @@ process_yaml_init() {
     YML_script=
     YML_after=
     YML_repo=
+    export TRAVIS_PYTHON_VERSION=2.7
     if [ $opt_dbgmnt -ne 0 ]; then
-      YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+      export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
+      export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+    elif [ -f $HOME/tools/lisa/lisa ]; then
+      export YML_lisa=$HOME/tools/lisa/lisa
+      export YML_mgrodoo=$HOME/tools/clodoo/manage_odoo
     else
-      YML_lisa=lisa
+      export YML_lisa=lisa
+      export YML_mgrodoo=manage_odoo
     fi
     TRAVIS_DEBUG_MODE="0"
     for i in {1..9}; do
@@ -158,21 +164,6 @@ process_yaml_quote_xtl() {
   echo $lne
 }
 
-process_yaml_xtl_pre() {
-    local line
-    line=$(process_yaml_quote_xtl $1)
-    if [ "$action" == "check" ]; then
-      line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]0[\"]/LINT_CHECK=\"1\"/g)
-      line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]0[\"]/BASH_CHECK=\"1\"/g)
-      line=$(echo "$line"|sed -e s/TESTS=[\"]1[\"]/TESTS=\"0\"/g)
-    elif [ "$action" == "test" ]; then
-      line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]1[\"]/LINT_CHECK=\"0\"/g)
-      line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
-      line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
-    fi
-    echo "$line"
-}
-
 process_yaml_do() {
     local a b i
     if [ "${1:0:1}" == " " ]; then
@@ -180,13 +171,35 @@ process_yaml_do() {
     else
       local line="$1"
     fi
-    if [ "${line:0:1}" == "\"" -a "${line: -1}" == "\"" ]; then
+    if [[ "$line" =~ LINT_CHECK=... ]]; then
+      if [ "$action" == "check" ]; then
+        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]0[\"]/LINT_CHECK=\"1\"/g)
+      elif [ "$action" == "test" ]; then
+        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]1[\"]/LINT_CHECK=\"0\"/g)
+      fi
+    elif [[ "$line" =~ BASH_CHECK=... ]]; then
+      if [ "$action" == "check" ]; then
+        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]0[\"]/BASH_CHECK=\"1\"/g)
+      elif [ "$action" == "test" ]; then
+        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
+      fi
+    elif [[ "$line" =~ TESTS=... ]]; then
+      if [ "$action" == "check" ]; then
+        line=$(echo "$line"|sed -e s/TESTS=[\"]1[\"]/TESTS=\"0\"/g)
+      elif [ "$action" == "test" ]; then
+        line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
+      fi
+    fi
+    if [[ "${line:0:1}" == "(" && "${line: -1}" == ")" ]]; then
+      local lne=$(process_yaml_unquote "${line:1: -1}")
+    elif [[ "${line:0:1}" == "\"" && "${line: -1}" == "\"" ]]; then
       line=${line//\\\"/\"}
       local lne=$(process_yaml_unquote "${line:1: -1}")
     else
       local lne=$(process_yaml_unquote "$line")
     fi
     if [ "$YML_sect" == "python" ]; then
+      export TRAVIS_PYTHON_VERSION=$lne
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
       YML_packages="$YML_packages $lne"
@@ -526,6 +539,12 @@ process_yaml_run_cmd() {
       done
       ((ix++))
     fi
+    ix1=$ix
+    ((ix1++))
+    ix2=$ix1
+    ((ix2++))
+    ix3=$ix2
+    ((ix3++))
     if [ "$FH" == "Debian" -a "${x[$ix]}" == "yum" ]; then
       xcmd="$(echo $xcmd|sed -e 's/yum /apt-get /g')"
       x[$ix]="apt-get"
@@ -533,12 +552,6 @@ process_yaml_run_cmd() {
       xcmd="$(echo $xcmd|sed -e 's/apt-get /yum /g')"
       x[$ix]="yum"
     fi
-    ix1=$ix
-    ((ix1++))
-    ix2=$ix1
-    ((ix2++))
-    ix3=$ix2
-    ((ix3++))
     if [ "${x[$ix]}" == "yum" -o "${x[$ix]}" == "apt-get" ]; then
       pp="python-serial libcups2-dev cups-devel unixodbc unixODBC unixodbc-dev unixODBC-dev unixODBC-devel"
       pp="$pp python-mysqldb MYSQL-python python-yaml pyyaml pyYAML PyYAML python-pypdf pypdf pyPdf"
@@ -595,10 +608,13 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
+      if [[ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]]; then
+        x[$ix]="pip3"
+      fi
       if [ ${opt_virt:-0} -eq 0 ]; then
         ix=$ix2
         tk=${x[$ix]}
-        xcmd="# pip install"
+        xcmd="# ${x[$ix]} ${x[$ix1]}"
         while [ -n "${x[$ix]}" ]; do
           if [ "${x[$ix]}" == "-r" -o "${x[$ix]}" == "--requirement" ]; then
             ((ix++))
@@ -637,6 +653,10 @@ process_yaml_run_cmd() {
           ((ix++))
           tk=${x[$ix]}
         done
+      else
+        if ! $(echo $xcmd|grep -q "\--user"); then
+          xcmd=${xcmd/pip install/pip install --user}
+        fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
       if [ $opt_dbgmnt -ne 0 ]; then
@@ -658,6 +678,10 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
       :
+    # elif [ "${x[$ix]}" == "travis_install_env" ]; then
+    #   x=$(dirname $YML_mgrodoo)
+    #   [ "$x" == '.' ] && x='' || x="$x/"
+    #   xcmd="$(echo $xcmd|sed -e s:travis_install_env:${x}travis_install_env:g)"
     else
       if [ -z "$REPOSNAME" ]; then
         pp=$PKGPATH
@@ -754,7 +778,7 @@ process_yaml() {
       create_virtual_env
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       wlog "===== [System informations] ====="
-      for lne in TCONF YML_FILE YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_CWD TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
@@ -879,7 +903,7 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 
-if [ -z "$action" ]; then action=all; fi
+[ -z "$action" ] && action=all
 ACTIONS="check test all setup chkconfig parseyaml"
 VIRTACTS="check test all"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then

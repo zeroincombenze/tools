@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.18
+__version__=0.3.6.20
 
 
 explore() {
@@ -98,20 +98,16 @@ do_action() {
     if [ "$act" == "requirements" ]; then
       [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ LISA=$LISA"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ \$breqs=\$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)"
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
+      [ "$opt_pyver" == "3" ] && PIP=pip3 || PIP=pip
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias pip=$PIP"
       breqs=$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
       [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=\$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-      preqs="$reqs $($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
-      reqs="$breqs $preqs"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"
-      [ -n "$opts" ] && opts="-$opts"
-      for f in $reqs; do
+      for f in $breqs; do
         pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" ]]; then
+        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$PIP" != "pip3" ]]; then
           echo "Check for $f"
         elif [ "$f" == "$pkg" ]; then
           eval $LISA status -q $opts $f
@@ -121,10 +117,15 @@ do_action() {
           else
             run_traced "$LISA install -q $opts $f"
           fi
-        elif [ $EUID -eq 0 ]; then
-          run_traced "pip install -q $f --upgrade --no-deps"
+        fi
+      done
+      preqs="$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
+      for f in $preqs; do
+        if [ $EUID -eq 0 ]; then
+          run_traced "$PIP install -q $f --upgrade --no-deps"
         else
-          run_traced "pip install -q $f --upgrade --no-deps --user"
+          run_traced "$PIP install -q $f --upgrade --no-deps --user"
         fi
       done
       return $sts
@@ -183,7 +184,7 @@ do_action() {
             if [ "$repo" != "OCB" ]; then
               please wep $opts || true
             fi
-            list_requirements.py -vPp $pkgdir -o
+            $TDIR/list_requirements.py -vPp $pkgdir -o
           fi
           $TDIR/addsubm.sh $repo $odoo_vid $opts -O $opt_org -r
         fi
@@ -230,11 +231,11 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       d        m         n            O         q           s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_multi opt_dry_run  opt_org   opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       "="      1         1            "="   0   1           "*>"        "+"         "="       1)
-OPTDEFL=(0        ""         ""       0       ""       0         0            "zero"    -1          0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""        "do nothing" "git-org" "verbose"   ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       d        m         n            O         p         q           s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_multi opt_dry_run  opt_org   opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       "="      1         1            "="       "="       1           1          "*>"        "+"         "="        1)
+OPTDEFL=(0        ""         ""       0       ""       0         0            "zero"    "2"       -1          0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""        "do nothing" "git-org" ""        "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
@@ -243,6 +244,7 @@ OPTHELP=("this help"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
+ "when installer is pip choice python version: may be 2 or 3"
  "silent mode"\
  "no stop after every module/version"\
  "show version"\

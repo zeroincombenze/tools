@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.6
+__version__=0.2.1.8
 
 
 save_testenv() {
@@ -163,11 +163,11 @@ test_01() {
     res=$TDIR/.travis.conf
     test_result "travis.conf" "$res" "$TCONF"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.pkgpath" "$LCLTEST_TMPDIR" "$PKGPATH"
+    test_result "travis.opts_travis (REMOTEREPO)" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.pkgpath" "$LCLTEST_PKGNAME" "$PKGNAME"
+    test_result "travis.opts_travis (PKGPATH)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.repository" "local" "$REMOTEREPO"
+    test_result "travis.opts_travis (PKGNAME)" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
@@ -433,10 +433,11 @@ test_06() {
       PRJNAME=
       CFG_init
       conf_default
-      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
+    test_result "travis.pkgpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.pkgpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.reposname (RPS)" "$LCLTEST_REPOSNAME" "$REPOSNAME"

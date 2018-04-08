@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.1.6
+#__version__=0.2.1.8
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -17,8 +17,7 @@ opts_travis() {
     else
       REMOTEREPO="local"
     fi
-    PKGPATH=$PWD
-    PKGPATH=$(set_pkgpath "$PKGPATH")
+    PKGPATH=$(set_pkgpath "")
     set_pkgname $PKGPATH
     if [ -z "$REMOTEREPO" ]; then
       export TRAVIS_REPO_SLUG=local/$PKGNAME
@@ -622,7 +621,7 @@ set_pkgpath() {
 set_pkgname() {
 #set_pkgname(PKGPATH)
     PKGNAME=$(basename $1)
-    if [[ $PKGNAME =~ ^(v7|6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
+    if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
       PKGNAME=OCB
     fi
 }

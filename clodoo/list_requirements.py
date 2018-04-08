@@ -3,10 +3,11 @@
 import ast
 import sys
 import os
+import re
 import z0lib
 
 
-__version__ = '0.3.6.18'
+__version__ = '0.3.6.20'
 
 
 REQVERSION = {
@@ -182,37 +183,58 @@ BIN_BASE_PACKAGES = ['simplejson',
 
 
 def parse_requirements(reqfile):
+    lines = open(reqfile).read().split('\n')
     reqlist = []
-    for line in reqfile:
+    for line in lines:
         if line and line[0] != '#':
-            reqlist.append(line)
+            items = line.split(';')
+            if len(items) == 1 or eval(items[1].strip().replace('_','.')):
+                reqlist.append(items[0].strip())
     return reqlist
 
 
-def name_n_version(item, with_version=None, odoo_ver=None):
-    versioned = False
+def name_n_version(full_item, with_version=None, odoo_ver=None):
+    item = re.split('[!=<>]', full_item)
+    if len(item) == 1:
+        full_item = ''
+    item = item[0]
     item = os.path.basename(item).split('.')[0]
     if item in ALIAS:
         item = ALIAS[item]
-    if odoo_ver == '10.0':
-        if with_version and item in REQVERSION_10:
-            item = '%s%s' % (item, REQVERSION_10[item])
-            versioned = True
-    else:
-        if with_version and item in REQVERSION:
-            item = '%s%s' % (item, REQVERSION[item])
-            versioned = True
-    return item, versioned
+    defver = False
+    if with_version:
+        if full_item:
+            pass
+        elif odoo_ver in ('10.0', '11.0'):
+            if item in REQVERSION_10:
+                full_item = '%s%s' % (item, REQVERSION_10[item])
+                defver = True
+        else:
+            if with_version and item in REQVERSION:
+                full_item = '%s%s' % (item, REQVERSION[item])
+                defver = True
+    return item, full_item, defver
 
 
 def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
-    full_item, versioned = name_n_version(item,
-                                          with_version=with_version,
-                                          odoo_ver=odoo_ver)
-    if kw == 'python' and versioned:
-        kw = 'python2'
-    if full_item not in deps_list[kw]:
-        deps_list[kw].append(full_item)
+    item, full_item, defver = name_n_version(item,
+                                             with_version=with_version,
+                                             odoo_ver=odoo_ver)
+    if item not in deps_list[kw]:
+        deps_list[kw].append(item)
+        if kw == 'python' and full_item:
+            kw = 'python2'
+            deps_list[kw].append(full_item)
+        else:
+            kw = 'python1'
+            deps_list[kw].append(item)
+    elif full_item:
+        if item in deps_list['python1']:
+            i = deps_list['python1'].index(item)
+            del deps_list['python1'][i]
+            deps_list['python2'].append(full_item)
+        elif not defver:
+            print 'Version mismatch: package %s' % full_item
     return deps_list
 
 
@@ -251,7 +273,7 @@ def package_from_manifest(deps_list, manifest_file,
     return deps_list
 
 
-def add_manifest(root, manifests, files):
+def add_manifest(root, manifests, reqfiles, files):
     for f in files:
         if f == '__openerp__.py':
             ffn = os.path.join(root, f)
@@ -259,7 +281,10 @@ def add_manifest(root, manifests, files):
         elif f == '__manifest__.py':
             ffn = os.path.join(root, f)
             manifests.append(ffn)
-    return manifests
+        elif f == 'requirements.txt':
+            ffn = os.path.join(root, f)
+            reqfiles.append(ffn)
+    return manifests, reqfiles
 
 
 def main():
@@ -286,7 +311,7 @@ def main():
                         dest="out_file",
                         action="store_true")
     parser.add_argument("-p", "--path",
-                        help="Path to search manifest files",
+                        help="Path where search manifest files",
                         dest="odoo_dir",
                         metavar="directory",
                         default="")
@@ -335,17 +360,35 @@ def main():
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
     if ctx['odoo_dir']:
         manifests = []
+        reqfiles = []
         if ctx['oca_dependencies']:
             for root, dirs, files in os.walk(ctx['oca_dependencies'],
                                              followlinks=True):
-                manifests = add_manifest(root, manifests, files)
+                manifests, reqfiles = add_manifest(root,
+                                                   manifests,
+                                                   reqfiles,
+                                                   files)
         for root, dirs, files in os.walk(ctx['odoo_dir']):
-            manifests = add_manifest(root, manifests, files)
+            manifests, reqfiles = add_manifest(root,
+                                               manifests,
+                                               reqfiles,
+                                               files)
     else:
         manifests = ctx['manifests'].split(',')
+        reqfiles = []
     deps_list = {}
-    for kw in ('python', 'python2', 'bin', 'modules'):
+    for kw in ('python', 'python1', 'python2', 'bin', 'modules'):
         deps_list[kw] = []
+    for reqfile in reqfiles:
+        requirements = parse_requirements(reqfile)
+        deps_list = package_from_list(deps_list, 'python', requirements,
+                                      with_version=ctx['with_version'],
+                                      odoo_ver=ctx['odoo_ver'])
+    for manifest_file in manifests:
+        deps_list = package_from_manifest(deps_list,
+                                          manifest_file,
+                                          with_version=ctx['with_version'],
+                                          odoo_ver=ctx['odoo_ver'])
     if ctx['base_pkgs']:
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
                                       with_version=ctx['with_version'],
@@ -364,17 +407,12 @@ def main():
         deps_list = package_from_list(deps_list, 'python', RPC_PACKAGES,
                                       with_version=ctx['with_version'],
                                       odoo_ver=ctx['odoo_ver'])
-    for manifest_file in manifests:
-        deps_list = package_from_manifest(deps_list,
-                                          manifest_file,
-                                          with_version=ctx['with_version'],
-                                          odoo_ver=ctx['odoo_ver'])
     if ctx['out_file']:
         try:
             pkgs = open(ctx['opt_fn']).read().split('\n')
         except BaseException:
             pkgs = []
-        for kw in ('python', 'python2'):
+        for kw in ('python1', 'python2'):
             for p in deps_list[kw]:
                 if p not in pkgs:
                     pkgs.append(p)
@@ -385,7 +423,7 @@ def main():
         print "Updated %s file" % ctx['opt_fn']
         print ctx['sep'].join(pkgs)
     else:
-        deps_list['python'] = deps_list['python'] + deps_list['python2']
+        deps_list['python'] = deps_list['python1'] + deps_list['python2']
         for kw in ('python', 'bin', 'modules'):
             if kw in deps_list:
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
