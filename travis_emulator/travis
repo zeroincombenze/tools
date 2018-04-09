@@ -68,7 +68,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.8
+__version__=0.2.1.9
 
 
 store_cfg_param_value() {
@@ -608,9 +608,6 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "pip" -a "${x[$ix1]}" == "install" ]; then
-      if [[ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]]; then
-        x[$ix]="pip3"
-      fi
       if [ ${opt_virt:-0} -eq 0 ]; then
         ix=$ix2
         tk=${x[$ix]}
@@ -778,6 +775,13 @@ process_yaml() {
       create_virtual_env
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       wlog "===== [System informations] ====="
+      # update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
+      if [ ${opt_virt:-0} -eq 0 -a -f /usr/bin/python$TRAVIS_PYTHON_VERSION ]; then
+        alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
+        alias pip=/usr/bin/pip$TRAVIS_PYTHON_VERSION
+      else
+        wlog "Unsupported pythone version $TRAVIS_PYTHON_VERSION"
+      fi
       for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
