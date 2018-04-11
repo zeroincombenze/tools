@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.20
+__version__=0.3.6.21
 
 
 explore() {
@@ -42,6 +42,9 @@ explore() {
     for fn in $pkgdir/*; do
       if [ -d $fn ]; then
         nm=$(basename $fn)
+        if [[ "$nm" == "__unported__" || ( ! "$nm" == "." && "${nm:0:1}" == ".") ]]; then
+          continue
+        fi
         if [[ ! " $excl_list " =~ [[:space:]]$nm[[:space:]] ]] ; then
           res="$res $nm"
         fi
@@ -99,33 +102,52 @@ do_action() {
       [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
-      [ "$opt_pyver" == "3" ] && PIP=pip3 || PIP=pip
+      PIP=pip
+      if [ "$opt_pyver" == "3" ]; then
+        [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
+        [ -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
+        [ -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
+      fi
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias pip=$PIP"
       breqs=$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
       opts=
       [ $opt_yes -ne 0 ] && opts="${opts}y"
       for f in $breqs; do
         pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$PIP" != "pip3" ]]; then
+        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
           echo "Check for $f"
         elif [ "$f" == "$pkg" ]; then
           eval $LISA status -q $opts $f
-          if [ $? -eq 0 ]; then
-            :
-            # run_traced "lisa update -q $f"
-          else
-            run_traced "$LISA install -q $opts $f"
-          fi
+          [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
         fi
       done
+      $TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR
       preqs="$($TDIR/list_requirements.py -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
       for f in $preqs; do
         if [ $EUID -eq 0 ]; then
-          run_traced "$PIP install -q $f --upgrade --no-deps"
+          run_traced "$PIP install -q $f --upgrade"
         else
-          run_traced "$PIP install -q $f --upgrade --no-deps --user"
+          run_traced "$PIP install -q $f --upgrade --user"
+        fi
+      done
+      for f in $preqs; do
+        op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
+        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+        reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
+        if [ -n "$reqver" ]; then
+          curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
+          if [[ ($op == "==" && $curver == $reqver) || ($op == "<" && $curver < $reqver) || ($op == ">" && $curver > $reqver) || ! ($op == ">=" && $curver < $reqver) || ! ($op == "<=" && $curver > $reqver) ]]; then
+             :
+          else
+            echo "Update '$pkg' version '$curver' with version '$reqver'"
+            if [ $EUID -eq 0 ]; then
+              run_traced "$PIP install -q $f --upgrade --no-deps"
+            else
+              run_traced "$PIP install -q $f --upgrade --no-deps --user"
+            fi
+          fi
         fi
       done
       return $sts

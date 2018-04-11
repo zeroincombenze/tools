@@ -776,12 +776,12 @@ process_yaml() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       wlog "===== [System informations] ====="
       # update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
-      if [ ${opt_virt:-0} -eq 0 -a -f /usr/bin/python$TRAVIS_PYTHON_VERSION ]; then
-        alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
-        alias pip=/usr/bin/pip$TRAVIS_PYTHON_VERSION
-      else
-        wlog "Unsupported pythone version $TRAVIS_PYTHON_VERSION"
-      fi
+      # if [ ${opt_virt:-0} -eq 0 -a -f /usr/bin/python$TRAVIS_PYTHON_VERSION ]; then
+      #   alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
+      #   alias pip=/usr/bin/pip$TRAVIS_PYTHON_VERSION
+      # else
+      #   wlog "Unsupported pythone version $TRAVIS_PYTHON_VERSION"
+      # fi
       for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
@@ -834,7 +834,7 @@ process_yaml() {
         wlog "===== [After success] ====="
         process_yaml_after_success
       fi
-      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+      if [ "$TRAVIS_DEBUG_MODE" == "2" ]; then
         read -p "Press RET to continue ..."
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
@@ -872,17 +872,18 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        f         j        k        M          m       n            O         p        q           r     V           v           w        W)
-OPTDEST=(opt_help opt_branch opt_conf opt_force opt_dprj opt_keep opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
-OPTACTI=(1        "="        "="      1         1        1        1          1       "1>"         "="       1        0           1     "*>"        "+"         1        1)
-OPTDEFL=(0        10.0       ""       0         0        0        0          0       0            "local"   0        -1          0     ""          -1          0        0)
-OPTMETA=("help"   "branch"   "file"   ""        "dprj"   ""       ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
+OPTOPTS=(h        b          c        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
+OPTDEST=(opt_help opt_branch opt_conf opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
+OPTACTI=(1        "="        "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        1)
+OPTDEFL=(0        10.0       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        0)
+OPTMETA=("help"   "branch"   "file"   ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB after tests"\
+ "log directory (def=~/travis_log)"\
  "use local MQT"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
@@ -1036,8 +1037,10 @@ if [ $sts -eq $STS_SUCCESS ]; then
     process_local
     sts=$?
   else
-    # process_yaml | tee ./travis_output.log
-    process_yaml
+    [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
+    mkdir -p $opt_logdir
+    [ -f $opt_logdir/$PKGNAME.log ] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
+    process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
     sts=$?
   fi
   if [ -n "$PIDFILE" ]; then

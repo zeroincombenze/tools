@@ -7,10 +7,56 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.20'
+__version__ = '0.3.6.21'
 
+"""
+pip_pkgver__lxml=3.4.1
+pip_pkgver__mako=1.0.1
+pip_pkgver__mock=1.0.1
+pip_pkgver__passlib=1.6.2
+pip_pkgver__pillow=2.7.0
+pip_pkgver__psutil=2.2.0
+pip_pkgver__psycogreen=1.0
+pip_pkgver__psycopg2=2.5.4
+pip_pkgver__pydot=1.0.2
+pip_pkgver__pyparsing=2.0.3
+pip_pkgver__pypdf=1.13
+pip_pkgver__pyserial=2.7
+pip_pkgver__python-dateutil=2.4.0
+pip_pkgver__python-ldap=2.4.19
+pip_pkgver__python-openid=2.2.5
+pip_pkgver__pytz=2014.10
+pip_pkgver__pyusb=1.0.0b2
+pip_pkgver__pyyaml=3.11
+pip_pkgver__qrcode=5.1
+pip_pkgver__reportlab=3.1.44
+pip_pkgver__requests=2.6.0
+pip_pkgver__simplejson=3.5.3
+pip_pkgver__six=1.9.0
+pip_pkgver__unittest2=0.5.1
+pip_pkgver__vatnumber=1.2
+pip_pkgver__werkzeug=0.9.6
+pip_pkgver__xlwt=0.7.5
 
+pip_pkgver__pylint=1.6.4
+pip_pkgver__pylint-plugin-utils=0.2.4
+pip_pkgver__pygments=2.0.2
+pip_pkgver__restructuredtext_lint=0.12.2
+pip_pkgver__unidecode=0.04.17
+pip_pkgver__pyxb=1.2.4
+"""
 REQVERSION = {
+    'astroid': {'7.0': '==1.4.8'},
+    'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
+    'decorator': {'7.0': '==3.4.0', '10.0': '==4.0.10'},
+    'docutils': {'7.0': '==0.12'},
+    'ebaysdk': {'7.0': '==2.1.4'},
+    'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
+    'gdata': {'7.0': '=2.0.18'},
+    'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
+    'Jinja2': {'7.0': '==2.7.3', '10.0': '==2.8'},
+}
+REQVERSION7 = {
     'astroid': '==1.4.8',
     'Babel': '==2.3.4',
     'decorator': '==3.4.0',    # Warning! 10.0 require 4.0.10
@@ -153,6 +199,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'decorator',
                      'docutils',
                      'feedparser',
+                     'gdata',
                      'gevent',
                      'Jinja2',
                      'lxml',
@@ -210,8 +257,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
                 full_item = '%s%s' % (item, REQVERSION_10[item])
                 defver = True
         else:
-            if with_version and item in REQVERSION:
-                full_item = '%s%s' % (item, REQVERSION[item])
+            if with_version and item in REQVERSION7:
+                full_item = '%s%s' % (item, REQVERSION7[item])
                 defver = True
     return item, full_item, defver
 
@@ -222,13 +269,14 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                              odoo_ver=odoo_ver)
     if item not in deps_list[kw]:
         deps_list[kw].append(item)
-        if kw == 'python' and full_item:
-            kw = 'python2'
-            deps_list[kw].append(full_item)
-        else:
-            kw = 'python1'
-            deps_list[kw].append(item)
-    elif full_item:
+        if kw == 'python':
+            if full_item:
+                kw = 'python2'
+                deps_list[kw].append(full_item)
+            else:
+                kw = 'python1'
+                deps_list[kw].append(item)
+    elif kw == 'python' and full_item:
         if item in deps_list['python1']:
             i = deps_list['python1'].index(item)
             del deps_list['python1'][i]
@@ -362,12 +410,13 @@ def main():
         manifests = []
         reqfiles = []
         if ctx['oca_dependencies']:
-            for root, dirs, files in os.walk(ctx['oca_dependencies'],
-                                             followlinks=True):
-                manifests, reqfiles = add_manifest(root,
-                                                   manifests,
-                                                   reqfiles,
-                                                   files)
+            for cdir in ctx['oca_dependencies'].split(','):
+                for root, dirs, files in os.walk(cdir,
+                                                 followlinks=True):
+                    manifests, reqfiles = add_manifest(root,
+                                                       manifests,
+                                                       reqfiles,
+                                                       files)
         for root, dirs, files in os.walk(ctx['odoo_dir']):
             manifests, reqfiles = add_manifest(root,
                                                manifests,

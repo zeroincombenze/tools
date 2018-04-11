@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.20
+__version__=0.3.6.21
 
 
 rmdir_if_exists() {

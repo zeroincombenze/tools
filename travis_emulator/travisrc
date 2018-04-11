@@ -264,16 +264,6 @@ init_travis() {
         REPOSNAME=
       fi
       BRANCH=$(build_odoo_param FULLVER ".")
-      # BRANCH=$(echo $PWD|grep -Eo '[v]*[0-9]+(\.[0-9]+)?'|head -n1)
-      # if [[ $BRANCH =~ ^(6.1|7.0|8.0|9.0|10.0|11.0)$ ]] ; then
-      #   :
-      # elif [[ $BRANCH =~ ^(v7|v8|v9|v10|v11)$ ]] ; then
-      #   BRANCH=${BRANCH:1}.0
-      # elif [ ${test_mode:-0} -ne 0 ]; then
-      #   BRANCH=master
-      # else
-      #   BRANCH=7.0
-      # fi
       if [ -z "$prjversion" ]; then
         prjversion="$BRANCH"
       else

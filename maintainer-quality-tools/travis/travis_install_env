@@ -166,6 +166,7 @@ if [ "$mode" == "tools" ]; then
       $LISA install -qy $f
     fi
   done
+  exit $sts
 elif [ "${TESTS}" != "1" ]; then
   pip install -q os0 z0lib --user
   if [ -z "${VERSION}" ] ; then
@@ -250,8 +251,13 @@ else
   else
     MGRODOO=$HOME/tools/clodoo/manage_odoo
   fi
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -Ozero"
-  eval $MGRODOO requirements -b'.' -vsy -Ozero
+  if [[ "$PGKNAME" == "OCB" ]]; then
+    dependecies_dir=${HOME}/dependencies
+  else
+    dependecies_dir=${ODOO_PATH},${HOME}/dependencies
+  fi
+  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -Ozero  -d $dependecies_dir"
+  eval $MGRODOO requirements -b'.' -vsy -Ozero -d $dependecies_dir
   if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
     echo "Content of ${HOME}:"
     ls -l ${HOME}
