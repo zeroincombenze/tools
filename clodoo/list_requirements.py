@@ -288,7 +288,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                         odoo_ver=odoo_ver)
             elif item == 'lxml':
                 for itm in ('python-dev', 'libxml2-dev', 'libxslt1-dev', 'zlib1g-dev'):
-                    deps_list = add_package(deps_list, kw, itm,
+                    deps_list = add_package(deps_list, 'bin', itm,
                                             with_version=with_version,
                                             odoo_ver=odoo_ver)
     elif kw == 'python' and full_item:

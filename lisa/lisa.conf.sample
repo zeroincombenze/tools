@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-03
+# Last update: 2018-04-11
 #
 # ---------------------------------------------------------------------
 #
@@ -213,12 +213,12 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-feedparser/feedparser,python-gevent/gevent,\
                python-jinja2/Jinja2,python-ldap,python-lxml/lxml,\
                python-simplejson/simplejson,python2-simplejson/simplejson,\
-               python-mako/Mako,
+               python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
-    python-dateutil,psutil,pychart,python-ldap,pyOpenSSL,requests,\
+    python-dateutil,psutil,pychart,python-ldap,requests,\
     pyserial,pyPdf,cryptography,flake8,pylint,zerobug,coverage,coveralls,\
     click,pylint-mccabe,pbr,Jinja2,MarkupSafe,Pillow,Werkzeug,argparse,\
     Python-Chart,greenlet,jcconv,psycogreen,pyusb,qrcode,six,unittest2,vobject,\
@@ -420,7 +420,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson,\
     pyparsing,beaker,psycopg2,reportlab,decorator,docutils,feedparser,gevent,\
-    Jinja2,pyOpenSSL
+    Jinja2
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
 
