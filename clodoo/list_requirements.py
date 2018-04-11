@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.21'
+__version__ = '0.3.6.22'
 
 """
 pip_pkgver__lxml=3.4.1
@@ -86,7 +86,7 @@ REQVERSION7 = {
     'pyserial': '==3.1.1',
     'Python-Chart': '==1.39',
     'python-dateutil': '==2.5.3',
-    'python-ldap': '==2.4.27',
+    'python-ldap': '==2.4.25',
     'python-openid': '==2.2.5',
     'pytz': '==2016.7',
     'pyusb': '>=1.0.0b1',      # Warning! 10.0 require 1.0.0
@@ -138,7 +138,7 @@ REQVERSION_10 = {
     'pyserial': '==3.1.1',
     'Python-Chart': '==1.39',
     'python-dateutil': '==2.5.3',
-    'python-ldap': '==2.4.27',
+    'python-ldap': '==2.4.25',     # warning OCA declare 2.4.27!?
     'python-openid': '==2.2.5',
     'pytz': '==2016.7',
     'pyusb': '==1.0.0',
@@ -245,7 +245,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     if len(item) == 1:
         full_item = ''
     item = item[0]
-    item = os.path.basename(item).split('.')[0]
+    # item = os.path.basename(item).split('.')[0]
+    item = os.path.basename(item)
     if item in ALIAS:
         item = ALIAS[item]
     defver = False
@@ -267,6 +268,8 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
     item, full_item, defver = name_n_version(item,
                                              with_version=with_version,
                                              odoo_ver=odoo_ver)
+    if item == 'cups':
+        kw = 'bin'
     if item not in deps_list[kw]:
         deps_list[kw].append(item)
         if kw == 'python':
@@ -276,6 +279,11 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
             else:
                 kw = 'python1'
                 deps_list[kw].append(item)
+            if item == 'barcode':
+                deps_list = add_package(deps_list, kw,
+                                        'python-Levenshtein',
+                                        with_version=with_version,
+                                        odoo_ver=odoo_ver)
     elif kw == 'python' and full_item:
         if item in deps_list['python1']:
             i = deps_list['python1'].index(item)

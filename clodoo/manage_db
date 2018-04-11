@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.21
+__version__=0.3.6.22
 
 
 up_oemod() {
@@ -196,6 +196,9 @@ if [ "$action" == "install" ]; then
         db=$opt_DB
       else
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
+      fi
+      if [ "$cf" == "09" ]; then
+        run_traced "pg_db_active -a $db -w"
       fi
       run_traced "$TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
       sts=$?
