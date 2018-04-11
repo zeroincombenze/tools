@@ -231,7 +231,7 @@ BIN_BASE_PACKAGES = ['simplejson',
 
 
 def parse_requirements(reqfile):
-    lines = open(reqfile).read().split('\n')
+    lines = open(reqfile, 'rbU').read().split('\n')
     reqlist = []
     for line in lines:
         if line and line[0] != '#':
@@ -313,7 +313,7 @@ def package_from_list(deps_list, kw, PKG_LIST,
 def package_from_manifest(deps_list, manifest_file,
                           with_version=None, odoo_ver=None):
     if manifest_file:
-        manifest = ast.literal_eval(open(manifest_file).read())
+        manifest = ast.literal_eval(open(manifest_file, 'rbU').read())
         if manifest.get('external_dependencies'):
             deps = manifest['external_dependencies']
             for kw in ('python', 'bin'):
@@ -473,7 +473,7 @@ def main():
                                       odoo_ver=ctx['odoo_ver'])
     if ctx['out_file']:
         try:
-            pkgs = open(ctx['opt_fn']).read().split('\n')
+            pkgs = open(ctx['opt_fn'], 'rbU').read().split('\n')
         except BaseException:
             pkgs = []
         for kw in ('python1', 'python2'):
