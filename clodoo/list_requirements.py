@@ -248,7 +248,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     item = item[0]
     # item = os.path.basename(item).split('.')[0]
     item = os.path.basename(item)
-    itm = items.plit('.')[0]
+    itm = item.plit('.')[0]
     if itm in ALIAS:
         item = ALIAS[itm]
     defver = False
