@@ -304,7 +304,7 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
-         libfreetype6-dev,libcups2,libcups2-dev
+         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
@@ -363,6 +363,7 @@ REAL_libfreetype6=freetype
 REAL_libfreetype6-dev=freetype-devel
 REAL_openid=python-openid
 REAL_expect-dev=expect-devel
+RHEL_libpq-dev=postgresql-devel
 
 redis_svcname=redis
 # Standard packages
@@ -370,7 +371,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel,cups,cups-devel
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
