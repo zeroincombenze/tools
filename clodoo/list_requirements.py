@@ -287,10 +287,29 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                         with_version=with_version,
                                         odoo_ver=odoo_ver)
             elif item == 'lxml':
-                for itm in ('python-dev', 'libxml2-dev', 'libxslt1-dev', 'zlib1g-dev'):
-                    deps_list = add_package(deps_list, 'bin', itm,
-                                            with_version=with_version,
-                                            odoo_ver=odoo_ver)
+                if odoo_ver in ('11.0', '12.0'):
+                    for itm in ('python3-dev', 'libxml2-dev',
+                                'libxslt1-dev', 'zlib1g-dev'):
+                        deps_list = add_package(deps_list, 'bin', itm,
+                                                with_version=with_version,
+                                                odoo_ver=odoo_ver)
+                else:
+                    for itm in ('python-dev', 'libxml2-dev',
+                                'libxslt1-dev', 'zlib1g-dev'):
+                        deps_list = add_package(deps_list, 'bin', itm,
+                                                with_version=with_version,
+                                                odoo_ver=odoo_ver)
+            elif item == 'lxml':
+                if odoo_ver in ('11.0', '12.0'):
+                    for itm in ('python3-dev', 'libpq-dev'):
+                        deps_list = add_package(deps_list, 'bin', itm,
+                                                with_version=with_version,
+                                                odoo_ver=odoo_ver)
+                else:
+                    for itm in ('python-dev', 'libpq-dev'):
+                        deps_list = add_package(deps_list, 'bin', itm,
+                                                with_version=with_version,
+                                                odoo_ver=odoo_ver)
     elif kw == 'python' and full_item:
         if item in deps_list['python1']:
             i = deps_list['python1'].index(item)
