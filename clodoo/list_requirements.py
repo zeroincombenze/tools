@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.22'
+__version__ = '0.3.6.23'
 
 """
 pip_pkgver__lxml=3.4.1
@@ -165,6 +165,7 @@ ALIAS = {
     'ldap': 'python-ldap',
     'openid': 'python-openid',
     'usb': 'pyusb',
+    'lxml': 'lxml',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'click',
@@ -247,8 +248,9 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     item = item[0]
     # item = os.path.basename(item).split('.')[0]
     item = os.path.basename(item)
-    if item in ALIAS:
-        item = ALIAS[item]
+    itm = items.plit('.')[0]
+    if itm in ALIAS:
+        item = ALIAS[itm]
     defver = False
     if with_version:
         if full_item:
