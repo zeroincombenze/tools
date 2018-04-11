@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.24'
+__version__ = '0.3.6.25'
 
 """
 pip_pkgver__lxml=3.4.1
@@ -228,7 +228,9 @@ BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
                      'wkhtmltopdf',
                      ]
-
+BIN_PACKAGES = ['git',
+                'cups',
+                ]
 
 def parse_requirements(reqfile):
     lines = open(reqfile, 'rbU').read().split('\n')
@@ -237,7 +239,8 @@ def parse_requirements(reqfile):
         if line and line[0] != '#':
             items = line.split(';')
             if len(items) == 1 or eval(items[1].strip().replace('_','.')):
-                reqlist.append(items[0].strip())
+                item = items[0].strip()
+                reqlist.append(item)
     return reqlist
 
 
@@ -246,11 +249,12 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     if len(item) == 1:
         full_item = ''
     item = item[0]
-    # item = os.path.basename(item).split('.')[0]
     item = os.path.basename(item)
     itm = item.split('.')[0]
     if itm in ALIAS:
         item = ALIAS[itm]
+    else:
+        item = itm.lower()
     defver = False
     if with_version:
         if full_item:
@@ -270,7 +274,9 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
     item, full_item, defver = name_n_version(item,
                                              with_version=with_version,
                                              odoo_ver=odoo_ver)
-    if item == 'cups':
+    if item in BIN_PACKAGES or \
+            item in BIN_BASE_PACKAGES or \
+            item in BIN_TEST_PACKAGES:
         kw = 'bin'
     if item not in deps_list[kw]:
         deps_list[kw].append(item)
@@ -315,8 +321,8 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
             i = deps_list['python1'].index(item)
             del deps_list['python1'][i]
             deps_list['python2'].append(full_item)
-        elif not defver:
-            print 'Version mismatch: package %s' % full_item
+        elif not defver and full_item not in deps_list['python2']:
+            sys.stderr.write('Version mismatch: package %s\n' % full_item)
     return deps_list
 
 
@@ -429,7 +435,8 @@ def main():
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
     if ctx['out_file']:
         if not ctx['odoo_dir']:
-            print "Please, declare odoo path to write requirements.txt file!"
+            sys.stderr.write(
+                'Please, declare odoo path to write requirements.txt file!\n')
             sys.exit(1)
         ctx['sep'] = '\n'
         ctx['with_version'] = True
