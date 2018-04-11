@@ -336,7 +336,6 @@ REAL_python-dev=python-devel
 REAL_pyopenssl=pyOpenSSL
 REAL_openssh-client=openssh-clients
 REAL_python-libxml2=libxml2-python
-REAL_python-libxslt1=libxslt-python
 REAL_zlib1g=zlib
 REAL_zlib1g-dev=zlib-devel
 REAL_readline-devel=libreadline6-dev
@@ -354,21 +353,25 @@ REAL_ruby-sass=rubygem-sass
 REAL_python-simplejson=python2-simplejson
 REAL_libffi-dev=libffi-devel
 REAL_libssl-dev=openssl-devel
+REAL_libxslt1=libxslt
+REAL_python-libxslt1=libxslt-python
+REAL_libxslt1-dev=libxslt-devel
 REAL_libxslt-dev=libxslt-devel
 REAL_libxml2-dev=libxml2-devel
 REAL_redis-server=redis
 REAL_libfreetype6=freetype
 REAL_libfreetype6-dev=freetype-devel
 REAL_openid=python-openid
+REAL_expect-dev=expect-devel
 
 redis_svcname=redis
 # Standard packages
 YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-essential,\
-         php-cli,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
+         php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel,cups,cups-devel
-NA_PKGS=expect-dev,antiword
+NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
 pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
