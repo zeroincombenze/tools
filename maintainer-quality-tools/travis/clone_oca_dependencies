@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.1.23'
+__version__ = '0.2.1.25'
 
 
 def parse_depfile(depfile, owner=None):
@@ -82,7 +82,7 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
         else:
             command = ['true', ]
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
-        print('Calling %s', ' '.join(command))
+        print('Calling %s' % ' '.join(command))
     _logger.info('Calling %s', ' '.join(command))
     subprocess.check_call(command)
     return checkout_dir

@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.24
+__version__=0.3.6.27
 
 
 explore() {
@@ -99,7 +99,7 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
+      [ -n "$opt_deps" ] && dopts="-O $opt_deps" || dopts=
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
       PIP=pip
@@ -150,6 +150,15 @@ do_action() {
           fi
         fi
       done
+      x=$(npm list|grep " less@")
+      [ -z "$x" ] && x=$(npm list -g|grep " less@")
+      if [ -z "$x" ]; then
+        if [ $EUID -eq 0 ]; then
+          run_traced "npm install -g less less-plugin-clean-css"
+        else
+          run_traced "npm install less less-plugin-clean-css"
+        fi
+      fi
       return $sts
     elif [[ "$act" == "check-config" ]]; then
       cfgfn=$(build_odoo_param CONFN "$odoo_vid")

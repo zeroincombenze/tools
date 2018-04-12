@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.37.7
+__version__=0.2.37.8
 
 
 get_arch () {

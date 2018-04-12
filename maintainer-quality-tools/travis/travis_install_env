@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.23
+__version__=0.2.1.25
 
 
 cp_n_upd_odoo_conf() {
@@ -206,7 +206,6 @@ else
   x=$(which nodejs 2>/dev/null)
   [[ -z "$x" ]] && x=$(which node 2>/dev/null)
   ln -s $x $HOME/maintainer-quality-tools/travis/node
-  npm install -g less less-plugin-clean-css
   IFS="/" read -a REPO <<< "${ODOO_REPO}"
   export REMOTE="${REPO[0],,}"
   export REPO_NAME="${REPO[1]}"

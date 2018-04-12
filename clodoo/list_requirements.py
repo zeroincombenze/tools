@@ -7,18 +7,9 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.25'
+__version__ = '0.3.6.26'
 
 """
-pip_pkgver__lxml=3.4.1
-pip_pkgver__mako=1.0.1
-pip_pkgver__mock=1.0.1
-pip_pkgver__passlib=1.6.2
-pip_pkgver__pillow=2.7.0
-pip_pkgver__psutil=2.2.0
-pip_pkgver__psycogreen=1.0
-pip_pkgver__psycopg2=2.5.4
-pip_pkgver__pydot=1.0.2
 pip_pkgver__pyparsing=2.0.3
 pip_pkgver__pypdf=1.13
 pip_pkgver__pyserial=2.7
@@ -52,33 +43,26 @@ REQVERSION = {
     'docutils': {'7.0': '==0.12'},
     'ebaysdk': {'7.0': '==2.1.4'},
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
-    'gdata': {'7.0': '=2.0.18'},
+    'gdata': {'7.0': '==2.0.18'},
     'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
     'Jinja2': {'7.0': '==2.7.3', '10.0': '==2.8'},
+    'lxml': {'7.0': '==3.4.1', '10.0': '==3.5.0'},
+    'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
+    'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0',},
+    'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
+    'Pillow': {'7.0': '==2.7.0', '8.0': '==3.4.1'},
+    'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
+    'psycogreen': {'7.0': '==1.0'},
+    'psycopg2-binary': {'7.0': '>=2.0.0', '8.0': '==2.5.4', '10.0': '==2.6.2'},
+    'pydot': {'7.0':  '==1.0.2', '8.0': '==1.2.3'},
 }
+
 REQVERSION7 = {
-    'astroid': '==1.4.8',
-    'Babel': '==2.3.4',
-    'decorator': '==3.4.0',    # Warning! 10.0 require 4.0.10
-    'docutils': '==0.12',
-    'ebaysdk': '==2.1.4',
-    'feedparser': '==5.1.3',   # Warning! 10.0 require 5.2.1
-    'gevent': '==1.0.2',       # Warning! 10.0 require 1.1.2
     'greenlet': '==0.4.10',
     'jcconv': '==0.2.3',
-    'Jinja2': '==2.7.3',       # Warning! 10.0 require 2.8
-    'lxml': '==3.5.0',
-    'Mako': '==1.0.4',
     'MarkupSafe': '==0.23',
-    'mock': '==2.0.0',
     'ofxparse': '==0.16',
-    'passlib': '==1.6.2',      # Warning! 10.0 require 1.6.5
-    'Pillow': '==3.4.2',       # Warning! 10.0 require 3.4.1
-    'psutil': '==4.3.1',
-    'psycogreen': '==1.0',
-    'psycopg2': '>=2.0.0',     # Warning! 10.0 require 2.6.2
     'pygments': '==2.0.2',
-    'pydot': '==1.2.3',
     'pylint': '==1.6.4',
     'pylint-plugin-utils': '==0.3.5.11',
     'pyparsing': '<2',         # Warning! 10.0 require 2.1.10
@@ -108,29 +92,12 @@ REQVERSION7 = {
     'xlrd': '==1.0.0',
 }
 REQVERSION_10 = {
-    'astroid': '==1.4.8',
-    'Babel': '==2.3.4',
-    'decorator': '==4.0.10',
-    'docutils': '==0.12',
-    'ebaysdk': '==2.1.4',
     'flake8': '==3.4.1',
-    'feedparser': '==5.2.1',
-    'gevent': '==1.1.2',
     'greenlet': '==0.4.10',
     'jcconv': '==0.2.3',
-    'Jinja2': '==2.8',
-    'lxml': '==3.5.0',
-    'Mako': '==1.0.4',
     'MarkupSafe': '==0.23',
-    'mock': '==2.0.0',
     'ofxparse': '==0.16',
-    'passlib': '==1.6.5',
-    'Pillow': '==3.4.1',
-    'psutil': '==4.3.1',
-    'psycogreen': '==1.0',
-    'psycopg2': '==2.6.2',
     'pygments': '==2.0.2',
-    'pydot': '==1.2.3',
     'pylint': '==1.6.4',
     'pylint-plugin-utils': '==0.3.5.11',
     'pyparsing': '==2.1.10',
@@ -166,6 +133,17 @@ ALIAS = {
     'openid': 'python-openid',
     'usb': 'pyusb',
     'lxml': 'lxml',
+    'babel': 'Babel',
+    'jinja2': 'Jinja2',
+    'mako': 'Mako',
+    'markupsafe': 'MarkupSafe',
+    'pillow': 'Pillow',
+    'psycopg2': 'psycopg2-binary',
+    'pypdf': 'pyPdf',
+    'python-chart': 'Python-Chart',
+    'pyyaml': 'PyYAML',
+    'werkzeug': 'Werkzeug',
+    'xlsxwriter': 'XlsxWriter',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'click',
@@ -250,15 +228,20 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
         full_item = ''
     item = item[0]
     item = os.path.basename(item)
-    itm = item.split('.')[0]
-    if itm in ALIAS:
-        item = ALIAS[itm]
-    else:
-        item = itm.lower()
+    item = item.split('.')[0].lower()
+    if item in ALIAS:
+        item = ALIAS[item]
     defver = False
     if with_version:
-        if full_item:
-            pass
+        if item in REQVERSION:
+            f = False
+            for v in ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+                if v == odoo_ver or not odoo_ver:
+                    f = True
+                if f and v in REQVERSION[item]:
+                    full_item = '%s%s' % (item, REQVERSION[item][v])
+                    defver = True
+                    break
         elif odoo_ver in ('10.0', '11.0'):
             if item in REQVERSION_10:
                 full_item = '%s%s' % (item, REQVERSION_10[item])
