@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.25
+__version__=0.2.1.26
 
 
 cp_n_upd_odoo_conf() {
@@ -251,7 +251,7 @@ else
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [[ "$TRAVIS" == "true" ]]; then
     if [[ "$PGKNAME" == "OCB" ]]; then
-      echo "Testes repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      echo "Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     else
       export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
@@ -280,7 +280,7 @@ else
     exit $sts
   fi
   if [ "${TRAVIS}" == "true" ]; then
-    [ -f $TDIR/../../clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TDIR/../../clodoo/manage_odoo) || MGRODOO=manage_odoo
+    [ -f $TDIR/../clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TDIR/../clodoo/manage_odoo) || MGRODOO=manage_odoo
   elif [ -n "$YML_mgrodoo" ]; then
     MGRODOO=$YML_mgrodoo
   else
