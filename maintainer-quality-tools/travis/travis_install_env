@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.26
+__version__=0.2.1.27
 
 
 cp_n_upd_odoo_conf() {
@@ -280,7 +280,7 @@ else
     exit $sts
   fi
   if [ "${TRAVIS}" == "true" ]; then
-    [ -f $TDIR/../clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TDIR/../clodoo/manage_odoo) || MGRODOO=manage_odoo
+    [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
   elif [ -n "$YML_mgrodoo" ]; then
     MGRODOO=$YML_mgrodoo
   else

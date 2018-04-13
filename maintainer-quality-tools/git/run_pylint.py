@@ -20,7 +20,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '0.2.1.26'
+__version__ = '0.2.1.27'
 CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 
