@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.27
+__version__=0.2.1.28
 
 
 cp_n_upd_odoo_conf() {
@@ -148,9 +148,6 @@ if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRAN
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
-if [ "${LINT_CHECK}" != "0" ]; then
-  :
-fi
 PIP=pip
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
@@ -175,7 +172,6 @@ if [ "$mode" == "tools" ]; then
   done
   exit $sts
 elif [ "${TESTS}" != "1" ]; then
-  # pip install -q os0 z0lib --user
   if [ -z "${VERSION}" ] ; then
     VERSION="$opt_branch"
   fi
@@ -184,7 +180,8 @@ elif [ "${TESTS}" != "1" ]; then
   fi
   [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
-  breqs=$(list_requirements.py -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
+  breqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
   for f in $breqs; do
     pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
@@ -195,7 +192,8 @@ elif [ "${TESTS}" != "1" ]; then
       [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
     fi
   done
-  preqs="$(list_requirements.py -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+  preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
   for f in $preqs; do
     if [ $EUID -eq 0 ]; then
@@ -281,10 +279,13 @@ else
   fi
   if [ "${TRAVIS}" == "true" ]; then
     [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
+    [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
   elif [ -n "$YML_mgrodoo" ]; then
     MGRODOO=$YML_mgrodoo
+    LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
   else
     MGRODOO=$HOME/tools/clodoo/manage_odoo
+    LISTREQ=$HOME/tools/clodoo/list_requirements.py
   fi
   if [[ "$PGKNAME" == "OCB" ]]; then
     dependecies_dir=${HOME}/dependencies
@@ -294,7 +295,8 @@ else
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
   eval $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
   if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
-    preqs="$(list_requirements.py -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+    [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+    preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
     for f in $preqs; do
       preqs=$(echo "$preqs"|tr " " "\n"|sort|tr "\n" " ")
       for pkg in $L; do
