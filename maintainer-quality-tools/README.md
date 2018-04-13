@@ -13,6 +13,7 @@ Differences between this Zeroincombenze® MQT and standard OCA version:
 * Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
 * Zeroincombenze® MQT can run reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
 * OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
+* As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.
 
 Note you can run OCA MQT if you set follow statement in .travis.yml file:
 

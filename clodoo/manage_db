@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.28
+__version__=0.3.6.29
 
 
 up_oemod() {

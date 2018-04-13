@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-12
+# Last update: 2018-04-13
 #
 # ---------------------------------------------------------------------
 #
@@ -215,7 +215,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-simplejson/simplejson,python2-simplejson/simplejson,\
                python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
+PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,requests,\
@@ -226,7 +226,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
     configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
-    pylint_odoo
+    pylint_odoo,pyflakes,clodoo,os0
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -419,7 +419,7 @@ REAL_OSSERVICE=systemctl
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,os0,\
+PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson,\

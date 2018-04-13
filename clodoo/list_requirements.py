@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.28'
+__version__ = '0.3.6.29'
 
 
 REQVERSION = {
@@ -107,10 +107,10 @@ PIP_TEST_PACKAGES = ['astroid',
                      'MarkupSafe',
                      'mock',
                      'pbr',
+                     'pyflakes',
                      'pylint',
                      'pylint-mccabe',
                      'pylint_odoo',
-                     # 'pylint-plugin-utils',
                      'PyYAML',
                      'QUnitSuite',
                      'restructuredtext_lint',
