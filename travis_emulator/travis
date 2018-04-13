@@ -1039,7 +1039,7 @@ if [ $sts -eq $STS_SUCCESS ]; then
   else
     [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
     mkdir -p $opt_logdir
-    [ -f $opt_logdir/$PKGNAME.log ] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
+    [ -f $opt_logdir/${PKGNAME}_${BRANCH}.log ] && rm -f $opt_logdir/${PKGNAME}_${BRANCH}.log
     process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
     sts=$?
   fi

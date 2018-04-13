@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-11
+# Last update: 2018-04-12
 #
 # ---------------------------------------------------------------------
 #
@@ -371,7 +371,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel,cups,cups-devel,postgresql-devel
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum

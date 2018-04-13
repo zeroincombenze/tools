@@ -138,9 +138,7 @@ do_action() {
         reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
         if [ -n "$reqver" ]; then
           curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
-          if [[ ($op == "==" && $curver == $reqver) || ($op == "<" && $curver < $reqver) || ($op == ">" && $curver > $reqver) || ! ($op == ">=" && $curver < $reqver) || ! ($op == "<=" && $curver > $reqver) ]]; then
-             :
-          else
+          if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
             echo "Update '$pkg' version '$curver' with version '$reqver'"
             if [ $EUID -eq 0 ]; then
               run_traced "$PIP install -q $f --upgrade --no-deps"

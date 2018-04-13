@@ -7,124 +7,77 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.26'
+__version__ = '0.3.6.27'
 
-"""
-pip_pkgver__pyparsing=2.0.3
-pip_pkgver__pypdf=1.13
-pip_pkgver__pyserial=2.7
-pip_pkgver__python-dateutil=2.4.0
-pip_pkgver__python-ldap=2.4.19
-pip_pkgver__python-openid=2.2.5
-pip_pkgver__pytz=2014.10
-pip_pkgver__pyusb=1.0.0b2
-pip_pkgver__pyyaml=3.11
-pip_pkgver__qrcode=5.1
-pip_pkgver__reportlab=3.1.44
-pip_pkgver__requests=2.6.0
-pip_pkgver__simplejson=3.5.3
-pip_pkgver__six=1.9.0
-pip_pkgver__unittest2=0.5.1
-pip_pkgver__vatnumber=1.2
-pip_pkgver__werkzeug=0.9.6
-pip_pkgver__xlwt=0.7.5
 
-pip_pkgver__pylint=1.6.4
-pip_pkgver__pylint-plugin-utils=0.2.4
-pip_pkgver__pygments=2.0.2
-pip_pkgver__restructuredtext_lint=0.12.2
-pip_pkgver__unidecode=0.04.17
-pip_pkgver__pyxb=1.2.4
-"""
 REQVERSION = {
+    'acme_tiny': {'7.0': '>=4.0.3'},
     'astroid': {'7.0': '==1.4.8'},
     'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
+    'beautifulsoup': {'7.0': '==3.2.1'},
+    'codicefiscale': {'7.0': '==0.9'},
+    'cryptography': {'7.0': '2.2.2'},
     'decorator': {'7.0': '==3.4.0', '10.0': '==4.0.10'},
     'docutils': {'7.0': '==0.12'},
     'ebaysdk': {'7.0': '==2.1.4'},
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
+    'flake8': {'7.0': '>=3.4.1'},
     'gdata': {'7.0': '==2.0.18'},
     'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
+    'greenlet': {'7.0': '==0.4.10'},
+    'ipy': {'7.0': '>=0.83'},
+    'jcconv': {'7.0': '==0.2.3'},
     'Jinja2': {'7.0': '==2.7.3', '10.0': '==2.8'},
-    'lxml': {'7.0': '==3.4.1', '10.0': '==3.5.0'},
+    'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0'},      # Tested 4.2.1
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
+    'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
     'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0',},
+    'ofxparse': {'7.0': '==0.16'},
     'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
-    'Pillow': {'7.0': '==2.7.0', '8.0': '==3.4.1'},
+    'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1'},     # Tested 3.4.2
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
-    'psycopg2-binary': {'7.0': '>=2.0.0', '8.0': '==2.5.4', '10.0': '==2.6.2'},
-    'pydot': {'7.0':  '==1.0.2', '8.0': '==1.2.3'},
-}
-
-REQVERSION7 = {
-    'greenlet': '==0.4.10',
-    'jcconv': '==0.2.3',
-    'MarkupSafe': '==0.23',
-    'ofxparse': '==0.16',
-    'pygments': '==2.0.2',
-    'pylint': '==1.6.4',
-    'pylint-plugin-utils': '==0.3.5.11',
-    'pyparsing': '<2',         # Warning! 10.0 require 2.1.10
-    'pyPdf': '==1.13',
-    'pyserial': '==3.1.1',
-    'Python-Chart': '==1.39',
-    'python-dateutil': '==2.5.3',
-    'python-ldap': '==2.4.25',
-    'python-openid': '==2.2.5',
-    'pytz': '==2016.7',
-    'pyusb': '>=1.0.0b1',      # Warning! 10.0 require 1.0.0
-    'pyxb': '==1.2.4',
-    'PyYAML': '==3.12',
-    'qrcode': '==5.3',
-    'reportlab': '==3.1.44',   # Warning! 10.0 require 3.3.0
-    'requests': '==2.11.1',
-    'restructuredtext_lint': '==0.12.2',
-    'six': '==1.10.0',
-    'suds-jurko': '==0.6',
-    'vatnumber': '==1.2',
-    'vobject': '==0.9.3',
-    'Werkzeug': '==0.11.11',
-    'wkhtmltopdf': '==0.12.1',
-    'wsgiref': '==0.1.2',
-    'XlsxWriter': '==0.9.3',
-    'xlwt': '==1.1.2',
-    'xlrd': '==1.0.0',
-}
-REQVERSION_10 = {
-    'flake8': '==3.4.1',
-    'greenlet': '==0.4.10',
-    'jcconv': '==0.2.3',
-    'MarkupSafe': '==0.23',
-    'ofxparse': '==0.16',
-    'pygments': '==2.0.2',
-    'pylint': '==1.6.4',
-    'pylint-plugin-utils': '==0.3.5.11',
-    'pyparsing': '==2.1.10',
-    'pyPdf': '==1.13',
-    'pyserial': '==3.1.1',
-    'Python-Chart': '==1.39',
-    'python-dateutil': '==2.5.3',
-    'python-ldap': '==2.4.25',     # warning OCA declare 2.4.27!?
-    'python-openid': '==2.2.5',
-    'pytz': '==2016.7',
-    'pyusb': '==1.0.0',
-    'pyxb': '==1.2.4',
-    'PyYAML': '==3.12',
-    'qrcode': '==5.3',
-    'reportlab': '==3.3.0',
-    'requests': '==2.11.1',
-    'restructuredtext_lint': '==0.12.2',
-    'six': '==1.10.0',
-    'suds-jurko': '==0.6',
-    'vatnumber': '==1.2',
-    'vobject': '==0.9.3',
-    'Werkzeug': '==0.11.11',
-    'wkhtmltopdf': '==0.12.1',
-    'wsgiref': '==0.1.2',
-    'XlsxWriter': '==0.9.3',
-    'xlwt': '==1.1.2',
-    'xlrd': '==1.0.0',
+    'psycopg2': {'7.0': '>=2.0.0',
+                 '8.0': '==2.5.4',
+                 '10.0': '==2.6.2'},                    # Tested 2.7.4
+    'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
+    'pygments': {'7.0': '==2.0.2'},
+    'pylint': {'7.0': '==1.6.4'},
+    'pylint-plugin-utils': {'7.0': '==0.2.4', '8.0': '==0.3.5.11'},
+    'pysftp': {'7.0': '>=0.2.9'},
+    'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
+    'pyPdf': {'7.0': '==1.13'},
+    'pyserial':  {'7.0': '==2.7', '10.0': '==3.1.1'},
+    'Python-Chart': {'7.0': '==1.39'},
+    'python-dateutil': {'7.0': '==2.4.0', '8.0': '==2.5.3'},
+    'python-ldap': {'7.0': '==2.4.19',
+                    '10.0': '==2.4.25'},        # warning OCA declare 2.4.27!?
+    'python-openid': {'7.0': '==2.2.5'},
+    'python-stdnum': {'7.0': '>=1.8.1'},
+    'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
+    'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
+    'pyxb': {'7.0':  '==1.2.4'},
+    'PyYAML': {'7.0': '==3.11', '8.0': '==3.12'},
+    'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
+    'restructuredtext_lint': {'7.0': '==0.12.2'},
+    'reportlab': {'7.0': '==3.1.44', '10.0': '==3.3.0'},
+    'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1',},
+    'simplejson': {'7.0': '==3.5.3'},
+    'six': {'7.0': '==1.9.0',  '10.0': '==1.10.0'},
+    'suds': {'7.0': '==0.4'},
+    'suds-jurko': {'7.0': '==0.6'},
+    'unicodecsv': {'7.0': '>=0.14.1'},
+    'unidecode': {'7.0': '==0.4.17'},
+    'unittest2': {'7.0': '==0.5.1'},
+    'validate_email': {'7.0': '>=1.3'},
+    'vatnumber': {'7.0': '==1.2'},
+    'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
+    'Werkzeug': {'7.0': '==0.9.6', '10.0': '==0.11.11'},
+    'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4'},
+    'wsgiref': {'7.0': '==0.1.2'},
+    'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2
+    'xlrd': {'7.0': '==1.0.0'},
+    'xlwt': {'7.0': '==0.7.5', '10.0': '==1.1.2'},
 }
 ALIAS = {
     'dateutil': 'python-dateutil',
@@ -138,7 +91,7 @@ ALIAS = {
     'mako': 'Mako',
     'markupsafe': 'MarkupSafe',
     'pillow': 'Pillow',
-    'psycopg2': 'psycopg2-binary',
+    # 'psycopg2': 'psycopg2-binary',
     'pypdf': 'pyPdf',
     'python-chart': 'Python-Chart',
     'pyyaml': 'PyYAML',
@@ -242,14 +195,6 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
                     full_item = '%s%s' % (item, REQVERSION[item][v])
                     defver = True
                     break
-        elif odoo_ver in ('10.0', '11.0'):
-            if item in REQVERSION_10:
-                full_item = '%s%s' % (item, REQVERSION_10[item])
-                defver = True
-        else:
-            if with_version and item in REQVERSION7:
-                full_item = '%s%s' % (item, REQVERSION7[item])
-                defver = True
     return item, full_item, defver
 
 
@@ -264,7 +209,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
     if item not in deps_list[kw]:
         deps_list[kw].append(item)
         if kw == 'python':
-            if full_item:
+            if with_version and full_item:
                 kw = 'python2'
                 deps_list[kw].append(full_item)
             else:
