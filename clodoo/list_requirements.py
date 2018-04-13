@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.27'
+__version__ = '0.3.6.28'
 
 
 REQVERSION = {
@@ -100,6 +100,7 @@ ALIAS = {
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'click',
+                     'configparser',
                      'coveralls',
                      'flake8',
                      'lazy_object_proxy',
