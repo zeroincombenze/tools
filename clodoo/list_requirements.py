@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.30'
+__version__ = '0.3.6.31'
 
 
 REQVERSION = {
@@ -160,6 +160,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      ]
 BIN_BASE_PACKAGES = ['simplejson',
                      'python-ldap',
+                     'python-psycopg2',
                      'wkhtmltopdf',
                      ]
 BIN_PACKAGES = ['git',
@@ -236,7 +237,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver)
-            elif item == 'lxml':
+            elif item in ('lxml', 'python-psycopg2'):
                 if odoo_ver in ('11.0', '12.0'):
                     for itm in ('python3-dev', 'libpq-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
