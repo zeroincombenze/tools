@@ -212,7 +212,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-decorator/decorator,python-docutils/docutils,\
                python-feedparser/feedparser,python-gevent/gevent,\
                python-jinja2/Jinja2,python-ldap,python-lxml/lxml,\
-               python-simplejson/simplejson,python2-simplejson/simplejson,\
+               python-simplejson/simplejson,\
                python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
 PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
@@ -304,7 +304,8 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
-         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev
+         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev,\
+         python-simplejson,
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
@@ -371,7 +372,8 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel,\
+         python2-simplejson,
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum
