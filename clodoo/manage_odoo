@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.29
+__version__=0.3.6.30
 
 
 explore() {
@@ -106,21 +106,10 @@ do_action() {
         [ -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
         [ -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
       fi
-      if [ "${TRAVIS}" == "true" ]; then
-        [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
-      elif [ -f $HOME/tools/clodoo/list_requirements.py ]; then
-        LISTREQ=$HOME/tools/clodoo/list_requirements.py
-      else
-        LISTREQ=$TDIR/list_requirements.py
-      fi
-      if [ "${TRAVIS}" == "true" ]; then
-        [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa) || LISA=lisa
-        [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa) || LISA=lisa
-      elif [ -f $HOME/tools/lisa/lisa ]; then
-        LISA=$HOME/tools/lisa/lisa
-      else
-        LISA=lisa
-      fi
+      [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
+      [ -f $HOME/tools/lisa/lisa ] && LISA=$HOME/tools/lisa/lisa || LISA=lisa
+      [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
+      [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias pip=$PIP"
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
       breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
@@ -156,7 +145,11 @@ do_action() {
               [ $pass -eq 2 ] && cmd="$cmd --no-deps"
               [ $EUID -ne 0 ] && cmd="$cmd --user"
               echo "Update '$pkg' version '$curver' with version '$reqver'"
-              run_traced "$cmd"
+              if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+                echo "> $cmd"
+              else
+                run_traced "$cmd"
+              fi
             fi
           fi
         done

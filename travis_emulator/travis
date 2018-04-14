@@ -68,7 +68,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.11
+__version__=0.2.1.12
 
 
 store_cfg_param_value() {
@@ -141,7 +141,7 @@ process_yaml_init() {
       export YML_lisa=lisa
       export YML_mgrodoo=manage_odoo
     fi
-    TRAVIS_DEBUG_MODE="0"
+    TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
@@ -213,19 +213,24 @@ process_yaml_do() {
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"
-      if [[ "$line" =~ ODOO_REPO=.*odoo/odoo && -z "$YML_repo" ]]; then
+      if [[ "$line" =~ ODOO_REPO=.?$REMOTEREPO/ ]]; then
+        [ $REMOTEREPO == "odoo" ] && YML_repo=$REMOTEREPO/odoo || YML_repo=$REMOTEREPO/OCB
+      elif [[ "$line" =~ ODOO_REPO=.?odoo/odoo && -z "$YML_repo" ]]; then
         YML_repo=odoo/odoo
-      elif [[ "$line" =~ ODOO_REPO=.*OCA/OCB  && -z "$YML_repo" ]]; then
+      elif [[ "$line" =~ ODOO_REPO=.?OCA/OCB  && -z "$YML_repo" ]]; then
         YML_repo=OCA/OCB
-      elif [[ "$line" =~ ODOO_REPO=.*zeroincombenze/OCB ]]; then
+      elif [[ "$line" =~ ODOO_REPO=.?zeroincombenze/OCB && $REMOTEREPO == "local" ]]; then
         YML_repo=zeroincombenze/OCB
       fi
     elif [ "$YML_sect" == "before_install" ]; then
-      YML_before_install="$YML_before_install $lne"
-      if [[ $lne =~ TRAVIS_DEBUG_MODE= ]]; then
-        lne=$(process_yaml_quote "$lne")
-        export $lne
+      if [[ $line =~ TRAVIS_DEBUG_MODE= ]]; then
+        if [ -n "$opt_dlvl" ]; then
+          line="TRAVIS_DEBUG_MODE=\"$opt_dlvl\""
+          lne=$(process_yaml_unquote "$line")
+        fi
+        [ -n "$line" ] && export $line
       fi
+      YML_before_install="$YML_before_install $lne"
     elif [ "$YML_sect" == "install" ]; then
       YML_install="$YML_install $lne"
     elif [ "$YML_sect" == "before_script" ]; then
@@ -453,9 +458,10 @@ process_yaml_before_install() {
 
 process_yaml_install() {
 # process_yaml_install(init)
-    wlog "===== [Install] ====="
     local sts=$STS_SUCCESS
-    local i s line lne
+    local i s line line1 lne
+    [ -n "$1" ] && line1="export $(process_yaml_quote_xtl $1)"
+    wlog "===== [Install $line1] ====="
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[env.global] in .travis.yml] ------"
     fi
@@ -467,8 +473,7 @@ process_yaml_install() {
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "------ [[install] in .travis.yml] ------"
     fi
-    line="export $(process_yaml_quote_xtl $1)"
-    run_traced "$line"
+    run_traced "$line1"
     for lne in $YML_install; do
       process_yaml_run_cmd "$lne"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -587,7 +592,11 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
+        if [ "$USER" == "travis" ]; then
+          xcmd="ln -s /opt/odoo/tools $HOME"
+        else
+          xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
+        fi
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -667,7 +676,6 @@ process_yaml_run_cmd() {
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
-      # xcmd="ln -s /opt/odoo/${VERSION} /opt/odoo/${ODOO_REPO#*/}-${VERSION}"
       xcmd="# $xcmd"
     elif [ "${x[$ix]}" == "sh" -a "${x[$ix2]}" == "/etc/init.d/xvfb" ]; then
       xcmd="# $xcmd"
@@ -675,10 +683,6 @@ process_yaml_run_cmd() {
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "fi" ]; then
       :
-    # elif [ "${x[$ix]}" == "travis_install_env" ]; then
-    #   x=$(dirname $YML_mgrodoo)
-    #   [ "$x" == '.' ] && x='' || x="$x/"
-    #   xcmd="$(echo $xcmd|sed -e s:travis_install_env:${x}travis_install_env:g)"
     else
       if [ -z "$REPOSNAME" ]; then
         pp=$PKGPATH
@@ -696,10 +700,6 @@ process_yaml_run_cmd() {
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.odoo/odoo. && ! "$YML_repo" == "odoo/odoo" ]]; then
-          xcmd="# $xcmd"
-        elif [[ "${x[$ix]}" =~ ODOO_REPO=.OCA/OCB. && ! "$YML_repo" == "OCA/OCB" ]]; then
-          xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
@@ -808,6 +808,11 @@ process_yaml() {
             line1="$lne"
             lne1=$(process_yaml_quote "$lne")
           fi
+          if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
+            if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
+              continue
+            fi
+          fi
           if [ $sts -eq $STS_SUCCESS ]; then
             run_traced "cd $TRAVIS_BUILD_DIR"
             process_yaml_install "$line1"
@@ -872,14 +877,15 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
-OPTDEST=(opt_help opt_branch opt_conf opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
-OPTACTI=(1        "="        "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        0)
-OPTDEFL=(0        10.0       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        1)
+OPTOPTS=(h        b          c        D        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
+OPTDEST=(opt_help opt_branch opt_conf opt_dlvl opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
+OPTACTI=(1        "="        "="      "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        0)
+OPTDEFL=(0        10.0       ""       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        1)
 OPTMETA=("help"   "branch"   "file"   ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
+ "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB after tests"\
@@ -903,14 +909,14 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, all (default), setup, chkconfig or parseyaml"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, emulate (default), setup, chkconfig or parseyaml"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
-[ -z "$action" ] && action=all
-ACTIONS="check test all setup chkconfig parseyaml"
-VIRTACTS="check test all"
+[ -z "$action" ] && action=emulate
+ACTIONS="check test emulate setup chkconfig parseyaml"
+VIRTACTS="check test emulate"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
   if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
     :

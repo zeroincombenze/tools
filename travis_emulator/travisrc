@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 
-#__version__=0.2.1.11
+#__version__=0.2.1.12
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -12,18 +12,14 @@ XRGI="^(.*\/|)conf\/.*sample$"
 
 opts_travis() {
 #opts_travis(pkgname)
+    REMOTEREPO=
     if [ -n "$1" ]; then
-      IFS="/" read REMOTEREPO dummy <<< "$1"
-    else
-      REMOTEREPO="local"
+      IFS="/" read REMOTEREPO pkgname <<< "$1"
     fi
+    [ -z "$REMOTEREPO" ] && REMOTEREPO="local"
     PKGPATH=$(set_pkgpath "")
     set_pkgname $PKGPATH
-    if [ -z "$REMOTEREPO" ]; then
-      export TRAVIS_REPO_SLUG=local/$PKGNAME
-    else
-      export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
-    fi
+    export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       TCONF=$opt_conf
     else
@@ -400,7 +396,7 @@ drop_virtual_env() {
 
 prepare_env_travis() {
     local action="$1"
-    if [[ $action =~ (check|test|all|test|coverage) ]]; then
+    if [[ $action =~ (check|test|emulate|test|coverage) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
           # if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then

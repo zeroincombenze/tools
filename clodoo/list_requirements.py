@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.29'
+__version__ = '0.3.6.30'
 
 
 REQVERSION = {
