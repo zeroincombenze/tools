@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.30
+__version__=0.2.1.31
 
 
 cp_n_upd_odoo_conf() {
@@ -174,7 +174,7 @@ if [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
   echo "$0 $__version__"
   echo "\$ alias pip=$PIP"
   echo "\$ alias lisa=$LISA"
-  echo "MQT_TEST_MODE=$MQT_TEST_MODE"
+  echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   for p in oerplib odoorpc os0 zerobug clodoo; do
@@ -192,20 +192,20 @@ elif [ "${TESTS}" != "1" ]; then
   if [ -z "${ODOO_BRANCH}"  ] ; then
     export ODOO_BRANCH=${VERSION}
   fi
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
   breqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
   for f in $breqs; do
     [ -f $TDIR/../lisa/lisa ] && echo "\$ $LISA install-if $f"
     pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
     if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-      echo "Check for $f"
+      echo "- Check for $f"
     elif [ "$f" == "$pkg" ]; then
       eval $LISA status -q $f
       [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
     fi
   done
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
   preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
   for f in $preqs; do
@@ -217,10 +217,10 @@ elif [ "${TESTS}" != "1" ]; then
     sts=$?
     if [ $sts -eq 1 ] || [ -n "$reqver" ]; then
       [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-      if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+      if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
         cmd="$PIP install -q $f --upgrade"
         [ $EUID -ne 0 ] && cmd="$cmd --user"
-        echo "Update '$pkg' version '$curver' with version '$reqver'"
+        echo "- Update '$pkg' version '$curver' with version '$reqver'"
         if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
           echo "> $cmd"
         else
@@ -236,7 +236,7 @@ elif [ "${TESTS}" != "1" ]; then
     if [ -n "$reqver" ]; then
       curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
       if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-        echo "Update '$pkg' version '$curver' with version '$reqver'"
+        echo "- Update '$pkg' version '$curver' with version '$reqver'"
         if [ $EUID -eq 0 ]; then
           run_traced "$PIP install -q $f --upgrade --no-deps"
         else
@@ -276,21 +276,21 @@ else
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [[ "$TRAVIS" == "true" ]]; then
     if [[ "$PGKNAME" == "OCB" ]]; then
-      echo "Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     else
       export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
-      echo "Installing Odoo $ODOO_URL"
+      echo "- Installing Odoo $ODOO_URL"
       wget -nv -O odoo.tar.gz $ODOO_URL
       tar -xf odoo.tar.gz -C ${HOME}
     fi
     eval $PIP install --upgrade pip
   else
     if [[ "$PGKNAME" == "OCB" ]]; then
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     else
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "> ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
       ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
     fi
   fi
@@ -301,7 +301,7 @@ else
   eval $TDIR/clone_oca_dependencies
   sts=$?
   if [ $sts -ne 0 ]; then
-    echo "Error cloning dependencies"
+    echo "- Error cloning dependencies"
     exit $sts
   fi
   if [[ "$PGKNAME" == "OCB" ]]; then
@@ -312,13 +312,13 @@ else
   [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
   eval $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
   if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
-    [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+    [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
     preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
     for f in $preqs; do
       preqs=$(echo "$preqs"|tr " " "\n"|sort|tr "\n" " ")
       for pkg in $L; do
         v=$($PIP show $pkg|grep "^[Vv]ersion")
-        echo "$pkg $v"
+        echo "-- $pkg $v"
       done
     done
     echo "Content of ${HOME}:"
