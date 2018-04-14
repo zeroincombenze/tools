@@ -226,7 +226,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
     configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
-    pylint_odoo,pyflakes,clodoo,os0
+    pylint_odoo,pyflakes,clodoo,os0,psycopg2-binary
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -257,7 +257,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
          unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
          python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
-         python-mako
+         python-mako,python-psycopg2
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
                  .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
                  *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\
@@ -423,7 +423,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     simplejson,\
-    pyparsing,beaker,psycopg2,reportlab,decorator,docutils,feedparser,gevent,\
+    pyparsing,beaker,reportlab,decorator,docutils,feedparser,gevent,\
     Jinja2
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
