@@ -106,7 +106,9 @@ do_action() {
         [ -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
         [ -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
       fi
-      [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
+      LISTREQ=list_requirements.py
+      [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py
+      [ -f $TDIR/list_requirements.py ] && $TDIR/list_requirements.py
       [ -f $HOME/tools/lisa/lisa ] && LISA=$HOME/tools/lisa/lisa || LISA=lisa
       [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)

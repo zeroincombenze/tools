@@ -160,6 +160,7 @@ if [ -n "$YML_mgrodoo" ]; then
   LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
 else
   [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
+  [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
   [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
 fi
 if [ -n "$YML_lisa" ]; then
