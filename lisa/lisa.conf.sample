@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-13
+# Last update: 2018-04-14
 #
 # ---------------------------------------------------------------------
 #
@@ -304,7 +304,7 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          python-libxslt1,python-dev,libreadline6,zlib,readline-devel,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
-         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev
+         libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
