@@ -9,7 +9,7 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.6.31"
+__version__ = "0.3.6.32"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):

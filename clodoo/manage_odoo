@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.31
+__version__=0.3.6.32
 
 
 explore() {
@@ -142,7 +142,7 @@ do_action() {
           fi
           if [ $sts -eq 1 ] || [ $pass -eq 2 -a -n "$reqver" ]; then
             [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-            if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+            if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
               cmd="$PIP install -q $f --upgrade"
               [ $pass -eq 2 ] && cmd="$cmd --no-deps"
               [ $EUID -ne 0 ] && cmd="$cmd --user"
