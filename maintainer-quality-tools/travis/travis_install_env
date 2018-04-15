@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.31
+__version__=0.2.1.32
 
 
 cp_n_upd_odoo_conf() {
@@ -161,7 +161,6 @@ if [ -n "$YML_mgrodoo" ]; then
 else
   [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
   [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
-  [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$(readlink -e list_requirements.py) || LISTREQ=list_requirements.py
 fi
 if [ -n "$YML_lisa" ]; then
   LISA=$YML_lisa
@@ -248,7 +247,7 @@ elif [ "${TESTS}" != "1" ]; then
   exit $sts
 fi
 if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" == "oca" ]; then
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
   if [ -z "${VERSION}" ] ; then
@@ -266,6 +265,7 @@ else
   fi
   x=$(which nodejs 2>/dev/null)
   [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+  echo "\$ ln -s $x $HOME/maintainer-quality-tools/travis/node"
   ln -s $x $HOME/maintainer-quality-tools/travis/node
   IFS="/" read -a REPO <<< "${ODOO_REPO}"
   export REMOTE="${REPO[0],,}"
@@ -287,17 +287,17 @@ else
     eval $PIP install --upgrade pip
   else
     if [[ "$PGKNAME" == "OCB" ]]; then
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     else
-      [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
       ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
     fi
   fi
   eval $PIP install -q os0 z0lib --user
   mkdir -p ${HOME}/dependencies
   cp_n_upd_odoo_conf
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
   eval $TDIR/clone_oca_dependencies
   sts=$?
   if [ $sts -ne 0 ]; then
@@ -309,10 +309,12 @@ else
   else
     dependecies_dir=${ODOO_PATH},${HOME}/dependencies
   fi
-  [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
   eval $MGRODOO requirements -b'.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
-  if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
-    [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+  cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
+  if [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+    echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
     preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
     for f in $preqs; do
       preqs=$(echo "$preqs"|tr " " "\n"|sort|tr "\n" " ")
