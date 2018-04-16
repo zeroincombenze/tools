@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.33
+__version__=0.3.6.34
 
 
 explore() {
@@ -108,7 +108,7 @@ do_action() {
       fi
       LISTREQ=list_requirements.py
       [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py
-      [ -f $TDIR/list_requirements.py ] && $TDIR/list_requirements.py
+      [ -f $TDIR/list_requirements.py ] && LISTREQ=$TDIR/list_requirements.py
       [ -f $HOME/tools/lisa/lisa ] && LISA=$HOME/tools/lisa/lisa || LISA=lisa
       [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)

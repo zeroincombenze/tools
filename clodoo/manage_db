@@ -29,7 +29,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.33
+__version__=0.3.6.34
 
 
 up_oemod() {
@@ -186,7 +186,7 @@ if [ "$action" == "install" ]; then
       else
         optdb=
       fi
-      run_traced "$TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf $optdb -r$opt_xmlport $opt_with_demo"
+      run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf $optdb -r$opt_xmlport $opt_with_demo"
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
       :
     elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
@@ -198,10 +198,13 @@ if [ "$action" == "install" ]; then
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
       fi
       if [ "$cf" == "09" ]; then
-        run_traced "pg_db_active -a $db -w"
+        run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
+        run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
+        sts=0
+      else
+        run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
+        sts=$?
       fi
-      run_traced "$TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
-      sts=$?
     fi
   done
 elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate" -o "$action" == "upgrade" ]; then
@@ -258,8 +261,8 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
     elif [ "$action" == "upgrade" ]; then
       echo "$TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$opt_xmlport"
       [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$opt_xmlport
-      echo "$TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_fver -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo"
-      $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_fver -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo
+      echo "$TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_vid -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo"
+      $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_vid -u $cmdlist -d $db -r$opt_xmlport $opt_with_demo
       sts=$?
       if [ $sts -ne $STS_SUCCESS ]; then
         break
@@ -268,8 +271,8 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
       echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$opt_xmlport"
       [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$opt_xmlport
     elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
-      echo "$TDIR/clodoo.py $opts -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo"
-      $TDIR/clodoo.py $opts -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo
+      echo "$TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo"
+      $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$opt_xmlport $opt_with_demo
       [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
     elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
       echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$opt_xmlport"
@@ -280,7 +283,7 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
           if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$ph[[:space:]] ]]; then
             [ $opt_verbose -gt 0 ] && echo "Warning: phase $ph is just for demo (use -D switch to enable)"
           else
-            run_traced "$TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$ph.conf -d $db -r$opt_xmlport $opt_with_demo"
+            run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$ph.conf -d $db -r$opt_xmlport $opt_with_demo"
             sts=$?
           fi
           if [ $sts -ne $STS_SUCCESS ]; then
@@ -288,8 +291,8 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
           fi
         done
       elif [ -n "$cmdlist" ]; then
-        echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo"
-        $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$opt_xmlport $opt_with_demo
+        echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$opt_xmlport $opt_with_demo"
+        $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$opt_xmlport $opt_with_demo
         sts=$?
         if [ $sts -ne $STS_SUCCESS ]; then
           break
@@ -299,8 +302,8 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
           echo "Configuration file $opt_conf not found!"
           exit 1
         fi
-        echo "$TDIR/clodoo.py $opts $opts_cf -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo"
-        $TDIR/clodoo.py $opts $opts_cf -b$odoo_fver -c $cf -d $db -r$opt_xmlport $opt_with_demo
+        echo "$TDIR/clodoo.py $opts $opts_cf -b$odoo_vid -c $cf -d $db -r$opt_xmlport $opt_with_demo"
+        $TDIR/clodoo.py $opts $opts_cf -b$odoo_vid -c $cf -d $db -r$opt_xmlport $opt_with_demo
         sts=$?
       fi
     fi

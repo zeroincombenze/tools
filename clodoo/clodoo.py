@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.33"
+__version__ = "0.3.6.34"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -849,23 +849,16 @@ def act_drop_db(oerp, ctx):
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
-        try_again = True
-        sts = STS_FAILED
-        while sts != STS_SUCCESS:
-            try:
-                oerp.db.drop(ctx['admin_passwd'],
-                             ctx['db_name'])
-                sts = STS_SUCCESS
-                if ctx['db_name'][0:11] != 'clodoo_test':
-                    time.sleep(2)
-            except BaseException:
-                sts = STS_FAILED
-                if try_again:
-                    cmd = 'pg_db_active -wa %s' % ctx['db_name']
-                    os0.muteshell(cmd, simulate=False, keepout=False)
-                    try_again = False
-                else:
-                    break
+        try:
+            cmd = 'pg_db_active -wa %s' % ctx['db_name']
+            os0.muteshell(cmd, simulate=False, keepout=False)
+            oerp.db.drop(ctx['admin_passwd'],
+                         ctx['db_name'])
+            sts = STS_SUCCESS
+            if ctx['db_name'][0:11] != 'clodoo_test':
+                time.sleep(2)
+        except BaseException:
+            sts = STS_FAILED
     return sts
 
 

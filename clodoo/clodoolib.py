@@ -49,7 +49,7 @@ LX_CFG_S = ('db_name',
             'admin_passwd',
             'db_host',
             'xmlrpc_port',
-            'oe_version',
+            'odoo_vid',
             'zeroadm_mail',
             'svc_protocol',
             'dbfilter',
@@ -110,7 +110,7 @@ LX_CFG_B = ('set_passepartout',
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
             'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port',
-            'oe_version')
+            'odoo_vid')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.33"
+__version__ = "0.3.6.34"
 
 
 #############################################################################
@@ -270,7 +270,7 @@ def default_conf(ctx):
               'db_host': 'localhost',
               'svc_protocol': '',
               'xmlrpc_port': '8069',
-              'oe_version': '11.0',
+              'odoo_vid': '11.0',
               'dbfilter': '.*',
               'dbfilterd': 'demo',
               'dbfiltert': 'openerp.*',
@@ -410,6 +410,7 @@ def create_params_dict(ctx):
             ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
         ctx['db_host'] = 'localhost'
+    ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
         if ctx['oe_version'] in ('9.0', '10.0', '11.0'):
             ctx['svc_protocol'] = 'jsonrpc'
@@ -453,17 +454,14 @@ def read_config(ctx):
     conf_obj = ConfigParser.SafeConfigParser(default_conf(ctx))
     ctx['conf_fns'] = []
     if ODOO_CONF:
-        if 'oe_version' in ctx:
-            vid = ctx['oe_version'].split('.')[0]
-            fver = 'odoo' + vid
+        if 'odoo_vid' in ctx:
+            fnver = build_odoo_param('CONFN', ctx['odoo_vid'])
         if isinstance(ODOO_CONF, list):
             for f in ODOO_CONF:
-                if 'oe_version' in ctx:
-                    d = os.path.dirname(f)
-                    b = os.path.basename(f)
-                    f = '/'.join([d, b.replace('odoo', fver)])
-                    if os.path.isfile(f):
-                        ctx['conf_fns'].append(f)
+                if 'odoo_vid' in ctx:
+                    fn = f.replace('odoo-server.conf', fnver)
+                    if os.path.isfile(fn):
+                        ctx['conf_fns'].append(fn)
                         break
                 if os.path.isfile(f):
                     ctx['conf_fns'].append(f)
@@ -507,7 +505,7 @@ def create_parser(version, doc, ctx):
                         default=None)
     parser.add_argument("-b", "--odoo-branch",
                         help="talk server Odoo version",
-                        dest="oe_version",
+                        dest="odoo_vid",
                         metavar="version",
                         default="")
     parser.add_argument("-c", "--config",
@@ -629,3 +627,43 @@ def check_if_running(ctx, pid):
     if os.path.isfile(os0.setlfilename(os0.bgout_fn)):
         os.remove(os0.setlfilename(os0.bgout_fn))
     return f_alrdy_run
+
+
+def get_odoo_full_ver(odoo_vid):
+    v = re.search('[0-9]+(\.[0-9])?', odoo_vid).group()
+    if v == '6':
+        odoo_fver = '6.1'
+    elif v.find('.') >= 0:
+        odoo_fver = v
+    else:
+        odoo_fver = v + '.0'
+    return odoo_fver
+
+
+def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
+    vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
+    if odoo_vid:
+        if re.match(vmatch, odoo_vid):
+            odoo_fver = get_odoo_full_ver(odoo_vid)
+        else:
+            odoo_vid = '11.0'
+    else:
+        odoo_vid = '11.0'
+        odoo_fver = odoo_vid
+    odoo_ver = int(odoo_fver.split('.')[0])
+    if item == 'FULLVER':
+        return odoo_fver
+    elif item == 'MAJVER':
+        return odoo_ver
+    elif item == 'CONFN':
+        if odoo_ver >= 10:
+            sfx=''
+        else:
+            sfx='-server'
+        if odoo_vid[0].lower() == 'v':
+            v=''
+        else:
+            v=str(odoo_ver)
+        confn = 'odoo%s%s.conf' % (v, sfx)
+        return confn
+    return False
