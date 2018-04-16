@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.32
+__version__=0.2.1.33
 
 
 cp_n_upd_odoo_conf() {
@@ -185,12 +185,10 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   done
   exit $sts
 elif [ "${TESTS}" != "1" ]; then
-  if [ -z "${VERSION}" ] ; then
-    VERSION="$opt_branch"
-  fi
-  if [ -z "${ODOO_BRANCH}"  ] ; then
-    export ODOO_BRANCH=${VERSION}
-  fi
+  [ -z "${VERSION}" ] &&  VERSION="$opt_branch"
+  [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
+  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $PIP install -q os0 z0lib --upgrade"
+  $PIP install -q os0 z0lib --upgrade
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
   breqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
