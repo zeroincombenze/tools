@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.33
+__version__=0.2.1.34
 
 
 cp_n_upd_odoo_conf() {
@@ -177,11 +177,11 @@ if [ $opt_verbose -gt 0 ]; then
   echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
 fi
 for p in os0 z0lib; do
-  eval $LISA status -q $p
-  if [ $? -eq 0 ]; then
+  # eval $LISA status -q $p
+  # if [ $? -eq 0 ]; then
     [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
     $PIP install -q $p --upgrade
-  fi
+  # fi
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   for p in oerplib odoorpc zerobug clodoo; do
