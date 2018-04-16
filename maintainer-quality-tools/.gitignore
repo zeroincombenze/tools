@@ -75,3 +75,6 @@ docs/_build/
 
 # OCA rules
 !static/lib/
+stdout.log
+*.oca
+*.z0i

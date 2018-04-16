@@ -127,9 +127,10 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 sts=$STS_SUCCESS
-if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
-if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
-if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
+[ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
+[ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
+[ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
+[ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && opt_verbose=1
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -169,42 +170,47 @@ else
   [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
   [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
 fi
-if [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
+if [ $opt_verbose -gt 0 ]; then
   echo "$0 $__version__"
   echo "\$ alias pip=$PIP"
   echo "\$ alias lisa=$LISA"
   echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
 fi
+for p in os0 z0lib; do
+  eval $LISA status -q $p
+  if [ $? -eq 0 ]; then
+    [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+    $PIP install -q $p --upgrade
+  fi
+done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
-  for p in oerplib odoorpc os0 zerobug clodoo; do
-    [ -f $TDIR/../lisa/lisa ] && echo "\$ $LISA install-if $f"
+  for p in oerplib odoorpc zerobug clodoo; do
     eval $LISA status -q $f
     if [ $? -eq 0 ]; then
-      $LISA install -qy $f
+      [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+      $PIP install -q $p --upgrade
     fi
   done
   exit $sts
 elif [ "${TESTS}" != "1" ]; then
   [ -z "${VERSION}" ] &&  VERSION="$opt_branch"
   [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $PIP install -q os0 z0lib --upgrade"
-  $PIP install -q os0 z0lib --upgrade
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
+  [ $opt_verbose -gt 0 ] && echo "- breqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
   breqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
+  [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
   for f in $breqs; do
-    [ -f $TDIR/../lisa/lisa ] && echo "\$ $LISA install-if $f"
+    [ $opt_verbose -gt 0 ] && echo "\$ $LISA install-if $f"
     pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
     if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-      echo "- Check for $f"
+      :
     elif [ "$f" == "$pkg" ]; then
       eval $LISA status -q $f
       [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
     fi
   done
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+  [ $opt_verbose -gt 0 ] && echo "- preqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
   preqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
+  [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
   for f in $preqs; do
     op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
     pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
@@ -245,15 +251,11 @@ elif [ "${TESTS}" != "1" ]; then
   exit $sts
 fi
 if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" == "oca" ]; then
-  [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/travis_install_nightly"
+  [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/travis_install_nightly"
   eval $TDIR/travis_install_nightly
 else
-  if [ -z "${VERSION}" ] ; then
-    VERSION="$opt_branch"
-  fi
-  if [ -z "${ODOO_BRANCH}"  ] ; then
-    export ODOO_BRANCH=${VERSION}
-  fi
+  [ -z "${VERSION}" ] && VERSION="$opt_branch"
+  [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
   : ${MQT_TEMPLATE_DB:="openerp_template"}
   : ${MQT_TEST_DB:="openerp_test"}
   : ${ODOO_REPO:="odoo/odoo"}
@@ -292,7 +294,6 @@ else
       ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
     fi
   fi
-  eval $PIP install -q os0 z0lib --user
   mkdir -p ${HOME}/dependencies
   cp_n_upd_odoo_conf
   [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
