@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-14
+# Last update: 2018-04-16
 #
 # ---------------------------------------------------------------------
 #
@@ -226,7 +226,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
     configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
-    pylint_odoo,pyflakes,clodoo,os0,psycopg2-binary
+    pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
