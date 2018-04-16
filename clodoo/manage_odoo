@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.34
+__version__=0.3.6.35
 
 
 explore() {
@@ -114,6 +114,7 @@ do_action() {
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias pip=$PIP"
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
+      pip install pip -U
       breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
       [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
       opts=

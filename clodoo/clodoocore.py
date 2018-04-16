@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.6.34"
+__version__ = "0.3.6.35"
 
 
 #############################################################################
@@ -485,7 +485,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
             ids = None
     if ids is None:
         return []
-    if len(ids) == 0:
+    if len(ids) == 0 and model != 'res.users':
         ids = _get_raw_query_id(oerp,
                                 ctx,
                                 model,
@@ -566,10 +566,18 @@ def get_query_id(oerp, ctx, o_model, row):
     """
     msg = "get_query_id()"
     debug_msg_log(ctx, 6, msg)
-    code = o_model['code']
+    if o_model['code'].find(',') >= 0:
+        code = o_model['code'].split(',')
+    else:
+        code = o_model['code']
     model, hide_cid = _get_model_bone(ctx, o_model)
     msg += "model=%s, hide_company=%s" % (model, hide_cid)
-    value = row.get(code, '')
+    if isinstance(code, list):
+        value = []
+        for p in code:
+            value.append(row.get(p, ''))
+    else:
+        value = row.get(code, '')
     if model is None:
         ids = []
     else:
