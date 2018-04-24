@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.35
+__version__=0.2.1.36
 
 
 cp_n_upd_odoo_conf() {
@@ -178,11 +178,15 @@ if [ $opt_verbose -gt 0 ]; then
   echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
 fi
 for p in os0 z0lib; do
-  # eval $LISA status -q $p
-  # if [ $? -eq 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
-    $PIP install -q $p --upgrade
-  # fi
+  if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+     echo "$PIP install -q $p --upgrade"
+  else
+    eval $LISA status -q $p
+    if [ $? -eq 0 ]; then
+      [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+      $PIP install -q $p --upgrade
+    fi
+  fi
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   for p in oerplib odoorpc zerobug clodoo; do
@@ -210,8 +214,8 @@ else
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${TESTS}" == "1" ]; then
     if [[ ! "$TRAVIS" == "true" ]]; then
-      pg_db_active -wa $MQT_TEMPLATE_DB; dropdb $MQT_TEMPLATE_DB
-      pg_db_active -wa $MQT_TEST_DB; dropdb $MQT_TEST_DB
+      pg_db_active -wa $MQT_TEMPLATE_DB; dropdb $MQT_TEMPLATE_DB &>/dev/null
+      pg_db_active -wa $MQT_TEST_DB; dropdb $MQT_TEST_DB &>/dev/null
     fi
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
@@ -235,10 +239,11 @@ else
         ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
       fi
     fi
-    eval $PIP install --upgrade pip
+    # [ $opt_verbose -gt 0 ] && echo "\$ $PIP install pip --upgrade"
+    # eval $PIP install pip --upgrade
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
-    [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
+    [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
     eval $TDIR/clone_oca_dependencies
     sts=$?
     if [ $sts -ne 0 ]; then
@@ -251,11 +256,15 @@ else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
     dopts="-O$dependencies_dir"
-    [ $opt_verbose -gt 0 ] && echo "\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
-    eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
+    if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+      [ $opt_verbose -gt 0 ] && echo "> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+    else
+      [ $opt_verbose -gt 0 ] && echo "\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
+    fi
     [ $opt_verbose -gt 0 ] && echo "\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
-    if [ $opt_verbose -gt 0 ]; then
+    if [ ${TRAVIS_DEBUG_MODE:-0} -lt 2 -a $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       for f in $reqs; do
@@ -274,59 +283,63 @@ else
     fi
   else
     dopts=
-    [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
-    reqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
-    [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
-    for f in $reqs; do
-      [ $opt_verbose -gt 0 ] && echo "\$ $LISA install-if $f"
-      pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-      if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-        :
-      elif [ "$f" == "$pkg" ]; then
+    if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
+    else
+      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
+      reqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
+      [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
+      for f in $reqs; do
+        [ $opt_verbose -gt 0 ] && echo "\$ $LISA install-if $f"
+        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
+          :
+        elif [ "$f" == "$pkg" ]; then
+          eval $LISA status -q $f
+          [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
+        fi
+      done
+      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
+      [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
+      for f in $reqs; do
+        op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
+        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+        reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
+        sts=0
         eval $LISA status -q $f
-        [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
-      fi
-    done
-    [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
-    reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
-    [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
-    for f in $reqs; do
-      op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
-      pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-      reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
-      sts=0
-      eval $LISA status -q $f
-      sts=$?
-      if [ $sts -eq 1 ] || [ -n "$reqver" ]; then
-        [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-        if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-          cmd="$PIP install -q $f --upgrade"
-          [ $EUID -ne 0 ] && cmd="$cmd --user"
-          echo "- Update '$pkg' version '$curver' with version '$reqver'"
-          if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
-            echo "> $cmd"
-          else
-            run_traced "$cmd"
+        sts=$?
+        if [ $sts -eq 1 ] || [ -n "$reqver" ]; then
+          [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+          if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+            cmd="$PIP install -q $f --upgrade"
+            [ $EUID -ne 0 ] && cmd="$cmd --user"
+            echo "- Update '$pkg' version '$curver' with version '$reqver'"
+            if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+              echo "> $cmd"
+            else
+              run_traced "$cmd"
+            fi
           fi
         fi
-      fi
-    done
-    for f in $reqs; do
-      op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
-      pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-      reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
-      if [ -n "$reqver" ]; then
-        curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
-        if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-          echo "- Update '$pkg' version '$curver' with version '$reqver'"
-          if [ $EUID -eq 0 ]; then
-            run_traced "$PIP install -q $f --upgrade --no-deps"
-          else
-            run_traced "$PIP install -q $f --upgrade --no-deps --user"
+      done
+      for f in $reqs; do
+        op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
+        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+        reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
+        if [ -n "$reqver" ]; then
+          curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
+          if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+            echo "- Update '$pkg' version '$curver' with version '$reqver'"
+            if [ $EUID -eq 0 ]; then
+              run_traced "$PIP install -q $f --upgrade --no-deps"
+            else
+              run_traced "$PIP install -q $f --upgrade --no-deps --user"
+            fi
           fi
         fi
-      fi
-    done
+      done
+    fi
   fi
 fi
 exit $sts

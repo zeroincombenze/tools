@@ -7,12 +7,17 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.35'
+__version__ = '0.3.6.36'
 
-
+#
+# known incompantibilities:
+# - requests: oca-maintainers-tools -> '==2.3.0', 
+#             codecov -> '>=2.7.9'
 REQVERSION = {
     'acme_tiny': {'7.0': '>=4.0.3'},
+    'argparse': {'0': '==1.2.1'},
     'astroid': {'7.0': '==1.4.8'},
+    'autopep8': {'0': '==1.2'},
     'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
     'beautifulsoup': {'7.0': '==3.2.1'},
     'codicefiscale': {'7.0': '==0.9'},
@@ -20,6 +25,7 @@ REQVERSION = {
     'decorator': {'7.0': '==3.4.0', '10.0': '==4.0.10'},
     'docutils': {'7.0': '==0.12'},
     'ebaysdk': {'7.0': '==2.1.4'},
+    'ERPpeek': {'0': '==1.6.1'},
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
     'flake8': {'7.0': '>=3.4.1'},
     'gdata': {'7.0': '==2.0.18'},
@@ -61,7 +67,7 @@ REQVERSION = {
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
     'restructuredtext_lint': {'7.0': '==0.12.2'},
     'reportlab': {'7.0': '==3.1.44', '10.0': '==3.3.0'},
-    'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1',},
+    'requests': {'7.0': '==2.6.0', '10.0': '==2.11.1'},
     'simplejson': {'7.0': '==3.5.3'},
     'six': {'7.0': '==1.9.0',  '10.0': '==1.10.0'},
     'suds': {'7.0': '==0.4'},
@@ -192,7 +198,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     if with_version:
         if item in REQVERSION:
             f = False
-            for v in ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+            for v in ('0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
                 if v == odoo_ver or not odoo_ver:
                     f = True
                 if f and v in REQVERSION[item]:

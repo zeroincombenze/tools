@@ -49,7 +49,7 @@ LX_CFG_S = ('db_name',
             'admin_passwd',
             'db_host',
             'xmlrpc_port',
-            'odoo_vid',
+            'oe_version',
             'zeroadm_mail',
             'svc_protocol',
             'dbfilter',
@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.35"
+__version__ = "0.3.6.36"
 
 
 #############################################################################
@@ -410,7 +410,10 @@ def create_params_dict(ctx):
             ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
         ctx['db_host'] = 'localhost'
-    ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
+    if 'oe_version' in ctx and not ctx.get('odoo_vid'):
+        ctx['odoo_vid'] = ctx['oe_version']
+    else:
+        ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
         if ctx['oe_version'] in ('9.0', '10.0', '11.0'):
             ctx['svc_protocol'] = 'jsonrpc'
@@ -440,10 +443,11 @@ def docstring_summary(docstring):
 
 def fullname_conf(ctx):
     if ctx.get('conf_fn'):
-        for p in ('.', './confs', './conf', './code'):
-            if os.path.isfile('%s/%s' % (p, ctx['conf_fn'])):
-                ctx['conf_fn'] = '%s/%s' % (p, ctx['conf_fn'])
-                break
+        if not os.path.isfile(ctx['conf_fn']):
+            for p in ('.', './confs', './conf', './code'):
+                if os.path.isfile('%s/%s' % (p, ctx['conf_fn'])):
+                    ctx['conf_fn'] = '%s/%s' % (p, ctx['conf_fn'])
+                    break
     return ctx
 
 
