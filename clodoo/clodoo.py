@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.36"
+__version__ = "0.3.6.38"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -354,7 +354,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         lines = fd.read().split('\n')
         for line in lines:
             tkn = line.split('=')
-            tkn = map(lambda x:x.strip(), tkn)
+            tkn = map(lambda x: x.strip(), tkn)
             for p in P_LIST:
                 if tkn[0] == p:
                     if p == 'xmlrpc_port':

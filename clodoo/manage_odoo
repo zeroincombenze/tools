@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.36
+__version__=0.3.6.38
 
 
 explore() {
@@ -110,60 +110,69 @@ do_action() {
       [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py
       [ -f $TDIR/list_requirements.py ] && LISTREQ=$TDIR/list_requirements.py
       [ -f $HOME/tools/lisa/lisa ] && LISA=$HOME/tools/lisa/lisa || LISA=lisa
-      [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
+      [ -f $TDIR/../../lisa/lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa/lisa)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
-      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias pip=$PIP"
-      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ alias lisa=$LISA"
-      pip install pip -U
-      breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
-      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ breqs=$breqs"
-      opts=
-      [ $opt_yes -ne 0 ] && opts="${opts}y"
-      for f in $breqs; do
-        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-          echo "Check for $f"
-        elif [ "$f" == "$pkg" ]; then
-          eval $LISA status -q $f
-          [ $? -ne 0 ] && run_traced "$LISA install -q $f"
-        fi
-      done
-      $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR
-      preqs="$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-      [ $opt_verbose -gt 0 -o "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && echo "\$ preqs=$preqs"
-      for pass in 1 2; do
-        for f in $preqs; do
-          op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
+      [ $opt_verbose -gt 0 ] && echo "\$ alias pip=$PIP"
+      [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA"
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
+      if [ -z $PYPI_CACHED ]: then
+        eval $PIP install pip -U
+        breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
+        [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
+        opts=
+        [ $opt_yes -ne 0 ] && opts="${opts}y"
+        for f in $breqs; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-          reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
-          sts=0
-          if [ $pass -eq 1 ]; then
-            eval $LISA status -q $f
-            sts=$?
-          fi
-          if [ $sts -eq 1 ] || [ $pass -eq 2 -a -n "$reqver" ]; then
-            [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-            if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-              cmd="$PIP install -q $f --upgrade"
-              [ $pass -eq 2 ] && cmd="$cmd --no-deps"
-              [ $EUID -ne 0 ] && cmd="$cmd --user"
-              echo "Update '$pkg' version '$curver' with version '$reqver'"
-              if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
-                echo "> $cmd"
-              else
-                run_traced "$cmd"
-              fi
-            fi
+          if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
+            echo "Check for $f"
+          elif [ "$f" == "$pkg" ]; then
+            eval $LISA status -q $f -d0
+            [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
           fi
         done
-      done
-      x=$(npm list|grep " less@")
-      [ -z "$x" ] && x=$(npm list -g|grep " less@")
-      if [ "$TRAVIS" == "true" -o -z "$x" ]; then
-        if [ $EUID -eq 0 ]; then
-          run_traced "npm install -g less less-plugin-clean-css"
-        else
-          run_traced "npm install less less-plugin-clean-css"
+        $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR
+        preqs="$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+        [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
+        for pass in 1 2 3; do
+          [ $pass -eq 3 ] && echo "Check for package version"
+          for f in $preqs; do
+            op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
+            pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
+            reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
+            sts=0
+            if [ $pass -eq 1 ]; then
+              eval $LISA status -q $f -d0
+              sts=$?
+            fi
+            if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
+              [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+              if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+                if [ $pass -eq 3 ]; then
+                  x=$(eval $LISA version -q $f -d0)
+                  echo "$x but expected $op$reqver"
+                else
+                  cmd="$PIP install -q $f --upgrade"
+                  [ $pass -eq 2 ] && cmd="$cmd --no-deps"
+                  [ $EUID -ne 0 ] && cmd="$cmd --user"
+                  echo "Update '$pkg' version '$curver' with version '$reqver'"
+                  if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+                    echo "> $cmd"
+                  else
+                    run_traced "$cmd"
+                  fi
+                fi
+              fi
+            fi
+          done
+        done
+        x=$(npm list|grep " less@")
+        [ -z "$x" ] && x=$(npm list -g|grep " less@")
+        if [ "$TRAVIS" == "true" -o -z "$x" ]; then
+          if [ $EUID -eq 0 ]; then
+            run_traced "npm install -g less less-plugin-clean-css"
+          else
+            run_traced "npm install less less-plugin-clean-css"
+          fi
         fi
       fi
       return $sts

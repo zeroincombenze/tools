@@ -127,7 +127,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.36"
+__version__ = "0.3.6.38"
 
 
 #############################################################################
@@ -645,7 +645,8 @@ def get_odoo_full_ver(odoo_vid):
 
 
 def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
-    vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
+    vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?' + \
+             '(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
     if odoo_vid:
         if re.match(vmatch, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
@@ -661,13 +662,13 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         return odoo_ver
     elif item == 'CONFN':
         if odoo_ver >= 10:
-            sfx=''
+            sfx = ''
         else:
-            sfx='-server'
+            sfx = '-server'
         if odoo_vid[0].lower() == 'v':
-            v=''
+            v = ''
         else:
-            v=str(odoo_ver)
+            v = str(odoo_ver)
         confn = 'odoo%s%s.conf' % (v, sfx)
         return confn
     return False

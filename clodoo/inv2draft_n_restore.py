@@ -9,7 +9,7 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.6.36"
+__version__ = "0.3.6.38"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
@@ -20,18 +20,20 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     tmp_inv_id = False
     cur_inv_id = False
     if tmp_num:
-        inv = oerp.search('account.invoice', [
-                          ('company_id', '=', company_id),
-                          ('internal_number', '=', tmp_num)])
+        inv = clodoo.searchL8(ctx,
+                              'account.invoice',
+                              [('company_id', '=', company_id),
+                               ('internal_number', '=', tmp_num)])
         if len(inv):
             tmp_inv_id = inv[0]
         else:
             return
         print ">>> tmp_inv=%d" % tmp_inv_id
     if cur_num:
-        inv = oerp.search('account.invoice', [
-                          ('company_id', '=', company_id),
-                          ('internal_number', '=', cur_num)])
+        inv = clodoo.search(ctx,
+                            'account.invoice',
+                            [('company_id', '=', company_id),
+                             ('internal_number', '=', cur_num)])
         if len(inv):
             cur_inv_id = inv[0]
         else:
@@ -54,11 +56,14 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     if tmp_inv_id and cur_inv_id and tmp_inv_id != cur_inv_id:
         print ">> Delete tmp invoice"
         try:
-            oerp.write('account.invoice', tmp_inv_id, {
-                       'state': 'cancel', 'number': '', 'internal_number': ''})
+            clodoo.writeL8(ctx,
+                           'account.invoice',
+                           tmp_inv_id,
+                           {'state': 'cancel',
+                            'number': '', 'internal_number': ''})
         except BaseException:                                # pragma: no cover
             pass
-        oerp.unlink('account.invoice', [tmp_inv_id])
+        clodoo.unlinkL8(ctx, 'account.invoice', [tmp_inv_id])
     if cur_inv_id:
         rec_ids = [cur_inv_id]
         tag = cur_num
@@ -77,7 +82,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     vals = {}
     if cur_dt:
         dt_s = str(cur_dt)
-        period_ids = oerp.execute('account.period', 'find', dt_s)
+        period_ids = clodoo.executeL8(ctx, 'account.period', 'find', dt_s)
         period_id = period_ids and period_ids[0] or False
         vals['date_invoice'] = dt_s
         vals['registration_date'] = dt_s
@@ -86,7 +91,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         vals['internal_number'] = tmp_num
     if len(vals):
         print ">> Update values ", inv_id, vals
-        oerp.write('account.invoice', inv_id, vals)
+        clodoo.writeL8(ctx, 'account.invoice', inv_id, vals)
     print ">> Posted"
     clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
     reconciles = reconcile_dict[inv_id]
@@ -143,7 +148,7 @@ def get_ids_from_params(model, company_id, P1=None, P2=None, P3=None):
         where.append(P2)
     if P3:
         where.append(P3)
-    return oerp.search(model, where)
+    return clodoo.searchL8(ctx, model, where)
 
 
 def set_where_str(name, value, condnot=False):
@@ -195,7 +200,7 @@ def get_ids_from_name(model, company_id, target):
         where.append(('name', '=', target))
     else:
         where.append(('name', 'like', target))
-    return oerp.search(model, where)
+    return clodoo.searchL8(ctx, model, where)
 
 
 def ask4company(company_id):
@@ -245,7 +250,7 @@ def ask4target(search_mode, target):
 
 def print_invoice_info(inv_id):
     model = 'account.invoice'
-    inv_obj = oerp.browse(model, inv_id)
+    inv_obj = clodoo.browseL8(ctx, model, inv_id)
     print "Id=%d, Num=%s(%s), supply n.=%s, ref=%s cid=%d" % (
         inv_id,
         inv_obj.number,
@@ -257,7 +262,7 @@ def print_invoice_info(inv_id):
 
 def print_move_info(inv_id):
     model = 'account.move'
-    inv_obj = oerp.browse(model, inv_id)
+    inv_obj = clodoo.browseL8(ctx, model, inv_id)
     print "Id=%d, name=%s cid=%d" % (
         inv_id,
         inv_obj.name,
@@ -425,9 +430,9 @@ while True:
                 hdr_ids = []
                 for id in dtl_ids:
                     if invmov == 'M':
-                        idd = oerp.browse(model_dtl, id).move_id.id
+                        idd = clodoo.browseL8(ctx, model_dtl, id).move_id.id
                     else:
-                        idd = oerp.browse(model_dtl, id).invoice_id.id
+                        idd = clodoo.browseL8(ctx, model_dtl, id).invoice_id.id
                     if idd not in hdr_ids:
                         hdr_ids.append(idd)
                 if len(hdr_ids):
@@ -565,13 +570,16 @@ while True:
         print ">> Cancel invoice number"
         for inv_id in rec_ids:
             print "Cancelling Invoice number of %d" % inv_id
-        oerp.write('account.invoice', rec_ids, {'internal_number': ''})
+        clodoo.writeL8(ctx,
+                       'account.invoice',
+                       rec_ids,
+                       {'internal_number': ''})
     elif action[0] == 'N':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)
             number = raw_input('New invoice number? ')
-            oerp.write(MODEL['IH'], [inv_id],
-                       {'internal_number': number})
+            clodoo.writeL8(ctx, MODEL['IH'], [inv_id],
+                           {'internal_number': number})
     elif action[0] == 'R' and action != 'RB':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)
@@ -579,20 +587,20 @@ while True:
                                       company_id,
                                       P1=('invoice_id', '=', inv_id)
                                       )
-            oerp.write(MODEL['ID'], ids,
-                       {'account_id': new_account_id})
+            clodoo.writeL8(ctx, MODEL['ID'], ids,
+                           {'account_id': new_account_id})
     elif action[0] == 'S':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)
-            oerp.write(MODEL['IH'], [inv_id],
-                       {'x_payment_status': inv_status})
+            clodoo.writeL8(ctx, MODEL['IH'], [inv_id],
+                           {'x_payment_status': inv_status})
     elif action[0] == 'P':
         print ">> Posted"
         for move_id in rec_ids:
             print_move_info(move_id)
-            oerp.execute('account.move',
-                         "button_validate",
-                         [move_id])
+            clodoo.executeL8(ctx, 'account.move',
+                             "button_validate",
+                             [move_id])
     elif action[0] == 'U':
         for move_id in rec_ids:
             print_move_info(move_id)
@@ -601,13 +609,13 @@ while True:
     elif action[0] == 'X':
         for move_id in rec_ids:
             print_move_info(move_id)
-            inv_obj = oerp.browse(MODEL['MH'], move_id)
+            inv_obj = clodoo.browseL8(ctx, MODEL['MH'], move_id)
             ref = inv_obj.ref
-            moves = oerp.search(MODEL['MD'], [('move_id',
-                                               '=',
-                                               move_id)])
-            oerp.write(MODEL['MD'], moves,
-                       {'ref': ref})
+            moves = clodoo.searchL8(ctx,
+                                    MODEL['MD'],
+                                    [('move_id', '=', move_id)])
+            clodoo.write(ctx, MODEL['MD'], moves,
+                         {'ref': ref})
     if action[0] == 'X' or (action[0] != 'B' and
                             action != 'RB' and action[1] != '+'):
         continue
@@ -621,9 +629,9 @@ while True:
     else:
         for inv_id in rec_ids:
             try:
-                oerp.execute('account.invoice',
-                             "button_reset_taxes",
-                             [inv_id])
+                clodoo.executeL8(ctx, 'account.invoice',
+                                 "button_reset_taxes",
+                                 [inv_id])
             except BaseException:                            # pragma: no cover
                 pass
         print ">> Posted"

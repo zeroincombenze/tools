@@ -32,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.36
+#__version__=0.3.6.38
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -390,11 +390,17 @@ build_odoo_param() {
       return
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
-        let p="18060+$odoo_ver"
+        ((p=18060+$odoo_ver))
       elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
-        let p="8160+$odoo_ver"
+        if [ "${2:0:3}" == "oca" ]; then
+          ((p=8260+$odoo_ver))
+        elif [ "${2:0:3}" == "oia" ]; then
+          ((p=8360+$odoo_ver))
+        else
+          ((p=8160+$odoo_ver))
+        fi
       else
         p=8069
       fi
@@ -450,7 +456,17 @@ build_odoo_param() {
     else
       p2="odoo"
     fi
-    if [ $odoo_ver -ge 10 ]; then
+    if [ "$ITEM" == "CONFN" ]; then
+      if [ $MULTIVER -ne 0 -a "${2:0:3}" == "oca" ]; then
+        p3="-oca"
+      elif [ $MULTIVER -ne 0 -a  "${2:0:3}" == "oia" ]; then
+        p3="-oia"
+      elif [ $odoo_ver -ge 10 ]; then
+        p3=
+      else
+        p3="-server"
+      fi
+    elif [ $odoo_ver -ge 10 ]; then
       if [ "$ITEM" == "BIN" ]; then
         p3=-bin
       else

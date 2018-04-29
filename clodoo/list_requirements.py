@@ -7,11 +7,11 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.36'
+__version__ = '0.3.6.38'
 
 #
 # known incompantibilities:
-# - requests: oca-maintainers-tools -> '==2.3.0', 
+# - requests: oca-maintainers-tools -> '==2.3.0',
 #             codecov -> '>=2.7.9'
 REQVERSION = {
     'acme_tiny': {'7.0': '>=4.0.3'},
@@ -37,7 +37,7 @@ REQVERSION = {
     'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0'},      # Tested 4.2.1
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0
-    'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0',},
+    'mock': {'7.0': '==1.0.1', '8.0': '==2.0.0'},
     'ofxparse': {'7.0': '==0.16'},
     'passlib': {'7.0': '==1.6.2', '10.0': '==1.6.5'},
     'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1'},     # Tested 3.4.2
@@ -173,13 +173,14 @@ BIN_PACKAGES = ['git',
                 'cups',
                 ]
 
+
 def parse_requirements(reqfile):
     lines = open(reqfile, 'rbU').read().split('\n')
     reqlist = []
     for line in lines:
         if line and line[0] != '#':
             items = line.split(';')
-            if len(items) == 1 or eval(items[1].strip().replace('_','.')):
+            if len(items) == 1 or eval(items[1].strip().replace('_', '.')):
                 item = items[0].strip()
                 reqlist.append(item)
     return reqlist
@@ -365,7 +366,7 @@ def main():
                         metavar="character",
                         default=",")
     parser.add_argument("-t", "--type",
-                        help="Type of files; may be bin,python,both or modules",
+                        help="File type: may be bin,python,both or modules",
                         dest="itypes",
                         metavar="keyword",
                         default="both")
@@ -460,7 +461,7 @@ def main():
         for kw in ('python', 'bin', 'modules'):
             if kw in deps_list:
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
-                        kw in ('python', 'bin')):
+                                           kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
                         print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
                     else:

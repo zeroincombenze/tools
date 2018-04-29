@@ -24,7 +24,7 @@ from clodoo import clodoo
 from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.6.36"
+__version__ = "0.3.6.38"
 
 
 MODULE_ID = 'clodoo'
