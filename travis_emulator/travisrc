@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
-
-#__version__=0.2.1.13
+# 
+#__version__=0.2.1.16
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -291,45 +291,38 @@ init_travis() {
         PRJPATH=$PKGPATH
       fi
     fi
-    if [ -z "$TOOLS_PATH" ]; then
-      if [ ${opt_dbgmnt:-0} -ne 0 ]; then
-        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
-      else
-        MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
+    if [ ${opt_dbgmnt:-0} -ne 0 ]; then
+      local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
+    else
+      local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
+    fi
+    if [ ! -d "$MQT_DEF_PATH" ]; then
+      if [ -d $TDIR/../travis ]; then
+        MQT_DEF_PATH=$(readlink -e $TDIR/../travis)
+      elif [ -d $TDIR/../../travis ]; then
+        MQT_DEF_PATH=$(readlink -e $TDIR/../../travis)
       fi
-      if [ "$PRJNAME" == "Odoo" ]; then
-        if [ -d $MQT_DEF_PATH ]; then
-          MQT_PATH=$MQT_DEF_PATH
-        elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-          MQT_PATH=$HOME/maintainer-quality-tools/travis
-        elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-          MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
-        else
-          unset -v MQT_PATH
-        fi
-      else
-        unset -v MQT_PATH
-      fi
-      if [ -d $TDIR/_travis -a ${opt_r:-0} -gt 0 ]; then
-        TOOLS_PATH=$TDIR/_travis
-      elif [ ${opt_dbgmnt:-0} -ne 0 -a -n "$MQT_PATH" ]; then
-        TOOLS_PATH=$MQT_PATH
-      elif [ -d $HOME/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$HOME/maintainer-quality-tools/travis
-      elif [ -d $HOME/dev/_travis -a ${opt_r:-0} -gt 0 ]; then
-        TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $TDIR/_travis -a "$PRJNAME" != "Odoo" ]; then
-        TOOLS_PATH=$TDIR/_travis
-      elif [ -d $HOME/dev/_travis -a "$PRJNAME" != "Odoo" ]; then
-        TOOLS_PATH=$HOME/dev/_travis
-      elif [ -d $HOME/dev/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$HOME/dev/maintainer-quality-tools/travis
+    fi
+    if [ -z "$MQT_PATH" ]; then
+      if [ -d $HOME/maintainer-quality-tools/travis ]; then
+        MQT_PATH=$HOME/maintainer-quality-tools/travis
+      elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
+        MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
       elif [ -d $HOME/tools/maintainer-quality-tools/travis ]; then
-        TOOLS_PATH=$HOME/tools/maintainer-quality-tools/travis
-      # elif [ "$TRAVIS" != "true" ]; then
-      #   TOOLS_PATH=$PKGPATH/travis_emulator/_travis
-      # elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
-      #   TOOLS_PATH=/opt/odoo/maintainer-quality-tools/travis
+        MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
+      else
+        MQT_PATH=$MQT_DEF_PATH
+      fi
+    fi
+    if [ -z "$TOOLS_PATH" ]; then
+      if [ -d $TDIR/_travis ]; then
+        TOOLS_PATH=$TDIR/_travis
+      elif [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
+        TOOLS_PATH=$MQT_DEF_PATH
+      elif [ -d $HOME/dev/_travis ]; then
+        TOOLS_PATH=$HOME/dev/_travis
+      elif [ -d $HOME/tools/maintainer-quality-tools/_travis ]; then
+        TOOLS_PATH=$HOME/tools/maintainer-quality-tools/_travis
       else
         TOOLS_PATH=$(find $HOME -type d -name _travis|head -n1)
       fi
@@ -342,6 +335,15 @@ revaluate_travis() {
     PKGPATH=$(set_pkgpath "")
     PKGNAME=$(basename $PKGPATH)
     init_travis
+}
+
+drop_test_db() {
+    if [ "$PRJNAME" == "Odoo" ]; then
+      local dbtemplate=${MQT_TEMPLATE_DB:-openerp_template}
+      pg_db_active -wa $dbtemplate; dropdb $dbtemplate --if-exists
+      local database=${MQT_TEST_DB:-openerp_test}
+      pg_db_active -wa $database; dropdb $database --if-exists
+    fi
 }
 
 create_virtual_env() {
@@ -374,57 +376,58 @@ create_virtual_env() {
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
     # run_traced "export REPO_CACHED=$HOME_BRANCH"
     run_traced "cd $TRAVIS_BUILD_DIR"
-    if [ "$PRJNAME" != "Odoo" ]; then
-      local dbtemplate=${MQT_TEMPLATE_DB:-openerp_template}
-      pg_db_active -a $dbtemplate; dropdb $dbtemplate --if-exists $n
-      local database=${MQT_TEST_DB:-openerp_test}
-      pg_db_active -a $database; dropdb $database --if-exists $n
-    fi
+    drop_test_db
 }
 
 drop_virtual_env() {
-    if [ -f $HOME/stdout.log ]; then
-      mv -f $HOME/stdout.log $TRAVIS_SAVED_HOME/stdout.log
-    fi
+    # if [ -f $HOME/stdout.log ]; then
+    #   mv -f $HOME/stdout.log $TRAVIS_SAVED_HOME/stdout.log
+    # fi
     cd $TRAVIS_HOME
     if [ ${opt_virt:-0} -gt 0 ]; then
       deactivate
     fi
     cd $TRAVIS_CWD
-    rm -fR $TRAVIS_HOME
+    if [ ${opt_keep:-0} -eq 0 ]; then
+      drop_test_db
+      rm -fR $TRAVIS_HOME
+    fi
 }
 
 prepare_env_travis() {
     local action="$1"
-    if [[ $action =~ (check|test|emulate|test|coverage) ]]; then
+    if [[ $action =~ (lint|test|emulate|test|coverage) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
-          # if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
           if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
             run_traced "export PATH=$TOOLS_PATH:$PATH"
           fi
         elif [ "$2" == "-r" ]; then
-          # if [ $(echo :$PATH:|grep -v ":$TOOLS_PATH:"  2>/dev/null) ]; then
           if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
             run_traced "export PATH=$TOOLS_PATH:$PATH"
           fi
         fi
       fi
     fi
-    if [ -n "$DEVPATH" ]; then
-      # if [ $(echo :$PATH:|grep -v ":$DEVPATH:"  2>/dev/null) ]; then
-      if [[ ! :$PATH: =~ :$DEVPATH: ]]; then
-        run_traced "export PATH=$DEVPATH:$PATH"
+    if [ -n "$TRAVIS_RUNDIR" ]; then
+      if [[ ! :$PATH: =~ :$TRAVIS_RUNDIR: ]]; then
+        run_traced "export PATH=$TRAVIS_RUNDIR:$PATH"
       fi
     fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
-    export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
+    if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/cfg ]; then
+      export FLAKE8_CONFIG_DIR=$PRJPATH/cfg
+    elif [ -d $MQT_PATH/cfg ]; then
+      export FLAKE8_CONFIG_DIR=$MQT_PATH/cfg
+    else
+      export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
+    fi
     export BRANCH
     export VERSION=$BRANCH
     export TRAVIS_BUILD_DIR=$PKGPATH
     # export VERBOSE_MODE=$opt_verbose
-    if [ "$action" == "check" ]; then
+    if [ "$action" == "lint" ]; then
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then
       export LINT_CHECK=0
@@ -461,9 +464,9 @@ prepare_env_travis() {
       fi
     fi
     if [ -x $TDIR/travis ]; then
-      export DEVPATH=$TDIR
+      export TRAVIS_RUNDIR=$TDIR
     else
-      export DEVPATH=$(readlink -f ~/dev)
+      export TRAVIS_RUNDIR=$(readlink -f ~/dev)
     fi
     export TOOLS_PATH
     export MQT_PATH
@@ -488,7 +491,7 @@ check_4_travis() {
 
 do_chkconfig() {
     echo "Project name   = \"$PRJNAME\""
-    echo "Tools path     = \"$TOOLS_PATH\" -r=\"$DEVPATH\""
+    echo "Tools path     = \"$TOOLS_PATH\" -r=\"$TRAVIS_RUNDIR\""
     echo "Branch         = \"$BRANCH\""
     echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
     echo "Version        = \"$prjversion\""
@@ -545,7 +548,7 @@ conf_default() {
       set_cfg_def "upgrade_dow" "4"
     fi
     set_cfg_def "Environment" "bash"
-    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools"
+    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
@@ -978,7 +981,7 @@ please_test_bash() {
 please_test_flake8() {
     echo "======== Testing test_flake8 ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
+      # FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
       run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
       local status1=$?
       run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
@@ -996,11 +999,7 @@ please_test_pylint() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       TRAVIS_BUILD_DIR=$PKGPATH
       MODULES_TO_TEST=$TRAVIS_BUILD_DIR
-      if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/cfg ]; then
-        PYLINT_CONFIG_DIR="$PRJPATH/cfg"
-      else
-        PYLINT_CONFIG_DIR="$TOOLS_PATH/cfg"
-      fi
+      PYLINT_CONFIG_DIR="$FLAKE8_CONFIG_DIR"
       if [ "$PRJNAME" == "Odoo" ]; then
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
       else
@@ -1510,14 +1509,14 @@ run_svr_test_rm_ln() {
       local n=$(get_cfg_value "" "dbtemplate")_$$
     fi
     local u=$(get_cfg_value "" "dbuser")
-    run_traced "pg_db_active -a $n; dropdb -U$u --if-exists $n"
+    run_traced "pg_db_active -wa $n; dropdb -U$u --if-exists $n"
     if [ ${opt_virt:-0} -eq 0 ]; then
       local n=$(get_cfg_value "" "dbname")
     else
       local n=$(get_cfg_value "" "dbname")_$$
     fi
     if [ "$2" != "wep" -o ${opt_keep:-0} -ne 0 ]; then
-      run_traced "pg_db_active -a $n; dropdb -U$u --if-exists $n"
+      run_traced "pg_db_active -wa $n; dropdb -U$u --if-exists $n"
     fi
     run_unvirt "if [ -d $HOME/dependencies ]; then rm -fR $HOME/dependencies; fi"
     run_unvirt "if [ -L $HOME/dependencies ]; then rm -f $HOME/dependencies; fi"

@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.13
+__version__=0.2.1.16
 
 
 save_testenv() {
@@ -78,8 +78,7 @@ Z0BUG_setup() {
       LCLTEST_SETUP=$LCLTEST_TMPDIR/setup.py
       rm -f $LCLTEST_TMPDIR/__openerp__.py
     fi
-    LCLTEST_MQT_PATH=
-
+    LCLTEST_MQT_PATH=/opt/odoo/tools/maintainer-quality-tools/travis
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
@@ -211,12 +210,12 @@ test_04() {
     # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis.reposname" "$LCLTEST_REPOSNAME" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    if [ -d $TDIR/_travis ]; then
-      test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
-    else
-      test_result "init_travis \$TOOLS_PATH" "$HOME/dev/_travis" "$TOOLS_PATH"
-    fi
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # if [ -d $TDIR/_travis ]; then
+    #   test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
+    # else
+    #   test_result "init_travis \$TOOLS_PATH" "$HOME/dev/_travis" "$TOOLS_PATH"
+    # fi
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis \$MQT_PATH" "$LCLTEST_MQT_PATH" "$MQT_PATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then

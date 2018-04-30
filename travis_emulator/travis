@@ -3,13 +3,35 @@
 #
 # Travis-ci emulator
 # Emulate travis-ci on local machine, to test before upgrade git project
-# Deploy:
-# ~/dev                          -> this script
-# ~/dev/_travis                  -> default script (travis_runs_tests, travis_after_tests_success)
-# ~/maintainer-quality-tools -> actual scripts, mainly for Odoo environment by OCA; their replace default scripts
-# When developping travis emulator itself, deployment is:
-# ~/dev/pypi/travis_em/travis_em -> this script
-# ~/dev/pypi/travis_em/travis_em/_travis -> default script (travis_runs_tests, travis_after_tests_success)
+#
+# Tree directory: see README of MQT for furthermore info
+#   ~/tools                             stable environment
+#       ./travis_emulator               stable travis emulator
+#           ./_travis                   TOOLS_PATH (script like travis_runs_tests, travis_after_tests_success)
+#           travis.yml                  YML_FILE: defalut travis.yml file (-r or missed in tested dir)
+#               ./cfg                   pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
+#       ./maintainer-quality-tools      copied to $HOME when running test
+#           ./travis                    MQT_PATH
+#               ./cfg                   pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
+#       ./clodoo                        tool to build environment
+#       ./lisa                          tool to build environment
+#   ~/dev                               alternate stable environment -> TOOLS_PATH
+#       ./clodoo                        alternate tool to build environment
+#       ./lisa                          alternate tool to build environment
+#   ~/dev/pypy/                         development environment (-M switch)
+#       ./travis_emulator
+#           ./travis_emulator           development travis emulator
+#               ./_travis               TOOLS_PATH  (-M switch)
+#               travis.yml              YML_FILE: defalut travis.yml file (-M and -r or missed in tested dir)
+#                   ./cfg               pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
+#       ./maintainer-quality-tools
+#           ./maintainer-quality-tools  copied to $HOME when running test
+#               ./travis                MQT_PATH (-M switch)
+#                   ./cfg               pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
+#       ./clodoo
+#           ./clodoo                    tool to build environment (-M switch)
+#       ./lisa
+#           ./lisa                      tool to build environment (-M switch)
 #
 # Yaml file process steps:
 #  1.Initialize from local .travis.conf (not in travis-ci.org)
@@ -68,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.13
+__version__=0.2.1.16
 
 
 store_cfg_param_value() {
@@ -87,7 +109,7 @@ store_cfg_param_value() {
 process_local() {
     wlog "=== Simulate YAML test ==="
     if [ -f $TOOLS_PATH/travis_run_tests ]; then
-      if [ "$action" == "check" ]; then
+      if [ "$action" == "lint" ]; then
         opts=$(inherits_travis_opts "K" "T")
       elif [ "$action" == "test" ]; then
         opts=$(inherits_travis_opts "T" "T")
@@ -100,7 +122,7 @@ process_local() {
       if [ "$action" == "test" ]; then
         please_run_tests "-T"
         sts=$?
-      elif [ "$action" == "check" ]; then
+      elif [ "$action" == "lint" ]; then
         please_run_tests "-K"
         sts=$?
       else
@@ -110,7 +132,7 @@ process_local() {
     else
       sts=127
     fi
-    if [ $sts -eq $STS_SUCCESS -a "$action" != "check" -a "$action" != "test" ]; then
+    if [ $sts -eq $STS_SUCCESS -a "$action" != "lint" -a "$action" != "test" ]; then
       opts=$(inherits_travis_opts "" "A")
       run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
@@ -130,7 +152,15 @@ process_yaml_init() {
     YML_script=
     YML_after=
     YML_repo=
+    YML_pid=$$
+    export MQT_TEMPLATE_DB="openerp_template$YML_pid"
+    export MQT_TEST_DB="openerp_test$YML_pid"
     export TRAVIS_PYTHON_VERSION=2.7
+    if [ $opt_cache -ne 0 ]; then
+      export PYPI_CACHED=$HOME/.local
+    else
+      export PYPI_CACHED=
+    fi
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
@@ -172,19 +202,19 @@ process_yaml_do() {
       local line="$1"
     fi
     if [[ "$line" =~ LINT_CHECK=... ]]; then
-      if [ "$action" == "check" ]; then
+      if [ "$action" == "lint" ]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]0[\"]/LINT_CHECK=\"1\"/g)
       elif [ "$action" == "test" ]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]1[\"]/LINT_CHECK=\"0\"/g)
       fi
     elif [[ "$line" =~ BASH_CHECK=... ]]; then
-      if [ "$action" == "check" ]; then
+      if [ "$action" == "lint" ]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]0[\"]/BASH_CHECK=\"1\"/g)
       elif [ "$action" == "test" ]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
       fi
     elif [[ "$line" =~ TESTS=... ]]; then
-      if [ "$action" == "check" ]; then
+      if [ "$action" == "lint" ]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"]1[\"]/TESTS=\"0\"/g)
       elif [ "$action" == "test" ]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
@@ -592,11 +622,7 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        if [ "$USER" == "travis" ]; then
-          xcmd="ln -s /opt/odoo/tools $HOME"
-        else
-          xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
-        fi
+        xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -665,13 +691,7 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-      if [ $opt_dbgmnt -ne 0 ]; then
-        local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
-      else
-        local TRAVIS_MQT_PATH=$(get_cfg_value "" "MQT_DEF_PATH")
-      fi
-      TRAVIS_MQT_PATH=$(readlink -e $TRAVIS_MQT_PATH/..)
-      xcmd="${x[$ix]} $TRAVIS_MQT_PATH ${HOME}/"
+      xcmd="${x[$ix]} $MQT_PATH ${HOME}/"
       xcmd=${xcmd/mv /cp -R }
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
@@ -700,6 +720,10 @@ process_yaml_run_cmd() {
           xcmd="# $xcmd"
         elif [[ "${x[$ix]}" =~ TESTS=.1. ]]; then
           xtest=1
+        elif [[ "${x[$ix]}" =~ MQT_TEMPLATE_DB= ]]; then
+          xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
+        elif [[ "${x[$ix]}" =~ MQT_TEST_DB= ]]; then
+          xcmd=$(echo $xcmd|sed -e "s|${x[$ix]}|${x[$ix]}$YML_pid|g")
         elif [[ "${x[$ix]}" =~ ODOO_REPO=.$YML_repo. ]]; then
           if [ ${opt_virt:-0} -eq 0 ]; then
             xcmd=$(echo $xcmd|sed -e "s|$YML_repo|local/odoo|g")
@@ -780,9 +804,9 @@ process_yaml() {
       #   alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
       #   alias pip=/usr/bin/pip$TRAVIS_PYTHON_VERSION
       # else
-      #   wlog "Unsupported pythone version $TRAVIS_PYTHON_VERSION"
+      #   wlog "Unsupported python version $TRAVIS_PYTHON_VERSION"
       # fi
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH DEVPATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TRAVIS_RUNDIR TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
@@ -877,18 +901,19 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        b          c        D        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
-OPTDEST=(opt_help opt_branch opt_conf opt_dlvl opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
-OPTACTI=(1        "="        "="      "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        0)
-OPTDEFL=(0        10.0       ""       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        1)
-OPTMETA=("help"   "branch"   "file"   ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
+OPTOPTS=(h        b          C         c        D        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
+OPTDEST=(opt_help opt_branch opt_cache opt_conf opt_dlvl opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
+OPTACTI=(1        "="        1         "="      "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        0)
+OPTDEFL=(0        10.0       0         ""       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        1)
+OPTMETA=("help"   "branch"   ""        "file"   ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
+ "use cached PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
- "keep DB after tests"\
+ "keep DB and virtual environment after tests"\
  "log directory (def=~/travis_log)"\
  "use local MQT"\
  "show missing line in report coverage"\
@@ -909,14 +934,14 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: check, test, emulate (default), setup, chkconfig or parseyaml"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: lint, test, emulate (default), setup, chkconfig or parseyaml"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
 [ -z "$action" ] && action=emulate
-ACTIONS="check test emulate setup chkconfig parseyaml"
-VIRTACTS="check test emulate"
+ACTIONS="lint test emulate setup chkconfig parseyaml"
+VIRTACTS="lint test emulate"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
   if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
     :
@@ -1001,7 +1026,6 @@ if [ "$action" == "setup" ]; then
   fi
   if [ "$TDIR" != "$DEF_DEVPATH" ]; then
     run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
-    # for f in travis_install_pkgs travis_run_tests travis_after_tests_success; do
     for f in travis_run_tests travis_after_tests_success; do
       run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
     done
@@ -1015,30 +1039,30 @@ prepare_env_travis "$action"
 check_4_travis
 PIDFILE=
 if [ $sts -eq $STS_SUCCESS ]; then
-  if [ ${opt_virt:-0} -eq 0 ]; then
-    PIDFILE=$(get_cfg_value "" "PIDFILE")
-    PIDFILE=$(expand_path "$PIDFILE")
-    if [ $opt_wait -ne 0 ]; then
-      ctr=1440
-    else
-      ctr=1
-    fi
-    while [ $ctr -gt 0 ]; do
-      checkpid "$PIDFILE"
-      sts=$?
-      if [ $sts -eq 0 ]; then
-        echo "Another instance of travis emulator is running"
-        ((ctr--))
-        if [ $ctr -eq 0 ]; then
-          exit $sts
-        fi
-        sleep 60
-      else
-        break
-      fi
-    done
-    echo $$>$PIDFILE
-  fi
+  # if [ ${opt_virt:-0} -eq 0 ]; then
+  #   PIDFILE=$(get_cfg_value "" "PIDFILE")
+  #   PIDFILE=$(expand_path "$PIDFILE")
+  #   if [ $opt_wait -ne 0 ]; then
+  #     ctr=1440
+  #   else
+  #     ctr=1
+  #   fi
+  #   while [ $ctr -gt 0 ]; do
+  #     checkpid "$PIDFILE"
+  #     sts=$?
+  #     if [ $sts -eq 0 ]; then
+  #       echo "Another instance of travis emulator is running"
+  #       ((ctr--))
+  #       if [ $ctr -eq 0 ]; then
+  #         exit $sts
+  #       fi
+  #       sleep 60
+  #     else
+  #       break
+  #     fi
+  #   done
+  #   echo $$>$PIDFILE
+  # fi
   if [ $opt_r -gt 0 ]; then
     process_local
     sts=$?
@@ -1049,8 +1073,8 @@ if [ $sts -eq $STS_SUCCESS ]; then
     process_yaml 2>&1 | tee -a $opt_logdir/${PKGNAME}_${BRANCH}.log
     sts=$?
   fi
-  if [ -n "$PIDFILE" ]; then
-    rm -f $PIDFILE
-  fi
+  # if [ -n "$PIDFILE" ]; then
+  #   rm -f $PIDFILE
+  # fi
 fi
 exit $sts

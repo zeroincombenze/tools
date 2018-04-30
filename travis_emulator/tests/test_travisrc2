@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.13
+__version__=0.2.1.16
 
 
 save_testenv() {
@@ -81,7 +81,7 @@ Z0BUG_setup() {
     LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
     LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
     LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
-    mkdir -p /opt/odoo/maintainer-quality-tools
+    mkdir -p ~/maintainer-quality-tools
     mkdir -p $LCLTEST_TMPDIR0
     mkdir -p $LCLTEST_PRJPATH
     mkdir -p $LCLTEST_TMPDIR
@@ -89,11 +89,6 @@ Z0BUG_setup() {
     touch $LCLTEST_TMPDIR/__openerp__.py
     touch $LCLTEST_TMPDIR2/__openerp__.py
     LCLTEST_SETUP=__openerp__.py
-    if [ -d ~/tools/maintainer-quality-tools/travis ]; then
-      LCLTEST_MQT_PATH=$(readlink -f ~/tools/maintainer-quality-tools/travis)
-    else
-      LCLTEST_MQT_PATH=$(readlink -f ~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis)
-    fi
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
@@ -104,8 +99,8 @@ Z0BUG_setup() {
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
-> pg_db_active -a openerp_template; dropdb -Upostgres --if-exists openerp_template
-> pg_db_active -a openerp_test; dropdb -Upostgres --if-exists openerp_test
+> pg_db_active -wa openerp_template; dropdb -Upostgres --if-exists openerp_template
+> pg_db_active -wa openerp_test; dropdb -Upostgres --if-exists openerp_test
 > if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
@@ -126,11 +121,14 @@ EOF
     elif [ -f ~/maintainer-quality-tools ]; then
       rm -f ~/maintainer-quality-tools
     fi
+    LCLTEST_MQT_PATH=
     if [ ! -L ~/maintainer-quality-tools ]; then
       if [ -d ~/tools/maintainer-quality-tools/ ]; then
         ln -s ~/tools/maintainer-quality-tools/ ~/
+        LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
       elif [ -d ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
         ln -s ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ~/
+        LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
       else
         false
       fi
@@ -184,7 +182,6 @@ test_02() {
       PRJNAME=
       CFG_init
       conf_default
-      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
@@ -343,7 +340,6 @@ test_04() {
       PRJNAME=
       CFG_init
       conf_default
-      # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv
     fi
@@ -360,7 +356,7 @@ test_04() {
     if [ -d $TDIR/_travis ]; then
       test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
     else
-      test_result "init_travis \$TOOLS_PATH" "$HOME/maintainer-quality-tools/travis" "$TOOLS_PATH"
+      test_result "init_travis \$TOOLS_PATH" "/opt/odoo/dev/_travis" "$TOOLS_PATH"
     fi
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis \$MQT_PATH" "$LCLTEST_MQT_PATH" "$MQT_PATH"
@@ -368,7 +364,6 @@ test_04() {
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=1
       MQT_VERBOSE_MODE=
-      # TOOLS_PATH=~/maintainer-quality-tools/travis
       inherits_travis_opts "v" "T" >/dev/null
       result_testenv
     fi
