@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.16
+#__version__=0.2.1.17
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -304,7 +304,9 @@ init_travis() {
       fi
     fi
     if [ -z "$MQT_PATH" ]; then
-      if [ -d $HOME/maintainer-quality-tools/travis ]; then
+      if [ ${opt_dbgmnt:-0} -ne 0 -a -d "$MQT_DEF_PATH" ]; then
+        MQT_PATH=$MQT_DEF_PATH
+      elif [ -d $HOME/maintainer-quality-tools/travis ]; then
         MQT_PATH=$HOME/maintainer-quality-tools/travis
       elif [ -d /opt/odoo/maintainer-quality-tools/travis ]; then
         MQT_PATH=/opt/odoo/maintainer-quality-tools/travis
@@ -409,11 +411,11 @@ prepare_env_travis() {
         fi
       fi
     fi
-    if [ -n "$TRAVIS_RUNDIR" ]; then
-      if [[ ! :$PATH: =~ :$TRAVIS_RUNDIR: ]]; then
-        run_traced "export PATH=$TRAVIS_RUNDIR:$PATH"
-      fi
-    fi
+    # if [ -n "$TRAVIS_RUNDIR" ]; then
+    #   if [[ ! :$PATH: =~ :$TRAVIS_RUNDIR: ]]; then
+    #     run_traced "export PATH=$TRAVIS_RUNDIR:$PATH"
+    #   fi
+    # fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
     if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/cfg ]; then
@@ -463,11 +465,11 @@ prepare_env_travis() {
         export LGITPATH=$(expand_path "$LGITPATH")
       fi
     fi
-    if [ -x $TDIR/travis ]; then
-      export TRAVIS_RUNDIR=$TDIR
-    else
-      export TRAVIS_RUNDIR=$(readlink -f ~/dev)
-    fi
+    # if [ -x $TDIR/travis ]; then
+    #   export TRAVIS_RUNDIR=$TDIR
+    # else
+    #   export TRAVIS_RUNDIR=$(readlink -f ~/dev)
+    # fi
     export TOOLS_PATH
     export MQT_PATH
     export ODOO_SETUP
@@ -491,7 +493,7 @@ check_4_travis() {
 
 do_chkconfig() {
     echo "Project name   = \"$PRJNAME\""
-    echo "Tools path     = \"$TOOLS_PATH\" -r=\"$TRAVIS_RUNDIR\""
+    echo "Tools path     = \"$TOOLS_PATH\""
     echo "Branch         = \"$BRANCH\""
     echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
     echo "Version        = \"$prjversion\""

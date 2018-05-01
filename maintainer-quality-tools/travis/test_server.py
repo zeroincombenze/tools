@@ -141,6 +141,22 @@ def get_addons_path(travis_dependencies_dir, travis_build_dir, server_path):
     return addons_path
 
 
+def get_build_dir():
+    odoo_version = os.environ.get("VERSION")
+    travis_build_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
+    tested_version = ''
+    for ldir in ('./server/openerp', './openerp', './odoo'):
+        if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
+            sys.path.append(ldir)
+            import release
+            tested_version = release.version
+            if odoo_version == "auto":
+                odoo_version = tested_version
+            travis_build_dir = os.path.abspath('%s/addons' % ldir)
+            break
+    return travis_build_dir, odoo_version
+
+
 def get_server_script(server_path):
     if os.path.isfile(os.path.join(server_path, 'odoo-bin')):
         return 'odoo-bin'
@@ -335,20 +351,9 @@ def main(argv=None):
     run_from_env_var('RUN_COMMAND_MQT', os.environ)
     travis_home = os.environ.get("HOME", "~/")
     travis_dependencies_dir = os.path.join(travis_home, 'dependencies')
-    odoo_version = os.environ.get("VERSION")
     odoo_branch = os.environ.get("ODOO_BRANCH")
     # [antoniov: 2018-02-28]
-    travis_build_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
-    tested_version = ''
-    for ldir in ('./server/openerp', './openerp', './odoo'):
-        if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
-            sys.path.append(ldir)
-            import release
-            tested_version = release.version
-            if odoo_version == "auto":
-                odoo_version = tested_version
-            travis_build_dir = os.path.abspath('%s/addons' % ldir)
-            break
+    travis_build_dir, odoo_version = get_build_dir()
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
     odoo_exclude = os.environ.get("EXCLUDE")
     odoo_include = os.environ.get("INCLUDE")
@@ -384,7 +389,8 @@ def main(argv=None):
             test_loglevel = 'info'
             test_loghandler = 'openerp.tools.yaml_import:DEBUG'
     odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
-    server_path = get_server_path(odoo_full, odoo_branch or odoo_version,
+    server_path = get_server_path(odoo_full,
+                                  odoo_branch or odoo_version,
                                   travis_home)
     # [antoniov: 2018-02-28]
     if travis_debug_mode:

@@ -11,11 +11,11 @@ Differences between this Zeroincombenze® MQT and standard OCA version:
 * Zeroincombenze® MQT can also test Odoo 6.1 and 7.0; OCA MQT fails with these versions
 * Zeroincombenze® MQT is designed to run in local environment too, using [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 * Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
-* Zeroincombenze® MQT can run reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
+* Zeroincombenze® MQT can run with reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
 * OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
 * As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.
 
-Note you can run OCA MQT if you set follow statement in .travis.yml file:
+Note you can execute OCA MQT if you prefer, setting follow statement in .travis.yml file:
 
     export MQT_TEST_MODE=oca
 
@@ -34,7 +34,7 @@ If your project depends on other OCA or other Github repositories, create a file
 During testbed setup, MQT will automatically download and place these repositories accordingly into the addon path.
 Note on addons path ordering: They will be placed after your own repo, but before the odoo core repo.
 
-Note when missed optional_repository_url OCA MQT load OCA repository while Zeroincombenze® MQT search repository in the same owner of your tested project.
+Warning: if missed optional_repository_url, OCA MQT loads OCA repository while Zeroincombenze® MQT searches for repository with the same owner of tested project.
 
 
 Check your .travis file for syntax issues.
@@ -42,7 +42,7 @@ Check your .travis file for syntax issues.
 
 The [lint checker](http://lint.travis-ci.org/) of travis is off-line.
 
-If you downloaded [Zeroincombenze® tools](https://github.com/zeroincombenze/tools), you can parse .travis.yml using `topep8` command.
+If you downloaded [Zeroincombenze® tools](https://github.com/zeroincombenze/tools), you can create .travis.yml using `topep8` command.
 
 
 Multiple values for environment variable VERSION
@@ -150,7 +150,7 @@ If you declare the following directive in <env global> section:
 `TRAVIS_DEBUG_MODE="1"`
 
 enable debug mode execution during local session of test.
-Note this feature is does not work with OCA MQT. Local test and TravisCI test slightly different behavior.
+Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.
 
 When MQT is execute in local environment the value
 `TRAVIS_DEBUG_MODE="2"`
@@ -167,30 +167,49 @@ While travis is running this is the tree directory:
 
     ${HOME}
     |
-    \___ build (by Travis CI)
+    \___ build (by TravisCI)
     |    |
-    |    \___ ${TRAVIS_BUILD_DIR}  (by Travis CI}
+    |    \___ ${TRAVIS_BUILD_DIR}  (by TravisCI}
     |    |    # github tested project
     |    |
-    |    \___ ${ODOO_REPO} (by travis_install_nightly of .travis.yml)
-    |         # same of OCA .travis.yml
-    |         # Odoo or OCA server to check tested project
+    |    \___ ${ODOO_REPO} (by travis_install_env / travis_install_nightly of .travis.yml)
+    |         # same behavior of OCA MQT (2)
+    |         # travis_install_env ignore this value, if OCB tested
+    |         # Odoo or OCA/OCB to check compatibility of tested project
     |
-    \___ maintainer-quality-tools (by .travis.yml)
-    |    # same of OCA .travis.yml
+    \___ maintainer-quality-tools (by .travis.yml) (1)
+    |    # same behavior of OCA MQT
     |    # moved from ${HOME}/tools/maintainer-quality-tools
     |    |
     |    \___ travis (child of maintainer-quality-tools), in PATH
     |
     \___ ${ODOO_REPO}-${VERSION} (by .travis.yml)
-    |    # same of OCA .travis.yml
+    |    # same behavior of OCA MQT
     |    # symlnk of ${HOME}/build/{ODOO_REPO}
     |    # Odoo or OCA repository to check with
     |
-    \___ dependencies (by travis_install_nightly of .travis.yml)
-    |    # Odoo dependencies
+    \___ dependencies (by travis_install_env / travis_install_nightly of .travis.yml)
+    |    # Odoo dependencies (2)
     |
     \___ tools (by .travis.yml)   # clone of this project
          |
          \___ maintainer-quality-tools (child of tools)
               # moved to ${HOME}/maintainer-quality-tools 
+
+    (1) Done by .travis.yml in before install section with following statements:
+        - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
+        - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
+        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+        Above statements replace OCA statements:
+        - git clone https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools --depth=1
+        - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+
+    (2) Done by .travis.yml in install section with following statements:
+        - travis_install_env
+        Above statements replace OCA statements:
+        - travis_install_nightly
+        You can create OCA environment using travis_install_nightly with follow stattements:
+        - export MQT_TEST_MODE=oca
+        - travis_install_env
+        Or else
+        - travis_install_env oca

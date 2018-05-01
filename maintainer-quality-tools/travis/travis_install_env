@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.36
+__version__=0.2.1.37
 
 
 cp_n_upd_odoo_conf() {
@@ -98,10 +98,10 @@ cp_n_upd_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b          j        K         n            q           T        t         V           v)
-OPTDEST=(opt_help opt_branch opt_dprj opt_check opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        1          1        1         1            0           1        1         "*>"        "+")
-OPTDEFL=(0        0          0        0         0            -1          0        0         ""          -1)
+OPTOPTS=(h        b          j        K        n            q           T        t         V           v)
+OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        1          1        1        1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0          0        0        0            -1          0        0         ""          -1)
 OPTMETA=("help"   "dprj"   "check"   "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "Odoo version"\
@@ -131,11 +131,12 @@ sts=$STS_SUCCESS
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ] && opt_verbose=1
+[ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ] && PYPI_CACHED=$HOME/.local
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
   TESTS="1"
 fi
-if [ ${opt_check:-0} -gt 0 ]; then
+if [ ${opt_lint:-0} -gt 0 ]; then
   BASH_CHECK="1"
   LINT_CHECK="1"
 fi
@@ -176,9 +177,10 @@ if [ $opt_verbose -gt 0 ]; then
   echo "\$ alias pip=$PIP"
   echo "\$ alias lisa=$LISA"
   echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
+  [ -n "PYPI_CACHED" ] && echo "\$ PYPI_CACHED=$HOME/.local"
 fi
 for p in os0 z0lib; do
-  if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+  if [ -n "PYPI_CACHED" ]; then
      echo "$PIP install -q $p --upgrade"
   else
     eval $LISA status -q $p
@@ -189,13 +191,15 @@ for p in os0 z0lib; do
   fi
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
-  for p in oerplib odoorpc zerobug clodoo; do
-    eval $LISA status -q $f
-    if [ $? -eq 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
-      $PIP install -q $p --upgrade
-    fi
-  done
+  if [ -z "PYPI_CACHED" ]; then
+    for p in oerplib odoorpc zerobug clodoo; do
+      eval $LISA status -q $f
+      if [ $? -eq 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+        $PIP install -q $p --upgrade
+      fi
+    done
+  fi
   exit $sts
 elif [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" == "oca" ]; then
   [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/travis_install_nightly"
@@ -213,34 +217,36 @@ else
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${TESTS}" == "1" ]; then
-    if [[ ! "$TRAVIS" == "true" ]]; then
-      pg_db_active -wa $MQT_TEMPLATE_DB; dropdb $MQT_TEMPLATE_DB &>/dev/null
-      pg_db_active -wa $MQT_TEST_DB; dropdb $MQT_TEST_DB &>/dev/null
-    fi
+    # if [[ ! "$TRAVIS" == "true" ]]; then
+    #   pg_db_active -wa $MQT_TEMPLATE_DB; dropdb $MQT_TEMPLATE_DB &>/dev/null
+    #   pg_db_active -wa $MQT_TEST_DB; dropdb $MQT_TEST_DB &>/dev/null
+    # fi
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     echo "\$ ln -s $x $HOME/maintainer-quality-tools/travis/node"
     ln -s $x $HOME/maintainer-quality-tools/travis/node
-    if [[ "$PKGNAME" == "OCB" ]]; then
-      if [[ "$TRAVIS" == "true" ]]; then
-        echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-      else
-        [ $opt_verbose -gt 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-      fi
+  fi
+  if [[ "$PKGNAME" == "OCB" ]]; then
+    if [[ "$TRAVIS" == "true" ]]; then
+      echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
-    else
-      if [[ "$TRAVIS" == "true" ]]; then
-        export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
-        echo "- Installing Odoo $ODOO_URL"
-        wget -nv -O odoo.tar.gz $ODOO_URL
-        tar -xf odoo.tar.gz -C ${HOME}
-      else
-        [ $opt_verbose -gt 0 ] && echo "\$ ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
-        ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}
-      fi
+    elif [ ! -L ${ODOO_PATH} ]; then
+      # [ $opt_verbose -gt 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
-    # [ $opt_verbose -gt 0 ] && echo "\$ $PIP install pip --upgrade"
-    # eval $PIP install pip --upgrade
+  else
+    if [[ "$TRAVIS" == "true" ]]; then
+      export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
+      echo "- Installing Odoo $ODOO_URL"
+      wget -nv -O odoo.tar.gz $ODOO_URL
+      tar -xf odoo.tar.gz -C ${HOME}
+    elif [ ! -L ${ODOO_PATH} ]; then
+      # [ $opt_verbose -gt 0 ] && echo "\$ ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+      run_traced "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+    fi
+  fi
+  if [ ! -d ${HOME}/dependencies ]; then
+  dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
     [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
@@ -256,7 +262,7 @@ else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
     dopts="-O$dependencies_dir"
-    if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+    if [ -n "PYPI_CACHED" ]; then
       [ $opt_verbose -gt 0 ] && echo "> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     else
       [ $opt_verbose -gt 0 ] && echo "\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
@@ -264,7 +270,7 @@ else
     fi
     [ $opt_verbose -gt 0 ] && echo "\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
-    if [ ${TRAVIS_DEBUG_MODE:-0} -lt 2 -a $opt_verbose -gt 0 ]; then
+    if [ -z "PYPI_CACHED" -a $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       for f in $reqs; do
@@ -280,65 +286,6 @@ else
       ls -l ${TRAVIS_BUILD_DIR}
       echo "Content of ${HOME}/dependencies:"
       ls -l ${HOME}/dependencies
-    fi
-  else
-    dopts=
-    if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
-      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
-    else
-      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)"
-      reqs=$($LISTREQ -b$VERSION -p'.' $dopts -t bin -s ' ' -qT)
-      [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
-      for f in $reqs; do
-        [ $opt_verbose -gt 0 ] && echo "\$ $LISA install-if $f"
-        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-          :
-        elif [ "$f" == "$pkg" ]; then
-          eval $LISA status -q $f
-          [ $? -ne 0 ] && run_traced "$LISA install -q $opts $f"
-        fi
-      done
-      [ $opt_verbose -gt 0 ] && echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
-      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPT)"
-      [ $opt_verbose -gt 0 ] && echo "\$ reqs=$reqs"
-      for f in $reqs; do
-        op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
-        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
-        sts=0
-        eval $LISA status -q $f
-        sts=$?
-        if [ $sts -eq 1 ] || [ -n "$reqver" ]; then
-          [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-          if [[ (-z "$op" && $sts > 0) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-            cmd="$PIP install -q $f --upgrade"
-            [ $EUID -ne 0 ] && cmd="$cmd --user"
-            echo "- Update '$pkg' version '$curver' with version '$reqver'"
-            if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
-              echo "> $cmd"
-            else
-              run_traced "$cmd"
-            fi
-          fi
-        fi
-      done
-      for f in $reqs; do
-        op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
-        pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-        reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
-        if [ -n "$reqver" ]; then
-          curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)')
-          if [[ ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
-            echo "- Update '$pkg' version '$curver' with version '$reqver'"
-            if [ $EUID -eq 0 ]; then
-              run_traced "$PIP install -q $f --upgrade --no-deps"
-            else
-              run_traced "$PIP install -q $f --upgrade --no-deps --user"
-            fi
-          fi
-        fi
-      done
     fi
   fi
 fi
