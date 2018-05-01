@@ -38,7 +38,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.6.38
+__version__=0.3.6.39
 
 
 Z0BUG_setup() {
@@ -88,7 +88,7 @@ fi
 
 UT1_LIST=
 UT_LIST="__version_V_0.1.17.3$RUNDIR/odoo_skin.sh"
-# UT_LIST="$UT_LIST __version_V_0.3.6.38$RUNDIR/transodoo.py"
+# UT_LIST="$UT_LIST __version_V_0.3.6.39$RUNDIR/transodoo.py"
 UT_LIST="$UT_LIST clodoo_test_01.py clodoo_test_02.py clodoo_test_odoo_skin.sh clodoo_test_odoorc.sh"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 export PYTHONPATH=/opt/odoo/dev/pypi/zerobug:/opt/odoo/dev/pypi/clodoo

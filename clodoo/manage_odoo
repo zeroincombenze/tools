@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.38
+__version__=0.3.6.39
 
 
 explore() {
@@ -115,7 +115,7 @@ do_action() {
       [ $opt_verbose -gt 0 ] && echo "\$ alias pip=$PIP"
       [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA"
       [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
-      if [ -z $PYPI_CACHED ]: then
+      if [ -z "$PYPI_CACHED" ]; then
         eval $PIP install pip -U
         breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
         [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
