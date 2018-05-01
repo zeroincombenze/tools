@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.38
+__version__=0.2.1.39
 
 
 cp_n_upd_odoo_conf() {
@@ -185,7 +185,7 @@ for p in os0 z0lib; do
      echo "$PIP install -q $p --upgrade"
   else
     eval $LISA status -q $p
-    if [ $? -eq 0 ]; then
+    if [ $? -ne 0 ]; then
       [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
       $PIP install -q $p --upgrade
     fi
@@ -195,7 +195,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   if [ -z "$PYPI_CACHED" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
-      if [ $? -eq 0 ]; then
+      if [ $? -ne 0 ]; then
         [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
         $PIP install -q $p --upgrade
       fi
@@ -218,10 +218,6 @@ else
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${TESTS}" == "1" ]; then
-    # if [[ ! "$TRAVIS" == "true" ]]; then
-    #   pg_db_active -wa $MQT_TEMPLATE_DB; dropdb $MQT_TEMPLATE_DB &>/dev/null
-    #   pg_db_active -wa $MQT_TEST_DB; dropdb $MQT_TEST_DB &>/dev/null
-    # fi
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     echo "\$ ln -s $x $HOME/maintainer-quality-tools/travis/node"
