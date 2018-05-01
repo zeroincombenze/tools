@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.37.10
+__version__=0.2.37.11
 
 
 STS_FAILED=1
@@ -805,9 +805,9 @@ get_pkg_ver_inq() {
 }
 
 get_pkg_ver_pip() {
-# get_pkg_ver_pip(pkgname [OPTS])
+# get_pkg_ver_pip(pkgname [OPTS] [param])
 # return: pkgversion
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_pip($1 $2)">>~/$THIS.his
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_pip($1 $2)">>~/$THIS.his
     local pkgname pkgversion x
     local stscmd=pip
     IFS=[ read pkgname x <<< $1
@@ -836,9 +836,9 @@ get_pkg_ver_pip() {
 }
 
 get_pkg_ver_rpm() {
-# get_pkg_ver_rpm(pkgname [OPTS])
+# get_pkg_ver_rpm(pkgname [OPTS] [param])
 # return: pkgversion
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_rpm($1 $2)">>~/$THIS.his
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_rpm($1 $2)">>~/$THIS.his
     local pkgname="$1"
     local stscmd=$(get_prm_value "${1}_stscmd")
     local pkgversion=
@@ -867,9 +867,9 @@ get_pkg_ver_rpm() {
 }
 
 get_pkg_ver_dpkg() {
-# get_pkg_ver_dpkg(pkgname [OPTS])
+# get_pkg_ver_dpkg(pkgname [OPTS] [param])
 # return: pkgversion
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_dpkg($1 $2)">>~/$THIS.his
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_dpkg($1 $2)">>~/$THIS.his
     local pkgname="$1"
     local stscmd=$(get_prm_value "${1}_stscmd")
     local pkgversion=
@@ -911,9 +911,9 @@ get_pkg_ver_dpkg() {
 
 
 get_pkg_ver_git() {
-# get_pkg_ver_git(pkgname [OPTS] [param] [SPECIMEN])
+# get_pkg_ver_git(pkgname [OPTS] [param])
 # return: pkgversion
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_git($1 $2)">>~/$THIS.his
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_git($1 $2)">>~/$THIS.his
     local pkgname="$1"
     local pkgversion=
     local x=
@@ -952,9 +952,9 @@ get_pkg_ver_git() {
 }
 
 get_pkg_ver_npm() {
-# get_pkg_ver_npm(pkgname [OPTS] [param] [SPECIMEN])
+# get_pkg_ver_npm(pkgname [OPTS] [param])
 # return: pkgversion
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_npm($1 $2)">>~/$THIS.his
+    [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_npm($1 $2)">>~/$THIS.his
     local pkgname="$1"
     local pkgversion=
     local x=
