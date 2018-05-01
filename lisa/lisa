@@ -57,7 +57,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.37.9
+__version__=0.2.37.10
 
 
 STS_FAILED=1
@@ -1063,7 +1063,7 @@ get_full_xtlcmd() {
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
     if [[ $3 =~ s ]]; then
       subpkg=" $2"
-      pkgname=" ${pkg}__$2"
+      pkgname="${pkg}__$2"
       pkg_URL="$(get_prm_value ${pkgname}_${xtlcmd}_URL)"
       if [ -z "$pkg_URL" ]; then
          pkg_URL="$(get_prm_value ${pkg}_${xtlcmd}_URL)"
@@ -1075,7 +1075,7 @@ get_full_xtlcmd() {
         fi
       fi
     else
-      pkgname=" $2"
+      pkgname="$2"
       if [ "$2" == "EVERYTHINGS" ]; then
         pkgname=""
       fi
@@ -1090,18 +1090,18 @@ get_full_xtlcmd() {
           xtlcmd="$xtlcmd group $1 'Development Tools'"
         fi
       elif [[ " $NA_PKGS " =~ [[:space:]]$2[[:space:]] ]]; then
-        xtlcmd="# $xtlcmd $1$pkgname"
+        xtlcmd="# $xtlcmd $1 $pkgname"
       else
-        xtlcmd="$xtlcmd $1$pkgname"
+        xtlcmd="$xtlcmd $1 $pkgname"
       fi
     elif [ "$xtlcmd" == "apt-get" ]; then
       if [[ $3 =~ y ]]; then xtlcmd="$xtlcmd -y"; fi
-      xtlcmd="$xtlcmd ${1/update/upgrade}$pkgname"
+      xtlcmd="$xtlcmd ${1/update/upgrade} $pkgname"
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
-        xtlcmd="$xtlcmd install$pkgname$lop$lreqver$rop$rreqver --upgrade"
+        xtlcmd="$xtlcmd install '$pkgname$lop$lreqver$rop$rreqver' --upgrade"
       else
-        xtlcmd="$xtlcmd ${1/remove/uninstall}$pkgname$lop$lreqver$rop$rreqver"
+        xtlcmd="$xtlcmd ${1/remove/uninstall} '$pkgname$lop$lreqver$rop$rreqver'"
       fi
       if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
         xtlcmd="$xtlcmd --user"
@@ -1132,7 +1132,7 @@ get_full_xtlcmd() {
       fi
     elif [ "$xtlcmd" == "npm" ]; then
       xtlcmd="$xtlcmd -g";
-      xtlcmd="$xtlcmd ${1/remove/uninstall}$pkgname"
+      xtlcmd="$xtlcmd ${1/remove/uninstall} $pkgname"
     fi
     if [[ $3 =~ I ]]; then
       if [ "$1" == "install" ]; then

@@ -5,7 +5,7 @@
 # Common function to manage Odoo
 #
 
-#__version__=0.2.37.9
+#__version__=0.2.37.10
 
 
 INVALID_MODNAMES="addons cover debian doc history odoo openerp node_modules scripts server setup themes __to_remove woven_fabric"
