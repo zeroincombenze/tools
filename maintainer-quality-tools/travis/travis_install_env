@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.39
+__version__=0.2.1.40
 
 
 cp_n_upd_odoo_conf() {
@@ -172,21 +172,25 @@ else
   [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
   [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
 fi
+TRAVIS_TEXT_COLOR="\e[0;97;40m"
+TRAVIS_HDR1_COLOR="\e[30;46m"
+TRAVIS_HDR2_COLOR="\e[30;106m"
+TRAVIS_NOP_COLOR="\e[35;40m"
 if [ $opt_verbose -gt 0 ]; then
-  echo "$0 $__version__"
-  echo "\$ alias pip=$PIP"
-  echo "\$ alias lisa=$LISA"
-  echo "\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE"
-  echo "\$ MQT_TEST_MODE=$MQT_TEST_MODE"
-  [ -n "$PYPI_CACHED" ] && echo "\$ PYPI_CACHED=$PYPI_CACHED"
+  echo -e "${TRAVIS_HDR2_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP${TRAVIS_HDR2_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA${TRAVIS_HDR2_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR2_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR2_COLOR}"
+  [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR2_COLOR}"
 fi
 for p in os0 z0lib; do
   if [ -n "$PYPI_CACHED" ]; then
-     echo "$PIP install -q $p --upgrade"
+     echo -e "${TRAVIS_TEXT_COLOR}$PIP install -q $p --upgrade${TRAVIS_HDR2_COLOR}"
   else
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade${TRAVIS_HDR2_COLOR}"
       $PIP install -q $p --upgrade
     fi
   fi
@@ -196,7 +200,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
       if [ $? -ne 0 ]; then
-        [ $opt_verbose -gt 0 ] && echo "\$ $PIP install -q $p --upgrade"
+        [ $opt_verbose -gt 0 ] && echo "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade${TRAVIS_HDR2_COLOR}"
         $PIP install -q $p --upgrade
       fi
     done
@@ -220,12 +224,12 @@ else
   if [ "${TESTS}" == "1" ]; then
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-    echo "\$ ln -s $x $HOME/maintainer-quality-tools/travis/node"
+    echo -e "${TRAVIS_TEXT_COLOR}\$ ln -s $x $HOME/maintainer-quality-tools/travis/node${TRAVIS_HDR2_COLOR}"
     ln -s $x $HOME/maintainer-quality-tools/travis/node
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
-      echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      echo -e "- Tested repository is OCB: ${TRAVIS_TEXT_COLOR}ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}${TRAVIS_HDR2_COLOR}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     elif [ ! -L ${ODOO_PATH} ]; then
       # [ $opt_verbose -gt 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
@@ -246,7 +250,7 @@ else
   dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
-    [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/clone_oca_dependencies"
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $TDIR/clone_oca_dependencies${TRAVIS_HDR2_COLOR}"
     eval $TDIR/clone_oca_dependencies
     sts=$?
     if [ $sts -ne 0 ]; then
@@ -260,12 +264,12 @@ else
     fi
     dopts="-O$dependencies_dir"
     if [ -n "$PYPI_CACHED" ]; then
-      [ $opt_verbose -gt 0 ] && echo "> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR2_COLOR}"
     else
-      [ $opt_verbose -gt 0 ] && echo "\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR2_COLOR}"
       eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
     fi
-    [ $opt_verbose -gt 0 ] && echo "\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR2_COLOR}"
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
     if [ -z "$PYPI_CACHED" -a $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
@@ -286,4 +290,5 @@ else
     fi
   fi
 fi
+echo -e "${TRAVIS_TEXT_COLOR}"
 exit $sts
