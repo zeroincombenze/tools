@@ -131,7 +131,7 @@ sts=$STS_SUCCESS
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
-[ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ] && PYPI_CACHED=$HOME/.local
+# [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ] && PYPI_CACHED=$HOME/.local
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
   TESTS="1"

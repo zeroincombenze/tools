@@ -141,6 +141,8 @@ def get_addons_path(travis_dependencies_dir, travis_build_dir, server_path):
     return addons_path
 
 
+# Discover automatically Odoo dir and version
+# Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0 tree
 def get_build_dir():
     odoo_version = os.environ.get("VERSION")
     travis_build_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
@@ -157,6 +159,7 @@ def get_build_dir():
     return travis_build_dir, odoo_version
 
 
+# Return server script for all Odoo versions
 def get_server_script(server_path):
     if os.path.isfile(os.path.join(server_path, 'odoo-bin')):
         return 'odoo-bin'
@@ -266,7 +269,7 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
     if the database template exists then will be used.
     :param db: Template database name
     :param odoo_unittest: Boolean for unit test (travis parameter)
-    :param tested_addons: List of modules that need to be installed
+    :param tested_addons: (list) Modules that need to be installed
     :param server_path: Server path
     :param travis_build_dir: path to the modules to be tested
     :param addons_path: Addons path
@@ -423,8 +426,8 @@ def main(argv=None):
         print("WARNING!\nNothing to test- exiting early.")
         return 0
     else:
-        print("Modules to test: %s" % tested_addons)
-    # setup the base module without running the tests
+        print("Modules to test: %s" % tested_addons_list)
+    # setup the preinstall modules without running the tests
     preinstall_modules = get_test_dependencies(addons_path,
                                                tested_addons_list)
 

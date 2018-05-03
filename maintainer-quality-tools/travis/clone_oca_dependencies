@@ -44,6 +44,7 @@ def parse_depfile(depfile, owner=None):
             continue
         parts = line.split()
         repo = parts[0]
+        # TODO: recall real owner if needed
         if repo == 'l10n-italy-supplemental':
             cur_owner = 'zeroincombenze'
         elif repo != 'OCB' and owner == 'odoo':
@@ -64,6 +65,7 @@ def parse_depfile(depfile, owner=None):
 
 def git_checkout(deps_checkout_dir, reponame, url, branch):
     checkout_dir = osp.join(deps_checkout_dir, reponame)
+    # When running in local emulator does nothing
     if os.environ.get('TRAVIS', '0') == 'true':
         if not osp.isdir(checkout_dir):
             command = ['git', 'clone', '-q', url, '-b', branch,
@@ -91,6 +93,8 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
 def run(deps_checkout_dir, build_dir):
     if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
         print('check_out="%s"; build="%s"' % (deps_checkout_dir, build_dir))
+	# Zeroincombenze(R) uses repo owner as default
+	# while OCA uses OCA ad default
     odoo_full = os.environ.get("ODOO_REPO", "odoo/odoo")
     odoo_org, odoo_repo = odoo_full.split('/')
     dependencies = []

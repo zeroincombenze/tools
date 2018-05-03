@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.17
+__version__=0.2.1.18
 
 
 store_cfg_param_value() {
@@ -156,11 +156,6 @@ process_yaml_init() {
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
     export TRAVIS_PYTHON_VERSION=2.7
-    if [ $opt_cache -ne 0 ]; then
-      export PYPI_CACHED=$HOME/.local
-    else
-      export PYPI_CACHED=
-    fi
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
@@ -302,8 +297,10 @@ process_yaml_1() {
           YML_sect1=$a
           YML_sect="$YML_sect0.$YML_sect1"
         else
-          if [ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ] && [[ "$b" =~ "true" ]]; then
-            TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+          if [ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ]; then
+            if [[ "$b" =~ "true" && ${opt_keepE:-0} == 0 ]]; then
+              TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+            fi
           else
             YML_sect1=
             YML_sect="$YML_sect0"
@@ -904,17 +901,17 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         b          C         c        D        f         j        k        l              M          m       n            O         p        q           r     V           v           w        W)
-OPTDEST=(opt_help opt_debug opt_branch opt_cache opt_conf opt_dlvl opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_wait opt_virt)
-OPTACTI=(1        1         "="        1         "="      "="      1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         1        0)
-OPTDEFL=(0        0         10.0       0         ""       ""       0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          0        1)
-OPTMETA=("help"   "branch"   ""        "file"   ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "")
+OPTOPTS=(h        B         C         c        D        E         f         j        k        l              M          m       n            O         p        q           r     V           v           W)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt)
+OPTACTI=(1        1         1         "="      "="      1         1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
+OPTDEFL=(0        0         0         ""       ""       1         0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
+OPTMETA=("help"   "version" "version" "file"   ""       ""        ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "use cached PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
+ "save virtual environment as ~/VME{version}"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\
@@ -928,7 +925,6 @@ OPTHELP=("this help"\
  "run restricted mode (w/o parsing travis.yml file)"\
  "show version"\
  "verbose mode"\
- "wait for another instance running"\
  "do not use virtualenv to run tests")
 OPTARGS=(action sub)
 

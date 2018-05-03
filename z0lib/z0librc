@@ -4,7 +4,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.5
+#__version__=0.2.5.1
 STS_FAILED=1
 STS_SUCCESS=0
 PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
@@ -380,14 +380,14 @@ print_help() {
         fi
         txt+="$xx${OPTOPTS[jy]}"
         xx=""
-        hlp+=" -${OPTOPTS[jy]}\t\t${OPTHELP[jy]}\n"
+        hlp+=$(printf ' %-16.16s%s%s' "-${OPTOPTS[jy]}" "${OPTHELP[jy]}" '\n')
       elif [ "$a" == "=" ]; then
         if [ -z "$xx" -o "$xx" == "]" ]; then
           xx="][-"
         fi
         txt+="$xx${OPTOPTS[jy]} ${OPTMETA[jy]}"
         xx="]"
-        hlp+=" -${OPTOPTS[jy]} ${OPTMETA[jy]}\t${OPTHELP[jy]}\n"
+        hlp+=$(printf '%3.3s %-13.13s%s%s' "-${OPTOPTS[jy]}" "${OPTMETA[jy]}" "${OPTHELP[jy]}" '\n')
       fi
       ((++jy))
     done
@@ -400,10 +400,10 @@ print_help() {
       txt+=" ${OPTARGS[jy]}"
       ((++jy))
     done
-    txt+="\n$1\n"
-    txt+="$hlp"
-    txt+="\n$2"
-    echo -e $txt
+    echo -e "$txt"
+    echo -e "$1"
+    echo -e "$hlp"
+    echo -e "$2"
 }
 export -f print_help
 

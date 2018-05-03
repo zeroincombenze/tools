@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.17
+#__version__=0.2.1.18
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -361,6 +361,19 @@ create_virtual_env() {
     else
       PKGPATH=$(set_pkgpath "")
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+      if [ ${opt_cache:-0} -ne 0 ]; then
+        if [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}" ]; then
+          for d in bin include lib lib64 .local; do
+            if [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}/$d" ]; then
+              [ -d "$TRAVIS_HOME/$d" ] && run_traced "rm -fR $TRAVIS_HOME/$d"
+              run_traced "cp -R $TRAVIS_SAVED_HOME/VME${VERSION}/$d $TRAVIS_HOME/"
+            fi
+          done
+        fi
+        export PYPI_CACHED=$HOME/.local
+      else
+        export PYPI_CACHED=
+      fi
       cd $TRAVIS_HOME
       source bin/activate
       if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
@@ -390,6 +403,15 @@ drop_virtual_env() {
       deactivate
     fi
     cd $TRAVIS_CWD
+    if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 ]; then
+      [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}" ] && rm -fR $TRAVIS_SAVED_HOME/VME${VERSION}
+      for d in bin include lib lib64 .local; do
+        if [ -d "$TRAVIS_HOME/$d" ]; then
+          [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME${VERSION}/$d"
+          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME${VERSION}/"
+        fi
+      done
+    fi
     if [ ${opt_keep:-0} -eq 0 ]; then
       drop_test_db
       rm -fR $TRAVIS_HOME

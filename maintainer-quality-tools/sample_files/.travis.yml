@@ -19,15 +19,19 @@ git:
 
 addons:
   apt:
-#    sources:
-#    Search your sources alias here:
-#      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+    sources:
+#   Search your sources alias here:
+#     https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
+      - pov-wkhtmltopdf
     packages:
+#   Search your packages here:
+#     https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
       - expect-dev
       - python-lxml
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
+  - pip install urllib3[secure] --upgrade; true
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
   - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
@@ -35,22 +39,24 @@ before_install:
 install:
   - travis_install_env
   - export EXCLUDE=hw_scanner,hw_escpos,document_ftp,delivery,stock_invoice_directly,claim_from_delivery
+  - export INCLUDE=$(getaddons.py -m ${HOME}/build/${ODOO_REPO}/odoo/addons ${HOME}/build/${ODOO_REPO}/addons)
 
 env:
   global:
-  - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0" TRANSIFEX="0"
+  - VERSION="$TRAVIS_BRANCH" TESTS="0" LINT_CHECK="0" TRANSIFEX="0" ODOO_REPO="$TRAVIS_REPO_SLUG"
 
   matrix:
   - LINT_CHECK="1"
   - TESTS="1" ODOO_REPO="odoo/odoo"
   - TESTS="1" ODOO_REPO="OCA/OCB"
-  - TESTS="0" ODOO_REPO="zeroincombenze/OCB"
+  - TESTS="1" ODOO_REPO="zeroincombenze/OCB"
 # either use the two lines above or the two below. Don't change the default if
 # it's not necessary (it is only necessary if modules in your repository can't
 # be installed in the same database. And you get a huge speed penalty in your
 # tests)
 #  - TESTS="1.0" ODOO_REPO="odoo/odoo" UNIT_TEST="1"
 #  - TESTS="1.0" ODOO_REPO="OCA/OCB" UNIT_TEST="1"
+#  - TESTS="1.0" ODOO_REPO="zeroincombenze/OCB" UNIT_TEST="1"
 
 script:
   - travis_run_tests
