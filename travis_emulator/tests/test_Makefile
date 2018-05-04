@@ -81,7 +81,7 @@ fi
 MAKEF=/opt/odoo/dev/pypi/travis_emulator/travis_emulator/Makefile
 # PYTHONPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
 export DEVPATH=/opt/odoo/dev/pypi/travis_emulator/travis_emulator
-OS_VER=0.2.1.180
+OS_VER=0.2.1.200
 BB_VER=7.0.0.2
 echo "**************************************************************************************"
 echo "Warning: test could fail if os version is not $OS_VER or l10n_it_bbone is not $BB_VER"

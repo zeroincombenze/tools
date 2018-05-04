@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.18
+__version__=0.2.1.20
 
 
 save_testenv() {
@@ -99,8 +99,6 @@ Z0BUG_setup() {
     FOUT=$TESTDIR/test_lib.out
     FTEST=$TESTDIR/test_lib.test
     cat<<'EOF' >$FTEST
-> pg_db_active -wa openerp_template; dropdb -Upostgres --if-exists openerp_template
-> pg_db_active -wa openerp_test; dropdb -Upostgres --if-exists openerp_test
 > if [ -d /opt/odoo/dependencies ]; then rm -fR /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/dependencies ]; then rm -f /opt/odoo/dependencies; fi
 > if [ -L /opt/odoo/l10n_it_base-9.0 ]; then rm -f /opt/odoo/l10n_it_base-9.0; fi
