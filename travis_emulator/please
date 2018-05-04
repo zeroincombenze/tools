@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.20
+__version__=0.2.1.21
 
 
 #
@@ -2029,12 +2029,37 @@ do_travis() {
 }
 
 do_version() {
-    cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
+    # cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
     if [ "$PRJNAME" != "Odoo" ]; then
-      echo "Project $PRJNAME V$prjversion [$PKGNAME] answer:";
+      if [ -z "$2" ]; then
+        find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -H "__version__ *=" '{}' \;
+      else
+        local ver_re=${2//./\\.}
+        local new_ver=$3
+        if [ $opt_dry_run -ne 0 ]; then
+          echo "find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -H "$ver_re" '{}' \;"
+        else
+          find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -H "$ver_re" '{}' \;
+        fi
+        if [ -n "$new_ver" ]; then
+          for fn in $(find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -l "$ver_re" '{}' \;); do
+            if [ $opt_dry_run -ne 0 ]; then
+              echo "sed -e \"s/$ver_re/$new_ver/\" -i $fn"
+            else
+              sed -e "s/$ver_re/$new_ver/" -i $fn
+            fi
+          done
+          if [ $opt_dry_run -ne 0 ]; then
+            echo "sed -e \"s/version=.$ver_re./version='$new_ver'/\" -i $PKGPATH/setup.py"
+          else
+            sed -e "s/version=.$ver_re./version='$new_ver'/" -i $PKGPATH/setup.py
+          fi
+        fi
+      fi
+      echo "Project $PRJNAME $prjversion [$PKGNAME] answer:";
       cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
     else
-      echo "Project $PRJNAME V$BRANCH [$PKGNAME $prjversion]";
+      echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]";
     fi;
 }
 

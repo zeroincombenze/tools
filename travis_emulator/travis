@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.20
+__version__=0.2.1.21
 
 
 store_cfg_param_value() {
@@ -903,12 +903,12 @@ checkpid() {
 
 OPTOPTS=(h        B         C         c        D        E         f         j        k        l              M          m       n            O         p        q           r     V           v           W)
 OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt)
-OPTACTI=(1        1         1         "="      "="      1         1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
-OPTDEFL=(0        0         0         ""       ""       0         0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
+OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
+OPTDEFL=(0        0         1         ""       ""       0         0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
 OPTMETA=("help"   "version" "version" "file"   ""       ""        ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
- "use cached PYPI"\
+ "do not use cached PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
  "save virtual environment as ~/VME{version}"\
