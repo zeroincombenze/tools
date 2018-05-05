@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.21
+#__version__=0.2.1.23
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -364,7 +364,7 @@ custom_env() {
 
 create_virtual_env() {
     export TRAVIS_SAVED_HOME=$HOME
-    TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
+    export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
     if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
       export TRAVIS=true
     else
@@ -377,6 +377,7 @@ create_virtual_env() {
       mkdir -p $TRAVIS_HOME
       cd $TRAVIS_HOME
       export TRAVIS=false
+      export HOME=$TRAVIS_HOME
     else
       PKGPATH=$(set_pkgpath "")
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
@@ -389,30 +390,24 @@ create_virtual_env() {
             fi
           done
         fi
+        custom_env "$TRAVIS_HOME"
+        source bin/activate
         export PYPI_CACHED=$HOME/.local
       else
         export PYPI_CACHED=
       fi
-      custom_env "$TRAVIS_HOME"
-      source bin/activate
     fi
-    export HOME=$TRAVIS_HOME
     mkdir -p $TRAVIS_HOME/build
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     mkdir -p $TRAVIS_BUILD_DIR
     run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
-    # run_traced "export REPO_CACHED=$HOME_BRANCH"
     run_traced "cd $TRAVIS_BUILD_DIR"
     drop_test_db
 }
 
 drop_virtual_env() {
-    # if [ -f $HOME/stdout.log ]; then
-    #   mv -f $HOME/stdout.log $TRAVIS_SAVED_HOME/stdout.log
-    # fi
-    # cd $TRAVIS_HOME
     if [ ${opt_virt:-0} -gt 0 ]; then
       deactivate
     fi
@@ -432,6 +427,22 @@ drop_virtual_env() {
       drop_test_db
       rm -fR $TRAVIS_HOME
     fi
+}
+
+wash_virtual_env() {
+    local d f
+    for d in $TRAVIS_HOME/*; do
+      f=$(basename $d)
+      if [[ ! " build bin include lib lib64 .local " =~ " $f " ]]; then
+        if [ -L $d ]; then
+          run_traced "rm $d"
+        elif [ -d $d ]; then
+          run_traced "rm -fR $d"
+        elif [ -f $d ]; then
+          run_traced "rm $d"
+        fi
+      fi
+    done
 }
 
 prepare_env_travis() {

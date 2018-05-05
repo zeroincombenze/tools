@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.21
+__version__=0.2.1.23
 
 
 store_cfg_param_value() {
@@ -386,9 +386,9 @@ process_yaml_file() {
 process_yaml_initialize() {
     local sts=$STS_SUCCESS
     local i s line lne X
-    wlog "${TRAVIS_HDR1_COLOR}===== [Initialize] =====${TRAVIS_TEXT_COLOR}"
+    wlog "${TRAVIS_HDR2_COLOR}===== [Initialize] =====${TRAVIS_TEXT_COLOR}"
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[initialize] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[initialize] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
     fi
     for i in {1..9}; do
       line=$(get_cfg_value "" "yaml_init_$i")
@@ -398,7 +398,7 @@ process_yaml_initialize() {
       fi
     done
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[initialize.packages] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[initialize.packages] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
     fi
     X="${PKGNAME}__"
     line=$(get_cfg_value "" "${X}yaml_init_1")
@@ -411,23 +411,15 @@ process_yaml_initialize() {
         fi
       done
     fi
-    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[env.global] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
-    fi
-    for lne in $YML_global; do
-      line="export $(process_yaml_quote_xtl $lne)"
-      run_traced "$line"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    done
     return $sts
 }
 
 process_yaml_exit() {
     local sts=$STS_SUCCESS
     local i line lne X
-    wlog "${TRAVIS_HDR1_COLOR}===== [Ending] =====${TRAVIS_TEXT_COLOR}"
+    wlog "${TRAVIS_HDR2_COLOR}===== [Ending] =====${TRAVIS_TEXT_COLOR}"
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[exit.packages] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[exit.packages] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
     fi
     X="${PKGNAME}__"
     line=$(get_cfg_value "" "${X}yaml_exit_1")
@@ -440,7 +432,7 @@ process_yaml_exit() {
       done
     fi
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[exit] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[exit] from .travis.conf] ------${TRAVIS_TEXT_COLOR}"
     fi
     for i in {1..9}; do
       line=$(get_cfg_value "" "yaml_exit_$i")
@@ -451,12 +443,25 @@ process_yaml_exit() {
     return $sts
 }
 
+process_yaml_global() {
+    run_traced "cd $TRAVIS_BUILD_DIR"
+    if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+      wlog "${TRAVIS_HDR3_COLOR}------ [[env.global] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
+    fi
+    for lne in $YML_global; do
+      line="export $(process_yaml_quote_xtl $lne)"
+      run_traced "$line"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    return $sts
+}
+
 process_yaml_before_install() {
-    wlog "${TRAVIS_HDR1_COLOR}===== [Before install] =====${TRAVIS_TEXT_COLOR}"
+    wlog "${TRAVIS_HDR2_COLOR}===== [Before install] =====${TRAVIS_TEXT_COLOR}"
     local sts=$STS_SUCCESS
     local i s line lne X
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[addons.packages] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[addons.packages] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_packages; do
@@ -470,7 +475,7 @@ process_yaml_before_install() {
       done
     fi
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[before_install] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[before_install] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_before_install; do
@@ -479,7 +484,7 @@ process_yaml_before_install() {
       done
     fi
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[env] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[env] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_env; do
@@ -496,9 +501,9 @@ process_yaml_install() {
     local sts=$STS_SUCCESS
     local i s line line1 lne
     [ -n "$1" ] && line1="export $(process_yaml_quote_xtl $1)"
-    wlog "${TRAVIS_HDR1_COLOR}===== [Install $line1] =====${TRAVIS_TEXT_COLOR}"
+    wlog "${TRAVIS_HDR2_COLOR}===== [Install $line1] =====${TRAVIS_TEXT_COLOR}"
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
-      wlog "${TRAVIS_HDR2_COLOR}------ [[install] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR3_COLOR}------ [[install] in .travis.yml] ------${TRAVIS_TEXT_COLOR}"
     fi
     run_traced "$line1"
     for lne in $YML_install; do
@@ -513,7 +518,7 @@ process_yaml_before_script() {
     local sts=$STS_SUCCESS
     local line1 lne
     line1=$(process_yaml_quote $1)
-    wlog "${TRAVIS_HDR1_COLOR}===== [Before script $line1] =====${TRAVIS_TEXT_COLOR}"
+    wlog "${TRAVIS_HDR2_COLOR}===== [Before script $line1] =====${TRAVIS_TEXT_COLOR}"
     if [ -z "$line1" -o "${line1:0:1}" == "#" ]; then
       sts=127
     else
@@ -777,8 +782,9 @@ process_yaml() {
     local i s p v X
     local line lne line1 lne1
     TRAVIS_TEXT_COLOR="\e[0;97;40m"
-    TRAVIS_HDR1_COLOR="\e[30;46m"
-    TRAVIS_HDR2_COLOR="\e[30;106m"
+    TRAVIS_HDR1_COLOR="\e[30;42m"
+    TRAVIS_HDR2_COLOR="\e[30;46m"
+    TRAVIS_HDR3_COLOR="\e[30;106m"
     TRAVIS_NOP_COLOR="\e[35;40m"
     if [ "$action" == "chkconfig" ]; then
       YML_FILE=$TOOLS_PATH/chkconfig.yml
@@ -797,8 +803,7 @@ process_yaml() {
       process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
       create_virtual_env
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      wlog "${TRAVIS_HDR1_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
+      wlog "${TRAVIS_HDR2_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
       # update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
       # if [ ${opt_virt:-0} -eq 0 -a -f /usr/bin/python$TRAVIS_PYTHON_VERSION ]; then
       #   alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
@@ -814,10 +819,6 @@ process_yaml() {
       done
       if [ $sts -eq $STS_SUCCESS ]; then
         process_yaml_initialize
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        process_yaml_before_install
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
@@ -837,8 +838,14 @@ process_yaml() {
               continue
             fi
           fi
+          wlog "${TRAVIS_HDR1_COLOR}===== [Build job $lne1] =====${TRAVIS_TEXT_COLOR}"
+          wash_virtual_env
+          process_yaml_global
           if [ $sts -eq $STS_SUCCESS ]; then
-            run_traced "cd $TRAVIS_BUILD_DIR"
+            process_yaml_before_install
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          fi
+          if [ $sts -eq $STS_SUCCESS ]; then
             process_yaml_install "$line1"
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
           fi
@@ -847,7 +854,7 @@ process_yaml() {
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
           fi
           if [ $sts -eq $STS_SUCCESS ]; then
-            wlog "${TRAVIS_HDR1_COLOR}===== [Script matrix $lne1] =====${TRAVIS_TEXT_COLOR}"
+            wlog "${TRAVIS_HDR2_COLOR}===== [Script matrix $lne1] =====${TRAVIS_TEXT_COLOR}"
             for lne in $YML_script; do
               process_yaml_run_cmd "$lne"
               s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -860,7 +867,7 @@ process_yaml() {
         done
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        wlog "${TRAVIS_HDR1_COLOR}===== [After success] =====${TRAVIS_TEXT_COLOR}"
+        wlog "${TRAVIS_HDR2_COLOR}===== [After success] =====${TRAVIS_TEXT_COLOR}"
         process_yaml_after_success
       fi
       if [ "$TRAVIS_DEBUG_MODE" == "2" ]; then

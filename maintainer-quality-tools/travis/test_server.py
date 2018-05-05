@@ -408,7 +408,11 @@ def main(argv=None):
     if os.environ.get('TRAVIS', '0') == 'true':
         rpcport = '8069'
     else:
-        rpcport = '18069'
+        pid = os.getpid()
+        if pid > 18000:
+            rpcport = str(pid)
+        else:
+            rpcport = str(18000 + pid)
     create_server_conf({
         'addons_path': addons_path,
         'data_dir': data_dir,
