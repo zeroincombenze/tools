@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.39
+__version__=0.3.6.40
 
 
 explore() {
@@ -117,7 +117,9 @@ do_action() {
       [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
       if [ -z "$PYPI_CACHED" ]; then
         eval $PIP install pip -U
+        [ $opt_verbose -gt 0 ] && echo "## Analyzing binary requirements"
         breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
+        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR"
         [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
         opts=
         [ $opt_yes -ne 0 ] && opts="${opts}y"
@@ -130,11 +132,12 @@ do_action() {
             [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
           fi
         done
-        $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR
+        [ $opt_verbose -gt 0 ] && echo "## Analyzing python requirements"
         preqs="$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR"
         [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
         for pass in 1 2 3; do
-          [ $pass -eq 3 ] && echo "Check for package version"
+          [ $pass -eq 3 ] && echo "## Check for package version"
           for f in $preqs; do
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
@@ -361,7 +364,7 @@ if [ $opt_verbose -gt 0 ]; then
     echo "Manage single Odoo version environment"
   fi
 fi
-if [ "$actions" == "list" -o $opt_verbose -gt 0 ]; then
+if [ "$actions" == "list" ]; then
   echo "Repository list:"
   echo "$sub_list"
   if [ "$actions" == "list" ]; then
