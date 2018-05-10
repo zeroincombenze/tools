@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.40
+__version__=0.3.6.41
 
 
 explore() {
@@ -113,7 +113,7 @@ do_action() {
       [ -f $TDIR/../../lisa/lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa/lisa)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
       [ $opt_verbose -gt 0 ] && echo "\$ alias pip=$PIP"
-      [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA"
+      [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA.$($LISA -V)$"
       [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
       if [ -z "$PYPI_CACHED" ]; then
         eval $PIP install pip -U

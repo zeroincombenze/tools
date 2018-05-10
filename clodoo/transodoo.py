@@ -19,7 +19,7 @@ import sys
 from z0lib import parseoptargs
 
 
-__version__ = "0.3.6.40"
+__version__ = "0.3.6.41"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0')
 
 
