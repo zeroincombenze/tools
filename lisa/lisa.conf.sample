@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-04-24
+# Last update: 2018-05-10
 #
 # ---------------------------------------------------------------------
 #
@@ -306,7 +306,7 @@ APT_PKGS=apache2,php5,python-libxml2,libffi-dev,python-openssl,build-essential,\
          php5-mysql,php5-common,php5-xml,php5-cli,openssh-client,libssl-dev,\
          libxml2-dev,libxslt-dev,zlib1g-dev,redis-server,libfreetype6,\
          libfreetype6-dev,libcups2,libcups2-dev,libpq-dev,expect-dev,\
-         python-simplejson,
+         python-simplejson,libxslt1-dev
 pip_BOP=wheel
 PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
@@ -422,12 +422,6 @@ REAL_OSSERVICE=systemctl
 REAL_mariadb=mysql-server
 REAL_mariadb-server=mysql-server
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
-    pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
-    passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
-    simplejson,\
-    pyparsing,beaker,reportlab,decorator,docutils,feedparser,gevent,\
-    Jinja2
 # Packages downloaded by wget
 WGET_PKGS=lisa,wkhtmltopdf,python-dateutil
 

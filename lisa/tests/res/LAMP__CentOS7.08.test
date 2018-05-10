@@ -5,10 +5,13 @@
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
-> yum -y install epel-release
+> yum -y install gcc
 > yum -y install epel-release
 > yum -y install python-pip
 > pip install pip --upgrade
+> yum -y install iptables
+> systemctl start iptables
+> systemctl enable iptables
 > yum -y install python-wheel
 > pip install wheel --upgrade
 > yum -y install yum-utils

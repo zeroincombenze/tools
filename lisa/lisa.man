@@ -13,14 +13,14 @@ and/or Odoo server.
 LAMP means \fBLinux\fR \fIApache\fR \fIMysql\fR (now \fIMariadb\fR) \fIPHP\fR;
 in recent times, \fIPython\fR and \fIPostgresql\fR were added.
 .br
-Please pay attention, software name may be replaced by \fBlisa\fR, based on
-Linux distribution and version, in order to build server in standard way,
+Please pay attention, based on Linux distribution and version,
+package name you type may be replaced by \fBlisa\fR in order to build right environment,
 everytime and everywhere; i.e. when you type \fIlisa install apache2\fR and your
 machine is running CentOS, your command is replaced by \fIlisa install httpd\fR
-because apache2 package is httpd on CentOS.
+because apache2 package is named httpd on CentOS.
 .br
 \fBlisa\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR,
-\fIpip\fR, \fIgit\fR, \fIwget\fRand other commands, it is not a real package installer.
+\fIpip\fR, \fIgit\fR, \fIwget\fR and other commands, it is not a real package installer.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros,
 \fBapt-get\fR on Ubuntu and Debian family distros. May be \fBlisa\fR installs
 some other package if required by installation process, like \fBpip\fR or \fBgit\fR
@@ -230,8 +230,9 @@ It is useful to see which are package name in other distribution.
 Do not use this switch in conjunction of command \fIinstall\fR or \fIupdate\fR
 because operations could fail.
 .TP
-.BR \-e \f0-4\fR
-action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)
+.BR \-e \fI0-40-4\fR
+action on parent and dependecies if error:
+(0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)
 .br
 * 0 means exit on error
 .br
@@ -240,6 +241,8 @@ action on dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd
 * 2 means install not existent package if upgrade required
 .br
 * 3 means install or upgrade in order to be sure package is installed
+.br
+Default is 02 that means exit on error if main package, install not existent package required
 .TP
 .BR \-g
 Manage graphical interface packages
