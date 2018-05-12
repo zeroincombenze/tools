@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.23
+__version__=0.2.1.24
 
 
 store_cfg_param_value() {
@@ -918,7 +918,7 @@ OPTHELP=("this help"\
  "do not use cached PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
- "save virtual environment as ~/VME{version}"\
+ "save virtual environment as ~/VME/VME{version}"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\

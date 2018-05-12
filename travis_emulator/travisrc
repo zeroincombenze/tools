@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.23
+#__version__=0.2.1.24
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -148,11 +148,13 @@ init_travis() {
         TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
       fi
     fi
+    ## DEPRECATED, TODO: inherits_travis_opts()
     if [ ${opt_dry_run:-0} -gt 0 ]; then
       opts_dry_run=-n
     else
       opts_dry_run=
     fi
+    ## DEPRECATED, TODO: inherits_travis_opts()
     if [ ${opt_upd:-0} -gt 0 ]; then
       opts_upd=-u
     else
@@ -382,20 +384,20 @@ create_virtual_env() {
       PKGPATH=$(set_pkgpath "")
       run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       if [ ${opt_cache:-0} -ne 0 ]; then
-        if [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}" ]; then
+        if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
           for d in bin include lib lib64 .local; do
-            if [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}/$d" ]; then
+            if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
               [ -d "$TRAVIS_HOME/$d" ] && run_traced "rm -fR $TRAVIS_HOME/$d"
-              run_traced "cp -R $TRAVIS_SAVED_HOME/VME${VERSION}/$d $TRAVIS_HOME/"
+              run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/"
             fi
           done
         fi
-        custom_env "$TRAVIS_HOME"
-        source bin/activate
         export PYPI_CACHED=$HOME/.local
       else
         export PYPI_CACHED=
       fi
+      custom_env "$TRAVIS_HOME"
+      source bin/activate
     fi
     mkdir -p $TRAVIS_HOME/build
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
@@ -412,15 +414,15 @@ drop_virtual_env() {
       deactivate
     fi
     if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 ]; then
-      [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}" ] && rm -fR $TRAVIS_SAVED_HOME/VME${VERSION}
-      mkdir -p $TRAVIS_SAVED_HOME/VME${VERSION}
+      [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ] && rm -fR $TRAVIS_SAVED_HOME/VME/VME${VERSION}
+      mkdir -p $TRAVIS_SAVED_HOME/VME/VME${VERSION}
       for d in bin include lib lib64 .local; do
         if [ -d "$TRAVIS_HOME/$d" ]; then
-          [ -d "$TRAVIS_SAVED_HOME/VME${VERSION}/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME${VERSION}/$d"
-          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME${VERSION}/"
+          [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d"
+          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME/VME${VERSION}/"
         fi
       done
-      custom_env "$TRAVIS_SAVED_HOME/VME${VERSION}"
+      custom_env "$TRAVIS_SAVED_HOME/VME/VME${VERSION}"
     fi
     cd
     if [ ${opt_keep:-0} -eq 0 ]; then

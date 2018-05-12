@@ -38,7 +38,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.23
+__version__=0.2.1.24
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
