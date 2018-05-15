@@ -4,7 +4,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -22,14 +22,14 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ZARLIB=$(findpkg zarrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zar $HOME/dev")
+ZARLIB=$(findpkg zarrc "$TDIR $TDIR/.. $HOME/tools/zar $HOME/dev ${PYTHONPATH//:/ } . ..")
 if [ -z "$ZARLIB" ]; then
   echo "Library file zarrc not found!"
   exit 2
 fi
 . $ZARLIB
 
-__version__=0.1.14
+__version__=0.1.15
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)

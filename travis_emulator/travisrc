@@ -3,7 +3,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.24
+#__version__=0.2.1.25
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -352,19 +352,21 @@ drop_test_db() {
 }
 
 custom_env() {
-# custom_env(VENV)
+# custom_env(VENV pyver)
     cd $1
-    sed -ie 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="'$1'":g' $1/bin/activate
+    sed -ie 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $1/bin/activate
     grep -q "^export HOME=" $1/bin/activate
     if [ $? -ne 0 ]; then
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $1/bin/activate
-      echo "export HOME=$1">>$1/bin/activate
+      [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)/bin/pip">>$1/bin/activate
+      echo "export HOME=\"\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)\"">>$1/bin/activate
     else
-      sed -ie 's:^export HOME=.*:export HOME="'$1'":g' $1/bin/activate
+      sed -ie 's:^export HOME=.*:export HOME="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $1/bin/activate
     fi
 }
 
 create_virtual_env() {
+    drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
     if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
@@ -375,6 +377,12 @@ create_virtual_env() {
     local TRAVIS_CWD=$PWD
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
+    local CURPYVER=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    local sts=0
+    # if [ "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
+    #   sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
+    # fi
+    TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
     if [ ${opt_virt:-0} -eq 0 ]; then
       mkdir -p $TRAVIS_HOME
       cd $TRAVIS_HOME
@@ -382,7 +390,12 @@ create_virtual_env() {
       export HOME=$TRAVIS_HOME
     else
       PKGPATH=$(set_pkgpath "")
-      run_traced "virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+      hash -r
+      unset PYTHONPATH
+      echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
+      virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
+      sts=$?
+      [ $sts -ne 0 ] && return
       if [ ${opt_cache:-0} -ne 0 ]; then
         if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
           for d in bin include lib lib64 .local; do
@@ -396,7 +409,7 @@ create_virtual_env() {
       else
         export PYPI_CACHED=
       fi
-      custom_env "$TRAVIS_HOME"
+      custom_env "$TRAVIS_HOME" "$TRAVIS_PYTHON_VERSION"
       source bin/activate
     fi
     mkdir -p $TRAVIS_HOME/build
@@ -406,7 +419,6 @@ create_virtual_env() {
     run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
     run_traced "cd $TRAVIS_BUILD_DIR"
-    drop_test_db
 }
 
 drop_virtual_env() {
@@ -422,7 +434,7 @@ drop_virtual_env() {
           run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME/VME${VERSION}/"
         fi
       done
-      custom_env "$TRAVIS_SAVED_HOME/VME/VME${VERSION}"
+      custom_env "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" "$TRAVIS_PYTHON_VERSION"
     fi
     cd
     if [ ${opt_keep:-0} -eq 0 ]; then

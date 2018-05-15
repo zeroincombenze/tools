@@ -4,7 +4,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYTHONPATH//:/ } . .." "zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
   echo "Library file z0testrc not found!"
   exit 2
@@ -32,30 +32,24 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.24
+__version__=0.2.1.25
 
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_travis_em.log "$@" "-J"
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
-if [ $opt_tjLib -ne 0 ]; then
-  TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
-  if [ -z "$TRAVISLIBDIR" ]; then
-    echo "Library file travisrc not found!"
-    exit 2
-  fi
-  . $TRAVISLIBDIR
-fi
+
+
 
 UT_LIST="__version_V_${__version__}$RUNDIR/travis"
 UT_LIST="$UT_LIST __version_1_${__version__}$RUNDIR/travisrc"
-UT_LIST="$UT_LIST __version_0_0.2.12$Z0TLIBDIR/z0testrc"
-UT_LIST="$UT_LIST __version_1_0.2.5.1$Z0LIBDIR/z0librc"
+UT_LIST="$UT_LIST __version_0_0.2.13$Z0TLIBDIR/z0testrc"
+UT_LIST="$UT_LIST __version_1_0.2.6$Z0LIBDIR/z0librc"
 # UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_autopep8 test_cvt4dist test_yaml test_regex test_dist_pkg test_cronow test_vfdiff test_vfcp"
-UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_cvt4dist           test_regex test_dist_pkg             test_vfdiff test_vfcp"
+UT_LIST="$UT_LIST test_travisrc1 test_travisrc2 test_cvt4dist test_regex test_dist_pkg test_vfdiff test_vfcp"
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

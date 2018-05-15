@@ -9,7 +9,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.43
+__version__=0.2.1.45
 
 
 cp_n_upd_odoo_conf() {
@@ -180,7 +180,8 @@ TRAVIS_NOP_COLOR="\e[35;40m"
 if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
@@ -233,17 +234,16 @@ else
       echo -e "- Tested repository is OCB: ${TRAVIS_TEXT_COLOR}ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}${TRAVIS_HDR3_COLOR}"
       ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
     elif [ ! -L ${ODOO_PATH} ]; then
-      # [ $opt_verbose -gt 0 ] && echo "- Tested repository is OCB: ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
       run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
+    export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
     if [[ "$TRAVIS" == "true" ]]; then
-      export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
       echo "- Installing Odoo $ODOO_URL"
       wget -nv -O odoo.tar.gz $ODOO_URL
       tar -xf odoo.tar.gz -C ${HOME}
     elif [ ! -L ${ODOO_PATH} ]; then
-      # run_traced "ln -s $TRAVIS_HOME/build/$REMOTE/$REPO_NAME ${ODOO_PATH}"
+      echo "> wget -nv -O odoo.tar.gz $ODOO_URL; tar -xf odoo.tar.gz -C ${HOME}"
       run_traced "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
     fi
   fi
@@ -264,10 +264,8 @@ else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
     dopts="-O$dependencies_dir"
-    if [ -n "$PYPI_CACHED" ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
-    else
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
+    if [ -z "$PYPI_CACHED" ]; then
       eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
     fi
     [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"

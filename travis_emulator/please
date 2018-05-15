@@ -10,7 +10,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -28,13 +28,13 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYTHONPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYTHONPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.24
+__version__=0.2.1.25
 
 
 #
@@ -2103,7 +2103,6 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-
 
 opts_travis "$pkg"
 CFG_init

@@ -9,7 +9,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.14
+__version__=0.1.15
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -367,7 +367,7 @@ blk_1() {
     cat <<EOF >>$1
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-PYTHONPATH=\$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in \$TDIR \$TDIR/.. \${PYTHONPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
@@ -390,7 +390,7 @@ EOF
 
 blk_2() {
     cat <<EOF >>$1
-ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
+ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$HOME/tools/clodoo \$HOME/dev \${PYTHONPATH//:/ } . .." "clodoo")
 if [ -z "\$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
@@ -403,7 +403,7 @@ blk_2z() {
     if [ $opt_oeLib -ne 0 ]; then
       cat <<EOF >>$1
 if [ \${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/clodoo \$HOME/dev" "clodoo")
+  ODOOLIBDIR=\$(findpkg odoorc "\$TDIR \$TDIR/.. \$HOME/tools/clodoo \$HOME/dev \${PYTHONPATH//:/ } . .." "clodoo")
   if [ -z "\$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
@@ -416,7 +416,7 @@ EOF
 
 blk_3() {
     cat <<EOF >>$1
-TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
+TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$HOME/tools/travis_emulator \$HOME/dev \${PYTHONPATH//:/ } . .." "travis_emulator")
 if [ -z "\$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -428,8 +428,8 @@ EOF
 blk_3z() {
     if [ $opt_tjLib -ne 0 ]; then
       cat <<EOF >>$1
-if [ \$opt_tjLib -ne 0 ]; then
-  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/travis_emulator \$HOME/dev" "travis_emulator")
+if [ \${opt_tjLib:-0} -ne 0 ]; then
+  TRAVISLIBDIR=\$(findpkg travisrc "\$TDIR \$TDIR/.. \$HOME/tools/travis_emulator \$HOME/dev \${PYTHONPATH//:/ } . .." "travis_emulator")
   if [ -z "\$TRAVISLIBDIR" ]; then
     echo "Library file travisrc not found!"
     exit 2
@@ -442,7 +442,7 @@ EOF
 
 blk_4() {
     cat <<EOF >>$1
-ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
+ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \$HOME/tools/zar \$HOME/dev \${PYTHONPATH//:/ } . ..")
 if [ -z "\$ZARLIB" ]; then
   echo "Library file zarrc not found!"
   exit 2
@@ -455,7 +455,7 @@ blk_4z() {
     if [ $opt_zLib -ne 0 ]; then
       cat <<EOF >>$1
 if [ \$opt_zLib -ne 0 ]; then
-  ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zar \$HOME/dev")
+  ZARLIB=\$(findpkg zarrc "\$TDIR \$TDIR/.. \$HOME/tools/zar \$HOME/dev \${PYTHONPATH//:/ } . ..")
   if [ -z "\$ZARLIB" ]; then
     echo "Library file zarrc not found!"
     exit 2
@@ -475,7 +475,7 @@ EOF
 
 blk_9() {
     cat <<EOF >>$1
-Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$TDIR/.. \${PYTHONPATH//:/ } . .. \$HOME/tools/zerobug \$HOME/dev" "zerobug")
+Z0TLIBDIR=\$(findpkg z0testrc "\$TDIR \$TDIR/.. \$HOME/tools/zerobug \$HOME/dev \${PYTHONPATH//:/ } . .." "zerobug")
 if [ -z "\$Z0TLIBDIR" ]; then
   echo "Library file z0testrc not found!"
   exit 2

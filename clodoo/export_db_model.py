@@ -3,8 +3,10 @@
 import sys
 import os
 from datetime import datetime, date
+import re
 import clodoo
 import csv
+from os0 import os0
 import z0lib
 # import pdb
 
@@ -35,9 +37,10 @@ def get_symbolic_value(ctx, model, name, value):
                                       [('model', '=', relation),
                                        ('res_id', '=', value)])
             if name_id:
-                value = clodoo.browseL8(ctx,
-                                        name_model,
-                                        name_id[0]).name
+                model_rec = clodoo.browseL8(ctx,
+                                            name_model,
+                                            name_id[0])
+                value = '%s.%s' % (model_rec.module, model_rec.name)
                 CACHE[cache_name] = value
             elif ctx['enhanced']:
                 if name == 'company_id':
@@ -63,15 +66,14 @@ def get_symbolic_value(ctx, model, name, value):
                                   [('model', '=', model),
                                    ('res_id', '=', value)])
         if name_id:
-            value = clodoo.browseL8(ctx,
-                                    name_model,
-                                    name_id[0]).name
+            model_rec = clodoo.browseL8(ctx,
+                                        name_model,
+                                        name_id[0])
+            value = '%s.%s' % (model_rec.module, model_rec.name)
     return value
 
 
 def export_table(ctx):
-    import pdb
-    pdb.set_trace()
     current_year = date.today().year
     model = ctx['model']
     name_model = 'ir.model.data'
@@ -81,10 +83,7 @@ def export_table(ctx):
         out_file = model.replace('.', '_') + '.csv'
     print "Output file %s" % out_file
     csv_out = open(out_file, 'wb')
-    if out_file[-4:] == '.csv':
-        hdr_file = out_file[0:-4] + '.hdr' + out_file[-4:]
-    else:
-        hdr_file = out_file + '.hdr'
+    hdr_file = model.replace('.', '_') + '.hdr' + out_file[-4:]
     hdr_file = os.path.join('./hdrs', hdr_file)
     try:
         hdr_fd = open(hdr_file, 'rbU')
@@ -96,16 +95,26 @@ def export_table(ctx):
     header = dict((n, n) for n in out_flds)
     csv_obj = csv.DictWriter(csv_out, fieldnames=out_flds)
     csv_obj.writerow(header)
+    ctr = 0
     for rec in clodoo.browseL8(ctx,
                                model,
                                clodoo.searchL8(ctx, model, [])):
         print 'Reading id %d' % rec.id
         out_dict = {}
+        data_valid = True
         for nm in out_flds:
             f = nm.split(':')
             if nm == 'id':
                 value = rec[f[0]]
                 value = get_symbolic_value(ctx, model, False, value)
+                if isinstance(value, (int, long)):
+                    data_valid = False
+                elif not re.match(ctx['id_filter'], value):
+                    data_valid = False
+                elif ctx['onlybase'] and value[0:5] != 'base.':
+                    data_valid = False
+                elif ctx['exclmulti'] and value[0:5] == 'multi':
+                    data_valid = False
             elif len(f) == 1:
                 value = rec[f[0]]
                 if isinstance(rec[f[0]], (date, datetime)):
@@ -130,12 +139,19 @@ def export_table(ctx):
                 else:
                     value = rec[f[0]][f[1]]
                     value = get_symbolic_value(ctx, model, f[0], value)
+                if isinstance(value, (int, long)):
+                    data_valid = False
+                elif ctx['exclmulti'] and value[0:5] == 'multi':
+                    data_valid = False
             if isinstance(value, (bool, int, float, long, complex)):
                 out_dict[nm] = str(value)
             else:
-                out_dict[nm] = value
-        csv_obj.writerow(out_dict)
+                out_dict[nm] = os0.b(value.replace('\n', ' '))
+        if not ctx['exclext'] or data_valid:
+            csv_obj.writerow(out_dict)
+            ctr += 1
     csv_out.close()
+    print '%d record exported' % ctr
 
 
 parser = z0lib.parseoptargs("Export table account.tax",
@@ -147,6 +163,11 @@ parser.add_argument("-b", "--odoo-branch",
                     dest="odoo_vid",
                     metavar="version",
                     default="")
+parser.add_argument("-B", "--only-base",
+                    help="select only base records",
+                    action="store_true",
+                    dest="onlybase",
+                    default=False)
 parser.add_argument("-c", "--config",
                     help="configuration command file",
                     dest="conf_fn",
@@ -162,16 +183,30 @@ parser.add_argument("-e", "--enhanced",
                     action="store_true",
                     dest="enhanced",
                     default=False)
+parser.add_argument("-E", "--exclude-no-externalid",
+                    help="exclude record w/o external identificator",
+                    action="store_true",
+                    dest="exclext",
+                    default=False)
 parser.add_argument("-f", "--format",
                     help="file format",
                     dest="format",
                     metavar="csv|xml",
                     default='csv')
+parser.add_argument("-F", "--id-filter",
+                    help="match id",
+                    dest="id_filter",
+                    default='.*')
 parser.add_argument("-m", "--model",
                     help="model name to extract",
                     dest="model",
                     metavar="name",
                     default='')
+parser.add_argument("-M", "--exclude-multicompany",
+                    help="exclude record of multicompany",
+                    action="store_true",
+                    dest="exclmulti",
+                    default=False)
 parser.add_argument("-o", "--out-file",
                     help="output file",
                     dest="out_file",

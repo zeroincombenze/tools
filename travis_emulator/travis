@@ -57,7 +57,7 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1]"|python)
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
@@ -75,13 +75,13 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/clodoo $HOME/dev" "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYTHONPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
 fi
 . $ODOOLIBDIR
-TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/travis_emulator $HOME/dev" "travis_emulator")
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYTHONPATH//:/ } . .." "travis_emulator")
 if [ -z "$TRAVISLIBDIR" ]; then
   echo "Library file travisrc not found!"
   exit 2
@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.24
+__version__=0.2.1.25
 
 
 store_cfg_param_value() {
@@ -804,14 +804,12 @@ process_yaml() {
       sts=$STS_SUCCESS
       create_virtual_env
       wlog "${TRAVIS_HDR2_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
-      # update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
-      # if [ ${opt_virt:-0} -eq 0 -a -f /usr/bin/python$TRAVIS_PYTHON_VERSION ]; then
-      #   alias python=/usr/bin/python$TRAVIS_PYTHON_VERSION
-      #   alias pip=/usr/bin/pip$TRAVIS_PYTHON_VERSION
-      # else
-      #   wlog "Unsupported python version $TRAVIS_PYTHON_VERSION"
-      # fi
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
+      $0 -V
+      for lne in python pip; do
+        X="$(which $lne) --version: $($lne --version 2>&1)"
+        eval $lne --version
+      done
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"

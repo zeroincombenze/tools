@@ -35,7 +35,7 @@ from pytok import pytok
 from os0 import os0
 
 
-__version__ = "0.1.4"
+__version__ = "0.1.15"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)

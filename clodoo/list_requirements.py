@@ -7,7 +7,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.41'
+__version__ = '0.3.6.43'
 
 #
 # known incompantibilities:
@@ -159,6 +159,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'pyserial',
                      'pytz',
                      'reportlab',
+                     'six',
                      'stdnum',
                      'urllib3[secure]',
                      'vatnumber',

@@ -104,7 +104,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.41"
+__version__ = "0.3.6.43"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4383,7 +4383,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                  n,
                                  row[n])
                 if val is not None:
-                    x = n.split('/')[0]
+                    x = n.split('/')[0].split(':')[0]
                     if x != 'fiscalcode' or val != '':
                         vals[x] = tounicode(val)
                 msg = u"{0}={1}".format(n, tounicode(val))
