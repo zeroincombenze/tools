@@ -10,7 +10,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -179,7 +179,7 @@ TRAVIS_HDR3_COLOR="\e[30;106m"
 TRAVIS_NOP_COLOR="\e[35;40m"
 if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
@@ -270,7 +270,7 @@ else
     fi
     [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
-    if [ -z "$PYPI_CACHED" -a $opt_verbose -gt 0 ]; then
+    if [ $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       for f in $reqs; do

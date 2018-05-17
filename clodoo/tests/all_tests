@@ -5,7 +5,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -36,6 +36,9 @@ __version__=0.3.6.43
 
 
 Z0BUG_setup() {
+    [ -f ../../z0lib/z0lib/z0lib.py ] && cp -fp ../../z0lib/z0lib/z0lib.py $RUNDIR
+    [ -f ../z0lib/z0lib.py ] && cp -fp ../z0lib/z0lib.py $RUNDIR
+    [ -f ./z0librc ] && rm -f ./z0librc
     # Just for regression tests
     coveragerc_file="$RUNDIR/.coveragerc"
     coveragerc_bak="$RUNDIR/coveragerc.bak"
@@ -47,9 +50,9 @@ Z0BUG_setup() {
     if [ -f "$coveragerc_file" ]; then
       rm -f $coveragerc_file
     fi
-    if [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" ]; then
-      cp -p /opt/odoo/tools/z0lib/z0librc ./
-    fi
+    # if [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" ]; then
+    #   cp -p /opt/odoo/tools/z0lib/z0librc ./
+    # fi
     for i in 6 7 8 9 10; do
       pg_db_active -wa clodoo_test$i; dropdb -Uodoo$i --if-exists clodoo_test$i 2>/dev/null
     done
@@ -79,6 +82,7 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
   fi
   . $ODOOLIBDIR
 fi
+
 
 
 UT1_LIST=

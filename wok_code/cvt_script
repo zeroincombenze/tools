@@ -10,7 +10,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -28,7 +28,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.15
+__version__=0.1.16
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -368,7 +368,7 @@ blk_1() {
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYTHONPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \${PYTHONPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYTHONPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d

@@ -360,6 +360,7 @@ custom_env() {
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $1/bin/activate
       [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)/bin/pip">>$1/bin/activate
       echo "export HOME=\"\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)\"">>$1/bin/activate
+      echo "export PYTHONPATH=$HOME/tools">>$1/bin/activate
     else
       sed -ie 's:^export HOME=.*:export HOME="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $1/bin/activate
     fi
@@ -457,6 +458,7 @@ wash_virtual_env() {
         fi
       fi
     done
+    hash -r
 }
 
 prepare_env_travis() {

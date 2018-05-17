@@ -33,7 +33,7 @@ from wok_code import build
 
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-REQ_TEST_VERSION = "0.1.15"
+REQ_TEST_VERSION = "0.1.16"
 MODULE_ID = 'wok_code'
 # max # of major test id
 MAX_TEST_NUM = 3

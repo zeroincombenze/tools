@@ -58,7 +58,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. ${PYTHONPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -804,7 +804,6 @@ process_yaml() {
       sts=$STS_SUCCESS
       create_virtual_env
       wlog "${TRAVIS_HDR2_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
-      $0 -V
       for lne in python pip; do
         X="$(which $lne) --version: $($lne --version 2>&1)"
         eval $lne --version

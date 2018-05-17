@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. ${PYTHONPATH//:/ } . .. $HOME/tools/zerobug $HOME/dev" "zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYTHONPATH//:/ } . .." "zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
   echo "Library file z0testrc not found!"
   exit 2
@@ -41,6 +41,7 @@ sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
+
 
 
 UT1_LIST=

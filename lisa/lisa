@@ -42,10 +42,16 @@
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-for x in "$TDIR" "$TDIR/.." "." ".." "~" "/etc"; do
-  if [ -e $x/z0librc ]; then
-    . $x/z0librc
-    Z0LIBDIR=$x
+PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
   fi
@@ -2835,7 +2841,7 @@ do_deploy_package() {
 }
 
 do_dry_install_lisa() {
-# check if 1.st installation 
+# check if 1.st installation
     local OPTS sts SETUP
     [ $opt_dry_run -gt 0 ] && OPTS=${OPTS}n
     [ $opt_verbose -gt 0 ] && OPTS=${OPTS}v
