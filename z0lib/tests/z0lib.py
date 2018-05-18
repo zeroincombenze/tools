@@ -40,7 +40,10 @@ Area managed:
 import os
 import argparse
 import inspect
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 from os0 import os0
 
 

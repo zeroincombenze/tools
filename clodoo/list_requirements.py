@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+# import pdb
+# pdb.set_trace()
 import ast
 import sys
 import os
@@ -176,7 +179,7 @@ BIN_PACKAGES = ['git',
 
 
 def parse_requirements(reqfile):
-    lines = open(reqfile, 'rbU').read().split('\n')
+    lines = open(reqfile, 'rU').read().split('\n')
     reqlist = []
     for line in lines:
         if line and line[0] != '#':
@@ -205,6 +208,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
                     f = True
                 if f and v in REQVERSION[item]:
                     full_item = '%s%s' % (item, REQVERSION[item][v])
+                    if full_item.find('>') >= 0 or full_item.find('<') >= 0:
+                        full_item = "'%s'" % full_item
                     defver = True
                     break
     return item, full_item, defver
@@ -283,7 +288,7 @@ def package_from_list(deps_list, kw, PKG_LIST,
 def package_from_manifest(deps_list, manifest_file,
                           with_version=None, odoo_ver=None):
     if manifest_file:
-        manifest = ast.literal_eval(open(manifest_file, 'rbU').read())
+        manifest = ast.literal_eval(open(manifest_file, 'rU').read())
         if manifest.get('external_dependencies'):
             deps = manifest['external_dependencies']
             for kw in ('python', 'bin'):
@@ -444,7 +449,7 @@ def main():
                                       odoo_ver=ctx['odoo_ver'])
     if ctx['out_file']:
         try:
-            pkgs = open(ctx['opt_fn'], 'rbU').read().split('\n')
+            pkgs = open(ctx['opt_fn'], 'rU').read().split('\n')
         except BaseException:
             pkgs = []
         for kw in ('python1', 'python2'):
@@ -455,8 +460,8 @@ def main():
             fd = open(ctx['opt_fn'], 'w')
             fd.write(ctx['sep'].join(pkgs))
             fd.close()
-        print "Updated %s file" % ctx['opt_fn']
-        print ctx['sep'].join(pkgs)
+        print("Updated %s file" % ctx['opt_fn'])
+        print(ctx['sep'].join(pkgs))
     else:
         deps_list['python'] = deps_list['python1'] + deps_list['python2']
         for kw in ('python', 'bin', 'modules'):
@@ -464,9 +469,9 @@ def main():
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
-                        print '%s=%s' % (kw, ctx['sep'].join(deps_list[kw]))
+                        print('%s=%s' % (kw, ctx['sep'].join(deps_list[kw])))
                     else:
-                        print ctx['sep'].join(deps_list[kw])
+                        print(ctx['sep'].join(deps_list[kw]))
 
 
 if __name__ == "__main__":

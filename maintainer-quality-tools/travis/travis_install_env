@@ -9,8 +9,8 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -247,7 +247,26 @@ else
       run_traced "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
     fi
   fi
-  if [ "${TESTS}" == "1" ]; then
+  if [ "${TESTS}" != "1" ]; then
+    dopts=
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
+    if [ -z "$PYPI_CACHED" ]; then
+      eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
+    fi
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
+    cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
+    if [ $opt_verbose -gt 0 ]; then
+      echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+      for f in $reqs; do
+        reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
+        for pkg in $reqs; do
+          v=$($PIP show $pkg|grep "^[Vv]ersion")
+          echo "-- $pkg $v"
+        done
+      done
+    fi
+  else
     dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
@@ -264,7 +283,7 @@ else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
     dopts="-O$dependencies_dir"
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}> $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
+    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
     if [ -z "$PYPI_CACHED" ]; then
       eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
     fi
@@ -272,14 +291,14 @@ else
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
     if [ $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
-      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
-      for f in $reqs; do
-        reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
-        for pkg in $L; do
-          v=$($PIP show $pkg|grep "^[Vv]ersion")
-          echo "-- $pkg $v"
-        done
-      done
+      # reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+      # for f in $reqs; do
+      #   reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
+      #   for pkg in $reqs; do
+      #     v=$($PIP show $pkg|grep "^[Vv]ersion")
+      #     echo "-- $pkg $v"
+      #   done
+      # done
       echo "Content of ${HOME}:"
       ls -l ${HOME}
       echo "Content of ${TRAVIS_BUILD_DIR}:"

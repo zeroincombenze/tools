@@ -1,4 +1,3 @@
-#! /bin/bash
 # -*- coding: utf-8 -*-
 #
 # Odoo Library
@@ -141,7 +140,7 @@ find_odoo_ver() {
       for ldir in $PWD/server/openerp $PWD/openerp $PWD/odoo; do
         if [[ -d $ldir && -f $ldir/release.py ]]; then
           pushd $ldir &>/dev/null
-          x=$(echo -e "import release\nprint release.version\n"|python)
+          x=$(echo -e "from __future__ import print_function\nimport release\nprint(release.version)\n"|python)
           odoo_fver=$(get_odoo_full_ver "$x")
           popd &>/dev/null
           break

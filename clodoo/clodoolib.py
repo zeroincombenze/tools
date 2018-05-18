@@ -9,9 +9,14 @@
 """Clodoo common library
 """
 
+from __future__ import print_function
+
 # import platform
 import argparse
-import ConfigParser
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 import inspect
 # import pdb
 import os
@@ -159,7 +164,7 @@ def msg(level, text):
     """Show and log a message"""
     ident = ' ' * level
     txt = u"{0}{1}".format(ident, tounicode(text))
-    print txt
+    print(txt)
 
 
 def msg_log(ctx, level, text):
@@ -191,7 +196,7 @@ def debug_msg_log(ctx, level, text):
             txt = u">{0}({1})".format(ident, tounicode(text))
         else:
             txt = u">{0}{1}".format(ident, tounicode(text))
-        print txt
+        print(txt)
         os0.wlog(txt)
 
 

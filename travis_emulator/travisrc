@@ -1,5 +1,3 @@
-#! /bin/bash
-# -*- coding: utf-8 -*-
 #
 # Common file for travis emulator scripts
 # 
@@ -358,11 +356,11 @@ custom_env() {
     grep -q "^export HOME=" $1/bin/activate
     if [ $? -ne 0 ]; then
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $1/bin/activate
-      [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)/bin/pip">>$1/bin/activate
-      echo "export HOME=\"\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)\"">>$1/bin/activate
-      echo "export PYTHONPATH=$HOME/tools">>$1/bin/activate
+      [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$1/bin/activate
+      echo "export HOME=\"\$VIRTUAL_ENV\"">>$1/bin/activate
+      echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$1/bin/activate
     else
-      sed -ie 's:^export HOME=.*:export HOME="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $1/bin/activate
+      sed -ie 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $1/bin/activate
     fi
 }
 
@@ -406,7 +404,7 @@ create_virtual_env() {
             fi
           done
         fi
-        export PYPI_CACHED=$HOME/.local
+        export PYPI_CACHED=$TRAVIS_HOME/.local
       else
         export PYPI_CACHED=
       fi

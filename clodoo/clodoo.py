@@ -84,6 +84,7 @@ Action may be one of:
 - wep_company
 - wep_db
 """
+from __future__ import print_function
 
 import calendar
 import csv
@@ -734,7 +735,7 @@ def ident_user(oerp, ctx, u_id):
 #
 def act_list_actions(oerp, ctx):
     for act in sorted(ctx['_lx_act']):
-        print "- %s" % act
+        print("- %s" % act)
     return STS_SUCCESS
 
 
@@ -743,12 +744,12 @@ def act_show_params(oerp, ctx):
         pwd = raw_input('password ')
     else:
         pwd = False
-    print "- hostname      = %s " % ctx['db_host']
-    print "- protocol      = %s " % ctx['svc_protocol']
-    print "- port          = %s " % ctx['xmlrpc_port']
-    print "- odoo version  = %s " % ctx['oe_version']
+    print("- hostname      = %s " % ctx['db_host'])
+    print("- protocol      = %s " % ctx['svc_protocol'])
+    print("- port          = %s " % ctx['xmlrpc_port'])
+    print("- odoo version  = %s " % ctx['oe_version'])
     if pwd:
-        print "- password      = %s " % crypt(pwd)
+        print("- password      = %s " % crypt(pwd))
     return STS_SUCCESS
 
 
@@ -763,14 +764,14 @@ def act_list_db(oerp, ctx):
 def act_echo_db(oerp, ctx):
     msg = ident_db(oerp, ctx, ctx['db_name'])
     ident = ' ' * ctx['level']
-    print " %s%s" % (ident, msg)
+    print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
 def act_show_db_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- DB name       = %s " % (ident, ctx.get('db_name', ""))
-    print "%s- DB type       = %s " % (ident, ctx.get('db_type', ""))
+    print("%s- DB name       = %s " % (ident, ctx.get('db_name', "")))
+    print("%s- DB type       = %s " % (ident, ctx.get('db_type', "")))
     return STS_SUCCESS
 
 
@@ -786,16 +787,16 @@ def act_echo_company(oerp, ctx):
     c_id = ctx['company_id']
     msg = ident_company(oerp, ctx, c_id)
     ident = ' ' * ctx['level']
-    print " %s%s" % (ident, msg)
+    print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
 def act_show_company_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- company_id    = %d " % (ident, ctx.get('company_id', 0))
-    print "%s- company name  = %s " % (ident, ctx.get('company_name', ""))
-    print "%s- c. country_id = %d " % (ident, ctx.get('company_country_id', 0))
-    print "%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id', 0))
+    print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
+    print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
+    print("%s- c. country_id = %d " % (ident, ctx.get('company_country_id', 0)))
+    print("%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id', 0)))
     return STS_SUCCESS
 
 
@@ -812,17 +813,17 @@ def act_echo_user(oerp, ctx):
     u_id = ctx['user_id']
     msg = ident_user(oerp, ctx, u_id)
     ident = ' ' * ctx['level']
-    print " %s%s" % (ident, msg)
+    print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
 def act_show_user_params(oerp, ctx):
     ident = ' ' * ctx['level']
-    print "%s- user_id       = %d " % (ident, ctx.get('user_id', 0))
-    print "%s- user name     = %s " % (ident, ctx.get('user_name', ""))
-    print "%s- u. partner_id = %d " % (ident, ctx.get('user_partner_id', 0))
-    print "%s- u. country_id = %d " % (ident, ctx.get('user_country_id', 0))
-    print "%s- u. company_id = %d " % (ident, ctx.get('user_company_id', 0))
+    print("%s- user_id       = %d " % (ident, ctx.get('user_id', 0)))
+    print("%s- user name     = %s " % (ident, ctx.get('user_name', "")))
+    print("%s- u. partner_id = %d " % (ident, ctx.get('user_partner_id', 0)))
+    print("%s- u. country_id = %d " % (ident, ctx.get('user_country_id', 0)))
+    print("%s- u. company_id = %d " % (ident, ctx.get('user_company_id', 0)))
     return STS_SUCCESS
 
 

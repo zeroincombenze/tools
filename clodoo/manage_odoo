@@ -7,8 +7,8 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -25,7 +25,7 @@ if [ -z "$Z0LIBDIR" ]; then
   echo "Library file z0librc not found!"
   exit 2
 fi
-ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYTHONPATH//:/ } . .." "clodoo")
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
 if [ -z "$ODOOLIBDIR" ]; then
   echo "Library file odoorc not found!"
   exit 2
@@ -137,6 +137,8 @@ do_action() {
         [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR"
         [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
         for pass in 1 2 3; do
+          [ $pass -eq 1 ] && echo "## Check for package status"
+          [ $pass -eq 2 ] && echo "## Upgrade versioned package"
           [ $pass -eq 3 ] && echo "## Check for package version"
           for f in $preqs; do
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)

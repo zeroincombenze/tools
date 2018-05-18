@@ -42,8 +42,8 @@ import argparse
 import inspect
 try:
     import ConfigParser
-except BaseException:
-    import configparser
+except ImportError:
+    import configparser as ConfigParser
 from os0 import os0
 
 

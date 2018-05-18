@@ -137,6 +137,7 @@ DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
 COVERAGE_PROCESS_START
                 Name of coverage conf file; if set test is running for coverage
 """
+from __future__ import print_function
 
 # import pdb
 import os
@@ -1200,7 +1201,7 @@ class Z0test(object):
         self.exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
-                print ctx['max_test']
+                print(ctx['max_test'])
             sts = TEST_SUCCESS
         else:
             if not ctx.get('_run_autotest', False):
@@ -1237,7 +1238,7 @@ class Z0test(object):
                 not ctx.get('_run_autotest', False):
             sts = self.sanity_check('-q')
             if sts == TEST_FAILED:                         # pragma: no cover
-                print "Invalid test library!"
+                print("Invalid test library!")
                 exit(TEST_FAILED)
         test_list = []
         if UT is not None and isinstance(UT, list):
@@ -1270,7 +1271,7 @@ class Z0test(object):
         self.exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
-                print ctx['ctr']
+                print(ctx['ctr'])
                 # sys.stderr.write("%d\n" % ctx['max_test'])
             sts = TEST_SUCCESS
         else:
@@ -1282,9 +1283,9 @@ class Z0test(object):
             if ctx.get('run_on_top', False) and \
                     not ctx.get('_run_autotest', False):
                 if sts == TEST_SUCCESS:
-                    print success_msg
+                    print(success_msg)
                 else:
-                    print fail_msg
+                    print(fail_msg)
         return sts
 
     def main(self, ctx, Test):
@@ -1317,14 +1318,14 @@ class Z0test(object):
             if ctx.get('WLOGCMD', None):
                 if ctx['WLOGCMD'] == "echo" or ctx['WLOGCMD'] == "wecho-1":
                     if not ctx.get('opt_noctr', None):
-                        print "%sTest %d/%d: %s" % (prfx,
+                        print("%sTest %d/%d: %s" % (prfx,
                                                     ctx['ctr'],
                                                     ctx['max_test'],
-                                                    msg)
+                                                    msg))
                     else:
-                        print "%sTest %d: %s" % (prfx,
+                        print("%sTest %d: %s" % (prfx,
                                                  ctx['ctr'],
-                                                 msg)
+                                                 msg))
             else:
                 if not ctx.get('opt_noctr', None):
                     txt = "{0}Test {1}/{2}: {3}".format(prfx,
@@ -1345,10 +1346,10 @@ class Z0test(object):
         self.msg_test(ctx, msg)
         if not ctx.get('dry_run', False):
             if test_value != result_val:                     # pragma: no cover
-                print "Test '%s' failed: expected '%s', found '%s'" % \
+                print("Test '%s' failed: expected '%s', found '%s'" %
                     (msg,
                      test_value,
-                     result_val)
+                     result_val))
                 ctx['teststs'] = TEST_FAILED
                 if ctx.get('on_error', '') != 'continue':
                     raise AssertionError
