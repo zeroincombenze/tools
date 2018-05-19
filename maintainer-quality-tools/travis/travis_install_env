@@ -291,14 +291,6 @@ else
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
     if [ $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
-      # reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
-      # for f in $reqs; do
-      #   reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
-      #   for pkg in $reqs; do
-      #     v=$($PIP show $pkg|grep "^[Vv]ersion")
-      #     echo "-- $pkg $v"
-      #   done
-      # done
       echo "Content of ${HOME}:"
       ls -l ${HOME}
       echo "Content of ${TRAVIS_BUILD_DIR}:"

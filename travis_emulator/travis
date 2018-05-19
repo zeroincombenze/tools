@@ -808,6 +808,7 @@ process_yaml() {
         X="$(which $lne) --version: $($lne --version 2>&1)"
         eval $lne --version
       done
+      echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
       for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then

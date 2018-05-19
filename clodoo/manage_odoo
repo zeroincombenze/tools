@@ -128,7 +128,7 @@ do_action() {
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
             echo "Check for $f"
           elif [ "$f" == "$pkg" ]; then
-            eval $LISA status -q $f -d0
+            eval $LISA status -q $pkg -d0
             [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
           fi
         done
@@ -142,15 +142,17 @@ do_action() {
           [ $pass -eq 3 ] && echo "## Check for package version"
           for f in $preqs; do
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
-            pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-            reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|awk '{print $2}')
+            pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
+            reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')
             sts=0
             if [ $pass -eq 1 ]; then
-              eval $LISA status -q $f -d0
+              eval $LISA status -q $pkg -d0
               sts=$?
             fi
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
-              [ $sts -eq 0 ] && curver=$(pip show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+              echo "<<<$f||$pkg||$sts||???||$op||$reqver>>"   #debug
+              [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
+              echo "<<<$f||$pkg||$sts||$curver||$op||$reqver>>"   #debug
               if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)

@@ -358,7 +358,7 @@ custom_env() {
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $1/bin/activate
       [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$1/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$1/bin/activate
-      echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$1/bin/activate
+      echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$1/bin/activate
     else
       sed -ie 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $1/bin/activate
     fi
