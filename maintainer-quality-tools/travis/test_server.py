@@ -444,7 +444,7 @@ def main(argv=None):
 
     # Running tests [antoniov: 2018-02-28]
     script_path = get_script_path(server_path, script_name)
-    cmd_odoo_test = ["coverage", "run",
+    cmd_odoo_test = ["python", "-m", "coverage", "run",
                      script_path,
                      "-d", database,
                      "--db-filter=^%s$" % database,
@@ -489,7 +489,7 @@ def main(argv=None):
                 # If exists database of odoo test
                 # then start server with regular command without tests params
                 rm_items = [
-                    'coverage', 'run', '--stop-after-init',
+                    'python', '-m', 'coverage', 'run', '--stop-after-init',
                     '--test-enable', '--init', None,
                     '--log-handler', 'openerp.tools.yaml_import:DEBUG',
                 ]
