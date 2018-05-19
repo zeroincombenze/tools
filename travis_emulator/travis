@@ -688,7 +688,7 @@ process_yaml_run_cmd() {
         done
       else
         if ! $(echo $xcmd|grep -q "\--user"); then
-          xcmd=${xcmd/pip install/pip install --user}
+          xcmd=${xcmd/pip install/pip install --user --no-warn-conflicts}
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then

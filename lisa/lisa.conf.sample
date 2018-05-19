@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-05-10
+# Last update: 2018-05-19
 #
 # ---------------------------------------------------------------------
 #
@@ -199,6 +199,7 @@ REAL_ldap=python-ldap
 REAL_ipy=IPy
 REAL_usb=pyusb
 REAL_pyxb=PyXB
+REAL_pypdf2=PyPDF2
 # Commands templates
 VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
@@ -227,7 +228,8 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pylint-plugin-utils,restructuredtext_lint,odoorpc,suds,XlsxWriter,\
     validate_email,acme_tiny,IPy,paramiko,python-stdnum,pysftp,evdev,\
     configparser,raven,raven_sanitize_openerp,lazy_object_proxy,wrapt,\
-    pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB
+    pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB,\
+    phonenumbers,ebaysdk,html2text,pyldap,PyPDF2,xlrd
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -366,6 +368,8 @@ REAL_libfreetype6-dev=freetype-devel
 REAL_openid=python-openid
 REAL_expect-dev=expect-devel
 RHEL_libpq-dev=postgresql-devel
+REAL_python3=python34
+REAL_python3-dev=python34-devel
 
 redis_svcname=redis
 # Standard packages
@@ -374,7 +378,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel,\
-         python2-simplejson,
+         python2-simplejson,python34,python35,python36,python34-devel,,python35-devel,python36-devel
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum

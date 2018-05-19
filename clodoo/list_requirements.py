@@ -244,7 +244,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                         odoo_ver=odoo_ver)
             elif item == 'lxml':
                 if odoo_ver in ('11.0', '12.0'):
-                    for itm in ('python3-dev', 'libxml2-dev',
+                    for itm in ('python34-dev', 'libxml2-dev',
                                 'libxslt1-dev', 'zlib1g-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
@@ -257,7 +257,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                                 odoo_ver=odoo_ver)
             elif item in ('lxml', 'python-psycopg2'):
                 if odoo_ver in ('11.0', '12.0'):
-                    for itm in ('python3-dev', 'libpq-dev'):
+                    for itm in ('python34-dev', 'libpq-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver)

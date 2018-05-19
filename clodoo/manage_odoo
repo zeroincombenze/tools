@@ -150,15 +150,13 @@ do_action() {
               sts=$?
             fi
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
-              echo "<<<$f||$pkg||$sts||???||$op||$reqver>>"   #debug
               [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-              echo "<<<$f||$pkg||$sts||$curver||$op||$reqver>>"   #debug
               if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)
                   echo "$x but expected $op$reqver"
                 else
-                  cmd="$PIP install -q $f --upgrade"
+                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts"
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps"
                   [ $EUID -ne 0 ] && cmd="$cmd --user"
                   echo "Update '$pkg' version '$curver' with version '$reqver'"

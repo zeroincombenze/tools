@@ -188,12 +188,12 @@ if [ $opt_verbose -gt 0 ]; then
 fi
 for p in os0 z0lib; do
   if [ -n "$PYPI_CACHED" ]; then
-     echo -e "${TRAVIS_TEXT_COLOR}$PIP install -q $p --upgrade${TRAVIS_HDR3_COLOR}"
+     echo -e "${TRAVIS_TEXT_COLOR}$PIP install -q $p --upgrade --no-warn-conflicts${TRAVIS_HDR3_COLOR}"
   else
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade${TRAVIS_HDR3_COLOR}"
-      $PIP install -q $p --upgrade
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade$ --no-warn-conflicts{TRAVIS_HDR3_COLOR}"
+      $PIP install -q $p --upgrade --no-warn-conflicts
     fi
   fi
 done
@@ -202,8 +202,8 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
       if [ $? -ne 0 ]; then
-        [ $opt_verbose -gt 0 ] && echo "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade${TRAVIS_HDR3_COLOR}"
-        $PIP install -q $p --upgrade
+        [ $opt_verbose -gt 0 ] && echo "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade --no-warn-conflicts${TRAVIS_HDR3_COLOR}"
+        $PIP install -q $p --upgrade --no-warn-conflicts
       fi
     done
   fi
