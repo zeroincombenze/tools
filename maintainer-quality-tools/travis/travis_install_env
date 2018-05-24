@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.46
+__version__=0.2.1.47
 
 
 cp_n_upd_odoo_conf() {
@@ -256,11 +256,11 @@ else
     [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
     if [ $opt_verbose -gt 0 ]; then
-      echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
-      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
+      echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
+      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
       reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
       for pkg in $reqs; do
-        v=$($PIP show $pkg|grep "^[Vv]ersion")
+        v=$($PIP show $pkg|grep "^[Vv]ersion"|awk '{print $2}')
         echo "-- $pkg $v"
       done
     fi
@@ -288,7 +288,6 @@ else
     [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
     cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
     if [ $opt_verbose -gt 0 ]; then
-      echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qPBTR)"
       echo "Content of ${HOME}:"
       ls -l ${HOME}
       echo "Content of ${TRAVIS_BUILD_DIR}:"
