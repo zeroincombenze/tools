@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.43
+__version__=0.3.6.44
 
 
 rmdir_if_exists() {
@@ -385,6 +385,6 @@ cfgfn=$(build_odoo_param CONFN "$new_odoo_vid")
 if [ "$RPTNAME" == "OCB" ]; then
   DSTPATH="$DSTPATH/addons"
 fi
-[[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -ie \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
+[[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
 rm -f $TMPFILE
 exit 0

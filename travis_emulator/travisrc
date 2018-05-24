@@ -1,12 +1,37 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.25
+#__version__=0.2.1.26
 
 
 MAKEF=/opt/odoo/dev/Makefile
 # DIST_CONF=./conf/.local_dist_pkg.conf
 XRGI="^(.*\/|)conf\/.*sample$"
+
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 
 opts_travis() {
 #opts_travis(pkgname)
@@ -352,7 +377,7 @@ drop_test_db() {
 custom_env() {
 # custom_env(VENV pyver)
     cd $1
-    sed -ie 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
+    sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
     grep -q "^export HOME=" $PWD/bin/activate
     if [ $? -ne 0 ]; then
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
@@ -361,12 +386,12 @@ custom_env() {
       # echo "export PYTHONPATH=\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       # echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
-      sed -ie "s:^#.*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
+      sed -i -e "s:^#.*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
     else
-      sed -ie 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
-      sed -ie "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
+      sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
+      sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
     fi
-    echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+    echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
 }
 
 create_virtual_env() {

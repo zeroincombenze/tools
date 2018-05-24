@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.43
+__version__=0.3.6.44
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U          u       V           v           w       x)
@@ -258,12 +258,12 @@ fi
 
 if [ $opt_dry_run -eq 0 ]; then
   cp $confn ~/.openerp_serverrc
-  sed -ie 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
+  sed -i -e 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
   if [ -n "$opt_xport" ]; then
-    sed -ie "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc
+    sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc
   fi
   if [ -n "$opt_dbuser" ]; then
-    sed -ie "s:^db_user *=.*:db_user = $opt_dbuser:" ~/.openerp_serverrc
+    sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" ~/.openerp_serverrc
   fi
   if [ $opt_verbose -gt 0 ]; then
     vim ~/.openerp_serverrc

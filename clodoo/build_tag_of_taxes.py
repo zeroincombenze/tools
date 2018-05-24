@@ -7,7 +7,7 @@ from z0lib import parseoptargs
 # import clodoo
 
 
-__version__ = '0.3.6.43'
+__version__ = '0.3.6.44'
 
 
 def read_csv_file(csv_fn):

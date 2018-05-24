@@ -37,51 +37,42 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.1.17.3
+__version__=0.3.6.44
 
 
 get_odoo_service_name() {
-# get_odoo_service_name(odoo_ver)
+# get_odoo_service_name(odoo_fver)
     local svcname=$(build_odoo_param SVCNAME $1)
-    # local svcname=
-    # if [ "$1" == "v7" ]; then
-    #   svcname="openerp-server"
-    # elif [ "$1" == "10.0" ]; then
-    #   svcname="odoo10"
-    # else
-    #   svcname="odoo${1:0:1}-server"
-    # fi
     echo $svcname
 }
 
-list_themes() {
-# list_themes(themedirlist odoo_ver webdir)
-    local themedirlist="$1"
-    local odoo_ver=$2
-    local webdir=$3
-    local themelist
+list_themes_n_skin() {
+# list_themes_n_skin (odoo_theme_rep skindirlist odoo_vid opt_webdir)
+    local odoo_theme_rep="$1"
+    local skindirlist="$2"
+    local odoo_vid=$3
+    local webdir=$4
+    local themelist skinlist
     local d f fn
-    for d in $themedirlist; do
+    for d in $skindirlist $odoo_theme_rep; do
       if [ -d  $d ]; then
         [ $opt_verbose -gt 0 ] && echo "Searching in $d ..."
         for f in $d/odoo_theme_*.conf; do
           if [ -f "$f" ]; then
             x=$(basename $f)
             fn=${x:11: -5}
-            if [[ " $themelist " =~ [[:space:]]$fn[[:space:]] ]]; then
-              :
-            else
-              themelist="$themelist $fn"
+            if [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
+              skinlist="$skinlist $fn"
             fi
           fi
         done
-        for f in $(find /opt/odoo/$odoo_ver/themes -type d); do
-          if [ -f $f/odoo_theme.conf ]; then
-            fn=$(basename $f)
-            if [[ " $themelist " =~ [[:space:]]$fn[[:space:]] ]]; then
-              :
-            else
-              themelist="$themelist $fn"
+        for d in $odoo_theme_rep/*; do
+          if [ -d  $d ]; then
+            if [ -f $d/__openerp__.py -o -f $d/__manifest__.py ]; then
+              f=$(basename $d)
+              if [[ ! " $themelist " =~ [[:space:]]$f[[:space:]] ]]; then
+                themelist="$themelist $f"
+              fi
             fi
           fi
         done
@@ -91,34 +82,32 @@ list_themes() {
     for f in $webdir/*.sass; do
       fn=$(basename $f)
       fn=${fn:0: -5}
-      if [ "$fn" != "base" ]; then
-        if [[ " $themelist " =~ [[:space:]]$fn[[:space:]] ]]; then
-          :
-        else
-          themelist="$themelist $fn"
-        fi
+      if [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
+        skinlist="$skinlist $fn"
       fi
     done
-    echo $themelist
+    [ -f $webdir/base.z0i ] && skinlist="$skinlist zeroincombenze"
+    [ -f $webdir/base.oia ] && skinlist="$skinlist oia"
+    [ -f $webdir/base.vg7 ] && skinlist="$skinlist vg7"
+    echo -e "Themes:$themelist\nSkins :$skinlist"
 }
 
 update_base_sass() {
-#update_base_sass(theme tgt webdir odoo_ver)
-    local theme=$1
-    local tgt=$2
-    local webdir=$3
-    local odoo_ver=$4
+# update_base_sass (odoo_theme_rep skindirlist odoo_vid opt_webdir sel_skin)
+    local odoo_theme_rep="$1"
+    local skindirlist="$2"
+    local odoo_vid=$3
+    local webdir=$4
+    local sel_skin=$5
     run_traced "cd $webdir"
     local fsrc=$(get_cfg_value 0 sass_filename)
-    cd $webdir
-    if [ -z "$fsrc" ]; then
-      fsrc="$theme.sass"
-    fi
+    [ -n "$fsrc" ] || fsrc="$sel_skin.sass"
+    [ -f "$fsrc" ] || fsrc="$opt_sass"
+    [ ! -f "$fsrc" -a "$sel_skin" == "zeroincombenze"  -a -f "base.z0i" ] || fsrc="base.z0i"
+    [ ! -f "$fsrc" -a "$sel_skin" == "oia"  -a -f "base.oia" ] || fsrc="base.oia"
+    [ ! -f "$fsrc" -a "$sel_skin" == "vg7"  -a -f "base.oia" ] || fsrc="base.vg7"
     if [ ! -f "$fsrc" ]; then
-      fsrc="$opt_sass"
-    fi
-    if [ ! -f "$fsrc" ]; then
-      echo "No file $opt_sass found!"
+      echo "No file $opt_sass found for skin $sel_skin!"
       return
     fi
     local ftmp="$fsrc.tmp"
@@ -216,13 +205,13 @@ update_base_sass() {
       run_traced "mv -f $ftmp $opt_sass"
       run_traced "sass --trace -t expanded $opt_sass $opt_css"
       run_traced "chown odoo:odoo $opt_sass $opt_css $fsrc.bak"
-      svname=$(get_odoo_service_name $odoo_ver)
+      svname=$(get_odoo_service_name $odoo_vid)
       if [ "$theme" == "odoo" ]; then
-        run_traced "sed -ie 's:^web_skin *=:# web_skin =:' /etc/odoo/$svname.conf"
+        run_traced "sed -i -e 's:^web_skin *=:# web_skin =:' /etc/odoo/$svname.conf"
       else
-        run_traced "sed -ie 's:^[# ]*web_skin *=.*:web_skin = $theme:' /etc/odoo/$svname.conf"
+        run_traced "sed -i -e 's:^[# ]*web_skin *=.*:web_skin = $theme:' /etc/odoo/$svname.conf"
       fi
-      run_traced "service $svname restart"
+      run_traced "sudo systemctl restart $svname"
     else
       [ $opt_verbose -gt 0 ] && echo "No skin changed"
       [ ${opt_dry_run:-0} -eq 0 ] && rm -f $fntmp
@@ -238,7 +227,7 @@ OPTMETA=("help"   "file"   "dir"      ""        "list"   ""        "do nothing" 
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "show diff (implies dry-run)"\
- "odoo web dir (def. /opt/odoo/{odoo_ver}/addons/web/static/src/css)"\
+ "odoo web dir (def. /opt/odoo/{odoo_fver}/addons/web/static/src/css)"\
  "force generation of css file"\
  "list themes"\
  "multi-version odoo environment"\
@@ -248,7 +237,7 @@ OPTHELP=("this help"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode")
-OPTARGS=(odoo_ver theme)
+OPTARGS=(odoo_vid sel_skin)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -256,7 +245,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Install odoo theme"\
+  print_help "Manage odoo themes (8.0+) & skin (all versions)"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -269,32 +258,20 @@ fi
 if [ $opt_diff -ne 0 ]; then
   opt_dry_run=1
 fi
-if [ $opt_multi -lt 0 ]; then
-  c=0
-  for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
-    for p in "" v odoo ODOO; do
-      odoo_bin=$(build_odoo_param BIN $p$v search)
-      if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
-        ((c++))
-      fi
-    done
-  done
-  if [ $c -gt 2 ]; then
-    opt_multi=1
-  else
-    opt_multi=0
-  fi
-fi
-themedirlist=""
+discover_multi
+odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
+odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+odoo_theme_rep=$(build_odoo_param ROOT $odoo_vid)/website-themes
+skindirlist=""
 if [ $opt_list -ne 0 ]; then
   if [ $test_mode -ne 0 ]; then
-    themedirlist="$TESTDIR/themes $TESTDIR/../themes ./themes ../themes"
+    skindirlist="$TESTDIR/themes $TESTDIR/../themes ./themes ../themes"
   else
-    themedirlist="/opt/odoo/$odoo_ver/themes $TDIR/themes $TDIR/../themes ./themes ../themes"
+    skindirlist="$TDIR/themes $TDIR/../themes ./themes ../themes"
   fi
 else
   if [ -n "$theme" -a $test_mode -eq 0 ]; then
-    COLORFILE=$(findpkg "odoo_theme.conf" "/opt/odoo/$odoo_ver/themes/$theme")
+    COLORFILE=$(findpkg "odoo_theme.conf" "/opt/odoo/$odoo_fver/themes/$theme")
   else
     COLORFILE=
   fi
@@ -329,19 +306,19 @@ if [ -z "$opt_webdir" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_webdir=$TESTDIR/themes
   else
-    sass=$(findpkg $opt_sass "/opt/odoo/$odoo_ver/addons/web/static/src/css /opt/odoo/$odoo_ver")
+    sass=$(findpkg $opt_sass "/opt/odoo/$odoo_vid/addons/web/static/src/css /opt/odoo/$odoo_vid/website /opt/odoo/$odoo_vid")
     if [ -n "$sass" ]; then
       opt_webdir=$(dirname $sass)
     fi
   fi
 fi
 if [ -z "$opt_webdir" ]; then
-  echo "No valid skin found (Missed $opt_sass)!"
+  echo "No valid skin (File $opt_sass not found)!"
   exit 1
 fi
 opt_css=${opt_sass:0: -5}.css
 if [ $opt_list -ne 0 ]; then
-  list_themes "$themedirlist" "$odoo_ver" "$opt_webdir"
+  list_themes_n_skin "$odoo_theme_rep" "$skindirlist" "$odoo_vid" "$opt_webdir"
 else
-  update_base_sass "$theme" "$tgt" "$opt_webdir" "$odoo_ver"
+  update_base_sass "$odoo_theme_rep" "$skindirlist" "$odoo_vid" "$opt_webdir" "$sel_skin"
 fi
