@@ -10,7 +10,7 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/toold ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -150,6 +150,10 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+if [ -z "$TRAVIS_BUILD_DIR" ]; then
+  echo "Invalid environment!"
+  exit 1
+fi
 sts=$STS_SUCCESS
 [ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
