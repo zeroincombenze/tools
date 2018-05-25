@@ -11,8 +11,6 @@ THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
 for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
-  echo "<<<if [ -e $d/z0librc ]; then>>"  #debug
-  echo "<<<elif [ -d $d/z0lib ]; then>>"  #debug
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
@@ -32,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.48
+__version__=0.2.1.49
 
 
 run_n_echo() {
@@ -219,14 +217,15 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
 fi
-for p in os0 z0lib; do
-  if [ -z "$PYPI_CACHED" ]; then
+ if [[ "$TRAVIS" == "true" ]]; then
+  run_n_echo "$PIP install -q pip --upgrade"
+  for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
       run_n_echo "$PIP install -q $p --upgrade --no-warn-conflicts"
     fi
-  fi
-done
+  done
+fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   if [ -z "$PYPI_CACHED" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
@@ -284,14 +283,16 @@ else
       run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
-    if [ $opt_verbose -gt 0 ]; then
-      echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
-      reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
-      reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
-      for pkg in $reqs; do
-        v=$($PIP show $pkg|grep "^[Vv]ersion"|awk '{print $2}')
-        echo "-- $pkg $v"
-      done
+    if [[ "$TRAVIS" == "true" ]]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
+        reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
+        reqs=$(echo "$reqs"|tr " " "\n"|sort|tr "\n" " ")
+        for pkg in $reqs; do
+          v=$($PIP show $pkg|grep "^[Vv]ersion"|awk '{print $2}')
+          echo "-- $pkg $v"
+        done
+      fi
     fi
   else
     dopts=
