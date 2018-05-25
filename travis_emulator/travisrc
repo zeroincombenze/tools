@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.26
+#__version__=0.2.1.27
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -403,6 +403,7 @@ create_virtual_env() {
     else
       export TRAVIS=false
     fi
+    local x
     local TRAVIS_CWD=$PWD
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
@@ -445,7 +446,9 @@ create_virtual_env() {
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     mkdir -p $TRAVIS_BUILD_DIR
-    run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
+    # run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
+    x=$(readlink -f $TRAVIS_BUILD_DIR/..)
+    run_traced "cp -R $TRAVIS_CWD/ $x/"
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
     run_traced "cd $TRAVIS_BUILD_DIR"
 }
@@ -1189,6 +1192,12 @@ ant_erase() {
         ant_rm_trap $fn
       fi
     done
+}
+
+set_executable() {
+  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
+  run_traced "find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;"
+  run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
 }
 
 coverage() {

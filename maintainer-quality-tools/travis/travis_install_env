@@ -30,7 +30,31 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.47
+__version__=0.2.1.48
+
+
+run_n_echo() {
+    local xcmd="$1"
+    local sts=$STS_SUCCESS
+    local pfx=
+    if [ "${1:0:1}" == "#" ]; then
+      pfx=
+    elif [ ${opt_dry_run:-0} -eq 0 ]; then
+      pfx="\$ "
+    else
+      pfx="> "
+    fi
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
+      if [ "${1:0:1}" != "#" ]; then
+        eval "$xcmd"
+        sts=$?
+      fi
+    else
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
+    fi
+    return $sts
+}
 
 
 cp_n_upd_odoo_conf() {
@@ -140,12 +164,15 @@ if [ ${opt_lint:-0} -gt 0 ]; then
   BASH_CHECK="1"
   LINT_CHECK="1"
 fi
-if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
-if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
-if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
-if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
-if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
-if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+LINT_OR_TEST_CHECK="0"
+[ "${LINT_CHECK:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
+[ "${LINT_CHECK:-0}" == "0" -a "${TESTS:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
+# if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+# if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+# if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+# if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+# if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+# if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
@@ -187,13 +214,10 @@ if [ $opt_verbose -gt 0 ]; then
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
 fi
 for p in os0 z0lib; do
-  if [ -n "$PYPI_CACHED" ]; then
-     echo -e "${TRAVIS_TEXT_COLOR}$PIP install -q $p --upgrade --no-warn-conflicts${TRAVIS_HDR3_COLOR}"
-  else
+  if [ -z "$PYPI_CACHED" ]; then
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade$ --no-warn-conflicts{TRAVIS_HDR3_COLOR}"
-      $PIP install -q $p --upgrade --no-warn-conflicts
+      run_n_echo "$PIP install -q $p --upgrade --no-warn-conflicts"
     fi
   fi
 done
@@ -202,15 +226,13 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
       if [ $? -ne 0 ]; then
-        [ $opt_verbose -gt 0 ] && echo "${TRAVIS_TEXT_COLOR}\$ $PIP install -q $p --upgrade --no-warn-conflicts${TRAVIS_HDR3_COLOR}"
-        $PIP install -q $p --upgrade --no-warn-conflicts
+        run_n_echo "$PIP install -q $p --upgrade --no-warn-conflicts"
       fi
     done
   fi
   exit $sts
 elif [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" == "oca" ]; then
-  [ $opt_verbose -gt 0 ] && echo "\$ $TDIR/travis_install_nightly"
-  eval $TDIR/travis_install_nightly
+  run_n_echo "$TDIR/travis_install_nightly"
 else
   [ -z "${VERSION}" ] && VERSION="$opt_branch"
   [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
@@ -223,38 +245,39 @@ else
   export BRANCH="${ODOO_BRANCH}"
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
+  if [ "${LINT_CHECK:-1}" != "0" ]; then
+    run_n_echo "npm install eslint"
+  fi
   if [ "${TESTS}" == "1" ]; then
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-    echo -e "${TRAVIS_TEXT_COLOR}\$ ln -s $x $HOME/maintainer-quality-tools/travis/node${TRAVIS_HDR3_COLOR}"
-    ln -s $x $HOME/maintainer-quality-tools/travis/node
+    run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+    run_n_echo "npm install less less-plugin-clean-css"
+    run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
-      echo -e "- Tested repository is OCB: ${TRAVIS_TEXT_COLOR}ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}${TRAVIS_HDR3_COLOR}"
-      ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}
+      echo -e "- Tested repository is OCB"
+      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     elif [ ! -L ${ODOO_PATH} ]; then
-      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
     export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
     if [[ "$TRAVIS" == "true" ]]; then
       echo "- Installing Odoo $ODOO_URL"
-      wget -nv -O odoo.tar.gz $ODOO_URL
-      tar -xf odoo.tar.gz -C ${HOME}
+      run_n_echo "wget -nv -O odoo.tar.gz $ODOO_URL"
+      run_n_echo "tar -xf odoo.tar.gz -C ${HOME}"
     elif [ ! -L ${ODOO_PATH} ]; then
-      echo "> wget -nv -O odoo.tar.gz $ODOO_URL; tar -xf odoo.tar.gz -C ${HOME}"
-      run_traced "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+      run_n_echo "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
     fi
   fi
   if [ "${TESTS}" != "1" ]; then
     dopts=
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
     if [ -z "$PYPI_CACHED" ]; then
-      eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
+      run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
-    cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
+    run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [ $opt_verbose -gt 0 ]; then
       echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
       reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
@@ -268,8 +291,7 @@ else
     dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $TDIR/clone_oca_dependencies${TRAVIS_HDR3_COLOR}"
-    eval $TDIR/clone_oca_dependencies
+    run_n_echo "$TDIR/clone_oca_dependencies"
     sts=$?
     if [ $sts -ne 0 ]; then
       echo "- Error cloning dependencies"
@@ -281,12 +303,10 @@ else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
     dopts="-O$dependencies_dir"
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}${TRAVIS_HDR3_COLOR}"
     if [ -z "$PYPI_CACHED" ]; then
-      eval $MGRODOO requirements -b'.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}
+      run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
-    [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .${TRAVIS_HDR3_COLOR}"
-    cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc .
+    run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [ $opt_verbose -gt 0 ]; then
       echo "Content of ${HOME}:"
       ls -l ${HOME}
