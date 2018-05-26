@@ -771,6 +771,7 @@ process_yaml_run_cmd() {
       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
          wlog "${TRAVIS_NOP_COLOR}## $c${TRAVIS_TEXT_COLOR}"
       fi
+      echo -en "${TRAVIS_TEXT_COLOR}"
       run_traced "$line1$xcmd"
     fi
     return $?
@@ -805,7 +806,7 @@ process_yaml() {
     if [ -f $YML_FILE ]; then
       wlog "${TRAVIS_HDR1_COLOR}=== Process YAML file ===${TRAVIS_TEXT_COLOR}"
       process_yaml_file "$YML_FILE"
-      if [ "$USER" != "odoo" ]; then
+      if [ "$USER" == "odoo" ]; then
         clean_dirs "$PRJPATH"
         set_executable
       fi

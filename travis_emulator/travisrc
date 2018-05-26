@@ -426,15 +426,13 @@ create_virtual_env() {
       virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
       sts=$?
       [ $sts -ne 0 ] && return
-      if [ ${opt_cache:-0} -ne 0 ]; then
-        if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
-          for d in bin include lib lib64 .local; do
-            if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
-              [ -d "$TRAVIS_HOME/$d" ] && run_traced "rm -fR $TRAVIS_HOME/$d"
-              run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/"
-            fi
-          done
-        fi
+      if [ ${opt_cache:-0} -ne 0 -a -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
+        for d in bin include lib lib64 .local; do
+          if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
+            [ -d "$TRAVIS_HOME/$d" ] && run_traced "rm -fR $TRAVIS_HOME/$d"
+            run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/"
+          fi
+        done
         export PYPI_CACHED=$TRAVIS_HOME/.local
       else
         export PYPI_CACHED=
