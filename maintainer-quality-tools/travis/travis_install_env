@@ -238,6 +238,10 @@ if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "$PIP install $p $PIP_OPTS"
     fi
   done
+  # workaround for TravisCI
+  run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/"
+  run_n_echo "cp $HOME/tools/os0/__init__.py $HOME/maintainer-quality-tools/"
+  run_n_echo "cp $HOME/tools/os0/os0core.py $HOME/maintainer-quality-tools/"
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   if [ -z "$PYPI_CACHED" ]; then
