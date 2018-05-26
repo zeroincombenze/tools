@@ -14,6 +14,8 @@ from getaddons import get_addons, get_modules, is_installable_module
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
+__version__ = '0.2.1.49'
+
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
     """
@@ -405,19 +407,19 @@ def main(argv=None):
     addons_path = get_addons_path(travis_dependencies_dir,
                                   travis_build_dir,
                                   server_path)
-    if os.environ.get('TRAVIS', '0') == 'true':
-        rpcport = '8069'
-    else:
+    conf_data = {
+        'addons_path': addons_path,
+        'data_dir': data_dir,
+    }
+    if os.uname()[1][0:3] == 'shs':
         pid = os.getpid()
         if pid > 18000:
             rpcport = str(pid)
         else:
             rpcport = str(18000 + pid)
-    create_server_conf({
-        'addons_path': addons_path,
-        'data_dir': data_dir,
-        'xmlrpc_port': rpcport,
-    }, odoo_version)
+        conf_data['xmlrpc_port'] = rpcport
+        conf_data['db_user'] = 'odoo'
+    create_server_conf(conf_data, odoo_version)
     tested_addons_list = get_addons_to_check(travis_build_dir,
                                              odoo_include,
                                              odoo_exclude)

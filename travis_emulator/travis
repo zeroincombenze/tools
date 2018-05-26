@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.27
+__version__=0.2.1.28
 
 
 store_cfg_param_value() {
@@ -623,7 +623,7 @@ process_yaml_run_cmd() {
       ix=$ix2
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
-      if [ "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
+      if [ "$TRAVIS" != "true" -a "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
         xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
@@ -798,11 +798,17 @@ process_yaml() {
         YML_FILE=$TOOLS_PATH/travis.yml
       fi
     fi
+    if [ ! -d "$MQT_PATH" ]; then
+      echo "Zeroincombenze(R) tools not found!"
+      return 1
+    fi
     if [ -f $YML_FILE ]; then
       wlog "${TRAVIS_HDR1_COLOR}=== Process YAML file ===${TRAVIS_TEXT_COLOR}"
       process_yaml_file "$YML_FILE"
-      clean_dirs "$PRJPATH"
-      set_executable
+      if [ "$USER" != "odoo" ]; then
+        clean_dirs "$PRJPATH"
+        set_executable
+      fi
       sts=$STS_SUCCESS
       create_virtual_env
       wlog "${TRAVIS_HDR2_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
@@ -810,6 +816,7 @@ process_yaml() {
         X="$(which $lne) --version: $($lne --version 2>&1)"
         eval $lne --version
       done
+      echo "Python sys.path list:"
       echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
       for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
