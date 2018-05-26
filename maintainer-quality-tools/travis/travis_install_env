@@ -44,7 +44,6 @@ run_n_echo() {
     else
       pfx="> "
     fi
-    set -x #debug
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
       if [ "${1:0:1}" != "#" ]; then
@@ -54,7 +53,6 @@ run_n_echo() {
     else
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
     fi
-    set +x #debug
     return $sts
 }
 
@@ -237,7 +235,7 @@ if [[ "$TRAVIS" == "true" ]]; then
   for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
-      run_n_echo "$PIP install -q $p $PIP_OPTS --no-warn-conflicts"
+      run_n_echo "$PIP install $p $PIP_OPTS"
     fi
   done
 fi
@@ -246,7 +244,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
       if [ $? -ne 0 ]; then
-        run_n_echo "$PIP install -q $p $PIP_OPTS --no-warn-conflicts"
+        run_n_echo "$PIP install $p $PIP_OPTS"
       fi
     done
   fi
