@@ -1,5 +1,6 @@
 # import pdb
 
+
 def eval_GTIN(code, code_len):
     if code_len == 13:
         pad_code = '%012d' % code
@@ -22,6 +23,7 @@ def eval_GTIN(code, code_len):
         chkdgt = 10 - chkdgt
     pad_code = pad_code + str(chkdgt)
     return pad_code
+
 
 def test_gtin():
     code_len = 8
@@ -56,10 +58,11 @@ def test_gtin():
             res = "***Failed*** expected:" + test_dict[code]
         print "%013d -> %s (%s)" % (code, pad_code, res)
 
+
 test_gtin()
-code_len='8'
-code='00011268'
-nums='4'
+code_len = '8'
+code = '00011268'
+nums = '4'
 start_code = int(code)
 code_len = int(code_len)
 nums = int(nums)

@@ -5,13 +5,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.1.16
+__version__=0.1.17
 
 
 #//Only human upgradable code/
@@ -49,13 +49,13 @@ test_01() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -68,7 +68,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -100,13 +100,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -118,7 +118,7 @@ if [ -z "\$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -161,13 +161,13 @@ test_02() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -180,7 +180,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -212,13 +212,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -236,7 +236,7 @@ if [ -z "\$ODOOLIBDIR" ]; then
 fi
 . \$ODOOLIBDIR
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -279,13 +279,13 @@ test_03() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -298,7 +298,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -330,13 +330,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -354,7 +354,7 @@ if [ -z "\$TRAVISLIBDIR" ]; then
 fi
 . \$TRAVISLIBDIR
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -397,13 +397,13 @@ test_04() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -416,7 +416,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -448,13 +448,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -472,7 +472,7 @@ if [ -z "\$ZARLIB" ]; then
 fi
 . \$ZARLIB
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -515,13 +515,13 @@ test_05() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -534,7 +534,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -580,13 +580,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -607,7 +607,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -665,13 +665,13 @@ test_06() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -684,7 +684,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -718,13 +718,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -756,7 +756,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -801,13 +801,13 @@ test_07() {
 #
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -820,7 +820,7 @@ fi
 TESTDIR=\$(findpkg "" "\$TDIR . .." "tests")
 RUNDIR=\$(readlink -e \$TESTDIR/..)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -866,13 +866,13 @@ EOF
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
@@ -893,7 +893,7 @@ fi
 . \$Z0TLIBDIR
 Z0TLIBDIR=\$(dirname \$Z0TLIBDIR)
 
-__version__=0.1.16
+__version__=0.1.17
 
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
@@ -969,11 +969,12 @@ Z0BUG_setup() {
 #//Enable.auto.upgrade.code/
 
 Z0BUG_init
-parseoptest -l$TESTDIR/test_wok_code.log "$@"
+parseoptest -l$TESTDIR/test_cvt_code.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
+
 
 
 

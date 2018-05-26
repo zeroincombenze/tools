@@ -105,7 +105,6 @@ class Builder():
         else:
             print "Invalid template", prm['template']
             return 1
-Builder()
 
 
 #############################################################################
@@ -330,6 +329,7 @@ def main():
     else:
         prm['_parser'].print_usage()
     return sts
+
 
 if __name__ == "__main__":
     sts = main()

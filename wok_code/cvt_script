@@ -1,7 +1,7 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# Upgrade bash script in z0lib environment
+# Upgrade bash script with z0lib/odoorc/travisrc libraries
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -10,13 +10,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -28,7 +28,8 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.16
+__version__=0.1.17
+
 
 #//Only human upgradable code/
 # blk1 => z0librc
@@ -368,13 +369,13 @@ blk_1() {
 THIS=\$(basename "\$0")
 TDIR=\$(readlink -f \$(dirname \$0))
 PYPATH=\$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in \$TDIR \$TDIR/.. \$TDIR/../z0lib \$TDIR/../../z0lib \${PYPATH//:/ } /etc; do
+for d in \$TDIR \$TDIR/.. \$TDIR/../.. \$HOME/dev \$HOME/tools \${PYPATH//:/ } /etc; do
   if [ -e \$d/z0librc ]; then
     . \$d/z0librc
     Z0LIBDIR=\$d
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)
     break
-  elif [ -d \$d/z0lib ]; then
+  elif [ -d \$d/z0lib ] && [ -e \$d/z0lib/z0librc ]; then
     . \$d/z0lib/z0librc
     Z0LIBDIR=\$d/z0lib
     Z0LIBDIR=\$(readlink -e \$Z0LIBDIR)

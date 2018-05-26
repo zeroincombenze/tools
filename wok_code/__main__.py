@@ -27,7 +27,7 @@ import os
 import sys
 try:
     from wok_code import build
-except:
+except BaseException:
     from . import build
 
 # __main__.py is a just dispatcher of module package

@@ -58,13 +58,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.28
+__version__=0.2.1.29
 
 
 store_cfg_param_value() {
@@ -771,8 +771,7 @@ process_yaml_run_cmd() {
       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
          wlog "${TRAVIS_NOP_COLOR}## $c${TRAVIS_TEXT_COLOR}"
       fi
-      echo -en "${TRAVIS_TEXT_COLOR}"
-      run_traced "$line1$xcmd"
+      echo -en "${TRAVIS_TEXT_COLOR}"; run_traced "$line1$xcmd"
     fi
     return $?
 }

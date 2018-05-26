@@ -35,7 +35,7 @@ from pytok import pytok
 from os0 import os0
 
 
-__version__ = "0.1.16"
+__version__ = "0.1.17"
 # Apply for configuration file (True/False)
 APPLY_CONF = True
 # Default configuration file (i.e. myfile.conf or False for default)
@@ -212,7 +212,6 @@ class Builder():
         else:
             print "Invalid template", prm['template']
             return 1
-Builder()
 
 
 #############################################################################
@@ -442,6 +441,7 @@ def main():
     else:
         prm['_parser'].print_usage()
     return sts
+
 
 if __name__ == "__main__":
     sts = main()

@@ -203,7 +203,7 @@ class Fw():
         stdinp_fd.close()
         try:
             os.remove(os0.setlfilename(os0.bgout_fn))
-        except:
+        except BaseException:
             pass
         perc_dos_conn = (total_dos_conn * 100) / total_conn
         perc_overload = (total_overload * 100) / total_conn
@@ -230,6 +230,7 @@ def main():
     if prm['perc_dos_conn'] > 50 or prm['perc_overload'] > 50:
         sts = 1
     return sts
+
 
 if __name__ == "__main__":
     sts = main()

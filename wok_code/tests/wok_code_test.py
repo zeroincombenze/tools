@@ -33,7 +33,7 @@ from wok_code import build
 
 TEST_FAILED = 1
 TEST_SUCCESS = 0
-REQ_TEST_VERSION = "0.1.16"
+REQ_TEST_VERSION = "0.1.17"
 MODULE_ID = 'wok_code'
 # max # of major test id
 MAX_TEST_NUM = 3
@@ -79,7 +79,7 @@ class Test():
         test_id = '[test_%02d]' % test_id
         try:
             self.fd = open(self.test_conf_fn, 'rb')
-        except:
+        except BaseException:
             self.fd = None
             return False
         while not valid_id:
@@ -97,7 +97,7 @@ class Test():
     def close_conf(self):
         try:
             self.fd.close()
-        except:
+        except BaseException:
             pass
         self.fd = None
 
