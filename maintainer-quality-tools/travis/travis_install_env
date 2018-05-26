@@ -227,7 +227,7 @@ fi
   for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
-      run_n_echo "$PIP install -q $p --upgrade $PIP_OPTS --no-warn-conflicts"
+      run_n_echo "$PIP install -q $p $PIP_OPTS --no-warn-conflicts"
     fi
   done
 fi
@@ -236,7 +236,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f
       if [ $? -ne 0 ]; then
-        run_n_echo "$PIP install -q $p --upgrade $PIP_OPTS --no-warn-conflicts"
+        run_n_echo "$PIP install -q $p $PIP_OPTS --no-warn-conflicts"
       fi
     done
   fi
