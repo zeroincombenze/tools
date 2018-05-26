@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.49
+__version__=0.2.1.50
 
 
 run_n_echo() {
@@ -44,6 +44,7 @@ run_n_echo() {
     else
       pfx="> "
     fi
+    set -x #debug
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
       if [ "${1:0:1}" != "#" ]; then
@@ -53,6 +54,7 @@ run_n_echo() {
     else
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
     fi
+    set +x #debug
     return $sts
 }
 
@@ -208,11 +210,19 @@ else
   [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
   [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
 fi
-TRAVIS_TEXT_COLOR="\e[0;97;40m"
-TRAVIS_HDR1_COLOR="\e[30;42m"
-TRAVIS_HDR2_COLOR="\e[30;46m"
-TRAVIS_HDR3_COLOR="\e[30;106m"
-TRAVIS_NOP_COLOR="\e[35;40m"
+if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  TRAVIS_TEXT_COLOR="\e[0;97;40m"
+  TRAVIS_HDR1_COLOR="\e[30;42m"
+  TRAVIS_HDR2_COLOR="\e[30;46m"
+  TRAVIS_HDR3_COLOR="\e[30;106m"
+  TRAVIS_NOP_COLOR="\e[35;40m"
+else
+  TRAVIS_TEXT_COLOR=
+  TRAVIS_HDR1_COLOR=
+  TRAVIS_HDR2_COLOR=
+  TRAVIS_HDR3_COLOR=
+  TRAVIS_NOP_COLOR=
+fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
@@ -222,7 +232,7 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
 fi
- if [[ "$TRAVIS" == "true" ]]; then
+if [[ "$TRAVIS" == "true" ]]; then
   run_n_echo "$PIP install -q pip --upgrade"
   for p in os0 z0lib; do
     eval $LISA status -q $p

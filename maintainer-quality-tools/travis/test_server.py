@@ -14,7 +14,7 @@ from getaddons import get_addons, get_modules, is_installable_module
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.49'
+__version__ = '0.2.1.50'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
