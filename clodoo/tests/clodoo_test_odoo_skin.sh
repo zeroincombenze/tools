@@ -5,13 +5,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -32,24 +32,42 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.6.44
+__version__=0.3.6.45
 
 
 test_01() {
     local cmd
-    cmd="$RUNDIR/odoo_skin.sh -Tq 7.0 example"
+    cmd="$RUNDIR/odoo_skin.sh -Tq 7.0 skin1"
     eval $cmd
-    test_result "odoo_skin" "$TESTDIR/themes/base.test" "$TESTDIR/themes/base.sass.tmp"  "diff"
+    test_result "skin: favicon" "$TESTDIR/website-themes/skin1/favicon.ico" "$TESTDIR/odoo/addons/web/static/src/img/favicon.ico"  "diff"
 }
 
 Z0BUG_setup() {
-    mkdir -p $TESTDIR/themes
-    cat << EOF > $TESTDIR/themes/odoo_theme_example.conf
-# Example of theme file
+    mkdir -p $TESTDIR/odoo
+    mkdir -p $TESTDIR/odoo/addons
+    mkdir -p $TESTDIR/odoo/addons/web
+    touch $TESTDIR/odoo/addons/web/__openerp__.py
+    mkdir -p $TESTDIR/odoo/addons/web/static
+    mkdir -p $TESTDIR/odoo/addons/web/static/src
+    mkdir -p $TESTDIR/odoo/addons/web/static/src/xml
+    touch $TESTDIR/odoo/addons/web/static/src/xml/base.xml
+    mkdir -p $TESTDIR/odoo/addons/web/static/src/js
+    mkdir -p $TESTDIR/odoo/addons/web/static/src/img
+    touch $TESTDIR/odoo/addons/web/static/src/img/favicon.ico
+    mkdir -p $TESTDIR/odoo/addons/web/static/src/css
+    touch $TESTDIR/odoo/addons/web/static/src/css/base.sass
+    touch $TESTDIR/odoo/addons/web/static/src/css/base.css
+    mkdir -p $TESTDIR/website-themes
+    mkdir -p $TESTDIR/website-themes/example
+    touch $TESTDIR/website-themes/example/__openerp__.py
+    mkdir -p $TESTDIR/website-themes/skin1
+    echo "favicon" > $TESTDIR/website-themes/skin1/favicon.ico
+    cat << EOF > $TESTDIR/website-themes/skin1/skin_colors.conf
+# Example of skin file
 CSS_facets-border=#F1E2D3
 CSS_sheet-max-width=860px
 EOF
-    cat << EOF > $TESTDIR/themes/base.sass
+    cat << EOF > $TESTDIR/website-themes/skin1/base.sass
 // V0.1.3
 // Text def color: dev=#805070 qt=#123456 prod=#2a776d
 //\$zi-def-text: #805070
@@ -68,7 +86,7 @@ EOF
 \$sheet-max-width: auto
 \$sheet-padding: 16px
 EOF
-    cat << EOF > $TESTDIR/themes/base.test
+    cat << EOF > $TESTDIR/website-themes/skin1/base.sass
 // V0.1.3
 // Text def color: dev=#805070 qt=#123456 prod=#2a776d
 //\$zi-def-text: #805070
@@ -108,6 +126,7 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
   fi
   . $ODOOLIBDIR
 fi
+
 
 
 

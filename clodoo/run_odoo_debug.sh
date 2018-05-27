@@ -4,13 +4,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.44
+__version__=0.3.6.45
 
 
 OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U          u       V           v           w       x)
@@ -69,11 +69,13 @@ fi
 
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
-odoo_ver=$(build_odoo_param FULLVER $odoo_fver)
+odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 confn=$(build_odoo_param CONFN $odoo_vid search)
+lconfn=$(build_odoo_param LCONFN $odoo_vid search)
 script=$(build_odoo_param BIN $odoo_vid search)
 odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
+
 
 if [ $opt_web -ne 0 ]; then
   rpcport=$(build_odoo_param RPCPORT $odoo_vid)
@@ -253,7 +255,8 @@ if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
 fi
 if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
-  echo "cp $confn ~/.openerp_serverrc"
+  [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
+  echo "cp $confn ~/$lconfn"
 fi
 
 if [ $opt_dry_run -eq 0 ]; then
@@ -282,7 +285,7 @@ if [ $opt_touch -eq 0 ]; then
     fi
     createdb -U$opt_dbuser $opt_db
   fi
-  if [ "$odoo_ver" != "10.0" -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
+  if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
     opts="--debug $opts"
   fi
   if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 ]; then

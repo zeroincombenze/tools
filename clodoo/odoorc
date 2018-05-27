@@ -17,6 +17,7 @@
 # GIT_PROT     Git protocol (git or https)
 # GIT_URL      URL to download git project (ends with .git)
 # HOME         Specific Odoo module home directory
+# LCONFN       Local Configuration filename (+)
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
 # OPTS_ASM     Undocumented (deprecated)
@@ -31,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.44
+#__version__=0.3.6.45
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -156,7 +157,7 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
@@ -404,6 +405,13 @@ build_odoo_param() {
         p=8069
       fi
       echo $p
+      return
+    elif [ "$ITEM" == "LCONFN" ]; then
+      if [ $odoo_ver -ge 10 ]; then
+        echo ".odoorc"
+      else
+        echo ".openerp_serverrc"
+      fi
       return
     elif [ "$ITEM" == "CONFN" ]; then
       p1=/etc/odoo/

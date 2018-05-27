@@ -11,13 +11,13 @@
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYPATH//:/ } /etc; do
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.44
+__version__=0.3.6.45
 
 
 get_odoo_service_name() {
@@ -47,57 +47,93 @@ get_odoo_service_name() {
 }
 
 list_themes_n_skin() {
-# list_themes_n_skin (odoo_theme_rep skindirlist odoo_vid opt_webdir)
-    local odoo_theme_rep="$1"
-    local skindirlist="$2"
-    local odoo_vid=$3
-    local webdir=$4
-    local themelist skinlist
-    local d f fn
-    for d in $skindirlist $odoo_theme_rep; do
-      if [ -d  $d ]; then
-        [ $opt_verbose -gt 0 ] && echo "Searching in $d ..."
-        for f in $d/odoo_theme_*.conf; do
-          if [ -f "$f" ]; then
-            x=$(basename $f)
-            fn=${x:11: -5}
-            if [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
-              skinlist="$skinlist $fn"
-            fi
-          fi
-        done
-        for d in $odoo_theme_rep/*; do
+# list_themes_n_skin (theme_dirs odoo_vid webdir sel_theme)
+    local theme_dirs="$1"
+    local odoo_vid=$2
+    local webdir=$3
+    local sel_theme=$4
+    local themelist skinlist themeskin_dir
+    local d d0 f fn
+    for d0 in $theme_dirs; do
+      if [ -d "$d0" ]; then
+        [ -z "$sel_theme" -a $opt_verbose -gt 0 ] && echo "Searching in $d0 ..."
+        for d in $theme_dirs/*; do
           if [ -d  $d ]; then
-            if [ -f $d/__openerp__.py -o -f $d/__manifest__.py ]; then
-              f=$(basename $d)
-              if [[ ! " $themelist " =~ [[:space:]]$f[[:space:]] ]]; then
-                themelist="$themelist $f"
+            if [ -f $d/$COLORFILE ]; then
+              fn=$(basename $d)
+              if [ -n "$sel_theme" ]; then
+                if [ "$fn" == "$sel_theme" ]; then
+                  themeskin_dir=$d
+                  break
+                fi
+              elif [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
+                skinlist="$skinlist $fn"
+              fi
+            elif [ -f $d/__openerp__.py -o -f $d/__manifest__.py ]; then
+              fn=$(basename $d)
+              if [ -n "$sel_theme" ]; then
+                if [ "$fn" == "$sel_theme" ]; then
+                  themeskin_dir=$d
+                  break
+                fi
+              elif [[ ! " $themelist " =~ [[:space:]]$fn[[:space:]] ]]; then
+                themelist="$themelist $fn"
               fi
             fi
           fi
         done
       fi
     done
-    [ $opt_verbose -gt 0 ] && echo "Searching in $webdir ..."
+    [ -z "$sel_theme" -a $opt_verbose -gt 0 ] && echo "Searching in $webdir ..."
+    if [ -f $webdir/base.z0i ]; then
+      [ ! -f $webdir/zeroincombenze.sass ] && mv $webdir/base.z0i $webdir/zeroincombenze.sass
+    fi
+    if [ -f $webdir/base.oia ]; then
+      [ ! -f $webdir/oia.sass ] && mv $webdir/base.oia $webdir/oia.sass
+    fi
+    if [ -f $webdir/base.vg7 ]; then
+      [ ! -f $webdir/vg7.sass ] && mv $webdir/base.vg7 $webdir/vg7.sass
+    fi
     for f in $webdir/*.sass; do
       fn=$(basename $f)
       fn=${fn:0: -5}
-      if [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
+      if [ -n "$sel_theme" ]; then
+        if [ "$fn" == "$sel_theme" ]; then
+          themeskin_dir=$webdir
+          break
+        fi
+      elif [[ ! " $skinlist " =~ [[:space:]]$fn[[:space:]] ]]; then
         skinlist="$skinlist $fn"
       fi
     done
-    [ -f $webdir/base.z0i ] && skinlist="$skinlist zeroincombenze"
-    [ -f $webdir/base.oia ] && skinlist="$skinlist oia"
-    [ -f $webdir/base.vg7 ] && skinlist="$skinlist vg7"
-    echo -e "Themes:$themelist\nSkins :$skinlist"
+    if [ -n "$sel_theme" ]; then
+      echo "$themeskin_dir"
+    else
+      echo -e "Themes:$themelist\nSkins :$skinlist"
+    fi
 }
 
 update_base_sass() {
-# update_base_sass (odoo_theme_rep skindirlist odoo_vid opt_webdir sel_skin)
-    local odoo_theme_rep="$1"
-    local skindirlist="$2"
+# update_base_sass (theme_dirs odoo_vid webdir sel_theme)
+    local webdir=$3
+    local res=$(list_themes_n_skin "$@")
+    if [ -f $res/favicon.ico ]; then
+      if [ -f "$webdir/static/src/img/favicon.ico" ]; then
+        [ $opt_verbose -gt 0 ] && echo "Copying favicon ..."
+        mv $webdir/static/src/img/favicon.ico $webdir/static/src/img/favicon.ico.bak
+        cp $res/favicon.ico $webdir/static/src/img/favicon.ico
+      fi
+    fi
+    if [ $test_mode -eq 0 ]; then
+      svname=$(get_odoo_service_name $odoo_vid)
+      run_traced "sudo systemctl restart $svname"
+    fi
+    return
+    
+    local theme_dirs="$1"
+    local theme_dirs="$2"
     local odoo_vid=$3
-    local webdir=$4
+    
     local sel_skin=$5
     run_traced "cd $webdir"
     local fsrc=$(get_cfg_value 0 sass_filename)
@@ -219,11 +255,11 @@ update_base_sass() {
 }
 
 
-OPTOPTS=(h        c        D        d          f         l        m         n            q           s           T         V           v)
-OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose )
-OPTACTI=(1        "="      1        "="        1         1        1         1            0           "="         1         "*>"        "+")
-OPTDEFL=(1        ""       0        ""         0         0        -1        0            -1          "base.sass" 0         ""          -1)
-OPTMETA=("help"   "file"   "dir"      ""        "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose")
+OPTOPTS=(h        c        D        d          f         l        m         n            q           s           T         V           v           x)
+OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
+OPTACTI=(1        "="      1        "="        1         1        1         1            0           "="         1         "*>"        "+"         "=")
+OPTDEFL=(1        ""       0        ""         0         0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
+OPTMETA=("help"   "file"   ""       "dir"      ""        "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "show diff (implies dry-run)"\
@@ -236,7 +272,8 @@ OPTHELP=("this help"\
  "target sass file (def=base.sass)"\
  "test mode (implies dry-run)"\
  "show version"\
- "verbose mode")
+ "verbose mode"\
+ "target xml file (def=base.xml)")
 OPTARGS=(odoo_vid sel_skin)
 
 parseoptargs "$@"
@@ -261,36 +298,17 @@ fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
-odoo_theme_rep=$(build_odoo_param ROOT $odoo_vid)/website-themes
-skindirlist=""
-if [ $opt_list -ne 0 ]; then
-  if [ $test_mode -ne 0 ]; then
-    skindirlist="$TESTDIR/themes $TESTDIR/../themes ./themes ../themes"
-  else
-    skindirlist="$TDIR/themes $TDIR/../themes ./themes ../themes"
-  fi
+if [ $test_mode -ne 0 ]; then
+  theme_dirs=$TESTDIR/website-themes
 else
-  if [ -n "$theme" -a $test_mode -eq 0 ]; then
-    COLORFILE=$(findpkg "odoo_theme.conf" "/opt/odoo/$odoo_fver/themes/$theme")
-  else
-    COLORFILE=
-  fi
-  if [ -z "$COLORFILE" ]; then
-    if [ $test_mode -ne 0 ]; then
-      COLORFILE=$(findpkg "odoo_theme_$theme.conf" "$TESTDIR/themes $TESTDIR/../themes ./themes ../themes")
-    else
-      COLORFILE=$(findpkg "odoo_theme_$theme.conf" "$TDIR/themes $TDIR/../themes ./themes ../themes")
-    fi
-  fi
-  if [ -n "$COLORFILE" -a $opt_verbose -gt 0 ]; then
-    echo "$THIS -c $COLORFILE"
-  fi
+  theme_dirs=$(build_odoo_param ROOT $odoo_vid)/website-themes
 fi
+COLORFILE="skin_colors.conf"
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then
   opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.conf
 fi
 CFG_init
-link_cfg $COLORFILE $TCONF                                      # No Std Code
+link_cfg $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 if [[ $HOSTNAME =~ $HOSTNAME_PRD ]]; then
   tgt="prd"
@@ -304,21 +322,22 @@ if [ "${opt_sass: -5}" != ".sass" ]; then
 fi
 if [ -z "$opt_webdir" ]; then
   if [ $test_mode -ne 0 ]; then
-    opt_webdir=$TESTDIR/themes
+    opt_webdir=$TESTDIR/odoo/addons/web/static/src/css
   else
-    sass=$(findpkg $opt_sass "/opt/odoo/$odoo_vid/addons/web/static/src/css /opt/odoo/$odoo_vid/website /opt/odoo/$odoo_vid")
-    if [ -n "$sass" ]; then
-      opt_webdir=$(dirname $sass)
+    xml=$(findpkg $opt_xml "/opt/odoo/$odoo_vid/addons/web/static/src/xml /opt/odoo/$odoo_vid/website /opt/odoo/$odoo_vid")
+    if [ -n "$xml" ]; then
+      opt_webdir=$(dirname $xml)
     fi
   fi
 fi
 if [ -z "$opt_webdir" ]; then
-  echo "No valid skin (File $opt_sass not found)!"
+  echo "No valid skin (File $opt_xml not found)!"
   exit 1
 fi
 opt_css=${opt_sass:0: -5}.css
+opt_webdir=$(readlink -f $opt_webdir/../../..)
 if [ $opt_list -ne 0 ]; then
-  list_themes_n_skin "$odoo_theme_rep" "$skindirlist" "$odoo_vid" "$opt_webdir"
+  list_themes_n_skin "$theme_dirs" "$odoo_vid" "$opt_webdir"
 else
-  update_base_sass "$odoo_theme_rep" "$skindirlist" "$odoo_vid" "$opt_webdir" "$sel_skin"
+  update_base_sass "$theme_dirs" "$odoo_vid" "$opt_webdir" "$sel_skin"
 fi

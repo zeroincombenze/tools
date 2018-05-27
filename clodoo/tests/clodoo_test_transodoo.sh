@@ -4,14 +4,14 @@
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
-PYTHONPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
-for d in $TDIR $TDIR/.. $TDIR/../z0lib $TDIR/../../z0lib ${PYTHONPATH//:/ } /etc; do
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
   if [ -e $d/z0librc ]; then
     . $d/z0librc
     Z0LIBDIR=$d
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
     break
-  elif [ -d $d/z0lib ]; then
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
     . $d/z0lib/z0librc
     Z0LIBDIR=$d/z0lib
     Z0LIBDIR=$(readlink -e $Z0LIBDIR)
@@ -24,7 +24,7 @@ if [ -z "$Z0LIBDIR" ]; then
 fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
-Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYTHONPATH//:/ } . .." "zerobug")
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
 if [ -z "$Z0TLIBDIR" ]; then
   echo "Library file z0testrc not found!"
   exit 2
@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.6.44
+__version__=0.3.6.45
 
 
 test_01() {
@@ -74,13 +74,14 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 if [ ${opt_oeLib:-0} -ne 0 ]; then
-  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYTHONPATH//:/ } . .." "clodoo")
+  ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
   if [ -z "$ODOOLIBDIR" ]; then
     echo "Library file odoorc not found!"
     exit 2
   fi
   . $ODOOLIBDIR
 fi
+
 
 
 
