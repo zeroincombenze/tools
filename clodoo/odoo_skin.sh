@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.45
+__version__=0.3.6.46
 
 
 get_odoo_service_name() {
@@ -303,7 +303,7 @@ if [ $test_mode -ne 0 ]; then
 else
   theme_dirs=$(build_odoo_param ROOT $odoo_vid)/website-themes
 fi
-COLORFILE="skin_colors.conf"
+COLORFILE="skin_colors.def"
 if [ -z "$opt_conf" -a $test_mode -ne 0 ]; then
   opt_conf=~/dev/pypi/travis_emulator/travis_emulator/.travis.conf
 fi
