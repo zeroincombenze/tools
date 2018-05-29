@@ -113,18 +113,27 @@ list_themes_n_skin() {
     fi
 }
 
-update_base_sass() {
-# update_base_sass (theme_dirs odoo_vid webdir sel_theme)
-    local webdir=$3
-    local res=$(list_themes_n_skin "$@")
-    if [ -f $res/favicon.ico ]; then
-      if [ -f "$webdir/static/src/img/favicon.ico" ]; then
-        [ $opt_verbose -gt 0 ] && echo "Copying favicon ..."
-        mv $webdir/static/src/img/favicon.ico $webdir/static/src/img/favicon.ico.bak
-        cp $res/favicon.ico $webdir/static/src/img/favicon.ico
+cp_grf_file() {
+# cp_grf_file (path file)
+    if [ -f "$webdir/static/src/img/$2" ]; then
+      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then 
+        [ $opt_verbose -gt 0 ] && echo "Copying $1 ..."
+        mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
+        cp $1/$2 $webdir/static/src/img/$2
+        restart_req=1
       fi
     fi
-    if [ $test_mode -eq 0 ]; then
+}
+
+update_base_sass() {
+# update_base_sass (theme_dirs odoo_vid webdir sel_theme)
+    restart_req=0
+    local webdir=$3
+    local res=$(list_themes_n_skin "$@")
+    [ -f $res/favicon.ico ] && cp_grf_file "$res" "favicon.ico"
+    [ -f $res/logo.png ] && cp_grf_file "$res" "logo.png"
+    [ -f $res/logo2.png ] && cp_grf_file "$res" "logo2.png"
+    if [ $restart_req -ne 0 -a $test_mode -eq 0 ]; then
       svname=$(get_odoo_service_name $odoo_vid)
       run_traced "sudo systemctl restart $svname"
     fi
