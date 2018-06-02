@@ -162,6 +162,7 @@ E251 | :x:     |         |         |        | :white_check_mark: |
 E261 | :x:     |         |         |        | :white_check_mark: |
 E262 | :x:     |         |         |        | :white_check_mark: |
 E265 | :x:     |         |         |        | :white_check_mark: |
+E266 | :x:     |         |         |        | :white_check_mark: | [too many leading '#' for block comment](https://lintlyci.github.io/Flake8Rules/rules/E266.html)
 W291 | :x:     |         |         |        | :white_check_mark: |
 W293 | :x:     |         |         |        | :white_check_mark: |
 E302 | :x:     |         |         |        | :white_check_mark: | No __init__.py
@@ -183,7 +184,10 @@ Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
 W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
 W0312 | :white_check_mark: |        |        |     | :white_check_mark: | [wrong-tabs-instead-of-spaces](http://pylint-messages.wikidot.com/messages:w0312)
 W0403 | :white_check_mark: |        |        |     | :white_check_mark: | relative-import
+W1401 | :white_check_mark: |        |        |     | :white_check_mark: | anomalous-backslash-in-string
+E7901 | :white_check_mark: |        |        |     | :white_check_mark: | [rst-syntax-error](https://pypi.org/project/pylint-odoo/1.4.0)
 C7902 | :x:     |         |         |        | :white_check_mark: | missing-readme
+W7903 | :x:     |         |         |        | :white_check_mark: | javascript-lint
 W7908 | :white_check_mark: |        |        |     | :white_check_mark: | missing-newline-extrafiles
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
@@ -201,6 +205,7 @@ N/A   | :x:     |         |         |        | :white_check_mark: | duplicate-xm
 N/A   | :x:     |         |         |        | :white_check_mark: | no-utf8-coding-comment
 N/A   | :x:     |         |         |        | :white_check_mark: | attribute-deprecated
 N/A   | :x:     |         |         |        | :white_check_mark: | consider-merging-classes-inherited
+
 
 
 Disable test
