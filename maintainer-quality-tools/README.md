@@ -142,13 +142,14 @@ To enable reduced set of check add one of follow lines:
 Look at follow table to understand which tests are disabled at specific level:
 
 FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
+
 Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
 -----|---------|---------|---------|--------|-----|------
-E123 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E123.html
-E128 | :x:     |         |         |        | :white_check_mark: | https://lintlyci.github.io/Flake8Rules/rules/E128.html
-E133 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E133.html
-E201 | :x:     |         |         |        | :white_check_mark: | https://lintlyci.github.io/Flake8Rules/rules/E201.html
-E202 | :x:     |         |         |        | :white_check_mark: |
+E123 | :x:     |         |         |        | :x: | [Closing bracket does not match indentation of opening bracket's line](https://lintlyci.github.io/Flake8Rules/rules/E123.html)
+E128 | :x:     |         |         |        | :white_check_mark: | [Continuation line under-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E128.html)
+E133 | :x:     |         |         |        | :x: | [Closing bracket is missing indentation](https://lintlyci.github.io/Flake8Rules/rules/E133.html)
+E201 | :x:     |         |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
+E202 | :x:     |         |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
 E203 | :x:     |         |         |        | :white_check_mark: |
 E221 | :x:     |         |         |        | :white_check_mark: |
 E222 | :x:     |         |         |        | :white_check_mark: |
@@ -176,6 +177,7 @@ F811 | :x:     |         |         |        | :x: | redefinition of unused name 
 
 
 PYLINT (see http://pylint-messages.wikidot.com/all-codes for details)
+
 Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
 ------|---------|---------|---------|--------|-----|------
 W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
@@ -188,15 +190,15 @@ W7935 | :x:     |         |         |        | :white_check_mark: | missing-impo
 C8104 | :x:     |         |         |        | :white_check_mark: | class-camelcase
 W8104 | :x:     |         |         |        | :white_check_mark: | api-one-deprecated
 R8110 | :x:     |         |         |        | :white_check_mark: | old-api7-method-defined
-      | :x:     |         |         |        | :white_check_mark: | sql-injection
-      | :x:     |         |         |        | :white_check_mark: | duplicate-id-csv
-      | :x:     |         |         |        | :white_check_mark: | create-user-wo-reset-password
-      | :x:     |         |         |        | :white_check_mark: | dangerous-view-replace-wo-priority
-      | :x:     |         |         |        | :white_check_mark: | translation-required
-      | :x:     |         |         |        | :white_check_mark: | duplicate-xml-record-id
-      | :x:     |         |         |        | :white_check_mark: | no-utf8-coding-comment
-      | :x:     |         |         |        | :white_check_mark: | attribute-deprecated
-      | :x:     |         |         |        | :white_check_mark: | consider-merging-classes-inherited
+N/A   | :x:     |         |         |        | :white_check_mark: | sql-injection
+N/A   | :x:     |         |         |        | :white_check_mark: | duplicate-id-csv
+N/A   | :x:     |         |         |        | :white_check_mark: | create-user-wo-reset-password
+N/A   | :x:     |         |         |        | :white_check_mark: | dangerous-view-replace-wo-priority
+N/A   | :x:     |         |         |        | :white_check_mark: | translation-required
+N/A   | :x:     |         |         |        | :white_check_mark: | duplicate-xml-record-id
+N/A   | :x:     |         |         |        | :white_check_mark: | no-utf8-coding-comment
+N/A   | :x:     |         |         |        | :white_check_mark: | attribute-deprecated
+N/A   | :x:     |         |         |        | :white_check_mark: | consider-merging-classes-inherited
 
 
 Disable test
