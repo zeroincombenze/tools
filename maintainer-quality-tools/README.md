@@ -143,6 +143,7 @@ Look at follow table to understand which tests are disabled at specific level:
 
 FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
+-----|---------|---------|---------|--------|-----|------
 E123 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E123.html
 E128 | :x:     |         |         |        | :white_check_mark: | https://lintlyci.github.io/Flake8Rules/rules/E128.html
 E133 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E133.html
@@ -176,6 +177,7 @@ F811 | :x:     |         |         |        | :x: | redefinition of unused name 
 
 PYLINT (see http://pylint-messages.wikidot.com/all-codes for details)
 Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
+------|---------|---------|---------|--------|-----|------
 W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
 W0312 | :white_check_mark: |        |        |     | :white_check_mark: | [wrong-tabs-instead-of-spaces](http://pylint-messages.wikidot.com/messages:w0312)
 W0403 | :white_check_mark: |        |        |     | :white_check_mark: | relative-import

@@ -44,30 +44,30 @@ Usage
     cd <repository_to_test>
     travis [options] [actions]
 
-Usage: travis [-hBC][-c file][-D number][-Efjk][-L number][-l dir][-Mmn][-O git-org][-pqrVvW] action sub
-Travis-ci emulator for local developer environment
-Action may be: lint, test, emulate (default), setup, chkconfig or parseyaml
- -h              this help
- -B              debug mode: do not create log
- -C              do not use cached PYPI
- -c file         configuration file (def .travis.conf)
- -D number       travis_debug_mode: may be 0,1,2; w/o value from .travis.yml
- -E              save virtual environment as ~/VME/VME{version}
- -f              force yaml to run w/o cmd subst
- -j              execute tests in project dir rather in test dir (or expand macro if parseyaml)
- -k              keep DB and virtual environment after tests
- -L number       lint_check_level: may be minimal,reduced,average,nearby,oca; w/o value from .travis.yml
- -l dir          log directory (def=~/travis_log)
- -M              use local MQT
- -m              show missing line in report coverage
- -n              do nothing (dry-run)
- -O git-org      git organization, i.e. oca or zeroincombenze
- -p              prefer python test over bash test when avaiable
- -q              silent mode
- -r              run restricted mode (w/o parsing travis.yml file)
- -V              show version
- -v              verbose mode
- -W              do not use virtualenv to run tests
+    Usage: travis [-hBC][-c file][-D number][-Efjk][-L number][-l dir][-Mmn][-O git-org][-pqrVvW] action sub
+    Travis-ci emulator for local developer environment
+    Action may be: lint, test, emulate (default), setup, chkconfig or parseyaml
+     -h              this help
+     -B              debug mode: do not create log
+     -C              do not use cached PYPI
+     -c file         configuration file (def .travis.conf)
+     -D number       travis_debug_mode: may be 0,1,2; w/o value from .travis.yml
+     -E              save virtual environment as ~/VME/VME{version}
+     -f              force yaml to run w/o cmd subst
+     -j              execute tests in project dir rather in test dir (or expand macro if parseyaml)
+     -k              keep DB and virtual environment after tests
+     -L number       lint_check_level: may be minimal,reduced,average,nearby,oca; w/o value from .travis.yml
+     -l dir          log directory (def=~/travis_log)
+     -M              use local MQT
+     -m              show missing line in report coverage
+     -n              do nothing (dry-run)
+     -O git-org      git organization, i.e. oca or zeroincombenze
+     -p              prefer python test over bash test when avaiable
+     -q              silent mode
+     -r              run restricted mode (w/o parsing travis.yml file)
+     -V              show version
+     -v              verbose mode
+     -W              do not use virtualenv to run tests
 
 
 VME
@@ -75,9 +75,9 @@ VME
 
 Creation of local VM requires a lot of time. Travis Emulator can create, save and use local VME (Virtual Machine Environment).
 
-To save locally VME use -E switch.
-
 To create a new VME use -C switch.
+
+To save locally VME use -E switch.
 
 
 MQT
@@ -89,11 +89,11 @@ To avoid long time test in matrix against odoo/OCA repository,
 Travis emulator execute just local repository (if in .travis.yml file) or OCA repository.
 Look at follow .travis.yml example:
 
-  matrix:
-  - LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"
-  - TESTS="1" ODOO_REPO="odoo/odoo"
-  - TESTS="1" ODOO_REPO="OCA/OCB"
-  - TESTS="1" ODOO_REPO="my_repository/OCB" 
+    matrix:
+      - LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"
+      - TESTS="1" ODOO_REPO="odoo/odoo"
+      - TESTS="1" ODOO_REPO="OCA/OCB"
+      - TESTS="1" ODOO_REPO="my_repository/OCB" 
 
 Travis Emulator execute matrix <LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL">
 and <TESTS="1" ODOO_REPO="my_repository/OCB"> while <TESTS="1" ODOO_REPO="odoo/odoo">
