@@ -132,7 +132,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.45"
+__version__ = "0.3.6.46"
 
 
 #############################################################################
@@ -639,7 +639,7 @@ def check_if_running(ctx, pid):
 
 
 def get_odoo_full_ver(odoo_vid):
-    v = re.search('[0-9]+(\.[0-9])?', odoo_vid).group()
+    v = re.search(r'[0-9]+(\.[0-9])?', odoo_vid).group()
     if v == '6':
         odoo_fver = '6.1'
     elif v.find('.') >= 0:
@@ -651,7 +651,7 @@ def get_odoo_full_ver(odoo_vid):
 
 def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
     vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?' + \
-             '(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
+             r'(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
     if odoo_vid:
         if re.match(vmatch, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)

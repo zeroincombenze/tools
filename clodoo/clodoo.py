@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.45"
+__version__ = "0.3.6.46"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -795,8 +795,10 @@ def act_show_company_params(oerp, ctx):
     ident = ' ' * ctx['level']
     print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
     print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
-    print("%s- c. country_id = %d " % (ident, ctx.get('company_country_id', 0)))
-    print("%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id', 0)))
+    print("%s- c. country_id = %d " % (ident, ctx.get('company_country_id',
+                                                      0)))
+    print("%s- c. partner_id = %d " % (ident, ctx.get('company_partner_id',
+                                                      0)))
     return STS_SUCCESS
 
 

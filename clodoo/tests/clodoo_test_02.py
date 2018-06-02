@@ -24,7 +24,7 @@ from clodoo import clodoo
 from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.6.45"
+__version__ = "0.3.6.46"
 
 
 MODULE_ID = 'clodoo'
@@ -140,11 +140,11 @@ oe_version=%s
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
+            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
                 xmlrpc_port = int(eval(oe_version)) + 8160
                 if oe_version in ('6.1', '7.0', '8.0'):
                     xml_prot = 'xmlrpc'
-                elif oe_version in ('9.0', '10.0'):
+                elif oe_version in ('9.0', '10.0', '11.0'):
                     xml_prot = 'jsonrpc'
                 if not ctx['dry_run']:
                     cmd = self.cmd + ['-d' + self.dbtest]
@@ -172,7 +172,7 @@ oe_version=%s
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
                 #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
+            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
                 if not ctx['dry_run']:
                     cmd = self.bulk_cmd(oe_version)
                     if os.environ.get("TRAVIS", "") != "true":
@@ -204,7 +204,7 @@ oe_version=%s
                     res, err = p.communicate()
                     if oe_version in ('6.1', '7.0', '8.0'):
                         xml_prot = 'xmlrpc'
-                    elif oe_version in ('9.0', '10.0'):
+                    elif oe_version in ('9.0', '10.0', '11.0'):
                         xml_prot = 'jsonrpc'
                     if re.search('protocol *= *%s' % xml_prot, res):
                         res = True
@@ -223,7 +223,7 @@ oe_version=%s
         # datafn = 'res_users.csv'
         # dataffn = '%s/%s' % (self.Z.test_dir, datafn)
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
+            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
                 if not ctx['dry_run']:
                     res = self.check_4_module(oe_version)
                 else:
@@ -264,7 +264,7 @@ install_modules=%s
         datafn = 'res_users.csv'
         dataffn = '%s/%s' % (self.Z.test_dir, datafn)
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
+            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
                 if not ctx['dry_run']:
                     res = self.check_4_user(oe_version)
                 else:
@@ -312,7 +312,7 @@ base.user_root,Administrator,%s,"Amministratore","me@example.com",
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0'):
+            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
                 if not ctx['dry_run']:
                     cmd = self.cmd
                     xmlrpc_port, dbname = self.param_by_db(oe_version)

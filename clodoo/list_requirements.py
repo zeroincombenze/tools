@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.45'
+__version__ = '0.3.6.46'
 
 #
 # known incompantibilities:
@@ -46,9 +46,9 @@ REQVERSION = {
     'Pillow': {'7.0': '==3.4.2', '8.0': '==3.4.1'},     # Tested 3.4.2
     'psutil': {'7.0': '==2.2.0', '8.0': '==4.3.1'},
     'psycogreen': {'7.0': '==1.0'},
-    'psycopg2': {'7.0': '>=2.0.0',
-                 '8.0': '==2.5.4',
-                 '10.0': '==2.6.2'},                    # Tested 2.7.4
+    'psycopg2-binary': {'7.0': '>=2.0.0',
+                        '8.0': '==2.5.4',
+                        '10.0': '==2.6.2'},             # Tested 2.7.4
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'pygments': {'7.0': '==2.0.2'},
     'pylint': {'7.0': '==1.6.4'},
@@ -100,7 +100,7 @@ ALIAS = {
     'mako': 'Mako',
     'markupsafe': 'MarkupSafe',
     'pillow': 'Pillow',
-    # 'psycopg2': 'psycopg2-binary',
+    'psycopg2': 'psycopg2-binary',
     'pypdf': 'pyPdf',
     'python-chart': 'Python-Chart',
     'pyyaml': 'PyYAML',
@@ -151,7 +151,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'Pillow',
                      'psutil',
                      'psycogreen',
-                     'psycopg2',
+                     # 'psycopg2',
                      'psycopg2-binary',
                      'Python-Chart',
                      'python-dateutil',
@@ -168,7 +168,9 @@ PIP_BASE_PACKAGES = ['Babel',
                      'vatnumber',
                      'Werkzeug',
                      ]
-BIN_BASE_PACKAGES = ['python-ldap',
+BIN_BASE_PACKAGES = ['nodejs',
+                     'npm',
+                     'python-ldap',
                      'python-psycopg2',
                      'python-simplejson',
                      'wkhtmltopdf',

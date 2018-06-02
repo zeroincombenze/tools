@@ -30,8 +30,8 @@ def get_symbolic_value(ctx, model, name, value):
                                     ('name', '=', name)])
         if field_id:
             relation = clodoo.browseL8(ctx,
-                           field_model,
-                           field_id[0]).relation
+                                       field_model,
+                                       field_id[0]).relation
             name_id = clodoo.searchL8(ctx,
                                       name_model,
                                       [('model', '=', relation),
@@ -54,9 +54,9 @@ def get_symbolic_value(ctx, model, name, value):
                         if ids:
                             break
                     if ids:
-                        value =  clodoo.browseL8(ctx,
-                                                 relation,
-                                                 value)[sel_name]
+                        value = clodoo.browseL8(ctx,
+                                                relation,
+                                                value)[sel_name]
                         value = '=${%s(%s)::%s}' % (relation,
                                                     sel_name,
                                                     value)
@@ -76,8 +76,8 @@ def get_symbolic_value(ctx, model, name, value):
 def export_table(ctx):
     current_year = date.today().year
     model = ctx['model']
-    name_model = 'ir.model.data'
-    field_model = 'ir.model.fields'
+    # name_model = 'ir.model.data'
+    # field_model = 'ir.model.fields'
     out_file = ctx['out_file']
     if not out_file:
         out_file = model.replace('.', '_') + '.csv'
@@ -122,12 +122,12 @@ def export_table(ctx):
                         ctx, 'ir.model.fields', clodoo.searchL8(
                             ctx,
                             'ir.model.fields',
-                            [('model','=',model),
-                             ('name','=',f[0])])[0]).ttype
+                            [('model', '=', model),
+                             ('name', '=', f[0])])[0]).ttype
                     if ttype == 'date':
                         if value.year == current_year:
-                            value = '${_current_year}-%02d-%02d' % (value.month,
-                                                                    value.day)
+                            value = '${_current_year}-%02d-%02d' % (
+                                value.month, value.day)
                         elif value.year == (current_year - 1):
                             value = '${_last_year}-%02d-%02d' % (value.month,
                                                                  value.day)

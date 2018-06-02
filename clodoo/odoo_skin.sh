@@ -138,11 +138,11 @@ update_base_sass() {
       run_traced "sudo systemctl restart $svname"
     fi
     return
-    
+
     local theme_dirs="$1"
     local theme_dirs="$2"
     local odoo_vid=$3
-    
+
     local sel_skin=$5
     run_traced "cd $webdir"
     local fsrc=$(get_cfg_value 0 sass_filename)
@@ -165,7 +165,7 @@ update_base_sass() {
     color=
     param=
     msts=0
-    while IFS=\~ read -r line; do
+    while IFS=~ read -r line; do
       if [ $msts -eq 0 ] && [[ $line =~ ^//.*dev=.*prod=.* ]]; then
         if [[ $line =~ ^//.*dev=.*qt=.*prod=.* ]]; then
           msts=3
@@ -191,9 +191,9 @@ update_base_sass() {
       elif [ $msts -gt 0 ]; then
         ((msts--))
         if [ "$tgt" == "dev" ]; then
-          if [[ $line =~ ^//.[a-zA-Z0-9_\-]+:[[:space:]]*$devcol ]]; then
+          if [[ $line =~ ^//.[a-zA-Z0-9_-]+:[[:space:]]*$devcol ]]; then
             echo $line|sed -e s://::>>$ftmp
-          elif [[ $line =~ ^.[a-zA-Z0-9_\-]+:[[:space:]]*$devcol ]]; then
+          elif [[ $line =~ ^.[a-zA-Z0-9_-]+:[[:space:]]*$devcol ]]; then
             echo "$line">>$ftmp
           elif [[ $line =~ ^[^/] ]]; then
             echo "//$line">>$ftmp
@@ -201,9 +201,9 @@ update_base_sass() {
              eval $cmd>>$ftmp
           fi
         elif [ "$tgt" == "prd" ]; then
-          if [[ $line =~ ^//.[a-zA-Z0-9_\-]+:[[:space:]]*$prdcol ]]; then
+          if [[ $line =~ ^//.[a-zA-Z0-9_-]+:[[:space:]]*$prdcol ]]; then
             echo $line|sed -e s://::>>$ftmp
-          elif [[ $line =~ ^.[a-zA-Z0-9_\-]+:[[:space:]]*$prdcol ]]; then
+          elif [[ $line =~ ^.[a-zA-Z0-9_-]+:[[:space:]]*$prdcol ]]; then
             echo "$line">>$ftmp
           elif [[ $line =~ ^[^/] ]]; then
             echo "//$line">>$ftmp
@@ -214,7 +214,7 @@ update_base_sass() {
           eval $cmd>>$ftmp
         fi
       else
-        if [[ $line =~ ^.[a-zA-Z0-9_\-]+[[:space:]]*: ]]; then
+        if [[ $line =~ ^.[a-zA-Z0-9_-]+[[:space:]]*: ]]; then
           param=${line:1}
           prm=$(echo $param|grep -Eo "^[a-zA-Z0-9_\-]+"|head -n1)
           param=CSS_${prm//-/_}

@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.7
+#__version__=0.2.7.1
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -473,6 +473,39 @@ elog() {
     fi
 }
 export -f elog
+
+##############################################################################
+# Log message if error level (opt_verbose=2)
+wlog_error() {
+    [ ${opt_verbose:-0} -ge 2 ] && wlog "$@"
+}
+elog_error() {
+    [ ${opt_verbose:-0} -ge 2 ] && elog "$@"
+}
+
+# Log message if warning level (opt_verbose=3)
+wlog_warning() {
+    [ ${opt_verbose:-0} -ge 3 ] && wlog "$@"
+}
+elog_warning() {
+    [ ${opt_verbose:-0} -ge 3 ] && elog "$@"
+}
+
+# Log message if info level (opt_verbose=4)
+wlog_info() {
+    [ ${opt_verbose:-0} -ge 4 ] && wlog "$@"
+}
+elog_info() {
+    [ ${opt_verbose:-0} -ge 4 ] && elog "$@"
+}
+
+# Log message if debug level (opt_verbose=5)
+wlog_debug() {
+    [ ${opt_verbose:-0} -ge 5 ] && wlog "$@"
+}
+elog_debug() {
+    [ ${opt_verbose:-0} -ge 5 ] && elog "$@"
+}
 
 
 ##############################################################################

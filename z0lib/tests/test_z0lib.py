@@ -31,7 +31,7 @@ from zerobug import Z0test
 from z0lib import parseoptargs
 
 
-__version__ = "0.2.7"
+__version__ = "0.2.7.1"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
