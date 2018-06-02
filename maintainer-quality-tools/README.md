@@ -125,13 +125,76 @@ LINT_CHECK="0" variable on the line:
 
     - VERSION="7.0" ODOO_REPO="odoo/odoo" LINT_CHECK="0"
 
-You can execute reduced set of check, in order to evolve your code quality.
+
+Reduced set of check
+--------------------
+
+You can execute reduced set of check, in order to gradually evolve your code quality
+when you meet too many errors.
+
 To enable reduced set of check add one of follow lines:
 
     - LINT_CHECK="1" LINT_CHECK_LEVEL="MINIMAL"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="REDUCED"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="AVERAGE"
     - LINT_CHECK="1" LINT_CHECK_LEVEL="NEARBY"
+
+Look at follow table to understand which tests are disabled at specific level:
+
+FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
+Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
+E123 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E123.html
+E128 | :x:     |         |         |        | :white_check_mark: | https://lintlyci.github.io/Flake8Rules/rules/E128.html
+E133 | :x:     |         |         |        | :x: | https://lintlyci.github.io/Flake8Rules/rules/E133.html
+E201 | :x:     |         |         |        | :white_check_mark: | https://lintlyci.github.io/Flake8Rules/rules/E201.html
+E202 | :x:     |         |         |        | :white_check_mark: |
+E203 | :x:     |         |         |        | :white_check_mark: |
+E221 | :x:     |         |         |        | :white_check_mark: |
+E222 | :x:     |         |         |        | :white_check_mark: |
+E225 | :x:     |         |         |        | :white_check_mark: |
+E226 | :x:     |         |         |        | :x: |
+E231 | :x:     |         |         |        | :white_check_mark: |
+E241 | :x:     |         |         |        | :x: |
+E242 | :x:     |         |         |        | :x: |
+E251 | :x:     |         |         |        | :white_check_mark: |
+E261 | :x:     |         |         |        | :white_check_mark: |
+E262 | :x:     |         |         |        | :white_check_mark: |
+E265 | :x:     |         |         |        | :white_check_mark: |
+W291 | :x:     |         |         |        | :white_check_mark: |
+W293 | :x:     |         |         |        | :white_check_mark: |
+E302 | :x:     |         |         |        | :white_check_mark: | No __init__.py
+E303 | :x:     |         |         |        | :white_check_mark: |
+E305 | :x:     |         |         |        | :white_check_mark: |
+F401 | :x:     |         |         |        | :white_check_mark: | module imported but unused
+E501 | :x:     |         |         |        | :white_check_mark: |
+W503 | :x:     |         |         |        | :x: | No __init__.py
+W504 | :x:     |         |         |        | :x: | No __init__.py
+F601 | :x:     |         |         |        | :x: | dictionary key name repeated with different values
+F811 | :x:     |         |         |        | :x: | redefinition of unused name from line N (No __init__.py)
+
+
+
+PYLINT (see http://pylint-messages.wikidot.com/all-codes for details)
+Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
+W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
+W0312 | :white_check_mark: |        |        |     | :white_check_mark: | [wrong-tabs-instead-of-spaces](http://pylint-messages.wikidot.com/messages:w0312)
+W0403 | :white_check_mark: |        |        |     | :white_check_mark: | relative-import
+C7902 | :x:     |         |         |        | :white_check_mark: | missing-readme
+W7908 | :white_check_mark: |        |        |     | :white_check_mark: | missing-newline-extrafiles
+W7930 | :x:     |         |         |        | :white_check_mark: | file-not-used
+W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
+C8104 | :x:     |         |         |        | :white_check_mark: | class-camelcase
+W8104 | :x:     |         |         |        | :white_check_mark: | api-one-deprecated
+R8110 | :x:     |         |         |        | :white_check_mark: | old-api7-method-defined
+      | :x:     |         |         |        | :white_check_mark: | sql-injection
+      | :x:     |         |         |        | :white_check_mark: | duplicate-id-csv
+      | :x:     |         |         |        | :white_check_mark: | create-user-wo-reset-password
+      | :x:     |         |         |        | :white_check_mark: | dangerous-view-replace-wo-priority
+      | :x:     |         |         |        | :white_check_mark: | translation-required
+      | :x:     |         |         |        | :white_check_mark: | duplicate-xml-record-id
+      | :x:     |         |         |        | :white_check_mark: | no-utf8-coding-comment
+      | :x:     |         |         |        | :white_check_mark: | attribute-deprecated
+      | :x:     |         |         |        | :white_check_mark: | consider-merging-classes-inherited
 
 
 Disable test

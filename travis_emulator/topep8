@@ -38,7 +38,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.29
+__version__=0.2.1.30
 LIST_REQ=~/dev/pypi/lisa/lisa/list_requirements.py
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -297,11 +297,11 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A       B         b         c         d        G       i       n            o       q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_diff opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1       1         "="       1         1        1       1       1            "="     0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0       0         ""        0         0        0       0       0            ""      -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"  "diff"   ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
+OPTOPTS=(h        a        A       B         b         c         d        e       G       i       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_diff opt_enh opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      1       1         "="       1         1        1       1       1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        0       0         ""        0         0        0       0       0       0            ""      -1          0       ""          -1          0)
+OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"   "diff"   ""      ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "add Odoo Ialia Associazione Copyright"\
@@ -309,6 +309,7 @@ OPTHELP=("this help"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
  "change class name to CamelCase"\
  "show diff"\
+ "do enhanced update"\
  "Write AGPL info into header"\
  "sort import statements"\
  "do nothing (dry-run)"\
@@ -407,14 +408,18 @@ for fl in $LIST; do
         if grep -q "Skipped [0-9]* files" $f.new; then cp $f $f.new; fi
         if [ $opt_z -ne 0 ]; then
           python $TDIR/to_pep8.py $f.new $f.tmp $OPTS
-        else
+        elif [ $opt_enh -ne 0 ]; then
           python $TDIR/topep8.py $f.new $f.tmp $OPTS
+        else
+          cp $f.new $f.tmp
         fi
       else
         if [ $opt_z -ne 0 ]; then
           python $TDIR/to_pep8.py $f $f.tmp $OPTS
-        else
+        elif [ $opt_enh -ne 0 ]; then
           python $TDIR/topep8.py $f $f.tmp $OPTS
+        else
+          cp $f $f.tmp
         fi
       fi
       autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new

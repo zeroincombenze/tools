@@ -6,19 +6,28 @@ import sys
 from getaddons import get_modules
 
 
+__version__ = '0.2.1.51'
 root_dir = os.path.dirname(os.path.abspath(__file__))
 flake8_config_dir = os.path.join(root_dir, 'cfg')
 folders = (os.environ.get("INCLUDE_LINT", "").split() or
            get_modules(os.path.abspath('.')))
-
+exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
 status = 0
 
 for addon in folders:
-    status += subprocess.call(['flake8', addon,
-                               '--config=%s/travis_run_flake8__init__.cfg' %
-                               flake8_config_dir])
-    status += subprocess.call(['flake8', addon,
-                               '--config=%s/travis_run_flake8.cfg' %
-                               flake8_config_dir])
+    specific_cfg = os.path.join(flake8_config_dir,
+                                'travis_run_flake8__init__%s.cfg' %
+                                exclude_level)
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8__init__.cfg')
+    status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
+    specific_cfg = os.path.join(flake8_config_dir,
+                                'travis_run_flake8_%s.cfg' %
+                                exclude_level)
+    if not os.path.isfile(specific_cfg):
+        specific_cfg = os.path.join(flake8_config_dir,
+                                    'travis_run_flake8.cfg')
+    status += subprocess.call(['flake8', addon, '--config=%s' % specific_cfg])
 
 sys.exit(0 if status == 0 else 1)

@@ -20,7 +20,7 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '0.2.1.50'
+__version__ = '0.2.1.51'
 CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 
@@ -92,10 +92,10 @@ def get_extra_params(odoo_version):
     for param in params:
         extra_params.extend(['--extra-params', param])
 
-    exclude_lint = os.environ.get('LINT_CHECK_LEVEL', '')
+    exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
     specific_cfg = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_lint)
+        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_level)
     params = []
     if os.path.isfile(specific_cfg):
         config = ConfigParser.ConfigParser()

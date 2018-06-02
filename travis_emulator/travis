@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.29
+__version__=0.2.1.30
 
 
 store_cfg_param_value() {
@@ -167,6 +167,7 @@ process_yaml_init() {
       export YML_mgrodoo=manage_odoo
     fi
     TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
+    LINT_CHECK_LEVEL="${opt_llvl^^}"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
     done
@@ -190,7 +191,7 @@ process_yaml_quote_xtl() {
 }
 
 process_yaml_do() {
-    local a b i
+    local a b i lne
     if [ "${1:0:1}" == " " ]; then
       local line="${1:1}"
     else
@@ -198,30 +199,38 @@ process_yaml_do() {
     fi
     if [[ "$line" =~ LINT_CHECK=... ]]; then
       if [ "$action" == "lint" ]; then
-        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]0[\"]/LINT_CHECK=\"1\"/g)
+        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']0[\"']/LINT_CHECK=\"1\"/g)
       elif [ "$action" == "test" ]; then
-        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"]1[\"]/LINT_CHECK=\"0\"/g)
-      fi
-    elif [[ "$line" =~ BASH_CHECK=... ]]; then
-      if [ "$action" == "lint" ]; then
-        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]0[\"]/BASH_CHECK=\"1\"/g)
-      elif [ "$action" == "test" ]; then
-        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"]1[\"]/BASH_CHECK=\"0\"/g)
-      fi
-    elif [[ "$line" =~ TESTS=... ]]; then
-      if [ "$action" == "lint" ]; then
-        line=$(echo "$line"|sed -e s/TESTS=[\"]1[\"]/TESTS=\"0\"/g)
-      elif [ "$action" == "test" ]; then
-        line=$(echo "$line"|sed -e s/TESTS=[\"]0[\"]/TESTS=\"1\"/g)
+        line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']1[\"']/LINT_CHECK=\"0\"/g)
       fi
     fi
+    if [[ "$line" =~ BASH_CHECK=... ]]; then
+      if [ "$action" == "lint" ]; then
+        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']0[\"']/BASH_CHECK=\"1\"/g)
+      elif [ "$action" == "test" ]; then
+        line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']1[\"']/BASH_CHECK=\"0\"/g)
+      fi
+    fi
+    if [[ "$line" =~ TESTS=... ]]; then
+      if [ "$action" == "lint" ]; then
+        line=$(echo "$line"|sed -e s/TESTS=[\"']1[\"']/TESTS=\"0\"/g)
+      elif [ "$action" == "test" ]; then
+        line=$(echo "$line"|sed -e s/TESTS=[\"']0[\"']/TESTS=\"1\"/g)
+      fi
+    fi
+    if [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && [ -n "$opt_dlvl" ]; then
+      line=$(echo "$line"|sed -e "s/TRAVIS_DEBUG_MODE=[A-Za-z0-9_\"']\+/TRAVIS_DEBUG_MODE=\"$opt_dlvl\"/")
+    fi
+    if [[ "$line" =~ LINT_CHECK_LEVEL= ]] && [ -n "$opt_llvl" ]; then
+      line=$(echo "$line"|sed -e "s/LINT_CHECK_LEVEL=[A-Za-z0-9_\"']\+/LINT_CHECK_LEVEL=\"${opt_llvl^^}\"/")
+    fi
     if [[ "${line:0:1}" == "(" && "${line: -1}" == ")" ]]; then
-      local lne=$(process_yaml_unquote "${line:1: -1}")
+      lne=$(process_yaml_unquote "${line:1: -1}")
     elif [[ "${line:0:1}" == "\"" && "${line: -1}" == "\"" ]]; then
       line=${line//\\\"/\"}
-      local lne=$(process_yaml_unquote "${line:1: -1}")
+      lne=$(process_yaml_unquote "${line:1: -1}")
     else
-      local lne=$(process_yaml_unquote "$line")
+      lne=$(process_yaml_unquote "$line")
     fi
     if [ "$YML_sect" == "python" ]; then
       export TRAVIS_PYTHON_VERSION=$lne
@@ -248,13 +257,6 @@ process_yaml_do() {
         YML_repo=zeroincombenze/OCB
       fi
     elif [ "$YML_sect" == "before_install" ]; then
-      if [[ $line =~ TRAVIS_DEBUG_MODE= ]]; then
-        if [ -n "$opt_dlvl" ]; then
-          line="TRAVIS_DEBUG_MODE=\"$opt_dlvl\""
-          lne=$(process_yaml_unquote "$line")
-        fi
-        [ -n "$line" ] && export $line
-      fi
       YML_before_install="$YML_before_install $lne"
     elif [ "$YML_sect" == "install" ]; then
       YML_install="$YML_install $lne"
@@ -265,7 +267,7 @@ process_yaml_do() {
     elif [ "$YML_sect" == "after_success" ]; then
       YML_after="$YML_after $lne"
     else
-      local lne="$(echo $1)"
+      lne="$(echo $1)"
     fi
 }
 
@@ -915,11 +917,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         f         j        k        l              M          m       n            O         p        q           r     V           v           W)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt)
-OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
-OPTDEFL=(0        0         1         ""       ""       0         0         0        0        "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
-OPTMETA=("help"   "version" "version" "file"   ""       ""        ""        "dprj"   ""       "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   "")
+OPTOPTS=(h        B         C         c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     V           v           W)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt)
+OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
+OPTDEFL=(0        0         1         ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
+OPTMETA=("help"   "version" "version" "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use cached PYPI"\
@@ -929,6 +931,7 @@ OPTHELP=("this help"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\
+ "lint_check_level: may be minimal,reduced,average,nearby,oca; w/o value from .travis.yml"\
  "log directory (def=~/travis_log)"\
  "use local MQT"\
  "show missing line in report coverage"\
