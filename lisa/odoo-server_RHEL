@@ -31,9 +31,9 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.3-RHEL
-# Warning: this is a customized ${xtl_Id} script, running both Linux
-# It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian9
+# version: 0.4.4-RHEL
+# Warning: this is a customized ${xtl_Id} script, running Linux
+# It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
 # This free software is released under GNU Affero GPL3
@@ -41,7 +41,7 @@ xtl_sudo=0
 DRY_RUN=${xtl_test}
 # Use sudo to execute command instead of start-stop-daemon (only Debian)
 USE_SUDO=${xtl_sudo}
-# Recognize Linux distribution (Ubuntu or CentOS)
+# Recognize Linux distribution (Debian/Ubuntu or RHEL/CentOS)
 OS=$(uname -s)
 FH=""
 if [ "${OS}" = "Linux" ]; then
@@ -118,6 +118,28 @@ DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 # [ -f $CONFIGFILE ] || exit 0
 
 RETVAL=0
+
+
+check_lessc() {
+    lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    [ -z "$lv" ] && lv=0
+    if [ $lv -lt 20000 ]; then
+      x=$(date +"%Y-%m-%d %H:%M:%S,000")
+      echo "$x $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)">>$LOGFILE
+      echo "$x $$ DAEMON ? $0: Searching for lessc ...">>$LOGFILE
+      for f in $(find / -nowarn -type f -name lessc 2>/dev/null); do
+        lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|awk -F. '{print $1*10000 + $2*100 + $3}')
+        [ -z "$lv" ] && lv=0
+        if [ $lv -gt 20000 ]; then
+          p=$(dirname $f)
+          x=$(date +"%Y-%m-%d %H:%M:%S,000")
+          echo "$x $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
+          export PATH=$p:$PATH
+          break
+        fi
+      done
+    fi
+}
 
 
 checkpid() {
@@ -221,6 +243,7 @@ start() {
     if [ "$1" != "mute" ]; then
         echo "Starting ${DESC}: "
     fi
+    check_lessc
     if [ "$FH" == "RHEL" ]; then
         start_RHEL
     elif [ "$FH" == "Debian" ]; then
