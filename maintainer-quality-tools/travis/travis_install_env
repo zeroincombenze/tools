@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.52
+__version__=0.2.1.53
 
 
 run_n_echo() {
@@ -119,6 +119,25 @@ cp_n_upd_odoo_conf() {
       fi
       echo "$line">>$tgt
     done < "$confn"
+}
+
+check_lessc() {
+    lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    [ -z "$lv" ] && lv=0
+    if [ $lv -lt 20000 ]; then
+      echo "lessc --version: $(lessc --version 2>/dev/null)"
+      echo "Searching for lessc ..."
+      for f in $(find $HOME -nowarn -type f -name lessc 2>/dev/null); do
+        lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|awk -F. '{print $1*10000 + $2*100 + $3}')
+        [ -z "$lv" ] && lv=0
+        if [ $lv -gt 20000 ]; then
+          p=$(dirname $f)
+          echo "\$ export PATH=$p:$PATH"
+          export PATH=$p:$PATH
+          break
+        fi
+      done
+    fi
 }
 
 
@@ -283,6 +302,7 @@ else
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
     run_n_echo "npm install less less-plugin-clean-css"
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+    check_lessc
   fi
   # Update PhantomJS (v10 compat)
   if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
