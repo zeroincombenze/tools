@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.30
+#__version__=0.2.1.31
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -403,7 +403,7 @@ create_virtual_env() {
     else
       export TRAVIS=false
     fi
-    local x
+    local f x
     local TRAVIS_CWD=$PWD
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
@@ -445,8 +445,12 @@ create_virtual_env() {
     TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     mkdir -p $TRAVIS_BUILD_DIR
     # run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
-    x=$(readlink -f $TRAVIS_BUILD_DIR/..)
-    run_traced "cp -R $TRAVIS_CWD/ $x/"
+    if [ "$PKGNAME" == "OCB" ]; then
+      run_traced "cp -R $TRAVIS_CWD/* $TRAVIS_BUILD_DIR/"
+    else
+      x=$(readlink -f $TRAVIS_BUILD_DIR/..)
+      run_traced "cp -R $TRAVIS_CWD/ $x/"
+    fi
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
     run_traced "cd $TRAVIS_BUILD_DIR"
 }

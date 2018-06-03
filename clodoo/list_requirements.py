@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.46'
+__version__ = '0.3.6.47'
 
 #
 # known incompantibilities:
@@ -168,7 +168,8 @@ PIP_BASE_PACKAGES = ['Babel',
                      'vatnumber',
                      'Werkzeug',
                      ]
-BIN_BASE_PACKAGES = ['nodejs',
+BIN_BASE_PACKAGES = ['curl',
+                     'nodejs',
                      'npm',
                      'python-ldap',
                      'python-psycopg2',
@@ -365,7 +366,7 @@ def main():
                         dest="with_version")
     parser.add_argument('-q')
     parser.add_argument("-R", "--rpc-packages",
-                        help="Add packages to use xmlrpc/jsonrpc",
+                        help="Add packages for xmlrpc/jsonrpc",
                         action="store_true",
                         dest="rpc_pkgs")
     parser.add_argument("-s", "--sep",
@@ -379,7 +380,7 @@ def main():
                         metavar="keyword",
                         default="both")
     parser.add_argument("-T", "--tests-packages",
-                        help="Add packages to test",
+                        help="Add packages for test",
                         action="store_true",
                         dest="test_pkgs")
     parser.add_argument('-V')

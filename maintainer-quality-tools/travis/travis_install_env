@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.50
+__version__=0.2.1.52
 
 
 run_n_echo() {
@@ -184,15 +184,15 @@ MQT_TEST_MODE=${MQT_TEST_MODE,,}
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
-if [ "${HOSTNAME:0:3}" == "shs" ]; then
-  PIP_OPTS="--user"
-else
-  PIP_OPTS=
-fi
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
   [ -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
   [ -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
+fi
+if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  PIP_OPTS="--user"
+else
+  PIP_OPTS=
 fi
 if [ -n "$YML_mgrodoo" ]; then
   MGRODOO=$YML_mgrodoo
@@ -268,6 +268,14 @@ else
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     run_n_echo "npm install eslint"
+    if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+        # Update nodejs v6.latest required by eslint
+        # Using nvm of travis
+        CURRENT_NODE=$(which node)
+        source ${HOME}/.nvm/nvm.sh
+        nvm install 6
+        ln -sf $(nvm which 6) $CURRENT_NODE
+    fi
   fi
   if [ "${TESTS}" == "1" ]; then
     x=$(which nodejs 2>/dev/null)
@@ -275,6 +283,11 @@ else
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
     run_n_echo "npm install less less-plugin-clean-css"
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+  fi
+  # Update PhantomJS (v10 compat)
+  if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
+    run_n_echo "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
+    run_n_echo "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs" "${HOME}/maintainer-quality-tools/travis/phantomjs\""
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
