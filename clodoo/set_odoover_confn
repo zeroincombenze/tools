@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.47
+__version__=0.3.6.48
 
 
 set_ver() {
@@ -44,7 +44,7 @@ set_ver() {
       echo "set_ver($1 ver=$2 db=$3 port=$4)"
     fi
     if [ -f "$1" ]; then
-      local l rem1 rem2 chid lnemod newln prm val sfx prp cup ver fntmp
+      local l rem1 rem2 chid lnemod addln prm val sfx prp cup ver fntmp
       local fn odoo_fver db_name xmlport
       fn=$1
       odoo_fver=$2
@@ -60,8 +60,11 @@ set_ver() {
       if  [ -f $fntmp ]; then
         rm -f $fntmp
       fi
-      newln=
+      addln=
       prp=
+      empty=0
+      found_lgi_user=0
+      found_lgi_pwd=0
       while IFS="#" read -r l rem1; do
         IFS=; read lne rem2 <<<"$l"
         chid=${lne:0:1}
@@ -97,16 +100,18 @@ set_ver() {
             else
               lnemod="login_user=$opt_lgiuser"
             fi
+            found_lgi_user=1
             # prp=
           elif [ "$prm" == "login2_user" -a $is_child -gt 0 ]; then
             lnemod=" "
             # prp=
-          elif [ "$prm" == "login_password" ] && [ -n "$opt_lgipwd" -o $is_child -gt 0 ]; then
+          elif [ "$prm" == "crypt_password" ] && [ -n "$opt_lgipwd" -o $is_child -gt 0 ]; then
             if [ $is_child -gt 0 ]; then
               lnemod=" "
             else
-              lnemod="login_password=$opt_lgipwd"
+              lnemod="crypt_password=$opt_lgipwd"
             fi
+            found_lgi_pwd=1
             # prp=
           elif [ "$prm" == "login2_password" -a $is_child -gt 0 ]; then
             lnemod=" "
@@ -124,7 +129,7 @@ set_ver() {
             fi
           elif [ "$sfx" == "$ver" ]; then
             if [  $opt_fix -gt 0 ]; then
-              newln="$cup=$val"
+              addln="$cup=$val"
             fi
           else
             prp=
@@ -149,14 +154,24 @@ set_ver() {
               lnemod="#$rem2"
             fi
           fi
-          echo "$lnemod">>$fntmp
+          [ $empty -ne 0 -a -z "$lnemod" ] || echo "$lnemod">>$fntmp
+          [ -z "$lnemod" ] && empty=1 || empty=0
         fi
-        if [ -n "$newln" ]; then
-          # echo "$newln"
-          echo "$newln">>$fntmp
+        if [ -n "$addln" ]; then
+          # echo "$addln"
+          echo "$addln">>$fntmp
+          empty=0
         fi
-        newln=
+        addln=
       done < $fn
+      if [ $found_lgi_user -eq 0 -a $is_child -eq 0 -a -n "$opt_lgiuser" ]; then
+        lnemod="login_user=$opt_lgiuser"
+        echo "$lnemod">>$fntmp
+      fi
+      if [ $found_lgi_pwd -eq 0 -a $is_child -eq 0 -a -n "$opt_lgipwd" ]; then
+        lnemod="crypt_password=$opt_lgipwd"
+        echo "$lnemod">>$fntmp
+      fi
       if [ -n "$(diff -q $fn $fntmp)" ]; then
         if [ $opt_verbose -gt 0 ]; then
           diff --suppress-common-line -y $fn $fntmp
@@ -186,7 +201,7 @@ OPTHELP=("this help"\
  "set passepartout"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
- "set odoo password"\
+ "set odoo crypted password"\
  "silent mode"\
  "set xmprpc port (def=8069)"\
  "set odoo login username"\
@@ -195,28 +210,13 @@ OPTHELP=("this help"\
 OPTARGS=(odoo_vid db_name)
 
 parseoptargs "$@"
+discover_multi
 if [ -n "$odoo_vid" ]; then
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
   odoo_ver=$(build_odoo_param FULLVER $odoo_vid)
-  if [ $opt_multi -lt 0 ]; then
-    c=0
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
-      for p in "" v odoo ODOO; do
-        odoo_bin=$(build_odoo_param BIN $p$v search)
-        if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
-          ((c++))
-        fi
-      done
-    done
-    if [ $c -gt 2 ]; then
-      opt_multi=1
-    else
-      opt_multi=0
-    fi
-  else
-    odoo_fver=
-    odoo_ver=
-  fi
+else
+  odoo_fver=
+  odoo_ver=
 fi
 if [ -z "$odoo_fver" ]; then
   opt_help=1
@@ -230,16 +230,22 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+if [ "$odoo_vid" == "v7" ]; then
+  confn=$odoo_vid
+else
+  confn=${odoo_fver//./-}
+fi
+confn="./confs/$confn"
 if [ -n "$opt_lgipwd" ]; then
   opt_lgipwd=${opt_lgipwd//\\!/!}
 fi
 if [ $opt_defn -ne 0 ]; then
-  set_ver ./clodoo.conf $odoo_fver $db_name $opt_xmlport "0"
+  set_ver $confn $odoo_fver $db_name $opt_xmlport "0"
 elif [ -n "$opt_fn" ]; then
   set_ver $opt_fn $odoo_fver $db_name $opt_xmlport "0"
 else
+  set_ver ./clodoo.conf $odoo_fver $db_name $opt_xmlport "0"
   for f in code/*conf; do
-    set_ver ./clodoo.conf $odoo_fver $db_name $opt_xmlport "0"
     set_ver $f $odoo_fver $db_name $opt_xmlport "1"
   done
 fi

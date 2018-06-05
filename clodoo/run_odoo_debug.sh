@@ -31,17 +31,18 @@ fi
 __version__=0.3.6.47
 
 
-OPTOPTS=(h        d        e       k        i       l        m           M         n           o         s         t         U          u       V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        d        e       k        i       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1        "="      "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0        ""       ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""       "level"  "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "db name to test,translate o upgrade (require -m switch)"\
  "export it translation (conflict with -i -u)"\
  "do not create new DB and keep it after run"\
  "import it translation (conflict with -e -u)"\
- "load it language"
+ "load it language"\
+ "set log level: may be info or debug"\
  "modules to test, translate or upgrade"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
@@ -76,7 +77,6 @@ script=$(build_odoo_param BIN $odoo_vid search)
 odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
 
-
 if [ $opt_web -ne 0 ]; then
   rpcport=$(build_odoo_param RPCPORT $odoo_vid)
   odoo_user=$(build_odoo_param USER $odoo_vid)
@@ -98,6 +98,10 @@ elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
   opt_stop=1
   if [ -z "$opt_modules" ]; then
     echo "Missing -m switch"
+    exit 1
+  fi
+  if [ -z "$opt_db" ]; then
+    echo "Missing -d switch"
     exit 1
   fi
 elif [ $opt_upd -ne 0 ]; then
@@ -208,7 +212,6 @@ EOF
           fi
         fi
       done
-      # if [ -z "$src" ]; then
       if [ $f -eq 0 ]; then
         echo "Translation file not found!"
         if [ -n "$alt" ]; then
@@ -254,19 +257,20 @@ fi
 if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
 fi
-if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 -o $opt_touch -gt 0 ]; then
-  [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
-  echo "cp $confn ~/$lconfn"
-fi
 
 if [ $opt_dry_run -eq 0 ]; then
-  cp $confn ~/.openerp_serverrc
+  [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
+  echo "cp $confn ~/$lconfn"
+  cp $confn ~/$lconfn
   sed -i -e 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
   if [ -n "$opt_xport" ]; then
-    sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/.openerp_serverrc
+    sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/$lconfn
   fi
   if [ -n "$opt_dbuser" ]; then
-    sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" ~/.openerp_serverrc
+    sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" ~/$lconfn
+  fi
+  if [ -n "$opt_llvl" ]; then
+    sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" ~/$lconfn
   fi
   if [ $opt_verbose -gt 0 ]; then
     vim ~/.openerp_serverrc

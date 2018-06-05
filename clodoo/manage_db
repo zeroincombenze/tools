@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.47
+__version__=0.3.6.48
 
 
 up_oemod() {
@@ -168,6 +168,13 @@ fi
 if [ -z "$opt_xmlport" ]; then
   opt_xmlport=$(build_odoo_param RPCPORT $odoo_vid)
 fi
+if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  lgi_user=zeroadm
+elif [ "${HOSTNAME:0:7}" == "vg7odoo" ]; then
+  lgi_user=vg7admin
+else
+  lgi_user=admin
+fi
 if [ "$action" == "install" ]; then
   if [ ! -d data ]; then
     echo "Directory data/ not found!"
@@ -184,7 +191,7 @@ if [ "$action" == "install" ]; then
       exit 1
     fi
   done
-  run_traced "$TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv"
+  run_traced "$TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv -u$lgi_user"
   for cf in $CFLOOP; do
     if [ "$cf" == "00" ]; then
       if [ -n "$opt_DB" ]; then
@@ -252,7 +259,7 @@ elif [ "$action" == "update" -o "$action" == "module" -o "$action" == "translate
     fi
     exit 1
   fi
-  $TDIR/set_odoover_confn $odoo_fver "$opt_DB" -r $opt_xmlport -q $opt_tenv
+  $TDIR/set_odoover_confn $odoo_fver "$opt_DB" -r$opt_xmlport -q $opt_tenv -u$lgi_user
   DBlist=${DBlist//,/ }
   W4T=0
   for db in $DBlist; do

@@ -4667,6 +4667,11 @@ def install_chart_of_account(oerp, ctx, name):
         'currency_id': currency_id,
         'chart_template_id': chart_template_id
     }
+    model = 'account.account'
+    ids = searchL8(ctx, model, [('company_id', '=', company_id)])
+    # Check if example coa installed
+    if len(ids) > 0 and len(ids) < 16:
+        unlinkL8(ctx, model, ids)
     if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
         chart_setup_model = 'wizard.multi.charts.accounts'
         chart_values.update(executeL8(ctx, chart_setup_model,
@@ -4680,10 +4685,16 @@ def install_chart_of_account(oerp, ctx, name):
                   'execute',
                   [chart_setup_id])
     else:
+        if company_id != ctx.get('user_company_id', 0):
+            writeL8(ctx, 'res.users', ctx['user_id'],
+                    {'company_id': company_id})
         executeL8(ctx,
                   'account.chart.template',
                   'try_loading_for_current_company',
                   [chart_template_id])
+        if company_id != ctx.get('user_company_id', 0):
+            writeL8(ctx, 'res.users', ctx['user_id'],
+                    {'company_id': ctx.get('user_company_id', 0)})
     return sts
 
 

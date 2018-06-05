@@ -199,7 +199,8 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
         full_item = ''
     item = item[0]
     item = os.path.basename(item)
-    item = item.split('.')[0].lower()
+    if item[0:5] != 'py3o.':
+        item = item.split('.')[0].lower()
     if item in ALIAS:
         item = ALIAS[item]
     defver = False
