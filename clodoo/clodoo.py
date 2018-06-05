@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.47"
+__version__ = "0.3.6.48"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4380,6 +4380,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         update_header_id = False
                     if row[n].find('$1$!') == 0:
                         row[n] = decrypt(row[n][4:])
+                    row[n] = row[n].replace('\\n', '\n')
                 val = eval_value(oerp,
                                  ctx,
                                  o_model,
