@@ -378,7 +378,7 @@ if [ -z "$opt_icond" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_icond=$TESTDIR/odoo/addons/odoo/base/static/src/img
   else
-    ico=$(findpkg icon.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
+    ico=$(findpkg icon.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/odoo/addons/base/static/description /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/description /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
     if [ -n "$ico" ]; then
       opt_icond=$(dirname $ico)
     fi
