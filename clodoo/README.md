@@ -57,9 +57,9 @@ Multiple Odoo installations/versions
 
 All the tools manage multiple Odoo installations and versions.
 
-When you type any tools commmand, you can issue Odoo Versione Identificator
-called vid; from Odoo vid the tools can assume Odoo version, directory tree
-and other configuration value. You can override any value.
+When you type any tools commmand, you can issue Odoo Version Identificator
+called vid; by Odoo vid tools can assume Odoo version, directory tree
+and other configuration values. You can override any value.
 
 ### Odoo vid
 
@@ -81,21 +81,24 @@ Odoo vid may be:
 ## Rules by vid
 
 In local filesystem may exist one or more Odoo installations.
-Only one installation may be used as official installation and must be prefixed
+Only one instance may be used as official installation and must be prefixed
 by 'v' or 'V' letter, followed by Odoo version, i.e. *v11* or *V11* or *v11.0*, etc.
 See above about vid.
 
-Example of default parameters from vid are:
+Example of default parameters from vid (values may be slightly different):
 
 Parameter | <no vid> | v | oca | Note
 ----------|----------------------|------|-----------------------|------
 xml_port  | 8160 + major version | 8069 |  8260 + major version |
 db_user   | odoo{major_version} | odoo | odoo{major_version} | i.e *odoo11*
-config    | odoo{major_version}-server.conf | odoo.conf | odoo{major_version}-oca.conf |
-logfile   | odoo{major_version}-server.log | odoo-server.log | odoo{major_version}-oca.log |
+config    | odoo{major_version}-server.conf | odoo.conf | odoo{major_version}-oca.conf | Directory /etc/odoo
+logfile   | odoo{major_version}-server.log | odoo-server.log | odoo{major_version}-oca.log | Directory /var/log/odoo
 
-Value of parameters may assume values slightly different from above table.
-
+Examples:
+* Official odoo 11.0: vid=v11 -> Directory=/opt/odoo/v11, xmlport=8069, config=/etc/odoo/odoo.conf
+* Backup odoo 11.0: vid=11.0 -> Directory=/opt/odoo/11.0, xmlport=8171, config=/etc/odoo/odoo11.conf
+* Odoo OCA 10.0 to test: vid=oca-10.0 -> Directory=/opt/odoo/oca-10.0, xmlport=8270, config=/etc/odoo/odoo10-oca.conf
+* Odoo 8.0 with old data: vid=8.0 -> Directory=/opt/odoo/8.0, xmlport=8168, config=/etc/odoo/odoo8-server.conf
 
 
 Bug Tracker
