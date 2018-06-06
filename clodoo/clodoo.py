@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.48"
+__version__ = "0.3.6.49"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4522,7 +4522,10 @@ def import_config_file(oerp, ctx, csv_fn):
                                None,
                                row['value'])
             if name:
-                sts = setup_config_param(oerp, ctx, user, name, value)
+                if user:
+                    sts = setup_user_config_param(oerp, ctx, user, name, value)
+                else:
+                    sts = setup_global_config_param(oerp, ctx, name, value)
                 if sts != STS_SUCCESS:
                     break
             else:
@@ -4536,7 +4539,7 @@ def import_config_file(oerp, ctx, csv_fn):
     return STS_SUCCESS
 
 
-def setup_config_param(oerp, ctx, username, name, value):
+def setup_user_config_param(oerp, ctx, username, name, value):
     context = get_context(ctx)
     sts = STS_SUCCESS
     v = os0.str2bool(value, None)
@@ -4603,46 +4606,32 @@ def setup_config_param(oerp, ctx, username, name, value):
             msg_log(ctx, ctx['level'] + 2, msg)
     if not ctx['dry_run'] and len(vals):
         writeL8(ctx, 'res.users', user_ids, vals)
-        # ids = searchL8(ctx, 'ir.module.category',
-        #                   [('name', '=', category)])
-        # if len(ids):
-        #     mod_cat_id = ids[0]
-        #     if ctx_name is not None:
-        #         ctx_sel_ids = searchL8(ctx, 'res.groups',
-        #                                   [('category_id', '=', mod_cat_id),
-        #                                    ('name', '=', ctx_name)])
-        #         ctx_label = "." + ctx_name
-        #     else:
-        #         ctx_sel_ids = searchL8(ctx, 'res.groups',
-        #                                   [('category_id', '=', mod_cat_id)])
-        #         ctx_label = ""
-        #     ctx_sel_name = {}
-        #     for id in sorted(ctx_sel_ids):
-        #         cur_obj = browseL8(ctx, 'res.groups', id)
-        #         ctx_sel_name[cur_obj.name] = id
-        #     if len(ctx_sel_ids) > 1:
-        #         if value in ctx_sel_name:
-        #             msg = u"Param (" + category + ctx_label + \
-        #                 ") = " + value + "(" + str(ctx_sel_name[value]) + ")"
-        #         else:
-        #             msg = u"!Param (" + category + ctx_label + \
-        #                 ") value " + value + " not valid!"
-        #             w = "("
-        #             for x in ctx_sel_name.keys():
-        #                 msg = msg + w + x
-        #                 w = ","
-        #             msg = msg + ")"
-        #         msg_log(ctx, ctx['level'] + 2, msg)
-        #     elif len(ctx_sel_ids) == 1:
-        #         if os0.str2bool(value, False):
-        #             msg = u"!Param " + category + ctx_label + " = True"
-        #         else:
-        #             msg = u"!Param " + category + ctx_label + " = False"
-        #         msg_log(ctx, ctx['level'] + 2, msg)
-        #     else:
-        #         msg = u"!Param " + category + ctx_label + " not found!"
-        #         msg_log(ctx, ctx['level'] + 2, msg)
-        # else:
+    return sts
+
+
+def setup_global_config_param(oerp, ctx, name, value):
+    context = get_context(ctx)
+    sts = STS_SUCCESS
+    items = name.split('.')
+    if len(items) > 1:
+        model = '.'.join(items[0:len(items)-1])
+        name = items[-1]
+    else:
+        model = 'res.config.settings'
+    try:
+        id = max(searchL8(ctx, model, []))
+        cur = browseL8(ctx, model, id)[name]
+        if cur == value:
+            return sts
+    except:
+        pass
+    try:
+        msg = u"%s/%s" % (tounicode(name), tounicode(value))
+        msg_log(ctx, ctx['level'] + 2, msg)
+        id = createL8(ctx, model, {name: value})
+        executeL8(ctx, model, 'execute', [id])
+    except BaseException:
+        sts = STS_FAILED
     return sts
 
 

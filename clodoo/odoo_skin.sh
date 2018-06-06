@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.6.48
+__version__=0.3.6.49
 
 
 get_odoo_service_name() {
@@ -62,7 +62,7 @@ list_themes_n_skin() {
             if [ -f $d/$COLORFILE ]; then
               fn=$(basename $d)
               if [ -n "$sel_theme" ]; then
-                if [ "$fn" == "$sel_theme" ]; then
+                if [ "$fn" == "$sel_theme" -o "$fn" == "theme_$sel_theme" ]; then
                   themeskin_dir=$d
                   break
                 fi
@@ -72,7 +72,7 @@ list_themes_n_skin() {
             elif [ -f $d/__openerp__.py -o -f $d/__manifest__.py ]; then
               fn=$(basename $d)
               if [ -n "$sel_theme" ]; then
-                if [ "$fn" == "$sel_theme" ]; then
+                if [ "$fn" == "$sel_theme" -o "$fn" == "theme_$sel_theme" ]; then
                   themeskin_dir=$d
                   break
                 fi
@@ -98,7 +98,7 @@ list_themes_n_skin() {
       fn=$(basename $f)
       fn=${fn:0: -5}
       if [ -n "$sel_theme" ]; then
-        if [ "$fn" == "$sel_theme" ]; then
+        if [ "$fn" == "$sel_theme" -o "$fn" == "theme_$sel_theme" ]; then
           themeskin_dir=$webdir
           break
         fi
@@ -110,17 +110,43 @@ list_themes_n_skin() {
       echo "$themeskin_dir"
     else
       echo -e "Themes:$themelist\nSkins :$skinlist"
+      if [ -f $webdir/static/current_skin.txt ]; then
+        echo -n "Current skin: "
+        cat $webdir/static/current_skin.txt
+      fi
     fi
 }
 
 cp_grf_file() {
 # cp_grf_file (path file)
+    [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
     if [ -f "$webdir/static/src/img/$2" ]; then
       if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then 
-        [ $opt_verbose -gt 0 ] && echo "Copying $1 ..."
-        mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
-        cp $1/$2 $webdir/static/src/img/$2
-        restart_req=1
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $webdir/static/src/img/..."
+          mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
+          cp $1/$2 $webdir/static/src/img/$2
+          restart_req=1
+        else
+          [ $opt_verbose -gt 0 ] && echo "File $1/$2 should be copied to $webdir/static/src/img/"
+        fi
+      fi
+    fi
+}
+
+cp_icon_file() {
+# cp_grf_file (path file)
+    [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
+    if [ -f "$opt_icond/$2" ]; then
+      if ! diff -q $1/$2 $opt_icond/$2 &>/dev/null; then 
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $opt_icond/"
+          mv $opt_icond/$2 $opt_icond/$2.bak
+          cp $1/$2 $opt_icond/$2
+          restart_req=1
+        else
+          [ $opt_verbose -gt 0 ] && echo "File $1/$2 should be copied to $opt_icond/"
+        fi
       fi
     fi
 }
@@ -133,6 +159,10 @@ update_base_sass() {
     [ -f $res/favicon.ico ] && cp_grf_file "$res" "favicon.ico"
     [ -f $res/logo.png ] && cp_grf_file "$res" "logo.png"
     [ -f $res/logo2.png ] && cp_grf_file "$res" "logo2.png"
+    [ -f $res/nologo.png ] && cp_grf_file "$res" "nologo.png"
+    [ -f $res/icon.png ] && cp_icon_file "$res" "icon.png"
+    [ -f $res/avatar.png ] && cp_icon_file "$res" "avatar.png"
+    [ ${opt_dry_run:-0} -eq 0 ] && echo "$4">$webdir/static/current_skin.txt
     if [ $restart_req -ne 0 -a $test_mode -eq 0 ]; then
       svname=$(get_odoo_service_name $odoo_vid)
       run_traced "sudo systemctl restart $svname"
@@ -264,16 +294,17 @@ update_base_sass() {
 }
 
 
-OPTOPTS=(h        c        D        d          f         l        m         n            q           s           T         V           v           x)
-OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
-OPTACTI=(1        "="      1        "="        1         1        1         1            0           "="         1         "*>"        "+"         "=")
-OPTDEFL=(1        ""       0        ""         0         0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
-OPTMETA=("help"   "file"   ""       "dir"      ""        "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
+OPTOPTS=(h        c        D        d          f         i         l        m         n            q           s           T         V           v           x)
+OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
+OPTACTI=(1        "="      1        "="        1         "="       1        1         1            0           "="         1         "*>"        "+"         "=")
+OPTDEFL=(1        ""       0        ""         0         ""        0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
+OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "show diff (implies dry-run)"\
  "odoo web dir (def. /opt/odoo/{odoo_fver}/addons/web/static/src/css)"\
  "force generation of css file"\
+ "odoo icon dir (def. /opt/odoo/{odoo_fver}/openerp|odoo/addons/base/static/src/img)"\
  "list themes"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
@@ -343,6 +374,21 @@ if [ -z "$opt_webdir" ]; then
   echo "No valid skin (File $opt_xml not found)!"
   exit 1
 fi
+if [ -z "$opt_icond" ]; then
+  if [ $test_mode -ne 0 ]; then
+    opt_icond=$TESTDIR/odoo/addons/odoo/base/static/src/img
+  else
+    ico=$(findpkg icon.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
+    if [ -n "$ico" ]; then
+      opt_icond=$(dirname $ico)
+    fi
+  fi
+fi
+if [ -z "$opt_icond" ]; then
+  echo "No valid skin (Icon directory not found)!"
+  exit 1
+fi
+
 opt_css=${opt_sass:0: -5}.css
 opt_webdir=$(readlink -f $opt_webdir/../../..)
 if [ $opt_list -ne 0 ]; then
