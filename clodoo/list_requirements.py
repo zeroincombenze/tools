@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.49'
+__version__ = '0.3.6.51'
 
 #
 # known incompantibilities:
@@ -81,7 +81,7 @@ REQVERSION = {
     'validate_email': {'7.0': '>=1.3'},
     'vatnumber': {'7.0': '==1.2'},
     'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
-    'Werkzeug': {'7.0': '==0.9.6', '10.0': '==0.11.11'},
+    'Werkzeug': {'0': '==0.11.11', '7.0': '==0.9.6', '10.0': '==0.11.11'},
     'wkhtmltopdf': {'7.0': '==0.12.1', '10.0': '==0.12.4'},
     'wsgiref': {'7.0': '==0.1.2'},
     'XlsxWriter': {'7.0': '==0.9.3'},                   # Tested 1.0.2
@@ -147,6 +147,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'Jinja2',
                      'lxml',
                      'Mako',
+                     'numpy',
                      'passlib',
                      'Pillow',
                      'psutil',
@@ -206,16 +207,21 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
     defver = False
     if with_version:
         if item in REQVERSION:
-            f = False
+            min_v = False
+            valid_ver = False
             for v in ('0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
-                if v == odoo_ver or not odoo_ver:
-                    f = True
-                if f and v in REQVERSION[item]:
-                    full_item = '%s%s' % (item, REQVERSION[item][v])
-                    if full_item.find('>') >= 0 or full_item.find('<') >= 0:
-                        full_item = "'%s'" % full_item
-                    defver = True
-                    break
+                if v in REQVERSION[item]:
+                    min_v = v
+                    if v == odoo_ver or valid_ver or (not odoo_ver and
+                                                      v == '0'):
+                        break
+                elif v == odoo_ver:
+                    valid_ver = True
+            if min_v:
+                full_item = '%s%s' % (item, REQVERSION[item][min_v])
+                if full_item.find('>') >= 0 or full_item.find('<') >= 0:
+                    full_item = "'%s'" % full_item
+                defver = True
     return item, full_item, defver
 
 

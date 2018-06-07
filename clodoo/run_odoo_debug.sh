@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.49
+__version__=0.3.6.51
 
 
 OPTOPTS=(h        d        e       k        i       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
@@ -262,7 +262,7 @@ if [ $opt_dry_run -eq 0 ]; then
   [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
   echo "cp $confn ~/$lconfn"
   cp $confn ~/$lconfn
-  sed -i -e 's:^logfile *=.*:logfile = False:' ~/.openerp_serverrc
+  sed -i -e 's:^logfile *=.*:logfile = False:' ~/$lconfn
   if [ -n "$opt_xport" ]; then
     sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/$lconfn
   fi
@@ -273,7 +273,7 @@ if [ $opt_dry_run -eq 0 ]; then
     sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" ~/$lconfn
   fi
   if [ $opt_verbose -gt 0 ]; then
-    vim ~/.openerp_serverrc
+    vim ~/$lconfn
   fi
 fi
 if [ $opt_touch -eq 0 ]; then

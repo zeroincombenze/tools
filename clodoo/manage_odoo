@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.49
+__version__=0.3.6.51
 
 
 explore() {
@@ -115,11 +115,12 @@ do_action() {
       [ $opt_verbose -gt 0 ] && echo "\$ alias pip=$PIP.$($PIP --version)"
       [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA.$($LISA -V)"
       [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
+      [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH
       if [ -z "$PYPI_CACHED" ]; then
         eval $PIP install pip -U
         [ $opt_verbose -gt 0 ] && echo "## Analyzing binary requirements"
-        breqs=$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR)
-        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t bin -s ' ' -qBTR"
+        breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
+        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR"
         [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
         opts=
         [ $opt_yes -ne 0 ] && opts="${opts}y"
@@ -133,8 +134,8 @@ do_action() {
           fi
         done
         [ $opt_verbose -gt 0 ] && echo "## Analyzing python requirements"
-        preqs="$($LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ -b$odoo_fver -p $pkgdir $dopts -t python -s ' ' -qBPTR"
+        preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR"
         [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
         for pass in 1 2 3; do
           [ $pass -eq 1 ] && echo "## Check for package status"
@@ -327,8 +328,10 @@ fi
 discover_multi
 if [ -z "$opt_branch" ]; then
   opt_branch="6.1 7.0 8.0 9.0 10.0 11.0"
+  multi_version_pkgs=1
 else
   opt_branch="${opt_branch//,/ }"
+  multi_version_pkgs=0
 fi
 sub_list=
 excl_list="$INVALID_MODNAMES"
@@ -366,6 +369,7 @@ if [ $opt_verbose -gt 0 ]; then
     echo "Manage Odoo multi-version environment"
   else
     echo "Manage single Odoo version environment"
+    multi_version_pkgs=0
   fi
 fi
 if [ "$actions" == "list" ]; then
