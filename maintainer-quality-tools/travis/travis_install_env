@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.53
+__version__=0.2.1.54
 
 
 run_n_echo() {
@@ -126,6 +126,11 @@ check_lessc() {
     [ -z "$lv" ] && lv=0
     if [ $lv -lt 20000 ]; then
       echo "lessc --version: $(lessc --version 2>/dev/null)"
+      if [ -x $PWD/node_modules/.bin/lessc ]; then
+        echo "\$ export PATH=$PWD/node_modules/.bin:$PATH"
+        export PATH=$PWD/node_modules/.bin:$PATH
+        return
+      fi
       echo "Searching for lessc ..."
       for f in $(find $HOME -nowarn -type f -name lessc 2>/dev/null); do
         lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|awk -F. '{print $1*10000 + $2*100 + $3}')
