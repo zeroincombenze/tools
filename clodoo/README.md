@@ -51,6 +51,24 @@ Usage
 
 Type command with -h switch.
 
+### Installation of Odoo Packages
+
+Odoo requires a lot of PIP/binary packages to run correctly.
+Many of these packages must be installed with a specific version and
+requirements can change after every upgrade by OCA or partners
+so is very difficult to keep th good requirements.
+
+The script manage_odoo helps to do this job.
+Type follow command by authorized user (may install some packages):
+
+    manage_odoo -b{odoo_vid} -d{odoo_path} requirements
+
+read below, about odoo_vid; switch -d must be supplied if installation does not attend odoo_vid rules.
+If your machine is multi-version odoo environment, you can avoid -b switch and script tries to install package version can meet all Odoo versions requirements.
+However, installed package version can conflict against some Odoo version.
+
+Use virtual env to avoid conflict.
+
 
 Multiple Odoo installations/versions
 ------------------------------------
