@@ -32,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.6.52
+#__version__=0.3.6.53
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\

@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.6.52"
+__version__ = "0.3.6.53"
 
 
 #############################################################################
@@ -751,19 +751,18 @@ def is_db_alias(odoo, ctx, value):
 
 def get_model_alias(value):
     if value:
-        i = value.find('.')
-        j = value.find('.', i + 1)
-        if i >= 0 and j >= 0 and value[0] >= 'a' and \
-                value[0] <= 'z' and value[-1].isdigit():
+        items = value.split('.')
+        if len(items) == 3 and items[0][0] >= 'a' and items[0][0] <= 'z' and \
+                items[-1][0].isdigit():
             model = "ir.transodoo"
             name = ['module', 'name', 'version']
-            value = [value[0:i], value[i + 1:j], value[j + 1:]]
+            value = [items[0], items[1], items[2]]
             hide_cid = True
             return model, name, value, hide_cid
-        elif i >= 0 and j < 0 and value[0] >= 'a' and value[0] <= 'z':
+        elif len(items) == 2 and items[0][0] >= 'a' and items[0][0] <= 'z':
             model = "ir.model.data"
             name = ['module', 'name']
-            value = [value[0:i], value[i + 1:]]
+            value = [items[0], items[1]]
             hide_cid = True
             return model, name, value, hide_cid
     return None, None, value, None

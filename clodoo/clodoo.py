@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.52"
+__version__ = "0.3.6.53"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4298,6 +4298,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
      'model:value' -> get value id of model w/o company
     value may be an exact value or a like value
     """
+    import pdb
+    pdb.set_trace()
     msg = u"Import file " + csv_fn
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     if 'company_id' in ctx:
@@ -4619,13 +4621,38 @@ def setup_global_config_param(oerp, ctx, name, value):
         name = items[-1]
     else:
         model = 'res.config.settings'
-    try:
-        id = max(searchL8(ctx, model, []))
-        cur = browseL8(ctx, model, id)[name]
-        if cur == value:
-            return sts
-    except BaseException:
-        pass
+    if isinstance(value, bool):
+        try:
+            id = max(searchL8(ctx, model, []))
+            cur = browseL8(ctx, model, id)[name]
+            if cur == value:
+                return sts
+        except BaseException:
+            pass
+    else:
+        items = value.split('.')
+        if len(items) == 1:
+            try:
+                id = max(searchL8(ctx, model, []))
+                cur = browseL8(ctx, model, id)[name]
+                if cur == value:
+                    return sts
+            except BaseException:
+                pass
+        else:
+            model2 = '.'.join(items[0:len(items)-1])
+            value = items[-1]
+            id = searchL8(ctx, model2, [('name', '=', value)])
+            if not id:
+                return STS_FAILED
+            value = id[0]
+            try:
+                id = max(searchL8(ctx, model, []))
+                cur = browseL8(ctx, model, id)[name]
+                if cur.id == value:
+                    return sts
+            except BaseException:
+                pass
     try:
         msg = u"%s/%s" % (tounicode(name), tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)

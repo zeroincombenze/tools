@@ -1,6 +1,6 @@
 import csv
 
-VERSIONS = ('vg7', '61', '70', '80', '90', '100')
+VERSIONS = ('vg7', '61', '70', '80', '90', '100', '110')
 ALIAS = {}
 
 
@@ -12,7 +12,10 @@ def new_env():
 
 
 def add_elem(mod2xtl, id, elem):
-    mod2xtl[id].append(elem)
+    try:
+        mod2xtl[id].append(elem)
+    except BaseException:
+        pass
 
 
 def sort_data(mod2xtl):
@@ -105,20 +108,22 @@ while item != '~':
                 ctrs[id] += 1
             else:
                 datas.append('')
-        print '%-60.60s %3s %3s %3s %3s %3s %3s' % (item,
-                                                    datas[0],
-                                                    datas[1],
-                                                    datas[2],
-                                                    datas[3],
-                                                    datas[4],
-                                                    datas[5])
-        line = '"%s",%s,%s,%s,%s,%s,%s\n' % (item,
-                                             datas[0],
-                                             datas[1],
-                                             datas[2],
-                                             datas[3],
-                                             datas[4],
-                                             datas[5])
+        print '%-60.60s %3s %3s %3s %3s %3s %3s %3s' % (item,
+                                                        datas[0],
+                                                        datas[1],
+                                                        datas[2],
+                                                        datas[3],
+                                                        datas[4],
+                                                        datas[5],
+                                                        datas[6])
+        line = '"%s",%s,%s,%s,%s,%s,%s,%s\n' % (item,
+                                                datas[0],
+                                                datas[1],
+                                                datas[2],
+                                                datas[3],
+                                                datas[4],
+                                                datas[5],
+                                                datas[6])
         fd.write(line)
 line = '%-60.60s' % 'TOTALE'
 for id in VERSIONS:
