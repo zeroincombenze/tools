@@ -24,7 +24,7 @@ from clodoo import clodoo
 from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.6.51"
+__version__ = "0.3.6.52"
 
 
 MODULE_ID = 'clodoo'
@@ -47,7 +47,7 @@ class Test():
         self.login_2_test = 'administrator'
 
     def check_4_db(self, dbname):
-        cmd = ['psql'] + ['-Upostgres'] + ['-l']
+        cmd = ['psql'] + ['-Upostgres'] + ['-tl']
         p = Popen(cmd,
                   stdin=PIPE,
                   stdout=PIPE,
@@ -79,23 +79,39 @@ oe_version=%s
         else:
             return False
 
-    def check_4_user(self, oe_version):
+    def check_4_user(self, oe_version, id=None, login_name=False):
         user = self.param_by_db(oe_version, field='user')
         dbname = self.param_by_db(oe_version, field='dbname')
+        id = id or 1
         sql = "select login from res_users" + \
-              " where id=1;"
-        cmd = 'psql -U%s %s -c"%s"' % (user, dbname, sql)
+              " where id=%d;" % id
+        cmd = 'psql -t -U%s %s -c"%s"' % (user, dbname, sql)
         p = Popen(cmd,
                   stdin=PIPE,
                   stdout=PIPE,
                   stderr=PIPE,
                   shell=True)
         res, err = p.communicate()
-        login_name = ' %s' % self.login_2_test
+        login_name = login_name or ' %s' % self.login_2_test
         if res.find(login_name) >= 0:
             return True
         else:
             return False
+
+    def search_alias(self, oe_version, ref):
+        user = self.param_by_db(oe_version, field='user')
+        dbname = self.param_by_db(oe_version, field='dbname')
+        refs = ref.split('.')
+        sql = "select res_id from ir_model_data"
+        sql += " where module='%s' and name='%s';" % (refs[0], refs[1])
+        cmd = 'psql -At -U%s %s -c"%s"' % (user, dbname, sql)
+        p = Popen(cmd,
+                  stdin=PIPE,
+                  stdout=PIPE,
+                  stderr=PIPE,
+                  shell=True)
+        res, err = p.communicate()
+        return eval(res)
 
     def param_by_db(self, oe_version, field=None):
         minor_ver = int(eval(oe_version))
@@ -280,6 +296,7 @@ actions=import_file
 filename=%s
 crypt_password=%s
 model=res.users
+hide_cid=True
 """ % (datafn, crypt('admin'))
                     fd = open(confn, 'w')
                     fd.write(codefile)
@@ -287,12 +304,14 @@ model=res.users
                     cmd = self.bulk_cmd(oe_version)
                     cmd = cmd + ['-c%s' % confn]
                     datafile = """id,name,login,signature,email,tz,lang
-base.user_root,Administrator,%s,"Amministratore","me@example.com",
-"Europe/Rome","en_US"
+base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US"
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,
 """ % self.login_2_test
                     fd = open(dataffn, 'w')
                     fd.write(datafile)
                     fd.close()
+                    # import pdb
+                    # pdb.set_trace()
                     p = Popen(cmd,
                               stdin=PIPE,
                               stdout=PIPE,
@@ -304,6 +323,18 @@ base.user_root,Administrator,%s,"Amministratore","me@example.com",
                 sts = self.Z.test_result(
                     z0ctx,
                     "Import user -b%s" % (oe_version),
+                    True,
+                    res)
+                if not ctx['dry_run']:
+                    res = self.search_alias(oe_version, 'base.user_admin2')
+                    res = self.check_4_user(oe_version,
+                                            id=res,
+                                            login_name='admin2')
+                else:
+                    res = True
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Add user -b%s" % (oe_version),
                     True,
                     res)
         return sts

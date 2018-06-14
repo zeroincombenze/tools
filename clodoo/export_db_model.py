@@ -96,12 +96,14 @@ def export_table(ctx):
     csv_obj = csv.DictWriter(csv_out, fieldnames=out_flds)
     csv_obj.writerow(header)
     ctr = 0
+    where = eval(ctx.get('search_where', []))
     for rec in clodoo.browseL8(ctx,
                                model,
-                               clodoo.searchL8(ctx, model, [])):
+                               clodoo.searchL8(ctx, model, where)):
         print 'Reading id %d' % rec.id
         out_dict = {}
         data_valid = True
+        discard = False
         for nm in out_flds:
             f = nm.split(':')
             if nm == 'id':
@@ -109,12 +111,17 @@ def export_table(ctx):
                 value = get_symbolic_value(ctx, model, False, value)
                 if isinstance(value, (int, long)):
                     data_valid = False
-                elif not re.match(ctx['id_filter'], value):
-                    data_valid = False
-                elif ctx['onlybase'] and value[0:5] != 'base.':
-                    data_valid = False
-                elif ctx['exclmulti'] and value[0:5] == 'multi':
-                    data_valid = False
+                    if not re.match(ctx['id_filter'], str(value)):
+                        discard = True
+                        break
+                else:
+                    if not re.match(ctx['id_filter'], value):
+                        discard = True
+                        break
+                    elif ctx['onlybase'] and value[0:5] != 'base.':
+                        data_valid = False
+                    elif ctx['exclmulti'] and value[0:5] == 'multi':
+                        data_valid = False
             elif len(f) == 1:
                 value = rec[f[0]]
                 if isinstance(rec[f[0]], (date, datetime)):
@@ -147,7 +154,7 @@ def export_table(ctx):
                 out_dict[nm] = str(value)
             else:
                 out_dict[nm] = os0.b(value.replace('\n', ' '))
-        if not ctx['exclext'] or data_valid:
+        if not discard and (not ctx['exclext'] or data_valid):
             csv_obj.writerow(out_dict)
             ctr += 1
     csv_out.close()
@@ -212,6 +219,10 @@ parser.add_argument("-o", "--out-file",
                     dest="out_file",
                     metavar="file",
                     default='')
+parser.add_argument("-S", "--search",
+                    help="expression search, i.e. [('code','=','A')]",
+                    dest="search_where",
+                    default='[]')
 parser.add_argument('-n')
 parser.add_argument('-q')
 parser.add_argument('-V')

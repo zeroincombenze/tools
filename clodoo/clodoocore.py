@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.6.51"
+__version__ = "0.3.6.52"
 
 
 #############################################################################
@@ -564,41 +564,43 @@ def get_query_id(oerp, ctx, o_model, row):
     @ ctx:         global parameters
     @ row:         record fields
     """
-    msg = "get_query_id()"
-    debug_msg_log(ctx, 6, msg)
-    if o_model['code'].find(',') >= 0:
-        code = o_model['code'].split(',')
-    else:
-        code = o_model['code']
     model, hide_cid = _get_model_bone(ctx, o_model)
-    msg += "model=%s, hide_company=%s" % (model, hide_cid)
-    if isinstance(code, list):
-        value = []
-        for p in code:
-            value.append(row.get(p, ''))
-    else:
-        value = row.get(code, '')
-    if model is None:
-        ids = []
-    else:
-        ids = _get_simple_query_id(oerp,
-                                   ctx,
-                                   model,
-                                   code,
-                                   value,
-                                   hide_cid)
-        if len(ids) == 0 and o_model['repl_by_id'] and row.get('id', None):
-            o_skull = {}
-            for n in o_model:
-                o_skull[n] = o_model[n]
-            o_skull['code'] = 'id'
-            o_skull['hide_id'] = False
-            value = eval_value(oerp,
-                               ctx,
-                               o_skull,
-                               'id',
-                               row['id'])
+    msg = "get_query_id(model=%s, hide_company=%s)" % (model, hide_cid)
+    debug_msg_log(ctx, 6, msg)
+    ids = []
+    if o_model['repl_by_id'] and row.get('id', None):
+        o_skull = {}
+        for n in o_model:
+            o_skull[n] = o_model[n]
+        o_skull['code'] = 'id'
+        o_skull['hide_id'] = False
+        value = eval_value(oerp,
+                           ctx,
+                           o_skull,
+                           'id',
+                           row['id'])
+        if isinstance(value, (int, long)):
             ids = searchL8(ctx, model, [('id', '=', value)])
+    if not ids:
+        if o_model['code'].find(',') >= 0:
+            code = o_model['code'].split(',')
+        else:
+            code = o_model['code']
+        if isinstance(code, list):
+            value = []
+            for p in code:
+                value.append(row.get(p, ''))
+        else:
+            value = row.get(code, '')
+        if model is None:
+            ids = []
+        else:
+            ids = _get_simple_query_id(oerp,
+                                       ctx,
+                                       model,
+                                       code,
+                                       value,
+                                       hide_cid)
     return ids
 
 
@@ -751,7 +753,6 @@ def get_model_alias(value):
     if value:
         i = value.find('.')
         j = value.find('.', i + 1)
-        # k = value.find('.', j + 1)
         if i >= 0 and j >= 0 and value[0] >= 'a' and \
                 value[0] <= 'z' and value[-1].isdigit():
             model = "ir.transodoo"
@@ -766,6 +767,25 @@ def get_model_alias(value):
             hide_cid = True
             return model, name, value, hide_cid
     return None, None, value, None
+
+
+def put_model_alias(ctx,
+                    model=None, name=None, ref=None, id=None, module=None):
+    module = module or 'base'
+    if ref:
+        refs = ref.split('.')
+        if len(refs):
+            if not module:
+                module = refs[0]
+            if not name:
+                name = refs[1]
+    vals = {
+        'module': module,
+        'model': model,
+        'name': name,
+        'res_id': id,
+    }
+    createL8(ctx, 'ir.model.data', vals)
 
 
 def _get_name_n_params(name, deflt=None):

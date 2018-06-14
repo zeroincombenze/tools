@@ -99,13 +99,13 @@ from os0 import os0
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         validate_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
-                        get_res_users, psql_connect)
+                        get_res_users, psql_connect, put_model_alias)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config)
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.51"
+__version__ = "0.3.6.52"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4351,7 +4351,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     row['login'],
                     ctx['oe_version'].split('.')[0])
             # Does record exist ?
-            if o_model['code'] == 'id' and row['id']:
+            if o_model['repl_by_id'] and row['id']:
                 o_model['saved_hide_id'] = o_model['hide_id']
                 o_model['hide_id'] = False
                 ids = get_query_id(oerp,
@@ -4413,10 +4413,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
                     v = {}
                     for p in vals:
                         if p != "db_type":
-                            # if isinstance(cur_obj[p],
-                            #               (int, long, float)) and \
-                            #         vals[p].isdigit():
-                            #     vals[p] = eval(vals[p])
                             if vals[p] != cur_obj[p]:
                                 v[p] = vals[p]
                     vals = v
@@ -4446,6 +4442,11 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                       tounicode(o_model['name']),
                                       tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
+                        if o_model['repl_by_id'] and row['id']:
+                            put_model_alias(ctx,
+                                            model=o_model['model'],
+                                            ref=row['id'],
+                                            id=id)
                     except BaseException:
                         id = None
                         os0.wlog(u"!!write error!")
@@ -4610,7 +4611,7 @@ def setup_user_config_param(oerp, ctx, username, name, value):
 
 
 def setup_global_config_param(oerp, ctx, name, value):
-    context = get_context(ctx)
+    # context = get_context(ctx)
     sts = STS_SUCCESS
     items = name.split('.')
     if len(items) > 1:
@@ -4623,7 +4624,7 @@ def setup_global_config_param(oerp, ctx, name, value):
         cur = browseL8(ctx, model, id)[name]
         if cur == value:
             return sts
-    except:
+    except BaseException:
         pass
     try:
         msg = u"%s/%s" % (tounicode(name), tounicode(value))

@@ -132,7 +132,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.51"
+__version__ = "0.3.6.52"
 
 
 #############################################################################
@@ -193,11 +193,11 @@ def debug_msg_log(ctx, level, text):
         if 'test_unit_mode' in ctx:
             return
         elif ctx['dry_run'] and level > 0:
-            txt = u">{0}({1})".format(ident, tounicode(text))
+            txt = u">%s(%s)" % (ident, tounicode(text))
         else:
-            txt = u">{0}{1}".format(ident, tounicode(text))
+            txt = u">%s%s" % (ident, tounicode(text))
         print(txt)
-        os0.wlog(txt)
+        # os0.wlog(txt)
 
 
 def crypt(s):
