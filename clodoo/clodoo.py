@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.53"
+__version__ = "0.3.6.54"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4298,8 +4298,6 @@ def import_file(oerp, ctx, o_model, csv_fn):
      'model:value' -> get value id of model w/o company
     value may be an exact value or a like value
     """
-    import pdb
-    pdb.set_trace()
     msg = u"Import file " + csv_fn
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     if 'company_id' in ctx:
@@ -4428,7 +4426,11 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                                      tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
                     except BaseException:
-                        os0.wlog(u"!!write error!")
+                        msg = u"!!write error! id=%d, %s=%s" % (
+                            cur_obj.id,
+                            o_model['name'],
+                            tounicode(name_new))
+                        os0.wlog(msg)
             else:
                 msg = u"insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -4451,7 +4453,10 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                             id=id)
                     except BaseException:
                         id = None
-                        os0.wlog(u"!!write error!")
+                        msg = u"!!write error! %s=%s" % (
+                            tounicode(o_model['name']),
+                            tounicode(name_new))
+                        os0.wlog(msg)
                 else:
                     ctx['header_id'] = -1
         csv_fd.close()
@@ -4713,6 +4718,8 @@ def install_chart_of_account(oerp, ctx, name):
         if company_id != ctx.get('user_company_id', 0):
             writeL8(ctx, 'res.users', ctx['user_id'],
                     {'company_id': ctx.get('user_company_id', 0)})
+    if sts == STS_SUCCESS:
+        time.sleep(5)
     return sts
 
 

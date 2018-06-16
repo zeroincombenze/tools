@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.53'
+__version__ = '0.3.6.54'
 
 #
 # known incompantibilities:
@@ -66,6 +66,7 @@ REQVERSION = {
     'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
     'pyusb': {'7.0': '>=1.0.0b1', '10.0': '==1.0.0'},
     'pyxb': {'7.0':  '==1.2.4'},
+    'PyWebDAV': {'7.0':  '<0.9.8'},
     'PyYAML': {'7.0': '==3.11', '8.0': '==3.12'},
     'qrcode': {'7.0': '==5.1', '10.0': '==5.3'},
     'restructuredtext_lint': {'7.0': '==0.12.2'},
@@ -103,23 +104,28 @@ ALIAS = {
     'psycopg2': 'psycopg2-binary',
     'pypdf': 'pyPdf',
     'python-chart': 'Python-Chart',
+    'pywebdav': 'PyWebDAV',
     'pyyaml': 'PyYAML',
+    'qunitsuite': 'QUnitSuite',
     'werkzeug': 'Werkzeug',
     'xlsxwriter': 'XlsxWriter',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'click',
                      'configparser',
+                     'codecov',
                      'coveralls',
                      'flake8',
                      'lazy_object_proxy',
                      'MarkupSafe',
                      'mock',
                      'pbr',
+                     'pycparser',
                      'pyflakes',
                      'pylint',
                      'pylint-mccabe',
                      'pylint_odoo',
+                     'PyWebDAV',
                      'PyYAML',
                      'QUnitSuite',
                      'restructuredtext_lint',

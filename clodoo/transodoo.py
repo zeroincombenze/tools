@@ -19,7 +19,7 @@ import sys
 from z0lib import parseoptargs
 
 
-__version__ = "0.3.6.53"
+__version__ = "0.3.6.54"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0')
 
 
@@ -56,12 +56,13 @@ def transodoo_list(ctx):
         mindroot = ctx['mindroot']
     for t in mindroot:
         if t.split('.')[0] == ctx['model']:
-            line = '%s %s\n' % (t.split('.')[0],
-                                t.split('.')[1])
-            for vers in VERSIONS:
-                if not ctx['odoo_ver'] or vers == ctx['odoo_ver']:
-                    line += ' - [%s]="%s"\n' % (vers, mindroot[t][vers])
-            print line
+            if '0' not in mindroot[t]:
+                line = '%s %s\n' % (t.split('.')[0],
+                                    t.split('.')[1])
+                for vers in VERSIONS:
+                    if not ctx['odoo_ver'] or vers == ctx['odoo_ver']:
+                        line += ' - [%s]="%s"\n' % (vers, mindroot[t][vers])
+                print line
 
 
 def transodoo_edit(ctx):
