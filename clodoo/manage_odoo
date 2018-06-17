@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.6.55
+__version__=0.3.6.56
 
 
 explore() {
@@ -99,7 +99,7 @@ do_action() {
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
     fi
     if [ "$act" == "requirements" ]; then
-      [ -n "$opt_deps" ] && dopts="-O $opt_deps" || dopts=
+      [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
       PIP=pip
       if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
         [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
