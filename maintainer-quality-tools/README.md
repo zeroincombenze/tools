@@ -189,12 +189,14 @@ E7901 | :white_check_mark: |        |        |     | :white_check_mark: | [rst-s
 C7902 | :x:     |         |         |        | :white_check_mark: | missing-readme
 W7903 | :x:     |         |         |        | :white_check_mark: | javascript-lint
 W7908 | :white_check_mark: |        |        |     | :white_check_mark: | missing-newline-extrafiles
+W7909 | :x:     |         |         |        | :white_check_mark: | redundant-modulename-xml
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
 C8103 | :x:     |         |         |        | :white_check_mark: | [manifest-deprecated-key](https://pypi.org/project/pylint-odoo/1.4.0)
 C8104 | :x:     |         |         |        | :white_check_mark: | [class-camelcase](https://pypi.org/project/pylint-odoo/1.4.0)
-C8105 | :x:     |         |         |        | :white_check_mark: | [license-allowed](https://pypi.org/project/pylint-odoo/1.4.0)
 W8104 | :x:     |         |         |        | :white_check_mark: | api-one-deprecated
+C8105 | :x:     |         |         |        | :white_check_mark: | [license-allowed](https://pypi.org/project/pylint-odoo/1.4.0)
+C8108 | :x:     |         |         |        | :white_check_mark: | method-compute
 R8110 | :x:     |         |         |        | :white_check_mark: | old-api7-method-defined
 N/A   | :x:     |         |         |        | :white_check_mark: | sql-injection
 N/A   | :x:     |         |         |        | :white_check_mark: | duplicate-id-csv

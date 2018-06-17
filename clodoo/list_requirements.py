@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.6.54'
+__version__ = '0.3.6.55'
 
 #
 # known incompantibilities:
@@ -354,6 +354,10 @@ def main():
                         help="Add base packages",
                         action="store_true",
                         dest="base_pkgs")
+    parser.add_argument("-d", "--dependencies-path",
+                        help="Follow oca_dependencies.txt in directory",
+                        metavar="directory",
+                        dest="oca_dependencies")
     parser.add_argument("-m", "--manifest",
                         help="Declare manifest files if no path supplied",
                         dest="manifests",
@@ -369,10 +373,6 @@ def main():
                         dest="odoo_dir",
                         metavar="directory",
                         default="")
-    parser.add_argument("-O", "--oca-dependencies-path",
-                        help="Follow oca_dependencies.txt in directory",
-                        metavar="directory",
-                        dest="oca_dependencies")
     parser.add_argument("-P", "--precise",
                         help="Add version to filename",
                         action="store_true",

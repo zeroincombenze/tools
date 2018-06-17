@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.54"
+__version__ = "0.3.6.55"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
