@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.6.56"
+__version__ = "0.3.7.2"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -190,7 +190,7 @@ def open_connection(ctx):
     return ctx['odoo_session']
 
 
-def do_login(oerp, ctx):
+def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -220,14 +220,14 @@ def do_login(oerp, ctx):
         for pwd in cryptlist:
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    oerp.login(db_name,
-                               login=username,
-                               password=decrypt(pwd))
-                    user = oerp.env.user
+                    ctx['odoo_session'].login(db_name,
+                                              login=username,
+                                              password=decrypt(pwd))
+                    user = ctx['odoo_session'].env.user
                 else:
-                    user = oerp.login(database=db_name,
-                                      user=username,
-                                      passwd=decrypt(pwd))
+                    user = ctx['odoo_session'].login(database=db_name,
+                                                     user=username,
+                                                     passwd=decrypt(pwd))
                 break
             except BaseException:
                 pass
@@ -235,14 +235,14 @@ def do_login(oerp, ctx):
             for pwd in pwdlist:
                 try:
                     if ctx['svc_protocol'] == 'jsonrpc':
-                        oerp.login(db_name,
-                                   login=username,
-                                   password=pwd)
-                        user = oerp.env.user
+                        ctx['odoo_session'].login(db_name,
+                                                  login=username,
+                                                  password=pwd)
+                        user = ctx['odoo_session'].env.user
                     else:
-                        user = oerp.login(database=db_name,
-                                          user=username,
-                                          passwd=pwd)
+                        user = ctx['odoo_session'].login(database=db_name,
+                                                         user=username,
+                                                         passwd=pwd)
                     break
                 except BaseException:
                     pass
@@ -252,8 +252,8 @@ def do_login(oerp, ctx):
                      .format(tounicode(ctx['db_name'])))
         return
     if not ctx['multi_user']:
-        ctx = init_user_ctx(oerp, ctx, user)
-        msg = ident_user(oerp, ctx, user.id)
+        ctx = init_user_ctx(ctx, user)
+        msg = ident_user(ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
         wrong = False
@@ -373,11 +373,11 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
         ctx, saved = oerp_env_fill(db=db, ctx=ctx)
     ctx, saved = oerp_env_fill(db=db, ctx=ctx)
-    oerp = open_connection(ctx)
+    open_connection(ctx)
     ctx = read_config(ctx)
     for p in 'db_name', 'oe_version', 'svc_protocol':
         ctx[p] = saved[p]
-    lgiuser = do_login(oerp, ctx)
+    lgiuser = do_login(ctx)
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')      # pragma: no cover
     uid = lgiuser.id
@@ -403,7 +403,7 @@ def oerp_set_env(confn=None, db=None, ctx=None):
             else:
                 fd.write('%s=%s\n' % (p, ctx[p]))
         fd.close()
-    return oerp, uid, ctx
+    return uid, ctx
 
 
 def get_context(ctx):
@@ -412,7 +412,7 @@ def get_context(ctx):
     return context
 
 
-def init_db_ctx(oerp, ctx, db):
+def init_db_ctx(ctx, db):
     """"Clear company parameters"""
     for n in ('def_company_id',
               'def_company_name',
@@ -441,7 +441,7 @@ def init_db_ctx(oerp, ctx, db):
     return ctx
 
 
-def init_company_ctx(oerp, ctx, c_id):
+def init_company_ctx(ctx, c_id):
     ctx['company_id'] = c_id
     company = browseL8(ctx, 'res.company', c_id)
     ctx['company_name'] = company.name
@@ -457,7 +457,7 @@ def init_company_ctx(oerp, ctx, c_id):
     return ctx
 
 
-def init_user_ctx(oerp, ctx, user):
+def init_user_ctx(ctx, user):
     ctx['user_id'] = user.id
     if ctx['oe_version'] != "6.1":
         ctx['user_partner_id'] = user.partner_id.id
@@ -472,16 +472,16 @@ def init_user_ctx(oerp, ctx, user):
     return ctx
 
 
-def get_dblist(oerp):
+def get_dblist(ctx):
     # Interface xmlrpc and jsonrpc are the same
-    return oerp.db.list()
+    return ctx['odoo_session'].db.list()
 
 
-def get_companylist(oerp, ctx):
+def get_companylist(ctx):
     return searchL8(ctx, 'res.company', [], order='id desc')
 
 
-def get_userlist(oerp, ctx):
+def get_userlist(ctx):
     return searchL8(ctx, 'res.users', [])
 
 
@@ -536,7 +536,7 @@ def action_id(lexec):
     return action_name
 
 
-def do_group_action(oerp, ctx, action):
+def do_group_action(ctx, action):
     """Do group actions (recursive)"""
     if ctx['dbg_mode'] or 'test_unit_mode' not in ctx:
         msg = u"> do_group_action(%s)" % action
@@ -559,7 +559,7 @@ def do_group_action(oerp, ctx, action):
                     msg_log(ctx, ctx['level'] + 1, msg)
                     sts = STS_FAILED
                     break
-                sts = do_single_action(oerp, lctx, act)
+                sts = do_single_action(lctx, act)
                 if sts == STS_SUCCESS and 'header_id' in lctx:
                     ctx['header_id'] = lctx['header_id']
             else:
@@ -575,7 +575,7 @@ def do_group_action(oerp, ctx, action):
     return sts
 
 
-def do_single_action(oerp, ctx, action):
+def do_single_action(ctx, action):
     """Do single action (recursive)"""
     if isaction(ctx, action):
         if action == '' or action is False or action is None:
@@ -586,23 +586,23 @@ def do_single_action(oerp, ctx, action):
         if ctx.get('db_name', '') == 'auto':
             if action not in ("list_actions", "show_params", "new_db"):
                 ctx['db_name'] = get_dbname(ctx, action)
-                lgiuser = do_login(oerp, ctx)
+                lgiuser = do_login(ctx)
                 if not lgiuser:
                     action = 'unit_test'
         act = lexec_name(ctx, action)
         if act in list(globals()):
             if action == 'install_modules' and\
                     not ctx.get('module_udpated', False):
-                globals()[lexec_name(ctx, 'update_modules')](oerp, ctx)
+                globals()[lexec_name(ctx, 'update_modules')](ctx)
                 ctx['module_udpated'] = True
-            return globals()[act](oerp, ctx)
+            return globals()[act](ctx)
         else:
-            return do_group_action(oerp, ctx, action)
+            return do_group_action(ctx, action)
     else:
         return STS_FAILED
 
 
-def do_actions(oerp, ctx):
+def do_actions(ctx):
     """Do actions (recursive)"""
     actions = ctx['actions']
     if not actions:
@@ -631,13 +631,13 @@ def do_actions(oerp, ctx):
                     del ctx['actions_mc']
                 if act == 'per_user' and 'actions_uu' in ctx:
                     del ctx['actions_uu']
-                sts = do_single_action(oerp, ctx, act)
+                sts = do_single_action(ctx, act)
                 if 'actions' in ctx:
                     del ctx['actions']
                 actions = []
                 decr_lev(ctx)
             else:
-                sts = do_single_action(oerp, ctx, act)
+                sts = do_single_action(ctx, act)
         else:
             sts = STS_FAILED
         if sts == STS_SUCCESS and len(actions) > 0:
@@ -672,7 +672,9 @@ def create_local_parms(ctx, act):
               'model_action',
               'model_keyids',
               'filename',
-              'hide_cid'):
+              'hide_cid',
+              'alias_model2',
+              'alias_field'):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -702,7 +704,7 @@ def create_local_parms(ctx, act):
     return lctx
 
 
-def ident_db(oerp, ctx, db):
+def ident_db(ctx, db):
     db_name = get_dbname(ctx, '')
     msg = u"DB=" + db + " [" + ctx.get('db_type', '') + "]"
     if db_name != db:
@@ -710,14 +712,14 @@ def ident_db(oerp, ctx, db):
     return msg
 
 
-def ident_company(oerp, ctx, c_id):
+def ident_company(ctx, c_id):
     msg = u"Company {0:>3})\t'{1}'".format(c_id,
                                            tounicode(ctx.get('company_name',
                                                              '')))
     return msg
 
 
-def ident_user(oerp, ctx, u_id):
+def ident_user(ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
     msg = u"DB=%-12.12s  uid=%-3d user=%-12.12s" \
           u"  email=%-30.30s  company=%-30.30s" % (
@@ -733,13 +735,13 @@ def ident_user(oerp, ctx, u_id):
 #############################################################################
 # Public actions
 #
-def act_list_actions(oerp, ctx):
+def act_list_actions(ctx):
     for act in sorted(ctx['_lx_act']):
         print("- %s" % act)
     return STS_SUCCESS
 
 
-def act_show_params(oerp, ctx):
+def act_show_params(ctx):
     if ctx['dbg_mode']:
         pwd = raw_input('password ')
     else:
@@ -753,45 +755,45 @@ def act_show_params(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_list_db(oerp, ctx):
-    dblist = get_dblist(oerp)
+def act_list_db(ctx):
+    dblist = get_dblist(ctx)
     for db in sorted(dblist):
-        ctx = init_db_ctx(oerp, ctx, db)
-        sts = act_echo_db(oerp, ctx)
+        ctx = init_db_ctx(ctx, db)
+        sts = act_echo_db(ctx)
     return sts
 
 
-def act_echo_db(oerp, ctx):
-    msg = ident_db(oerp, ctx, ctx['db_name'])
+def act_echo_db(ctx):
+    msg = ident_db(ctx, ctx['db_name'])
     ident = ' ' * ctx['level']
     print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
-def act_show_db_params(oerp, ctx):
+def act_show_db_params(ctx):
     ident = ' ' * ctx['level']
     print("%s- DB name       = %s " % (ident, ctx.get('db_name', "")))
     print("%s- DB type       = %s " % (ident, ctx.get('db_type', "")))
     return STS_SUCCESS
 
 
-def act_list_companies(oerp, ctx):
-    company_ids = get_companylist(oerp, ctx)
+def act_list_companies(ctx):
+    company_ids = get_companylist(ctx)
     for c_id in company_ids:
-        ctx = init_company_ctx(oerp, ctx, c_id)
-        sts = act_echo_company(oerp, ctx)
+        ctx = init_company_ctx(ctx, c_id)
+        sts = act_echo_company(ctx)
     return sts
 
 
-def act_echo_company(oerp, ctx):
+def act_echo_company(ctx):
     c_id = ctx['company_id']
-    msg = ident_company(oerp, ctx, c_id)
+    msg = ident_company(ctx, c_id)
     ident = ' ' * ctx['level']
     print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
-def act_show_company_params(oerp, ctx):
+def act_show_company_params(ctx):
     ident = ' ' * ctx['level']
     print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
     print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
@@ -802,24 +804,24 @@ def act_show_company_params(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_list_users(oerp, ctx):
-    user_ids = get_userlist(oerp, ctx)
+def act_list_users(ctx):
+    user_ids = get_userlist(ctx)
     for u_id in user_ids:
         user = browseL8(ctx, 'res.users', u_id)
-        ctx = init_user_ctx(oerp, ctx, user)
-        sts = act_echo_user(oerp, ctx)
+        ctx = init_user_ctx(ctx, user)
+        sts = act_echo_user(ctx)
     return sts
 
 
-def act_echo_user(oerp, ctx):
+def act_echo_user(ctx):
     u_id = ctx['user_id']
-    msg = ident_user(oerp, ctx, u_id)
+    msg = ident_user(ctx, u_id)
     ident = ' ' * ctx['level']
     print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
-def act_show_user_params(oerp, ctx):
+def act_show_user_params(ctx):
     ident = ' ' * ctx['level']
     print("%s- user_id       = %d " % (ident, ctx.get('user_id', 0)))
     print("%s- user name     = %s " % (ident, ctx.get('user_name', "")))
@@ -829,12 +831,12 @@ def act_show_user_params(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_unit_test(oerp, ctx):
+def act_unit_test(ctx):
     """This function acts just for unit test"""
     return STS_SUCCESS
 
 
-def act_run_unit_tests(oerp, ctx):
+def act_run_unit_tests(ctx):
     """"Run module unit test"""
     try:
         executeL8(ctx,
@@ -846,57 +848,62 @@ def act_run_unit_tests(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_drop_db(oerp, ctx):
+def act_drop_db(ctx):
     """Drop a DB"""
     sts = STS_SUCCESS
     msg = "Drop DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
-        try:
-            cmd = 'pg_db_active -wa %s' % ctx['db_name']
-            os0.muteshell(cmd, simulate=False, keepout=False)
-            oerp.db.drop(ctx['admin_passwd'],
-                         ctx['db_name'])
-            sts = STS_SUCCESS
-            if ctx['db_name'][0:11] != 'clodoo_test':
-                time.sleep(2)
-        except BaseException:
-            sts = STS_FAILED
+        ctr = 3
+        sts = STS_FAILED
+        while sts == STS_FAILED and ctr > 0:
+            try:
+                cmd = 'pg_db_active -wa %s' % ctx['db_name']
+                os0.muteshell(cmd, simulate=False, keepout=False)
+                ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                                            ctx['db_name'])
+                sts = STS_SUCCESS
+                if ctx['db_name'][0:11] != 'clodoo_test':
+                    time.sleep(2)
+            except BaseException:
+                ctr -= 1
+                if ctx['db_name'][0:11] != 'clodoo_test':
+                    time.sleep(3)
     return sts
 
 
-def act_wep_company(oerp, ctx):
+def act_wep_company(ctx):
     """Wep a DB (delete all record of company but keep res_parter"""
     sts = STS_SUCCESS
     c_id = ctx['company_id']
-    msg = ident_company(oerp, ctx, c_id)
+    msg = ident_company(ctx, c_id)
     msg = "Wep company %s" % ctx['company_name']
     msg_log(ctx, ctx['level'], msg)
-    set_server_isolated(oerp, ctx)
+    set_server_isolated(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_mail_records(oerp, ctx)
+        sts = remove_company_mail_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_project_records(oerp, ctx)
+        sts = remove_company_project_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_purchases_records(oerp, ctx)
+        sts = remove_company_purchases_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_crm_records(oerp, ctx)
+        sts = remove_company_crm_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_sales_records(oerp, ctx)
+        sts = remove_company_sales_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_logistic_records(oerp, ctx)
+        sts = remove_company_logistic_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_marketing_records(oerp, ctx)
+        sts = remove_company_marketing_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_hr_records(oerp, ctx)
+        sts = remove_company_hr_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_analytics_records(oerp, ctx)
+        sts = remove_company_analytics_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_account_records(oerp, ctx)
+        sts = remove_company_account_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_product_records(oerp, ctx)
+        sts = remove_company_product_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_company_partner_records(oerp, ctx)
+        sts = remove_company_partner_records(ctx)
     if sts == STS_SUCCESS:
         if not ctx['dry_run']:
             company_id = ctx['company_id']
@@ -922,46 +929,46 @@ def act_wep_company(oerp, ctx):
     return sts
 
 
-def act_wep_db(oerp, ctx):
+def act_wep_db(ctx):
     """Wep a DB (delete all record but keep res_parter)"""
     sts = STS_SUCCESS
     msg = "Wep DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
-    set_server_isolated(oerp, ctx)
+    set_server_isolated(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_mail_records(oerp, ctx)
+        sts = remove_all_mail_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_note_records(oerp, ctx)
+        sts = remove_all_note_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_project_records(oerp, ctx)
+        sts = remove_all_project_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_purchases_records(oerp, ctx)
+        sts = remove_all_purchases_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_crm_records(oerp, ctx)
+        sts = remove_all_crm_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_sales_records(oerp, ctx)
+        sts = remove_all_sales_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_logistic_records(oerp, ctx)
+        sts = remove_all_logistic_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_marketing_records(oerp, ctx)
+        sts = remove_all_marketing_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_account_records(oerp, ctx)
+        sts = remove_all_account_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_hr_records(oerp, ctx)
+        sts = remove_all_hr_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_product_records(oerp, ctx)
+        sts = remove_all_product_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_partner_records(oerp, ctx)
+        sts = remove_all_partner_records(ctx)
     if sts == STS_SUCCESS:
-        sts = remove_all_user_records(oerp, ctx)
+        sts = remove_all_user_records(ctx)
     if sts == STS_SUCCESS:
-        sts = reset_sequence(oerp, ctx)
+        sts = reset_sequence(ctx)
     if sts == STS_SUCCESS:
-        sts = reset_menuitem(oerp, ctx)
+        sts = reset_menuitem(ctx)
     return sts
 
 
-def act_new_db(oerp, ctx):
+def act_new_db(ctx):
     """Create new DB"""
     sts = STS_SUCCESS
     lang = ctx.get('lang', 'en_US')
@@ -971,45 +978,45 @@ def act_new_db(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         if ctx['db_name'] == 'auto':
-            ctx['db_name'] = create_zero_db(oerp, ctx)
+            ctx['db_name'] = create_zero_db(ctx)
             msg = "Assigned name is %s" % (ctx['db_name'])
             msg_log(ctx, ctx['level'], msg)
         if ctx['db_name']:
             if ctx['crypt_password']:
                 pwd = decrypt(ctx['crypt_password'])
-                ctx['server_version'] = oerp.version
+                ctx['server_version'] = ctx['odoo_session'].version
             else:
                 pwd = ctx['login_password']
                 try:
-                    ctx['server_version'] = oerp.db.server_version()
+                    ctx['server_version'] = ctx['odoo_session'].db.server_version()
                 except BaseException:
-                    ctx['server_version'] = oerp.version
+                    ctx['server_version'] = ctx['odoo_session'].version
             try:
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    oerp.db.create(ctx['admin_passwd'],
-                                   ctx['db_name'],
-                                   ctx['with_demo'],
-                                   lang,
-                                   pwd)
+                    ctx['odoo_session'].db.create(ctx['admin_passwd'],
+                                                  ctx['db_name'],
+                                                  ctx['with_demo'],
+                                                  lang,
+                                                  pwd)
                     time.sleep(3)
                 elif ctx['server_version'] == '7.0':
-                    oerp.db.create_and_wait(ctx['admin_passwd'],
-                                            ctx['db_name'],
-                                            ctx['with_demo'],
-                                            lang,
-                                            pwd)
+                    ctx['odoo_session'].db.create_and_wait(ctx['admin_passwd'],
+                                                           ctx['db_name'],
+                                                           ctx['with_demo'],
+                                                           lang,
+                                                           pwd)
                 else:
-                    oerp.db.create_database(ctx['admin_passwd'],
-                                            ctx['db_name'],
-                                            ctx['with_demo'],
-                                            lang,
-                                            pwd)
+                    ctx['odoo_session'].db.create_database(ctx['admin_passwd'],
+                                                           ctx['db_name'],
+                                                           ctx['with_demo'],
+                                                           lang,
+                                                           pwd)
                     time.sleep(3)
             except BaseException:
                 sts = STS_FAILED
             if sts == STS_SUCCESS:
                 ctx['no_warning_pwd'] = True
-                lgiuser = do_login(oerp, ctx)
+                lgiuser = do_login(ctx)
                 if not lgiuser:
                     sts = STS_FAILED
         else:
@@ -1017,9 +1024,9 @@ def act_new_db(oerp, ctx):
     return sts
 
 
-def act_per_db(oerp, ctx):
+def act_per_db(ctx):
     """Iter action on DBs"""
-    dblist = get_dblist(oerp)
+    dblist = get_dblist(ctx)
     if 'actions_db' in ctx:
         del ctx['actions_db']
     saved_actions = ctx['actions']
@@ -1030,19 +1037,19 @@ def act_per_db(oerp, ctx):
     db_ctr = 0
     for db in sorted(dblist):
         if re.match(ctx['dbfilter'], db):
-            ctx = init_db_ctx(oerp, ctx, db)
-            msg = ident_db(oerp, ctx, db)
+            ctx = init_db_ctx(ctx, db)
+            msg = ident_db(ctx, db)
             msg_log(ctx, ctx['level'], msg)
             if ctx['dbtypefilter']:
                 if ctx['db_type'] != ctx['dbtypefilter']:
                     msg = u"DB skipped by invalid db_type"
                     debug_msg_log(ctx, ctx['level'] + 1, msg)
                     continue
-            lgiuser = do_login(oerp, ctx)
+            lgiuser = do_login(ctx)
             if lgiuser:
                 db_ctr += 1
                 ctx['actions'] = saved_actions
-                sts = do_actions(oerp, ctx)
+                sts = do_actions(ctx)
             else:
                 sts = STS_FAILED
             if sts != STS_SUCCESS:
@@ -1054,41 +1061,41 @@ def act_per_db(oerp, ctx):
     return sts
 
 
-def act_per_company(oerp, ctx):
+def act_per_company(ctx):
     """iter on companies"""
     if 'actions_mc' in ctx:
         del ctx['actions_mc']
-    company_ids = get_companylist(oerp, ctx)
+    company_ids = get_companylist(ctx)
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for c_id in company_ids:
         company = browseL8(ctx, 'res.company', c_id)
         if re.match(ctx['companyfilter'], company.name):
-            ctx = init_company_ctx(oerp, ctx, c_id)
-            msg = ident_company(oerp, ctx, c_id)
+            ctx = init_company_ctx(ctx, c_id)
+            msg = ident_company(ctx, c_id)
             msg_log(ctx, ctx['level'], msg)
             ctx['actions'] = saved_actions
-            sts = do_actions(oerp, ctx)
+            sts = do_actions(ctx)
             if sts != STS_SUCCESS:
                 break
     return sts
 
 
-def act_per_user(oerp, ctx):
+def act_per_user(ctx):
     """iter on companies"""
     if 'actions_uu' in ctx:
         del ctx['actions_uu']
-    user_ids = get_userlist(oerp, ctx)
+    user_ids = get_userlist(ctx)
     saved_actions = ctx['actions']
     sts = STS_SUCCESS
     for u_id in user_ids:
         user = browseL8(ctx, 'res.users', u_id)
         if re.match(ctx['userfilter'], user.name):
-            ctx = init_user_ctx(oerp, ctx, user)
-            msg = ident_user(oerp, ctx, u_id)
+            ctx = init_user_ctx(ctx, user)
+            msg = ident_user(ctx, u_id)
             msg_log(ctx, ctx['level'], msg)
             ctx['actions'] = saved_actions
-            sts = do_actions(oerp, ctx)
+            sts = do_actions(ctx)
             ctx['def_company_id'] = ctx['company_id']
             ctx['def_company_name'] = ctx['company_name']
             if ctx.get('company_country_id', 0) != 0:
@@ -1098,7 +1105,7 @@ def act_per_user(oerp, ctx):
     return sts
 
 
-def act_execute(oerp, ctx):
+def act_execute(ctx):
     sts = STS_SUCCESS
     o_model = {}
     for p in ('model',
@@ -1106,7 +1113,9 @@ def act_execute(oerp, ctx):
               'model_name',
               'model_action',
               'model_keyids',
-              'hide_cid'):
+              'hide_cid',
+              'alias_model2',
+              'alias_field'):
         if p in ctx:
             o_model[p] = ctx[p]
     if not o_model.get('model_code') and not o_model.get('model_name'):
@@ -1141,7 +1150,7 @@ def act_execute(oerp, ctx):
     return sts
 
 
-def act_workflow(oerp, ctx):
+def act_workflow(ctx):
     sts = STS_SUCCESS
     o_model = {}
     for p in ('model',
@@ -1191,9 +1200,9 @@ def act_workflow(oerp, ctx):
             except BaseException:
                         pass
         try:
-            oerp.exec_workflow(o_model['model'],
-                               o_model['model_action'],
-                               id)
+            ctx['odoo_session'].exec_workflow(o_model['model'],
+                                              o_model['model_action'],
+                                              id)
         except BaseException:
             msg = 'Workflow (%s, %s, %d) Failed!' % (o_model['model'],
                                                      o_model['model_action'],
@@ -1203,7 +1212,7 @@ def act_workflow(oerp, ctx):
     return sts
 
 
-def act_update_modules(oerp, ctx):
+def act_update_modules(ctx):
     """Update module list on DB"""
     msg = u"Update module list"
     msg_log(ctx, ctx['level'], msg)
@@ -1219,7 +1228,7 @@ def act_update_modules(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_upgrade_modules(oerp, ctx):
+def act_upgrade_modules(ctx):
     """Upgrade module from list"""
     msg = u"Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
@@ -1239,7 +1248,7 @@ def act_upgrade_modules(oerp, ctx):
             if len(ids):
                 if cur_lang != 'en_US':
                     cur_lang = 'en_US'
-                    set_user_lang(oerp, cur_lang, ctx)
+                    set_user_lang(ctx, cur_lang)
                 try:
                     executeL8(ctx,
                               'ir.module.module',
@@ -1259,11 +1268,11 @@ def act_upgrade_modules(oerp, ctx):
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
-        set_user_lang(oerp, user_lang, ctx)
+        set_user_lang(ctx, user_lang)
     return sts
 
 
-def act_uninstall_modules(oerp, ctx):
+def act_uninstall_modules(ctx):
     """Uninstall module from list"""
     msg = u"Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
@@ -1284,7 +1293,7 @@ def act_uninstall_modules(oerp, ctx):
             if len(ids):
                 if cur_lang != 'en_US':
                     cur_lang = 'en_US'
-                    set_user_lang(oerp, cur_lang, ctx)
+                    set_user_lang(ctx, cur_lang)
                 try:
                     executeL8(ctx,
                               model,
@@ -1300,21 +1309,21 @@ def act_uninstall_modules(oerp, ctx):
             else:
                 msg = "Module {0} already uninstalled!".format(m)
                 msg_log(ctx, ctx['level'] + 1, msg)
-            ids = oerp.search(model,
-                              [('name', '=', m),
-                               ('state', '==', 'uninstalled')],
-                              context=context)
+            ids = ctx['odoo_session'].search(model,
+                                             [('name', '=', m),
+                                              ('state', '==', 'uninstalled')],
+                                             context=context)
             if len(ids):
                 unlinkL8(ctx, model, ids)
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
-        set_user_lang(oerp, user_lang, ctx)
+        set_user_lang(ctx, user_lang)
     return sts
 
 
-def act_install_modules(oerp, ctx):
+def act_install_modules(ctx):
     """Install modules from list"""
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
@@ -1335,7 +1344,7 @@ def act_install_modules(oerp, ctx):
             if len(ids):
                 if cur_lang != 'en_US':
                     cur_lang = 'en_US'
-                    set_user_lang(oerp, cur_lang, ctx)
+                    set_user_lang(ctx, cur_lang)
                 try:
                     executeL8(ctx,
                               model,
@@ -1362,11 +1371,11 @@ def act_install_modules(oerp, ctx):
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
     if cur_lang != user_lang:
-        set_user_lang(oerp, user_lang, ctx)
+        set_user_lang(ctx, user_lang)
     return sts
 
 
-def act_install_language(oerp, ctx):
+def act_install_language(ctx):
     """Install new language"""
     lang = ctx.get('lang', 'en_US')
     msg = u"Install language %s" % lang
@@ -1390,21 +1399,23 @@ def act_install_language(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_install_chart_of_account(oerp, ctx):
+def act_install_chart_of_account(ctx):
     """Install chart of account"""
     coa = ctx.get('chart_of_account',
                   'Italy - Piano dei conti Zeroincombenze(R)')
     msg = u"Install chart of account %s" % coa
     msg_log(ctx, ctx['level'], msg)
-    return install_chart_of_account(oerp, ctx, coa)
+    return install_chart_of_account(ctx, coa)
 
 
-def act_import_file(oerp, ctx):
+def act_import_file(ctx):
     o_model = {}
     for p in ('model',
               'model_code',
               'model_name',
-              'hide_cid'):
+              'hide_cid',
+              'alias_model2',
+              'alias_field'):
         if p in ctx:
             o_model[p] = ctx[p]
     if 'filename' in ctx:
@@ -1417,18 +1428,18 @@ def act_import_file(oerp, ctx):
         csv_fn = o_model['model'].replace('.', '_') + ".csv"
     msg = u"Import file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
-    return import_file(oerp, ctx, o_model, csv_fn)
+    return import_file(ctx, o_model, csv_fn)
 
 
-def act_import_config_file(oerp, ctx):
+def act_import_config_file(ctx):
     if 'filename' in ctx:
         csv_fn = ctx['filename']
     msg = u"Import config file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
-    return import_config_file(oerp, ctx, csv_fn)
+    return import_config_file(ctx, csv_fn)
 
 
-def act_check_coa(oerp, ctx):
+def act_check_coa(ctx):
     msg = u"Check for account reconcile"
     msg_log(ctx, ctx['level'], msg)
     model = 'account.account'
@@ -1449,7 +1460,7 @@ def act_check_coa(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_check_config(oerp, ctx):
+def act_check_config(ctx):
     if not ctx['dry_run'] and 'def_company_id' in ctx:
         if ctx['def_company_id'] is not None:
             msg = u"Check config"
@@ -1457,10 +1468,10 @@ def act_check_config(oerp, ctx):
 
             o_model = {}
             csv_fn = "sale-shop.csv"
-            import_file(oerp, ctx, o_model, csv_fn)
+            import_file(ctx, o_model, csv_fn)
 
 
-def act_check_partners(oerp, ctx):
+def act_check_partners(ctx):
     msg = u"Check for partners"
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
@@ -1513,21 +1524,20 @@ def act_check_partners(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_set_periods(oerp, ctx):
+def act_set_periods(ctx):
     msg = u"Set account periods "
     msg_log(ctx, ctx['level'], msg)
     model = 'account.fiscalyear'
     company_id = ctx['company_id']
     fiscalyear_id, process_it, last_name, last_start, last_stop = \
-        read_last_fiscalyear(oerp, company_id, ctx)
+        read_last_fiscalyear(company_id, ctx)
     if process_it and fiscalyear_id == 0:
         name, date_start, date_stop = \
-            evaluate_date_n_name(oerp,
+            evaluate_date_n_name(ctx,
                                  last_name,
                                  last_start,
                                  last_stop,
-                                 'year',
-                                 ctx)
+                                 'year')
         code = re.findall('[0-9./-]+', name)[0]
         fiscal_year_id = createL8(ctx, model, {'name': name,
                                                'code': code,
@@ -1536,18 +1546,17 @@ def act_set_periods(oerp, ctx):
                                                'company_id': company_id})
         msg = u"Added fiscalyear %s" % name
         msg_log(ctx, ctx['level'], msg)
-        add_periods(oerp,
+        add_periods(ctx,
                     company_id,
                     fiscal_year_id,
                     last_name,
                     last_start,
-                    last_stop,
-                    ctx)
-    set_journal_per_year(oerp, ctx)
+                    last_stop)
+    set_journal_per_year(ctx)
     return STS_SUCCESS
 
 
-def act_check_taxes(oerp, ctx):
+def act_check_taxes(ctx):
     msg = u"Check for taxes; period: " + \
         ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
@@ -1626,7 +1635,7 @@ def act_check_taxes(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_check_balance(oerp, ctx):
+def act_check_balance(ctx):
     msg = u"Check for balance; period: " + \
         ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
@@ -1848,31 +1857,28 @@ def act_check_balance(oerp, ctx):
     return STS_SUCCESS
 
 
-def act_recompute_tax_balance(oerp, ctx):
+def act_recompute_tax_balance(ctx):
     msg = u"Recompute tax balance"
     msg_log(ctx, ctx['level'], msg)
-    sts = recompute_tax_balance(oerp, ctx)
+    sts = recompute_tax_balance(ctx)
     return sts
 
 
-def act_recompute_balance(oerp, ctx):
+def act_recompute_balance(ctx):
     msg = u"Recompute balance"
     msg_log(ctx, ctx['level'], msg)
-    sts = recompute_balance(oerp, ctx)
+    sts = recompute_balance(ctx)
     return sts
 
 
-def act_set_4_cscs(oerp, ctx):
+def act_set_4_cscs(ctx):
     msg = u"Set for cscs"
     msg_log(ctx, ctx['level'], msg)
-    # sts = analyze_invoices(oerp, ctx, 'out_invoice')
-    # if sts == STS_SUCCESS:
-    #    sts = analyze_invoices(oerp, ctx, 'in_invoice')
-    sts = set_account_type(oerp, ctx)
+    sts = set_account_type(ctx)
     return sts
 
 
-def act_update_4_next_generation(oerp, ctx):
+def act_update_4_next_generation(ctx):
     msg = u"Upgrade next generation"
     msg_log(ctx, ctx['level'], msg)
     model = 'ir.module.module'
@@ -1883,13 +1889,13 @@ def act_update_4_next_generation(oerp, ctx):
             unlinkL8(ctx, model, [id])
         except BaseException:
             pass
-    sts = act_update_modules(oerp, ctx)
+    sts = act_update_modules(ctx)
     ids = searchL8(ctx, model, [])
     for id in ids:
-        module = oerp.read(model, [id], ['name', 'dependencies_id'])
+        module = ctx['odoo_session'].read(model, [id], ['name', 'dependencies_id'])
         if module[0]['dependencies_id']:
             for id2 in module[0]['dependencies_id']:
-                module2 = oerp.read(model2, [id2], ['name'])
+                module2 = ctx['odoo_session'].read(model2, [id2], ['name'])
                 if len(module2) == 0:
                     msg = 'dependency %d (%s) not found!' % (id2,
                                                              module[0]['name'])
@@ -1923,7 +1929,7 @@ def act_update_4_next_generation(oerp, ctx):
             del module_ids[ix]
             writeL8(ctx, model, [id], {'state': 'installed'})
             ctx['upgrade_modules'] = module
-            act_upgrade_modules(oerp, ctx)
+            act_upgrade_modules(ctx)
     again = True
     max_depth = 16
     msg = 'Analyzing all dependencies'
@@ -1937,16 +1943,16 @@ def act_update_4_next_generation(oerp, ctx):
             break
         noop = False
         for id in module_ids:
-            module = oerp.read(model, [id], ['name',
-                                             'state',
-                                             'dependencies_id'])
+            module = ctx['odoo_session'].read(model, [id], ['name',
+                                                            'state',
+                                                            'dependencies_id'])
             msg = 'Check for %s (%s)' % (module[0]['name'],
                                          module[0]['state'])
             msg_log(ctx, ctx['level'], msg)
             if module[0]['state'] != 'installed':
                 if module[0]['dependencies_id']:
                     for id2 in module[0]['dependencies_id']:
-                        module2 = oerp.read(model2, [id2], ['name', 'state'])
+                        module2 = ctx['odoo_session'].read(model2, [id2], ['name', 'state'])
                         if module2[0]['state'] != 'installed':
                             noop = True
                             break
@@ -1957,15 +1963,15 @@ def act_update_4_next_generation(oerp, ctx):
                 del module_ids[ix]
                 writeL8(ctx, model, [id], {'state': 'installed'})
                 ctx['upgrade_modules'] = module[0]['name']
-                act_upgrade_modules(oerp, ctx)
+                act_upgrade_modules(ctx)
                 again = True
     return sts
 
 
-def act_upgrade_l10n_it_base(oerp, ctx):
+def act_upgrade_l10n_it_base(ctx):
     msg = u"Upgrade module l10n_it_base"
     msg_log(ctx, ctx['level'], msg)
-    sts = act_update_modules(oerp, ctx)
+    sts = act_update_modules(ctx)
     model = 'ir.module.module'
     ids = searchL8(ctx, model,
                    [('name', 'in', ['l10n_it_base',
@@ -1992,8 +1998,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
                 l10n_it_bb_state = module_obj.state
             writeL8(ctx, model, [id], {'state': 'uninstalled'})
     if l10n_it_bb_state == 'installed' and l10n_it_base_state == 'installed':
-        sts = cvt_ur_ui_view(oerp,
-                             'l10n_it_bbone',
+        sts = cvt_ur_ui_view('l10n_it_bbone',
                              'l10n_it_base',
                              'res.city',
                              ctx)
@@ -2003,8 +2008,7 @@ def act_upgrade_l10n_it_base(oerp, ctx):
                       'res.country.state',
                       'res.province',
                       'res.city'):
-            sts = cvt_ir_model_data(oerp,
-                                    'l10n_it_bbone',
+            sts = cvt_ir_model_data('l10n_it_bbone',
                                     'l10n_it_base',
                                     model,
                                     ctx)
@@ -2014,10 +2018,10 @@ def act_upgrade_l10n_it_base(oerp, ctx):
         writeL8(ctx, model, [id], {'state': state})
     if l10n_it_base_state == 'installed':
         ctx['upgrade_modules'] = 'l10n_it_base'
-        sts = act_upgrade_modules(oerp, ctx)
+        sts = act_upgrade_modules(ctx)
     if l10n_it_bb_state == 'installed':
         ctx['upgrade_modules'] = 'l10n_it_bbone'
-        sts = act_upgrade_modules(oerp, ctx)
+        sts = act_upgrade_modules(ctx)
     ctx['upgrade_modules'] = ''
     s = ''
     for id in prior_state:
@@ -2029,11 +2033,11 @@ def act_upgrade_l10n_it_base(oerp, ctx):
             ctx['upgrade_modules'] += module_obj.name
             s = ','
     if ctx['upgrade_modules']:
-        sts = act_upgrade_modules(oerp, ctx)
+        sts = act_upgrade_modules(ctx)
     return sts
 
 
-def read_last_fiscalyear(oerp, company_id, ctx):
+def read_last_fiscalyear(company_id, ctx):
     model = 'account.fiscalyear'
     fiscalyear_ids = searchL8(ctx, model,
                               [('company_id', '=', company_id)])
@@ -2065,8 +2069,8 @@ def read_last_fiscalyear(oerp, company_id, ctx):
     return valid_fiscalyear_id, process_it, last_name, last_start, last_stop
 
 
-def add_periods(oerp, company_id, fiscalyear_id,
-                last_name, last_start, last_stop, ctx):
+def add_periods(ctx, company_id, fiscalyear_id,
+                last_name, last_start, last_stop):
     model = 'account.period'
     period_ids = searchL8(ctx, model,
                           [('company_id', '=', company_id),
@@ -2079,12 +2083,11 @@ def add_periods(oerp, company_id, fiscalyear_id,
         date_stop = period.date_stop
         special = period.special
         name, date_start, date_stop = \
-            evaluate_date_n_name(oerp,
+            evaluate_date_n_name(ctx,
                                  name,
                                  date_start,
                                  date_stop,
-                                 'period',
-                                 ctx)
+                                 'period')
         ids = searchL8(ctx, model,
                        [('company_id', '=', company_id),
                         ('date_start', '=', str(date_start)),
@@ -2103,7 +2106,7 @@ def add_periods(oerp, company_id, fiscalyear_id,
             msg_log(ctx, ctx['level'], msg)
 
 
-def set_journal_per_year(oerp, ctx):
+def set_journal_per_year(ctx):
     company_id = ctx['company_id']
     model = 'account.fiscalyear'
     fy_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
@@ -2187,7 +2190,7 @@ def set_journal_per_year(oerp, ctx):
                 writeL8(ctx, model, [id], vals)
 
 
-def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
+def evaluate_date_n_name(ctx, last_name, last_start, last_stop, yp):
     if yp == 'year':
         date_start = last_stop + timedelta(1)
     else:
@@ -2214,7 +2217,7 @@ def evaluate_date_n_name(oerp, last_name, last_start, last_stop, yp, ctx):
     return name, date_start, date_stop
 
 
-def get_payment_info(oerp, move_line, ctx):
+def get_payment_info(move_line, ctx):
     """Return move (header) and move_line (detail) ids of passed move line
     record and return payment state if needed to become draft
     """
@@ -2227,7 +2230,7 @@ def get_payment_info(oerp, move_line, ctx):
     return move_id, move_line_id, mov_state
 
 
-def get_reconcile_from_inv(oerp, inv_id, ctx):
+def get_reconcile_from_inv(inv_id, ctx):
     """Return a list of reconciled move lines of passed (included) invoice
     List may be used to set unreconcile all movements, set draft all of them,
     update something and then reconcile again all movements.
@@ -2259,7 +2262,7 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
                 reconciles.append(move_line_id)
         for move_line in account_invoice.payment_ids:
             move_id, move_line_id, mov_state = \
-                get_payment_info(oerp, move_line, ctx)
+                get_payment_info(move_line, ctx)
             reconciles.append(move_line_id)
             if mov_state:
                 move_dict[state].append(move_id)
@@ -2268,7 +2271,7 @@ def get_reconcile_from_inv(oerp, inv_id, ctx):
     return reconciles, move_dict
 
 
-def refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx):
+def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     """If invoice state is update to draft and returned to open, linked
     account move is changed. So move_id and all move_line_ids read by
     'get_reconcile_from_inv' and/or 'get_reconcile_list_from_move_line'
@@ -2330,7 +2333,7 @@ def get_user_lang(ctx):
     return get_res_users(ctx, user, 'lang')
 
 
-def set_user_lang(oerp, lang, ctx):
+def set_user_lang(ctx, lang):
     model = 'res.users'
     user_id = ctx.get('user_id', 1)
     user = browseL8(ctx, model, user_id)
@@ -2341,7 +2344,7 @@ def set_user_lang(oerp, lang, ctx):
     writeL8(ctx, 'res.users', user_id, {'lang': lang})
 
 
-def get_reconcile_list_from_move_line(oerp, move_line, ctx):
+def get_reconcile_list_from_move_line(move_line, ctx):
     """Like get_reconcile_from_inv but it is passed move_line id
     If move_line is not of an invoice, returned lists are empties.
     @param move_line: record of move_line (may be invoice or not)
@@ -2361,8 +2364,7 @@ def get_reconcile_list_from_move_line(oerp, move_line, ctx):
     if len(invoice_ids):
         for inv_id in invoice_ids:
             reconciles, inv_move_dict = \
-                get_reconcile_from_inv(oerp,
-                                       inv_id,
+                get_reconcile_from_inv(inv_id,
                                        ctx)
             for state in STATES_2_DRAFT:
                 if len(inv_move_dict[state]):
@@ -2374,15 +2376,14 @@ def get_reconcile_list_from_move_line(oerp, move_line, ctx):
             else:
                 reconcile_dict[inv_id] = reconciles
     else:
-        move_id, move_line_id, mov_state = get_payment_info(oerp,
-                                                            move_line,
+        move_id, move_line_id, mov_state = get_payment_info(move_line,
                                                             ctx)
         if mov_state:
             move_dict[mov_state].append(move_id)
     return reconcile_dict, move_dict
 
 
-def get_reconcile_from_invoices(oerp, invoices, ctx):
+def get_reconcile_from_invoices(invoices, ctx):
     """Search for payments of all invoices and return reconcile list
     List may be used to set unreconcile all movements, set draft all of them,
     update something and then reconcile again all movements.
@@ -2398,8 +2399,7 @@ def get_reconcile_from_invoices(oerp, invoices, ctx):
     if len(invoices):
         for inv_id in invoices:
             inv_reconciles, inv_move_dict = \
-                get_reconcile_from_inv(oerp,
-                                       inv_id,
+                get_reconcile_from_inv(inv_id,
                                        ctx)
             reconcile_dict[inv_id] = inv_reconciles
             for state in STATES_2_DRAFT:
@@ -2409,7 +2409,7 @@ def get_reconcile_from_invoices(oerp, invoices, ctx):
     return reconcile_dict, move_dict
 
 
-def upd_journals_ena_del(oerp, journals, ctx):
+def upd_journals_ena_del(journals, ctx):
     """Before set invoices to draft, invoice has to set in cancelled state.
     To do this, journal has to be enabled
     @param journals: journal list to enable update_posted
@@ -2428,7 +2428,7 @@ def upd_journals_ena_del(oerp, journals, ctx):
     return STS_SUCCESS
 
 
-def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
+def put_invoices_record_date(invoices, min_rec_date, ctx):
     """Update invoices (header) list/dictionary registration_date and period_id
     Notice:
         All invoices MUST be in draft or cancelled state
@@ -2439,7 +2439,7 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
     @ return: min record date
     """
     model = 'account.invoice'
-    invoice_model = oerp.get(model)
+    invoice_model = ctx['odoo_session'].get(model)
     list_keys = {}
     company_id = None
     journal_id = None
@@ -2530,7 +2530,7 @@ def put_invoices_record_date(oerp, invoices, min_rec_date, ctx):
     return min_rec_date
 
 
-def upd_invoices_2_cancel(oerp, move_dict, ctx):
+def upd_invoices_2_cancel(move_dict, ctx):
     """Set invoices (header) list/dictionary to cancel state.
     See upd_invoices_2_posted to return in posted state
     @ param move_dict: invoices (header) dictionary keyed on state or
@@ -2562,7 +2562,7 @@ def upd_invoices_2_cancel(oerp, move_dict, ctx):
     return STS_SUCCESS
 
 
-def upd_invoices_2_draft(oerp, move_dict, ctx):
+def upd_invoices_2_draft(move_dict, ctx):
     """Set invoices (header) list/dictionary to draft state.
     See upd_invoices_2_posted to return in posted state
     @ param move_dict: invoices (header) dictionary keyed on state or
@@ -2609,7 +2609,7 @@ def upd_invoices_2_draft(oerp, move_dict, ctx):
     return STS_SUCCESS
 
 
-def upd_invoices_2_posted(oerp, move_dict, ctx):
+def upd_invoices_2_posted(move_dict, ctx):
     """Set invoices (header) list/dictionary to posted state.
     See upd_invoices_2_draft  to set in draft state before execute this one.
     @ param move_dict: invoices (header) dictionary keyed on state or
@@ -2639,9 +2639,9 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
                 except BaseException:
                     pass
                 try:
-                    oerp.exec_workflow(model,
-                                       'invoice_open',
-                                       inv_id)
+                    ctx['odoo_session'].exec_workflow(model,
+                                                      'invoice_open',
+                                                      inv_id)
                 except BaseException:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
@@ -2649,7 +2649,7 @@ def upd_invoices_2_posted(oerp, move_dict, ctx):
     return sts
 
 
-def upd_payments_2_draft(oerp, move_dict, ctx):
+def upd_payments_2_draft(move_dict, ctx):
     """Set payments (header) list/dictionary to draft state.
     See upd_payments_2_posted to return in posted state
     @ param move_dict: payments (header) dictionary keyed on state or
@@ -2676,7 +2676,7 @@ def upd_payments_2_draft(oerp, move_dict, ctx):
     return STS_SUCCESS
 
 
-def upd_payments_2_posted(oerp, move_dict, ctx):
+def upd_payments_2_posted(move_dict, ctx):
     """Set payments (header) list/dictionary to posted state.
     See upd_payments_2_draft  to set in draft state before execute this one.
     @ param move_dict: payments (header) dictionary keyed on state or
@@ -2703,33 +2703,33 @@ def upd_payments_2_posted(oerp, move_dict, ctx):
     return STS_SUCCESS
 
 
-def upd_movements_2_draft(oerp, move_dict, ctx):
+def upd_movements_2_draft(move_dict, ctx):
     """Set invoice and payments (header) dict to draft state.
     See upd_movements_2_posted to return in posted state
     Notice: do not pass a list (like called functions); dictionary is needed
     to recognize invoices from payments.
     @param move_dict: invoices & payments (header) dictionary keyed on state
     """
-    sts = upd_payments_2_draft(oerp, move_dict, ctx)
+    sts = upd_payments_2_draft(move_dict, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_invoices_2_draft(oerp, move_dict, ctx)
+        sts = upd_invoices_2_draft(move_dict, ctx)
     return sts
 
 
-def upd_movements_2_posted(oerp, move_dict, ctx):
+def upd_movements_2_posted(move_dict, ctx):
     """Set invoice and payments (header) dict to posted state.
     See upd_movements_2_draft to set in draft state before execute this one.
     Notice: do not pass a list (like called functions); dictionary is needed
     to recognize invoices from payments.
     @param move_dict: invoices & payments (header) dictionary keyed on state
     """
-    sts = upd_invoices_2_posted(oerp, move_dict, ctx)
+    sts = upd_invoices_2_posted(move_dict, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_payments_2_posted(oerp, move_dict, ctx)
+        sts = upd_payments_2_posted(move_dict, ctx)
     return sts
 
 
-def unreconcile_invoices(oerp, reconcile_dict, ctx):
+def unreconcile_invoices(reconcile_dict, ctx):
     for inv_id in reconcile_dict:
         # msg = u"Unreconcile invoice %d" % inv_id
         # msg_log(ctx, ctx['level'], msg)
@@ -2747,7 +2747,7 @@ def unreconcile_invoices(oerp, reconcile_dict, ctx):
     return STS_SUCCESS
 
 
-def unreconcile_payments(oerp, ctx):
+def unreconcile_payments(ctx):
     msg = u"Unreconcile payments"
     msg_log(ctx, ctx['level'], msg)
     reconcile_list = searchL8(ctx, 'account.move.line',
@@ -2766,7 +2766,7 @@ def unreconcile_payments(oerp, ctx):
     return STS_SUCCESS
 
 
-def reconcile_invoices(oerp, reconcile_dict, ctx):
+def reconcile_invoices(reconcile_dict, ctx):
     for inv_id in reconcile_dict:
         msg = u"Reconcile invoice %d" % inv_id
         msg_log(ctx, ctx['level'], msg)
@@ -2777,10 +2777,6 @@ def reconcile_invoices(oerp, reconcile_dict, ctx):
                       'trans_rec_reconcile_partial_reconcile',
                       None,
                       context)
-            # executeL8(oerp, ctx, 'account.move.line',
-            #              'reconcile',
-            #              reconcile_dict[inv_id],
-            #              'manual')
         except BaseException:
             msg = u"Cannot reconcile invoice of %d" % inv_id
             msg_log(ctx, ctx['level'], msg)
@@ -2788,7 +2784,7 @@ def reconcile_invoices(oerp, reconcile_dict, ctx):
     return STS_SUCCESS
 
 
-def upd_acc_2_bank(oerp, accounts, ctx):
+def upd_acc_2_bank(accounts, ctx):
     if len(accounts):
         vals = {}
         vals['type'] = 'liquidity'
@@ -2804,7 +2800,7 @@ def upd_acc_2_bank(oerp, accounts, ctx):
     return STS_SUCCESS
 
 
-def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
+def cvt_ur_ui_view(old_module, new_module, model_name, ctx):
     model = 'ir.ui.view'
     # name = old_module + '.%'
     id1 = searchL8(ctx, model, [('xml_id', '=like', old_module),
@@ -2830,7 +2826,7 @@ def cvt_ur_ui_view(oerp, old_module, new_module, model_name, ctx):
     return STS_SUCCESS
 
 
-def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
+def cvt_ir_model_data(old_module, new_module, model_name, ctx):
     model = 'ir.model.data'
     ids = searchL8(ctx, model, [('module', '=', old_module),
                                 ('model', '=', model_name)])
@@ -2891,7 +2887,7 @@ def cvt_ir_model_data(oerp, old_module, new_module, model_name, ctx):
     return STS_SUCCESS
 
 
-def set_account_type(oerp, ctx):
+def set_account_type(ctx):
     """Read all account movements and correct account type if wrong
     If needed
     1. unreconcile invoices,
@@ -2949,7 +2945,7 @@ def set_account_type(oerp, ctx):
                 if journal_id not in journals:
                     journals.append(journal_id)
             inv_reconcile_dict, inv_move_dict = \
-                get_reconcile_list_from_move_line(oerp, move_line, ctx)
+                get_reconcile_list_from_move_line(move_line, ctx)
             for inv_id in inv_reconcile_dict:
                 if inv_id in reconcile_dict:
                     reconcile_dict[inv_id] = \
@@ -2961,26 +2957,24 @@ def set_account_type(oerp, ctx):
                 if len(inv_move_dict[state]):
                     move_dict[state] = list(set(move_dict[state]) |
                                             set(inv_move_dict[state]))
-    sts = upd_journals_ena_del(oerp, journals, ctx)
+    sts = upd_journals_ena_del(journals, ctx)
     if sts == STS_SUCCESS:
-        sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
+        sts = unreconcile_invoices(reconcile_dict, ctx)
     if sts == STS_SUCCESS:
-        sts = upd_movements_2_draft(oerp, move_dict, ctx)
-    # if sts == STS_SUCCESS:
-    #     sts = upd_acc_2_bank(oerp, accounts, ctx)
+        sts = upd_movements_2_draft(move_dict, ctx)
     raw_input('Press RET to continue')
     if sts == STS_SUCCESS:
-        sts = upd_movements_2_posted(oerp, move_dict, ctx)
+        sts = upd_movements_2_posted(move_dict, ctx)
         if sts == STS_SUCCESS:
             for inv_id in reconcile_dict:
                 reconciles = reconcile_dict[inv_id]
                 new_reconciles, new_reconcile_dict = \
-                    refresh_reconcile_from_inv(oerp, inv_id, reconciles, ctx)
-                sts = reconcile_invoices(oerp, new_reconcile_dict, ctx)
+                    refresh_reconcile_from_inv(inv_id, reconciles, ctx)
+                sts = reconcile_invoices(new_reconcile_dict, ctx)
     return sts
 
 
-def recompute_tax_balance(oerp, ctx):
+def recompute_tax_balance(ctx):
     sts = STS_SUCCESS
     company_id = ctx['company_id']
     model = 'account.period'
@@ -3007,9 +3001,9 @@ def recompute_tax_balance(oerp, ctx):
         msg_burst(ctx['level'], "Processing ", move_ctr, num_moves)
         rec_ids = [invoice_id]
         reconcile_dict, move_dict = get_reconcile_from_invoices(
-            oerp, rec_ids, ctx)
-        unreconcile_invoices(oerp, reconcile_dict, ctx)
-        upd_invoices_2_draft(oerp, move_dict, ctx)
+            rec_ids, ctx)
+        unreconcile_invoices(reconcile_dict, ctx)
+        upd_invoices_2_draft(move_dict, ctx)
         line_ids = searchL8(ctx, model2,
                             [('invoice_id', '=', invoice_id)])
         if ctx['custom_act'] == 'cscs':
@@ -3025,17 +3019,15 @@ def recompute_tax_balance(oerp, ctx):
                     if tax:
                         writeL8(ctx, model2, [line_id],
                                 {'invoice_line_tax_id': tax})
-        upd_invoices_2_posted(oerp, move_dict, ctx)
+        upd_invoices_2_posted(move_dict, ctx)
         reconciles = reconcile_dict[invoice_id]
         if len(reconciles):
             try:
                 cur_reconciles, cur_reconcile_dict = \
-                    refresh_reconcile_from_inv(oerp,
-                                               invoice_id,
+                    refresh_reconcile_from_inv(invoice_id,
                                                reconciles,
                                                ctx)
-                reconcile_invoices(oerp,
-                                   cur_reconcile_dict,
+                reconcile_invoices(cur_reconcile_dict,
                                    ctx)
             except BaseException:
                 msg = u"**** Warning invoice %d ****" % invoice_id
@@ -3043,7 +3035,7 @@ def recompute_tax_balance(oerp, ctx):
     return sts
 
 
-def recompute_balance(oerp, ctx):
+def recompute_balance(ctx):
     company_id = ctx['company_id']
     model = 'account.period'
     period_ids = searchL8(ctx, model,
@@ -3083,17 +3075,16 @@ def recompute_balance(oerp, ctx):
     return STS_SUCCESS
 
 
-def append_2_where(oerp, model, code, op, value, where, ctx):
+def append_2_where(model, code, op, value, where, ctx):
     where.append((code, op, value))
     return where
 
 
-def build_where(oerp, model, hide_cid, exclusion, ctx):
+def build_where(model, hide_cid, exclusion, ctx):
     where = []
     if not hide_cid and 'company_id' in ctx:
         company_id = ctx['company_id']
-        where = append_2_where(oerp,
-                               model,
+        where = append_2_where(model,
                                'company_id',
                                '=',
                                company_id,
@@ -3104,8 +3095,7 @@ def build_where(oerp, model, hide_cid, exclusion, ctx):
             code = rule[0]
             op = rule[1]
             value = rule[2]
-            where = append_2_where(oerp,
-                                   model,
+            where = append_2_where(model,
                                    code,
                                    op,
                                    value,
@@ -3122,7 +3112,7 @@ def sql_where(code, op, value):
     return query
 
 
-def build_sql_where(oerp, model, hide_cid, exclusion, where, ctx):
+def build_sql_where(model, hide_cid, exclusion, where, ctx):
     query = ''
     if not hide_cid and 'company_id' in ctx:
         company_id = ctx['company_id']
@@ -3148,7 +3138,7 @@ def build_sql_where(oerp, model, hide_cid, exclusion, where, ctx):
     return query
 
 
-def build_exclusion(oerp, model, records2keep, ctx):
+def build_exclusion(model, records2keep, ctx):
     exclusion = None
     if model in records2keep:
         if isinstance(records2keep[model], list):
@@ -3158,13 +3148,13 @@ def build_exclusion(oerp, model, records2keep, ctx):
     return exclusion
 
 
-def workflow_model_all_records(oerp, model, hide_cid, signal, ctx,
+def workflow_model_all_records(model, hide_cid, signal, ctx,
                                exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to execute workflow in %s" % model
     msg_log(ctx, ctx['level'], msg)
-    where = build_where(oerp, model, hide_cid, exclusion, ctx)
+    where = build_where(model, hide_cid, exclusion, ctx)
     record_ids = searchL8(ctx, model, where)
     if not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
@@ -3173,7 +3163,7 @@ def workflow_model_all_records(oerp, model, hide_cid, signal, ctx,
             msg_burst(ctx['level'], "Upstate ", move_ctr, num_moves)
             move_ctr += 1
             try:
-                oerp.exec_workflow(model, signal, record_id)
+                ctx['odoo_session'].exec_workflow(model, signal, record_id)
             except BaseException:
                 msg = u"Workflow of %s.%d do not executed" % (model, record_id)
                 msg_log(ctx, ctx['level'], msg)
@@ -3184,16 +3174,15 @@ def workflow_model_all_records(oerp, model, hide_cid, signal, ctx,
     return sts
 
 
-def setstate_model_all_records(oerp, model, hide_cid, field_name,
+def setstate_model_all_records(model, hide_cid, field_name,
                                new_value, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to update status in %s" % model
     msg_log(ctx, ctx['level'], msg)
-    where = build_where(oerp, model, hide_cid, exclusion, ctx)
+    where = build_where(model, hide_cid, exclusion, ctx)
     if validate_field(ctx, model, field_name):
-        where = append_2_where(oerp,
-                               model,
+        where = append_2_where(model,
                                field_name,
                                '!=',
                                new_value,
@@ -3271,17 +3260,16 @@ def setstate_model_all_records(oerp, model, hide_cid, field_name,
     return sts
 
 
-def reactivate_model_all_records(oerp, model, hide_cid, field_name,
+def reactivate_model_all_records(model, hide_cid, field_name,
                                  sel_value, new_value, ctx,
                                  exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to reactivate in %s" % model
     msg_log(ctx, ctx['level'], msg)
-    where = build_where(oerp, model, hide_cid, exclusion, ctx)
+    where = build_where(model, hide_cid, exclusion, ctx)
     if validate_field(ctx, model, field_name):
-        where = append_2_where(oerp,
-                               model,
+        where = append_2_where(model,
                                field_name,
                                '=',
                                sel_value,
@@ -3318,19 +3306,18 @@ def reactivate_model_all_records(oerp, model, hide_cid, field_name,
     return sts
 
 
-def deactivate_model_all_records(oerp, model, hide_cid, ctx,
+def deactivate_model_all_records(model, hide_cid, ctx,
                                  exclusion=None, reverse=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     if reverse is None:
         reverse = False
     if validate_field(ctx, model, 'active'):
-        where = build_where(oerp, model, hide_cid, exclusion, ctx)
+        where = build_where(model, hide_cid, exclusion, ctx)
         if reverse:
             msg = u"Searching for records to reactivate in %s" % model
             msg_log(ctx, ctx['level'], msg)
-            where = append_2_where(oerp,
-                                   model,
+            where = append_2_where(model,
                                    'active',
                                    '=',
                                    False,
@@ -3340,8 +3327,7 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx,
         else:
             msg = u"Searching for records to cancel in %s" % model
             msg_log(ctx, ctx['level'], msg)
-            where = append_2_where(oerp,
-                                   model,
+            where = append_2_where(model,
                                    'active',
                                    '=',
                                    True,
@@ -3365,9 +3351,9 @@ def deactivate_model_all_records(oerp, model, hide_cid, ctx,
     return sts
 
 
-def hard_del_sql(oerp, model, hide_cid, ctx, where=None, exclusion=None):
+def hard_del_sql(model, hide_cid, ctx, where=None, exclusion=None):
     if ctx.get('_cr'):
-        query = build_sql_where(oerp, model, hide_cid, exclusion, where, ctx)
+        query = build_sql_where(model, hide_cid, exclusion, where, ctx)
         incr_lev(ctx)
         msg = u">>>%s" % query
         msg_log(ctx, ctx['level'], msg)
@@ -3375,13 +3361,13 @@ def hard_del_sql(oerp, model, hide_cid, ctx, where=None, exclusion=None):
         ctx['_cr'].execute(query)
 
 
-def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
+def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
     sts = STS_SUCCESS
     incr_lev(ctx)
     msg = u"Searching for records to delete in %s" % model
     msg_log(ctx, ctx['level'], msg)
     writelog(model, model, exclusion)
-    where = build_where(oerp, model, hide_cid, exclusion, ctx)
+    where = build_where(model, hide_cid, exclusion, ctx)
     record_ids = searchL8(ctx, model, where)
     if not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
@@ -3400,18 +3386,18 @@ def remove_model_all_records(oerp, model, hide_cid, ctx, exclusion=None):
                     break
 
         if model == 'project.project':
-            hard_del_sql(oerp, model, hide_cid, ctx,
+            hard_del_sql(model, hide_cid, ctx,
                          where="state='cancelled'",
                          exclusion=exclusion)
     decr_lev(ctx)
     return sts
 
 
-def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
+def remove_group_records(models, records2keep, ctx, hide_cid=None,
                          special=None, specparams=None, tables2save=None):
     sts = STS_SUCCESS
     for xmodel in models:
-        exclusion = build_exclusion(oerp, xmodel, records2keep, ctx)
+        exclusion = build_exclusion(xmodel, records2keep, ctx)
         act = None
         if xmodel.endswith('.2') or \
                 xmodel.endswith('.3') or \
@@ -3428,8 +3414,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
             if special and xmodel in special:
                 act = special[xmodel]
                 if act == 'deactivate':
-                    sts = deactivate_model_all_records(oerp,
-                                                       model,
+                    sts = deactivate_model_all_records(model,
                                                        hide_cid,
                                                        ctx,
                                                        exclusion=exclusion,
@@ -3439,8 +3424,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                         field_name = specparams[xmodel][0]
                         sel_value = specparams[xmodel][1]
                         new_value = specparams[xmodel][2]
-                        sts = reactivate_model_all_records(oerp,
-                                                           model,
+                        sts = reactivate_model_all_records(model,
                                                            hide_cid,
                                                            field_name,
                                                            sel_value,
@@ -3456,8 +3440,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                     if specparams and xmodel in specparams:
                         field_name = specparams[xmodel][0]
                         sel_value = specparams[xmodel][1]
-                        sts = setstate_model_all_records(oerp,
-                                                         model,
+                        sts = setstate_model_all_records(model,
                                                          hide_cid,
                                                          field_name,
                                                          sel_value,
@@ -3471,8 +3454,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                 elif act == 'wf':
                     if specparams and xmodel in specparams:
                         signal = specparams[xmodel]
-                        sts = workflow_model_all_records(oerp,
-                                                         model,
+                        sts = workflow_model_all_records(model,
                                                          hide_cid,
                                                          signal,
                                                          ctx,
@@ -3489,9 +3471,8 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
         if sts == STS_SUCCESS and \
                 ctx['custom_act'] == 'cscs' and \
                 model == 'project.project':
-            where = build_where(oerp, model, hide_cid, exclusion, ctx)
-            where = append_2_where(oerp,
-                                   model,
+            where = build_where(model, hide_cid, exclusion, ctx)
+            where = append_2_where(model,
                                    'x_stakeholders',
                                    '!=',
                                    False,
@@ -3502,7 +3483,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                 writeL8(ctx, model,
                         record_ids,
                         {'x_stakeholders': [(5, 0)]})
-            where = build_where(oerp, model, hide_cid, exclusion, ctx)
+            where = build_where(model, hide_cid, exclusion, ctx)
             record_ids = searchL8(ctx, model, where)
             if len(record_ids):
                 for record_id in record_ids:
@@ -3522,7 +3503,7 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                     except BaseException:
                         pass
         if sts == STS_SUCCESS and model == 'account.move' and model == xmodel:
-            unreconcile_payments(oerp, ctx)
+            unreconcile_payments(ctx)
         if sts == STS_SUCCESS and model == xmodel:
             if model == 'account.fiscalyear':
                 company_id = ctx['company_id']
@@ -3533,11 +3514,10 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                 exclusion = [('company_id', '!=', company_id),
                              ('code', 'not like',
                               str(date.today().year))]
-            sts = remove_model_all_records(oerp, model, hide_cid, ctx,
+            sts = remove_model_all_records(model, hide_cid, ctx,
                                            exclusion=exclusion)
         if sts == STS_SUCCESS and act == 'deactivate':
-            sts = deactivate_model_all_records(oerp,
-                                               model,
+            sts = deactivate_model_all_records(model,
                                                hide_cid,
                                                ctx,
                                                exclusion=exclusion)
@@ -3546,14 +3526,14 @@ def remove_group_records(oerp, models, records2keep, ctx, hide_cid=None,
                      'purchase.order',
                      'sale.order',):
             if model == 'purchase.order':
-                hard_del_sql(oerp, 'purchase.order.line', hide_cid, ctx)
+                hard_del_sql('purchase.order.line', hide_cid, ctx)
             elif model == 'sale.order':
-                hard_del_sql(oerp, 'sale.order.line', hide_cid, ctx)
-            hard_del_sql(oerp, model, hide_cid, ctx, exclusion=exclusion)
+                hard_del_sql('sale.order.line', hide_cid, ctx)
+            hard_del_sql(model, hide_cid, ctx, exclusion=exclusion)
     return sts
 
 
-def set_server_isolated(oerp, ctx):
+def set_server_isolated(ctx):
     """Isolate server to avoid notification mail for some events
     like remove tasks
     """
@@ -3561,17 +3541,17 @@ def set_server_isolated(oerp, ctx):
     if not ctx['dry_run']:
         if sts == STS_SUCCESS:
             model = 'fetchmail.server'
-            sts = deactivate_model_all_records(oerp, model, True, ctx)
+            sts = deactivate_model_all_records(model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'ir.mail_server'
-            sts = deactivate_model_all_records(oerp, model, True, ctx)
+            sts = deactivate_model_all_records(model, True, ctx)
         if sts == STS_SUCCESS:
             model = 'mail.followers'
-            sts = remove_model_all_records(oerp, model, True, ctx)
+            sts = remove_model_all_records(model, True, ctx)
     return sts
 
 
-def reset_sequence(oerp, ctx):
+def reset_sequence(ctx):
     sts = STS_SUCCESS
     incr_lev(ctx)
     model = 'ir.sequence'
@@ -3579,7 +3559,7 @@ def reset_sequence(oerp, ctx):
     msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         exclusion = [('company_id', '!=', 1)]
-        remove_model_all_records(oerp, model, True, ctx, exclusion=exclusion)
+        remove_model_all_records(model, True, ctx, exclusion=exclusion)
     record_ids = searchL8(ctx, model, [])
     if not ctx['dry_run']:
         for record_id in record_ids:
@@ -3607,7 +3587,7 @@ def reset_sequence(oerp, ctx):
     return sts
 
 
-def reset_menuitem(oerp, ctx):
+def reset_menuitem(ctx):
     sts = STS_SUCCESS
     incr_lev(ctx)
     model = 'ir.ui.menu'
@@ -3630,7 +3610,7 @@ def reset_menuitem(oerp, ctx):
     return sts
 
 
-def validate_models(oerp, ctx, models):
+def validate_models(ctx, models):
     cur_models = []
     for model in models:
         if searchL8(ctx, 'ir.model', [('model', '=', model)]):
@@ -3638,73 +3618,73 @@ def validate_models(oerp, ctx, models):
     return cur_models
 
 
-def remove_company_mail_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('ir.attachment',))
+def remove_company_mail_records(ctx):
+    models = validate_models(ctx, ('ir.attachment',))
     records2keep = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False)
     return sts
 
 
-def remove_all_mail_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('mail.message',
-                                         'mail.mail',
-                                         'mail.notification',
-                                         'mail.alias',
-                                         ))
+def remove_all_mail_records(ctx):
+    models = validate_models(ctx, ('mail.message',
+                                   'mail.mail',
+                                   'mail.notification',
+                                   'mail.alias',
+                                   ))
     records2keep = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True)
     return sts
 
 
-def remove_all_note_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('note.stage',
-                                         'note.note',
-                                         'document.page',
+def remove_all_note_records(ctx):
+    models = validate_models(ctx, ('note.stage',
+                                   'note.note',
+                                   'document.page',
                                          ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'note.stage': 8}
     else:
         records2keep = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True)
     return sts
 
 
-def remove_company_crm_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('crm.lead',
-                                         'crm.helpdesk',
-                                         'crm.phonecall',
-                                         ))
+def remove_company_crm_records(ctx):
+    models = validate_models(ctx, ('crm.lead',
+                                   'crm.helpdesk',
+                                   'crm.phonecall',
+                                   ))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False, special=special)
     return sts
 
 
-def remove_all_crm_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('crm.meeting',
-                                         'calendar.event',
-                                         'calendar.todo',
-                                         ))
+def remove_all_crm_records(ctx):
+    models = validate_models(ctx, ('crm.meeting',
+                                   'calendar.event',
+                                   'calendar.todo',
+                                   ))
     records2keep = {}
     special = {'crm.lead': 'deactivate'}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False, special=special)
 
     return sts
 
 
-def remove_company_purchases_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('procurement.order',
-                                         'purchase.order.2',
-                                         'purchase.order',
-                                         'purchase.requisition',
-                                         'product.pricelist.version',
-                                         'product.pricelist',
-                                         ))
+def remove_company_purchases_records(ctx):
+    models = validate_models(ctx, ('procurement.order',
+                                   'purchase.order.2',
+                                   'purchase.order',
+                                   'purchase.requisition',
+                                   'product.pricelist.version',
+                                   'product.pricelist',
+                                   ))
     records2keep = {}
     special = {'procurement.order': 'reactivate',
                'procurement.order.2': 'set_state',
@@ -3718,47 +3698,47 @@ def remove_company_purchases_records(oerp, ctx):
                   'purchase.order': ('state', 'cancel'),
                   'purchase.requisition': ('state', 'cancel'),
                   }
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_purchases_records(oerp, ctx):
+def remove_all_purchases_records(ctx):
     sts = STS_SUCCESS
     return sts
 
 
-def remove_company_sales_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('sale.order',
-                                         'sale.shop',
-                                         ))
+def remove_company_sales_records(ctx):
+    models = validate_models(ctx, ('sale.order',
+                                   'sale.shop',
+                                   ))
     records2keep = {'sale.shop': 1}
     special = {'sale.order': 'set_state',
                }
     specparams = {'sale.order': ('state', 'cancel'),
                   }
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_sales_records(oerp, ctx):
+def remove_all_sales_records(ctx):
     sts = STS_SUCCESS
     return sts
 
 
-def remove_company_logistic_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('stock.picking.out',
-                                         'stock.picking.in',
-                                         'stock.picking',
-                                         'stock.move',
-                                         'stock.location',
-                                         'stock.warehouse',
-                                         ))
+def remove_company_logistic_records(ctx):
+    models = validate_models(ctx, ('stock.picking.out',
+                                    'stock.picking.in',
+                                    'stock.picking',
+                                    'stock.move',
+                                    'stock.location',
+                                    'stock.warehouse',
+                                    ))
     records2keep = {}
     special = {'stock.picking.out': 'reactivate',
                'stock.picking.in': 'reactivate',
@@ -3776,7 +3756,7 @@ def remove_company_logistic_records(oerp, ctx):
                        )
     else:
         tables2save = None
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams,
@@ -3784,16 +3764,16 @@ def remove_company_logistic_records(oerp, ctx):
     return sts
 
 
-def remove_all_logistic_records(oerp, ctx):
+def remove_all_logistic_records(ctx):
     sts = STS_SUCCESS
     return sts
 
 
-def remove_company_project_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('project.task.work',
-                                         'project.task',
-                                         'account.analytic.line'
-                                         ))
+def remove_company_project_records(ctx):
+    models = validate_models(ctx, ('project.task.work',
+                                   'project.task',
+                                   'account.analytic.line'
+                                   ))
     records2keep = {}
     if ctx['custom_act'] == 'cscs':
         model = 'project.task'
@@ -3808,15 +3788,15 @@ def remove_company_project_records(oerp, ctx):
     else:
         special = {}
         specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_project_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('survey.page',
+def remove_all_project_records(ctx):
+    models = validate_models(ctx, ('survey.page',
                                          'survey.request',
                                          'survey',
                                          'project.phase'
@@ -3844,42 +3824,42 @@ def remove_all_project_records(oerp, ctx):
         specparams = {'project.project.2': ('state', 'close', 'set_open'),
                       'project.project': ('state', 'cancelled')
                       }
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_company_marketing_records(oerp, ctx):
+def remove_company_marketing_records(ctx):
     sts = STS_SUCCESS
     return sts
 
 
-def remove_all_marketing_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('marketing.campaign.workitem',
-                                         'marketing.campaign.segment',
-                                         'marketing.campaign',
-                                         'booking.resource',
-                                         'campaign.analysis',
-                                         ))
+def remove_all_marketing_records(ctx):
+    models = validate_models(ctx, ('marketing.campaign.workitem',
+                                   'marketing.campaign.segment',
+                                   'marketing.campaign',
+                                   'booking.resource',
+                                   'campaign.analysis',
+                                   ))
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_company_hr_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('hr.expense.expense.2',
-                                         'hr.expense.expense.3',
-                                         'hr.expense.expense.4',
-                                         'hr.expense.expense.5',
-                                         'hr.expense.expense',
-                                         ))
+def remove_company_hr_records(ctx):
+    models = validate_models(ctx, ('hr.expense.expense.2',
+                                   'hr.expense.expense.3',
+                                   'hr.expense.expense.4',
+                                   'hr.expense.expense.5',
+                                   'hr.expense.expense',
+                                   ))
     records2keep = {}
     special = {'hr.expense.expense.2': 'wf',
                'hr.expense.expense.3': 'wf',
@@ -3893,55 +3873,55 @@ def remove_company_hr_records(oerp, ctx):
                   'hr.expense.expense.5': 'state_draft_set',
                   'hr.expense.expense': ('state', 'draft'),
                   }
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_hr_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('hr_timesheet_sheet.sheet.account',
-                                         'hr_timesheet_sheet.sheet',
-                                         'hr.analytic.timesheet',
-                                         'hr.expense.line',
-                                         'hr.contract',
-                                         'hr.holidays',
-                                         'hr.payslip',
-                                         'hr.attendance',
-                                         'hr.applicant',
-                                         'hr.department',
-                                         'hr.employee',
-                                         ))
+def remove_all_hr_records(ctx):
+    models = validate_models(ctx, ('hr_timesheet_sheet.sheet.account',
+                                   'hr_timesheet_sheet.sheet',
+                                   'hr.analytic.timesheet',
+                                   'hr.expense.line',
+                                   'hr.contract',
+                                   'hr.holidays',
+                                   'hr.payslip',
+                                   'hr.attendance',
+                                   'hr.applicant',
+                                   'hr.department',
+                                   'hr.employee',
+                                   ))
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_company_product_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('product.template',
-                                         ))
+def remove_company_product_records(ctx):
+    models = validate_models(ctx, ('product.template',
+                                   ))
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_product_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('product.category',
-                                         'product.uom.categ',
-                                         'product.uom',
-                                         'product.product',
-                                         ))
+def remove_all_product_records(ctx):
+    models = validate_models(ctx, ('product.category',
+                                   'product.uom.categ',
+                                   'product.uom',
+                                   'product.product',
+                                   ))
     records2keep = {}
     special = {}
     specparams = {}
@@ -3953,7 +3933,7 @@ def remove_all_product_records(oerp, ctx):
                        )
     else:
         tables2save = None
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=True,
                                special=special,
                                specparams=specparams,
@@ -3961,10 +3941,10 @@ def remove_all_product_records(oerp, ctx):
     return sts
 
 
-def remove_company_partner_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('res.partner.bank',
-                                         'res.partner',
-                                         ))
+def remove_company_partner_records(ctx):
+    models = validate_models(ctx, ('res.partner.bank',
+                                   'res.partner',
+                                   ))
     company_id = ctx['company_id']
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33523, 33783,
@@ -3977,65 +3957,65 @@ def remove_company_partner_records(oerp, ctx):
                         }
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_company_analytics_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('account.analytic.account',
-                                         'account.analytic.journal',
-                                         ))
+def remove_company_analytics_records(ctx):
+    models = validate_models(ctx, ('account.analytic.account',
+                                   'account.analytic.journal',
+                                   ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'account.analytic.account': (48, 3932)}
     else:
         records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_partner_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('res.partner.category',
-                                         'res.partner'
-                                         ))
+def remove_all_partner_records(ctx):
+    models = validate_models(ctx, ('res.partner.category',
+                                   'res.partner'
+                                   ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.partner': (1, 3, 4, 5, 33890, 33523, 33783)}
     else:
         records2keep = {'res.partner': 1}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_all_user_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('ir.default',
-                                         'res.users',
-                                         ))
+def remove_all_user_records(ctx):
+    models = validate_models(ctx, ('ir.default',
+                                   'res.users',
+                                   ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'res.users': (1, 4, 95)}
     else:
         records2keep = {'res.users': 1}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def remove_company_account_records(oerp, ctx):
+def remove_company_account_records(ctx):
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         company_id = ctx['company_id']
@@ -4048,10 +4028,9 @@ def remove_company_account_records(oerp, ctx):
                                    '|',
                                    ('state', '=', 'paid'),
                                    ('state', '=', 'open')])
-            reconcile_dict, move_dict = get_reconcile_from_invoices(oerp,
-                                                                    record_ids,
+            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids,
                                                                     ctx)
-            sts = unreconcile_invoices(oerp, reconcile_dict, ctx)
+            sts = unreconcile_invoices(reconcile_dict, ctx)
         if sts == STS_SUCCESS:
             msg = u"Setting invoices to cancel state"
             msg_log(ctx, ctx['level'], msg)
@@ -4059,14 +4038,14 @@ def remove_company_account_records(oerp, ctx):
                                   [('company_id', '=', company_id)])
             if len(record_ids) > 0:
                 try:
-                    sts = upd_invoices_2_cancel(oerp, record_ids, ctx)
+                    sts = upd_invoices_2_cancel(record_ids, ctx)
                 except BaseException:
                     msg = u"Cannot delete invoices"
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
     if sts == STS_SUCCESS:
         company_id = ctx['company_id']
-        models = validate_models(oerp, ctx,
+        models = validate_models(ctx,
                                  ('account.invoice',
                                   'account.move',
                                   'account.voucher',
@@ -4106,27 +4085,27 @@ def remove_company_account_records(oerp, ctx):
                       'account.move': ('state', 'cancel'),
                       'account.voucher': ('state', 'cancel'),
                       }
-        sts = remove_group_records(oerp, models, records2keep, ctx,
+        sts = remove_group_records(models, records2keep, ctx,
                                    hide_cid=False,
                                    special=special,
                                    specparams=specparams)
     return sts
 
 
-def remove_all_account_records(oerp, ctx):
-    models = validate_models(oerp, ctx, ('payment.line',
+def remove_all_account_records(ctx):
+    models = validate_models(ctx, ('payment.line',
                                          ))
     records2keep = {}
     special = {}
     specparams = {}
-    sts = remove_group_records(oerp, models, records2keep, ctx,
+    sts = remove_group_records(models, records2keep, ctx,
                                hide_cid=False,
                                special=special,
                                specparams=specparams)
     return sts
 
 
-def analyze_invoices(oerp, ctx, inv_type):
+def analyze_invoices(ctx, inv_type):
     company_id = ctx['company_id']
     period_ids = searchL8(ctx, 'account.period',
                           [('company_id', '=', company_id),
@@ -4166,45 +4145,9 @@ def analyze_invoices(oerp, ctx, inv_type):
                 account_invoice.internal_number)
             msg_log(ctx, ctx['level'] + 1, msg)
             last_seq = int(account_invoice.internal_number[-4:])
-        last_rec_date = put_invoices_record_date(oerp,
-                                                 [account_invoice_id],
+        last_rec_date = put_invoices_record_date([account_invoice_id],
                                                  last_rec_date,
                                                  ctx)
-        # date_invoice = account_invoice.date_invoice
-        # registration_date = account_invoice.registration_date
-        # if not date_invoice:
-        #     vals['date_invoice'] = str(last_rec_date)
-        #     date_invoice = last_rec_date
-        # # if not registration_date:
-        # vals['registration_date'] = str(date_invoice)
-        # registration_date = date_invoice
-        # if inv_type == 'out_invoice' and\
-        #        registration_date != date_invoice:
-        #     msg = u"In {0} invalid registration date {1}".format(
-        #         account_invoice_id,
-        #         str(account_invoice.registration_date))
-        #     msg_log(ctx, ctx['level'] + 1, msg)
-        #     vals['registration_date'] = str(date_invoice)
-        #     registration_date = date_invoice
-        # elif registration_date < last_rec_date:
-        #     msg = u"In {0} invalid registration date {1}".format(
-        #         account_invoice_id,
-        #         str(account_invoice.registration_date))
-        #     msg_log(ctx, ctx['level'] + 1, msg)
-        #     vals['registration_date'] = str(last_rec_date)
-        #     registration_date = last_rec_date
-        # if len(vals):
-        #     period_ids = executeL8(oerp, ctx, 'account.period',
-        #                               'find',
-        #                               registration_date)
-        #     period_id = period_ids and period_ids[0] or False
-        #     vals['period_id'] = period_id
-        #     try:
-        #         writeL8(model, account_invoice_id, vals)
-        #     except:
-        #         msg = u"Cannot update registration date"
-        #         msg_log(ctx, ctx['level'], msg)
-        # last_rec_date = registration_date
         last_number = account_invoice.internal_number
     return STS_SUCCESS
 
@@ -4219,8 +4162,8 @@ def multiuser(ctx, actions):
         return False
 
 
-def create_zero_db(oerp, ctx):
-    lgiuser = do_login(oerp, ctx)
+def create_zero_db(ctx):
+    lgiuser = do_login(ctx)
     if not lgiuser:
         return None
     setup_model = 'zi.dbmgr.db.create.database.wizard'
@@ -4288,7 +4231,7 @@ def get_real_actname(ctx, actv):
     return act
 
 
-def import_file(oerp, ctx, o_model, csv_fn):
+def import_file(ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
     Any expression may be a standard macro (like def company id) or
@@ -4321,17 +4264,16 @@ def import_file(oerp, ctx, o_model, csv_fn):
         for row in csv_obj:
             if not hdr_read:
                 hdr_read = True
-                o_model = import_file_get_hdr(oerp,
-                                              ctx,
+                o_model = import_file_get_hdr(ctx,
                                               o_model,
                                               csv_obj,
                                               csv_fn,
                                               row)
-                msg = u"Model={0}, Code={1} Name={2} NoCompany={3}"\
-                    .format(o_model['model'],
-                            tounicode(o_model['code']),
-                            tounicode(o_model['name']),
-                            o_model.get('hide_cid', False))
+                msg = u"Model=%s, Code=%s Name=%s NoCompany=%s" % (
+                    o_model['model'],
+                    tounicode(o_model['code']),
+                    tounicode(o_model['name']),
+                    o_model.get('hide_cid', False))
                 debug_msg_log(ctx, ctx['level'] + 2, msg)
                 if o_model['name'] and o_model['code']:
                     continue
@@ -4350,12 +4292,15 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 ctx['def_email'] = '%s%s@example.com' % (
                     row['login'],
                     ctx['oe_version'].split('.')[0])
+            if 'undef_name' in row:
+                msg = u"!Invalid line format!"
+                msg_log(ctx, ctx['level'], msg)
+                del row['undef_name']
             # Does record exist ?
             if o_model['repl_by_id'] and row['id']:
                 o_model['saved_hide_id'] = o_model['hide_id']
                 o_model['hide_id'] = False
-                ids = get_query_id(oerp,
-                                   ctx,
+                ids = get_query_id(ctx,
                                    o_model,
                                    row)
                 o_model['hide_id'] = o_model['saved_hide_id']
@@ -4367,32 +4312,32 @@ def import_file(oerp, ctx, o_model, csv_fn):
                         cur_obj.login,
                         ctx['oe_version'].split('.')[0])
             else:
-                ids = get_query_id(oerp,
-                                   ctx,
+                ids = get_query_id(ctx,
                                    o_model,
                                    row)
             name_new = ""
             update_header_id = True
             vals = {}
             for n in row:
+                nm = n.split('/')[0].split(':')[0]
                 if isinstance(row[n], basestring):
+                    if nm == o_model['alias_field']:
+                        continue
                     if row[n].find('${header_id}') >= 0:
                         update_header_id = False
                     if row[n].find('$1$!') == 0:
                         row[n] = decrypt(row[n][4:])
                     row[n] = row[n].replace('\\n', '\n')
-                val = eval_value(oerp,
-                                 ctx,
+                val = eval_value(ctx,
                                  o_model,
-                                 n,
+                                 nm,
                                  row[n])
                 if val is not None:
-                    x = n.split('/')[0].split(':')[0]
-                    if x != 'fiscalcode' or val != '':
-                        vals[x] = tounicode(val)
+                    if nm != 'fiscalcode' or val != '':
+                        vals[n] = tounicode(val)
                 msg = u"{0}={1}".format(n, tounicode(val))
                 debug_msg_log(ctx, ctx['level'] + 2, msg)
-                if n == o_model['name']:
+                if nm == o_model['name']:
                     name_new = val
             if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
@@ -4412,7 +4357,8 @@ def import_file(oerp, ctx, o_model, csv_fn):
                 if not ctx['heavy_trx']:
                     v = {}
                     for p in vals:
-                        if p != "db_type":
+                        if p not  in ('db_type',
+                                      o_model['alias_field']):
                             if vals[p] != cur_obj[p]:
                                 v[p] = vals[p]
                     vals = v
@@ -4451,6 +4397,17 @@ def import_file(oerp, ctx, o_model, csv_fn):
                                             model=o_model['model'],
                                             ref=row['id'],
                                             id=id)
+                        if o_model.get('alias_model2', '') and \
+                                o_model.get('alias_field', '') and \
+                                o_model['alias_field'] in row:
+                            res_id = browseL8(ctx,
+                                              o_model['model'],
+                                              id)[o_model['alias_field']].id
+                            put_model_alias(ctx,
+                                            model=o_model['alias_model2'],
+                                            ref=row[o_model['alias_field']],
+                                            id=res_id)
+
                     except BaseException:
                         id = None
                         msg = u"!!write error! %s=%s" % (
@@ -4467,7 +4424,7 @@ def import_file(oerp, ctx, o_model, csv_fn):
     return STS_SUCCESS
 
 
-def import_config_file(oerp, ctx, csv_fn):
+def import_config_file(ctx, csv_fn):
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
@@ -4514,26 +4471,23 @@ def import_config_file(oerp, ctx, csv_fn):
                     item = '+' + ctx['oe_version']
                     if row['oe_versions'].find(item) < 0:
                         continue
-            user = eval_value(oerp,
-                              ctx,
+            user = eval_value(ctx,
                               None,
                               None,
                               row['user'])
-            name = eval_value(oerp,
-                              ctx,
+            name = eval_value(ctx,
                               None,
                               None,
                               row['name'])
-            value = eval_value(oerp,
-                               ctx,
+            value = eval_value(ctx,
                                None,
                                None,
                                row['value'])
             if name:
                 if user:
-                    sts = setup_user_config_param(oerp, ctx, user, name, value)
+                    sts = setup_user_config_param(ctx, user, name, value)
                 else:
-                    sts = setup_global_config_param(oerp, ctx, name, value)
+                    sts = setup_global_config_param(ctx, name, value)
                 if sts != STS_SUCCESS:
                     break
             else:
@@ -4547,7 +4501,7 @@ def import_config_file(oerp, ctx, csv_fn):
     return STS_SUCCESS
 
 
-def setup_user_config_param(oerp, ctx, username, name, value):
+def setup_user_config_param(ctx, username, name, value):
     context = get_context(ctx)
     sts = STS_SUCCESS
     v = os0.str2bool(value, None)
@@ -4617,7 +4571,7 @@ def setup_user_config_param(oerp, ctx, username, name, value):
     return sts
 
 
-def setup_global_config_param(oerp, ctx, name, value):
+def setup_global_config_param(ctx, name, value):
     # context = get_context(ctx)
     sts = STS_SUCCESS
     items = name.split('.')
@@ -4668,7 +4622,7 @@ def setup_global_config_param(oerp, ctx, name, value):
     return sts
 
 
-def install_chart_of_account(oerp, ctx, name):
+def install_chart_of_account(ctx, name):
     sts = STS_SUCCESS
     context = get_context(ctx)
     chart_template_id = searchL8(ctx, 'account.chart.template',
@@ -4920,11 +4874,9 @@ def main():
         if act == "new_db":
             do_newdb = True
     if do_conn:
-        oerp = open_connection(ctx)
+        open_connection(ctx)
         ctx = read_config(ctx)
         print_hdr_msg(ctx)
-    else:
-        oerp = None
     ctx['multi_user'] = multiuser(ctx,
                                   ctx['actions'].split(','))
     if do_newdb:
@@ -4938,16 +4890,16 @@ def main():
         ctx['actions'] = 'per_db,' + ctx['actions']
         do_multidb = True
     if not do_newdb and do_conn and not do_multidb and ctx['db_name']:
-        ctx = init_db_ctx(oerp, ctx, ctx['db_name'])
-        msg = ident_db(oerp, ctx, ctx['db_name'])
+        ctx = init_db_ctx(ctx, ctx['db_name'])
+        msg = ident_db(ctx, ctx['db_name'])
         msg_log(ctx, ctx['level'], msg)
-        lgiuser = do_login(oerp, ctx)
+        lgiuser = do_login(ctx)
         if lgiuser:
-            sts = do_actions(oerp, ctx)
+            sts = do_actions(ctx)
         else:
             sts = STS_FAILED
     else:
-        sts = do_actions(oerp, ctx)
+        sts = do_actions(ctx)
     decr_lev(ctx)
     if sts == STS_SUCCESS:
         msg = u"------ Operations ended ------"

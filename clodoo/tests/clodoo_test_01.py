@@ -22,7 +22,7 @@ from clodoo.clodoocore import (_get_model_bone, _get_model_code,
                                _import_file_model, _model_has_company,
                                eval_value, get_query_id, import_file_get_hdr)
 from zerobug import Z0test
-__version__ = "0.3.6.56"
+__version__ = "0.3.7.2"
 
 
 MODULE_ID = 'clodoo'
@@ -272,8 +272,7 @@ class Test():
         row = {}
         row['undef_name'] = ''
         csv_obj = Csv()
-        o_model = import_file_get_hdr(oerp,
-                                      ctx,
+        o_model = import_file_get_hdr(ctx,
                                       o_model,
                                       csv_obj,
                                       csv_fn,
@@ -413,8 +412,7 @@ class Test():
 
         name = 'code'
         value = '=${panda}'
-        res = eval_value(oerp,
-                         ctx,
+        res = eval_value(ctx,
                          o_model,
                          name,
                          value)
@@ -422,8 +420,7 @@ class Test():
         sts = self.Z.test_result(z0ctx, msg, tres, res)
         if sts == TEST_SUCCESS:
             value = '=${panda}${def_partner_id}'
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -431,8 +428,7 @@ class Test():
             sts = self.Z.test_result(z0ctx, msg, tres, res)
         if sts == TEST_SUCCESS:
             value = '=${${panda}${def_partner_id}}'
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -440,8 +436,7 @@ class Test():
             sts = self.Z.test_result(z0ctx, msg, tres, res)
         if sts == TEST_SUCCESS:
             value = '=${panda${${panda}${def_partner_id}}}'
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -452,8 +447,7 @@ class Test():
             for value in (b'abc', u"def", True, False, 13715, 4.5,
                           date(1959, 6, 26)):
                 if sts == TEST_SUCCESS:
-                    res = eval_value(oerp,
-                                     ctx,
+                    res = eval_value(ctx,
                                      o_model,
                                      name,
                                      value)
@@ -462,8 +456,7 @@ class Test():
             for v in ctx:
                 if sts == TEST_SUCCESS:
                     value = "=${" + v + "}"
-                    res = eval_value(oerp,
-                                     ctx,
+                    res = eval_value(ctx,
                                      o_model,
                                      name,
                                      value)
@@ -482,8 +475,7 @@ class Test():
                         tres = "0-" + str(ctx[v]) + "-9"
                     else:
                         tres = "0--9"
-                    res = eval_value(oerp,
-                                     ctx,
+                    res = eval_value(ctx,
                                      o_model,
                                      name,
                                      value)
@@ -502,8 +494,7 @@ class Test():
                 else:
                     value = model_name + "::myname"
                 if sts == TEST_SUCCESS:
-                    res = eval_value(oerp,
-                                     ctx,
+                    res = eval_value(ctx,
                                      o_model,
                                      name,
                                      value)
@@ -521,8 +512,7 @@ class Test():
                         value = value + ":myname}"
                     else:
                         value = value + "::myname}"
-                    res = eval_value(oerp,
-                                     ctx,
+                    res = eval_value(ctx,
                                      o_model,
                                      name,
                                      value)
@@ -564,8 +554,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 value = "base.main_company"
                 name = "company_id"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -580,8 +569,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 name = x[0]
                 value = x[1]
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -593,8 +581,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 name = "ref0"
                 value = "=${res.zero(name,ref):myname," + str(REF_ID) + "}"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -603,8 +590,7 @@ class Test():
                 name = "ref0"
                 value = "=${res.zero(name,ref)[description]:myname," + \
                     str(REF_ID) + "}"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -612,8 +598,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 name = "ref0"
                 value = "=${company_id+1}"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -622,8 +607,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 name = "ref0"
                 value = "=[(6,0,${company_id})]"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -633,8 +617,7 @@ class Test():
             if sts == TEST_SUCCESS:
                 name = "ref0"
                 value = "=None"
-                res = eval_value(oerp,
-                                 ctx,
+                res = eval_value(ctx,
                                  o_model,
                                  name,
                                  value)
@@ -647,8 +630,7 @@ class Test():
         if sts == TEST_SUCCESS:
             name = "name"
             value = "=${res.two(country_id,name):" + ",myname}"
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -657,8 +639,7 @@ class Test():
         if sts == TEST_SUCCESS:
             name = "name"
             value = "=${res.two(country_id,name):" + ",not_exists}"
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -668,8 +649,7 @@ class Test():
             name = "name"
             value = "=${res.one(company_id,ref0)::" + \
                 "${company_id},${res.zero:myname}}"
-            res = eval_value(oerp,
-                             ctx,
+            res = eval_value(ctx,
                              o_model,
                              name,
                              value)
@@ -707,8 +687,7 @@ class Test():
                 row['id'] = ''
                 row['name'] = 'myname'
                 row['other'] = "=${res.one:myname}"
-                res = get_query_id(oerp,
-                                   ctx,
+                res = get_query_id(ctx,
                                    o_bones,
                                    row)
                 if model == "res.zero":
@@ -726,8 +705,7 @@ class Test():
                 if sts == TEST_SUCCESS:
                     o_bones['code'] = "ref"
                     row['ref'] = "=${res.two:~myname}"
-                    res = get_query_id(oerp,
-                                       ctx,
+                    res = get_query_id(ctx,
                                        o_bones,
                                        row)
                     sts = self.Z.test_result(z0ctx, msg, [ID_0], res)
@@ -735,8 +713,7 @@ class Test():
                     row['id'] = 'base.main_company'
                     row['name'] = 'my_name'
                     row['other'] = 'hello world'
-                    res = get_query_id(oerp,
-                                       ctx,
+                    res = get_query_id(ctx,
                                        o_bones,
                                        row)
                     sts = self.Z.test_result(z0ctx, msg, [ID_0], res)
@@ -747,8 +724,7 @@ class Test():
                         self.init_test(model)
                     o_bones['repl_by_id'] = True
                     row['id'] = ''
-                    res = get_query_id(oerp,
-                                       ctx,
+                    res = get_query_id(ctx,
                                        o_bones,
                                        row)
                     if len(res) <= 1:
@@ -768,8 +744,7 @@ class Test():
                         else:
                             row['id'] = ''
                         row['name'] = 'not_exists'
-                        res = get_query_id(oerp,
-                                           ctx,
+                        res = get_query_id(ctx,
                                            o_bones,
                                            row)
                         sts = self.Z.test_result(z0ctx, msg, 1, len(res))
@@ -781,8 +756,7 @@ class Test():
                     # repeat 2 time to check side effects
                     row['id'] = ''
                     row['name'] = 'not_exists'
-                    res = get_query_id(oerp,
-                                       ctx,
+                    res = get_query_id(ctx,
                                        o_bones,
                                        row)
                     sts = self.Z.test_result(z0ctx, msg, [], res)
@@ -806,8 +780,7 @@ class Test():
                 row['id'] = tres
                 row['name'] = 'myname'
                 row['other'] = "=${res.zero:myname}"
-                res = get_query_id(oerp,
-                                   ctx,
+                res = get_query_id(ctx,
                                    o_model,
                                    row)
                 sts = self.Z.test_result(z0ctx, msg, [tres], res)

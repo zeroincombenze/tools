@@ -24,7 +24,7 @@ from clodoo import clodoo
 from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.6.56"
+__version__ = "0.3.7.2"
 
 
 MODULE_ID = 'clodoo'
@@ -69,8 +69,8 @@ oe_version=%s
         fd = open(confn, 'w')
         fd.write(codefile)
         fd.close()
-        oerp, uid, ctx = clodoo.oerp_set_env(confn=confn,
-                                             db=dbname)
+        uid, ctx = clodoo.oerp_set_env(confn=confn,
+                                       db=dbname)
         model = 'ir.module.module'
         ids = clodoo.searchL8(ctx, model, [('name', '=', self.module_2_test),
                                            ('state', '=', 'installed')])
@@ -297,21 +297,27 @@ filename=%s
 crypt_password=%s
 model=res.users
 hide_cid=True
+alias_field=partner_id
+alias_model2=res.partner
 """ % (datafn, crypt('admin'))
                     fd = open(confn, 'w')
                     fd.write(codefile)
                     fd.close()
                     cmd = self.bulk_cmd(oe_version)
                     cmd = cmd + ['-c%s' % confn]
-                    datafile = """id,name,login,signature,email,tz,lang
+                    if oe_version == '6.1':
+                        datafile = """id,name,login,signature,email,tz,lang
 base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US"
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US
+""" % self.login_2_test
+                    else:
+                        datafile = """id,name,login,signature,email,tz,lang,partner_id
+base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US",=None
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.second_user
 """ % self.login_2_test
                     fd = open(dataffn, 'w')
                     fd.write(datafile)
                     fd.close()
-                    # import pdb
-                    # pdb.set_trace()
                     p = Popen(cmd,
                               stdin=PIPE,
                               stdout=PIPE,

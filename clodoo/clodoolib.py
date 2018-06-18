@@ -86,6 +86,8 @@ LX_CFG_S = ('db_name',
             'model_name',
             'model_action',
             'model_keyids',
+            'alias_model2',
+            'alias_field',
             'filename',
             'hide_cid',
             'psycopg2',
@@ -132,7 +134,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.6.56"
+__version__ = "0.3.7.2"
 
 
 #############################################################################

@@ -15,7 +15,7 @@ import odoorpc
 import oerplib
 from os0 import os0
 
-from clodoolib import debug_msg_log
+from clodoolib import debug_msg_log, msg_log
 from transodoo import translate_from_sym, translate_from_to
 
 try:
@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.6.56"
+__version__ = "0.3.7.2"
 
 
 #############################################################################
@@ -333,7 +333,7 @@ def _import_file_dbtype(o_model, fields, csv_fn):
     return db_type
 
 
-def import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
+def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     """Analyze csv file header and get header names
     Header will be used to load value in table
     @ return:
@@ -344,9 +344,7 @@ def import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
     @ [repl_by_id] true if no record key name found (search for id)
     @ [hide_id]    if true, no id will be returned
     """
-    o_skull = {}
-    for n in o_model:
-        o_skull[n] = o_model[n]
+    o_skull = o_model.copy()
     csv_obj.fieldnames = row['undef_name']
     o_skull['model'], o_skull['hide_cid'] = _import_file_model(ctx,
                                                                o_model,
@@ -363,12 +361,13 @@ def import_file_get_hdr(oerp, ctx, o_model, csv_obj, csv_fn, row):
     else:
         o_skull['repl_by_id'] = False
     o_skull['hide_id'] = True
+    o_skull['alias_model2'] = o_model.get('alias_model2', '')
+    o_skull['alias_field'] = o_model.get('alias_field', '')
     return o_skull
 
 
-def eval_value(oerp, ctx, o_model, name, value):
+def eval_value(ctx, o_model, name, value):
     """Evaluate value read form csv file: may be a function or macro
-    @ oerp:        oerplib object
     @ ctx:         global parameters
     @ o_model:     special names
     @ name:        field name
@@ -377,15 +376,13 @@ def eval_value(oerp, ctx, o_model, name, value):
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
-        if is_db_alias(oerp, ctx, value):
-            value = expr(oerp,
-                         ctx,
+        if is_db_alias(ctx, value):
+            value = expr(ctx,
                          o_model,
                          name,
                          value)
         elif value[0:1] == "=":
-            value = expr(oerp,
-                         ctx,
+            value = expr(ctx,
                          o_model,
                          name,
                          value[1:])
@@ -396,7 +393,7 @@ def eval_value(oerp, ctx, o_model, name, value):
                     value = eval(value, None, ctx)
                 except BaseException:                        # pragma: no cover
                     pass
-        elif value in ('True', 'False'):
+        else:
             try:
                 value = eval(value, None, ctx)
             except BaseException:                            # pragma: no cover
@@ -404,7 +401,7 @@ def eval_value(oerp, ctx, o_model, name, value):
     return value
 
 
-def expr(oerp, ctx, o_model, code, value):
+def expr(ctx, o_model, code, value):
     """Evaluate python expression value"""
     if isinstance(value, basestring):
         i, j = get_macro_pos(value)
@@ -412,7 +409,7 @@ def expr(oerp, ctx, o_model, code, value):
             v = value[i + 2:j]
             x, y = get_macro_pos(v)
             while x >= 0 and y > i:
-                v = expr(oerp, ctx, o_model, code, v)
+                v = expr(ctx, o_model, code, v)
                 value = value[0:i + 2] + v + value[j:]
                 i, j = get_macro_pos(value)
                 v = value[i + 2:j]
@@ -421,7 +418,7 @@ def expr(oerp, ctx, o_model, code, value):
             while i >= 0 and j > i:
                 v = value[i + 2:j]
                 if v.find(':') >= 0:
-                    v = _query_expr(oerp, ctx, o_model, code, v)
+                    v = _query_expr(ctx, o_model, code, v)
                 else:
                     try:
                         v = eval(v, None, ctx)
@@ -434,7 +431,7 @@ def expr(oerp, ctx, o_model, code, value):
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
     if isinstance(value, basestring):
-        if is_db_alias(oerp, ctx, value):
+        if is_db_alias(ctx, value):
             model, name, value, hide_cid = get_model_alias(value)
             if model == 'ir.transodoo':
                 if value[2] and value[2] != '0':
@@ -448,8 +445,7 @@ def expr(oerp, ctx, o_model, code, value):
                                               value[0],
                                               value[1],
                                               ctx['oe_version'])
-            ids = _get_simple_query_id(oerp,
-                                       ctx,
+            ids = _get_simple_query_id(ctx,
                                        model,
                                        name,
                                        value,
@@ -466,28 +462,25 @@ def expr(oerp, ctx, o_model, code, value):
     return value
 
 
-def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
+def _get_simple_query_id(ctx, model, code, value, hide_cid):
     """Execute a simple query to get ids from selection field(s)
     Do not expand value
-    @ oerp:        oerplib object
     @ ctx:         global parameters
     @ model:       model name
     @ code:        field name
     @ value:       field value (just constant)
     @ hide_cid:    hide company_id
     """
-    ids = _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, '=')
+    ids = _get_raw_query_id(ctx, model, code, value, hide_cid, '=')
     if model == 'ir.model.data' and len(ids) == 1:
         try:
-            o = browseL8(ctx, 'ir.model.data', ids[0])
-            ids = [o.res_id]
+            ids = [browseL8(ctx, 'ir.model.data', ids[0]).res_id]
         except BaseException:                                # pragma: no cover
             ids = None
     if ids is None:
         return []
     if len(ids) == 0 and model != 'res.users':
-        ids = _get_raw_query_id(oerp,
-                                ctx,
+        ids = _get_raw_query_id(ctx,
                                 model,
                                 code,
                                 value,
@@ -496,7 +489,7 @@ def _get_simple_query_id(oerp, ctx, model, code, value, hide_cid):
     return ids
 
 
-def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
+def _get_raw_query_id(ctx, model, code, value, hide_cid, op):
     if not hide_cid and 'company_id' in ctx:
         company_id = ctx['company_id']
     else:
@@ -505,24 +498,21 @@ def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
     if isinstance(code, list) and isinstance(value, list):
         for i, c in enumerate(code):
             if i < len(value):
-                where = append_2_where(oerp,
-                                       ctx,
+                where = append_2_where(ctx,
                                        model,
                                        c,
                                        value[i],
                                        where,
                                        op)
             else:
-                where = append_2_where(oerp,
-                                       ctx,
+                where = append_2_where(ctx,
                                        model,
                                        c,
                                        '',
                                        where,
                                        op)
     else:
-        where = append_2_where(oerp,
-                               ctx,
+        where = append_2_where(ctx,
                                model,
                                code,
                                value,
@@ -537,9 +527,9 @@ def _get_raw_query_id(oerp, ctx, model, code, value, hide_cid, op):
     return ids
 
 
-def append_2_where(oerp, ctx, model, code, value, where, op):
+def append_2_where(ctx, model, code, value, where, op):
     if value is not None and value != "":
-        value = eval_value(oerp, ctx, model, code, value)
+        value = eval_value(ctx, model, code, value)
         if isinstance(value, basestring) and value[0] == '~':
             where.append('|')
             where.append((code, op, value))
@@ -556,10 +546,9 @@ def append_2_where(oerp, ctx, model, code, value, where, op):
     return where
 
 
-def get_query_id(oerp, ctx, o_model, row):
+def get_query_id(ctx, o_model, row):
     """Execute a query to get ids from fields in row read from csv
     Value may be expanded
-    @ oerp:        oerplib object
     @ o_model:     special names
     @ ctx:         global parameters
     @ row:         record fields
@@ -569,13 +558,10 @@ def get_query_id(oerp, ctx, o_model, row):
     debug_msg_log(ctx, 6, msg)
     ids = []
     if o_model['repl_by_id'] and row.get('id', None):
-        o_skull = {}
-        for n in o_model:
-            o_skull[n] = o_model[n]
+        o_skull = o_model.copy()
         o_skull['code'] = 'id'
         o_skull['hide_id'] = False
-        value = eval_value(oerp,
-                           ctx,
+        value = eval_value(ctx,
                            o_skull,
                            'id',
                            row['id'])
@@ -595,8 +581,7 @@ def get_query_id(oerp, ctx, o_model, row):
         if model is None:
             ids = []
         else:
-            ids = _get_simple_query_id(oerp,
-                                       ctx,
+            ids = _get_simple_query_id(ctx,
                                        model,
                                        code,
                                        value,
@@ -604,19 +589,17 @@ def get_query_id(oerp, ctx, o_model, row):
     return ids
 
 
-def _query_expr(oerp, ctx, o_model, code, value):
+def _query_expr(ctx, o_model, code, value):
     msg = "_quer_expr(value=%s)" % value
     debug_msg_log(ctx, 6, msg)
-    model, name, value, hide_cid, fldname = _get_model_parms(oerp,
-                                                             ctx,
+    model, name, value, hide_cid, fldname = _get_model_parms(ctx,
                                                              o_model,
                                                              value)
     if model:
         if fldname == 'db_type':
             value = o_model.get('db_type', '')
         else:
-            value = _get_simple_query_id(oerp,
-                                         ctx,
+            value = _get_simple_query_id(ctx,
                                          model,
                                          name,
                                          value,
@@ -662,7 +645,7 @@ def get_macro_pos(value):
     return i, j
 
 
-def _get_model_parms(oerp, ctx, o_model, value):
+def _get_model_parms(ctx, o_model, value):
     """Extract model parameters and pure value from value and structure"""
     model, hide_cid = _get_model_bone(ctx, o_model)
     sep = '::'
@@ -677,7 +660,7 @@ def _get_model_parms(oerp, ctx, o_model, value):
         if i >= 0:
             hide_cid = True
     if i < 0:
-        n, v = is_db_alias(oerp, ctx, value)
+        n, v = is_db_alias(ctx, value)
         if n:
             model = "ir.model.data"
             name = ['module', 'name']
@@ -691,7 +674,6 @@ def _get_model_parms(oerp, ctx, o_model, value):
                 pass
     else:
         model = value[:i]
-        # value = prefix + value[i + len(sep):] + suffix
         value = value[i + len(sep):]
         model, fldname = _get_name_n_ix(model, deflt=fldname)
         model, x = _get_name_n_params(model, name)
@@ -719,7 +701,7 @@ def concat_res(res, value):
     return res
 
 
-def is_db_alias(odoo, ctx, value):
+def is_db_alias(ctx, value):
     model, name, value, hide_cid = get_model_alias(value)
     if model == 'ir.transodoo':
         if value[2] and value[2] != '0':
@@ -735,7 +717,7 @@ def is_db_alias(odoo, ctx, value):
                                       value[1],
                                       ctx['oe_version']) != ''
     if ctx['svc_protocol'] == 'jsonrpc':
-        if model and name and value and odoo.env[model].search(
+        if model and name and value and ctx['odoo_session'].env[model].search(
                 [(name[0], '=', value[0]),
                  (name[1], '=', value[1])]):
             return True
@@ -778,13 +760,17 @@ def put_model_alias(ctx,
                 module = refs[0]
             if not name:
                 name = refs[1]
-    vals = {
-        'module': module,
-        'model': model,
-        'name': name,
-        'res_id': id,
-    }
-    createL8(ctx, 'ir.model.data', vals)
+    if model and name and id:
+        vals = {
+            'module': module,
+            'model': model,
+            'name': name,
+            'res_id': id,
+        }
+        createL8(ctx, 'ir.model.data', vals)
+    else:
+        msg = 'Invalid alias ref'
+        msg_log(ctx, ctx['level'], msg)
 
 
 def _get_name_n_params(name, deflt=None):
