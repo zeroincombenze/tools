@@ -83,6 +83,15 @@ Action may be one of:
 - upgrade_modules
 - wep_company
 - wep_db
+
+
+Import_file
+Import file load data from a csv file into DB. This action work as standard
+Odoo import with some enhanced features.
+Field value may be:
+- external identifier, format module.name (as Odoo standard)
+- text with macros, format ${macro} (no Odoo standard)
+- text with function, forma ${function(params)[fields]} (no Odoo standard) 
 """
 from __future__ import print_function
 
@@ -4231,6 +4240,25 @@ def get_real_actname(ctx, actv):
     return act
 
 
+def add_external_name(ctx, o_model, row, id):
+    if o_model['repl_by_id'] and row['id'] and not row['id'].isdigit():
+        put_model_alias(ctx,
+                        model=o_model['model'],
+                        ref=row['id'],
+                        id=id)
+    if o_model.get('alias_model2', '') and \
+            o_model.get('alias_field', '') and \
+            o_model['alias_field'] in row and \
+            row[o_model['alias_field']].find('None') < 0:
+        res_id = browseL8(ctx,
+                          o_model['model'],
+                          id)[o_model['alias_field']].id
+        put_model_alias(ctx,
+                        model=o_model['alias_model2'],
+                        ref=row[o_model['alias_field']],
+                        id=res_id)
+
+
 def import_file(ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
@@ -4336,8 +4364,8 @@ def import_file(ctx, o_model, csv_fn):
                         continue
                     if row[n].find('${header_id}') >= 0:
                         update_header_id = False
-                    if row[n].find('$1$!') == 0:
-                        row[n] = decrypt(row[n][4:])
+                    # if row[n].find('$1$!') == 0:
+                    #     row[n] = decrypt(row[n][4:])
                     row[n] = row[n].replace('\\n', '\n')
                 val = eval_value(ctx,
                                  o_model,
@@ -4374,6 +4402,7 @@ def import_file(ctx, o_model, csv_fn):
                     v[p] = vals[p]
             vals = v
             del v
+            written = False
             if len(ids):
                 if not ctx['dry_run'] and len(vals):
                     try:
@@ -4383,12 +4412,22 @@ def import_file(ctx, o_model, csv_fn):
                                                      tounicode(name_old),
                                                      tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
+                        written = True
                     except BaseException:
                         msg = u"!!write error! id=%d, %s=%s" % (
                             cur_obj.id,
                             o_model['name'],
                             tounicode(name_new))
                         os0.wlog(msg)
+                    if written:
+                        try:
+                            add_external_name(ctx, o_model, row, ids[0])
+                        except BaseException:
+                            msg = u"!!No set external name id=%d, %s=%s" % (
+                                cur_obj.id,
+                                o_model['name'],
+                                tounicode(name_new))
+                            os0.wlog(msg)
             else:
                 msg = u"insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -4405,27 +4444,22 @@ def import_file(ctx, o_model, csv_fn):
                                       tounicode(o_model['name']),
                                       tounicode(name_new))
                         msg_log(ctx, ctx['level'] + 1, msg)
-                        if o_model['repl_by_id'] and row['id']:
-                            put_model_alias(ctx,
-                                            model=o_model['model'],
-                                            ref=row['id'],
-                                            id=id)
-                        if o_model.get('alias_model2', '') and \
-                                o_model.get('alias_field', '') and \
-                                o_model['alias_field'] in row:
-                            res_id = browseL8(ctx,
-                                              o_model['model'],
-                                              id)[o_model['alias_field']].id
-                            put_model_alias(ctx,
-                                            model=o_model['alias_model2'],
-                                            ref=row[o_model['alias_field']],
-                                            id=res_id)
+                        written = True
                     except BaseException:
                         id = None
                         msg = u"!!create error! %s=%s" % (
                             tounicode(o_model['name']),
                             tounicode(name_new))
                         os0.wlog(msg)
+                    if written:
+                        try:
+                            add_external_name(ctx, o_model, row, id)
+                        except BaseException:
+                            msg = u"!!No set external name id=%d, %s=%s" % (
+                                cur_obj.id,
+                                o_model['name'],
+                                tounicode(name_new))
+                            os0.wlog(msg)
                 else:
                     ctx['header_id'] = -1
         csv_fd.close()

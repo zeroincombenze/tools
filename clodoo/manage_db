@@ -211,7 +211,7 @@ if [ "$action" == "install" ]; then
       fi
       run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf $optdb -r$opt_xmlport $opt_with_demo"
     elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
-      :
+      [ $opt_verbose -gt 0 ] && echo "Warning: you must enable droppin DB using -o switch"
     elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
       [ $opt_verbose -gt 0 ] && echo "Warning: phase $cf is just for demo (use -D switch to enable)"
     else
@@ -225,10 +225,10 @@ if [ "$action" == "install" ]; then
         run_traced "sudo systemctl restart $svcname"
         if $(psql -l|grep -q $db); then
           run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
-          if [ $(psql -l|grep -q $db) ]; then
+          if $(psql -l|grep -q $db); then
             run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
           fi
-          if [ $(psql -l|grep -q $db) ]; then
+          if $(psql -l|grep -q $db); then
             echo "DB $db not dropped!"
           fi
         else

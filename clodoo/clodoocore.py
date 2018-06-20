@@ -377,11 +377,10 @@ def eval_value(ctx, o_model, name, value):
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
         eval_dict = True
+        if value.find('$1$!') == 0:
+            value = decrypt(value[4:])
         if is_db_alias(ctx, value):
-            value = expr(ctx,
-                         o_model,
-                         name,
-                         value)
+            value = get_db_alias(ctx, value)
         else:
             if value and value[0] == '=':
                 value = expr(ctx,
@@ -390,6 +389,12 @@ def eval_value(ctx, o_model, name, value):
                              value[1:])
                 eval_dict = False
             elif value.find("${") >= 0 and value.find("}") >= 0:
+                value = expr(ctx,
+                             o_model,
+                             name,
+                             value)
+                eval_dict = False
+            elif value[0:2] == "[(" and value[-2:] == ")]":
                 value = expr(ctx,
                              o_model,
                              name,
@@ -441,35 +446,14 @@ def expr(ctx, o_model, code, value):
                 res = concat_res(res, v)
                 i, j = get_macro_pos(value)
             value = concat_res(res, value)
+    if isinstance(value, basestring) and \
+            value[0:2] == "[(" and value[-2:] == ")]":
+        res = []
+        for v in value[2:-2].split(','):
+            res.append(get_db_alias(ctx, v, fmt='string'))
+        value = '[(%s)]' % ','.join(res)
     if isinstance(value, basestring):
-        if is_db_alias(ctx, value):
-            model, name, value, hide_cid = get_model_alias(value)
-            if model == 'ir.transodoo':
-                if value[2] and value[2] != '0':
-                    return translate_from_to(ctx,
-                                             value[0],
-                                             value[1],
-                                             value[2],
-                                             ctx['oe_version'])
-                else:
-                    return translate_from_sym(ctx,
-                                              value[0],
-                                              value[1],
-                                              ctx['oe_version'])
-            ids = _get_simple_query_id(ctx,
-                                       model,
-                                       name,
-                                       value,
-                                       hide_cid)
-            if isinstance(ids, list):
-                if len(ids):
-                    if name == 'id' or isinstance(name, list):
-                        value = ids[0]
-                    else:
-                        o = browseL8(ctx, model, ids[0])
-                        value = getattr(o, name)
-                else:
-                    value = None
+        value = get_db_alias(ctx, value)
     return value
 
 
@@ -744,6 +728,39 @@ def is_db_alias(ctx, value):
     return False
 
 
+def get_db_alias(ctx, value, fmt=None):
+    if is_db_alias(ctx, value):
+        model, name, value, hide_cid = get_model_alias(value)
+        if model == 'ir.transodoo':
+            if value[2] and value[2] != '0':
+                return translate_from_to(ctx,
+                                         value[0],
+                                         value[1],
+                                         value[2],
+                                         ctx['oe_version'])
+            else:
+                return translate_from_sym(ctx,
+                                          value[0],
+                                          value[1],
+                                          ctx['oe_version'])
+        ids = _get_simple_query_id(ctx,
+                                   model,
+                                   name,
+                                   value,
+                                   hide_cid)
+        if isinstance(ids, list):
+            if len(ids):
+                if name == 'id' or isinstance(name, list):
+                    value = ids[0]
+                    if fmt == 'string':
+                        value = str(value)
+                else:
+                    o = browseL8(ctx, model, ids[0])
+                    value = getattr(o, name)
+            else:
+                value = None
+    return value
+
 def get_model_alias(value):
     if value:
         items = value.split('.')
@@ -774,13 +791,19 @@ def put_model_alias(ctx,
             if not name:
                 name = refs[1]
     if model and name and id:
-        vals = {
-            'module': module,
-            'model': model,
-            'name': name,
-            'res_id': id,
-        }
-        createL8(ctx, 'ir.model.data', vals)
+        ids = searchL8(ctx, 'ir.model.data',
+                       [('model','=',model),
+                        ('name','=',name)])
+        if ids:
+            writeL8(ctx, 'ir.model.data', ids, {'res_id': id,})
+        else:
+            vals = {
+                'module': module,
+                'model': model,
+                'name': name,
+                'res_id': id,
+            }
+            createL8(ctx, 'ir.model.data', vals)
     else:
         msg = 'Invalid alias ref'
         msg_log(ctx, ctx['level'], msg)
