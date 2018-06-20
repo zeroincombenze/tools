@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.2
+__version__=0.3.7.3
 
 
 up_oemod() {
@@ -107,7 +107,17 @@ declare_cfloop() {
         CFLOOP="00"
       fi
     elif [ -n "$cmdlist" ]; then
-      CFLOOP="${cmdlist//,/ }"
+      IFS=- read min max <<< "$cmdlist"
+      if [ -n "$max" ]; then
+        CFLOOP=
+        for cf in $PHASE_LIST; do
+          if [ $cf -ge $min -a $cf -le $max ]; then
+            CFLOOP="$CFLOOP $cf"
+          fi
+        done
+      else
+        CFLOOP="${cmdlist//,/ }"
+      fi
     else
       CFLOOP="$PHASE_LIST"
     fi
@@ -211,8 +221,19 @@ if [ "$action" == "install" ]; then
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
       fi
       if [ "$cf" == "09" ]; then
-        run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
-        run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
+        svcname=$(build_odoo_param SVCNAME $odoo_vid)
+        run_traced "sudo systemctl restart $svcname"
+        if $(psql -l|grep -q $db); then
+          run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
+          if [ $(psql -l|grep -q $db) ]; then
+            run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
+          fi
+          if [ $(psql -l|grep -q $db) ]; then
+            echo "DB $db not dropped!"
+          fi
+        else
+          echo "DB $db not found."
+        fi
         sts=0
       else
         run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"

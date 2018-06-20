@@ -22,7 +22,7 @@ from clodoo.clodoocore import (_get_model_bone, _get_model_code,
                                _import_file_model, _model_has_company,
                                eval_value, get_query_id, import_file_get_hdr)
 from zerobug import Z0test
-__version__ = "0.3.7.2"
+__version__ = "0.3.7.3"
 
 
 MODULE_ID = 'clodoo'
@@ -419,7 +419,23 @@ class Test():
         tres = 'P'
         sts = self.Z.test_result(z0ctx, msg, tres, res)
         if sts == TEST_SUCCESS:
+            value = '${panda}'
+            res = eval_value(ctx,
+                             o_model,
+                             name,
+                             value)
+            tres = 'P'
+            sts = self.Z.test_result(z0ctx, msg, tres, res)
+        if sts == TEST_SUCCESS:
             value = '=${panda}${def_partner_id}'
+            res = eval_value(ctx,
+                             o_model,
+                             name,
+                             value)
+            tres = 'P' + str(ctx['def_partner_id'])
+            sts = self.Z.test_result(z0ctx, msg, tres, res)
+        if sts == TEST_SUCCESS:
+            value = '${panda}${def_partner_id}'
             res = eval_value(ctx,
                              o_model,
                              name,

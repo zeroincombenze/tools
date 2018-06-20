@@ -105,7 +105,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.2"
+__version__ = "0.3.7.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4288,6 +4288,17 @@ def import_file(ctx, o_model, csv_fn):
                         msg = u"Record not imported by invalid db_type"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
+            if row.get('oe_versions'):
+                if row['oe_versions'].find('-') >= 0:
+                    if row['oe_versions'].find(ctx['oe_version']) >= 0:
+                        msg = u"Record not imported by invalid version"
+                        debug_msg_log(ctx, ctx['level'] + 2, msg)
+                        continue
+                elif row['oe_versions'].find('+') >= 0:
+                    if row['oe_versions'].find(ctx['oe_version']) < 0:
+                        msg = u"Record not imported by invalid version"
+                        debug_msg_log(ctx, ctx['level'] + 2, msg)
+                        continue
             if o_model['model'] == 'res.users' and 'login' in row:
                 ctx['def_email'] = '%s%s@example.com' % (
                     row['login'],
@@ -4342,8 +4353,6 @@ def import_file(ctx, o_model, csv_fn):
             if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
                     continue
-            if 'id' in vals:
-                del vals['id']
             if len(ids):
                 id = ids[0]
                 if update_header_id:
@@ -4354,15 +4363,18 @@ def import_file(ctx, o_model, csv_fn):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-                if not ctx['heavy_trx']:
-                    v = {}
-                    for p in vals:
-                        if p not  in ('db_type',
-                                      o_model['alias_field']):
-                            if vals[p] != cur_obj[p]:
-                                v[p] = vals[p]
-                    vals = v
-                    del v
+            v = {}
+            for p in vals:
+                if p  in ('id',
+                          'db_type',
+                          'oe_versions',
+                          o_model['alias_field']):
+                    continue
+                if len(ids) == 0 or vals[p] != cur_obj[p]:
+                    v[p] = vals[p]
+            vals = v
+            del v
+            if len(ids):
                 if not ctx['dry_run'] and len(vals):
                     try:
                         writeL8(ctx, o_model['model'], ids, vals)
@@ -4381,7 +4393,8 @@ def import_file(ctx, o_model, csv_fn):
                 msg = u"insert " + os0.u(name_new)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
                 if not ctx['dry_run']:
-                    if not o_model.get('hide_cid', False):
+                    if not o_model.get('hide_cid', False) and \
+                            'company_id' not in vals:
                         vals['company_id'] = ctx['company_id']
                     try:
                         id = createL8(ctx, o_model['model'], vals)
@@ -4407,10 +4420,9 @@ def import_file(ctx, o_model, csv_fn):
                                             model=o_model['alias_model2'],
                                             ref=row[o_model['alias_field']],
                                             id=res_id)
-
                     except BaseException:
                         id = None
-                        msg = u"!!write error! %s=%s" % (
+                        msg = u"!!create error! %s=%s" % (
                             tounicode(o_model['name']),
                             tounicode(name_new))
                         os0.wlog(msg)

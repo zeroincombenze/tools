@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.2"
+__version__ = "0.3.7.3"
 
 
 #############################################################################
@@ -376,28 +376,39 @@ def eval_value(ctx, o_model, name, value):
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
     if isinstance(value, basestring):
+        eval_dict = True
         if is_db_alias(ctx, value):
             value = expr(ctx,
                          o_model,
                          name,
                          value)
-        elif value[0:1] == "=":
-            value = expr(ctx,
-                         o_model,
-                         name,
-                         value[1:])
-            if isinstance(value, basestring) and \
-                    (value == "None" or
-                     (value[0:2] == "[(" and value[-2:] == ")]")):
-                try:
-                    value = eval(value, None, ctx)
-                except BaseException:                        # pragma: no cover
-                    pass
         else:
-            try:
-                value = eval(value, None, ctx)
-            except BaseException:                            # pragma: no cover
-                pass
+            if value and value[0] == '=':
+                value = expr(ctx,
+                             o_model,
+                             name,
+                             value[1:])
+                eval_dict = False
+            elif value.find("${") >= 0 and value.find("}") >= 0:
+                value = expr(ctx,
+                             o_model,
+                             name,
+                             value)
+                eval_dict = False
+        if isinstance(value, basestring):
+            if value.isdigit() or \
+                    value in ('None', 'True', 'False') or \
+                    (value[0:2] == "[(" and value[-2:] == ")]"):
+                if eval_dict:
+                    try:
+                        value = eval(value, None, ctx)
+                    except BaseException:                    # pragma: no cover
+                        pass
+                else:
+                    try:
+                        value = eval(value)
+                    except BaseException:                    # pragma: no cover
+                        pass
     return value
 
 
@@ -530,7 +541,7 @@ def _get_raw_query_id(ctx, model, code, value, hide_cid, op):
 def append_2_where(ctx, model, code, value, where, op):
     if value is not None and value != "":
         value = eval_value(ctx, model, code, value)
-        if isinstance(value, basestring) and value[0] == '~':
+        if isinstance(value, basestring) and value and value[0] == '~':
             where.append('|')
             where.append((code, op, value))
             where.append((code, op, value[1:]))
@@ -598,6 +609,8 @@ def _query_expr(ctx, o_model, code, value):
     if model:
         if fldname == 'db_type':
             value = o_model.get('db_type', '')
+        elif fldname == 'oe_versions':
+            value = value == ctx['server_version']
         else:
             value = _get_simple_query_id(ctx,
                                          model,

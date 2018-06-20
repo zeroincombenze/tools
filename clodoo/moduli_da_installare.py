@@ -1,7 +1,29 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import os
+import sys
 import csv
+from z0lib import parseoptargs
+import clodoo
+from os0 import os0
+# import pdb
 
-VERSIONS = ('vg7', '61', '70', '80', '90', '100', '110')
+__version__ = "0.2.0"
+
+
+VERSIONS = ['vg7', '61', '70', '80', '90', '100', '110']
+VERSIONS_PLUS = ['vg7', '61', '70', '80', '90', '100', '110', '0']
 ALIAS = {}
+
+
+def get_summary(info):
+    infos = info.split('\n')
+    res = ''
+    for i in range(len(infos)):
+        if infos[i]:
+            res = infos[i]
+            break
+    return res
 
 
 def new_env():
@@ -27,11 +49,12 @@ def sort_data(mod2xtl):
         mod2xtl[id] = sorted_list
         idx = 'ix' + id
         mod2xtl[idx] = 0
-
+    mod2xtl['0'] = sorted(infos.keys())
+    mod2xtl['ix0'] = 0
 
 def get_next(mod2xtl):
     item = '~'
-    for id in VERSIONS:
+    for id in VERSIONS_PLUS:
         idx = 'ix' + id
         ix = mod2xtl[idx]
         if ix < len(mod2xtl[id]):
@@ -39,7 +62,7 @@ def get_next(mod2xtl):
             if itm < item:
                 item = itm
     vers = []
-    for id in VERSIONS:
+    for id in VERSIONS_PLUS:
         idx = 'ix' + id
         ix = mod2xtl[idx]
         if ix < len(mod2xtl[id]):
@@ -57,17 +80,74 @@ def get_realname(item):
     return item.strip()
 
 
-# import pdb
+parser = parseoptargs("Modules to install",
+                      "© 2017-2018 by SHS-AV s.r.l.",
+                      version=__version__)
+parser.add_argument('-h')
+parser.add_argument("-c", "--config",
+                    help="configuration command file",
+                    dest="conf_fn",
+                    metavar="file",
+                    default='./clodoo.conf')
+parser.add_argument("-d", "--dbname",
+                    help="DB name to connect",
+                    dest="db_name",
+                    metavar="file",
+                    default='')
+parser.add_argument('-n')
+parser.add_argument('-q')
+parser.add_argument('-V')
+parser.add_argument('-v')
+ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
+                               db=ctx['db_name'],
+                               ctx=ctx)
+ixver = ctx['oe_version'].split('.')[0] + ctx['oe_version'].split('.')[1]
 # pdb.set_trace()
 mod2xtl = new_env()
+infos = {}
+if os.path.isfile('Odoo_moduli.csv'):
+    with open('Odoo_moduli.csv', 'rb') as f:
+        hdr = False
+        reader = csv.reader(f)
+        for row in reader:
+            if not hdr:
+                hdr = True
+                continue
+            # infos[tech_name] = {description, author, notes, vers, repos, oev)
+            item = row[1]
+            infos[item] = [os0.b(row[0]),
+                           os0.b(row[2]),
+                           os0.b(row[4]),
+                           os0.b(row[3]),
+                           os0.b(row[5]),
+                           '']
+            add_elem(mod2xtl, '0', item)
 
+model = 'ir.module.module'
+ids = clodoo.searchL8(ctx, model, [('state', '=', 'installed')])
+for id in ids:
+    module = clodoo.browseL8(ctx, model, id)
+    item = module.name
+    if item in infos:
+        notes = infos[item][2]
+        summary = get_summary(infos[item][0])
+    else:
+        notes = ''
+        summary = get_summary(os0.b(module.summary))
+    infos[item] = [summary,
+                   os0.b(module.author),
+                   notes,
+                   os0.b(module.installed_version),
+                   '',
+                   ixver]
 
 with open('moduli_alias.csv', 'rb') as f:
     lines = f.read().split('\n')
     for line in lines:
         pv = line.split('=')
         if len(pv) == 2 and pv[0] not in ALIAS:
-            ALIAS[pv[0].strip()] = pv[1].strip()
+            ALIAS[pv[0].strip()] = os0.b(pv[1].strip())
 
 with open('moduli_da_installare_vg7.csv', 'rb') as f:
     hdr = False
@@ -95,35 +175,104 @@ sort_data(mod2xtl)
 print ','.join(mod2xtl['80'])
 item = ''
 ctrs = {}
-for id in VERSIONS:
+for id in VERSIONS_PLUS:
     ctrs[id] = 0
+# import pdb
+# pdb.set_trace()
 fd = open('moduli_da_installare.csv', 'w')
+fmto = '%-35.35s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
+fmtx = '"%s",%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s"\n'
+print fmto % ('Technical Name',
+              VERSIONS[0],
+              '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
+              '%s.%s' % (VERSIONS[2][0:-1], VERSIONS[2][-1]),
+              '%s.%s' % (VERSIONS[3][0:-1], VERSIONS[3][-1]),
+              '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
+              '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
+              '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
+              'Description',
+              'Author',
+              'Notes')
+line = fmtx % ('Technical Name',
+              VERSIONS[0],
+              '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
+              '%s.%s' % (VERSIONS[2][0:-1], VERSIONS[2][-1]),
+              '%s.%s' % (VERSIONS[3][0:-1], VERSIONS[3][-1]),
+              '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
+              '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
+              '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
+              'Description',
+              'Author',
+              'Notes')
+fd.write(line)
 while item != '~':
     item, vers = get_next(mod2xtl)
     if item != '~':
         datas = []
         for id in VERSIONS:
             if id in vers:
-                datas.append(id)
+                datas.append('YES')
                 ctrs[id] += 1
             else:
-                datas.append('')
-        print '%-60.60s %3s %3s %3s %3s %3s %3s %3s' % (item,
-                                                        datas[0],
-                                                        datas[1],
-                                                        datas[2],
-                                                        datas[3],
-                                                        datas[4],
-                                                        datas[5],
-                                                        datas[6])
-        line = '"%s",%s,%s,%s,%s,%s,%s,%s\n' % (item,
-                                                datas[0],
-                                                datas[1],
-                                                datas[2],
-                                                datas[3],
-                                                datas[4],
-                                                datas[5],
-                                                datas[6])
+                datas.append('x')
+        if item in infos:
+            des = infos[item][0]
+            author = infos[item][1]
+            note = infos[item][2]
+        else:
+            des = author = note = ''
+        # if infos[item][5]:
+        #     for i,v in enumerate(VERSIONS):
+        #         if v == infos[item][5]:
+        #             datas[i] = 'YES'
+        try:
+            print fmto % (item,
+                          datas[0],
+                          datas[1],
+                          datas[2],
+                          datas[3],
+                          datas[4],
+                          datas[5],
+                          datas[6],
+                          des,
+                          author,
+                          note)
+        except BaseException:
+            print fmto % (item,
+                          datas[0],
+                          datas[1],
+                          datas[2],
+                          datas[3],
+                          datas[4],
+                          datas[5],
+                          datas[6],
+                          des,
+                          '',
+                          note)
+        try:
+            line = fmtx % (item,
+                           datas[0],
+                           datas[1],
+                           datas[2],
+                           datas[3],
+                           datas[4],
+                           datas[5],
+                           datas[6],
+                           des,
+                           author,
+                           note)
+        except BaseException:
+            line = fmtx % (item,
+                           datas[0],
+                           datas[1],
+                           datas[2],
+                           datas[3],
+                           datas[4],
+                           datas[5],
+                           datas[6],
+                           des,
+                           '',
+                           note)
         fd.write(line)
 line = '%-60.60s' % 'TOTALE'
 for id in VERSIONS:
