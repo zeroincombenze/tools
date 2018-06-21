@@ -91,6 +91,7 @@ LX_CFG_S = ('db_name',
             'filename',
             'hide_cid',
             'psycopg2',
+            'TRANSDICT'
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
@@ -315,6 +316,7 @@ def default_conf(ctx):
               'catalog_db': 'zeroincombenze',
               'psycopg2': 'False',
               # 'model_name': 'name',
+              'TRANSDICT': {}
               }
     return DEFDCT
 
@@ -381,6 +383,8 @@ def create_def_params_dict(ctx):
                 ctx[p] = int(getattr(opt_obj, p))
     for p in LX_CFG_SB:
         ctx[p] = os0.str2bool(ctx[p], ctx[p])
+    if ctx.get('LX_CFG_S', ''):
+        ctx['LX_CFG_S'] = eval(ctx['LX_CFG_S'])
     return ctx
 
 

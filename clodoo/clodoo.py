@@ -86,12 +86,52 @@ Action may be one of:
 
 
 Import_file
+-----------
+
 Import file load data from a csv file into DB. This action work as standard
 Odoo import with some enhanced features.
 Field value may be:
 - external identifier, format module.name (as Odoo standard)
-- text with macros, format ${macro} (no Odoo standard)
-- text with function, forma ${function(params)[fields]} (no Odoo standard) 
+  i.e. 'base.main_company'
+- text with macros, format ${macro} (no Odoo standard), dictionary passed
+  i.e. '${company_id}'
+  text may contains one or more macros
+- text with DB extraction, format ${model:values} (w/o company, no Odoo std)
+  i.e. '${res.company:your company}'
+  data is searched by name
+- text with DB extraction, format ${model::values} (with company, no Odoo std)
+  i.e. '${res.partner:Odoo SA}'
+  data is searched by name, company from ctx['company_id']
+- text with DB extraction, format ${model(params):values} (w/o company)
+  i.e. '${res.company(zip):1010}'
+  data is searched by param(s)
+- text with function, format ${function(params)::values} (add company)
+  i.e. '${res.partner(zip):1010}'
+  data is searched by param(s), company from ctx['company_id']
+- crypted data, begins with $1$!
+  i.e '$1$!abc'
+- expression, begin with = (deprecated)
+- odoo multiversion text, format model.constant.0 (in model replace '.' by '_')
+  i.e. 'res_groups.SALES.0'
+- odoo versioned value, format model.value.majversion
+  i.e. 'res_groups.Sales.8'
+
+Predefines macros (in ctx):
+company_id   default company_id
+header_id    id of header when import header/details files
+TRANSDICT    dictionary with field translation, format csv_name: field_name;
+             i.e {'partner_name': 'name'}
+
+Import search for existing data (this behavior is different from Odoo standard)
+Search is based on <o_model> dictionary;
+default field to search is 'name' or 'id' if passed.
+
+File csv can contain some special fields:
+db_type: select record if DB name matches db type
+         values are D for demo,'T' for test, 'Z' for production
+oe_versions: select record if matches Odoo version
+    i.e  +11.0+10.0 => select recod if Odoo 11.0 or 10.0
+    i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
 from __future__ import print_function
 
@@ -997,7 +1037,8 @@ def act_new_db(ctx):
             else:
                 pwd = ctx['login_password']
                 try:
-                    ctx['server_version'] = ctx['odoo_session'].db.server_version()
+                    ctx['server_version'] = ctx[
+                        'odoo_session'].db.server_version()
                 except BaseException:
                     ctx['server_version'] = ctx['odoo_session'].version
             try:
@@ -1901,7 +1942,9 @@ def act_update_4_next_generation(ctx):
     sts = act_update_modules(ctx)
     ids = searchL8(ctx, model, [])
     for id in ids:
-        module = ctx['odoo_session'].read(model, [id], ['name', 'dependencies_id'])
+        module = ctx['odoo_session'].read(model,
+                                          [id],
+                                          ['name', 'dependencies_id'])
         if module[0]['dependencies_id']:
             for id2 in module[0]['dependencies_id']:
                 module2 = ctx['odoo_session'].read(model2, [id2], ['name'])
@@ -1961,7 +2004,9 @@ def act_update_4_next_generation(ctx):
             if module[0]['state'] != 'installed':
                 if module[0]['dependencies_id']:
                     for id2 in module[0]['dependencies_id']:
-                        module2 = ctx['odoo_session'].read(model2, [id2], ['name', 'state'])
+                        module2 = ctx['odoo_session'].read(model2,
+                                                           [id2],
+                                                           ['name', 'state'])
                         if module2[0]['state'] != 'installed':
                             noop = True
                             break
@@ -3651,7 +3696,7 @@ def remove_all_note_records(ctx):
     models = validate_models(ctx, ('note.stage',
                                    'note.note',
                                    'document.page',
-                                         ))
+                                   ))
     if ctx['custom_act'] == 'cscs':
         records2keep = {'note.stage': 8}
     else:
@@ -3742,12 +3787,12 @@ def remove_all_sales_records(ctx):
 
 def remove_company_logistic_records(ctx):
     models = validate_models(ctx, ('stock.picking.out',
-                                    'stock.picking.in',
-                                    'stock.picking',
-                                    'stock.move',
-                                    'stock.location',
-                                    'stock.warehouse',
-                                    ))
+                                   'stock.picking.in',
+                                   'stock.picking',
+                                   'stock.move',
+                                   'stock.location',
+                                   'stock.warehouse',
+                                   ))
     records2keep = {}
     special = {'stock.picking.out': 'reactivate',
                'stock.picking.in': 'reactivate',
@@ -3806,12 +3851,12 @@ def remove_company_project_records(ctx):
 
 def remove_all_project_records(ctx):
     models = validate_models(ctx, ('survey.page',
-                                         'survey.request',
-                                         'survey',
-                                         'project.phase'
-                                         'project.project.2',
-                                         'project.project',
-                                         ))
+                                   'survey.request',
+                                   'survey',
+                                   'project.phase'
+                                   'project.project.2',
+                                   'project.project',
+                                   ))
     records2keep = {}
     records2keep['project.project'] = (260, 265, 2869, 3026,
                                        3027, 3028, 3029, 3030,
@@ -4102,8 +4147,7 @@ def remove_company_account_records(ctx):
 
 
 def remove_all_account_records(ctx):
-    models = validate_models(ctx, ('payment.line',
-                                         ))
+    models = validate_models(ctx, ('payment.line'))
     records2keep = {}
     special = {}
     specparams = {}
@@ -4259,6 +4303,41 @@ def add_external_name(ctx, o_model, row, id):
                         id=res_id)
 
 
+def parse_fields(ctx, o_model, row, ids, cur_obj):
+    name_new = ''
+    update_header_id = True
+    vals = {}
+    for n in row:
+        if n in ctx.get('TRANSDICT'):
+            nm = ctx['TRANSDICT'][n] or n
+        else:
+            nm = n.split('/')[0].split(':')[0]
+        if nm in ('id',
+                  'db_type',
+                  'oe_versions',
+                  o_model['alias_field']):
+            continue
+        if isinstance(row[n], basestring):
+            if nm == o_model['alias_field']:
+                continue
+            if row[n].find('${header_id}') >= 0:
+                update_header_id = False
+            row[n] = row[n].replace('\\n', '\n')
+        val = eval_value(ctx,
+                         o_model,
+                         nm,
+                         row[n])
+        if val is not None:
+            if (nm != 'fiscalcode' or val != '') and \
+                    (len(ids) == 0 or tounicode(val) != cur_obj[nm]):
+                vals[n] = tounicode(val)
+        msg = u"{0}={1}".format(n, tounicode(val))
+        debug_msg_log(ctx, ctx['level'] + 2, msg)
+        if nm == o_model['name']:
+            name_new = val
+    return vals, update_header_id, name_new
+
+
 def import_file(ctx, o_model, csv_fn):
     """Import data form file: it is like standard import
     Every field can be an expression enclose between '=${' and '}' tokens
@@ -4336,72 +4415,47 @@ def import_file(ctx, o_model, csv_fn):
                 msg_log(ctx, ctx['level'], msg)
                 del row['undef_name']
             # Does record exist ?
+            saved_hide_id = o_model['hide_id']
             if o_model['repl_by_id'] and row['id']:
-                o_model['saved_hide_id'] = o_model['hide_id']
                 o_model['hide_id'] = False
-                ids = get_query_id(ctx,
-                                   o_model,
-                                   row)
-                o_model['hide_id'] = o_model['saved_hide_id']
+            ids = get_query_id(ctx,
+                               o_model,
+                               row)
+            o_model['hide_id'] = saved_hide_id
+            if len(ids):
+                id = ids[0]
+                cur_obj = browseL8(ctx, o_model['model'], id)
                 if o_model['model'] == 'res.users' and\
-                        'login' not in row and len(ids):
-                    id = ids[0]
-                    cur_obj = browseL8(ctx, o_model['model'], id)
+                        'login' not in row and len(ids) == 1:
                     ctx['def_email'] = '%s%s@example.com' % (
                         cur_obj.login,
                         ctx['oe_version'].split('.')[0])
             else:
-                ids = get_query_id(ctx,
-                                   o_model,
-                                   row)
-            name_new = ""
-            update_header_id = True
-            vals = {}
-            for n in row:
-                nm = n.split('/')[0].split(':')[0]
-                if isinstance(row[n], basestring):
-                    if nm == o_model['alias_field']:
-                        continue
-                    if row[n].find('${header_id}') >= 0:
-                        update_header_id = False
-                    # if row[n].find('$1$!') == 0:
-                    #     row[n] = decrypt(row[n][4:])
-                    row[n] = row[n].replace('\\n', '\n')
-                val = eval_value(ctx,
-                                 o_model,
-                                 nm,
-                                 row[n])
-                if val is not None:
-                    if nm != 'fiscalcode' or val != '':
-                        vals[n] = tounicode(val)
-                msg = u"{0}={1}".format(n, tounicode(val))
-                debug_msg_log(ctx, ctx['level'] + 2, msg)
-                if nm == o_model['name']:
-                    name_new = val
+                cur_obj = False
+            if ctx.get('full_model'):
+                field_model = 'ir.model.fields'
+                for field_id in searchL8(ctx,
+                                         field_model,
+                                         [('model', '=', o_model['model'])]):
+                    field_name = browseL8(ctx, field_model, field_id).name
+                    if field_name not in row:
+                        row[field_name] = ''
+            vals, update_header_id, name_new = parse_fields(ctx,
+                                                            o_model,
+                                                            row,
+                                                            ids,
+                                                            cur_obj)
             if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
                     continue
             if len(ids):
-                id = ids[0]
                 if update_header_id:
-                    ctx['header_id'] = id
-                cur_obj = browseL8(ctx, o_model['model'], id)
+                    ctx['header_id'] = ids[0]
                 name_old = cur_obj[o_model['name']]
                 if not isinstance(name_old, basestring):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-            v = {}
-            for p in vals:
-                if p  in ('id',
-                          'db_type',
-                          'oe_versions',
-                          o_model['alias_field']):
-                    continue
-                if len(ids) == 0 or vals[p] != cur_obj[p]:
-                    v[p] = vals[p]
-            vals = v
-            del v
             written = False
             if len(ids):
                 if not ctx['dry_run'] and len(vals):

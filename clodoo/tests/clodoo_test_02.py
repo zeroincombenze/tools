@@ -98,6 +98,24 @@ oe_version=%s
         else:
             return False
 
+    def check_4_partner(self, oe_version, id=None, name=False):
+        user = self.param_by_db(oe_version, field='user')
+        dbname = self.param_by_db(oe_version, field='dbname')
+        id = id or 1
+        sql = "select name from res_partner" + \
+              " where id=%d;" % id
+        cmd = 'psql -t -U%s %s -c"%s"' % (user, dbname, sql)
+        p = Popen(cmd,
+                  stdin=PIPE,
+                  stdout=PIPE,
+                  stderr=PIPE,
+                  shell=True)
+        res, err = p.communicate()
+        if res.find(name) >= 0:
+            return True
+        else:
+            return False
+
     def search_alias(self, oe_version, ref):
         user = self.param_by_db(oe_version, field='user')
         dbname = self.param_by_db(oe_version, field='dbname')
@@ -313,7 +331,7 @@ base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US
                     else:
                         datafile = """id,name,login,signature,email,tz,lang,partner_id
 base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US",=None
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.second_user
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.partner_user2
 """ % self.login_2_test
                     fd = open(dataffn, 'w')
                     fd.write(datafile)
@@ -336,6 +354,18 @@ base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.se
                     res = self.check_4_user(oe_version,
                                             id=res,
                                             login_name='admin2')
+                else:
+                    res = True
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Add user -b%s" % (oe_version),
+                    True,
+                    res)
+                if not ctx['dry_run'] and oe_version != '6.1':
+                    res = self.search_alias(oe_version, 'base.partner_user2')
+                    res = self.check_4_partner(oe_version,
+                                               id=res,
+                                               name='Admin')
                 else:
                     res = True
                 sts = self.Z.test_result(

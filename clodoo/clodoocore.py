@@ -15,7 +15,7 @@ import odoorpc
 import oerplib
 from os0 import os0
 
-from clodoolib import debug_msg_log, msg_log
+from clodoolib import debug_msg_log, msg_log, decrypt
 from transodoo import translate_from_sym, translate_from_to
 
 try:
@@ -366,6 +366,18 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     return o_skull
 
 
+def set_some_values(ctx, o_model, name, value):
+    """Set default value for empties fields"""
+    if o_model['model'] == 'res.partner':
+        if name == 'is_company':
+            return True
+        else:
+            return value
+    # if name == 'company_id':
+    #     return get_company_id(ctx)
+    return value
+
+
 def eval_value(ctx, o_model, name, value):
     """Evaluate value read form csv file: may be a function or macro
     @ ctx:         global parameters
@@ -375,7 +387,9 @@ def eval_value(ctx, o_model, name, value):
     """
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
-    if isinstance(value, basestring):
+    if not value:
+        return set_some_values(ctx, o_model, name, value)
+    elif isinstance(value, basestring):
         eval_dict = True
         if value.find('$1$!') == 0:
             value = decrypt(value[4:])
@@ -761,6 +775,7 @@ def get_db_alias(ctx, value, fmt=None):
                 value = None
     return value
 
+
 def get_model_alias(value):
     if value:
         items = value.split('.')
@@ -792,10 +807,10 @@ def put_model_alias(ctx,
                 name = refs[1]
     if model and name and id:
         ids = searchL8(ctx, 'ir.model.data',
-                       [('model','=',model),
-                        ('name','=',name)])
+                       [('model', '=', model),
+                        ('name', '=', name)])
         if ids:
-            writeL8(ctx, 'ir.model.data', ids, {'res_id': id,})
+            writeL8(ctx, 'ir.model.data', ids, {'res_id': id})
         else:
             vals = {
                 'module': module,
