@@ -202,6 +202,8 @@ if [ "$action" == "install" ]; then
     fi
   done
   run_traced "$TDIR/set_odoover_confn $odoo_fver $opt_DB -r$opt_xmlport -q $opt_tenv -u$lgi_user"
+  [ -f ~/.openerp_serverrc ] && run_traced "rm -f ~/.openerp_serverrc"
+  [ -f .odoorc ] && run_traced "rm -f .odoorc"
   for cf in $CFLOOP; do
     if [ "$cf" == "00" ]; then
       if [ -n "$opt_DB" ]; then

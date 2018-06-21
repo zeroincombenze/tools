@@ -368,7 +368,7 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
 
 def set_some_values(ctx, o_model, name, value):
     """Set default value for empties fields"""
-    if o_model['model'] == 'res.partner':
+    if o_model and o_model['model'] == 'res.partner':
         if name == 'is_company':
             return True
         else:
