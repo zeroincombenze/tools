@@ -723,7 +723,22 @@ def create_local_parms(ctx, act):
               'filename',
               'hide_cid',
               'alias_model2',
-              'alias_field'):
+              'alias_field',
+              'modelA',
+              'modelA_code',
+              'modelA_name',
+              'modelA_action',
+              'modelA_keyids',
+              'aliasA_model2',
+              'aliasA_field',
+              'modelB',
+              'modelB_code',
+              'modelB_name',
+              'modelB_action',
+              'modelB_keyids',
+              'aliasB_model2',
+              'aliasB_field',
+              'hideB_cid'):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -1208,7 +1223,9 @@ def act_workflow(ctx):
               'model_name',
               'model_action',
               'model_keyids',
-              'hide_cid'):
+              'hide_cid',
+              'alias_model2',
+              'alias_field'):
         if p in ctx:
             o_model[p] = ctx[p]
     if not o_model.get('model_code') and not o_model.get('model_name'):
@@ -1465,7 +1482,22 @@ def act_import_file(ctx):
               'model_name',
               'hide_cid',
               'alias_model2',
-              'alias_field'):
+              'alias_field',
+              'modelA',
+              'modelA_code',
+              'modelA_name',
+              'modelA_action',
+              'modelA_keyids',
+              'aliasA_model2',
+              'aliasA_field',
+              'modelB',
+              'modelB_code',
+              'modelB_name',
+              'modelB_action',
+              'modelB_keyids',
+              'aliasB_model2',
+              'aliasB_field',
+              'hideB_cid'):
         if p in ctx:
             o_model[p] = ctx[p]
     if 'filename' in ctx:
