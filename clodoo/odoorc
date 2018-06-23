@@ -133,7 +133,7 @@ get_odoo_full_ver() {
 }
 
 find_odoo_ver() {
-#find_odoo_ver(odoo_vid)
+#find_odoo_ver(odoo_root_dir)
     local CWD=$PWD
     local ldir odoo_fver x
     [ -n "$1" ] && cd $1

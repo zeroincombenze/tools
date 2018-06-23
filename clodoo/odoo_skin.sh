@@ -151,17 +151,38 @@ cp_icon_file() {
     fi
 }
 
+cp_demo_grf_file() {
+# cp_demo_grf_file (path file)
+    [ $opt_verbose -gt 0 ] && echo "Check for $2 ..."
+    if [ -f "$webdir/static/src/img/$2" ]; then
+      if ! diff -q $1/$2 $webdir/static/src/img/$2 &>/dev/null; then 
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          [ $opt_verbose -gt 0 ] && echo "Copying $1/$2 to $webdir/static/src/img/..."
+          mv $webdir/static/src/img/$2 $webdir/static/src/img/$2.bak
+          cp $1/$2 $webdir/static/src/img/$2
+          restart_req=1
+        else
+          [ $opt_verbose -gt 0 ] && echo "File $1/$2 should be copied to $webdir/static/src/img/"
+        fi
+      fi
+    fi
+}
+
 update_base_sass() {
 # update_base_sass (theme_dirs odoo_vid webdir sel_theme)
     restart_req=0
+    local f
     local webdir=$3
     local res=$(list_themes_n_skin "$@")
-    [ -f $res/favicon.ico ] && cp_grf_file "$res" "favicon.ico"
-    [ -f $res/logo.png ] && cp_grf_file "$res" "logo.png"
-    [ -f $res/logo2.png ] && cp_grf_file "$res" "logo2.png"
-    [ -f $res/nologo.png ] && cp_grf_file "$res" "nologo.png"
-    [ -f $res/icon.png ] && cp_icon_file "$res" "icon.png"
-    [ -f $res/avatar.png ] && cp_icon_file "$res" "avatar.png"
+    for f in favicon.ico logo.png logo2.png nologo.png; do
+      [ -f $res/$f ] && cp_grf_file "$res" "$f"
+    done
+    for f in icon.png avatar.png; do
+      [ -f $res/$f ] && cp_icon_file "$res" "$f"
+    done
+    for f in main_partner-image.png; do
+      [ -f $res/$f ] && cp_demo_grf_file "$res" "$f"
+    done
     [ ${opt_dry_run:-0} -eq 0 ] && echo "$4">$webdir/static/current_skin.txt
     if [ $restart_req -ne 0 -a $test_mode -eq 0 ]; then
       svname=$(get_odoo_service_name $odoo_vid)
@@ -294,17 +315,18 @@ update_base_sass() {
 }
 
 
-OPTOPTS=(h        c        D        d          f         i         l        m         n            q           s           T         V           v           x)
-OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
-OPTACTI=(1        "="      1        "="        1         "="       1        1         1            0           "="         1         "*>"        "+"         "=")
-OPTDEFL=(1        ""       0        ""         0         ""        0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
-OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
+OPTOPTS=(h        c        D        d          f         i         I         l        m         n            q           s           T         V           v           x)
+OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_demod opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
+OPTACTI=(1        "="      1        "="        1         "="       1         1        1         1            0           "="         1         "*>"        "+"         "=")
+OPTDEFL=(1        ""       0        ""         0         ""        0         0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
+OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "dir"     "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "show diff (implies dry-run)"\
  "odoo web dir (def. /opt/odoo/{odoo_fver}/addons/web/static/src/css)"\
  "force generation of css file"\
- "odoo icon dir (def. /opt/odoo/{odoo_fver}/openerp|odoo/addons/base/static/src/img)"\
+ "odoo icon dir (def. /opt/odoo/{odoo_fver}/(openerp|odoo)/addons/base/static/description)"\
+ "odoo demo grf dir (def. /opt/odoo/{odoo_fver}/(openerp|odoo)/addons/base/static/src/img)"\
  "list themes"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
@@ -386,6 +408,20 @@ if [ -z "$opt_icond" ]; then
 fi
 if [ -z "$opt_icond" ]; then
   echo "No valid skin (Icon directory not found)!"
+  exit 1
+fi
+if [ -z "$opt_demod" ]; then
+  if [ $test_mode -ne 0 ]; then
+    opt_demod=$TESTDIR/odoo/addons/odoo/base/static/src/img
+  else
+    grf=$(findpkg main_partner-image.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/img /opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/img /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
+    if [ -n "$grf" ]; then
+      opt_demod=$(dirname $grf)
+    fi
+  fi
+fi
+if [ -z "$opt_demod" ]; then
+  echo "No valid skin (Demo graphical directory not found)!"
   exit 1
 fi
 

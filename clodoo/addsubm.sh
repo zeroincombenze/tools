@@ -5,8 +5,8 @@
 # Add odoo sub module into local repository
 #
 # This free software is released under GNU Affero GPL3
-# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# author: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -226,13 +226,6 @@ fi
 if [ "${pkg_URL: -1}" == "/" ]; then
   pkg_URL=${pkg_URL:0: -1}
 fi
-# if [ $opt_verbose -gt 0 ]; then
-#   if [ $opt_multi -ne 0 ]; then
-#     echo "Manage Odoo multi-version environment"
-#   else
-#     echo "Manage single Odoo version environment"
-#   fi
-# fi
 odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB")
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver

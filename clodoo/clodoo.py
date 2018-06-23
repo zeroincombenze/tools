@@ -117,10 +117,13 @@ Field value may be:
   i.e. 'res_groups.Sales.8'
 
 Predefines macros (in ctx):
-company_id   default company_id
-header_id    id of header when import header/details files
-TRANSDICT    dictionary with field translation, format csv_name: field_name;
-             i.e {'partner_name': 'name'}
+company_id     default company_id
+header_id      id of header when import header/details files
+lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
+zeroadm_mail   default user mail
+zeroadm_login  default admin username
+TRANSDICT      dictionary with field translation, format csv_name: field_name;
+               i.e {'partner_name': 'name'}
 
 Import search for existing data (this behavior is different from Odoo standard)
 Search is based on <o_model> dictionary;
@@ -820,6 +823,8 @@ def act_show_params(ctx):
 
 
 def act_list_db(ctx):
+    import pdb
+    pdb.set_trace()
     dblist = get_dblist(ctx)
     for db in sorted(dblist):
         ctx = init_db_ctx(ctx, db)
@@ -4996,11 +5001,14 @@ def main():
         return STS_FAILED
     ctx = create_act_list(ctx)
     do_conn = False
+    do_login = False
     do_newdb = False
     do_multidb = False
     for act in ctx['actions'].split(','):
         if act not in ("list_actions", "show_params"):
             do_conn = True
+            if act not in ("drop_db", "list_db"):
+                do_login = True
         if act == "per_db":
             do_multidb = True
         if act == "new_db":
@@ -5025,11 +5033,14 @@ def main():
         ctx = init_db_ctx(ctx, ctx['db_name'])
         msg = ident_db(ctx, ctx['db_name'])
         msg_log(ctx, ctx['level'], msg)
-        lgiuser = do_login(ctx)
-        if lgiuser:
-            sts = do_actions(ctx)
+        if do_login:
+            lgiuser = do_login(ctx)
+            if lgiuser:
+                sts = do_actions(ctx)
+            else:
+                sts = STS_FAILED
         else:
-            sts = STS_FAILED
+            sts = do_actions(ctx)
     else:
         sts = do_actions(ctx)
     decr_lev(ctx)
