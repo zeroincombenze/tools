@@ -366,13 +366,21 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     return o_skull
 
 
-def set_some_values(ctx, o_model, name, value):
+def set_some_values(ctx, o_model, name, value, model=None):
     """Set default value for empties fields"""
-    if o_model and o_model['model'] == 'res.partner':
+    if not model and o_model and o_model['model']:
+        model = o_model['model']
+    if model == 'res.partner':
         if name == 'is_company':
             return True
         else:
             return value
+    elif model == 'res.users':
+        if name == 'email':
+            if ctx['with_demo']:
+                return ctx['def_email']
+            elif not ctx['with_demo']:
+                return ctx['zeroadm_mail']
     # if name == 'company_id':
     #     return get_company_id(ctx)
     return value
@@ -450,6 +458,8 @@ def expr(ctx, o_model, code, value):
                 if v.find(':') >= 0:
                     v = _query_expr(ctx, o_model, code, v)
                 else:
+                    if v == 'zeroadm_email' and ctx['with_demo']:
+                        v = 'def_email'
                     try:
                         v = eval(v, None, ctx)
                     except BaseException:                    # pragma: no cover

@@ -168,8 +168,90 @@ cp_demo_grf_file() {
     fi
 }
 
+write_def_conf() {
+    f=$1/default.def
+    cat << EOF > $f 
+CSS_facets_border=#afafb6
+CSS_section_title_color=#7C7BAD
+CSS_tag_bg_light=#f0f0fa
+CSS_tag_bg_dark=#7C7BAD
+CSS_tag_border=#afafb6
+CSS_tag_border_selected=#a6a6fe
+CSS_hover_background=#f0f0fa
+CSS_link_color=#7C7BAD
+CSS_sheet_max_width=auto
+CSS_sheet_min_width=650px
+CSS_sheet_padding=16px
+EOF
+}
+
 update_base_sass() {
-# update_base_sass (theme_dirs odoo_vid webdir sel_theme)
+# update_base_sass (sassdir confdir fsass fconf)
+    [ $opt_verbose -gt 0 ] && echo "Update $1/$3 by $2/$4 ..."
+    write_def_conf $2
+    run_traced "cd $2"
+    run_traced "link_cfg $4 default.def"
+    run_traced "cd $1"
+    local fsrc=$3
+    if [ ! -f "$fsrc" ]; then
+      echo "No file $3 found for skin!"
+      return
+    fi
+    local ftmp="$fsrc.tmp"
+    [ $opt_verbose -gt 0 ] && echo "Reading $fsrc, writing $ftmp ..."
+    rm -f $ftmp;
+    local lctr=0
+    local tk devcol qtcol prdcol svcname
+    local color param prm msts x
+    local cmd=
+    color=
+    param=
+    msts=0
+    ctr=10  #debug
+    while IFS= read -r line; do
+      [ $ctr -eq 0 ] && break
+      ((ctr--)) #debug
+      if [[ $line =~ ^\$[a-zA-Z0-9_-]+[[:space:]]*: ]]; then
+        param=$(echo $line|grep -Eo "[a-zA-Z0-9_-]+"|head -n1)
+        param=CSS_${param//-/_}
+        x=$(get_cfg_value 0 $param)
+        if [ -z "$x" ]; then
+          echo "$line">>$ftmp
+        else
+          if [ "${x:0:1}" == "#" ]; then
+            color="${x^^}"
+          else
+            color="$x"
+          fi
+          echo "\$$prm: $color">>$ftmp
+        fi
+      else
+        echo "$line">>$ftmp
+      fi
+    done < "$fsrc"
+    if [ ! -f Makefile ]; then
+      echo "$opt_fcss: $opt_fsass" > Makefile
+      echo -e "\tsass --trace -t expanded $opt_fsass $opt_fcss" >> Makefile
+    fi
+    if [ $opt_force -ne 0 ] || $(diff -q $ftmp $fsrc &>/dev/null); then
+      if [ $opt_diff -ne 0 ]; then
+        echo "diff -y --suppress-common-line $opt_fsass $ftmp"
+        diff -y --suppress-common-line $opt_fsass $ftmp
+      fi
+      run_traced "cp -f $fsrc $fsrc.bak"
+      run_traced "mv -f $ftmp $opt_fsrc"
+      run_traced "sass --trace -t expanded $opt_fsass $opt_fcss"
+      run_traced "chown odoo:odoo $opt_fsass $opt_fcss $fsrc.bak"
+      svname=$(get_odoo_service_name $odoo_vid)
+      run_traced "sudo systemctl restart $svname"
+    else
+      [ $opt_verbose -gt 0 ] && echo "No skin changed"
+      [ ${opt_dry_run:-0} -eq 0 ] && rm -f $fntmp
+    fi
+}
+
+update_skin() {
+# update_skin (theme_dirs odoo_vid webdir sel_theme)
     restart_req=0
     local f
     local webdir=$3
@@ -183,6 +265,7 @@ update_base_sass() {
     for f in main_partner-image.png; do
       [ -f $res/$f ] && cp_demo_grf_file "$res" "$f"
     done
+    update_base_sass $opt_sassd $res $opt_fsass skin_colors.def
     [ ${opt_dry_run:-0} -eq 0 ] && echo "$4">$webdir/static/current_skin.txt
     if [ $restart_req -ne 0 -a $test_mode -eq 0 ]; then
       svname=$(get_odoo_service_name $odoo_vid)
@@ -194,132 +277,14 @@ update_base_sass() {
     local theme_dirs="$2"
     local odoo_vid=$3
 
-    local sel_skin=$5
-    run_traced "cd $webdir"
-    local fsrc=$(get_cfg_value 0 sass_filename)
-    [ -n "$fsrc" ] || fsrc="$sel_skin.sass"
-    [ -f "$fsrc" ] || fsrc="$opt_sass"
-    [ ! -f "$fsrc" -a "$sel_skin" == "zeroincombenze"  -a -f "base.z0i" ] || fsrc="base.z0i"
-    [ ! -f "$fsrc" -a "$sel_skin" == "oia"  -a -f "base.oia" ] || fsrc="base.oia"
-    [ ! -f "$fsrc" -a "$sel_skin" == "vg7"  -a -f "base.oia" ] || fsrc="base.vg7"
-    if [ ! -f "$fsrc" ]; then
-      echo "No file $opt_sass found for skin $sel_skin!"
-      return
-    fi
-    local ftmp="$fsrc.tmp"
-    [ $opt_verbose -gt 0 ] && echo "Reading $fsrc, writing $ftmp ..."
-    rm -f $ftmp;
-    local lctr=0
-    local tk devcol qtcol prdcol svcname
-    local color param prm msts x
-    local cmd=
-    color=
-    param=
-    msts=0
-    while IFS=~ read -r line; do
-      if [ $msts -eq 0 ] && [[ $line =~ ^//.*dev=.*prod=.* ]]; then
-        if [[ $line =~ ^//.*dev=.*qt=.*prod=.* ]]; then
-          msts=3
-        else
-          msts=2
-        fi
-        for tk in $line; do
-          if [[ $tk =~ dev=.* ]]; then
-            devcol=$(echo $tk|awk -F= '{print $2}')
-            if [ "$tgt" == "dev" ]; then
-              cmd="echo \$line|sed -e s~^.[a-zA-Z0-9_\-]+:[[:space:]]*$devcol~//\&~"
-            fi
-          elif [[ $tk =~ qt=.* ]]; then
-            qtcol=$(echo $tk|awk -F= '{print $2}')
-          elif [[ $tk =~ prod=.* ]]; then
-            prdcol=$(echo $tk|awk -F= '{print $2}')
-            if [ "$tgt" == "prd" ]; then
-              cmd="echo \$line|sed -e s~^.[a-zA-Z0-9_\-]+:[[:space:]]*$prdcol~//\&~"
-            fi
-          fi
-        done
-        echo "$line">>$ftmp
-      elif [ $msts -gt 0 ]; then
-        ((msts--))
-        if [ "$tgt" == "dev" ]; then
-          if [[ $line =~ ^//.[a-zA-Z0-9_-]+:[[:space:]]*$devcol ]]; then
-            echo $line|sed -e s://::>>$ftmp
-          elif [[ $line =~ ^.[a-zA-Z0-9_-]+:[[:space:]]*$devcol ]]; then
-            echo "$line">>$ftmp
-          elif [[ $line =~ ^[^/] ]]; then
-            echo "//$line">>$ftmp
-          else
-             eval $cmd>>$ftmp
-          fi
-        elif [ "$tgt" == "prd" ]; then
-          if [[ $line =~ ^//.[a-zA-Z0-9_-]+:[[:space:]]*$prdcol ]]; then
-            echo $line|sed -e s://::>>$ftmp
-          elif [[ $line =~ ^.[a-zA-Z0-9_-]+:[[:space:]]*$prdcol ]]; then
-            echo "$line">>$ftmp
-          elif [[ $line =~ ^[^/] ]]; then
-            echo "//$line">>$ftmp
-          else
-            eval $cmd>>$ftmp
-          fi
-        else
-          eval $cmd>>$ftmp
-        fi
-      else
-        if [[ $line =~ ^.[a-zA-Z0-9_-]+[[:space:]]*: ]]; then
-          param=${line:1}
-          prm=$(echo $param|grep -Eo "^[a-zA-Z0-9_\-]+"|head -n1)
-          param=CSS_${prm//-/_}
-          x=$(get_cfg_value 0 $param)
-          if [ -z "$x" ]; then
-            echo "$line">>$ftmp
-          else
-            if [ "${x:0:1}" == "#" ]; then
-              color="${x^^}"
-            else
-              color="$x"
-            fi
-            echo "\$$prm: $color">>$ftmp
-          fi
-        else
-          echo "$line">>$ftmp
-        fi
-      fi
-    done < "$fsrc"
-    if [ ! -f Makefile ]; then
-      echo "$opt_css: $opt_sass" > Makefile
-      echo -e "\tsass --trace -t expanded $opt_sass $opt_css" >> Makefile
-    fi
-    if [ "$fsrc" == "base.sass" -a ! -f "odoo-default.sass" ]; then
-      run_traced "cp -p $fsrc odoo-default.sass"
-    fi
-    if [ $opt_force -ne 0 ] || [ -n "$(diff -q $ftmp $fsrc)" ] || [ -n "$(diff -q $ftmp $opt_sass)" ]; then
-      if [ $opt_diff -ne 0 ]; then
-        echo "diff -y --suppress-common-line $opt_sass $ftmp"
-        diff -y --suppress-common-line $opt_sass $ftmp
-      fi
-      run_traced "cp -f $fsrc $fsrc.bak"
-      run_traced "mv -f $ftmp $opt_sass"
-      run_traced "sass --trace -t expanded $opt_sass $opt_css"
-      run_traced "chown odoo:odoo $opt_sass $opt_css $fsrc.bak"
-      svname=$(get_odoo_service_name $odoo_vid)
-      if [ "$theme" == "odoo" ]; then
-        run_traced "sed -i -e 's:^web_skin *=:# web_skin =:' /etc/odoo/$svname.conf"
-      else
-        run_traced "sed -i -e 's:^[# ]*web_skin *=.*:web_skin = $theme:' /etc/odoo/$svname.conf"
-      fi
-      run_traced "sudo systemctl restart $svname"
-    else
-      [ $opt_verbose -gt 0 ] && echo "No skin changed"
-      [ ${opt_dry_run:-0} -eq 0 ] && rm -f $fntmp
-    fi
 }
 
 
-OPTOPTS=(h        c        D        d          f         i         I         l        m         n            q           s           T         V           v           x)
-OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_demod opt_list opt_multi opt_dry_run  opt_verbose opt_sass    test_mode opt_version opt_verbose opt_xml)
-OPTACTI=(1        "="      1        "="        1         "="       1         1        1         1            0           "="         1         "*>"        "+"         "=")
-OPTDEFL=(1        ""       0        ""         0         ""        0         0        -1        0            -1          "base.sass" 0         ""          -1          "base.xml")
-OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "dir"     "list"   ""        "do nothing" "quit"      "file"      "test"    "version"   "verbose"   "file")
+OPTOPTS=(h        c        D        d          f         i         I         l        m         n            q           s           S         T         V           v           x)
+OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_demod opt_list opt_multi opt_dry_run  opt_verbose opt_fsass   opt_sassd test_mode opt_version opt_verbose opt_xml)
+OPTACTI=(1        "="      1        "="        1         "="       ""        1        1         1            0           "="         "="       1         1           "+"         "=")
+OPTDEFL=(1        ""       0        ""         0         ""        ""        0        -1        0            -1          "base.sass" ""        0         0           -1          "base.xml")
+OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "dir"     "list"   ""        "do nothing" "quit"      "file"      "dir"     "test"    "version"   "verbose"   "file")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
  "show diff (implies dry-run)"\
@@ -332,6 +297,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "silent mode"\
  "target sass file (def=base.sass)"\
+ "odoo css dir (def. /opt/odoo/{odoo_fver}/(openerp|odoo)/addons/base/static/src/css)"\
  "test mode (implies dry-run)"\
  "show version"\
  "verbose mode"\
@@ -360,6 +326,7 @@ fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+odoo_root=$(build_odoo_param ROOT $odoo_vid)
 if [ $test_mode -ne 0 ]; then
   theme_dirs=$TESTDIR/website-themes
 else
@@ -379,14 +346,14 @@ elif [[ $HOSTNAME =~ $HOSTNAME_DEV ]]; then
 else
   tgt=""
 fi
-if [ "${opt_sass: -5}" != ".sass" ]; then
-  opt_sass=$opt_sass.sass
+if [ "${opt_fsass: -5}" != ".sass" ]; then
+  opt_fsass=$opt_fsass.sass
 fi
 if [ -z "$opt_webdir" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_webdir=$TESTDIR/odoo/addons/web/static/src/css
   else
-    xml=$(findpkg $opt_xml "/opt/odoo/$odoo_vid/addons/web/static/src/xml /opt/odoo/$odoo_vid/website /opt/odoo/$odoo_vid")
+    xml=$(findpkg $opt_xml "$odoo_root/addons/web/static/src/xml $odoo_root/website $odoo_root")
     if [ -n "$xml" ]; then
       opt_webdir=$(dirname $xml)
     fi
@@ -400,7 +367,7 @@ if [ -z "$opt_icond" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_icond=$TESTDIR/odoo/addons/odoo/base/static/src/img
   else
-    ico=$(findpkg icon.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/odoo/addons/base/static/description /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/description /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
+    ico=$(findpkg icon.png "$odoo_root/odoo/addons/base/static/src/img $odoo_root/odoo/addons/base/static/description $odoo_root/openerp/addons/base/static/src/img $odoo_root/openerp/addons/base/static/description /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
     if [ -n "$ico" ]; then
       opt_icond=$(dirname $ico)
     fi
@@ -410,25 +377,39 @@ if [ -z "$opt_icond" ]; then
   echo "No valid skin (Icon directory not found)!"
   exit 1
 fi
-if [ -z "$opt_demod" ]; then
+if [ -z "$opt_demod" -a $odoo_ver -gt 7 ]; then
   if [ $test_mode -ne 0 ]; then
     opt_demod=$TESTDIR/odoo/addons/odoo/base/static/src/img
   else
-    grf=$(findpkg main_partner-image.png "/opt/odoo/$odoo_vid/odoo/addons/base/static/img /opt/odoo/$odoo_vid/odoo/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/src/img /opt/odoo/$odoo_vid/openerp/addons/base/static/img /opt/odoo/$odoo_vid/server/openerp/addons/base/static/src/img")
+    grf=$(findpkg main_partner-image.png "$odoo_root/odoo/addons/base/static/img $odoo_root/odoo/addons/base/static/src/img $odoo_root/openerp/addons/base/static/src/img $odoo_root/openerp/addons/base/static/img $odoo_root/server/openerp/addons/base/static/src/img")
     if [ -n "$grf" ]; then
       opt_demod=$(dirname $grf)
     fi
   fi
 fi
-if [ -z "$opt_demod" ]; then
+if [ -z "$opt_demod" -a $odoo_ver -gt 7 ]; then
   echo "No valid skin (Demo graphical directory not found)!"
   exit 1
 fi
+if [ -z "$opt_sassd" ]; then
+  if [ $test_mode -ne 0 ]; then
+    opt_sassd=$TESTDIR/odoo/addons/odoo/base/static/src/img
+  else
+    css=$(findpkg base.sass "$opt_webdir/../css $odoo_root/website")
+    if [ -n "$css" ]; then
+      opt_sassd=$(dirname $css)
+    fi
+  fi
+fi
+if [ -z "$opt_sassd" ]; then
+  echo "No valid skin (Sass/css directory not found)!"
+  exit 1
+fi
 
-opt_css=${opt_sass:0: -5}.css
+opt_fcss=${opt_fsass:0: -5}.css
 opt_webdir=$(readlink -f $opt_webdir/../../..)
 if [ $opt_list -ne 0 ]; then
   list_themes_n_skin "$theme_dirs" "$odoo_vid" "$opt_webdir"
 else
-  update_base_sass "$theme_dirs" "$odoo_vid" "$opt_webdir" "$sel_skin"
+  update_skin "$theme_dirs" "$odoo_vid" "$opt_webdir" "$sel_skin"
 fi

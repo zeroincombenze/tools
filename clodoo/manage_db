@@ -223,9 +223,11 @@ if [ "$action" == "install" ]; then
         db=$(cat clodoo_last.conf|awk -F= '{print $2}')
       fi
       if [ "$cf" == "09" ]; then
-        svcname=$(build_odoo_param SVCNAME $odoo_vid)
-        run_traced "sudo systemctl restart $svcname"
         if $(psql -l|grep -q $db); then
+          eval $WCMD
+          svcname=$(build_odoo_param SVCNAME $odoo_vid)
+          run_traced "sudo systemctl restart $svcname"
+          sleep 2
           run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$opt_xmlport $opt_with_demo"
           if $(psql -l|grep -q $db); then
             run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
@@ -234,7 +236,7 @@ if [ "$action" == "install" ]; then
             echo "DB $db not dropped!"
           fi
         else
-          echo "DB $db not found."
+          echo "DB $db already dropped"
         fi
         sts=0
       else

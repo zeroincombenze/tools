@@ -231,9 +231,9 @@ parser.add_argument('-v')
 # Connect to DB
 print "Connect to DB"
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-oerp, uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
-                                     db=ctx['db_name'],
-                                     ctx=ctx)
+uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
+                               db=ctx['db_name'],
+                               ctx=ctx)
 if ctx['model']:
     export_table(ctx)
 else:

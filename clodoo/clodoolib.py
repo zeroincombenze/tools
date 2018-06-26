@@ -560,7 +560,7 @@ def create_parser(version, doc, ctx):
                         help="user language",
                         dest="lang",
                         metavar="iso_lang",
-                        default='en_US')
+                        default=False)
     parser.add_argument("-n", "--dry-run",
                         help="test execution mode",
                         action="store_true",
@@ -575,7 +575,7 @@ def create_parser(version, doc, ctx):
                         help="login password",
                         dest="lgi_pwd",
                         metavar="password",
-                        default=None)
+                        default='admin')
     parser.add_argument("-q", "--quiet",
                         help="run silently",
                         action="store_true",

@@ -118,10 +118,14 @@ Field value may be:
 
 Predefines macros (in ctx):
 company_id     default company_id
+def_email      deafult mail format: {username}{majvesion}@example.com
 header_id      id of header when import header/details files
 lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
-zeroadm_mail   default user mail
-zeroadm_login  default admin username
+zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
+zeroadm_login  default admin username from conf file
+_today         date.today()
+_current_year  date.today().year
+_last_year'    date.today().year - 1
 TRANSDICT      dictionary with field translation, format csv_name: field_name;
                i.e {'partner_name': 'name'}
 
@@ -151,9 +155,11 @@ from os0 import os0
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         validate_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
-                        get_res_users, psql_connect, put_model_alias)
+                        get_res_users, psql_connect, put_model_alias,
+                        set_some_values)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
-                       msg_log, parse_args, tounicode, read_config)
+                       msg_log, parse_args, tounicode, read_config,
+                       default_conf)
 from transodoo import read_stored_dict
 
 
@@ -262,8 +268,10 @@ def do_login(ctx):
     for p in ctx['crypt2_password'].split(','):
         if p and p not in cryptlist:
             cryptlist.append(p)
-    if ctx.get('lgi_pwd'):
-        for p in ctx['lgi_pwd'].split(','):
+    if ctx.get('lgi_pwd', 'admin') is None:
+        ctx['lgi_pwd'] = 'admin'
+    if ctx.get('lgi_pwd', 'admin'):
+        for p in ctx.get('lgi_pwd', 'admin').split(','):
             if p and p not in pwdlist:
                 pwdlist.insert(0, p)
     user = False
@@ -309,36 +317,40 @@ def do_login(ctx):
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
         wrong = False
-        if username != ctx['login_user']:
+        if user.login != ctx['login_user']:
             user.login = ctx['login_user']
             wrong = True
         if ctx['crypt_password'] and pwd != ctx['crypt_password']:
-            user.password = decrypt(ctx['crypt_password'])
+            user.new_password = decrypt(ctx['crypt_password'])
             wrong = True
         elif ctx['login_password'] and pwd != ctx['login_password']:
-            user.password = ctx['login_password']
+            user.new_password = ctx['login_password']
             wrong = True
+        if ctx['oe_version'] != '6.1':
+            if ctx['with_demo'] and user.email != ctx['def_email']:
+                user.email = set_some_values(ctx,
+                                             None,
+                                             'email',
+                                             user.email,
+                                             model='res.users')
+                wrong = True
+            elif not ctx['with_demo'] and user.email != ctx['zeroadm_mail']:
+                user.email = set_some_values(ctx,
+                                             None,
+                                             'email',
+                                             user.email,
+                                             model='res.users')
+                wrong = True
         if wrong:
             try:
                 write_recordL8(ctx, user)
                 if not ctx.get('no_warning_pwd', False):
-                    os0.wlog(u"!DB={0}: updated wrong user/pwd {1} to {2}"
-                             .format(tounicode(ctx['db_name']),
-                                     tounicode(username),
-                                     tounicode(ctx['login_user'])))
+                    os0.wlog(u"!DB=%s: updated user/pwd/mail %s to %s" % (
+                             tounicode(ctx['db_name']),
+                             tounicode(username),
+                             tounicode(ctx['login_user'])))
             except BaseException:
-                os0.wlog(u"!!write error!")
-        if user.email != ctx['zeroadm_mail']:
-            user.email = ctx['zeroadm_mail']
-            try:
-                write_recordL8(ctx, user)
-                if not ctx.get('no_warning_pwd', False):
-                    os0.wlog(u"!DB={0}: updated wrong user {1} to {2}"
-                             .format(tounicode(ctx['db_name']),
-                                     tounicode(ctx['login2_user']),
-                                     tounicode(ctx['login_user'])))
-            except BaseException:
-                os0.wlog(u"!!write error!")
+                os0.wlog(u"!!User write error!")
     if user:
         ctx['_cr'] = psql_connect(ctx)
     return user
@@ -704,9 +716,7 @@ def create_local_parms(ctx, act):
     """Create local params dictionary"""
     action = get_real_actname(ctx, act)
     conf_obj = ctx['_conf_obj']
-    lctx = {}
-    for n in ctx:
-        lctx[n] = ctx[n]
+    lctx = ctx.copy()
     for p in ('actions',
               'install_modules',
               'uninstall_modules',
@@ -749,6 +759,7 @@ def create_local_parms(ctx, act):
             lctx[p] = conf_obj.get(action, p)
         elif p in lctx:
             del lctx[p]
+    DEFDCT = default_conf(lctx)
     for p in ('lang',
               'dbfilter',
               'companyfilter',
@@ -758,7 +769,9 @@ def create_local_parms(ctx, act):
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
         elif conf_obj.has_option(action, p):
-            lctx[p] = conf_obj.get(action, p)
+            pv = conf_obj.get(action, p)
+            if pv != DEFDCT[p]:
+                lctx[p] = pv
     for p in ('install_modules',
               'uninstall_modules',
               'actions',
@@ -823,8 +836,6 @@ def act_show_params(ctx):
 
 
 def act_list_db(ctx):
-    import pdb
-    pdb.set_trace()
     dblist = get_dblist(ctx)
     for db in sorted(dblist):
         ctx = init_db_ctx(ctx, db)
