@@ -172,7 +172,17 @@ build_odoo_param() {
     else
       [ -z "$3" ] && RPTNAME="OCB" || RPTNAME=$3
     fi
-    [ -z "$4" ] && GIT_ORGID="zero" || GIT_ORGID=$4
+    if [ -n "$4" ]; then
+      GIT_ORGID=$4
+    else
+      if [ "${2:0:3}" == "oca" ]; then
+        GIT_ORGID="oca"
+      elif [ "${2:0:3}" == "oia" ]; then
+        GIT_ORGID="oia"
+      else
+        GIT_ORGID="zero"
+      fi
+    fi
     if [ "$GIT_ORGID" == "zero" -o "$GIT_ORGID" == "zeroincombenze" ]; then
       if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
         GIT_ORGID=zero-git
@@ -377,7 +387,7 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
@@ -391,12 +401,12 @@ build_odoo_param() {
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
         ((p=18060+$odoo_ver))
-      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia).* ]]; then
+      elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
-        if [ "${2:0:3}" == "oca" ]; then
+        if [ "$GIT_ORGID" == "oca" ]; then
           ((p=8260+$odoo_ver))
-        elif [ "${2:0:3}" == "oia" ]; then
+        elif [ "$GIT_ORGID" == "oia" ]; then
           ((p=8360+$odoo_ver))
         else
           ((p=8160+$odoo_ver))

@@ -423,8 +423,7 @@ def eval_value(ctx, o_model, name, value):
                              value)
                 eval_dict = False
         if isinstance(value, basestring):
-            if value.isdigit() or \
-                    value in ('None', 'True', 'False') or \
+            if value in ('None', 'True', 'False') or \
                     (value[0:2] == "[(" and value[-2:] == ")]"):
                 if eval_dict:
                     try:
@@ -434,8 +433,23 @@ def eval_value(ctx, o_model, name, value):
                 else:
                     try:
                         value = eval(value)
-                    except BaseException:                    # pragma: no cover
+                    except BaseException:            # pragma: no cover
                         pass
+            elif value.isdigit():
+                ir_model = 'ir.model.fields'
+                ids = searchL8(ctx,
+                               ir_model,
+                               [('model', '=', o_model),
+                                ('name', '=', name)])
+                if ids:
+                    ttype = browseL8(ctx,
+                                     ir_model,
+                                     ids[0]).ttype
+                    if ttype in ('integer', 'float', 'many2one'):
+                        try:
+                            value = eval(value)
+                        except BaseException:            # pragma: no cover
+                            pass
     return value
 
 

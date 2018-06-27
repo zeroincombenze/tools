@@ -72,39 +72,47 @@ class Oerp():
             # setattr(self.db, name, {})
             self.db['model'] = {}
             if model == 'res.zero':
-                self.db[model] = {}
-                self.db[model]['name'] = 'myname'
-                self.db[model]['ref'] = REF_ID
-                self.db[model]['id'] = ID_0
-                self.db[model]['description'] = MARK
+                self.db[model] = {
+                    'id': ID_0,
+                    'name': 'myname',
+                    'ref': REF_ID,
+                    'description': MARK
+                }
             elif model == 'res.one':
-                self.db[model] = {}
-                self.db[model]['name'] = 'myname'
-                self.db[model]['company_id'] = CID
-                self.db[model]['ref0'] = ID_0
-                self.db[model]['id'] = ID_1
+                self.db[model] = {
+                    'id': ID_1,
+                    'name': 'myname',
+                    'company_id': CID,
+                    'ref0': ID_0
+                }
             elif model == 'res.two':
-                self.db[model] = {}
-                self.db[model]['name'] = 'myname'
-                self.db[model]['id'] = REF_ID
-                self.db[model]['country_id'] = CTRY_IT
+                self.db[model] = {
+                    'id': REF_ID,
+                    'name': 'myname',
+                    'country_id': CTRY_IT
+                }
             elif model == 'res.three':
-                self.db[model] = {}
-                self.db[model]['name'] = 'name àèìòù'
-                self.db[model]['company_id'] = CID
-                self.db[model]['ref0'] = ID_0
-                self.db[model]['id'] = ID_1
+                self.db[model] = {
+                    'id': ID_1,
+                    'name': 'name àèìòù',
+                    'company_id': CID,
+                    'ref0': ID_0
+                }
             elif model == 'ir.model.data':
-                self.db[model] = {}
-                self.db[model]['module'] = 'base'
-                self.db[model]['name'] = 'main_company'
-                self.db[model]['id'] = ID_I
-                self.db[model]['res_id'] = ID_0
+                self.db[model] = {
+                    'id': ID_I,
+                    'module': 'base',
+                    'name': 'main_company',
+                    'res_id': ID_0
+                }
             elif model == 'ir.model.fields':
-                self.db[model] = {}
-                self.db[model]['model'] = 'res.one'
-                self.db[model]['name'] = 'company_id'
-                self.db[model]['id'] = ID_C_0
+                self.db[model] = {
+                    'id': ID_C_0,
+                    'model': 'res.one',
+                    'module': 'base',
+                    'name': 'company_id',
+                    'ttype': 'many2one'
+                }
 
     def search(self, model, where, order=None, context=None):
         """Search simulation
@@ -161,6 +169,12 @@ class Oerp():
                 self.res_id = self.db[model]['res_id']
                 self.module = self.db[model]['module']
                 self.name = self.db[model]['name']
+                return self
+        elif model == 'ir.model.fields':
+            if ids == ID_C_0:
+                self.module = self.db[model]['module']
+                self.name = self.db[model]['name']
+                self.ttype = self.db[model]['ttype']
                 return self
         elif model == 'res.zero':
             if ids == ID_0:

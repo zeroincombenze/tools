@@ -92,6 +92,7 @@ def export_table(ctx):
         out_flds = line.split('\n')[0].split(',')
     except BaseException:
         print 'Header file %s not found!' % hdr_file
+        return
     header = dict((n, n) for n in out_flds)
     csv_obj = csv.DictWriter(csv_out, fieldnames=out_flds)
     csv_obj.writerow(header)
@@ -153,6 +154,8 @@ def export_table(ctx):
             if isinstance(value, (bool, int, float, long, complex)):
                 out_dict[nm] = str(value)
             else:
+                import pdb
+                pdb.set_trace()
                 out_dict[nm] = os0.b(value.replace('\n', ' '))
         if not discard and (not ctx['exclext'] or data_valid):
             csv_obj.writerow(out_dict)
