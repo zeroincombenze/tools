@@ -1,4 +1,4 @@
-00RFLIST__travis_emulator="beauty dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh topep8 topep8.py to_pep8.2p8 to_pep8.py travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+RFLIST__travis_emulator="beauty dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh topep8 topep8.py to_pep8.2p8 to_pep8.py travis travisrc vfcp vfdiff wok_doc wok_doc.py"
 RFLIST__clodoo="addsubm.sh awsfw clodoo.py clodoocore.py clodoolib.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo odoorc oe_watchdog run_odoo_debug.sh odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active"
 RFLIST__z0lib="Makefile z0lib.py z0librc"
