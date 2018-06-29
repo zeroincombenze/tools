@@ -32,7 +32,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.3
+#__version__=0.3.7.4
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -158,19 +158,45 @@ find_odoo_ver() {
 
 build_odoo_param() {
 # build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
-#                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
+#                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp])
     local ITEM=$1
     local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
     local ODOO_UPSTREAM
+    local VID
     local p p1 p11 p2 p3 p4 ldir r x
     if [ "$ITEM" == "RUPSTREAM" -o "$ITEM" == "RORIGIN" -o "$ITEM" == "VCS" -o "$2" == "." ]; then
-      RPTNAME=$(basename $PWD)
-      if [[ $RPTNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      odoo_vid="$(basename $PWD)"
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia|liberp)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
         RPTNAME="OCB"
+      else
+        RPTNAME=$odoo_vid
       fi
     else
+      odoo_vid="$2"
       [ -z "$3" ] && RPTNAME="OCB" || RPTNAME=$3
+    fi
+    if [ -n "$odoo_vid" ]; then
+      if [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia|liberp)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+        odoo_fver=$(get_odoo_full_ver "$odoo_vid")
+      elif [[ "$odoo_vid" == "OCB" ]]; then
+        odoo_fver=$(find_odoo_ver "~/OCB")
+      else
+        odoo_fver=$(find_odoo_ver)
+      fi
+      if [[ -z "$odoo_fver" && $ODOO_BRANCH =~ (11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
+        odoo_fver=$ODOO_BRANCH
+      fi
+      odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+      odoo_vid="$2"
+      if [[ -z "$odoo_fver" && ! "$ITEM" == "HOME" && ! "$2" == "." ]]; then
+        echo "Invalid Odoo version $2!"
+        # exit 1
+      fi
+    else
+      odoo_ver=11
+      odoo_fver=11.0
+      odoo_vid=11.0
     fi
     if [ -n "$4" ]; then
       GIT_ORGID=$4
@@ -179,6 +205,8 @@ build_odoo_param() {
         GIT_ORGID="oca"
       elif [ "${2:0:3}" == "oia" ]; then
         GIT_ORGID="oia"
+      elif [ "${2:0:6}" == "liberp" ]; then
+        GIT_ORGID="liberp"
       else
         GIT_ORGID="zero"
       fi
@@ -201,28 +229,6 @@ build_odoo_param() {
     else
       MULTIVER=0
     fi
-    if [ -n "$2" ]; then
-      if [[ $2 =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
-        odoo_fver=$(get_odoo_full_ver "$2")
-      elif [[ "$2" == "OCB" ]]; then
-        odoo_fver=$(find_odoo_ver "~/OCB")
-      else
-        odoo_fver=$(find_odoo_ver)
-      fi
-      if [[ -z "$odoo_fver" && $ODOO_BRANCH =~ (11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
-        odoo_fver=$ODOO_BRANCH
-      fi
-      odoo_ver=$(get_odoo_major_ver "$odoo_fver")
-      odoo_vid="$2"
-      if [[ -z "$odoo_fver" && ! "$ITEM" == "HOME" && ! "$2" == "." ]]; then
-        echo "Invalid Odoo version $2!"
-        # exit 1
-      fi
-    else
-      odoo_ver=11
-      odoo_fver=11.0
-      odoo_vid=11.0
-    fi
     if [[ "$ITEM" =~ (OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS) ]]; then
       if [[ " $RPTNAME " =~ " $INVALID_MODNAMES " ]]; then
         GIT_ORGNM=""
@@ -238,11 +244,13 @@ build_odoo_param() {
         GIT_ORGNM="zeroincombenze"
       elif [[ " oia oia-git oia-http " =~ " $GIT_ORGID " ]]; then
         GIT_ORGNM="Odoo-Italia-Associazione"
+      elif [[ " liberp " =~ " $GIT_ORGID " ]]; then
+        GIT_ORGNM="iw3hxn"
       else
-        echo "Invalid $GIT_ORGID Odoo org: must be one of oca|oia|oia-git|oia-http|zero|zero-git|zero-http!"
+        echo "Invalid $GIT_ORGID Odoo org: must be one of oca|oia|oia-git|oia-http|zero|zero-git|zero-http|liberp!"
         # exit 1
       fi
-      if [ "$GIT_ORGNM" == "OCA" ]; then
+      if [ "$GIT_ORGNM" == "OCA" -o "$GIT_ORGNM" == "iw3hxn" ]; then
         GIT_PROT="https"
         ODOO_UPSTREAM=
       elif [ "$GIT_ORGNM" == "Odoo-Italia-Associazione" ]; then
@@ -404,7 +412,7 @@ build_odoo_param() {
       elif [[ $odoo_vid =~ ^(v|V|odoo|ODOO|ocb|OCB).* ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
-        if [ "$GIT_ORGID" == "oca" ]; then
+        if [ "$GIT_ORGID" == "oca" -o "$GIT_ORGID" == "liberp" ]; then
           ((p=8260+$odoo_ver))
         elif [ "$GIT_ORGID" == "oia" ]; then
           ((p=8360+$odoo_ver))
@@ -473,11 +481,14 @@ build_odoo_param() {
     else
       p2="odoo"
     fi
-    if [ "$ITEM" == "CONFN" ]; then
+    # if [ "$ITEM" == "CONFN" -o "$ITEM" == "FULL_SVCNAME" -o "$ITEM" == "SVCNAME" -o "$ITEM" == "FLOG" -o "$ITEM" == "FPID" ]; then
+    if [[ " CONFN FULL_SVCNAME SVCNAME FLOG FPID " =~ " $ITEM " ]]; then
       if [ $MULTIVER -ne 0 -a "${2:0:3}" == "oca" ]; then
         p3="-oca"
       elif [ $MULTIVER -ne 0 -a  "${2:0:3}" == "oia" ]; then
         p3="-oia"
+      elif [ $MULTIVER -ne 0 -a  "${2:0:6}" == "liberp" ]; then
+        p3="-liberp"
       elif [ $odoo_ver -ge 10 ]; then
         p3=
       else
@@ -567,7 +578,7 @@ discover_multi() {
 
 
 module_list() {
-#module_list(odoo_fver excl_list [oca|zero|zero-http|zero-git|oia|oia-git|oia-http])
+#module_list(odoo_fver excl_list [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp])
     local res=
     local fn nm v
     local odoo_fver=$1
@@ -579,6 +590,8 @@ module_list() {
         org="zeroincombenze"
       elif [[ " oia oia-git oia-http " =~ " $3 " ]]; then
         org="Odoo-Italia-Associazione"
+      elif [[ " liberp " =~ " $3 " ]]; then
+        org="iw3hxn"
       else
         org="OCA"
       fi

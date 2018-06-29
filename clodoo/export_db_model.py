@@ -145,7 +145,10 @@ def export_table(ctx):
                     if not value:
                         value = ''
                 else:
-                    value = rec[f[0]][f[1]]
+                    try:
+                        value = rec[f[0]][f[1]]
+                    except:
+                        value = ''
                     value = get_symbolic_value(ctx, model, f[0], value)
                 if isinstance(value, (int, long)):
                     data_valid = False
@@ -153,10 +156,10 @@ def export_table(ctx):
                     data_valid = False
             if isinstance(value, (bool, int, float, long, complex)):
                 out_dict[nm] = str(value)
-            else:
-                import pdb
-                pdb.set_trace()
+            elif isinstance(value, basestring):
                 out_dict[nm] = os0.b(value.replace('\n', ' '))
+            else:
+                out_dict[nm] = value
         if not discard and (not ctx['exclext'] or data_valid):
             csv_obj.writerow(out_dict)
             ctr += 1

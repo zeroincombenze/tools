@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.4-Debian
+# version: 0.4.5-Debian
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -72,8 +72,12 @@ fi
 USER=${xtl_user}
 # search for execution command script
 DAEMON=
+ORG=
+[ "${0: -3}" == "oca" ] && ORG=oca
+[ "${0: -3}" == "oia" ] && ORG=oia
+[ "${0: -6}" == "liberp" ] && ORG=liberp
 for dn in odoo-bin openerp-server odoo-server odoo openerp; do
-  for dp in /usr/local/bin /usr/bin /opt/${USER}/v${xtl_version} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion} /opt/${USER}/OCB; do
+  for dp in /usr/local/bin /usr/bin /opt/${USER}/${ORG}${xtl_version} /opt/${USER}/v${xtl_version} /opt/${USER}/V${xtl_version} /opt/${USER}/v${xtl_fversion} /opt/${USER}/V${xtl_fversion} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion} /opt/${USER}/oca${xtl_version} /opt/${USER}/oia${xtl_version} /opt/${USER}/liberp${xtl_version} /opt/${USER}/OCB; do
     DAEMON=$dp/$dn
     if [ -x "$DAEMON" ]; then
       break

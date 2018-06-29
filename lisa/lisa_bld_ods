@@ -66,7 +66,7 @@ OPTOPTS=(h        C       E        I         L        m         N        n      
 OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_multi opt_name opt_dry_run  odoo_vid  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
 OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1         "=>"     1            "=>"      "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
 OPTDEFL=(1        ""      ""       ""        ""       0         ""       0            "10"        ""    0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"    "name"   "do nothing" "version" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"    "name"   "do nothing" "vid"     "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
