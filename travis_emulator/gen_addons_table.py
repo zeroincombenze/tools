@@ -136,8 +136,8 @@ def gen_addons_table(args):
         readme_path = 'README.md'
         if not os.path.isfile(readme_path):
             raise UserError('%s not found' % readme_path)
-    if len(args) >= 2 and os.path.isdir(args[1]):
-        original_OCA = args[1]
+    if len(args) >= 2 and os.path.isdir(args[2]):
+        original_OCA = args[2]
     else:
         original_OCA = False
     # list addons in . and __unported__

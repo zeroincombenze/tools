@@ -281,8 +281,8 @@ update_skin() {
 
 OPTOPTS=(h        c        D        d          f         i         I         l        m         n            q           s           S         T         V           v           x)
 OPTDEST=(opt_help opt_conf opt_diff opt_webdir opt_force opt_icond opt_demod opt_list opt_multi opt_dry_run  opt_verbose opt_fsass   opt_sassd test_mode opt_version opt_verbose opt_xml)
-OPTACTI=(1        "="      1        "="        1         "="       ""        1        1         1            0           "="         "="       1         1           "+"         "=")
-OPTDEFL=(1        ""       0        ""         0         ""        ""        0        -1        0            -1          "base.sass" ""        0         0           -1          "base.xml")
+OPTACTI=(1        "="      1        "="        1         "="       ""        1        1         1            0           "="         "="       1         "*"         "+"         "=")
+OPTDEFL=(1        ""       0        ""         0         ""        ""        0        -1        0            -1          "base.sass" ""        0         ""          -1          "base.xml")
 OPTMETA=("help"   "file"   ""       "dir"      ""        "dir"     "dir"     "list"   ""        "do nothing" "quit"      "file"      "dir"     "test"    "version"   "verbose"   "file")
 OPTHELP=("this help"\
  "configuration file (def .travis.conf)"\
@@ -393,14 +393,20 @@ fi
 if [ -z "$opt_sassd" ]; then
   if [ $test_mode -ne 0 ]; then
     opt_sassd=$TESTDIR/odoo/addons/odoo/base/static/src/img
+  elif [ $odoo_ver -ge 10 ]; then
+    [ "$opt_fsass" == "base.sass" ] && opt_fsass=description.sass
+    css=$(findpkg $opt_fsass "$odoo_root/odoo/addons/base/static/src/css")
+    if [ -n "$css" ]; then
+      opt_sassd=$(dirname $css)
+    fi
   else
-    css=$(findpkg base.sass "$opt_webdir/../css $odoo_root/website")
+    css=$(findpkg $opt_fsass "$opt_webdir/../css $odoo_root/website")
     if [ -n "$css" ]; then
       opt_sassd=$(dirname $css)
     fi
   fi
 fi
-if [ -z "$opt_sassd" ]; then
+if [ -z "$opt_sassd" -a $odoo_ver -gt 6 ]; then
   echo "No valid skin (Sass/css directory not found)!"
   exit 1
 fi

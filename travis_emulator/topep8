@@ -4,7 +4,6 @@
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
-
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -38,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.31
+__version__=0.2.1.32
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -53,11 +52,26 @@ format_yaml() {
         local fntmpl=$fn
       fi
       rm -f $fntmp
-      local a f line lne p cur_sect=
+      local ident=0 lev=0 cur_sect=
+      local a f line lne p
       declare -A found
       f=$(readlink -e $fn)
       p=$(dirname $f)
       while IFS= read -r line || [ -n "$line" ]; do
+        if [[ $line =~ ^[[:space:]]+ ]]; then
+          for i in {0..10};do if [ "${line:i:1}" != " " ]; then break; fi; done
+          if [ $i -gt $ident ]; then
+            ((lev++))
+            ident=$i
+          elif [ $i -lt $ident ]; then
+            ((lev--))
+            ident=$i
+          fi
+        else
+          lev=0
+          ident=0
+        fi
+
         if [ -n "$odoo_vid" ]; then
           line=${line/\$TRAVIS_BRANCH/$odoo_fver}
         fi
@@ -96,12 +110,6 @@ format_yaml() {
             cur_sect=
           fi
           echo "$line">>$fntmp
-        # elif [[ -z "$cur_sect" && ! "$lne" =~ "# Odoo yaml template for travis-ci" ]]; then
-        #   echo "# Odoo yaml file for travis-ci $__version__">>$fntmp
-        # elif [[ -z "$cur_sect" && ! "$lne" =~ "# __version__=" ]]; then
-        #   :
-        # elif [[ -z "$cur_sect" && ! "$lne" =~ "# Odoo yaml file for travis-ci" ]]; then
-        #   echo "# Odoo yaml file for travis-ci $__version__">>$fntmp
         elif [[ $lne =~ -\ TESTS=...\ ODOO_REPO=.zeroincombenze/OCB. ]]; then
           found[repo_zero]="t"
           cur_sect="odoo_repo"
@@ -190,6 +198,9 @@ format_yaml() {
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         elif [ "$line" == "script:" ]; then
+          cur_sect=${line:0: -1}
+          echo "$line">>$fntmp
+        elif [ "$line" == "git:" ]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         else
