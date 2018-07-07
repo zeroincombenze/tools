@@ -9,7 +9,7 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.7.5"
+__version__ = "0.3.7.6"
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
@@ -288,7 +288,7 @@ parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-oerp, uid, ctx = clodoo.oerp_set_env(ctx=ctx)
+uid, ctx = clodoo.oerp_set_env(ctx=ctx)
 print "Invoice set Draft and Restore - %s" % __version__
 
 

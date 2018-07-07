@@ -163,7 +163,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.5"
+__version__ = "0.3.7.6"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4333,7 +4333,7 @@ def get_real_actname(ctx, actv):
 
 
 def add_external_name(ctx, o_model, row, id):
-    if o_model['repl_by_id'] and row['id'] and not row['id'].isdigit():
+    if 'id' in row and not row['id'].isdigit():
         put_model_alias(ctx,
                         model=o_model['model'],
                         ref=row['id'],

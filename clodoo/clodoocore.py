@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.5"
+__version__ = "0.3.7.6"
 
 
 #############################################################################
@@ -524,10 +524,9 @@ def _get_simple_query_id(ctx, model, code, value, hide_cid):
 
 def _get_raw_query_id(ctx, model, code, value, hide_cid, op):
     if not hide_cid and 'company_id' in ctx:
-        company_id = ctx['company_id']
+        where = [('company_id', '=', ctx['company_id'])]
     else:
-        company_id = None
-    where = []
+        where = []
     if isinstance(code, list) and isinstance(value, list):
         for i, c in enumerate(code):
             if i < len(value):
@@ -551,8 +550,6 @@ def _get_raw_query_id(ctx, model, code, value, hide_cid, op):
                                value,
                                where,
                                op)
-    if company_id is not None:
-        where.append(('company_id', '=', company_id))
     try:
         ids = searchL8(ctx, model, where)
     except BaseException:                                    # pragma: no cover
@@ -821,7 +818,6 @@ def get_model_alias(value):
 
 def put_model_alias(ctx,
                     model=None, name=None, ref=None, id=None, module=None):
-    module = module or 'base'
     if ref:
         refs = ref.split('.')
         if len(refs):
@@ -829,9 +825,11 @@ def put_model_alias(ctx,
                 module = refs[0]
             if not name:
                 name = refs[1]
+    module = module or 'base'
     if model and name and id:
         ids = searchL8(ctx, 'ir.model.data',
                        [('model', '=', model),
+                        ('module', '=', module),
                         ('name', '=', name)])
         if ids:
             writeL8(ctx, 'ir.model.data', ids, {'res_id': id})

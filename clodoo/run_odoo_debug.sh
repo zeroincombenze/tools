@@ -28,19 +28,20 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.5
+__version__=0.3.7.6
 
 
-OPTOPTS=(h        d        e       k        i       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1        "="      "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0        ""       ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""       "level"  "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
+OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="      1       1        1       1       1        "="      "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
+OPTDEFL=(1        ""       0       0        0       0       0        ""       ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
+OPTMETA=("help"   "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "db name to test,translate o upgrade (require -m switch)"\
- "export it translation (conflict with -i -u)"\
+ "export it translation (conflict with -i -u -I)"\
  "do not create new DB and keep it after run"\
- "import it translation (conflict with -e -u)"\
+ "import it translation (conflict with -e -u -I)"\
+ "install module (conflict with -e -i -u)"\
  "load it language"\
  "set log level: may be info or debug"\
  "modules to test, translate or upgrade"\
@@ -50,7 +51,7 @@ OPTHELP=("this help"\
  "stop after init"\
  "touch config file, do not run odoo"\
  "db username"\
- "upgrade module (conflict with -e -i)"\
+ "upgrade module (conflict with -e -i -I)"\
  "show version"\
  "verbose mode"\
  "run as web server"\
@@ -105,6 +106,16 @@ elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
     exit 1
   fi
 elif [ $opt_upd -ne 0 ]; then
+  opt_keep=1
+  if [ -z "$opt_modules" ]; then
+    echo "Missing -m switch"
+    exit 1
+  fi
+  if [ -z "$opt_db" ]; then
+    echo "Missing -d switch"
+    exit 1
+  fi
+elif [ $opt_xtl -ne 0 ]; then
   opt_keep=1
   if [ -z "$opt_modules" ]; then
     echo "Missing -m switch"
@@ -224,7 +235,7 @@ EOF
       else
         opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
       fi
-    elif [ $opt_upd -ne 0 ]; then
+    elif [ $opt_upd -ne 0 -o $opt_xtl -ne 0 ]; then
       opts="$optsiu"
     else
       opts="$optsiu --test-enable"
@@ -240,7 +251,7 @@ fi
 if [ -z "$opt_xport" ]; then
   opt_xport=$rpcport
 fi
-if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
+if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o $opt_imp -ne 0 -o $opt_lang -ne 0 ]; then
   if [ -z "$opt_db" ]; then
     opt_db="test_openerp"
     if [ $opt_stop -gt 0 -a $opt_keep -eq 0 ]; then
