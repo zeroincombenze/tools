@@ -50,9 +50,9 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         tag = cur_num
     print ">> Get info tmp invoice %s (%s)" % (str(rec_ids), tag)
     reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
-        oerp, rec_ids, ctx)
+        rec_ids, ctx)
     print ">> Unreconcile tmp invoice"
-    clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
+    clodoo.unreconcile_invoices(reconcile_dict, ctx)
     if tmp_inv_id and cur_inv_id and tmp_inv_id != cur_inv_id:
         print ">> Delete tmp invoice"
         try:
@@ -73,11 +73,11 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     if cur_inv_id and tmp_inv_id and tmp_inv_id != cur_inv_id:
         print ">> Get info cur invoice %s (%s)" % (str(rec_ids), tag)
         reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
-            oerp, rec_ids, ctx)
+            rec_ids, ctx)
         print ">> Unreconcile cur invoices"
-        clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
+        clodoo.unreconcile_invoices(reconcile_dict, ctx)
     print ">> Draft cur invoices"
-    clodoo.upd_invoices_2_draft(oerp, move_dict, ctx)
+    clodoo.upd_invoices_2_draft(move_dict, ctx)
     inv_id = rec_ids[0]
     vals = {}
     if cur_dt:
@@ -93,13 +93,13 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         print ">> Update values ", inv_id, vals
         clodoo.writeL8(ctx, 'account.invoice', inv_id, vals)
     print ">> Posted"
-    clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
+    clodoo.upd_invoices_2_posted(move_dict, ctx)
     reconciles = reconcile_dict[inv_id]
     if len(reconciles):
         print ">> Reconcile "
         cur_reconciles, cur_reconcile_dict = clodoo.refresh_reconcile_from_inv(
-            oerp, inv_id, reconciles, ctx)
-        clodoo.reconcile_invoices(oerp, cur_reconcile_dict, ctx)
+            inv_id, reconciles, ctx)
+        clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
     return
 
 
@@ -250,14 +250,17 @@ def ask4target(search_mode, target):
 
 def print_invoice_info(inv_id):
     model = 'account.invoice'
-    inv_obj = clodoo.browseL8(ctx, model, inv_id)
-    print "Id=%d, Num=%s(%s), supply n.=%s, ref=%s cid=%d" % (
-        inv_id,
-        inv_obj.number,
-        inv_obj.internal_number,
-        inv_obj.supplier_invoice_number,
-        inv_obj.name,
-        inv_obj.company_id)
+    try:
+        inv_obj = clodoo.browseL8(ctx, model, inv_id)
+        print "Id=%d, Num=%s(%s), supply n.=%s, ref=%s cid=%d" % (
+            inv_id,
+            inv_obj.number,
+            inv_obj.internal_number,
+            inv_obj.supplier_invoice_number,
+            inv_obj.name,
+            inv_obj.company_id)
+    except IOError:
+        print "Record not found!"
 
 
 def print_move_info(inv_id):
@@ -550,7 +553,7 @@ while True:
         else:
             print ">> Get info cur invoice %s" % str(rec_ids)
             reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
-                oerp, rec_ids, ctx)
+                rec_ids, ctx)
             if action[1] != '?':
                 print ">> Saving environment .."
                 fd = open('./inv2draft_n_restore.his', 'w')
@@ -560,9 +563,9 @@ while True:
                                                            move_dict))
                 fd.close()
                 print ">> Unreconcile cur invoices"
-                clodoo.unreconcile_invoices(oerp, reconcile_dict, ctx)
+                clodoo.unreconcile_invoices(reconcile_dict, ctx)
                 print ">> Draft cur invoices"
-                clodoo.upd_invoices_2_draft(oerp, move_dict, ctx)
+                clodoo.upd_invoices_2_draft(move_dict, ctx)
     if action[1] == '?':
         continue
 
@@ -605,7 +608,7 @@ while True:
         for move_id in rec_ids:
             print_move_info(move_id)
         print ">> Draft"
-        clodoo.upd_payments_2_draft(oerp, rec_ids, ctx)
+        clodoo.upd_payments_2_draft(rec_ids, ctx)
     elif action[0] == 'X':
         for move_id in rec_ids:
             print_move_info(move_id)
@@ -622,10 +625,10 @@ while True:
     res = raw_input('Press RET to restore status ..')
     if action[0] == 'P':
         print ">> Draft"
-        clodoo.upd_payments_2_draft(oerp, rec_ids, ctx)
+        clodoo.upd_payments_2_draft(rec_ids, ctx)
     elif action[0] == 'U':
         print ">> Posted"
-        clodoo.upd_payments_2_posted(oerp, rec_ids, ctx)
+        clodoo.upd_payments_2_posted(rec_ids, ctx)
     else:
         for inv_id in rec_ids:
             try:
@@ -635,7 +638,7 @@ while True:
             except BaseException:                            # pragma: no cover
                 pass
         print ">> Posted"
-        clodoo.upd_invoices_2_posted(oerp, move_dict, ctx)
+        clodoo.upd_invoices_2_posted(move_dict, ctx)
         if action[0] != 'V':
             print ">> Reconcile "
             for inv_id in rec_ids:
@@ -643,12 +646,10 @@ while True:
                 if len(reconciles):
                     try:
                         cur_reconciles, cur_reconcile_dict = \
-                            clodoo.refresh_reconcile_from_inv(oerp,
-                                                              inv_id,
+                            clodoo.refresh_reconcile_from_inv(inv_id,
                                                               reconciles,
                                                               ctx)
-                        clodoo.reconcile_invoices(oerp,
-                                                  cur_reconcile_dict,
+                        clodoo.reconcile_invoices(cur_reconcile_dict,
                                                   ctx)
                     except BaseException:                    # pragma: no cover
                         print "**** Warning invoice %d ****" % inv_id
