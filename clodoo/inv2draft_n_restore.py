@@ -9,10 +9,26 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.7.6"
+__version__ = "0.3.7.7"
+
+
+def get_name_by_ver(ctx, name):
+    majver = ctx['majver']
+    if name == 'move_name':
+        if majver < 10:
+            return 'internal_number'
+    elif name == 'action_cancel_draft':
+        if majver < 10:
+            return 'action_invoice_draft'
+    # TODO: delete following lines
+    elif name == 'internal_number':
+        if majver >= 10:
+            return 'move_name'
+    return name
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
+    move_name = get_name_by_ver(ctx, 'move_name')
     if not tmp_num and not cur_num:
         print ">> Missing parameters"
         return
@@ -23,7 +39,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         inv = clodoo.searchL8(ctx,
                               'account.invoice',
                               [('company_id', '=', company_id),
-                               ('internal_number', '=', tmp_num)])
+                               (move_name, '=', tmp_num)])
         if len(inv):
             tmp_inv_id = inv[0]
         else:
@@ -33,7 +49,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         inv = clodoo.search(ctx,
                             'account.invoice',
                             [('company_id', '=', company_id),
-                             ('internal_number', '=', cur_num)])
+                             (move_name, '=', cur_num)])
         if len(inv):
             cur_inv_id = inv[0]
         else:
@@ -60,7 +76,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
                            'account.invoice',
                            tmp_inv_id,
                            {'state': 'cancel',
-                            'number': '', 'internal_number': ''})
+                            'number': '', move_name: ''})
         except BaseException:                                # pragma: no cover
             pass
         clodoo.unlinkL8(ctx, 'account.invoice', [tmp_inv_id])
@@ -88,7 +104,7 @@ def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
         vals['registration_date'] = dt_s
         vals['period_id'] = period_id
     if cur_num and tmp_num and tmp_num != cur_num:
-        vals['internal_number'] = tmp_num
+        vals[move_name] = tmp_num
     if len(vals):
         print ">> Update values ", inv_id, vals
         clodoo.writeL8(ctx, 'account.invoice', inv_id, vals)
@@ -259,7 +275,7 @@ def print_invoice_info(inv_id):
             inv_obj.supplier_invoice_number,
             inv_obj.name,
             inv_obj.company_id)
-    except IOError:
+    except BaseException:
         print "Record not found!"
 
 
@@ -328,6 +344,7 @@ act2 = "?"
 company_id = 0
 year = 0
 period_ids = []
+move_name = get_name_by_ver(ctx, 'move_name')
 while True:
     msg = "Cancel,Draft,Number,Quit,UnPublish,Replace,Sts,Validate,teXt,RB? "
     msg = msg + "[!?+] "
@@ -576,13 +593,13 @@ while True:
         clodoo.writeL8(ctx,
                        'account.invoice',
                        rec_ids,
-                       {'internal_number': ''})
+                       {move_name: ''})
     elif action[0] == 'N':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)
             number = raw_input('New invoice number? ')
             clodoo.writeL8(ctx, MODEL['IH'], [inv_id],
-                           {'internal_number': number})
+                           {move_name: number})
     elif action[0] == 'R' and action != 'RB':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)

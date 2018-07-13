@@ -163,7 +163,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.6"
+__version__ = "0.3.7.7"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -236,6 +236,16 @@ def incr_lev(ctx):
     else:
         ctx['level'] = 0
 
+
+def get_name_by_ver(ctx, name):
+    majver = ctx['majver']
+    if name == 'move_name':
+        if majver < 10:
+            return 'internal_number'
+    elif name == 'action_invoice_draft':
+        if majver < 10:
+            return 'action_cancel_draft'
+    return name
 
 #############################################################################
 # Connection and database
@@ -2350,7 +2360,10 @@ def get_reconcile_from_inv(inv_id, ctx):
     model = 'account.invoice'
     account_invoice = browseL8(ctx, model,
                                inv_id)
-    if account_invoice.payment_ids:
+    if account_invoice.payment_move_line_ids:
+        for move_line_id in account_invoice.payment_move_line_ids:
+            reconciles.append(move_line_id.id)
+    elif account_invoice.payment_ids:
         partner_id = account_invoice.partner_id.id
         move_id = account_invoice.move_id.id
         move_line_ids = searchL8(ctx, 'account.move.line',
@@ -2545,6 +2558,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
     list_keys = {}
     company_id = None
     journal_id = None
+    move_name = get_name_by_ver(ctx, 'move_name')
     for inv_id in invoices:
         invoice = invoice_model.browse(inv_id)
         if not company_id:
@@ -2555,8 +2569,8 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
             journal_id = invoice.journal_id.id
         elif invoice.journal_id.id != journal_id:
             return None
-        if invoice.internal_number:
-            list_keys[invoice.internal_number] = inv_id
+        if invoice[move_name]:
+            list_keys[invoice[move_name]] = inv_id
     for internal_number in sorted(list_keys):
         inv_id = list_keys[internal_number]
         vals = {}
@@ -2698,11 +2712,10 @@ def upd_invoices_2_draft(move_dict, ctx):
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
-                # msg = u"Update invoices to open %s " % invoices
-                # msg_log(ctx, ctx['level'], msg)
+                fname = get_name_by_ver(ctx, 'action_invoice_draft')
                 executeL8(ctx,
                           model,
-                          'action_cancel_draft',
+                          fname,
                           invoices)
             except BaseException:
                 msg = u"Cannot update invoice status %s" % str(invoices)
@@ -4119,6 +4132,7 @@ def remove_all_user_records(ctx):
 
 def remove_company_account_records(ctx):
     sts = STS_SUCCESS
+    move_name = get_name_by_ver(ctx, 'move_name')
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
@@ -4183,7 +4197,7 @@ def remove_company_account_records(ctx):
                    'account.journal': 'deactivate',
                    'account.tax': 'deactivate',
                    }
-        specparams = {'account.invoice': ('internal_number', ''),
+        specparams = {'account.invoice': (move_name, ''),
                       'account.move': ('state', 'cancel'),
                       'account.voucher': ('state', 'cancel'),
                       }
@@ -4208,6 +4222,7 @@ def remove_all_account_records(ctx):
 
 def analyze_invoices(ctx, inv_type):
     company_id = ctx['company_id']
+    move_name = get_name_by_ver(ctx, 'move_name')
     period_ids = searchL8(ctx, 'account.period',
                           [('company_id', '=', company_id),
                            ('date_start', '>=', ctx['date_start']),
@@ -4217,8 +4232,8 @@ def analyze_invoices(ctx, inv_type):
                                    [('company_id', '=', company_id),
                                     ('period_id', 'in', period_ids),
                                     ('type', '=', inv_type),
-                                    ('internal_number', '!=', '')],
-                                   order='internal_number')
+                                    (move_name, '!=', '')],
+                                   order=move_name)
     num_invs = len(account_invoice_ids)
     last_number = ''
     inv_ctr = 0
@@ -4228,28 +4243,28 @@ def analyze_invoices(ctx, inv_type):
                                    account_invoice_id)
         inv_ctr += 1
         msg_burst(4,
-                  "Invoice " + account_invoice.internal_number + "      ",
+                  "Invoice %s       " % account_invoice[move_name],
                   inv_ctr, num_invs)
         # vals = {}
-        if last_number[:-4] != account_invoice.internal_number[0:-4]:
+        if last_number[:-4] != account_invoice[move_name][0:-4]:
             last_number = ''
         if last_number == '':
-            last_number = account_invoice.internal_number
+            last_number = account_invoice[move_name]
             last_rec_date = datetime.strptime(ctx['date_start'],
                                               "%Y-%m-%d").date()
             last_seq = 0
         last_seq += 1
-        if str.isdigit(account_invoice.internal_number[-4:]) and \
-                int(account_invoice.internal_number[-4:]) != last_seq:
+        if str.isdigit(account_invoice[move_name][-4:]) and \
+                int(account_invoice[move_name][-4:]) != last_seq:
             msg = u"In {0} invalid number sequence {1}".format(
                 account_invoice_id,
-                account_invoice.internal_number)
+                account_invoice[move_name])
             msg_log(ctx, ctx['level'] + 1, msg)
-            last_seq = int(account_invoice.internal_number[-4:])
+            last_seq = int(account_invoice[move_name][-4:])
         last_rec_date = put_invoices_record_date([account_invoice_id],
                                                  last_rec_date,
                                                  ctx)
-        last_number = account_invoice.internal_number
+        last_number = account_invoice[move_name]
     return STS_SUCCESS
 
 

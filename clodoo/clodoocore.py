@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.6"
+__version__ = "0.3.7.7"
 
 
 #############################################################################
@@ -80,6 +80,7 @@ def connectL8(ctx):
     if ctx['server_version'][0:x.end()] != ctx['oe_version']:
         return u"!Invalid Odoo Server version: expected %s, found %s!" % \
             (ctx['oe_version'], ctx['server_version'])
+    ctx['majver'] = int(ctx['server_version'].split('.')[0])
     ctx['odoo_session'] = odoo
     return True
 
