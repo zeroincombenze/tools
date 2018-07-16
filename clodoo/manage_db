@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.7
+__version__=0.3.7.8
 
 
 up_oemod() {
@@ -217,8 +217,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
     [ -f .odoorc ] && run_traced "rm -f .odoorc"
     for cf in $CFLOOP; do
       if [ "$cf" == "00" ]; then
-        if [ -n "$db" ]; then
-          optdb="-d $db -lit_IT"
+        if [ -n "$opt_db" ]; then
+          optdb="-d $opt_db -lit_IT"
         else
           optdb=
         fi

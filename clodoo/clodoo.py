@@ -163,7 +163,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.7"
+__version__ = "0.3.7.8"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1471,11 +1471,11 @@ def act_install_modules(ctx):
 def act_install_language(ctx):
     """Install new language"""
     lang = ctx.get('lang', 'en_US')
-    msg = u"Install language %s" % lang
-    msg_log(ctx, ctx['level'], msg)
     model = 'res.lang'
     ids = searchL8(ctx, model, [('code', '=', lang)])
     if len(ids) == 0:
+        msg = u"Install language %s" % lang
+        msg_log(ctx, ctx['level'], msg)
         vals = {}
         vals['lang'] = lang
         vals['overwrite'] = True
@@ -1484,6 +1484,8 @@ def act_install_language(ctx):
                   'base.language.install',
                   'lang_install',
                   [id])
+    msg = u"Translate language %s terms" % lang
+    msg_log(ctx, ctx['level'], msg)
     id = createL8(ctx, 'base.update.translations', {'lang': lang})
     executeL8(ctx,
               'base.update.translations',

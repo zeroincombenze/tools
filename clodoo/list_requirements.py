@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.7'
+__version__ = '0.3.7.8'
 
 #
 # known incompantibilities:
