@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.8
+__version__=0.3.7.9
 
 
 up_oemod() {
@@ -100,11 +100,11 @@ db_list() {
 }
 
 declare_cfloop() {
-    if [ "$opt_conf" == "code/z0_install_00.conf" ]; then
+    if [ "$opt_conf" == "code/z0_install_01.conf" ]; then
       if [ $opt_del -ne 0 ]; then
-        CFLOOP="09 00"
+        CFLOOP="00 01"
       else
-        CFLOOP="00"
+        CFLOOP="01"
       fi
     elif [ -n "$cmdlist" ]; then
       IFS=- read min max <<< "$cmdlist"
@@ -144,7 +144,7 @@ OPTHELP=("this help"\
  "show version end exit"\
  "verbose mode")
 OPTARGS=(action cmdlist)
-PHASE_LIST="09 00 01 02 10 11 12 13 14 15 16 18 17 19 20 22 30 31 32 50 51 52 53 54 55 61 62 90 91 92"
+PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 18 17 19 20 22 30 31 32 50 51 52 53 54 55 61 62 90 91 92"
 DEMO_PHASE_LIST="50 51 52 53 54 55 61 62"
 
 parseoptargs "$@"
@@ -216,14 +216,14 @@ for odoo_vid in ${odoo_vids//,/ }; do
     [ -f ~/.openerp_serverrc ] && run_traced "rm -f ~/.openerp_serverrc"
     [ -f .odoorc ] && run_traced "rm -f .odoorc"
     for cf in $CFLOOP; do
-      if [ "$cf" == "00" ]; then
+      if [ "$cf" == "01" ]; then
         if [ -n "$opt_db" ]; then
           optdb="-d $opt_db -lit_IT"
         else
           optdb=
         fi
         run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo"
-      elif [ "$cf" == "09" -a $opt_del -eq 0 ]; then
+      elif [ "$cf" == "00" -a $opt_del -eq 0 ]; then
         [ $opt_verbose -gt 0 ] && echo "Warning: you must enable dropping DB using -o switch"
       elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
         [ $opt_verbose -gt 0 ] && echo "Warning: phase $cf is just for demo (use -D switch to enable)"
@@ -233,16 +233,18 @@ for odoo_vid in ${odoo_vids//,/ }; do
         else
           db=$(cat clodoo_last.conf|awk -F= '{print $2}')
         fi
-        if [ "$cf" == "09" ]; then
+        if [ "$cf" == "00" ]; then
           if $(psql -l|grep -q $db); then
             datadir=$(build_odoo_param DDIR $odoo_vid search)
             for f in $(grep -l "$db" $datadir/sessions/*); do run_traced "rm -f $f"; done
-            for f in $(grep -l "$db" /tmp//oe-sessions-odoo/*); do run_traced "rm -f $f"; done
+            for f in $(grep -l "$db" /tmp/oe-sessions-odoo/*); do run_traced "rm -f $f"; done
             [ -d $datadir/filestore/$db ] && run_traced "rm -fR $datadir/filestore/$db"
             eval $WCMD
-            svcname=$(build_odoo_param SVCNAME $odoo_vid)
-            run_traced "sudo systemctl restart $svcname"
-            sleep 2
+            if [ "${HOSTNAME:0:3}" == "shs" ]; then
+              svcname=$(build_odoo_param SVCNAME $odoo_vid)
+              run_traced "sudo systemctl restart $svcname"
+              sleep 2
+            fi
             run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo"
             if $(psql -l|grep -q $db); then
               run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
@@ -285,7 +287,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
     if [ -z "$opt_db" ]; then
       opt_db=".*"
     fi
-    if [ "$cf" == "code/z0_install_00.conf" ]; then
+    if [ "$cf" == "code/z0_install_01.conf" ]; then
       DBlist="$opt_db -lit_IT"
       found=1
     else
