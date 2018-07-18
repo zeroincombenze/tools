@@ -11,7 +11,6 @@
 
 from __future__ import print_function
 
-# import platform
 import argparse
 try:
     import ConfigParser
@@ -57,6 +56,12 @@ LX_CFG_S = ('db_name',
             'oe_version',
             'zeroadm_mail',
             'zeroadm_login',
+            'oneadm_mail',
+            'oneadm_login',
+            'oneadm_pwd',
+            'botadm_mail',
+            'botadm_login',
+            'botadm_pwd',
             'svc_protocol',
             'dbfilter',
             'dbfilterd',
@@ -298,7 +303,7 @@ def default_conf(ctx):
               'odoo_vid': '11.0',
               'dbfilter': '.*',
               'dbfilterd': 'demo',
-              'dbfiltert': 'openerp.*',
+              'dbfiltert': '(openerp|odoo|test)',
               'dbfilterz': 'zi[0-9]{8}',
               'dbtypefilter': '',
               'companyfilter': '(?![Zz]eroincombenze.*)',
@@ -324,6 +329,12 @@ def default_conf(ctx):
               'upgrade_modules': False,
               'zeroadm_mail': 'cc@shs-av.com',
               'zeroadm_login': 'zeroadm',
+              'oneadm_mail': 'admin@example.com',
+              'oneadm_login': 'admin',
+              'oneadm_pwd': 'admin',
+              'botadm_mail': 'zerobot@example.com',
+              'botadm_login': 'zerobot',
+              'botadm_pwd': '',
               'data_path': './data',
               'actions': '',
               'actions_db': '',
@@ -604,6 +615,11 @@ def create_parser(version, doc, ctx):
     parser.add_argument("-V", "--version",
                         action="version",
                         version="%(prog)s " + version)
+    parser.add_argument("-x", "--exit-on-error",
+                        help="exit on error",
+                        action="store_true",
+                        dest="exit_error",
+                        default=False)
     return parser
 
 

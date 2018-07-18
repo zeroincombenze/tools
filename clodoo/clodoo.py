@@ -123,6 +123,10 @@ header_id      id of header when import header/details files
 lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
 zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
 zeroadm_login  default admin username from conf file
+oneadm_mail    default user2 mail from conf file or <def_mail> if -D switch
+oneadm_login   default admin2 username from conf file
+botadm_mail    default bot mail from conf file or <def_mail> if -D switch
+botadm_login   default bot username from conf file
 _today         date.today()
 _current_year  date.today().year
 _last_year'    date.today().year - 1
@@ -134,8 +138,12 @@ Search is based on <o_model> dictionary;
 default field to search is 'name' or 'id' if passed.
 
 File csv can contain some special fields:
-db_type: select record if DB name matches db type
-         values are D for demo,'T' for test, 'Z' for production
+db_type: select record if DB name matches db type; values are
+    'D' for demo,
+    'T' for test,
+    'Z' for zeroincombenze production,
+    'V' for VG/ customers
+    'C' other customers
 oe_versions: select record if matches Odoo version
     i.e  +11.0+10.0 => select recod if Odoo 11.0 or 10.0
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
@@ -149,6 +157,7 @@ import os.path
 import re
 import sys
 import time
+import platform
 from datetime import date, datetime, timedelta
 from os0 import os0
 
@@ -270,14 +279,22 @@ def do_login(ctx):
         for u in ctx['lgi_user'].split(','):
             if u and u not in userlist:
                 userlist.insert(0, u)
-    pwdlist = ctx['login_password'].split(',')
-    cryptlist = ctx['crypt_password'].split(',')
-    for p in ctx['login2_password'].split(','):
-        if p and p not in pwdlist:
-            pwdlist.append(p)
-    for p in ctx['crypt2_password'].split(','):
-        if p and p not in cryptlist:
-            cryptlist.append(p)
+    if ctx['login_password']:
+        pwdlist = ctx['login_password'].split(',')
+    else:
+        pwdlist = []
+    if ctx['crypt_password']:
+        cryptlist = ctx['crypt_password'].split(',')
+    else:
+        cryptlist = []
+    if ctx['login2_password']:
+        for p in ctx['login2_password'].split(','):
+            if p and p not in pwdlist:
+                pwdlist.append(p)
+    if ctx['crypt2_password']:
+        for p in ctx['crypt2_password'].split(','):
+            if p and p not in cryptlist:
+                cryptlist.append(p)
     if ctx.get('lgi_pwd', 'admin') is None:
         ctx['lgi_pwd'] = 'admin'
     if ctx.get('lgi_pwd', 'admin'):
@@ -510,8 +527,12 @@ def init_db_ctx(ctx, db):
         ctx['db_type'] = "T"  # Test
     elif re.match(ctx['dbfilterz'], ctx['db_name']):
         ctx['db_type'] = "Z"  # Zeroincombenze
+    elif platform.node()[0:7] == 'vg7odoo':
+        ctx['db_type'] = "V"  # VG7
     else:
         ctx['db_type'] = "C"  # Customer
+    if not ctx['botadm_pwd']:
+        ctx['botadm_pwd'] = 'ADM13!%s' % ctx['db_name']
     return ctx
 
 
@@ -1090,6 +1111,7 @@ def act_new_db(ctx):
                                                   lang,
                                                   pwd)
                     time.sleep(3)
+                    open_connection(ctx)        # Needed for 11.0
                 elif ctx['server_version'] == '7.0':
                     ctx['odoo_session'].db.create_and_wait(ctx['admin_passwd'],
                                                            ctx['db_name'],
@@ -1460,9 +1482,20 @@ def act_install_modules(ctx):
                     msg = "!Module {0} does not exist!".format(m)
                     sts = STS_FAILED
                 msg_log(ctx, ctx['level'] + 1, msg)
+            if sts == STS_SUCCESS:
+                ids = searchL8(ctx, model,
+                               [('name', '=', m),
+                                ('state', '=', 'installed')],
+                               context=context)
+                if not len(ids):
+                    msg = "!Module {0} not installated!".format(m)
+                    msg_log(ctx, ctx['level'] + 1, msg)
+                    sts = STS_FAILED
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
+        if sts == STS_FAILED and ctx['exit_error']:
+            break
     if cur_lang != user_lang:
         set_user_lang(ctx, user_lang)
     return sts
@@ -4350,7 +4383,7 @@ def get_real_actname(ctx, actv):
 
 
 def add_external_name(ctx, o_model, row, id):
-    if 'id' in row and not row['id'].isdigit():
+    if 'id' in row and row['id'] and not row['id'].isdigit():
         put_model_alias(ctx,
                         model=o_model['model'],
                         ref=row['id'],
@@ -5024,7 +5057,7 @@ def main():
     ctx['_current_year'] = str(date.today().year)
     ctx['_last_year'] = str(date.today().year - 1)
     init_logger(ctx)
-    print_hdr_msg(ctx)
+    # print_hdr_msg(ctx)
     if not check_4_actions(ctx):
         return STS_FAILED
     ctx = create_act_list(ctx)
