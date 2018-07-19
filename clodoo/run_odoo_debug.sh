@@ -271,6 +271,7 @@ fi
 
 if [ $opt_dry_run -eq 0 ]; then
   [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
+  [ -f ~/.odoorc ] && rm -f ~/.odoorc
   echo "cp $confn ~/$lconfn"
   cp $confn ~/$lconfn
   sed -i -e 's:^logfile *=.*:logfile = False:' ~/$lconfn

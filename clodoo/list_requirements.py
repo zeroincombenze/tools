@@ -399,8 +399,6 @@ def main():
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-    import pdb
-    pdb.set_trace()
     if ctx['out_file']:
         if not ctx['odoo_dir']:
             sys.stderr.write(
