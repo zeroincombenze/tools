@@ -1249,6 +1249,10 @@ def act_execute(ctx):
             ids = searchL8(ctx, o_model['model'], where)
         else:
             ids = [o_model['model_keyids']]
+        if o_model['model'] == 'account.move' and \
+                o_model['model_action'] == 'button_validate' and \
+                ctx['majver'] >= 10:
+            o_model['model_action'] = 'post'
         try:
             executeL8(ctx,
                       o_model['model'],
@@ -1287,6 +1291,12 @@ def act_workflow(ctx):
         msg_log(ctx, ctx['level'] + 1, msg)
         sts = STS_FAILED
     else:
+        # o_model['model_action'] = translate_from_to(ctx,
+        #                                             o_model['model'],
+        #                                             o_model['model_action'],
+        #                                             '',
+        #                                             '8.0',
+        #                                             ctx['oe_version'])
         where = []
         if o_model.get('model_name'):
             where.append(
@@ -1303,21 +1313,34 @@ def act_workflow(ctx):
             id = o_model['model_keyids']
         if o_model['model'] == 'account.invoice' and \
                 o_model['model_action'] == 'invoice_open':
+            if ctx['majver'] >= 10:
+                o_model['model_action'] = 'action_invoice_open'
             try:
-                executeL8(ctx,
-                          o_model['model'],
-                          'button_compute',
-                          [id])
-                executeL8(ctx,
-                          o_model['model'],
-                          'button_reset_taxes',
-                          [id])
+                if ctx['majver'] >= 10:
+                    executeL8(ctx,
+                              o_model['model'],
+                              'compute_taxes',
+                              [id])
+                else:
+                    executeL8(ctx,
+                              o_model['model'],
+                              'button_compute',
+                              [id])
+                    executeL8(ctx,
+                              o_model['model'],
+                              'button_reset_taxes',
+                              [id])
             except BaseException:
                         pass
         try:
-            ctx['odoo_session'].exec_workflow(o_model['model'],
-                                              o_model['model_action'],
-                                              id)
+            if ctx['majver'] >= 10:
+                ctx['odoo_session'].execute(o_model['model'],
+                                            o_model['model_action'],
+                                            id)
+            else:
+                ctx['odoo_session'].exec_workflow(o_model['model'],
+                                                  o_model['model_action'],
+                                                  id)
         except BaseException:
             msg = 'Workflow (%s, %s, %d) Failed!' % (o_model['model'],
                                                      o_model['model_action'],
