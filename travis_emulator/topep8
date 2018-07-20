@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.32
+__version__=0.2.1.33
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 
@@ -309,20 +309,21 @@ format_xml() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A       B         b         c         d        e       G       i       n            o       q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_diff opt_enh opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1       1         "="       1         1        1       1       1       1            "="     0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0       0         ""        0         0        0       0       0       0            ""      -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"   "diff"   ""      ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
+OPTOPTS=(h        a        A       B         b         c         C        d        e       G       i       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_enh opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      1       1         "="       1         1        1        1       1       1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        0       0         ""        0         0        0        0       0       0       0            ""      -1          0       ""          -1          0)
+OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"   ""       "diff"   ""      ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "add Odoo Ialia Associazione Copyright"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
  "change class name to CamelCase"\
+ "change copyright from openerp to odoo"
  "show diff"\
  "do enhance update"\
- "Write AGPL info into header"\
+ "Write GPL info into header"\
  "sort import statements"\
  "do nothing (dry-run)"\
  "output filename, leave source unchanged rather than source becomes .bak"\
@@ -434,6 +435,7 @@ for fl in $LIST; do
           cp $f $f.tmp
         fi
       fi
+      [ $opt_copy -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.tmp
       autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
       rm -f $f.tmp
       if [ $opt_Camel -gt 0 ]; then

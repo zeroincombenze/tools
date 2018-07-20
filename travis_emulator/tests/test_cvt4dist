@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.32
+__version__=0.2.1.33
 
 
 test_01() {
@@ -88,7 +88,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 
 [![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -171,7 +171,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 .. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -236,7 +236,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 
 [![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -325,7 +325,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 .. image:: https://www.shs-av.com/wp-content/chat_with_us.gif
    :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -431,7 +431,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 
 [![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }
@@ -603,7 +603,7 @@ Users can download from [Zeroincombenze® distribution](https://github.com/zeroi
 
 [![chat with us](https://www.shs-av.com/wp-content/chat_with_us.gif)](https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b)
 EOF
-      $RUNDIR/please -qt distribution . zero
+      $RUNDIR/please -qt distribution zero
     fi
     test_result "please distribution" "$TESTOUT" "$TESTRES" "diff"
 }

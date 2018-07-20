@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.32"
+__version__ = "0.2.1.33"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -463,7 +463,7 @@ def write_license_info(lines, ctx):
         lineno += 1
     while lineno < len(lines) and (not lines[lineno] or
                                    lines[lineno] == '#' or
-                                   re.match('^# License AGPL', lines[lineno])):
+                                   re.match('^# License .GPL', lines[lineno])):
         del lines[lineno]
     if not found_author or (ctx['opt_oia'] and not found_oia):
             lines.insert(
@@ -477,9 +477,14 @@ def write_license_info(lines, ctx):
             lineno += 1
     lines.insert(lineno, '#')
     lineno += 1
-    lines.insert(
-        lineno,
-        '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
+    if ctx['to_ver'] > 90:
+        lines.insert(
+            lineno,
+            '# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).')
+    else:
+        lines.insert(
+            lineno,
+            '# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).')
     lineno += 1
     lines.insert(lineno, '#')
     while lineno < len(lines) and (lines[lineno] and

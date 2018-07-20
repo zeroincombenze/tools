@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.32
+__version__=0.2.1.33
 
 
 #
@@ -299,7 +299,7 @@ build_line() {
     w="LNK_${v:1}"
     v="BTN_${v:1}"
     line="$2"
-    if [[ $3 =~ md_BTN ]]; then
+    if [[ "$3" =~ md_BTN ]]; then
       if [ -n "${M[$v]}" ]; then
         x="${M[$v]}"
         line="$line($x)]"
@@ -308,7 +308,7 @@ build_line() {
         x="${M[$w]}"
         line="$line($x)"
       fi
-    elif [[ $3 =~ rstBTN_.*/1 ]]; then
+    elif [[ "$3" =~ rstBTN_.*/1 ]]; then
       if [ -z "$2" ]; then
         line=".. image::"
       else
@@ -318,7 +318,7 @@ build_line() {
         x="${M[$v]}"
         line="$line $x"
       fi
-    elif [[ $3 =~ rstBTN_.*/2 ]]; then
+    elif [[ "$3" =~ rstBTN_.*/2 ]]; then
       if [ -z "$2" ]; then
         line="   :target:"
       else
@@ -770,10 +770,10 @@ cvt_readme() {
     TKNS[67]="\.\.\[//\]:.*#.*install"
     REPL[67]=""
     ACT[67]="rstBEG_install"
-    TKNS[100]="^[^a-zA-Z_]*en[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/en_US.png|https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)"
+    TKNS[100]="^[^a-zA-Z_]*en[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/en_US.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)"
     REPL[100]=""
     ACT[100]="CHPT_lang_en"
-    TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
+    TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
     REPL[101]=""
     ACT[101]="CHPT_lang_it"
     TKNS[102]="^======"
@@ -2198,7 +2198,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "check for unary operator W503 or no OCA/zero module translation"\
  "show version end exit"\
  "verbose mode")
-OPTARGS=(action pkg sub1 sub2 sub3)
+OPTARGS=(action sub1 sub2 sub3)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -2212,7 +2212,7 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-opts_travis "$pkg"
+opts_travis
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

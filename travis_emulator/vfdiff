@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.32
+__version__=0.2.1.33
 
 
 vf_init() {
@@ -110,6 +110,7 @@ exec_diff() {
       if [ $opt_igns -gt 0 ]; then
         opts="${opts}Ew"
       fi
+      [ "$opt_md" ] && opts="$opts --ignore-matching-lines='^#'"
     else
       if [ $opt_para -ne 0 ]; then
         opts=" -ZBy"
@@ -121,6 +122,7 @@ exec_diff() {
       else
         opts=" -ZB"
       fi
+      [ "$opt_md" ] && opts="$opts --ignore-matching-lines='^#'"
     fi
     run_traced "diff$opts $left $right"
     return $?
