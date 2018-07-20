@@ -1222,7 +1222,7 @@ cvt_file() {
     else
       local f1=
       echo "Missed parameter! use:"
-      echo "\$ please distribution PKGNAME|. oca|zero|oia"
+      echo "\$ please distribution oca|zero|oia"
       sts=$STS_FAILED
     fi
     return $sts
@@ -1296,7 +1296,7 @@ do_publish() {
       eval $cmd "$@"
     else
       echo "Missing object! Use:"
-      echo "> please publish PKGNAME (docs|download|pypi|svg|testpypi|tar)"
+      echo "> please publish (docs|download|pypi|svg|testpypi|tar)"
       echo "publish doc      -> publish generate docs to website (require system privileges)"
       echo "   type 'please docs' to generate docs files"
       echo "publish download -> publish tarball to download (require system privileges)"
@@ -1984,7 +1984,7 @@ do_pythonhosted() {
     sts=$STS_SUCCESS
     if [ -z "$2" ]; then
       echo "Missing URL! use:"
-      echo "> please pythonhosted PKGNAME URL"
+      echo "> please pythonhosted URL"
       return $STS_FAILED
     fi
     local URL=$2
@@ -2028,7 +2028,7 @@ do_register() {
       eval $cmd "$@"
     else
       echo "Missing object! Use:"
-      echo "> please register PKGNAME (pypi|testpypi)"
+      echo "> please register (pypi|testpypi)"
       sts=$STS_FAILED
     fi
     return $sts
@@ -2098,7 +2098,7 @@ do_synchro() {
       fi
     else
       echo "Missed parameter! use:"
-      echo "\$ please synchro PKGNAME|. oca|zeroincombenze|zero|oia|zero-merged"
+      echo "\$ please synchro oca|zeroincombenze|zero|oia|zero-merged"
       sts=$STS_FAILED
     fi
 }
@@ -2170,6 +2170,65 @@ do_version() {
     else
       echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]";
     fi;
+    return 0
+}
+
+do_config() {
+    sts=$STS_SUCCESS
+    if [ "$sub1" == "global" ]; then
+      cfgfn=$TCONF
+    elif [ "$sub1" == "repository" ]; then
+      cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
+    elif [ "$sub1" == "local" ]; then
+      cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
+    elif [ "$sub1" == "current" ]; then
+      cfgfn=$DIST_CONF
+    elif [ "$sub1" == "zero" -o "$sub1" == "oia" ]; then
+      cfgfn=
+    else
+      echo "Missed parameter! use:"
+      echo "\$ please config global|repository|local|current|zero|oia [del]"
+      sts=$STS_FAILED
+    fi
+    if [ $sts -eq $STS_SUCCESS ]; then
+      if [ -n "$cfgfn" ]; then
+        cfgdir=$(dirname $cfgfn)
+        if [ "$sub2" == "del" ]; then
+          if [ -f $cfgfn ]; then
+            run_traced "rm -f $cfgfn"
+          fi
+          if [ ! -d $cfgfn ]; then
+            run_traced "rmdir $cfgdir"
+          fi
+        elif [ $opt_dry_run -ne 0 ]; then
+          echo "vim $cfgfn"
+        else
+          if [ ! -d $cfgfn ]; then
+            run_traced "mkdir -p $cfgdir"
+          fi
+          run_traced "vim $cfgfn"
+        fi
+      else
+        r="origin_$sub1"
+        x=$(git remote|grep $r)
+        if [ -z "$x" ]; then
+          # ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+          local ro=$(build_odoo_param RORIGIN '' $PKGNAME $sub1)
+          run_traced "git remote add $r $ro"
+          run_traced "git remote set-url --add --push $r $ro"
+        fi
+      fi
+    fi
+    return $sts
+}
+
+do_wep() {
+    if [ $opt_verbose -gt 0 ]; then
+      echo "clean_dirs \"$PKGPATH\""
+    fi
+    clean_dirs "$PKGPATH"
+    set_executable
+    return 0
 }
 
 
@@ -2234,78 +2293,78 @@ sts_pylint=127
 test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
-elif [ "$action" == "if-commit" ]; then
-  opt_dry_run=1
-  do_commit "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "commit" ]; then
-  do_commit "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "config" ]; then
-  sts=$STS_SUCCESS
-  if [ "$sub1" == "global" ]; then
-    cfgfn=$TCONF
-  elif [ "$sub1" == "repository" ]; then
-    cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
-  elif [ "$sub1" == "local" ]; then
-    cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
-  elif [ "$sub1" == "current" ]; then
-    cfgfn=$DIST_CONF
-  elif [ "$sub1" == "zero" -o "$sub1" == "oia" ]; then
-    cfgfn=
-  else
-    echo "Missed parameter! use:"
-    echo "\$ please config PKGNAME|. global|repository|local|current|zero|oia [del]"
-      sts=$STS_FAILED
-  fi
-  if [ $sts -eq $STS_SUCCESS ]; then
-    if [ -n "$cfgfn" ]; then
-      cfgdir=$(dirname $cfgfn)
-      if [ "$sub2" == "del" ]; then
-        if [ -f $cfgfn ]; then
-          run_traced "rm -f $cfgfn"
-        fi
-        if [ ! -d $cfgfn ]; then
-          run_traced "rmdir $cfgdir"
-        fi
-      elif [ $opt_dry_run -ne 0 ]; then
-        echo "vim $cfgfn"
-      else
-        if [ ! -d $cfgfn ]; then
-          run_traced "mkdir -p $cfgdir"
-        fi
-        run_traced "vim $cfgfn"
-      fi
-    else
-      r="origin_$sub1"
-      x=$(git remote|grep $r)
-      if [ -z "$x" ]; then
-        # ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
-        local ro=$(build_odoo_param RORIGIN '' $PKGNAME $sub1)
-        run_traced "git remote add $r $ro"
-        run_traced "git remote set-url --add --push $r $ro"
-      fi
-    fi
-  fi
-elif [ "$action" == "coverage" ]; then
-  do_coverage "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "if-fetch" ]; then
-  opt_dry_run=1
-  do_fetch "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "fetch" ]; then
-  do_fetch "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "travis" ]; then
-  do_travis "$PKGNAME" "$sub1" "$sub2"
-  sts=$?
-elif [ "$action" == "wep" ]; then
-  if [ $opt_verbose -gt 0 ]; then
-    echo "clean_dirs \"$PKGPATH\""
-  fi
-  clean_dirs "$PKGPATH"
-  set_executable
+# elif [ "$action" == "if-commit" ]; then
+#   opt_dry_run=1
+#   do_commit "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "commit" ]; then
+#   do_commit "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "config" ]; then
+#   sts=$STS_SUCCESS
+#   if [ "$sub1" == "global" ]; then
+#     cfgfn=$TCONF
+#   elif [ "$sub1" == "repository" ]; then
+#     cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
+#   elif [ "$sub1" == "local" ]; then
+#     cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
+#   elif [ "$sub1" == "current" ]; then
+#     cfgfn=$DIST_CONF
+#   elif [ "$sub1" == "zero" -o "$sub1" == "oia" ]; then
+#     cfgfn=
+#   else
+#     echo "Missed parameter! use:"
+#     echo "\$ please config PKGNAME|. global|repository|local|current|zero|oia [del]"
+#       sts=$STS_FAILED
+#   fi
+#   if [ $sts -eq $STS_SUCCESS ]; then
+#     if [ -n "$cfgfn" ]; then
+#       cfgdir=$(dirname $cfgfn)
+#       if [ "$sub2" == "del" ]; then
+#         if [ -f $cfgfn ]; then
+#           run_traced "rm -f $cfgfn"
+#         fi
+#         if [ ! -d $cfgfn ]; then
+#           run_traced "rmdir $cfgdir"
+#         fi
+#       elif [ $opt_dry_run -ne 0 ]; then
+#         echo "vim $cfgfn"
+#       else
+#         if [ ! -d $cfgfn ]; then
+#           run_traced "mkdir -p $cfgdir"
+#         fi
+#         run_traced "vim $cfgfn"
+#       fi
+#     else
+#       r="origin_$sub1"
+#       x=$(git remote|grep $r)
+#       if [ -z "$x" ]; then
+#         # ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+#         local ro=$(build_odoo_param RORIGIN '' $PKGNAME $sub1)
+#         run_traced "git remote add $r $ro"
+#         run_traced "git remote set-url --add --push $r $ro"
+#       fi
+#     fi
+#   fi
+# elif [ "$action" == "coverage" ]; then
+#   do_coverage "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "if-fetch" ]; then
+#   opt_dry_run=1
+#   do_fetch "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "fetch" ]; then
+#   do_fetch "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "travis" ]; then
+#   do_travis "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "wep" ]; then
+#   if [ $opt_verbose -gt 0 ]; then
+#     echo "clean_dirs \"$PKGPATH\""
+#   fi
+#   clean_dirs "$PKGPATH"
+#   set_executable
 else
   if [ "${action:0:3}"  == "if-" ]; then
     opt_dry_run=1
