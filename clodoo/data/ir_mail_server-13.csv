@@ -1,2 +1,2 @@
 id,name,smtp_port,smtp_host,smtp_user,smtp_pass,smtp_encryption
-1,Zeroincombenze(R),25,smtp.shs-av.com,zeroincombenze@shs-av.com,shs3ce14,starttls
+1,Zeroincombenze(R),25,smtp.shs-av.com,zeroincombenze@shs-av.com,$1$!Wg"0jk!P,starttls

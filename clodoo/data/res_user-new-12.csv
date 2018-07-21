@@ -1,6 +1,10 @@
-id,name,login,company_ids,company_id,signature,tz,lang,new_password,email
-,Admin,admin,=None,=None,"Amministratore dell'Azienda","Europe/Rome","it_IT",=None,admin@shs-av.com
-,Admin,admin,"=[(4,${res.company:La Tua Azienda})]",=None,=None,=None,=None,=None,=None
-,Admin,admin,=None,"=${res.company:La Tua Azienda}",=None,=None,=None,=None,=None
-,Admin,admin,"=[(3,${res.company:zeroincombenze®})]",=None,=None,=None,=None,admin,=None
-base.user_root,Administrator,zeroadm,"=[(4,${res.company:La Tua Azienda})]",=None,=None,=None,=None,=None,=None
+db_type,id,name,login,company_ids,company_id,signature,tz,lang,new_password,email,partner_id
+,base.user_admin2,Admin,${oneadm_login},None,None,Amministratore dell'Azienda,Europe/Rome,it_IT,None,${zeroadm_mail},base.partner_admin2
+,base.user_admin2,Admin,${oneadm_login},"[(4,base.mycompany)]",None,None,None,None,None,None,None
+,base.user_admin2,Admin,${oneadm_login},None,base.mycompany,None,None,None,None,None,None
+,base.user_admin2,Admin,${oneadm_login},"[(3,base.main_company)]",None,None,None,None,${oneadm_pwd},None,None
+,base.user_root,Administrator,${zeroadm_login},"[(4,base.mycompany)]",None,None,None,None,None,None,None
+V,base.user_bot,System Bot,${botadm_login},None,None,System Bot – No actual user,Europe/Rome,it_IT,None,${botadm_mail},base.partner_bot
+V,base.user_bot,System Bot,${botadm_login},"[(4,base.mycompany)]",None,None,None,None,None,None,None
+V,base.user_bot,System Bot,${botadm_login},None,base.mycompany,None,None,None,None,None,None
+V,base.user_bot,System Bot,${botadm_login},"[(3,base.main_company)]",None,None,None,None,${botadm_pwd},None,None

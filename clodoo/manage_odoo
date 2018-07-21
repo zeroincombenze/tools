@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.9
+__version__=0.3.7.10
 
 
 explore() {
@@ -177,9 +177,9 @@ do_action() {
         [ -z "$x" ] && x=$(npm list -g|grep " less@")
         if [ "$TRAVIS" == "true" -o -z "$x" ]; then
           if [ $EUID -eq 0 ]; then
-            run_traced "npm install -g less less-plugin-clean-css"
+            run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
           else
-            run_traced "npm install less less-plugin-clean-css"
+            run_traced "npm install less@3.0.4 less-plugin-clean-css"
           fi
         fi
       fi

@@ -1,2 +1,2 @@
-id,name,country_id,parent_id,currency_id,vat
-base.main_company,"zeroincombenze®",base.it,,base.EUR,
+id,name,country_id,parent_id,vat
+base.main_company,"zeroincombenze®",base.it,,

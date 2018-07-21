@@ -1,2 +1,2 @@
-origin,company_id,type,account_id,partner_id,date_invoice,journal_id,fiscal_position,registration_date,supplier_invoice_number,check_total,,currency_id
-=PO${_last_year}/001,=${company_id},in_invoice,=${account.account(code)::250100},base.res_partner_4,=${_last_year}-11-15,=${account.journal(code)::EXJ},=${account.fiscal.position:Italia},=${_last_year}-11-30,=${_last_year}/0123,244.00,base.EUR
+id,origin,company_id,type,account_id,partner_id,date_invoice,journal_id,fiscal_position,registration_date,supplier_invoice_number,check_total,currency_id
+account.invoice_PO1701,PO${_last_year}/001,base.mycompany,in_invoice,${account.account(code)::250100},base.res_partner_4,${_last_year}-11-15,${account.journal(type)::purchase},${account.fiscal.position::Italia},${_last_year}-11-30,${_last_year}/0123,244.00,base.EUR

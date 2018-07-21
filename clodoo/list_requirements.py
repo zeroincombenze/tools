@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.9'
+__version__ = '0.3.7.10'
 
 #
 # known incompantibilities:
@@ -90,23 +90,24 @@ REQVERSION = {
     'xlwt': {'7.0': '==0.7.5', '10.0': '==1.1.2'},
 }
 ALIAS = {
-    'dateutil': 'python-dateutil',
-    'stdnum': 'python-stdnum',
-    'ldap': 'python-ldap',
-    'openid': 'python-openid',
-    'usb': 'pyusb',
-    'lxml': 'lxml',
     'babel': 'Babel',
+    'dateutil': 'python-dateutil',
     'jinja2': 'Jinja2',
+    'ldap': 'python-ldap',
+    'lxml': 'lxml',
     'mako': 'Mako',
     'markupsafe': 'MarkupSafe',
+    'openid': 'python-openid',
     'pillow': 'Pillow',
     'psycopg2': 'psycopg2-binary',
     'pypdf': 'pyPdf',
     'python-chart': 'Python-Chart',
     'pywebdav': 'PyWebDAV',
     'pyyaml': 'PyYAML',
+    'requests': 'requests[security]',
     'qunitsuite': 'QUnitSuite',
+    'stdnum': 'python-stdnum',
+    'usb': 'pyusb',
     'werkzeug': 'Werkzeug',
     'xlsxwriter': 'XlsxWriter',
 }

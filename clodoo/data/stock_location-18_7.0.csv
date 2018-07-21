@@ -1,5 +1,5 @@
 id,location_id,name,company_id,chained_location_type,chained_auto_packing,chained_journal_id,chained_picking_type
 stock.stock_location_company,=None,Zeroincombenze,=None,,,
-,stock.stock_location_locations,"La Tua Azienda",=${res.company:La Tua Azienda},none,manual,
-,=${stock.location:La Tua Azienda},"Uscita",=${res.company:La Tua Azienda},customer,transparent,=${stock.journal::Delivery Orders},out
-,=${stock.location:La Tua Azienda},"Stock",=${res.company:La Tua Azienda},none,manual,,
+,stock.stock_location_locations,"La Tua Azienda",base.mycompany,none,manual,
+,=${stock.location:La Tua Azienda},"Uscita",base.mycompany,customer,transparent,=${stock.journal::Delivery Orders},out
+,=${stock.location:La Tua Azienda},"Stock",base.mycompany,none,manual,,

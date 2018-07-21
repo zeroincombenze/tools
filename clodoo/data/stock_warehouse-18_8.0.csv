@@ -1,2 +1,2 @@
-name,code,company_id,partner_id
-"La Tua Azienda","WH",=${res.company:La Tua Azienda},=${res.partner::La Tua Azienda}
+id,name,code,company_id,partner_id
+stock.wl_mycompany,"La Mia Azienda","WH00",base.mycompany,base.partner_mycompany
