@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.33
+__version__=0.2.1.34
 
 
 store_cfg_param_value() {
@@ -807,9 +807,11 @@ process_yaml() {
     if [ -f $YML_FILE ]; then
       wlog "${TRAVIS_HDR1_COLOR}=== Process YAML file ===${TRAVIS_TEXT_COLOR}"
       process_yaml_file "$YML_FILE"
-      if [ "$USER" == "odoo" ]; then
-        clean_dirs "$PRJPATH"
-        set_executable
+      if [ "$PKGNAME" != "OCB" ]; then
+        if [ "$USER" == "odoo" ]; then
+          clean_dirs "$PRJPATH"
+          set_executable
+        fi
       fi
       sts=$STS_SUCCESS
       create_virtual_env

@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.33
+#__version__=0.2.1.34
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -394,6 +394,23 @@ custom_env() {
     echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
 }
 
+emulate_git_clone_OCB() {
+# emulate_git_clone_OCB(src tgt)
+    local d f
+    run_traced "mkdir -p $2/"
+    valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
+    for d in $1/*; do
+      f=$(basename $d)
+      if [[ " $valid " =~ " $f " ]]; then
+        if [ -d $1/$f ]; then
+          run_traced "cp -R $1/$f/ $2/"
+        else
+          run_traced "cp $1/$f $2"
+        fi
+      fi
+    done
+}
+
 create_virtual_env() {
     drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
@@ -443,11 +460,11 @@ create_virtual_env() {
     mkdir -p $TRAVIS_HOME/build
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
-    mkdir -p $TRAVIS_BUILD_DIR
-    # run_traced "ln -s $TRAVIS_CWD/* $TRAVIS_BUILD_DIR"
+    # mkdir -p $TRAVIS_BUILD_DIR
     if [ "$PKGNAME" == "OCB" ]; then
-      run_traced "cp -R $TRAVIS_CWD/* $TRAVIS_BUILD_DIR/"
+      emulate_git_clone_OCB $TRAVIS_CWD $TRAVIS_BUILD_DIR
     else
+      mkdir -p $TRAVIS_BUILD_DIR
       x=$(readlink -f $TRAVIS_BUILD_DIR/..)
       run_traced "cp -R $TRAVIS_CWD/ $x/"
     fi

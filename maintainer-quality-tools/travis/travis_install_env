@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.56
+__version__=0.2.1.57
 
 
 run_n_echo() {
@@ -122,23 +122,6 @@ cp_n_upd_odoo_conf() {
 }
 
 
-emulate_git_clone_OCB() {
-# emulate_git_clone_OCB(src tgt)
-    local d f
-    run_n_echo "mkdir -p $2/"
-    valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
-    for d in $1/*; do
-      f=$(basename $d)
-      if [[ " $valid " =~ " $f " ]]; then
-        if [ -d $1/$f ]; then
-          run_n_echo "cp -R $1/$f/ $2/"
-        else
-          run_n_echo "cp $1/$f $2"
-        fi
-      fi
-    done
-}
-
 OPTOPTS=(h        b          j        K        n            q           T        t         V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
 OPTACTI=(1        1          1        1        1            0           1        1         "*>"        "+")
@@ -188,6 +171,12 @@ fi
 LINT_OR_TEST_CHECK="0"
 [ "${LINT_CHECK:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
 [ "${LINT_CHECK:-0}" == "0" -a "${TESTS:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
+# if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+# if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+# if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+# if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+# if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+# if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
@@ -284,15 +273,15 @@ else
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
-    run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
+    run_n_echo "npm install less less-plugin-clean-css"
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
       echo -e "- Tested repository is OCB"
-      run_n_echo "cp -R ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
-    elif [ ! -d ${ODOO_PATH} ]; then
-      run_n_echo "emulate_git_clone_OCB ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+    elif [ ! -L ${ODOO_PATH} ]; then
+      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
     export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
@@ -300,8 +289,8 @@ else
       echo "- Installing Odoo $ODOO_URL"
       run_n_echo "wget -nv -O odoo.tar.gz $ODOO_URL"
       run_n_echo "tar -xf odoo.tar.gz -C ${HOME}"
-    elif [ ! -d ${ODOO_PATH} ]; then
-      run_n_echo "emulate_git_clone_OCB $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+    elif [ ! -L ${ODOO_PATH} ]; then
+      run_n_echo "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
     fi
   fi
   if [ "${TESTS}" != "1" ]; then
