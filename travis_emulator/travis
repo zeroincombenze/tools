@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.34
+__version__=0.2.1.35
 
 
 store_cfg_param_value() {
@@ -795,7 +795,10 @@ process_yaml() {
         return $STS_SUCCESS
       fi
     else
-      YML_FILE=$PRJPATH/.travis.yml
+      YML_FILE=$opt_fyaml
+      if [ ! -f $YML_FILE ]; then
+        YML_FILE=$PRJPATH/$opt_fyaml
+      fi
       if [ ! -f $YML_FILE ]; then
         YML_FILE=$TOOLS_PATH/travis.yml
       fi
@@ -919,11 +922,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     V           v           W)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt)
-OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0)
-OPTDEFL=(0        0         1         ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1)
-OPTMETA=("help"   "version" "version" "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   "")
+OPTOPTS=(h        B         C         c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     V           v           W        Y)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt opt_fyaml)
+OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0        "=")
+OPTDEFL=(0        0         1         ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1        ".travis.yml")
+OPTMETA=("help"   "version" "version" "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "file")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use cached PYPI"\
@@ -944,7 +947,8 @@ OPTHELP=("this help"\
  "run restricted mode (w/o parsing travis.yml file)"\
  "show version"\
  "verbose mode"\
- "do not use virtualenv to run tests")
+ "do not use virtualenv to run tests"\
+ "file yaml to process (def .travis.yml)")
 OPTARGS=(action sub)
 
 parseoptargs "$@"
