@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.10"
+__version__ = "0.3.7.11"
 
 
 #############################################################################
@@ -41,7 +41,10 @@ def psql_connect(ctx):
         params = ctx['psycopg2'].split(',')
         for prm in params:
             pv = prm.split(':')
-            if pv[0] in ('db_name', 'db_user', 'db_password'):
+            if pv[0] in ('False', 'false', '0'):
+                return cr
+            if pv[0] in ('db_name', 'db_user', 'db_password') and \
+                    (pv[0] not in ctx or not ctx[pv[0]]):
                 ctx[pv[0]] = pv[1]
         dbname = ctx['db_name']
         dbuser = ctx['db_user']

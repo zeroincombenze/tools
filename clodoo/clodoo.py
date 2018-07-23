@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.10"
+__version__ = "0.3.7.11"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -2035,6 +2035,38 @@ def act_recompute_balance(ctx):
     msg_log(ctx, ctx['level'], msg)
     sts = recompute_balance(ctx)
     return sts
+
+
+def act_convert_partners(ctx):
+    # It looks for partners to update and update them.
+    msg = u"Convert partners"
+    msg_log(ctx, ctx['level'], msg)
+    italy_id = searchL8(ctx,
+                        'res.country',
+                        [('code', '=', 'IT')])[0]
+    partner_ids = searchL8(ctx,
+                           'res.partner',
+                           [('province', '!=', None),
+                            ('state_id', '=', None),
+                            '|',
+                            ('country_id', '=', False),
+                            ('country_id', '=', italy_id)])
+    for i,partner_id in enumerate(partner_ids):
+        partner = browseL8(ctx, 'res.partner', partner_id)
+        msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
+        vals = {}
+        if not partner.country_id:
+            vals['country_id'] = italy_id
+        if partner.province:
+            state_ids = searchL8(ctx,
+                                 'res.country.state',
+                                 [('code', '=', partner.province.code),
+                                  ('country_id', '=', italy_id)])
+            if state_ids:
+                vals['state_id'] = state_ids[0]
+        if vals:
+            writeL8(ctx, 'res.partner', partner_id, vals)
+    return STS_SUCCESS
 
 
 def act_set_4_cscs(ctx):
@@ -5084,20 +5116,20 @@ def main():
     if not check_4_actions(ctx):
         return STS_FAILED
     ctx = create_act_list(ctx)
-    do_conn = False
-    do_login = False
+    conn2do = False
+    login2do = False
     do_newdb = False
     do_multidb = False
     for act in ctx['actions'].split(','):
         if act not in ("list_actions", "show_params"):
-            do_conn = True
+            conn2do = True
             if act not in ("drop_db", "list_db"):
-                do_login = True
+                login2do = True
         if act == "per_db":
             do_multidb = True
         if act == "new_db":
             do_newdb = True
-    if do_conn:
+    if conn2do:
         open_connection(ctx)
         ctx = read_config(ctx)
         print_hdr_msg(ctx)
@@ -5110,14 +5142,14 @@ def main():
             msg = u"!No DB name supplied!!"
             msg_log(ctx, ctx['level'], msg)
             return STS_FAILED
-    elif do_conn and ctx.get('multi_db', False) and not do_multidb:
+    elif conn2do and ctx.get('multi_db', False) and not do_multidb:
         ctx['actions'] = 'per_db,' + ctx['actions']
         do_multidb = True
-    if not do_newdb and do_conn and not do_multidb and ctx['db_name']:
+    if not do_newdb and conn2do and not do_multidb and ctx['db_name']:
         ctx = init_db_ctx(ctx, ctx['db_name'])
         msg = ident_db(ctx, ctx['db_name'])
         msg_log(ctx, ctx['level'], msg)
-        if do_login:
+        if login2do:
             lgiuser = do_login(ctx)
             if lgiuser:
                 sts = do_actions(ctx)

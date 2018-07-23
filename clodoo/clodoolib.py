@@ -44,6 +44,7 @@ OE_CONF = False
 # list of string parameters in [options] of config file
 LX_CFG_S = ('db_name',
             'db_user',
+            'db_password',
             'login_user',
             'login2_user',
             'crypt_password',
@@ -157,7 +158,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.10"
+__version__ = "0.3.7.11"
 
 
 #############################################################################
@@ -653,6 +654,7 @@ def parse_args(arguments,
             ctx = fullname_conf(ctx)
         ctx = read_config(ctx)
         opt_obj = parser.parse_args(arguments)
+    ctx['level'] = 0
     ctx = create_params_dict(ctx)
     return ctx
 
