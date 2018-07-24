@@ -28,6 +28,8 @@ __version__ = "0.3.7.13"
 
 
 MODULE_ID = 'clodoo'
+VERSIONS_TO_TEST = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0')
+# VERSIONS_TO_TEST = ('10.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -45,6 +47,13 @@ class Test():
         self.dbtest = 'clodoo_test'
         self.module_2_test = 'crm'
         self.login_2_test = 'administrator'
+        self.new_password = 'newpwd'
+        codefile = """[options]
+actions=unit_test
+"""
+        fd = open(self.Z.pkg_dir + '/clodoo.conf', 'w')
+        fd.write(codefile)
+        fd.close()
 
     def check_4_db(self, dbname):
         cmd = ['psql'] + ['-Upostgres'] + ['-tl']
@@ -174,7 +183,7 @@ oe_version=%s
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            for oe_version in VERSIONS_TO_TEST:
                 xmlrpc_port = int(eval(oe_version)) + 8160
                 if oe_version in ('6.1', '7.0', '8.0'):
                     xml_prot = 'xmlrpc'
@@ -206,7 +215,7 @@ oe_version=%s
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
                 #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     cmd = self.bulk_cmd(oe_version)
                     if os.environ.get("TRAVIS", "") != "true":
@@ -257,7 +266,7 @@ oe_version=%s
         # datafn = 'res_users.csv'
         # dataffn = '%s/%s' % (self.Z.test_dir, datafn)
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     res = self.check_4_module(oe_version)
                 else:
@@ -298,7 +307,7 @@ install_modules=%s
         datafn = 'res_users.csv'
         dataffn = '%s/%s' % (self.Z.test_dir, datafn)
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     res = self.check_4_user(oe_version)
                 else:
@@ -324,15 +333,15 @@ alias_model2=res.partner
                     cmd = self.bulk_cmd(oe_version)
                     cmd = cmd + ['-c%s' % confn]
                     if oe_version == '6.1':
-                        datafile = """id,name,login,signature,email,tz,lang
-base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US"
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US
-""" % self.login_2_test
+                        datafile = """id,name,login,signature,email,tz,new_password
+base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome",None
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,%s
+""" % (self.login_2_test, self.new_password)
                     else:
-                        datafile = """id,name,login,signature,email,tz,lang,partner_id
-base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome","en_US",=None
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.partner_user2
-""" % self.login_2_test
+                        datafile = """id,name,login,signature,email,tz,partner_id,new_password
+base.user_root,Administrator,%s,"Ammin.","me@example.com","Europe/Rome",None,None
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,base.partner_user2,%s
+""" % (self.login_2_test, self.new_password)
                     fd = open(dataffn, 'w')
                     fd.write(datafile)
                     fd.close()
@@ -375,11 +384,50 @@ base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.pa
                     res)
         return sts
 
+
+
+    def test_06(self, z0ctx):
+        sts = TEST_SUCCESS
+        confn = '%s/test_clodoo.conf' % self.Z.test_dir
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            for oe_version in VERSIONS_TO_TEST:
+                xmlrpc_port, dbname = self.param_by_db(oe_version)
+                if not ctx['dry_run']:
+                    codefile = """[options]
+actions=show_db_params
+login_user=admin2
+crypt_password=%s
+""" % crypt(self.new_password)
+                    fd = open(confn, 'w')
+                    fd.write(codefile)
+                    fd.close()
+                    cmd = self.bulk_cmd(oe_version)
+                    cmd = cmd + ['-c%s' % confn]
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    if res.find(dbname) >= 0:
+                        res = True
+                    else:
+                        res = False
+                else:
+                    res = True
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Connect user admin2 -b%s" % (oe_version),
+                    True,
+                    res)
+        return sts
+
+
+
     def test_09(self, z0ctx):
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
         if os.environ.get("HOSTNAME", "") == "shsdef16":
-            for oe_version in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+            for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     cmd = self.cmd
                     xmlrpc_port, dbname = self.param_by_db(oe_version)

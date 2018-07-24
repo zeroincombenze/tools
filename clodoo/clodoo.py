@@ -1363,6 +1363,17 @@ def act_update_modules(ctx):
                   'base.module.update',
                   'update_module',
                   [])
+        ids = searchL8(ctx, model,
+                       [('state', '=', 'to install')])
+        if ids and not ctx['dry_run']:
+            try:
+                executeL8(ctx,
+                          model,
+                          'button_install_cancel',
+                          ids)
+                time.sleep(2)
+            except BaseException:
+                pass
     return STS_SUCCESS
 
 
@@ -1494,34 +1505,38 @@ def act_install_modules(ctx):
                               model,
                               'button_immediate_install',
                               ids)
-                    msg = "name={0}".format(m)
+                    msg = "name=%s" % m
                     msg_log(ctx, ctx['level'] + 1, msg)
                     time.sleep(2)
                 except BaseException:
-                    msg = "!Module {0} not installable!".format(m)
+                    if ignore_not_installed:
+                        msg = "Error installing %s" % m
+                    else:
+                        msg = "!Error installing %s!" % m
+                        sts = STS_FAILED
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    sts = STS_FAILED
-            else:
-                ids = searchL8(ctx, 'ir.module.module',
-                               [('name', '=', m)],
-                               context=context)
-                if len(ids):
-                    msg = "Module {0} already installed!".format(m)
+
+            ids = searchL8(ctx, 'ir.module.module',
+                           [('name', '=', m)],
+                           context=context)
+            if not ids:
+                if ignore_not_installed:
+                    msg = "Module %s does not exist" % m
                 else:
-                    msg = "!Module {0} does not exist!".format(m)
+                    msg = "!Module %s does not exist!" % m
                     sts = STS_FAILED
                 msg_log(ctx, ctx['level'] + 1, msg)
-            if sts == STS_SUCCESS and not ignore_not_installed:
-                ids = searchL8(ctx, model,
-                               [('name', '=', m),
-                                ('state', '=', 'installed')],
-                               context=context)
-                if not len(ids):
-                    msg = "!Module {0} not installated!".format(m)
+            else:
+                state = browseL8(ctx, model, ids[0]).state
+                if state != 'installed':
+                    if ignore_not_installed:
+                        msg = "Module %s %s" % (m, state)
+                    else:
+                        msg = "!Module %s %s!" % (m, state)
+                        sts = STS_FAILED
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    sts = STS_FAILED
         else:
-            msg = "name({0})".format(m)
+            msg = "name(%s)" % m
             msg_log(False, ctx['level'] + 1, msg)
         if sts == STS_FAILED and ctx['exit_onerror']:
             break
@@ -2584,7 +2599,12 @@ def set_user_lang(ctx, lang):
         msg = u"!User %s not found" % user_id
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
-    writeL8(ctx, 'res.users', user_id, {'lang': lang})
+    try:
+        writeL8(ctx, 'res.users', user_id, {'lang': lang})
+    except BaseException:
+        msg = u"!Language %s not found" % lang
+        msg_log(ctx, ctx['level'] + 2, msg)
+    return STS_SUCCESS
 
 
 def get_reconcile_list_from_move_line(move_line, ctx):
@@ -4617,10 +4637,12 @@ def import_file(ctx, o_model, csv_fn):
                 id = ids[0]
                 cur_obj = browseL8(ctx, o_model['model'], id)
                 if o_model['model'] == 'res.users' and\
-                        'login' not in row and len(ids) == 1:
-                    ctx['def_email'] = '%s%s@example.com' % (
-                        cur_obj.login,
-                        ctx['oe_version'].split('.')[0])
+                        len(ids) == 1:
+                    cur_login = cur_obj.login
+                    if 'login' in row:
+                        ctx['def_email'] = '%s%s@example.com' % (
+                            cur_obj.login,
+                            ctx['oe_version'].split('.')[0])
             else:
                 cur_obj = False
             if ctx.get('full_model'):
@@ -4647,6 +4669,14 @@ def import_file(ctx, o_model, csv_fn):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
+            if o_model['model'] == 'res.users' and \
+                    'new_password' in vals and \
+                    len(ids) == 0:
+                #     (len(ids) == 0 or
+                #      (len(ids) and cur_login != ctx['login_user'])):
+                vals['password'] = vals['new_password']
+                del vals['new_password']
+                vals['password_crypt'] = ''
             written = False
             if len(ids):
                 if not ctx['dry_run'] and len(vals):
@@ -4665,6 +4695,19 @@ def import_file(ctx, o_model, csv_fn):
                             tounicode(name_new))
                         os0.wlog(msg)
                     if written:
+                        if o_model['model'] == 'res.users' and \
+                                'login' in vals and \
+                                cur_login == ctx['login_user']:
+                            if 'login' in vals:
+                                ctx['login_user'] = vals['login']
+                            if 'new_password' in vals:
+                                if vals['new_password'].find('$1$!') == 0:
+                                    ctx['crypt_password'] = vals[
+                                        'new_password']
+                                else:
+                                    ctx['login_password'] = vals[
+                                        'new_password']
+                            do_login(ctx)
                         try:
                             add_external_name(ctx, o_model, row, ids[0])
                         except BaseException:

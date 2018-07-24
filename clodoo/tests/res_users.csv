@@ -1,3 +1,3 @@
-id,name,login,signature,email,tz,lang,partner_id
-base.user_root,Administrator,administrator,"Ammin.","me@example.com","Europe/Rome","en_US",=None
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,en_US,base.partner_user2
+id,name,login,signature,email,tz,partner_id,new_password
+base.user_root,Administrator,administrator,"Ammin.","me@example.com","Europe/Rome",None,None
+base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,base.partner_user2,newpwd

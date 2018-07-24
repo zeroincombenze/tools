@@ -99,10 +99,6 @@ parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
-                               db=ctx['db_name'],
-                               ctx=ctx)
-ixver = ctx['oe_version'].split('.')[0] + ctx['oe_version'].split('.')[1]
 # pdb.set_trace()
 mod2xtl = new_env()
 infos = {}
@@ -124,24 +120,31 @@ if os.path.isfile('Odoo_moduli.csv'):
                            '']
             add_elem(mod2xtl, '0', item)
 
-model = 'ir.module.module'
-ids = clodoo.searchL8(ctx, model, [('state', '=', 'installed')])
-for id in ids:
-    module = clodoo.browseL8(ctx, model, id)
-    item = module.name
-    if item in infos:
-        notes = infos[item][2]
-        summary = get_summary(infos[item][0])
-    else:
-        notes = ''
-        summary = get_summary(os0.b(module.summary))
-    infos[item] = [summary,
-                   os0.b(module.author),
-                   notes,
-                   os0.b(module.installed_version),
-                   '',
-                   ixver]
-
+if ctx['db_name']:
+    uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
+                                   db=ctx['db_name'],
+                                   ctx=ctx)
+    ixver = ctx['oe_version'].split('.')[0] + ctx['oe_version'].split('.')[1]
+    model = 'ir.module.module'
+    ids = clodoo.searchL8(ctx, model, [('state', '=', 'installed')])
+    for id in ids:
+        try:
+            module = clodoo.browseL8(ctx, model, id)
+            item = module.name
+            if item in infos:
+                notes = infos[item][2]
+                summary = get_summary(infos[item][0])
+            else:
+                notes = ''
+                summary = get_summary(os0.b(module.summary))
+            infos[item] = [summary,
+                           os0.b(module.author),
+                           notes,
+                           os0.b(module.installed_version),
+                           '',
+                           ixver]
+        except BaseException:
+            pass
 with open('moduli_alias.csv', 'rb') as f:
     lines = f.read().split('\n')
     for line in lines:
@@ -211,7 +214,7 @@ while item != '~':
         datas = []
         for id in VERSIONS:
             if id in vers:
-                datas.append('YES')
+                datas.append('OK')
                 ctrs[id] += 1
             else:
                 datas.append('x')
@@ -224,7 +227,7 @@ while item != '~':
         # if infos[item][5]:
         #     for i,v in enumerate(VERSIONS):
         #         if v == infos[item][5]:
-        #             datas[i] = 'YES'
+        #             datas[i] = 'OK'
         try:
             print fmto % (item,
                           datas[0],
