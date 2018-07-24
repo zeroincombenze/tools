@@ -114,7 +114,7 @@ LX_CFG_S = ('db_name',
             'hideB_cid',
             'filename',
             'psycopg2',
-            'TRANSDICT'
+            'TRANSDICT',
             )
 # list of string/boolean parameters in [options] of config file
 # Must be declared in LX_CFG_S
@@ -141,9 +141,9 @@ LX_CFG_B = ('set_passepartout',
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
             'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port',
-            'odoo_vid')
+            'odoo_vid', 'exit_onerror')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_B = ('dry_run', 'with_demo')
+LX_OPT_B = ('dry_run', 'with_demo', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_N = ()
 # list of opponent options
@@ -158,7 +158,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.12"
+__version__ = "0.3.7.13"
 
 
 #############################################################################
@@ -619,7 +619,7 @@ def create_parser(version, doc, ctx):
     parser.add_argument("-x", "--exit-on-error",
                         help="exit on error",
                         action="store_true",
-                        dest="exit_error",
+                        dest="exit_onerror",
                         default=False)
     return parser
 

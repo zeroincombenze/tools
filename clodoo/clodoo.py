@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.12"
+__version__ = "0.3.7.13"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1471,9 +1471,15 @@ def act_install_modules(ctx):
     cur_lang = user_lang
     model = 'ir.module.module'
     sts = STS_SUCCESS
-    for m in module_list:
-        if m == "":
+    for mx in module_list:
+        if mx == "":
             continue
+        if mx[-1] == '!':
+            m = mx[0:-1]
+            ignore_not_installed = True
+        else:
+            m = mx
+            ignore_not_installed = False
         ids = searchL8(ctx, model,
                        [('name', '=', m),
                         ('state', '=', 'uninstalled')],
@@ -1505,7 +1511,7 @@ def act_install_modules(ctx):
                     msg = "!Module {0} does not exist!".format(m)
                     sts = STS_FAILED
                 msg_log(ctx, ctx['level'] + 1, msg)
-            if sts == STS_SUCCESS:
+            if sts == STS_SUCCESS and not ignore_not_installed:
                 ids = searchL8(ctx, model,
                                [('name', '=', m),
                                 ('state', '=', 'installed')],
@@ -1517,7 +1523,7 @@ def act_install_modules(ctx):
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
-        if sts == STS_FAILED and ctx['exit_error']:
+        if sts == STS_FAILED and ctx['exit_onerror']:
             break
     if cur_lang != user_lang:
         set_user_lang(ctx, user_lang)
