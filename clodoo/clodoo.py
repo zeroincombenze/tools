@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.13"
+__version__ = "0.3.7.14"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -246,14 +246,19 @@ def incr_lev(ctx):
         ctx['level'] = 0
 
 
-def get_name_by_ver(ctx, name):
+def get_name_by_ver(ctx, model, name):
     majver = ctx['majver']
-    if name == 'move_name':
-        if majver < 10:
-            return 'internal_number'
-    elif name == 'action_invoice_draft':
-        if majver < 10:
-            return 'action_cancel_draft'
+    if model == 'account.invoice':
+        if name == 'move_name':
+            if majver < 10:
+                return 'internal_number'
+        elif name == 'action_invoice_draft':
+            if majver < 10:
+                return 'action_cancel_draft'
+    elif model == 'res.partner':
+        if name == 'zip':
+            if majver == 6:
+                return ''
     return name
 
 #############################################################################
@@ -2706,7 +2711,7 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
     list_keys = {}
     company_id = None
     journal_id = None
-    move_name = get_name_by_ver(ctx, 'move_name')
+    move_name = get_name_by_ver(ctx, model, 'move_name')
     for inv_id in invoices:
         invoice = invoice_model.browse(inv_id)
         if not company_id:
@@ -2860,7 +2865,7 @@ def upd_invoices_2_draft(move_dict, ctx):
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
-                fname = get_name_by_ver(ctx, 'action_invoice_draft')
+                fname = get_name_by_ver(ctx, model, 'action_invoice_draft')
                 executeL8(ctx,
                           model,
                           fname,
@@ -4280,11 +4285,11 @@ def remove_all_user_records(ctx):
 
 def remove_company_account_records(ctx):
     sts = STS_SUCCESS
-    move_name = get_name_by_ver(ctx, 'move_name')
+    model = 'account.invoice'
+    move_name = get_name_by_ver(ctx, model, 'move_name')
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
-            model = 'account.invoice'
             msg = u"Searching for invoices to delete"
             msg_log(ctx, ctx['level'], msg)
             record_ids = searchL8(ctx, model,
@@ -4370,12 +4375,12 @@ def remove_all_account_records(ctx):
 
 def analyze_invoices(ctx, inv_type):
     company_id = ctx['company_id']
-    move_name = get_name_by_ver(ctx, 'move_name')
+    model = 'account.invoice'
+    move_name = get_name_by_ver(ctx, model, 'move_name')
     period_ids = searchL8(ctx, 'account.period',
                           [('company_id', '=', company_id),
                            ('date_start', '>=', ctx['date_start']),
                            ('date_stop', '<=', ctx['date_stop'])])
-    model = 'account.invoice'
     account_invoice_ids = searchL8(ctx, model,
                                    [('company_id', '=', company_id),
                                     ('period_id', 'in', period_ids),
@@ -4519,14 +4524,17 @@ def parse_fields(ctx, o_model, row, ids, cur_obj):
     update_header_id = True
     vals = {}
     for n in row:
-        if n in ctx.get('TRANSDICT'):
-            nm = ctx['TRANSDICT'][n] or n
+        nm = get_name_by_ver(ctx, o_model['model'], n)
+        if not nm:
+            continue
+        if nm in ctx.get('TRANSDICT'):
+            nm = ctx['TRANSDICT'][nm] or nm
         else:
-            nm = n.split('/')[0].split(':')[0]
-        if nm in ('id',
-                  'db_type',
-                  'oe_versions',
-                  o_model['alias_field']):
+            nm = nm.split('/')[0].split(':')[0]
+        if not nm or nm in ('id',
+                            'db_type',
+                            'oe_versions',
+                            o_model['alias_field']):
             continue
         if isinstance(row[n], basestring):
             if nm == o_model['alias_field']:
