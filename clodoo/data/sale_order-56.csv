@@ -1,0 +1,3 @@
+id,name,partner_id:id,company_id:id,currency_id:id
+sale.sale_order_Z0_1,SO13,base.res_partner_2,base.mycompany,base.EUR
+sale.sale_order_Z0_2,SO14,base.res_partner_3,base.mycompany",base.EUR

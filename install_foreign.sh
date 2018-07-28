@@ -7,6 +7,7 @@ RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man odoo.lish python.lish"
 SRCPATH=
 DSTPATH=
+[ ! -d ~/dev -a -d ~/tools -a "x$1" == "x-p" ] && mkdir -p ~/dev
 [ -d ~/tools ] && SRCPATH=~/tools
 [ -d ~/dev ] && DSTPATH=~/dev
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
