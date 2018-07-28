@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-06-03
+# Last update: 2018-07-28
 #
 # ---------------------------------------------------------------------
 #
@@ -262,7 +262,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
          unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
          python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
-         python-mako,python-psycopg2
+         python-mako,python-psycopg2,curl
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
                  .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
                  *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\

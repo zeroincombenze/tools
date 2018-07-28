@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.14"
+__version__ = "0.3.7.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -256,7 +256,8 @@ def get_name_by_ver(ctx, model, name):
             if majver < 10:
                 return 'action_cancel_draft'
     elif model == 'res.partner':
-        if name == 'zip':
+        if name in ('zip', 'image', 'country_id', 'fax', 'street',
+                    'state_id', 'is_company', 'street2', 'type'):
             if majver == 6:
                 return ''
     return name
