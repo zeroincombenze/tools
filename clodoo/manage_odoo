@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.15
+__version__=0.3.7.16
 
 
 explore() {
@@ -159,9 +159,9 @@ do_action() {
                   x=$(eval $LISA version -q $f -d0)
                   echo "$x but expected $op$reqver"
                 else
-                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts --ignore-requires-python"
-                  [ $pass -eq 2 ] && cmd="$cmd --no-deps"
-                  [ $EUID -ne 0 ] && cmd="$cmd --user"
+                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts"
+                  [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
+                  [ $EUID -ne 0 -a $pass -eq 1 ] && cmd="$cmd --user"
                   echo "Update '$pkg' version '$curver' with version '$reqver'"
                   if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
                     echo "> $cmd"
