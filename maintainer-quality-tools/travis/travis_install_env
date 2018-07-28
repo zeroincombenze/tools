@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.51
+__version__=0.2.1.60
 
 
 run_n_echo() {
@@ -188,8 +188,8 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
-  install_foreign.sh -p
-  if [ -d $HOME/dev]; then
+  $HOME/tools/install_foreign.sh -p
+  if [ -d $HOME/dev ]; then
     run_n_echo "export PATH=$HOME/dev:$PATH"
     if [ -n "$PYTHONPATH" ]; then
       run_n_echo "export PYTHONPATH=$HOME/dev:$PYTHONPATH"
@@ -241,6 +241,7 @@ if [ $opt_verbose -gt 0 ]; then
 fi
 if [[ "$TRAVIS" == "true" ]]; then
   run_n_echo "$PIP install -q pip --upgrade"
+  run_n_echo "$PIP install urllib3[secure] --upgrade"
   for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
