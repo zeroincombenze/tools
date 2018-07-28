@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.16"
+__version__ = "0.3.7.17"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

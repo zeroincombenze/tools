@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.16
+__version__=0.3.7.17
 
 
 explore() {
@@ -129,7 +129,7 @@ do_action() {
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
             echo "Check for $f"
           elif [ "$f" == "$pkg" ]; then
-            eval $LISA status -q $pkg -d0
+            eval $LISA status -q $pkg -d0 &>/dev/null
             [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
           fi
         done
@@ -149,7 +149,7 @@ do_action() {
             if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
               sts=1
             elif [ $pass -eq 1 ]; then
-              eval $LISA status -q $pkg -d0
+              eval $LISA status -q $pkg -d0 &>/dev/null
               sts=$?
             fi
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then

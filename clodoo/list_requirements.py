@@ -10,7 +10,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.16'
+__version__ = '0.3.7.17'
 
 #
 # known incompantibilities:
@@ -106,6 +106,7 @@ ALIAS = {
     'pyyaml': 'PyYAML',
     'requests': 'requests[security]',
     'qunitsuite': 'QUnitSuite',
+    'serial': 'pyserial',
     'stdnum': 'python-stdnum',
     'usb': 'pyusb',
     'werkzeug': 'Werkzeug',

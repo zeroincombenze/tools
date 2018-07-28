@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.61
+__version__=0.2.1.62
 
 
 run_n_echo() {
@@ -188,7 +188,7 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
-  $HOME/tools/install_foreign.sh -p
+  $HOME/tools/install_foreign.sh -qp
   if [ -d $HOME/dev ]; then
     run_n_echo "export PATH=$HOME/dev:$PATH"
     if [ -n "$PYTHONPATH" ]; then
