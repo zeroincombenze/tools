@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.63
+__version__=0.2.1.64
 
 
 run_n_echo() {
@@ -358,7 +358,7 @@ else
     else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
-    dopts="-O$dependencies_dir"
+    dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
