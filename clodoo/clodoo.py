@@ -172,7 +172,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.17"
+__version__ = "0.3.7.18"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1464,10 +1464,10 @@ def act_uninstall_modules(ctx):
             else:
                 msg = "Module {0} already uninstalled!".format(m)
                 msg_log(ctx, ctx['level'] + 1, msg)
-            ids = ctx['odoo_session'].search(model,
-                                             [('name', '=', m),
-                                              ('state', '==', 'uninstalled')],
-                                             context=context)
+                ids = searchL8(ctx, model,
+                               [('name', '=', m),
+                                ('state', '=', 'uninstalled')],
+                               context=context)
             if len(ids):
                 unlinkL8(ctx, model, ids)
         else:
