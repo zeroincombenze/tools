@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.35
+#__version__=0.2.1.36
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -397,6 +397,7 @@ custom_env() {
 emulate_git_clone_OCB() {
 # emulate_git_clone_OCB(src tgt)
     local d f
+    # cat ~/8.0/.gitmodules|grep "^[[:space:]]*path[[:space:]]*="|awk -F= '{print $2}'|tr -d " "
     run_traced "mkdir -p $2/"
     valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
     for d in $1/*; do

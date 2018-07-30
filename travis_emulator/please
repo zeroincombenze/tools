@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.35
+__version__=0.2.1.36
 
 
 #
@@ -1793,7 +1793,7 @@ do_distribution() {
       # echo ">   if [ $x == '.' ]; then #f=$f" #debug
       if [ "$x" == "." ]; then
         if [ ${test_mode:-0} -eq 0 -a ! -f LICENSE ]; then
-          if [ $ver0 -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+          if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
             run_traced "cp ~/lgpl.txt LICENSE"
           else
             run_traced "cp ~/agpl.txt LICENSE"
