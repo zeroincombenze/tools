@@ -24,12 +24,12 @@ from clodoo import clodoo
 from clodoo.clodoolib import crypt
 
 
-__version__ = "0.3.7.18"
+__version__ = "0.3.7.19"
 
 
 MODULE_ID = 'clodoo'
-VERSIONS_TO_TEST = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0')
-# VERSIONS_TO_TEST = ('10.0',)
+VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+# VERSIONS_TO_TEST = ('8.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -48,6 +48,7 @@ class Test():
         self.module_2_test = 'crm'
         self.login_2_test = 'administrator'
         self.new_password = 'newpwd'
+        self.new_partner = 'Test Company A'
         codefile = """[options]
 actions=unit_test
 """
@@ -107,12 +108,17 @@ oe_version=%s
         else:
             return False
 
-    def check_4_partner(self, oe_version, id=None, name=False):
+    def check_4_partner(self, oe_version, id=None, name=False, byname=False):
         user = self.param_by_db(oe_version, field='user')
         dbname = self.param_by_db(oe_version, field='dbname')
         id = id or 1
-        sql = "select name from res_partner" + \
-              " where id=%d;" % id
+        name = name or 'admin'
+        if name and byname:
+            sql = "select name from res_partner" + \
+                  " where name='%s';" % name
+        else:
+            sql = "select name from res_partner" + \
+                  " where id=%d;" % id
         cmd = 'psql -t -U%s %s -c"%s"' % (user, dbname, sql)
         p = Popen(cmd,
                   stdin=PIPE,
@@ -384,8 +390,6 @@ base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,base.partner_
                     res)
         return sts
 
-
-
     def test_06(self, z0ctx):
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
@@ -421,7 +425,65 @@ crypt_password=%s
                     res)
         return sts
 
-
+    def test_07(self, z0ctx):
+        sts = TEST_SUCCESS
+        confn = '%s/test_clodoo.conf' % self.Z.test_dir
+        datafn = 'res_partner.csv'
+        dataffn = '%s/%s' % (self.Z.test_dir, datafn)
+        if os.environ.get("HOSTNAME", "") == "shsdef16":
+            for oe_version in VERSIONS_TO_TEST:
+                if not ctx['dry_run']:
+                    res = self.check_4_partner(oe_version,
+                                               name=self.new_partner,
+                                               byname=True)
+                else:
+                    res = False
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Partner -b%s" % (oe_version),
+                    False,
+                    res)
+                if not ctx['dry_run']:
+                    codefile = """[options]
+login_user=admin2
+crypt_password=%s
+actions=import_file
+filename=%s
+model=res.partner
+hide_cid=True
+""" % (crypt(self.new_password), datafn)
+                    fd = open(confn, 'w')
+                    fd.write(codefile)
+                    fd.close()
+                    cmd = self.bulk_cmd(oe_version)
+                    cmd = cmd + ['-c%s' % confn]
+                    if oe_version == '6.1':
+                        datafile = """id,name
+base.partner_A,%s
+""" % self.new_partner
+                    else:
+                        datafile = """id,name
+base.partner_A,%s
+""" % self.new_partner
+                    fd = open(dataffn, 'w')
+                    fd.write(datafile)
+                    fd.close()
+                    p = Popen(cmd,
+                              stdin=PIPE,
+                              stdout=PIPE,
+                              stderr=PIPE)
+                    res, err = p.communicate()
+                    res = self.check_4_partner(oe_version,
+                                               name=self.new_partner,
+                                               byname=True)
+                else:
+                    res = True
+                sts = self.Z.test_result(
+                    z0ctx,
+                    "Import partner -b%s" % (oe_version),
+                    True,
+                    res)
+        return sts
 
     def test_09(self, z0ctx):
         sts = TEST_SUCCESS

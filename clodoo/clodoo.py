@@ -11,29 +11,36 @@
 Massive operations on Zeroincombenze(R) / Odoo databases
 ========================================================
 
-Clodoo is a tool can do some massive operation on 1 or more Odoo database to:
+Clodoo is a tool can do massive operation on 1 or more Odoo database base on
+different Odoo versions. Main operation are:
 
 - create consistent database to run tests
-- repeat consistent action on many databases
+- repeat consistent action on many db with same or different Odoo version
 - repeat above actions on every new database
 
-It is called by bash console, there is no funcion on web/GUI interface.
+It is called by bash console, there is no funcional web/GUI interface.
 
-It requires OERPLIB.
+It requires OERPLIB and ODOORPC.
 
 Tool syntax:
 
-    $ clodoo.py [-h] [-A actions] [-c file] [-d regex] [-n] [-p dir]
-                [-P password] [-q] [-r port] [-U username] [-v] [-V]
+    $ usage: clodoo.py [-h] [-A actions] [-b version] [-c file] [-d regex] [-D]
+                 [-l iso_lang] [-n] [-p dir] [-P password] [-q] [-r port]
+                 [-U username] [-u list] [-v] [-V] [-x]
 
-    where:
+    optional arguments:
       -h, --help            show this help message and exit
       -A actions, --action-to-do actions
                             action to do (use list_actions to dir)
+      -b version, --odoo-branch version
+                            talk server Odoo version
       -c file, --config file
                             configuration command file
       -d regex, --dbfilter regex
                             DB filter
+      -D, --with-demo       create db with demo data
+      -l iso_lang, --lang iso_lang
+                            user language
       -n, --dry-run         test execution mode
       -p dir, --data-path dir
                             Import file path
@@ -44,52 +51,19 @@ Tool syntax:
                             xmlrpc port
       -U username, --user username
                             login username
+      -u list, --upgrade-modules list
+                            Module list to upgrade
       -v, --verbose         run with debugging output
       -V, --version         show program's version number and exit
+      -x, --exit-on-error   exit on error
 
-Action may be one of:
-
-- check_balance
-- check_config
-- check_partners
-- check_taxes
-- drop_db
-- echo_company
-- echo_db
-- echo_user
-- import_config_file
-- import_file
-- install_chart_of_account
-- install_language
-- install_modules
-- list_actions
-- list_companies
-- list_db
-- list_users
-- new_db
-- per_company
-- per_db
-- per_user
-- run_unit_tests
-- set_4_cscs
-- set_periods
-- show_company_params
-- show_db_params
-- show_params
-- show_user_params
-- uninstall_modules
-- unit_test
-- update_modules
-- upgrade_modules
-- wep_company
-- wep_db
 
 
 Import_file
 -----------
 
-Import file load data from a csv file into DB. This action work as standard
-Odoo import with some enhanced features.
+Import file loads data from a csv file into DB. This action works as standard
+Odoo but has some enhanced features.
 Field value may be:
 - external identifier, format module.name (as Odoo standard)
   i.e. 'base.main_company'
@@ -100,14 +74,19 @@ Field value may be:
   i.e. '${res.company:your company}'
   data is searched by name
 - text with DB extraction, format ${model::values} (with company, no Odoo std)
-  i.e. '${res.partner:Odoo SA}'
+  i.e. '${res.partner::Odoo SA}'
   data is searched by name, company from ctx['company_id']
 - text with DB extraction, format ${model(params):values} (w/o company)
   i.e. '${res.company(zip):1010}'
   data is searched by param(s)
 - text with function, format ${function(params)::values} (add company)
-  i.e. '${res.partner(zip):1010}'
+  i.e. '${res.partner(zip)::1010}'
   data is searched by param(s), company from ctx['company_id']
+- full text function, format ${function[field](params):values} (w/o company)
+  full text function, format ${function[field](params)::values} (add company)
+  i.e. '${res.partner[name](zip)::1010}'
+  data is searched as in above function;
+  returned value is not id but `field`
 - crypted data, begins with $1$!
   i.e '$1$!abc'
 - expression, begin with = (deprecated)
@@ -118,31 +97,37 @@ Field value may be:
 
 Predefines macros (in ctx):
 company_id     default company_id
-def_email      deafult mail format: {username}{majvesion}@example.com
+def_email      default mail; format: {username}{majversion}@example.com
 header_id      id of header when import header/details files
 lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
 zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
 zeroadm_login  default admin username from conf file
 oneadm_mail    default user2 mail from conf file or <def_mail> if -D switch
 oneadm_login   default admin2 username from conf file
-botadm_mail    default bot mail from conf file or <def_mail> if -D switch
+botadm_mail    default bot user mail from conf file or <def_mail> if -D switch
 botadm_login   default bot username from conf file
 _today         date.today()
 _current_year  date.today().year
 _last_year'    date.today().year - 1
 TRANSDICT      dictionary with field translation, format csv_name: field_name;
                i.e {'partner_name': 'name'}
+TRX_VALUE      dictionary with value translation for field;
+               format is field_name: {csv_value: field_value}
+               i.e. {'country': {'Inghilterra': 'Regno Unito'}}
+// DEFAULT        dictionary with default value for field,
+               format is field_name: {test,value_true,value_false}
 
-Import search for existing data (this behavior is different from Odoo standard)
+
+Import searches for existing data (this behavior differs from Odoo standard)
 Search is based on <o_model> dictionary;
-default field to search is 'name' or 'id' if passed.
+default field to search is 'name' or 'id', if passed.
 
 File csv can contain some special fields:
 db_type: select record if DB name matches db type; values are
     'D' for demo,
     'T' for test,
     'Z' for zeroincombenze production,
-    'V' for VG/ customers
+    'V' for VG7 customers
     'C' other customers
 oe_versions: select record if matches Odoo version
     i.e  +11.0+10.0 => select recod if Odoo 11.0 or 10.0
@@ -172,7 +157,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.18"
+__version__ = "0.3.7.19"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -2259,7 +2244,7 @@ def act_upgrade_l10n_it_base(ctx):
                 l10n_it_bb_state = module_obj.state
             writeL8(ctx, model, [id], {'state': 'uninstalled'})
     if l10n_it_bb_state == 'installed' and l10n_it_base_state == 'installed':
-        sts = cvt_ur_ui_view('l10n_it_bbone',
+        sts = cvt_ir_ui_view('l10n_it_bbone',
                              'l10n_it_base',
                              'res.city',
                              ctx)
@@ -3069,7 +3054,7 @@ def upd_acc_2_bank(accounts, ctx):
     return STS_SUCCESS
 
 
-def cvt_ur_ui_view(old_module, new_module, model_name, ctx):
+def cvt_ir_ui_view(old_module, new_module, model_name, ctx):
     model = 'ir.ui.view'
     # name = old_module + '.%'
     id1 = searchL8(ctx, model, [('xml_id', '=like', old_module),
@@ -4543,10 +4528,15 @@ def parse_fields(ctx, o_model, row, ids, cur_obj):
             if row[n].find('${header_id}') >= 0:
                 update_header_id = False
             row[n] = row[n].replace('\\n', '\n')
+        # if nm in ctx.get('TRX_VALUE') and row[n] in ctx['TRX_VALUE'][nm]:
+        #     row[n] = ctx['TRX_VALUE'][nm][row[n]]
         val = eval_value(ctx,
                          o_model,
                          nm,
                          row[n])
+        # if val is None:
+        #     if nm in ctx.get('DEFAULT'):
+        #         pass
         if val is not None:
             if (nm != 'fiscalcode' or val != '') and \
                     (len(ids) == 0 or tounicode(val) != cur_obj[nm]):
