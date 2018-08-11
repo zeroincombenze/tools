@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-07-28
+# Last update: 2018-08-11
 #
 # ---------------------------------------------------------------------
 #
@@ -370,8 +370,8 @@ REAL_libfreetype6-dev=freetype-devel
 REAL_openid=python-openid
 REAL_expect-dev=expect-devel
 RHEL_libpq-dev=postgresql-devel
-REAL_python3=python34
-REAL_python3-dev=python34-devel
+REAL_python3=python${PY3ID}
+REAL_python3-dev=python${PY3ID}-devel
 
 redis_svcname=redis
 # Standard packages

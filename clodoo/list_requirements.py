@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from subprocess import PIPE, Popen
 # import pdb
 # pdb.set_trace()
 import ast
@@ -10,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.18'
+__version__ = '0.3.7.19'
 
 #
 # known incompantibilities:
@@ -188,6 +189,18 @@ BIN_BASE_PACKAGES = ['curl',
 BIN_PACKAGES = ['git',
                 'cups',
                 ]
+cmd=['python3', '--version']
+try:
+    p = Popen(cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    res, err = p.communicate()
+    i = res.find('3.')
+    if i >= 0:
+        PY3ID = res[i] + res[i+2]
+    else:
+        PY3ID="3"
+except:
+    PY3ID="3"
+PY3_DEV = 'python%s-dev' % PY3ID
 
 
 def parse_requirements(reqfile):
@@ -262,7 +275,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                         odoo_ver=odoo_ver)
             elif item == 'lxml':
                 if odoo_ver in ('11.0', '12.0'):
-                    for itm in ('python34-dev', 'libxml2-dev',
+                    for itm in (PY3_DEV, 'libxml2-dev',
                                 'libxslt1-dev', 'zlib1g-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
@@ -275,7 +288,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                                 odoo_ver=odoo_ver)
             elif item in ('lxml', 'python-psycopg2'):
                 if odoo_ver in ('11.0', '12.0'):
-                    for itm in ('python34-dev', 'libpq-dev'):
+                    for itm in (PY3_DEV, 'libpq-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver)
