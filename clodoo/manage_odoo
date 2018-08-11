@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.19
+__version__=0.3.7.20
 
 
 explore() {
@@ -173,6 +173,7 @@ do_action() {
             fi
           done
         done
+        echo "## Analyzing npm packages"
         x=$(npm list|grep " less@")
         [ -z "$x" ] && x=$(npm list -g|grep " less@")
         if [ "$TRAVIS" == "true" -o -z "$x" ]; then
