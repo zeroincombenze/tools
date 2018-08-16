@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.64
+__version__=0.2.1.65
 
 
 run_n_echo() {
@@ -188,15 +188,6 @@ if [ "${HOSTNAME:0:3}" == "shs" ]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
-  $HOME/tools/install_foreign.sh -qp
-  if [ -d $HOME/dev ]; then
-    run_n_echo "export PATH=$HOME/dev:$PATH"
-    if [ -n "$PYTHONPATH" ]; then
-      run_n_echo "export PYTHONPATH=$HOME/dev:$PYTHONPATH"
-    else
-      run_n_echo "export PYTHONPATH=$HOME/dev"
-    fi
-  fi
 fi
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
@@ -241,15 +232,13 @@ if [ $opt_verbose -gt 0 ]; then
 fi
 if [[ "$TRAVIS" == "true" ]]; then
   run_n_echo "$PIP install -q pip --upgrade"
-  run_n_echo "$PIP install urllib3[secure] --upgrade"
-  run_n_echo "$PIP install cryptography --upgrade"
-  for p in os0 z0lib configparser; do
+  for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
       run_n_echo "$PIP install $p $PIP_OPTS"
     fi
   done
-  # workaround when running in TravisCI
+  # workaround for TravisCI
   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
 fi
@@ -266,38 +255,6 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
 elif [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" == "oca" ]; then
   run_n_echo "$TDIR/travis_install_nightly"
 else
-  if [ "${LINT_CHECK:-1}" != "0" ]; then
-    run_n_echo "npm install eslint"
-  fi
-  if [ "${TESTS}" == "1" ]; then
-    x=$(which nodejs 2>/dev/null)
-    [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-    run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
-    run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
-    run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
-  fi
-  # TODO: code to test
-  if [ "${WEBSITE_REPO}" == "1" ]; then
-    if [ -f ~/.rvm/scripts/rvm ]; then
-        echo "\$ source ~/.rvm/scripts/rvm"
-        source ~/.rvm/scripts/rvm
-    else
-        echo "\$ source /usr/local/rvm/scripts/rvm"
-        source /usr/local/rvm/scripts/rvm
-    fi
-    run_n_echo "rvm install ruby --latest"
-    run_n_echo "rvm use ruby --latest"
-    # Uninstall current versions to be sure that
-    # the correct version will be installed
-    run_n_echo "gem uninstall -aIx bootstrap-sass compass sass"
-    run_n_echo "gem install compass bootstrap-sass"
-  fi
-  # TODO: code to test
-  # Update PhantomJS (v10 compat)
-  if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
-    run_n_echo "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-    run_n_echo "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
-  fi
   [ -z "${VERSION}" ] && VERSION="$opt_branch"
   [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
   : ${MQT_TEMPLATE_DB:="openerp_template"}
@@ -309,6 +266,16 @@ else
   export BRANCH="${ODOO_BRANCH}"
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
+  if [ "${LINT_CHECK:-1}" != "0" ]; then
+    run_n_echo "npm install eslint"
+  fi
+  if [ "${TESTS}" == "1" ]; then
+    x=$(which nodejs 2>/dev/null)
+    [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+    run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+    run_n_echo "npm install less less-plugin-clean-css"
+    run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+  fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
       echo -e "- Tested repository is OCB"
@@ -358,7 +325,7 @@ else
     else
       dependencies_dir=${ODOO_PATH},${HOME}/dependencies
     fi
-    dopts="-d$dependencies_dir"
+    dopts="-O$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi

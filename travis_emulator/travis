@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.36
+__version__=0.2.1.37
 
 
 store_cfg_param_value() {
@@ -468,6 +468,15 @@ process_yaml_before_install() {
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_packages; do
         if [ "$FH" == "RHEL" ]; then
+          if [[ "$lne" == "python-dev" ]]; then
+            lne="python-devel"
+          elif [[ "$lne" == "libxml2-dev" ]]; then
+            lne="libxml2-devel"
+          elif [[ "$lne" == "libxslt1-dev" ]]; then
+            lne="libxslt-devel"
+          elif [[ "$lne" == "zlib1g-dev" ]]; then
+            lne="zlib-devel"
+          fi
           line="yum install $lne"
         else
           line="apt-get install $lne"

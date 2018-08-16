@@ -145,37 +145,38 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 
 Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
 -----|---------|---------|---------|--------|-----|------
-E123 | :x:     |         |         |        | :x: | [Closing bracket does not match indentation of opening bracket's line](https://lintlyci.github.io/Flake8Rules/rules/E123.html)
-E124 | :x:     |         |         |        | :x: | [Closing bracket does not match visual indentation](https://lintlyci.github.io/Flake8Rules/rules/E124.html)
-E126 | :x:     |         |         |        | :x: | [Continuation line over-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E126.html)
-E128 | :x:     |         |         |        | :white_check_mark: | [Continuation line under-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E128.html)
-E133 | :x:     |         |         |        | :x: | [Closing bracket is missing indentation](https://lintlyci.github.io/Flake8Rules/rules/E133.html)
-E201 | :x:     |         |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
-E202 | :x:     |         |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
-E203 | :x:     |         |         |        | :white_check_mark: | [Whitespace before ':'](https://lintlyci.github.io/Flake8Rules/rules/E203.html)
-E221 | :x:     |         |         |        | :white_check_mark: | [Multiple spaces before operator](https://lintlyci.github.io/Flake8Rules/rules/E221.html)
-E222 | :x:     |         |         |        | :white_check_mark: |
-E225 | :x:     |         |         |        | :white_check_mark: |
-E226 | :x:     |         |         |        | :x: |
-E231 | :x:     |         |         |        | :white_check_mark: |
-E241 | :x:     |         |         |        | :x: |
-E242 | :x:     |         |         |        | :x: |
-E251 | :x:     |         |         |        | :white_check_mark: |
-E261 | :x:     |         |         |        | :white_check_mark: |
-E262 | :x:     |         |         |        | :white_check_mark: |
-E265 | :x:     |         |         |        | :white_check_mark: |
-E266 | :x:     |         |         |        | :white_check_mark: | [too many leading '#' for block comment](https://lintlyci.github.io/Flake8Rules/rules/E266.html)
-W291 | :x:     |         |         |        | :white_check_mark: |
-W293 | :x:     |         |         |        | :white_check_mark: |
-E302 | :x:     |         |         |        | :white_check_mark: | No __init__.py
-E303 | :x:     |         |         |        | :white_check_mark: |
-E305 | :x:     |         |         |        | :white_check_mark: |
-F401 | :x:     |         |         |        | :white_check_mark: | module imported but unused
-E501 | :x:     |         |         |        | :white_check_mark: |
-W503 | :x:     |         |         |        | :x: | No __init__.py
-W504 | :x:     |         |         |        | :x: | No __init__.py
-F601 | :x:     |         |         |        | :x: | dictionary key name repeated with different values
-F811 | :x:     |         |         |        | :x: | redefinition of unused name from line N (No __init__.py)
+E123 | :x:     | :x:     |         |        | :x: | [Closing bracket does not match indentation of opening bracket's line](https://lintlyci.github.io/Flake8Rules/rules/E123.html)
+E124 | :x:     | :x:     |         |        | :white_check_mark: | [Closing bracket does not match visual indentation](https://lintlyci.github.io/Flake8Rules/rules/E124.html)
+E126 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line over-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E126.html)
+E128 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line under-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E128.html)
+E133 | :x:     | :x:     |         |        | :x: | [Closing bracket is missing indentation](https://lintlyci.github.io/Flake8Rules/rules/E133.html)
+E201 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
+E202 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
+E203 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace before ':'](https://lintlyci.github.io/Flake8Rules/rules/E203.html)
+E221 | :x:     | :x:     |         |        | :white_check_mark: | [Multiple spaces before operator](https://lintlyci.github.io/Flake8Rules/rules/E221.html)
+E222 | :x:     | :x:     |         |        | :white_check_mark: |
+E225 | :x:     | :x:     |         |        | :white_check_mark: |
+E226 | :x:     | :x:     |         |        | :x: |
+E231 | :x:     | :x:     |         |        | :white_check_mark: |
+E241 | :x:     | :x:     |         |        | :x: |
+E242 | :x:     | :x:     |         |        | :x: |
+E251 | :x:     | :x:     |         |        | :white_check_mark: |
+E261 | :x:     | :x:     |         |        | :white_check_mark: |
+E262 | :x:     | :x:     |         |        | :white_check_mark: |
+E265 | :x:     | :x:     |         |        | :white_check_mark: |
+E266 | :x:     | :x:     |         |        | :white_check_mark: | [too many leading '#' for block comment](https://lintlyci.github.io/Flake8Rules/rules/E266.html)
+W291 | :x:     | :x:     |         |        | :white_check_mark: |
+W293 | :x:     | :x:     |         |        | :white_check_mark: |
+E302 | :x:     | :x:     |         |        | :white_check_mark: | No __init__.py
+E303 | :x:     | :x:     |         |        | :white_check_mark: |
+E305 | :x:     | :x:     |         |        | :white_check_mark: |
+F401 | :x:     | :x:     |         |        | :x: | module imported but unused
+E501 | :x:     | :x:     |         |        | :white_check_mark: |
+W503 | :x:     | :x:     |         |        | :x: | No __init__.py
+W504 | :x:     | :x:     |         |        | :x: | No __init__.py
+F601 | :x:     | :x:     |         |        | :x: | dictionary key name repeated with different values
+E722 | :x:     | :x:     |         |        | :white_check_mark: | do not use bare except
+F811 | :x:     | :x:     |         |        | :x: | redefinition of unused name from line N (No __init__.py)
 
 
 
