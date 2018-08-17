@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.38
+__version__=0.2.1.39
 
 
 store_cfg_param_value() {
@@ -474,7 +474,9 @@ process_yaml_before_install() {
     if [ $sts -eq $STS_SUCCESS ]; then
       for lne in $YML_packages; do
         if [ "$FH" == "RHEL" ]; then
-          if [[ "$lne" == "python-dev" ]]; then
+          if [[ "$lne" == "build-essential" ]]; then
+            lne="redhat-rpm-config"
+          elif [[ "$lne" == "python-dev" ]]; then
             lne="python-devel"
           elif [[ "$lne" == "libxml2-dev" ]]; then
             lne="libxml2-devel"
@@ -482,6 +484,10 @@ process_yaml_before_install() {
             lne="libxslt-devel"
           elif [[ "$lne" == "zlib1g-dev" ]]; then
             lne="zlib-devel"
+          elif [[ "$lne" == "libffi-dev" ]]; then
+            lne="libffi-devel"
+          elif [[ "$lne" == "libssl-dev" ]]; then
+            lne="openssl-devel"
           fi
           line="yum install $lne"
         else
