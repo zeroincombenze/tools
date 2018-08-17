@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.21'
+__version__ = '0.3.7.22'
 
 #
 # known incompantibilities:
@@ -56,7 +56,6 @@ REQVERSION = {
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
     'pylint': {'7.0': '==1.6.4', '0': '==1.8.4'},        # Version by test pkgs
     'pylint-plugin-utils': {'7.0': '==0.2.4',
-                            '8.0': '==0.3.5.11',
                             '0': '==0.2.4'},             # Version by test pkgs
     'pysftp': {'7.0': '>=0.2.9'},
     'pyparsing': {'7.0': '==2.0.3', '10.0': '==2.1.10'},
@@ -150,7 +149,10 @@ PIP_TEST_PACKAGES = ['astroid',
                      'wrapt',
                      'zerobug',
                      ]
-BIN_TEST_PACKAGES = ['expect-dev',
+BIN_TEST_PACKAGES = ['build-essential',
+                     'expect-dev',
+                     'libffi-dev',
+                     'libssl-dev',
                      'python-dev',
                      'python-setuptools',
                      ]
