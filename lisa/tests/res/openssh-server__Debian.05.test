@@ -1,6 +1,5 @@
 > apt-get -y install openssh-server
 > apt-get -y install openssh-client
-> apt-get -y install telnet
 > service ssh start
 > update-rc.d ssh enable
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT

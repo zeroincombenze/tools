@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.20
+__version__=0.3.7.21
 
 
 OPTOPTS=(h        d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)

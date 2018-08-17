@@ -316,6 +316,8 @@ PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
 openssh-client_cmdname=ssh
 openssh-server_svcname=ssh
+pyldap_ReqPkgList=python-dev,openldap-devel
+psutil_ReqPkgList=python-dev
 
 
 [_Debian_DEV_]
@@ -389,6 +391,8 @@ PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml
 openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
 openssh-clients_cmdname=ssh
 openssh-server_svcname=sshd
+pyldap_ReqPkgList=python-devel,openldap-devel
+psutil_ReqPkgList=python-devel
 
 
 [_RHEL_DEV_]

@@ -239,27 +239,27 @@ EOF
 EOF
       cat <<EOF >$TESTDIR/res/pip__CentOS7.05.test
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/pip__CentOS6.05.test
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/pip__Debian.05.test
 > apt-get -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__CentOS7.05.test
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__CentOS6.05.test
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/python-pip__Debian.05.test
 > apt-get -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/openssh-server__Debian.05.test
 > apt-get -y install openssh-server
@@ -327,30 +327,26 @@ EOF
 > rm -f wkhtmltox-0.12.1_linux-centos6-i386.rpm
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
-> pip install python-dateutil
+> pip install 'python-dateutil' --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__CentOS6.05.test
-> yum -y install wget
-> cd /tmp
-> wget https://pypi.python.org/packages/source/p/python-dateutil//python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5
-> pip install python-dateutil-1.5.tar.gz
-> rm -f python-dateutil-1.5.tar.gz
+> pip install 'python-dateutil' --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__CentOS7.05.test
-> pip install python-dateutil
+> pip install 'python-dateutil' --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__Debian.05.test
-> pip install python-dateutil
+> pip install 'python-dateutil' --no-warn-conflicts
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__CentOS6.05.test
 > yum -y install wget
 > cd /tmp
 > wget https://pypi.python.org/packages/source/p/python-dateutil//python-dateutil-1.5.tar.gz#md5=0dcb1de5e5cad69490a3b6ab63f0cfa5
-> pip install python-dateutil-1.5.tar.gz
+> pip install 'python-dateutil' --no-warn-conflicts-1.5.tar.gz
 > rm -f python-dateutil-1.5.tar.gz
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__CentOS7.05.test
-> pip install python-dateutil
+> pip install 'python-dateutil' --no-warn-conflicts
 EOF
     fi
     Real_FH=$(xuname "-f")

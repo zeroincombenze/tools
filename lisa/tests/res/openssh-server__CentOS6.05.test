@@ -1,6 +1,5 @@
 > yum -y install openssh-server
 > yum -y install openssh-clients
-> yum -y install telnet
 > yum -y install mod_ssl
 > yum -y install mod_proxy_html
 > yum -y install iptables-services

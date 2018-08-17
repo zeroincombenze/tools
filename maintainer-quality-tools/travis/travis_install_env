@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.66
+__version__=0.2.1.67
 
 
 run_n_echo() {
@@ -268,8 +268,8 @@ else
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     if [[ "$TRAVIS" == "true" ]]; then
-      run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
-      run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
+      # run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
+      # run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
       run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS"   # To use last version ever
     fi
     run_n_echo "npm install eslint"
