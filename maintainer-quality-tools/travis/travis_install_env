@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.65
+__version__=0.2.1.66
 
 
 run_n_echo() {
@@ -267,14 +267,24 @@ else
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${LINT_CHECK:-1}" != "0" ]; then
+    if [[ "$TRAVIS" == "true" ]]; then
+      run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
+      run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
+      run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS"   # To use last version ever
+    fi
     run_n_echo "npm install eslint"
   fi
   if [ "${TESTS}" == "1" ]; then
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
-    run_n_echo "npm install less less-plugin-clean-css"
+    run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+    # Update PhantomJS (v10 compat)
+    if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
+      run_n_echo "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
+      run_n_echo "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
+    fi
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     if [[ "$TRAVIS" == "true" ]]; then
@@ -290,7 +300,20 @@ else
       run_n_echo "wget -nv -O odoo.tar.gz $ODOO_URL"
       run_n_echo "tar -xf odoo.tar.gz -C ${HOME}"
     elif [ ! -L ${ODOO_PATH} ]; then
-      run_n_echo "ln -s $TRAVIS_SAVED_HOME/$BRANCH ${ODOO_PATH}"
+      if [[ "$REMOTE" == "oca" ]]; then
+        majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
+        if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+          echo "- Installing Odoo $ODOO_URL"
+          run_n_echo "wget -nv -O $REPO_NAME.tar.gz $ODOO_URL"
+          run_n_echo "tar -xf $REPO_NAME.tar.gz -C $TRAVIS_SAVED_HOME"
+        fi
+        if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+          SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
+        fi
+      else
+        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
+      fi
+      run_n_echo "ln -s $SRCREPOPATH ${ODOO_PATH}"
     fi
   fi
   if [ "${TESTS}" != "1" ]; then

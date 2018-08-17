@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.37
+__version__=0.2.1.38
 
 
 store_cfg_param_value() {
@@ -151,8 +151,14 @@ process_yaml_init() {
     YML_before_script=
     YML_script=
     YML_after=
-    YML_repo=
     YML_pid=$$
+    if [[ "$REMOTEREPO" == "oca" ]]; then
+      YML_repo=OCA/OCB
+    elif [[ "$REMOTEREPO" == "odoo" ]]; then
+      YML_repo=odoo/odoo
+    else
+      YML_repo=
+    fi
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
     export TRAVIS_PYTHON_VERSION=2.7
