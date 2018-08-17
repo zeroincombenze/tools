@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.68
+__version__=0.2.1.69
 
 
 run_n_echo() {
@@ -294,6 +294,19 @@ else
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
     run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+    if [ "${WEBSITE_REPO}" == "1" ]; then
+        if [ -f ~/.rvm/scripts/rvm ]; then
+            source ~/.rvm/scripts/rvm
+        else
+            source /usr/local/rvm/scripts/rvm
+        fi
+        run_n_echo "rvm install ruby --latest"
+        run_n_echo "rvm use ruby --latest"
+        # Uninstall current versions to be sure that
+        # the correct version will be installed
+        run_n_echo "gem uninstall -aIx bootstrap-sass compass sass"
+        run_n_echo "gem install compass bootstrap-sass"
+    fi
     # Update PhantomJS (v10 compat)
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
       run_n_echo "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
