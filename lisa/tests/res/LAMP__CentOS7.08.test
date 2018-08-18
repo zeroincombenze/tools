@@ -1,24 +1,25 @@
 > yum install gcc
 > yum install epel-release
 > yum install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
 > yum -y install gcc
 > yum -y install epel-release
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade
 > yum -y install iptables
 > systemctl start iptables
 > systemctl enable iptables
 > yum -y install python-wheel
-> pip install wheel --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 > yum -y install yum-utils
 > yum -y install libffi-devel
-> pip install pyOpenSSL
-> pip install pyasn1
-> pip install ndg-httpsclient
+> yum -y install openssl
+> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts
+> pip install 'pyasn1' --no-warn-conflicts
+> pip install 'ndg-httpsclient' --no-warn-conflicts
 # yum -y install openssh-server
 # systemctl start sshd
 > systemctl enable sshd
@@ -37,7 +38,7 @@
 # yum -y install php
 > yum -y install epel-release
 > yum -y install python-pip
-> pip install pip --upgrade
+> pip install 'pip' --upgrade
 > yum -y install python-wheel
-> pip install wheel --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 # yum -y install python

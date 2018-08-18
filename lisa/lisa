@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.3
+__version__=0.3.0.4
 
 
 STS_FAILED=1
@@ -1015,6 +1015,7 @@ get_pkg_ver() {
         if [ "$(type -t $cmd)" == "function" ]; then
           pkgversion=$($cmd $1 $2$ij "$3" "$4")
         fi
+        [ -z "pkgversion" ] && pkgversion="# $pkgname N/A"
       fi
     fi
     [[ $2 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $pkgversion=get_pkg_ver($1 $2)">>~/$THIS.his
@@ -1107,9 +1108,12 @@ get_full_xtlcmd() {
       xtlcmd="$xtlcmd ${1/update/upgrade} $pkgname"
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
-        xtlcmd="$xtlcmd install '$pkgname$lop$lreqver$rop$rreqver' --upgrade --no-warn-conflicts"
+        xtlcmd="$xtlcmd install '$pkgname$lop$lreqver$rop$rreqver' --upgrade"
       else
-        xtlcmd="$xtlcmd ${1/remove/uninstall} '$pkgname$lop$lreqver$rop$rreqver' --no-warn-conflicts"
+        xtlcmd="$xtlcmd ${1/remove/uninstall} '$pkgname$lop$lreqver$rop$rreqver'"
+      fi
+      if [[ ! "$pkgname" == "pip" ]]; then
+        xtlcmd="$xtlcmd --no-warn-conflicts"
       fi
       if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
         xtlcmd="$xtlcmd --user"
@@ -1928,7 +1932,11 @@ satisfy_request() {
     local sts=127
     local s
     local pkgname=$2
-    local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList list)"
+    if [ $opt_nodeps -ne 0 ]; then
+      local ReqPkgList=""
+    else
+      local ReqPkgList="$(get_prm_value ${pkgname}_ReqPkgList list)"
+    fi
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "    ${pkgname}_ReqPkgList=$ReqPkgList">>~/$THIS.his
     local xtlcmd=$(get_act_xtlcmd $2 install $3 $4 "")
     if [ "$xtlcmd" == "git" -o "$xtlcmd" == "wget" ]; then
@@ -3166,6 +3174,7 @@ do_local_function() {
     fi
     if $(is_virtualname $4); then
       X="_by_NULL"
+      sts=$STS_SUCCESS
     else
       xtlcmd=$(get_act_xtlcmd $4 $act $5 $6 "$7")
       if [ -n "$2" ]; then
@@ -3365,11 +3374,11 @@ please() {
 
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_yes opt_1st)
-OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1       1)
-OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1           0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
+OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
+OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1          0          0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "trace to build configuration"\
  "configuration file (def /etc/lisa/lisa.conf)"\
@@ -3394,9 +3403,10 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "install from the given requirements file"\
  "install odoo submodules"\
  "test mode (implies dry-run)"\
- "use file to install"\
+ "use specific file to install"\
  "show version end exit"\
  "verbose mode"\
+ "do not install dependencies"\
  "assume yes"\
  "1st installation")
 OPTARGS=(action pkg param1 param2 param3)
@@ -3408,7 +3418,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build an Odoo or LAMP server"\
-  "(C) 2015-2017 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
@@ -3600,7 +3610,7 @@ else
       please $act $package $OPTS "$param1" "$param2" "$param3"
       sts=$?
       if [ $sts -eq 127 ]; then
-        echo "Unknow action $act"
+        echo "Unknow action $act $package"
         exit $sts
       elif [ $sts -ne $STS_SUCCESS ]; then
         if [ $opt_verbose -gt 0 ]; then

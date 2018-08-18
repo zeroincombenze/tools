@@ -4,6 +4,7 @@
 > yum -y install mod_proxy_html
 > yum -y install iptables-services
 > yum -y install bind-utils
+> yum -y install telnet
 > systemctl start sshd
 > systemctl enable sshd
 > iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT

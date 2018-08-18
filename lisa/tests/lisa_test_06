@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.3
+__version__=0.3.0.4
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -220,26 +220,26 @@ EOF
 > service postgresql restart
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS6.06.test
-> pip install pip --upgrade
+> pip install 'pip' --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__CentOS7.06.test
-> pip install pip --upgrade
-> pip install wheel --upgrade
+> pip install 'pip' --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 EOF
   cat <<EOF >$TESTDIR/res/python-pip__Debian.06.test
-> pip install pip --upgrade
-> pip install wheel --upgrade
+> pip install 'pip' --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 EOF
   cat <<EOF >$TESTDIR/res/pip__Debian.06.test
-> pip install pip --upgrade
-> pip install wheel --upgrade
+> pip install 'pip' --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS6.06.test
-> pip install pip --upgrade
+> pip install 'pip' --upgrade
 EOF
   cat <<EOF >$TESTDIR/res/pip__CentOS7.06.test
-> pip install pip --upgrade
-> pip install wheel --upgrade
+> pip install 'pip' --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 EOF
   cat <<EOF >$TESTDIR/res/openssh-server__Debian.06.test
 > apt-get -y update
@@ -313,14 +313,14 @@ for Package in . lisa apache2 httpd\
      else
        opt_e="-E$Disto"
      fi
-     test_run "update $Package $opt_e" "$Package" "$Disto" "diff"
+     test_run "update $Package $opt_e" "$Package" "$Disto" "diff -Z"
   done
 done
 
 if [ ${opt_dry_run:-0} -eq 0 ]; then
   cat <<EOF >$TESTDIR/res/python__Debian.06.test
 > apt-get -y install python-wheel
-> pip install wheel --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 > apt-get -y install xorg-x11-fonts-Type1
 > apt-get -y install xorg-x11-fonts-75dpi
 > apt-get -y update
@@ -341,20 +341,20 @@ if [ ${opt_dry_run:-0} -eq 0 ]; then
 EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.06.test
 > yum -y install python-wheel
-> pip install wheel --upgrade
+> pip install 'wheel' --upgrade --no-warn-conflicts
 > yum -y update python
-> pip install setuptools --upgrade
+> pip install 'setuptools' --upgrade --no-warn-conflicts
 > yum -y update python-virtualenv
-> pip install virtualenv --upgrade
+> pip install 'virtualenv' --upgrade --no-warn-conflicts
 > yum -y update readline
-> pip install psycopg2 --upgrade
-> pip install simplejson --upgrade
-> pip install xlwt --upgrade
-> pip install PyYAML --upgrade
-> pip install gdata --upgrade
-> pip install python-ldap --upgrade
-> pip install pytz --upgrade
-> pip install requests --upgrade
+> pip install 'psycopg2' --upgrade --no-warn-conflicts
+> pip install 'simplejson' --upgrade --no-warn-conflicts
+> pip install 'xlwt' --upgrade --no-warn-conflicts
+> pip install 'PyYAML' --upgrade --no-warn-conflicts
+> pip install 'gdata' --upgrade --no-warn-conflicts
+> pip install 'python-ldap' --upgrade --no-warn-conflicts
+> pip install 'pytz' --upgrade --no-warn-conflicts
+> pip install 'requests' --upgrade --no-warn-conflicts
 EOF
 fi
 
@@ -365,7 +365,7 @@ for Package in python; do
      else
        opt_e="-E$Disto"
      fi
-     test_run "update $Package $opt_e" "$Package" "$Disto" "diff"
+     test_run "update $Package $opt_e" "$Package" "$Disto" "diff -Z"
   done
 done
 }
