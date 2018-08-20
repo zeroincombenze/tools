@@ -75,9 +75,9 @@ conf_default() {
     local p x
     set_cfg_def "wkhtmltopdf_ReqPkgList" "xorg-x11-fonts-Type1 xorg-x11-fonts-75dpi" "0"
     # Bill of packages
-    set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
-    set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
-    set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
+    # set_cfg_def "LAMP_security" "libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS7"
+    # set_cfg_def "LAMP_security" "openssl-devel libffi-devel pyOpenSSL pyasn1 ndg-httpsclient" "0" "CentOS6"
+    # set_cfg_def "LAMP_security" "libffi-dev libssl-dev python-openssl build-essential" "0" "Debian"
     p="ghostscript libart-2.0-2 libcupsfilters1"
     p="$p libcupsimage2 libgs9 libgs9-common libijs-0.35 libjbig2dec0"
     p="$p liblcms2-2 libpaper-utils libpaper1 libpoppler44 libtidy-0.99-0 libwebp5"
@@ -267,11 +267,11 @@ set_from_conf_pkg() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "set_from_conf_pkg($1 \"$2\" $3)">>~/$THIS.his
     local pkg pkgname FCONF FCONFDEF SAMPLE sdir
     if [ $test_mode -gt 0 ]; then
-      sdir="$TESTDIR $TDIR"
+      sdir="$TESTDIR $TDIR $TDIR/kbase"
     elif [ -n "$2" ]; then
-      sdir="$TDIR /etc/lisa /etc"
+      sdir="$TDIR $TDIR/kbase /etc/lisa /etc"
     else
-      sdir=". $TDIR /etc/lisa /etc"
+      sdir=". $TDIR $TDIR/kbase /etc/lisa /etc"
     fi
     pkgname=$(get_realname $1)
     if [ -n "$2" ]; then
@@ -1571,6 +1571,8 @@ if [ -f \$SRCDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
   fi
   [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS"
   [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS
+  [ \$opt_verbose -gt 0 ] && echo "\$pfx mkdir -p /etc/$THIS/kbase"
+  [ \$opt_dry_run -gt 0 ] || mkdir -p /etc/$THIS/kbase
   for f in $BINLIST; do
     if [ -f \$SRCDIR/\$f ]; then
       [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /usr/bin"
@@ -1582,7 +1584,7 @@ if [ -f \$SRCDIR/z0librc -o \$opt_dry_run -gt 0 ]; then
   for f in $ETCLIST; do
     if [ -f \$SRCDIR/\$f ]; then
       [ \$opt_verbose -gt 0 ] && echo "\$pfx \$cpmv \$SRCDIR/\$f /etc/$THIS"
-      [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /etc/$THIS
+      [ \$opt_dry_run -gt 0 ] || eval \$cpmv \$SRCDIR/\$f /etc/$THIS/\$f
     fi
   done
   if [ $RQ_Z0LIB -gt 0 ]; then
@@ -1615,11 +1617,11 @@ EOF
 }
 
 create_pkglist() {
-# create_pkglist(pkgname type OPTS)
+# create_pkglist(pkgname type OPTS setup)
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "create_pkglist($1 $2 $3 $4)">>~/$THIS.his
     local pkgname=$1
     local fileignore="$(get_prm_value build_fileignore list)"
-    local x xx PKGLIST Z0LIB OELIB
+    local b f x xx PKGLIST Z0LIB OELIB
     local PKGPATH=$(get_prm_value ${pkgname}_build_PKGPATH)
     [ -z "$PKGPATH" ] && PKGPATH=.
     if [ "$2" == "PkgList" -o "$2" == "binPkgList" -o "$2" == "etcPkgList" ]; then
@@ -1646,6 +1648,7 @@ create_pkglist() {
       PKGLIST=
     elif [ -z "$PKGLIST" -a "$2" == "PkgList" ]; then
       pushd $PKGPATH > /dev/null
+      fileignore="$fileignore tests/ *.log .coveragerc ${pkgname}_doc.txt $4"
       xx="$(get_prm_value ${pkgname}_build_fileignore list)"
       fileignore="$fileignore z0librc odoorc $xx"
       xx="$(get_prm_value ${pkgname}_binPkgList $package)"
@@ -1657,9 +1660,11 @@ create_pkglist() {
         if [ "${f: -1}" == "/" ]; then
           x="$x -not -path '*/$f*'"
         else
-          x="$x -not -name '*$f'"
+          b=$(basename $f)
+          x="$x -not -name '*$b'"
         fi
       done
+      [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " ">>> $x">>~/$THIS.his
       eval $x >./tmp.log
       PKGLIST="$(cat ./tmp.log|tr '\n' ' ')"
       rm -f ./tmp.log
@@ -1670,9 +1675,9 @@ create_pkglist() {
 }
 
 add_file_2_pkg() {
-#add_file_2_pkg(pkgname type OPTS)
+#add_file_2_pkg(pkgname type OPTS setup)
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "add_file_2_pkg($1 $2 $3 $4)">>~/$THIS.his
-    local PKGLIST=$(create_pkglist "$1" "$2" "$3")
+    local PKGLIST=$(create_pkglist "$1" "$2" "$3" "$4")
     local PKGPATH=$(get_prm_value ${pkgname}_build_PKGPATH)
     [ -z "$PKGPATH" ] && PKGPATH=.
     local LocalTmp=/tmp/$package
@@ -1691,15 +1696,15 @@ add_file_2_pkg() {
     if [ $s -eq 0 ]; then
       for f in $PKGLIST; do
         if [ -f $f ]; then
-          run_traced "cp $f $LocalTmp"
+          run_traced "cp --parent $f $LocalTmp"
         elif [ -f $PKGPATH/$f ]; then
-          run_traced "cp $PKGPATH/$f $LocalTmp"
+          run_traced "cp --parent $PKGPATH/$f $LocalTmp"
         elif [ "$2" == "etcPkgList" -a -f /etc/$f ]; then
-          run_traced "cp /etc/$f $LocalTmp"
+          run_traced "cp --parent /etc/$f $LocalTmp"
         elif [ "$2" == "binPkgList" -a -f /usr/local/bin/$f ]; then
-          run_traced "cp /usr/local/bin/$f $LocalTmp"
+          run_traced "cp --parent /usr/local/bin/$f $LocalTmp"
         elif [ "$2" == "binPkgList" -a -f /usr/bin/$f ]; then
-          run_traced "cp /usr/bin/$f $LocalTmp"
+          run_traced "cp --parent /usr/bin/$f $LocalTmp"
         fi
         s=$?
       done
@@ -1769,13 +1774,13 @@ do_dry_build_package() {
       rm -fR $LocalTmp
     fi
     run_traced "mkdir -p $LocalTmp"
-    add_file_2_pkg "$2" "PkgList" "$3"
+    add_file_2_pkg "$2" "PkgList" "$3" "$SETUP"
     sts=$?
     if [ $sts -eq 0 ]; then
-      add_file_2_pkg "$2" "binPkgList" "$3"
+      add_file_2_pkg "$2" "binPkgList" "$3" "$SETUP"
     fi
     if [ $sts -eq 0 ]; then
-      add_file_2_pkg "$2" "etcPkgList" "$3"
+      add_file_2_pkg "$2" "etcPkgList" "$3" "$SETUP"
     fi
     if [ $sts -eq 0 ]; then
       create_setup $package $SETUP

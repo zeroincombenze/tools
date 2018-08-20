@@ -5,21 +5,25 @@
 > yum install iptables
 > systemctl start iptables
 > systemctl enable iptables
-> yum -y install gcc
+> yum -y install epel-release
+> yum -y install yum-utils
+> yum -y install redhat-rpm-config
+> yum -y install libffi-devel
+# yum -y install openssl-devel
 > yum -y install epel-release
 > yum -y install python-pip
 > pip install 'pip' --upgrade
-> yum -y install iptables
-> systemctl start iptables
-> systemctl enable iptables
 > yum -y install python-wheel
 > pip install 'wheel' --upgrade --no-warn-conflicts
-> yum -y install yum-utils
-> yum -y install libffi-devel
-> yum -y install openssl
-> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts
+> yum -y install python-devel
 > pip install 'pyasn1' --no-warn-conflicts
 > pip install 'ndg-httpsclient' --no-warn-conflicts
+# pip install 'urllib3[secure]' --no-warn-conflicts
+> pip install 'cryptography' --no-warn-conflicts
+> yum -y install openssl
+> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts
+> pip install 'idna' --no-warn-conflicts
+> pip install 'certifi' --no-warn-conflicts
 # yum -y install openssh-server
 # systemctl start sshd
 > systemctl enable sshd
@@ -36,9 +40,4 @@
 > systemctl start postgresql
 > systemctl enable postgresql
 # yum -y install php
-> yum -y install epel-release
-> yum -y install python-pip
-> pip install 'pip' --upgrade
-> yum -y install python-wheel
-> pip install 'wheel' --upgrade --no-warn-conflicts
 # yum -y install python

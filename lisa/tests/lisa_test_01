@@ -98,17 +98,11 @@ test_01() {
     Real_DISTO=$(xuname "-d")$v
 
     declare -A TEST_Debian TEST_RHEL TEST_CentOS7 TEST_CentOS6 TEST_Ubuntu14 TEST_Ubuntu12
-    TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release pip wheel yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
-    TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release pip yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
-    TEST_Debian[LAMP]="LAMP=(LAMP pip LAMP_security openssh-server apache2 mysql-server postgresql php5 python)"
+    TEST_CentOS7[LAMP]="LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mariadb postgresql-server php python)"
+    TEST_CentOS6[LAMP]="LAMP=(LAMP epel-release yum-utils LAMP_security openssh-server httpd mysql-server postgresql-server php python)"
+    TEST_Debian[LAMP]="LAMP=(LAMP LAMP_security openssh-server apache2 mysql-server postgresql php5 python)"
     TEST_RHEL[apache2]="httpd"
     TEST_Debian[httpd]="apache2"
-    # TEST_Debian[python-pip]="pip"
-    # TEST_RHEL[python-pip]="pip"
-    # TEST_Debian[pip]="pip=(python-pip pip)"
-    # TEST_RHEL[pip]="pip=(python-pip pip)"
-    # TEST_Debian[python-pip]="python-pip"
-    # TEST_RHEL[python-pip]="python-pip"
     TEST_CentOS7[mysql]="mariadb"
     TEST_CentOS6[mysql]="mysql-server"
     TEST_CentOS7[mysql-server]="mariadb-server"

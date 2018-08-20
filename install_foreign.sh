@@ -5,7 +5,7 @@ RFLIST__zar="pg_db_active"
 RFLIST__z0lib="z0lib.py z0librc"
 RFLIST__zerobug="z0testrc"
 RFLIST__wok_code="cvt_script"
-RFLIST__lisa="lisa lisa.conf.sample lisa.man odoo.lish python.lish"
+RFLIST__lisa="lisa lisa.conf.sample lisa.man kbase"
 SRCPATH=
 DSTPATH=
 [[ ! -d ~/dev && -d ~/tools && $1 =~ -.*p ]] && mkdir -p ~/dev
@@ -21,7 +21,7 @@ for pkg in travis_emulator clodoo zar z0lib zerobug wok_code lisa; do
   for fn in $flist; do
     src="$SRCPATH/${pkg}/$fn"
     tgt="$DSTPATH/$fn"
-    if [ ! -f "$src" ]; then
+    if [ ! -f "$src" -a ! -d "$src" ]; then
       echo "File $src not found!"
     elif [ ! -L "$tgt" ]; then
       [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"

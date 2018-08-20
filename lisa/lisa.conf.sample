@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-08-11
+# Last update: 2018-08-18
 #
 # ---------------------------------------------------------------------
 #
@@ -231,7 +231,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
     pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB,\
     phonenumbers,ebaysdk,html2text,pyldap,PyPDF2,xlrd,viivakoodi,py3o,fdb,\
     sqlalchemy,checksumdir,barcode,python-levenshtein,num2words,ofxparse,\
-    suds-jurko,zpl2
+    suds-jurko,zpl2,idna,certifi
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -382,7 +382,8 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel,\
-         python2-simplejson,python34,python35,python36,python34-devel,,python35-devel,python36-devel
+         python2-simplejson,python34,python35,python36,python34-devel,,python35-devel,python36-devel,\
+         redhat-rpm-config
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
 pychart_xtlcmd_install=yum

@@ -2,4 +2,4 @@ mysql-server (install by apt-get)
   service=mysql
   command=mysql
   get_ver=mysql --version
-  infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish

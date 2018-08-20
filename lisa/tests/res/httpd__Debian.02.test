@@ -2,4 +2,4 @@ httpd=apache2 (install by apt-get)
   service=apache2
   command=apachectl
   get_ver=apachectl -v
-  infn=/opt/odoo/dev/pypi/lisa/lisa/lisa.lish
+  infn=/opt/odoo/dev/pypi/lisa/lisa/kbase/lisa.lish
