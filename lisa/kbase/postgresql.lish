@@ -1,0 +1,36 @@
+# Postgresql configuration file
+# (C) Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# http://wiki.zeroincombenze.org/en/Lisa webpage
+# Last update: 2017-12-13
+#
+
+[_Linux_]
+
+[_Debian_]
+postgresql_FINDCFN="/var/lib /etc;postgresql pgsql;9.6 9.5 9.4 9.3 9.2 9.1 9.0 8.4;data main"
+postgresql_confn=pg_hba.conf
+postgresql_cmdname=psql
+postgresql_BOP=postgresql-client-common,postgresql-contrib
+postgresql_BOP_GRF_ADD=pgadmin3
+postgresql_svcname=postgresql
+postgresql_init_svcname=service $2 initdb
+pgadmin3_xtlcmd=apt-get
+
+[_Debian_DEV_]
+
+[_RHEL_]
+postgresql_FINDCFN="/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
+postgresql-server_confn=pg_hba.conf
+postgresql-server_cmdname=psql
+postgresql-server_BOP=postgresql-client-common,postgresql-contrib
+postgresql-server_BOP_GRF_ADD=pgadmin3
+postgresql-server_svcname=postgresql
+pgadmin3_xtlcmd=yum
+
+[_RHEL_DEV_]
+
+[_CentOS7_]
+postgresql-server_init_svcname=postgresql-setup initdb
+
+[_CentOS6_]
+postgresql-server_init_svcname=service postgresql initdb

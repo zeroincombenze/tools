@@ -1,0 +1,119 @@
+# Odoo Configuration file
+# Please, if you update this configuratione file, send a copy to
+# antoniomaria.vigliotti@gmail.com
+# so your configuration should be shared with other people.
+# Last update: 2018-03-17
+#
+# This file may be deployed in /etc/lisa directory.
+# See /etc/lisa/lisa.conf.sample for example of configuration file
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+[_Linux_]
+SubPkgList=account-closing,account-financial-reporting,account-financial-tools,\
+           account-invoicing,account-payment,bank-payment,connector,crm,knowledge,\
+           l10n-italy,management-system,partner-contact,product-attribute,\
+           reporting-engine,report-print-send,server-tools,\
+           stock-logistics-barcode,stock-logistics-tracking,stock-logistics-warehouse,stock-logistics-workflow,\
+           web,webkit-tools,website
+# Odoo UID and GID set as Zeroincombenze(R); comment follow line if you want system assigned UID/GID
+ODOO_UID=497
+ODOO_GID=497
+git_LocalRoot=/opt/odoo
+git_LocalDir=v${version}
+git_LocalUser=odoo:odoo
+
+[_Debian_]
+ReqPkgList=python,postgresql,git,unidecode,unicodecsv,pydot,vatnumber,\
+    BeautifulSoup,Babel>=1.0,decorator,docutils,feedparser,gevent==1.0.2,\
+    Jinja2,lxml,Mako,mock,passlib,Pillow==3.4.2,psutil,psycogreen,psycopg2>=2.2,\
+    Python-Chart,pydot,pyparsing,pyPdf,pyserial,python-dateutil,\
+    python-ldap,python-openid,pytz,pyusb>=1.0.0b1,pyyaml,qrcode,\
+    reportlab,requests,simplejson,unittest2,vatnumber,vobject,werkzeug,xlwt,\
+    jinja2,raven,raven_sanitize_openerp,pyxb,codicefiscale,cups
+BOP=ghostscript,libart-2.0-2,libcupsfilters1,\
+    libcupsimage2,libgs9,libgs9-common,libijs-0.35,libjbig2dec0,\
+    liblcms2-2,libpaper-utils,libpaper1,libpoppler44,libtidy-0.99-0,libwebp5,\
+    libwebpmux1,poppler-data,poppler-utils,python-babel-localedata,\
+    python-dateutil,decorator==3.4.0,docutils==0.12,feedparser==5.1.3,\
+    python-greenlet,python-imaging,jinja2==2.7.3,\
+    python-markupsafe,python-openid,passlib==1.6.2,python-pil,\
+    psutil,python-pybabel,python-pygments,\
+    python-pyinotify,python-renderpm,\
+    reportlab==3.1.44,python-reportlab-accel,python-roman,python-suds,\
+    python-unittest2,python-utidylib,python-vobject,\
+    python-werkzeug,docutils-common,docutils-doc,wkhtmltopdf
+
+
+[_Debian_DEV_]
+BOP=ghostscript,libart-2.0-2,libcupsfilters1,\
+    libcupsimage2,libgs9,libgs9-common,libijs-0.35,libjbig2dec0,\
+    liblcms2-2,libpaper-utils,libpaper1,libpoppler44,libtidy-0.99-0,libwebp5,\
+    libwebpmux1,poppler-data,poppler-utils,Babel,python-babel-localedata,\
+    python-dateutil,decorator==3.4.0,docutils==0.12,feedparser==5.1.3,\
+    python-greenlet,python-imaging,jinja2==2.7.3,\
+    python-markupsafe,python-openid,passlib==1.6.2,python-pil,\
+    psutil,python-pybabel,python-pygments,pyusb>=1.0\
+    python-pyinotify,python-renderpm,pyyaml,\
+    reportlab==3.1.44,python-reportlab-accel,python-roman,python-suds,\
+    python-unittest2,python-utidylib,python-vobject,\
+    python-werkzeug,docutils-common,docutils-doc,wkhtmltopdf,\
+    oerplib,erppeek,odoorpc,os0
+
+
+[_RHEL_]
+
+
+[_CentOS7_]
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber,\
+    BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil,gevent==1.0.2,\
+    Jinja2,python-decorator,docutils,python-feedparser,python-imaging,psycogreen,psycopg2>=2.2\
+    Python-Chart,python-jinja2,python-ldap,lxml,Mako,mock,pyserial,\
+    python-openid,python-passlib,Pillow==3.4.2,psutil,\
+    python-reportlab,python-requests,python-simplejson,python-unittest2,\
+    python-vobject,python-werkzeug,python-yaml,pytz,pyPdf,qrcode,\
+    xlwt,raven,raven_sanitize_openerp,pyxb,codicefiscale,cups
+BOP=Babel==1.3,dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
+    libjpeg-turbo,libtiff libyaml,passlib==1.6.2,\
+    pyOpenSSL,beaker,python-dateutil,docutils==0.12,feedparser==5.1.3,jinja2==2.7.3,\
+    python-ldap,Mako,python-markupsafe,python-openid,\
+    psutil,reportlab==3.1.44,\
+    python-unittest2,urllib3,python-vobject,python-werkzeug,wkhtmltopdf
+
+
+[_CentOS7_DEV_]
+BOP=Babel==1.3,dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
+    libjpeg-turbo,libtiff libyaml,passlib==1.6.2,\
+    pyOpenSSL,beaker,python-dateutil,docutils==0.12,feedparser==5.1.3,jinja2==2.7.3,\
+    python-ldap,Mako,python-markupsafe,python-openid,\
+    psutil,reportlab==3.1.44,\
+    python-unittest2,urllib3,python-vobject,python-werkzeug,wkhtmltopdf,\
+    libjpeg-turbo-devel,oerplib,erppeek,odoorpc,os0
+
+
+[_CentOS6_]
+ReqPkgList=python,postgresql-server,git,unidecode,unicodecsv,pydot,vatnumber\
+    ,BeautifulSoup,babel,libxslt-python,pychart,pyparsing,python-dateutil\
+    ,python-decorator,docutils,python-feedparser,python-imaging\
+    ,python-jinja2,python-ldap,python-lxml,python-mako,python-mock\
+    ,python-openid,python-passlib,python-psutil,python-psycopg2\
+    ,python-reportlab,python-requests,python-simplejson,python-unittest2\
+    ,python-vobject,python-werkzeug,python-yaml,pytz
+BOP=python-babel,dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
+    libjpeg-turbo,libtiff,libyaml,passlib,\
+    pyOpenSSL,pyparsing,beaker,python-dateutil,python-docutils,python-feedparser,python-jinja2,\
+    python-ldap,python-mako,python-markupsafe,python-openid,\
+    psutil,python-reportlab,\
+    python-unittest2,urllib3,python-vobject,python-werkzeug,wkhtmltopdf
+
+
+[_CentOS6_DEV_]
+BOP=python-babel,dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
+    libjpeg-turbo,libtiff,libyaml,passlib,\
+    pyOpenSSL,pyparsing,beaker,python-dateutil,python-docutils,python-feedparser,python-jinja2,\
+    python-ldap,python-mako,python-markupsafe,python-openid,\
+    psutil,python-reportlab,\
+    python-unittest2,urllib3,python-vobject,python-werkzeug,wkhtmltopdf,\
+    libjpeg-turbo-devel,oerplib,erppeek,odoorpc,os0
