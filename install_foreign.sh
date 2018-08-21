@@ -1,4 +1,4 @@
-# __version__=0.1.5
+# __version__=0.1.7
 RFLIST__travis_emulator="dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh topep8 topep8.py to_pep8.2p8 to_pep8.py travis travisrc vfcp vfdiff wok_doc wok_doc.py"
 RFLIST__clodoo="addsubm.sh awsfw clodoo.py clodoocore.py clodoolib.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo odoorc oe_watchdog run_odoo_debug.sh odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active"
@@ -8,8 +8,9 @@ RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man kbase"
 SRCPATH=
 DSTPATH=
-[[ ! -d ~/dev && -d ~/tools && $1 =~ -.*p ]] && mkdir -p ~/dev
 [ -d ~/tools ] && SRCPATH=~/tools
+[ -z "$SRCPATH" -a -d ./tools ] && SRCPATH=./tools
+[[ ! -d ~/dev && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p ~/dev
 [ -d ~/dev ] && DSTPATH=~/dev
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
   echo "Invalid environment"
