@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-#__version__=0.2.7.1
+#__version__=0.2.7.2
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -155,11 +155,13 @@ xuname() {
       FAMILY="Debian"
     elif [ -f /etc/debian_version ]; then
       DIST="Debian"
-      VER=$(lsb_release --release --short)
+      ls_relase &>/dev/null
+      [ $? -ne 127 ] && VER=$(lsb_release --release --short) || VER=$(cat /etc/debian_version)
       FAMILY="Debian"
     elif [ -f /etc/os-release ]; then
       DIST="Debian"
-      VER=$(lsb_release --release --short)
+      ls_relase &>/dev/null
+      [ $? -ne 127 ] && VER=$(lsb_release --release --short) || VER=$(cat /etc/os-release)
       FAMILY="Debian"
     fi
     if [ -f /etc/UnitedLinux-release ]; then
