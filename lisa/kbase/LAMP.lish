@@ -17,7 +17,7 @@ LAMP_ReqPkgList=gcc,pip
 
 
 [_Debian_]
-LAMP=LAMP_security,openssh-server,apache2,mysql-server,postgresql,php5,python
+LAMP=LAMP_security,openssh-server,apache2,mysql-server,postgresql,php5,python,vim
 LAMP_security=build-essential,libffi-dev,libssl-dev,python-dev,python-openssl,urllib3[secure],cryptography,pyOpenSSL,idna,certifi
 
 

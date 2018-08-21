@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.4
+__version__=0.3.0.5
 
 test_run() {
 # test_run(msg,package,disto,cmd)
@@ -127,6 +127,7 @@ mysql-server (by apt-get)(mysql --version)
 postgresql (by apt-get)(psql --version)
 php5 (by apt-get)(php5 -v)
 python (by apt-get)(python --version)
+vim (by apt-get)
 EOF
   cat <<EOF >$TESTDIR/res/LAMP__CentOS6.03.test
 epel-release (by yum)

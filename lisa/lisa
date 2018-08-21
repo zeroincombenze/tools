@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.4
+__version__=0.3.0.5
 
 
 STS_FAILED=1
@@ -1424,11 +1424,11 @@ update_hba_conf() {
       echo "$line">>$1.tmp
     done < "$1"
     if [ $opt_dry_run -eq 0 ]; then
-      [ -z "opt_yes" ] || vim $1.tmp
+      [ -z "opt_yes" ] || $EDITOR $1.tmp
       run_traced "mv $1 $1.bak"
       run_traced "mv $1.tmp $1"
     else
-      vim $1.tmp
+      $EDITOR $1.tmp
     fi
 }
 
@@ -2178,7 +2178,7 @@ lisa_config_odoo() {
       if [ -f /opt/odoo/.openerp_serverrc ]; then
         if [ $opt_dry_run -eq 0 ]; then
           sed -i "s:^data_dir *=.*Odoo:&$ov:" /opt/odoo/.openerp_serverrc
-          [ -z "opt_yes" ] || vim /opt/odoo/.openerp_serverrc
+          [ -z "opt_yes" ] || $EDITOR /opt/odoo/.openerp_serverrc
         fi
         run_traced "cp /opt/odoo/.openerp_serverrc /etc/odoo/${uu}-server.conf"
         run_traced "chown odoo:odoo /etc/odoo/${uu}-server.conf"
@@ -2970,9 +2970,9 @@ do_dry_config_package() {
     local confn=$(get_full_confn $1 $2 $3)
     if [ -n "$confn" ]; then
       if [ $opt_dry_run -eq 0 ]; then
-        vim $confn
+        $EDITOR $confn
       else
-        echo "> vim $confn"
+        echo "> $EDITOR $confn"
       fi
     fi
     return $STS_SUCCESS
@@ -3519,6 +3519,15 @@ if [ $test_mode -gt 0 ]; then
   opt_yes=1
 fi
 if [ ${opt_yes:-0} -gt 0 ]; then OPTS="${OPTS}y"; fi
+if [ $test_mode -gt 0 ]; then
+  EDITOR=vim
+else
+  nano --version &>/dev/null
+  [ $? -ne 127 ] && EDITOR=nano
+  vim --version &>/dev/null
+  [ $? -ne 127 ] && EDITOR=vim
+  [ -z "$EDITOR" ] && EDITOR=vi
+fi
 wlog "# $THIS $__version__ running on $(xuname -a)"
 wlog "# Setup for $FH family"
 
@@ -3593,12 +3602,6 @@ else
   fi
   opt_tail=0
   for act in $actions; do
-    # if [[ " $SYSPRIV " =~ [[:space:]]$act[[:space:]] ]]; then
-    #   if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
-    #     elog "This command must be executed by root"
-    #     exit $STS_FAILED
-    #   fi
-    # fi
     if [[ " $ECHOCMDS " =~ [[:space:]]$act[[:space:]] ]]; then
       set_tlog_file "$FLOG" "" "echo"
     fi

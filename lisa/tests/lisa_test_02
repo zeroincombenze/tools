@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.4
+__version__=0.3.0.5
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -84,7 +84,7 @@ EOF
       echo "  requirements=wget,git">>$TESTDIR/res/lisa.02.test
       echo "  infn=$RUNDIR/kbase/lisa.lish">>$TESTDIR/res/lisa.02.test
       cat <<EOF >$TESTDIR/res/LAMP__Debian.02.test
-LAMP=(LAMP LAMP_security openssh-server apache2 mysql-server postgresql php5 python) (install by lisa)
+LAMP=(LAMP LAMP_security openssh-server apache2 mysql-server postgresql php5 python vim) (install by lisa)
 EOF
       echo "  requirements=gcc,pip">>$TESTDIR/res/LAMP__Debian.02.test
       echo "  infn=$RUNDIR/kbase/LAMP.lish">>$TESTDIR/res/LAMP__Debian.02.test
