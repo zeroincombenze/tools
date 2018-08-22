@@ -184,12 +184,12 @@ conf_default() {
     # TCP & UDP Ports
     set_cfg_def "TCP_odoo" "8069" "0"
     # Configuration files
-    p="/etc/httpd /etc/apache2; conf"
-    p="/var/lib /etc;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
-    set_cfg_def "postgresql_FINDCFN" "$p" "0" "Debian"
-    set_cfg_def "postgresql_confn" "pg_hba.conf" "0" "Debian"
-    set_cfg_def "postgresql-server_FINDCFN" "$p" "0" "RHEL"
-    set_cfg_def "postgresql-server_confn" "pg_hba.conf" "0" "RHEL"
+    # p="/etc/httpd /etc/apache2; conf"
+    # p="/var/lib /etc/postgres;postgresql pgsql;9.4 9.3 9.2 9.1 9.0 8.4;data main"
+    # set_cfg_def "postgresql_FINDCFN" "$p" "0" "Debian"
+    # set_cfg_def "postgresql_confn" "pg_hba.conf" "0" "Debian"
+    # set_cfg_def "postgresql-server_FINDCFN" "$p" "0" "RHEL"
+    # set_cfg_def "postgresql-server_confn" "pg_hba.conf" "0" "RHEL"
     p="/etc/odoo /etc/openerp;"
     set_cfg_def "odoo_FINDCFN" "$p" "0"
     set_cfg_def "odoo_confn" "odoo-server.conf" "0"
@@ -767,6 +767,7 @@ get_pkg_ver_inq() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "get_pkg_ver_inq($1 $2)">>~/$THIS.his
     local pkgname=$1
     local X="VER__${1//-/_}"
+    X=${X//./_}
     local cmdname p pkgversion= vfycmd x
     if [ -n "${!X}" ]; then
       pkgversion="${!X}"
@@ -1215,7 +1216,7 @@ get_full_confn() {
       local confpaths="$(get_prm_value ${2}_FINDCFN)"
       if [ -n "$confpaths" -a -n "$confn" ]; then
         O="$IFS"
-        IFS=; read p1 p2 p3 p4 p5<<<"$confpaths"
+        IFS=\; read p1 p2 p3 p4 p5<<<"$confpaths"
         IFS="$O"
         p=$confn
         confn=$(findpkg "$confn" "$p1" "$p2" "$p3" "$p4" "$p5")
@@ -2553,7 +2554,7 @@ post_install_ports() {
 
 post_update_ports() {
 # post_update_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_update_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_update_ports($1 $2 $3)">>~/$THIS.his; fi
     local X="$(get_prm_value TCP_$2)"
     X=${X//,/ }
     if [ -n "$X" ]; then
@@ -2573,7 +2574,7 @@ post_update_ports() {
 
 post_remove_ports() {
 # post_remove_ports(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_remove_ports($1 $2 $3)">>~/$THIS.his; fi #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_remove_ports($1 $2 $3)">>~/$THIS.his; fi
     local X="$(get_prm_value TCP_$2)"
     X=${X//,/ }
     if [ -n "$X" ]; then
@@ -2592,7 +2593,7 @@ post_remove_ports() {
 
 post_dry_update_service() {
 # post_dry_update_service(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "post_dry_update_service($1 $2 $3)">>~/$THIS.his; fi
     local svcname=$(get_prm_value "${2}_svcname")
     local cmd=$(get_full_svccmd restart $svcname $3)
     run_traced "$cmd"
@@ -2611,18 +2612,18 @@ pre_dry_install_LAMP() {
 }
 
 pre_dry_install_odoo() {
-    if [ "$FH" == "RHEL" ]; then
-      if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
-        run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
-      fi
-    elif [ "$FH" == "Debian" ]; then
-      if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
-        run_traced "wget -O - https://nightly.odoo.com/odoo.key | apt-key add -"
-      fi
-      if [ -z "$(cat /etc/apt/sources.list|grep 'nightly.odoo.com' 2>/dev/null)" ]; then
-       run_traced "echo 'deb http://nightly.odoo.com/8.0/nightly/deb/ ./' >> /etc/apt/sources.list"
-      fi
-    fi
+    # if [ "$FH" == "RHEL" ]; then
+    #   if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
+    #     run_traced "yum-config-manager --add-repo=https://nightly.odoo.com/8.0/nightly/rpm/odoo.repo"
+    #   fi
+    # elif [ "$FH" == "Debian" ]; then
+    #   if [ -z "$(apt-key list|grep info@odoo.com 2>/dev/null)" ]; then
+    #     run_traced "wget -O - https://nightly.odoo.com/odoo.key | apt-key add -"
+    #   fi
+    #   if [ -z "$(cat /etc/apt/sources.list|grep 'nightly.odoo.com' 2>/dev/null)" ]; then
+    #    run_traced "echo 'deb http://nightly.odoo.com/8.0/nightly/deb/ ./' >> /etc/apt/sources.list"
+    #   fi
+    # fi
     pre_dry_config_odoo
 }
 
@@ -2632,7 +2633,7 @@ pre_dry_update_LAMP() {
 
 pre_dry_remove_service() {
 # pre_dry_remove_service(action pkgname OPTS)
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_remove_service($1 $2 $3)">>~/$THIS.his; fi
     local svcname=$(get_prm_value "${2}_svcname")
     local cmd=$(get_full_svccmd stop $svcname $3)
     run_traced "$cmd"
@@ -2719,7 +2720,7 @@ post_dry_update_odoo() {
 
 do_dry_status_package() {
 # do_dry_status_package(action pkgname OPTS [param] [SPECIMEN])
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi    #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_status_package($1 $2 $3 $4 $5)">>~/$THIS.his; fi
     local cmd lm x=$((prdstk_level*2))
     [ $x -eq 0 ]||eval printf -v lm '%.s-' {1..$x}
     do_1_status_package "$@"
@@ -2735,7 +2736,7 @@ do_dry_status_package() {
       cmd="wlog \"$lm$pkgname could be installed by $xtlcmd\""
     fi
     eval $cmd
-    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #dry_status_package">>~/$THIS.his; fi    #debug
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  return(0) #dry_status_package">>~/$THIS.his; fi
     return $STS_SUCCESS
 }
 
