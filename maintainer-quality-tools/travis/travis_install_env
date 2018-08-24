@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.69
+__version__=0.2.1.70
 
 
 run_n_echo() {
@@ -230,6 +230,7 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
 fi
+[[ "$TRAVIS" == "true" ]] && run_n_echo "$PIP install -q pip --upgrade"
 # Build secure environment (python2)
 for p in build-essential libssl-dev libffi-dev python-dev; do
   eval $LISA status -q $p
@@ -245,7 +246,6 @@ for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
 done
 # Secure environment OK
 if [[ "$TRAVIS" == "true" ]]; then
-  run_n_echo "$PIP install -q pip --upgrade"
   for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
