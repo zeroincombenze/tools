@@ -1,11 +1,11 @@
-[![Build Status](https://travis-ci.org/zeroincombenze/res.svg?branch=master)](https://travis-ci.org/zeroincombenze/res)
+[![Build Status](https://travis-ci.org/zeroincombenze/l10n_italy.svg?branch=9.0)](https://travis-ci.org/zeroincombenze/l10n_italy)
 [![license agpl](https://img.shields.io/badge/licence-AGPL--3-blue.svg)](http://www.gnu.org/licenses/agpl-3.0.html)
-[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/res/badge.svg?branch=master)](https://coveralls.io/github/zeroincombenze/res?branch=master)
-[![codecov](https://codecov.io/gh/zeroincombenze/res/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/res/branch/master)
-[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-master.svg)](https://github.com/OCA/res/tree/master)
-[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-master.svg)](http://wiki.zeroincombenze.org/en/Odoo/master/dev)
-[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-master.svg)](http://wiki.zeroincombenze.org/en/Odoo/master/man/)
-[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-master.svg)](http://erpmaster.zeroincombenze.it)
+[![Coverage Status](https://coveralls.io/repos/github/zeroincombenze/l10n_italy/badge.svg?branch=9.0)](https://coveralls.io/github/zeroincombenze/l10n_italy?branch=9.0)
+[![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0)
+[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-9.svg)](https://github.com/OCA/l10n_italy/tree/9.0)
+[![Tech Doc](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/dev)
+[![Help](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-9.svg)](http://wiki.zeroincombenze.org/en/Odoo/9.0/man/FI)
+[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-9.svg)](http://erp9.zeroincombenze.it)
 
 
 [![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)
@@ -16,6 +16,13 @@ TEST_TRAVIS VI
 ==============
 
 [//]: # (addons)
+
+
+Available addons
+----------------
+addon | version | summary
+--- | --- | ---
+[l10n_it_base](l10n_it_base/) |  | TravisEm Test
 
 [//]: # (end addons)
 
@@ -29,7 +36,7 @@ Differenze rispetto localizzazione ufficiale Odoo/OCA
 
 Descrizione | Odoo Italia | OCA
 --- | --- | ---
-Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/res/branch/master/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/res/branch/master) | [![codecov](https://codecov.io/gh/OCA/res/branch/master/graph/badge.svg)](https://codecov.io/gh/OCA/res/branch/master)
+Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0) | [![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
 Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:
 
 Installation

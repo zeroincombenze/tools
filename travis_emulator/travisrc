@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.39
+#__version__=0.2.1.40
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -155,6 +155,7 @@ inherits_travis_opts() {
 }
 
 init_travis() {
+    local r x
     TRAVIS_ENV=$(get_cfg_value "" "Environment")
     TRAVIS_ENVOPTS=
     if [ ${opt_virt:-0} -eq -1 ]; then
@@ -204,61 +205,49 @@ init_travis() {
     local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     SETUP=
-    local r=$(basename $(readlink -e ..))
-    if [ ${test_mode:-0} -ne 0 -a "$r" == "tests" ]; then
-      r=tools
-    elif [ "$r" == "__unported__" ]; then
-      r=$(basename $(readlink -e ../..))
-    fi
-    if [ "$r" == "odoo" -o "$r" == "openerp" ]; then
-      r=
-    fi
-    for ODOO_SETUP in $ODOO_SETUPS; do
-      if [ -f $ODOO_SETUP ]; then
-        REPOSNAME=$r
-        PRJNAME="Odoo"
-        SETUP="$ODOO_SETUP";
-        break
+    x="$PWD"
+    while [ -z "$SETUP"  -a -n "$x" ]; do
+      r=$(basename $x)
+      if [[ ! $r =~ (odoo|openerp|tests|__unported__) ]]; then
+        if [ -f $x/setup.py ]; then
+          SETUP="$x/setup.py"
+          break
+        elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
+          PRJNAME="Odoo"
+          break
+        elif [ -d $x/openerp -a -f $x/openerp-server ]; then
+          PRJNAME="Odoo"
+          break
+        elif [ -d $x/server -a -f $x/server/openerp-server ]; then
+          PRJNAME="Odoo"
+          break
+        else
+          true
+          for ODOO_SETUP in $ODOO_SETUPS; do
+            if [ -f $x/$ODOO_SETUP ]; then
+              PRJNAME="Odoo"
+              SETUP="$x/$ODOO_SETUP";
+              break
+            fi
+          done
+        fi
       fi
+      [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
     done
-    if [ -z "$SETUP" ]; then
-      if [ -d ./odoo -a -f ./odoo_bin ]; then
-        REPOSNAME=
-        PRJNAME="Odoo"
-      elif [ -d ./openerp -a -f ./openerp-server ]; then
-        REPOSNAME=
-        PRJNAME="Odoo"
-      elif [ -d ./server -a -f ./server/openerp-server ]; then
-        REPOSNAME=
-        PRJNAME="Odoo"
-      fi
-      if [ "$PRJNAME" == "Odoo" ]; then
-        ODOO_SETUP="__openerp__.py"
-        SETUP=$ODOO_SETUP
-      elif [ -f $PWD/setup.py ]; then
-        SETUP="$PWD/setup.py";
-        REPOSNAME=$(basename $PKGPATH)
-      elif [ -f $PKGPATH/setup.py ]; then
-        SETUP="$PKGPATH/setup.py";
-        REPOSNAME=$(basename $PKGPATH)
-      else
-        SETUP=$ODOO_SETUP
-        REPOSNAME=
-      fi
-    fi
-    if [ "$SETUP" == "$ODOO_SETUP" ]; then
-      if [ -z "$PRJNAME" ]; then
-        PRJNAME="Odoo"
-      fi
-      if [ -f $SETUP ]; then
+    if [ "$PRJNAME" == "Odoo" ]; then
+      REPOSNAME=$(build_odoo_param REPOS '.')
+      if [ -n "$SETUP" -a -f "$SETUP" ]; then
         prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \r\n")
         prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
+        SETUP=$(basename $SETUP)
       else
         prjversion=""
         prjdesc="Unrecognized Odoo module"
       fi
     else
-      if [ -n "$SETUP" -a -f $SETUP ]; then
+      REPOSNAME=
+      if [ -n "$SETUP" -a -f "$SETUP" ]; then
+        REPOSNAME=$(basename $(dirname $SETUP))
         PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
         prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
         if [ "$prjversion" == "version" ]; then
@@ -268,6 +257,7 @@ init_travis() {
         if [ "$prjdesc" == "description" ]; then
           prjdesc="Unrecognized package"
         fi
+        # SETUP=$(basename $SETUP)
       fi
     fi
     if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
@@ -300,15 +290,7 @@ init_travis() {
           prjversion="$BRANCH.$prjversion"
         fi
       fi
-      if [ -f $ODOO_SETUP ]; then
-        PRJPATH=$(readlink -f $PKGPATH/..)
-        local r=$(basename $PRJPATH)
-        if [ "$r" == "__unported__" ]; then
-          PRJPATH=$(readlink -f $PKGPATH/../..)
-        fi
-      else
-        PRJPATH=$PKGPATH
-      fi
+      PRJPATH=$(build_odoo_param HOME '.')
     else
       if [ -d $PKGPATH/$PRJNAME ]; then
         PRJPATH=$PKGPATH/$PRJNAME
@@ -1520,8 +1502,8 @@ clone_1_dependence() {
     local n sts
     sts=0
     if [ -n "$1" ]; then
-      n=$(basename $1)
       if [ -d $1 ]; then
+        n=$(basename $1)
         if [ "$n" != "__unported__" ]; then
           if [ ! -d $HOME/dependencies/$n ]; then
             run_traced "ln -s $1 $HOME/dependencies/"
@@ -1611,6 +1593,11 @@ clone_dependencies() {
         clone_1_dependence "$p"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
+      p=$(readlink -e $oetpath/odoo)
+      if [ -n "$p" ]; then
+        clone_1_dependence "$p"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      fi
       p=$(readlink -e $oetpath/openerp)
       if [ -n "$p" ]; then
         clone_1_dependence "$p"

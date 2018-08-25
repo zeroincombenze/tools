@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.39
+__version__=0.2.1.40
 
 
 #
@@ -1288,7 +1288,7 @@ EOF
 
 
 do_publish() {
-#do_publish PKGNAME (docs|download|pypi|svg|testpypi|tar)
+#do_publish PKGNAME (docs|download|pypi|svg|testpypi)
     wlog "do_publish $1 $2"
     local cmd="do_publish_$2"
     sts=$STS_SUCCESS
@@ -1296,7 +1296,7 @@ do_publish() {
       eval $cmd "$@"
     else
       echo "Missing object! Use:"
-      echo "> please publish (docs|download|pypi|svg|testpypi|tar)"
+      echo "> please publish (docs|download|pypi|svg|testpypi)"
       echo "publish doc      -> publish generate docs to website (require system privileges)"
       echo "   type 'please docs' to generate docs files"
       echo "publish download -> publish tarball to download (require system privileges)"
@@ -1728,13 +1728,6 @@ do_distribution() {
     local f f1 f2 x
     local PD=.
     local ver=$(get_ver)
-    if [ ${test_mode:-0} -ne 0 ]; then
-      if [ -d res ]; then
-        PD=res
-      elif [ -d tests/res ]; then
-        PD=tests/res
-      fi
-    fi
     if [ -n "$3" ]; then
       local travis_passed=1
       if [ -d $3/tmp ]; then

@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.39
+__version__=0.2.1.40
 
 
 save_testenv() {
@@ -83,6 +83,8 @@ Z0BUG_setup() {
     LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
     mkdir -p ~/maintainer-quality-tools
     mkdir -p $LCLTEST_TMPDIR0
+    mkdir -p $LCLTEST_TMPDIR0/openerp
+    touch $LCLTEST_TMPDIR0/openerp-server
     mkdir -p $LCLTEST_PRJPATH
     mkdir -p $LCLTEST_TMPDIR
     mkdir -p $LCLTEST_TMPDIR2
@@ -109,8 +111,11 @@ $ cp /etc/odoo/odoo9-server.conf /opt/odoo/.openerp_serverrc
 > mkdir /opt/odoo/dependencies
 > export INCLUDE=l10n_it_base
 > ln -s /opt/odoo/dev/odoo/9.0/l10n_italy /opt/odoo/dependencies/
+> ln -s /opt/odoo/dev/odoo/9.0/openerp /opt/odoo/dependencies/
+> ln -s /opt/odoo/dev/odoo/9.0/openerp /opt/odoo/dependencies/
 > ln -s /opt/odoo/dev/odoo/9.0 /opt/odoo/odoo-9.0
 > ln -s /opt/odoo/dev/odoo/9.0/l10n_italy/l10n_it_base /opt/odoo/l10n_it_base-9.0
+
 EOF
     if [ -L ~/maintainer-quality-tools ]; then
       rm -f ~/maintainer-quality-tools
@@ -376,7 +381,7 @@ test_04() {
         run_svr_test_init > $FOUT
         result_testenv
       fi
-      test_result "run_svr_test_ini" "$FOUT" "$FTEST" "diff -qEbB"
+      test_result "run_svr_test_init" "$FOUT" "$FTEST" "diff -qEbB"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     else
       VERSION=9.0

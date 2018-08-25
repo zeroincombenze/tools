@@ -35,7 +35,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.23
+#__version__=0.3.7.24
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -179,7 +179,7 @@ build_odoo_param() {
     if [[ "$2" == "." || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
       x="$PWD"
       while [ -z "$odoo_vid" -a -n "$x" ]; do
-        if [ -z "$PKGPATH" ] && [ -f __manifest__.py -o -f __openerp__.py ]; then
+        if [ -z "$PKGPATH" ] && [ -f $x/__manifest__.py -o -f $x/__openerp__.py ]; then
           PKGPATH=$x
           PKGNAME=$(basename $x)
         fi
