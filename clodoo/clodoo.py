@@ -157,7 +157,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.22"
+__version__ = "0.3.7.23"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -324,6 +324,8 @@ def do_login(ctx):
                     break
                 except BaseException:
                     pass
+        if user:
+            break
     if not user:
         if not ctx.get('no_warning_pwd', False):
             os0.wlog(u"!DB={0}: invalid user/pwd"
@@ -2079,6 +2081,47 @@ def act_convert_partners(ctx):
         if vals:
             writeL8(ctx, 'res.partner', partner_id, vals)
 
+    partner_ids = searchL8(ctx,
+                           'res.partner',
+                           [('state_id', '=', None),
+                            '|',
+                            ('country_id', '=', False),
+                            ('country_id', '=', italy_id)])
+    for i,partner_id in enumerate(partner_ids):
+        partner = browseL8(ctx, 'res.partner', partner_id)
+        msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
+        vals = {}
+        if partner.zip:
+            state_ids = searchL8(ctx,
+                                 'res.city',
+                                 [('zip', '=', partner.zip),
+                                  ('country_id', '=', italy_id)])
+            if not len(state_ids):
+                state_ids = searchL8(ctx,
+                                     'res.city',
+                                     [('zip', '=', '%s%%' % partner.zip[0:4]),
+                                      ('country_id', '=', italy_id)])
+            if not len(state_ids):
+                state_ids = searchL8(ctx,
+                                     'res.city',
+                                     [('zip', '=', '%s%%%%' % partner.zip[0:3]),
+                                      ('country_id', '=', italy_id)])
+            if len(state_ids) == 1:
+                vals['state_id'] = state_ids[0]
+        if vals:
+            if not partner.country_id:
+                vals['country_id'] = italy_id
+            writeL8(ctx, 'res.partner', partner_id, vals)
+    return STS_SUCCESS
+
+
+def act_complete_partners(ctx):
+    # It looks for partners to update and update them.
+    msg = u"Complete partners"
+    msg_log(ctx, ctx['level'], msg)
+    italy_id = searchL8(ctx,
+                        'res.country',
+                        [('code', '=', 'IT')])[0]
     partner_ids = searchL8(ctx,
                            'res.partner',
                            [('state_id', '=', None),

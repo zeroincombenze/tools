@@ -16,12 +16,15 @@
 # GIT_ORGNM    Name of git organization of specific Odoo version
 # GIT_PROT     Git protocol (git or https)
 # GIT_URL      URL to download git project (ends with .git)
-# HOME         Specific Odoo module home directory
+# HOME         Specific Odoo repository directory (i.e /opt/odoo/11.0/website)
 # LCONFN       Local Configuration filename (+)
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
 # OPTS_ASM     Undocumented (deprecated)
-# PARENTDIR    Parent directory of specific Odoo module (should be repositoy home directory)
+# PARENTDIR    Parent directory of specific Odoo module (i.e. /opt/odoo/11.0)
+# PKGNAME      Package name
+# PKGPATH      Home directory of Odoo package
+# REPOS        Repository name
 # ROOT         Odoo home directory of specific vid/version
 # ROROGIN      Remote git origin of Odoo repository
 # RPCPORT      Xmlrpc port in multi-version environment
@@ -32,7 +35,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.22
+#__version__=0.3.7.23
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -157,13 +160,13 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
-    local ITEM=$1
-    local odoo_fver odoo_ver odoo_vid MULTIVER RPTNAME
+    local ITEM=$1 ROOT=/opt/odoo
+    local odoo_fver odoo_ver odoo_vid MULTIVER REPOS
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
     local ODOO_UPSTREAM
-    local VID
+    local VID PKGPATH PKGNAME
     local p p1 p11 p2 p3 p4 pd ldir r x
     p1="v|V|odoo|ODOO|ocb|OCB"
     p2="oca|oia|liberp|flectra"
@@ -174,17 +177,29 @@ build_odoo_param() {
     local reg="^($p2)"
     local ref="($p3)"
     if [[ "$2" == "." || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
-      odoo_vid="$(basename $PWD)"
-      if [[ $odoo_vid =~ $rex ]]; then
-        RPTNAME="OCB"
-        odoo_fver=$(find_odoo_ver)
-      else
-        RPTNAME=$odoo_vid
+      x="$PWD"
+      while [ -z "$odoo_vid" -a -n "$x" ]; do
+        if [ -z "$PKGPATH" ] && [ -f __manifest__.py -o -f __openerp__.py ]; then
+          PKGPATH=$x
+          PKGNAME=$(basename $x)
+        fi
+        r="$(basename $x)"
+        if [[ $r =~ $rex ]]; then
+          ROOT="$(dirname $x)"
+          odoo_vid=$r
+          [ -n "$ldir" ] && REPOS=$(basename $ldir) || REPOS=OCB
+          break
+        fi
+        ldir=$x
+        x=$(readlink -e $x/..)
+      done
+      if [ -z "$odoo_vid" ]; then
+        REPOS=$(basename $PWD)
         odoo_fver=$(find_odoo_ver "..")
       fi
     else
       odoo_vid="$2"
-      [ -z "$3" ] && RPTNAME="OCB" || RPTNAME=$3
+      [ -z "$3" ] && REPOS="OCB" || REPOS=$3
     fi
     if [ -n "$odoo_vid" -a -z "$odoo_fver" ]; then
       if [[ $odoo_vid =~ $rex ]]; then
@@ -230,12 +245,12 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [[ $ITEM =~ ^(OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS)$ ]]; then
-      if [[ " $RPTNAME " =~ " $INVALID_MODNAMES " ]]; then
+      if [[ " $REPOS " =~ " $INVALID_MODNAMES " ]]; then
         GIT_ORGNM=""
         GIT_PROT=""
         ODOO_UPSTREAM=
-      elif [[ "$REPT_ORG_MATRIX," =~ "/$RPTNAME," ]]; then
-        r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$RPTNAME,")
+      elif [[ "$REPT_ORG_MATRIX," =~ "/$REPOS," ]]; then
+        r=$(echo "$REPT_ORG_MATRIX,"|grep -Eo "[A-Za-z0-9_-]+/$REPOS,")
         r=${r:0: -1}
         IFS=/ read GIT_ORGNM x <<<$r
       elif [ "$GIT_ORGID" == "oca" ]; then
@@ -299,21 +314,21 @@ build_odoo_param() {
         return
       elif [ "$ITEM" == "URL" ]; then
         if [ -n "$GIT_ORG" ]; then
-          echo "$GIT_ORG/$RPTNAME"
+          echo "$GIT_ORG/$REPOS"
         else
           echo ""
         fi
         return
       elif [ "$ITEM" == "GIT_URL" ]; then
         if [ -n "$GIT_ORG" ]; then
-          echo "$GIT_ORG/$RPTNAME.git"
+          echo "$GIT_ORG/$REPOS.git"
         else
           echo ""
         fi
         return
       elif [ "$ITEM" == "URL_BRANCH" ]; then
         if [ -n "$GIT_ORG" ]; then
-          echo "$GIT_ORG/$RPTNAME/tree/$odoo_fver"
+          echo "$GIT_ORG/$REPOS/tree/$odoo_fver"
         else
           echo ""
         fi
@@ -322,7 +337,7 @@ build_odoo_param() {
         if [ "$odoo_fver" == "6.1" ]; then
           echo ""
         elif [ -n "$ODOO_UPSTREAM" ]; then
-          echo "$ODOO_UPSTREAM/$RPTNAME.git"
+          echo "$ODOO_UPSTREAM/$REPOS.git"
         else
           echo ""
         fi
@@ -357,33 +372,40 @@ build_odoo_param() {
     elif [ "$ITEM" == "MAJVER" ]; then
       echo "$odoo_ver"
       return
+    elif [ "$ITEM" == "REPOS" ]; then
+      echo "$REPOS"
+      return
     elif [ "$ITEM" == "ROOT" ]; then
-      echo "/opt/odoo/$odoo_vid"
+      echo "$ROOT/$odoo_vid"
       return
     elif [ "$ITEM" == "HOME" ]; then
-      if [ "$2" == "." ]; then
-        echo "$(readlink -f $PWD)"
-      elif [ "$RPTNAME" == "OCB" ]; then
-        echo "/opt/odoo/$odoo_vid"
+      if [ "$REPOS" == "OCB" ]; then
+        echo "$ROOT/$odoo_vid"
       else
-        echo "/opt/odoo/$odoo_vid/$RPTNAME"
+        echo "$ROOT/$odoo_vid/$REPOS"
       fi
       return
     elif [ "$ITEM" == "PARENTDIR" ]; then
-      if [ "$RPTNAME" == "OCB" ]; then
-        echo "/opt/odoo"
+      if [ "$REPOS" == "OCB" ]; then
+        echo "$ROOT"
       else
-        echo "/opt/odoo/$odoo_vid"
+        echo "$ROOT/$odoo_vid"
       fi
       return
+    elif [ "$ITEM" == "PKGNAME" ]; then
+      echo "$PKGNAME"
+      return
+    elif [ "$ITEM" == "PKGPATH" ]; then
+      echo "$PKGPATH"
+      return
     elif [ "$ITEM" == "DDIR" ]; then
-      p="/opt/odoo/.local/share"
+      p="$ROOT/.local/share"
       if [[ $odoo_vid =~ $reo ]]; then
         p="$p/Odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="$p/Odoo$odoo_ver"
       elif [ $odoo_ver -lt 8 ]; then
-        p="/opt/odoo/$odoo_vid/openerp/filestore"
+        p="$ROOT/$odoo_vid/openerp/filestore"
       else
         p="$p/Odoo"
       fi
@@ -460,13 +482,13 @@ build_odoo_param() {
       p4=.pid
     elif [ "$ITEM" == "BIN" ]; then
       if [ $odoo_ver -lt 7 ]; then
-        p1=/opt/odoo/$odoo_vid/server/
-        p11=/opt/odoo/$odoo_vid/
+        p1=$ROOT/$odoo_vid/server/
+        p11=$ROOT/$odoo_vid/
       elif [ $odoo_ver -eq 7 -a "${odoo_vid:0:1}" == "v" ]; then
-        p1=/opt/odoo/$odoo_vid/server/
-        p11=/opt/odoo/$odoo_vid/
+        p1=$ROOT/$odoo_vid/server/
+        p11=$ROOT/$odoo_vid/
       else
-        p1=/opt/odoo/$odoo_vid/
+        p1=$ROOT/$odoo_vid/
       fi
       p4=
     else

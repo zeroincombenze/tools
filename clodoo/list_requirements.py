@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.22'
+__version__ = '0.3.7.23'
 
 #
 # known incompantibilities:
@@ -387,7 +387,7 @@ def main():
                         dest="base_pkgs")
     parser.add_argument("-d", "--dependencies-path",
                         help="Follow oca_dependencies.txt in directory",
-                        metavar="directory",
+                        metavar="directory list (comma separated)",
                         dest="oca_dependencies")
     parser.add_argument("-m", "--manifest",
                         help="Declare manifest files if no path supplied",

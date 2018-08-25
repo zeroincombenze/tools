@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.22
+__version__=0.3.7.23
 
 
 test_01() {
@@ -566,6 +566,30 @@ test_06() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       done
     fi
+    pushd $LCLTEST_TMPDIR >/dev/null
+    RES=$(build_odoo_param PKGPATH '.')
+    test_result "Test Odoo PKGPATH" "$LCLTEST_TMPDIR" "$RES"
+    RES=$(build_odoo_param HOME '.')
+    test_result "Test Odoo HOME" "$LCLTEST_PRJPATH" "$RES"
+    RES=$(build_odoo_param PARENTDIR '.')
+    test_result "Test Odoo PARENTDIR" "$LCLTEST_TMPDIR0" "$RES"
+    RES=$(build_odoo_param ROOT '.')
+    test_result "Test Odoo ROOT" "$LCLTEST_TMPDIR0" "$RES"
+    RES=$(build_odoo_param REPOS '.')
+    test_result "Test Odoo REPOS" "$LCLTEST_REPOSNAME" "$RES"
+    popd >/dev/null
+    pushd $LCLTEST_PRJPATH >/dev/null
+    RES=$(build_odoo_param PKGPATH '.')
+    test_result "Test Odoo PKGPATH" "" "$RES"
+    RES=$(build_odoo_param HOME '.')
+    test_result "Test Odoo HOME" "$LCLTEST_PRJPATH" "$RES"
+    RES=$(build_odoo_param PARENTDIR '.')
+    test_result "Test Odoo PARENTDIR" "$LCLTEST_TMPDIR0" "$RES"
+    RES=$(build_odoo_param ROOT '.')
+    test_result "Test Odoo ROOT" "$LCLTEST_TMPDIR0" "$RES"
+    RES=$(build_odoo_param REPOS '.')
+    test_result "Test Odoo REPOS" "$LCLTEST_REPOSNAME" "$RES"
+    popd >/dev/null
     return $sts
 }
 
