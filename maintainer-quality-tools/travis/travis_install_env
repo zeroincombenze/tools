@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.71
+__version__=0.2.1.72
 
 
 run_n_echo() {
@@ -257,6 +257,8 @@ if [[ "$TRAVIS" == "true" ]]; then
   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
+  run_n_echo "$HOME/tools/install_foreign.sh -qp"
+  [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
   if [ -z "$PYPI_CACHED" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f

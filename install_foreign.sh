@@ -1,6 +1,13 @@
-# __version__=0.1.8
+# __version__=0.1.9
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
+if [[ $1 =~ -.*h ]]; then
+  echo "$THIS [-h][-p][-q]"
+  echo "  -h  this help"
+  echo "  -p  mkdir ~/dev if not exists"
+  echo "  -q  quiet mode"
+  exit 0
+fi
 RFLIST__travis_emulator="dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh topep8 topep8.py to_pep8.2p8 to_pep8.py travis travisrc vfcp vfdiff wok_doc wok_doc.py"
 RFLIST__clodoo="addsubm.sh awsfw clodoo.py clodoocore.py clodoolib.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo odoorc oe_watchdog run_odoo_debug.sh odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active"

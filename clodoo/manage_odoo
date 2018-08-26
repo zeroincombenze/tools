@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.25
+__version__=0.3.7.26
 
 
 explore() {
@@ -118,13 +118,19 @@ do_action() {
       [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH
       if [ -z "$PYPI_CACHED" ]; then
         eval $PIP install pip -U
+        for p in os0 z0lib; do
+          eval $LISA status -q $p
+          if [ $? -ne 0 ]; then
+            eval $PIP install $p
+          fi
+        done
         [ $opt_verbose -gt 0 ] && echo "## Analyzing binary requirements"
         breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
         [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR"
         [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
         opts=
         [ $opt_yes -ne 0 ] && opts="${opts}y"
-        for f in $breqs; do
+        for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
             echo "Check for $f"
