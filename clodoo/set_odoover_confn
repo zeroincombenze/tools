@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.24
+__version__=0.3.7.25
 
 
 set_ver() {

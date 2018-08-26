@@ -1,9 +1,8 @@
-# Config file travis.yml
-# for travis emulator and other PYPI packages
+# Odoo yaml template for travis-ci
+# __version__=0.2.2.1
 # Can used both in local travis emulator both in travis environment
-# version 0.2.2
 # Notice: in local travis emulator macroes are substituted at 2 layers:
-# - format: ${macro] are replaced before execution (at travis.ynl read)
+# - format: ${macro} are replaced before execution (at travis.yml read)
 # - format: $macro are replace by shell during execution
 
 language: python
@@ -21,34 +20,29 @@ git:
 
 addons:
   apt:
-#    sources:
+    sources:
 #    Search your sources alias here:
 #      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
+      - python-dev
+      - curl
+      - build-essential
+      - expect-dev
+      - shellcheck
 #     Search your packages here:
 #       https://github.com/travis-ci/apt-package-whitelist/blob/master/ubuntu-precise
 #     For wkhtmltopdf, see the env section below
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
+  # Tools are used to test themselves packages
   - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
-
-
-  - export TRAVIS_DEBUG_MODE="1"
-  # Run if local travis emulator and travis emulator itself
-  - "[ \"${TRAVIS}\" != \"true\" -a \"$PKGNAME\" == \"travis_emulator\" ] && export PATH=${PRJPATH}/_travis:$PATH || true"
-  # Run if local travis emulator and all other packages
-  - "[ \"${TRAVIS}\" != \"true\" -a \"$PKGNAME\" != \"travis_emulator\" ] && export PATH=${TOOLS_PATH}:$PATH || true"
-  # Run outside local travis emulator or all other packages
-  - "[ \"${TRAVIS}\" == \"true\" ] && cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME} || true"
-  - "[ \"${TRAVIS}\" == \"true\" ] && export PATH=${HOME}/maintainer-quality-tools/travis:${PATH} || true"
-  - travis_install_env tools
-  - export PYTHONPATH=${TRAVIS_BUILD_DIR}
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH
   - export OPTS="$OPTS"
 
 install:
-  - export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH
-  - echo $PATH
+  - travis_install_env tools
 
 env:
   global:
@@ -56,7 +50,7 @@ env:
 
   matrix:
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/clodoo
-  # - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
+  - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zar
   - LINT_CHECK="1" BASH_CHECK="1" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zerobug
 

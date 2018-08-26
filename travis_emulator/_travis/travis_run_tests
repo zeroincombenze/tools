@@ -38,8 +38,133 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.40
+__version__=0.2.1.41
 
+
+travis_test_bash() {
+    echo "======== Testing test_bash   ========"
+    sts=$STS_SUCCESS
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      local f p param
+      local shellcheck_ignore=$(grep -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+      local shellcheck_exclude=$(grep -Eo "^exclude *= *[^#]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+      shellcheck_exclude="${shellcheck_exclude//,/ } *.py"
+      shellcheck_exclude=$(echo $shellcheck_exclude)
+      param=
+      if [ -n "$shellcheck_exclude" ]; then
+        for p in $shellcheck_exclude; do
+          if [ "${p: -1}" == "/" ]; then
+            param="$param -not -path '$p'"
+          else
+            param="$param -not -name '$p'"
+          fi
+        done
+      fi
+      for f in $(find . -type f $param -executable|tr "\n" " "); do
+        local mime=$(file -b --mime-type $f)
+        if [ "$mime" == "text/x-shellscript" ]; then
+          [ ${opt_verbose:-0} -gt 0 ] && echo "$ shellcheck -e $shellcheck_ignore $f"
+          bash -n $f
+          if [ $? -eq 0 ]; then shellcheck -e $shellcheck_ignore $f; fi
+          local s=$?
+          if [ $sts -eq $STS_SUCCESS ]; then
+            if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+              echo "Invalid statement 'set -x' in $f"
+              sts=$STS_FAILED
+            fi
+          else
+            sts=$STS_FAILED
+          fi
+        fi
+      done
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_flake8() {
+    echo "======== Testing test_flake8 ========"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      # FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
+      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+      local status1=$?
+      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+      local status2=$?
+      sts=$((${status1} || ${status2}))
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_pylint() {
+    echo "======== Testing test_pylint ========"
+    sts=$STS_SUCCESS
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRAVIS_BUILD_DIR=$PKGPATH
+      MODULES_TO_TEST=$TRAVIS_BUILD_DIR
+      PYLINT_CONFIG_DIR="$FLAKE8_CONFIG_DIR"
+      if [ "$PRJNAME" == "Odoo" ]; then
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      else
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      fi
+      if [ ${opt_verbose:-0} -gt 0 ]; then
+        echo "export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}"
+      fi
+      export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
+      IFS="/" read -a REPO <<< "${ODOO_REPO}"
+      export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
+      #run pylint command
+      run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
+      sts=$?
+    fi
+    return $sts
+}
+
+run_regression_test() {
+    local x
+    echo "======== Running regression_test ========"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+        local OPTS=$(inherits_travis_opts "n" "T")
+      else
+        local OPTS=$(inherits_travis_opts "" "T")
+      fi
+      x=$(readlink -e $PWD/..)
+      if [ $(echo ":$PYTHONPATH:"|grep -qv ":$x:"  2>/dev/null) ]; then
+        run_traced "export PYTHONPATH=${PYTHONPATH}:$x"
+      fi
+      if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
+        if [ ${opt_dprj:-0} -gt 0 ]; then
+          ./tests/all_tests $OPTS
+        else
+          cd ./tests; ./all_tests $OPTS
+        fi
+        sts=$?
+      elif [ -f ./tests/test_$PRJNAME.py ]; then
+        if [ ${opt_dprj:-0} -gt 0 ]; then
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
+          fi
+          DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py
+        else
+          if [ ${opt_verbose:-0} -gt 0 ]; then
+            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
+          fi
+          cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py
+        fi
+        sts=$?
+      else
+        elog "!????? Module test for $PRJNAME not found!??????"
+        sts=$STS_FAILED
+      fi
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
 
 do_test () {
     if [ "$PRJNAME" == "Odoo" ]; then
@@ -88,9 +213,24 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
-if [ "${MQT_DRY_RUN:-0}" == "1" ]; then opt_dry_run=1; fi
-if [ "${MQT_VERBOSE_MODE:-0}" == "1" ]; then opt_verbose=1; fi
-if [ "${MQT_VERBOSE_MODE:-1}" == "0" ]; then opt_verbose=0; fi
+[ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
+[ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
+[ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
+[ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
+if [ "${HOSTNAME:0:3}" == "shs" ]; then
+  TRAVIS_TEXT_COLOR="\e[0;97;40m"
+  TRAVIS_HDR1_COLOR="\e[30;42m"
+  TRAVIS_HDR2_COLOR="\e[30;46m"
+  TRAVIS_HDR3_COLOR="\e[30;106m"
+  TRAVIS_NOP_COLOR="\e[35;40m"
+else
+  TRAVIS_TEXT_COLOR=
+  TRAVIS_HDR1_COLOR=
+  TRAVIS_HDR2_COLOR=
+  TRAVIS_HDR3_COLOR=
+  TRAVIS_NOP_COLOR=
+fi
+
 opts_travis
 CFG_init
 conf_default
@@ -119,8 +259,11 @@ if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DI
 if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+if [ $opt_verbose -gt 0 ]; then
+  echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
+fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
-  please_test_bash
+  travis_test_bash
   sts_bash=$?
 else
   sts_bash=127
