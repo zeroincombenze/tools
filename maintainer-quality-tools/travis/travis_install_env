@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.72
+__version__=0.2.1.73
 
 
 run_n_echo() {
@@ -252,13 +252,16 @@ if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "$PIP install $p $PIP_OPTS"
     fi
   done
-  # workaround for TravisCI
-  run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
-  run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
+  if [ "$MQT_TEST_MODE" != "tools" ]; then
+    # workaround for TravisCI
+    run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
+    run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
+  fi
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   run_n_echo "$HOME/tools/install_foreign.sh -qp"
   [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
+  run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     for p in oerplib odoorpc zerobug clodoo; do
       eval $LISA status -q $f

@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.5
+__version__=0.3.0.6
 
 
 STS_FAILED=1
@@ -2607,6 +2607,15 @@ pre_dry_install_LAMP() {
       if [ "$FH" == "RHEL" ]; then
         run_traced "yum $opt_yes groupinstall \"Development tools\""
       fi
+    fi
+    return $STS_SUCCESS
+}
+
+pre_dry_install_nodejs() {
+    if [ "$FH" == "RHEL" ]; then
+      run_traced "curl --silent --location https://rpm.nodesource.com/setup_10.x | sudo bash -"
+    else
+      run_traced "curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -"
     fi
     return $STS_SUCCESS
 }
