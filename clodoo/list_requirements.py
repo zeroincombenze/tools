@@ -11,7 +11,8 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.26'
+__version__ = '0.3.7.27'
+python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
 # known incompantibilities:
@@ -225,7 +226,8 @@ def parse_requirements(reqfile):
     for line in lines:
         if line and line[0] != '#':
             items = line.split(';')
-            if len(items) == 1 or eval(items[1].strip().replace('_', '.')):
+            if len(items) == 1 or eval(items[1].strip().replace(
+                    '_', '.').replace('python.version','python_version')):
                 item = items[0].strip()
                 reqlist.append(item)
     return reqlist

@@ -35,7 +35,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.26
+#__version__=0.3.7.27
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -176,8 +176,8 @@ build_odoo_param() {
     local reo="^($p1)"
     local reg="^($p2)"
     local ref="($p3)"
-    if [[ "$2" == "." || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
-      x="$PWD"
+    if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
+      x=$(readlink -f $2)
       while [ -z "$odoo_vid" -a -n "$x" ]; do
         if [ -z "$PKGPATH" ] && [ -f $x/__manifest__.py -o -f $x/__openerp__.py ]; then
           PKGPATH=$x
@@ -201,6 +201,7 @@ build_odoo_param() {
       odoo_vid="$2"
       [ -z "$3" ] && REPOS="OCB" || REPOS=$3
     fi
+    [ "$REPOS" == "addons" ] && REPOS=
     if [ -n "$odoo_vid" -a -z "$odoo_fver" ]; then
       if [[ $odoo_vid =~ $rex ]]; then
         odoo_fver=$(get_odoo_full_ver "$odoo_vid")
@@ -381,8 +382,10 @@ build_odoo_param() {
     elif [ "$ITEM" == "HOME" ]; then
       if [ "$REPOS" == "OCB" ]; then
         echo "$ROOT/$odoo_vid"
-      else
+      elif [ -n "$REPOS" ]; then
         echo "$ROOT/$odoo_vid/$REPOS"
+      else
+        echo "$ROOT/$odoo_vid"
       fi
       return
     elif [ "$ITEM" == "PARENTDIR" ]; then

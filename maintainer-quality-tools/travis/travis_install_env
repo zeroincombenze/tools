@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.73
+__version__=0.2.1.74
 
 
 run_n_echo() {
@@ -122,15 +122,16 @@ cp_n_upd_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b          j        K        n            q           T        t         V           v)
-OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
-OPTACTI=(1        1          1        1        1            0           1        1         "*>"        "+")
-OPTDEFL=(0        0          0        0        0            -1          0        0         ""          -1)
-OPTMETA=("help"   "dprj"   "check"   "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
+OPTOPTS=(h        b          j        K        H           n            q           T        t         V           v)
+OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        1          1        1        1           1            0           1        1         "*>"        "+")
+OPTDEFL=(0        0          0        0        0           0            -1          0        0         ""          -1)
+OPTMETA=("help"   "dprj"   "check"   ""        ""          "do nothing" "qiet"      "test"   "test"    "version"   "verbose")
 OPTHELP=("this help"\
  "Odoo version"\
  "execute tests in project dir rather in test dir"\
  "do bash, flake8 and pylint checks"\
+ "humdrum, display w/o colors"\
  "do nothing (dry-run)"\
  "silent mode"\
  "do regression tests"\
@@ -184,7 +185,7 @@ MQT_TEST_MODE=${MQT_TEST_MODE,,}
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
-if [ "${HOSTNAME:0:3}" == "shs" ]; then
+if [ "$TRAVIS" != "true" ]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
@@ -208,7 +209,7 @@ else
   [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
   [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
 fi
-if [ "${HOSTNAME:0:3}" == "shs" ]; then
+if [ ${opt_humdrum:-0} -eq 0 ]; then
   TRAVIS_TEXT_COLOR="\e[0;97;40m"
   TRAVIS_HDR1_COLOR="\e[30;42m"
   TRAVIS_HDR2_COLOR="\e[30;46m"
@@ -232,6 +233,7 @@ if [ $opt_verbose -gt 0 ]; then
 fi
 [[ "$TRAVIS" == "true" ]] && run_n_echo "$PIP install -q pip --upgrade"
 # Build secure environment (python2)
+echo -e "${TRAVIS_HDR3_COLOR}### Build Secure Environment${TRAVIS_TEXT_COLOR}"
 for p in build-essential libssl-dev libffi-dev python-dev; do
   eval $LISA status -q $p
   if [ $? -ne 0 ]; then
@@ -246,6 +248,7 @@ for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
 done
 # Secure environment OK
 if [[ "$TRAVIS" == "true" ]]; then
+  echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
   for p in os0 z0lib; do
     eval $LISA status -q $p
     if [ $? -ne 0 ]; then
@@ -259,6 +262,7 @@ if [[ "$TRAVIS" == "true" ]]; then
   fi
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
+  echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
   run_n_echo "$HOME/tools/install_foreign.sh -qp"
   [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
   run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
@@ -286,6 +290,7 @@ else
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ "${LINT_CHECK:-1}" != "0" ]; then
+    echo -e "${TRAVIS_HDR3_COLOR}### Build Test Environment${TRAVIS_TEXT_COLOR}"
     if [[ "$TRAVIS" == "true" ]]; then
       # run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
       # run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
@@ -294,6 +299,7 @@ else
     run_n_echo "npm install eslint"
   fi
   if [ "${TESTS}" == "1" ]; then
+    echo -e "${TRAVIS_HDR3_COLOR}### Install Packages for Base Environment${TRAVIS_TEXT_COLOR}"
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
@@ -319,23 +325,22 @@ else
     fi
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
+    echo -e "${TRAVIS_HDR3_COLOR}### Tested repository is OCB${TRAVIS_TEXT_COLOR}"
     if [[ "$TRAVIS" == "true" ]]; then
-      echo -e "- Tested repository is OCB"
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     elif [ ! -L ${ODOO_PATH} ]; then
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
+    echo -e "${TRAVIS_HDR3_COLOR}### Installing Odoo $ODOO_URL${TRAVIS_TEXT_COLOR}"
     export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
     if [[ "$TRAVIS" == "true" ]]; then
-      echo "- Installing Odoo $ODOO_URL"
       run_n_echo "wget -nv -O odoo.tar.gz $ODOO_URL"
       run_n_echo "tar -xf odoo.tar.gz -C ${HOME}"
     elif [ ! -L ${ODOO_PATH} ]; then
       if [[ "$REMOTE" == "oca" ]]; then
         majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
         if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          echo "- Installing Odoo $ODOO_URL"
           run_n_echo "wget -nv -O $REPO_NAME.tar.gz $ODOO_URL"
           run_n_echo "tar -xf $REPO_NAME.tar.gz -C $TRAVIS_SAVED_HOME"
         fi
@@ -376,13 +381,15 @@ else
       exit $sts
     fi
     if [[ "$PKGNAME" == "OCB" ]]; then
+      ocb_dir='.'
       dependencies_dir=${HOME}/dependencies
     else
-      dependencies_dir=${ODOO_PATH},${HOME}/dependencies
+      dependencies_dir=${HOME}/dependencies
+      ocb_dir=${ODOO_PATH}
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-      run_n_echo "$MGRODOO requirements -b '.' $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [ $opt_verbose -gt 0 ]; then

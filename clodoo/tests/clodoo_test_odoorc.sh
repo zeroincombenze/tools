@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.26
+__version__=0.3.7.27
 
 
 test_01() {
@@ -526,13 +526,13 @@ test_05() {
     }
 
 test_06() {
-    local s sts v w
+    local s sts v w x
     sts=0
     opt_mult=1
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
-        cd ~/$v
+        pushd ~/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -564,6 +564,19 @@ test_06() {
         RES=$(build_odoo_param CONFN $v)
         test_result "Configuration file ./$v" "$w" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        popd >/dev/null
+        # [ ${opt_dry_run:-0} -eq 0 ] && set -x   #debug
+        if [ "${v:0:3}" != "oia" ]; then
+          x=$(readlink -f ~/$v)
+          RES=$(build_odoo_param HOME ~/$v)
+          test_result "HOME ~/$v" "$x" "$RES"
+          RES=$(build_odoo_param HOME ~/$v/addons)
+          test_result "HOME ~/$v/addons" "$x" "$RES"
+          RES=$(build_odoo_param HOME "$x")
+          test_result "HOME $x" "$x" "$RES"
+          RES=$(build_odoo_param HOME "$x/addons")
+          test_result "HOME $x/addons" "$x" "$RES"
+        fi
       done
     fi
     pushd $LCLTEST_TMPDIR >/dev/null

@@ -319,6 +319,7 @@ openssh-server_svcname=ssh
 pyldap_ReqPkgList=python-dev,openldap-devel
 psutil_ReqPkgList=python-dev
 npm_ReqPkgList=nodejs
+nodejs_ReqPkgList=curl
 
 
 [_Debian_DEV_]

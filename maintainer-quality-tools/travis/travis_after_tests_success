@@ -6,7 +6,7 @@ from coverage.cmdline import main as coverage_main
 from coveralls import cli as coveralls_cli
 from codecov import main as codecov_main
 
-__version__ = '0.2.1.73'
+__version__ = '0.2.1.74'
 
 
 if (os.environ.get('TESTS', '1') == '1' and

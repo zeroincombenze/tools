@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.26
+__version__=0.3.7.27
 
 
 explore() {
@@ -62,7 +62,9 @@ do_action() {
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local f s
     local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
+    echo "\$ local $pkgdir=\$(build_odoo_param HOME \$odoo_vid=$odoo_vid \$repo=$repo)"   #debug
     local pardir=$(readlink -e $pkgdir)
+    echo "\$ local $pardir=\$(readlink -e \$pkgdir=$pkgdir)"   #debug
     local opts=
     if [ $opt_verbose -gt 0 ]; then
       local opts="-v"
@@ -80,11 +82,11 @@ do_action() {
     local x
     if [[ ! "$act" == "requirements" && ! "$act" == "check-config" ]]; then
       if [ "$repo" != "$LAST_REPO" -o "$odoo_vid" != "$LAST_VID" ]; then
-        echo "=====[$odoo_vid/$repo]====="
+        echo -e "${TRAVIS_HDR1_COLOR}=====[$odoo_vid/$repo]=====${TRAVIS_TEXT_COLOR}"
         LAST_REPO=$repo
         LAST_VID=$odoo_vid
       else
-        echo "--------------------"
+        echo -e "${TRAVIS_TEXT_COLOR}--------------------${TRAVIS_HDR3_COLOR}"
       fi
       for x in $excl; do
         if [ "$x" == "$repo" -o "$x" == "$repo/$odoo_vid"  -o "$x" == "$odoo_vid/$repo"  -o "$x" == "$repo/$odoo_fver"  -o "$x" == "$odoo_fver/$repo" ]; then
@@ -112,11 +114,12 @@ do_action() {
       [ -f $HOME/tools/lisa/lisa ] && LISA=$HOME/tools/lisa/lisa || LISA=lisa
       [ -f $TDIR/../../lisa/lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa/lisa)
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
-      [ $opt_verbose -gt 0 ] && echo "\$ alias pip=$PIP.$($PIP --version)"
-      [ $opt_verbose -gt 0 ] && echo "\$ alias lisa=$LISA.$($LISA -V)"
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && PYPI_CACHED=$HOME/.local
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
+      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
+      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && PYPI_CACHED=$HOME/.local
       [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH
       if [ -z "$PYPI_CACHED" ]; then
+        echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
         eval $PIP install pip -U
         for p in os0 z0lib; do
           eval $LISA status -q $p
@@ -124,29 +127,29 @@ do_action() {
             eval $PIP install $p
           fi
         done
-        [ $opt_verbose -gt 0 ] && echo "## Analyzing binary requirements"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing binary requirements${TRAVIS_TEXT_COLOR}"
         breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
-        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR"
-        [ $opt_verbose -gt 0 ] && echo "\$ breqs=$breqs"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR${TRAVIS_HDR3_COLOR}"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ breqs=$breqs${TRAVIS_HDR3_COLOR}"
         opts=
         [ $opt_yes -ne 0 ] && opts="${opts}y"
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
-            echo "Check for $f"
+            echo -e "${TRAVIS_TEXT_COLOR}Check for $f{TRAVIS_HDR3_COLOR}"
           elif [ "$f" == "$pkg" ]; then
             eval $LISA status -q $pkg -d0 &>/dev/null
             [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
           fi
         done
-        [ $opt_verbose -gt 0 ] && echo "## Analyzing python requirements"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing python requirements${TRAVIS_TEXT_COLOR}"
         preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
-        [ $opt_verbose -gt 0 ] && echo "\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR"
-        [ $opt_verbose -gt 0 ] && echo "\$ preqs=$preqs"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR${TRAVIS_HDR3_COLOR}"
+        [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ preqs=$preqs${TRAVIS_HDR3_COLOR}"
         for pass in 1 2 3; do
-          [ $pass -eq 1 ] && echo "## Check for package status"
-          [ $pass -eq 2 ] && echo "## Upgrade versioned package"
-          [ $pass -eq 3 ] && echo "## Check for package version"
+          [ $pass -eq 1 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package status${TRAVIS_TEXT_COLOR}"
+          [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
+          [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
           for f in $preqs; do
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
@@ -163,12 +166,12 @@ do_action() {
               if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)
-                  echo "$x but expected $op$reqver"
+                  echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
                 else
                   cmd="$PIP install -q $f --upgrade --no-warn-conflicts"
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
                   [ $EUID -ne 0 -a $pass -eq 1 ] && cmd="$cmd --user"
-                  echo "Update '$pkg' version '$curver' with version '$reqver'"
+                  echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
                   if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
                     echo "> $cmd"
                   else
@@ -179,7 +182,7 @@ do_action() {
             fi
           done
         done
-        echo "## Analyzing npm packages"
+        echo -e "${TRAVIS_HDR3_COLOR}### Analyzing npm packages${TRAVIS_TEXT_COLOR}"
         x=$(npm list|grep " less@")
         [ -z "$x" ] && x=$(npm list -g|grep " less@")
         if [ "$TRAVIS" == "true" -o -z "$x" ]; then
@@ -293,16 +296,17 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       d        m         n            O         p         q           s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_multi opt_dry_run  opt_org   opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       "="      1         1            "="       "="       1           1          "*>"        "+"         "="        1)
-OPTDEFL=(0        ""         ""       0       ""       0         0            "zero"    "2"       -1          0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""        "do nothing" "git-org" ""        "verbose"   ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       d        H           m         n            O         p         q           s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="       1           1          "*>"        "+"         "="        1)
+OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    "2"       -1          0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" ""        "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
  "default module list"\
  "dependencies directory"\
+ "humdrum, display w/o colors"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
@@ -333,6 +337,19 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 discover_multi
+if [ ${opt_humdrum:-0} -eq 0 ]; then
+  TRAVIS_TEXT_COLOR="\e[0;97;40m"
+  TRAVIS_HDR1_COLOR="\e[30;42m"
+  TRAVIS_HDR2_COLOR="\e[30;46m"
+  TRAVIS_HDR3_COLOR="\e[30;106m"
+  TRAVIS_NOP_COLOR="\e[35;40m"
+else
+  TRAVIS_TEXT_COLOR=
+  TRAVIS_HDR1_COLOR=
+  TRAVIS_HDR2_COLOR=
+  TRAVIS_HDR3_COLOR=
+  TRAVIS_NOP_COLOR=
+fi
 if [ -z "$opt_branch" ]; then
   opt_branch="6.1 7.0 8.0 9.0 10.0 11.0"
   multi_version_pkgs=1
@@ -373,9 +390,9 @@ for odoo_vid in $opt_branch; do
 done
 if [ $opt_verbose -gt 0 ]; then
   if [ $opt_multi -ne 0 ]; then
-    echo "Manage Odoo multi-version environment"
+    echo -e "${TRAVIS_HDR3_COLOR}Manage Odoo multi-version environment${TRAVIS_TEXT_COLOR}"
   else
-    echo "Manage single Odoo version environment"
+    echo -e "${TRAVIS_HDR3_COLOR}Manage single Odoo version environment${TRAVIS_TEXT_COLOR}"
     multi_version_pkgs=0
   fi
 fi
