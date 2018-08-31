@@ -30,7 +30,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.27"
+__version__ = "0.3.7.28"
 
 
 #############################################################################
@@ -370,23 +370,87 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     return o_skull
 
 
-def set_some_values(ctx, o_model, name, value, model=None):
+def get_company_id(ctx):
+    value = get_db_alias(ctx, 'base.mycompany')
+    if not value or not value.isdigit(): 
+        model = 'res.company'
+        company_name = ctx.get('company_name', 'La % Azienda')
+        ids = searchL8(ctx, model, [('name', 'ilike', company_name)])
+        if not ids:
+            ids = searchL8(ctx, model, [('id', '>', 1)])
+        if ids:
+            value = ids[0]
+        else:
+            value =  1
+    if 'company_id' not in ctx:
+        ctx['company_id'] = value
+    return value
+
+
+def get_country_id(ctx, value):
+    if value:
+        model = 'res.country'
+        ids = searchL8(ctx, model,
+                       [('code', '=', value.upper())])
+        if not ids:
+            ids = searchL8(ctx, model,
+                           [('name', 'ilike', value)])
+        if ids:
+            value = ids[0]
+        else:
+            value = False
+    else:
+        value = ctx['def_country_id']
+    return value
+
+
+def get_state_id(ctx, value, country_id=None):
+    if value:
+        if not country_id:
+            country_id = ctx['def_country_id']
+        model = 'res.country.state'
+        ids = searchL8(ctx, model,
+                       [('country_id', '=', country_id),
+                        ('code', '=', value.upper())])
+        if not ids:
+            ids = searchL8(ctx, model,
+                           [('country_id', '=', country_id),
+                            ('name', 'ilike', value)])
+        if ids:
+            value = ids[0]
+        else:
+            value = False
+    return value
+
+
+def set_some_values(ctx, o_model, name, value, model=None, row=None):
     """Set default value for empties fields"""
     if not model and o_model and o_model['model']:
         model = o_model['model']
-    if model == 'res.partner':
+    if not value and name in ctx.get('DEFAULT', ''):
+        value = ctx['DEFAULT'][name]
+    elif name == 'company_id':
+        if not value:
+            value = ctx['company_id']
+    elif name == 'country_id':
+        value = get_country_id(ctx, value)
+    elif model == 'res.partner':
         if name == 'is_company':
             return True
-        else:
-            return value
+        elif name == 'vat':
+            if ctx.get('country_code') == 'IT' and value.isdigit():
+                value = 'IT%011d' % int(value)
+        elif name == 'state_id':
+            if row and 'country_id' in row:
+                value = get_state_id(ctx, value, country_id=row['country_id'])
+            else:
+                value = get_state_id(ctx, value)
     elif model == 'res.users':
         if name == 'email':
             if ctx['with_demo']:
                 return ctx['def_email']
             elif not ctx['with_demo']:
                 return ctx['zeroadm_mail']
-    # if name == 'company_id':
-    #     return get_company_id(ctx)
     return value
 
 
@@ -612,7 +676,18 @@ def get_query_id(ctx, o_model, row):
                 value.append(row.get(p, ''))
         else:
             value = row.get(code, '')
-        if model is None:
+        if not value:
+            if o_model['name'].find(',') >= 0:
+                code = o_model['name'].split(',')
+            else:
+                code = o_model['name']
+            if isinstance(code, list):
+                value = []
+                for p in code:
+                    value.append(row.get(p, ''))
+            else:
+                value = row.get(code, '')
+        if model is None or not value:
             ids = []
         else:
             ids = _get_simple_query_id(ctx,
@@ -652,7 +727,10 @@ def _query_expr(ctx, o_model, code, value):
 
 
 def validate_field(ctx, model, name):
-    if searchL8(ctx,
+    # FIX for Odoo 7.0
+    if model in ('res.users', 'res.partner') and name in ('id', 'name'):
+        return True
+    elif searchL8(ctx,
                 'ir.model.fields',
                 [('model', '=', model),
                  ('name', '=', name)]):

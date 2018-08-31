@@ -15,14 +15,25 @@
 import sys
 from datetime import date
 
-from clodoo.clodoo import (check_4_actions, create_act_list, do_single_action,
-                           isaction)
-from clodoo.clodoocore import (_get_model_bone, _get_model_code,
-                               _get_model_name, _import_file_dbtype,
-                               _import_file_model, _model_has_company,
-                               eval_value, get_query_id, import_file_get_hdr)
+try:
+    from clodoo.clodoo import (check_4_actions, create_act_list,
+                               do_single_action, isaction)
+    from clodoo.clodoocore import (_get_model_bone, _get_model_code,
+                                   _get_model_name, _import_file_dbtype,
+                                   _import_file_model, _model_has_company,
+                                   eval_value, get_query_id,
+                                   import_file_get_hdr)
+except BaseException:
+    from clodoo import (check_4_actions, create_act_list,
+                        do_single_action, isaction)
+    from clodoocore import (_get_model_bone, _get_model_code,
+                            _get_model_name, _import_file_dbtype,
+                            _import_file_model, _model_has_company,
+                            eval_value, get_query_id,
+                            import_file_get_hdr)
+    
 from zerobug import Z0test
-__version__ = "0.3.7.27"
+__version__ = "0.3.7.28"
 
 
 MODULE_ID = 'clodoo'

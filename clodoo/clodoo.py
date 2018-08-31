@@ -97,9 +97,20 @@ Field value may be:
 
 Predefines macros (in ctx):
 company_id     default company_id
+company_name   name of default company (if company_id not valid)
+country_code   ISO-3166 default country (see def_country_id)
+customer-supplier if field contains 'customer' or 'client' set customer=True
+                  if it contains 'supplier' or 'vendor' or 'fornitore'
+                      set supplier=True
+def_country_id default country id (from company or from user)
 def_email      default mail; format: {username}{majversion}@example.com
+full_model     load all field values, even if not in csv
 header_id      id of header when import header/details files
 lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
+name2          if present, is merged with name
+name_first     if present with name last, are merged to compse name
+name_last      if present with name first, are merged to compse name
+street2        if present and just numeric, is merged with street
 zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
 zeroadm_login  default admin username from conf file
 oneadm_mail    default user2 mail from conf file or <def_mail> if -D switch
@@ -111,11 +122,19 @@ _current_year  date.today().year
 _last_year'    date.today().year - 1
 TRANSDICT      dictionary with field translation, format csv_name: field_name;
                i.e {'partner_name': 'name'}
+               or csv_position: field_name, i.e. {'0': 'name'}
 TRX_VALUE      dictionary with value translation for field;
-               format is field_name: {csv_value: field_value}
+               format is field_name: {csv_value: field_value, ...}
                i.e. {'country': {'Inghilterra': 'Regno Unito'}}
-// DEFAULT        dictionary with default value for field,
-               format is field_name: {test,value_true,value_false}
+               special value '$BOOLEAN' return True or False
+DEFAULT        dictionary with default value, format field_name: value
+EXPR           evaluate value from expression, format csv_name: expression;
+               expression can refer to other fields of csv record in format
+               csv[field_name]
+               or other fields of record in format row[field_name]
+               i.e. {'is_company': 'row["ref"] != ""'}
+                    {'is_company': 'csv["CustomerRef"] != ""'}
+MANDATORY      dictionary with mandatory field names
 
 
 Import searches for existing data (this behavior differs from Odoo standard)
@@ -150,14 +169,14 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         validate_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
-                        set_some_values)
+                        set_some_values, get_company_id)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.27"
+__version__ = "0.3.7.28"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -542,6 +561,9 @@ def init_company_ctx(ctx, c_id):
     ctx['def_company_name'] = ctx['company_name']
     if ctx.get('company_country_id', 0) != 0:
         ctx['def_country_id'] = ctx['company_country_id']
+        ctx['country_code'] = browseL8(ctx,
+                                       'res.country',
+                                       ctx['def_country_id']).code
     return ctx
 
 
@@ -868,9 +890,10 @@ def act_list_db(ctx):
 
 
 def act_echo_db(ctx):
-    msg = ident_db(ctx, ctx['db_name'])
-    ident = ' ' * ctx['level']
-    print(" %s%s" % (ident, msg))
+    if not ctx['quiet_mode']:
+        msg = ident_db(ctx, ctx['db_name'])
+        ident = ' ' * ctx['level']
+        print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
@@ -890,10 +913,11 @@ def act_list_companies(ctx):
 
 
 def act_echo_company(ctx):
-    c_id = ctx['company_id']
-    msg = ident_company(ctx, c_id)
-    ident = ' ' * ctx['level']
-    print(" %s%s" % (ident, msg))
+    if not ctx['quiet_mode']:
+        c_id = ctx['company_id']
+        msg = ident_company(ctx, c_id)
+        ident = ' ' * ctx['level']
+        print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
@@ -918,10 +942,11 @@ def act_list_users(ctx):
 
 
 def act_echo_user(ctx):
-    u_id = ctx['user_id']
-    msg = ident_user(ctx, u_id)
-    ident = ' ' * ctx['level']
-    print(" %s%s" % (ident, msg))
+    if not ctx['quiet_mode']:
+        u_id = ctx['user_id']
+        msg = ident_user(ctx, u_id)
+        ident = ' ' * ctx['level']
+        print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
@@ -1206,6 +1231,9 @@ def act_per_user(ctx):
             ctx['def_company_name'] = ctx['company_name']
             if ctx.get('company_country_id', 0) != 0:
                 ctx['def_country_id'] = ctx['company_country_id']
+                ctx['country_code'] = browseL8(ctx,
+                                               'res.country',
+                                               ctx['def_country_id']).code
             if sts != STS_SUCCESS:
                 break
     return sts
@@ -1284,12 +1312,6 @@ def act_workflow(ctx):
         msg_log(ctx, ctx['level'] + 1, msg)
         sts = STS_FAILED
     else:
-        # o_model['model_action'] = translate_from_to(ctx,
-        #                                             o_model['model'],
-        #                                             o_model['model_action'],
-        #                                             '',
-        #                                             '8.0',
-        #                                             ctx['oe_version'])
         where = []
         if o_model.get('model_name'):
             where.append(
@@ -4548,46 +4570,125 @@ def add_external_name(ctx, o_model, row, id):
                         id=res_id)
 
 
+def translate_fields(ctx, o_model, csv, csv_obj):
+    def translate_from_param(ctx, n, nm):
+        values = ctx['TRX_VALUE'][nm]
+        if csv[n] in values:
+            row[nm] = values[csv[n]]
+        elif '$BOOLEAN' in values:
+            if csv[n]:
+                row[nm] = values['$BOOLEAN']
+            else:
+                row[nm] = not values['$BOOLEAN']
+
+    row = {}
+    if not ctx.get('validated_fields'):
+        ctx['validated_fields'] = []
+    for n in csv:
+        nm = get_name_by_ver(ctx, o_model['model'], n)
+        if not nm:
+            continue
+        if n in csv_obj.fieldnames:
+            ipos = str(csv_obj.fieldnames.index(n))
+        else:
+            ipos = '-1'
+        if ipos in ctx.get('TRANSDICT', ''):
+            nm = ctx['TRANSDICT'][ipos] or nm
+        elif nm in ctx.get('TRANSDICT', ''):
+            nm = ctx['TRANSDICT'][nm] or nm
+        else:
+            nm = nm.split('/')[0].split(':')[0]
+        if nm in ('db_type', 'oe_versions',
+                  'name2', 'name_first', 'name_last',
+                  'customer-supplier') or \
+                (len(ctx['validated_fields']) and 
+                 nm in ctx['validated_fields']) or \
+                 validate_field(ctx, o_model['model'], nm):
+            if nm in ctx.get('TRX_VALUE', ''):
+                translate_from_param(ctx, n, nm)
+            else:
+                row[nm] = csv[n]
+    if 'company_id' not in row and not o_model.get('hide_cid', False):
+        row['company_id'] = False
+    if ctx.get('MANDATORY'):
+        for nm in ctx['MANDATORY']:
+            if nm not in row:
+                row[nm] = ''
+    for nm in row:
+        if not row[nm] and nm in ctx.get('EXPR', ''):
+            row[nm] = eval(ctx['EXPR'][nm])
+        else:
+            row[nm] = set_some_values(ctx,
+                                      o_model,
+                                      nm,
+                                      row[nm],
+                                      row=row)
+
+    if 'name2' in row:
+        if 'name' in row:
+            row['name'] = '%s %s' % (row['name'], row['name2'])
+        else:
+            row['name'] = row['name2']
+        del row['name2']
+    if 'name_first' in row and 'name_last' in row and \
+            (not row.get('is_company', True) or
+             row.get('company_type') == 'person' or
+             not row.get('name')):
+        row['name'] = '%s %s' % (row['name_last'], row['name_first'])
+        del row['name_first'], row['name_last']
+    if 'street2' in row and row['street2'].isdigit() and 'street' in row:
+        row['street'] = '%s, %s' % (row['street'], row['street2'])
+        row['street2'] = ''
+    if 'customer-supplier' in row or not row.get('is_company', True) or \
+                row.get('company_type') == 'person':
+            if 'customer' in row:
+                row['customer'] = False
+            if 'supplier' in row:
+                row['supplier'] = False
+    if 'customer-supplier' in row:
+        if row['customer-supplier'].lower().find('customer') >= 0 or \
+                row['customer-supplier'].lower().find('client') >= 0:
+            row['customer'] = True
+        if row['customer-supplier'].lower().find('supplier') >= 0 or \
+                row['customer-supplier'].lower().find('vendor') >= 0 or \
+                row['customer-supplier'].lower().find('fornitore') >= 0:
+            row['supplier'] = True
+        del row['customer-supplier']
+    return row
+
+
 def parse_fields(ctx, o_model, row, ids, cur_obj):
     name_new = ''
     update_header_id = True
     vals = {}
-    for n in row:
-        nm = get_name_by_ver(ctx, o_model['model'], n)
-        if not nm:
-            continue
-        if nm in ctx.get('TRANSDICT'):
-            nm = ctx['TRANSDICT'][nm] or nm
-        else:
-            nm = nm.split('/')[0].split(':')[0]
+    if row.get('name'):
+        name_new = row['name']
+    for nm in row:
         if not nm or nm in ('id',
                             'db_type',
                             'oe_versions',
+                            'name2',
+                            'name_first',
+                            'name_last',
+                            'customer-supplier',
                             o_model['alias_field']):
             continue
-        if isinstance(row[n], basestring):
+        if isinstance(row[nm], basestring):
             if nm == o_model['alias_field']:
                 continue
-            if row[n].find('${header_id}') >= 0:
+            if row[nm].find('${header_id}') >= 0:
                 update_header_id = False
-            row[n] = row[n].replace('\\n', '\n')
-        # if nm in ctx.get('TRX_VALUE') and row[n] in ctx['TRX_VALUE'][nm]:
-        #     row[n] = ctx['TRX_VALUE'][nm][row[n]]
+            row[nm] = row[nm].replace('\\n', '\n')
         val = eval_value(ctx,
                          o_model,
                          nm,
-                         row[n])
-        # if val is None:
-        #     if nm in ctx.get('DEFAULT'):
-        #         pass
+                         row[nm])
         if val is not None:
             if (nm != 'fiscalcode' or val != '') and \
                     (len(ids) == 0 or tounicode(val) != cur_obj[nm]):
-                vals[n] = tounicode(val)
-        msg = u"{0}={1}".format(n, tounicode(val))
+                vals[nm] = tounicode(val)
+        msg = u"{0}={1}".format(nm, tounicode(val))
         debug_msg_log(ctx, ctx['level'] + 2, msg)
-        if nm == o_model['name']:
-            name_new = val
     return vals, update_header_id, name_new
 
 
@@ -4603,8 +4704,21 @@ def import_file(ctx, o_model, csv_fn):
     """
     msg = u"Import file " + csv_fn
     debug_msg_log(ctx, ctx['level'] + 1, msg)
+    if not ctx.get('company_id'):
+        init_company_ctx(ctx, get_company_id(ctx))
     if 'company_id' in ctx:
         company_id = ctx['company_id']
+    if ctx.get('full_model'):
+        if not ctx.get('MANDATORY'):
+            ctx['MANDATORY'] = []
+        field_model = 'ir.model.fields'
+        for field_id in searchL8(ctx,
+                                 field_model,
+                                 [('model', '=', o_model['model'])]):
+            field_name = browseL8(ctx, field_model, field_id).name
+            for field_name in ctx['MANDATORY']:
+                if field_name not in ctx['MANDATORY']:
+                    ctx['MANDATORY'],append(field_name)
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
@@ -4614,6 +4728,8 @@ def import_file(ctx, o_model, csv_fn):
         ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
     if os.path.isfile(ver_csv):
         csv_ffn = ver_csv
+    if not os.path.isfile(csv_ffn):
+        csv_ffn = csv_fn
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -4641,6 +4757,7 @@ def import_file(ctx, o_model, csv_fn):
                     msg = u"!File " + csv_fn + " without key!"
                     msg_log(ctx, ctx['level'] + 1, msg)
                     break
+            row = translate_fields(ctx, o_model, row, csv_obj)
             # Data for specific db type (i.e. just for test)
             if o_model.get('db_type', ''):
                 if row[o_model['db_type']]:
@@ -4687,14 +4804,6 @@ def import_file(ctx, o_model, csv_fn):
                             ctx['oe_version'].split('.')[0])
             else:
                 cur_obj = False
-            if ctx.get('full_model'):
-                field_model = 'ir.model.fields'
-                for field_id in searchL8(ctx,
-                                         field_model,
-                                         [('model', '=', o_model['model'])]):
-                    field_name = browseL8(ctx, field_model, field_id).name
-                    if field_name not in row:
-                        row[field_name] = ''
             vals, update_header_id, name_new = parse_fields(ctx,
                                                             o_model,
                                                             row,
@@ -4714,8 +4823,6 @@ def import_file(ctx, o_model, csv_fn):
             if o_model['model'] == 'res.users' and \
                     'new_password' in vals and \
                     len(ids) == 0:
-                #     (len(ids) == 0 or
-                #      (len(ids) and cur_login != ctx['login_user'])):
                 vals['password'] = vals['new_password']
                 del vals['new_password']
                 vals['password_crypt'] = ''

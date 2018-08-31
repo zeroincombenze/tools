@@ -20,16 +20,20 @@ from subprocess import PIPE, Popen
 from os0 import os0
 
 from zerobug import Z0test
-from clodoo import clodoo
-from clodoo.clodoolib import crypt
+try:
+    from clodoo import clodoo
+    from clodoo.clodoolib import crypt
+except BaseException:
+    import clodoo
+    from clodoolib import crypt
 
 
-__version__ = "0.3.7.27"
+__version__ = "0.3.7.28"
 
 
 MODULE_ID = 'clodoo'
 VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
-# VERSIONS_TO_TEST = ('8.0',)
+# VERSIONS_TO_TEST = ('7.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 

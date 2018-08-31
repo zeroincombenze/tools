@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.27
+__version__=0.3.7.28
 
 
 explore() {
@@ -62,9 +62,7 @@ do_action() {
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local f s
     local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
-    echo "\$ local $pkgdir=\$(build_odoo_param HOME \$odoo_vid=$odoo_vid \$repo=$repo)"   #debug
     local pardir=$(readlink -e $pkgdir)
-    echo "\$ local $pardir=\$(readlink -e \$pkgdir=$pkgdir)"   #debug
     local opts=
     if [ $opt_verbose -gt 0 ]; then
       local opts="-v"
