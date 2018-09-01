@@ -768,12 +768,13 @@ class Test():
                     res = get_query_id(ctx,
                                        o_bones,
                                        row)
-                    if len(res) <= 1:
-                        sts = self.Z.test_result(z0ctx, msg, False, True)
-                    else:
-                        sts = self.Z.test_result(z0ctx, msg, True, True)
-                    if sts == TEST_SUCCESS:
-                        sts = self.Z.test_result(z0ctx, msg, 999, res[0])
+                    # if len(res) <= 1:
+                    #     sts = self.Z.test_result(z0ctx, msg, False, True)
+                    # else:
+                    #     sts = self.Z.test_result(z0ctx, msg, True, True)
+                    # if sts == TEST_SUCCESS:
+                    #     sts = self.Z.test_result(z0ctx, msg, 999, res[0])
+                    sts = self.Z.test_result(z0ctx, msg, [], res)
 
                 for i in range(2):
                     if sts == TEST_SUCCESS:
