@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.42
+__version__=0.2.1.41
 
 
 test_01() {
@@ -446,7 +446,7 @@ EOF
     test_result "please distribution 5" "$TESTOUT" "$TESTRES" "diff"
 }
 
-__NO_test_06() {
+test_06() {
     local TESTOUT TESTRES TESTFN
     TESTFN=README
     TESTSRC=$LCLTEST_PRJPATH/$TESTFN

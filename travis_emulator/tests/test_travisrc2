@@ -32,30 +32,28 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.42
+__version__=0.2.1.41
 
 
 save_testenv() {
 #save_testenv(cwd)
     local p
-    for p in opt_dry_run pkg opt_verbose opt_r opt_conf opt_virt; do
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
       eval SAVE_$p=${!p}
     done
     LCLTEST_CWD=$PWD
     if [ -z "$1" ]; then
-      cd $LCL_OE_PKGPATH
+      cd $LCLTEST_TMPDIR
     elif [ "$1" == "0" ]; then
-      cd $LCL_OE_ROOT
+      cd $LCLTEST_TMPDIR0
     elif [ "$1" == "2" ]; then
-      cd $LCL_OE_PKGPATH2
-    elif [ "$1" == "P" ]; then
-      cd $LCL_PY_PRJPATH
+      cd $LCLTEST_TMPDIR2
     fi
 }
 
 restore_testenv() {
     local p x
-    for p in opt_dry_run pkg opt_verbose opt_r opt_conf opt_virt; do
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
       x=saved_$p
       eval $p=${!x}
       eval SAVE_$p=
@@ -65,9 +63,8 @@ restore_testenv() {
 
 result_testenv() {
 #result_testenv(cwd)
-    # ODOO setup
     local p x
-    for p in opt_dry_run pkg opt_verbose opt_r opt_conf opt_virt; do
+    for p in opt_dry_run pkg opt_verbose opt_r opt_conf; do
       eval tested_$p=${!p}
     done
     restore_testenv
@@ -77,25 +74,23 @@ result_testenv() {
 Z0BUG_setup() {
     local VERSION=9.0
     local ODOO_REPO=local/odoo
-    LCL_OE_PRJNAME="Odoo"
-    LCL_OE_REPOS=l10n_italy
-    LCL_OE_PKGNAME=l10n_it_base
-    LCL_OE_ROOT=~/dev/odoo/$VERSION
-    LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
-    LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
-    LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OE_PKGNAME
+    LCLTEST_PRJNAME="Odoo"
+    LCLTEST_REPOSNAME=l10n_italy
+    LCLTEST_PKGNAME=l10n_it_base
+    LCLTEST_TMPDIR0=~/dev/odoo/$VERSION
+    LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
+    LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
+    LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
     mkdir -p ~/maintainer-quality-tools
-    mkdir -p $LCL_OE_ROOT
-    mkdir -p $LCL_OE_ROOT/openerp
-    touch $LCL_OE_ROOT/openerp-server
-    mkdir -p $LCL_OE_PRJPATH
-    mkdir -p $LCL_OE_PKGPATH
-    mkdir -p $LCL_OE_PKGPATH2
-    touch $LCL_OE_PKGPATH/__openerp__.py
-    touch $LCL_OE_PKGPATH2/__openerp__.py
-    mkdir -p $LCL_OE_PRJPATH/conf
-    touch $LCL_OE_PRJPATH/conf/.local_dist_pkg.conf
-    LCL_OE_SETUP=__openerp__.py
+    mkdir -p $LCLTEST_TMPDIR0
+    mkdir -p $LCLTEST_TMPDIR0/openerp
+    touch $LCLTEST_TMPDIR0/openerp-server
+    mkdir -p $LCLTEST_PRJPATH
+    mkdir -p $LCLTEST_TMPDIR
+    mkdir -p $LCLTEST_TMPDIR2
+    touch $LCLTEST_TMPDIR/__openerp__.py
+    touch $LCLTEST_TMPDIR2/__openerp__.py
+    LCLTEST_SETUP=__openerp__.py
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
@@ -141,30 +136,14 @@ EOF
         false
       fi
     fi
-    # PYPI setup
-    LCL_PY_PRJNAME="example"
-    LCL_PY_PKGNAME=$LCL_PY_PRJNAME
-    LCL_PY_REPOS="pypi"
-    LCL_PY_ROOT=~/dev/test/pypi
-    LCL_PY_SETUP=setup.py
-    mkdir -p ~/dev/test
-    mkdir -p ~/dev/test/pypi
-    mkdir -p ~/dev/test/pypi/$LCL_PY_PRJNAME
-    mkdir -p ~/dev/test/pypi/$LCL_PY_PRJNAME/$LCL_PY_PRJNAME
-    LCL_PY_PKGPATH=$LCL_PY_ROOT/$LCL_PY_PRJNAME
-    LCL_PY_PRJPATH=$LCL_PY_PKGPATH/$LCL_PY_PRJNAME
-    mkdir -p $LCL_PY_PKGPATH/conf
-    touch $LCL_PY_PKGPATH/conf/.local_dist_pkg.conf
-    touch $LCL_PY_PKGPATH/setup.py
 }
 
 Z0BUG_teardown() {
-    rm -fR ~/dev/test
     rm -f ~/maintainer-quality-tools
-    rm -fR $LCL_OE_PKGPATH2
-    rm -fR $LCL_OE_PKGPATH
-    rm -fR $LCL_OE_PRJPATH
-    rm -fR $LCL_OE_ROOT
+    rm -fR $LCLTEST_TMPDIR2
+    rm -fR $LCLTEST_TMPDIR
+    rm -fR $LCLTEST_PRJPATH
+    rm -fR $LCLTEST_TMPDIR0
     if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
       rm -f $LCLTEST_ODOO9_SERVER
     fi
@@ -176,70 +155,26 @@ Z0BUG_teardown() {
 test_01() {
     save_testenv
     local s sts res opts
+    opt_conf=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opts_travis ""
       result_testenv
     fi
-    test_result "opts_travis OE (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
+    res=$TDIR/.travis.conf
+    test_result "travis.conf" "$res" "$TCONF"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (local conf)" "$LCL_OE_PRJPATH/conf/.local_dist_pkg.conf" "$DIST_CONF"
+    test_result "travis.opts_travis (REMOTEREPO)" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (REMOTEREPO)" "local" "$REMOTEREPO"
+    test_result "travis.opts_travis (PKGPATH)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (PKGPATH)" "$LCL_OE_PKGPATH" "$PKGPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (PKGNAME)" "$LCL_OE_PKGNAME" "$PKGNAME"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (PRJPATH)" "$LCL_OE_PRJPATH" "$PRJPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (PRJNAME)" "$LCL_OE_PRJNAME" "$PRJNAME"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (REPOS)" "$LCL_OE_REPOS" "$REPOS"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (SETUP)" "$LCL_OE_PKGPATH/$LCL_OE_SETUP" "$SETUP"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (MANIFEST)" "$LCL_OE_SETUP" "$MANIFEST"
+    test_result "travis.opts_travis (PKGNAME)" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
 }
 
 test_02() {
-    save_testenv "P"
-    local s sts res opts
-    sts=0
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      # set -x #debug
-      opts_travis ""
-      # set +x #debug
-      result_testenv
-    fi
-    test_result "opts_travis PY (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (local conf)" "$LCL_PY_PKGPATH/conf/.local_dist_pkg.conf" "$DIST_CONF"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (REMOTEREPO)" "local" "$REMOTEREPO"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (PKGPATH)" "$LCL_PY_PKGPATH" "$PKGPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (PKGNAME)" "$LCL_PY_PKGNAME" "$PKGNAME"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (PRJPATH)" "$LCL_PY_PRJPATH" "$PRJPATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (PRJNAME)" "$LCL_PY_PRJNAME" "$PRJNAME"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (REPOS)" "$LCL_PY_REPOS" "$REPOS"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (SETUP)" "$LCL_PY_PKGPATH/$LCL_PY_SETUP" "$SETUP"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (MANIFEST)" "$LCL_PY_SETUP" "$MANIFEST"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    restore_testenv
-    return $sts
-}
-
-test_03() {
     save_testenv
     local s sts RES opts
     opt_conf=
@@ -259,7 +194,19 @@ test_03() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis.FLOG_ECHO" "echo" "$FLOG_ECHO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.setup" "$LCLTEST_SETUP" "$SETUP"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.reposname" "$LCLTEST_REPOSNAME" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.prjname" "$LCLTEST_PKGNAME" "$PKGNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.prjname" "$LCLTEST_PRJNAME" "$PRJNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.prjpath" "$LCLTEST_PRJPATH" "$PRJPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     check_4_travis
+    test_result "travis.dstpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=1
       opts=$(inherits_travis_opts "v" "D")
@@ -361,55 +308,54 @@ test_03() {
     return $sts
 }
 
-test_04() {
+test_03() {
     save_testenv
     local s sts res opts
     export opt_conf=$TESTDIR/test_travis.conf
-    [ -f $opt_conf ] && rm -f $opt_conf
+    if [ -f $opt_conf ]; then rm -f $opt_conf; fi
     touch $opt_conf
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opts_travis ""
       result_testenv
     fi
-    # tested_opt_conf from result_testenv
-    test_result "opts_travis OE (opt_conf)" "$tested_opt_conf" "$TCONF"
+    test_result "travis.conf" "$tested_opt_conf" "$TCONF"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (TRAVIS_REPO_SLUG)" "$REMOTEREPO/$PKGNAME" "$TRAVIS_REPO_SLUG"
+    res=$LCLTEST_TMPDIR
+    test_result "travis.pkgpath" "$res" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opt_virt=1
-      opt_verbose=2
-      opts_travis ""
-      CFG_init
-      conf_default
-      init_travis
-      result_testenv
-    fi
-    test_result "opts_travis OE (virtualenv_opts)" "--no-pip --no-setuptools --no-wheel" "$TRAVIS_ENVOPTS"
+    test_result "travis.repository" "local" "$REMOTEREPO"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-
     restore_testenv
     return $sts
 }
 
-test_05() {
+test_04() {
     save_testenv
     local s sts res opts
     opt_conf=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis ""
       opt_verbose=2
       opt_r=1
       TOOLS_PATH=
       PRJNAME=
-      opts_travis ""
       CFG_init
       conf_default
       init_travis
       result_testenv
     fi
+    test_result "init_travis.dry_run" "" "$opts_dry_run"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.verbose" "-v" "$opts_verbose"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.FLOG_ECHO" "echo" "$FLOG_ECHO"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.setup" "$LCLTEST_SETUP" "$SETUP"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    test_result "init_travis.reposname" "$LCLTEST_REPOSNAME" "$REPOSNAME"
+    s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ -d $TDIR/_travis ]; then
       test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
     else
@@ -426,79 +372,79 @@ test_05() {
     fi
     test_result "init_travis \$MQT_VERBOSE_MODE" "1" "$MQT_VERBOSE_MODE"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    # BRANCH=9.0
-    # if [ -d ~/9.0 ]; then
-    #   if [ ${opt_dry_run:-0} -eq 0 ]; then
-    #     opt_verbose=1
-    #     opt_dry_run=1
-    #     prepare_env_travis
-    #     run_svr_test_init > $FOUT
-    #     result_testenv
-    #   fi
-    #   test_result "run_svr_test_init" "$FOUT" "$FTEST" "diff -qEbB"
-    #   s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    # else
-    #   VERSION=9.0
-    # fi
+    BRANCH=9.0
+    if [ -d ~/9.0 ]; then
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        opt_verbose=1
+        opt_dry_run=1
+        prepare_env_travis
+        run_svr_test_init > $FOUT
+        result_testenv
+      fi
+      test_result "run_svr_test_init" "$FOUT" "$FTEST" "diff -qEbB"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    else
+      VERSION=9.0
+    fi
     restore_testenv
     return $sts
 }
 
-test_06() {
+test_05() {
     save_testenv "0"
     local s sts res opts
     opt_conf=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis ""
       opt_verbose=1
       PRJNAME=
-      opts_travis ""
       CFG_init
       conf_default
       # link_cfg $DIST_CONF $TCONF
       init_travis
       result_testenv "0"
     fi
-    test_result "init_travis OE OCB (PKGPATH)" "$LCL_OE_ROOT" "$PKGPATH"
+    test_result "travis.pkgpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "init_travis OE OCB (REPOSNAME)" "OCB" "$REPOSNAME"
+    test_result "travis.reposname (OCB)" "" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "init_travis OE OCB (PKGNAME)" "" "$PKGNAME"
+    test_result "travis.prjname (OCB)" "OCB" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "init_travis OE OCB (PRJPATH)" "$LCL_OE_ROOT" "$PRJPATH"
+    test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR0" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     check_4_travis
-    test_result "init_travis OE OCB (PKGPATH)" "$LCL_OE_ROOT" "$PKGPATH"
+    test_result "travis.dstpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv "0"
     return $sts
 }
 
-test_07() {
+test_06() {
     save_testenv
     local s sts res opts
     opt_conf=
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
+      opts_travis ""
       opt_verbose=1
       PRJNAME=
-      opts_travis ""
       CFG_init
       conf_default
       init_travis
       result_testenv
     fi
-    test_result "travis.pkgpath (RPS)" "$LCL_OE_PKGPATH" "$PKGPATH"
+    test_result "travis.pkgpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.pkgpath (RPS)" "$LCL_OE_PKGPATH" "$PKGPATH"
+    test_result "travis.pkgpath (RPS)" "$LCLTEST_TMPDIR" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.reposname (RPS)" "$LCL_OE_REPOS" "$REPOSNAME"
+    test_result "travis.reposname (RPS)" "$LCLTEST_REPOSNAME" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjname (RPS)" "$LCL_OE_PKGNAME" "$PKGNAME"
+    test_result "travis.prjname (RPS)" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjpath (RPS)" "$LCL_OE_PRJPATH" "$PRJPATH"
+    test_result "travis.prjpath (RPS)" "$LCLTEST_PRJPATH" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-     test_result "init_travis.prjname" "$LCL_OE_PRJNAME" "$PRJNAME"
+     test_result "init_travis.prjname" "$LCLTEST_PRJNAME" "$PRJNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       result_testenv "0"
@@ -506,13 +452,13 @@ test_07() {
       FLOG_ECHO=echo   # revaluate_travis update FLOG_ECHO and disable test output
       result_testenv "0"
     fi
-    test_result "travis.pkgpath (OCB)" "$LCL_OE_ROOT" "$PKGPATH"
+    test_result "travis.pkgpath (OCB)" "$LCLTEST_TMPDIR0" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.reposname (OCB)" "OCB" "$REPOSNAME"
+    test_result "travis.reposname (OCB)" "" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjname (OCB)" "" "$PKGNAME"
+    test_result "travis.prjname (OCB)" "OCB" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjpath (OCB)" "$LCL_OE_ROOT" "$PRJPATH"
+    test_result "travis.prjpath (OCB)" "$LCLTEST_TMPDIR0" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       result_testenv "2"
@@ -520,13 +466,13 @@ test_07() {
       FLOG_ECHO=echo   # revaluate_travis update FLOG_ECHO and disable test output
       result_testenv "2"
     fi
-    test_result "travis.pkgpath (unported)" "$LCL_OE_PKGPATH2" "$PKGPATH"
+    test_result "travis.pkgpath (unported)" "$LCLTEST_TMPDIR2" "$PKGPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.reposname (unported)" "$LCL_OE_REPOS" "$REPOSNAME"
+    test_result "travis.reposname (unported)" "$LCLTEST_REPOSNAME" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjname (unported)" "$LCL_OE_PKGNAME" "$PKGNAME"
+    test_result "travis.prjname (unported)" "$LCLTEST_PKGNAME" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjpath (unported)" "$LCL_OE_PRJPATH" "$PRJPATH"
+    test_result "travis.prjpath (unported)" "$LCLTEST_PRJPATH" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     restore_testenv
     return $sts
