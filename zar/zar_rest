@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.31.6
+__version__=1.3.31.7
 
 
 kill_process() {
@@ -217,14 +217,16 @@ create_script_db_2_restore() {
 # drop_db_2_restore(db fsql)
     local NEWDB="$1"
     local fsql=$2
-    local dtc=$(date "+%Y-%m-%m %H:%M:%S")
+    local dtc=$(date "+%Y-%m-%d %H:%M:%S")
     local owner=
     wlog "Prepare file script $fsql ..."
     if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
-      owner=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z]+"|head -n1|awk -F: '{print $2}')
+      owner=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z0-9_]+"|head -n1|awk -F: '{print $2}')
       owner=$(echo $owner)
+      reass_own=0
     else
       owner=$OE_OWN
+      reass_own=1
     fi
     echo "\\c postgres">$fsql
     echo "\\echo Creating new DB \"$NEWDB\" ($dtc)">>$fsql
@@ -234,8 +236,8 @@ create_script_db_2_restore() {
     echo "\\echo Loading data from $SQLFNAME into DB \"$NEWDB\"">>$fsql
     echo "\\i $SQLFNAME">>$fsql
     echo "\\echo Set owner of \"$NEWDB\" to $owner;">>$fsql
-    echo "ALTER DATABASE \"$NEWDB\" OWNER TO $OE_OWN;">>$fsql
-    if [ "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
+    echo "ALTER DATABASE \"$NEWDB\" OWNER TO $owner;">>$fsql
+    if [ $reass_own -ne 0 -a "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
       echo "\\echo Reassign owner from $PRD_OE_OWN to $owner">>$fsql
       echo "REASSIGN OWNED BY $PRD_OE_OWN TO $DEV_OE_OWN;">>$fsql
     fi
@@ -460,11 +462,11 @@ if [ $dovalid -gt 0 ]; then
     create_script_db_2_restore "$NEWDB" "$fsql"
     if [ $opt_dry_run -eq 0 ]; then
       wlog "Starting restore $NEWDB"
-      if [ $opt_mail -gt 0 ]; then
-        eval $TDIR/$THIS -R "$NEWDB" &
-      fi
-      kill_process $NEWDB
+    else
+      wlog "Should start restore $NEWDB"
     fi
+    run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_user $NEWDB"
+    [ $opt_dry_run -eq 0 ] && eval $TDIR/$THIS -R "$NEWDB" &
     run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
     if [ $opt_dry_run -eq 0 ]; then
       if [ $opt_mail -gt 0 ]; then
