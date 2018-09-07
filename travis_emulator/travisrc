@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.41
+#__version__=0.2.1.42
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -40,8 +40,9 @@ opts_travis() {
       IFS="/" read REMOTEREPO pkgname <<< "$1"
     fi
     [ -z "$REMOTEREPO" ] && REMOTEREPO="local"
-    PKGPATH=$(set_pkgpath "")
-    set_pkgname $PKGPATH
+    # PKGPATH=$(set_pkgpath "")
+    # set_pkgname $PKGPATH
+    build_pypi_param ALL $1
     export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
       TCONF=$opt_conf
@@ -154,6 +155,74 @@ inherits_travis_opts() {
     echo "$opts"
 }
 
+build_pypi_param() {
+# build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP vid)
+    local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
+    [ -z "$ODOO_SETUPS" ] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
+    local ODOO_SETUPS=${ODOO_SETUPS//,/ }
+    local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS ODOO_SETUP
+    x="$PWD"
+    [ -n "$2" ] && x=$2
+    if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
+      x=$(readlink -e $HOME/pypi/$2/$2)
+    fi
+    while [[ ( -z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH" ) && -n "$x" ]]; do
+      r=$(basename $x)
+      if [[ ! $r =~ (odoo|openerp|tests|__unported__|addons|tests|build|dist|conf|.cover|.coverage) ]]; then
+        [ -z "$_PRJPATH" ] && _PRJPATH=$x
+        [ -z "$_PRJNAME" ] && _PRJNAME=$(basename $x)
+        if [[ -z "$_SETUP" && -f "$x/setup.py" && ( ! -f "$x/../setup.py" || ! $(basename $(dirname $x)) == $(basename $x) ) ]]; then
+          _SETUP="$x/setup.py"
+          [ -z "$_PKGPATH" ] && _PKGPATH=$x
+          [ -z "$_PKGNAME" ] && _PKGNAME=$(basename $x)
+          [ "$x" != "/" ] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+          break
+        elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
+          _PRJNAME="Odoo"
+          break
+        elif [ -d $x/openerp -a -f $x/openerp-server ]; then
+          _PRJNAME="Odoo"
+          break
+        elif [ -d $x/server -a -f $x/server/openerp-server ]; then
+          _PRJNAME="Odoo"
+          break
+        elif [ -z "$_SETUP" ]; then
+          for ODOO_SETUP in $ODOO_SETUPS; do
+            if [ -f $x/$ODOO_SETUP ]; then
+              _PRJNAME="Odoo"
+              _PRJPATH=
+              _SETUP="$x/$ODOO_SETUP";
+              _REPOS=
+              if [ -z "$_PKGPATH" ]; then
+                _PKGPATH=$x
+                _PKGNAME=$(basename $x)
+              fi
+              break
+            fi
+          done
+        elif [ -z "$_REPOS" ]; then
+          _REPOS=$(basename $x)
+        fi
+      fi
+      [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
+    done
+    if [[ "$_PRJNAME" == "Odoo" ]]; then
+      [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
+      [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
+    fi
+    if [ "$1" == "ALL" ]; then
+      SETUP=$_SETUP
+      [ -n "$SETUP" ] && MANIFEST=$(basename $SETUP) || MANIFEST=
+      PKGPATH=$_PKGPATH
+      PKGNAME=$_PKGNAME
+      PRJPATH=$_PRJPATH
+      PRJNAME=$_PRJNAME
+      REPOS=$_REPOS
+    elif [ "$1" == "PKGPATH" ]; then
+      echo "$_PKGPATH"
+    fi
+}
+
 init_travis() {
     local r x
     TRAVIS_ENV=$(get_cfg_value "" "Environment")
@@ -202,62 +271,22 @@ init_travis() {
       opts_verbose=
       export FLOG_ECHO=
     fi
-    local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
-    local ODOO_SETUPS=${ODOO_SETUPS//,/ }
-    SETUP=
-    x="$PWD"
-    while [ -z "$SETUP"  -a -n "$x" ]; do
-      r=$(basename $x)
-      if [[ ! $r =~ (odoo|openerp|tests|__unported__) ]]; then
-        if [ -f $x/setup.py ]; then
-          SETUP="$x/setup.py"
-          break
-        elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
-          PRJNAME="Odoo"
-          break
-        elif [ -d $x/openerp -a -f $x/openerp-server ]; then
-          PRJNAME="Odoo"
-          break
-        elif [ -d $x/server -a -f $x/server/openerp-server ]; then
-          PRJNAME="Odoo"
-          break
-        else
-          true
-          for ODOO_SETUP in $ODOO_SETUPS; do
-            if [ -f $x/$ODOO_SETUP ]; then
-              PRJNAME="Odoo"
-              SETUP="$x/$ODOO_SETUP";
-              break
-            fi
-          done
-        fi
-      fi
-      [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
-    done
+    if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
+      build_pypi_param ALL
+    fi
     if [ "$PRJNAME" == "Odoo" ]; then
-      REPOSNAME=$(build_odoo_param REPOS '.')
       if [ -n "$SETUP" -a -f "$SETUP" ]; then
-        prjversion=$(grep "'version' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"', \r\n")
         prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
-        SETUP=$(basename $SETUP)
       else
-        prjversion=""
         prjdesc="Unrecognized Odoo module"
       fi
     else
-      REPOSNAME=
       if [ -n "$SETUP" -a -f "$SETUP" ]; then
-        REPOSNAME=$(basename $(dirname $SETUP))
         PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-        prjversion=$(grep "[^a-zA-Z0-9_]version *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-        if [ "$prjversion" == "version" ]; then
-          prjversion=""
-        fi
         prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
         if [ "$prjdesc" == "description" ]; then
           prjdesc="Unrecognized package"
         fi
-        # SETUP=$(basename $SETUP)
       fi
     fi
     if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
@@ -270,33 +299,11 @@ init_travis() {
         mkdir -p $NPM_CONFIG_PREFIX
         npm config set prefix $NPM_CONFIG_PREFIX
       fi
-      set_pkgname $PKGNAME
-      if [ "$PKGNAME" == "OCB" ]; then
-        REPOSNAME=
-      fi
+      PKGNAME=$(build_odoo_param PKGNAME ".")
+      REPOSNAME=$(build_odoo_param REPOS ".")
       BRANCH=$(build_odoo_param FULLVER ".")
-      if [ -z "$prjversion" ]; then
-        prjversion="$BRANCH"
-      else
-        local v l
-        local x=1
-        for v in 11.0 10.0 9.0 8.0 7.0 6.1; do
-          l=${#v}
-          if [ ${prjversion:0:l} == "$v" -a $prjversion != "$v" ]; then
-            x=0
-          fi
-        done
-        if [ $x -gt 0 ]; then
-          prjversion="$BRANCH.$prjversion"
-        fi
-      fi
-      PRJPATH=$(build_odoo_param HOME '.')
-    else
-      if [ -d $PKGPATH/$PRJNAME ]; then
-        PRJPATH=$PKGPATH/$PRJNAME
-      else
-        PRJPATH=$PKGPATH
-      fi
+      # PRJPATH=$(build_odoo_param HOME '.')
+      SETUP=$MANIFEST
     fi
     if [ ${opt_dbgmnt:-0} -ne 0 ]; then
       local MQT_DEF_PATH=$(get_cfg_value "" "MQT_DEF_DEVPATH")
@@ -340,9 +347,9 @@ init_travis() {
 
 revaluate_travis() {
     PRJNAME=
-    REPOSNAME=
-    PKGPATH=$(set_pkgpath "")
-    PKGNAME=$(basename $PKGPATH)
+    PRJPATH=
+    PGKNAME=
+    PKGPATH=
     init_travis
 }
 
@@ -674,41 +681,7 @@ expand_path() {
 set_pkgpath() {
 # set_pkgpath (PKGNAME)
 # return:pkgpath
-    PKGPATH="$1"
-    if [ -z "$PKGPATH" ]; then
-      PKGPATH=$PWD
-    fi
-    if [ "${PKGPATH:0:1}" != "." -a "${PKGPATH:0:1}" != "/" -a "${PKGPATH:0:1}" != "~" ]; then
-      local x=$(readlink -e ../$PKGPATH)
-      if [ "$x" ]; then
-        if [ "$(basename $x)" == "$PKGPATH" ]; then
-          PKGPATH=$x
-        fi
-      elif [ "$PKGPATH" == "OCB" ]; then
-        PKGPATH=$PWD
-      fi
-    else
-      PKGPATH=$(readlink -e $PKGPATH)
-    fi
-    local x="$(readlink -e $PKGPATH/..)"
-    if [ "$x" ]; then
-      local d=
-      for d in tests build dist conf .cover .coverage; do
-        if [ "$(basename $PKGPATH)" == "$d" ]; then
-          PKGPATH="$x"
-          local x="$(readlink -e $PKGPATH/..)"
-          break
-        fi
-      done
-    fi
-    if [ "$x" ]; then
-      if [ "$(basename $x)" == "$(basename $PKGPATH)" -a -f "$x/setup.py" ]; then
-        PKGPATH="$x"
-      elif [ "$(basename $x)" == "tools" -a -f "$PKGPATH/setup.py" ]; then
-        PKGPATH="$x"
-      fi
-    fi
-    echo "$PKGPATH"
+    echo $(build_pypi_param PKGPATH $1)
 }
 
 set_pkgname() {
@@ -1541,39 +1514,26 @@ run_unvirt() {
     return $?
 }
 
-run_svr_test_init() {
-    local i
-    local CMD
-    coverage erase
-    sts=0
-    if [ "$PRJNAME" == "Odoo" ]; then
-      run_svr_test_rm_ln init
-      cp_n_upd_conf
-      clone_dependencies
-      sts=$?
-      if [ "$PKGNAME" != "OCB" ]; then
-        local x=$(readlink -e $PRJPATH/..)
-      else
-        local x=$(readlink -e $PRJPATH)
-      fi
-      run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-      run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
-#       if [ "${PRJPATH:0:13}" == "/opt/odoo/v7/" ]; then
-#         cat <<EOF >$x/openerp-server
-# #!/usr/bin/env python
-# import os
-# import subprocess
-# import sys
-# if __name__ == "__main__":
-#     sys.path.insert(0,'/opt/odoo/v7/server')
-#     import openerp
-#     openerp.cli.main()
-# EOF
-#         chmod +x $x/openerp-server
+# run_svr_test_init() {
+#     local i
+#     local CMD
+#     coverage erase
+#     sts=0
+#     if [ "$PRJNAME" == "Odoo" ]; then
+#       run_svr_test_rm_ln init
+#       cp_n_upd_conf
+#      clone_dependencies
+#       sts=$?
+#       if [ "$PKGNAME" != "OCB" ]; then
+#         local x=$(readlink -e $PRJPATH/..)
+#       else
+#         local x=$(readlink -e $PRJPATH)
 #       fi
-    fi
-    return $sts
-}
+#       run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
+#       run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
+#     fi
+#     return $sts
+# }
 
 run_svr_test_exit() {
     if [ "$PRJNAME" == "Odoo" ]; then

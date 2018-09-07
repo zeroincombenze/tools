@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.41
+__version__=0.2.1.42
 
 Z0BUG_setup() {
     if [ ! -d /opt/odoo/7.0 ]; then
@@ -65,7 +65,6 @@ test_01() {
 
     echo "# Sample conf file for test">$TEST_LCONF
     echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TEST_LCONF
-
 
     CWD=$PWD
 

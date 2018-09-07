@@ -10,68 +10,24 @@
 
 [![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)
 
-[![icon](static/src/img/icon.png)](https://travis-ci.org/zeroincombenze)
-
-TEST_TRAVIS VI
-==============
+TEST_TRAVIS V
+=============
 
 [//]: # (addons)
-
-
-Available addons
-----------------
-addon | version | summary
---- | --- | ---
-[l10n_it_base](l10n_it_base/) |  | TravisEm Test
 
 [//]: # (end addons)
 
 
 [![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)
 
-TEST_TRAVIS VI
-==============
-
+TEST_TRAVIS V
+=============
 Differenze rispetto localizzazione ufficiale Odoo/OCA
 
 Descrizione | Odoo Italia | OCA
 --- | --- | ---
 Coverage |  [![codecov](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/zeroincombenze/l10n_italy/branch/9.0) | [![codecov](https://codecov.io/gh/OCA/l10n_italy/branch/9.0/graph/badge.svg)](https://codecov.io/gh/OCA/l10n_italy/branch/9.0)
 Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:
-
-Installation
-------------
-
-* pip install zerobug
-
-Configuration
--------------
-
-Usage
------
-
-For furthermore information, please visit http://wiki.zeroincombenze.org/it/Odoo
-
-Known issues / Roadmap
-----------------------
-
-Bug Tracker
------------
-
-Credits
--------
-
-### Contributors
-
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-
-### Funders
-
-This module has been financially supported by
-
-* SHS-AV s.r.l. <https://www.zeroincombenze.it/>
-
-### Maintainer
 
 [//]: # (copyright)
 

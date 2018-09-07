@@ -39,9 +39,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.41
-
-ODOO_VERSIONS="11.0 10.0 9.0 8.0 7.0 6.1"
+__version__=0.1.79.15
 
 
 detached_login() {
@@ -158,7 +156,7 @@ test_pkg_pypi() {
     fi
     local sts=$STS_SUCCESS
     run_traced "cd ~/dev/pypi/$1/$1"
-    run_traced "travis test # $1"
+    run_traced "travis . test # $1"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ $s -eq $STS_SUCCESS ]; then
       wlog "## Package $1: test successfully terminated"
@@ -483,8 +481,8 @@ publish_svg() {
 }
 
 
-odoo_travis_test() {
-# odoo_travis_test(module)
+synchronize_module_odoo() {
+# synchronize_module_odoo(module)
     local s sts
     local d=$1
     if [ -z "$d" ]; then
@@ -495,14 +493,22 @@ odoo_travis_test() {
       PKGNAME=$(basename $d)
       wlog "##### Module $PWD"
     fi
-    run_traced "travis"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # run_traced "please synchro . zero-merged"
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ $s -eq $STS_SUCCESS ]; then
-      PYPKGS[$PKGNAME]='Ok'
-      wlog "### travis test of $PKGNAME success!"
+      run_traced "travis"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      if [ $s -eq $STS_SUCCESS ]; then
+        # run_traced "please synchro . zero"
+        PYPKGS[$PKGNAME]='Ok'
+        wlog "### travis test of $PKGNAME success!"
+      else
+        PYPKGS[$PKGNAME]='FAILED'
+        wlog "### travis test of $PKGNAME FAILED!"
+      fi
     else
-      PYPKGS[$PKGNAME]='FAILED'
-      wlog "### travis test of $PKGNAME FAILED!"
+      PYPKGS[$PKGNAME]='Not synchronized'
+      wlog "### synchronization of $PKGNAME FAILED!"
     fi
     return $sts
 }
@@ -519,9 +525,9 @@ synchronize_odoo() {
     declare -gA PYPKGS
     wlog "========================================================"
     wlog "======            Starting Odoo tests             ======"
-    for VERSION in $ODOO_VERSIONS; do
-      n=$(build_odoo_param MAJVER $VERSION)
-      ((n=11-n))
+    for VERSION in 6.1 7.0 8.0 9.0 10.0; do
+      n=$(echo $VERSION|grep -Eo [0-9]*|head -n1)
+      let n="$DOW_SEED-$n"
       if [ $n -ne $dow ]; then
         continue
       fi
@@ -529,12 +535,12 @@ synchronize_odoo() {
       for d in $HOME/$VERSION/*; do
         if [ -d $d ]; then
           if [ -d $d/.git ]; then
-            odoo_travis_test $d
+            synchronize_module_odoo $d
             s=$?; [ ${s-0} -ne 0 ] && sts=$s
           fi
         fi
       done
-      odoo_travis_test
+      synchronize_module_odoo
       wlog "--------------------------------------------------------"
       for PKGNAME in ${!PYPKGS[*]}; do
         x=$(printf "%-64.64s: %s" "$PKGNAME" "${PYPKGS[$PKGNAME]}")
@@ -720,7 +726,20 @@ if [ $opt_edit -ne 0 ]; then
   vim $TDIR/.test_nightly.conf
   exit $STS_SUCCESS
 fi
-discover_multi
+c=0
+for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+  for p in "" v odoo ODOO; do
+    odoo_bin=$(build_odoo_param BIN $p$v search)
+    if [ -n "$odoo_bin" ] && [ -f "$odoo_bin" ]; then
+      ((c++))
+    fi
+  done
+done
+if [ $c -gt 2 ]; then
+  opt_multi=1
+else
+  opt_multi=0
+fi
 for p in $GBLS $GBLME; do
   declare $p="$(get_cfg_value '' $p)"
   if [ -z "${!p}" ]; then
@@ -805,7 +824,7 @@ if [ $EUID -eq 0 ]; then
     wlog "# Upgrade z0librc"
     _install_z0librc
   fi
-  for d in odoo; do
+  for d in $MYPKG odoo; do
     if [ ! -d /var/run/$d ]; then
       run_traced "mkdir /var/run/$d"
       run_traced "chown odoo:odoo /var/run/$d"
@@ -830,21 +849,21 @@ if [ $EUID -eq 0 ]; then
       if [ "$curtm" != "$logtm" ]; then
         run_traced "yum -y update"
         run_traced "vmware-config-tools.pl --default"
-        # run_traced "pip install pip --upgrade"
+        run_traced "pip install pip --upgrade"
         # pip install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git"
-        # run_traced "pip install pylint-odoo  --pre --upgrade"
-        # for f in $(pip list --format=legacy|awk '{print $1}'); do
-        #   f1=${f,,}
-        #   ver=$(get_cfg_value "" "pip_pkgver__$f1")
-        #   if [ -n "$ver" ]; then
-        #     run_traced "pip install $f==$ver --upgrade --no-deps"
-        #   else
-        #     run_traced "pip install $f --upgrade --no-deps"
-        #   fi
-        # done
-        for ver in ODOO_VERSIONS v7; do
+        run_traced "pip install pylint-odoo  --pre --upgrade"
+        for f in $(pip list --format=legacy|awk '{print $1}'); do
+          f1=${f,,}
+          ver=$(get_cfg_value "" "pip_pkgver__$f1")
+          if [ -n "$ver" ]; then
+            run_traced "pip install $f==$ver --upgrade --no-deps"
+          else
+            run_traced "pip install $f --upgrade --no-deps"
+          fi
+        done
+        for ver in v7 6 7 8 9 10; do
           svcname=$(build_odoo_param SVCNAME $ver)
-          run_traced "systemctl restart $svcname"
+          run_traced "service $svcname restart"
         done
       fi
       sts=$STS_SUCCESS
@@ -872,14 +891,14 @@ if [ $EUID -eq 0 ]; then
     #     [ $sts -eq $STS_SUCCESS ]&&sts=$s
     #   fi
     # fi
-    # commit_files zar "$XFLIST__zar"
-    # s=$s; [[ $s > 0 ]] && sts=$s
-    # commit_files wok_code av_php
-    # s=$s; [[ $s > 0 ]] && sts=$s
-    # commit_files travis_emulator cronow
-    # s=$s; [[ $s > 0 ]] && sts=$s
-    # commit_files zar pg_db_active
-    # s=$s; [[ $s > 0 ]] && sts=$s
+    commit_files zar "$XFLIST__zar"
+    s=$s; [[ $s > 0 ]] && sts=$s
+    commit_files wok_code av_php
+    s=$s; [[ $s > 0 ]] && sts=$s
+    commit_files travis_emulator cronow
+    s=$s; [[ $s > 0 ]] && sts=$s
+    commit_files zar pg_db_active
+    s=$s; [[ $s > 0 ]] && sts=$s
     if [ $opt_dry_run -eq 0 ]; then
       wlog "# Python regression test"
       python /opt/odoo/dev/z0testercode.py
@@ -976,17 +995,17 @@ if [ "$USER" == "odoo" ]; then
   if [ $tm -gt $tm_beg -a $tm -lt $tm_end ]; then
     synchronize_odoo $dow
   fi
-  # if [ -d /opt/odoo/tools/z0tester ]; then
-  #   cpfiles "/opt/odoo/tools/z0tester" "/opt/odoo/dev" "z0testercode.py"
-  #   s=$?
-  #   [ $sts -eq $STS_SUCCESS ]&&sts=$s
-  # fi
-  # if [ $sts -eq $STS_SUCCESS ]; then
-  #   opt_odoo="nightly"
-  #   oe_upd_burst "$opt_odoo"
-  #   s=$?
-  #   [ $sts -eq $STS_SUCCESS ]&&sts=$s
-  # fi
+  if [ -d /opt/odoo/tools/z0tester ]; then
+    cpfiles "/opt/odoo/tools/z0tester" "/opt/odoo/dev" "z0testercode.py"
+    s=$?
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
+  fi
+  if [ $sts -eq $STS_SUCCESS ]; then
+    opt_odoo="nightly"
+    oe_upd_burst "$opt_odoo"
+    s=$?
+    [ $sts -eq $STS_SUCCESS ]&&sts=$s
+  fi
 fi
 if [ $opt_9 -gt 0 ]; then
   sts=$STS_SUCCESS

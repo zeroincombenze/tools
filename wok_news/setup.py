@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(name='wok_news',
-      version='0.1.1',
+      version='',
       description='Cook news',
       classifiers=[
-          'Development Status ::',
+          'Development Status :: 1 - Planning',
       ])
