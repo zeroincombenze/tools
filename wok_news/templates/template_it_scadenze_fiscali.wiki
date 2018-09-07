@@ -3,7 +3,7 @@
 <img class="alignright wp-image-1740 size-medium"
  src="http://www.shs-av.com/wp-content/uploads/2014/09/scadenze_fiscali-300x114.jpg"
  alt="scadenze fiscali ${cur_month} ${cur_year}" width="300" height="114" /></a>
-Zeroincombenze®, <strong>il software gestionale in cloud</strong> di riferimento in Italia, anche a ${cur_month}, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
+Zeroincombenze®, <strong>il software gestionale in Cloud</strong> di riferimento in Italia, anche a ${cur_month}, fornisce informazioni per molte delle numerose scadenze fiscali incombenti sulle imprese italiane.
 Puoi <b><a href="https://www.zeroincombenze.it/area-clienti-software-gestionale-online/demo/">provare la versione demo</a></b> disponibile per imprese, professionisti, artigiani e commercianti.
 I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista Online</strong> o  <strong>Commercialista in allegato</strong> devono caricare le immagini pdf delle fatture ricevute entro la prima settimana del mese, per permettere la validazione in tempo utile dei documenti.
 <h3>${dayw_ivam} ${day_ivam} ${cur_month} ${cur_year}</h3>
@@ -11,7 +11,7 @@ I clienti Zeroincombenze® che usufruiscono del servizio <strong>Commercialista 
 <p>
 Chi emette <strong>fatture on line</strong> deve completare l'emissione e la registrazione delle fatture differite relative a beni consegnati o spediti nel mese di ${pre_month} ${cur_year} e risultanti da documento di trasporto, create nel menù di <u>Magazzino</u>.
 </p><p>
-Chi emette la <strong>fattura elettronica PA</strong> (in via sperimentale) deve inviarle alla PA.
+Chi emette la <strong>fattura elettronica PA</strong> (sperimentale in Zeroincombenze®) deve inviarle alla PA.
 </p><p>
 I commercianti per la vendita al dettaglio che hanno optato per la dichiarazione telematica devono registrare le operazioni per le quali è rilasciato lo scontrino fiscale o la ricevuta fiscale, effettuate nel mese di ${pre_month} ${pre_year}.
 I dati sono contabilizzati con le chiusure giornaliere nel menù <u>Punto Vendita</u> del <strong>modulo POS</strong>
@@ -28,10 +28,6 @@ Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro di
  Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
 </p>
 <h3>${last_c_dayw} ${last_c_day} ${cur_month} ${cur_year}</h3>
-<p>
-<h4>Comunicazioni</h4>
-Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (${pre_month} ${pre_year}). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
-</p>
 <h4>Altro</h4>
 Scheda carburante:<br>
 Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.

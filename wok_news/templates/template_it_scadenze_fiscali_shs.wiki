@@ -26,10 +26,6 @@ Soggetti IVA: Versamento delle <strong>ritenute d'acconto</strong> per lavoro di
  Dal mastrino del conto Ritenute d'acconto pagate si rilevano le RA di lavoro autonomo.
 </p>
 <h3>${last_c_dayw} ${last_c_day} ${cur_month} ${cur_year}</h3>
-<p>
-<h4>Comunicazioni</h4>
-Soggetti passivi IVA che abbiano effettuato operazioni con operatori economici di San Marino devono presentare la comunicazione mensile relativa al mese precedente (${pre_month} ${pre_year}). La funzione è disponibile tramite il <strong>modulo Spesometro</strong>.
-</p>
 <h4>Altro</h4>
 Scheda carburante:<br>
 Rilevare sulla scheda carburante il numero dei chilometri dell'automezzo.

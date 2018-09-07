@@ -35,7 +35,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.28
+#__version__=0.3.7.29
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -161,7 +161,7 @@ find_odoo_ver() {
 
 build_odoo_param() {
 # build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
-#                  vid [{search|debug|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
+#                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
     local ITEM=$1 ROOT=/opt/odoo
     local odoo_fver odoo_ver odoo_vid MULTIVER REPOS
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
@@ -177,7 +177,7 @@ build_odoo_param() {
     local reg="^($p2)"
     local ref="($p3)"
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
-      x=$(readlink -f $2)
+      [[ -n "$2" ]] && x=$(readlink -f $2) || x=$(readlink -f $PWD)
       while [ -z "$odoo_vid" -a -n "$x" ]; do
         if [ -z "$PKGPATH" ] && [ -f $x/__manifest__.py -o -f $x/__openerp__.py ]; then
           PKGPATH=$x
@@ -362,6 +362,14 @@ build_odoo_param() {
             if [ -z "$r" ]; then
               r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
             fi
+          fi
+        elif [ "$3" == "default" ]; then
+          if [[ $ITEM == "RORIGIN" ]]; then
+            if [[ -n "$GIT_ORG" ]]; then
+              r="$GIT_ORG/$REPOS"
+            fi
+          elif [[ $ITEM == "RUPSTREAM" && ! "$GIT_ORGID" == "oca" ]]; then
+            r="https://github.com/OCA/$REPOS"
           fi
         fi
         echo "$r"

@@ -29,7 +29,7 @@ import os.path
 import sys
 from zerobug import Z0test
 
-__version__ = "1.1.4"
+__version__ = "1.1.5"
 
 MODULE_ID = 'wok_news'
 TEST_FAILED = 1

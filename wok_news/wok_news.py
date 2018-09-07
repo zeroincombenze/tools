@@ -63,7 +63,7 @@ class Builder:
             {"template_fn": "mknews_template.html",
              "ref_fn": ""})
 
-        self.sections = ("hdr",
+        self.sections_it = ("hdr",
                          "footer",
                          "Versioni",
                          "Storia",
@@ -88,6 +88,33 @@ class Builder:
                          "Note",
                          "Altre notizie",
                          "Collegamenti esterni")
+
+
+        self.sections_en = ("hdr",
+                         "footer",
+                         "Versions",
+                         "History",
+                         "Features",
+                         "Advantages and disadvantages",
+                         "IMplementations and Distributions",
+                         "Distributions",
+                         "Competitors",
+                         "User Guide",
+                         "Technical Reference Guide",
+                         "Quick reference",
+                         "Installation",
+                         "Upgrade",
+                         "FAQ",
+                         "Troubleshooting",
+                         "Rules and conventions for name coding",
+                         "Code development",
+                         "Development documentation",
+                         "Libraries and environment",
+                         "Software Integration",
+                         "Security Guide",
+                         "Notes",
+                         "See also",
+                         "External Links")
 
         self.tags = {"_None": "<>",
                      "_end_None": "</>",
@@ -188,7 +215,7 @@ class Builder:
             ref_str = self.extract_platform_text(ref_str, prm)
             ref_str = self.manage_category(ref_str)
             pos = {}
-            for id, nm in enumerate(self.sections):
+            for id, nm in enumerate(self.sections_it):
                 h = "==" + self.get_sect_text(id) + "=="
                 i = ref_str.find(h)
                 nm = self.get_sect_name(id)
@@ -457,13 +484,13 @@ class Builder:
             sect_id = 6
         elif sect_id == 16:
             sect_id = 17
-        nm = "sect_" + self.sections[sect_id]
+        nm = "sect_" + self.sections_it[sect_id]
         nm = nm.replace(" ", "__")
         nm = nm.replace("'", "_A")
         return nm
 
     def get_sect_text(self, sect_id):
-        nm = self.sections[sect_id]
+        nm = self.sections_it[sect_id]
         nm = nm.replace("__", " ")
         nm = nm.replace("_A", "'")
         return nm
@@ -483,7 +510,7 @@ class Builder:
         for nm in ('PackageName',):
             dict[nm] = prm[nm]
 
-        for i, nm in enumerate(self.sections):
+        for i, nm in enumerate(self.sections_it):
             h = self.get_sect_name(i)
             if i != 1:
                 dict[h] = "{{Template:Warning}}"
@@ -501,7 +528,7 @@ class Builder:
         return dict
 
     def __init__(self):
-        self.version = "1.1.4"
+        self.version = "1.1.5"
 
 
 class main:
@@ -520,6 +547,11 @@ class main:
                             dest="conf_fn",
                             metavar="file",
                             default="mknews.conf")
+        parser.add_argument("-l", "--language",
+                            help="Language selection (en|it|)",
+                            dest="lang",
+                            metavar="iso3166",
+                            default="")
         parser.add_argument("-n", "--name",
                             help="software name",
                             dest="PackageName",
@@ -552,9 +584,7 @@ class main:
                             dest="simulate",
                             default=False)
         parser.add_argument("-V", "--version", action="version",
-                            version="%(prog)s " + B.version)
-#        parser.add_argument("saveset", help="saveset",
-#                            nargs='?')
+                            version=B.version)
 
         opt_obj = parser.parse_args()
         prm = {}

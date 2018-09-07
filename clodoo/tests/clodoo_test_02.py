@@ -200,6 +200,7 @@ oe_version=%s
                 elif oe_version in ('9.0', '10.0', '11.0'):
                     xml_prot = 'jsonrpc'
                 if not ctx['dry_run']:
+                    # TODO: remove -d param
                     cmd = self.cmd + ['-d' + self.dbtest]
                     cmd = cmd + ['-b%s' % oe_version]
                     cmd = cmd + ['-r%s' % xmlrpc_port]

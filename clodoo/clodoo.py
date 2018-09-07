@@ -169,7 +169,8 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         validate_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
-                        set_some_values, get_company_id)
+                        set_some_values, get_company_id, build_model_struct,
+                        get_model_model, get_model_name)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
@@ -1241,21 +1242,8 @@ def act_per_user(ctx):
 
 def act_execute(ctx):
     sts = STS_SUCCESS
-    o_model = {}
-    for p in ('model',
-              'model_code',
-              'model_name',
-              'model_action',
-              'model_keyids',
-              'hide_cid',
-              'alias_model2',
-              'alias_field'):
-        if p in ctx:
-            o_model[p] = ctx[p]
-    if not o_model.get('model_code') and not o_model.get('model_name'):
-        o_model['model_code'] = 'id'
-    if not o_model.get('model_keyids') and ctx.get('header_id'):
-        o_model['model_keyids'] = ctx['header_id']
+    o_model = build_model_struct(ctx)
+    model = get_model_model(ctx, o_model)
     if not o_model.get('model') or \
             not o_model.get('model_action') or \
             not o_model.get('model_keyids'):
@@ -1264,23 +1252,24 @@ def act_execute(ctx):
         sts = STS_FAILED
     else:
         where = []
-        if o_model.get('model_name'):
+        model_name = get_model_name(ctx, o_model)
+        if model_name:
             where.append(
-                [o_model['model_name'], 'like', o_model['model_keyids']])
-            ids = searchL8(ctx, o_model['model'], where)
+                [model_name, 'like', o_model['model_keyids']])
+            ids = searchL8(ctx, model, where)
         else:
             ids = [o_model['model_keyids']]
-        if o_model['model'] == 'account.move' and \
+        if model == 'account.move' and \
                 o_model['model_action'] == 'button_validate' and \
                 ctx['majver'] >= 10:
             o_model['model_action'] = 'post'
         try:
             executeL8(ctx,
-                      o_model['model'],
+                      model,
                       o_model['model_action'],
                       ids)
         except BaseException:
-            msg = 'Excecute (%s, %s, %s) Failed!' % (o_model['model'],
+            msg = 'Excecute (%s, %s, %s) Failed!' % (model,
                                                      o_model['model_action'],
                                                      str(ids))
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -1290,21 +1279,8 @@ def act_execute(ctx):
 
 def act_workflow(ctx):
     sts = STS_SUCCESS
-    o_model = {}
-    for p in ('model',
-              'model_code',
-              'model_name',
-              'model_action',
-              'model_keyids',
-              'hide_cid',
-              'alias_model2',
-              'alias_field'):
-        if p in ctx:
-            o_model[p] = ctx[p]
-    if not o_model.get('model_code') and not o_model.get('model_name'):
-        o_model['model_code'] = 'id'
-    if not o_model.get('model_keyids') and ctx.get('header_id'):
-        o_model['model_keyids'] = ctx['header_id']
+    o_model = build_model_struct(ctx)
+    model = get_model_model(ctx, o_model)
     if not o_model.get('model') or \
             not o_model.get('model_action') or \
             not o_model.get('model_keyids'):
@@ -1313,10 +1289,11 @@ def act_workflow(ctx):
         sts = STS_FAILED
     else:
         where = []
-        if o_model.get('model_name'):
+        model_name = get_model_name(ctx, o_model)
+        if model_name:
             where.append(
-                [o_model['model_name'], 'like', o_model['model_keyids']])
-            ids = searchL8(ctx, o_model['model'], where)
+                [model_name, 'like', o_model['model_keyids']])
+            ids = searchL8(ctx, model, where)
             if len(ids) == 0:
                 msg = 'Excecute w/o model or key'
                 msg_log(ctx, ctx['level'] + 1, msg)
@@ -1326,38 +1303,38 @@ def act_workflow(ctx):
                 id = ids[0]
         else:
             id = o_model['model_keyids']
-        if o_model['model'] == 'account.invoice' and \
+        if model == 'account.invoice' and \
                 o_model['model_action'] == 'invoice_open':
             if ctx['majver'] >= 10:
                 o_model['model_action'] = 'action_invoice_open'
             try:
                 if ctx['majver'] >= 10:
                     executeL8(ctx,
-                              o_model['model'],
+                              model,
                               'compute_taxes',
                               [id])
                 else:
                     executeL8(ctx,
-                              o_model['model'],
+                              model,
                               'button_compute',
                               [id])
                     executeL8(ctx,
-                              o_model['model'],
+                              model,
                               'button_reset_taxes',
                               [id])
             except BaseException:
                         pass
         try:
             if ctx['majver'] >= 10:
-                ctx['odoo_session'].execute(o_model['model'],
+                ctx['odoo_session'].execute(model,
                                             o_model['model_action'],
                                             id)
             else:
-                ctx['odoo_session'].exec_workflow(o_model['model'],
+                ctx['odoo_session'].exec_workflow(model,
                                                   o_model['model_action'],
                                                   id)
         except BaseException:
-            msg = 'Workflow (%s, %s, %d) Failed!' % (o_model['model'],
+            msg = 'Workflow (%s, %s, %d) Failed!' % (model,
                                                      o_model['model_action'],
                                                      id)
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -1596,30 +1573,7 @@ def act_install_chart_of_account(ctx):
 
 
 def act_import_file(ctx):
-    o_model = {}
-    for p in ('model',
-              'model_code',
-              'model_name',
-              'hide_cid',
-              'alias_model2',
-              'alias_field',
-              'modelA',
-              'modelA_code',
-              'modelA_name',
-              'modelA_action',
-              'modelA_keyids',
-              'aliasA_model2',
-              'aliasA_field',
-              'modelB',
-              'modelB_code',
-              'modelB_name',
-              'modelB_action',
-              'modelB_keyids',
-              'aliasB_model2',
-              'aliasB_field',
-              'hideB_cid'):
-        if p in ctx:
-            o_model[p] = ctx[p]
+    o_model = build_model_struct(ctx)
     if 'filename' in ctx:
         csv_fn = ctx['filename']
     elif 'model' not in o_model:
@@ -1627,7 +1581,7 @@ def act_import_file(ctx):
         msg_log(ctx, ctx['level'], msg)
         return STS_FAILED
     else:
-        csv_fn = o_model['model'].replace('.', '_') + ".csv"
+        csv_fn = get_model_model(ctx, o_model).replace('.', '_') + ".csv"
     msg = u"Import file " + csv_fn
     msg_log(ctx, ctx['level'], msg)
     return import_file(ctx, o_model, csv_fn)
@@ -2073,20 +2027,24 @@ def act_recompute_balance(ctx):
     return sts
 
 
-def act_convert_partners(ctx):
+def act_complete_partners(ctx):
     # It looks for partners to update and update them.
     msg = u"Convert partners"
     msg_log(ctx, ctx['level'], msg)
     italy_id = searchL8(ctx,
                         'res.country',
                         [('code', '=', 'IT')])[0]
-    partner_ids = searchL8(ctx,
-                           'res.partner',
-                           [('province', '!=', None),
-                            ('state_id', '=', None),
-                            '|',
-                            ('country_id', '=', False),
-                            ('country_id', '=', italy_id)])
+    model = 'res.partner'
+    if validate_field(ctx, model, 'province'):
+        partner_ids = searchL8(ctx,
+                               model,
+                               [('province', '!=', None),
+                                ('state_id', '=', None),
+                                '|',
+                                ('country_id', '=', False),
+                                ('country_id', '=', italy_id)])
+    else:
+        partner_ids = []
     for i,partner_id in enumerate(partner_ids):
         partner = browseL8(ctx, 'res.partner', partner_id)
         msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
@@ -2114,63 +2072,30 @@ def act_convert_partners(ctx):
         msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
         vals = {}
         if partner.zip:
-            state_ids = searchL8(ctx,
+            city_ids = searchL8(ctx,
                                  'res.city',
                                  [('zip', '=', partner.zip),
                                   ('country_id', '=', italy_id)])
-            if not len(state_ids):
-                state_ids = searchL8(ctx,
+            if not len(city_ids):
+                city_ids = searchL8(ctx,
                                      'res.city',
                                      [('zip', '=', '%s%%' % partner.zip[0:4]),
                                       ('country_id', '=', italy_id)])
-            if not len(state_ids):
-                state_ids = searchL8(ctx,
+            if not len(city_ids):
+                city_ids = searchL8(ctx,
                                      'res.city',
                                      [('zip', '=', '%s%%%%' % partner.zip[0:3]),
                                       ('country_id', '=', italy_id)])
-            if len(state_ids) == 1:
-                vals['state_id'] = state_ids[0]
-        if vals:
-            if not partner.country_id:
-                vals['country_id'] = italy_id
-            writeL8(ctx, 'res.partner', partner_id, vals)
-    return STS_SUCCESS
-
-
-def act_complete_partners(ctx):
-    # It looks for partners to update and update them.
-    msg = u"Complete partners"
-    msg_log(ctx, ctx['level'], msg)
-    italy_id = searchL8(ctx,
-                        'res.country',
-                        [('code', '=', 'IT')])[0]
-    partner_ids = searchL8(ctx,
-                           'res.partner',
-                           [('state_id', '=', None),
-                            '|',
-                            ('country_id', '=', False),
-                            ('country_id', '=', italy_id)])
-    for i,partner_id in enumerate(partner_ids):
-        partner = browseL8(ctx, 'res.partner', partner_id)
-        msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
-        vals = {}
-        if partner.zip:
-            state_ids = searchL8(ctx,
-                                 'res.city',
-                                 [('zip', '=', partner.zip),
-                                  ('country_id', '=', italy_id)])
-            if not len(state_ids):
-                state_ids = searchL8(ctx,
-                                     'res.city',
-                                     [('zip', '=', '%s%%' % partner.zip[0:4]),
-                                      ('country_id', '=', italy_id)])
-            if not len(state_ids):
-                state_ids = searchL8(ctx,
-                                     'res.city',
-                                     [('zip', '=', '%s%%%%' % partner.zip[0:3]),
-                                      ('country_id', '=', italy_id)])
-            if len(state_ids) == 1:
-                vals['state_id'] = state_ids[0]
+            state_id = None
+            for id in city_ids:
+                city = browseL8(ctx, 'res.city', id)
+                if state_id is None:
+                    state_id = city.state_id.id
+                elif city.state_id.id != state_id:
+                    state_id = False
+                    break 
+            if state_id:
+                vals['state_id'] = state_id
         if vals:
             if not partner.country_id:
                 vals['country_id'] = italy_id
@@ -4552,9 +4477,10 @@ def get_real_actname(ctx, actv):
 
 
 def add_external_name(ctx, o_model, row, id):
+    model = get_model_model(ctx, o_model)
     if 'id' in row and row['id'] and not row['id'].isdigit():
         put_model_alias(ctx,
-                        model=o_model['model'],
+                        model=model,
                         ref=row['id'],
                         id=id)
     if o_model.get('alias_model2', '') and \
@@ -4562,7 +4488,7 @@ def add_external_name(ctx, o_model, row, id):
             o_model['alias_field'] in row and \
             row[o_model['alias_field']].find('None') < 0:
         res_id = browseL8(ctx,
-                          o_model['model'],
+                          model,
                           id)[o_model['alias_field']].id
         put_model_alias(ctx,
                         model=o_model['alias_model2'],
@@ -4584,15 +4510,16 @@ def translate_fields(ctx, o_model, csv, csv_obj):
     row = {}
     if not ctx.get('validated_fields'):
         ctx['validated_fields'] = []
+    model = get_model_model(ctx, o_model)
     for n in csv:
-        nm = get_name_by_ver(ctx, o_model['model'], n)
+        nm = get_name_by_ver(ctx, model, n)
         if not nm:
             continue
         if n in csv_obj.fieldnames:
-            ipos = str(csv_obj.fieldnames.index(n))
+            ipos = csv_obj.fieldnames.index(n)
         else:
-            ipos = '-1'
-        if ipos in ctx.get('TRANSDICT', ''):
+            ipos = -1
+        if ctx.get('TRANSDICT', '') and ipos in ctx['TRANSDICT']:
             nm = ctx['TRANSDICT'][ipos] or nm
         elif nm in ctx.get('TRANSDICT', ''):
             nm = ctx['TRANSDICT'][nm] or nm
@@ -4603,7 +4530,7 @@ def translate_fields(ctx, o_model, csv, csv_obj):
                   'customer-supplier') or \
                 (len(ctx['validated_fields']) and 
                  nm in ctx['validated_fields']) or \
-                 validate_field(ctx, o_model['model'], nm):
+                 validate_field(ctx, model, nm):
             if nm in ctx.get('TRX_VALUE', ''):
                 translate_from_param(ctx, n, nm)
             else:
@@ -4708,13 +4635,14 @@ def import_file(ctx, o_model, csv_fn):
         init_company_ctx(ctx, get_company_id(ctx))
     if 'company_id' in ctx:
         company_id = ctx['company_id']
+    model = get_model_model(ctx, o_model)
     if ctx.get('full_model'):
         if not ctx.get('MANDATORY'):
             ctx['MANDATORY'] = []
         field_model = 'ir.model.fields'
         for field_id in searchL8(ctx,
                                  field_model,
-                                 [('model', '=', o_model['model'])]):
+                                 [('model', '=', model)]):
             field_name = browseL8(ctx, field_model, field_id).name
             for field_name in ctx['MANDATORY']:
                 if field_name not in ctx['MANDATORY']:
@@ -4746,7 +4674,7 @@ def import_file(ctx, o_model, csv_fn):
                                               csv_fn,
                                               row)
                 msg = u"Model=%s, Code=%s Name=%s NoCompany=%s" % (
-                    o_model['model'],
+                    model,
                     tounicode(o_model['code']),
                     tounicode(o_model['name']),
                     o_model.get('hide_cid', False))
@@ -4776,7 +4704,7 @@ def import_file(ctx, o_model, csv_fn):
                         msg = u"Record not imported by invalid version"
                         debug_msg_log(ctx, ctx['level'] + 2, msg)
                         continue
-            if o_model['model'] == 'res.users' and 'login' in row:
+            if model == 'res.users' and 'login' in row:
                 ctx['def_email'] = '%s%s@example.com' % (
                     row['login'],
                     ctx['oe_version'].split('.')[0])
@@ -4794,8 +4722,8 @@ def import_file(ctx, o_model, csv_fn):
             o_model['hide_id'] = saved_hide_id
             if len(ids):
                 id = ids[0]
-                cur_obj = browseL8(ctx, o_model['model'], id)
-                if o_model['model'] == 'res.users' and\
+                cur_obj = browseL8(ctx, model, id)
+                if model == 'res.users' and\
                         len(ids) == 1:
                     cur_login = cur_obj.login
                     if 'login' in row:
@@ -4820,7 +4748,7 @@ def import_file(ctx, o_model, csv_fn):
                     name_old = ''
                 msg = u"Update %d %s" % (id, name_old)
                 debug_msg_log(ctx, ctx['level'] + 1, msg)
-            if o_model['model'] == 'res.users' and \
+            if model == 'res.users' and \
                     'new_password' in vals and \
                     len(ids) == 0:
                 vals['password'] = vals['new_password']
@@ -4830,7 +4758,7 @@ def import_file(ctx, o_model, csv_fn):
             if len(ids):
                 if not ctx['dry_run'] and len(vals):
                     try:
-                        writeL8(ctx, o_model['model'], ids, vals)
+                        writeL8(ctx, model, ids, vals)
                         msg = u"id=%d, %s=%s->%s" % (cur_obj.id,
                                                      o_model['name'],
                                                      tounicode(name_old),
@@ -4844,7 +4772,7 @@ def import_file(ctx, o_model, csv_fn):
                             tounicode(name_new))
                         os0.wlog(msg)
                     if written:
-                        if o_model['model'] == 'res.users' and \
+                        if model == 'res.users' and \
                                 'login' in vals and \
                                 cur_login == ctx['login_user']:
                             if 'login' in vals:
@@ -4873,7 +4801,7 @@ def import_file(ctx, o_model, csv_fn):
                             'company_id' not in vals:
                         vals['company_id'] = ctx['company_id']
                     try:
-                        id = createL8(ctx, o_model['model'], vals)
+                        id = createL8(ctx, model, vals)
                         if update_header_id:
                             ctx['header_id'] = id
                         msg = u"creat id={0}, {1}={2}"\

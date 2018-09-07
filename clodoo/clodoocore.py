@@ -221,6 +221,51 @@ def bound_6_to_z0(ctx, model, res, btable=None):
     return res
 
 
+def build_model_struct(ctx):
+    o_model = {}
+    for p in ('model',
+              'model_code',
+              'model_name',
+              'model_action',
+              'model_keyids',
+              'hide_cid',
+              'alias_model2',
+              'alias_field'):
+        if p in ctx:
+            o_model[p] = ctx[p]
+    if not o_model.get('model_code') and not o_model.get('model_name'):
+        o_model['model_code'] = 'id'
+    if not o_model.get('model_keyids') and ctx.get('header_id'):
+        o_model['model_keyids'] = ctx['header_id']
+    return o_model
+
+
+def get_model_model(ctx, o_model):
+    if 'model' in o_model:
+        if isinstance(o_model['model'], basestring): 
+            model = o_model['model']
+        else:
+            model_selector = o_model.get('cur_model',
+                                         o_model['model'].keys()[0])
+            model = o_model['model'][model_selector]
+    else:
+        model = False
+    return model
+
+
+def get_model_name(ctx, o_model):
+    if 'model_name' in o_model:
+        if isinstance(o_model['model_name'], basestring): 
+            model_name = o_model['model_name']
+        else:
+            model_selector = o_model.get('cur_model',
+                                         o_model['model_name'].keys()[0])
+            model_name = o_model['model_name'][model_selector]
+    else:
+        model_name = False
+    return model_name
+
+
 def get_res_users(ctx, user, field):
     if field == 'name':
         if ctx['oe_version'] == "6.1":
@@ -341,12 +386,20 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
     """Analyze csv file header and get header names
     Header will be used to load value in table
     @ return:
-    @ [model]      model name
-    @ [name]       field name which is the record description
-    @ [code]       field name which is the record key
-    @ [db_type]    field name which is db type selection
-    @ [repl_by_id] true if no record key name found (search for id)
-    @ [hide_id]    if true, no id will be returned
+    @ ['tables']       table aliases, if import many tables
+                       i.e. {'H': 'move', 'D': 'move.line'}
+    @ ['model']        model name
+    @ ['hide_cid']     do not add company_id
+    @ ['name']         field name which is the record description
+    @ ['code']         field name which is the record key
+    @ ['db_type']      db type to record selection
+    @ ['repl_by_id']   search by id if no record name found
+    @ ['hide_id']      if true, no id will be returned
+    @ ['alias_field']  field name to create external identifier
+    @ ['alias_field2'] field name to create external identifier of many2one
+    Returned fields may be text if import just 1 table or
+    dictionary if import more tables; key is table id
+    i.e. return['name'] = {'A': 'name', 'B': 'name'}
     """
     o_skull = o_model.copy()
     csv_obj.fieldnames = row['undef_name']
@@ -372,7 +425,7 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
 
 def get_company_id(ctx):
     value = get_db_alias(ctx, 'base.mycompany')
-    if not value or not value.isdigit(): 
+    if not value or (isinstance(value, basestring) and not value.isdigit()): 
         model = 'res.company'
         company_name = ctx.get('company_name', 'La % Azienda')
         ids = searchL8(ctx, model, [('name', 'ilike', company_name)])
@@ -382,7 +435,7 @@ def get_company_id(ctx):
             value = ids[0]
         else:
             value =  1
-    if 'company_id' not in ctx:
+    if 'company_id' not in ctx and isinstance(value, (int, long)):
         ctx['company_id'] = value
     return value
 
@@ -425,8 +478,8 @@ def get_state_id(ctx, value, country_id=None):
 
 def set_some_values(ctx, o_model, name, value, model=None, row=None):
     """Set default value for empties fields"""
-    if not model and o_model and o_model['model']:
-        model = o_model['model']
+    if not model:
+        model = get_model_model(ctx, o_model)
     if not value and name in ctx.get('DEFAULT', ''):
         value = ctx['DEFAULT'][name]
     elif name == 'company_id':

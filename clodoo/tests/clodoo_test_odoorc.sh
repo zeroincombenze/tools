@@ -579,29 +579,45 @@ test_06() {
         fi
       done
     fi
-    pushd $LCLTEST_TMPDIR >/dev/null
+    pushd $LCL_OE_PKGPATH >/dev/null
     RES=$(build_odoo_param PKGPATH '.')
-    test_result "Test Odoo PKGPATH" "$LCLTEST_TMPDIR" "$RES"
+    test_result "Test Odoo PKGPATH" "$LCL_OE_PKGPATH" "$RES"
     RES=$(build_odoo_param HOME '.')
-    test_result "Test Odoo HOME" "$LCLTEST_PRJPATH" "$RES"
+    test_result "Test Odoo HOME" "$LCL_OE_PRJPATH" "$RES"
     RES=$(build_odoo_param PARENTDIR '.')
-    test_result "Test Odoo PARENTDIR" "$LCLTEST_TMPDIR0" "$RES"
+    test_result "Test Odoo PARENTDIR" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param ROOT '.')
-    test_result "Test Odoo ROOT" "$LCLTEST_TMPDIR0" "$RES"
+    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
-    test_result "Test Odoo REPOS" "$LCLTEST_REPOSNAME" "$RES"
+    test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
+    RES=$(build_odoo_param RORIGIN '.' default)
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy" "$RES"
+    RES=$(build_odoo_param RUPSTREAM '.' default)
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy" "$RES"
     popd >/dev/null
-    pushd $LCLTEST_PRJPATH >/dev/null
+    pushd $LCL_OE_PRJPATH >/dev/null
     RES=$(build_odoo_param PKGPATH '.')
     test_result "Test Odoo PKGPATH" "" "$RES"
     RES=$(build_odoo_param HOME '.')
-    test_result "Test Odoo HOME" "$LCLTEST_PRJPATH" "$RES"
+    test_result "Test Odoo HOME" "$LCL_OE_PRJPATH" "$RES"
     RES=$(build_odoo_param PARENTDIR '.')
-    test_result "Test Odoo PARENTDIR" "$LCLTEST_TMPDIR0" "$RES"
+    test_result "Test Odoo PARENTDIR" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param ROOT '.')
-    test_result "Test Odoo ROOT" "$LCLTEST_TMPDIR0" "$RES"
+    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
-    test_result "Test Odoo REPOS" "$LCLTEST_REPOSNAME" "$RES"
+    test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
+    RES=$(build_odoo_param RORIGIN '.' default)
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy" "$RES"
+    RES=$(build_odoo_param RUPSTREAM '.' default)
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy" "$RES"
+    popd >/dev/null
+    pushd $LCL_OE_ROOT >/dev/null
+    RES=$(build_odoo_param REPOS '.')
+    test_result "Test Odoo REPOS" "OCB" "$RES"
+    RES=$(build_odoo_param RORIGIN '.' default)
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/OCB" "$RES"
+    RES=$(build_odoo_param RUPSTREAM '.' default)
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/OCB" "$RES"
     popd >/dev/null
     return $sts
 }
@@ -687,20 +703,20 @@ test_07() {
 Z0BUG_setup() {
     local VERSION=9.0
     local ODOO_REPO=local/odoo
-    LCLTEST_PRJNAME="Odoo"
-    LCLTEST_REPOSNAME=l10n_italy
-    LCLTEST_PKGNAME=l10n_it_base
-    LCLTEST_TMPDIR0=~/dev/odoo/$VERSION
-    LCLTEST_PRJPATH=$LCLTEST_TMPDIR0/$LCLTEST_REPOSNAME
-    LCLTEST_TMPDIR=$LCLTEST_PRJPATH/$LCLTEST_PKGNAME
-    LCLTEST_TMPDIR2=$LCLTEST_PRJPATH/__unported__/$LCLTEST_PKGNAME
-    mkdir -p $LCLTEST_TMPDIR0
-    mkdir -p $LCLTEST_PRJPATH
-    mkdir -p $LCLTEST_TMPDIR
-    mkdir -p $LCLTEST_TMPDIR2
-    touch $LCLTEST_TMPDIR/__openerp__.py
-    touch $LCLTEST_TMPDIR2/__openerp__.py
-    LCLTEST_SETUP=__openerp__.py
+    LCL_OE_PRJNAME="Odoo"
+    LCL_OE_REPOS=l10n_italy
+    LCL_OE_PKGNAME=l10n_it_base
+    LCL_OE_ROOT=~/dev/odoo/$VERSION
+    LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
+    LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
+    LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OE_PKGNAME
+    mkdir -p $LCL_OE_ROOT
+    mkdir -p $LCL_OE_PRJPATH
+    mkdir -p $LCL_OE_PKGPATH
+    mkdir -p $LCL_OE_PKGPATH2
+    touch $LCL_OE_PKGPATH/__openerp__.py
+    touch $LCL_OE_PKGPATH2/__openerp__.py
+    LCL_OE_SETUP=__openerp__.py
     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
@@ -711,10 +727,10 @@ Z0BUG_setup() {
 }
 
 Z0BUG_teardown() {
-    rm -fR $LCLTEST_TMPDIR2
-    rm -fR $LCLTEST_TMPDIR
-    rm -fR $LCLTEST_PRJPATH
-    rm -fR $LCLTEST_TMPDIR0
+    rm -fR $LCL_OE_PKGPATH2
+    rm -fR $LCL_OE_PKGPATH
+    rm -fR $LCL_OE_PRJPATH
+    rm -fR $LCL_OE_ROOT
     if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
       rm -f $LCLTEST_ODOO9_SERVER
     fi
