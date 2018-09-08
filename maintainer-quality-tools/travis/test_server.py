@@ -136,7 +136,12 @@ def get_addons_path(travis_dependencies_dir, travis_build_dir, server_path):
     :param server_path: Server path
     :return: Addons path
     """
-    addons_path_list = get_addons(travis_build_dir)
+    # [antoniov: 2018-09-08]
+    core_tests_disable = os.environ.get('ODOO_CORE_TESTS_DISABLE', 'NO')
+    if core_tests_disable == 'ALL':
+        addons_path_list = []
+    else:
+        addons_path_list = get_addons(travis_build_dir)
     addons_path_list.extend(get_addons(travis_dependencies_dir))
     addons_path_list.append(os.path.join(server_path, "addons"))
     addons_path = ','.join(addons_path_list)

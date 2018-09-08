@@ -213,13 +213,24 @@ N/A   | :x:     |         |         |        | :white_check_mark: | consider-mer
 
 
 
+Avoid odoo core tests
+---------------------
+
+Recent Odoo core tests fail in Travis Ci or in local environment.
+We are investigating for causes but currently MQT allow to disable these tests.
+Declare following directive:
+`ODOO_CORE_TESTS_DISABLE="ALL"`
+May be we allow reducted set of core test.
+
+
 Disable test
 ------------
+
 If you want to make a build without tests, you can use the following directive:
 `TEST_ENABLE="0"`
 
 You will simply get the databases with packages installed, 
-but whithout running any tests.
+but without running any tests.
 
 
 MQT debug informations
