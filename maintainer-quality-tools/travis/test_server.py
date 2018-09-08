@@ -14,7 +14,7 @@ from getaddons import get_addons, get_modules, is_installable_module
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.75'
+__version__ = '0.2.1.76'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -404,6 +404,8 @@ def main(argv=None):
     # [antoniov: 2018-02-28]
     if travis_debug_mode:
         print("DEBUG: script_name='%s'" % script_name)
+    if script_name =='Script not found!':
+        return 1
     addons_path = get_addons_path(travis_dependencies_dir,
                                   travis_build_dir,
                                   server_path)
