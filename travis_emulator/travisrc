@@ -34,10 +34,15 @@ fi
 . $ODOOLIBDIR
 
 opts_travis() {
-#opts_travis(pkgname)
+#opts_travis(git-org/pkgname)
+    local x
     REMOTEREPO=
+    PRJNAME=
+    PRJPATH=
+    PKGNAME=
+    PKGPATH=
     if [ -n "$1" ]; then
-      IFS="/" read REMOTEREPO pkgname <<< "$1"
+      IFS="/" read REMOTEREPO x <<< "$1"
     fi
     [ -z "$REMOTEREPO" ] && REMOTEREPO="local"
     # PKGPATH=$(set_pkgpath "")
@@ -161,10 +166,21 @@ build_pypi_param() {
     [ -z "$ODOO_SETUPS" ] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
     local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS ODOO_SETUP
-    x="$PWD"
-    [ -n "$2" ] && x=$2
+    local r w x="$PWD"
+    [ -n "$2" -a "$2" != "local" ] && x=$2
     if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
       x=$(readlink -e $HOME/pypi/$2/$2)
+    fi
+    r=
+    for ODOO_SETUP in $ODOO_SETUPS; do
+      r="$r -o -name $ODOO_SETUP"
+    done
+    w=$(find $x -maxdepth 2 -not -path '*tests*' ${r:3}|head -n1)
+    if [ -n "$w" ]; then
+      _PRJNAME="Odoo"
+      _REPOS=$(basename $x)
+      _PKGPATH=$x
+      _PKGNAME=$_REPOS
     fi
     while [[ ( -z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH" ) && -n "$x" ]]; do
       r=$(basename $x)
@@ -175,7 +191,9 @@ build_pypi_param() {
           _SETUP="$x/setup.py"
           [ -z "$_PKGPATH" ] && _PKGPATH=$x
           [ -z "$_PKGNAME" ] && _PKGNAME=$(basename $x)
-          [ "$x" != "/" ] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+          if [[ ! "$_PRJNAME" == "Odoo" ]]; then
+            [ "$x" != "/" ] && _REPOS=$(basename $(dirname $x)) || _REPOS=
+          fi
           break
         elif [ -d $x/odoo -a -f $x/odoo_bin ]; then
           _PRJNAME="Odoo"
@@ -206,7 +224,21 @@ build_pypi_param() {
       fi
       [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
     done
+    if [ -n "$_SETUP" -a -f "$_SETUP" ]; then
+      x=$(basename $_SETUP)
+      r=
+      [ "$x" == "setup.py" ] && r=$(grep "[^a-zA-Z0-9_]name *=" $_SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+      [ -n "$r" ] && _PRJNAME="$r"
+    fi
+    if [ "$_PRJNAME" == "odoo" -o "$_PRJNAME" == "openerp" ]; then
+      _PRJNAME=Odoo
+    fi
     if [[ "$_PRJNAME" == "Odoo" ]]; then
+      if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+        _PKGNAME="OCB"
+        _REPOS="OCB"
+      fi
+      [[ -z "$_PKGNAME" ]] && _PKGNAME="OCB"
       [[ -z "$_PKGNAME" ]] && _REPOS="OCB"
       [[ -z "$_PKGPATH" ]] && _PKGPATH="$_PRJPATH"
     fi
@@ -274,24 +306,24 @@ init_travis() {
     if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
       build_pypi_param ALL
     fi
-    if [ "$PRJNAME" == "Odoo" ]; then
-      if [ -n "$SETUP" -a -f "$SETUP" ]; then
-        prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
-      else
-        prjdesc="Unrecognized Odoo module"
-      fi
-    else
-      if [ -n "$SETUP" -a -f "$SETUP" ]; then
-        PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-        prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
-        if [ "$prjdesc" == "description" ]; then
-          prjdesc="Unrecognized package"
-        fi
-      fi
-    fi
-    if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
-      PRJNAME=Odoo
-    fi
+    # if [ "$PRJNAME" == "Odoo" ]; then
+    #   if [ -n "$SETUP" -a -f "$SETUP" ]; then
+    #     prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
+    #   else
+    #     prjdesc="Unrecognized Odoo module"
+    #   fi
+    # else
+    #   if [ -n "$SETUP" -a -f "$SETUP" ]; then
+    #     PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+    #     prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
+    #     if [ "$prjdesc" == "description" ]; then
+    #       prjdesc="Unrecognized package"
+    #     fi
+    #   fi
+    # fi
+    # if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
+    #   PRJNAME=Odoo
+    # fi
     if [ "$PRJNAME" == "Odoo" ]; then
       local npm_curpfx=$(npm config get prefix)
       NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
@@ -299,7 +331,7 @@ init_travis() {
         mkdir -p $NPM_CONFIG_PREFIX
         npm config set prefix $NPM_CONFIG_PREFIX
       fi
-      PKGNAME=$(build_odoo_param PKGNAME ".")
+      # PKGNAME=$(build_odoo_param PKGNAME ".")
       REPOSNAME=$(build_odoo_param REPOS ".")
       BRANCH=$(build_odoo_param FULLVER ".")
       # PRJPATH=$(build_odoo_param HOME '.')
@@ -347,6 +379,7 @@ init_travis() {
 
 revaluate_travis() {
     PRJNAME=
+    REPOSNAME=
     PRJPATH=
     PGKNAME=
     PKGPATH=
@@ -416,9 +449,10 @@ create_virtual_env() {
     else
       export TRAVIS=false
     fi
-    # if [ "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
-    #   sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
-    # fi
+    SET_GLOBAL_PYVER=$(get_cfg_value "" "SET_GLOBAL_PYVER")
+    if [ ${SET_GLOBAL_PYVER:-0} -ne 0 -a "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
+      sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
+    fi
     TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
     if [ ${opt_virt:-0} -eq 0 ]; then
       mkdir -p $TRAVIS_HOME
@@ -426,7 +460,6 @@ create_virtual_env() {
       export TRAVIS=false
       export HOME=$TRAVIS_HOME
     else
-      PKGPATH=$(set_pkgpath "")
       hash -r
       unset PYTHONPATH
       echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
@@ -436,8 +469,8 @@ create_virtual_env() {
       if [ ${opt_cache:-0} -ne 0 -a -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
         for d in bin include lib lib64 .local; do
           if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
-            [ -d "$TRAVIS_HOME/$d" ] && run_traced "rm -fR $TRAVIS_HOME/$d"
-            run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/"
+            [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
+            cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/
           fi
         done
         export PYPI_CACHED=$TRAVIS_HOME/.local
@@ -449,7 +482,7 @@ create_virtual_env() {
     fi
     mkdir -p $TRAVIS_HOME/build
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
-    TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
+    export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     if [ "$PKGNAME" == "OCB" ]; then
       emulate_git_clone_OCB $TRAVIS_CWD $TRAVIS_BUILD_DIR
     else
@@ -536,7 +569,7 @@ prepare_env_travis() {
     fi
     export BRANCH
     export VERSION=$BRANCH
-    export TRAVIS_BUILD_DIR=$PKGPATH
+    # export TRAVIS_BUILD_DIR=$PKGPATH
     # export VERBOSE_MODE=$opt_verbose
     if [ "$action" == "lint" ]; then
       export LINT_CHECK=1
@@ -627,8 +660,9 @@ conf_default() {
       set_cfg_def "PRD_HOST" "shsprd[0-9]*"
     fi
     set_cfg_def "CHAT_HOME" "https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b"
-    set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
-    set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
+    set_cfg_def "SET_GLOBAL_PYVER" "0"
+    # set_cfg_def "PIDFILE" "/var/run/travis_emulator/travis_emulator.pid"
+    # set_cfg_def "ODOO_SETUP" "__openerp__.py" #TODO: remove early
     set_cfg_def "ODOO_SETUPS" "__manifest__.py __openerp__.py __odoo__.py __terp__.py"
     set_cfg_def "ODOO_DEFCONF" ".odoorc"
     set_cfg_def "ODOO_LOGFILE" "False"
@@ -1097,9 +1131,9 @@ ant_erase() {
 }
 
 set_executable() {
-  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
-  run_traced "find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;"
-  run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
+  find $PKGPATH -type f -not -name "*.sh" -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;
+  find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;
+  find $PKGPATH -type f -exec grep -El "#. *(/bin/bash|/usr/bin/env )" '{}' \;|xargs -I{} chmod +x {}
 }
 
 coverage() {

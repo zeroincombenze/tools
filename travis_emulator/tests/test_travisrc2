@@ -210,9 +210,7 @@ test_02() {
     local s sts res opts
     sts=0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      # set -x #debug
       opts_travis ""
-      # set +x #debug
       result_testenv
     fi
     test_result "opts_travis PY (travis.conf)" "$TDIR/.travis.conf" "$TCONF"
@@ -463,7 +461,7 @@ test_06() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis OE OCB (REPOSNAME)" "OCB" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "init_travis OE OCB (PKGNAME)" "" "$PKGNAME"
+    test_result "init_travis OE OCB (PKGNAME)" "OCB" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "init_travis OE OCB (PRJPATH)" "$LCL_OE_ROOT" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -510,7 +508,7 @@ test_07() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.reposname (OCB)" "OCB" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "travis.prjname (OCB)" "" "$PKGNAME"
+    test_result "travis.prjname (OCB)" "OCB" "$PKGNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "travis.prjpath (OCB)" "$LCL_OE_ROOT" "$PRJPATH"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
