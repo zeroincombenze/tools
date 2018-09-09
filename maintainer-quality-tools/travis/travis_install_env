@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.76
+__version__=0.2.1.77
 
 
 run_n_echo() {
@@ -385,13 +385,35 @@ else
       dependencies_dir=${HOME}/dependencies
     else
       ocb_dir=${ODOO_PATH}
-      dependencies_dir=$TRAVIS_BUILD_DIR,${HOME}/dependencies
+      dependencies_dir="$TRAVIS_BUILD_DIR,${HOME}/dependencies"
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
+      if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
+        run_n_echo "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
+      elif [[ -f "${ODOO_PATH}/addons/website/tests/test_crawl.py" ]]; then
+        run_n_echo "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${ODOO_PATH}/addons/website/tests/test_crawl.py"
+      fi
+    elif [[ $ODOO_TEST_SELECT == "LOCALIZATION" ]]; then
+      if [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py" ]]; then
+        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py"
+      elif [[ -f "${ODOO_PATH}/addons/account/__manifest__.py" ]]; then
+        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__manifest__.py"
+      elif [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py" ]]; then
+        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py"
+      elif [[ -f "${ODOO_PATH}/addons/account/__openerp__.py" ]]; then
+        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__openerp__.py"
+      fi
+    fi
+    if [[ -f "${TRAVIS_BUILD_DIR}/odoo/tests/common.py" ]]; then
+      run_n_echo "- sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
+    elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
+      run_n_echo "- sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
+    fi
     if [ $opt_verbose -gt 0 ]; then
       echo "Content of ${HOME}:"
       ls -l ${HOME}

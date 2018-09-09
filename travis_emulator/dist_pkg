@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.42
+__version__=0.2.1.41
 
 
 
@@ -80,7 +80,9 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 
+set -x  #debug
 opts_travis "$pkg"
+set +x  #debug
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF

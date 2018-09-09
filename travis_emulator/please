@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.42
+__version__=0.2.1.41
 
 
 #
@@ -1720,15 +1720,14 @@ do_diff() {
 }
 
 do_distribution() {
-# do_distribution(oca|zero|oia parent)
+# do_distribution(PKGNAME oca|zero|oia parent)
     wlog "do_distribution $1 $2 $3"
     local sts=$STS_SUCCESS
     local currpt=zero
     local ORIG=
-    local f f1 f2 tmod x
+    local f f1 f2 x
     local PD=.
     local ver=$(get_ver)
-    [ ${test_mode:-0} -eq 0 ] && tmod="" || tmod="default"
     if [ -n "$3" ]; then
       local travis_passed=1
       if [ -d $3/tmp ]; then
@@ -1743,7 +1742,7 @@ do_distribution() {
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
     # local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
-    local gitprj=$(build_odoo_param RUPSTREAM '.' "$tmod" $1 $2)
+    local gitprj=$(build_odoo_param RUPSTREAM '' $1 $2)
     if [ -z "$gitprj" ]; then
       # gitprj=$(build_pkgurl $1 $2 RORIGIN)
       local gitprj=$(build_odoo_param RORIGIN '' $1 $2)
@@ -2287,6 +2286,78 @@ sts_pylint=127
 test_sts=127
 if [ "$action" == "help" ]; then
   man $TDIR/$THIS.man
+# elif [ "$action" == "if-commit" ]; then
+#   opt_dry_run=1
+#   do_commit "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "commit" ]; then
+#   do_commit "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "config" ]; then
+#   sts=$STS_SUCCESS
+#   if [ "$sub1" == "global" ]; then
+#     cfgfn=$TCONF
+#   elif [ "$sub1" == "repository" ]; then
+#     cfgfn=$(readlink -m $PKGPATH/../conf/.local_dist_pkg.conf)
+#   elif [ "$sub1" == "local" ]; then
+#     cfgfn=$(readlink -m $PKGPATH/conf/.local_dist_pkg.conf)
+#   elif [ "$sub1" == "current" ]; then
+#     cfgfn=$DIST_CONF
+#   elif [ "$sub1" == "zero" -o "$sub1" == "oia" ]; then
+#     cfgfn=
+#   else
+#     echo "Missed parameter! use:"
+#     echo "\$ please config PKGNAME|. global|repository|local|current|zero|oia [del]"
+#       sts=$STS_FAILED
+#   fi
+#   if [ $sts -eq $STS_SUCCESS ]; then
+#     if [ -n "$cfgfn" ]; then
+#       cfgdir=$(dirname $cfgfn)
+#       if [ "$sub2" == "del" ]; then
+#         if [ -f $cfgfn ]; then
+#           run_traced "rm -f $cfgfn"
+#         fi
+#         if [ ! -d $cfgfn ]; then
+#           run_traced "rmdir $cfgdir"
+#         fi
+#       elif [ $opt_dry_run -ne 0 ]; then
+#         echo "vim $cfgfn"
+#       else
+#         if [ ! -d $cfgfn ]; then
+#           run_traced "mkdir -p $cfgdir"
+#         fi
+#         run_traced "vim $cfgfn"
+#       fi
+#     else
+#       r="origin_$sub1"
+#       x=$(git remote|grep $r)
+#       if [ -z "$x" ]; then
+#         # ro=$(build_pkgurl $PKGNAME $sub1 RORIGIN)
+#         local ro=$(build_odoo_param RORIGIN '' $PKGNAME $sub1)
+#         run_traced "git remote add $r $ro"
+#         run_traced "git remote set-url --add --push $r $ro"
+#       fi
+#     fi
+#   fi
+# elif [ "$action" == "coverage" ]; then
+#   do_coverage "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "if-fetch" ]; then
+#   opt_dry_run=1
+#   do_fetch "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "fetch" ]; then
+#   do_fetch "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "travis" ]; then
+#   do_travis "$PKGNAME" "$sub1" "$sub2"
+#   sts=$?
+# elif [ "$action" == "wep" ]; then
+#   if [ $opt_verbose -gt 0 ]; then
+#     echo "clean_dirs \"$PKGPATH\""
+#   fi
+#   clean_dirs "$PKGPATH"
+#   set_executable
 else
   if [ "${action:0:3}"  == "if-" ]; then
     opt_dry_run=1

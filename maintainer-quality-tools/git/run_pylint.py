@@ -3,6 +3,7 @@
 
 from __future__ import print_function
 
+import ast
 import os
 import re
 import sys
@@ -10,9 +11,8 @@ import sys
 import click
 import pylint.lint
 
-import getaddons
 import travis_helpers
-from getaddons import get_modules_changed
+from getaddons import get_modules_changed, is_module
 from git_run import GitRun
 
 try:
@@ -20,16 +20,15 @@ try:
 except ImportError:
     import configparser as ConfigParser
 
-__version__ = '0.2.1.76'
 CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 
 def get_extra_params(odoo_version):
     """Get extra pylint params by odoo version
     Transform a seudo-pylint-conf to params,
-    it to overwrite base-pylint-conf values.
+    to overwrite base-pylint-conf values.
     Use a seudo-inherit of configuration file.
-    To avoid have a 2 config files (stable and pr-conf) by each odoo-version
+    To avoid having 2 config files (stable and pr-conf) by each odoo-version
     Example:
 
         pylint_master.conf
@@ -44,8 +43,8 @@ def get_extra_params(odoo_version):
         pylint_61_pr.conf
         ... and new future versions.
 
-    If you need add a new conventions in all versions
-    you will need change all pr files or stables files.
+    If you need to add new conventions in all versions,
+    you will need to change all pr files or stable files.
 
 
     With this method you can use:
@@ -55,10 +54,10 @@ def get_extra_params(odoo_version):
         pylint_disabling_70.conf <- Overwrite params of pylint_lastest*.conf
         pylint_disabling_61.conf <- Overwrite params of pylint_lastest*.conf
 
-    If you need add a new conventions in all versions you will need change just
-    pylint_lastest_pr.conf or pylint_lastest.conf, similar to inherit.
+    If you need to add new conventions in all versions, you will only need to
+    change pylint_lastest_pr.conf or pylint_lastest.conf, similar to inherit.
 
-    :param version: String with name of version of odoo
+    :param version: String to specify an Odoo's name or versio
     :return: List of extra pylint params
     """
     is_version_number = re.match(r'\d+\.\d+', odoo_version)
@@ -74,10 +73,6 @@ def get_extra_params(odoo_version):
         extra_params.extend([
             '--extra-params', '--valid_odoo_versions=%s' % odoo_version])
 
-    for beta_msg in beta_msgs:
-        extra_params.extend(['--msgs-no-count', beta_msg,
-                             '--extra-params', '--enable=%s' % beta_msg])
-
     odoo_version = odoo_version.replace('.', '')
     version_cfg = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
@@ -89,23 +84,12 @@ def get_extra_params(odoo_version):
         for section in config.sections():
             for option, value in config.items(section):
                 params.extend(['--' + option, value])
+
     for param in params:
         extra_params.extend(['--extra-params', param])
-
-    exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
-    specific_cfg = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_level)
-    params = []
-    if os.path.isfile(specific_cfg):
-        config = ConfigParser.ConfigParser()
-        config.readfp(open(specific_cfg))
-        for section in config.sections():
-            for option, value in config.items(section):
-                params.extend(['--' + option, value])
-    for param in params:
-        extra_params.extend(['--extra-params', param])
-
+    for beta_msg in beta_msgs:
+        extra_params.extend(['--msgs-no-count', beta_msg,
+                             '--extra-params', '--enable=%s' % beta_msg])
     return extra_params
 
 
@@ -190,7 +174,7 @@ def pylint_run(is_pr, version, dir):
     print (count_info)
     if is_pr:
         print(travis_helpers.green(
-            'Start lint check just in modules changed'))
+            'Starting lint check only for modules changed'))
         modules_changed = get_modules_changed(dir, branch_base)
         if not modules_changed:
             print(travis_helpers.green(
@@ -234,37 +218,49 @@ def get_count_fails(linter_stats, msgs_no_count=None):
         if msg not in msgs_no_count])
 
 
-def get_subpaths(paths):
+def is_installable_module(path):
+    """return False if the path doesn't contain an installable odoo module,
+    otherwise the full path to the module's manifest"""
+    manifest_path = is_module(path)
+    if manifest_path:
+        manifest = ast.literal_eval(open(manifest_path).read())
+        if manifest.get('installable', True):
+            return manifest_path
+    return False
+
+
+def get_subpaths(paths, depth=1):
     """Get list of subdirectories
-    if `__init__.py` file not exists in root path then
+    if `__init__.py` file doesn't exists in root path, then
     get subdirectories.
     Why? More info here:
         https://www.mail-archive.com/code-quality@python.org/msg00294.html
     :param paths: List of paths
+    :param depth: How many folders can be opened in deep to find a module.
     :return: Return list of paths with subdirectories.
     """
     subpaths = []
     for path in paths:
+        if depth < 0:
+            continue
         if not os.path.isfile(os.path.join(path, '__init__.py')):
-            subpaths.extend(
-                [os.path.join(path, item)
-                 for item in os.listdir(path)
-                 if os.path.isfile(os.path.join(path, item, '__init__.py')) and
-                 (not getaddons.is_module(os.path.join(path, item)) or
-                  getaddons.is_installable_module(os.path.join(path, item)))])
+            new_subpaths = [os.path.join(path, item)
+                            for item in os.listdir(path)
+                            if os.path.isdir(os.path.join(path, item))]
+            if new_subpaths:
+                subpaths.extend(get_subpaths(new_subpaths, depth-1))
         else:
-            if not getaddons.is_module(path) or \
-                    getaddons.is_installable_module(path):
+            if is_installable_module(path):
                 subpaths.append(path)
     return subpaths
 
 
 def run_pylint(paths, cfg, beta_msgs=None, sys_paths=None, extra_params=None):
     """Execute pylint command from original python library
-    :param paths: List of paths of python modules to check pylint
+    :param paths: List of paths of python modules to check with pylint
     :param cfg: String name of pylint configuration file
     :param sys_paths: List of paths to append to sys path
-    :param extra_params: List of parameters extra to append
+    :param extra_params: List of extra parameters to append
         in pylint command
     :return: Dict with python linter stats
     """
@@ -304,7 +300,7 @@ def main(paths, config_file, msgs_no_count=None,
     """Script to run pylint command with additional params
     to check fails of odoo modules.
     If expected errors is equal to count fails found then
-    this program exit with zero otherwise exit with counted fails"""
+    this program exits with zero, otherwise exits with counted fails"""
     try:
         stats = run_pylint(
             list(paths), config_file.name,

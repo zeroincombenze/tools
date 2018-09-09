@@ -6,8 +6,6 @@ from coverage.cmdline import main as coverage_main
 from coveralls import cli as coveralls_cli
 from codecov import main as codecov_main
 
-__version__ = '0.2.1.76'
-
 
 if (os.environ.get('TESTS', '1') == '1' and
         os.environ.get('TEST_ENABLE', '1') == '1' and
@@ -17,8 +15,7 @@ if (os.environ.get('TESTS', '1') == '1' and
         coveralls_cli.main(argv=None)
     except:
         pass
-    if os.environ.get('TRAVIS', '0') == 'true':
-        try:
-            codecov_main(argv=None)
-        except:
-            pass
+    try:
+        codecov_main(argv=None)
+    except:
+        pass

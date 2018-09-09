@@ -1,9 +1,9 @@
 #!/bin/bash
-__version__=0.2.1.76
+
 set -e
 
 if [ "${LINT_CHECK}" != "0" ]; then
-    pip install -Uq flake8=="3.4.1" click pylint-mccabe pbr
+    pip install -Uq flake8=="3.4.1" Click pylint-mccabe pbr
 
     # Install pylint plugin depends without lxml
     wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt
@@ -20,7 +20,7 @@ if [ "${LINT_CHECK}" != "0" ]; then
     fi
 fi
 
-# We can exit here and do nothing if this only a LINT check
+# We can exit here and do nothing if this is only a LINT check
 if [ "${TESTS}" != "1" ] && [ "${LINT_CHECK}" == "1" ]; then
     exit 0
 fi
@@ -28,7 +28,8 @@ fi
 
 # Install less
 ln -s `which nodejs` $HOME/maintainer-quality-tools/travis/node
-npm install -g less less-plugin-clean-css
+# Remove fixed version after fix https://github.com/odoo/odoo/issues/25632
+npm install -g less@3.0.4 less-plugin-clean-css
 
 if [ "${WEBSITE_REPO}" == "1" ]; then
     if [ -f ~/.rvm/scripts/rvm ]; then
@@ -72,28 +73,24 @@ if [[ $BRANCH == *"/"*  ]]; then
     export BRANCH=${BRANCH/\//-}
 fi
 export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
-if [ -z "${REPO_CACHED}"  ]; then
-    export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
-    echo "Installing Odoo $ODOO_URL"
-    wget -nv -O odoo.tar.gz $ODOO_URL
-    tar -xf odoo.tar.gz -C ${HOME}
-else
+if [ -d "${REPO_CACHED}/odoo" ]; then
     echo "Using Odoo from cache ${REPO_CACHED}"
-    chown `(whoami)`:`(id -gn)` -R ${REPO_CACHED}
     ln -sf ${REPO_CACHED}/odoo ${ODOO_PATH}
-    cd ${ODOO_PATH}
-    if [ "x${PULL_REQUEST}" == "x" ] ; then 
-        git fetch --depth=1 ${REMOTE} ${BRANCH} \
-            && git config --local --bool core.bare false \
-            && git checkout -b ${BRANCH}-${REMOTE} -qf ${REMOTE}/${BRANCH}
-    else
-        ODOO_URL="https://github.com/${ODOO_REPO}"
-        # Is a pull request
-        git reset --hard
-        git fetch --depth=1 ${REMOTE} $PULL_REQUEST/head:${BRANCH}-${REMOTE} \
-            && git config --local --bool core.bare false \
-            && git checkout ${BRANCH}-${REMOTE}
-    fi
+else
+    echo "Downloading Odoo"
+    git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}
+    git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE
+fi
+if [ "x${PULL_REQUEST}" == "x" ] ; then
+    git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git fetch --depth=1 ${REMOTE} ${BRANCH} \
+        && git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git config --local --bool core.bare false \
+        && git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git checkout -b ${BRANCH}-${REMOTE} -qf ${REMOTE}/${BRANCH}
+else
+    # Is a pull request
+    git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git reset --hard
+    git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git fetch --depth=1 ${REMOTE} $PULL_REQUEST/head:${BRANCH}-${REMOTE} \
+        && git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git config --local --bool core.bare false \
+        && git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git checkout ${BRANCH}-${REMOTE}
 fi
 
 # Workaround to force using system site packages (see https://github.com/Shippable/support/issues/241#issuecomment-57947925)
@@ -101,7 +98,7 @@ rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt
 pip install --upgrade pip
 pip install -q --no-binary pycparser -r ${HOME}/maintainer-quality-tools/requirements.txt
 
-# Odoo <= 7.0 don't have requirements.txt file then the 8.0 file is used by default
+# Odoo <= 7.0 doesn't have requirements.txt file, then the 8.0 file is used by default
 if [ ! -f ${ODOO_PATH}/requirements.txt ]; then
     wget https://raw.githubusercontent.com/odoo/odoo/8.0/requirements.txt -O ${ODOO_PATH}/requirements.txt
 fi
@@ -143,12 +140,10 @@ fi;
 #     |___ dependencies/<DependencyRepo1>/
 #     |___ dependencies/<DependencyRepo2>/
 #     |...
-if [ "${TRAVIS_DEBUG_MODE:-0}" -ne 0 ]; then
-  echo "Content of ${HOME}:"
-  ls -l ${HOME}
+echo "Content of ${HOME}:"
+ls -l ${HOME}
 
-  echo "Content of ${HOME}/dependencies:"
-  mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
-fi
+echo "Content of ${HOME}/dependencies:"
+mkdir -p ${HOME}/dependencies && ls -l ${HOME}/dependencies
 
 set +e

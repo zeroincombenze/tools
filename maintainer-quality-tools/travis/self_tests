@@ -39,6 +39,7 @@ EXPECTED_ERRORS = {
     'redundant-keyword-arg': 1,
     'reimported': 4,
     'return-in-init': 1,
+    'rst-syntax-error': 1,
     'too-few-format-args': 1,
     'unreachable': 1,
 }
@@ -89,6 +90,7 @@ class MainTest(unittest.TestCase):
         self.modules_cmd = run_pylint.get_modules_cmd(self.git_work_dir)
         self.beta_msgs = run_pylint.get_beta_msgs()
         self.errors_dict = EXPECTED_ERRORS.copy()
+        self.maxDiff = None
 
     def test_modules_to_preinstall(self):
         res = [x for x in self.to_preinstall if x in self.addons_list]
@@ -97,22 +99,38 @@ class MainTest(unittest.TestCase):
     def test_get_addons(self):
         self.assertEquals(getaddons.main(), 1)
         self.assertEquals(
-            getaddons.main(["getaddons.py", self.repo_dir]), self.repo_dir)
-        self.assertIsNotNone(
-            getaddons.main(["getaddons.py", "-m", self.repo_dir]))
-        self.assertIsNotNone(
-            getaddons.main(
+            getaddons.main(["getaddons.py", self.repo_dir]), [self.repo_dir])
+        self.assertEquals(
+            len(getaddons.main(["getaddons.py", "-m", self.repo_dir])), 6)
+        self.assertEquals(
+            len(getaddons.main(
                 ["getaddons.py", "-m", self.repo_dir + "/" if
-                 self.repo_dir[-1] == '/' else self.repo_dir]))
+                 self.repo_dir[-1] == '/' else self.repo_dir])), 6)
+        self.assertEquals(
+            len(getaddons.main(
+                ["getaddons.py", "-m", "--only-applications",
+                 self.repo_dir])), 0)
+        self.assertEquals(
+            len(getaddons.main(
+                ["getaddons.py", "-m", "--only-localization",
+                 self.repo_dir])), 0)
+        self.assertEquals(
+            len(getaddons.main(
+                ["getaddons.py", "-m", "--exclude-applications",
+                 "--exclude-localization", self.repo_dir])), 6)
 
     @unittest.skipIf(os.environ.get("EXCLUDE", False) is False, "Set EXCLUDE")
     def test_get_addons_exclude(self):
-        self.assertIsNotNone(
+        self.assertEquals(
+            len(getaddons.main(
+                ["getaddons.py", "-m", "-e", self.exclude, self.repo_dir])), 3)
+        self.assertEquals(
+            len(getaddons.main(
+                ["getaddons.py", "-m", self.repo_dir, "-e", self.exclude])), 6)
+        self.assertEquals(
             getaddons.main(
-                ["getaddons.py", "-m", self.repo_dir, "-e", self.exclude]))
-        self.assertIsNotNone(
-            getaddons.main(
-                ["getaddons.py", "-e", self.exclude, self.repo_dir]))
+                ["getaddons.py", "-e", self.exclude, self.repo_dir]),
+            [self.repo_dir])
 
     def test_addons_path_order(self):
         addon_paths_alfanumerical_order_is = getaddons.get_addons(
@@ -269,6 +287,9 @@ class MainTest(unittest.TestCase):
     @unittest.skipIf(os.environ.get('LINT_CHECK', 0) != '1', "Set LINT_CHECK")
     def test_check_v7_ispr(self):
         self.errors_dict.update(EXPECTED_ERRORS_PR)
+        self.errors_dict.update({
+            'manifest-version-format': 6,
+        })
 
         with _patch_streams(StringIO()):
             result = run_pylint.pylint_run(

@@ -12,6 +12,7 @@ Differences between this Zeroincombenze® MQT and standard OCA version:
 * Zeroincombenze® MQT is designed to run in local environment too, using [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
 * Zeroincombenze® MQT is designed to execute some debug statements (see below *MQT debug informations*)
 * Zeroincombenze® MQT can run with reduced set of pylint tests (see below *LINT_CHECK_LEVEL*)
+* Zeroincombenze® MQT can run with reduced set of Odoo tests (see below *ODOO_TEST_SELECT*)
 * OCA MQT is the only component to build environment and test Odoo. Zeroincombenze® MQT is part of [Zeroincombenze® tools](https://github.com/zeroincombenze/tools)
 * As per prior rule, building test environment is made by clodoo and lisa tools. These commands can also build a complete Odoo environment out of the box.
 
@@ -213,14 +214,31 @@ N/A   | :x:     |         |         |        | :white_check_mark: | consider-mer
 
 
 
-Avoid odoo core tests
----------------------
+Reduced set of modules test
+---------------------------
 
-Recent Odoo core tests fail in Travis Ci or in local environment.
-We are investigating for causes but currently MQT allow to disable these tests.
-Declare following directive:
-`ODOO_CORE_TESTS_DISABLE="ALL"`
-May be we allow reducted set of core test.
+Last Odoo packages may fail in Travis CI or in local environment.
+Currently Odoo OCB core tests fail; we are investigating for causes.
+OCA workaround is following example statement:
+`export INCLUDE=$(getaddons.py -m --only-applications ${TRAVIS_BUILD_DIR}/odoo/addons ${TRAVIS_BUILD_DIR}/addons)`
+
+You can execute reduced set of tests adding one of follow lines:
+
+    - TESTS="1" ODOO_TEST_SELECT="ALL"
+    - TESTS="1" ODOO_TEST_SELECT="NO-CORE"
+    ....
+
+Look at follow table to understand which set of tests are enabled or disabled:
+
+   statement     |    application     | module l10n_*      |    odoo/addons     | addons + dependencies
+-----------------|--------------------|--------------------|--------------------|-----------------------
+     ALL         | :white_check_mark: | :white_check_mark: | :white_check_mark: |  :white_check_mark:
+  APPLICATIONS   | :white_check_mark: | :x:                | :x:                |  Only if application
+  LOCALIZATION   | :x:                | :white_check_mark: | :x:                |  Only module l10n_*
+     CORE        | :x:                | :x:                | :white_check_mark: |  :x:
+ NO-APPLICATION  | :x:                | :white_check_mark: | :white_check_mark: |  No if application
+ NO-LOCALIZATION | :white_check_mark: | :x:                | :white_check_mark: |  No if module l10n_*
+   NO-CORE       | :white_check_mark: | :white_check_mark: | :x:                |  :white_check_mark:
 
 
 Disable test
@@ -248,6 +266,32 @@ When MQT is execute in local environment the value
 does not execute unit test. It is used to debug MQT itself.
 
 See [local travis emulator](https://github.com/zeroincombenze/tools/tree/master/travis_emulator)
+
+
+Some differences between MQTs
+-----------------------------
+
+Zeroincombenze® MQT and standard MQT OCA have some different behaviour;
+see following sections documentation:
+
+Zeroincombenze® OCB use submodules. When test in starting, submodules should not be upgraded.
+Use this statements:
+`- git:`
+`  submodules: false`
+
+OCA does not use before_install section. Zeroincombenze® MQT requires before_install section like this:
+`before_install:`
+`  - export TRAVIS_DEBUG_MODE="1"`
+
+Zeroincombenze® MQT set security environment. You have not to add security statements
+(with OCA MQT you must remove comment):
+`#  - pip install urllib3[secure] --upgrade; true`
+
+Zeroincombenze® MQT do some code upgrade; using OCA MQT you must do these code by .travis.yml.
+When ODOO_TEST_SELECT="APPLICATIONS":
+`# sed -i "s/self.url_open(url)/self.url_open(url, timeout=100)/g" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py;`
+When ODOO_TEST_SELECT="LOCALIZATION":
+`# sed -i "/'_auto_install_l10n'/d" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py`
 
 
 Tree directory

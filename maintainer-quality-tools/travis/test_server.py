@@ -10,11 +10,13 @@ import shutil
 import subprocess
 import sys
 from six import string_types
-from getaddons import get_addons, get_modules, is_installable_module
+from getaddons import (
+    get_addons, get_modules, get_modules_info, get_dependencies,
+    get_applications_with_dependencies, get_localizations_with_dependents)
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.76'
+__version__ = '0.2.1.77'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -115,7 +117,7 @@ def str2bool(string):
 
 def get_server_path(odoo_full, odoo_version, travis_home):
     """
-    Calculate server path
+    Computes server path
     :param odoo_full: Odoo repository path
     :param odoo_version: Odoo version
     :param travis_home: Travis home directory
@@ -128,20 +130,19 @@ def get_server_path(odoo_full, odoo_version, travis_home):
     return server_path
 
 
-def get_addons_path(travis_dependencies_dir, travis_build_dir, server_path):
+def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
+                    odoo_test_select):
     """
-    Calculate addons path
+    Computes addons path
     :param travis_dependencies_dir: Travis dependencies directory
-    :param travis_build_dir: Travis build directory
+    :param travis_base_dir: Travis odoo core directory
     :param server_path: Server path
+    :param odoo module set to include/exclude
     :return: Addons path
     """
-    # [antoniov: 2018-09-08]
-    core_tests_disable = os.environ.get('ODOO_CORE_TESTS_DISABLE', 'NO')
-    if core_tests_disable == 'ALL':
-        addons_path_list = []
-    else:
-        addons_path_list = get_addons(travis_build_dir)
+    addons_path_list = []
+    if odoo_test_select != 'NO-CORE':
+        addons_path_list.append(get_addons(travis_base_dir))
     addons_path_list.extend(get_addons(travis_dependencies_dir))
     addons_path_list.append(os.path.join(server_path, "addons"))
     addons_path = ','.join(addons_path_list)
@@ -152,7 +153,7 @@ def get_addons_path(travis_dependencies_dir, travis_build_dir, server_path):
 # Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0 tree
 def get_build_dir():
     odoo_version = os.environ.get("VERSION")
-    travis_build_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
+    travis_base_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")
     tested_version = ''
     for ldir in ('./server/openerp', './openerp', './odoo'):
         if os.path.isdir(ldir) and os.path.isfile('%s/release.py' % ldir):
@@ -161,9 +162,9 @@ def get_build_dir():
             tested_version = release.version
             if odoo_version == "auto":
                 odoo_version = tested_version
-            travis_build_dir = os.path.abspath('%s/addons' % ldir)
+            travis_base_dir = os.path.abspath('%s/addons' % ldir)
             break
-    return travis_build_dir, odoo_version
+    return travis_base_dir, odoo_version
 
 
 # Return server script for all Odoo versions
@@ -175,24 +176,45 @@ def get_server_script(server_path):
     return 'Script not found!'
 
 
-def get_addons_to_check(travis_build_dir, odoo_include, odoo_exclude):
+def get_addons_to_check(travis_base_dir, odoo_include, odoo_exclude,
+                        odoo_test_select):
     """
     Get the list of modules that need to be installed
-    :param travis_build_dir: Travis build directory
+    :param travis_base_dir: Travis odoo core directory
     :param odoo_include: addons to include (travis parameter)
     :param odoo_exclude: addons to exclude (travis parameter)
+    :param odoo module set to include/exclude
     :return: List of addons to test
     """
     if odoo_include:
         addons_list = parse_list(odoo_include)
+    elif odoo_test_select != 'NO-CORE':
+        addons_list = get_modules(travis_base_dir)
     else:
-        addons_list = get_modules(travis_build_dir)
+        addons_list = []
 
     if odoo_exclude:
         exclude_list = parse_list(odoo_exclude)
         addons_list = [
             x for x in addons_list
             if x not in exclude_list]
+
+    if odoo_test_select in ('APPLICATION', 'NO-APPLICATION',
+                            'LOCALIZATION', 'NO-LOCALIZATION'):
+        applications, localizations = set(), set()
+        if odoo_test_select in ('APPLICATION', 'NO-APPLICATION'):
+            applications = get_applications_with_dependencies(addons_list)
+            if odoo_test_select == 'NO-APPLICATION':
+                addons_list -= applications
+                applications = set()
+        if odoo_test_select in ('LOCALIZATION', 'NO-LOCALIZATION'):
+            localizations = get_localizations_with_dependents(addons_list)
+            if odoo_test_select == 'NO-LOCALIZATION':
+                addons_list -= localizations
+                localizations = set()
+        if application or localization:
+            addons_list = applications | localizations
+
     return addons_list
 
 
@@ -206,16 +228,13 @@ def get_test_dependencies(addons_path, addons_list):
     if not addons_list:
         return ['base']
     else:
+        modules = {}
         for path in addons_path.split(','):
-            manif_path = is_installable_module(
-                os.path.join(path, addons_list[0]))
-            if not manif_path:
-                continue
-            manif = ast.literal_eval(open(manif_path).read())
-            return list(
-                set(manif.get('depends', [])) |
-                set(get_test_dependencies(addons_path, addons_list[1:])) -
-                set(addons_list))
+            modules.update(get_modules_info(path))
+        dependencies = set()
+        for module in addons_list:
+            dependencies |= get_dependencies(modules, module)
+        return list(dependencies - set(addons_list))
 
 
 def cmd_strip_secret(cmd):
@@ -278,7 +297,7 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
     :param odoo_unittest: Boolean for unit test (travis parameter)
     :param tested_addons: (list) Modules that need to be installed
     :param server_path: Server path
-    :param travis_build_dir: path to the modules to be tested
+    :param script_name: Odoo start-up script (openerp-server or odoo-bin)
     :param addons_path: Addons path
     :param install_options: Install options (travis parameter)
     :param server_options: (list) Add these flags to the Odoo server init
@@ -314,11 +333,11 @@ def setup_server(db, odoo_unittest, tested_addons, server_path, script_name,
 
 
 def run_from_env_var(env_name_startswith, environ):
-    '''Method to run a script defined from a environment variable
+    """Method to run a script defined from an environment variable
     :param env_name_startswith: String with name of first letter of
                                 environment variable to find.
     :param environ: Dictionary with full environ to search
-    '''
+    """
     commands = [
         command
         for environ_variable, command in sorted(environ.items())
@@ -330,8 +349,8 @@ def run_from_env_var(env_name_startswith, environ):
 
 
 def create_server_conf(data, version):
-    '''Create (or edit) default configuration file of odoo
-    :params data: Dict with all info to save in file'''
+    """Create (or edit) default configuration file of odoo
+    :params data: Dict with all info to save in file"""
     fname_conf = os.path.expanduser('~/.openerp_serverrc')
     if not os.path.exists(fname_conf):
         # If not exists the file then is created
@@ -362,8 +381,6 @@ def main(argv=None):
     travis_home = os.environ.get("HOME", "~/")
     travis_dependencies_dir = os.path.join(travis_home, 'dependencies')
     odoo_branch = os.environ.get("ODOO_BRANCH")
-    # [antoniov: 2018-02-28]
-    travis_build_dir, odoo_version = get_build_dir()
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
     odoo_exclude = os.environ.get("EXCLUDE")
     odoo_include = os.environ.get("INCLUDE")
@@ -379,6 +396,8 @@ def main(argv=None):
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
     # [antoniov: 2018-02-28]
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
+    odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
+    travis_base_dir, odoo_version = get_build_dir()
     if not odoo_version:
         # For backward compatibility, take version from parameter
         # if it's not globally set
@@ -388,7 +407,8 @@ def main(argv=None):
     test_loghandler = None
     if odoo_version == "6.1":
         # [antoniov: 2018-02-28]
-        # install_options += ["--test-disable"]
+        if not test_enable:
+            install_options += ["--test-disable"]
         test_loglevel = 'test'
     else:
         if test_enable:
@@ -412,12 +432,14 @@ def main(argv=None):
     if script_name =='Script not found!':
         return 1
     addons_path = get_addons_path(travis_dependencies_dir,
-                                  travis_build_dir,
-                                  server_path)
+                                  travis_base_dir,
+                                  server_path,
+                                  odoo_test_select)
     conf_data = {
         'addons_path': addons_path,
         'data_dir': data_dir,
     }
+    # [ antoniov: 2018-02-28 ]
     if os.uname()[1][0:3] == 'shs':
         pid = os.getpid()
         if pid > 18000:
@@ -427,12 +449,13 @@ def main(argv=None):
         conf_data['xmlrpc_port'] = rpcport
         conf_data['db_user'] = 'odoo'
     create_server_conf(conf_data, odoo_version)
-    tested_addons_list = get_addons_to_check(travis_build_dir,
+    tested_addons_list = get_addons_to_check(travis_base_dir,
                                              odoo_include,
-                                             odoo_exclude)
+                                             odoo_exclude,
+                                             odoo_test_select)
     tested_addons = ','.join(tested_addons_list)
 
-    print("Working in %s" % travis_build_dir)
+    print("Working in %s" % travis_base_dir)
     print("Using repo %s and addons path %s" % (odoo_full, addons_path))
 
     if not tested_addons:
