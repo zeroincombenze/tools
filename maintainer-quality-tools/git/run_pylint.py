@@ -25,7 +25,7 @@ CLICK_DIR = click.Path(exists=True, dir_okay=True, resolve_path=True)
 
 def get_extra_params(odoo_version):
     """Get extra pylint params by odoo version
-    Transform a seudo-pylint-conf to params,
+    Transform a pseudo-pylint-conf to params,
     to overwrite base-pylint-conf values.
     Use a seudo-inherit of configuration file.
     To avoid having 2 config files (stable and pr-conf) by each odoo-version
@@ -62,6 +62,7 @@ def get_extra_params(odoo_version):
     """
     is_version_number = re.match(r'\d+\.\d+', odoo_version)
     beta_msgs = get_beta_msgs()
+    level_msgs = get_level_msgs()
     extra_params_cmd = [
         '--sys-paths', os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
@@ -84,13 +85,35 @@ def get_extra_params(odoo_version):
         for section in config.sections():
             for option, value in config.items(section):
                 params.extend(['--' + option, value])
-
     for param in params:
         extra_params.extend(['--extra-params', param])
+
     for beta_msg in beta_msgs:
         extra_params.extend(['--msgs-no-count', beta_msg,
                              '--extra-params', '--enable=%s' % beta_msg])
+    # [antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check 
+    for level_msg in level_msgs:
+        extra_params.extend(['--msgs-no-count', level_msg,
+                             '--extra-params', '--disable=%s' % level_msg])
     return extra_params
+
+
+def get_level_msgs():
+    """[antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check
+    :return: List of strings with beta message names"""
+    exclude_level = os.environ.get('LINT_CHECK_LEVEL', '')
+    specific_cfg = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'cfg/travis_run_pylint_exclude_%s.cfg' % exclude_level)
+    if not os.path.isfile(specific_cfg):
+        return []
+    config = ConfigParser.ConfigParser()
+    config.readfp(open(specific_cfg))
+    params = []
+    for section in config.sections():
+        for option, value in config.items(section):
+            params.extend(['--' + option, value])
+    return params
 
 
 def get_beta_msgs():

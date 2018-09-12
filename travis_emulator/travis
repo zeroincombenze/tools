@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.41
+__version__=0.2.1.43
 
 
 store_cfg_param_value() {
@@ -831,12 +831,12 @@ process_yaml() {
     if [ -f $YML_FILE ]; then
       wlog "${TRAVIS_HDR1_COLOR}=== Process YAML file ===${TRAVIS_TEXT_COLOR}"
       process_yaml_file "$YML_FILE"
-      if [ "$PKGNAME" != "OCB" ]; then
-        if [ "$USER" == "odoo" ]; then
-          clean_dirs "$PRJPATH"
-          set_executable
-        fi
-      fi
+      # if [ "$PKGNAME" != "OCB" ]; then
+      #   if [ "$USER" == "odoo" ]; then
+      #     clean_dirs "$PRJPATH"
+      #     set_executable
+      #   fi
+      # fi
       sts=$STS_SUCCESS
       create_virtual_env
       wlog "${TRAVIS_HDR2_COLOR}===== [Build System informations] =====${TRAVIS_TEXT_COLOR}"
@@ -846,7 +846,7 @@ process_yaml() {
       done
       echo "Python sys.path list:"
       echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PKGNAME PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD; do
          lne1=${!lne}
          if [ -n "$lne1" ]; then
            wlog "\$ $lne=$lne1"
@@ -1005,7 +1005,7 @@ if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
 if [ "$action" == "parseyaml" ]; then
-  init_travis
+  # init_travis
   prepare_env_travis "$action"
   check_4_travis
   if [ -z "$sub" ]; then
@@ -1078,41 +1078,19 @@ if [ "$action" == "setup" ]; then
 fi
 
 sts=$STS_SUCCESS
-init_travis
+# init_travis
 prepare_env_travis "$action"
 check_4_travis
-PIDFILE=
 if [ $sts -eq $STS_SUCCESS ]; then
-  # if [ ${opt_virt:-0} -eq 0 ]; then
-  #   PIDFILE=$(get_cfg_value "" "PIDFILE")
-  #   PIDFILE=$(expand_path "$PIDFILE")
-  #   if [ $opt_wait -ne 0 ]; then
-  #     ctr=1440
-  #   else
-  #     ctr=1
-  #   fi
-  #   while [ $ctr -gt 0 ]; do
-  #     checkpid "$PIDFILE"
-  #     sts=$?
-  #     if [ $sts -eq 0 ]; then
-  #       echo "Another instance of travis emulator is running"
-  #       ((ctr--))
-  #       if [ $ctr -eq 0 ]; then
-  #         exit $sts
-  #       fi
-  #       sleep 60
-  #     else
-  #       break
-  #     fi
-  #   done
-  #   echo $$>$PIDFILE
-  # fi
   if [ $opt_r -gt 0 ]; then
     process_local
     sts=$?
   else
     [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
     mkdir -p $opt_logdir
+    # please wep -q &
+    clean_dirs "$PRJPATH"
+    [ "$PKGNAME" != "OCB" ] && set_executable
     if [ $opt_debug -ne 0 ]; then
       process_yaml
       sts=2
@@ -1122,8 +1100,5 @@ if [ $sts -eq $STS_SUCCESS ]; then
       sts=$?
     fi
   fi
-  # if [ -n "$PIDFILE" ]; then
-  #   rm -f $PIDFILE
-  # fi
 fi
 exit $sts

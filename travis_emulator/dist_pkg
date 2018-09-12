@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.41
+__version__=0.2.1.43
 
 
 
@@ -67,7 +67,7 @@ OPTHELP=("this help"\
  "whatis param value?"\
  "wep directory"\
  "refresh info for distribution")
-OPTARGS=(pkg PRJNAME)
+OPTARGS=(InvalidParam PRJNAME)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -80,9 +80,7 @@ if [ $opt_help -gt 0 ]; then
   exit $STS_SUCCESS
 fi
 
-set -x  #debug
-opts_travis "$pkg"
-set +x  #debug
+opts_travis ""
 CFG_init
 conf_default
 link_cfg $DIST_CONF $TCONF
