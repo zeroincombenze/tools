@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.78
+__version__=0.2.1.79
 
 
 run_n_echo() {
@@ -410,9 +410,9 @@ else
       fi
     fi
     if [[ -f "${TRAVIS_BUILD_DIR}/odoo/tests/common.py" ]]; then
-      run_n_echo "- sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
+      run_n_echo "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
     elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
-      run_n_echo "- sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
+      run_n_echo "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
     fi
     if [ $opt_verbose -gt 0 ]; then
       echo "Content of ${HOME}:"

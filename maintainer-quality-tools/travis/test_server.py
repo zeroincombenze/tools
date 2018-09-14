@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.78'
+__version__ = '0.2.1.79'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -142,7 +142,7 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
     """
     addons_path_list = []
     if odoo_test_select != 'NO-CORE':
-        addons_path_list.append(get_addons(travis_base_dir))
+        addons_path_list.extend(get_addons(travis_base_dir))
     addons_path_list.extend(get_addons(travis_dependencies_dir))
     addons_path_list.append(os.path.join(server_path, "addons"))
     addons_path = ','.join(addons_path_list)
