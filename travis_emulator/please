@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.43
+__version__=0.2.1.44
 
 
 #
@@ -271,11 +271,11 @@ expand_macro() {
     echo -n "$lne"
 }
 
-set_executable() {
-  run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
-  run_traced "find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;"
-  run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
-}
+# set_executable() {
+#   run_traced "find $PKGPATH -type f -executable -exec chmod -x '{}' \;"
+#   run_traced "find $PKGPATH -type f -name \"*.sh\" -exec chmod +x '{}' \;"
+#   run_traced "find $PKGPATH -type f -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
+# }
 
 get_ver() {
     local ver=
@@ -409,7 +409,6 @@ cvt_gitmodule() {
           IFS== read p v <<<$lne
           lne=$(echo $p)
           if [ "$lne" == "url" ]; then
-            # url=$(build_pkgurl $submod $urlty URL)
             url=$(build_odoo_param URL '' $submod $urlty)
             lne=$(echo $v)
             if [ "$lne" != "$url" ]; then
@@ -421,8 +420,6 @@ cvt_gitmodule() {
         echo "$line">>$fntmp
       done < "$fn"
       if [ -n "$(diff -q $fn $fntmp)" ]; then
-        # run_traced "cp -p $fn $fn.bak"
-        # run_traced "mv $fntmp $fn"
         move_n_bak $fntmp $fn
       else
         rm -f $fntmp
@@ -431,7 +428,7 @@ cvt_gitmodule() {
 }
 
 cvt_travis() {
-# cvt_travis(file_readme oca|zero|oia currpt ORIG)
+# cvt_travis(file_travis oca|zero|oia currpt ORIG)
     local fn=$1
     local fntmp=$fn.tmp
     local wf=0
@@ -524,6 +521,7 @@ cvt_readme() {
 # cvt_readme(file_readme oca|zero|oia currpt ORIG)
 # params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
 #         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
+    [ $opt_verbose -gt 0 ] && echo "Analyzing $1 ..."
     local fn=$1
     local fntmp=$fn.tmp
     local wf=0 nxtwf=0 prewf=0 preline=0
@@ -819,7 +817,6 @@ cvt_readme() {
     local ONLY_ODOO="IOCA Itryit Iaddons Iinstall"
     local IGNORE_BTNOCA_4_PKG="l10n-italy-supplemental user_contributes"
     rm -f $fntmp
-    # set -x #debug
     while IFS= read -r line r || [ -n "$line" ]; do
       # echo "$prewf/$wf/$nxtwf/$Iinstall> line=$line" #debug
       lne1="⌂"
@@ -1218,6 +1215,8 @@ cvt_file() {
             run_traced "rm -f $f1_cur"
           fi
         fi
+      else
+        echo "File $f1 not found!"
       fi
     else
       local f1=
@@ -1720,13 +1719,12 @@ do_diff() {
 }
 
 do_distribution() {
-# do_distribution(oca|zero|oia parent)
+# do_distribution(pkg oca|zero|oia parent)
     wlog "do_distribution $1 $2 $3"
     local sts=$STS_SUCCESS
     local currpt=zero
     local ORIG=
-    local f f1 f2 tmod x
-    local PD=.
+    local b f f1 f2 tmod x
     local ver=$(get_ver)
     [ ${test_mode:-0} -eq 0 ] && tmod="" || tmod="default"
     if [ -n "$3" ]; then
@@ -1742,11 +1740,9 @@ do_distribution() {
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    # local gitprj=$(build_pkgurl $1 $2 RUPSTREAM)
-    local gitprj=$(build_odoo_param RUPSTREAM '.' "$tmod" $1 $2)
+    local gitprj=$(build_odoo_param RUPSTREAM '.' "$tmod" $2)
     if [ -z "$gitprj" ]; then
-      # gitprj=$(build_pkgurl $1 $2 RORIGIN)
-      local gitprj=$(build_odoo_param RORIGIN '' $1 $2)
+      local gitprj=$(build_odoo_param RORIGIN '.' "$tmod" $2)
     fi
     if [ $travis_passed -eq 0 ]; then
       if [ $opt_orig -gt 0 ]; then
@@ -1773,93 +1769,117 @@ do_distribution() {
         sts=$?
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        f1=$(findpkg ".travis.yml" "$PD ..")
+        f1=$(findpkg ".travis.yml" ". ..")
         if [ -n "$f1" ]; then
           cvt_file $f1 $2 "travis" "$currpt" "$ORIG"
           sts=$?
         fi
       fi
     fi
-    local PKGS=
-    # echo "> for f in \$(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name 'README*'); do" #debug
-    for f in $(find $PD -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
-      x=$(dirname $f)
-      # echo ">   if [ $x == '.' ]; then #f=$f" #debug
-      if [ "$x" == "." ]; then
-        if [ ${test_mode:-0} -eq 0 -a ! -f LICENSE ]; then
-          if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
-            run_traced "cp ~/lgpl.txt LICENSE"
-          else
-            run_traced "cp ~/agpl.txt LICENSE"
-          fi
+    local PKGS= FL= PIGN=
+    for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
+      x=$(readlink -e $f)
+      f1=$(dirname $x)
+      f2=$(build_odoo_param REPOS $f1)
+      b=$(basename $f)
+      if [ -f .gitmodules ] && grep -q "submodule[[:space:]].$f2" .gitmodules 2>/dev/null; then
+        if [[ ! " $PKGS " =~ [[:space:]]$f2[[:space:]] ]]; then
+          [ $opt_verbose -gt 0 ] && echo "Found submodule $f2 ..."
+          PKGS="$PKGS $f2"
         fi
-        if [ $sts -ne $STS_SUCCESS ]; then
-          break
+      elif [ "$f2" != "OCB" -a -f .gitignore ] && grep -q "^$f2/$" .gitignore 2>/dev/null; then
+        if [[ ! " $PIGN " =~ [[:space:]]$f2[[:space:]] ]]; then
+          [ $opt_verbose -gt 0 ] && echo "Submodule $f2 ignored ..."
+          PIGN="$PIGN $f2"
         fi
-        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
-          run_traced "cp -p ORIG/$f $f"
-        fi
-        if [ "$f" == "./__openerp__.py" -o "$f" == "./__manifest__.py" ]; then
-          f1=$(readlink -e $f)
-          # echo ">   cvt_file $f1 $2 manifest $currpt" #debug
-          cvt_file $f1 $2 "manifest" "$currpt" "$ORIG"
-          sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
-          for f2 in $(find $PD -type f -name "*.png" -o -name "*.xml" -o -name "*.css" -o -name "*.sass"); do
-            x="${f2: -4}"
-            if [ "$x" == ".xml" -o "$x" == ".css" ]; then
-              cvt_file $f2 $2 "${f2: -3}" "$currpt" "$ORIG"
-            elif [  "${f2: -4}" == ".sass" ]; then
-              cvt_file $f2 $2 "sass" "$currpt" "$ORIG"
-            else
-              cvt_file $f2 $2 "graph" "$currpt" "$ORIG"
-            fi
-          done
-        elif [ "$f" == "./README.md" -o "$f" == "./README.rst" -o "$f" == "./README" ]; then
-          f1=$(readlink -e $f)
-          x=$(basename $f1)
-          if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$x" ]; then
-            run_traced "cp -p ORIG/$x $f1"
-          fi
-          # echo ">   cvt_file $f1 $2 readme $currpt" #debug
-          cvt_file $f1 $2 "readme" "$currpt" "$ORIG"
-          sts=$?
-          if [ $sts -ne $STS_SUCCESS ]; then
-            break
-          fi
-        fi
-        travis_passed=1
       else
-        x=$(readlink -e $f)
-        f1=$(dirname $x)
-        x=$(echo $f|awk -F/ '{ print $2}')
-        # set -x  #debug
-        if [[ $PKGS =~ $f1 ]]; then
-          :
-        elif [ -f .gitmodules ] && grep -q "submodule[[:space:]].$x" .gitmodules 2>/dev/null; then
-          :
-        else
-          PKGS="$PKGS $f1"
+        if [[ $b =~ (__openerp__.py|__manifest__.py|README.md|README.rst|README) ]]; then
+          [ $opt_verbose -gt 0 ] && echo "Found file $x to exam ..."
+          FL="$FL $x"
         fi
-        # set +x  #debug
       fi
     done
-    local CCWD=$PWD
-    # echo "> for f in $PKGS; do" #debug
     for f in $PKGS; do
       if [ $sts -ne $STS_SUCCESS ]; then
         break
       fi
-      local PKG=$(basename $f)
-      cd $f
-      revaluate_travis
-      # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
-      do_distribution $PKG $2 "$CCWD"
-      sts=$?
+      f2=$(basename $f)
+      if [ ${test_mode:-0} -eq 0 -a ! -f $f2/LICENSE ]; then
+        if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+          diff -q ~/lgpl.txt  $f2/LICENSE &>/dev/null || run_traced "cp ~/lgpl.txt  $f2/LICENSE"
+        else
+          diff -q ~/agpl.txt  $f2/LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  $f2/LICENSE"
+        fi
+      fi
     done
-    cd $CCWD
+    for f in $FL; do
+      if [ $sts -ne $STS_SUCCESS ]; then
+        break
+      fi
+      x=$(readlink -e $f)
+      f1=$(dirname $x)
+      f2=$(build_odoo_param PKGNAME $f1)
+      [ -z "$f2" ] && f2="."
+      if [[ ${f2:0:4} =~ (base|test) ]]; then
+        :
+      elif [ ${test_mode:-0} -eq 0 -a ! -f $f1/LICENSE ]; then
+        if [ $ver -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+          diff -q ~/lgpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/lgpl.txt  $f1/LICENSE"
+        else
+          diff -q ~/agpl.txt  $f1/LICENSE &>/dev/null || run_traced "cp ~/agpl.txt  $f1/LICENSE"
+        fi
+      fi
+      f1=$(dirname $f)
+      pushd $f1 >/dev/null
+      if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$f" ]; then
+        run_traced "cp -p ORIG/$f $f"
+      fi
+      b=$(basename $f)
+      if [[ $b =~ (__openerp__.py|__manifest__.py) ]]; then
+        f1=$(readlink -e $f)
+        cvt_file $f1 $2 "manifest" "$currpt" "$ORIG"
+        sts=$?
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
+        for f2 in $(find . -type f -name "*.png" -o -name "*.xml" -o -name "*.css" -o -name "*.sass"); do
+          x="${f2: -4}"
+          if [ "$x" == ".xml" -o "$x" == ".css" ]; then
+            cvt_file $f2 $2 "${f2: -3}" "$currpt" "$ORIG"
+          elif [  "${f2: -4}" == ".sass" ]; then
+            cvt_file $f2 $2 "sass" "$currpt" "$ORIG"
+          else
+            cvt_file $f2 $2 "graph" "$currpt" "$ORIG"
+          fi
+        done
+      elif [[ $b =~ (|README.md|README.rst|README) ]]; then
+        f1=$(readlink -e $f)
+        x=$(basename $f1)
+        if [ $opt_orig -gt 0 -a -n "$ORIG" -a -f "ORIG/$x" ]; then
+          run_traced "cp -p ORIG/$x $f1"
+        fi
+        cvt_file $f1 $2 "readme" "$currpt" "$ORIG"
+        sts=$?
+      fi
+      travis_passed=1
+      popd >/dev/null
+    done
+    if [ $opt_r -gt 0 ]; then
+      local CCWD=$PWD
+      for f in $PKGS; do
+        if [ $sts -ne $STS_SUCCESS ]; then
+          break
+        fi
+        local PKG=$(basename $f)
+        cd $f
+        revaluate_travis
+        # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
+        do_distribution $PKG $2 "$CCWD"
+        sts=$?
+      done
+      cd $CCWD
+    fi
+    return $sts   # debug
     revaluate_travis
     if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
       if [ -f .gitignore ]; then
@@ -2235,9 +2255,9 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
  "configuration file (def .travis.conf)"\
  "do diff no real action (obsolete)"\
- "force copy (of commit/push) or build (of register/publish) or dup doc (of distribution/synchro)"\
+ "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro)"\
  "execute tests in project dir rather in test dir/old style synchro"\
- "keep coverage statistics in annotate test/keep original repository or tests/ in publish"\
+ "keep coverage statistics in annotate test/keep original repository | tests/ in publish"\
  "log file name"\
  "show missing line in report coverage"\
  "do nothing (dry-run)"\
@@ -2245,7 +2265,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "pull original README (and docs) in distribution"\
  "declare local git path"\
  "silent mode"\
- "run rescricted mode (w/o parsing travis.yml file)"\
+ "run rescricted mode (w/o parsing travis.yml file) | recurse distribution OCB"\
  "files to include in annotate test"\
  "test mode (implies dry-run)"\
  "check for unary operator W503 or no OCA/zero module translation"\
