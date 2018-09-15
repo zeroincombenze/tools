@@ -232,10 +232,11 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
     cp /opt/odoo/dev/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
   else
     cp /etc/z0librc $HOME/tmp
-    if [ -f /opt/odoo/local/bin/cronow ]; then
-      cp /opt/odoo/local/bin/cronow $HOME/tmp
-    else
+    if [ -f /opt/odoo/bin/cronow ]; then
       cp /opt/odoo/bin/cronow $HOME/tmp
+    else
+      x=$(which cronow)
+      [ -n "$x" ] && cp $x $HOME/tmp
     fi
   fi
   CWD=$PWD
@@ -255,7 +256,9 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
   x=${x/c/r}
   tar $x $GZFN z0librc
   tar $x $GZFN cronow
-  if [ $EUID -eq 0 ]; then
+  if [  -n "$opt_tar" ]; then
+    mv $GZFN $opt_tar
+  elif [ $EUID -eq 0 ]; then
     if [ -d /var/www/html/mw/download/ ]; then
       echo "\$ cp $PWD/$GZFN /var/www/html/mw/download/"
       wlog "\$ cp $GZFN /var/www/html/mw/download/"
