@@ -37,9 +37,10 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.44
+__version__=0.2.1.45
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
+NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
 
 
 format_yaml() {
@@ -159,13 +160,24 @@ format_yaml() {
           echo "$line">>$fntmp
         elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
           echo "# $line">>$fntmp
+        elif [ "$cur_sect" == "python" ]; then
+          if [[ "$lne" =~ [23].[0-9] ]]; then
+            if [  $odoo_ver -ge 11 ]; then
+              echo "  - \"3.4\"">>$fntmp
+            else
+              echo "  - \"2.7\"">>$fntmp
+            fi
+            cur_sect=
+          else
+            echo "$line">>$fntmp
+          fi
         elif [ "$cur_sect" == "addons" ]; then
           if [ "$lne" == "packages:" ]; then
             echo "$line">>$fntmp
             for a in $($LISTREQ -p"$p" -tbin -q -s' ' -BT); do
               if [ "$a" == "psycopg2" ]; then
                 echo "      - $a-binary">>$fntmp
-              elif [ "$a" != "wkhtmltopdf" -a "$a" != "java" -a "$a" != "git" -a "$a" != "tesseract" ]; then
+              elif [[ ! $a =~ $NO_APT_GET ]]; then
                 echo "      - $a">>$fntmp
               fi
             done
@@ -183,7 +195,7 @@ format_yaml() {
           else
             echo "  - export TRAVIS_DEBUG_MODE=\"0\"">>$fntmp
           fi
-          echo "  - pip install urllib3[secure] --upgrade; true">>$fntmp
+          # echo "  - pip install urllib3[secure] --upgrade; true">>$fntmp
           if [ "$PKGNAME" == "OCB" ]; then
             echo "  - \"export DISPLAY=:99.0\"">>$fntmp
             echo "  - \"sh -e /etc/init.d/xvfb start\"">>$fntmp
@@ -201,6 +213,9 @@ format_yaml() {
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         elif [ "$line" == "git:" ]; then
+          cur_sect=${line:0: -1}
+          echo "$line">>$fntmp
+        elif [ "$line" == "python:" ]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         else

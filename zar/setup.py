@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name='zar',
       version='',
-      description='Zeroincombenze Archive Replica',
+      description='',
       classifiers=[
           'Development Status :: 1 - Planning',
       ])

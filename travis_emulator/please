@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.44
+__version__=0.2.1.45
 
 
 #
@@ -1765,8 +1765,10 @@ do_distribution() {
       cvt_gitmodule "$2" "$currpt"
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=oca_dependencies.txt
-        cvt_file $f1 $2 "" "$currpt" "$ORIG"
-        sts=$?
+        if [ -f "$f1" ]; then
+          cvt_file $f1 $2 "" "$currpt" "$ORIG"
+          sts=$?
+        fi
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
         f1=$(findpkg ".travis.yml" ". ..")
@@ -2151,21 +2153,21 @@ do_travis() {
 }
 
 do_version() {
-    # cd $PKGPATH; $DEVPATH/dist_pkg -- $PKGNAME $PRJNAME;
+# do_version(pkg [cur_ver [new_ver]])
     if [ "$PRJNAME" != "Odoo" ]; then
       if [ -z "$2" ]; then
-        find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
+        find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "__version__ *=" '{}' \;
       else
         local ver_re2=${2//./\\.}
         local ver_re="[^0-9.]$ver_re2($|[^0-9.])"
         local new_ver=$3
         if [ $opt_dry_run -ne 0 ]; then
-          echo "find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
+          echo "find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;"
         else
-          find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
+          find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -EH "$ver_re" '{}' \;
         fi
         if [ -n "$new_ver" ]; then
-          for fn in $(find $PRJPATH -type f -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
+          for fn in $(find . -type f -not -name "*.pyc" -not -name "*.log" -exec grep -El "$ver_re" '{}' \;); do
             if [ $opt_dry_run -ne 0 ]; then
               echo "sed -e \"s/$ver_re2/$new_ver/\" -i $fn"
             else

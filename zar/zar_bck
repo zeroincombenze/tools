@@ -169,6 +169,7 @@ if [ -n "$dblist" ]; then
       fi
     fi
     if [ "$BCK_ENV" != "DEV" -o -n "$opt_name" ]; then
+      run_traced "pg_db_active -k"
       if [ $opt_dry_run -ne 0 -o $opt_repl -ne 0 ]; then
         wlog "> pg_dump $PG_DUMP_OPT -U$opt_user -Fp -f $sqlfname \"$db\""
       else
