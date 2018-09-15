@@ -70,8 +70,8 @@ DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
  vertical-construction vertical-edition vertical-education vertical-hotel\
  vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel\
  web webhook webkit-tools website website-cms website-themes zeroincombenze"
-INVALID_MODNAMES="addons build conf cover .cover .coverage debian dist doc filestore history odoo openerp node_modules scripts server setup tests themes __to_remove __unported__"
-INVALID_MODNAMES_RE="(${INVALID_MODNAMES// /|})"
+INVALID_MODNAMES="addons build conf cover .cover .coverage debian dist doc docs filestore .git history html latex odoo openerp node_modules scripts server setup tests themes __to_remove __unported__"
+INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
 "OCA/commission,Odoo-Italia-Associazione/user_contributes,"\

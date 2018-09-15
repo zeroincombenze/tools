@@ -38,16 +38,16 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.45
+__version__=0.2.1.46
 
 
 
 # main
-OPTOPTS=(h        C         c        d        F         f         n            o        P         p         q           R         S        u       V           v           W          w         -)
-OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_force opt_dry_run  opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
-OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
-OPTDEFL=(1        ""        ""       0        0         0         0            ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
-OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   ""        "do nothing" "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
+OPTOPTS=(h        C         c        d        F         f         n            O         o        P         p         q           R         S        u       V           v           W          w         -)
+OPTDEST=(opt_help opt_cpush opt_conf opt_diff opt_fetch opt_force opt_dry_run  opt_cpush opt_ids  opt_cpush opt_dpath opt_verbose opt_cpush opt_sts  opt_upd opt_version opt_verbose opt_whatis opt_cpush opt_sync)
+OPTACTI=(1        "*>"      "="      "1>"     "1>"      1         1            "*>"      "=>"     "*>"      "="       0           "*>"      "=>"     1       "*"         "+"         "=>"       "*>"      "1>")
+OPTDEFL=(1        ""        ""       0        0         0         0            ""        ""       ""        ""        -1          ""        ""       0       ""          -1          ""         ""        0)
+OPTMETA=("help"   "commit"  "file"   "diff"   "fetch"   ""        "do nothing" ""        "prj_id" "push"    "path"    "quiet"     "replace" "status" "upd"   "version"   "verbose"   "param"    "wep"     "sync")
 OPTHELP=("this help"\
  "commit and push to production paths"\
  "configuration file"\
@@ -55,11 +55,12 @@ OPTHELP=("this help"\
  "fetch from local git path"\
  "force copy (with -C -P)"\
  "do nothing (dry-run)"\
+ "duplicate odoo to other dist path"\
  "push only external project ids (require -P)"\
  "push to external projects"\
- "declare local git path"\
+ "declare local destination path"\
  "silent mode"\
- "replace local git path"\
+ "replace to local git path"\
  "set development Status"\
  "do not update newer file (require -C -F -P or -R)"\
  "show version"\
@@ -67,7 +68,7 @@ OPTHELP=("this help"\
  "whatis param value?"\
  "wep directory"\
  "refresh info for distribution")
-OPTARGS=(InvalidParam PRJNAME)
+OPTARGS=(InvalidParam InvalidParam2)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -163,6 +164,54 @@ if [ "$PRJNAME" != "Odoo" ]; then
       devstatus=$(grep " *'Development Status" $LSETUP 2>/dev/null|awk -F":" '{print $3}'|tr -d "\"',\r\n")
     fi
   fi
+fi
+if [ "$opt_cpush" == "-O" ]; then
+  opts_dry_run=
+  [ $opt_dry_run -ne 0 ] && opts_dry_run="-n"
+  srcdir=$(readlink -f .)
+  [ "${srcdir: -1}" == "/" ] && srcdir=${srcdir:0: -1}
+  tgtdir=$LGITPATH
+  [ "${tgtdir: -1}" == "/" ] && tgtdir=${tgtdir:0: -1}
+  if [ ! -d "$srcdir" ]; then
+    echo "Invalid source dir $srcdir!"
+    exit 1
+  fi
+  if [ ! -d "$tgtdir" ]; then
+    echo "Invalid target dir $tgtdir!"
+    exit 1
+  fi
+  if [ "$srcdir" == "$tgtdir" ]; then
+    echo "Same source and target directory"
+    exit
+  fi
+  pkg=$(build_odoo_param REPOS "$srcdir")
+  if [ "$pkg" == "OCB" ]; then
+    echo "Replicate OCB ..."
+    valid="addons CONTRIBUTING.md COPYRIGHT debian doc LICENSE Makefile MANIFEST.in odoo odoo-bin README.md requirements.txt setup setup.cfg setup.py"
+    for d in $srcdir/*; do
+      f=$(basename $d)
+      if [[ " $valid " =~ " $f " ]]; then
+        if [ -d $srcdir/$f ]; then
+          [ $opt_verbose -gt 0 ] && echo "rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/"
+          rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/
+        else
+          [ $opt_verbose -gt 0 ] && echo "rsync $opts_dry_run -abv $srcdir/$f $tgtdir/"
+          rsync $opts_dry_run -abv $srcdir/$f $tgtdir/
+        fi
+      fi
+    done
+    cd $tgtdir
+    RORIGIN=$(build_odoo_param RORIGIN ".")
+    gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
+    if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
+      [ $opt_verbose -gt 0 ] && echo "please distribution oia $opts_dry_run"
+    fi
+  else
+    echo "Replicate $pkg ..."
+    [ $opt_verbose -gt 0 ] && echo "rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdi/"
+    rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdi/
+  fi
+  exit 0
 fi
 if [ "$opt_cpush" == "-C" -o "$opt_cpush" == "-P" ]; then
   robocopy_init "$PRJNAME" "$PKGNAME"

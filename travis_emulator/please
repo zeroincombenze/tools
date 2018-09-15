@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.45
+__version__=0.2.1.46
 
 
 #
@@ -2047,10 +2047,17 @@ do_register() {
 
 do_replace() {
     set_executable
-    opts=$(inherits_travis_opts "R" "D")
-    opt_dry_run=0
-    run_traced "$TDIR/dist_pkg $opts $1"
-    sts=$?
+    if [ "$PRJNAME" == "Odoo" ]; then
+      opts=$(inherits_travis_opts "O" "D")
+      opt_dry_run=0
+      run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
+      sts=$?
+    else
+      opts=$(inherits_travis_opts "R" "D")
+      opt_dry_run=0
+      run_traced "$TDIR/dist_pkg $opts $1"
+      sts=$?
+    fi
     return $sts
 }
 
@@ -2260,7 +2267,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "do nothing (dry-run)"\
  "push only external project ids (of push)"\
  "pull original README (and docs) in distribution"\
- "declare local git path"\
+ "declare local destination path"\
  "silent mode"\
  "run rescricted mode (w/o parsing travis.yml file) | recurse distribution OCB"\
  "files to include in annotate test"\
