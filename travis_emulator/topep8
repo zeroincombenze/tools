@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.46
+__version__=0.2.1.47
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"

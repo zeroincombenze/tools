@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.46
+__version__=0.2.1.47
 
 
 
@@ -176,7 +176,7 @@ if [ "$opt_cpush" == "-O" ]; then
     echo "Invalid source dir $srcdir!"
     exit 1
   fi
-  if [ ! -d "$tgtdir" ]; then
+  if [ -z "$tgtdir" -o ! -d "$tgtdir" ]; then
     echo "Invalid target dir $tgtdir!"
     exit 1
   fi
@@ -200,16 +200,17 @@ if [ "$opt_cpush" == "-O" ]; then
         fi
       fi
     done
-    cd $tgtdir
-    RORIGIN=$(build_odoo_param RORIGIN ".")
-    gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
-    if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
-      [ $opt_verbose -gt 0 ] && echo "please distribution oia $opts_dry_run"
-    fi
   else
     echo "Replicate $pkg ..."
-    [ $opt_verbose -gt 0 ] && echo "rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdi/"
-    rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdi/
+    [ $opt_verbose -gt 0 ] && echo "rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/"
+    rsync $opts_dry_run -abv --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/
+  fi
+  cd $tgtdir
+  RORIGIN=$(build_odoo_param RORIGIN ".")
+  gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
+  if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
+    [ $opt_verbose -gt 0 ] && echo "please distribution oia $opts_dry_run"
+    please distribution oia $opts_dry_run
   fi
   exit 0
 fi
