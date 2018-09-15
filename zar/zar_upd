@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32
+__version__=1.3.32.1
 
 
 detached_login() {
@@ -188,7 +188,7 @@ then
 fi
 if [ $opt_help -gt 0 ]
 then
-  print_help "Update zar suite\nacction if issued, may be build|build_last"\
+  print_help "Update zar suite\naction if issued, may be build|build_last"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -232,7 +232,11 @@ if [ "$action" == "build" -o "$action" == "build_last" ]; then
     cp /opt/odoo/dev/pypi/travis_emulator/travis_emulator/cronow $HOME/tmp
   else
     cp /etc/z0librc $HOME/tmp
-    cp /opt/odoo/bin/cronow $HOME/tmp
+    if [ -f /opt/odoo/local/bin/cronow ]; then
+      cp /opt/odoo/local/bin/cronow $HOME/tmp
+    else
+      cp /opt/odoo/bin/cronow $HOME/tmp
+    fi
   fi
   CWD=$PWD
   cd $HOME/tmp
