@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.28
+__version__=0.3.7.29
 
 
 test_01() {
@@ -591,9 +591,9 @@ test_06() {
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy" "$RES"
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
     RES=$(build_odoo_param RUPSTREAM '.' default)
-    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy" "$RES"
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
     pushd $LCL_OE_PRJPATH >/dev/null
     RES=$(build_odoo_param PKGPATH '.')
@@ -607,17 +607,17 @@ test_06() {
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy" "$RES"
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
     RES=$(build_odoo_param RUPSTREAM '.' default)
-    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy" "$RES"
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
     pushd $LCL_OE_ROOT >/dev/null
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "OCB" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/OCB" "$RES"
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/OCB.git" "$RES"
     RES=$(build_odoo_param RUPSTREAM '.' default)
-    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/OCB" "$RES"
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/OCB.git" "$RES"
     popd >/dev/null
     return $sts
 }

@@ -251,10 +251,12 @@ add_install() {
 
 restore_owner() {
     if [ "$USER" != "odoo" ]; then
+      local fown="odoo:odoo"
+      # [ "$USER" == "travis" ] && fown="travis:odoo"
       if sudo -v &>/dev/null; then
-        run_traced "sudo chown -R odoo:odoo .git"
+        run_traced "sudo chown -R $fown .git"
       elif [ "$USER" != "travis" ]; then
-        run_traced "chown -R odoo:odoo .git"
+        run_traced "chown -R $fown .git"
       fi
     fi
 }
@@ -1227,6 +1229,28 @@ cvt_file() {
     return $sts
 }
 
+set_remote_info() {
+#set_remote_info (REPOSNAME odoo_vid odoo_org)
+    local REPOSNAME=$1
+    if [ "$(build_odoo_param VCS $2)" == "git" ]; then
+      local odoo_fver=$(build_odoo_param FULLVER "$2")
+      local DUPSTREAM=$(build_odoo_param RUPSTREAM "$2" "default" $3)
+      local RUPSTREAM=$(build_odoo_param RUPSTREAM "$2" "" $3)
+      local DORIGIN=$(build_odoo_param RORIGIN "$2" "default" $3)
+      local RORIGIN=$(build_odoo_param RORIGIN "$2" "" $3)
+      if [[ ! "$DUPSTREAM" == "$RUPSTREAM" ]]; then
+        [[ -n "$RUPSTREAM" ]] && run_traced "git remote remove upstream"
+        [[ -n "$DUPSTREAM" ]] && run_traced "git remote add upstream $DUPSTREAM"
+      fi
+      if [[ ! "$DORIGIN" == "$RORIGIN" ]]; then
+        [[ -n "$RORIGIN" ]] && run_traced "git remote remove origin"
+        [[ -n "$DORIGIN" ]] && run_traced "git remote add origin $DORIGIN"
+      fi
+    elif [ ${test_mode:-0} -eq 0 ]; then
+      echo "No git repositoy $REPOSNAME!"
+    fi
+}
+
 mvfiles () {
 # mvfiles(srcpath, tgtpath, files, owner)
     if [ -z "$3" ]; then
@@ -1723,7 +1747,7 @@ do_distribution() {
     wlog "do_distribution $1 $2 $3"
     local sts=$STS_SUCCESS
     local currpt=zero
-    local ORIG=
+    local ORIG= ORIGIN= UPSTREAM=
     local b f f1 f2 tmod x
     local ver=$(get_ver)
     [ ${test_mode:-0} -eq 0 ] && tmod="" || tmod="default"
@@ -1736,27 +1760,28 @@ do_distribution() {
       fi
     else
       local travis_passed=0
+      set_remote_info "$REPOSNAME" "." "$2"
     fi
     if [ -f .gitrepname ]; then
       currpt=$(grep "^repository" .gitrepname|awk -F= '{print $2}'|tr -d " ")
     fi
-    local gitprj=$(build_odoo_param RUPSTREAM '.' "$tmod" $2)
-    if [ -z "$gitprj" ]; then
-      local gitprj=$(build_odoo_param RORIGIN '.' "$tmod" $2)
+    local GITPRJ=$(build_odoo_param RUPSTREAM '.' "$tmod" $2)
+    if [ -z "$GITPRJ" ]; then
+      local GITPRJ=$(build_odoo_param RORIGIN '.' "$tmod" $2)
     fi
     if [ $travis_passed -eq 0 ]; then
       if [ $opt_orig -gt 0 ]; then
-        if [ -z "$gitprj" ]; then
+        if [ -z "$GITPRJ" ]; then
           echo "git project not found!"
           sts=$STS_FAILED
         else
-          run_traced "git clone $gitprj tmp -b $BRANCH --depth 1 --single-branch"
+          run_traced "git clone $GITPRJ tmp -b $BRANCH --depth 1 --single-branch"
           ORIG=$(readlink -e tmp)
         fi
       else
         if [ -d ~/original ]; then rm -fR -d ~/original; fi
-        if [ -n "$gitprj" ]; then
-          run_traced "git clone $gitprj ~/original/$1 -b $BRANCH --depth 1 --single-branch"
+        if [ -n "$GITPRJ" ]; then
+          run_traced "git clone $GITPRJ ~/original/$1 -b $BRANCH --depth 1 --single-branch"
           ORIG=$(readlink -e ~/original/$1)
         fi
       fi
@@ -1779,7 +1804,7 @@ do_distribution() {
       fi
     fi
     local PKGS= FL= PIGN=
-    for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*"); do
+    for f in $(find . -type f -name __openerp__.py -o -name __manifest__.py -o -name "README*" -a -not -name "*.bak" -a -not -name "*~" -a -not -name "*.z0i" -a -not -name "*.oca" -a -not -name "*.tmp"); do
       x=$(readlink -e $f)
       f1=$(dirname $x)
       f2=$(build_odoo_param REPOS $f1)
@@ -1867,56 +1892,26 @@ do_distribution() {
       popd >/dev/null
     done
     if [ $opt_r -gt 0 ]; then
-      local CCWD=$PWD
+      # local CCWD=$PWD
       for f in $PKGS; do
         if [ $sts -ne $STS_SUCCESS ]; then
           break
         fi
         local PKG=$(basename $f)
         cd $f
+        pushd $f >/dev/null
         revaluate_travis
-        # echo "<<$PKG||$REPOSNAME|$PRJNAME|$PRJPATH|$PKGNAME|$PKGPATH>>" #debug
         do_distribution $PKG $2 "$CCWD"
         sts=$?
+        popd >/dev/null
       done
-      cd $CCWD
+      # cd $CCWD
     fi
-    return $sts   # debug
     revaluate_travis
     if [ $sts -eq $STS_SUCCESS -a -z "$3" ]; then
       if [ -f .gitignore ]; then
         if ! grep -q "\.gitrepname" .gitignore 2>/dev/null; then
           echo ".gitrepname">>.gitignore
-        fi
-      fi
-      if [ -z "$REPOSNAME" ]; then
-        # local ro=$(build_pkgurl $1 $2 RORIGIN)
-        local ro=$(build_odoo_param RORIGIN '' $1 $2)
-        # local lo=$(build_pkgurl $1 $2 URL)
-        local lo=$(build_odoo_param URL '' $1 $2)
-        if [ "$ro" != "$lo" ]; then
-          if [ -n "$ro" ]; then
-            run_traced "git remote remove origin"
-          fi
-          if [ -n "$lo" ]; then
-            run_traced "git remote add origin $lo"
-            run_traced "git remote set-url origin $lo"
-          fi
-        fi
-        if [ "$1" != "l10n-italy-supplemental" ]; then
-          # local ro=$(build_pkgurl $1 $2 RUPSTREAM)
-          local ro=$(build_odoo_param RUPSTREAM '' $1 $2)
-          # local lo=$(build_pkgurl $1 $2 UPSTREAM)
-          local lo=$(build_odoo_param UPSTREAM '' $1 $2)
-          if [ "$ro" != "$lo" ]; then
-            if [ -n "$ro" ]; then
-              run_traced "git remote remove upstream"
-            fi
-            if [ -n "$lo" ]; then
-              run_traced "git remote add upstream $lo"
-              run_traced "git remote set-url upstream $lo"
-            fi
-          fi
         fi
       fi
     fi
@@ -1931,7 +1926,7 @@ do_distribution() {
       else
         echo "repository=$2">>.gitrepname
       fi
-      restore_owner
+      restore_owner "$2"
     fi
     return $sts
 }

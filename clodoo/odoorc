@@ -17,6 +17,8 @@
 # GIT_PROT     Git protocol (git or https)
 # GIT_URL      URL to download git project (ends with .git)
 # HOME         Specific Odoo repository directory (i.e /opt/odoo/11.0/website)
+# INVALID_MODNAMES
+# INVALID_MODNAMES_RE
 # LCONFN       Local Configuration filename (+)
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
@@ -26,12 +28,12 @@
 # PKGPATH      Home directory of Odoo package
 # REPOS        Repository name
 # ROOT         Odoo home directory of specific vid/version
-# ROROGIN      Remote git origin of Odoo repository
+# ROROGIN      Remote git origin of Odoo repository (actual value|default)
 # RPCPORT      Xmlrpc port in multi-version environment
-# RUPSTREAM    Remote git upstream of Odoo repository
+# RUPSTREAM    Remote git upstream of Odoo repository (actual value|default)
 # SVCNAME      Service name to start/stop Odoo service
-# URL          URL to source git project
-# URL_BRANCH   URL tp specifice version of source git project
+# URL          URL to source git project (default value)
+# URL_BRANCH   URL tp specifice version of source git project (default value)
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
@@ -68,7 +70,8 @@ DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
  vertical-construction vertical-edition vertical-education vertical-hotel\
  vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel\
  web webhook webkit-tools website website-cms website-themes zeroincombenze"
-INVALID_MODNAMES="addons conf cover debian doc filestore history odoo openerp node_modules scripts server setup themes __to_remove"
+INVALID_MODNAMES="addons build conf cover .cover .coverage debian dist doc filestore history odoo openerp node_modules scripts server setup tests themes __to_remove __unported__"
+INVALID_MODNAMES_RE="(${INVALID_MODNAMES// /|})"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
 "OCA/commission,Odoo-Italia-Associazione/user_contributes,"\
@@ -153,15 +156,19 @@ find_odoo_ver() {
       if [ "$PWD" == "$HOME" ]; then
          break
       fi
-      PWD=$(readlink -f $PWD/..)
+      [ "$PWD" != "/" ] && PWD=$(readlink -f $PWD/..) || break
     done
     cd $CWD
     echo "$odoo_fver"
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
+    if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE) ]]; then
+      echo "${!1}"
+      return
+    fi
     local ITEM=$1 ROOT=/opt/odoo
     local odoo_fver odoo_ver odoo_vid MULTIVER REPOS
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
@@ -201,7 +208,7 @@ build_odoo_param() {
       odoo_vid="$2"
       [ -z "$3" ] && REPOS="OCB" || REPOS=$3
     fi
-    [ "$REPOS" == "addons" ] && REPOS=
+    [[ $REPOS =~ $INVALID_MODNAMES_RE ]] && REPOS=
     if [ -n "$odoo_vid" -a -z "$odoo_fver" ]; then
       if [[ $odoo_vid =~ $rex ]]; then
         odoo_fver=$(get_odoo_full_ver "$odoo_vid")
@@ -222,8 +229,8 @@ build_odoo_param() {
     odoo_ver=$(get_odoo_major_ver "$odoo_fver")
     if [ -n "$4" ]; then
       GIT_ORGID=$4
-    elif [[ $2 =~ $reg ]]; then
-      GIT_ORGID=$(echo $2|grep -Eo '[a-z]+'|head -n1)
+    elif [[ $odoo_vid =~ $reg ]]; then
+      GIT_ORGID=$(echo $odoo_vid|grep -Eo '[a-z]+'|head -n1)
     else
       GIT_ORGID="zero"
     fi
@@ -246,7 +253,7 @@ build_odoo_param() {
       MULTIVER=0
     fi
     if [[ $ITEM =~ ^(OPTS_ASM|GIT_OPTS|RORIGIN|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS)$ ]]; then
-      if [[ " $REPOS " =~ " $INVALID_MODNAMES " ]]; then
+      if [[ $REPOS =~ $INVALID_MODNAMES_RE ]]; then
         GIT_ORGNM=""
         GIT_PROT=""
         ODOO_UPSTREAM=
@@ -351,7 +358,15 @@ build_odoo_param() {
         return
       elif [[ $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
         r=
-        if $(git status -s &>/dev/null); then
+        if [ "$3" == "default" ]; then
+          if [[ $ITEM == "RORIGIN" ]]; then
+            if [[ -n "$GIT_ORG" ]]; then
+              r="$GIT_ORG/$REPOS.git"
+            fi
+          elif [[ $ITEM == "RUPSTREAM" && ! "$GIT_ORGID" == "oca" ]]; then
+            r="https://github.com/OCA/$REPOS.git"
+          fi
+        elif $(git status -s &>/dev/null); then
           if [ "$ITEM" == "VCS" ]; then
             r="git"
           elif [ -n "$GIT_ORG" ]; then
@@ -362,14 +377,6 @@ build_odoo_param() {
             if [ -z "$r" ]; then
               r=$(git remote -v 2>/dev/null|grep "$p.*push"|head -n1|awk '{ print $2}')
             fi
-          fi
-        elif [ "$3" == "default" ]; then
-          if [[ $ITEM == "RORIGIN" ]]; then
-            if [[ -n "$GIT_ORG" ]]; then
-              r="$GIT_ORG/$REPOS"
-            fi
-          elif [[ $ITEM == "RUPSTREAM" && ! "$GIT_ORGID" == "oca" ]]; then
-            r="https://github.com/OCA/$REPOS"
           fi
         fi
         echo "$r"

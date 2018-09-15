@@ -177,7 +177,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.28"
+__version__ = "0.3.7.29"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -2484,7 +2484,7 @@ def get_reconcile_from_inv(inv_id, ctx):
     model = 'account.invoice'
     account_invoice = browseL8(ctx, model,
                                inv_id)
-    if account_invoice.payment_move_line_ids:
+    if ctx['majver'] >= 10 and account_invoice.payment_move_line_ids:
         for move_line_id in account_invoice.payment_move_line_ids:
             reconciles.append(move_line_id.id)
     elif account_invoice.payment_ids:

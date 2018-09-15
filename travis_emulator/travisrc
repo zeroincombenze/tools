@@ -165,7 +165,7 @@ build_pypi_param() {
     local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
     [ -z "$ODOO_SETUPS" ] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
-    local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS ODOO_SETUP
+    local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS ODOO_SETUP INV_MODS
     local r w x="$PWD"
     [ -n "$2" -a "$2" != "local" ] && x=$2
     if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
@@ -182,9 +182,10 @@ build_pypi_param() {
       _PKGPATH=$x
       _PKGNAME=$_REPOS
     fi
+    INV_MODS="$(build_odoo_param INVALID_MODNAMES_RE)"
     while [[ ( -z "$_SETUP" || -z "$_PRJPATH" || -z "$_PKGPATH" ) && -n "$x" ]]; do
       r=$(basename $x)
-      if [[ ! $r =~ (odoo|openerp|tests|__unported__|addons|tests|build|dist|conf|.cover|.coverage) ]]; then
+      if [[ ! $r =~ $INV_MODS ]]; then
         [ -z "$_PRJPATH" ] && _PRJPATH=$x
         [ -z "$_PRJNAME" ] && _PRJNAME=$(basename $x)
         if [[ -z "$_SETUP" && -f "$x/setup.py" && ( ! -f "$x/../setup.py" || ! $(basename $(dirname $x)) == $(basename $x) ) ]]; then

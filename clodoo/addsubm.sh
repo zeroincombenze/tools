@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.28
+__version__=0.3.7.29
 
 
 rmdir_if_exists() {
@@ -329,20 +329,6 @@ else
     run_traced "cd $DSTPATH"
   fi
   odoo_root=$(build_odoo_param ROOT $new_odoo_vid "OCB")
-  # if [ "$new_odoo_fver" == "$new_odoo_vid" -a "${pkg_URL:0:15}" == "git@github.com:" ]; then
-  #   run_traced "git remote update"
-  # fi
-  # if [ "$new_odoo_fver" == "$new_odoo_vid" -a "$odoo_vid" != "$new_odoo_vid" ]; then
-  #   run_traced "git checkout -b $new_odoo_vid origin/$odoo_vid"
-  #   run_traced "git format-patch --stdout origin/$odoo_vid -- $DSTPATH | git am -3"
-  #   run_traced "git branch $odoo_vid -D"
-  # fi
-  # pkg_URL=$(git remote -v 2>/dev/null|grep origin|head -n1|awk '{ print $2}')
-  # if [ "$new_odoo_fver" == "$new_odoo_vid" ]; then
-  #   run_traced "git push origin $new_odoo_vid"
-  #   wep_other_branches
-  # fi
-  # run_traced "cd $HOME/$new_odoo_vid"
 fi
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_vid=$odoo_vid
@@ -368,7 +354,7 @@ if [ "$RPTNAME" != "OCB" -a -n "$is_submodule" ]; then
       run_traced "git submodule add -f $pkg_URL $RPTNAME/"
     fi
   else
-    echo "Origin '$git_orgnm' of '$RPTNAME' does not match origin '$root_orgnm'!"
+    echo "Warning: origin '$git_orgnm' of '$RPTNAME' does not match origin '$root_orgnm'!"
   fi
 fi
 if [ -z "$(grep "$RPTNAME/" .gitignore 2>/dev/null)" ]; then
