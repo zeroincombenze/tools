@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.29
+__version__=0.3.7.31
 
 
 explore() {
@@ -61,8 +61,12 @@ do_action() {
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local f s
-    local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
-    local pardir=$(readlink -e $pkgdir)
+    if [ -n "$opt_odir" ]; then
+      local pkgdir=$optdir
+    else
+      local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
+    fi
+    # local pardir=$(readlink -e $pkgdir)
     local opts=
     if [ $opt_verbose -gt 0 ]; then
       local opts="-v"
@@ -294,11 +298,11 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       d        H           m         n            O         p         q           s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="       1           1          "*>"        "+"         "="        1)
-OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    "2"       -1          0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" ""        "verbose"   ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       d        H           m         n            O         o        p         q           s          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "*>"        "+"         "="        1)
+OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       "2"       -1          0          ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "dir"    ""        "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
@@ -308,6 +312,7 @@ OPTHELP=("this help"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
+ "odoo directory"\
  "when installer is pip choice python version: may be 2 or 3"
  "silent mode"\
  "no stop after every module/version"\
