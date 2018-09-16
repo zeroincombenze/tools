@@ -62,20 +62,21 @@ get_arch () {
 }
 
 
-OPTOPTS=(h        C       E        I         L        m         N        n            O         P       S        T        t        U        V           v)
-OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_flog opt_multi opt_name opt_dry_run  odoo_vid  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=(1        "=>"    "=>"     "=>"      "=>"     1         "=>"     1            "=>"      "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       ""        ""       0         ""       0            "10"        ""    0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "file"  "linux"  "id-name" "file"   "mult"    "name"   "do nothing" "vid"     "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+OPTOPTS=(h        C       E        I         G       L        m         N        n            O         P       S        T        t        U        V           v)
+OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  odoo_vid  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=(1        "=>"    "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"      "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        ""      ""       ""        ""      ""       0         ""       0            "10"        ""    0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "file"  "linux"  "id-name" "id"    "file"   "mult"    "name"   "do nothing" "vid"     "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
  "set id name (odoo or openerp, default is odoo)"\
+ "set id of Git repository: may be oca,zero,oia"
  "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"\
  "multiple version environment (append version to filenames)"\
  "set odoo service name (default {id_name}-server)"\
  "do nothing (dry-run)"\
- "select odoo version: may be 6, 7, 8, 9, 10 or 11"\
+ "select odoo version id: may be 6, 7, 8, 9, 10 or 11"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "use sudo to execute command instead of start-stop-daemon (only Debian)"
  "created test script does nothing (used for debug)"\
@@ -98,6 +99,19 @@ fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+
+if [ -z "$opt_org" ]; then
+  GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
+  [ "$GIT_ORGNM" == "zeroincombenze" ] && opt_org="zero"
+  [ "$GIT_ORGNM" == "Odoo-Italia-Associazione" ] && opt_org="oia"
+  [ "$GIT_ORGNM" == "OCA" ] && opt_org="oca"
+else
+  [ "$opt_org" == "oca" -a "${odoo_vid:0:3}" != "oca" ] && odoo_vid="oca$odoo_ver"
+  [ "$opt_org" == "oia" -a "${odoo_vid:0:3}" != "oia" ] && odoo_vid="oia$odoo_ver"
+  [ "$opt_org" == "zero" -a "${odoo_vid:0:4}" != "zero" ] && odoo_vid="zero$odoo_ver"
+  [ "$opt_org" == "liberp" -a "${odoo_vid:0:6}" != "liberp" ] && odoo_vid="liberp$odoo_ver"
+fi
+xtl_org=$opt_org
 if [ -z "$opt_name" ]; then
   opt_name=$(build_odoo_param SVCNAME $odoo_vid)
 fi
@@ -110,9 +124,11 @@ if [ -z "$opt_id" ]; then
 fi
 if [ -z "$opt_pid" ]; then
   opt_pid=$(build_odoo_param FPID $odoo_vid)
+  [[ $opt_org =~ (oca|oia|zero|liberp) && ! $opt_org =~ $opt_pid ]] && opt_pid="${opt_pid:0: -4}-$opt_org.pid" 
 fi
 if [ -z "$opt_flog" ]; then
   opt_flog=$(build_odoo_param FLOG $odoo_vid)
+  [[ $opt_org =~ (oca|oia|zero|liberp) && ! $opt_org =~ $opt_flog ]] && opt_flog="${opt_flog:0: -4}-$opt_org.log"
 fi
 if [ -z "$opt_cfg" ]; then
   opt_cfg=$(build_odoo_param CONFN $odoo_vid)
@@ -202,7 +218,7 @@ if [ -f $script_name.tmp ]; then
   rm -f $script_name.tmp
 fi
 begin_scrpt=0
-prm_list=
+prm_list="xtl_org"
 dbg=0
 while IFS=\| read -r line; do
   if [ "${line:0:1}" == "#" ]; then
@@ -231,7 +247,7 @@ while IFS=\| read -r line; do
     elif [ "$prm" == "xtl_altcfgfile" ]; then
       declare $prm="$opt_cfg2"
     elif [ "$prm" == "xtl_version" ]; then
-      declare $prm="$odoo_vid"
+      declare $prm="$odoo_ver"
     elif [ "$prm" == "xtl_fversion" ]; then
       declare $prm="$odoo_fver"
     elif [ "$prm" == "xtl_user" ]; then
@@ -262,6 +278,7 @@ while IFS=\| read -r line; do
     echo "$line">>$script_name.tmp
   fi
 done < "$src_template"
+
 if [ $opt_dry_run -eq 0 ]; then
   if [ -f $script_name ]; then
     mv -f $script_name $script_name.bak
