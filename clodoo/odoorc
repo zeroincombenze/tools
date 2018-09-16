@@ -22,6 +22,8 @@
 # LCONFN       Local Configuration filename (+)
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
+# OCB_SUBDIRS
+# OCB_SUBDIRS_RE
 # OPTS_ASM     Undocumented (deprecated)
 # PARENTDIR    Parent directory of specific Odoo module (i.e. /opt/odoo/11.0)
 # PKGNAME      Package name
@@ -37,7 +39,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.29
+#__version__=0.3.7.30
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -70,7 +72,9 @@ DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
  vertical-construction vertical-edition vertical-education vertical-hotel\
  vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel\
  web webhook webkit-tools website website-cms website-themes zeroincombenze"
-INVALID_MODNAMES="addons build conf cover .cover .coverage debian dist doc docs filestore .git history html latex odoo openerp node_modules scripts server setup tests themes __to_remove __unported__"
+OCB_SUBDIRS="addons build debian dist doc docs _extensions filestore history howtos images odoo openerp redhat reference scripts server _static win32"
+OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
+INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage .git html latex node_modules setup _static tests themes __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
@@ -163,9 +167,9 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LCONFN|MAJVER|MANIFEST|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
-    if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE) ]]; then
+    if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
       echo "${!1}"
       return
     fi
