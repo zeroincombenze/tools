@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32
+__version__=1.3.32.1
 
 
 kill_process() {
@@ -474,6 +474,9 @@ if [ $dovalid -gt 0 ]; then
         stop_services "$NEWDB" "quick"
       fi
       rm -f $fsql
+      if $(tail -n1 $NEWDB.err|grep "psql:.*NOTICE:  database.*does not exist, skipping" &>/dev/null); then
+        rm -f $NEWDB.err
+      fi
       wlog "Restore $NEWDB terminated"
     else
       wlog "Restore $NEWDB processed"
