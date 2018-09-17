@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.31
+__version__=0.3.7.32
 
 
 explore() {
@@ -62,7 +62,7 @@ do_action() {
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
     local f s
     if [ -n "$opt_odir" ]; then
-      local pkgdir=$optdir
+      local pkgdir=$opt_odir
     else
       local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
     fi
@@ -119,7 +119,7 @@ do_action() {
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
       [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && PYPI_CACHED=$HOME/.local
-      [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH
+      [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH=
       if [ -z "$PYPI_CACHED" ]; then
         echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
         eval $PIP install pip -U
