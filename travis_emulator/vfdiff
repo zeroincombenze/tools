@@ -32,10 +32,16 @@ if [ -z "$TRAVISLIBDIR" ]; then
   exit 2
 fi
 . $TRAVISLIBDIR
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.48
+__version__=0.2.1.49
 
 
 vf_init() {
@@ -107,22 +113,16 @@ exec_diff() {
       else
         opts="$XLDF -ZBqr"
       fi
-      if [ $opt_igns -gt 0 ]; then
-        opts="${opts}Ew"
-      fi
-      [ "$opt_md" ] && opts="$opts --ignore-matching-lines='^#'"
+      [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+      [ $opt_ignas -gt 0 ] && opts="${opts}w"
+      [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
     else
-      if [ $opt_para -ne 0 ]; then
-        opts=" -ZBy"
-        if [ $opt_igns -gt 0 ]; then
-          opts="${opts}Ew"
-        fi
-      elif [ $opt_igns -gt 0 ]; then
-          opts=" -ZBEw"
-      else
-        opts=" -ZB"
-      fi
-      [ "$opt_md" ] && opts="$opts --ignore-matching-lines='^#'"
+      opts=" -ZB"
+      [ $opt_para -ne 0 ] && opts="${opts}y"
+      [ $opt_igns -gt 0 ] && opts="${opts}Eb"
+      [ $opt_ignas -gt 0 ] && opts="${opts}w"
+      [ $opt_md -ne 0 ] && opts="$opts -I '^#' -I \"^ *[_\\\"']\?_\?version[_\\\"']\?_\? *[:=]\""
+      [ $opt_diffe -ne 0 ] && opts="$opts  --suppress-common-line"
     fi
     run_traced "diff$opts $left $right"
     return $?
@@ -143,10 +143,11 @@ localdiff() {
       cparq="$cparq -q"
     fi
     if [ $opt_para -ne 0 ]; then
-      cparv="$cparv -y --suppress-common-lines"
+      cparv="$cparv -y"
+      [ $opt_diffe -ne 0 ] && cparv="$cparv --suppress-common-lines"
       param="$param -y"
     fi
-    if [ "$opt_md" ]; then param="$param -m"; fi
+    if [ $opt_md -ne 0 ]; then param="$param -m"; fi
     if [ -d $left ]; then
       for f in $(ls -1 $left); do
         if [ $opt_verbose -gt 1 ]; then
@@ -235,7 +236,7 @@ get_path_ver() {
     VF_MSTS=0
     local i
     local r t v
-    local re="(10\.0|9\.0|8\.0|7\.0|v7)"
+    local re="(11\.0|10\.0|9\.0|8\.0|7\.0|v7)"
     VFT_VER=$2
     if [ -z "$1" ]; then
       r=$VF_PFX
@@ -414,14 +415,16 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        a       c        i       m      n            O         p         r            V           v           w        y        0       1       2)
-OPTDEST=(opt_help opt_all opt_conf opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_igns opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       "="      1       1      1            "="       "="       "="          "*>"        1           1        1        0       1       1)
-OPTDEFL=(0        0       ""       0       0      0            ""        ""        ""           ""          0           0        0        0       0       0)
-OPTMETA=("help"   ""      "file"   ""      ""     "do nothing" "version" "package" "repository" "version"   "verbose"   ""       "parall" ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       m      n            O         p         r            V           v           w         y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       "="          "*>"        1           1         1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        ""           ""          0           0         0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" "repository" "version"   "verbose"   ""        ""       ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
+ "ignore space differences"\
  "configuration file (def ~/dev/.travis.conf)"\
+ "side by side (only differences)"\
  "use internal algorithm rather than standard recursive diff"\
  "ignore minor difference (i.e. remarks)"\
  "do nothing (dry-run)"\
@@ -431,7 +434,7 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode"\
  "ignore all space differences"\
- "side by side"\
+ "side by side (all lines)"\
  "initial status is true"\
  "initial status is false"\
  "undocumented")
@@ -450,10 +453,9 @@ if [ $opt_help -gt 0 ]; then
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-if [ $opt_all -gt 0 ]; then
-  opt_iar=0
-fi
-if [[ " 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+[ $opt_all -gt 0 ] && opt_iar=0
+[ $opt_diffe -ne 0 ] & opt_para=1
+if [[ " 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then

@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.48
+__version__=0.2.1.49
 
 
 
@@ -188,10 +188,11 @@ if [ "$opt_cpush" == "-O" ]; then
   fi
   pkg=$(build_odoo_param REPOS "$srcdir")
   cd $tgtdir
+  [ $opt_verbose -gt 0 ] && echo "Wep directories"
   clean_dirs ""
+  [ -d ./setup ] && rm -fR ./setup
   if [ "$pkg" == "OCB" ]; then
     echo "Replicate OCB ..."
-    # valid="addons CONTRIBUTING.md COPYRIGHT debian doc LICENSE Makefile MANIFEST.in odoo odoo-bin README.md requirements.txt setup setup.cfg setup.py"
     valid=$(build_odoo_param OCB_SUBDIRS_RE)
     for d in $srcdir/* $srcdir/.travis.yml; do
       f=$(basename $d)
@@ -215,6 +216,8 @@ if [ "$opt_cpush" == "-O" ]; then
   RORIGIN=$(build_odoo_param RORIGIN ".")
   gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
   if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
+    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia10 oia -v"
+    odoo_skin.sh oia10 oia -v
     [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run"
     $TDIR/please distribution oia $opts_dry_run -f
   fi
