@@ -1,4 +1,4 @@
-# __version__=0.1.9
+# __version__=0.1.10
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -35,7 +35,7 @@ for pkg in travis_emulator clodoo zar z0lib zerobug wok_code lisa; do
     if [ ! -f "$src" -a ! -d "$src" ]; then
       echo "File $src not found!"
     elif [[ ! -L "$tgt" || $1 =~ -.*p ]]; then
-      if [ -L "$tgt" ]; then
+      if [ -L "$tgt"  -o -f "$tgt" ]; then
         [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
         rm -f $tgt
       fi
