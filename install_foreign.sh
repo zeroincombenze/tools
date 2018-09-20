@@ -1,4 +1,4 @@
-# __version__=0.1.10
+# __version__=0.1.11
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -14,7 +14,7 @@ RFLIST__zar="pg_db_active"
 RFLIST__z0lib="z0lib.py z0librc"
 RFLIST__zerobug="z0testrc"
 RFLIST__wok_code="cvt_script"
-RFLIST__lisa="lisa lisa.conf.sample lisa.man kbase"
+RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase odoo-server_Debian odoo-server_RHEL"
 SRCPATH=
 DSTPATH=
 [ -d ~/tools ] && SRCPATH=~/tools

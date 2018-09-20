@@ -478,7 +478,11 @@ if [ $opt_2nd -eq 0 ]; then
   VF_FN=
   get_path_ver "$source" "" "$opt_rep" "$opt_pkg"
   left=$result
-  get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
+  if [[ "$target" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
+    result="$target"
+  else
+    get_path_ver "$target" "" "$opt_rep" "$opt_pkg"
+  fi
   right=$result
 else
   left=$source

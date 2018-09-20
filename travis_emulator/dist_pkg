@@ -353,12 +353,10 @@ fi
 if [ $opt_fetch -eq 0 ]; then
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $PKGPATH); do
-      # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH\""; fi
       robocopy "$PKGPATH/$f" "$LGITPATH"
     done
   else
     for f in $(dir $PKGPATH); do
-      # if [ $opt_verbose -gt 0 ]; then echo "$ robocopy \"$PKGPATH/$f\" \"$LGITPATH/$f\""; fi
       robocopy "$PKGPATH/$f" "$LGITPATH/$f"
     done
   fi
@@ -366,6 +364,8 @@ if [ $opt_fetch -eq 0 ]; then
     if [ $opt_verbose -gt 0 ]; then echo "$ cp /opt/odoo/dev/Makefile ~/tools/pytok"; fi
     cp /opt/odoo/dev/Makefile ~/tools/pytok
   fi
+  cd $LGITPATH/..
+  [ -x install_foreign.sh ] && ./install_foreign.sh
 else
   if [ $LGITLEV -gt 0 ]; then
     for f in $(dir $LGITPATH); do
@@ -383,18 +383,4 @@ else
     done
   fi
 fi
-# LGITPATH=$(readlink -e $LGITPATH/..)
-# for f in $(dir $LGITPATH); do
-#   if [ -d $LGITPATH/$f ]; then
-#     if [ ! -f $LGITPATH/$f/z0librc ]; then
-#       run_traced "ln -s $LGITPATH/z0lib/z0librc $LGITPATH/$f/z0librc"
-#     fi
-#   fi
-# done
-# if [ ! -f $LGITPATH/travis_emulator/_travis/z0librc ]; then
-#   run_traced "ln -s $LGITPATH/z0lib/z0librc $LGITPATH/travis_emulator/_travis/z0librc"
-# fi
-# if [ ! -f $LGITPATH/travis_emulator/z0librc ]; then
-#   run_traced "cp $LGITPATH/z0lib/z0librc $LGITPATH/travis_emulator/z0librc"
-# fi
 exit $STS_SUCCESS

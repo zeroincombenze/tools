@@ -34,7 +34,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.0.6
+__version__=0.3.0.7
 
 
 get_arch () {
@@ -61,22 +61,95 @@ get_arch () {
     fi
 }
 
+expand_line () {
+  local ln="$1"
+  for p in $2; do
+      ln="${ln//\$\{$p\}/${!p}}"
+  done
+  if [ "${1:0:14}" == "# \${xtl_name} " ]; then
+    local x="${ln%%This*}"
+    i=${#x}
+    local y="${1%%This*}"
+    j=${#y}
+    local x="${ln:0:i}                           "
+    local y="${ln:i}"
+    ln="${x:0:j}$y"
+  elif  [ "${1:0:11}" == "# version: " ]; then
+    local v=$(echo "$1"|awk -F: '{ print $2 }')
+    local ln="# version: ${__version__} ($(echo $v)) $(date +%Y-%m-%d)"
+  fi
+  echo "$ln"
+}
 
-OPTOPTS=(h        C       E        I         G       L        m         N        n            O         P       S        T        t        U        V           v)
-OPTDEST=(opt_help opt_cfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  odoo_vid  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
-OPTACTI=(1        "=>"    "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"      "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
-OPTDEFL=(1        ""      ""       ""        ""      ""       0         ""       0            "10"        ""    0        ""       ""       "odoo"   ""          0)
-OPTMETA=("help"   "file"  "linux"  "id-name" "id"    "file"   "mult"    "name"   "do nothing" "vid"     "file"  ""       "test"   "file"   "user"   "version"   "verbose")
+
+update_odoo_conf() {
+# update_odoo_conf(odoo_vid confn)
+    local odoo_vid=$1
+    if [ -z "$2" ]; then
+      local confn=$(build_odoo_param CONFN $odoo_vid)
+    else
+      local confn=$1
+    fi
+    if [ ! -f $confn ]; then
+      echo "File $confn not found!"
+      exit 1
+    fi
+    local tgt=$confn.tmp
+    [ -f $tgt ] && rm -f $tgt
+    touch $tgt
+    local DDIR=$(build_odoo_param DDIR $odoo_vid)
+    local FLOG=$(build_odoo_param FLOG $odoo_vid)
+    local FPID=$(build_odoo_param FPID $odoo_vid)
+    local RPCPORT=$(build_odoo_param RPCPORT $odoo_vid)
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+    while IFS=\| read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo ]]; then
+        line=$(echo "data_dir = $DDIR")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*  ]]; then
+        line=$(echo "logfile = $FLOG")
+      elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
+        line=$(echo "pidfile = $FPID")
+      elif [[ $line =~ ^[#[:space:]]*xmlrpc_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
+        if [ $odoo_ver -gt 10 ]; then
+          line=$(echo "# xmlrpc_port = $RPCPORT")
+        else
+          line=$(echo "xmlrpc_port = $RPCPORT")
+        fi
+      elif [[ $line =~ ^[#[:space:]]*http_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
+        if [ $odoo_ver -gt 10 ]; then
+          line=$(echo "http_port = $RPCPORT")
+        else
+          line=$(echo "# http_port = $RPCPORT")
+        fi
+      fi
+      echo "$line">>$tgt
+    done < "$confn"
+    if $(diff -q $confn $tgt &>/dev/null); then
+      rm -f $tgt
+    else
+      [ -f $confn.bak ] && rm -f $confn.bak
+      mv $confn $confn.bak
+      mv $tgt $confn
+    fi
+}
+
+
+OPTOPTS=(h        b         C       D        E        I         G       L        m         N        n            P       S        T        t        U        V           v)
+OPTDEST=(opt_help odoo_vid  opt_cfg opt_ucfg opt_osf  opt_id    opt_org opt_flog opt_multi opt_name opt_dry_run  opt_pid opt_sudo opt_test opt_tmpl opt_user opt_version opt_verbose)
+OPTACTI=(1        "=>"      "=>"    1        "=>"     "=>"      "="     "=>"     1         "=>"     1            "=>"    1        "*>"     "=>"     "=>"     "*>"        1)
+OPTDEFL=(1        "10"      ""      0        ""        ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
+OPTMETA=("help"   "vid"     "file"  ""       "linux"   "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
+ "select odoo version id: may be 6, 7, 8, 9, 10 or 11"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
+ "update default values in /etc configuration file before creating script"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
  "set id name (odoo or openerp, default is odoo)"\
- "set id of Git repository: may be oca,zero,oia"
+ "set id of Git repository in multi-version: may be oca,zero,oia"
  "set odoo log filename (default /var/log/{id_name}/{id_name}-server).log"\
  "multiple version environment (append version to filenames)"\
  "set odoo service name (default {id_name}-server)"\
  "do nothing (dry-run)"\
- "select odoo version id: may be 6, 7, 8, 9, 10 or 11"\
  "set odoo PID filename (default /var/run/{id_name}/{id_name}-server).pid"\
  "use sudo to execute command instead of start-stop-daemon (only Debian)"
  "created test script does nothing (used for debug)"\
@@ -99,10 +172,10 @@ fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-
+[ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg
 if [ -z "$opt_org" ]; then
   GIT_ORGNM=$(build_odoo_param GIT_ORGNM $odoo_vid)
-  [ "$GIT_ORGNM" == "zeroincombenze" ] && opt_org="zero"
+  [ "$GIT_ORGNM" == "zeroincombenze" ] && opt_org=""
   [ "$GIT_ORGNM" == "Odoo-Italia-Associazione" ] && opt_org="oia"
   [ "$GIT_ORGNM" == "OCA" ] && opt_org="oca"
 else
@@ -195,25 +268,6 @@ if [ -z "$src_template" ]; then
   exit 1
 fi
 
-expand_line () {
-  local ln="$1"
-  for p in $2; do
-      ln="${ln//\$\{$p\}/${!p}}"
-  done
-  if [ "${1:0:14}" == "# \${xtl_name} " ]; then
-    local x="${ln%%This*}"
-    i=${#x}
-    local y="${1%%This*}"
-    j=${#y}
-    local x="${ln:0:i}                           "
-    local y="${ln:i}"
-    ln="${x:0:j}$y"
-  elif  [ "${1:0:11}" == "# version: " ]; then
-    local v=$(echo "$1"|awk -F: '{ print $2 }')
-    local ln="# version: ${__version__} ($(echo $v)) $(date +%Y-%m-%d)"
-  fi
-  echo "$ln"
-}
 if [ -f $script_name.tmp ]; then
   rm -f $script_name.tmp
 fi

@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.31
+__version__=0.3.7.32
 
 
 rmdir_if_exists() {
@@ -161,15 +161,67 @@ commit_files() {
     fi
 }
 
+update_odoo_conf() {
+# update_odoo_conf(odoo_vid confn)
+    local odoo_vid=$1
+    if [ -z "$2" ]; then
+      local confn=$(build_odoo_param CONFN $odoo_vid)
+    else
+      local confn=$1
+    fi
+    if [ ! -f $confn ]; then
+      echo "File $confn not found!"
+      exit 1
+    fi
+    local tgt=$confn.tmp
+    [ -f $tgt ] && rm -f $tgt
+    touch $tgt
+    local DDIR=$(build_odoo_param DDIR $odoo_vid)
+    local FLOG=$(build_odoo_param FLOG $odoo_vid)
+    local FPID=$(build_odoo_param FPID $odoo_vid)
+    local RPCPORT=$(build_odoo_param RPCPORT $odoo_vid)
+    local odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
+    while IFS=\| read -r line || [ -n "$line" ]; do
+      if [[ $line =~ ^data_dir[[:space:]]*=[[:space:]]*.*Odoo ]]; then
+        line=$(echo "data_dir = $DDIR")
+      elif [[ $line =~ ^logfile[[:space:]]*=[[:space:]]*.*  ]]; then
+        line=$(echo "logfile = $FLOG")
+      elif [[ $line =~ ^pidfile[[:space:]]*=[[:space:]]*.* ]]; then
+        line=$(echo "pidfile = $FPID")
+      elif [[ $line =~ ^[#[:space:]]*xmlrpc_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
+        if [ $odoo_ver -gt 10 ]; then
+          line=$(echo "# xmlrpc_port = $RPCPORT")
+        else
+          line=$(echo "xmlrpc_port = $RPCPORT")
+        fi
+      elif [[ $line =~ ^[#[:space:]]*http_port[[:space:]]*=[[:space:]]*[0-9]+ ]]; then
+        if [ $odoo_ver -gt 10 ]; then
+          line=$(echo "http_port = $RPCPORT")
+        else
+          line=$(echo "# http_port = $RPCPORT")
+        fi
+      fi
+      echo "$line">>$tgt
+    done < "$confn"
+    if $(diff -q $confn $tgt &>/dev/null); then
+      rm -f $tgt
+    else
+      [ -f $confn.bak ] && rm -f $confn.bak
+      mv $confn $confn.bak
+      mv $tgt $confn
+    fi
+}
 
-OPTOPTS=(h        b          c        L        m          n            O         o        q           r            V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_link opt_multi  opt_dry_run  opt_org   opt_only opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1          1            "="       1        0           1          "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0          0            "zero"    0        -1          0          ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""         "do nothing" "git-org" ""       "verbose"   ""         "version"   "verbose"   ""      "")
+
+OPTOPTS=(h        b          c        D        L        m          n            O         o        q           r            V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_link opt_multi  opt_dry_run  opt_org   opt_only opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1        1        1          1            "="       1        0           1          "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0        0        0          0            "zero"    0        -1          0          ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""       ""       ""         "do nothing" "git-org" ""       "verbose"   ""         "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
- "new branch (new_odoo_ver) to create"\
+ "default odoo branch"\
  "configuration file (def .travis.conf)"\
+ "update default values in /etc configuration file before creating script"\
  "create symbolic link rather copy files (if new_odoo_ver supplied)"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
@@ -190,7 +242,7 @@ if [ "$opt_version" ]; then
 fi
 if [ -z "$git_repo" ]; then
   opt_help=1
-elif [ -z "$odoo_vid" ]; then
+elif [ -z "$odoo_vid" -a -z "$opt_branch" ]; then
   opt_help=1
 fi
 if [ $opt_help -gt 0 ]; then
@@ -202,7 +254,9 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ -n "$opt_branch" ]; then
-  if [ -z "$new_odoo_vid" ]; then
+  if [ -z "$odoo_vid" ]; then
+    odoo_vid=$opt_branch
+  elif [ -z "$new_odoo_vid" ]; then
     new_odoo_vid=$opt_branch
   elif [ -n "$new_odoo_vid" ]; then
     echo "Invalid parameters"
@@ -279,7 +333,7 @@ if [ -z "$new_odoo_vid" ]; then
           run_traced "mkdir -p $pdir"
           # run_traced "chown odoo:odoo $pdir"
         fi
-        pdir="-D $pdir"
+        [ $odoo_ver -gt 7 ] && pdir="-D $pdir" || pdir=
       fi
       run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
       if [ -f ~/.openerp_serverrc ]; then
@@ -288,6 +342,7 @@ if [ -z "$new_odoo_vid" ]; then
         run_traced "mv ~/.odoorc $cfgfn"
       fi
       run_traced "chown odoo:odoo $cfgfn"
+      [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg
     fi
   fi
 else
