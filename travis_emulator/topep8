@@ -37,11 +37,191 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.49
+__version__=0.2.1.50
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
 
+
+expand_macro() {
+    local t p v lne lne1
+    lne="$1"
+    for t in {1..9} LNK_DOCS BTN_DOCS LNK_HELP BTN_HELP;do
+      p=\${$t}
+      v=${M[$t]}
+      lne1="${lne//$p/$v}"
+      lne="$lne1"
+    done
+    echo -n "$lne"
+}
+
+get_ver() {
+    local ver=
+    if [ -n "$BRANCH" ]; then
+      if [ "$BRANCH" == "master" ]; then
+        ver=$BRANCH
+      else
+        ver=$(echo $BRANCH|grep -Eo '[0-9]+'|head -n1)
+      fi
+    else
+      ver=master
+    fi
+    [ -n "$1" -a "$ver" == "master" ] && ver=0 
+    echo $ver
+}
+
+build_line() {
+# build_line(flag replmnt act)
+    local v w x line
+    v=${1^^}
+    w="LNK_${v:1}"
+    v="BTN_${v:1}"
+    line="$2"
+    if [[ "$3" =~ md_BTN ]]; then
+      if [ -n "${M[$v]}" ]; then
+        x="${M[$v]}"
+        line="$line($x)]"
+      fi
+      if [ -n "${M[$w]}" ]; then
+        x="${M[$w]}"
+        line="$line($x)"
+      fi
+    elif [[ "$3" =~ rstBTN_.*/1 ]]; then
+      if [ -z "$2" ]; then
+        line=".. image::"
+      else
+        line=".. ${line:0: -1} image::"
+      fi
+      if [ -n "${M[$v]}" ]; then
+        x="${M[$v]}"
+        line="$line $x"
+      fi
+    elif [[ "$3" =~ rstBTN_.*/2 ]]; then
+      if [ -z "$2" ]; then
+        line="   :target:"
+      else
+        line=".. _${line:1: -2}:"
+      fi
+      if [ -n "${M[$w]}" ]; then
+        x="${M[$w]}"
+        line="$line $x"
+      fi
+    elif [ "$3" == "CHPT_lang_en" ]; then
+      line="[![en](https://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)](https://www.facebook.com/groups/openerp.italia/)"
+    elif [ "$3" == "CHPT_lang_it" ]; then
+      line="[![it](https://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)](https://www.facebook.com/groups/openerp.italia/)"
+    elif [[ $3 =~ CHPT_ ]]; then
+      :
+    fi
+    echo "$line"
+}
+
+add_copyright() {
+#add_copyright(file rst zero|oca|oia)
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (copyright)">>$1
+      else
+        echo "[//]: # (copyright)">>$1
+      fi
+      echo "">>$1
+      echo "----">>$1
+      echo "">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**Odoo** is a trademark of  \`Odoo S.A.">>$1
+        echo "<https://www.odoo.com/>\`_.">>$1
+        echo "(formerly OpenERP, formerly TinyERP)">>$1
+      else
+        echo "**Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)">>$1
+      fi
+      echo "">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**OCA**, or the  \`Odoo Community Association">>$1
+        echo "<http://odoo-community.org/>\`_.">>$1
+        echo "is a nonprofit organization whose">>$1
+      else
+        echo "**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose">>$1
+      fi
+      echo "mission is to support the collaborative development of Odoo features and">>$1
+      echo "promote its widespread use.">>$1
+      echo "">>$1
+      if [ "$3" == "oia" ]; then
+        echo "**Odoo Italia Associazione**, or the [Associazione Odoo Italia](https://www.odoo-italia.org/)">>$1
+        echo "is the nonprofit Italian Community Association whose mission">>$1
+        echo "is to support the collaborative development of Odoo designed for Italian law and markeplace.">>$1
+        echo "Since 2017 Odoo Italia Associazione issues modules for Italian localization not developed by OCA">>$1
+        echo "or available only with Odoo Proprietary License.">>$1
+        echo "Odoo Italia Associazione distributes code under [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) or [LGPL](https://www.gnu.org/licenses/lgpl.html) free license.">>$1
+        echo "">>$1
+        echo "[Odoo Italia Associazione](https://www.odoo-italia.org/) è un'Associazione senza fine di lucro">>$1
+        echo "che dal 2017 rilascia moduli per la localizzazione italiana non sviluppati da OCA">>$1
+        echo "o disponibili solo con [Odoo Proprietary License](https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html).">>$1
+        echo "">>$1
+        echo "Odoo Italia Associazione distribuisce il codice esclusivamente con licenza [AGPL](https://www.gnu.org/licenses/agpl-3.0.html) o [LGPL](https://www.gnu.org/licenses/lgpl.html)">>$1
+        echo "">>$1
+      else
+        if [ $2 -eq 1 ]; then
+          echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
+          echo "<http://www.shs-av.com/>\`_.">>$1
+        else
+          echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+        fi
+        echo "which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.">>$1
+        echo "[Zeroincombenze® distribution of Odoo](http://wiki.zeroincombenze.org/en/Odoo)">>$1
+        echo "is mainly designed for Italian law and markeplace.">>$1
+        echo "Users can download from [Zeroincombenze® distribution](https://github.com/zeroincombenze/OCB) and deploy on local server.">>$1
+        echo "">>$1
+      fi
+      if [ $2 -eq 1 ]; then
+        echo "">>$1
+        echo ".. [//]: # (end copyright)">>$1
+      else
+        echo "[//]: # (end copyright)">>$1
+      fi
+    else
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (copyright)">>$1
+      else
+        echo "[//]: # (copyright)">>$1
+      fi
+      echo "">>$1
+      echo "----">>$1
+      echo "">>$1
+      if [ $2 -eq 1 ]; then
+        echo "**zeroincombenze®** is a trademark of \`SHS-AV s.r.l.">>$1
+        echo "<http://www.shs-av.com/>\`_.">>$1
+      else
+        echo "**zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)">>$1
+      fi
+      echo "which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.">>$1
+      echo "">>$1
+      echo "Odoo is a trademark of Odoo S.A.">>$1
+      if [ $2 -eq 1 ]; then
+        echo "">>$1
+        echo ".. [//]: # (end copyright)">>$1
+      else
+        echo "[//]: # (end copyright)">>$1
+      fi
+    fi
+}
+
+add_addons() {
+#add_addons(file rst zero|oca|oia ORIG)
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [ $2 -eq 1 ]; then
+        echo ".. [//]: # (addons)">>$1
+      else
+        echo "[//]: # (addons)">>$1
+      fi
+      $TDIR/gen_addons_table.py addons $4>>$1
+      if [ $2 -eq 1 ]; then
+        echo "">>$1
+        echo ".. [//]: # (end addons)">>$1
+      else
+        echo "[//]: # (end addons)">>$1
+      fi
+    fi
+}
 
 format_yaml() {
     local fn=$1
@@ -283,8 +463,8 @@ format_xml() {
         elif [ "${lne:0:5}" == "<data" ]; then
           if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
             continue
-          elif [  $odoo_ver -lt 10 -a $level -eq 0 ]; then
-            :
+          # elif [  $odoo_ver -lt 10 -a $level -eq 0 ]; then
+          #   :
           else
             ((level++))
           fi
@@ -338,17 +518,654 @@ format_xml() {
 }
 
 
+
+format_readme() {
+# cvt_readme(file_readme oca|zero|oia currpt ORIG)
+# params: 1=REMOTEREPO, 2=pkgname, 3=odoo_ver, 4=ver(major), 5=helpname
+#         7=repos/pkgname, 8=(txt1)repos 9=(txt2)repos
+    local fn=$1
+    local fntmp=$fn.tmp
+    local wf=0 nxtwf=0 prewf=0 preline=0
+    local Irunbot=0 Ibuild=0 Icoverage=0 Icodecov=0 Iclimate=0 Ilicense=0 Itryit=0 Idocs=0 Ihelp=0 IOCA=0
+    local Icright=0 Iaddons=0 Irst=0 Ichat=0 Ilang_en=0 Ilang_it=0 Idiff=0 Iinstall=0
+    local line lne1 lne2 REMOTEREPO txtrepos ver ver0 i v w x y
+    local ignnextlines=0
+    local helpname=
+    local OCA_REMOTEREPO OCA_txt1repos OCA_txt2repos
+    unset M[*] TKNS[*] REPL[*] ACT[*]
+    declare -gA M
+    declare -a TKNS REPL ACT RHLP WK
+    RHLP[0]="FI=l10n-italy-supplemental:l10n-italy"
+    RHLP[1]="FI=account-:bank-:analytic:l10n_it"
+    RHLP[2]="MM=product-"
+    RHLP[3]="LO=stock-:purchase"
+    RHLP[4]="SD=stock-:sale"
+    i=0
+    while [ $i -lt ${#RHLP[@]} ]; do
+      x=${RHLP[$i]}
+      IFS== read p v<<<$x
+      w=${v//:/ }
+      for v in $w; do
+        if [[ "$PKGNAME" =~ "$v" ]] || [[ "$REPOSNAME" =~ "$v" ]]; then
+          helpname=$p
+          break
+        fi
+      done
+      if [ -n "$helpname" ]; then
+        break
+      fi
+      ((i++))
+    done
+    [ -z "$BRANCH" ] && BRANCH=master
+    ver=$(get_ver)
+    ver0=$(get_ver "$PRJNAME")
+    OCA_REMOTEREPO=OCA
+    OCA_txt1repos=repos
+    OCA_txt2repos=r
+    if [ "$2" == "oca" ]; then
+      REMOTEREPO=$OCA_REMOTEREPO
+      txt1repos=$OCA_txt1repos
+      txt2repos=OCA_txt2repos
+    elif [ "$2" == "zeroincombenze" -o "$2" == "zero" ]; then
+      REMOTEREPO=zeroincombenze
+      txt1repos=repos/github
+      txt2repos=github
+    elif [ "$2" == "oia" ]; then
+      REMOTEREPO=Odoo-Italia-Associazione
+      txt1repos=repos/github
+      txt2repos=github
+    fi
+    M[1]=$REMOTEREPO
+    if [ "$PRJNAME" == "tools" -o "$PKGNAME" == "tools" ]; then
+      M[2]=tools
+    elif [ "$LGITPATH" == "/opt/odoo/tools/$PKGNAME" ]; then    # Just for debug
+      M[2]=tools
+    else
+      M[2]=$PKGNAME
+    fi
+    M[3]=$BRANCH
+    M[4]=$ver
+    M[5]=$helpname
+    if [ -z "$REPOSNAME" ]; then
+      M[7]=${M[2]}
+    elif [ "$LGITPATH" == "/opt/odoo/tools/$PKGNAME" ]; then    # Just for debug
+      M[7]=${M[2]}
+    else
+      M[7]=$REPOSNAME
+    fi
+    M[8]=$txt1repos
+    M[9]=$txt2repos
+    v=${M[7]}
+    M[LNK_BUILD]="https://travis-ci.org/$REMOTEREPO/$v"
+    M[BTN_BUILD]="https://travis-ci.org/$REMOTEREPO/$v.svg?branch=$BRANCH"
+    if [ $ver0 -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+      M[LNK_LICENSE]="https://www.gnu.org/licenses/lgpl.html"
+      M[BTN_LICENSE]="https://img.shields.io/badge/licence-LGPL--3-7379c3.svg"
+    else
+      M[LNK_LICENSE]="http://www.gnu.org/licenses/agpl-3.0.html"
+      M[BTN_LICENSE]="https://img.shields.io/badge/licence-AGPL--3-blue.svg"
+    fi
+    M[LNK_COVERAGE]="https://coveralls.io/$txt2repos/$REMOTEREPO/$v?branch=$BRANCH"
+    M[BTN_COVERAGE]="https://coveralls.io/$txt1repos/$REMOTEREPO/$v/badge.svg?branch=$BRANCH"
+    M[LNK_OCA_COVERAGE]="https://coveralls.io/$OCA_txt2repos/$OCA_REMOTEREPO/$v?branch=$BRANCH"
+    M[BTN_OCA_COVERAGE]="https://coveralls.io/$OCA_txt1repos/$OCA_REMOTEREPO/$v/badge.svg?branch=$BRANCH"
+    if [ -z "$REPOSNAME" ]; then
+      M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
+    else
+      M[LNK_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH"
+    fi
+    M[LNK_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH"
+    M[BTN_CODECOV]="https://codecov.io/gh/$REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
+    M[BTN_OCA_CODECOV]="https://codecov.io/gh/$OCA_REMOTEREPO/$v/branch/$BRANCH/graph/badge.svg"
+    if [ "$PRJNAME" == "Odoo" ]; then
+      M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/dev"
+      M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$ver.svg"
+    elif [ "$PKGNAME" == "tools" ]; then
+      M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Python/opt"
+      M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$PKGNAME.svg"
+    elif [ "$PKGNAME" != "tools" ]; then
+      M[LNK_DOCS]="http://wiki.zeroincombenze.org/en/Python/opt/$PKGNAME"
+      M[BTN_DOCS]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-$PKGNAME.svg"
+    fi
+    if [ "$PRJNAME" == "Odoo" ]; then
+      M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Odoo/$BRANCH/man/$helpname"
+      M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$ver.svg"
+    elif [ "$PKGNAME" == "tools" ]; then
+      M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt"
+      M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$PKGNAME.svg"
+    else
+      M[LNK_HELP]="http://wiki.zeroincombenze.org/en/Python/opt/$PKGNAME/help"
+      M[BTN_HELP]="http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-$PKGNAME.svg"
+    fi
+    local CHAT_HOME=$(get_cfg_value 0 "CHAT_HOME")
+    M[LNK_CHAT]="$CHAT_HOME"
+    M[BTN_CHAT]="https://www.shs-av.com/wp-content/chat_with_us.gif"
+
+    TKNS[0]="^\.\.[[:space:]][|_][a-zA-Z_]+"
+    REPL[0]="⌂"
+    ACT[0]="REPL"
+    TKNS[1]="^\.\.[[:space:]]image::.*chat_with_us"
+    REPL[1]="⌂"
+    ACT[1]="REPL1"
+    TKNS[2]="^[[:space:]]+:[a-zA-Z_]+:"
+    REPL[2]="⌂"
+    ACT[2]="REPLC"
+    TKNS[3]="^[^a-zA-Z_]*Build.Status.*https://travis-ci.org/"
+    REPL[3]="[![Build Status]"
+    ACT[3]="md_BTN_build"
+    TKNS[4]="^\|build.status\|"
+    REPL[4]="|build status|_"
+    ACT[4]="rstBTN_build"
+    TKNS[5]="^[^a-zA-Z_]*license.*https://img.shields.io/badge/licence-[AL]GPL"
+    if [ $ver0 -ge 10 -a "$PRJNAME" == "Odoo" ]; then
+      REPL[5]="[![license lgpl]"
+      ACT[5]="md_BTN_license"
+      TKNS[6]="^\|license.lgpl\|"
+      REPL[6]="|license lgpl|_"
+      ACT[6]="rstBTN_license"
+    else
+      REPL[5]="[![license agpl]"
+      ACT[5]="md_BTN_license"
+      TKNS[6]="^\|license.agpl\|"
+      REPL[6]="|license agpl|_"
+      ACT[6]="rstBTN_license"
+    fi
+    TKNS[7]="^[^a-zA-Z_]*Coverage.Status.*https://coveralls.io/"
+    REPL[7]="[![Coverage Status]"
+    ACT[7]="md_BTN_coverage"
+    TKNS[8]="^\|coverage.status\|"
+    REPL[8]="|coverage status|_"
+    ACT[8]="rstBTN_coverage"
+    TKNS[9]="^[^a-zA-Z_]*codecov.*https://codecov.io/gh/"
+    REPL[9]="[![codecov]"
+    ACT[9]="md_BTN_codecov"
+    TKNS[10]="^\|codecov.status\|"
+    REPL[10]="|codecov status|_"
+    ACT[10]="rstBTN_codecov"
+    TKNS[11]="^[^a-zA-Z_]*OCA_project.*https://github.com/OCA/"
+    REPL[11]="[![OCA_project](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-$ver.svg)](https://github.com/OCA/$v/tree/$BRANCH)"
+    ACT[11]="md_BTN_OCA"
+    TKNS[12]="^\|oca.project\|"
+    REPL[12]="|oca project|_"
+    ACT[12]="rstBTN_OCA"
+    TKNS[13]="^[^a-zA-Z_]*Code.Climate.*https://codeclimate.com/github/"
+    REPL[13]="Code.Climate  https://codeclimate.com/github/"
+    ACT[13]="md_BTN_climate"
+    TKNS[14]="^\|code.climate\|"
+    REPL[14]="|code climate|_"
+    ACT[14]="rstBTN_climate"
+    TKNS[15]="^[^a-zA-Z_]*Tech.Doc.*(https*://www.odoo.com/documentation/|https*://wiki.zeroincombenze.org/en/)"
+    REPL[15]="[![Tech Doc]"
+    ACT[15]="md_BTN_docs"
+    TKNS[16]="^\|technical.doc\|"
+    REPL[16]="|technical doc|_"
+    ACT[16]="rstBTN_docs"
+    TKNS[17]="^[^a-zA-Z_]*Help.*(https*://www.odoo.com/forum/|https*://wiki.zeroincombenze.org/)"
+    REPL[17]="[![Help]"
+    ACT[17]="md_BTN_help"
+    TKNS[18]="^\|help.zeroincombenze\|"
+    REPL[18]="|help zeroincombenze|_"
+    ACT[18]="rstBTN_help"
+    TKNS[19]="^[^a-zA-Z_]*(Runbot|Build).Status.*https://runbot.odoo-community.org/"
+    REPL[19]="Runbot Status  https://runbot.odoo-community.org/"
+    ACT[19]="md_BTN_runbot"
+    TKNS[20]="^\|runbot.status\|"
+    REPL[20]="|runbot status|_"
+    ACT[20]="rstBTN_runbot"
+    TKNS[21]="^[^a-zA-Z_]*try.it.*http(s)?://www.zeroincombenze.it"
+    REPL[21]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](https://erp$ver.zeroincombenze.it)"
+    ACT[21]="md_BTN_tryit"
+    TKNS[22]="^\|try.it\|"
+    REPL[22]="|try it|_"
+    ACT[22]="rstBTN_tryit"
+    TKNS[23]="^[^a-zA-Z_]*try.it.*http(s)?://.*\.odoo-italia.org"
+    REPL[23]="[![try it](http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-$ver.svg)](https://odoo$ver.odoo-italia.org)"
+    ACT[23]="md_BTN_tryit"
+    TKNS[51]="\[//\]:.*#.*end.copyright"
+    REPL[51]=""
+    ACT[51]="md_END_cright"
+    TKNS[52]="\[//\]:.*#.*copyright"
+    REPL[52]=""
+    ACT[52]="md_BEG_cright"
+    TKNS[53]="\.\.\[//\]:.*#.*end.copyright"
+    REPL[53]=""
+    ACT[53]="rstEND_cright"
+    TKNS[54]="\.\.\[//\]:.*#.*copyright"
+    REPL[54]=""
+    ACT[54]="rstBEG_cright"
+    TKNS[55]="chat.with.us"
+    REPL[55]="[![chat with us]"
+    ACT[55]="md_BTN_chat"
+    TKNS[56]="^\|chat.with.us\|"
+    REPL[56]=""
+    ACT[56]="rstBTN_chat"
+    TKNS[57]="\[//\]:.*#.*end addons"
+    REPL[57]=""
+    ACT[57]="md_END_addons"
+    TKNS[58]="\[//\]:.*#.*addons"
+    REPL[58]=""
+    ACT[58]="md_BEG_addons"
+    TKNS[59]="\.\.\[//\]:.*#.*end addons"
+    REPL[59]=""
+    ACT[59]="rstEND_addons"
+    TKNS[60]="\.\.\[//\]:.*#.*addons"
+    REPL[60]=""
+    ACT[60]="rstBEG_addons"
+    TKNS[61]="^Differenze rispetto localizzazione ufficiale Odoo/OCA"
+    REPL[61]=""
+    ACT[61]="md_BEG_diff"
+    TKNS[62]="^Coverage \|"
+    REPL[62]=""
+    ACT[62]="md_diff_1"
+    TKNS[63]="^(Test compatibilità OCA e Odoo|Test con repository OCA e Odoo) \|"
+    REPL[63]=""
+    ACT[63]="md_diff_2"
+    TKNS[64]="\[//\]:.*#.*end install"
+    REPL[64]=""
+    ACT[64]="md_END_install"
+    TKNS[65]="\[//\]:.*#.*install"
+    REPL[65]=""
+    ACT[65]="md_BEG_install"
+    TKNS[66]="\.\.\[//\]:.*#.*end install"
+    REPL[66]=""
+    ACT[66]="rstEND_install"
+    TKNS[67]="\.\.\[//\]:.*#.*install"
+    REPL[67]=""
+    ACT[67]="rstBEG_install"
+    TKNS[100]="^[^a-zA-Z_]*en[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/en_US.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/en_US.png)"
+    REPL[100]=""
+    ACT[100]="CHPT_lang_en"
+    TKNS[101]="^[^a-zA-Z_]*it[^a-zA-Z_]*(https*://www.shs-av.com/wp-content/it_IT.png|https*://github.com/zeroincombenze/grymb/blob/master/flags/it_IT.png)"
+    REPL[101]=""
+    ACT[101]="CHPT_lang_it"
+    TKNS[102]="^======"
+    REPL[102]=""
+    ACT[102]="CHPT_102"
+    TKNS[103]="^-----"
+    REPL[103]=""
+    ACT[103]="CHPT_103"
+    TKNS[104]="^Installation"
+    REPL[104]=""
+    ACT[104]="CHPT_104"
+    TKNS[105]="^Configuration"
+    REPL[105]=""
+    ACT[105]="CHPT_105"
+    TKNS[106]="^Usage"
+    REPL[106]=""
+    ACT[106]="CHPT_106"
+    TKNS[107]="^Known issues / Roadmap"
+    REPL[107]=""
+    ACT[107]="CHPT_107"
+    TKNS[108]="^Bug Tracker"
+    REPL[108]=""
+    ACT[108]="CHPT_108"
+    TKNS[109]="^Credits"
+    REPL[109]=""
+    ACT[109]="CHPT_109"
+    TKNS[110]="^(\[!\[Odoo Community Association\]\]|\[!\[Odoo Italia Associazione\]\])"
+    REPL[110]=""
+    ACT[110]="CHPT_110"
+    TKNS[111]="^(### |)Contributors"
+    REPL[111]=""
+    ACT[111]="CHPT_111"
+    TKNS[112]="^(### |)Funders"
+    REPL[112]=""
+    ACT[112]="CHPT_112"
+    TKNS[113]="^(### |)Maintainer"
+    REPL[113]=""
+    ACT[113]="CHPT_113"
+
+    local ONLY_OCA="Irunbot Iclimate"
+    local ONLY_ZERO="Icright IOCA Idocs Ihelp Ichat Ilang_en Ilang_it Idiff"
+    local ONLY_OIA="Icright IOCA Idocs Ihelp Ilang_en Ilang_it Idiff"
+    local ONLY_ODOO="IOCA Itryit Iaddons Iinstall"
+    local IGNORE_BTNOCA_4_PKG="l10n-italy-supplemental user_contributes"
+    rm -f $fntmp
+    while IFS= read -r line r || [ -n "$line" ]; do
+      # echo "$prewf/$wf/$nxtwf/$Iinstall> line=$line" #debug
+      lne1="⌂"
+      lne2="⌂"
+      Ibutton=0
+      prewf=$nxtwf
+      nxtwf=0
+      for i in {1..23} {51..67} {100..113}; do
+        p=${TKNS[$i]}
+        if [[ $line =~ $p ]]; then
+          if [ "${ACT[$i]}" == "REPL" -o "${ACT[$i]}" == "REPL1" ]; then
+            if [ "${ACT[$i]}" == "REPL1" ]; then
+              ignnextlines=1
+            fi
+            line="${REPL[$i]}"
+          elif [ "${ACT[$i]}" == "REPLC" ]; then
+            if [ $ignnextlines -ne 0 ]; then
+              line="${REPL[$i]}"
+            fi
+          elif [[ "${ACT[$i]}" =~ md_BTN ]] || [[ "${ACT[$i]}" =~ rstBTN ]]; then
+            if [[ "${ACT[$i]}" =~ rstBTN ]]; then
+              Irst=1
+            fi
+            ignnextlines=0
+            v="${ACT[$i]}"
+            v="I${v:7}"
+            Ibutton=1
+            if [ ${!v} -ne 0 ]; then
+              line="⌂"
+            elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
+              if [ "$2" != "oca" ]; then
+                line="⌂"
+              fi
+            elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
+              if [ "$2" != "zero" ]; then
+                line="⌂"
+                eval $v=1
+              elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
+                line="⌂"
+                eval $v=1
+              fi
+            elif [[ " $ONLY_OIA " =~ [[:space:]]$v[[:space:]] ]]; then
+              if [ "$2" != "oia" ]; then
+                line="⌂"
+                eval $v=1
+              elif [[ " $IGNORE_BTNOCA_4_PKG " =~ [[:space:]]$PKGNAME[[:space:]] ]]; then
+                line="⌂"
+                eval $v=1
+              fi
+            elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
+              if [ "$PRJNAME" != "Odoo" ]; then
+                line="⌂"
+              fi
+            fi
+            if [ "$line" != "⌂" ]; then
+              if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+                line="⌂"
+              else
+                eval $v=1
+                line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
+              fi
+            fi
+          elif [[ "${ACT[$i]}" =~ CHPT_ ]]; then
+            v="${ACT[$i]}"
+            v="${v:5}"
+            if (($v)); then
+              nxtwf=$v
+            else
+              v=I$v
+              if [ ${!v} -ne 0 ]; then
+                line="⌂"
+              elif [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+                  line="⌂"
+                fi
+              elif [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$2" == "oca" ]; then
+                  line="⌂"
+                fi
+              elif [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
+                if [ "$PRJNAME" != "Odoo" ]; then
+                  line="⌂"
+                fi
+              fi
+              if [ "$line" != "⌂" ]; then
+                eval $v=1
+                Ibutton=1
+                wf=2
+                line=$(build_line $v "$line" "${ACT[$i]}")
+              fi
+            fi
+          elif [ "${ACT[$i]}" == "md_BEG_cright" -o "${ACT[$i]}" == "rstBEG_cright" ]; then
+            if [ $Icright -eq 0 ]; then
+              Icright=2
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
+            if [ $Icright -eq 2 ]; then
+              Icright=3
+              add_copyright $fntmp $Irst $2
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_BEG_addons" -o "${ACT[$i]}" == "rstBEG_addons" ]; then
+            if [ $Iaddons -eq 0 ]; then
+              Iaddons=2
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
+            if [ $Iaddons -eq 2 ]; then
+              Iaddons=3
+              add_addons $fntmp $Irst "$2" "$4"
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_BEG_install" -o "${ACT[$i]}" == "rstBEG_install" ]; then
+            # echo "> begin install <$line>" #debug
+            if [ $Iinstall -eq 0 ]; then
+              Iinstall=2
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_END_install" -o "${ACT[$i]}" == "rstEND_install" ]; then
+            # echo "> end install <$line>" #debug
+            if [ $Iinstall -eq 2 ]; then
+              Iinstall=3
+              add_install $fntmp $Irst "$2" "$4"
+            fi
+            line="⌂"
+          elif [ "${ACT[$i]}" == "md_BEG_diff" ]; then
+            if [ $Idiff -eq 0 ]; then
+              Idiff=2
+            fi
+          elif [ "${ACT[$i]}" == "md_diff_1" ]; then
+            if [ $Idiff -eq 2 ]; then
+              if [ "$BRANCH" == "7.0" ]; then
+                line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![Coverage Status](${M[BTN_OCA_COVERAGE]})](${M[LNK_OCA_COVERAGE]})"
+              else
+                line="Coverage |  [![codecov](${M[BTN_CODECOV]})](${M[LNK_CODECOV]}) | [![codecov](${M[BTN_OCA_CODECOV]})](${M[LNK_OCA_CODECOV]})"
+              fi
+            fi
+          elif [ "${ACT[$i]}" == "md_diff_2" ]; then
+            if [ $Idiff -eq 2 ]; then
+              if [ "$BRANCH" == "7.0" ]; then
+                line="Test compatibilità OCA e Odoo | :x: | [Errore import decimal precision](https://github.com/OCA/OCB/issues/629)"
+              else
+                line="Test compatibilità OCA e Odoo | :white_check_mark: | :white_check_mark:"
+              fi
+            fi
+          fi
+          break
+        elif [ -n "$line" ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
+          p=${TKNS[$i]}
+          p="..[[:space:]]${p:1}"
+          if [[ $line =~ $p ]]; then
+            ignnextlines=0
+            line="${REPL[0]}"
+            break
+          else
+            p=${TKNS[$i]}
+            p="..[[:space:]]_${p:3}"
+            p=${p/\\\|/:}
+            if [[ $line =~ $p ]]; then
+              ignnextlines=0
+              line="${REPL[0]}"
+              break
+            fi
+          fi
+        fi
+      done
+      if [ $Ibutton -eq 0 -a $wf -eq 0 ] && [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ]; then
+        lne1="⌂"
+        wf=1
+        for i in {1..23}; do
+          p=${TKNS[$i]}
+          if [[ "${ACT[$i]}" =~ md_BTN ]] || [[ "${ACT[$i]}" =~ rstBTN ]]; then
+            v="${ACT[$i]}"
+            v="I${v:7}"
+            if [ $Irst -gt 0 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
+              :
+            elif [ $Irst -eq 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
+              :
+            elif [ "$2" == "zeroincombenze" -o "$2" == "zero" -o "$2" == "oia" ] && [[ " $ONLY_OCA " =~ [[:space:]]$v[[:space:]] ]]; then
+              :
+            elif [ "$2" == "oca" ] && [[ " $ONLY_ZERO " =~ [[:space:]]$v[[:space:]] ]]; then
+              :
+            elif [ "$PRJNAME" != "Odoo" ] && [[ " $ONLY_ODOO " =~ [[:space:]]$v[[:space:]] ]]; then
+              :
+            elif [ ${!v} -eq 0 ]; then
+              eval $v=1
+              lne1=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
+              echo "$lne1">>$fntmp;
+              if [ -z "$lne1" ]; then preline=0; else preline=1; fi
+            fi
+          fi
+        done
+        [ $preline -ne 0 ] && [ -n "$line" ] && preline=0 && echo "">>$fntmp
+      fi
+      # echo "> if [ \$Icright=$Icright -ne 2 -a  \$Iinstall=$Iinstall -ne 2 -a $line != '⌂' ]; then" #debug
+      if [ $Icright -ne 2 -a $Iaddons -ne 2 -a $Iinstall -ne 2 -a "$line" != "⌂" ]; then
+        line=$(expand_macro "$line")
+        line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
+        line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
+        if [ -n "$line" ]; then
+          # [ $wf -ge 104 ] && echo "> if [ -n \"$line\" ]; then" #debug
+          if [ $wf -eq 1 ]; then
+            if [ $Ilang_en -eq 0 ]; then
+              echo "">>$fntmp
+              echo "[![en](http://www.shs-av.com/wp-content/en_US.png)](http://wiki.zeroincombenze.org/it/Odoo/7.0/man)">>$fntmp
+              echo "">>$fntmp
+            fi
+            Ilang_en=1
+            if [ $nxtwf -ne 100 ]; then
+              wf=2
+            fi
+          fi
+          # [ $wf -ge 104 ] && echo ">   if [ \$wf=$wf -eq 2 ]; then" #debug
+          if [ $wf -eq 2 ]; then
+            echo "$line">>$fntmp
+            if [ $Ibutton -eq 0 ] && [[ $line =~ ^[A-Za-z] ]]; then
+              x=${#line}
+              w="================================================================================================"
+              v=${w:0:$x}
+              echo "$v">>$fntmp
+              wf=104
+            fi
+          elif [ $wf -gt 100 ] && [ $nxtwf -eq 102 -o $nxtwf -eq 103 ]; then
+            # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -gt 100 ] && [ \$nxtwf=$nxtwf -eq 102 -o \$nxtwf -eq 103 ]; then" #debug
+            :
+          elif [ $wf -lt 100 -o $nxtwf -ge 104 ]; then
+            # [ $wf -ge 104 ] && echo ">   elif [ \$wf=$wf -lt 100 -o \$nxtwf=$nxtwf -ge 104 ]; then" #debug
+            if [ $wf -lt 104 ]; then
+              wf=104
+            fi
+            while [ $wf -le $nxtwf ]; do
+              if [ $wf -ne 110 ]; then
+                w=${TKNS[$wf]}
+                v=${w:1}
+                if [[ "$w" =~ "###" ]]; then
+                  w="$v"
+                  IFS=")" read x v<<<$w
+                  if [ -z "$v" ]; then v=$x; fi
+                  v="### $v"
+                else
+                  echo "$v">>$fntmp
+                  x=${#v}
+                  w="-----------------------------------------------------------------------------------------------"
+                  v=${w:0:$x}
+                fi
+                echo "$v">>$fntmp
+                ((wf++))
+                if [ $wf -le $nxtwf ]; then echo "">>$fntmp; fi
+              else
+                ((wf++))
+              fi
+            done
+          else
+            if [ $prewf -ge 104 ];then
+              # echo ">  echo ''" #debug
+              echo "">>$fntmp
+            fi
+            # [ $wf -ge 104 ] && echo ">   else" #debug
+            echo "$line">>$fntmp
+          fi
+        else
+          # [ $wf -ge 104 ] && echo "> else" #debug
+          echo "$line">>$fntmp
+        fi
+        if [ -z "$line" ]; then preline=0; else preline=1; fi
+      fi
+      if [ "$lne2" != "⌂" ]; then
+        echo "$lne2">>$fntmp;
+        if [ -z "$lne2" ]; then preline=0; else preline=1; fi
+      fi
+    done < "$fn"
+    for i in {51..67}; do
+      p=${TKNS[$i]}
+      if [ "${ACT[$i]}" == "md_END_cright" -o "${ACT[$i]}" == "rstEND_cright" ]; then
+        if [ $Icright -eq 0 ]; then
+          [ $preline -ne 0 ] && echo "">>$fntmp
+          Icright=3
+          add_copyright $fntmp $Irst $2
+          preline=1
+        fi
+      elif [ "${ACT[$i]}" == "md_END_addons" -o "${ACT[$i]}" == "rstEND_addons" ]; then
+        if [ $Iaddons -eq 0 ]; then
+          [ $preline -ne 0 ] && echo "">>$fntmp
+          Iaddons=3
+          # add_addons $fntmp $Irst "$2" "$4"
+          preline=1
+        fi
+      elif [ "${ACT[$i]}" == "md_END_install" -o "${ACT[$i]}" == "rstEND_install" ]; then
+        if [ $Iinstall -eq 0 ]; then
+          [ $preline -ne 0 ] && echo "">>$fntmp
+          Iinstall=3
+          # add_install $fntmp $Irst "$2" "$4"
+          preline=1
+        fi
+      elif [ $Irst -ne 0 ] && [[ ${ACT[$i]} =~ rstBTN ]]; then
+        v="${ACT[$i]}"
+        v="I${v:7}"
+        eval $v=1
+      fi
+    done
+    [ $preline -ne 0 ] && preline=0 && echo "">>$fntmp
+    for i in {1..23} {51..67}; do
+      p=${TKNS[$i]}
+      if [ $Irst -eq 0 -a $i -ge 50 ] && [[ "${ACT[$i]}" =~ md_BTN ]]; then
+        v="${ACT[$i]}"
+        v="I${v:7}"
+        if [ ${!v} -eq 0 ]; then
+          eval $v=1
+          line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}")
+          echo "$line">>$fntmp
+        fi
+      elif [ $Irst -ne 0 ] && [[ "${ACT[$i]}" =~ rstBTN ]]; then
+        v="${ACT[$i]}"
+        v="I${v:7}"
+        if [ ${!v} -eq 1 ]; then
+          eval $v=2
+          line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}/1")
+          echo "$line">>$fntmp
+          line=$(build_line $v "${REPL[$i]}" "${ACT[$i]}/2")
+          echo "$line">>$fntmp
+        fi
+      fi
+    done
+    if [ $opt_dry_run -eq 0 ]; then
+      if [ -n "$(diff -q $fn $fntmp)" ]; then
+        move_n_bak $fntmp $fn
+      else
+        rm -f $fntmp
+      fi
+    fi
+}
+
+
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A       B         b         c         C        d        e       G       i       n            o       q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_oia opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_enh opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1       1         "="       1         1        1        1       1       1       1            "="     0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0       0         ""        0         0        0        0       0       0       0            ""      -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" "bug"   ""        "version" "camel"   ""       "diff"   ""      ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
+OPTOPTS=(h        a        A        B         b         c         C       d        e       G       i       n            o       q           u       V           v           0)
+OPTDEST=(opt_help opt_aggr opt_copy opt_debug odoo_vid  opt_Camel opt_c2o opt_diff opt_enh opt_gpl opt_imp opt_dry_run  opt_out opt_verbose opt_ut7 opt_version opt_verbose opt_z)
+OPTACTI=(1        "+"      "="      1         "="       1         1       1        1       1       1       1            "="     0           1       "*>"        "+"         1)
+OPTDEFL=(1        0        "oia"    0         ""        0         0       0        0       0       0       0            ""      -1          0       ""          -1          0)
+OPTMETA=("help"   "aggres" "bug"    ""        "version" "camel"   ""      "diff"   ""      ""       ""      "do nothing" "file"  "silent"   "ut7"   "version"    "verbose"   "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
- "add Odoo Ialia Associazione Copyright"\
+ "add developer Copyright (def oia)"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
  "change class name to CamelCase"\
@@ -418,7 +1235,7 @@ fi
 if [ $opt_gpl -gt 0 ]; then
   OPTS="$OPTS -G"
 fi
-if [ $opt_oia -gt 0 ]; then
+if [ $opt_copy == "oia" ]; then
   OPTS="$OPTS -A"
 fi
 if [ $opt_ut7 -gt 0 ]; then
@@ -440,6 +1257,8 @@ for fl in $LIST; do
     format_xml $f
   elif [ "${f: -4}" == ".yml" ]; then
     format_yaml $f
+  elif [ "${f:0:6}" == "README" ]; then
+    format_readme "$f" "$opt_copy"
   else
     mime=$(file -b --mime-type $f)
     if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
@@ -467,7 +1286,7 @@ for fl in $LIST; do
           cp $f $f.tmp
         fi
       fi
-      [ $opt_copy -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.tmp
+      [ $opt_c2o -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.tmp
       autopep8 $AP8OPTS $f.tmp|sed 's/ $/\n/'>$f.new
       rm -f $f.tmp
       if [ $opt_Camel -gt 0 ]; then

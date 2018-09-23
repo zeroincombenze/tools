@@ -7,10 +7,11 @@
 # Every rule start with RULE_NAME: STATEMENTS
 #   where: RULE_NAME is the technical name
 #   and STATEMENTS are python intructions to match rule
-# After this line there are one or more declaration matcho Odoo version
+# After this line there are one or more declaration matches Odoo version
 # format: RULE_NAME[VER]: REPLACING_TOKENS
 #   where VER matches Odoo version:
-#     0 -> all version, 61 -> 6.1, 70 -> 7.0, 80 -> 8.0, 90 -> 9.0, 100 -> 10.0
+#     0 -> all version,
+#     61 -> 6.1, 70 -> 7.0, 80 -> 8.0, 90 -> 9.0, 100 -> 10.0, 110 -> 11.0
 #   REPLACING_TOKENS are python intructions to replace
 # Example:
 #   c:      class $name($more):
@@ -21,14 +22,18 @@
 # is translated into "class myexample(orm.TransientModel)" for Odoo from 7.0 to 9.0
 # and "class myexample(osv.osv_memory)" for odoo 6.1
 # Warning: hash symbol # means remark both in this configuration file both in rules
-# If hash symbol # is at leftmost column is configuratione file remark (this line)
+# If hash symbol # is at leftmost column is configuration file remark (this line)
 # If hash symbol # is after colon means rule for remark; i.e:
 #   remark: #
 #
 # You can use in python instructions in STATEMENTS some macro:
-# $any: match any python token
-# $more: match zero, one or more python tokens until token following $more is matched
+# $any: match any python tokens
+# $more: match zero, one or more python tokens until token next $more matches
 # $name: match any python name, i.e. a but not "a"
+# $text: match any text/unicode, i.e "a" but not a
+# $?: previous token may be found zero or one time
+# $*: previous token may be found zero, one or more time
+# $+: previous token may be found one or more time
 #
 # ------------------------------------------------------------------------------
 #
@@ -43,3 +48,7 @@ class_transient: class $name($more):
 class_transient[0]: osv.osv_memory
 class_transient[70]: orm.TransientModel
 class_transient[100]: models.TransientModel
+#
+# Remark openerp
+remark_openerp: # http://openerp.com
+remark_openerp[0]: https://odoo.com

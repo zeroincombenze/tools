@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.49
+#__version__=0.2.1.50
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -541,6 +541,7 @@ wash_virtual_env() {
 
 prepare_env_travis() {
     local action="$1"
+    local v x
     if [[ $action =~ (lint|test|emulate|test|coverage) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
@@ -586,6 +587,12 @@ prepare_env_travis() {
     fi
     if [ -n "$opt_dpath" ]; then
       LGITPATH="$opt_dpath"
+    elif [ "$PRJNAME" == "Odoo" ]; then
+      if [ -n "$opt_branch" ]; then
+        x=$(build_odoo_param PKGNAME ".")
+        LGITPATH=$(build_odoo_param HOME "$opt_branch" "$REPOSNAME")
+        [ -n "$x" ] && LGITPATH="$LGITPATH/$x"
+      fi
     else
       if [ -n "$REPOSNAME" ]; then
         LGITPATH=$(get_cfg_value "" "${REPOSNAME}_distpath")
@@ -610,6 +617,9 @@ prepare_env_travis() {
         else
           export LGITPATH=$(expand_path "$LGITPATH")
         fi
+      fi
+      if [ "$LGITPATH" == "$PWD" ]; then
+        LGITPATH=
       fi
     fi
     # if [ -x $TDIR/travis ]; then
@@ -702,7 +712,7 @@ conf_default() {
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
-    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca"
+    set_cfg_def "filediffignore" ".po .pot LICENSE README README.md README.rst README.md.oca README.rst.oca README.md.z0i README.rst.z0i README.md.oia README.rst.oia .travis.yml.oca .travis.yml.z0i .travis.yml.oia"
     set_cfg_def "shellcheck_exclude" "1001,1083,2001,2002,2004,2034,2037,2044,2045,2046,2051,2062,2063,2076,2086,2088,2091,2116,2119,2126,2129"
     set_cfg_def "MQT_DEF_DEVPATH" "$HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis"
     set_cfg_def "MQT_DEF_PATH" "$HOME/tools/maintainer-quality-tools/travis"
@@ -712,7 +722,7 @@ conf_default() {
 expand_path() {
 # expand_path (path)
 # return:path
-    local x=$(echo "$1"|sed -e "s|\${pkgpath}|$PKGPATH|g" -e "s|\${pkgname}|$PKGNAME|g" -e "s|\${prjname}|$PRJNAME|g" -e "s|\${reposname}|$REPOSNAME|g" -e "s|\${version}|$BRANCH|g" -e "s|\${TRAVIS_BUILD_DIR}|$TRAVIS_BUILD_DIR|g"  -e "s|\${ODOO_REPO}|$ODOO_REPO|g" -e "s|\${HOME}|$HOME|g")
+    local x=$(echo "$1"|sed -e "s|\${pkgpath}|$PKGPATH|g" -e "s|\${pkgname}|$PKGNAME|g" -e "s|\${prjname}|$PRJNAME|g" -e "s|\${reposname}|$REPOSNAME|g" -e "s|\${version}|$BRANCH|g" -e "s|\${TRAVIS_BUILD_DIR}|$TRAVIS_BUILD_DIR|g" -e "s|\${ODOO_REPO}|$ODOO_REPO|g" -e "s|\${odoo_vid}|$opt_branch|g" -e "s|\${HOME}|$HOME|g")
     echo $x|sed -e s\|\${PATH}\|$PATH\|g
 }
 

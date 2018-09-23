@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.49"
+__version__ = "0.2.1.50"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -205,9 +205,9 @@ pooler|release|sql_db)
 *IS*   ^-   ^ +- *
  v0         &
 *IS*  del1  if context is None:
- v0         context = {} if context is None else context
+ v0         context = context or {}
 *IS*  del1  if ctx is None:
- v0         ctx = {} if ctx is None else ctx
+ v0         ctx = ctx or {}
 *IS*   -u1  \.search\(
  v0         &
 *IS*   -u1  \.env\[
@@ -228,6 +228,15 @@ pooler|release|sql_db)
  v0         &
 *IS*  trvs  ^ *raise[ ]
  v0         &
+*IS*        [:tok:]
+ v60        self.pool[
+ v90        self.env[
+*IS*        self.pool.get([^)][:tok:]
+ v60        )
+ v90        ]
+*IS*        [:tok:]
+ v60        self.pool.get(
+ v90        self.env[
 """
 
 SPEC_SYNTAX = {

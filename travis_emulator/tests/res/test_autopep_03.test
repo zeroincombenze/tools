@@ -1,9 +1,7 @@
 import pdb
-from odoo import models
-import odoo.addons.decimal_precision
-from odoo.tools.translate import _
-from odoo import netsvc
-from odoo import pooler
+from openerp.osv import orm
+import decimal_precision
+from openerp import pooler
 from tndb import tndb
 
 
@@ -11,7 +9,7 @@ const1 = 10
 const2 = 20
 
 
-class ResUser(models.TransientModel):
+class ResUser(orm.TransientModel):
     def __init__(self, ctx=None):
         ctx = {} if ctx is None else ctx
         tndb.wstamp()

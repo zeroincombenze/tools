@@ -32,10 +32,10 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.49
+__version__=0.2.1.50
 
 
-test_01() {
+__test_01() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_01
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -72,7 +72,7 @@ EOF
     # test_result "topep8 -0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_02() {
+__test_02() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_02
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -157,7 +157,7 @@ report_sxw.report_sxw(
     './autopep8.mako',
     parser=autopep8)
 EOF
-      $RUNDIR/topep8 -q $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
     fi
     test_result "topep8" "$TESTOUT" "$TESTRES" "diff"
 

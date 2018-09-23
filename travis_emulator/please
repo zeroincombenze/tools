@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.49
+__version__=0.2.1.50
 
 
 #
@@ -2053,10 +2053,19 @@ do_register() {
 do_replace() {
     set_executable
     if [ "$PRJNAME" == "Odoo" ]; then
-      opts=$(inherits_travis_opts "O" "D")
-      opt_dry_run=0
-      run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
-      sts=$?
+      if [ ! -d "$LGITPATH" -a $opt_force -ne 0 ]; then
+        [ $opt_verbose -gt 0 ] && echo "Creating destination directory ..."
+        run_traced "mkdir -p $LGITPATH"
+      fi
+      if [ ! -d "$LGITPATH" ]; then
+        echo "Destination directory $LGITPATH not found!"
+        sts=$STS_FAILED
+      else
+        opts=$(inherits_travis_opts "O" "D")
+        opt_dry_run=0
+        run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
+        sts=$?
+      fi
     else
       opts=$(inherits_travis_opts "R" "D")
       opt_dry_run=0
@@ -2258,10 +2267,10 @@ do_wep() {
 OPTOPTS=(h        b          c        d        f         j        k        L         m       n           o        O        p         q           r     s        t         u       V           v)
 OPTDEST=(opt_help opt_branch opt_conf opt_diff opt_force opt_dprj opt_keep opt_log   opt_mis opt_dry_run opt_ids  opt_orig opt_dpath opt_verbose opt_r opt_srcs test_mode opt_uop opt_version opt_verbose)
 OPTACTI=(1        "="        "="      1        1         1        1        "="       1       1           "=>"     1        "="       0           1     "="      1         1       "*"         "+")
-OPTDEFL=(1        "10.0"     ""       0        0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
+OPTDEFL=(1        ""         ""       0        0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
 OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0 (def 10.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
  "configuration file (def .travis.conf)"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro)"\
