@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.32
+__version__=0.3.7.33
 
 
 explore() {
@@ -60,6 +60,9 @@ do_action() {
     local odoo_vid=$3
     local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
     local odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+    local pyver
+    [ $odoo_ver -ge 11 ] && pyver="3" || pyver="2"
+    [ "$opt_pyver" == "2" -o "$opt_pyver" == "3" ] && pyver=$opt_pyver
     local f s
     if [ -n "$opt_odir" ]; then
       local pkgdir=$opt_odir
@@ -105,10 +108,18 @@ do_action() {
     if [ "$act" == "requirements" ]; then
       [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
       PIP=pip
-      if [ "$opt_pyver" == "3" -o "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-        [ -x /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
-        [ -x /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
-        [ -x /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
+      if [ "$pyver" == "3" -o "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+        PIP=$(which pip3 2>/dev/null)
+        if [ -z "$PIP" ]; then
+          for v in 3.6 3.5 3.4; do
+            for p in /usr/local/bin /usr/bin; do
+              [ -x $p/pip$v ] && PIP=$p/pip$v
+              if [ -n "$PIP" ]; then
+                break
+              fi
+            done
+          done
+        fi
       fi
       LISTREQ=list_requirements.py
       [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py
@@ -137,7 +148,7 @@ do_action() {
         [ $opt_yes -ne 0 ] && opts="${opts}y"
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
-          if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$opt_pyver" != "3"  ]]; then
+          if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$pyver" != "3"  ]]; then
             echo -e "${TRAVIS_TEXT_COLOR}Check for $f{TRAVIS_HDR3_COLOR}"
           elif [ "$f" == "$pkg" ]; then
             eval $LISA status -q $pkg -d0 &>/dev/null
@@ -301,7 +312,7 @@ do_action() {
 OPTOPTS=(h        b          c        D       d        H           m         n            O         o        p         q           s          V           v           x         y)
 OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
 OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "*>"        "+"         "="        1)
-OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       "2"       -1          0          ""          -1          ""        0)
+OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""          -1          ""        0)
 OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "dir"    ""        "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 (comma separated)"\
@@ -313,7 +324,7 @@ OPTHELP=("this help"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\
  "odoo directory"\
- "when installer is pip choice python version: may be 2 or 3"
+ "when installer is pip choice python version: may be 2 or 3 (def auto)"
  "silent mode"\
  "no stop after every module/version"\
  "show version"\
