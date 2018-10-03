@@ -29,7 +29,9 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.50"
+__version__ = "0.2.1.51"
+
+METAS = ('0', '61', '70', '80', '90', '100', '110', '120')
 
 
 class topep8():
@@ -46,16 +48,32 @@ class topep8():
         self.init_parse()
         self.init_rules()
         self.tokenized = []
+        abs_row = 0
+        abs_col = 0
         for (tokid, tokval,
-             (srow, scol),
-             (erow, ecol), line) in tokenize.generate_tokens(self.readline):
+             (sarow, sacol),
+             (earow, eacol), line) in tokenize.generate_tokens(self.readline):
+            srow = sarow - abs_row
+            if sarow != abs_row:
+                scol = sacol
+            else:
+                scol = sacol - abs_col
+            abs_row = sarow
+            abs_col = sacol 
+            erow = earow - abs_row
+            if earow != abs_row:
+                ecol = eacol
+            else:
+                ecol = eacol - abs_col
+            abs_row = earow
+            abs_col = eacol 
             self.tokenized.append([tokid, tokval,
                                    (srow, scol),
                                    (erow, ecol)])
 
     def init_parse(self):
         self.lineno = 0
-        self.last_row = -1
+        self.abs_row = 0
         self.tabstop = {}
         self.paren_ctrs = 0
         self.brace_ctrs = 0
@@ -68,79 +86,6 @@ class topep8():
         self.prev_col = 0
         self.tokeno = 0
 
-    def reset_state(self, ir):
-        self.SYTX_WF_ID[ir] = 0
-        self.SYTX_STATE[ir] = False
-
-    def set_suspended(self, ir):
-        """Set rule state to suspended"""
-        self.SYTX_WF_ID[ir] = -1 - self.SYTX_WF_ID[ir]
-
-    def set_active(self, ir):
-        """Set rule state to active"""
-        self.SYTX_WF_ID[ir] = abs(self.SYTX_WF_ID[ir] + 1)
-        return self.SYTX_WF_ID[ir]
-
-    def set_next_state(self, ir):
-        """Advance state to next"""
-        self.SYTX_WF_ID[ir] += 1
-        return self.SYTX_WF_ID[ir]
-
-    def set_waiting_4_more(self, ir):
-        """Set rule waiting for match to end token"""
-        self.SYTX_WF_ID[ir] += 1
-        self.SYTX_STATE[ir] = True
-
-    def reset_waiting_4_more(self, ir):
-        """Reset rule waiting for match to end token"""
-        self.SYTX_STATE[ir] = False
-
-    def cur_wf_id(self, ir):
-        """Get current rule workflow position"""
-        return self.SYTX_WF_ID[ir]
-
-    def cur_valid_state(self, ir):
-        """Get current active/valid rule state"""
-        return abs(self.SYTX_WF_ID[ir] + 1)
-
-    def is_active(self, ir):
-        """Check for active rule"""
-        if self.cur_wf_id(ir) < 0:
-            return False
-        keywords, tokids = self.get_key_n_id_from_rule(ir)
-        if self.cur_wf_id(ir) >= len(keywords):
-            return False
-        return True
-
-    def is_completed(self, ir):
-        """Check for completed rule"""
-        keywords, tokids = self.get_key_n_id_from_rule(ir)
-        if self.cur_wf_id(ir) >= len(keywords):
-            return True
-        return False
-
-    def is_waiting(self, ir):
-        """Check for rule waiting for a specific token or event"""
-        if isinstance(self.SYTX_STATE[ir], bool) or \
-                            self.SYTX_STATE[ir] == self.any_paren + 1:
-            return True
-        return False
-
-    def cur_tokid(self, ir):
-        keywords, tokids = self.get_key_n_id_from_rule(ir)
-        return tokids[self.cur_wf_id(ir)]
-
-    def cur_tokval(self, ir):
-        keywords, tokids = self.get_key_n_id_from_rule(ir)
-        return keywords[self.cur_wf_id(ir)]
-
-    def matches(self, ir, tokid, tokval):
-        """Check if tokval matches rule token or tokid matches rule id"""
-        if tokval == self.cur_tokval(ir):
-            return True
-        elif tokid == self.cur_tokid(ir):
-            return True
-        return False
 
     def init_rules(self):
         """Configuration .2p8 file syntax initialization"""
@@ -195,6 +140,106 @@ class topep8():
             'name': re.compile(r'[a-zA-Z_]\w*'),
         }
 
+    def set_active(self, ir):
+        """Set rule state to active"""
+        self.SYTX_RULES[ir]['state'] = 'active'
+
+    def restart_state(self, ir):
+        """Restart rule state"""
+        self.set_active(ir)
+        self.SYTX_RULES[ir]['wf_id'] = 0
+
+    def init_rule_state(self, ir):
+        """Initialize rule state"""
+        self.restart_state(ir)
+        self.SYTX_RULES[ir]['cur_min_max'] = [1, 1]
+        self.SYTX_RULES[ir]['level'] = 0
+        self.SYTX_RULES[ir]['matched_ids'] = []
+        self.SYTX_RULES[ir]['token_id'] = 0
+
+    def set_next_state(self, ir):
+        """Advance state to next"""
+        self.SYTX_RULES[ir]['wf_id'] += 1
+        return self.SYTX_RULES[ir]['wf_id']
+
+    def set_waiting4parent(self, ir):
+        """Set rule state to waiting for parent"""
+        self.SYTX_RULES[ir]['parent'] = self.cur_tokval(ir)
+        self.SYTX_RULES[ir]['state'] = 'wait4parent'
+
+    def is_waiting4parent(self, ir):
+        """Check for active rule"""
+        if self.SYTX_RULES[ir]['state'] != 'wait4parent':
+            return False
+        return True
+
+    def set_waiting4more(self, ir):
+        """Set rule waiting for match to end token"""
+        self.set_next_state(self, ir)
+        self.SYTX_RULES[ir]['state'] = 'wait4more'
+
+    def is_waiting4more(self, ir):
+        """Check for active rule"""
+        if self.SYTX_RULES[ir]['state'] != 'wait4more':
+            return False
+        return True
+
+    def set_waiting4expr(self, ir):
+        """Set rule waiting for match to end token at the same level"""
+        self.set_next_state(self, ir)
+        self.SYTX_RULES[ir]['state'] = 'wait4expr'
+        self.SYTX_RULES[ir]['level'] = self.any_paren
+
+    def is_waiting4expr(self, ir):
+        """Check for active rule"""
+        if self.SYTX_RULES[ir]['state'] != 'wait4expr' or \
+                self.SYTX_RULES[ir]['level'] != self.any_paren:
+            return False
+        return True
+
+    def is_validated(self, ir):
+        """Check for validated rule"""
+        keywords, tokids = self.get_key_n_id_from_rule(ir)
+        if self.cur_wf_id(ir) >= len(keywords):
+            return True
+        return False
+
+    def cur_state(self, ir):
+        """Get current active/valid rule state"""
+        return self.SYTX_RULES[ir]['state']
+
+    def cur_wf_id(self, ir):
+        """Get current rule workflow position"""
+        return self.SYTX_RULES[ir]['wf_id']
+
+    def cur_tokid(self, ir):
+        tokids = self.SYTX_RULES[ir]['keyids']
+        return tokids[self.cur_wf_id(ir)]
+
+    def cur_tokval(self, ir):
+        keywords = self.SYTX_RULES[ir]['keywords']
+        return keywords[self.cur_wf_id(ir)]
+
+    def matches(self, ir, tokid, tokval):
+        """Check if tokval matches rule token or tokid matches rule id"""
+        if tokid == self.cur_tokid(ir) or tokval == self.cur_tokval(ir):
+            return True
+        return False
+
+    def cur_wf_tknid(self, ir):
+        """Get current match sequence position"""
+        return self.SYTX_RULES[ir]['token_id']
+
+    def store_value_to_replace(self, ir, tokeno):
+        self.SYTX_RULES[ir]['matched_ids'].append(tokeno)
+        self.SYTX_RULES[ir]['token_id'] += 1
+
+    def replace_text_by_meta(self, ctx, ir):
+        param_list_from = self.get_params_from_rule(ir, ctx['from_ver'])
+        param_list_to = self.get_params_from_rule(ir, ctx['to_ver'])
+        for tokeno in self.SYTX_RULES[ir]['matched_ids']:
+            pass
+
     def readline(self):
         """Read next source line"""
         if self.lineno < len(self.lines):
@@ -204,60 +249,17 @@ class topep8():
             line = ''
         return line
 
-    def init_rule_state(self, ir):
-        if ir not in self.SYTX_WF_ID:
-            self.SYTX_WF_ID[ir] = 0
-        if ir not in self.SYTX_MIN_MAX:
-            self.SYTX_MIN_MAX[ir] = [1, 1]
-        if ir not in self.SYTX_STATE:
-            self.SYTX_STATE[ir] = False
-
-    def init_rule_prms(self, ir):
-        if ir not in self.SYTX_PRMS:
-            self.SYTX_PRMS[ir] = {}
-
-    def init_rule_keyids(self, ir):
-        if ir not in self.SYTX_KEYIDS:
-            self.SYTX_KEYIDS[ir] = []
-        for i, t in enumerate(self.SYTX_KEYWORDS[ir]):
-            if i >= len(self.SYTX_KEYIDS[ir]):
-                self.SYTX_KEYIDS[ir].append(tokenize.NOOP)
-
-    def init_rule_all(self, ir):
-        self.init_rule_state(ir)
-        self.init_rule_prms(ir)
-        self.init_rule_keyids(ir)
-
-    def check_rule_integrity(self):
-        """Check for rule integrity"""
-        for ir in self.SYTX_KEYWORDS.keys():
-            if ir not in self.SYTX_PRMS:
-                print "Invalid rule (%s)" % (ir)
-
-    def store_rule(self, ir, keywords, keyids, ctr):
-        self.SYTX_KEYWORDS[ir] = keywords
-        self.SYTX_KEYIDS[ir] = keyids
-        self.SYTX_CTR = ctr
-
-    def store_meta_subrule(self, ir, meta, keywords, keyids):
-        ver = eval(meta)
-        if ir in self.SYTX_KEYWORDS:
-            self.init_rule_prms(ir)
-            self.SYTX_PRMS[ir][ver] = keywords
-        else:
-            print "Invalid rule %s[%s]" % (ir, meta)
-
     def get_key_n_id_from_rule(self, ir):
-        return self.SYTX_KEYWORDS[ir], self.SYTX_KEYIDS[ir]
+        return self.SYTX_RULES[ir]['keywords'], self.SYTX_RULES[ir]['keyids']
 
-    def get_prms_from_rule(self, ir, meta):
+    def get_params_from_rule(self, ir, meta):
         """Get params of rule matches version <meta>"""
-        prms = False
-        for ver in sorted(self.SYTX_PRMS[ir], reverse=True):
+        params = []
+        for ver in sorted(self.SYTX_RULES[ir]['meta'], reverse=True):
             if ver <= meta:
-                prms = self.SYTX_PRMS[ir][ver]
+                params = self.SYTX_RULES[ir]['meta'][ver]
                 break
-        return prms
+        return params
 
     def parse_eol_rule(self, value, ipos, x):
         i = ipos + x.end()
@@ -287,6 +289,8 @@ class topep8():
         $?       previous token may be found zero or one time
         $*       previous token may be found zero, one or more time
         $+       previous token may be found one or more time
+        $(       start capture replacement tokens
+        $)       stop capture replacement tokens
         Every other value means current rule depends on another rule.
         @return: min_max, token_id, token, next_ipos
         """
@@ -298,6 +302,10 @@ class topep8():
             return [0, -1], -1, False, ipos + 1
         elif value[i + 1] == '+':
             return [1, -1], -1, False, ipos + 1
+        elif value[i + 1] == '(':
+            return [1, 1], tokenize.START_CAPTURE, False, ipos + 1
+        elif value[i + 1] == ')':
+            return [1, 1], tokenize.STOP_CAPTURE, False, ipos + 1
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         ipos += x.end() + 1
         tokval = value[i + 1:ipos]
@@ -309,9 +317,8 @@ class topep8():
             tokval = False
             min_max = [0, -1]
         else:
-            # print "Unknown token %s" % value[i:]
             tokval = False
-            tokid = tokenize.SUBRULE
+            tokid = tokenize.PARENT_RULE
         return min_max, tokid, tokval, ipos
 
     def parse_txt_rule(self, value, ipos, endtok, esctok):
@@ -344,129 +351,200 @@ class topep8():
         tokid = token_name
         return tokid, tokval, ipos
 
-    def compile_1_rule(self, ir, meta, value):
+    def compile_1_rule(self, rule):
         """Compile current rule <ir> for version <meta> parsing <value>
-        All rules are stored in self.SYTX_* variables
-        self.SYTX_KEYWORDS -> dict of all keywords of rule
-        self.SYTX_KEYIDS -> dict of all keyword ids as from tokenizer package
-        self.SYTX_PRMS -> dict of params list for every version <meta>
-        self.SYTX_CTR -> Min/Max repetition of every keyword/ids
-                         (-1 means no limit)"""
+        All rules are stored in self.SYTX_RULES dictionary by rule id (name).
+        Every entry is composed by:
+            'regex':     regular expresion to validate rule
+            'meta':      dictionay with Odoo version parameters
+            'action':    action when rule is validated
+                         for every version list of keywords of above regex
+            'keywords':  list of keywords of above regex
+            'keyids':    list of keyids of above regex
+            'min_max_list':  list of min/max repetition for every above
+                         keyword/keyid  (-1 means no limit)
+            'state':     rule status, may be
+                         ('active', 'wait4parent', 'wait4more', 'wait4expr')
+            'wf_id':    current id in parsing workflow
+            'min_max':  min and max repetition for current token
+            'level':    level of parens when waiting for expression
+            'matched_ids': matched tokens list against parameters
+                        while rule parsing
+            'token_id': next param token to match
+            'parent':   parent rule while state is waiting for parent
+            """
         # pdb.set_trace()
         keywords = []
         keyids = []
-        ctr = []
+        min_max_list = []
+        replacements = {}
         ipos = 0
-        if ir in self.SYTX_KEYIDS and tokenize.COMMENT in self.SYTX_KEYIDS[ir]:
-            keywords.append(value)
-            keyids.append(tokenize.COMMENT)
-            ctr.append([1, 1])
-            ipos = len(value)
-        while ipos < len(value):
+        replacing = False
+        while ipos < len(rule['regex']):
             unknown = True
             for istkn in self.SYNTAX:
-                x = self.SYNTAX_RE[istkn].match(value[ipos:])
-                if x:
-                    unknown = False
-                    tokid = False
-                    min_max = [1,1]
-                    i = ipos
-                    if istkn in ('space', ):
-                        ipos += x.end()
+                x = self.SYNTAX_RE[istkn].match(rule['regex'][ipos:])
+                if not x:
+                    continue
+                unknown = False
+                tokid = False
+                min_max = [1,1]
+                i = ipos
+                if istkn in ('space', ):
+                    ipos += x.end()
+                    continue
+                elif istkn == 'escape':
+                    min_max, tokid, tokval, ipos = self.parse_escape_rule(
+                        rule['regex'], ipos)
+                    # Token is one of prior repetition: $? $* $+
+                    if tokid == -1:
+                        min_max_list[-1] = min_max
                         continue
-                    elif istkn == 'escape':
-                        min_max, tokid, tokval, ipos = self.parse_escape_rule(
-                            value, ipos)
-                        if tokid == -1:
-                            ctr[-1] = min_max
-                            continue
-                    elif istkn == 'remark_eol':
-                        tokid, tokval, ipos = self.parse_remarkeol_rule(value,
-                                                                        ipos,
-                                                                        x)
-                    elif istkn in ('strdoc1',
-                                   'strdoc2'):
-                        tokid, tokval, ipos = self.parse_doc_rule(value,
-                                                                  ipos)
-                    elif istkn == 'string1':
-                        tokid, tokval, ipos = self.parse_txt1_rule(value,
-                                                                   ipos)
-                    elif istkn == 'string2':
-                        tokid, tokval, ipos = self.parse_txt2_rule(value,
-                                                                   ipos)
-                    elif istkn == 'name':
-                        tokid, tokval, ipos = self.parse_generic_rule(
-                            value, ipos, x, tokenize.NAME)
-                    else:
-                        tokid, tokval, ipos = self.parse_generic_rule(
-                            value, ipos, x, tokenize.OP)
-                    break
+                    # elif tokid == tokenize.NAME:
+                    #     replacing = 1
+                    # elif tokid == tokenize.START_CAPTURE:
+                    #     replacing = True
+                    # elif tokid == tokenize.STOP_CAPTURE:
+                    #     replacing = False
+                elif istkn == 'remark_eol':
+                    tokid, tokval, ipos = self.parse_remarkeol_rule(
+                        rule['regex'], ipos, x)
+                elif istkn in ('strdoc1',
+                               'strdoc2'):
+                    tokid, tokval, ipos = self.parse_doc_rule(
+                        rule['regex'], ipos)
+                elif istkn == 'string1':
+                    tokid, tokval, ipos = self.parse_txt1_rule(
+                        rule['regex'], ipos)
+                elif istkn == 'string2':
+                    tokid, tokval, ipos = self.parse_txt2_rule(
+                        rule['regex'], ipos)
+                elif istkn == 'name':
+                    tokid, tokval, ipos = self.parse_generic_rule(
+                        rule['regex'], ipos, x, tokenize.NAME)
+                else:
+                    tokid, tokval, ipos = self.parse_generic_rule(
+                        rule['regex'], ipos, x, tokenize.OP)
+                break
             if unknown:
-                print "Unknown token %s" % value[ipos:]
+                print "Unknown token %s" % rule['regex'][ipos:]
                 ipos += 1
             if tokid:
                 keywords.append(tokval)
                 keyids.append(tokid)
-                ctr.append(min_max)
-        # match rule against version
-        if meta and self.SYNTAX_RE['int'].match(meta):
-            self.store_meta_subrule(ir, meta, keywords, keyids)
-        else:
-            self.store_rule(ir, keywords, keyids, ctr)
-        self.init_rule_all(ir)
+                min_max_list.append(min_max)
+        for meta in METAS:
+            if meta in rule['meta']:
+                replacements[meta] = []
+                ipos = 0
+                tokval = ''
+                while ipos < len(rule['meta'][meta]):
+                    for istkn in self.SYNTAX:
+                        if istkn == 'fullname':
+                            continue
+                        x = self.SYNTAX_RE[istkn].match(
+                            rule['meta'][meta][ipos:])
+                        if not x:
+                            continue
+                        if istkn in ('space', ):
+                            ipos += x.end()
+                            continue
+                        elif istkn == 'string1':
+                            tokid, tokval, ipos = self.parse_txt1_rule(
+                                rule['meta'][meta], ipos)
+                        elif istkn == 'string2':
+                            tokid, tokval, ipos = self.parse_txt2_rule(
+                                rule['meta'][meta], ipos)
+                        elif istkn == 'name':
+                            tokid, tokval, ipos = self.parse_generic_rule(
+                                rule['meta'][meta], ipos, x, tokenize.NAME)
+                        else:
+                            tokid, tokval, ipos = self.parse_generic_rule(
+                                rule['meta'][meta], ipos, x, tokenize.OP)
+                        break
+                    replacements[meta].append(tokval)
+        ir = rule['id']
+        del rule['id']
+        self.SYTX_RULES[ir] = rule
+        self.SYTX_RULES[ir]['keywords'] = keywords
+        self.SYTX_RULES[ir]['keyids'] = keyids
+        self.SYTX_RULES[ir]['min_max_list'] = min_max_list
+        self.SYTX_RULES[ir]['meta'] = replacements
+        self. init_rule_state(ir)
 
-    def extr_tokens_from_line(self, rule, meta, value, cont_break):
+
+    def extr_tokens_from_line(self, text_rule, cur_rule, parsed, cont_break):
         """Extract from line rule elements"""
-        if rule and rule[-1] == '\n':
-            rule = rule[0: -1]
-        id = False
-        # meta = False
-        if not rule:
+        next_cont = False
+        parsed = False
+        if not text_rule:
             pass
-        elif rule[0] == '#':
-            pass
-        elif cont_break:
-            value += rule
-        else:
-            cont_break = False
-            i = rule.find(':')
-            if i < 0:
-                value += rule
-            else:
-                left = rule[0:i].strip()
-                value = rule[i + 1:].lstrip()
-                i = left.find('[')
-                if i < 0:
-                    meta = False
-                    id = left
+        if text_rule[-1] == '\n':
+            text_rule = text_rule[0: -1]
+        if text_rule[0] != '#' and text_rule[-1] == '\\':
+            text_rule = text_rule[0: -1]
+            next_cont = True
+        if cont_break:
+            cur_rule['regex'] += text_rule.rstrip()
+            cont_break = next_cont
+        elif text_rule[0] != '#':
+            ipos = 0
+            x = self.SYNTAX_RE['name'].match(text_rule[ipos:])
+            if x:
+                id = text_rule[ipos:x.end()]
+                ipos += x.end()
+                if cur_rule['id'] and cur_rule['id'] != id:
+                    parsed = True
                 else:
-                    j = left.find(']')
-                    if j < 0:
-                        j = len(left)
-                    meta = rule[i + 1:j].strip()
-                    id = left[0:i]
-        if value and value[-1] == '\\':
-            value = value[0:-1]
-            cont_break = True
-        return id, meta, value, cont_break
+                    cur_rule['id'] = id
+            if not parsed:
+                meta = ''
+                item = ''
+                while ipos < len(text_rule):
+                    x = self.SYNTAX_RE['space'].match(text_rule[ipos:])
+                    if x:
+                        ipos += x.end()
+                    if text_rule[ipos] == ':':
+                        if not cur_rule['regex']:
+                            cur_rule['regex'] = text_rule[ipos + 1:].strip()
+                        elif meta:
+                            cur_rule['meta'][meta] = text_rule[
+                                ipos + 1:].strip()
+                        elif item in ('action', ):
+                            cur_rule[item] = text_rule[ipos + 1:].strip()
+                        ipos = len(text_rule)
+                    elif text_rule[ipos] == '[' and not meta:
+                        i = text_rule[ipos + 1:].find(']')
+                        meta = text_rule[ipos + 1:ipos + 1 + i].strip()
+                        ipos += i + 2
+                    else:
+                        x = self.SYNTAX_RE['name'].match(text_rule[ipos:])
+                        if x:
+                            item = text_rule[ipos:x.end()]
+        return cur_rule, parsed, cont_break
 
-    def read_rules_from_file(self, rule_file, ctx):
-        # pdb.set_trace()
+    def read_rules_from_file(self, ctx, rule_file):
+        def clear_cur_rule():
+            return {'id': '',
+                    'meta': {},
+                    'regex': '',
+                    'action': 'replace',
+            }
         try:
             fd = open(rule_file, 'r')
-            value = ''
-            cont_break = False
-            meta = ''
-            for rule in fd:
-                id, meta, value, cont_break = self.extr_tokens_from_line(
-                    rule, meta, value, cont_break)
-                if not id or cont_break:
-                    continue
-                self.compile_1_rule(id, meta, value)
-            fd.close()
-            self.check_rule_integrity()
         except:
-            pass
+            return
+        cur_rule = clear_cur_rule()
+        cont_break = False
+        for text_rule in fd:
+            cur_rule, parsed, cont_break = self.extr_tokens_from_line(
+                text_rule, cur_rule, False, cont_break)
+            while parsed:
+                self.compile_1_rule(cur_rule)
+                cur_rule = clear_cur_rule()
+                cur_rule, parsed, cont_break = self.extr_tokens_from_line(
+                    text_rule, cur_rule, parsed, cont_break)
+        fd.close()
 
     def set_rulefn(self, rule_file):
         if rule_file.endswith('.py'):
@@ -476,21 +554,11 @@ class topep8():
         return rule_file
 
     def compile_rules(self, ctx):
-        self.SYTX_KEYWORDS = {}
-        self.SYTX_KEYIDS = {}
-        self.SYTX_PRMS = {}
-        self.SYTX_CTR = {}
-        self.SYTX_WF_ID = {}
-        self.SYTX_STATE = {}
-        self.SYTX_MIN_MAX = {}
-        self.rule_re_matches = {}
-        self.rule_re_replaces = {}
-        self.re_matches = {}
-        self.re_replaces = {}
+        self.SYTX_RULES = {}
         tokenize.NOOP = tokenize.N_TOKENS + 16
         tokenize.tok_name[tokenize.NOOP] = 'NOOP'
-        tokenize.SUBRULE = tokenize.N_TOKENS + 17
-        tokenize.tok_name[tokenize.SUBRULE] = 'SUBRULE'
+        tokenize.PARENT_RULE = tokenize.N_TOKENS + 17
+        tokenize.tok_name[tokenize.PARENT_RULE] = 'PARENT_RULE'
         tokenize.DOC = tokenize.N_TOKENS + 18
         tokenize.tok_name[tokenize.DOC] = 'DOC'
         tokenize.ANY = tokenize.N_TOKENS + 19
@@ -499,25 +567,21 @@ class topep8():
         tokenize.tok_name[tokenize.MORE] = 'MORE'
         tokenize.EXPR = tokenize.N_TOKENS + 21
         tokenize.tok_name[tokenize.EXPR] = 'EXPR'
+        tokenize.START_CAPTURE = tokenize.N_TOKENS + 22
+        tokenize.tok_name[tokenize.START_CAPTURE] = 'START_CAPTURE'
+        tokenize.STOP_CAPTURE = tokenize.N_TOKENS + 23
+        tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
         #
-        self.read_rules_from_file(self.set_rulefn(sys.argv[0]), ctx)
-        self.read_rules_from_file(self.set_rulefn(ctx['src_filepy']), ctx)
+        self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
+        self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
 
     def match_parent_rule(self, ir, result):
-        for ir1 in self.SYTX_KEYWORDS.keys():
+        for ir1 in self.SYTX_RULES.keys():
             if ir1 == ir:
                 continue
-            keywords, tokids = self.get_key_n_id_from_rule(ir)
-            if self.cur_valid_state(ir) >= len(tokids):
-                continue
-            if tokids[self.set_active(ir)] == tokenize.SUBRULE and \
-                    keywords[self.set_active(ir)] == ir:
-                set_suspended(ir)
-                if result:
-                    self.SYTX_WF_ID[ir] += 1
-                else:
-                    self.SYTX_WF_ID[ir] = 0
-                self.match_parent_rule(ir1, result)
+            if self.cur_tokid(ir1) == tokenize.PARENT_RULE and \
+                    self.cur_tokval(ir1) == ir:
+                set_active(ir1)
 
     def wash_tokid(self, tokid, tokval):
         if tokid == tokenize.INDENT:
@@ -552,9 +616,9 @@ class topep8():
 
     def wash_token(self, tokid, tokval, (srow, scol), (erow, ecol)):
         if tokid in self.GHOST_TOKENS:
-            if srow != self.last_row:
+            if srow:
                 self.tabstop = {}
-                self.last_row = srow
+                self.abs_row += srow
         else:
             self.start = (srow, scol)
             self.stop = (erow, ecol)
@@ -565,98 +629,87 @@ class topep8():
         self.tabstop[scol] = tokenize.tok_name[tokid]
         return tokid, tokval
 
-    def replace_token(self, ir, tokid, tokval, re_matches, re_replaces):
+    def replace_token(self, ir, tokid, tokval, param_list_from, param_list_to):
         # pdb.set_trace()
         if tokid == tokenize.COMMENT:
-            for tok in re_matches:
+            for tok in param_list_from:
                 if tokval.find(tok) >= 0:
-                    tokval.replace(re_matches, re_replaces)
-        elif re_matches and tokval in re_matches:
-            ix = re_matches.index(tokval)
-            if ir not in self.rule_re_replaces:
-                self.rule_re_matches[ir] = {}
-                self.rule_re_replaces[ir] = {}
-            self.rule_re_matches[ir][tokeno] = re_matches[ix]
-            self.rule_re_replaces[ir][tokeno] = re_replaces[ix]
+                    tokval.replace(param_list_from, param_list_to)
+        elif param_list_from and tokval in param_list_from:
+            ix = param_list_from.index(tokval)
+            if ir not in self.rule_param_list_to:
+                self.rule_param_list_from[ir] = {}
+                self.rule_param_list_to[ir] = {}
+            self.rule_param_list_from[ir][tokeno] = param_list_from[ix]
+            self.rule_param_list_to[ir][tokeno] = param_list_to[ix]
 
     def tokenize_source(self, ctx=None):
         # pdb.set_trace()
         ctx = ctx or {}
-        for tokeno, (tokid, tokval,
-                     (srow, scol),
-                     (erow, ecol)) in enumerate(self.tokenized):
+        # for tokeno, (tokid, tokval,
+        #              (srow, scol),
+        #              (erow, ecol)) in enumerate(self.tokenized):
+        tokeno = 0
+        while tokeno < len(self.tokenized):
+            tokid, tokval, (srow, scol), (erow, ecol) = self.tokenized[tokeno]
+            tokeno += 1
             tokid = self.wash_tokid(tokid, tokval)
             if tokid == tokenize.NOOP:
                 continue
             if ctx['opt_dbg']:
                 print ">>> %s(%s)" % (tokval, tokid)
-            completed_rules = []
-            reset_rules = []
-            for ir in self.SYTX_KEYWORDS.keys():
+            validated_rule_list = []
+            for ir in self.SYTX_RULES.keys():
                 keywords, tokids = self.get_key_n_id_from_rule(ir)
-                re_matches = self.get_prms_from_rule(ir, ctx['from_ver'])
-                re_replaces = self.get_prms_from_rule(ir, ctx['to_ver'])
+                param_list_from = self.get_params_from_rule(ir, ctx['from_ver'])
                 # rule parse ended
-                if not self.is_active(ir):
+                if self.is_waiting4parent(ir):
                     pass
                 # rule child of parent rule: wait for parent result
-                elif self.cur_tokid(ir) == tokenize.SUBRULE:
-                    self.set_suspended(ir)
-                # found any token rule
-                elif self.cur_tokid(ir) == tokenize.ANY:
-                    self.set_next_state(ir)
+                elif self.cur_tokid(ir) == tokenize.PARENT_RULE:
+                    self.set_waiting4parent(ir)
                 # replace string inside remark
                 elif self.cur_tokid(ir) == tokenize.COMMENT:
                     self.replace_token(ir, tokid, tokval,
-                                       re_matches, re_replaces)
-                # found zero, one or more tokens rule
+                                       param_list_from, param_list_to)
+                # found the <any> token rule
+                elif self.cur_tokid(ir) == tokenize.ANY:
+                    self.set_next_state(ir)
+                # found <zero, one or more> tokens rule
                 elif self.cur_tokid(ir) == tokenize.MORE:
-                    self.set_waiting_4_more(ir)
+                    self.set_waiting4more(ir)
                     continue
                 # found expression rule
                 elif self.cur_tokid(ir) == tokenize.EXPR:
-                    self.set_waiting_4_more(ir)
+                    self.set_waiting4expr(ir)
                     continue
                 # exact text match
                 elif self.matches(ir, tokid, tokval):
-                    if self.is_waiting(ir):
-                        self.reset_waiting_4_more(ir)
-                    self.set_next_state(ir)
-                # waiting for zero, one or more tokens
-                elif self.is_waiting(ir):
+                    if self.is_waiting4more(ir):
+                        self.set_active(ir)
+                    elif self.is_waiting4expr(ir):
+                        self.set_active(ir)
+                # rule is waiting for <zero, one or more> tokens
+                elif self.is_waiting4more(ir):
                     continue
-                if self.is_completed(ir):
-                    completed_rules.append(ir)
-            for ir in self.SYTX_KEYWORDS.keys():
-                # rule finally matches
-                if ir in completed_rules:
-                    if ctx['opt_dbg']:
-                        print "    match_parent_rule(%s, True)" % (ir)
-                    self.match_parent_rule(ir, True)
-                    # replace src text by re_replaces
-                    for i in self.rule_re_replaces[ir]:
-                        self.re_matches[i] = self.rule_re_matches[ir][i]
-                        self.re_replaces[i] = self.rule_re_replaces[ir][i]
-                    self.rule_re_matches[ir] = {}
-                    self.rule_re_replaces[ir] = {}
-                    self.SYTX_WF_ID[ir] = 0
-                # rule does not match
-                elif ir in reset_rules:
-                    if ctx['opt_dbg']:
-                        print "    match_parent_rule(%s, False)" % (ir)
-                    self.match_parent_rule(ir, False)
-                    self.rule_re_matches[ir] = {}
-                    self.rule_re_replaces[ir] = {}
-                elif ctx['opt_dbg']:
-                    print "    match_rule(%s, evaluating)" % (ir)
-            # yield tokid, tokval
+                # rule is waiting expression
+                elif self.is_waiting4expr(ir):
+                    continue
+                # Rule is validated?
+                if self.is_validated(ir):
+                    validated_rule_list.append(ir)
+                else:
+                    i = self.cur_wf_tknid(ir)
+                    if i < len(param_list_from) and \
+                            tokval == param_list_from[i]:
+                        self.store_value_to_replace(ir, tokeno)
 
-    def apply_for_rules(self, ctx=None):
-        ctx = ctx or {}
-        self.tokenize_source(ctx=ctx)
-        for tokeno in self.re_replaces:
-            self.tokenized[tokeno][1] = self.re_replaces[tokeno]
-        self.init_parse()
+
+            for ir in validated_rule_list:
+                if ctx['opt_dbg']:
+                    print "    match_parent_rule(%s, True)" % (ir)
+                self.match_parent_rule(ir, True)
+            # yield tokid, tokval
 
     def next_token(self, ctx=None):
         # pdb.set_trace()
@@ -719,7 +772,7 @@ def get_versions(ctx):
 
 
 def parse_file(ctx=None):
-    # pdb.set_trace()
+    pdb.set_trace()
     ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
@@ -729,7 +782,7 @@ def parse_file(ctx=None):
                                         ctx['to_ver'])
     source = topep8(src_filepy)
     source.compile_rules(ctx)
-    source.apply_for_rules(ctx)
+    source.tokenize_source(ctx)
     target = ""
     EOF = False
     while not EOF:

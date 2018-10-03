@@ -114,11 +114,11 @@ from github.com in two ways:
 .br
 1. If -D switch is set (development environment), Odoo is installed and
 deployed with full history in \fB/opt/odoo/\fR\fIver\fR where \fIver\fR is
-6.1, 7.0, 8.0, 9.0, 10.0 or 11.0;
+6.1, 7.0, 8.0, 9.0, 10.0, 11.0 or 12.0;
 .br
 2. If no development enviroment is set by -D switch, Odoo
 is installed without history in \fB/opt/odoo/\fR\fIver\fR, where \fIver\fR is
-6.1, 7.0, 8.0, 9.0, 10.0 or 11.0;
+6.1, 7.0, 8.0, 9.0, 10.0, 11.0 or 12.0;
 .br
 The -o switch must be declared to select Odoo repository to clone (see -o option)
 .br

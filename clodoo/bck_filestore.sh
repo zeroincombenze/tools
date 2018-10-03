@@ -36,7 +36,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
 
-__version__=0.3.7.33
+__version__=0.3.7.34
 
 
 OPTOPTS=(h        b          n            q           t       V           v)
@@ -45,7 +45,7 @@ OPTACTI=(1        "="        "1"          0           "=>"    "*>"        "+" )
 OPTDEFL=(1        ""         0            -1          ""      ""          -1)
 OPTMETA=("help"   "vid"      "do nothing" "verbose"   "host"  "version"   "silent")
 OPTHELP=("this help"\
- "branch: must be 7.0 or 8.0 or 9.0 or 10.0 or 11.0 (def all)"\
+ "branch: must be 7.0 or 8.0 or 9.0 or 10.0 11.0 or 12.0 (def all)"\
  "do nothing (dry-run)"\
  "silent mode"\
  "target host"\
@@ -67,7 +67,7 @@ fi
 
 discover_multi
 sts=0
-[ -z "$opt_branch" ] && opt_branch="11.0 10.0 9.0 8.0 7.0 6.1"
+[ -z "$opt_branch" ] && opt_branch="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 for odoo_vid in ${opt_branch//,/ };do
   DDIR=$(build_odoo_param DDIR $odoo_vid)
   echo "rsync -avz $DDIR/filestore/ $opt_tgt:$DDIR/filestore/"

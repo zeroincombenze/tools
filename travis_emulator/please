@@ -43,14 +43,14 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.50
+__version__=0.2.1.51
 
 
 #
 # General Purpose options:
 # -A dont exec odoo test
 # -B exec bash test
-# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 or 11.0
+# -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 11.0 or 12.0
 # -C commit & push | dont exc clodoo test
 # -c configuration file
 # -d diff
@@ -2270,7 +2270,7 @@ OPTACTI=(1        "="        "="      1        1         1        1        "="  
 OPTDEFL=(1        ""         ""       0        0         0        0        ""        0       0           ""       0        ""        -1          0     ""       0         0       ""          -1)
 OPTMETA=("help"   "branch"   "file"   "diff"   ""       "dprj"   "keep"   "logfile" ""      "noop"       "prj_id" ""       "path"    "quiet"     "rxt" "files"  "test"    "uop"   "version"   "verbose")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 or 11.0"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "configuration file (def .travis.conf)"\
  "do diff no real action (obsolete)"\
  "force copy (of commit/push) | build (of register/publish) | dup doc (of distribution/synchro)"\

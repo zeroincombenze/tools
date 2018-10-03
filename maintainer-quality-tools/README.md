@@ -169,6 +169,7 @@ E266 | :x:     | :x:     |         |        | :white_check_mark: | [too many lea
 W291 | :x:     | :x:     |         |        | :white_check_mark: |
 W292 | :x:     | :x:     |         |        | :white_check_mark: | [no newline at end of file](https://lintlyci.github.io/Flake8Rules/rules/W292.html)
 W293 | :x:     | :x:     |         |        | :white_check_mark: |
+E301 | :x:     | :x:     |         |        | :white_check_mark: | [Expected 1 blank line][https://lintlyci.github.io/Flake8Rules/rules/E301.html)
 E302 | :x:     | :x:     |         |        | :white_check_mark: | No __init__.py
 E303 | :x:     | :x:     |         |        | :white_check_mark: |
 E305 | :x:     | :x:     |         |        | :white_check_mark: |

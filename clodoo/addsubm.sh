@@ -37,7 +37,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.33
+__version__=0.3.7.34
 
 
 rmdir_if_exists() {
@@ -118,7 +118,7 @@ wep_other_branches() {
           elif [ $PARSE -gt 0 ]; then
             lne="$(echo $lne)"
             IFS=" " read v x <<< "$lne"
-            if [[ ! $v =~ (6.1|7.0|8.0|9.0|10.0|11.0) ]] ; then
+            if [[ ! $v =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0) ]] ; then
               run_traced "git push origin --delete $v"
             fi
           fi

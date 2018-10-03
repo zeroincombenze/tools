@@ -170,14 +170,16 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
-                        get_model_model, get_model_name)
+                        get_model_model, get_model_name,
+                        extract_vals_from_rec, cvt_from_ver_2_ver,
+                        declare_mandatory_fields)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.33"
+__version__ = "0.3.7.34"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4466,7 +4468,7 @@ def get_real_paramvalue(ctx, param):
 
 def get_real_actname(ctx, actv):
     if isinstance(actv, basestring) and \
-            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0', '_10.0', '_11.0'):
+            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0', '_10.0', '_11.0', '_12.0'):
         if actv[-3:] == ctx['oe_version']:
             act = actv[0:-4]
         else:
@@ -4496,7 +4498,7 @@ def add_external_name(ctx, o_model, row, id):
                         id=res_id)
 
 
-def translate_fields(ctx, o_model, csv, csv_obj):
+def translate_ext_names(ctx, o_model, csv, csv_obj):
     def translate_from_param(ctx, n, nm):
         values = ctx['TRX_VALUE'][nm]
         if csv[n] in values:
@@ -4584,7 +4586,7 @@ def translate_fields(ctx, o_model, csv, csv_obj):
     return row
 
 
-def parse_fields(ctx, o_model, row, ids, cur_obj):
+def parse_in_fields(ctx, o_model, row, ids, cur_obj):
     name_new = ''
     update_header_id = True
     vals = {}
@@ -4637,7 +4639,7 @@ def import_file(ctx, o_model, csv_fn):
         company_id = ctx['company_id']
     model = get_model_model(ctx, o_model)
     if ctx.get('full_model'):
-        if not ctx.get('MANDATORY'):
+        if not ctx.get('translate_ext_names'):
             ctx['MANDATORY'] = []
         field_model = 'ir.model.fields'
         for field_id in searchL8(ctx,
@@ -4685,7 +4687,7 @@ def import_file(ctx, o_model, csv_fn):
                     msg = u"!File " + csv_fn + " without key!"
                     msg_log(ctx, ctx['level'] + 1, msg)
                     break
-            row = translate_fields(ctx, o_model, row, csv_obj)
+            row = translate_ext_names(ctx, o_model, row, csv_obj)
             # Data for specific db type (i.e. just for test)
             if o_model.get('db_type', ''):
                 if row[o_model['db_type']]:
@@ -4732,11 +4734,11 @@ def import_file(ctx, o_model, csv_fn):
                             ctx['oe_version'].split('.')[0])
             else:
                 cur_obj = False
-            vals, update_header_id, name_new = parse_fields(ctx,
-                                                            o_model,
-                                                            row,
-                                                            ids,
-                                                            cur_obj)
+            vals, update_header_id, name_new = parse_in_fields(ctx,
+                                                               o_model,
+                                                               row,
+                                                               ids,
+                                                               cur_obj)
             if 'company_id' in ctx and 'company_id' in vals:
                 if int(vals['company_id']) != company_id:
                     continue

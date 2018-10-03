@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.79'
+__version__ = '0.2.1.81'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -150,7 +150,7 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
 
 
 # Discover automatically Odoo dir and version
-# Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0 tree
+# Recognizes old 6.1 tree, 7.0/8.0/9.0 tree and new 10.0/11.0/12.0 tree
 def get_build_dir():
     odoo_version = os.environ.get("VERSION")
     travis_base_dir = os.environ.get("TRAVIS_BUILD_DIR", "../..")

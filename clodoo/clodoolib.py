@@ -158,7 +158,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.33"
+__version__ = "0.3.7.34"
 
 
 #############################################################################
@@ -355,7 +355,7 @@ def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False
     found = False
     if conf_obj:
-        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0'):
+        for sfx in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
             vparam = '%s_%s' % (param, sfx)
             if conf_obj.has_option(sect, vparam):
                 found = True
@@ -456,7 +456,7 @@ def create_params_dict(ctx):
     else:
         ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
-        if ctx['oe_version'] in ('9.0', '10.0', '11.0'):
+        if ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
             ctx['svc_protocol'] = 'jsonrpc'
         else:
             ctx['svc_protocol'] = 'xmlrpc'

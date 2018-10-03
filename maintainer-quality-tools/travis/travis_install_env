@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.79
+__version__=0.2.1.81
 
 
 run_n_echo() {
@@ -356,7 +356,7 @@ else
   if [ "${TESTS}" != "1" ]; then
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
-      run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ "$TRAVIS" == "true" ]]; then
@@ -389,7 +389,7 @@ else
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-      run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -p${TRAVIS_PYTHON_VERSION:0:1}"
+      run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then

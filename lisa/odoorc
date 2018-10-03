@@ -39,7 +39,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.31
+#__version__=0.3.7.34
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -584,7 +584,7 @@ discover_multi() {
     local v p m
     local c=0
     [ ${opt_multi:-0} -gt 0 ] && return
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
       m=$(build_odoo_param MAJVER $v)
       for p in "" v odoo ocb; do
         odoo_bin=$(build_odoo_param BIN $p$v search)

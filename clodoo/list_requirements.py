@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.33'
+__version__ = '0.3.7.34'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -248,7 +248,7 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
         if item in REQVERSION:
             min_v = False
             valid_ver = False
-            for v in ('0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+            for v in ('0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
                 if v in REQVERSION[item]:
                     min_v = v
                     if v == odoo_ver or valid_ver or (not odoo_ver and

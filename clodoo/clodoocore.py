@@ -14,6 +14,7 @@ import re
 import odoorpc
 import oerplib
 from os0 import os0
+import datetime
 
 from clodoolib import debug_msg_log, msg_log, decrypt
 from transodoo import translate_from_sym, translate_from_to
@@ -30,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.33"
+__version__ = "0.3.7.34"
 
 
 #############################################################################
@@ -43,8 +44,8 @@ def psql_connect(ctx):
             pv = prm.split(':')
             if pv[0] in ('False', 'false', '0'):
                 return cr
-            if pv[0] in ('db_name', 'db_user', 'db_password') and \
-                    (pv[0] not in ctx or not ctx[pv[0]]):
+            if pv[0] in ('db_name', 'db_user', 'db_password'):
+                # and \ (pv[0] not in ctx or not ctx[pv[0]]):
                 ctx[pv[0]] = pv[1]
         dbname = ctx['db_name']
         dbuser = ctx['db_user']
@@ -102,14 +103,13 @@ def searchL8(ctx, model, where, order=None, context=None):
 
 def browseL8(ctx, model, id, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
-        res = ctx['odoo_session'].env[model].browse(id)
+        return ctx['odoo_session'].env[model].browse(id)
     else:
-        res = ctx['odoo_session'].browse(model, id, context=context)
-    return bound_6_to_z0(ctx, model, res)
+        return ctx['odoo_session'].browse(model, id, context=context)
 
 
 def createL8(ctx, model, vals):
-    vals = bound_z0_to_6(ctx, model, vals)
+    vals = complete_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         return ctx['odoo_session'].env[model].create(vals)
     else:
@@ -117,7 +117,6 @@ def createL8(ctx, model, vals):
 
 
 def write_recordL8(ctx, record):
-    # vals = bound_z0_to_6(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['odoo_session'].write(record)
     else:
@@ -125,7 +124,6 @@ def write_recordL8(ctx, record):
 
 
 def writeL8(ctx, model, ids, vals):
-    vals = bound_z0_to_6(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         return ctx['odoo_session'].env[model].write(ids,
                                                     vals)
@@ -151,16 +149,306 @@ def executeL8(ctx, model, action, *args):
 ###########################################################
 # Version adaptive functions
 #
-def bound_z0_to_6(ctx, model, vals, btable=None):
-    """Convert universal (z0) format to original (6.1) format.
-    Designed to convert 7.0 record to 6.1,
-    may be used to any Odoo version translation.
+def complete_fields(ctx, model, vals):
+    for name in ctx.get('MANDATORY', []):
+        if name not in vals or not vals[name]:
+            vals[name] = set_some_values(ctx, None, name, '',
+                                         model=model, row=vals)
+    return vals
+
+
+def cvt_value_from_ver_to_ver(ctx, model, name, value, src_ver, tgt_ver):
+    if model == 'account.account.type':
+        if name in ('type', 'report_type'):
+            if src_ver == '10.0':
+                if value in ('receivable', 'liquidity'):
+                    value = 'asset'
+                elif value == 'payable':
+                    value = 'liability'
+                else:
+                    value = 'expense'
+    elif model == 'account.tax':
+        if name == 'amount':
+            if src_ver == '10.0' and tgt_ver == '8.0':
+                value = value / 100
+            elif src_ver == '8.0' and tgt_ver == '10.0':
+                value = value * 100
+    elif model == 'ir.sequence':
+        if name == 'code':
+            if src_ver == '10.0' and tgt_ver == '8.0':
+                if not searchL8(ctx,
+                                'ir.sequence.type',
+                                [('code', '=', value)]):
+                    createL8(ctx, 'ir.sequence.type',
+                             {'code': value,
+                              'name': value.replace('.', ' ')})
+    return value
+
+
+def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
+    if ctx.get('mindroot'):
+        new_vals = {}
+        for name in vals.keys():
+            new_name = translate_from_to(ctx, model, name,
+                                         src_ver, tgt_ver)
+            new_vals[new_name] = cvt_value_from_ver_to_ver(
+                ctx, model, new_name, vals[name], src_ver, tgt_ver)
+        if model == 'account.tax':
+            if 'type' in new_vals and src_ver == '10.0' and tgt_ver == '8.0':
+                if new_vals['type'] == 'group':
+                    new_vals['child_depend'] = True
+                    new_vals['type'] = ''
+            if tgt_ver == '8.0':
+                name = 'applicable_type'
+                if name not in new_vals:
+                    new_vals[name] = set_some_values(ctx, None, name, '',
+                        model=model, row=vals)
+                if new_vals.get('type_tax_use', '') not in ('sale',
+                                                            'purchase'):
+                    if new_vals['description'][-1] == 'v':
+                        new_vals['type_tax_use'] = 'sale'
+                    else:
+                        new_vals['type_tax_use'] = 'purchase'
+                if new_vals['type_tax_use'] == 'sale':
+                    code = 'IT%s%sD' % (
+                        'D', new_vals['description'][0:-1])
+                    ids = searchL8(ctx, 'account.tax.code',
+                                   [('code', '=', code)])
+                    if ids:
+                        new_vals['base_code_id'] = ids[0]
+                        new_vals['ref_base_code_id'] = ids[0]
+                    code = 'IT%s%sV' % (
+                        'D', new_vals['description'][0:-1])
+                    ids = searchL8(ctx, 'account.tax.code',
+                                   [('code', '=', code)])
+                    if ids:
+                        new_vals['tax_code_id'] = ids[0]
+                        new_vals['ref_tax_code_id'] = ids[0]
+                elif new_vals['type_tax_use'] == 'purchase':
+                    code = 'IT%s%sD' % (
+                        'C', new_vals['description'][0:-1])
+                    ids = searchL8(ctx, 'account.tax.code',
+                                   [('code', '=', code)])
+                    if ids:
+                        new_vals['base_code_id'] = ids[0]
+                        new_vals['ref_base_code_id'] = ids[0]
+                    code = 'IT%s%sV' % (
+                        'C', new_vals['description'][0:-1])
+                    ids = searchL8(ctx, 'account.tax.code',
+                                   [('code', '=', code)])
+                    if ids:
+                        new_vals['tax_code_id'] = ids[0]
+                        new_vals['ref_tax_code_id'] = ids[0]
+        elif model == 'account.invoice':
+            if 'state' in new_vals and new_vals['state'] != 'cancel':
+                new_vals['state'] = 'draft'
+        vals = new_vals
+    return vals
+
+
+def extr_table_res_city(ctx):
+    return ['country_id', 'name', 'zip',
+            'state_id', 'phone_prefix', 'istat_code',
+            'cadaster_code']
+
+
+def extr_table_res_lang(ctx):
+    return ['active', 'code', 'date_format',
+            'decimal_point', 'direction', 'grouping',
+            'iso_code', 'name', 'thousands_sep',
+            'time_format', 'translatable']
+
+
+def extr_table_res_country_state(ctx):
+    return ['code', 'country_id', 'name']
+
+
+
+def extr_table_res_partner(ctx):
+    return ['active', 'city',
+            'comment', 'country_id', 'currency_id',
+            'customer', 'email', 'fax',
+            'fiscalcode', 'individual',
+            'lang', 'mobile', 'name',
+            'parent_id', 'pec_mail', 'phone',
+            'ref', 'splitmode', 'split_next',
+            'state_id', 'street', 'street2',
+            'supplier', 'title', 'type',
+            'vat', 'zip', 'fiscal_position',
+            'property_account_payable', 'property_account_payable_id',
+            'property_account_receivable', 'property_account_receivable_id']
+
+
+def extr_table_res_company(ctx):
+    return ['country_id', 'name', 'partner_id', 'currency_id']
+
+
+def extr_table_account_fiscal_position(ctx):
+    return ['company_id', 'name', 'note',
+            'sequence', 'vat_required']
+
+
+def extr_table_account_account_type(ctx):
+    return ['code', 'name', 'note', 'type', 'report_type']
+
+
+def extr_table_account_account(ctx):
+    return ['code', 'company_id', 'currency_id',
+            'name', 'user_type', 'user_type_id']
+
+
+def extr_table_ir_sequence_type(ctx):
+    return ['name', 'code']
+
+
+def extr_table_ir_sequence(ctx):
+    return ['name', 'code', 'company_id',
+            'number_next', 'number_next_actual',
+            'padding', 'prefix', 'suffix',
+            'implementation','type', 'sequence_id']
+
+
+def extr_table_account_journal(ctx):
+    return ['name', 'code', 'company_id', 'type', 'sequence_id']
+
+
+def extr_table_product_uom_categ(ctx):
+    return ['name', ]
+
+
+def extr_table_product_uom(ctx):
+    return ['name', 'category_id', 'factor', 'uom_type']
+
+
+def extr_table_product_category(ctx):
+    return ['name', ]
+
+
+def extr_table_account_tax(ctx):
+    return ['name', 'description', 'company_id',
+            'account_collected_id', 'account_id', 'amount',
+            'account_paid_id', 'refund_account_id',
+            'type', 'type_tax_use', 'amount_type', 'nature_id',
+            'parent_id', 'non_taxable_nature', 'applicable_type',
+            'base_code_id', 'tax_code_id',
+            'ref_base_code_id', 'ref_tax_code_id']
+
+
+def extr_table_product_template(ctx):
+    return ['name', 'company_id', 'uom_id', 'categ_id', 'uom_po_id']
+
+
+def extr_table_product_product(ctx):
+    return ['name', 'company_id', 'uom_id',
+            'categ_id', 'uom_po_id', 'product_tmpl_id']
+
+
+def extr_table_res_partner_bank(ctx):
+    return ['name', 'acc_number', 'bank_name',
+            'company_id', 'currency_id']
+
+
+def extr_table_account_invoice(ctx):
+    return ['account_id', 'amount_net_pay', 'amount_sp',
+            'amount_tax', 'amount_total', 'amount_untaxed',
+            'comment', 'commercial_partner_id', 'company_id',
+            'currency_id', 'date_due', 'date_invoice',
+            'fiscal_position', 'fiscal_position_id',
+            'internal_number', 'journal_id', 'move_name',
+            'name', 'number', 'origin', 'partner_id',
+            'partner_bank_id', # 'payment_term', 'payment_term_id',
+            'reconciled', 'reference', 'residual',
+            'registration_date', 'state',
+            'split_payment', 'supplier_invoice_number', 'type']
+            # 'user_id']
+
+
+def extr_table_account_invoice_line(ctx):
+    return ['account_id', 'company_id', 'currency_id',
+            'discount', 'invoice_id', 'name',
+            'origin', 'partner_id', 'price_subtotal',
+            'price_unit', 'product_id', 'quantity',
+            'rc', 'sequence', 'uom_id',
+            'uos_id', 'invoice_line_tax_id', 'invoice_line_tax_ids']
+
+def extr_table_generic(ctx, model, rec, keys=None):
+    ir_model = 'ir.model.fields'
+    field_names = []
+    for field in browseL8(ctx, ir_model,
+                          searchL8(ctx, ir_model,
+                                   [('model', '=', model)])):
+        if not field.readonly and f.ttype not in ('binary',
+                                                  'reference',
+                                                  'one2many'):
+            field_names.append(field.name)
+    return field_names
+
+
+def extract_vals_from_rec(ctx, model, rec, keys=None):
+    if keys:
+        field_names = keys.keys()
+    else:
+        func = 'extr_table_%s' % model
+        func = func.replace('.', '_')
+        if func in globals():
+            field_names = globals()[func](ctx)
+        else:
+            field_names = extr_table_generic(ctx, model, rec)
+    res = {}
+    for p in field_names:
+        if getattr(rec, p):
+            ir_model = 'ir.model.fields'
+            field = browseL8(ctx, ir_model, searchL8(
+                ctx, ir_model, [('model', '=', model),
+                                ('name', '=', p)]))
+            if field.ttype == 'many2many':
+                val = []
+                for i in rec[p]:
+                    val.append(i.id)
+                res[p] = [(6, 0, val)]
+            elif callable(rec[p]):
+                continue
+            elif isinstance(rec[p], datetime.date):
+                res[p] = str(rec[p])
+            else:
+                try:
+                    res[p] = rec[p].id
+                except:
+                    res[p] = rec[p]
+    return res
+
+
+def declare_mandatory_fields(ctx, model):
+    ir_model = 'ir.model.fields'
+    ctx['MANDATORY'] = []
+    for field in browseL8(ctx,
+                          ir_model,
+                          searchL8(ctx,
+                                   ir_model,
+                                   [('model', '=', model),
+                                    ('required', '=', True)])):
+        ctx['MANDATORY'].append(field.name)
+    for name in ('code', 'name'):
+        if name not in ctx['MANDATORY']:
+            ids = searchL8(ctx,
+                           ir_model,
+                           [('model', '=', model),
+                            ('name', '=', name)])
+            if ids:
+                ctx['MANDATORY'].append(name)
+
+
+def hub_name_2_ver(ctx, model, vals, btable=None, ttype=None):
+    """Convert universal format name to specific odoo version name.
     If btable is empty, build bound table to translate fields.
-    Bound table ha format 6_name=z0_name.
-    6_name is 6.1 field name
-    z0_name is 7.0 field name or False is does not exist,
+    Bound table ha format ver_name=z0_name.
+    ver_name is versioned field name
+    z0_name is universal field name or False is does not exist,
     In res.user, this function always remove country_id field.
     """
+    if 'MANDATORY' not in ctx:
+        declare_mandatory_fields(ctx, model)
+    ttype = ttype or 'fields'
     if btable:
         for p in btable:
             if isinstance(btable[p], basestring):
@@ -180,21 +468,36 @@ def bound_z0_to_6(ctx, model, vals, btable=None):
                 'user_email': 'email',
                 'country_id': False,
             }
-            return bound_z0_to_6(ctx, model, vals, btable=btable)
+            return hub_name_2_ver(ctx, model, vals, btable=btable)
+    elif model == 'account.invoice':
+        if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+            btable = {
+                'internal_number': 'move_name',
+            }
+            return hub_name_2_ver(ctx, model, vals, btable=btable)
+        elif ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
+            btable = {
+                'move_name': 'internal_number',
+            }
+            return ver_name_2_hub(ctx, model, vals, btable=btable)
     return vals
 
 
-def bound_6_to_z0(ctx, model, res, btable=None):
-    """Convert browsed res from original (6.1) format to universal (z0) format.
-    Designed to convert 6.1 record to 7.0,
-    may be used to any Odoo version translation.
+def btable_2_hub_account_account_type(ctx, model, res):
+    return {'user_type_id': 'user_type',
+    }
+
+
+def ver_name_2_hub(ctx, model, res, btable=None, ttype=None):
+    """Convert browsed versioned name to universal names.
     If btable is empty, build bound table to translate fields.
-    Bound table ha format z0_name=6_name.
-    z0_name is 7.0 field name,
-    6_name is 6.1 field name or False is does not exist
+    Bound table ha format z0_name=ver_name.
+    z0_name is universal field name,
+    ver_name is versioned field name or False is does not exist
     Field name may have format res_id.name , which refer to another model.
     In res.user, this function always add country_id field.
     """
+    ttype = ttype or 'fields'
     if btable:
         for p in btable:
             if isinstance(btable[p], basestring):
@@ -205,19 +508,29 @@ def bound_6_to_z0(ctx, model, res, btable=None):
                     setattr(res, p, res[p1][p2])
                 else:
                     setattr(res, p, res[btable[p]])
-                # delattr(res, btable[p])
             else:
                 setattr(res, p, btable[p])
-    elif model == 'res.users':
-        if ctx['oe_version'] == "6.1":
-            btable = {
-                'partner_id': False,
-                'lang': 'context_lang',
-                'tz': 'context_tz',
-                'email': 'user_email',
-                'country_id': 'company_id.country_id',
-            }
-            return bound_6_to_z0(ctx, model, res, btable=btable)
+    else:
+        func = 'btable_2_hub_%s' % model.replace('.', '_')
+        if func in globals():
+            btable =  globals()[func](ctx, model, res)
+            return ver_name_2_hub(ctx, model, res, btable=btable)
+        elif model == 'res.users':
+            if ctx['oe_version'] == "6.1":
+                btable = {
+                    'partner_id': False,
+                    'lang': 'context_lang',
+                    'tz': 'context_tz',
+                    'email': 'user_email',
+                    'country_id': 'company_id.country_id',
+                }
+                return ver_name_2_hub(ctx, model, res, btable=btable)
+        elif model == 'account.invoice':
+            if ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
+                btable = {
+                    'move_name': 'internal_number',
+                }
+                return hub_name_2_ver(ctx, model, res, btable=btable)
     return res
 
 
@@ -476,6 +789,43 @@ def get_state_id(ctx, value, country_id=None):
     return value
 
 
+def set_null_val_code_n_name(ctx, name, val, row=None):
+    if name == 'code':
+        if row and 'name' in row:
+            value = hex(hash(row['name']))[2:]
+        else:
+            code = hex(hash(datetime.datetime.now().microsecond))[2:]
+    return value
+
+
+def set_null_val_account_account_type(ctx, name, val, row=None):
+    return set_null_val_code_n_name(ctx, name, val, row=row)
+
+
+def set_null_val_account_account(ctx, name, val, row=None):
+    if name == 'code':
+        return set_null_val_code_n_name(ctx, name, val, row=row)
+    return val
+
+
+def set_null_val_account_tax(ctx, name, val, row=None):
+    if name == 'applicable_type':
+        return 'true'
+    return val
+
+
+def set_null_val_account_invoice(ctx, name, val, row=None):
+    if name == 'state':
+        return 'draft'
+    return val
+
+
+def set_null_val_ir_sequence(ctx, name, val, row=None):
+    if name == 'number_increment':
+        return 1
+    return val
+
+
 def set_some_values(ctx, o_model, name, value, model=None, row=None):
     """Set default value for empties fields"""
     if not model:
@@ -487,23 +837,28 @@ def set_some_values(ctx, o_model, name, value, model=None, row=None):
             value = ctx['company_id']
     elif name == 'country_id':
         value = get_country_id(ctx, value)
-    elif model == 'res.partner':
-        if name == 'is_company':
-            return True
-        elif name == 'vat':
-            if ctx.get('country_code') == 'IT' and value.isdigit():
-                value = 'IT%011d' % int(value)
-        elif name == 'state_id':
-            if row and 'country_id' in row:
-                value = get_state_id(ctx, value, country_id=row['country_id'])
-            else:
-                value = get_state_id(ctx, value)
-    elif model == 'res.users':
-        if name == 'email':
-            if ctx['with_demo']:
-                return ctx['def_email']
-            elif not ctx['with_demo']:
-                return ctx['zeroadm_mail']
+    else:
+        func = 'set_null_val_%s' % model.replace('.', '_')
+        if func in globals():
+            return globals()[func](ctx, name, value, row=row)
+        elif model == 'res.partner':
+            if name == 'is_company':
+                return True
+            elif name == 'vat':
+                if ctx.get('country_code') == 'IT' and value.isdigit():
+                    value = 'IT%011d' % int(value)
+            elif name == 'state_id':
+                if row and 'country_id' in row:
+                    value = get_state_id(ctx, value,
+                                         country_id=row['country_id'])
+                else:
+                    value = get_state_id(ctx, value)
+        elif model == 'res.users':
+            if name == 'email':
+                if ctx['with_demo']:
+                    return ctx['def_email']
+                elif not ctx['with_demo']:
+                    return ctx['zeroadm_mail']
     return value
 
 
