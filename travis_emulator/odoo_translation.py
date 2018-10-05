@@ -13,10 +13,10 @@ from os0 import os0
 import z0lib
 
 
-__version__ = "0.2.1.51"
+__version__ = "0.2.1.52"
 
 TNL_DICT = {}
-TNL_CERT = {}
+TNL_ACTION = {}
 SYNTAX = {
     'string': re.compile(u'"([^"\\\n]|\\.|\\\n)*"'),
 }
@@ -33,7 +33,7 @@ def change_name(ctx, filename, version):
 def load_dictionary_from_file(source):
     if os.path.isfile(source):
         if ctx['opt_verbose']:
-            print("Reading %s into dictionary" % ctx['src_file'])
+            print("Reading %s into dictionary" % source)
         fd = io.open(source, mode='r', encoding='utf-8')
         source = fd.read()
         fd.close()
@@ -55,14 +55,25 @@ def load_dictionary_from_file(source):
                             print('--- Current="%s"' % TNL_DICT[msgid])
                             print('--- New="%s"' % msgstr)
                             dummy = ''
-                            if msgid in TNL_CERT:
-                                dummy = TNL_CERT[msgid]
-                            while dummy not in ('C', 'N'):
-                                dummy=raw_input('>>> (Current,New)? ')
-                            if dummy == 'N':
+                            if '*' in TNL_ACTION:
+                                dummy = TNL_ACTION['*']
+                            elif msgid in TNL_ACTION:
+                                dummy = TNL_ACTION[msgid]
+                            while dummy not in ('C', 'N', 'E', 'I') and \
+                                    len(dummy) <= 3:
+                                dummy=raw_input('>>> (Current,New,End,Ignore,<Text>)? ')
+                            if dummy == 'E':
+                                TNL_ACTION['*'] = dummy
+                                return
+                            elif dummy == 'I':
+                                TNL_ACTION[msgid] = dummy
+                                continue
+                            elif len(dummy) >= 3:
+                                TNL_DICT[msgid] = dummy
+                            elif dummy == 'N':
                                 TNL_DICT[msgid] = msgstr
                             else:
-                                TNL_CERT[msgid] = dummy
+                                TNL_ACTION[msgid] = dummy
                     else:
                         TNL_DICT[msgid] = msgstr
 
@@ -70,7 +81,7 @@ def load_dictionary_from_file(source):
 def parse_source(source):
     if os.path.isfile(source):
         if ctx['opt_verbose']:
-            print("Reading %s for upgrade" % ctx['src_file'])
+            print("Reading %s for upgrade" % source)
         fd = io.open(source, mode='r', encoding='utf-8')
         source = fd.read()
         fd.close()
@@ -86,12 +97,8 @@ def parse_source(source):
                 token = line[6:].strip()
                 x = SYNTAX['string'].match(token)
                 msgstr = token[1:x.end() - 1]
-                if msgid:
-                    if msgid not in TNL_DICT:
-                        print('Internal error key %s' % msgid)
-                    else:
-                        if msgstr != TNL_DICT[msgid]:
-                            line = line.replace(msgstr, TNL_DICT[msgid])
+                if msgid in TNL_DICT and msgstr != TNL_DICT[msgid]:
+                    line = line.replace(msgstr, TNL_DICT[msgid])
             new_source += '%s\n' % line
         if new_source[-2:] == '\n\n':
             new_source = new_source[0:-1]

@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.51"
+__version__ = "0.2.1.52"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -1120,6 +1120,9 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
+    parser.add_argument('-F', '--from-odoo-ver',
+                        action='store',
+                        dest='from_odoo_ver')
     parser.add_argument('-G', '--gpl-info',
                         action='store_true',
                         dest='opt_gpl',

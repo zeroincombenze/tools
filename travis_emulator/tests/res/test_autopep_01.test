@@ -1,6 +1,4 @@
-a = 1
-
-B = A
-
-
-class MyClass():
+from odoo import models,fields
+a=1
+B=A
+class MyClass(models.Model):

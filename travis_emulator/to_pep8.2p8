@@ -11,13 +11,13 @@
 # format: RULE_NAME[VER]: REPLACING_TOKENS
 #   where VER matches Odoo version:
 #     0 -> all version,
-#     61 -> 6.1, 70 -> 7.0, 80 -> 8.0, 90 -> 9.0, 100 -> 10.0, 110 -> 11.0
 #   REPLACING_TOKENS are python intructions to replace
 # Example:
-#   c:      class $name($more):
-#   c[0]:   osv.osv_memory
-#   c[70]:  orm.TransientModel
-#   c[100]: models.TransientModel
+#   c:
+#       class $name($more):
+#       [0]:    osv.osv_memory
+#       [7.0]:  orm.TransientModel
+#       [10.0]: models.TransientModel
 # In above example source 10.0 "class myexample(models.TransientModel)"
 # is translated into "class myexample(orm.TransientModel)" for Odoo from 7.0 to 9.0
 # and "class myexample(osv.osv_memory)" for odoo 6.1
@@ -37,17 +37,28 @@
 #
 # ------------------------------------------------------------------------------
 #
+# Rule import orm
+import_orm_1_78:
+    from $more import $more 
+    [0]:    openerp
+    [10.0]: odoo
+import_orm_2_78:
+    from $more import $more 
+    [0]:   orm
+    [8.0]: models
 # Rule class memory
-class_memory: class $name($more):
-class_memory[0]: osv.osv
-class_memory[70]: orm.Model
-class_memory[100]: models.Model
+class_memory_78:
+    class $name($more):
+    [0]:   osv.osv
+    [7.0]: orm.Model
+    [8.0]: models.Model
 #
 # Rule class transient memory
-class_transient: class $name($more):
-class_transient[0]: osv.osv_memory
-class_transient[70]: orm.TransientModel
-class_transient[100]: models.TransientModel
+class_transient_78:
+    class $name($more):
+    [0]:   osv.osv_memory
+    [7.0]: orm.TransientModel
+    [8.0]: models.TransientModel
 #
 # Remark openerp
 remark_openerp: # http://openerp.com

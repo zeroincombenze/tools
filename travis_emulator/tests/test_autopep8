@@ -32,10 +32,10 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.51
+__version__=0.2.1.52
 
 
-__test_01() {
+test_01() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_01
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -46,30 +46,111 @@ __test_01() {
       rm -f $TESTOUT
       cat <<EOF >$TEST2P8
 #
-a: \$name =
-a[0]: A
-a[70]: a
-c: class \$name
-c[0]: my_class
-c[70]: MyClass
-c[100]: MyClass
+a:
+    \$name =
+    [0]:   A
+    [6.1]: a
+c:
+    class \$name
+    [0]:    my_class
+    [8.0]:  MyClass
+    [10.0]: MyClass
 EOF
       cat <<EOF >$TESTSRC
+from openerp import orm,fields
 A=1
 B=A
-class my_class():
+class my_class(osv.osv):
 EOF
-      cat <<EOF >$TESTRES
-a = 1
-
-B = A
-
-
-class MyClass():
-EOF
-      $RUNDIR/topep8 -q0 $TESTSRC -o $TESTOUT
     fi
-    # test_result "topep8 -0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 6.1
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from openerp import orm,fields
+a=1
+B=A
+class my_class(osv.osv):
+EOF
+      $RUNDIR/topep8 -qAe -b6.1 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b6.1" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 7.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from openerp import orm,fields
+a=1
+B=A
+class my_class(orm.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b7.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b7.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 8.0 -u
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from openerp import orm,fields
+a=1
+B=A
+class MyClass(orm.Model):
+EOF
+      $RUNDIR/topep8 -qAeu -b8.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Aeu -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 8.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from openerp import models,fields
+a=1
+B=A
+class MyClass(models.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b8.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 9.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from openerp import models,fields
+a=1
+B=A
+class MyClass(models.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b9.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b9.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 10.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from odoo import models,fields
+a=1
+B=A
+class MyClass(models.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b10.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 11.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from odoo import models,fields
+a=1
+B=A
+class MyClass(models.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b11.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b11.0" "$TESTOUT" "$TESTRES" "diff"
+    # Validate against Odoo 12.0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      cat <<EOF >$TESTRES
+from odoo import models,fields
+a=1
+B=A
+class MyClass(models.Model):
+EOF
+      $RUNDIR/topep8 -qAe -b12.0 $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -Ae -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 __test_02() {
@@ -234,7 +315,7 @@ EOF
     test_result "topep8 -b6.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_03() {
+__test_03() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_03
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -363,7 +444,7 @@ EOF
     test_result "topep8 -Bc -b20.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_04() {
+__test_04() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_04
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -446,7 +527,7 @@ EOF
     test_result "topep8 -b10.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_05() {
+__test_05() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_05
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -504,7 +585,7 @@ EOF
     test_result "topep8 -G" "$TESTOUT" "$TESTRES" "diff"
 }
 
-test_06() {
+__test_06() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_06
     TESTSRC=$TESTDIR/res/$TESTFN.py
@@ -547,7 +628,7 @@ EOF
 }
 
 
-test_07() {
+__test_07() {
     local TESTOUT TESTRES TESTFN
     TESTFN=test_autopep_07
     TESTSRC=$TESTDIR/res/$TESTFN.py
