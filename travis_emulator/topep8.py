@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.52"
+__version__ = "0.2.1.53"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -1127,6 +1127,10 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='opt_gpl',
                         default=False)
+    parser.add_argument('-L', '--no-lint',
+                        action='store_true',
+                        dest='no_lint',
+                        default=False)
     parser.add_argument('-n')
     parser.add_argument('-o', '--original-branch',
                         action='store',
@@ -1138,6 +1142,10 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-X', '--set-executable',
+                        action='store_true',
+                        dest='set_exec',
+                        default=False)
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')

@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.52
+__version__=0.2.1.53
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
@@ -1161,23 +1161,24 @@ format_readme() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A         B         b         c         C        d        e       F        G       i       n            o       O        q           u       V           v           0)
-OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_enh opt_from opt_gpl opt_imp opt_dry_run  opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_z)
-OPTACTI=(1        "+"      1         1         "="       1         "="      1        1       "="      1       1       1            "="     1        0           1       "*>"        "+"         1)
-OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0       "0"      0       0       0            ""      0        -1          0       ""          -1          0)
-OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""      "ver"    ""      ""      "do nothing" "file"  ""       "silent"   "ut7"   "version"    "verbose"   "")
+OPTOPTS=(h        a        A         B         b         c         C        d        e       F        G       i       L         n            o       O        q           u       V           v           X       0)
+OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_enh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
+OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1       "="      1       1       1         1            "="     1        0           1       "*>"        "+"         1       1)
+OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0       "0"      0       0       0         0            ""      0        -1          0       ""          -1          0       0)
+OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""      "ver"    ""      ""      ""        "do nothing" "file"  ""       "silent"   "ut7"   "version"    "verbose"   ""      "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
- "do not execute autopep8"\
+ "do not execute autoflake (-A) neither autopep8 (-AA)"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "change class name to CamelCase"\
  "add developer Copyright (def oia)"\
  "show diff"\
  "do enhance update"\
- "form odoo branch, value like -b switch"\
+ "from odoo branch, value like -b switch"\
  "Write GPL info into header"\
  "sort import statements"\
+ "set file excluded by lint parse"\
  "do nothing (dry-run)"\
  "output filename, leave source unchanged rather than source becomes .bak"\
  "change copyright from openerp to odoo"
@@ -1185,6 +1186,7 @@ OPTHELP=("this help"\
  "use old api odoo<8.0 or create yaml old style"\
  "show version"\
  "verbose mode"\
+ "make file.py executable"\
  "create yaml file from zero")
 OPTARGS=(fullname)
 
@@ -1228,6 +1230,8 @@ OPTS=
 [ $opt_gpl -gt 0 ] && OPTS="${OPTS}G"
 [ $opt_copy == "oia" ] && OPTS="${OPTS}A"
 [ $opt_ut7 -gt 0 ] && OPTS="${OPTS}u"
+[ $opt_nlint -gt 0 ] && OPTS="${OPTS}L"
+[ $opt_xec -gt 0 ] && OPTS="${OPTS}X"
 [ -n "$OPTS" ] && OPTS="-${OPTS}"
 [ -n "$odoo_vid" ] && OPTS="$OPTS -b$odoo_fver"
 [ -n "$odoo_from" ] && OPTS="$OPTS -F$opt_from"
@@ -1268,13 +1272,13 @@ for fl in $LIST; do
       fi
       [ -f $f.tmp ] && rm -f $f.tmp
       [ $opt_c2o -ne 0 ] && sed -e 's/openerp\.com/odoo.com/' -i $f.new
-      if [ $opt_nauto -eq 0 ]; then
+      if [ $opt_nauto -lt 2 ]; then
         autopep8 $AP8OPTS $f.new -i && sed 's/ $/\n/' -i $f.new
       fi
       if [ $opt_Camel -gt 0 ]; then
         oca-autopep8 --select=CW0001 -i $f.new
       fi
-      if [ $opt_nauto -eq 0 ]; then
+      if [ $opt_nauto -lt 1 ]; then
         oca-autopep8 --select=CW0002 -i $f.new
         autoflake --imports=openerp,openerp.http.request,openerp.SUPERUSER_ID,openerp.addons.base.ir.ir_qweb,openerp.exceptions.ValidationError,openerp.fields,openerp.api.openerp.models,openerp.osv.fields,openerp.osv.api,telebot,lxml,werkzeug,MySQLdb.cursors,cStringIO.StringIO,werkzeug.utils,pandas.merge,pandas.DataFrame,werkzeug.wsgi.wrap_file,werkzeug.wsgi,werkzeug.wsgi.wrap_file,openerp.exceptions,openerp.tools.DEFAULT_SERVER_DATETIME_FORMAT -i $f.new
       fi

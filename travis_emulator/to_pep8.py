@@ -30,7 +30,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.1.52"
+__version__ = "0.2.1.53"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
@@ -40,12 +40,13 @@ class topep8():
     # Every token is a list of:
     #        (id, value, (start_row, start_col), (end_row, end_col)
     #
-    def __init__(self, src_filepy):
+    def __init__(self, src_filepy, ctx):
         self.src_filepy = src_filepy
         fd = open(src_filepy, 'rb')
         source = fd.read()
         fd.close()
         self.lines = source.split('\n')
+        self.setup_py_header(ctx)
         self.init_parse()
         self.init_rules()
         self.tokenized = []
@@ -70,6 +71,34 @@ class topep8():
             self.tokenized.append([tokid, tokval,
                                    (srow, scol),
                                    (erow, ecol)])
+
+    def setup_py_header(self, ctx):
+        odoo_majver = int(ctx['to_ver'].split('.')[0])
+        py_executable = ctx['set_exec']
+        py_no_lint = ctx['no_lint']
+        lineno = 0
+        text = '#!/usr/bin/env python'
+        if py_executable:
+            if self.lines[lineno] != text:
+                self.lines.insert(lineno, text)
+                lineno += 1
+        elif self.lines[lineno] == text:
+            del self.lines[lineno]
+        text = '# flake8: noqa'
+        if py_no_lint:
+            if self.lines[lineno] != text:
+                self.lines.insert(lineno, text)
+                lineno += 1
+        elif self.lines[lineno] == text:
+            del self.lines[lineno]
+
+        text = '# -*- coding: utf-8 -*-'
+        if odoo_majver < 11:
+            if self.lines[lineno] != text:
+                self.lines.insert(lineno, text)
+                lineno += 1
+        elif self.lines[lineno] == text:
+            del self.lines[lineno]
 
     def init_parse(self):
         self.lineno = 0
@@ -848,7 +877,7 @@ def parse_file(ctx=None):
         print "Reading %s -o%s -b%s" % (src_filepy,
                                         ctx['from_ver'],
                                         ctx['to_ver'])
-    source = topep8(src_filepy)
+    source = topep8(src_filepy, ctx)
     source.compile_rules(ctx)
     source.tokenize_source(ctx)
     text_tgt = source.untokenize_2_text(ctx)
@@ -899,6 +928,10 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='opt_gpl',
                         default=False)
+    parser.add_argument('-L', '--no-lint',
+                        action='store_true',
+                        dest='no_lint',
+                        default=False)
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-u', '--unit-test',
@@ -907,6 +940,10 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-X', '--set-executable',
+                        action='store_true',
+                        dest='set_exec',
+                        default=False)
     parser.add_argument('src_filepy')
     parser.add_argument('dst_filepy',
                         nargs='?')
