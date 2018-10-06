@@ -513,6 +513,7 @@ format_xml() {
             line="$lm$lne"
           fi
         fi
+        [ -z "$(echo $line)" ] && line=""
         echo "$line">>$fntmp
         [ -z "$line" ] && empty=1 || empty=0
       done < "$fn"
@@ -1161,25 +1162,26 @@ format_readme() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A         B         b         c         C        d        e       F        G       i       L         n            o       O        q           u       V           v           X       0)
-OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_enh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
-OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1       "="      1       1       1         1            "="     1        0           1       "*>"        "+"         1       1)
-OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0       "0"      0       0       0         0            ""      0        -1          0       ""          -1          0       0)
-OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""      "ver"    ""      ""      ""        "do nothing" "file"  ""       "silent"   "ut7"   "version"    "verbose"   ""      "")
+OPTOPTS=(h        a        A         B         b         c         C        d        e        F        G       i       L         n            N        o       O        q           u       V           v           X       0)
+OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_nenh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
+OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1        "="      1       1       1         1            1        "="     1        0           1       "*>"        "+"         1       1)
+OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0        "0"      0       0       0         0            0        ""      0        -1          0       ""          -1          0       0)
+OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""       "ver"    ""      ""      ""        "do nothing" ""       "file"  ""       "silent"   "ut7"   "version"    "verbose"   ""      "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "do not execute autoflake (-A) neither autopep8 (-AA)"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "change class name to CamelCase"\
- "add developer Copyright (def oia)"\
+ "add developers Copyright (def oia)"\
  "show diff"\
- "do enhance update"\
+ "do not apply enhance update"\
  "from odoo branch, value like -b switch"\
  "Write GPL info into header"\
  "sort import statements"\
  "set file excluded by lint parse"\
  "do nothing (dry-run)"\
+ "do not add newline at the EOF"\
  "output filename, leave source unchanged rather than source becomes .bak"\
  "change copyright from openerp to odoo"
  "silent mode"\
@@ -1228,13 +1230,14 @@ OPTS=
 [ $opt_debug -ne 0 ] && OPTS="${OPTS}B"
 [ $opt_verbose -gt 0 ] && OPTS="${OPTS}v" || OPTS="${OPTS}q" 
 [ $opt_gpl -gt 0 ] && OPTS="${OPTS}G"
-[ $opt_copy == "oia" ] && OPTS="${OPTS}A"
 [ $opt_ut7 -gt 0 ] && OPTS="${OPTS}u"
 [ $opt_nlint -gt 0 ] && OPTS="${OPTS}L"
+[ $opt_nonl -gt 0 ] && OPTS="${OPTS}N"
 [ $opt_xec -gt 0 ] && OPTS="${OPTS}X"
 [ -n "$OPTS" ] && OPTS="-${OPTS}"
 [ -n "$odoo_vid" ] && OPTS="$OPTS -b$odoo_fver"
 [ -n "$odoo_from" ] && OPTS="$OPTS -F$opt_from"
+[ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
 LIST="$(find $path $optfnd -name "$selfl")"
 for fl in $LIST; do
   sts=0
@@ -1261,11 +1264,11 @@ for fl in $LIST; do
       srcfile="$f"
       if [ $opt_imp -ne 0 ]; then
         isort $f -d > $f.tmp
-        [ ! grep -q "Skipped [0-9]* files" $f.tmp ] && srcfile="$f.tmp"
+        ! $(grep -q "Skipped [0-9]* files" $f.tmp) && srcfile="$f.tmp"
       fi
       if [ $opt_z -ne 0 ]; then
         python $TDIR/topep8.py $OPTS $srcfile $f.new
-      elif [ $opt_enh -ne 0 ]; then
+      elif [ $opt_nenh -eq 0 ]; then
         python $TDIR/to_pep8.py $OPTS $srcfile $f.new
       else
         cp $srcfile $f.new

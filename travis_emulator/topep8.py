@@ -436,7 +436,7 @@ def write_license_info(lines, ctx):
     if lines[0] != '# -*- coding: utf-8 -*-':
         lines.insert(0, '# -*- coding: utf-8 -*-')
     lineno = 1
-    while lines[lineno] and not re.match('^# *([Cc]opyright|\(C\)|©)',
+    while lines[lineno] and not re.match(r'^# *([Cc]opyright|\(C\)|©)',
                                          lines[lineno]):
         if lines[lineno][0] == '#':
             del lines[lineno]
@@ -1120,6 +1120,10 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
+    parser.add_argument('-C', '--copyright',
+                        action='store',
+                        dest='opt_copy',
+                        default='oia')
     parser.add_argument('-F', '--from-odoo-ver',
                         action='store',
                         dest='from_odoo_ver')
@@ -1132,9 +1136,10 @@ if __name__ == "__main__":
                         dest='no_lint',
                         default=False)
     parser.add_argument('-n')
-    parser.add_argument('-o', '--original-branch',
-                        action='store',
-                        dest='from_odoo_ver')
+    parser.add_argument('-N', '--no-nl-eof',
+                        action='store_true',
+                        dest='no_nl_eof',
+                        default=False)
     parser.add_argument('-q')
     parser.add_argument('-u', '--unit-test',
                         action='store_true',
