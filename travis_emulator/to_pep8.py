@@ -18,11 +18,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from _ast import In
 """Convert src python to PEP8 with OCA rules
 """
 
-import pdb
+# import pdb
 import os
 import sys
 import re
@@ -70,10 +69,12 @@ class topep8():
             else:
                 ecol = eacol - abs_col
             abs_row = earow
-            abs_col = eacol 
+            abs_col = eacol
+            tokid = self.wash_tokid(tokid, tokval)
             self.tokenized.append([tokid, tokval,
                                    (srow, scol),
                                    (erow, ecol)])
+        self.init_parse()
 
     def setup_py_header(self, ctx):
         odoo_majver = int(ctx['to_ver'].split('.')[0])
@@ -283,13 +284,32 @@ class topep8():
         self.file_header = True
         self.blk_header = True
         self.tokeno = 0
-        self.last_tokid_is_nl = False
+        self.last_newlines = 0
 
 
     def init_rules(self):
         """Configuration .2p8 file syntax initialization"""
+        tokenize.NOOP = tokenize.N_TOKENS + 16
+        tokenize.tok_name[tokenize.NOOP] = 'NOOP'
+        tokenize.PARENT_RULE = tokenize.N_TOKENS + 17
+        tokenize.tok_name[tokenize.PARENT_RULE] = 'PARENT_RULE'
+        tokenize.DOC = tokenize.N_TOKENS + 18
+        tokenize.tok_name[tokenize.DOC] = 'DOC'
+        tokenize.ANY = tokenize.N_TOKENS + 19
+        tokenize.tok_name[tokenize.ANY] = 'ANY'
+        tokenize.MORE = tokenize.N_TOKENS + 20
+        tokenize.tok_name[tokenize.MORE] = 'MORE'
+        tokenize.EXPR = tokenize.N_TOKENS + 21
+        tokenize.tok_name[tokenize.EXPR] = 'EXPR'
+        tokenize.START_CAPTURE = tokenize.N_TOKENS + 22
+        tokenize.tok_name[tokenize.START_CAPTURE] = 'START_CAPTURE'
+        tokenize.STOP_CAPTURE = tokenize.N_TOKENS + 23
+        tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
+        #
+        self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
+        self.NEWLINES = [tokenize.NEWLINE, tokenize.NL]
         self.GHOST_TOKENS = [tokenize.INDENT,  tokenize.DEDENT,
-                             tokenize.NEWLINE, tokenize.NL]
+                             tokenize.NOOP, tokenize.NL]
         self.SYNTAX = ['space',
                        'escape',
                        'lparen',
@@ -773,23 +793,6 @@ class topep8():
 
     def compile_rules(self, ctx):
         self.LEX_RULES = {}
-        tokenize.NOOP = tokenize.N_TOKENS + 16
-        tokenize.tok_name[tokenize.NOOP] = 'NOOP'
-        tokenize.PARENT_RULE = tokenize.N_TOKENS + 17
-        tokenize.tok_name[tokenize.PARENT_RULE] = 'PARENT_RULE'
-        tokenize.DOC = tokenize.N_TOKENS + 18
-        tokenize.tok_name[tokenize.DOC] = 'DOC'
-        tokenize.ANY = tokenize.N_TOKENS + 19
-        tokenize.tok_name[tokenize.ANY] = 'ANY'
-        tokenize.MORE = tokenize.N_TOKENS + 20
-        tokenize.tok_name[tokenize.MORE] = 'MORE'
-        tokenize.EXPR = tokenize.N_TOKENS + 21
-        tokenize.tok_name[tokenize.EXPR] = 'EXPR'
-        tokenize.START_CAPTURE = tokenize.N_TOKENS + 22
-        tokenize.tok_name[tokenize.START_CAPTURE] = 'START_CAPTURE'
-        tokenize.STOP_CAPTURE = tokenize.N_TOKENS + 23
-        tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
-        #
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
         if ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
@@ -814,11 +817,7 @@ class topep8():
             self.indent_level += 1
         elif tokid == tokenize.DEDENT:
             self.indent_level -= 1
-        if tokid == tokenize.NL:
-            pass
-        elif tokid == tokenize.NEWLINE:
-            pass
-        elif tokid == tokenize.STRING and self.blk_header:
+        if tokid == tokenize.STRING and self.blk_header:
             if tokval[0:3] == '"""' or tokval[0:3] == "'''":
                 tokid = tokenize.DOC
         elif tokid == tokenize.OP:
@@ -836,8 +835,13 @@ class topep8():
                 self.bracket_ctrs -= 1
             self.any_paren = self.paren_ctrs + self.brace_ctrs + \
                 self.bracket_ctrs
-        if self.any_paren and tokid in self.GHOST_TOKENS:
-            tokid = tokenize.NOOP
+        if self.any_paren:
+            if tokid in self.INDENTS:
+                tokid = tokenize.NOOP
+            elif tokid == tokenize.NEWLINE:
+                tokid = tokenize.NL
+        elif tokid == tokenize.NL:
+            tokid = tokenize.NEWLINE
         return tokid
 
     def wash_token(self, tokid, tokval, (srow, scol), (erow, ecol)):
@@ -848,7 +852,7 @@ class topep8():
         else:
             self.start = (srow, scol)
             self.stop = (erow, ecol)
-        tokid = self.wash_tokid(tokid, tokval)
+        # tokid = self.wash_tokid(tokid, tokval)
         if tokid != tokenize.COMMENT:
             self.file_header = False
             self.blk_header = False
@@ -877,7 +881,7 @@ class topep8():
         tokid = 1
         while tokid:
             tokid, tokval, (srow, scol), (erow, ecol) = self.next_token()
-            if tokid == tokenize.NOOP:
+            if tokid in self.GHOST_TOKENS:
                 continue
             if ctx['opt_dbg']:
                 print ">>> %s(%s)" % (tokid, tokval)
@@ -967,30 +971,29 @@ class topep8():
                                             tokenized[2],
                                             tokenized[3])
             self.tokeno += 1
-            tokid = self.wash_tokid(tokid, tokval)
+            # okid = self.wash_tokid(tokid, tokval)
             return tokid, tokval, tokenized[2], tokenized[3]
         return False, False, (0, 0), (0, 0)
 
     def untoken(self, tokid, tokval, start, stop):
         ln = self.add_whitespace(start)
         ln += tokval
-        if tokid in (tokenize.NL, tokenize.NEWLINE):
-            self.last_tokid_is_nl = True
+        if tokid in self.NEWLINES:
+            self.last_newlines += 1
         else:
-            self.last_tokid_is_nl = False
+            self.last_newlines = 0
         return ln
 
     def add_whitespace(self, start):
         row, col = start
         ln = ''
         while row > 0:
-            if not self.last_tokid_is_nl:
+            if not self.last_newlines:
                 ln += '\n'
+                self.last_newlines -= 1
             row -= 1
             self.abs_row += 1
-        while col > 0:
-            ln += ' '
-            col -= 1
+        ln += ' ' * col
         return ln
 
     def readline(self):
