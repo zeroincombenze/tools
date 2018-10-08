@@ -343,7 +343,7 @@ format_yaml() {
         elif [ "$cur_sect" == "python" ]; then
           if [[ "$lne" =~ [23].[0-9] ]]; then
             if [  $odoo_ver -ge 11 ]; then
-              echo "  - \"3.5\"">>$fntmp
+              echo "  - \"3.4\"">>$fntmp
             else
               echo "  - \"2.7\"">>$fntmp
             fi
@@ -419,14 +419,13 @@ format_xml() {
       while IFS= read -r line || [ -n "$line" ]; do
         lne=$(echo $line)
         if [ $comment -eq 0 ]; then
-          line=
+          line="⌂"
           lm1=$nxtlm
           lm=
           x=$((level*4))
           [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
         fi
         if [ "${lne:0:3}" == "-->" ]; then
-          # line="$lm$lne"
           comment=0
         elif [ $comment -ne 0 ]; then
           :
@@ -437,16 +436,20 @@ format_xml() {
           level=0
           if [  $odoo_ver -ge 10 ]; then
             line="${lne//openerp/odoo}"
+            level=1
           else
             line="$lne"
           fi
-        elif [ "${lne:0:9}" == "<odoo>" -o "${lne:0:10}" == "</odoo>" ]; then
+          [ "${lne:0:2}" == "</" -a $level -gt 0 ] && ((level--))
+        elif [ "${lne:0:6}" == "<odoo>" -o "${lne:0:7}" == "</odoo>" ]; then
           level=1
           if [  $odoo_ver -lt 10 ]; then
             line="${lne//odoo/openerp}"
+            level=0
           else
             line="$lne"
           fi
+          [ "${lne:0:2}" == "</" -a $level -gt 0 ] && ((level--))
         elif [ "${lne:0:4}" == "<!--" ]; then
           line="$lm$lne"
           if [ "${lne: -3}" != "-->" ]; then
@@ -456,15 +459,16 @@ format_xml() {
         elif [ "${lne:0:10}" == "<templates" ]; then
           if [ $level -gt 0 ]; then
             ((level++))
+            lm=
+            x=$((level*4))
+            [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
+            line="$lm$line"
           fi
-          line="    $line"
         elif [ "${lne:0:9}" == "<template" ]; then
           ((level++))
         elif [ "${lne:0:5}" == "<data" ]; then
           if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
             continue
-          # elif [  $odoo_ver -lt 10 -a $level -eq 0 ]; then
-          #   :
           else
             ((level++))
           fi
@@ -495,23 +499,21 @@ format_xml() {
           if [[ $lne =~ \<record.*model=.ir.actions.act_window. ]]; then
             act=1
           elif [ $act -gt 0 ] && [[ $lne =~ \<field.*name=.type.*\>ir.actions.act_window.*/field ]]; then
-            line=
+            line="⌂"
             lne=
             act=0
           fi
         fi
-        if [ -z "$line" ]; then
-          if [ -z "$lne" ]; then
-            line="$lne"
-          elif [ "${lne:0:1}" == "<" ]; then
-            line="$lm$lne"
-            x=$(echo "$line"|grep -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
-            nxtlm=${#x}
-          else
-            lm=
-            [ $lm1 -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$lm1}
-            line="$lm$lne"
-          fi
+        if [ "$line" == "⌂" -a -z "$lne" ]; then
+          line="$lne"
+        elif [ "${lne:0:1}" == "<" ]; then
+          [ "$line" == "⌂" ] && line="$lm$lne"
+          x=$(echo "$line"|grep -Eo "[[:space:]]*<[a-zA-Z0-9-]+[[:space:]]*")
+          nxtlm=${#x}
+        elif [ "$line" == "⌂" ]; then
+          lm=
+          [ $lm1 -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$lm1}
+          line="$lm$lne"
         fi
         [ -z "$(echo $line)" ] && line=""
         echo "$line">>$fntmp
