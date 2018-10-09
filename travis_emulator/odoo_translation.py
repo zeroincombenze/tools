@@ -30,6 +30,23 @@ def change_name(ctx, filename, version):
         filename = filename.replace('/odoo/addons/', '/openerp/addons/')
     return filename
 
+
+def load_default_dictionary(source):
+    if os.path.isfile(source):
+        if ctx['opt_verbose']:
+            print("Reading %s into dictionary" % source)
+        fd = io.open(source, mode='r', encoding='utf-8')
+        source = fd.read()
+        for line in source.split('\n'):
+            if line and line[0] != '#':
+                i = line.find('\t')
+                if i > 0:
+                    msgid = line[0:i]
+                    msgstr = line[i + 1:]
+                    TNL_DICT[msgid] = msgstr
+                    TNL_ACTION[msgid] = 'C'
+
+
 def load_dictionary_from_file(source):
     if os.path.isfile(source):
         if ctx['opt_verbose']:
@@ -111,6 +128,7 @@ def parse_source(source):
 
 
 def load_dictionary(ctx):
+    load_default_dictionary('/opt/odoo/dev/odoo_default_tnl.csv')
     for version in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0'):
         src_file = change_name(ctx, ctx['src_file'], version)
         load_dictionary_from_file(src_file)
