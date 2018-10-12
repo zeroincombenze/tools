@@ -57,7 +57,7 @@ c:
     [10.0]: MyClass
 EOF
       cat <<EOF >$TESTSRC
-from openerp import orm,fields
+from openerp.osv import orm,fields
 A=1
 B=A
 class my_class(osv.osv):
@@ -67,38 +67,38 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 a=1
 B=A
 class my_class(osv.osv):
 EOF
-      $RUNDIR/topep8 -qAAN -b6.1 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b6.1" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b6.1" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 7.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 a=1
 B=A
 class my_class(orm.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b7.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b7.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b7.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0 -u
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 a=1
 B=A
 class MyClass(orm.Model):
 EOF
-      $RUNDIR/topep8 -qAANu -b8.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AANu -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AANu -F6.1 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -108,9 +108,9 @@ a=1
 B=A
 class MyClass(models.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b8.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 9.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -120,9 +120,9 @@ a=1
 B=A
 class MyClass(models.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b9.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b9.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b9.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 10.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -132,9 +132,9 @@ a=1
 B=A
 class MyClass(models.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b10.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b10.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -143,9 +143,9 @@ a=1
 B=A
 class MyClass(models.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b11.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b11.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b11.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b11.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -154,9 +154,9 @@ a=1
 B=A
 class MyClass(models.Model):
 EOF
-      $RUNDIR/topep8 -qAAN -b12.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAN -F6.1 -b12.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAN -b12.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAN -F6.1 -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {
@@ -176,25 +176,24 @@ a:
     [6.1]: a
 c:
     class \$name
-    [0]:    my_class
-    [8.0]:  MyClass
-    [10.0]: MyClass
+    [6.1]:    my_class
+    [8.0]: MyClass
 EOF
       cat <<EOF >$TESTSRC
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from odoo import models,fields
 
 A=1
 B=A
 
-class my_class(osv.osv):
+class MyClass(models.Model):
 EOF
     fi
     # Validate against Odoo 6.1
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 
 a=1
 B=A
@@ -202,14 +201,14 @@ B=A
 class my_class(osv.osv):
 
 EOF
-      $RUNDIR/topep8 -qAA -b6.1 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b6.1 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b6.1" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b6.1" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 7.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 
 a=1
 B=A
@@ -217,14 +216,14 @@ B=A
 class my_class(orm.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b7.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b7.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b7.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b7.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0 -u
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import orm,fields
+from openerp.osv import orm,fields
 
 a=1
 B=A
@@ -232,9 +231,9 @@ B=A
 class MyClass(orm.Model):
 
 EOF
-      $RUNDIR/topep8 -qAAu -b8.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAAu -F10.0 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AAu -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AAu -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 8.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -247,9 +246,9 @@ B=A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b8.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b8.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b8.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b8.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 9.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -262,9 +261,9 @@ B=A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b9.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b9.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b9.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b9.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 10.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -277,9 +276,9 @@ B=A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b10.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b10.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b10.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
@@ -291,9 +290,9 @@ B=A
 class MyClass(models.Model):
 
 EOF
-      $RUNDIR/topep8 -qAA -b11.0 $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -F10.0 -b11.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA -b11.0" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -F10.0 -b11.0" "$TESTOUT" "$TESTRES" "diff"
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES

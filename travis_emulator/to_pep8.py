@@ -1,34 +1,48 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
 #
-#    Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+# Copyright 2018-19 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
+#
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+#
 #    All Rights Reserved
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 """Convert src python to PEP8 with OCA rules
+
+Based non rule file.
+
+All rules are stored in self.LEX_RULES dictionary by rule id (name).
+Every rule has a python name; if name ends with _78, rule may not applied
+to odoo 8.0 if -u switch is supplied: means convert to odoo 8.0 holding old api
+
+Every entry is composed by:
+    'regex':        regular expresion to validate rule (text)
+    'keywords':     list of keywords of above 'regex'
+    'keyids':       list of keyids of above 'regex'
+    'min_max_list': list of min/max repetition for every above keyword/keyid
+                    item (-1 means no limit)
+    'action':       action to apply when rule is validated
+    'meta':         dictionay with Odoo version keywords to replace/evaluate
+    'meta_ids':     dictionay with Odoo version keyids to replace/evaluate
+    'state':        rule status, may be
+                    ('active', 'wait4parent', 'wait4more', 'wait4expr')
+    'wf_id':        current id in parsing workflow
+    'min_max':      min and max repetition for current token
+    'level':        level of parens when waiting for expression
+    'matched_ids':  matched tokens list from source to replace against
+                    parameters, while rule parsing
+    'token_id':     next param token to match
+    'parent':       parent rule while state is waiting for parent
 """
 
-# import pdb
+import pdb
 import os
-import sys
 import re
-from os0 import os0
-from z0lib import parseoptargs
+import sys
 import tokenize
 
+from os0 import os0
+
+from z0lib import parseoptargs
 
 __version__ = "0.2.1.53"
 
@@ -62,7 +76,7 @@ class topep8():
             else:
                 scol = sacol - abs_col
             abs_row = sarow
-            abs_col = sacol 
+            abs_col = sacol
             erow = earow - abs_row
             if earow != abs_row:
                 ecol = eacol
@@ -305,6 +319,8 @@ class topep8():
         tokenize.tok_name[tokenize.START_CAPTURE] = 'START_CAPTURE'
         tokenize.STOP_CAPTURE = tokenize.N_TOKENS + 23
         tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
+        tokenize.TOKENS = tokenize.N_TOKENS + 24
+        tokenize.tok_name[tokenize.TOKENS] = 'TOKENS'
         #
         self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
         self.NEWLINES = [tokenize.NEWLINE, tokenize.NL]
@@ -456,10 +472,16 @@ class topep8():
         """Get current match sequence position"""
         return self.LEX_RULES[ir]['token_id']
 
-    def store_value_to_replace(self, ir, param_list_from, tokid, tokval):
+    def store_value_to_replace(self, ctx, ir, tokid, tokval):
+        param_list_from, ids_from_list = self.get_params_from_rule(
+            ir, ctx['from_ver'], 'from')
         i = self.cur_wf_tokid(ir)
         if i < len(param_list_from):
-            if not param_list_from[i] or tokval == param_list_from[i]:
+            if param_list_from[i] == tokenize.MORE:
+                if tokval == param_list_from[i + 1]:
+                    self.LEX_RULES[ir]['token_id'] += 1
+            # elif not param_list_from[i] or tokval == param_list_from[i]:
+            elif tokval == param_list_from[i]:
                 self.LEX_RULES[ir]['matched_ids'].append(self.tokeno - 1)
                 self.LEX_RULES[ir]['token_id'] += 1
             elif param_list_from[i]:
@@ -468,22 +490,53 @@ class topep8():
 
     def do_action(self, ctx, ir):
         if self.LEX_RULES[ir]['action'] == 'replace':
-            param_list_to = self.get_params_from_rule(ir, ctx['to_ver'])
-            for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
-                if i < len(param_list_to):
-                    self.update_source_token(tokeno, False, param_list_to[i])
+            if self.LEX_RULES[ir]['matched_ids']:
+                param_list_to, ids_from_list = self.get_params_from_rule(
+                    ir, ctx['to_ver'], 'to')
+                offset = 0
+                for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
+                    if i < len(param_list_to):
+                        self.update_source_token(tokeno,
+                                                 ids_from_list[i],
+                                                 param_list_to[i])
+                    else:
+                        tokeno -= offset
+                        offset += 1
+                        # param_to has less values than matched source
+                        self.delete_source_token(tokeno)
+                # check if param_to has more values than matched source
+                i = len(self.LEX_RULES[ir]['matched_ids'])
+                tokeno = self.LEX_RULES[ir]['matched_ids'][-1] + 1
+                while i < len(param_list_to):
+                    self.insert_source_token(tokeno,
+                                             ids_from_list[i],
+                                             param_list_to[i])
+                    i += 1
+                    tokeno += 1
+
 
     def get_key_n_id_from_rule(self, ir):
         return self.LEX_RULES[ir]['keywords'], self.LEX_RULES[ir]['keyids']
 
-    def get_params_from_rule(self, ir, meta):
+    def get_from_ver_in_rule(self, ir, meta, direction):
+        if direction == 'from' and '0' in self.LEX_RULES[ir]['meta']:
+            return '0'
+        top = 0.0
+        meta_val = eval(meta)
+        for ver in self.LEX_RULES[ir]['meta']:
+            if eval(ver) <= meta_val and eval(ver) >= top:
+                res = ver
+                top = eval(ver)
+        return res
+
+    def get_params_from_rule(self, ir, meta, direction):
         """Get params of rule matches version <meta>"""
         params = []
-        for ver in sorted(self.LEX_RULES[ir]['meta'], reverse=True):
-            if eval(ver) <= eval(meta):
-                params = self.LEX_RULES[ir]['meta'][ver]
-                break
-        return params
+        param_ids = []
+        ver = self.get_from_ver_in_rule(ir, meta, direction)
+        params = self.LEX_RULES[ir]['meta'][ver]
+        param_ids = self.LEX_RULES[ir]['meta_ids'][ver]
+        return params, param_ids
 
     def parse_eol_rule(self, value, state, x):
         if x:
@@ -536,7 +589,7 @@ class topep8():
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         state['ipos'] += x.end() + 1
         tokval = value[i + 1:state['ipos']]
-        if tokval in ('name', 'any'):
+        if tokval in ('name', 'any', 'tokens'):
             tokid = getattr(tokenize, tokval.upper())
             tokval = False
         elif tokval in ('more', 'expr'):
@@ -586,11 +639,12 @@ class topep8():
             'ident': ident,
         }
 
-    def parse_1_rule(self, rule, state):
+    def parse_token_text(self, text, state):
+        """Parse 1 token from source text"""
         for istkn in self.SYNTAX:
             if not state['enhanced'] and istkn == 'fullname':
                 continue
-            x = self.SYNTAX_RE[istkn].match(rule[state['ipos']:])
+            x = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
             if not x:
                 continue
             unknown = False
@@ -605,7 +659,7 @@ class topep8():
                 tokid = tokenize.INDENT
             elif istkn == 'escape':
                 state, tokid, tokval, min_max = self.parse_escape_rule(
-                    rule, state)
+                    text, state)
                 # Token is one of prior repetition: $? $* $+
                 if tokid == -1:
                     min_max_list[-1] = min_max
@@ -618,67 +672,50 @@ class topep8():
                 #     state['replacing'] = False
             elif state['enhanced'] and istkn == 'remark_eol':
                 state, tokid, tokval, min_max = self.parse_remarkeol_rule(
-                    rule, state, x)
+                    text, state, x)
             elif istkn in ('strdoc1',
                            'strdoc2'):
                 state, tokid, tokval, min_max = self.parse_doc_rule(
-                    rule, state, x)
+                    text, state, x)
             elif istkn == 'string1':
                 tokid, tokval, state['ipos'] = self.parse_txt1_rule(
-                    rule, state['ipos'])
+                    text, state['ipos'])
             elif istkn == 'string2':
                 tokid, tokval, state['ipos'] = self.parse_txt2_rule(
-                    rule, state['ipos'])
+                    text, state['ipos'])
             elif istkn == 'name':
                 tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                    rule, state['ipos'], x, tokenize.NAME)
+                    text, state['ipos'], x, tokenize.NAME)
             else:
                 tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                    rule, state['ipos'], x, tokenize.OP)
+                    text, state['ipos'], x, tokenize.OP)
             break
         if unknown:
-            print "Unknown token %s" % rule[state['ipos']:]
+            print "Unknown token %s" % text[state['ipos']:]
             state['ipos'] += 1
         return state, tokid, tokval, min_max
 
     def compile_1_rule(self, rule):
-        """Compile current rule <ir> for version <meta> parsing <value>
-        All rules are stored in self.LEX_RULES dictionary by rule id (name).
-        Every entry is composed by:
-            'regex':     regular expresion to validate rule
-            'meta':      dictionay with Odoo version parameters
-            'action':    action when rule is validated
-                         for every version list of keywords of above regex
-            'keywords':  list of keywords of above regex
-            'keyids':    list of keyids of above regex
-            'min_max_list':  list of min/max repetition for every above
-                         keyword/keyid  (-1 means no limit)
-            'state':     rule status, may be
-                         ('active', 'wait4parent', 'wait4more', 'wait4expr')
-            'wf_id':    current id in parsing workflow
-            'min_max':  min and max repetition for current token
-            'level':    level of parens when waiting for expression
-            'matched_ids': matched tokens list against parameters
-                        while rule parsing
-            'token_id': next param token to match
-            'parent':   parent rule while state is waiting for parent
-            """
+        """Compile current rule for version <meta> parsing <value>
+        """
         # pdb.set_trace()
         keywords = []
         keyids = []
         min_max_list = []
         replacements = {}
+        replacem_ids = {}
         state = self.init_state(enhanced=True, ident=False)
         while state['ipos'] < len(rule['regex']):
-            state, tokid, tokval, min_max = self.parse_1_rule(rule['regex'],
-                                                              state)
-            if tokid:
-                keywords.append(tokval)
-                keyids.append(tokid)
-                min_max_list.append(min_max)
+            state, tokid, tokval, min_max = self.parse_token_text(
+                rule['regex'],
+                state)
+            keywords.append(tokval)
+            keyids.append(tokid)
+            min_max_list.append(min_max)
         for meta in METAS:
             if meta in rule['meta']:
                 replacements[meta] = []
+                replacem_ids[meta] = []
                 state = self.init_state(enhanced=False, ident=False)
                 while state['ipos'] < len(rule['meta'][meta]):
                     if keyids[0] == tokenize.COMMENT:
@@ -688,9 +725,10 @@ class topep8():
                                                       False)
                     else:
                         state, tokid, tokval, min_max = \
-                            self.parse_1_rule(rule['meta'][meta],
-                                              state)
+                            self.parse_token_text(rule['meta'][meta],
+                                                  state)
                     replacements[meta].append(tokval)
+                    replacem_ids[meta].append(tokid)
         ir = rule['id']
         del rule['id']
         self.LEX_RULES[ir] = rule
@@ -698,6 +736,7 @@ class topep8():
         self.LEX_RULES[ir]['keyids'] = keyids
         self.LEX_RULES[ir]['min_max_list'] = min_max_list
         self.LEX_RULES[ir]['meta'] = replacements
+        self.LEX_RULES[ir]['meta_ids'] = replacem_ids
         self. init_rule_state(ir)
 
     def extr_tokens_from_line(self, text_rule, cur_rule, parsed, cont_break):
@@ -716,8 +755,8 @@ class topep8():
             cont_break = next_cont
         elif text_rule[0] != '#':
             state = self.init_state(enhanced=False, ident=True)
-            state, tokid, tokval, min_max = self.parse_1_rule(text_rule,
-                                                              state)
+            state, tokid, tokval, min_max = self.parse_token_text(text_rule,
+                                                                  state)
             if tokid == tokenize.NAME:
                 id = tokval
                 if cur_rule['id'] and cur_rule['id'] != id:
@@ -734,7 +773,7 @@ class topep8():
                 meta = ''
                 item = ''
                 while state['ipos'] < len(text_rule):
-                    state, tokid, tokval, min_max = self.parse_1_rule(
+                    state, tokid, tokval, min_max = self.parse_token_text(
                         text_rule, state)
                     if tokid == tokenize.OP and tokval == ':':
                         if not cur_rule['regex']:
@@ -763,6 +802,7 @@ class topep8():
         def clear_cur_rule():
             return {'id': '',
                     'meta': {},
+                    'meta_ids': {},
                     'regex': '',
                     'action': 'replace',
             }
@@ -795,14 +835,51 @@ class topep8():
         self.LEX_RULES = {}
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
-        if ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
-            for ir in self.LEX_RULES.keys():
-                if ir[-3:] == '_78':
-                    if '8.0' in self.LEX_RULES[ir]['meta']:
-                        if '9.0' not in self.LEX_RULES[ir]['meta']:
-                            self.LEX_RULES[ir]['meta']['9.0'] = self.LEX_RULES[
-                                ir]['meta']['8.0']
-                        del self.LEX_RULES[ir]['meta']['8.0']
+        for ir in self.LEX_RULES.keys():
+            if ir[-3:] == '_78' and ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
+                if '8.0' in self.LEX_RULES[ir]['meta']:
+                    if '9.0' not in self.LEX_RULES[ir]['meta']:
+                        self.LEX_RULES[ir]['meta']['9.0'] = self.LEX_RULES[
+                            ir]['meta']['8.0']
+                        self.LEX_RULES[ir]['meta_ids']['9.0'] = self.LEX_RULES[
+                            ir]['meta_ids']['8.0']
+                    del self.LEX_RULES[ir]['meta']['8.0']
+                    del self.LEX_RULES[ir]['meta_ids']['8.0']
+            if tokenize.TOKENS in self.LEX_RULES[ir]['keyids']:
+                stop_capture = len(self.LEX_RULES[ir]['keyids'])
+                if 'START_CAPTURE' not in self.LEX_RULES[ir]['keyids']:
+                    start_capture = -1
+                    del_items = True
+                else:
+                    start_capture = stop_capture
+                    del_items = False
+                ix = self.LEX_RULES[ir]['keyids'].index(tokenize.TOKENS)
+                del self.LEX_RULES[ir]['keywords'][ix]
+                del self.LEX_RULES[ir]['keyids'][ix]
+                ver = self.get_from_ver_in_rule(ir, ctx['from_ver'], 'from')
+                items_to_delete = []
+                for i in range(len(self.LEX_RULES[ir]['meta'][ver])):
+                    if self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.START_CAPTURE:
+                         start_capture = i
+                         continue
+                    elif self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.STOP_CAPTURE:
+                         stop_capture = i
+                         continue
+                    if i > stop_capture:
+                        break
+                    if i <= start_capture:
+                        continue
+                    self.LEX_RULES[ir]['keywords'].insert(
+                        ix + i,
+                        self.LEX_RULES[ir]['meta'][ver][i])
+                    self.LEX_RULES[ir]['keyids'].insert(
+                        ix + i,
+                        self.LEX_RULES[ir]['meta_ids'][ver][i])
+                    # if del_items:
+                    #     items_to_delete.insert(0, i)
+                # for i in items_to_delete:
+                #     del self.LEX_RULES[ir]['meta'][ver][i]
+                #     del self.LEX_RULES[ir]['meta_ids'][ver][i]
 
     def match_parent_rule(self, ir, result):
         for ir1 in self.LEX_RULES.keys():
@@ -859,10 +936,12 @@ class topep8():
         self.tabstop[scol] = tokenize.tok_name[tokid]
         return tokid, tokval
 
-    def replace_token(self, ir, tokid, tokval):
+    def action_replace_token(self, ir, tokid, tokval):
         # pdb.set_trace()
-        param_list_from = self.get_params_from_rule(ir, ctx['from_ver'])
-        param_list_to = self.get_params_from_rule(ir, ctx['to_ver'])
+        param_list_from, ids_from_list = self.get_params_from_rule(
+            ir, ctx['from_ver'], 'from')
+        param_list_to, ids_from_list = self.get_params_from_rule(
+            ir, ctx['to_ver'], 'to')
         if tokid == tokenize.COMMENT:
             for tok in param_list_from:
                 if tokval.find(tok) >= 0:
@@ -887,12 +966,10 @@ class topep8():
                 print ">>> %s(%s)" % (tokid, tokval)
             validated_rule_list = []
             for ir in self.LEX_RULES.keys():
-                keywords, tokids = self.get_key_n_id_from_rule(ir)
-                param_list_from = self.get_params_from_rule(ir, ctx['from_ver'])
-                # rule parse ended
+                # rule waiting for parent validation
                 if self.is_waiting4parent(ir):
                     pass
-                # rule child of parent rule: wait for parent result
+                # rule child of parent rule: set wait for parent result
                 elif self.cur_tokid(ir) == tokenize.PARENT_RULE:
                     self.set_waiting4parent(ir)
                 # replace string inside remark
@@ -900,27 +977,27 @@ class topep8():
                         tokid == tokenize.COMMENT:
                     # import pdb
                     # pdb.set_trace()
-                    self.replace_token(ir, tokid, tokval)
+                    self.action_replace_token(ir, tokid, tokval)
                 # found the <any> token rule
                 elif self.cur_tokid(ir) == tokenize.ANY:
-                    self.store_value_to_replace(ir,
-                                                param_list_from,
+                    self.store_value_to_replace(ctx,
+                                                ir,
                                                 tokid,
                                                 tokval)
                     self.set_next_state(ir)
                 # found <zero, one or more> tokens rule
                 elif self.cur_tokid(ir) == tokenize.MORE:
                     self.set_waiting4more(ir)
-                    self.store_value_to_replace(ir,
-                                                param_list_from,
+                    self.store_value_to_replace(ctx,
+                                                ir,
                                                 tokid,
                                                 tokval)
                     continue
                 # found expression rule
                 elif self.cur_tokid(ir) == tokenize.EXPR:
                     self.set_waiting4expr(ir)
-                    self.store_value_to_replace(ir,
-                                                param_list_from,
+                    self.store_value_to_replace(ctx,
+                                                ir,
                                                 tokid,
                                                 tokval)
                     continue
@@ -931,22 +1008,22 @@ class topep8():
                     elif self.is_waiting4expr(ir):
                         self.set_active(ir)
                     else:
-                        self.store_value_to_replace(ir,
-                                                    param_list_from,
-                                                tokid,
-                                                tokval)
+                        self.store_value_to_replace(ctx,
+                                                    ir,
+                                                    tokid,
+                                                    tokval)
                     self.set_next_state(ir)
                 # rule is waiting for <zero, one or more> tokens
                 elif self.is_waiting4more(ir):
-                    self.store_value_to_replace(ir,
-                                                param_list_from,
+                    self.store_value_to_replace(ctx,
+                                                ir,
                                                 tokid,
                                                 tokval)
                     continue
                 # rule is waiting expression
                 elif self.is_waiting4expr(ir):
-                    self.store_value_to_replace(ir,
-                                                param_list_from,
+                    self.store_value_to_replace(ctx,
+                                                ir,
                                                 tokid,
                                                 tokval)
                     continue
@@ -1010,6 +1087,12 @@ class topep8():
         if tokid:
             self.tokenized[tokeno][0] = tokid
 
+    def insert_source_token(self, tokeno, tokid, tokval):
+        self.tokenized.insert(tokeno, [tokid, tokval, [0,0], [0,0]])
+
+    def delete_source_token(self, tokeno):
+        del self.tokenized[tokeno]
+
     def untokenize_2_text(self, ctx=None):
         # pdb.set_trace()
         ctx = ctx or {}
@@ -1043,10 +1126,10 @@ def get_filenames(ctx):
 
 def get_versions(ctx):
     if ctx.get('odoo_ver', None) is None:
-        ctx['odoo_ver'] = '7.0'
+        ctx['odoo_ver'] = '11.0'
     ctx['to_ver'] = ctx['odoo_ver']
     if ctx.get('from_odoo_ver', None) is None:
-        ctx['from_odoo_ver'] = '0'
+        ctx['from_odoo_ver'] = '7.0'
     ctx['from_ver'] = ctx['from_odoo_ver']
     return ctx
 

@@ -1167,7 +1167,7 @@ FCONF=$TDIR/.$THIS.conf
 OPTOPTS=(h        a        A         B         b         c         C        d        e        F        G       i       L         n            N        o       O        q           u       V           v           X       0)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_nenh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
 OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1        "="      1       1       1         1            1        "="     1        0           1       "*>"        "+"         1       1)
-OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0        "0"      0       0       0         0            0        ""      0        -1          0       ""          -1          0       0)
+OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0        "7.0"    0       0       0         0            0        ""      0        -1          0       ""          -1          0       0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""       "ver"    ""      ""      ""        "do nothing" ""       "file"  ""       "silent"   "ut7"   "version"    "verbose"   ""      "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
@@ -1238,7 +1238,7 @@ OPTS=
 [ $opt_xec -gt 0 ] && OPTS="${OPTS}X"
 [ -n "$OPTS" ] && OPTS="-${OPTS}"
 [ -n "$odoo_vid" ] && OPTS="$OPTS -b$odoo_fver"
-[ -n "$odoo_from" ] && OPTS="$OPTS -F$opt_from"
+[ -n "$opt_from" ] && OPTS="$OPTS -F$opt_from"
 [ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
 LIST="$(find $path $optfnd -name "$selfl")"
 for fl in $LIST; do
