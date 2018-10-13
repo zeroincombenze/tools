@@ -179,7 +179,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.34"
+__version__ = "0.3.7.35"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -398,12 +398,13 @@ def do_login(ctx):
     return user
 
 
-def oerp_set_env(confn=None, db=None, ctx=None):
+def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
+                 ctx=None):
     P_LIST = ('db_host', 'login_user', 'login_password', 'crypt_password',
               'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
               'psycopg2')
 
-    def oerp_env_fill(db=None, ctx=None):
+    def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None, ctx=None):
         ctx = ctx or {}
         saved = {}
         if 'db_host' not in ctx or not ctx['db_host']:
@@ -417,9 +418,13 @@ def oerp_set_env(confn=None, db=None, ctx=None):
         if 'crypt_password' not in ctx or not ctx['crypt_password']:
             if 'login_password' not in ctx or not ctx['login_password']:
                 ctx['crypt_password'] = crypt('admin')
-        if 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
+        if xmlrpc_port:
+            ctx['xmlrpc_port'] = xmlrpc_port
+        elif 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
             ctx['xmlrpc_port'] = 8069
-        if 'oe_version' not in ctx or not ctx['oe_version']:
+        if oe_version:
+            ctx['oe_version'] = oe_version
+        elif 'oe_version' not in ctx or not ctx['oe_version']:
             ctx['oe_version'] = '11.0'
         if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
             if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
@@ -477,8 +482,10 @@ def oerp_set_env(confn=None, db=None, ctx=None):
                 ctx[p] = db
             else:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx, saved = oerp_env_fill(db=db, ctx=ctx)
-    ctx, saved = oerp_env_fill(db=db, ctx=ctx)
+        ctx, saved = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+                                   oe_version=oe_version, ctx=ctx)
+    ctx, saved = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+                               oe_version=oe_version, ctx=ctx)
     open_connection(ctx)
     ctx = read_config(ctx)
     for p in 'db_name', 'oe_version', 'svc_protocol':

@@ -44,7 +44,7 @@ from os0 import os0
 
 from z0lib import parseoptargs
 
-__version__ = "0.2.1.53"
+__version__ = "0.2.1.54"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
@@ -477,7 +477,13 @@ class topep8():
             ir, ctx['from_ver'], 'from')
         i = self.cur_wf_tokid(ir)
         if i < len(param_list_from):
-            if param_list_from[i] == tokenize.MORE:
+            if ids_from_list[i] == tokenize.START_CAPTURE:
+                while i < len(ids_from_list) and \
+                        ids_from_list[i] != tokenize.STOP_CAPTURE:
+                    i += 1
+                i += 1
+                self.LEX_RULES[ir]['token_id'] += i
+            if ids_from_list[i] == tokenize.MORE:
                 if tokval == param_list_from[i + 1]:
                     self.LEX_RULES[ir]['token_id'] += 1
             # elif not param_list_from[i] or tokval == param_list_from[i]:
@@ -577,15 +583,20 @@ class topep8():
         min_max = [1, 1]
         i = state['ipos']
         if value[i + 1] == '?':
-            return [0, 1], -1, False, state['ipos'] + 1
+            state['ipos'] += 2
+            return state, -1, False, [0, 1]
         elif value[i + 1] == '*':
-            return [0, -1], -1, False, state['ipos'] + 1
+            state['ipos'] += 2
+            return state, -1, False, [0, -1]
         elif value[i + 1] == '+':
-            return [1, -1], -1, False, state['ipos'] + 1
+            state['ipos'] += 2
+            return state, -1, False, [1, -1]
         elif value[i + 1] == '(':
-            return [1, 1], tokenize.START_CAPTURE, False, state['ipos'] + 1
+            state['ipos'] += 2
+            return state, tokenize.START_CAPTURE, False, [1, 1]
         elif value[i + 1] == ')':
-            return [1, 1], tokenize.STOP_CAPTURE, False, state['ipos'] + 1
+            state['ipos'] += 2
+            return state, tokenize.STOP_CAPTURE, False, [1, 1]
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         state['ipos'] += x.end() + 1
         tokval = value[i + 1:state['ipos']]
@@ -727,6 +738,8 @@ class topep8():
                         state, tokid, tokval, min_max = \
                             self.parse_token_text(rule['meta'][meta],
                                                   state)
+                    # if tokid not in (tokenize.START_CAPTURE,
+                    #                  tokenize.STOP_CAPTURE):
                     replacements[meta].append(tokval)
                     replacem_ids[meta].append(tokid)
         ir = rule['id']
@@ -857,23 +870,26 @@ class topep8():
                 del self.LEX_RULES[ir]['keywords'][ix]
                 del self.LEX_RULES[ir]['keyids'][ix]
                 ver = self.get_from_ver_in_rule(ir, ctx['from_ver'], 'from')
-                items_to_delete = []
+                # items_to_delete = []
+                offset = 0
                 for i in range(len(self.LEX_RULES[ir]['meta'][ver])):
                     if self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.START_CAPTURE:
                          start_capture = i
+                         offset -= 1
                          continue
                     elif self.LEX_RULES[ir]['meta_ids'][ver][i] == tokenize.STOP_CAPTURE:
                          stop_capture = i
+                         offset -= 1
                          continue
                     if i > stop_capture:
                         break
                     if i <= start_capture:
                         continue
                     self.LEX_RULES[ir]['keywords'].insert(
-                        ix + i,
+                        ix + i + offset,
                         self.LEX_RULES[ir]['meta'][ver][i])
                     self.LEX_RULES[ir]['keyids'].insert(
-                        ix + i,
+                        ix + i + offset,
                         self.LEX_RULES[ir]['meta_ids'][ver][i])
                     # if del_items:
                     #     items_to_delete.insert(0, i)
