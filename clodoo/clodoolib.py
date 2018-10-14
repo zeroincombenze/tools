@@ -158,7 +158,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.35"
+__version__ = "0.3.7.36"
 
 
 #############################################################################
@@ -693,17 +693,26 @@ def get_odoo_full_ver(odoo_vid):
 
 def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
     vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?' + \
-             r'(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6)'
+             r'(12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|12|11|10|9|8|7|6)'
     if odoo_vid:
-        if re.match(vmatch, odoo_vid):
+        if odoo_vid == '.':
+            odoo_fver = get_odoo_full_ver(os.path.basename(os.getcwd()))
+            if not odoo_fver:
+                odoo_fver = '11.0'
+        elif re.match(vmatch, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
-            odoo_vid = '11.0'
+            odoo_fver = '11.0'
     else:
         odoo_vid = '11.0'
         odoo_fver = odoo_vid
     odoo_ver = int(odoo_fver.split('.')[0])
-    if item == 'FULLVER':
+    if item == 'LICENSE':
+        if odoo_ver < 9:
+            return 'AGPL'
+        else:
+            return 'LGPL'
+    elif item == 'FULLVER':
         return odoo_fver
     elif item == 'MAJVER':
         return odoo_ver
@@ -718,4 +727,8 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
             v = str(odoo_ver)
         confn = 'odoo%s%s.conf' % (v, sfx)
         return confn
+    elif item == 'PKGNAME':
+        return os.path.basename(os.getcwd())
+    elif item == 'REPOS':
+        return os.path.basename(os.path.dirname(os.getcwd()))
     return False

@@ -19,6 +19,7 @@
 # HOME         Specific Odoo repository directory (i.e /opt/odoo/11.0/website)
 # INVALID_MODNAMES
 # INVALID_MODNAMES_RE
+# LICENSE      License (AGPL or LGPL)
 # LCONFN       Local Configuration filename (+)
 # MAJVER       Major Odoo version
 # MANIFEST     Manifest filename (__openerp__.py or __manifest__.py)
@@ -39,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.35
+#__version__=0.3.7.36
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -167,7 +168,7 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
       echo "${!1}"
@@ -231,6 +232,14 @@ build_odoo_param() {
       odoo_fver=11.0
     fi
     odoo_ver=$(get_odoo_major_ver "$odoo_fver")
+    if [ "$ITEM" == "LICENSE" ]; then
+      if [ $odoo_ver -lt 9 ]; then
+        echo "AGPL"
+      else
+        echo "LGPL"
+      fi
+      return
+    fi
     if [ -n "$4" ]; then
       GIT_ORGID=$4
     elif [[ $odoo_vid =~ $reg ]]; then

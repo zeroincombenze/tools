@@ -175,11 +175,11 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         declare_mandatory_fields)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
-                       default_conf)
+                       default_conf, build_odoo_param)
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.35"
+__version__ = "0.3.7.36"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True

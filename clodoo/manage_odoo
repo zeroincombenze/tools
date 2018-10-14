@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.35
+__version__=0.3.7.36
 
 
 explore() {
@@ -99,7 +99,7 @@ do_action() {
         fi
       done
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_modules" ]; then
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_repository" ]; then
       ODOO_RPT=$(build_odoo_param GIT_ORG $odoo_vid $repo $opt_org)
       ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $opt_org)
@@ -238,25 +238,25 @@ do_action() {
       fi
       run_traced "rm -fR $pkgdir"
     fi
-    if [ "$act" == "add_modules" -a -d $pkgdir ]; then
+    if [ "$act" == "add_repository" -a -d $pkgdir ]; then
       return $sts
     elif [ "$act" == "build" -a -d $pkgdir ]; then
       echo "BRANCH $odoo_vid OF $repo ALREADY EXISTS!"
       sts=1
-    elif [ "$act" != "build" -a "$act" != "rebuild" -a "$act" != "add_modules" -a ! -d $pkgdir ]; then
+    elif [ "$act" != "build" -a "$act" != "rebuild" -a "$act" != "add_repository" -a ! -d $pkgdir ]; then
       echo "BRANCH $odoo_vid OF $repo NOT FOUND!"
       sts=1
     fi
     if [ $sts -ne 0 ]; then
       return $sts
     fi
-    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_modules" ]; then
-      $TDIR/addsubm.sh $ODOO_URL $odoo_vid $opts -O $opt_org $OPTS_ASM
+    if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_repository" ]; then
+      $TDIR/odoo_install_repository $ODOO_URL $odoo_vid $opts -O $opt_org $OPTS_ASM
     else
       run_traced "cd $pkgdir"
-      if [ "$act" == "check" ]; then
+      if [ "$act" == "lint" ]; then
         if [ ! -L $pkgdir ]; then
-          travis . check $opts
+          travis lint $opts
           sts=$?
         fi
       elif [ "$act" == "clean" ]; then
@@ -269,7 +269,7 @@ do_action() {
             fi
             $TDIR/list_requirements.py -vPp $pkgdir -o
           fi
-          $TDIR/addsubm.sh $repo $odoo_vid $opts -O $opt_org -r
+          $TDIR/odoo_install_repository $repo $odoo_vid $opts -O $opt_org -r
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pkgdir ]; then
@@ -350,9 +350,13 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Check for all odoo repositories\nactions may be: add_modules build check check-config clean list oca oia rebuild requirements status upgrade zeroincombenze"\
+  print_help "Check for all odoo repositories\nactions may be: add_repository build check-config clean lint list oca oia rebuild requirements status upgrade zeroincombenze"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
+fi
+if [ "$actions" == "help" ]; then
+  man $TDIR/$THIS.man
+  exit 0
 fi
 
 discover_multi
@@ -379,7 +383,7 @@ fi
 sub_list=
 excl_list="$INVALID_MODNAMES"
 if [ -z $opt_excl ]; then
-  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_modules" ]; then
+  if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$act" == "add_repository" ]; then
     opt_excl="v7/OCB"
   else
     opt_excl=""
@@ -391,7 +395,7 @@ for repo in $opt_excl; do
     excl_list="$excl_list $repo"
   fi
 done
-if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_modules" ]; then
+if [ "$actions" == "build" -o "$actions" == "rebuild" -o "$actions" == "add_repository" ]; then
   opt_def=1
 fi
 for odoo_vid in $opt_branch; do
