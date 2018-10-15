@@ -69,7 +69,7 @@ Deployment is ODOO_DIR/REPOSITORY_DIR/MODULE_DIR where:
 
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
-    cd $HOME
+    cd ./tools
     ./install_tools.sh -p
     export PATH=$HOME/dev:$PATH
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
@@ -81,9 +81,13 @@ From UI: go to:
 * Setting > Activate Developer mode 
 * Apps > Update Apps List
 * Setting > Apps > Select {{module_name}} > Install
-.. $versions 9.0 8.0 7.0 6.1
+.. $versions 9.0
 
 * admin > About > Activate Developer mode
+* Setting > Modules > Update Modules List
+* Setting > Local Modules > Select {{module_name}} > Install
+.. $versions 8.0 7.0 6.1
+
 * Setting > Modules > Update Modules List
 * Setting > Local Modules > Select {{module_name}} > Install
 .. $versions all

@@ -218,8 +218,15 @@ if [ "$opt_cpush" == "-O" ]; then
   if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
     [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia10 oia -v"
     odoo_skin.sh oia10 oia -v
-    [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run"
+    [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run -f"
     $TDIR/please distribution oia $opts_dry_run -f
+    for f in $(find $tgtdir/ -name 'README.rst'); do
+      d=$(dirname $f)
+      echo "\$ cd $d"
+      cd $d
+      echo "\$ $TDIR/gen_readme.py -Goia -lmodule"
+      $TDIR/gen_readme.py -Goia -lmodule
+    done
   fi
   exit 0
 fi
