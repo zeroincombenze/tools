@@ -696,7 +696,7 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
              r'(12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|12|11|10|9|8|7|6)'
     if odoo_vid:
         if odoo_vid == '.':
-            odoo_fver = get_odoo_full_ver(os.path.basename(os.getcwd()))
+            odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
                 odoo_fver = '11.0'
         elif re.match(vmatch, odoo_vid):

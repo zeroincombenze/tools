@@ -32,6 +32,3 @@
    :target: https://www.facebook.com/groups/openerp.italia/
 .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
    :target: https://www.facebook.com/groups/openerp.italia/
-.. |br| raw:: html
-
-    <br/>

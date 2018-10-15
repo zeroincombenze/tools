@@ -10,7 +10,7 @@ import re
 import sys
 import z0lib
 from clodoo import build_odoo_param
-import pdb
+# import pdb
 
 
 __version__ = "0.2.1.55"
@@ -39,55 +39,59 @@ def get_template_path(ctx, template, ignore=None):
     return full_fn
 
 
+def generate_description_file(ctx):
+    full_fn = './egg-info/description.rst'
+    if ctx['opt_verbose']:
+        print("Writingg %s" % full_fn)
+    if not os.path.isdir('./egg-info'):
+        os.makedirs('./egg-info')
+    fd = open(full_fn, 'w')
+    fd.write(ctx['description'])
+    fd.close()
+
+
 def get_default_installation(ctx):
     text = """
 Installation
 ============
 
 These instruction are just an example to remember what you have to do.
+Installation is based on `Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__
 Deployment is ODOO_DIR/REPOSITORY_DIR/MODULE_DIR where:
 
-ODOO_DIR is root Odoo directory, i.e. /opt/odoo/{{branch}}
+| ODOO_DIR is root Odoo directory, i.e. /opt/odoo/{{branch}}
+| REPOSITORY_DIR is downloaded git repository directory, currently is: {{repos_name}}
+| MODULE_DIR is module directory, currently is: {{module_name}}
+| MYDB is the database name
+|
 
-REPOSITORY_DIR is downloaded git repository directory, currently is: {{repos_name}}
+::
 
-MODULE_DIR is module directory, currently is: {{module_name}}
-
-MYDB is the database name
-
-
-``cd $HOME``
-
-``git clone https://github.com/zeroincombenze/tools.git``
-
-``cd $HOME``
-
-``./install_tools.sh -p``
-
-``export PATH=~/dev:$PATH``
-
-``odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}``
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd $HOME
+    ./install_tools.sh -p
+    export PATH=$HOME/dev:$PATH
+    odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
 
 
 From UI: go to:
 .. $versions 11.0 10.0
+
 * Setting > Activate Developer mode 
-
 * Apps > Update Apps List
-
 * Setting > Apps > Select {{module_name}} > Install
 .. $versions 9.0 8.0 7.0 6.1
-*  admin > About > Activate Developer mode
 
+* admin > About > Activate Developer mode
 * Setting > Modules > Update Modules List
-
 * Setting > Local Modules > Select {{module_name}} > Install
 .. $versions all
 
 Warning: if your Odoo instance crashes, you can do following instruction
 to recover installation:
 
-``run_odoo_debug.sh {{branch}} -um {{module_name}} -s -d MYDB``
+``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
 """
     return text
 
@@ -98,34 +102,101 @@ Credits
 =======
 
 Authors
-~~~~~~~
+-------
 
 * `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
 
 
 Contributors
-~~~~~~~~~~~~
+------------
 
 * Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
 
 
+Funders
+-------
+
+The development of this module has been financially supported by:
+
+* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
+
+
 Maintainers
-~~~~~~~~~~~
+-----------
 
 |Odoo Italia Associazione|
 
-Odoo Italia is a nonprofit organization whose develops Italian
-Localization on Odoo.
+This module is maintained by the Odoo Italia Associazione.
 
 To contribute to this module, please visit https://odoo-italia.org/.
 """
     return text
 
 
+def get_default_known_issue(ctx):
+    return """
+|it| Known issues / Roadmap
+===========================
+
+Warning: Questo modulo rimpiazza il modulo OCA. Leggete attentamente il
+paragrafo relativo alle funzionalità e differenze.
+
+"""
+
+def get_default_bug_tracker(ctx):
+    return """
+Issue Tracker
+=============
+
+Bug reports are welcome! You can use the issue tracker to report bugs,
+and/or submit pull requests on `GitHub Issues
+<https://github.com/%s/%s/issues>`_.
+
+In case of trouble, please check there if your issue has already been reported.
+
+
+Proposals for enhancement
+-------------------------
+
+If you have a proposal to change this module, you may want to send an email to
+<moderatore@odoo-italia.org> for initial feedback.
+An Enhancement Proposal may be submitted if your idea gains ground.
+""" % (GIT_USER[ctx['git_orgid']], ctx['repos_name'])
+
+
 def get_default_copyright_notes(ctx):
-    text = """
+    if ctx['git_orgid'] == 'oia':
+        text = """
+----------------
+
 **Odoo** is a trademark of `Odoo S.A. <https://www.odoo.com/>`__
-(formerly OpenERP, formerly TinyERP)
+(formerly OpenERP)
+
+**OCA**, or the `Odoo Community Association <http://odoo-community.org/>`__,
+is a nonprofit organization whose mission is to support
+the collaborative development of Odoo features and promote its widespread use.
+
+**Odoo Italia Associazione**, or the `Associazione Odoo Italia <https://www.odoo-italia.org/>`__
+is the nonprofit Italian Community Association whose mission
+is to support the collaborative development of Odoo designed for Italian law and markeplace.
+Since 2017 Odoo Italia Associazione issues modules for Italian localization not developed by OCA
+or available only with Odoo Proprietary License.
+Odoo Italia Associazione distributes code under `AGPL <https://www.gnu.org/licenses/agpl-3.0.html>`__
+or `LGPL <https://www.gnu.org/licenses/lgpl.html>`__ free license.
+
+`Odoo Italia Associazione <https://www.odoo-italia.org/>`__ è un'Associazione senza fine di lucro
+che dal 2017 rilascia moduli per la localizzazione italiana non sviluppati da OCA
+o disponibili solo con `Odoo Proprietary License <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__
+
+Odoo Italia Associazione distribuisce il codice esclusivamente con licenza `AGPL <https://www.gnu.org/licenses/agpl-3.0.html>`__
+o `LGPL <https://www.gnu.org/licenses/lgpl.html>`__
+"""
+    else:
+        text = """
+----------------
+
+**Odoo** is a trademark of `Odoo S.A. <https://www.odoo.com/>`__
+(formerly OpenERP)
 
 **OCA**, or the `Odoo Community Association <http://odoo-community.org/>`__,
 is a nonprofit organization whose mission is to support
@@ -133,8 +204,9 @@ the collaborative development of Odoo features and promote its widespread use.
 
 **zeroincombenze®** is a trademark of `SHS-AV s.r.l. <http://www.shs-av.com/>`__
 which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
-`Zeroincombenze® distribution <http://wiki.zeroincombenze.org/en/Odoo>`__
+`Zeroincombenze® distribution of Odoo <http://wiki.zeroincombenze.org/en/Odoo>`__
 is mainly designed for Italian law and markeplace.
+
 Users can download from `Zeroincombenze® distribution <https://github.com/zeroincombenze/OCB>`__
 and deploy on local server.
 """
@@ -153,9 +225,15 @@ def replace_macro(ctx, line):
                      'credits', 'copyright_notes'):
             value = ctx[token]
         elif token == 'branch':
-            value = ctx['odoo_ver']
+            value = ctx['odoo_fver']
         elif token == 'icon':
-            value = '/%s/static/description/icon.png' % ctx['module_name']
+            fmt = 'https://raw.githubusercontent.com/%s/%s/%s/%s/static/'
+            if ctx['odoo_majver'] < 8:
+                fmt += 'src/img/icon.png'
+            else:
+                fmt += 'description/icon.png'
+            value = fmt % (GIT_USER[ctx['git_orgid']], ctx['repos_name'],
+                           ctx['odoo_fver'], ctx['module_name'])
         elif token == 'GIT_URL':
             value = 'https://github.com/%s/%s.git' % (
                 GIT_USER[ctx['git_orgid']], ctx['repos_name'])
@@ -169,7 +247,7 @@ def replace_macro(ctx, line):
             else:
                 value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
         elif token == 'badge-gpl':
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_ver'])
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
             if value == 'AGPL':
                 value = 'licence-%s--3-blue.svg' % value
             else:
@@ -182,7 +260,7 @@ def replace_macro(ctx, line):
                 GIT_USER[ctx['git_orgid']], ctx['repos_name'])
         elif token == 'badge-codecov':
             value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
-                GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_ver'])
+                GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
         elif token == 'badge-OCA':
             value = 'http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-%d.svg' % (
                 ctx['odoo_majver'])
@@ -205,16 +283,16 @@ def replace_macro(ctx, line):
                 GIT_USER[ctx['git_orgid']], ctx['repos_name'])
         elif token == 'codecov-URL':
             value = 'https://codecov.io/gh/%s/%s/branch/%s' % (
-                GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_ver'])
+                GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
         elif token == 'OCA-URL':
             value = 'https://github.com/OCA/%s/tree/%s' % (
-                ctx['repos_name'], ctx['odoo_ver'])
+                ctx['repos_name'], ctx['odoo_fver'])
         elif token == 'doc-URL':
             value = 'http://wiki.zeroincombenze.org/en/Odoo/%s/dev' % (
-                ctx['odoo_ver'])
+                ctx['odoo_fver'])
         elif token == 'help-URL':
             value = 'http://wiki.zeroincombenze.org/it/Odoo/%s/man' % (
-                ctx['odoo_ver'])
+                ctx['odoo_fver'])
         elif token == 'try_me-URL':
             if ctx['git_orgid'] == 'oca':
                 value = 'http://runbot.odoo.com/runbot'
@@ -225,7 +303,7 @@ def replace_macro(ctx, line):
                 value = 'https://erp%s.zeroincombenze.it' % (
                     ctx['odoo_majver'])
         elif token in ('gpl', 'GPL'):
-            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_ver'])
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
             if token == 'gpl':
                 value = value.lower()
         else:
@@ -262,7 +340,7 @@ def parse_source(ctx, filename, ignore=None):
                 enable_versions = line[13:].strip()
                 if enable_versions == 'all':
                     state['action'] = 'write'
-                elif enable_versions.find(ctx['odoo_ver']) >= 0:
+                elif enable_versions.find(ctx['odoo_fver']) >= 0:
                     state['action'] = 'write'
                 else:
                     state['action'] = 'susp'
@@ -286,7 +364,8 @@ def parse_source(ctx, filename, ignore=None):
                     if not state['prior_line']:
                         state['cache'] = line
                     else:
-                        line = line[0] * len(state['prior_line'])
+                        if len(state['prior_line']) > 2:
+                            line = line[0] * len(state['prior_line'])
                         state['prior_line'] = line
                         state, text = append_line(state, line)
                         target += text
@@ -337,24 +416,29 @@ def read_manifest(ctx):
 
 def generate_readme(ctx):
     if not ctx['module_name']:
-        ctx['module_name'] = build_odoo_param('PKGNAME', odoo_vid='.')
+        ctx['module_name'] = build_odoo_param('PKGNAME',
+                                              odoo_vid=ctx['odoo_fver'])
     read_manifest(ctx)
-    ctx['repos_name'] = build_odoo_param('REPOS', odoo_vid='.')
+    ctx['repos_name'] = build_odoo_param('REPOS', odoo_vid=ctx['odoo_fver'])
     ctx['dst_file'] = './README.rst'
-    ctx['odoo_majver'] = int(ctx['odoo_ver'].split('.')[0])
+    ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
     ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
     ctx['summary'] = ctx['manifest'].get('summary', ctx['name'])
-    ctx['description'] = ctx['manifest'].get('description', '')
-    if not ctx['description']:
-        ctx['description'] = parse_source(ctx, 'description.rst')
-    for section in ('descrizione', 'installation', 'configuration',
-                    'usage', 'known_issue', 'bug_tracker',
-                    'credits', 'copyright_notes'):
+    for section in ('description', 'descrizione', 'installation',
+                    'configuration', 'usage', 'known_issue',
+                    'bug_tracker', 'credits', 'copyright_notes'):
         ctx[section] = parse_source(ctx, '%s.rst' % section, ignore=True)
+    if not ctx['description']:
+        ctx['description'] = ctx['manifest'].get('description', '')
+        generate_description_file(ctx)
     if not ctx['installation']:
         ctx['installation'] = get_default_installation(ctx)
+    if not ctx['known_issue']:
+        ctx['known_issue'] = get_default_known_issue(ctx)
+    if not ctx['bug_tracker']:
+        ctx['bug_tracker'] = get_default_bug_tracker(ctx)
     if not ctx['credits']:
         ctx['credits'] = get_default_credits(ctx)
     if not ctx['copyright_notes']:
@@ -379,7 +463,8 @@ if __name__ == "__main__":
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
-                        dest='odoo_ver')
+                        default='.',
+                        dest='odoo_vid')
     parser.add_argument('-B', '--debug-template',
                         action='store_true',
                         dest='dbg_template')
@@ -408,8 +493,10 @@ if __name__ == "__main__":
     if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
         print('Invalid git-org: use one of zero|oia|oca for -G switch')
         ctx['git_orgid'] = 'zero'
-    if ctx['odoo_ver'] not in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+    ctx['odoo_fver'] = build_odoo_param('FULLVER', odoo_vid=ctx['odoo_vid'])
+    if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
+                                '9.0', '8.0', '7.0', '6.1'):
         print('Invalid odoo version: please use -b switch')
-        ctx['odoo_ver'] = '11.0'
+        ctx['odoo_fver'] = '11.0'
     sts = generate_readme(ctx)
     sys.exit(sts)
