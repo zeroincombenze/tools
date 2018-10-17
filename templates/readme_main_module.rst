@@ -7,6 +7,8 @@
 |it|
 
 {{descrizione}}
+{{features}}
+{{certifications}}
 
 |en|
 
@@ -19,6 +21,8 @@
 {{known_issue}}
 
 {{bug_tracker}}
+
+{{history}}
 
 {{credits}}
 

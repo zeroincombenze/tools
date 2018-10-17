@@ -28,7 +28,20 @@
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
    :alt: Odoo Italia Associazione
-.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
-   :target: https://www.facebook.com/groups/openerp.italia/
-.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
-   :target: https://www.facebook.com/groups/openerp.italia/
+.. |en| image:: {{grymb_image_en}}
+   :target: {{grymb_url_en}}
+.. |it| image:: {{grymb_image_it}}
+   :target: {{grymb_url_it}}
+.. |check| image:: {{grymb_image_check}}
+.. |no_check| image:: {{grymb_image_no_check}}
+.. |menu| image:: {{grymb_image_menu}}
+.. |right_do| image:: {{grymb_image_right_do}}
+.. |exclamation| image:: {{grymb_image_exclamation}}
+.. |warning| image:: {{grymb_image_warning}}
+.. |xml_schema| image:: {{grymb_image_xml_schema}}
+   :target: {{grymb_url_xml_schema}}
+.. |DesktopTelematico| image:: {{grymb_image_DesktopTelematico}}
+   :target: {{grymb_url_DesktopTelematico}}
+.. |FatturaPA| image:: {{grymb_image_FatturaPA}}
+   :target: {{grymb_url_FatturaPA}}
+   

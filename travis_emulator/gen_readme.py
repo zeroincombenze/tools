@@ -20,6 +20,36 @@ GIT_USER = {
     'oia': 'Odoo-Italia-Associazione',
     'oca': 'OCA',
 }
+DEFINED_SECTIONS = ['description', 'descrizione', 'installation',
+                    'configuration', 'usage', 'known_issue',
+                    'bug_tracker', 'credits', 'copyright_notes',
+                    'features', 'certifications', 'history',
+]
+DEFINED_TOKENS = ['name', 'summary', 'maturity',
+                  'module_name', 'repos_name', ] + DEFINED_SECTIONS
+DEFINED_GRYMB_SYMBOLS = {
+    'it': ['flags/it_IT.png',
+           'https://www.facebook.com/groups/openerp.italia/'],
+    'en': ['flags/en_US.png',
+           'https://www.facebook.com/groups/openerp.italia/'],
+    'check': ['awesome/check.png', False],
+    'no_check': ['awesome/no_check.png', False],
+    'menu': ['awesome/menu.png', False],
+    'right_do': ['awesome/right_do.png', False],
+    'exclamation': ['awesome/exclamation.png', False],
+    'warning': ['awesome/warning.png', False],
+    'xml_schema': ['certificates/iso/icons/xml-schema.png',
+                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
+                   'certificates/iso/scope/xml-schema.md'],
+    'DesktopTelematico':  ['certificates/ade/icons/DesktopTelematico.png',
+                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
+                   'certificates/ade/scope/DesktopTelematico.md'],
+    'FatturaPA': ['certificates/ade/icons/fatturapa.png',
+                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
+                   'certificates/ade/scope/fatturapa.md'],
+}
+EXCLUDED_MODULES = ['lxml', ]
+
 
 def get_template_path(ctx, template, ignore=None):
     for src_path in ('.',
@@ -42,7 +72,7 @@ def get_template_path(ctx, template, ignore=None):
 def generate_description_file(ctx):
     full_fn = './egg-info/description.rst'
     if ctx['opt_verbose']:
-        print("Writingg %s" % full_fn)
+        print("Writing %s" % full_fn)
     if not os.path.isdir('./egg-info'):
         os.makedirs('./egg-info')
     fd = open(full_fn, 'w')
@@ -51,6 +81,15 @@ def generate_description_file(ctx):
 
 
 def get_default_installation(ctx):
+    statements = '::\n'
+    full_fn = '../requirements.txt'
+    if os.path.isfile(full_fn):
+        fd = open(full_fn, 'rU')
+        source = fd.read()
+        fd.close()
+        for module in source.split('\n'):
+            if module and module[0] != '#' and module not in EXCLUDED_MODULES:
+                statements += '\n    pip install %s' % module
     text = """
 Installation
 ============
@@ -65,8 +104,7 @@ Deployment is ODOO_DIR/REPOSITORY_DIR/MODULE_DIR where:
 | MYDB is the database name
 |
 
-::
-
+%s
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
@@ -78,26 +116,31 @@ Deployment is ODOO_DIR/REPOSITORY_DIR/MODULE_DIR where:
 From UI: go to:
 .. $versions 11.0 10.0
 
-* Setting > Activate Developer mode 
-* Apps > Update Apps List
-* Setting > Apps > Select {{module_name}} > Install
+|menu| Setting > Activate Developer mode 
+
+|menu| Apps > Update Apps List
+
+|menu| Setting > Apps |right_do| Select {{module_name}} > Install
 .. $versions 9.0
 
-* admin > About > Activate Developer mode
-* Setting > Modules > Update Modules List
-* Setting > Local Modules > Select {{module_name}} > Install
+|menu| admin > About > Activate Developer mode
+
+|menu| Setting > Modules > Update Modules List
+
+|menu| Setting > Local Modules |right_do| Select {{module_name}} > Install
 .. $versions 8.0 7.0 6.1
 
-* Setting > Modules > Update Modules List
-* Setting > Local Modules > Select {{module_name}} > Install
+|menu| Setting > Modules > Update Modules List
+
+|menu| Setting > Local Modules |right_do| Select {{module_name}} > Install
 .. $versions all
 
-Warning: if your Odoo instance crashes, you can do following instruction
-to recover installation:
+|warning| If your Odoo instance crashes, you can do following instruction
+to recover installation status:
 
 ``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
 """
-    return text
+    return text % statements
 
 
 def get_default_credits(ctx):
@@ -139,10 +182,10 @@ To contribute to this module, please visit https://odoo-italia.org/.
 
 def get_default_known_issue(ctx):
     return """
-|it| Known issues / Roadmap
-===========================
+Known issues / Roadmap
+======================
 
-Warning: Questo modulo rimpiazza il modulo OCA. Leggete attentamente il
+|warning| Questo modulo rimpiazza il modulo OCA. Leggete attentamente il
 paragrafo relativo alle funzionalità e differenze.
 
 """
@@ -222,12 +265,15 @@ def replace_macro(ctx, line):
     j = line.find('}}')
     while i >=0 and j > i:
         token = line[i + 2: j]
-        if token in ('name', 'summary', 'maturity',
-                     'description', 'descrizione', 'module_name',
-                     'repos_name', 'installation', 'configuration',
-                     'usage', 'known_issue', 'bug_tracker',
-                     'credits', 'copyright_notes'):
+        if token in DEFINED_TOKENS:
             value = ctx[token]
+        elif token[0:12] == 'grymb_image_' and \
+                token[12:] in DEFINED_GRYMB_SYMBOLS:
+            value = 'https://raw.githubusercontent.com/zeroincombenze/grymb' \
+                    '/master/%s' % DEFINED_GRYMB_SYMBOLS[token[12:]][0]
+        elif token[0:10] == 'grymb_url_' and \
+                token[10:] in DEFINED_GRYMB_SYMBOLS:
+            value = DEFINED_GRYMB_SYMBOLS[token[10:]][1]
         elif token == 'branch':
             value = ctx['odoo_fver']
         elif token == 'icon':
@@ -419,6 +465,7 @@ def read_manifest(ctx):
 
 
 def generate_readme(ctx):
+    # pdb.set_trace()
     if not ctx['module_name']:
         ctx['module_name'] = build_odoo_param('PKGNAME',
                                               odoo_vid=ctx['odoo_fver'])
@@ -430,9 +477,7 @@ def generate_readme(ctx):
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
     ctx['summary'] = ctx['manifest'].get('summary', ctx['name'])
-    for section in ('description', 'descrizione', 'installation',
-                    'configuration', 'usage', 'known_issue',
-                    'bug_tracker', 'credits', 'copyright_notes'):
+    for section in DEFINED_SECTIONS:
         ctx[section] = parse_source(ctx, '%s.rst' % section, ignore=True)
     if not ctx['description']:
         ctx['description'] = ctx['manifest'].get('description', '')
