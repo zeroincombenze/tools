@@ -24,6 +24,7 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'installation',
                     'configuration', 'usage', 'known_issue',
                     'bug_tracker', 'credits', 'copyright_notes',
                     'features', 'certifications', 'history',
+                    'OCA_diff',
 ]
 DEFINED_TOKENS = ['name', 'summary', 'maturity',
                   'module_name', 'repos_name', ] + DEFINED_SECTIONS
@@ -49,6 +50,11 @@ DEFINED_GRYMB_SYMBOLS = {
                    'certificates/ade/scope/fatturapa.md'],
 }
 EXCLUDED_MODULES = ['lxml', ]
+MANIFEST_ITEMS = ('name', 'version', 'category',
+                  'author', 'website', 'summary',
+                  'license', 'depends', 'data',
+                  'demo', 'test', 'installable',
+                  'maturity', 'description')
 
 
 def get_template_path(ctx, template, ignore=None):
@@ -120,19 +126,19 @@ From UI: go to:
 
 |menu| Apps > Update Apps List
 
-|menu| Setting > Apps |right_do| Select {{module_name}} > Install
+|menu| Setting > Apps |right_do| Select **{{module_name}}** > Install
 .. $versions 9.0
 
 |menu| admin > About > Activate Developer mode
 
 |menu| Setting > Modules > Update Modules List
 
-|menu| Setting > Local Modules |right_do| Select {{module_name}} > Install
+|menu| Setting > Local Modules |right_do| Select **{{module_name}}** > Install
 .. $versions 8.0 7.0 6.1
 
 |menu| Setting > Modules > Update Modules List
 
-|menu| Setting > Local Modules |right_do| Select {{module_name}} > Install
+|menu| Setting > Local Modules |right_do| Select **{{module_name}}** > Install
 .. $versions all
 
 |warning| If your Odoo instance crashes, you can do following instruction
@@ -144,6 +150,33 @@ to recover installation status:
 
 
 def get_default_credits(ctx):
+    authors = ''
+    full_fn = './egg-info/authors.txt'
+    if os.path.isfile(full_fn):
+        fd = open(full_fn, 'rU')
+        source = fd.read()
+        fd.close()
+        for line in source.split('\n'):
+            if line and line[0] != '#' and line not in EXCLUDED_MODULES:
+                if line[0:2] == '* ':
+                    line = line[2:]
+                authors += '\n* `%s`__' % line
+    else:
+        authors = '* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__'
+    contributors = ''
+    full_fn = './egg-info/contributors.txt'
+    if os.path.isfile(full_fn):
+        fd = open(full_fn, 'rU')
+        source = fd.read()
+        fd.close()
+        for line in source.split('\n'):
+            if line and line[0] != '#' and line not in EXCLUDED_MODULES:
+                if line[0:2] != '* ':
+                    contributors += '\n* %s' % line
+                else:
+                    contributors += '\n%s' % line
+    else:
+        contributors = '* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>'
     text = """
 Credits
 =======
@@ -151,22 +184,12 @@ Credits
 Authors
 -------
 
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
-
+%s
 
 Contributors
 ------------
 
-* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>
-
-
-Funders
--------
-
-The development of this module has been financially supported by:
-
-* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__
-
+%s
 
 Maintainers
 -----------
@@ -177,7 +200,7 @@ This module is maintained by the Odoo Italia Associazione.
 
 To contribute to this module, please visit https://odoo-italia.org/.
 """
-    return text
+    return text % (authors, contributors)
 
 
 def get_default_known_issue(ctx):
@@ -451,17 +474,62 @@ def parse_source(ctx, filename, ignore=None):
 
 
 def read_manifest(ctx):
-    if os.path.isfile('./__manifest__.py'):
-        manifest_file = './__manifest__.py'
-    elif os.path.isfile('./__openerp__.py'):
-        manifest_file = './__openerp__.py'
+    if ctx['odoo_majver'] >= 10:
+        if os.path.isfile('./__manifest__.py'):
+            manifest_file = './__manifest__.py'
+        elif os.path.isfile('./__openerp__.py'):
+            manifest_file = './__openerp__.py'
+        else:
+            manifest_file = ''
+            print('Warning: manifest file not found')
     else:
-        manifest_file = ''
-        print('Warning: manifest file not found')
+        if os.path.isfile('./__openerp__.py'):
+            manifest_file = './__openerp__.py'
+        else:
+            manifest_file = ''
+            print('Warning: manifest file not found')
     if manifest_file:
         ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
+        ctx['manifest_file'] = manifest_file
     else:
         ctx['manifest'] = {}
+
+
+def manifest_contents(ctx):
+    full_fn = ctx['manifest_file']
+    source = ''
+    if full_fn:
+        fd = open(full_fn, 'rU')
+        source = fd.read()
+        fd.close()
+    target = ''
+    for line in source.split('\n'):
+        if not line or line[0] != '#':
+            break
+        target += line + '\n'
+    target += '{\n'
+    for item in MANIFEST_ITEMS:
+        if item == 'description':
+            if ctx['odoo_majver'] < 8:
+                text = parse_source(ctx, 'readme_manifest.rst')
+                target += "    '%s': '''%s''',\n" % (item, text)
+        elif item in ctx['manifest']:
+            if isinstance(ctx['manifest'][item], basestring):
+                text = ctx['manifest'][item].replace("'", '"')
+                target += "    '%s': '%s',\n" % (item, text)
+            else:
+                text = str(ctx['manifest'][item])
+                target += "    '%s': %s,\n" % (item, text)
+    for item in ctx['manifest'].keys():
+        if item not in ctx['manifest']:
+            if isinstance(ctx['manifest'][item], basestring):
+                text = ctx['manifest'][item].replace("'", '"')
+                target += "    '%s': '%s',\n" % (item, text)
+            else:
+                text = str(ctx['manifest'][item])
+                target += "    '%s': %s,\n" % (item, text)
+    target += '}\n'
+    return target
 
 
 def generate_readme(ctx):
@@ -469,10 +537,10 @@ def generate_readme(ctx):
     if not ctx['module_name']:
         ctx['module_name'] = build_odoo_param('PKGNAME',
                                               odoo_vid=ctx['odoo_fver'])
-    read_manifest(ctx)
     ctx['repos_name'] = build_odoo_param('REPOS', odoo_vid=ctx['odoo_fver'])
     ctx['dst_file'] = './README.rst'
     ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
+    read_manifest(ctx)
     ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
@@ -493,16 +561,23 @@ def generate_readme(ctx):
     if not ctx['copyright_notes']:
         ctx['copyright_notes'] = get_default_copyright_notes(ctx)
     target = parse_source(ctx, 'readme_main_%s.rst' % ctx['odoo_level'])
-    tmpfile = '%s.tmp' % ctx['dst_file']
-    bakfile = '%s.bak' % ctx['dst_file']
+    if ctx['rewrite_manifest']:
+        target = manifest_contents(ctx)
+        tmpfile = '%s.tmp' % ctx['manifest_file']
+        bakfile = '%s.bak' % ctx['manifest_file']
+        dst_file = ctx['manifest_file']
+    else:
+        tmpfile = '%s.tmp' % ctx['dst_file']
+        bakfile = '%s.bak' % ctx['dst_file']
+        dst_file = ctx['dst_file']
     fd = open(tmpfile, 'w')
     fd.write(target)
     fd.close()
     if os.path.isfile(bakfile):
         os.remove(bakfile)
-    if os.path.isfile(ctx['dst_file']):
-        os.rename(ctx['dst_file'], bakfile)
-    os.rename(tmpfile, ctx['dst_file'])
+    if os.path.isfile(dst_file):
+        os.rename(dst_file, bakfile)
+    os.rename(tmpfile, dst_file)
 
 
 if __name__ == "__main__":
@@ -530,6 +605,9 @@ if __name__ == "__main__":
                         dest='module_name')
     parser.add_argument('-n')
     parser.add_argument('-q')
+    parser.add_argument('-R', '--rewrite-manifest',
+                        action='store_true',
+                        dest='rewrite_manifest')
     parser.add_argument('-V')
     parser.add_argument('-v')
     # parser.add_argument('src_file')

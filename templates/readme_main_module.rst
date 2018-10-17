@@ -8,6 +8,7 @@
 
 {{descrizione}}
 {{features}}
+{{OCA_diff}}
 {{certifications}}
 
 |en|

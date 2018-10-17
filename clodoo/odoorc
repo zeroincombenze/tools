@@ -40,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.36
+#__version__=0.3.7.37
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -242,6 +242,15 @@ build_odoo_param() {
     fi
     if [ -n "$4" ]; then
       GIT_ORGID=$4
+      if [[ $4 =~ $reg && $odoo_vid =~ $ref ]]; then
+        if [ "${4: -4}" == "-git" ]; then
+          odoo_vid=${4:0: -4}$odoo_ver
+        elif [ "${4: -5}" == "-http" ]; then
+          odoo_vid=${4:0: -5}$odoo_ver
+        else
+          odoo_vid=$4$odoo_ver
+        fi
+      fi
     elif [[ $odoo_vid =~ $reg ]]; then
       GIT_ORGID=$(echo $odoo_vid|grep -Eo '[a-z]+'|head -n1)
     else
@@ -546,8 +555,8 @@ build_odoo_param() {
       p2="odoo"
     fi
     if [[ $ITEM =~ (CONFN|FULL_SVCNAME|SVCNAME|FLOG|FPID|DDIR) ]]; then
-      if [ $MULTIVER -ne 0 ] && [[ $2 =~ $reg ]]; then
-        p3="-$(echo $2|grep -Eo '[a-z]+'|head -n1)"
+      if [ $MULTIVER -ne 0 ] && [[ $odoo_vid =~ $reg ]]; then
+        p3="-$(echo $odoo_vid|grep -Eo '[a-z]+'|head -n1)"
       elif [ $odoo_ver -ge 10 ]; then
         p3=
       else

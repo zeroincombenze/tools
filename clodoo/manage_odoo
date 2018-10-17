@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.36
+__version__=0.3.7.37
 
 
 explore() {
@@ -318,7 +318,7 @@ OPTOPTS=(h        b          c        D       d        H           m         n  
 OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
 OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "*>"        "+"         "="        1)
 OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "dir"    ""        "verbose"   ""         "version"   "verbose"   "modules" "")
+OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)"\
  "configuration file (def .travis.conf)"\

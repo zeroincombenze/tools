@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.36
+__version__=0.3.7.37
 
 
 test_01() {
@@ -522,6 +522,27 @@ test_05() {
         fi
       done
     done
+
+
+    #
+    for v in 11.0 10.0 8.0 7.0; do
+      w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
+      TRES[zero]="$HOME/$v"
+      TRES[zero-git]="$HOME/$v"
+      TRES[zero-http]="$HOME/$v"
+      TRES[oca]="$HOME/oca$w"
+      TRES[oia]="$HOME/oia$w"
+      TRES[oia-git]="$HOME/oia$w"
+      TRES[oia-http]="$HOME/oia$w"
+      for w in zero zero-git zero-http oca oia oia-git oia-http; do
+        if [ ${opt_dry_run:-0} -eq 0 ]; then
+          RES=$(build_odoo_param HOME $v '' $w)
+        fi
+        test_result "HOME $v $w" "${TRES[$w]}" "$RES"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      done
+    done
+
     return $sts
     }
 
