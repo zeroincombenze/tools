@@ -38,8 +38,9 @@ Install using odoo user.
 
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
-    ./tools/install_foreign.sh
-    PATH=~/dev:$PATH
+    cd ./tools
+    ./install_tools.sh -p
+    export PATH=$HOME/dev:$PATH
 
 
 Configuration
