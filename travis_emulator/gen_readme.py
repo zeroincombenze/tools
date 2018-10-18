@@ -96,9 +96,32 @@ def get_default_installation(ctx):
         for module in source.split('\n'):
             if module and module[0] != '#' and module not in EXCLUDED_MODULES:
                 statements += '\n    pip install %s' % module
+    if ctx['odoo_level'] == 'ocb':
+        text = """
+Installation / Installazione
+============================
+
+These instruction are just an example to remember what you have to do.
+Installation is based on `Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__
+Deployment is /opt/odoo/{{branch}}
+
+%s
+    cd $HOME
+    git clone https://github.com/zeroincombenze/tools.git
+    cd ./tools
+    ./install_tools.sh -p
+    export PATH=$HOME/dev:$PATH
+    odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
+    for pkg in os0 z0lib; do
+        pip install $pkg -U
+    done
+    sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
+"""
+        return text % statements
+
     text = """
-Installation
-============
+Installation / Installazione
+============================
 
 These instruction are just an example to remember what you have to do.
 Installation is based on `Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__
@@ -474,6 +497,8 @@ def parse_source(ctx, filename, ignore=None):
 
 
 def read_manifest(ctx):
+    if ctx['odoo_level'] != 'module':
+        ctx['manifest'] = {}
     if ctx['odoo_majver'] >= 10:
         if os.path.isfile('./__manifest__.py'):
             manifest_file = './__manifest__.py'
@@ -537,7 +562,11 @@ def generate_readme(ctx):
     if not ctx['module_name']:
         ctx['module_name'] = build_odoo_param('PKGNAME',
                                               odoo_vid=ctx['odoo_fver'])
-    ctx['repos_name'] = build_odoo_param('REPOS', odoo_vid=ctx['odoo_fver'])
+    if ctx['odoo_level'] == 'ocb':
+        ctx['repos_name'] = 'OCB'
+    else:
+        ctx['repos_name'] = build_odoo_param('REPOS',
+                                             odoo_vid=ctx['odoo_fver'])
     ctx['dst_file'] = './README.rst'
     ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
     read_manifest(ctx)
@@ -617,6 +646,8 @@ if __name__ == "__main__":
     if ctx['odoo_level'] not in ('ocb', 'module', 'repository'):
         print('Invalid level: use one of ocb|module|repository for -l switch')
         ctx['odoo_level'] = 'module'
+    if not ctx['git_orgid']:
+        ctx['git_orgid'] = build_odoo_param('GIT_ORGID', odoo_vid=ctx['odoo_vid'])
     if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
         print('Invalid git-org: use one of zero|oia|oca for -G switch')
         ctx['git_orgid'] = 'zero'

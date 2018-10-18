@@ -699,6 +699,7 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
             odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
                 odoo_fver = '11.0'
+            odoo_vid =  os.path.basename(os.path.dirname(os.getcwd()))
         elif re.match(vmatch, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
@@ -707,6 +708,21 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         odoo_vid = '11.0'
         odoo_fver = odoo_vid
     odoo_ver = int(odoo_fver.split('.')[0])
+    if git_org:
+      GIT_ORGID=git_org
+      if re.match('(oca|oia|liberp|flectra)', git_org) and \
+            odoo_vid in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
+        if git_org[-4:] == '-git':
+            odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)
+        elif git_org[-5:] == '-http':
+            odoo_vid = '%s%d' % (git_org[0:-5], odoo_ver)
+        else:
+            odoo_vid = '%s%d' % (git_org, odoo_ver)
+    elif re.match('(oca|oia|liberp|flectra)', odoo_vid):
+        # TODO: all org_id
+        GIT_ORGID=odoo_vid[0:3]
+    else:
+        GIT_ORGID='zero'
     if item == 'LICENSE':
         if odoo_ver < 9:
             return 'AGPL'
@@ -716,6 +732,8 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         return odoo_fver
     elif item == 'MAJVER':
         return odoo_ver
+    elif item == 'GIT_ORGID':
+        return GIT_ORGID
     elif item == 'CONFN':
         if odoo_ver >= 10:
             sfx = ''
