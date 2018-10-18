@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.55
+__version__=0.2.1.56
 
 
 #
@@ -2053,6 +2053,11 @@ do_register() {
 do_replace() {
     set_executable
     if [ "$PRJNAME" == "Odoo" ]; then
+      if [[ $LGITPATH =~ (oca|oia|zero) ]]; then
+        local odoo_fver=$(build_odoo_param FULLVER ".")
+        local p=$(build_odoo_param HOME "$odoo_fver" "$PKGNAME" "$LGITPATH")
+        LGITPATH=$p
+      fi
       if [ ! -d "$LGITPATH" -a $opt_force -ne 0 ]; then
         [ $opt_verbose -gt 0 ] && echo "Creating destination directory ..."
         run_traced "mkdir -p $LGITPATH"
@@ -2289,7 +2294,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "check for unary operator W503 or no OCA/zero module translation"\
  "show version end exit"\
  "verbose mode")
-OPTARGS=(action sub1 sub2 sub3)
+OPTARGS=(actions sub1 sub2 sub3)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -2317,28 +2322,35 @@ set_cfg_def "HTML_DOWNLOAD_DIR" "/var/www/html/mw/download"
 link_cfg $TCONF
 init_travis
 if [ $opt_verbose -gt 1 ]; then set -x; fi
-prepare_env_travis "$action" "-r"
+prepare_env_travis "$actions" "-r"
 sts=$STS_SUCCESS
 sts_bash=127
 sts_flake8=127
 sts_pylint=127
 test_sts=127
-if [ "$action" == "help" ]; then
+if [ "$actions" == "help" ]; then
   man $TDIR/$THIS.man
 else
-  if [ "${action:0:3}"  == "if-" ]; then
-    opt_dry_run=1
-    cmd="do_${action:3}"
-  else
-    cmd="do_$action"
-  fi
-  if [ "$(type -t $cmd)" == "function" ]; then
-    eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
-    sts=$?
-  else
-    echo "Invalid action!"
-    echo "Use $THIS $HLPCMDLIST"
-    sts=$STS_FAILED
-  fi
+  actions=${actions//+/ }
+  actions=${actions//,/ }
+  for action in $actions; do
+    if [ "${action:0:3}"  == "if-" ]; then
+      opt_dry_run=1
+      cmd="do_${action:3}"
+    else
+      cmd="do_$action"
+    fi
+    if [ "$(type -t $cmd)" == "function" ]; then
+      eval $cmd "$PKGNAME" "'$sub1'" "'$sub2'" "'$sub3'"
+      sts=$?
+    else
+      echo "Invalid action!"
+      echo "Use $THIS $HLPCMDLIST"
+      sts=$STS_FAILED
+    fi
+    if [ $sts -ne $STS_SUCCESS ]; then
+      break
+    fi
+  done
 fi
 exit $sts

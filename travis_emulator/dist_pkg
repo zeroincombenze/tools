@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.55
+__version__=0.2.1.56
 
 
 
@@ -198,26 +198,27 @@ if [ "$opt_cpush" == "-O" ]; then
       f=$(basename $d)
       if [ -d $srcdir/$f ]; then
         if [[ $f =~ $valid ]]; then
-          [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -ab --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/"
-          rsync $opts_common -ab --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/
+          [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/"
+          rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/$f/ $tgtdir/$f/
         fi
       else
-        [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -ab $srcdir/$f $tgtdir/"
-        rsync $opts_common -ab $srcdir/$f $tgtdir/
+        [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC $srcdir/$f $tgtdir/"
+        rsync $opts_common -abC $srcdir/$f $tgtdir/
       fi
     done
   else
     echo "Replicate $pkg ..."
-    [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -ab --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/"
-    rsync $opts_common -ab --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/
+    [ $opt_verbose -gt 0 ] && echo "rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/"
+    rsync $opts_common -abC --del --copy-links --exclude=*.log --exclude=*.bak --exclude=*.out --exclude=*.tmp --exclude=*.tracehis --exclude=*.tracehistory --exclude=*,cover --exclude=*.coverage --exclude=.cover/ --exclude=.coverage/ --exclude=*~ --exclude=*test*.pdf* --exclude=*tmp* --exclude=*tmp.** --exclude=*npm-debug.log.** --exclude=*.pyc --exclude=*.conf --exclude=build/ --exclude=dist/ --exclude=conf/ --exclude=filestore/ --exclude=.git/ --exclude=docs/ --exclude=html/ --exclude=latex/ --exclude=*.gz --exclude=*__old_** --exclude=*.gitrepname $srcdir/ $tgtdir/
     [ $opt_verbose -gt 0 ] && echo "cp $srcdir/.travis.yml $tgtdir/.travis.yml"
     cp $srcdir/.travis.yml $tgtdir/.travis.yml
   fi
   RORIGIN=$(build_odoo_param RORIGIN ".")
   gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
   if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
-    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia10 oia -v"
-    odoo_skin.sh oia10 oia -v
+    v=$(build_odoo_param MAJVER ".")
+    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia$v oia -v"
+    odoo_skin.sh oia$v oia -v
     [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run -f"
     $TDIR/please distribution oia $opts_dry_run -f
     for f in $(find $tgtdir/ -name 'README.rst'); do
