@@ -185,7 +185,7 @@ def load_dictionary(ctx):
     ctr = load_default_dictionary('/opt/odoo/dev/odoo_default_tnl.csv')
     ctx['po_files'] = {}
     ctx['ctrs'] = {'0': ctr}
-    for version in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+    for version in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0'):
         odoo_path = set_odoo_path(ctx, version)
         if odoo_path:
             module_path = False
@@ -195,8 +195,9 @@ def load_dictionary(ctx):
                         module_path = root
                         break
             if not module_path:
-                raise IOError('Module %s not found in Odoo %s' % (
+                print('Module %s not found in Odoo %s' % (
                     ctx['module_name'], version))
+                continue
             print('Found path %s' % module_path)
             po_file = os.path.join(module_path,'i18n', 'it.po')
             if not os.path.isfile(po_file):

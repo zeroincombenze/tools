@@ -18,15 +18,17 @@ can execute any command to any Odoo version server (from 6.1 to 11.0)
 
 Function | Status | Note
 --- | --- | ---
-Add new repository | :white_check_mark: | addsubm.sh
+Add new repository | :white_check_mark: | odoo_install_repository
 Update paid invoice | :white_check_mark: | inv2draft_n_restore.py
 List requirement of Odoo | :white_check_mark: | list_requirements.py
 Create full configurated Odoo DB | :white_check_mark: | manage_db
 Manage Odoo installation | :white_check_mark: | manage_odoo
 Set Odoo Skin (backoffice) | :white_check_mark: | odoo_skin.sh
-Run Odoo instance to debug | :white_check_mark: | run_odoo_debug.sh
+Run Odoo instance to debug | :white_check_mark: | run_odoo_debug
 Manage version depending names | :white_check_mark: | transodoo.py
 General Purpose RPC | :white_check_mark: | clodoo.py
+Migrate Odoo | :white_check_mark: | migrate_odoo.py (experimental)
+Examples | :white_check_mark: | exammple*.py
 
 
 Installation
