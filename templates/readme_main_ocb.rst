@@ -43,8 +43,8 @@ Distributions / Distribuzioni Odoo {{branch}}:
 | Zero        | Zeroincombenze(R)                | |warning| Norme fiscali < 2107 (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|                                                                      |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
 
-Notes/Note:
------------
+Notes / Note:
+-------------
 
 1. Localizzazione con supporto a pagamento tramite partner
 2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
@@ -64,8 +64,8 @@ Notes/Note:
 | Zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 
-Notes/Note:
------------
+Notes / Note:
+-------------
 
 1. Localizzazione con supporto a pagamento tramite partner
 2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
@@ -87,8 +87,8 @@ Notes/Note:
 | Seedoo      | Protocollo PA                    | |no_check|                         |                                                              | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 
-Notes/Note:
------------
+Notes / Note:
+-------------
 
 1. Localizzazione con supporto a pagamento tramite partner
 2. Manca software per norme fiscali 2017
@@ -104,8 +104,8 @@ Notes/Note:
 | Librerp     | Librerp(R)                       | |check| Aggiornato al 2018      | `Didotech s.r.l. <http://www.didotech.com//>`__              | |license gpl|     |
 +-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
 
-Notes/Note:
------------
+Notes / Note:
+-------------
 
 1. Localizzazione con supporto a pagamento tramite partner
 2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B

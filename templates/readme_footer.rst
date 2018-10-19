@@ -1,3 +1,7 @@
+|
+
+Last Update / Ultimo aggiornamento: {{today}}
+
 .. |Maturity| image:: {{badge-maturity}}
     :target: {{maturity-URL}}
     :alt: {{maturity}}

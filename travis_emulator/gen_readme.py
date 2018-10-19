@@ -8,6 +8,7 @@ import ast
 import os
 import re
 import sys
+from datetime import datetime
 import z0lib
 from clodoo import build_odoo_param
 # import pdb
@@ -27,7 +28,8 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'installation',
                     'OCA_diff',
 ]
 DEFINED_TOKENS = ['name', 'summary', 'maturity',
-                  'module_name', 'repos_name', ] + DEFINED_SECTIONS
+                  'module_name', 'repos_name',
+                  'today' ] + DEFINED_SECTIONS
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
            'https://www.facebook.com/groups/openerp.italia/'],
@@ -88,6 +90,7 @@ def generate_description_file(ctx):
 
 def get_default_installation(ctx):
     statements = '::\n'
+    tool = '`Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__'
     full_fn = '../requirements.txt'
     if os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
@@ -101,9 +104,23 @@ def get_default_installation(ctx):
 Installation / Installazione
 ============================
 
-These instruction are just an example to remember what you have to do.
-Installation is based on `Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__
-Deployment is /opt/odoo/{{branch}}
++---------------------------------+------------------------------------------+
+| |en|                            | |it|                                     |
++---------------------------------+------------------------------------------+
+| These instruction are just an   | Istruzioni di esempio valide solo per    |
+| example to remember what        | distribuzioni Linux CentOS 7, Ubuntu 14+ |
+| you have to do on Linux.        | e Debian 8+                              |
+|                                 |                                          |
+| Installation is based on:       | L'installazione è basata su:             |
++---------------------------------+------------------------------------------+
+| %s         |
++---------------------------------+------------------------------------------+
+| Suggested deployment is         | Posizione suggerita per l'installazione: |
++---------------------------------+------------------------------------------+
+| **/opt/odoo/{{branch}}**                                                              |
++----------------------------------------------------------------------------+
+
+|
 
 %s
     cd $HOME
@@ -117,20 +134,28 @@ Deployment is /opt/odoo/{{branch}}
     done
     sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
 """
-        return text % statements
+        return text % (tool, statements)
 
     text = """
 Installation / Installazione
 ============================
 
-These instruction are just an example to remember what you have to do.
-Installation is based on `Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__
-Deployment is ODOO_DIR/REPOSITORY_DIR/MODULE_DIR where:
++---------------------------------+------------------------------------------+
+| |en|                            | |it|                                     |
++---------------------------------+------------------------------------------+
+| These instruction are just an   | Istruzioni di esempio valide solo per    |
+| example to remember what        | distribuzioni Linux CentOS 7, Ubuntu 14+ |
+| you have to do on Linux.        | e Debian 8+                              |
+|                                 |                                          |
+| Installation is based on:       | L'installazione è basata su:             |
++---------------------------------+------------------------------------------+
+| %s         |
++---------------------------------+------------------------------------------+
+| Suggested deployment is         | Posizione suggerita per l'installazione: |
++---------------------------------+------------------------------------------+
+| /opt/odoo/{{branch}}/{{repos_name}}/{{module_name}}                               |
++----------------------------------------------------------------------------+
 
-| ODOO_DIR is root Odoo directory, i.e. /opt/odoo/{{branch}}
-| REPOSITORY_DIR is downloaded git repository directory, currently is: {{repos_name}}
-| MODULE_DIR is module directory, currently is: {{module_name}}
-| MYDB is the database name
 |
 
 %s
@@ -169,7 +194,7 @@ to recover installation status:
 
 ``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
 """
-    return text % statements
+    return text % (tool, statements)
 
 
 def get_default_credits(ctx):
@@ -295,9 +320,9 @@ o `LGPL <https://www.gnu.org/licenses/lgpl.html>`__
 is a nonprofit organization whose mission is to support
 the collaborative development of Odoo features and promote its widespread use.
 
-**zeroincombenze®** is a trademark of `SHS-AV s.r.l. <http://www.shs-av.com/>`__
+**zeroincombenze®** is a trademark of `SHS-AV s.r.l. <https://www.shs-av.com/>`__
 which distributes and promotes **Odoo** ready-to-use on own cloud infrastructure.
-`Zeroincombenze® distribution of Odoo <http://wiki.zeroincombenze.org/en/Odoo>`__
+`Zeroincombenze® distribution of Odoo <https://wiki.zeroincombenze.org/en/Odoo>`__
 is mainly designed for Italian law and markeplace.
 
 Users can download from `Zeroincombenze® distribution <https://github.com/zeroincombenze/OCB>`__
@@ -358,16 +383,16 @@ def replace_macro(ctx, line):
             value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
                 GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
         elif token == 'badge-OCA':
-            value = 'http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-%d.svg' % (
+            value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-%d.svg' % (
                 ctx['odoo_majver'])
         elif token == 'badge-doc':
-            value = 'http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-%d.svg' % (
+            value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-%d.svg' % (
                 ctx['odoo_majver'])
         elif token == 'badge-help':
-            value = 'http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-%s.svg' % (
+            value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-%s.svg' % (
                 ctx['odoo_majver'])
         elif token == 'badge-try_me':
-            value = 'http://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-%s.svg' % (
+            value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-%s.svg' % (
                 ctx['odoo_majver'])
         elif token == 'maturity-URL':
             value = 'https://odoo-community.org/page/development-status'
@@ -384,10 +409,10 @@ def replace_macro(ctx, line):
             value = 'https://github.com/OCA/%s/tree/%s' % (
                 ctx['repos_name'], ctx['odoo_fver'])
         elif token == 'doc-URL':
-            value = 'http://wiki.zeroincombenze.org/en/Odoo/%s/dev' % (
+            value = 'https://wiki.zeroincombenze.org/en/Odoo/%s/dev' % (
                 ctx['odoo_fver'])
         elif token == 'help-URL':
-            value = 'http://wiki.zeroincombenze.org/it/Odoo/%s/man' % (
+            value = 'https://wiki.zeroincombenze.org/it/Odoo/%s/man' % (
                 ctx['odoo_fver'])
         elif token == 'try_me-URL':
             if ctx['git_orgid'] == 'oca':
@@ -499,6 +524,7 @@ def parse_source(ctx, filename, ignore=None):
 def read_manifest(ctx):
     if ctx['odoo_level'] != 'module':
         ctx['manifest'] = {}
+        return
     if ctx['odoo_majver'] >= 10:
         if os.path.isfile('./__manifest__.py'):
             manifest_file = './__manifest__.py'
@@ -568,6 +594,7 @@ def generate_readme(ctx):
         ctx['repos_name'] = build_odoo_param('REPOS',
                                              odoo_vid=ctx['odoo_fver'])
     ctx['dst_file'] = './README.rst'
+    ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
     read_manifest(ctx)
     ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
