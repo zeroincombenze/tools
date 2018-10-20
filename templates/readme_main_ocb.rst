@@ -13,9 +13,9 @@ The main Odoo Apps include an Open Source CRM and Enterprise Resource Planning. 
 
 |it|
 
-==============================
-Odoo {{branch}} (gia' OpenERP)
-==============================
+=============================
+Odoo {{branch}} (già OpenERP)
+=============================
 
 Odoo è una suite di prodotti web open-source.
 
@@ -32,15 +32,15 @@ Distributions / Distribuzioni Odoo {{branch}}:
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
 | name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza                                                                  |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| Odoo EE     | Odoo Enterprise Edition          | |check| Tramite partner        (1) | `Odoo S.A. <https://www.odoo.com/>`__                        | `OPL <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__ |
+|             | Odoo EE - Enterprise Edition     | |check| Tramite partner        (1) | `Odoo S.A. <https://www.odoo.com/>`__                        | `OPL <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__ |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| Odoo CE     | Odoo Community Edition           | |no_check|                         | `Odoo S.A. <https://www.odoo.com/>`__                        | |license gpl|                                                                      |
+| odoo        | Odoo CE - Community Edition      | |no_check|                         | `Odoo S.A. <https://www.odoo.com/>`__                        | |license gpl|                                                                      |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| OCA         | Odoo CE                          | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|                                                                      |
+| oca         | Odoo CE by OCA                   | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|                                                                      |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| OIA         | Odoo CE                          | |warning| Norme fiscali < 2107 (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|                                                                      |
+| oia         | Odoo CE by OIA                   | |warning| Norme fiscali < 2107 (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|                                                                      |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| Zero        | Zeroincombenze(R)                | |warning| Norme fiscali < 2107 (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|                                                                      |
+| zero        | Zeroincombenze(R)                | |warning| Norme fiscali < 2107 (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|                                                                      |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
 
 Notes / Note:
@@ -55,13 +55,13 @@ Notes / Note:
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 | name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| Odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
+| odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| OCA         | OCA distribution                 | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
+| oca         | Odoo by OCA                      | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| OIA         | Odoo Italia                      | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
+| oia         | Odoo Italia                      | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| Zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
+| zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 
 Notes / Note:
@@ -76,13 +76,13 @@ Notes / Note:
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 | name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| Odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
+| odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| OCA         | OCA distribution                 | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
+| oca         | Odoo by OCA                      | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| OIA         | Odoo CE                          | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
+| oia         | Odoo Italia                      | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| Zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
+| zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
 | Seedoo      | Protocollo PA                    | |no_check|                         |                                                              | |license gpl|     |
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
@@ -112,6 +112,7 @@ Notes / Note:
 3. Software per Fattura elettronica B2B in sviluppo
 
 .. $versions all
+
 
 {{installation}}
 

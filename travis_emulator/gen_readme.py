@@ -3,18 +3,20 @@
 """
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import ast
 import os
 import re
 import sys
 from datetime import datetime
+from lxml import etree
+from os0 import os0
 import z0lib
 from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.56"
+__version__ = "0.2.1.57"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -25,11 +27,12 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'installation',
                     'configuration', 'usage', 'known_issue',
                     'bug_tracker', 'credits', 'copyright_notes',
                     'features', 'certifications', 'history',
-                    'OCA_diff',
+                    'OCA_diff', 'avaiable_addons',
 ]
 DEFINED_TOKENS = ['name', 'summary', 'maturity',
                   'module_name', 'repos_name',
-                  'today' ] + DEFINED_SECTIONS
+                  'today', 'authors', 'contributors',
+] + DEFINED_SECTIONS
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
            'https://www.facebook.com/groups/openerp.italia/'],
@@ -40,6 +43,8 @@ DEFINED_GRYMB_SYMBOLS = {
     'menu': ['awesome/menu.png', False],
     'right_do': ['awesome/right_do.png', False],
     'exclamation': ['awesome/exclamation.png', False],
+    'late': ['awesome/late.png', False],
+    'same': ['awesome/same.png', False],
     'warning': ['awesome/warning.png', False],
     'xml_schema': ['certificates/iso/icons/xml-schema.png',
                    'https://raw.githubusercontent.com/zeroincombenze/grymb' \
@@ -52,14 +57,14 @@ DEFINED_GRYMB_SYMBOLS = {
                    'certificates/ade/scope/fatturapa.md'],
 }
 EXCLUDED_MODULES = ['lxml', ]
-MANIFEST_ITEMS = ('name', 'version', 'category',
-                  'author', 'website', 'summary',
+MANIFEST_ITEMS = ('name', 'summary', 'version',
+                  'category','author', 'website',
                   'license', 'depends', 'data',
                   'demo', 'test', 'installable',
                   'maturity', 'description')
 
 
-def get_template_path(ctx, template, ignore=None):
+def get_template_path(ctx, template, ignore_ntf=None):
     for src_path in ('.',
                      './egg-info',
                      '/opt/odoo/dev/pypi/tools/templates',
@@ -70,7 +75,7 @@ def get_template_path(ctx, template, ignore=None):
         if os.path.isfile(full_fn):
             break
     if not os.path.isfile(full_fn):
-        if ignore:
+        if ignore_ntf:
             full_fn = ''
         else:
             raise IOError('Template %s not found' % template)
@@ -84,7 +89,7 @@ def generate_description_file(ctx):
     if not os.path.isdir('./egg-info'):
         os.makedirs('./egg-info')
     fd = open(full_fn, 'w')
-    fd.write(ctx['description'])
+    fd.write(os0.b(ctx['description']))
     fd.close()
 
 
@@ -92,50 +97,13 @@ def get_default_installation(ctx):
     statements = '::\n'
     tool = '`Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__'
     full_fn = '../requirements.txt'
-    if os.path.isfile(full_fn):
+    if ctx['odoo_level'] == 'module' and os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
-        source = fd.read()
+        source = os0.u(fd.read())
         fd.close()
         for module in source.split('\n'):
             if module and module[0] != '#' and module not in EXCLUDED_MODULES:
                 statements += '\n    pip install %s' % module
-    if ctx['odoo_level'] == 'ocb':
-        text = """
-Installation / Installazione
-============================
-
-+---------------------------------+------------------------------------------+
-| |en|                            | |it|                                     |
-+---------------------------------+------------------------------------------+
-| These instruction are just an   | Istruzioni di esempio valide solo per    |
-| example to remember what        | distribuzioni Linux CentOS 7, Ubuntu 14+ |
-| you have to do on Linux.        | e Debian 8+                              |
-|                                 |                                          |
-| Installation is based on:       | L'installazione è basata su:             |
-+---------------------------------+------------------------------------------+
-| %s         |
-+---------------------------------+------------------------------------------+
-| Suggested deployment is         | Posizione suggerita per l'installazione: |
-+---------------------------------+------------------------------------------+
-| **/opt/odoo/{{branch}}**                                                          |
-+----------------------------------------------------------------------------+
-
-|
-
-%s
-    cd $HOME
-    git clone https://github.com/zeroincombenze/tools.git
-    cd ./tools
-    ./install_tools.sh -p
-    export PATH=$HOME/dev:$PATH
-    odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
-    for pkg in os0 z0lib; do
-        pip install $pkg -U
-    done
-    sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
-"""
-        return text % (tool, statements)
-
     text = """
 Installation / Installazione
 ============================
@@ -149,23 +117,48 @@ Installation / Installazione
 |                                 |                                          |
 | Installation is based on:       | L'installazione è basata su:             |
 +---------------------------------+------------------------------------------+
-| %s         |
+| %-74.74s |
 +---------------------------------+------------------------------------------+
 | Suggested deployment is         | Posizione suggerita per l'installazione: |
-+---------------------------------+------------------------------------------+
-| /opt/odoo/{{branch}}/{{repos_name}}/{{module_name}}                               |
++---------------------------------+------------------------------------------+""" % tool
+    if ctx['odoo_level'] == 'ocb':
+        url = '**/opt/odoo/%s**' % ctx['odoo_fver']
+        text += """
+| %-74.74s |
 +----------------------------------------------------------------------------+
-
+""" % url
+    elif ctx['odoo_level'] == 'repository':
+        url = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
+        text += """
+| %-74.74s |
++----------------------------------------------------------------------------+
+""" % url
+    else:
+        url = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
+        text += """
+| %-74.74s |
++----------------------------------------------------------------------------+
+""" % url
+    text += """
 |
 
-%s
+::
+
     cd $HOME
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
     export PATH=$HOME/dev:$PATH
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
+    for pkg in os0 z0lib; do
+        pip install $pkg -U
+    done
+    sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
+"""
+    if ctx['odoo_level'] == 'module':
+        text += """
 
+|
 
 From UI: go to:
 .. $versions 11.0 10.0
@@ -194,53 +187,102 @@ to recover installation status:
 
 ``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
 """
-    return text % (tool, statements)
+    return text
+
+
+def get_default_avaiable_addons(ctx):
+    if 'addons_info' not in ctx:
+        return ''
+    text = ''
+    text += 'Avaiable Addons / Moduli disponibili\n'
+    text += '------------------------------------\n'
+    text += '\n'
+    lol = 0
+    for pkg in ctx['addons_info'].keys():
+        if len(pkg) > lol:
+            lol = len(pkg)
+    if lol > 36:
+        lol = 36
+    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-50.50s |\n' % (lol, lol)
+    lne = fmt % ('', '', '', '')
+    lne = lne.replace(' ', '-').replace('|', '+')
+    text += lne
+    text += fmt % ('Name / Nome',
+                   'Version',
+                   'OCA Ver.',
+                   'Description / Descrizione')
+    text += lne
+    for pkg in ctx['addons_info'].keys():
+        if ctx['addons_info'][pkg]['version'] == ctx[
+                'addons_info'][pkg]['oca_version']:
+            oca_version = '|same|'
+        elif ctx['addons_info'][pkg]['oca_version'] == 'N/A':
+            oca_version = '|no_check|'
+        else:
+            oca_version = ctx['addons_info'][pkg]['oca_version']
+        if ctx['addons_info'][pkg]['version'] == 'N/A':
+            version = '|no_check|'
+        else:
+            version = ctx['addons_info'][pkg]['version']
+        text += fmt % (pkg,
+                       version,
+                       oca_version,
+                       ctx['addons_info'][pkg]['summary'])
+        text += lne
+    return text
 
 
 def get_default_credits(ctx):
     authors = ''
+    authors_rst = ''
     full_fn = './egg-info/authors.txt'
     if os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
-        source = fd.read()
+        source = os0.u(fd.read())
         fd.close()
         for line in source.split('\n'):
-            if line and line[0] != '#' and line not in EXCLUDED_MODULES:
+            if line and line[0] != '#':
                 if line[0:2] == '* ':
                     line = line[2:]
-                authors += '\n* `%s`__' % line
+                authors_rst += '\n* `%s`__' % line
+                authors += '* %s\n' % line
     else:
-        authors = '* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__'
+        authors_rst = '* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__'
+        authors = '* SHS-AV s.r.l. <https://www.zeroincombenze.it/>'
     contributors = ''
+    contributors_rst = ''
     full_fn = './egg-info/contributors.txt'
     if os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
-        source = fd.read()
+        source = os0.u(fd.read())
         fd.close()
         for line in source.split('\n'):
-            if line and line[0] != '#' and line not in EXCLUDED_MODULES:
+            if line and line[0] != '#':
                 if line[0:2] != '* ':
-                    contributors += '\n* %s' % line
+                    contributors_rst += '\n* %s' % line
+                    contributors += '* %s\n' % line
                 else:
-                    contributors += '\n%s' % line
+                    contributors_rst += '\n%s' % line
+                    contributors += '%s\n' % line
     else:
+        contributors_rst = '* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>'
         contributors = '* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>'
     text = """
-Credits
-=======
+Credits / Riconoscimenti
+========================
 
-Authors
--------
-
-%s
-
-Contributors
-------------
+Authors / Autori
+----------------
 
 %s
 
-Maintainers
------------
+Contributors / Contributi
+-------------------------
+
+%s
+
+Maintainers / Manutenimento
+---------------------------
 
 |Odoo Italia Associazione|
 
@@ -248,7 +290,9 @@ This module is maintained by the Odoo Italia Associazione.
 
 To contribute to this module, please visit https://odoo-italia.org/.
 """
-    return text % (authors, contributors)
+    ctx['authors'] = authors
+    ctx['contributors'] = contributors
+    return text % (authors_rst, contributors_rst)
 
 
 def get_default_known_issue(ctx):
@@ -298,7 +342,7 @@ the collaborative development of Odoo features and promote its widespread use.
 is the nonprofit Italian Community Association whose mission
 is to support the collaborative development of Odoo designed for Italian law and markeplace.
 Since 2017 Odoo Italia Associazione issues modules for Italian localization not developed by OCA
-or available only with Odoo Proprietary License.
+or available only with `Odoo Proprietary License <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__
 Odoo Italia Associazione distributes code under `AGPL <https://www.gnu.org/licenses/agpl-3.0.html>`__
 or `LGPL <https://www.gnu.org/licenses/lgpl.html>`__ free license.
 
@@ -331,13 +375,45 @@ and deploy on local server.
     return text
 
 
-def replace_macro(ctx, line):
+def tohtml(text):
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
+    lines = text.split('\n')
+    if len(lines) == 1:
+        return text
+    while not lines[-1]:
+        del lines[-1]
+    while not lines[0]:
+        del lines[0]
+    if len(lines) > 2:
+        if lines[1][0] in ('=', '-'):
+            del lines[0]
+            del lines[0]
+            while not lines[0]:
+                del lines[0]
+    is_list = True
+    for line in lines:
+        if line[0:2] != '* ':
+            is_list = False
+            break
+    if is_list:
+        for i in range(len(lines)):
+            lines[i] = '<li>%s</li>' % lines[i][2:]
+        lines.insert(0, '<ul>')
+        lines.append('</ul>')
+    return '\n'.join(lines)
+
+
+def replace_macro(ctx, line, fmt=None):
+    fmt = fmt or 'rst'
     i = line.find('{{')
     j = line.find('}}')
     while i >=0 and j > i:
         token = line[i + 2: j]
         if token in DEFINED_TOKENS:
-            value = ctx[token]
+            if fmt == 'html':
+                value = tohtml(ctx[token])
+            else:
+                value = ctx[token]
         elif token[0:12] == 'grymb_image_' and \
                 token[12:] in DEFINED_GRYMB_SYMBOLS:
             value = 'https://raw.githubusercontent.com/zeroincombenze/grymb' \
@@ -438,7 +514,7 @@ def replace_macro(ctx, line):
     return line
 
 
-def parse_source(ctx, filename, ignore=None):
+def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
     def append_line(state, line, no_nl=None):
         nl = '' if no_nl else '\n'
         if state['cache']:
@@ -455,7 +531,8 @@ def parse_source(ctx, filename, ignore=None):
         target = ''
         state = state or {'cache': '',
                           'prior_line': '',
-                          'action': 'write'}
+                          'action': 'write',
+                          'fmt': 'rst'}
         for line in source.split('\n'):
             if line[0:13] == '.. $versions ':
                 enable_versions = line[13:].strip()
@@ -491,7 +568,7 @@ def parse_source(ctx, filename, ignore=None):
                         state, text = append_line(state, line)
                         target += text
                 else:
-                    text = replace_macro(ctx, line)
+                    text = replace_macro(ctx, line, fmt=state['fmt'])
                     texts = text.split('\n')
                     if len(texts) > 1:
                         for text in texts:
@@ -501,24 +578,37 @@ def parse_source(ctx, filename, ignore=None):
                             target += text
                     else:
                         state, text = append_line(state, text)
-                    target += text
+                        target += text
         return state, target
 
-    def parse_local_file(ctx, filename, ignore=None, state=None):
+    def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
         state = state or {'cache': '',
                           'prior_line': '',
-                          'action': 'write'}
-        full_fn = get_template_path(ctx, filename, ignore=ignore)
+                          'action': 'write',
+                          'fmt': 'rst'}
+        full_fn = get_template_path(ctx, filename, ignore_ntf=ignore_ntf)
         if not full_fn:
             return state, ''
         if ctx['opt_verbose']:
             print("Reading %s" % full_fn)
         fd = open(full_fn, 'rU')
-        source = fd.read()
+        source = os0.u(fd.read())
         fd.close()
-        return parse_local_source(ctx, source, state=None)
+        return parse_local_source(ctx, source, state=state)
 
-    return parse_local_file(ctx, filename, ignore=ignore)[1]
+    if fmt:
+        state = {'cache': '',
+                 'prior_line': '',
+                 'action': 'write',
+                 'fmt': fmt}
+    else:
+        state = {'cache': '',
+                 'prior_line': '',
+                 'action': 'write',
+                 'fmt': 'rst'}
+    return parse_local_file(ctx, filename,
+                            ignore_ntf=ignore_ntf,
+                            state=state)[1]
 
 
 def read_manifest(ctx):
@@ -541,9 +631,63 @@ def read_manifest(ctx):
             print('Warning: manifest file not found')
     if manifest_file:
         ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
+        ctx['manifest'] = {
+            os0.u(k):os0.u(v) for k,v in ctx['manifest'].items()}
         ctx['manifest_file'] = manifest_file
     else:
         ctx['manifest'] = {}
+
+
+def adj_version(ctx, version):
+    if not version:
+        version = '0.0'
+    if version[0].isdigit():
+        if version.find(ctx['odoo_fver']) != 0:
+            version = '%s.%s' % (ctx['odoo_fver'], version)
+    return version
+
+
+def read_all_manifests(ctx):
+    addons_info = {}
+    if ctx['odoo_majver'] >= 10:
+        manifest_file = '__manifest__.py'
+    else:
+        manifest_file = '__openerp__.py'
+    for root, dirs, files in os.walk('.'):
+        if root.find('__to_remove') < 0:
+            module_name = os.path.basename(root)
+            if manifest_file in files:
+                full_fn = os.path.join(root,manifest_file)
+                addons_info[module_name] = ast.literal_eval(open(
+                    full_fn).read())
+                addons_info[module_name] = {
+                    os0.u(k):os0.u(v) for k,v in addons_info[
+                        module_name].items()}
+                if 'summary' not in addons_info[module_name]:
+                    addons_info[module_name]['summary'] = addons_info[
+                        module_name]['name']
+                addons_info[module_name]['version'] = adj_version(
+                    ctx, addons_info[module_name].get('version', ''))
+                addons_info[module_name]['oca_version'] = 'N/A'
+    oca_root = '/opt/odoo/oca%d/%s' % (ctx['odoo_majver'], ctx['repos_name'])
+    for root, dirs, files in os.walk(oca_root):
+        if root.find('__to_remove') < 0:
+            module_name = os.path.basename(root)
+            if manifest_file in files:
+                full_fn = os.path.join(root,manifest_file)
+                oca_manifest = ast.literal_eval(open(full_fn).read())
+                oca_manifest = {
+                    os0.u(k):os0.u(v) for k,v in oca_manifest.items()}
+                oca_version = adj_version(ctx, oca_manifest.get('version', ''))
+                if module_name not in addons_info:
+                    addons_info[module_name] = {}
+                    if 'summary' in oca_manifest:
+                        addons_info[module_name]['summary'] = oca_manifest['summary']
+                    else:
+                        addons_info[module_name]['summary'] = oca_manifest['name']
+                    addons_info[module_name]['version'] = 'N/A'
+                addons_info[module_name]['oca_version'] = oca_version
+    ctx['addons_info'] = addons_info
 
 
 def manifest_contents(ctx):
@@ -551,7 +695,7 @@ def manifest_contents(ctx):
     source = ''
     if full_fn:
         fd = open(full_fn, 'rU')
-        source = fd.read()
+        source = os0.u(fd.read())
         fd.close()
     target = ''
     for line in source.split('\n'):
@@ -583,28 +727,72 @@ def manifest_contents(ctx):
     return target
 
 
-def generate_readme(ctx):
+def xml_replace_text(ctx, root, item, text, pos=None):
+    pos = pos or [1, 999]
+    ctr = 0
+    for element in root.iter():
+        if element.tag == item:
+            ctr += 1
+            if ctr >= pos[0] and ctr <= pos[1]:
+                element.text = text
+
+
+def index_html_content(ctx, source):
     # pdb.set_trace()
-    if not ctx['module_name']:
-        ctx['module_name'] = build_odoo_param('PKGNAME',
-                                              odoo_vid=ctx['odoo_fver'])
-    if ctx['odoo_level'] == 'ocb':
-        ctx['repos_name'] = 'OCB'
+    target = ''
+    lines = ctx['descrizione'].split('\n')
+    if lines[0]:
+        title = '%s / %s' % (ctx['name'], lines[0])
+    elif lines[1]:
+        title = '%s / %s' % (ctx['name'], lines[1])
     else:
+        title = ctx['name']
+    for section in source.split('\f'):
+        root = etree.XML(section)
+        xml_replace_text(ctx, root, 'h2', title)
+        target += '\n%s' % etree.tostring(root, pretty_print=True)
+    return target
+
+
+def generate_readme(ctx):
+    if ctx['odoo_level'] == 'ocb':
+        ctx['module_name'] = ''
+        ctx['repos_name'] = 'OCB'
+    elif ctx['odoo_level'] == 'repository':
+        ctx['module_name'] = ''
+        # ctx['repos_name'] = build_odoo_param('REPOS',
+        #                                      odoo_vid=ctx['odoo_fver'])
+        ctx['repos_name'] = os.path.basename(os.getcwd())
+    else:
+        if not ctx['module_name']:
+            ctx['module_name'] = build_odoo_param('PKGNAME',
+                                                  odoo_vid=ctx['odoo_fver'])
         ctx['repos_name'] = build_odoo_param('REPOS',
                                              odoo_vid=ctx['odoo_fver'])
-    ctx['dst_file'] = './README.rst'
+    if ctx['write_html']:
+        ctx['dst_file'] = './static/description/index.html'
+    else:
+        ctx['dst_file'] = './README.rst'
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
-    read_manifest(ctx)
-    ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
-    ctx['name'] = ctx['manifest'].get('name',
-                                      ctx['module_name'].replace('_', ' '))
-    ctx['summary'] = ctx['manifest'].get('summary', ctx['name'])
+    if ctx['odoo_level'] != 'repository':
+        read_manifest(ctx)
+        if ctx['rewrite_manifest']:
+            ctx['dst_file'] = ctx['manifest_file']
+        ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
+        ctx['name'] = ctx['manifest'].get('name',
+                                          ctx['module_name'].replace('_', ' '))
+        ctx['summary'] = ctx['manifest'].get('summary', ctx['name'])
+    else:
+        read_all_manifests(ctx)
+        ctx['name'] = ctx['repos_name']
+        ctx['maturity'] = 'Alfa'
+        ctx['manifest'] = ''
     for section in DEFINED_SECTIONS:
-        ctx[section] = parse_source(ctx, '%s.rst' % section, ignore=True)
+        ctx[section] = parse_source(ctx, '%s.rst' % section, ignore_ntf=True)
     if not ctx['description']:
-        ctx['description'] = ctx['manifest'].get('description', '')
+        if ctx['manifest']:
+            ctx['description'] = ctx['manifest'].get('description', '')
         generate_description_file(ctx)
     if not ctx['installation']:
         ctx['installation'] = get_default_installation(ctx)
@@ -616,18 +804,22 @@ def generate_readme(ctx):
         ctx['credits'] = get_default_credits(ctx)
     if not ctx['copyright_notes']:
         ctx['copyright_notes'] = get_default_copyright_notes(ctx)
-    target = parse_source(ctx, 'readme_main_%s.rst' % ctx['odoo_level'])
+    if not ctx['avaiable_addons']:
+        ctx['avaiable_addons'] = get_default_avaiable_addons(ctx)
+    if ctx['write_html']:
+        target = index_html_content(ctx,
+                                    parse_source(ctx,
+                                                 'readme_index.html',
+                                                 fmt='html'))
+    else:
+        target = parse_source(ctx, 'readme_main_%s.rst' % ctx['odoo_level'])
     if ctx['rewrite_manifest']:
         target = manifest_contents(ctx)
-        tmpfile = '%s.tmp' % ctx['manifest_file']
-        bakfile = '%s.bak' % ctx['manifest_file']
-        dst_file = ctx['manifest_file']
-    else:
-        tmpfile = '%s.tmp' % ctx['dst_file']
-        bakfile = '%s.bak' % ctx['dst_file']
-        dst_file = ctx['dst_file']
+    tmpfile = '%s.tmp' % ctx['dst_file']
+    bakfile = '%s.bak' % ctx['dst_file']
+    dst_file = ctx['dst_file']
     fd = open(tmpfile, 'w')
-    fd.write(target)
+    fd.write(os0.b(target))
     fd.close()
     if os.path.isfile(bakfile):
         os.remove(bakfile)
@@ -651,6 +843,9 @@ if __name__ == "__main__":
     parser.add_argument('-G', '--git-org',
                         action='store',
                         dest='git_orgid')
+    parser.add_argument('-H', '--write-index_html',
+                        action='store_true',
+                        dest='write_html')
     parser.add_argument('-l', '--level',
                         action='store',
                         help='ocb|module|repository',

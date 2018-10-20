@@ -29,6 +29,9 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Try Me| image:: {{badge-try_me}}
     :target: {{try_me-URL}}
     :alt: Try Me
+.. |OCA Codecov Status| image:: {{badge-oca-codecov}}
+    :target: {{oca-codecov-URL}}
+    :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
    :alt: Odoo Italia Associazione
@@ -42,10 +45,11 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |right_do| image:: {{grymb_image_right_do}}
 .. |exclamation| image:: {{grymb_image_exclamation}}
 .. |warning| image:: {{grymb_image_warning}}
+.. |same| image:: {{grymb_image_same}}
+.. |late| image:: {{grymb_image_late}}
 .. |xml_schema| image:: {{grymb_image_xml_schema}}
    :target: {{grymb_url_xml_schema}}
 .. |DesktopTelematico| image:: {{grymb_image_DesktopTelematico}}
    :target: {{grymb_url_DesktopTelematico}}
 .. |FatturaPA| image:: {{grymb_image_FatturaPA}}
    :target: {{grymb_url_FatturaPA}}
-   

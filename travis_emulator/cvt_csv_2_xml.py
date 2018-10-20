@@ -14,7 +14,7 @@ from os0 import os0
 import z0lib
 
 
-__version__ = "0.2.1.56"
+__version__ = "0.2.1.57"
 
 
 def convert_file(ctx):
