@@ -22,8 +22,8 @@ Odoo {{branch}} (formerly OpenERP)
 
 {{history}}
 
-Maintainers
------------
+Maintainers / Manutezione
+-------------------------
 
 |Odoo Italia Associazione|
 

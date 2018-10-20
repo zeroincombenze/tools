@@ -62,6 +62,21 @@ MANIFEST_ITEMS = ('name', 'summary', 'version',
                   'license', 'depends', 'data',
                   'demo', 'test', 'installable',
                   'maturity', 'description')
+RST2HTML_GRYMB = {
+    '|check|': '<span class="fa fa-check-square-o" style="color: green"/>',
+    '|no_check|': '<span class="fa fa-close" style="color: red"/>',
+    '|menu|': 'Menu',
+    '|right_do|': '=>',
+    '|exclamation|': '<span class="fa fa-exclamation"/>',
+    '|late|': '*',
+    '|same|': '==',
+    '|warning|':
+        '<span class="fa fa-exclamation-triangle" style="color: orange"/>',
+    '|circle|': '<span class="fa fa-circle"/>',
+    '|xml_schema|': '&lt;/&gt;',
+    '|DesktopTelematico|': '&lt;AdE&gt;',
+    '|FatturaPA|': '&lt;FatturaPa&gt;',
+}
 
 
 def get_template_path(ctx, template, ignore_ntf=None):
@@ -281,8 +296,8 @@ Contributors / Contributi
 
 %s
 
-Maintainers / Manutenimento
----------------------------
+Maintainers / Manutezione
+-------------------------
 
 |Odoo Italia Associazione|
 
@@ -400,6 +415,15 @@ def tohtml(text):
             lines[i] = '<li>%s</li>' % lines[i][2:]
         lines.insert(0, '<ul>')
         lines.append('</ul>')
+    else:
+        for i in range(len(lines)):
+            if lines[i] == '':
+                lines[i] = '</p><p align="justify">'
+            else:
+                for t in RST2HTML_GRYMB.keys():
+                    lines[i] = lines[i].replace(t,RST2HTML_GRYMB[t]) 
+        lines.insert(0, '<p align="justify">')
+        lines.append('</p>')
     return '\n'.join(lines)
 
 
