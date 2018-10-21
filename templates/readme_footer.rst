@@ -47,6 +47,8 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |warning| image:: {{grymb_image_warning}}
 .. |same| image:: {{grymb_image_same}}
 .. |late| image:: {{grymb_image_late}}
+.. |halt| image:: {{grymb_image_halt}}
+.. |info| image:: {{grymb_image_info}}
 .. |xml_schema| image:: {{grymb_image_xml_schema}}
    :target: {{grymb_url_xml_schema}}
 .. |DesktopTelematico| image:: {{grymb_image_DesktopTelematico}}
