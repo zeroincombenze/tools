@@ -16,7 +16,7 @@ from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.57"
+__version__ = "0.2.1.58"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -46,6 +46,8 @@ DEFINED_GRYMB_SYMBOLS = {
     'late': ['awesome/late.png', False],
     'same': ['awesome/same.png', False],
     'warning': ['awesome/warning.png', False],
+    'info': ['awesome/info.png', False],
+    'halt': ['awesome/halt.png', False],
     'xml_schema': ['certificates/iso/icons/xml-schema.png',
                    'https://raw.githubusercontent.com/zeroincombenze/grymb' \
                    'certificates/iso/scope/xml-schema.md'],
@@ -63,19 +65,21 @@ MANIFEST_ITEMS = ('name', 'summary', 'version',
                   'demo', 'test', 'installable',
                   'maturity', 'description')
 RST2HTML_GRYMB = {
-    '|check|': '<span class="fa fa-check-square-o" style="color: green"/>',
-    '|no_check|': '<span class="fa fa-close" style="color: red"/>',
-    '|menu|': 'Menu',
-    '|right_do|': '=>',
-    '|exclamation|': '<span class="fa fa-exclamation"/>',
-    '|late|': '*',
-    '|same|': '==',
+    '|check|': '<span class="fa fa-check-square-o" style="color:green"/>',
+    '|no_check|': '<span class="fa fa-close" style="color:red"/>',
+    '|menu|': '<span class="fa fa-navicon"/>',
+    '|right_do|': '<span class="fa fa-caret-right"/>',
+    '|exclamation|': '<span class="fa fa-exclamation style="color:orange"/>',
+    '|late|': '<span class="fa fa-calendar-times-o" style="color:red"/>',
+    '|same|': '<span class="fa fa-retweet"  style="color:blue"/>',
     '|warning|':
-        '<span class="fa fa-exclamation-triangle" style="color: orange"/>',
+        '<span class="fa fa-exclamation-triangle" style="color:orange"/>',
+    'info': '<span class="fa fa-info-circle" style="color:blue"/>',
+    'halt': '<span class="fa fa-minus-circle" style="color:red"/>',
     '|circle|': '<span class="fa fa-circle"/>',
-    '|xml_schema|': '&lt;/&gt;',
-    '|DesktopTelematico|': '&lt;AdE&gt;',
-    '|FatturaPA|': '&lt;FatturaPa&gt;',
+    '|xml_schema|': '<span class="fa fa-file-code-o"/>',
+    '|DesktopTelematico|': '<span class="fa fa-wpforms"/>',
+    '|FatturaPA|': '<span class="fa fa-euro"/>',
 }
 
 

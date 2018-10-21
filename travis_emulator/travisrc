@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.57
+#__version__=0.2.1.58
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -1035,11 +1035,11 @@ robocopy() {
 clean_dirs() {
 # clean_dirs (directory)::
 # return:
-    local cmd excl f o XXXX x
+    local cmd excl f o p XXXX x
     if [ ${opt_verbose:-0} -gt 0 ]; then
-      o="-print "
+      p="-print "
     else
-      o=
+      p=
     fi
     XXXX=$(get_cfg_value "" "filedel")
     if [ "$PWD" == "/opt/odoo/tools" ]; then
@@ -1047,10 +1047,10 @@ clean_dirs() {
     fi
     if [ -f ".gitmodules" ]; then
       excl=$(cat .gitmodules |grep path|awk -F= '{print $2}'|tr -d "\n"|tr " " "|")
-      excl="(${excl:1})"
     else
-      excl=
+      excl=""
     fi
+    excl="(.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache$excl)"
     cmd="find"
     for f in $1/*; do
       if [ -d $f ]; then
@@ -1058,19 +1058,21 @@ clean_dirs() {
           if [[ ! $f =~ $excl ]]; then
             cmd="$cmd $f"
           fi
+        else
+          cmd="$cmd $f"
         fi
       else
         cmd="$cmd $f"
       fi
     done
-    cmd="$cmd -nowarn"
+    o="-nowarn \("
     for x in $XXXX;do
       if [ "$x" != ".conf" ]; then
-        cmd="$cmd -name '$x'"
+        cmd="$cmd $o -name '*$x'"
+        o="-o"
       fi
     done
-    [ ${opt_verbose:-0} -gt 0 ] && echo "> $cmd -exec rm -f '{}' \;"
-    [ ${opt_dry_run:-0} -eq 0 ] && eval "$cmd $o -exec rm -f '{}' \;"
+    run_traced "$cmd \) -exec rm -f '{}' \;"
     if [ -f .gitignore ]; then
       if [ -z "$(grep "stdout.log" .gitignore 2>/dev/null)" ]; then
         echo "stdout.log">>.gitignore
@@ -1163,32 +1165,33 @@ ant_erase() {
 }
 
 set_executable() {
-  local cmd excl f x
+  local b cmd excl f x
   if [ ${opt_dry_run: -0} -eq 0 ]; then
     if [ -f ".gitmodules" ]; then
       excl=$(cat .gitmodules |grep path|awk -F= '{print $2}'|tr -d "\n"|tr " " "|")
     else
-      excl=" "
+      excl=""
     fi
-    excl="(${excl:1}|.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache)"
+    excl="(.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache$excl)"
     cmd=""
     for f in $PKGPATH/*; do
+      b=$(basename $f)
       if [ -d $f ]; then
         if [ -n "$excl" ]; then
-          if [[ ! $f =~ $excl ]]; then
+          if [[ ! $b =~ $excl ]]; then
             cmd="$cmd $f"
           fi
+        else
+          cmd="$cmd $f"
         fi
       else
         cmd="$cmd $f"
       fi
     done
-    [ ${opt_verbose:-0} -gt 0 ] && echo "\$ find $cmd -type f -not -name \"*.sh\" -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
-    find $cmd -type f -not -name "*.sh" -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;
-    [ ${opt_verbose:-0} -gt 0 ] && echo "\$ find $cmd -type f -name \"*.sh\" -exec chmod +x '{}' \;"
-    find $cmd -type f -name \"*.sh\" -exec chmod +x '{}' \;
-    [ ${opt_verbose:-0} -gt 0 ] && echo "\$ find $cmd -type f -not -path \"*/__old_*\" -a -not -path \"*/VME*\" -type f -not -name \"*.js\" -exec grep -El \"#. *(/bin/bash|/usr/bin/env )\" '{}' \;|xargs -I{} chmod +x {}"
-    find $cmd -type f  -not -not -path "*/__old_*" -a -not -path "*/VME*" -type f -not -name "*.js" -exec grep -El "#. *(/bin/bash|/usr/bin/env )" '{}' \;|xargs -I{} chmod +x {}
+    cmd="find $cmd -type f"
+    run_traced "$cmd -not -name '*.sh' -a -not -name openerp-server -a -not -name odoo-bin -executable -exec chmod -x '{}' \;"
+    run_traced "$cmd -name '*.sh\' -exec chmod +x '{}' \;"
+    run_traced "$cmd -not -path '*/__old_*' -a -not -path '*/VME*' -type f -not -name '*.js' -exec grep -El '#. *(/bin/bash|/usr/bin/env )' '{}' \;|xargs -I{} chmod +x {}"
   fi
 }
 
