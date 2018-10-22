@@ -113,7 +113,8 @@ Notes / Note:
 
 .. $versions all
 
-
+{{avaiable_addons}}
+{{OCA_diff}}
 {{installation}}
 
 {{copyright_notes}}

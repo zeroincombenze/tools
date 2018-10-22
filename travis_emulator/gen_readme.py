@@ -141,23 +141,23 @@ Installation / Installazione
 | Suggested deployment is         | Posizione suggerita per l'installazione: |
 +---------------------------------+------------------------------------------+""" % tool
     if ctx['odoo_level'] == 'ocb':
-        url = '**/opt/odoo/%s**' % ctx['odoo_fver']
+        local_path = '**/opt/odoo/%s**' % ctx['odoo_fver']
         text += """
 | %-74.74s |
 +----------------------------------------------------------------------------+
-""" % url
+""" % local_path
     elif ctx['odoo_level'] == 'repository':
-        url = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
+        local_path = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
         text += """
 | %-74.74s |
 +----------------------------------------------------------------------------+
-""" % url
+""" % local_path
     else:
-        url = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
+        local_path = '**/opt/odoo/%s/%s/**' % (ctx['odoo_fver'], ctx['repos_name'])
         text += """
 | %-74.74s |
 +----------------------------------------------------------------------------+
-""" % url
+""" % local_path
     text += """
 |
 
@@ -206,6 +206,26 @@ to recover installation status:
 
 ``run_odoo_debug {{branch}} -um {{module_name}} -s -d MYDB``
 """
+    text += """
+Upgrade / Aggiornamento
+-----------------------
+
++---------------------------------+------------------------------------------+
+| |en|                            | |it|                                     |
++---------------------------------+------------------------------------------+
+| When you want upgrade and you   | Per aggiornare, se avete installato con  |
+| installed using above           | le istruzioni di cui sopra:              |
+| statements:                     |                                          |
++---------------------------------+------------------------------------------+
+
+::
+
+    cd %s
+    git pull origin {{branch}}
+    # Adjust following statements as per your system
+    sudo systemctl restart odoo
+
+""" % local_path[2:-2]
     return text
 
 
@@ -231,7 +251,7 @@ def get_default_avaiable_addons(ctx):
                    'OCA Ver.',
                    'Description / Descrizione')
     text += lne
-    for pkg in ctx['addons_info'].keys():
+    for pkg in  sorted(ctx['addons_info'].keys()):
         if ctx['addons_info'][pkg]['version'] == ctx[
                 'addons_info'][pkg]['oca_version']:
             oca_version = '|same|'
@@ -241,6 +261,8 @@ def get_default_avaiable_addons(ctx):
             oca_version = ctx['addons_info'][pkg]['oca_version']
         if ctx['addons_info'][pkg]['version'] == 'N/A':
             version = '|no_check|'
+        elif not ctx['addons_info'][pkg].get('installable', True):
+            version = '|halt|'
         else:
             version = ctx['addons_info'][pkg]['version']
         text += fmt % (pkg,
@@ -682,24 +704,32 @@ def read_all_manifests(ctx):
     else:
         manifest_file = '__openerp__.py'
     for root, dirs, files in os.walk('.'):
-        if root.find('__to_remove') < 0:
+        if ((ctx['odoo_level'] != 'ocb' and (root.find('__to_remove') < 0 or 
+                                             root.find('__unported__') < 0)) or
+                (ctx['odoo_level'] == 'ocb' and root.find('addons') >= 0)):
             module_name = os.path.basename(root)
             if manifest_file in files:
                 full_fn = os.path.join(root,manifest_file)
-                addons_info[module_name] = ast.literal_eval(open(
-                    full_fn).read())
-                addons_info[module_name] = {
-                    os0.u(k):os0.u(v) for k,v in addons_info[
-                        module_name].items()}
-                if 'summary' not in addons_info[module_name]:
-                    addons_info[module_name]['summary'] = addons_info[
-                        module_name]['name']
-                addons_info[module_name]['version'] = adj_version(
-                    ctx, addons_info[module_name].get('version', ''))
-                addons_info[module_name]['oca_version'] = 'N/A'
+                print(full_fn)  # debug
+                try:
+                    addons_info[module_name] = ast.literal_eval(open(
+                        full_fn).read())
+                    addons_info[module_name] = {
+                        os0.u(k):os0.u(v) for k,v in addons_info[
+                            module_name].items()}
+                    if 'summary' not in addons_info[module_name]:
+                        addons_info[module_name]['summary'] = addons_info[
+                            module_name]['name']
+                    addons_info[module_name]['version'] = adj_version(
+                        ctx, addons_info[module_name].get('version', ''))
+                    addons_info[module_name]['oca_version'] = 'N/A'
+                except KeyError:
+                    pass
     oca_root = '/opt/odoo/oca%d/%s' % (ctx['odoo_majver'], ctx['repos_name'])
     for root, dirs, files in os.walk(oca_root):
-        if root.find('__to_remove') < 0:
+        if ((ctx['odoo_level'] != 'ocb' and (root.find('__to_remove') < 0 or 
+                                             root.find('__unported__') < 0)) or
+                (ctx['odoo_level'] == 'ocb' and root.find('addons') >= 0)):
             module_name = os.path.basename(root)
             if manifest_file in files:
                 full_fn = os.path.join(root,manifest_file)
