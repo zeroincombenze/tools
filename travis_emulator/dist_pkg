@@ -188,8 +188,8 @@ if [ "$opt_cpush" == "-O" ]; then
   fi
   pkg=$(build_odoo_param REPOS "$srcdir")
   cd $tgtdir
-  [ $opt_verbose -gt 0 ] && echo "Wep directories"
-  clean_dirs ""
+  # [ $opt_verbose -gt 0 ] && echo "Wep directories"
+  # clean_dirs ""
   [ -d ./setup ] && rm -fR ./setup
   if [ "$pkg" == "OCB" ]; then
     echo "Replicate OCB ..."

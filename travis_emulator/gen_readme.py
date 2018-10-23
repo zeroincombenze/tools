@@ -64,12 +64,27 @@ MANIFEST_ITEMS = ('name', 'summary', 'version',
                   'license', 'depends', 'data',
                   'demo', 'test', 'installable',
                   'maturity', 'description')
+RST2HTML = {
+    # &': '&amp;',
+    '©': '&copy',
+    '®': '&reg',
+    'à': '&agrave;',
+    'á': '&aacute;',
+    'è': '&egrave;',
+    'é': '&eacute;',
+    'ì': '&igrave;',
+    'í': '&iacute;',
+    'ò': '&ograve;',
+    'ó': '&oacute;',
+    'ù': '&ugrave;',
+    'ú': '&uacute;',
+}
 RST2HTML_GRYMB = {
     '|check|': '<span class="fa fa-check-square-o" style="color:green"/>',
     '|no_check|': '<span class="fa fa-close" style="color:red"/>',
     '|menu|': '<span class="fa fa-navicon"/>',
     '|right_do|': '<span class="fa fa-caret-right"/>',
-    '|exclamation|': '<span class="fa fa-exclamation style="color:orange"/>',
+    '|exclamation|': '<span class="fa fa-exclamation" style="color:orange"/>',
     '|late|': '<span class="fa fa-calendar-times-o" style="color:red"/>',
     '|same|': '<span class="fa fa-retweet"  style="color:blue"/>',
     '|warning|':
@@ -417,7 +432,26 @@ and deploy on local server.
 
 
 def tohtml(text):
+    i = text.find('`')
+    j = text.find('`__')
+    while i > 0 and j > i:
+        t = text[i + 1: j]
+        ii = t.find('<')
+        jj = t.find('>')
+        if ii > 0 and jj > ii:
+            url = t[ii + 1: jj]
+            text = u'%s\aa href="%s"\h%s\a/a\h%s' % (
+                text[0:i],
+                url,
+                t[0: ii - 1].strip(),
+                text[j + 3]
+            )
+        else:
+            break
+        i = text.find('`')
+        j = text.find('`__')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
+    text = text.replace('\a', '<').replace('\h', '>')
     lines = text.split('\n')
     if len(lines) == 1:
         return text
@@ -481,6 +515,9 @@ def replace_macro(ctx, line, fmt=None):
                 fmt += 'description/icon.png'
             value = fmt % (GIT_USER[ctx['git_orgid']], ctx['repos_name'],
                            ctx['odoo_fver'], ctx['module_name'])
+        elif token == 'GIT_URL_ROOT':
+            value = 'https://github.com/%s/%s' % (
+                GIT_USER[ctx['git_orgid']], ctx['repos_name'])
         elif token == 'GIT_URL':
             value = 'https://github.com/%s/%s.git' % (
                 GIT_USER[ctx['git_orgid']], ctx['repos_name'])
@@ -809,6 +846,8 @@ def index_html_content(ctx, source):
         root = etree.XML(section)
         xml_replace_text(ctx, root, 'h2', title)
         target += '\n%s' % etree.tostring(root, pretty_print=True)
+    for t in RST2HTML.keys():
+        target = target.replace(t,RST2HTML[t])
     return target
 
 
