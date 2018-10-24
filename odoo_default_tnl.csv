@@ -3,53 +3,83 @@
 Account	Conto
 Account Receivable	Conto di Credito
 Account Tax	Conto IVA erario
+Address	Indirizzo
 Approve	Approva
 Attachment	Allegato
+Attendees	Partecipanti
 Bank Statement	Estratto Conto Bancario
 Cancel	Cancella
 Cancel Invoice	Cancella Fattura
 Cancel Invoices	Cancella fatture
 Code	Codice
 Confirm statement	Conferma registrazione
+Contact	Contatto
+Contacts	Contatti
 Create entries	Crea registrazioni
 Created by	Creato da
 Created on	Data di creazione
 Creation date	Data di creazione
-Credit	Dare
+Credit	Avere
 Credit amount	Importo Avere
-Debit	Avere
+Currency	Divisa
+Customer	Cliente
+Debit	Dare
 Debit amount	Importo Dare
+Description	Descrizione
+Destination Address	Indirizzo di Destinazione
+Display Name	Visualizza Nome
+Employee	Dipendente
+EORI Code	Codice EORI
+Favorited By	Preferito
 Features	Funzionalità
+Fiscal Statements	Comunicazioni Fiscali
+Help	Aiuto
 Initial Balance	Saldo Iniziale
 Invoice	Fattura
 Invoice Date	Data Fattura
 Invoice paid	Fattura pagata
 Invoice Refund	Nota di Credito
 Invoicing	Contabilità
+IPA Code	Codice IPA
 Journal	Sezionale
 Journal Entry	Registrazione Contabile
+Last Modified on	Data ultima modifica
 Last printed page	Ultima pagina su Bollato
 Last Updated by	Ultima modifica di
 Last Updated on	Data ultima modifica
 Legal Notice	Dati fiscali e legali
+License Code	Numero Licenza
 Miscellaneous Journal	Sezionale Generico
 Overdue Payments	Ritardo Pagamenti
+Partner	Soggetto
+Partner Company	Soggetto Azienda
+Partner/Customer	Soggetto/Cliente
+Partners 	Soggetti
 Payable Account	Conto di Debito
 Print Invoice	Stampa Fattura
 Profit Account	Conto Profitti
 Profit and Loss	Profitti e Perdite
 Purchases	Acquisti
+Recipient	Destinatario
+Recipient Code	Codice Destinatario
+Recipients	Destinatari
 Reconcile	Riconciliazione
 Reconcile Entries	Riconcilia Registrazioni
 Reference	Riferimento
 Refund	Nota Credito
+Registration Date	Data di Registrazione
+Related Partner	Soggetto collegato
 Replacement Tax	Imposta Sostitutiva
 Reset to Draft	Ritrasforma in Bozza
 SAJ	FAT
 Sales	Vendite
 Salesperson	Commerciale
+Self Invoice Partner	Soggetto Auto-Fattura
 Set to draft	Trasforma in bozza
+Tax Authority	Agenza delle Entrate
+Tax Authority Partner	Agenza delle Entrate
 Tax Code	Codice IVA
+Tax Nature	Natura dell'IVA
 Taxes	IVA
 Template	Modello
 the parent company	l'azienda controllante
@@ -58,5 +88,8 @@ Total Amount	Importo Totale
 Total Credit	Totale Avere
 Total Debit	Totale Dare
 Type	Tipo
+Unit Price	Prezzo Unitario
 Validated	Confermato
+VAT payability	Esigibilità IVA
+Vendor	Fornitore
 Warning!	Attenzione!

@@ -138,7 +138,7 @@ def run(deps_checkout_dir, build_dir):
         print('Installing PYPI packages from "%s"' % str(reqfilenames))
     for reqfilename in reqfilenames:
         command = ['pip', 'install', '--no-binary', 'pycparser',
-                   '-Ur', reqfilename, '--user']
+                   '-Ur', reqfilename]
         _logger.info('Calling %s', ' '.join(command))
         if os.environ.get('MQT_TEST_MODE', 'oca') == 'oca':
             try:
