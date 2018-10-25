@@ -41,7 +41,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.58
+__version__=0.2.1.59
 
 
 vf_init() {
@@ -104,9 +104,14 @@ simple_diff() {
     return $s
 }
 
-exec_diff() {
-    local left=$1
-    local right=$2
+exec_os() {
+    if [ $opt_reve -gt 0 ]; then
+      local left=$2
+      local right=$1
+    else
+      local left=$1
+      local right=$2
+    fi
     if [ -d "$left" ]; then
       if [ $opt_all -gt 0 ]; then
         opts=" -Zqr"
@@ -128,7 +133,7 @@ exec_diff() {
     return $?
 }
 
-localdiff() {
+exec_iar() {
     local param=-i
     local left=$1
     local right=$2
@@ -415,11 +420,11 @@ get_path_ver() {
     fi
 }
 
-OPTOPTS=(h        a       b        c        e         i       m      n            O         p         r            V           v           w         y        0       1       2)
-OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
-OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       "="          "*>"        1           1         1        0       1       1)
-OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        ""           ""          0           0         0        0       0       0)
-OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" "repository" "version"   "verbose"   ""        ""       ""      ""      "")
+OPTOPTS=(h        a       b        c        e         i       m      n            O         p         r            R        V           v           w         y        0       1       2)
+OPTDEST=(opt_help opt_all opt_igns opt_conf opt_diffe opt_iar opt_md opt_dry_run  odoo_ver  opt_pkg   opt_rep      opt_reve opt_version opt_verbose opt_ignas opt_para opt_sts opt_sts opt_2nd)
+OPTACTI=(1        1       1        "="      1         1       1      1            "="       "="       "="          1        "*>"        1           1         1        0       1       1)
+OPTDEFL=(0        0       0        ""       0         0       0      0            ""        ""        ""           0        ""          0           0         0        0       0       0)
+OPTMETA=("help"   ""      ""       "file"   ""        ""      ""     "do nothing" "version" "package" "repository" ""       "version"   "verbose"   ""        ""       ""      ""      "")
 OPTHELP=("this help"\
  "diff all files (ignore exclusion list)"\
  "ignore space differences"\
@@ -431,6 +436,7 @@ OPTHELP=("this help"\
  "select target Odoo version (may be 7, 8, 9 o 10)"\
  "select package name"\
  "select repository name"\
+ "reverse diff from target to source rather source to target"\
  "show version"\
  "verbose mode"\
  "ignore all space differences"\
@@ -455,7 +461,7 @@ if [ $opt_help -gt 0 ]; then
 fi
 [ $opt_all -gt 0 ] && opt_iar=0
 [ $opt_diffe -ne 0 ] & opt_para=1
-if [[ " 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
+if [[ " 12 11 10 9 8 7 " =~ [[:space:]]$odoo_ver[[:space:]] ]]; then
   odoo_ver="$odoo_ver.0"
 fi
 if [ -n "$opt_conf" -a -f "$opt_conf" ]; then
@@ -489,8 +495,8 @@ else
   right=$target
 fi
 if [ $opt_iar -gt 0 ]; then
-  localdiff "$left" "$right"
+  exec_iar "$left" "$right"
 else
-  exec_diff "$left" "$right"
+  exec_os "$left" "$right"
 fi
 exit $?

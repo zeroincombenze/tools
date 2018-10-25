@@ -16,7 +16,7 @@ from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.58"
+__version__ = "0.2.1.59"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -89,8 +89,8 @@ RST2HTML_GRYMB = {
     '|same|': '<span class="fa fa-retweet"  style="color:blue"/>',
     '|warning|':
         '<span class="fa fa-exclamation-triangle" style="color:orange"/>',
-    'info': '<span class="fa fa-info-circle" style="color:blue"/>',
-    'halt': '<span class="fa fa-minus-circle" style="color:red"/>',
+    '|info|': '<span class="fa fa-info-circle" style="color:blue"/>',
+    '|halt|': '<span class="fa fa-minus-circle" style="color:red"/>',
     '|circle|': '<span class="fa fa-circle"/>',
     '|xml_schema|': '<span class="fa fa-file-code-o"/>',
     '|DesktopTelematico|': '<span class="fa fa-wpforms"/>',

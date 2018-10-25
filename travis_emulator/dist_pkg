@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.58
+__version__=0.2.1.59
 
 
 
@@ -221,12 +221,27 @@ if [ "$opt_cpush" == "-O" ]; then
     odoo_skin.sh oia$v oia -v
     [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run -f"
     $TDIR/please distribution oia $opts_dry_run -f
-    for f in $(find $tgtdir/ -name 'README.rst'); do
+    for f in $(find $tgtdir/ -type d -name 'egg-info'); do
       d=$(dirname $f)
       echo "\$ cd $d"
       cd $d
-      echo "\$ $TDIR/gen_readme.py -Goia -lmodule"
-      $TDIR/gen_readme.py -Goia -lmodule
+      last_s=0
+      for fn in ./egg-info/*; do
+        x=$(stat -c %Y $fn)
+        [ $x -gt $last_s ] && last_s=$x
+      done
+      if [ -f ./README.rst ]; then
+        y=$(stat -c %Y ./README.rst)
+      else
+        y=0
+      fi
+      if [ $last_s -gt $y ]; then
+        if [ -f __openerp__.py -o -f __manifest__.py ]; then
+          run_traced "gen_readme.py -Goia -lmodule  #$f"
+        else
+          run_traced "gen_readme.py -Goia -lrepository  #$f"
+        fi
+      fi
     done
   fi
   exit 0
