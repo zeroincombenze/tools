@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.59
+__version__=0.2.1.60
 
 
 
@@ -216,30 +216,24 @@ if [ "$opt_cpush" == "-O" ]; then
   RORIGIN=$(build_odoo_param RORIGIN ".")
   gitorg=$(basename $(dirname $(echo git@github.com:Odoo-Italia-Associazione/OCB.git|awk -F: '{print $2}')))
   if [ "$gitorg" == "Odoo-Italia-Associazione" ]; then
-    v=$(build_odoo_param MAJVER ".")
-    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia$v oia -v"
-    odoo_skin.sh oia$v oia -v
+    odoo_ver=$(build_odoo_param MAJVER ".")
+    [ $opt_verbose -gt 0 ] && echo "odoo_skin.sh oia$odoo_ver oia -v"
+    odoo_skin.sh oia$odoo_ver oia -v
     [ $opt_verbose -gt 0 ] && echo "$TDIR/please distribution oia $opts_dry_run -f"
     $TDIR/please distribution oia $opts_dry_run -f
     for f in $(find $tgtdir/ -type d -name 'egg-info'); do
       d=$(dirname $f)
       echo "\$ cd $d"
       cd $d
-      last_s=0
-      for fn in ./egg-info/*; do
-        x=$(stat -c %Y $fn)
-        [ $x -gt $last_s ] && last_s=$x
-      done
-      if [ -f ./README.rst ]; then
-        y=$(stat -c %Y ./README.rst)
+      [ -f README.md ] && rm -fR README.md
+      if [ -f __openerp__.py -o -f __manifest__.py ]; then
+        run_traced "gen_readme.py -Goia -lmodule"
       else
-        y=0
+        run_traced "gen_readme.py -Goia -lrepository"
       fi
-      if [ $last_s -gt $y ]; then
+      if [ $odoo_ver -lt 8 ]; then
         if [ -f __openerp__.py -o -f __manifest__.py ]; then
-          run_traced "gen_readme.py -Goia -lmodule  #$f"
-        else
-          run_traced "gen_readme.py -Goia -lrepository  #$f"
+          run_traced "~/dev/pypi/travis_emulator/travis_emulator/gen_readme.py -H -Gzero -lmodule"
         fi
       fi
     done

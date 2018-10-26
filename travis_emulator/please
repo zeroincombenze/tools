@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.59
+__version__=0.2.1.60
 
 
 #
@@ -2055,7 +2055,7 @@ do_replace() {
     if [ "$PRJNAME" == "Odoo" ]; then
       if [[ $LGITPATH =~ (oca|oia|zero) ]]; then
         local odoo_fver=$(build_odoo_param FULLVER ".")
-        local p=$(build_odoo_param HOME "$odoo_fver" "$PKGNAME" "$LGITPATH")
+        local p=$(build_odoo_param HOME "." "$PKGNAME" "$LGITPATH")
         LGITPATH=$p
       fi
       if [ ! -d "$LGITPATH" -a $opt_force -ne 0 ]; then

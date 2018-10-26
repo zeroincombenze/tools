@@ -60,7 +60,7 @@ status	msgid	msgstr
 	Invoice Refund	Nota di Credito
 	Invoicing	Contabilità
 	IPA Code	Codice IPA
-	Journal	Sezionale
+	Journal	Registro
 	Journal Entry	Registrazione contabile
 	Journal Item	Movimento contabile
 	Language	Lingua
@@ -121,7 +121,7 @@ status	msgid	msgstr
 	Template	Modello
 	The parent company	L'azienda controllante
 	Thumbnail	Miniatura
-	Timesheet	Foglio presenze
+	Timesheet	Foglio ore
 	TIN	P.IVA
 	Total Amount	Importo totale
 	Total Credit	Totale Avere

@@ -17,7 +17,7 @@ import z0lib
 import clodoo
 
 
-__version__ = "0.2.1.59"
+__version__ = "0.2.1.60"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -262,7 +262,7 @@ def rewrite_pofile(pofn, target):
         if line[0:2] == '#.':
             while jj < len(rights) and rights[jj] != line:
                 jj += 1
-            if rights[jj] == line:
+            if jj < len(rights) and rights[jj] == line:
                 ii += 1
                 while lefts[ii][0:2] == '#:':
                     jj += 1
