@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.37"
+__version__ = "0.3.7.38"
 
 
 #############################################################################
@@ -871,7 +871,7 @@ def eval_value(ctx, o_model, name, value):
     """
     msg = u"eval_value(name=%s, value=%s)" % (os0.u(name), os0.u(value))
     debug_msg_log(ctx, 6, msg)
-    if not value:
+    if not value and o_model:
         return set_some_values(ctx, o_model, name, value)
     elif isinstance(value, basestring):
         eval_dict = True
@@ -1137,6 +1137,8 @@ def _query_expr(ctx, o_model, code, value):
 def validate_field(ctx, model, name):
     # FIX for Odoo 7.0
     if model in ('res.users', 'res.partner') and name in ('id', 'name'):
+        return True
+    elif model in ('ir.config.parameter', ) and name in ('id', 'key', 'value'):
         return True
     elif searchL8(ctx,
                 'ir.model.fields',

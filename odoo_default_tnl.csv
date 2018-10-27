@@ -4,8 +4,13 @@ status	msgid	msgstr
 	Account	Conto
 	Account Receivable	Conto di credito
 	Account Tax	Conto erario IVA
+	Accounting	Contabilità
+	Accounting Entries	Registrazioni contabili
+	Action	Azione
+	Actions	Azioni
 	Address	Indirizzo
 	Administrator	Amministratore
+	Adviser	Contabile
 	Agreement 	Convenzione
 	Alert	Avviso
 	Approve	Approva
@@ -13,13 +18,14 @@ status	msgid	msgstr
 	Attendees	Partecipanti
 	Background	Sfondo
 	Balance Sheet	Stato patrimoniale
+	Banck Accounts	C/c bancari
 	Bank name	Nome banca
 	Bank Statement	Estratto conto bancario
 	Bill	Fattura
 	Bookmark	Segnalibro
 	Button	Pulsante
 	Cancel	Cancella
-	Cancel Invoice	Cancella Fattura
+	Cancel Invoice	Cancella fattura
 	Cancel Invoices	Cancella fatture
 	Cash Journal	Registro cassa
 	Check	Controllo
@@ -36,12 +42,15 @@ status	msgid	msgstr
 	Credit amount	Importo Avere
 	Currency	Divisa
 	Customer	Cliente
+	Customer Credit Notes	Note credito clienti
+	Dashboard	Cruscotto
 	Debit	Dare
 	Debit amount	Importo Dare
 	Default	Predefinito
 	Description	Descrizione
 	Destination Address	Indirizzo di destinazione
 	Display Name	Visualizza nome
+	Documents	Documenti
 	Embedded	Integrato
 	Employee	Dipendente
 	Enable	Abilita
@@ -50,6 +59,8 @@ status	msgid	msgstr
 	Failed	Non riuscito
 	Favorited By	Preferito
 	Features	Funzionalità
+	Financial Reports	Rendiconti finanziari
+	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
 	Help	Aiuto
 	Initial Balance	Saldo iniziale
@@ -58,11 +69,13 @@ status	msgid	msgstr
 	Invoice Date	Data Fattura
 	Invoice paid	Fattura pagata
 	Invoice Refund	Nota di Credito
+	Invoice Type	Tipo Fattura
 	Invoicing	Contabilità
 	IPA Code	Codice IPA
 	Journal	Registro
 	Journal Entry	Registrazione contabile
 	Journal Item	Movimento contabile
+	Journals	Registri
 	Language	Lingua
 	Last Modified on	Data ultima modifica
 	Last printed page	Ultima pagina su bollato
@@ -72,6 +85,9 @@ status	msgid	msgstr
 	License Code	Numero licenza
 	Link	Collegamento
 	Login	Accesso
+	Management	Gestione
+	Manual Reconciliation	Riconciliazione manuale
+	Master Data	Dati principali
 	Miscellaneous Journal	Sezionale generico
 	Overdue Payments	Ritardo pagamenti
 	Partner	Soggetto
@@ -79,9 +95,11 @@ status	msgid	msgstr
 	Partner/Customer	Soggetto/Cliente
 	Partners 	Soggetti
 	Payable Account	Conto di debito
-	Payable Term	Termine di pagamento
-	Payable Terms	Termini di pagamento
 	Payment Method	Metodo di pagamento
+	Payment Term	Termine di pagamento
+	Payment Terms	Termini di pagamento
+	Payments	Pagamenti
+	PDF Report	Rendiconti PDF
 	Post	Registra
 	Post Entry	Registrazione contabile
 	Post Office Code	Codice ufficio postale
@@ -95,13 +113,15 @@ status	msgid	msgstr
 	Reconcile	Riconciliazione
 	Reconcile Entries	Riconcilia registrazioni
 	Reference	Riferimento
-	Refund	Nota Credito
+	Refund	Nota credito
 	Registration Date	Data di registrazione
 	Related Partner	Soggetto collegato
 	Replace	Sostituisci
 	Replacement Tax	Imposta sostitutiva
+	Report	Rendiconto
+	Reporting	Rendicontazione
 	Repository	Raccolta
-	Reset to Draft	Riporta in Bozza
+	Reset to Draft	Riporta in bozza
 	Restore	Ripristinare
 	SAJ	FAT
 	Sale Journal	Registro vendite
@@ -110,6 +130,7 @@ status	msgid	msgstr
 	Self Invoice Partner	Soggetto auto-fattura
 	Set	Imposta
 	Set to draft	Bozza non definitiva
+	Settings	Impostazioni
 	Status	Stato
 	Tab	Scheda
 	Table	Tabella
@@ -133,5 +154,6 @@ status	msgid	msgstr
 	Validated	Confermato
 	VAT payability	Esigibilità IVA
 	Vendor	Fornitore
+	Vendor Credit Notes	Note credito fornitori
 	Warning!	Attenzione!
 	Workflow	Flussso di lavoro

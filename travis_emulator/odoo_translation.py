@@ -17,7 +17,7 @@ import z0lib
 import clodoo
 
 
-__version__ = "0.2.1.60"
+__version__ = "0.2.1.61"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -78,7 +78,7 @@ def load_default_dictionary(source):
             TNL_ACTION[msgid] = 'C'
             if msgid == msgid[0].upper() + msgid[1:].lower():
                 TNL_DICT[msgid.lower()] = os0.u(row['msgstr']).lower()
-                TNL_ACTION[msgid] = 'C'
+                TNL_ACTION[msgid.lower()] = 'C'
             ctr += 1
         if ctx['opt_verbose']:
             print(" ... Read %d records" % ctr)

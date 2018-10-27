@@ -44,7 +44,7 @@ from os0 import os0
 
 from z0lib import parseoptargs
 
-__version__ = "0.2.1.60"
+__version__ = "0.2.1.61"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 

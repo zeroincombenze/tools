@@ -179,7 +179,7 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
 from transodoo import read_stored_dict
 
 
-__version__ = "0.3.7.37"
+__version__ = "0.3.7.38"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4534,7 +4534,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
             nm = ctx['TRANSDICT'][nm] or nm
         else:
             nm = nm.split('/')[0].split(':')[0]
-        if nm in ('db_type', 'oe_versions',
+        if ctx['no_fvalidation'] or nm in ('db_type', 'oe_versions',
                   'name2', 'name_first', 'name_last',
                   'customer-supplier') or \
                 (len(ctx['validated_fields']) and 
@@ -4723,7 +4723,7 @@ def import_file(ctx, o_model, csv_fn):
                 del row['undef_name']
             # Does record exist ?
             saved_hide_id = o_model['hide_id']
-            if o_model['repl_by_id'] and row['id']:
+            if o_model['repl_by_id'] and row.get('id', False):
                 o_model['hide_id'] = False
             ids = get_query_id(ctx,
                                o_model,

@@ -96,11 +96,11 @@ db_act_list() {
     return 0
 }
 
-OPTOPTS=(h        a           C        c       G         k        L        n           p        V           v           w       z)
-OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_version opt_verbose wait_db opt_last)
-OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        1           "="      "*"         1           1       1)
-OPTDEFL=(0        0           0        0       0         0        0        0           -1       ""          0           0       0)
-OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" "version"   "verbose"   "wait"  "")
+OPTOPTS=(h        a           C        c       G         k        L        n           p        s        V           v           w       z)
+OPTDEST=(opt_help act_kill4db act_ctra act_ctr opt_grant act_kill opt_lock opt_dry_run pool     opt_show opt_version opt_verbose wait_db opt_last)
+OPTACTI=(1        "1>"        "1>"     "1>"    1         "1>"     1        1           "="      1        "*"         1           1       1)
+OPTDEFL=(0        0           0        0       0         0        0        0           -1       0        ""          0           0       0)
+OPTMETA=("help"   "kill_all" "count"   "count" ""        "kill"   ""       ""          "number" ""       "version"   "verbose"   "wait"  "")
 OPTHELP=("this help"\
  "kill all sessions of DB!"\
  "count all active connections"\
@@ -110,6 +110,7 @@ OPTHELP=("this help"\
  "lock DB to avoid new connections"\
  "do nothing (dry-run)"\
  "declare # of session pool"\
+ "show pool size"\
  "show version end exit"\
  "verbose mode"\
  "wait for DB idle after kill"\
@@ -129,6 +130,10 @@ fi
 if [ $pool -lt 1 ]; then
   pool=$(psql -Upostgres -tc "select setting from pg_settings where name='max_connections';"|head -n1)
   pool=$(echo $pool)
+fi
+if [ $opt_show -ne 0 ]; then
+  echo $pool
+  exit 0
 fi
 if [ $pool -lt 5 ]; then
   pool=5

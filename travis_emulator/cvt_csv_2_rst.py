@@ -17,6 +17,27 @@ import z0lib
 __version__ = "0.2.1.61"
 
 
+def format_line(ctx, col_size, row, sep=None, flist=None):
+    sep = sep or False
+    flist = flist or row
+    if sep:
+        line = '+'
+    else:
+        line = '|'
+    for i, p in enumerate(flist):
+        if sep:
+            line += '-' * (col_size[p] + 2)
+            line += '+'
+        elif isinstance(row, list):
+            fmt_line = ' %%-%d.%ds |' % (col_size[p], col_size[p])
+            line += fmt_line % row[i]
+        else:
+            fmt_line = ' %%-%d.%ds |' % (col_size[p], col_size[p])
+            line += fmt_line % row[p]
+    line += '\n'
+    return line
+
+
 def convert_file(ctx):
     if os.path.isfile(ctx['src_file']):
         if ctx['opt_verbose']:
@@ -25,13 +46,9 @@ def convert_file(ctx):
                              delimiter=',',
                              quotechar='\"',
                              quoting=csv.QUOTE_MINIMAL)
-        majver = int(ctx['odoo_ver'].split('.')[0])
         ctr = 0
-        target = '<?xml version="1.0" encoding="utf-8"?>\n'
-        if majver >= 10:
-            target += '<odoo>\n'
-        else:
-            target += '<openerp>\n<data>\n'
+        col_size = {}
+        text = ''
         with open(ctx['src_file'], 'rb') as csv_fd:
             hdr_read = False
             csv_obj = csv.DictReader(csv_fd,
@@ -41,32 +58,37 @@ def convert_file(ctx):
             for row in csv_obj:
                 if not hdr_read:
                     csv_obj.fieldnames = row['undef_name']
+                    for p in csv_obj.fieldnames:
+                        col_size[p] = min(len(os0.u(p)), 16)
                     hdr_read = True
                     continue
+                for p in csv_obj.fieldnames:
+                    col_size[p] = max(col_size[p], min(len(os0.u(row[p])), 40))
+        with open(ctx['src_file'], 'rb') as csv_fd:
+            hdr_read = False
+            csv_obj = csv.DictReader(csv_fd,
+                                     fieldnames=[],
+                                     restkey='undef_name',
+                                     dialect='odoo')
+            import pdb
+            pdb.set_trace()
+            for row in csv_obj:
+                if not hdr_read:
+                    csv_obj.fieldnames = row['undef_name']
+                    hdr_read = True
+                    text += format_line(ctx, col_size, row['undef_name'],
+                                        sep=True)
+                    text += format_line(ctx, col_size, row['undef_name'])
+                    text += format_line(ctx, col_size, row['undef_name'],
+                                        sep=True)
+                    continue
                 ctr += 1
-                if 'id' in row:
-                    id = row['id']
-                elif ctx['id_mode'] in row:
-                    id = '%s_%s' % (ctx['id_prefix'], row[ctx['id_mode']])
-                else:
-                    id = '%s%d' % (ctx['id_prefix'], ctr)
-                line = '    <record model="%s" id="%s">\n' % (
-                    ctx['odoo_model'], id)
-                for name in csv_obj.fieldnames:
-                    if name == 'id':
-                        continue
-                    value = row[name].replace('"', '\"')
-                    line += '        <field name="%s">%s</field>\n' % (
-                        name, value)
-                line += '    </record>\n'
-                target += line
-        if majver >= 10:
-            target += '</odoo>\n'
-        else:
-            target += '</data>\n</openerp>\n'
-        target_fn = ctx['src_file'][0: -4] + '.xml'
-        with open(target_fn, 'w') as fd:
-            fd.write(target)
+                text += format_line(ctx, col_size, row,
+                                    flist=csv_obj.fieldnames)
+                text += format_line(ctx, col_size, row, sep=True,
+                                    flist=csv_obj.fieldnames)
+        with open(ctx['dst_file'], 'w') as fd:
+            fd.write(os0.b(text))
 
 
 if __name__ == "__main__":
@@ -95,12 +117,5 @@ if __name__ == "__main__":
     parser.add_argument('dst_file',
                         nargs='?')
     ctx = parser.parseoptargs(sys.argv[1:])
-    if not ctx['odoo_ver']:
-        print('Missing Odoo Version! Set switch -b')
-        sts = 1
-    elif not ctx['odoo_model']:
-        print('Missing Odoo Model! Set switch -m')
-        sts = 1
-    else:
-        sts = convert_file(ctx)
+    sts = convert_file(ctx)
     sys.exit(sts)

@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.60
+__version__=0.2.1.61
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
@@ -437,19 +437,55 @@ format_xml() {
           if [  $odoo_ver -ge 10 ]; then
             line="${lne//openerp/odoo}"
             level=1
+            lm=
+            x=$((level*4))
+            [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
           else
             line="$lne"
           fi
           [ "${lne:0:2}" == "</" -a $level -gt 0 ] && ((level--))
-        elif [ "${lne:0:6}" == "<odoo>" -o "${lne:0:7}" == "</odoo>" ]; then
+        elif [ "${lne:0:5}" == "<data" ]; then
+          if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
+            continue
+          else
+            ((level++))
+          fi
+        elif [ "${lne:0:6}" == "</data" ]; then
+          if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
+            continue
+          elif [ $level -gt 0 ]; then
+            ((level--))
+            lm=
+            x=$((level*4))
+            [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
+          fi
+        elif [ "${lne:0:6}" == "<odoo>" ]; then
           level=1
           if [  $odoo_ver -lt 10 ]; then
+            line="${lne//odoo/openerp}"
+            echo "$line">>$fntmp
+            line="<data>"
+          else
+            line="$lne"
+          fi
+        elif [ "${lne:0:7}" == "</odoo>" ]; then
+          level=1
+          if [  $odoo_ver -lt 10 ]; then
+            echo "</data>">>$fntmp
             line="${lne//odoo/openerp}"
             level=0
           else
             line="$lne"
           fi
-          [ "${lne:0:2}" == "</" -a $level -gt 0 ] && ((level--))
+          [ $level -gt 0 ] && ((level--))
+        elif [ "${lne:0:14}" == "<odoo noupdate" ]; then
+          level=1
+          if [  $odoo_ver -lt 10 ]; then
+            echo "<openerp>">>$fntmp
+            line="${lne//odoo/data}"
+          else
+            line="$lne"
+          fi
         elif [ "${lne:0:4}" == "<!--" ]; then
           line="$lm$lne"
           if [ "${lne: -3}" != "-->" ]; then
@@ -466,21 +502,6 @@ format_xml() {
           fi
         elif [ "${lne:0:9}" == "<template" ]; then
           ((level++))
-        elif [ "${lne:0:5}" == "<data" ]; then
-          if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
-            continue
-          else
-            ((level++))
-          fi
-        elif [ "${lne:0:6}" == "</data" ]; then
-          if [  $odoo_ver -ge 10 -a $level -le 1 ]; then
-            continue
-          elif [ $level -gt 0 ]; then
-            ((level--))
-            lm=
-            x=$((level*4))
-            [ $x -eq 0 ]||eval printf -v lm '%.s\\x20' {1..$x}
-          fi
         else
           o=$(echo $lne|grep -Eo "<[a-zA-Z0-9-]+"|wc -l)
           c=$(echo $lne|grep -Eo "</[a-zA-Z0-9-]+"|wc -l)

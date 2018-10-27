@@ -129,6 +129,7 @@ LX_CFG_SB = ('install_modules',
 LX_CFG_B = ('set_passepartout',
             'check_balance',
             'with_demo',
+            'no_fvalidation',
             'draft_recs',
             'setup_banks',
             'setup_account_journal',
@@ -139,11 +140,11 @@ LX_CFG_B = ('set_passepartout',
             )
 # list of string parameters in both [options] of config file and line command
 # or else are just in line command
-LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo'
-            'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode', 'xmlrpc_port',
-            'odoo_vid', 'exit_onerror')
+LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo',
+            'no_fvalidation',  'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode',
+            'xmlrpc_port', 'odoo_vid', 'exit_onerror')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
-LX_OPT_B = ('dry_run', 'with_demo', 'exit_onerror')
+LX_OPT_B = ('dry_run', 'with_demo', 'no_fvalidation', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
 LX_OPT_N = ()
 # list of opponent options
@@ -158,7 +159,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.37"
+__version__ = "0.3.7.38"
 
 
 #############################################################################
@@ -567,6 +568,11 @@ def create_parser(version, doc, ctx):
                         help="create db with demo data",
                         action="store_true",
                         dest="with_demo",
+                        default=False)
+    parser.add_argument("-i", "--ignore-name-validation",
+                        help="ignore name validation fo csv columns",
+                        action="store_true",
+                        dest="no_fvalidation",
                         default=False)
     parser.add_argument("-l", "--lang",
                         help="user language",

@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.60
+__version__=0.2.1.61
 
 
 #
@@ -53,6 +53,7 @@ __version__=0.2.1.60
 # -b branch: must be 6.1 7.0, 8.0, 9.0 10.0 11.0 or 12.0
 # -C commit & push | dont exc clodoo test
 # -c configuration file
+# -D duplicate odoo to another version
 # -d diff
 # -F fetch
 # -f force
@@ -64,6 +65,7 @@ __version__=0.2.1.60
 # -n do nothing (dry-run)
 # -o limit push to ids
 # -O run odoo burst
+# -O replace odoo distribution
 # -o OCA directives
 # -P push
 # -p local path
@@ -434,90 +436,9 @@ cvt_travis() {
 # cvt_travis(file_travis oca|zero|oia currpt ORIG)
     local fn=$1
     local fntmp=$fn.tmp
-    local wf=0
-    local bi_found=0
-    local git_subm=0
-    while IFS= read -r line r || [ -n "$line" ]; do
-      if [[ $line =~ ^before_install: ]]; then
-        wf=4
-        bi_found=1
-      elif [[ $line =~ ^git: ]]; then
-        wf=3
-      elif [[ $line =~ ^addons: ]]; then
-        if [ $wf -ne 3 ]; then
-          echo "git:">>$fntmp
-        fi
-        if [ $git_subm -eq 0 ]; then
-          echo "  submodules: false">>$fntmp
-          echo "">>$fntmp
-        fi
-        wf=0
-      elif [[ $line =~ ^install: ]]; then
-        if [ $bi_found -eq 0 ]; then
-          echo "before_install:">>$fntmp
-          bi_found=1
-        fi
-        if [ $bi_found -eq 1 ]; then
-          echo "  - git clone https://github.com/zeroincombenze/tools.git \${HOME}/tools --depth=1">>$fntmp
-          echo "  - mv \${HOME}/tools/maintainer-quality-tools \${HOME}">>$fntmp
-          echo "  - export PATH=\${HOME}/maintainer-quality-tools/travis:\${PATH}">>$fntmp
-          echo "">>$fntmp
-          bi_found=2
-        fi
-        wf=2
-      elif [[ $line =~ ^[[:space:]][[:space:]]matrix: ]]; then
-        wf=1
-      elif [[ $line =~ ^[a-zA-Z_]+ ]]; then
-        wf=0
-      elif [ $wf -eq 1 ]; then
-        if [[ $line =~  [[:space:]]+.*TRANSIFEX= ]]; then
-          if [ "$2" == "oca" ]; then
-            line=${line//  # - TRANSIFEX=\"0\"/  - TRANSIFEX=\"1\"}
-          else
-            line=${line//  - TRANSIFEX=\"1\"/  # - TRANSIFEX=\"0\"}
-          fi
-        elif [[ $line =~  [[:space:]]+.*LINT_CHECK= ]]; then
-          if [ "$BRANCH" == "6.1" ]; then
-            line=${line//  - LINT_CHECK=\"1\"/  # - LINT_CHECK=\"0\"}
-          else
-            line=${line//  # - LINT_CHECK=\"0\"/  - LINT_CHECK=\"1\"}
-          fi
-        elif [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.odoo/odoo. ]]; then
-          if [ "$BRANCH" == "7.0" ]; then
-            line=${line//TESTS=\"1\"/TESTS=\"0\"}
-          else
-            line=${line//TESTS=\"0\"/TESTS=\"1\"}
-          fi
-        elif [[ $line =~  [[:space:]]+-[[:space:]]+TESTS=.*[[:space:]]+ODOO_REPO=.OCA/OCB. ]]; then
-          if [ "$BRANCH" == "7.0" ]; then
-            line=${line//TESTS=\"1\"/TESTS=\"0\"}
-          else
-            line=${line//TESTS=\"0\"/TESTS=\"1\"}
-          fi
-        fi
-     elif [ $wf -eq 2 ]; then
-       if [[ $line =~  [[:space:]]+.*git[[:space:]]clone[[:space:]].*https://github.com/OCA/maintainer-quality-tools.git ]]; then
-         line=${line//  - git clone/  # - git clone}
-       elif [[ $line =~ [[:space:]]+.*export[[:space:]]+PATH=.*HOME.*/maintainer-quality-tools/travis ]]; then
-         line=${line//  - export /  # - export }
-       fi
-      elif [ $wf -eq 3 ]; then
-        if [[ $line =~  [[:space:]]+submodules ]]; then
-          line="  submodules: false"
-          git_subm=1
-        fi
-      elif [ $wf -eq 4 ]; then
-       if [[ $line =~  [[:space:]]+.*git[[:space:]]clone[[:space:]].*https://github.com/zeroincombenze/tools.git ]]; then
-         bi_found=2
-       fi
-      fi
-      echo "$line">>$fntmp
-    done < "$fn"
-    if [ ${test_mode:-0} -eq 0 -a -n "$(diff -q $fn $fntmp)" ]; then
-      move_n_bak $fntmp $fn
-    else
-      rm -f $fntmp
-    fi
+    ORGNM=$(build_odoo_param GIT_ORGNM '' '' $2)
+    run_traced "tope8 -B -b $odoo_fver $fn"
+    run_traced "sed -e \"s|ODOO_REPO=.[^/]*|ODOO_REPO=\\\"$ORGNM|\" -i $fn"
 }
 
 cvt_readme() {
@@ -1163,7 +1084,7 @@ cvt_file() {
     local sts=$STS_SUCCESS
     if [ -n "$f1" ]; then
       if [ -f "$1" ]; then
-        local f=$(basename $f1)
+        local b=$(basename $f1)
         local d=$(dirname $f1)
         if [[ $f1 =~ $PWD ]]; then
           local l=${#PWD}
@@ -1174,18 +1095,18 @@ cvt_file() {
         else
           local ft=$f1
         fi
-        local f1_oca=$(dirname $f1)/${f}.oca
-        local f1_z0i=$(dirname $f1)/${f}.z0i
-        local f1_oia=$(dirname $f1)/${f}.oia
+        local f1_oca=$(dirname $f1)/${b}.oca
+        local f1_z0i=$(dirname $f1)/${b}.z0i
+        local f1_oia=$(dirname $f1)/${b}.oia
         if [ "$2" == "zero" -o -z "$2" ]; then
           local f1_new=$f1_z0i
         else
-          local f1_new=$(dirname $f1)/${f}.$2
+          local f1_new=$(dirname $f1)/${b}.$2
         fi
         if [ "$4" == "zero" -o -z "$4" ]; then
           local f1_cur=$f1_z0i
         else
-          local f1_cur=$(dirname $f1)/${f}.$4
+          local f1_cur=$(dirname $f1)/${b}.$4
         fi
         if [ "$2" == "$4" -a $opt_force -eq 0 ]; then
           local do_proc=0
@@ -1213,7 +1134,18 @@ cvt_file() {
         if [ "$3" == "travis" ]; then
           cvt_travis $f1 "$2" "$4" "$5"
         elif [ "$3" == "readme" ] && [ ${test_mode:-0} -ne 0 -o $do_proc -gt 0 ]; then
-          cvt_readme $f1 "$2" "$4" "$5"
+          if [ "$b" == "README.rst" -a -d $d/egg-info ]; then
+            pushd $d >/dev/null
+            [ -f README.md ] && rm -fR README.md
+            if [ -f __openerp__.py -o -f __manifest__.py ]; then
+              run_traced "$TDIR/gen_readme.py -Goia -lmodule"
+            else
+              run_traced "$TDIR/gen_readme.py -Goia -lrepository"
+            fi
+            popd &>dev/null
+          else
+            cvt_readme $f1 "$2" "$4" "$5"
+          fi
         fi
         if [ -f $f1_cur ] && [ $opt_force -eq 0 -o "$3" == "manifest" ]; then
           diff -q $f1 $f1_cur &>/dev/null
@@ -1747,8 +1679,11 @@ do_diff() {
 }
 
 do_distribution() {
-# do_distribution(pkg oca|zero|oia parent)
+# do_distribution(repos oca|zero|oia parent)
     wlog "do_distribution $1 $2 $3"
+    if [ "$PRJNAME" != "Odoo" ]; then
+      return 1
+    fi
     local sts=$STS_SUCCESS
     local currpt=zero
     local ORIG= ORIGIN= UPSTREAM=
@@ -1979,6 +1914,33 @@ do_download_rep() {
     popd >/dev/null
 }
 
+do_duplicate() {
+    set_executable
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [[ ! $LGITPATH =~ (12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) ]]; then
+        echo "Missing or invalid target Odoo version"
+        exit 1
+      fi
+      cur_ver=""
+      for ver in 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+        if [[ $PWD =~ /opt/odoo/$ver ]]; then
+          cur_ver="$ver"
+          break
+        fi
+      done
+      if [ -z "$cur_ver" ]; then
+        echo "Unrecognized Odoo version"
+        exit 1
+      fi
+      LGITPATH="${PWD/$cur_ver/$LGITPATH}"
+      opts=$(inherits_travis_opts "D" "D")
+      opt_dry_run=0
+      run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
+      sts=$?
+    fi
+    return $sts
+}
+
 do_fetch() {
     opts=$(inherits_travis_opts "F" "D")
     opt_dry_run=0
@@ -2076,6 +2038,59 @@ do_replace() {
       opt_dry_run=0
       run_traced "$TDIR/dist_pkg $opts $1"
       sts=$?
+    fi
+    return $sts
+}
+
+do_replica() {
+# do_replica(pkgname file)
+    local cur_ver fn srcfn tp ver
+    if [ "$PRJNAME" == "Odoo" ]; then
+      cur_ver=""
+      for ver in 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+        if [[ $PWD =~ /opt/odoo/$ver ]]; then
+          cur_ver="$ver"
+          break
+        fi
+      done
+      if [ -z "$cur_ver" ]; then
+        echo "Unrecognized Odoo version"
+        exit 1
+      fi
+      tp="f"
+      fn="$2"
+      if [ -d "$fn" ]; then
+        tp="d"
+      elif [ ! -f "$fn" ]; then
+        echo "File $fn not found"
+        exit 1
+      fi
+      srcfn=$(readlink -f $fn)
+      for ver in 12.0 11.0 10.0 9.0 8.0 7.0 6.1; do
+        if [ "$ver" != "$cur_ver" ]; then
+          tgtfn="${srcfn/$cur_ver/$ver}"
+          if [ "$tp" == "f" ]; then
+            tgtdir=$(dirname "$tgtfn")
+            if [ -d "$tgtdir" ]; then
+              echo "cp $srcfn $tgtfn"
+              cp $srcfn $tgtfn
+              if [ "${tgtfn: -4}" == ".xml" ]; then
+                run_traced "$TDIR/topep8 -b$ver $tgtfn"
+              fi
+            else
+              echo "Directory $tgtdir not found"
+            fi
+          else
+            tgtdir=$(dirname "$tgtfn")
+            if [ -d "$tgtdir" ]; then
+              run_traced "cp -R $srcfn $tgtdir/"
+            else
+              echo "Directory $tgtdir not found"
+            fi
+          fi
+        fi
+      done
+      sts=0
     fi
     return $sts
 }
@@ -2301,7 +2316,7 @@ if [ "$opt_version" ]; then
   echo "$__version__"
   exit 0
 fi
-HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|download_rep|[if-]fetch|[if-]push|[if-]replace|publish|pythonhosted|synchro|test|travis|version|wep"
+HLPCMDLIST="help|annotate|autopep8|build|check|chkconfig|[if-]commit|config|coverage|diff|distribution|docs|duplicate|download_rep|[if-]fetch|[if-]push|publish|pythonhosted|synchro|[if-]replace|replica|test|travis|version|wep"
 if [ $opt_help -gt 0 ]; then
   print_help "Developer shell\nAction may be on of:\n$HLPCMDLIST"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
@@ -2331,6 +2346,7 @@ test_sts=127
 if [ "$actions" == "help" ]; then
   man $TDIR/$THIS.man
 else
+  [ "$PRJNAME" == "Odoo" ] && odoo_fver=$(build_odoo_param FULLVER ".")
   actions=${actions//+/ }
   actions=${actions//,/ }
   for action in $actions; do
