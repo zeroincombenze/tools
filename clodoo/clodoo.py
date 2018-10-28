@@ -4825,7 +4825,7 @@ def import_file(ctx, o_model, csv_fn):
                             tounicode(o_model['name']),
                             tounicode(name_new))
                         os0.wlog(msg)
-                    if written:
+                    if written and id:
                         try:
                             add_external_name(ctx, o_model, row, id)
                         except BaseException:

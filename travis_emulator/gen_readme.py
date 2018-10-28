@@ -290,7 +290,6 @@ def get_default_avaiable_addons(ctx):
 
 def get_default_credits(ctx):
     authors = ''
-    authors_rst = ''
     full_fn = './egg-info/authors.txt'
     if os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
@@ -298,15 +297,15 @@ def get_default_credits(ctx):
         fd.close()
         for line in source.split('\n'):
             if line and line[0] != '#':
-                if line[0:2] == '* ':
-                    line = line[2:]
-                authors_rst += '\n* `%s`__' % line
-                authors += '* %s\n' % line
+                if line[0:2] == '..':
+                    authors += '%s\n' % line
+                elif line[0:2] == '* ':
+                    authors += '* `%s`__\n' % line[2:]
+                else:
+                    authors += '* `%s`__\n' % line
     else:
-        authors_rst = '* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__'
-        authors = '* SHS-AV s.r.l. <https://www.zeroincombenze.it/>'
+        authors = '* `SHS-AV s.r.l. <https://www.zeroincombenze.it/>`__'
     contributors = ''
-    contributors_rst = ''
     full_fn = './egg-info/contributors.txt'
     if os.path.isfile(full_fn):
         fd = open(full_fn, 'rU')
@@ -314,15 +313,16 @@ def get_default_credits(ctx):
         fd.close()
         for line in source.split('\n'):
             if line and line[0] != '#':
-                if line[0:2] != '* ':
-                    contributors_rst += '\n* %s' % line
-                    contributors += '* %s\n' % line
-                else:
-                    contributors_rst += '\n%s' % line
+                if line[0:2] == '..':
                     contributors += '%s\n' % line
+                elif line[0:2] == '* ':
+                    contributors += '%s\n' % line
+                else:
+                    contributors += '* %s\n' % line
     else:
-        contributors_rst = '* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>'
         contributors = '* Antonio Maria Vigliotti <antoniomaria.vigliotti@gmail.com>'
+    ctx['authors'] = authors
+    ctx['contributors'] = contributors
     text = """
 Credits / Riconoscimenti
 ========================
@@ -330,12 +330,12 @@ Credits / Riconoscimenti
 Authors / Autori
 ----------------
 
-%s
+{{authors}}
 
 Contributors / Contributi
 -------------------------
 
-%s
+{{contributors}}
 
 Maintainers / Manutezione
 -------------------------
@@ -346,9 +346,7 @@ This module is maintained by the Odoo Italia Associazione.
 
 To contribute to this module, please visit https://odoo-italia.org/.
 """
-    ctx['authors'] = authors
-    ctx['contributors'] = contributors
-    return text % (authors_rst, contributors_rst)
+    return text
 
 
 def get_default_known_issue(ctx):
@@ -601,6 +599,91 @@ def replace_macro(ctx, line, fmt=None):
     return line
 
 
+def _init_state():
+    return {'cache': '',
+            'prior_line': '',
+            'action': 'write',
+            'stack': [],
+            'fmt': 'rst'}
+
+def is_preproc_line(line, state):
+    is_preproc = False
+    if line[0:13] == '.. $versions ':
+        is_preproc = True
+        enable_versions = line[13:].strip()
+        if enable_versions == 'all':
+            state['action'] = 'write'
+        elif enable_versions.find(ctx['odoo_fver']) >= 0:
+            state['action'] = 'write'
+        else:
+            state['action'] = 'susp'
+    elif line[0:7] == '.. $if ':
+        is_preproc = True
+        conditions = line[7:].strip().split(' ')
+        res = False
+        if conditions[0] == 'version':
+            if conditions[1] == 'in':
+                i = 2
+                while i < len(conditions):
+                    if conditions[1] == 'all':
+                        res = True
+                    elif conditions[1] == ctx['odoo_fver']:
+                        res = True
+                    i += 1
+        fi
+        if res:
+            state['action'] = 'write'
+        else:
+            state['action'] = 'susp'
+        state['stack'].append(res)
+    elif line[0:7] == '.. $elif ':
+        is_preproc = True
+        conditions = line[7:].strip().split(' ')
+        res = False
+        if conditions[0] == 'version':
+            if conditions[1] == 'in':
+                i = 2
+                while i < len(conditions):
+                    if conditions[1] == 'all':
+                        res = True
+                    elif conditions[1] == ctx['odoo_fver']:
+                        res = True
+                    i += 1
+        fi
+        if res:
+            state['action'] = 'write'
+        else:
+            state['action'] = 'susp'
+    elif line[0:7] == '.. $else ':
+        is_preproc = True
+        if len(state['stack']):
+            res = state['stack'][-1]
+        else:
+            res = True
+        if not res:
+            state['action'] = 'write'
+        else:
+            state['action'] = 'susp'
+    elif line[0:7] == '.. $fi ':
+        is_preproc = True
+        if len(state['stack']):
+            del state['stack'][-1]
+        if len(state['stack']):
+            res = state['stack'][-1]
+        else:
+            res = True
+        if res:
+            state['action'] = 'write'
+        else:
+            state['action'] = 'susp'
+    elif state['action'] != 'susp':
+        if line[0:12] == '.. $include ':
+            is_preproc = True
+        elif line[0:12] == '.. $block ':
+            is_preproc = True
+    return state, is_preproc
+
+
 def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
     def append_line(state, line, no_nl=None):
         nl = '' if no_nl else '\n'
@@ -616,34 +699,25 @@ def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
 
     def parse_local_source(ctx, source, state=None):
         target = ''
-        state = state or {'cache': '',
-                          'prior_line': '',
-                          'action': 'write',
-                          'fmt': 'rst'}
+        state = state or _init_state()
         for line in source.split('\n'):
-            if line[0:13] == '.. $versions ':
-                enable_versions = line[13:].strip()
-                if enable_versions == 'all':
-                    state['action'] = 'write'
-                elif enable_versions.find(ctx['odoo_fver']) >= 0:
-                    state['action'] = 'write'
-                else:
-                    state['action'] = 'susp'
-            elif state['action'] != 'susp':
-                if line[0:12] == '.. $include ':
-                    filename = line[12:].strip()
-                    state, text = parse_local_file(ctx,
-                                                   filename,
-                                                   state=state)
-                    state, text = append_line(state, text, no_nl=True)
-                    target += text
-                elif line[0:12] == '.. $block ':
-                    filename = line[12:].strip()
-                    state, text = parse_local_file(ctx,
-                                                   filename,
-                                                   state=state)
-                    state, text = append_line(state, text, no_nl=True)
-                    target += text
+            state, is_preproc = is_preproc_line(line, state)
+            if state['action'] != 'susp':
+                if is_preproc:
+                    if line[0:12] == '.. $include ':
+                        filename = line[12:].strip()
+                        state, text = parse_local_file(ctx,
+                                                       filename,
+                                                       state=state)
+                        state, text = append_line(state, text, no_nl=True)
+                        target += text
+                    elif line[0:12] == '.. $block ':
+                        filename = line[12:].strip()
+                        state, text = parse_local_file(ctx,
+                                                       filename,
+                                                       state=state)
+                        state, text = append_line(state, text, no_nl=True)
+                        target += text
                 elif line and ((line == '=' * len(line)) or (
                         line == '-' * len(line))):
                     if not state['prior_line']:
@@ -669,10 +743,7 @@ def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
         return state, target
 
     def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
-        state = state or {'cache': '',
-                          'prior_line': '',
-                          'action': 'write',
-                          'fmt': 'rst'}
+        state = state or _init_state()
         full_fn = get_template_path(ctx, filename, ignore_ntf=ignore_ntf)
         if not full_fn:
             return state, ''
@@ -683,16 +754,9 @@ def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
         fd.close()
         return parse_local_source(ctx, source, state=state)
 
+    state = _init_state()
     if fmt:
-        state = {'cache': '',
-                 'prior_line': '',
-                 'action': 'write',
-                 'fmt': fmt}
-    else:
-        state = {'cache': '',
-                 'prior_line': '',
-                 'action': 'write',
-                 'fmt': 'rst'}
+        state['fmt'] = fmt
     return parse_local_file(ctx, filename,
                             ignore_ntf=ignore_ntf,
                             state=state)[1]
@@ -802,7 +866,7 @@ def manifest_contents(ctx):
         if item == 'description':
             if ctx['odoo_majver'] < 8:
                 text = parse_source(ctx, 'readme_manifest.rst')
-                target += "    '%s': '''%s''',\n" % (item, text)
+                target += "    '%s': r'''%s''',\n" % (item, text)
         elif item in ctx['manifest']:
             if isinstance(ctx['manifest'][item], basestring):
                 text = ctx['manifest'][item].replace("'", '"')
