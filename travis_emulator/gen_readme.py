@@ -799,16 +799,24 @@ def adj_version(ctx, version):
 
 
 def read_all_manifests(ctx):
+    def valid_dir(dirname, level):
+        if dirname[0:2] == '__':
+            return False
+        return True
+
     addons_info = {}
     if ctx['odoo_majver'] >= 10:
         manifest_file = '__manifest__.py'
     else:
         manifest_file = '__openerp__.py'
+    # for root, dirs, files in os.walk('.', topdown=True):
     for root, dirs, files in os.walk('.'):
-        if ((ctx['odoo_level'] != 'ocb' and (root.find('__to_remove') < 0 or 
-                                             root.find('__unported__') < 0)) or
-                (ctx['odoo_level'] == 'ocb' and root.find('addons') >= 0)):
+        dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_level'])]
+        if ctx['odoo_level'] != 'ocb' or root.find('addons') >= 0:
             module_name = os.path.basename(root)
+            if ((ctx['odoo_level'] == 'ocb' and module_name[0:5] == 'l10n_') or
+                    module_name[0:5] == 'test_'):
+                continue
             if manifest_file in files:
                 full_fn = os.path.join(root,manifest_file)
                 print(full_fn)  # debug
@@ -826,12 +834,18 @@ def read_all_manifests(ctx):
                     addons_info[module_name]['oca_version'] = 'N/A'
                 except KeyError:
                     pass
-    oca_root = '/opt/odoo/oca%d/%s' % (ctx['odoo_majver'], ctx['repos_name'])
+    if ctx['odoo_level'] == 'ocb':
+        oca_root = '/opt/odoo/oca%d' % ctx['odoo_majver']
+    else:
+        oca_root = '/opt/odoo/oca%d/%s' % (ctx['odoo_majver'],
+                                           ctx['repos_name'])
     for root, dirs, files in os.walk(oca_root):
-        if ((ctx['odoo_level'] != 'ocb' and (root.find('__to_remove') < 0 or 
-                                             root.find('__unported__') < 0)) or
-                (ctx['odoo_level'] == 'ocb' and root.find('addons') >= 0)):
+        dirs[:] = [d for d in dirs if valid_dir(d, ctx['odoo_level'])]
+        if ctx['odoo_level'] != 'ocb' or root.find('addons') >= 0:
             module_name = os.path.basename(root)
+            if ((ctx['odoo_level'] == 'ocb' and module_name[0:5] == 'l10n_') or
+                    module_name[0:5] == 'test_'):
+                continue
             if manifest_file in files:
                 full_fn = os.path.join(root,manifest_file)
                 oca_manifest = ast.literal_eval(open(full_fn).read())
@@ -936,7 +950,8 @@ def generate_readme(ctx):
         ctx['dst_file'] = './README.rst'
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
-    if ctx['odoo_level'] != 'repository':
+    # if ctx['odoo_level'] != 'repository':
+    if ctx['odoo_level'] == 'module':
         read_manifest(ctx)
         if ctx['rewrite_manifest']:
             ctx['dst_file'] = ctx['manifest_file']
