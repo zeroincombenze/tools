@@ -37,10 +37,10 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.61
+__version__=0.2.1.62
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
-NO_APT_GET="(curl|git|gradle|gzip|java|lessc|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
+NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|nodejs|npm|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
 
 
 expand_macro() {
@@ -336,7 +336,7 @@ format_yaml() {
         elif [[ $lne =~ -\ travis_install_nightly ]]; then
           echo "# $line">>$fntmp
         elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
-          line=${line/1/0}
+          [ "$PKGNAME" == "OCB" ] && line=${line/1/0}
           echo "$line">>$fntmp
         elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
           echo "# $line">>$fntmp

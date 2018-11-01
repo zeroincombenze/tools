@@ -1,36 +1,106 @@
-|Maturity| |Build Status| |license gpl| |Coverage Status| |Codecov Status| |OCA project| |Tech Doc| |Help| |Try Me|
+.. $include readme_header.rst
 
-==================================
-Odoo {{branch}} (formerly OpenERP)
-==================================
+Overview / Panoramica
+=====================
 
-.. contents::
+|en| {{description}}
 
-|en|
+|it| {{descrizione}}
+.. $if defined features
 
-{{description}}
+Features / Caratteristiche
+--------------------------
 
-|it|
-
-{{descrizione}}
+{{features}}
+.. $fi
 {{avaiable_addons}}
-{{OCA_diff}}
+.. $if defined oca_diff
 
-|en|
+OCA comparation / Confronto con OCA
+-----------------------------------
+
+{{oca_diff}}
+.. $fi
+
+
+Getting started / Come iniziare
+===============================
+
+|Try Me|
+
+.. $if defined prerequisites
+
+Prerequisites / Prerequisiti
+----------------------------
+
+{{prerequisites}}
+.. $fi
+.. $if defined installation
+
+Installation / Installazione
+----------------------------
 
 {{installation}}
+.. $fi
+.. $if defined upgrade
+
+Upgrade / Aggiornamento
+-----------------------
+
+{{upgrade}}
+.. $fi
+.. $if defined support
+
+Support / Supporto
+------------------
+
+{{support}}
+.. $fi
+.. $if defined maintenance
+
+
+Get involved / Ci mettiamo in gioco
+===================================
+
+{{maintenance}}
+.. $fi
+.. $if defined troubleshooting
+
+Troubleshooting / Risoluzione dei problemi
+------------------------------------------
+
+{{troubleshooting}}
+.. $fi
+.. $if defined known_issues
+
+Known issues / Roadmap
+----------------------
+
+{{known_issues}}
+.. $fi
+.. $if defined proposals_for_enhancement
+
+Proposals for enhancement
+--------------------------
+
+{{proposals_for_enhancement}}
+.. $fi
+.. $if defined history
+
+History / Cronologia
+--------------------
 
 {{history}}
+.. $if defined faq
 
-Maintainers / Manutezione
--------------------------
+FAQ / Domande & Risposte
+------------------------
 
-|Odoo Italia Associazione|
-
-This module is maintained by the Odoo Italia Associazione.
-
-To contribute to this module, please visit https://odoo-italia.org/.
+{{faq}}
+.. $fi
 
 {{copyright_notes}}
 
+{{contact_us}}
+.. $fi
 .. $include readme_footer.rst

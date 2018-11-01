@@ -1,32 +1,162 @@
 .. $include readme_header.rst
 
-|en|
+Overview / Panoramica
+=====================
 
-{{description}}
+|en| {{description}}
 
-|it|
+|it| {{descrizione}}
+.. $if defined features
 
-{{descrizione}}
+Features / Caratteristiche
+--------------------------
+
 {{features}}
-{{OCA_diff}}
+.. $fi
+.. $if defined certifications
+
+Certifications / Certificazioni
+-------------------------------
+
 {{certifications}}
+.. $fi
+.. $if defined usage
 
-|en|
-
-{{installation}}
-
-{{configuration}}
+Usage / Utilizo
+---------------
 
 {{usage}}
+.. $fi
+.. $if defined oca_diff
 
-{{known_issue}}
+OCA comparation / Confronto con OCA
+-----------------------------------
 
-{{bug_tracker}}
+{{oca_diff}}
+.. $fi
+
+
+Getting started / Come iniziare
+===============================
+
+|Try Me|
+
+.. $if defined prerequisites
+
+Prerequisites / Prerequisiti
+----------------------------
+
+{{prerequisites}}
+.. $fi
+.. $if defined installation
+
+Installation / Installazione
+----------------------------
+
+{{installation}}
+.. $fi
+.. $if defined configuration
+
+Configuration / Configurazione
+------------------------------
+
+{{configuration}}
+.. $fi
+.. $if defined upgrade
+
+Upgrade / Aggiornamento
+-----------------------
+
+{{upgrade}}
+.. $fi
+.. $if defined support
+
+Support / Supporto
+------------------
+
+{{support}}
+.. $fi
+.. $if defined maintenance
+
+
+Get involved / Ci mettiamo in gioco
+===================================
+
+{{maintenance}}
+.. $fi
+.. $if defined troubleshooting
+
+Troubleshooting / Risoluzione dei problemi
+------------------------------------------
+
+{{troubleshooting}}
+.. $fi
+.. $if defined known_issues
+
+Known issues / Roadmap
+----------------------
+
+{{known_issues}}
+.. $fi
+.. $if defined proposals_for_enhancement
+
+Proposals for enhancement
+--------------------------
+
+{{proposals_for_enhancement}}
+.. $fi
+.. $if defined history
+
+History / Cronologia
+--------------------
 
 {{history}}
+.. $fi
+.. $if defined faq
 
-{{credits}}
+FAQ / Domande & Risposte
+------------------------
+
+{{faq}}
+.. $fi
+
+
+Credits / Titoli di coda
+========================
+
+.. $if defined authors
+Authors / Autori
+-----------------
+
+{{authors}}
+.. $fi
+.. $if defined contributors
+
+Contributors / Contributi da
+----------------------------
+
+{{contributors}}
+.. $fi
+.. $if defined acknowledges
+
+Acknowledges / Riconoscimenti
+-----------------------------
+
+{{acknowledges}}
+.. $fi
+.. $if defined sponsor
+
+Sponsor
+-------
+
+{{sponsor}}
+.. $fi
+.. $if defined copyright_notes
 
 {{copyright_notes}}
+.. $fi
+.. $if defined contact_us
 
+{{contact_us}}
+.. $fi
 .. $include readme_footer.rst

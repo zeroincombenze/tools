@@ -1,122 +1,106 @@
-|Maturity| |Build Status| |license gpl| |Coverage Status| |Codecov Status| |OCA project| |Tech Doc| |Help| |Try Me|
+.. $include readme_header.rst
 
-|en|
+Overview / Panoramica
+=====================
 
-==================================
-Odoo {{branch}} (formerly OpenERP)
-==================================
+|en| {{description}}
 
-Odoo is a suite of web based open source business apps.
+|it| {{descrizione}}
+.. $if defined features
 
-The main Odoo Apps include an Open Source CRM and Enterprise Resource Planning. The main ERP modules are: Warehouse Management, Project Management, Billing AND Accounting, Point of Sale, Human Resources, Manufacturing, Purchase Management, Sale Management and other modules.
+Features / Caratteristiche
+--------------------------
 
-
-|it|
-
-=============================
-Odoo {{branch}} (già OpenERP)
-=============================
-
-Odoo è una suite di prodotti web open-source.
-
-Le principali applicazioni di Odoo includono un Open Source CRM e Enterprise Resource Planning. I principali moduli ERP sono: gestione Magazzino, gestione Progetti, Contabilità e Fatturazione, Punto vendite, Dipendenti, Produzione, gestione Acquisti, gestione vendite e molto altro ancora.
-
-
-
-Distributions / Distribuzioni Odoo {{branch}}:
-==============================================
-
-
-.. $versions 11.0 10.0 9.0
-
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza                                                                  |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-|             | Odoo EE - Enterprise Edition     | |check| Tramite partner        (1) | `Odoo S.A. <https://www.odoo.com/>`__                        | `OPL <https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html>`__ |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| odoo        | Odoo CE - Community Edition      | |no_check|                         | `Odoo S.A. <https://www.odoo.com/>`__                        | |license gpl|                                                                      |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| oca         | Odoo CE by OCA                   | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|                                                                      |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| oia         | Odoo CE by OIA                   | |warning| Norme fiscali < 2107 (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|                                                                      |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-| zero        | Zeroincombenze(R)                | |warning| Norme fiscali < 2107 (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|                                                                      |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
-
-Notes / Note:
--------------
-
-1. Localizzazione con supporto a pagamento tramite partner
-2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
-3. Software per Fattura elettronica B2B in sviluppo
-
-.. $versions 8.0
-
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| oca         | Odoo by OCA                      | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| oia         | Odoo Italia                      | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-
-Notes / Note:
--------------
-
-1. Localizzazione con supporto a pagamento tramite partner
-2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
-3. Software per Fattura elettronica B2B in sviluppo
-
-.. $versions 7.0
-
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| odoo        | Native Odoo / Odoo nativo        | |no_check|                     (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| oca         | Odoo by OCA                      | |warning| Norme fiscali < 2107 (2) | `Odoo Community Association <http://odoo-community.org/>`__  | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| oia         | Odoo Italia                      | |check| Aggiornato al 2018     (3) | `Associazione Odoo Italia <https://www.odoo-italia.org/>`__  | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| zero        | Zeroincombenze(R)                | |check| Aggiornato al 2018     (3) | `SHS-AV s.r.l. <http://www.shs-av.com/>`__                   | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-| Seedoo      | Protocollo PA                    | |no_check|                         |                                                              | |license gpl|     |
-+-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+-------------------+
-
-Notes / Note:
--------------
-
-1. Localizzazione con supporto a pagamento tramite partner
-2. Manca software per norme fiscali 2017
-3. Software per Fattura elettronica B2B in sviluppo
-
-.. $versions 6.1
-
-+-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-| name / nome | description / descrizione        | Italy / Localizzazione Italiana | Maintainers                                                  | License / Licenza |
-+-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-| Odoo        | Native Odoo / Odoo nativo        | |no_check|                  (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
-+-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-| Librerp     | Librerp(R)                       | |check| Aggiornato al 2018      | `Didotech s.r.l. <http://www.didotech.com//>`__              | |license gpl|     |
-+-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-
-Notes / Note:
--------------
-
-1. Localizzazione con supporto a pagamento tramite partner
-2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
-3. Software per Fattura elettronica B2B in sviluppo
-
-.. $versions all
-
+{{features}}
+.. $fi
 {{avaiable_addons}}
-{{OCA_diff}}
+.. $if defined oca_diff
+
+OCA comparation / Confronto con OCA
+-----------------------------------
+
+{{oca_diff}}
+.. $fi
+
+
+Getting started / Come iniziare
+===============================
+
+|Try Me|
+
+.. $if defined prerequisites
+
+Prerequisites / Prerequisiti
+----------------------------
+
+{{prerequisites}}
+.. $fi
+.. $if defined installation
+
+Installation / Installazione
+----------------------------
+
 {{installation}}
+.. $fi
+.. $if defined upgrade
+
+Upgrade / Aggiornamento
+-----------------------
+
+{{upgrade}}
+.. $fi
+.. $if defined support
+
+Support / Supporto
+------------------
+
+{{support}}
+.. $fi
+.. $if defined maintenance
+
+
+Get involved / Ci mettiamo in gioco
+===================================
+
+{{maintenance}}
+.. $fi
+.. $if defined troubleshooting
+
+Troubleshooting / Risoluzione dei problemi
+------------------------------------------
+
+{{troubleshooting}}
+.. $fi
+.. $if defined known_issues
+
+Known issues / Roadmap
+----------------------
+
+{{known_issues}}
+.. $fi
+.. $if defined proposals_for_enhancement
+
+Proposals for enhancement
+--------------------------
+
+{{proposals_for_enhancement}}
+.. $fi
+.. $if defined history
+
+History / Cronologia
+--------------------
+
+{{history}}
+.. $if defined faq
+
+FAQ / Domande & Risposte
+------------------------
+
+{{faq}}
+.. $fi
 
 {{copyright_notes}}
 
+{{contact_us}}
+.. $fi
 .. $include readme_footer.rst
