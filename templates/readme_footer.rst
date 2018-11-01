@@ -1,3 +1,4 @@
+
 |
 
 Last Update / Ultimo aggiornamento: {{today}}
@@ -35,6 +36,9 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org
    :alt: Odoo Italia Associazione
+.. |Zeroincombenze| image:: https://avatars0.githubusercontent.com/u/6972555?s=460&v=4
+   :target: https://www.zeroincombenze.it/
+   :alt: Zeroincombenze
 .. |en| image:: {{grymb_image_en}}
    :target: {{grymb_url_en}}
 .. |it| image:: {{grymb_image_it}}
@@ -55,3 +59,10 @@ Last Update / Ultimo aggiornamento: {{today}}
    :target: {{grymb_url_DesktopTelematico}}
 .. |FatturaPA| image:: {{grymb_image_FatturaPA}}
    :target: {{grymb_url_FatturaPA}}
+.. $if git_orgid == 'zero'
+.. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
+.. $elif git_orgid == 'oia'
+.. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
+   :target: https://gitter.im/Odoo-Italia-Associazione
+.. $fi

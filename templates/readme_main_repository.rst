@@ -91,6 +91,7 @@ History / Cronologia
 --------------------
 
 {{history}}
+.. $fi
 .. $if defined faq
 
 FAQ / Domande & Risposte
@@ -98,8 +99,11 @@ FAQ / Domande & Risposte
 
 {{faq}}
 .. $fi
+.. $if defined copyright_notes
 
 {{copyright_notes}}
+.. $fi
+.. $if defined contact_us
 
 {{contact_us}}
 .. $fi

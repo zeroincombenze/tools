@@ -24,7 +24,7 @@ GIT_USER = {
     'oca': 'OCA',
 }
 DEFINED_SECTIONS = ['description', 'descrizione', 'features',
-                    'OCA_diff', 'certifications', 'prerequisites',
+                    'oca_diff', 'certifications', 'prerequisites',
                     'installation', 'configuration', 'upgrade',
                     'support', 'usage', 'maintenance',
                     'troubleshooting', 'known_issues',
@@ -863,7 +863,6 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
-    ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
     if ctx['odoo_layer'] == 'ocb':
         ctx['module_name'] = ''
         ctx['repos_name'] = 'OCB'
@@ -943,22 +942,30 @@ if __name__ == "__main__":
                         dest='rewrite_manifest')
     parser.add_argument('-V')
     parser.add_argument('-v')
-    # parser.add_argument('src_file')
-    # parser.add_argument('dst_file',
-    #                     nargs='?')
     ctx = parser.parseoptargs(sys.argv[1:])
-    if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
-        print('Invalid level: use one of ocb|module|repository for -l switch')
-        ctx['odoo_layer'] = 'module'
     if not ctx['git_orgid']:
         ctx['git_orgid'] = build_odoo_param('GIT_ORGID', odoo_vid=ctx['odoo_vid'])
     if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
-        print('Invalid git-org: use one of zero|oia|oca for -G switch')
         ctx['git_orgid'] = 'zero'
+        print('Invalid git-org: use one of zero|oia|oca for -G switch (%s)' %
+              ctx['git_orgid'])
     ctx['odoo_fver'] = build_odoo_param('FULLVER', odoo_vid=ctx['odoo_vid'])
     if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
                                 '9.0', '8.0', '7.0', '6.1'):
-        print('Invalid odoo version: please use -b switch')
         ctx['odoo_fver'] = '11.0'
+        print('Invalid odoo version: please use -b switch (%s)' %
+              ctx['odoo_fver'])
+    ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
+    if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
+        if ctx['odoo_majver'] >= 10 and os.path.isfile('./__manifest__.py'):
+            ctx['odoo_layer'] = 'module'
+        elif os.path.isfile('./__openerp__.py'):
+            ctx['odoo_layer'] = 'module'
+        elif os.path.basename(os.getcwd()) == ctx['odoo_fver']:
+            ctx['odoo_layer'] = 'ocb'
+        else:
+            ctx['odoo_layer'] = 'repository'
+        print('Invalid layer: use one of ocb|module|repository '
+              'for -l switch (%s)' % ctx['odoo_layer'])
     sts = generate_readme(ctx)
     sys.exit(sts)

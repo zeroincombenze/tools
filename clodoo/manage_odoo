@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.38
+__version__=0.3.7.39
 
 
 explore() {
@@ -203,7 +203,7 @@ do_action() {
         echo -e "${TRAVIS_HDR3_COLOR}### Analyzing npm packages${TRAVIS_TEXT_COLOR}"
         x=$(npm list|grep " less@")
         [ -z "$x" ] && x=$(npm list -g|grep " less@")
-        if [ "$TRAVIS" == "true" -o -z "$x" ]; then
+        if [ -z "$x" ]; then
           if [ $EUID -eq 0 ]; then
             run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
           else
