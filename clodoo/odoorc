@@ -40,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.39
+#__version__=0.3.7.40
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -73,7 +73,7 @@ DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
  vertical-construction vertical-edition vertical-education vertical-hotel\
  vertical-isp vertical-medical vertical-ngo vertical-realestate vertical-travel\
  web webhook webkit-tools website website-cms website-themes zeroincombenze"
-OCB_SUBDIRS="addons build debian dist doc docs _extensions filestore history howtos images odoo openerp redhat reference scripts server _static website-themes win32"
+OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static website-themes win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
 INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage .git html latex node_modules setup _static tests themes __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
@@ -181,7 +181,7 @@ build_odoo_param() {
     local VID PKGPATH PKGNAME
     local p p1 p11 p2 p3 p4 pd ldir r x
     p1="v|V|odoo|ODOO|ocb|OCB"
-    p2="oca|oia|liberp|flectra"
+    p2="oca|oia|liberp|flectra|zero"
     p3="12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
     p4="12|11|10|9|8|7|6"
     local rex="^($p1|$p2)?-?($p3|$p4)"
@@ -263,7 +263,7 @@ build_odoo_param() {
         GIT_ORGID=zero-http
       fi
     elif [ "$GIT_ORGID" == "oia" ]; then
-      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "travis" ]]; then
         GIT_ORGID=oia-git
       else
         GIT_ORGID=oia-http
@@ -341,6 +341,15 @@ build_odoo_param() {
         return
       elif [ "$ITEM" == "GIT_ORGNM" ]; then
         echo "$GIT_ORGNM"
+        return
+      elif [ "$ITEM" == "GIT_ORGID" ]; then
+        if [ "${GIT_ORGID: -4}" == "-git" ]; then
+          echo "${GIT_ORGID:0: -4}"
+        elif [ "${GIT_ORGID: -5}" == "-http" ]; then
+          echo "${GIT_ORGID:0: -5}"
+        else
+          echo "$GIT_ORGID"
+        fi
         return
       elif [ "$ITEM" == "URL" ]; then
         if [ -n "$GIT_ORG" ]; then

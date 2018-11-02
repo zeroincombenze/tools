@@ -1,6 +1,5 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
-#! /bin/bash
 #
 # Download github repository into local odoo installation
 #
@@ -37,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.39
+__version__=0.3.7.40
 
 
 rmdir_if_exists() {
@@ -217,11 +216,11 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b          c        D        j        L        m          n            O         o         q           r            V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1        1        1          1            "="       "="       0           1          "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0        0        0          0            "zero"    ""        -1          0          ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        D        j        L        m          n            O         o         q           r          U       V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1        1        1        1          1            "="       "="       0           1          1       "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0        0        0        0          0            ""        ""        -1          0          0       ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "default odoo branch"\
  "configuration file (def .travis.conf)"\
@@ -234,6 +233,7 @@ OPTHELP=("this help"\
  "odoo directory"\
  "silent mode"\
  "do just update remote info (if no new_odoo_ver supplied)"\
+ "do not install, do upgrade"
  "show version"\
  "verbose mode"\
  "assume yes"\
@@ -251,7 +251,7 @@ elif [ -z "$odoo_vid" -a -z "$opt_branch" ]; then
   opt_help=1
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Add odoo repository into local filesystem"\
+  print_help "Add or duplicate odoo repository into local filesystem"\
   "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
@@ -265,17 +265,17 @@ if [ -n "$opt_branch" ]; then
     new_odoo_vid=$opt_branch
   elif [ -n "$new_odoo_vid" ]; then
     echo "Invalid parameters"
-    echo "You cannot declare new branch with -b option switch and with 3.th parameter"
+    echo "You cannot declare new branch with -b option switch and with 3th parameter"
     exit 1
   fi
 fi
-
 discover_multi
 TMPFILE=$HOME/tmp_$$.out
 odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
+[ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
 if [ "${RPTNAME: -4}" == ".git" ]; then
   RPTNAME=${RPTNAME:0: -4}
 fi
@@ -325,6 +325,16 @@ if [ -z "$new_odoo_vid" ]; then
     pkgdir=$(basename $DSTPATH)
     run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
     # run_traced "chown -R odoo:odoo $DSTPATH"
+  elif [ $opt_upd -gt 0 ]; then
+    if [ "$DSTPATH" != "$PWD" ]; then
+      run_traced "cd $DSTPATH"
+    fi
+    if [ "$RPTNAME" == "OCB" ]; then
+      run_traced "git pull origin $odoo_fver --no-recurse-submodules"
+    else
+      run_traced "git pull origin $odoo_fver"
+    fi
+    exit 0
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
@@ -334,6 +344,7 @@ if [ -z "$new_odoo_vid" ]; then
     cfgfn=$(build_odoo_param CONFN "$odoo_vid" '' $opt_org)
     if [ ! -f "$cfgfn" ]; then
       odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
+      [ -z "$odoo_bin" ] && odoo_bin=$(build_odoo_param BIN "$odoo_vid")
       [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc"
       [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc"
       user=$(build_odoo_param USER "$odoo_vid")

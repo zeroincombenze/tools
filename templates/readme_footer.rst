@@ -64,5 +64,5 @@ Last Update / Ultimo aggiornamento: {{today}}
    :target: https://tawk.to/85d4f6e06e68dd4e358797643fe5ee67540e408b
 .. $elif git_orgid == 'oia'
 .. |chat_with_us| image:: https://www.shs-av.com/wp-content/chat_with_us.gif
-   :target: https://gitter.im/Odoo-Italia-Associazione
+   :target: https://gitter.im/odoo_italia/development
 .. $fi

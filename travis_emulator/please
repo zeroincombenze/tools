@@ -1142,7 +1142,7 @@ cvt_file() {
             else
               run_traced "$TDIR/gen_readme.py -Goia -lrepository"
             fi
-            popd &>dev/null
+            popd &>/dev/null
           else
             cvt_readme $f1 "$2" "$4" "$5"
           fi

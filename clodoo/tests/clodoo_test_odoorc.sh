@@ -32,13 +32,14 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.39
+__version__=0.3.7.40
 
 
 test_01() {
     local s sts v w
     sts=0
     opt_mult=0
+    opt_multi=0
     declare -A TRES
     TRES[6]="6.1"
     TRES[7]="7.0"
@@ -46,7 +47,8 @@ test_01() {
     TRES[9]="9.0"
     TRES[10]="10.0"
     TRES[11]="11.0"
-    for v in 6 7 8 9 10 11; do
+    TRES[12]="12.0"
+    for v in 6 7 8 9 10 11 12; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param FULLVER $v)
       fi
@@ -102,6 +104,7 @@ test_02() {
     local s sts v w
     sts=0
     opt_mult=0
+    opt_multi=0
     declare -A TRES
     TRES[6.1]="6"
     TRES[7.0]="7"
@@ -137,6 +140,7 @@ test_03() {
     local s sts v w
     sts=0
     opt_mult=0
+    opt_multi=0
     declare -A TRES
     TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/openerp-server.conf
@@ -166,6 +170,7 @@ test_03() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     opt_mult=1
+    opt_multi=1
     declare -A TRES
     TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/odoo6-server.conf
@@ -281,7 +286,8 @@ test_03() {
     TRES[9]=/opt/odoo/9.0/openerp-server
     TRES[10]=/opt/odoo/10.0/odoo-bin
     TRES[11]=/opt/odoo/11.0/odoo-bin
-    for v in 6 v7 7 8 9 10 11; do
+    TRES[12]=/opt/odoo/12.0/odoo-bin
+    for v in 6 v7 7 8 9 10 11 12; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
           RES=$(build_odoo_param BIN $v)
@@ -301,7 +307,8 @@ test_03() {
     TRES[9]=/opt/odoo/9.0
     TRES[10]=/opt/odoo/10.0
     TRES[11]=/opt/odoo/11.0
-    for v in 6 v7 7 8 9 10 11; do
+    TRES[12]=/opt/odoo/12.0
+    for v in 6 v7 7 8 9 10 11 12; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         if [ "$v" == "v7" ]; then
           RES=$(build_odoo_param ROOT $v)
@@ -382,7 +389,8 @@ test_03() {
     TRES[9.0]="9.0"
     TRES[10.0]="10.0"
     TRES[11.0]="11.0"
-    for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+    TRES[12.0]="12.0"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param "FULLVER" "ODOO-$v" "debug")
       fi
@@ -396,6 +404,7 @@ test_04() {
     local s sts v w
     sts=0
     opt_mult=1
+    opt_multi=1
     declare -A TRES
     TRES[6.1]="/opt/odoo/6.1"
     TRES[v7]="/opt/odoo/v7"
@@ -405,7 +414,8 @@ test_04() {
     TRES[9.0]="/opt/odoo/9.0"
     TRES[10.0]="/opt/odoo/10.0"
     TRES[11.0]="/opt/odoo/11.0"
-    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0; do
+    TRES[12.0]="/opt/odoo/12.0"
+    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0 12.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param ROOT $v "crm")
       fi
@@ -426,7 +436,8 @@ test_04() {
     TRES[9.0]="/opt/odoo/9.0/crm"
     TRES[10.0]="/opt/odoo/10.0/crm"
     TRES[11.0]="/opt/odoo/11.0/crm"
-    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0; do
+    TRES[12.0]="/opt/odoo/12.0/crm"
+    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 11.0 12.0; do
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param HOME $v "crm")
       fi
@@ -440,6 +451,7 @@ test_05() {
     local s sts v w
     sts=0
     opt_mult=0
+    opt_multi=0
     declare -A TRES
     z="OCB"
     TRES[zero-git]="git@github.com:zeroincombenze/$z"
@@ -450,13 +462,13 @@ test_05() {
     TRES[liberp]="https://github.com/iw3hxn/$z"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
-      TRES[oia]=${TRES[oia-git]}
+      TRES[oia]=${TRES[oia-http]}
     else
       TRES[zero]=${TRES[zero-http]}
       TRES[oia]=${TRES[oia-http]}
     fi
     for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param URL $v $z $w)
         fi
@@ -485,13 +497,13 @@ test_05() {
     TRES[liberp]="https://github.com/iw3hxn"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
-      TRES[oia]=${TRES[oia-git]}
+      TRES[oia]=${TRES[oia-http]}
     else
       TRES[zero]=${TRES[zero-http]}
       TRES[oia]=${TRES[oia-http]}
     fi
     for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param GIT_ORG $v $z $w)
         fi
@@ -509,7 +521,7 @@ test_05() {
     TRES[oia-http]="https://github.com/OCA/$z"
     TRES[liberp]="https://github.com/iw3hxn/$z"
     for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param UPSTREAM $v $z $w)
         fi
@@ -525,11 +537,11 @@ test_05() {
 
 
     #
-    for v in 11.0 10.0 8.0 7.0; do
+    for v in 12.0 11.0 10.0 8.0 7.0; do
       w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-      TRES[zero]="$HOME/$v"
-      TRES[zero-git]="$HOME/$v"
-      TRES[zero-http]="$HOME/$v"
+      TRES[zero]="$HOME/zero$w"
+      TRES[zero-git]="$HOME/zero$w"
+      TRES[zero-http]="$HOME/zero$w"
       TRES[oca]="$HOME/oca$w"
       TRES[oia]="$HOME/oia$w"
       TRES[oia-git]="$HOME/oia$w"
@@ -550,9 +562,10 @@ test_06() {
     local s sts v w x
     sts=0
     opt_mult=1
+    opt_multi=1
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
         pushd ~/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
@@ -569,7 +582,7 @@ test_06() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         #
         w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-        if [[ "10.0 11.0" =~ "$v" ]]; then
+        if [[ "10.0 11.0 12.0" =~ "$v" ]]; then
           w="/etc/odoo/odoo${w}.conf"
         elif [[ "6.1 7.0 8.0 9.0" =~ "$v" ]]; then
           w="/etc/odoo/odoo${w}-server.conf"
@@ -647,6 +660,7 @@ test_07() {
     local s sts v w
     sts=0
     opt_mult=1
+    opt_multi=1
     local TRES="OCB account-analytic account_banking_cscs account-budgeting\
  account-closing account-consolidation account-financial-reporting\
  account-financial-tools account-fiscal-rule account_invoice_create_payment\

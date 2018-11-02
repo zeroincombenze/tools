@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.1.83'
+__version__ = '0.2.1.85'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):

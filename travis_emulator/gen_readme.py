@@ -187,17 +187,19 @@ def get_default_avaiable_addons(ctx):
                    'Description / Descrizione')
     text += lne
     for pkg in  sorted(ctx['addons_info'].keys()):
-        if ctx['addons_info'][pkg]['version'] == ctx[
+        if not ctx['addons_info'][pkg].get('oca_installable', True):
+            oca_version = '|halt|'
+        elif ctx['addons_info'][pkg]['version'] == ctx[
                 'addons_info'][pkg]['oca_version']:
             oca_version = '|same|'
         elif ctx['addons_info'][pkg]['oca_version'] == 'N/A':
             oca_version = '|no_check|'
         else:
             oca_version = ctx['addons_info'][pkg]['oca_version']
-        if ctx['addons_info'][pkg]['version'] == 'N/A':
-            version = '|no_check|'
-        elif not ctx['addons_info'][pkg].get('installable', True):
+        if not ctx['addons_info'][pkg].get('installable', True):
             version = '|halt|'
+        elif ctx['addons_info'][pkg]['version'] == 'N/A':
+            version = '|no_check|'
         else:
             version = ctx['addons_info'][pkg]['version']
         text += fmt % (pkg,
@@ -737,6 +739,8 @@ def read_all_manifests(ctx):
                     addons_info[module_name]['version'] = adj_version(
                         ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
+                    if root.find('__unported__') >= 0:
+                        addons_info[module_name]['installable'] = False
                 except KeyError:
                     pass
     if ctx['odoo_layer'] == 'ocb':
@@ -765,6 +769,11 @@ def read_all_manifests(ctx):
                         addons_info[module_name]['summary'] = oca_manifest['name']
                     addons_info[module_name]['version'] = 'N/A'
                 addons_info[module_name]['oca_version'] = oca_version
+                if root.find('__unported__') >= 0:
+                    addons_info[module_name]['oca_installable'] = False
+                else:
+                    addons_info[module_name]['oca_installable'] = oca_manifest.get(
+                        'installable', True)
     ctx['addons_info'] = addons_info
 
 
@@ -821,7 +830,7 @@ def index_html_content(ctx, source):
     lines = ctx['descrizione'].split('\n')
     if lines[0]:
         title = '%s / %s' % (ctx['name'], lines[0])
-    elif lines[1]:
+    elif len(lines) > 1 and lines[1]:
         title = '%s / %s' % (ctx['name'], lines[1])
     else:
         title = ctx['name']
