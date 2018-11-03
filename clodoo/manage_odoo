@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.40
+__version__=0.3.7.41
 
 
 explore() {
@@ -111,7 +111,7 @@ do_action() {
       if [ "$pyver" == "3" -o "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
         PIP=$(which pip3 2>/dev/null)
         if [ -z "$PIP" ]; then
-          for v in 3.6 3.5 3.4; do
+          for v in 3.5 3.6 3.4; do
             for p in /usr/local/bin /usr/bin; do
               [ -x $p/pip$v ] && PIP=$p/pip$v
               if [ -n "$PIP" ]; then

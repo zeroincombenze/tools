@@ -93,6 +93,8 @@ def git_checkout(deps_checkout_dir, reponame, url, branch):
             oca_url = 'https://github.com/OCA/%s' % os.path.basename(url)
             command = ['git', 'clone', '-v', oca_url, '-b', branch,
                        '--single-branch', '--depth=1', checkout_dir]
+            if os.environ.get('TRAVIS_DEBUG_MODE', '0'):
+                print('Retrying %s' % ' '.join(command))
             _logger.info('Retrying %s', ' '.join(command))
             subprocess.check_call(command)
         else:

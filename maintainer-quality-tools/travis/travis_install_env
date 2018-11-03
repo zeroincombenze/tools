@@ -191,9 +191,13 @@ else
   PIP_OPTS=
 fi
 if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-  [ -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
-  [ -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
-  [ -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
+  PIP=
+  [ -f /usr/bin/pip$TRAVIS_PYTHON_VERSION ] && PIP=/usr/bin/pip$TRAVIS_PYTHON_VERSION
+  [ -z "$PIP" -a -f /usr/bin/pip3 ] && PIP=/usr/bin/pip3
+  [ -z "$PIP" -a -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
+  [ -z "$PIP" -a -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
+  [ -z "$PIP" -a -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
+  [ -z "$PIP" ] && PIP=pip
 fi
 if [ -n "$YML_mgrodoo" ]; then
   MGRODOO=$YML_mgrodoo

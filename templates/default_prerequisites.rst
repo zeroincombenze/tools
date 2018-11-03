@@ -1,4 +1,7 @@
-.. $if branch in '11.0' '12.0'
+.. $if branch in '12.0'
+* python3.5
+* postgresql 9.5+
+.. $elif branch in '11.0' '12.0'
 * python3
 * postgresql 9.2+
 .. $else

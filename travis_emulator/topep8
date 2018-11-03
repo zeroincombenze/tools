@@ -37,7 +37,7 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.1.62
+__version__=0.2.1.63
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
 NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|nodejs|npm|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
@@ -234,7 +234,7 @@ format_yaml() {
       fi
       rm -f $fntmp
       local ident=0 lev=0 cur_sect=
-      local a f line lne p
+      local a f line lne org p
       declare -A found
       f=$(readlink -e $fn)
       p=$(dirname $f)
@@ -257,12 +257,14 @@ format_yaml() {
           line=${line/\$TRAVIS_BRANCH/$odoo_fver}
         fi
         lne=$(echo $line)
-        if [[ "$cur_sect" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO= ]]; then
-          if [ $opt_ut7 -eq 0 ]; then
-            echo "  - TESTS=\"1\" ODOO_REPO=\"\$TRAVIS_REPO_SLUG\"">>$fntmp
-          else
-            echo "  - TESTS=\"1\" ODOO_REPO=\"zeroincombenze/OCB\"">>$fntmp
-          fi
+        if [[ "$cur_sect" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
+          x=$(echo $opt_copy|grep -Eo [a-z]+|head -n1)
+          org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
+          # if [ $opt_ut7 -eq 0 ]; then
+          #   echo "  - TESTS=\"1\" ODOO_REPO=\"\$TRAVIS_REPO_SLUG\"">>$fntmp
+          # else
+          echo "  - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"">>$fntmp
+          #fi
           cur_sect=
         fi
         if [ -z "$line" ]; then
@@ -343,7 +345,7 @@ format_yaml() {
         elif [ "$cur_sect" == "python" ]; then
           if [[ "$lne" =~ [23].[0-9] ]]; then
             if [  $odoo_ver -ge 11 ]; then
-              echo "  - \"3.4\"">>$fntmp
+              echo "  - \"3.5\"">>$fntmp
             else
               echo "  - \"2.7\"">>$fntmp
             fi
@@ -1188,7 +1190,7 @@ FCONF=$TDIR/.$THIS.conf
 OPTOPTS=(h        a        A         B         b         c         C        d        e        F        G       i       L         n            N        o       O        q           u       V           v           X       0)
 OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_nenh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
 OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1        "="      1       1       1         1            1        "="     1        0           1       "*>"        "+"         1       1)
-OPTDEFL=(1        0        0         0         ""        0         "oia"    0        0        "7.0"    0       0       0         0            0        ""      0        -1          0       ""          -1          0       0)
+OPTDEFL=(1        0        0         0         ""        0         "zero"   0        0        "7.0"    0       0       0         0            0        ""      0        -1          0       ""          -1          0       0)
 OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""       "ver"    ""      ""      ""        "do nothing" ""       "file"  ""       "silent"   "ut7"   "version"    "verbose"   ""      "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
@@ -1196,7 +1198,7 @@ OPTHELP=("this help"\
  "activate debug statements"\
  "odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "change class name to CamelCase"\
- "add developers Copyright (def oia)"\
+ "add developers Copyright (def zero)"\
  "show diff"\
  "do not apply enhance update"\
  "from odoo branch, value like -b switch"\

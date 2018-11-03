@@ -7,7 +7,7 @@ I principali moduli ERP sono: gestione Magazzino, gestione Progetti, Contabilit√
 Distributions / Distribuzioni Odoo {{branch}}:
 ==============================================
 
-.. $if branch in '11.0' '10.0' '9.0'
+.. $if branch in '12.0' '11.0' '10.0' '9.0'
 
 +-------------+----------------------------------+------------------------------------+--------------------------------------------------------------+------------------------------------------------------------------------------------+
 | name / nome | description / descrizione        | Italy / Localizzazione Italiana    | Maintainers                                                  | License / Licenza                                                                  |
@@ -79,16 +79,9 @@ Notes / Note:
 +-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
 | name / nome | description / descrizione        | Italy / Localizzazione Italiana | Maintainers                                                  | License / Licenza |
 +-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-| Odoo        | Native Odoo / Odoo nativo        | |no_check|                  (1) | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
+| Odoo        | Native Odoo / Odoo nativo        | |no_check|                      | No more supported by `Odoo S.A. <https://www.odoo.com/>`__   | |license gpl|     |
 +-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
 | Librerp     | Librerp(R)                       | |check| Aggiornato al 2018      | `Didotech s.r.l. <http://www.didotech.com//>`__              | |license gpl|     |
 +-------------+----------------------------------+---------------------------------+--------------------------------------------------------------+-------------------+
-
-Notes / Note:
--------------
-
-1. Localizzazione con supporto a pagamento tramite partner
-2. Manca software per norme fiscali 2017; OCA sta sviluppando il supporto per la Fattura Elettronica B2B
-3. Software per Fattura elettronica B2B in sviluppo
 
 .. $fi

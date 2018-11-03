@@ -40,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.40
+#__version__=0.3.7.41
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -75,7 +75,7 @@ DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
  web webhook webkit-tools website website-cms website-themes zeroincombenze"
 OCB_SUBDIRS="addons build debian dist doc docs egg-info _extensions filestore history howtos images odoo openerp redhat reference scripts server _static website-themes win32"
 OCB_SUBDIRS_RE="^(${OCB_SUBDIRS// /|})$"
-INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage .git html latex node_modules setup _static tests themes __to_remove __unported__"
+INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html latex node_modules setup _static tests themes __to_remove __unported__"
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\

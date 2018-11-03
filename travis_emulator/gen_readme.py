@@ -14,9 +14,10 @@ from os0 import os0
 import z0lib
 from clodoo import build_odoo_param
 # import pdb
+from _ast import Or
 
 
-__version__ = "0.2.1.62"
+__version__ = "0.2.1.63"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -109,7 +110,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
     no_body = False
     if template[0:7] in ('header_', 'footer_'):
         no_body = True
-    for src_path in ('./egg-info',
+    for src_path in ('.',
+                     './egg-info',
                      '/opt/odoo/dev/pypi/tools/templates',
                      '/opt/odoo/dev/templates'):
         if src_path.find('/dev/pypi/tools/') >= 0 and not ctx['dbg_template']:
@@ -136,7 +138,8 @@ def get_template_fn(ctx, template, ignore_ntf=None):
         return full_fn
     if not found:
         def_template = 'default_' + template
-        for src_path in ('/opt/odoo/dev/pypi/tools/templates',
+        for src_path in ('.',
+                         '/opt/odoo/dev/pypi/tools/templates',
                          '/opt/odoo/dev/templates'):
             if src_path.find('/dev/pypi/tools/') >= 0 and not ctx[
                     'dbg_template']:
@@ -211,6 +214,7 @@ def get_default_avaiable_addons(ctx):
 
 
 def tohtml(text):
+    # pdb.set_trace()
     i = text.find('`')
     j = text.find('`__')
     while i > 0 and j > i:
@@ -232,11 +236,9 @@ def tohtml(text):
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     text = text.replace('\a', '<').replace('\h', '>')
     lines = text.split('\n')
-    if len(lines) == 1:
-        return text
-    while not lines[-1]:
+    while len(lines) > 1 and not lines[-1]:
         del lines[-1]
-    while not lines[0]:
+    while len(lines) and not lines[0]:
         del lines[0]
     if len(lines) > 2:
         if lines[1][0] in ('=', '-'):
@@ -246,28 +248,32 @@ def tohtml(text):
                 del lines[0]
     is_list = True
     for line in lines:
-        if line[0:2] != '* ':
+        if line[0:2] not in ('* ', '..'):
             is_list = False
             break
     if is_list:
         for i in range(len(lines)):
-            lines[i] = '<li>%s</li>' % lines[i][2:]
+            if lines[i][0:2] != '..':
+                lines[i] = '<li>%s</li>' % lines[i][2:]
         lines.insert(0, '<ul>')
         lines.append('</ul>')
     else:
+        hdr_foo = False
         for i in range(len(lines)):
             if lines[i] == '':
                 lines[i] = '</p><p align="justify">'
+                hdr_foo = True
             else:
                 for t in RST2HTML_GRYMB.keys():
-                    lines[i] = lines[i].replace(t,RST2HTML_GRYMB[t]) 
-        lines.insert(0, '<p align="justify">')
-        lines.append('</p>')
+                    lines[i] = lines[i].replace(t,RST2HTML_GRYMB[t])
+        if hdr_foo:
+            lines.insert(0, '<p align="justify">')
+            lines.append('</p>')
     return '\n'.join(lines)
 
 
-def expand_macro(ctx, token, fmt=None):
-    fmt = fmt or 'rst'
+def expand_macro(ctx, token, out_fmt=None):
+    out_fmt = out_fmt or 'rst'
     if token[0:12] == 'grymb_image_' and \
             token[12:] in DEFINED_GRYMB_SYMBOLS:
         value = 'https://raw.githubusercontent.com/zeroincombenze/grymb' \
@@ -366,25 +372,27 @@ def expand_macro(ctx, token, fmt=None):
         if token == 'gpl':
             value = value.lower()
     elif token in ctx:
-        if fmt == 'html':
-            value = tohtml(ctx[token])
-        else:
-            value = ctx[token]
+        value = ctx[token]
     else:
         value = 'Unknown %s' % token
     return value
 
 
-def expand_macro_in_line(ctx, line, fmt=None):
-    fmt = fmt or 'rst'
+def expand_macro_in_line(ctx, line, state=None):
+    state = state or _init_state()
+    out_fmt = state.get('out_fmt', 'rst')
     i = line.find('{{')
     j = line.find('}}')
     while i >=0 and j > i:
         tokens = line[i + 2: j].split(':')
-        value = expand_macro(ctx, tokens[0], fmt=fmt)
+        value = expand_macro(ctx, tokens[0], out_fmt=out_fmt)
         if value is False or value is None:
             print('Invalid macro %s' % token)
             value = ''
+        elif len(value.split('\n')) > 1:
+            state, value = parse_source(ctx, value, state=state)
+        if out_fmt == 'html':
+            value = tohtml(value)
         if len(tokens) > 1:
             fmt = tokens[1]
             line = line[0:i] + (fmt % value) + line[j +2:]
@@ -396,13 +404,13 @@ def expand_macro_in_line(ctx, line, fmt=None):
 
 
 def _init_state():
-    return {'cache': '',
+    return {'cache': False,
             'prior_line': '',
             'action': 'write',
             'stack': [],
             'cond_stack': [],
-            'fmt': 'rst',
-            'mode': 'rst'}
+            'out_fmt': 'rst',
+            'mode': 'raw'}
 
 
 def value_of_term(ctx, term):
@@ -510,158 +518,154 @@ def is_preproc_line(ctx, line, state):
     return state, is_preproc
 
 
-def parse_source(ctx, filename, ignore_ntf=None, fmt=None):
-    def append_line(state, line, no_nl=None):
-        nl = '' if no_nl else '\n'
-        if state['cache']:
-            if len(line):
-                text = state['cache'][0] * len(line) + '\n'
+def line_of_list(ctx, state, line):
+    stop = False
+    if not line or line[0] == '#':
+        text = ''
+        stop = True
+    else:
+        names = line.split(' ')
+        if names[0] and names[0][0] in ('+', '|'):
+            stop = True
+        elif state['mode'] == 'contributors':
+            ctr = 0
+            for i in range(3):
+                if ctx['contributors'].find(names[i]) >= 0:
+                    ctr += 1
+            if ctr >= 2:
+                text = ''
+                stop = True
+    if not stop:
+        if state.get('out_fmt', 'rst') == 'html':
+            fmt = '* %s'
+            if line[0:2] == '* ':
+                text = fmt % line[2:]
             else:
-                text = state['cache'] + '\n'
-            state['cache'] = ''
-            state['prior_line'] = line
-            text += line + nl
+                text = fmt % line
         else:
-            text = line + nl
-            state['prior_line'] = line
-        return state, text
+            if state['mode'] == 'authors':
+                fmt = '* `%s`__'
+            else:
+                fmt = '* %s'
+            if line[0:2] == '* ':
+                text = fmt % line[2:]
+            else:
+                text = fmt % line
+    return text
 
-    def parse_local_source(ctx, source, state=None):
-        state = state or _init_state()
-        if state['action'] == 'pass1':
-            state['mode'] = 'rst'
-            return state, source
-        target = ''
-        for line in source.split('\n'):
-            state, is_preproc = is_preproc_line(ctx, line, state)
-            if state['action'] != 'susp':
-                if is_preproc:
-                    if line[0:12] == '.. $include ':
-                        filename = line[12:].strip()
-                        state, text = parse_local_file(ctx,
-                                                       filename,
-                                                       state=state)
-                        state, text = append_line(state, text, no_nl=True)
-                        target += text
-                    elif line[0:12] == '.. $block ':
-                        filename = line[12:].strip()
-                        state, text = parse_local_file(ctx,
-                                                       filename,
-                                                       state=state)
-                        state, text = append_line(state, text, no_nl=True)
-                        target += text
-                elif state['mode'] == 'authors':
-                    if line and line[0] != '#':
-                        if line[0:2] == '* ':
-                            text = '* `%s`__' % line[2:]
-                        else:
-                            text = '* `%s`__' % line
-                        state, text = append_line(state, text)
-                        target += text
-                    else:
-                        text = ''
-                elif state['mode'] == 'contributors':
-                    if line and line[0] != '#':
-                        if line[0:2] == '* ':
-                            text = '%s' % line
-                        else:
-                            text = '* %s' % line
-                        state, text = append_line(state, text)
-                        target += text
-                    else:
-                        text = ''
-                elif state['mode'] == 'acknowledges':
-                    if line and line[0] != '#':
-                        if line[0:2] == '* ':
-                            names = line.split(' ')
-                            if ctx['contributors'].find(names[1]) < 0 or \
-                                    ctx['contributors'].find(names[2]) < 0:
-                                text = '%s' % line
-                                state, text = append_line(state, text)
-                                target += text
-                        else:
-                            names = line.split(' ')
-                            if ctx['contributors'].find(names[0]) < 0 or \
-                                    ctx['contributors'].find(names[1]) < 0:
-                                if names[0][0] in ('+', '|'):
-                                    text = '%s' % line
-                                else:
-                                    text = '* %s' % line
-                                state, text = append_line(state, text)
-                                target += text
-                    else:
-                        text = ''
-                elif line and ((line == '=' * len(line)) or (
-                        line == '-' * len(line))):
-                    if not state['prior_line']:
-                        state['cache'] = line
-                    else:
-                        if len(state['prior_line']) > 2:
-                            line = line[0] * len(state['prior_line'])
-                        state['prior_line'] = line
-                        state, text = append_line(state, line)
-                        target += text
+def append_line(state, line, no_nl=None):
+    nl = '' if no_nl else '\n'
+    if state['cache']:
+        if len(line) and len(state['prior_line']):
+            text = state['prior_line'][0] * len(line) + '\n'
+        else:
+            text = state['prior_line'] + '\n'
+        state['cache'] = False
+        state['prior_line'] = line
+        text += line + nl
+    else:
+        text = line + nl
+        state['prior_line'] = line
+    return state, text
+
+
+def parse_source(ctx, source, state=None):
+    state = state or _init_state()
+    if state['action'] == 'pass1':
+        state['mode'] = 'raw'
+        return state, source
+    target = ''
+    for line in source.split('\n'):
+        state, is_preproc = is_preproc_line(ctx, line, state)
+        if state['action'] != 'susp':
+            if is_preproc:
+                if line[0:12] == '.. $include ':
+                    filename = line[12:].strip()
+                    state, text = parse_local_file(ctx,
+                                                   filename,
+                                                   state=state)
+                    state, text = append_line(state, text, no_nl=True)
+                    target += text
+                elif line[0:12] == '.. $block ':
+                    filename = line[12:].strip()
+                    state, text = parse_local_file(ctx,
+                                                   filename,
+                                                   state=state)
+                    state, text = append_line(state, text, no_nl=True)
+                    target += text
+            elif state['mode'] in ('authors', 'contributors', 'acknowledges'):
+                text = line_of_list(ctx, state, line)
+                if text:
+                    state, text = append_line(state, text)
+                    target += text
+            elif line and ((line == '=' * len(line)) or (
+                    line == '-' * len(line))):
+                if not state['prior_line']:
+                    state['cache'] = True
+                    state['prior_line'] = line
                 else:
-                    text = expand_macro_in_line(ctx, line, fmt=state['fmt'])
-                    texts = text.split('\n')
-                    if len(texts) > 1:
-                        if line.find('{{authors}}') >= 0:
-                            state['mode'] = 'authors'
-                        elif line.find('{{contributors}}') >= 0:
-                            state['mode'] = 'contributors'
-                        elif line.find('{{acknowledges}}') >= 0:
-                            state['mode'] = 'acknowledges'
-                        state, text = parse_local_source(ctx, text,
-                                                        state=state)
-                        state, text = append_line(state, text, no_nl=True)
-                        target += text
-                    else:
-                        state, text = append_line(state, text)
-                        target += text
-        state['mode'] = 'rst'
-        return state, target
+                    if len(state['prior_line']) > 2:
+                        line = line[0] * len(state['prior_line'])
+                    state['prior_line'] = line
+                    state, text = append_line(state, line)
+                    target += text
+            else:
+                if line.find('{{authors}}') >= 0:
+                    state['mode'] = 'authors'
+                elif line.find('{{contributors}}') >= 0:
+                    state['mode'] = 'contributors'
+                elif line.find('{{acknowledges}}') >= 0:
+                    state['mode'] = 'acknowledges'
+                text = expand_macro_in_line(ctx, line, state=state)
+                state['mode'] = 'raw'
+                state, text = append_line(state, text)
+                target += text
+    return state, target
 
-    def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
-        state = state or _init_state()
-        full_fn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
-        if not full_fn:
-            token = filename[0:-4]
-            action = 'get_default_%s' % token
-            if action in list(globals()):
-                return parse_local_source(ctx,
-                                          globals()[action](ctx),
-                                          state=state)
-            elif filename[-4:] == '.txt':
-                return parse_local_source(ctx,
-                                          default_token(ctx, filename[0:-4]),
-                                          state=state)
-            return state, ''
-        if ctx['opt_verbose']:
-            print("Reading %s" % full_fn)
-        fd = open(full_fn, 'rU')
-        source = os0.u(fd.read())
-        fd.close()
-        if len(source):
-            full_hfn = get_template_fn(ctx, 'header_' + filename)
-            header = ''
-            if full_hfn:
-                fd = open(full_hfn, 'rU')
-                header = os0.u(fd.read())
-                fd.close()
-            full_ffn = get_template_fn(ctx, 'footer_' + filename)
-            footer = ''
-            if full_ffn:
-                fd = open(full_ffn, 'rU')
-                footer = os0.u(fd.read())
-                fd.close()
-            source = header + source + footer
-        if filename == 'acknowledges.txt':
-            source = source.replace('branch', 'prior_branch')
-        return parse_local_source(ctx, source, state=state)
 
+def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
+    state = state or _init_state()
+    full_fn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
+    if not full_fn:
+        token = filename[0:-4]
+        action = 'get_default_%s' % token
+        if action in list(globals()):
+            return parse_source(ctx,
+                                globals()[action](ctx),
+                                state=state)
+        elif filename[-4:] == '.txt':
+            return parse_source(ctx,
+                                default_token(ctx, filename[0:-4]),
+                                state=state)
+        return state, ''
+    if ctx['opt_verbose']:
+        print("Reading %s" % full_fn)
+    fd = open(full_fn, 'rU')
+    source = os0.u(fd.read())
+    fd.close()
+    if len(source):
+        full_hfn = get_template_fn(ctx, 'header_' + filename)
+        header = ''
+        if full_hfn:
+            fd = open(full_hfn, 'rU')
+            header = os0.u(fd.read())
+            fd.close()
+        full_ffn = get_template_fn(ctx, 'footer_' + filename)
+        footer = ''
+        if full_ffn:
+            fd = open(full_ffn, 'rU')
+            footer = os0.u(fd.read())
+            fd.close()
+        source = header + source + footer
+    if filename == 'acknowledges.txt':
+        source = source.replace('branch', 'prior_branch')
+    return parse_source(ctx, source, state=state)
+
+
+def parse_file(ctx, filename, ignore_ntf=None, out_fmt=None):
     state = _init_state()
-    if fmt:
-        state['fmt'] = fmt
+    if out_fmt:
+        state['out_fmt'] = out_fmt
     else:
         state['action'] = 'pass1'
     return parse_local_file(ctx, filename,
@@ -793,7 +797,7 @@ def manifest_contents(ctx):
     for item in MANIFEST_ITEMS:
         if item == 'description':
             if ctx['odoo_majver'] < 8:
-                text = parse_source(ctx, 'readme_manifest.rst')
+                text = parse_file(ctx, 'readme_manifest.rst')
                 target += "    '%s': r'''%s''',\n" % (item, text)
         elif item in ctx['manifest']:
             if isinstance(ctx['manifest'][item], basestring):
@@ -846,7 +850,10 @@ def index_html_content(ctx, source):
 def set_default_values(ctx):
     ctx['today'] = datetime.strftime(datetime.today(), '%Y-%m-%d')
     if ctx['write_html']:
-        ctx['dst_file'] = './static/description/index.html'
+        if os.path.isdir('./static/description'):
+            ctx['dst_file'] = './static/description/index.html'
+        else:
+            ctx['dst_file'] = './index.html'
     elif ctx['odoo_layer'] == 'module' and ctx['rewrite_manifest']:
         ctx['dst_file'] = ctx['manifest_file']
     else:
@@ -872,6 +879,7 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
+    # pdb.set_trace()
     if ctx['odoo_layer'] == 'ocb':
         ctx['module_name'] = ''
         ctx['repos_name'] = 'OCB'
@@ -886,23 +894,28 @@ def generate_readme(ctx):
         if not ctx['module_name']:
             ctx['module_name'] = build_odoo_param('PKGNAME',
                                                   odoo_vid=ctx['odoo_fver'])
-        ctx['repos_name'] = build_odoo_param('REPOS',
-                                             odoo_vid=ctx['odoo_fver'])
+        if not ctx['repos_name']:
+            ctx['repos_name'] = build_odoo_param('REPOS',
+                                                 odoo_vid=ctx['odoo_fver'])
         read_manifest(ctx)
     set_default_values(ctx)
     for section in DEFINED_SECTIONS:
-        ctx[section] = parse_source(ctx, '%s.rst' % section, ignore_ntf=True)
+        ctx[section] = parse_file(ctx, '%s.rst' % section, ignore_ntf=True)
     for section in DEFINED_TAG:
-        ctx[section] = parse_source(ctx, '%s.txt' % section, ignore_ntf=True)
+        ctx[section] = parse_file(ctx, '%s.txt' % section, ignore_ntf=True)
     if ctx['write_html']:
+        if not ctx['template_name']:
+            ctx['template_name'] = 'readme_index.html'
         target = index_html_content(ctx,
-                                    parse_source(ctx,
-                                                 'readme_index.html',
-                                                 fmt='html'))
+                                    parse_file(ctx,
+                                               ctx['template_name'],
+                                               out_fmt='html'))
     else:
-        target = parse_source(ctx,
-                              'readme_main_%s.rst' % ctx['odoo_layer'],
-                              fmt='rst')
+        if not ctx['template_name']:
+            ctx['template_name'] = 'readme_main_%s.rst' % ctx['odoo_layer']
+        target = parse_file(ctx,
+                            ctx['template_name'],
+                            out_fmt='rst')
     if ctx['rewrite_manifest']:
         target = manifest_contents(ctx)
     tmpfile = '%s.tmp' % ctx['dst_file']
@@ -949,6 +962,14 @@ if __name__ == "__main__":
     parser.add_argument('-R', '--rewrite-manifest',
                         action='store_true',
                         dest='rewrite_manifest')
+    parser.add_argument('-r', '--repos_name',
+                        action='store',
+                        help='dirname',
+                        dest='repos_name')
+    parser.add_argument('-t', '--template_name',
+                        action='store',
+                        help='filename',
+                        dest='template_name')
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:])
