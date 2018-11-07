@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.63
+#__version__=0.2.1.64
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -45,8 +45,6 @@ opts_travis() {
       IFS="/" read REMOTEREPO x <<< "$1"
     fi
     [ -z "$REMOTEREPO" ] && REMOTEREPO="local"
-    # PKGPATH=$(set_pkgpath "")
-    # set_pkgname $PKGPATH
     build_pypi_param ALL $1
     export TRAVIS_REPO_SLUG=$REMOTEREPO/$PKGNAME
     if [ -n "$opt_conf" -a -f "$opt_conf" ]; then

@@ -124,6 +124,12 @@ FAQ / Domande & Risposte
 Credits / Titoli di coda
 ========================
 
+Copyright
+---------
+
+Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
+
+
 .. $if defined authors
 Authors / Autori
 -----------------
@@ -132,7 +138,7 @@ Authors / Autori
 .. $fi
 .. $if defined contributors
 
-Contributors / Contributi da
+Contributors / Collaboratori
 ----------------------------
 
 {{contributors}}

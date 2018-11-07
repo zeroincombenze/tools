@@ -14,10 +14,9 @@ from os0 import os0
 import z0lib
 from clodoo import build_odoo_param
 # import pdb
-from _ast import Or
 
 
-__version__ = "0.2.1.63"
+__version__ = "0.2.1.64"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -259,6 +258,8 @@ def tohtml(text):
         lines.append('</ul>')
     else:
         hdr_foo = False
+        if len(lines) > 1 and lines[0].find('<p>') < 0:
+            hdr_foo = True
         for i in range(len(lines)):
             if lines[i] == '':
                 lines[i] = '</p><p align="justify">'
@@ -406,11 +407,12 @@ def expand_macro_in_line(ctx, line, state=None):
 def _init_state():
     return {'cache': False,
             'prior_line': '',
+            'prior_nl': '',
             'action': 'write',
             'stack': [],
             'cond_stack': [],
             'out_fmt': 'rst',
-            'mode': 'raw'}
+            'in_fmt': 'rst'}
 
 
 def value_of_term(ctx, term):
@@ -519,22 +521,23 @@ def is_preproc_line(ctx, line, state):
 
 
 def line_of_list(ctx, state, line):
-    stop = False
-    if not line or line[0] == '#':
-        text = ''
-        stop = True
-    else:
-        names = line.split(' ')
-        if names[0] and names[0][0] in ('+', '|'):
-            stop = True
-        elif state['mode'] == 'contributors':
-            ctr = 0
-            for i in range(3):
-                if ctx['contributors'].find(names[i]) >= 0:
-                    ctr += 1
-            if ctr >= 2:
-                text = ''
-                stop = True
+    text = line
+    stop = True
+    if line:
+        if line[0] == '#':
+            text = '\t'
+        else:
+            names = line.split(' ')
+            if names[0] and names[0][0] == '*':
+                stop = False
+                if state['in_fmt'] == 'acknowledges':
+                    ctr = 0
+                    for i in range(3):
+                        if ctx['contributors'].find(names[i]) >= 0:
+                            ctr += 1
+                    if ctr < 2:
+                        stop = False
+                        text = '\t'
     if not stop:
         if state.get('out_fmt', 'rst') == 'html':
             fmt = '* %s'
@@ -543,7 +546,7 @@ def line_of_list(ctx, state, line):
             else:
                 text = fmt % line
         else:
-            if state['mode'] == 'authors':
+            if state['in_fmt'] == 'authors':
                 fmt = '* `%s`__'
             else:
                 fmt = '* %s'
@@ -553,29 +556,36 @@ def line_of_list(ctx, state, line):
                 text = fmt % line
     return text
 
-def append_line(state, line, no_nl=None):
-    nl = '' if no_nl else '\n'
-    if state['cache']:
+def append_line(state, line, nl_bef=None):
+    nl = '\n' if nl_bef else ''
+    if state['in_fmt'] == 'raw':
+        text = nl + line
+        state['prior_line'] = line
+        state['prior_nl'] = nl
+    elif state['cache']:
         if len(line) and len(state['prior_line']):
-            text = state['prior_line'][0] * len(line) + '\n'
+            text = state['prior_nl'] + state['prior_line'][0] * len(line) + nl
         else:
-            text = state['prior_line'] + '\n'
+            text = state['prior_nl'] + state['prior_line'] + nl
         state['cache'] = False
         state['prior_line'] = line
-        text += line + nl
+        state['prior_nl'] = nl
+        text += line
     else:
-        text = line + nl
+        text = nl + line
         state['prior_line'] = line
+        state['prior_nl'] = nl
     return state, text
 
 
 def parse_source(ctx, source, state=None):
     state = state or _init_state()
-    if state['action'] == 'pass1':
-        state['mode'] = 'raw'
-        return state, source
+    # if state['action'] == 'pass1':
+    #     state['in_fmt'] = 'raw'
+    #     # return state, source
     target = ''
-    for line in source.split('\n'):
+    for lno,line in enumerate(source.split('\n')):
+        nl_bef = False if lno == 0 else True
         state, is_preproc = is_preproc_line(ctx, line, state)
         if state['action'] != 'susp':
             if is_preproc:
@@ -584,41 +594,45 @@ def parse_source(ctx, source, state=None):
                     state, text = parse_local_file(ctx,
                                                    filename,
                                                    state=state)
-                    state, text = append_line(state, text, no_nl=True)
-                    target += text
+                    state, text = append_line(state, text, nl_bef=nl_bef)
+                    target += text + '\n'
                 elif line[0:12] == '.. $block ':
                     filename = line[12:].strip()
                     state, text = parse_local_file(ctx,
                                                    filename,
                                                    state=state)
-                    state, text = append_line(state, text, no_nl=True)
+                    state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text
-            elif state['mode'] in ('authors', 'contributors', 'acknowledges'):
+            elif state['in_fmt'] in ('authors', 'contributors', 'acknowledges'):
                 text = line_of_list(ctx, state, line)
-                if text:
-                    state, text = append_line(state, text)
+                if text != '\t':
+                    state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text
-            elif line and ((line == '=' * len(line)) or (
-                    line == '-' * len(line))):
+            elif state['in_fmt'] == 'rst' and (
+                    line and ((line == '=' * len(line)) or
+                              (line == '-' * len(line)))):
                 if not state['prior_line']:
                     state['cache'] = True
                     state['prior_line'] = line
+                    state['prior_nl'] = '\n' if nl_bef else ''
                 else:
                     if len(state['prior_line']) > 2:
                         line = line[0] * len(state['prior_line'])
                     state['prior_line'] = line
-                    state, text = append_line(state, line)
+                    state['prior_nl'] = '\n' if nl_bef else ''
+                    state, text = append_line(state, line, nl_bef=nl_bef)
                     target += text
             else:
+                in_fmt = state['in_fmt']
                 if line.find('{{authors}}') >= 0:
-                    state['mode'] = 'authors'
+                    state['in_fmt'] = 'authors'
                 elif line.find('{{contributors}}') >= 0:
-                    state['mode'] = 'contributors'
+                    state['in_fmt'] = 'contributors'
                 elif line.find('{{acknowledges}}') >= 0:
-                    state['mode'] = 'acknowledges'
+                    state['in_fmt'] = 'acknowledges'
                 text = expand_macro_in_line(ctx, line, state=state)
-                state['mode'] = 'raw'
-                state, text = append_line(state, text)
+                state['in_fmt'] = in_fmt
+                state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     return state, target
 
@@ -667,7 +681,8 @@ def parse_file(ctx, filename, ignore_ntf=None, out_fmt=None):
     if out_fmt:
         state['out_fmt'] = out_fmt
     else:
-        state['action'] = 'pass1'
+        #  state['action'] = 'pass1'
+        state['in_fmt'] = 'raw'
     return parse_local_file(ctx, filename,
                             ignore_ntf=ignore_ntf,
                             state=state)[1]
@@ -879,7 +894,6 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
-    # pdb.set_trace()
     if ctx['odoo_layer'] == 'ocb':
         ctx['module_name'] = ''
         ctx['repos_name'] = 'OCB'

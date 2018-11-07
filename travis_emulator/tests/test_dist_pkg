@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.63
+__version__=0.2.1.64
 
 Z0BUG_setup() {
     if [ ! -d /opt/odoo/7.0 ]; then
@@ -42,6 +42,8 @@ Z0BUG_setup() {
       mkdir $LCLTEST_ODOO7/server
       mkdir $LCLTEST_ODOO7/server/openerp
     fi
+    find $TESTDIR -name __openerp__.py -delete
+    find $TESTDIR -name __manifest__.py -delete
 }
 
 Z0BUG_teardown() {
