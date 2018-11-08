@@ -159,7 +159,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.41"
+__version__ = "0.3.7.42"
 
 
 #############################################################################
@@ -698,15 +698,52 @@ def get_odoo_full_ver(odoo_vid):
 
 
 def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
-    vmatch = '^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?' + \
-             r'(12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|12|11|10|9|8|7|6)'
+    p1 = 'v|V|odoo|ODOO|ocb|OCB'
+    p2 = 'oca|oia|liberp|flectra|zero'
+    p3 = r'12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
+    p4 = '12|11|10|9|8|7|6'
+    rex = '^(%s|%s)?-?(%s|%s)' % (p1, p2, p3, p4)
+    reo = '^(%s)' % p1
+    reg = "^(%s)" % p2
+    ref = "(%s)" % p3
+    PKGPATH = ''
+    PKGNAME = ''
+    ROOT = ''
+    REPOS = ''
+    ldir = ''
+    if re.match(r'(^\.$|^\.\.$|(\./|\.\./|~/|/))', odoo_vid) or \
+            item in ('RUPSTREAM','RORIGIN','VCS'):
+        if odoo_vid:
+            cwd=os.path.abspath(odoo_vid)
+        else:
+            cwd=os.path.abspath(os.getcwd())
+        vid = ''
+        while not vid and cwd:
+            if not PKGPATH and (
+                    os.path.isfile(os.join(cwd,'__manifest__.py')) or
+                    os.path.isfile(os.join(cwd,'__openerp__.py'))):
+                PKGPATH = cwd
+                PKGNAME = os.path.basename(PKGPATH)
+            rep = os.path.basename(cwd)
+            if re.match(rex, rep):
+                ROOT = os.path.dirname(cwd)
+                vid = rep
+                if ldir:
+                    REPOS = os.path.basename(ldir)
+                else:
+                    REPOS = 'OCB'
+            ldir = cwd
+            if cwd != '/':
+                os.path.abspath(os.join(cwd, '..'))
+            else:
+                cwd = ''
     if odoo_vid:
         if odoo_vid == '.':
             odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
                 odoo_fver = '11.0'
             odoo_vid =  os.path.basename(os.path.dirname(os.getcwd()))
-        elif re.match(vmatch, odoo_vid):
+        elif re.match(rex, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
             odoo_fver = '11.0'

@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.41'
+__version__ = '0.3.7.42'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -180,6 +180,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      # 'psycopg2',
                      'psycopg2-binary',
                      'Python-Chart',
+                     'python-ldap',
                      'python-dateutil',
                      'python-openid',
                      'pydot',
@@ -198,7 +199,6 @@ PIP_BASE_PACKAGES = ['Babel',
 BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
-                     'python-ldap',
                      'python-psycopg2',
                      'python-simplejson',
                      'wkhtmltopdf',

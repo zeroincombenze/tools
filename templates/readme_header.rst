@@ -2,6 +2,7 @@
 ===============
 |icon| {{name}}
 ===============
+
 .. $if name != summary
 
 **{{summary}}**

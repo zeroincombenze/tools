@@ -222,12 +222,19 @@ def tohtml(text):
         jj = t.find('>')
         if ii > 0 and jj > ii:
             url = t[ii + 1: jj]
-            text = u'%s\aa href="%s"\h%s\a/a\h%s' % (
-                text[0:i],
-                url,
-                t[0: ii - 1].strip(),
-                text[j + 3]
-            )
+            if (j + 3) < len(text):
+                text = u'%s\aa href="%s"\h%s\a/a\h%s' % (
+                    text[0:i],
+                    url,
+                    t[0: ii - 1].strip(),
+                    text[j + 3]
+                )
+            else:
+                text = u'%s\aa href="%s"\h%s\a/a\h' % (
+                    text[0:i],
+                    url,
+                    t[0: ii - 1].strip()
+                )
         else:
             break
         i = text.find('`')
@@ -240,7 +247,7 @@ def tohtml(text):
     while len(lines) and not lines[0]:
         del lines[0]
     if len(lines) > 2:
-        if lines[1][0] in ('=', '-'):
+        if lines[1] and lines[1][0] in ('=', '-'):
             del lines[0]
             del lines[0]
             while not lines[0]:
@@ -520,6 +527,29 @@ def is_preproc_line(ctx, line, state):
     return state, is_preproc
 
 
+def parse_acknoledge_list(ctx, source):
+    lines = source.split('\n')
+    lno = 0
+    while lno < len(lines):
+        if not lines[lno]:
+            del lines[lno]
+            continue
+        elif lines[lno][0] == '#':
+            del lines[lno]
+            continue
+        names = lines[lno].split(' ')
+        if names[0] and names[0][0] == '*':
+            ctr = 0
+            for i in range(3):
+                if ctx['contributors'].find(names[i]) >= 0:
+                    ctr += 1
+            if ctr >= 2:
+                del lines[lno]
+                continue
+        lno += 1
+    return '\n'.join(lines)
+
+
 def line_of_list(ctx, state, line):
     text = line
     stop = True
@@ -535,12 +565,15 @@ def line_of_list(ctx, state, line):
                     for i in range(3):
                         if ctx['contributors'].find(names[i]) >= 0:
                             ctr += 1
-                    if ctr < 2:
-                        stop = False
+                    if ctr >= 2:
+                        stop = True
                         text = '\t'
     if not stop:
         if state.get('out_fmt', 'rst') == 'html':
-            fmt = '* %s'
+            if state['in_fmt'] == 'authors':
+                fmt = '* `%s`__'
+            else:
+                fmt = '* %s'
             if line[0:2] == '* ':
                 text = fmt % line[2:]
             else:
@@ -555,6 +588,7 @@ def line_of_list(ctx, state, line):
             else:
                 text = fmt % line
     return text
+
 
 def append_line(state, line, nl_bef=None):
     nl = '\n' if nl_bef else ''
@@ -657,6 +691,10 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
     fd = open(full_fn, 'rU')
     source = os0.u(fd.read())
     fd.close()
+    if len(source) and filename == 'acknowledges.txt':
+        source = source.replace('branch', 'prior_branch')
+        state, source = parse_source(ctx, source, state=state)
+        source = parse_acknoledge_list(ctx, source)
     if len(source):
         full_hfn = get_template_fn(ctx, 'header_' + filename)
         header = ''
@@ -671,8 +709,6 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
             footer = os0.u(fd.read())
             fd.close()
         source = header + source + footer
-    if filename == 'acknowledges.txt':
-        source = source.replace('branch', 'prior_branch')
     return parse_source(ctx, source, state=state)
 
 

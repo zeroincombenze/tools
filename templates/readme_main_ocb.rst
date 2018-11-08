@@ -99,6 +99,14 @@ FAQ / Domande & Risposte
 {{faq}}
 .. $fi
 
+Credits / Titoli di coda
+========================
+
+Copyright
+---------
+
+Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
+
 {{copyright_notes}}
 
 {{contact_us}}

@@ -13,6 +13,19 @@
 
 {{usage}}
 
-{{credits}}
+---------
 
+.. $if defined authors
+Authors / Autori
+-----------------
+
+{{authors}}
+.. $fi
+.. $if defined contributors
+
+Contributors / Collaboratori
+----------------------------
+
+{{contributors}}
+.. $fi
 .. $include readme_footer.rst
