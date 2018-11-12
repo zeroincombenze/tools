@@ -33,7 +33,7 @@ __version__ = "0.3.7.42"
 
 MODULE_ID = 'clodoo'
 VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
-# VERSIONS_TO_TEST = ('7.0',)
+# VERSIONS_TO_TEST = ('12.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -194,10 +194,11 @@ oe_version=%s
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") == "shsdef16":
             for oe_version in VERSIONS_TO_TEST:
-                xmlrpc_port = int(eval(oe_version)) + 8160
-                if oe_version in ('6.1', '7.0', '8.0'):
+                majver = int(eval(oe_version))
+                xmlrpc_port = 8160 + majver
+                if majver < 9:
                     xml_prot = 'xmlrpc'
-                elif oe_version in ('9.0', '10.0', '11.0'):
+                else:
                     xml_prot = 'jsonrpc'
                 if not ctx['dry_run']:
                     # TODO: remove -d param
@@ -256,9 +257,10 @@ oe_version=%s
                               stdout=PIPE,
                               stderr=PIPE)
                     res, err = p.communicate()
-                    if oe_version in ('6.1', '7.0', '8.0'):
+                    majver = int(eval(oe_version))
+                    if majver < 9:
                         xml_prot = 'xmlrpc'
-                    elif oe_version in ('9.0', '10.0', '11.0'):
+                    else:
                         xml_prot = 'jsonrpc'
                     if re.search('protocol *= *%s' % xml_prot, res):
                         res = True
