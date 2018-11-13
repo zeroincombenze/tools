@@ -1,0 +1,204 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+# Regression tests on travis emulator
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+Z0TLIBDIR=$(findpkg z0testrc "$TDIR $TDIR/.. $HOME/tools/zerobug $HOME/dev ${PYPATH//:/ } . .." "zerobug")
+if [ -z "$Z0TLIBDIR" ]; then
+  echo "Library file z0testrc not found!"
+  exit 2
+fi
+. $Z0TLIBDIR
+Z0TLIBDIR=$(dirname $Z0TLIBDIR)
+
+__version__=0.2.1.65
+
+
+test_01() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_01
+    TESTSRC=$TESTDIR/res/$TESTFN.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTDIR/res/__manifest__.py
+{
+    'name': 'test',
+}
+EOF
+      cat <<EOF >$TESTDIR/res/descrizione.rst
+Lorem ipsum
+-----------
+
+Lorem ipsum dolor sit amet
+consectetur adipiscing elit
+EOF
+      cat <<EOF >$TESTDIR/res/authors.txt
+.. \$if branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. \$else
+* unknown authors
+.. \$fi
+EOF
+      cat <<EOF >$TESTDIR/res/contributors.txt
+.. \$if branch in '11.0'
+* antonio <antoniov@libero.it>
+.. \$else
+* unknown author <unknow@example.com>
+.. \$fi
+EOF
+      cat <<EOF >$TESTDIR/res/header_contributors.txt
+
+Contributors
+------------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
+
+Acknoledges to
+--------------
+
+EOF
+      cat <<EOF >$TESTSRC
+===============
+|icon| {{name}}
+===============
+
+Test file
+
+Overview
+========
+
+{{descrizione}}
+
+{{authors}}
+{{contributors}}
+{{acknowledges}}
+EOF
+      cat <<EOF >$TESTRES
+===========
+|icon| test
+===========
+
+Test file
+
+Overview
+========
+
+Lorem ipsum
+-----------
+
+Lorem ipsum dolor sit amet
+consectetur adipiscing elit
+
+
+
+* \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@libero.it>
+
+
+Acknoledges to
+--------------
+
+* unknown author <unknow@example.com>
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC" "$TESTOUT" "$TESTRES" "diff"
+}
+
+test_02() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_02
+    TESTSRC=$TESTDIR/res/$TESTFN.html
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/index.html
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTSRC
+<section class="oe_container">
+
+Test file
+
+<h1>Overview</h1>
+
+{{descrizione}}
+
+{{authors}}
+</section>
+EOF
+      cat <<EOF >$TESTRES
+
+<section class="oe_container">
+
+Test file
+
+<h1>Overview</h1>
+
+<p align="justify">
+Lorem ipsum dolor sit amet
+consectetur adipiscing elit
+</p>
+
+<ul>
+<li><a href="https://www.shs-av.com">SHS-AV s.r.l.</a></li>
+</ul>
+</section>
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -H -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -H -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+Z0BUG_setup() {
+    :
+}
+
+
+Z0BUG_init
+parseoptest -l$TESTDIR/test_travis_em.log "$@"
+sts=$?
+if [ $sts -ne 127 ]; then
+  exit $sts
+fi
+
+
+UT1_LIST=""
+UT_LIST=""
+if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
+Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
+sts=$?
+if [ "$(type -t Z0BUG_teardown)" == "function" ]; then Z0BUG_teardown; fi
+exit $sts

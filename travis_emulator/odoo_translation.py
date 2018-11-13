@@ -17,7 +17,7 @@ import z0lib
 import clodoo
 
 
-__version__ = "0.2.1.64"
+__version__ = "0.2.1.65"
 
 MAX_RECS = 100
 TNL_DICT = {}

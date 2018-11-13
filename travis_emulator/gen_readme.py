@@ -16,7 +16,7 @@ from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.64"
+__version__ = "0.2.1.65"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -207,7 +207,7 @@ def get_default_avaiable_addons(ctx):
         text += fmt % (pkg,
                        version,
                        oca_version,
-                       ctx['addons_info'][pkg]['summary'])
+                       ctx['addons_info'][pkg]['summary'].strip())
         text += lne
     return text
 
@@ -790,7 +790,7 @@ def read_all_manifests(ctx):
                             module_name].items()}
                     if 'summary' not in addons_info[module_name]:
                         addons_info[module_name]['summary'] = addons_info[
-                            module_name]['name']
+                            module_name]['name'].strip()
                     addons_info[module_name]['version'] = adj_version(
                         ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
@@ -819,9 +819,9 @@ def read_all_manifests(ctx):
                 if module_name not in addons_info:
                     addons_info[module_name] = {}
                     if 'summary' in oca_manifest:
-                        addons_info[module_name]['summary'] = oca_manifest['summary']
+                        addons_info[module_name]['summary'] = oca_manifest['summary'].strip()
                     else:
-                        addons_info[module_name]['summary'] = oca_manifest['name']
+                        addons_info[module_name]['summary'] = oca_manifest['name'].strip()
                     addons_info[module_name]['version'] = 'N/A'
                 addons_info[module_name]['oca_version'] = oca_version
                 if root.find('__unported__') >= 0:
@@ -917,7 +917,7 @@ def set_default_values(ctx):
     ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
-    ctx['summary'] = ctx['manifest'].get('summary', ctx['name'])
+    ctx['summary'] = ctx['manifest'].get('summary', ctx['name']).strip()
     ctx['zero_tools'] = '`Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__'
     if ctx['odoo_layer'] == 'ocb':
         ctx['local_path'] = '/opt/odoo/%s' % ctx['odoo_fver']

@@ -1,0 +1,5 @@
+.. $if branch in '11.0'
+* antonio <antoniov@libero.it>
+.. $else
+* unknown author <unknow@example.com>
+.. $fi

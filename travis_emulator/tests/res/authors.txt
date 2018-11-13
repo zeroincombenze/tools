@@ -1,0 +1,5 @@
+.. $if branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. $else
+* unknown authors
+.. $fi

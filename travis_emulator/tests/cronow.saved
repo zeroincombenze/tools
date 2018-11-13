@@ -1,0 +1,1 @@
+00 22 * * * SHELL=/bin/bash test_nightly -ACK

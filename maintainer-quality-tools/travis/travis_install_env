@@ -304,9 +304,16 @@ else
   fi
   if [ "${TESTS}" == "1" ]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Install Packages for Base Environment${TRAVIS_TEXT_COLOR}"
+    # if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+    #     CURRENT_NODE=$(which node)
+    #     source ${HOME}/.nvm/nvm.sh
+    #     nvm install 6
+    #     run_n_echo "ln -sf $(nvm which 6) $CURRENT_NODE"
+    # fi
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+    [ $opt_verbose -gt 0 ] && node --version
     if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
     else
