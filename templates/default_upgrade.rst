@@ -8,8 +8,7 @@
 
 ::
 
-    cd {{local_path}}
-    git pull origin {{branch}}
+    odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}} -U
     # Adjust following statements as per your system
     sudo systemctl restart odoo
 

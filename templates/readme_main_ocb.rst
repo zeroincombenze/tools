@@ -91,6 +91,7 @@ History / Cronologia
 --------------------
 
 {{history}}
+.. $fi
 .. $if defined faq
 
 FAQ / Domande & Risposte

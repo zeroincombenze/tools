@@ -12,6 +12,9 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |license gpl| image:: https://img.shields.io/badge/{{badge-gpl}}
     :target: http://www.gnu.org/licenses/{{gpl}}-3.0-standalone.html
     :alt: License: {{GPL}}-3
+.. |license opl| image:: https://img.shields.io/badge/licence-OPL-7379c3.svg
+    :target: https://www.odoo.com/documentation/user/9.0/legal/licenses/licenses.html
+    :alt: License: OPL
 .. |Coverage Status| image:: {{badge-coverage}}?branch={{branch}}
     :target: {{coverage-URL}}?branch={{branch}}
     :alt: Coverage
