@@ -316,8 +316,12 @@ else
     [ $opt_verbose -gt 0 ] && node --version
     if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
+      x=$(find $(npm bin -g) -name lessc 2>/dev/null)
+      [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     else
       run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
+      x=$(find $(npm bin) -name lessc 2>/dev/null)
+      [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     fi
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
     if [ "${WEBSITE_REPO}" == "1" ]; then
