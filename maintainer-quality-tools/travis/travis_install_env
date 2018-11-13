@@ -293,6 +293,12 @@ else
   export BRANCH="${ODOO_BRANCH}"
   [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
   export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
+  if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+      CURRENT_NODE=$(which node)
+      source ${HOME}/.nvm/nvm.sh
+      nvm install 6
+      run_n_echo "ln -sf $(nvm which 6) $CURRENT_NODE"
+  fi
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Build Test Environment${TRAVIS_TEXT_COLOR}"
     if [[ "$TRAVIS" == "true" ]]; then
@@ -304,12 +310,6 @@ else
   fi
   if [ "${TESTS}" == "1" ]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Install Packages for Base Environment${TRAVIS_TEXT_COLOR}"
-    # if [ -f "${HOME}/.nvm/nvm.sh" ]; then
-    #     CURRENT_NODE=$(which node)
-    #     source ${HOME}/.nvm/nvm.sh
-    #     nvm install 6
-    #     run_n_echo "ln -sf $(nvm which 6) $CURRENT_NODE"
-    # fi
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
