@@ -9,7 +9,7 @@ import sys
 import clodoo
 from z0lib import parseoptargs
 
-__version__ = "0.3.7.42"
+__version__ = "0.3.7.43"
 
 
 def get_name_by_ver(ctx, name):

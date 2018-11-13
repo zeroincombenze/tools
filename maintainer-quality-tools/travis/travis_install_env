@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.85
+__version__=0.2.1.86
 
 
 run_n_echo() {
@@ -316,13 +316,14 @@ else
     [ $opt_verbose -gt 0 ] && node --version
     if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
-      x=$(find $(npm bin -g) -name lessc 2>/dev/null)
+      x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
       [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     else
       run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin) -name lessc 2>/dev/null)
       [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     fi
+    lessc --version
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
     if [ "${WEBSITE_REPO}" == "1" ]; then
         if [ -f ~/.rvm/scripts/rvm ]; then

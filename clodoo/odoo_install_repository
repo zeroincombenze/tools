@@ -303,7 +303,18 @@ if [ -z "$new_odoo_vid" ]; then
     DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$opt_org")
   fi
   [ "$x" != "$ORGNM" ] && exit 0
-  if [ $opt_updrmt -eq 0 ]; then
+  if [ $opt_upd -gt 0 ]; then
+    if [ "$DSTPATH" != "$PWD" ]; then
+      run_traced "cd $DSTPATH"
+    fi
+    run_traced "git stash"
+    if [ "$RPTNAME" == "OCB" ]; then
+      run_traced "git pull origin $odoo_fver --no-recurse-submodules"
+    else
+      run_traced "git pull origin $odoo_fver"
+    fi
+    exit 0
+  elif [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $RPTNAME $odoo_vid ""
     git_opts="-b $odoo_fver"
     if [ $opt_one -gt 0 ]; then
@@ -325,16 +336,6 @@ if [ -z "$new_odoo_vid" ]; then
     pkgdir=$(basename $DSTPATH)
     run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
     # run_traced "chown -R odoo:odoo $DSTPATH"
-  elif [ $opt_upd -gt 0 ]; then
-    if [ "$DSTPATH" != "$PWD" ]; then
-      run_traced "cd $DSTPATH"
-    fi
-    if [ "$RPTNAME" == "OCB" ]; then
-      run_traced "git pull origin $odoo_fver --no-recurse-submodules"
-    else
-      run_traced "git pull origin $odoo_fver"
-    fi
-    exit 0
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
