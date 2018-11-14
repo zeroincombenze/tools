@@ -14,7 +14,7 @@ from os0 import os0
 import z0lib
 
 
-__version__ = "0.2.1.65"
+__version__ = "0.2.1.66"
 
 
 def format_line(ctx, col_size, row, sep=None, flist=None):

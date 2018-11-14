@@ -35,14 +35,17 @@
 #   example above)
 # - Statement to match rule is an python instructions with some macros:
 #   $any: match any python tokens
+#         when used in replace string means do not change token
 #   $more: match zero, one or more python tokens until token next $more matches
-#   $expr: like more but match next token only at the same parens level
+#   $expr: like more but match next token only at the same paren level
 #   $tokens: replace macro with specific odoo version replacements/evaluate
 #   $name: match any python name, i.e. a but not "a"
 #   $text: match any text/unicode, i.e "a" but not a
 #   $?: previous token may be found zero or one time
 #   $*: previous token may be found zero, one or more time
 #   $+: previous token may be found one or more time
+#   $(: start capture replacement tokens
+#   $): stop capture replacement tokens
 #
 # ------------------------------------------------------------------------------
 #
@@ -72,4 +75,11 @@ class_transient_78:
 #
 # Remark openerp
 remark_openerp: # http://openerp.com
-remark_openerp[0]: https://odoo.com
+    [0]: http://openerp.com
+    [6.1]: https://odoo.com
+#
+# Rule instance basestring
+instance_basestring:
+    isinstance($any, basestring)
+    [0]: basestring
+    [6.1]: string_types

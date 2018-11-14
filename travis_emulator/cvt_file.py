@@ -11,7 +11,7 @@ import sys
 import z0lib
 
 
-__version__ = "0.2.1.65"
+__version__ = "0.2.1.66"
 
 
 def parse_source(source):

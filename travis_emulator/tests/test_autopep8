@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.65
+__version__=0.2.1.66
 
 
 test_01() {
@@ -308,6 +308,28 @@ EOF
     fi
     test_result "topep8 -AA -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
+
+test_03() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_03
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTSRC
+# (C) OpenERP (http://openerp.com)
+EOF
+      cat <<EOF >$TESTRES
+# (C) OpenERP (https://odoo.com)
+
+EOF
+      $RUNDIR/topep8 -qAA $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -AA 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
 
 
 

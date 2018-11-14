@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.43'
+__version__ = '0.3.7.44'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -32,7 +32,7 @@ REQVERSION = {
     'ebaysdk': {'7.0': '==2.1.4'},
     'ERPpeek': {'0': '==1.6.1'},
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
-    'flake8': {'7.0': '>=3.4.1'},
+    'flake8': {'7.0': '==3.4.1'},           # Tested 3.5.0; 3.6.0 does not work 
     'gdata': {'7.0': '==2.0.18'},
     'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
     'greenlet': {'7.0': '==0.4.10'},
@@ -55,7 +55,7 @@ REQVERSION = {
                         '0': '==2.7.4'}, 
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
-    'pylint': {'7.0': '==1.6.4', '0': '==1.8.4'},        # Version by test pkgs
+    'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
     'pylint-plugin-utils': {'7.0': '==0.2.4',
                             '0': '==0.2.4'},             # Version by test pkgs
     'pysftp': {'7.0': '>=0.2.9'},

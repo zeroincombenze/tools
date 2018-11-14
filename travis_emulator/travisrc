@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.65
+#__version__=0.2.1.66
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -412,6 +412,7 @@ custom_env() {
       sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
       sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
     fi
+    sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
     echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
 }
 

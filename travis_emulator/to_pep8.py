@@ -44,7 +44,7 @@ from os0 import os0
 
 from z0lib import parseoptargs
 
-__version__ = "0.2.1.65"
+__version__ = "0.2.1.66"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
@@ -475,6 +475,18 @@ class topep8():
     def store_value_to_replace(self, ctx, ir, tokid, tokval):
         param_list_from, ids_from_list = self.get_params_from_rule(
             ir, ctx['from_ver'], 'from')
+        if tokid == tokenize.COMMENT:
+            param_list_to, ids_from_list = self.get_params_from_rule(
+                ir, ctx['to_ver'], 'to')
+            remark = tokval
+            for i,tok in enumerate(param_list_from):
+                if remark.find(tok) >= 0:
+                    remark = remark.replace(param_list_from[i],
+                                            param_list_to[i])
+            if remark != tokval:
+                self.LEX_RULES[ir]['matched_ids'] = [self.tokeno - 1]
+                self.LEX_RULES[ir]['token_id'] = 1
+            return
         i = self.cur_wf_tokid(ir)
         if i < len(param_list_from):
             if ids_from_list[i] == tokenize.START_CAPTURE:
@@ -504,7 +516,9 @@ class topep8():
                     if i < len(param_list_to):
                         self.update_source_token(tokeno,
                                                  ids_from_list[i],
-                                                 param_list_to[i])
+                                                 param_list_to[i],
+                                                 ir=ir,
+                                                 ctx=ctx)
                     else:
                         tokeno -= offset
                         offset += 1
@@ -952,24 +966,6 @@ class topep8():
         self.tabstop[scol] = tokenize.tok_name[tokid]
         return tokid, tokval
 
-    def action_replace_token(self, ir, tokid, tokval):
-        # pdb.set_trace()
-        param_list_from, ids_from_list = self.get_params_from_rule(
-            ir, ctx['from_ver'], 'from')
-        param_list_to, ids_from_list = self.get_params_from_rule(
-            ir, ctx['to_ver'], 'to')
-        if tokid == tokenize.COMMENT:
-            for tok in param_list_from:
-                if tokval.find(tok) >= 0:
-                    tokval.replace(param_list_from, param_list_to)
-        elif param_list_from and tokval in param_list_from:
-            ix = param_list_from.index(tokval)
-            if ir not in self.rule_param_list_to:
-                self.rule_param_list_from[ir] = {}
-                self.rule_param_list_to[ir] = {}
-            self.rule_param_list_from[ir][tokeno] = param_list_from[ix]
-            self.rule_param_list_to[ir][tokeno] = param_list_to[ix]
-
     def tokenize_source(self, ctx=None):
         # pdb.set_trace()
         ctx = ctx or {}
@@ -993,7 +989,12 @@ class topep8():
                         tokid == tokenize.COMMENT:
                     # import pdb
                     # pdb.set_trace()
-                    self.action_replace_token(ir, tokid, tokval)
+                    # self.action_replace_token(ir, tokid, tokval)
+                    self.store_value_to_replace(ctx,
+                                                ir,
+                                                tokid,
+                                                tokval)
+                    self.set_next_state(ir)
                 # found the <any> token rule
                 elif self.cur_tokid(ir) == tokenize.ANY:
                     self.store_value_to_replace(ctx,
@@ -1064,7 +1065,6 @@ class topep8():
                                             tokenized[2],
                                             tokenized[3])
             self.tokeno += 1
-            # okid = self.wash_tokid(tokid, tokval)
             return tokid, tokval, tokenized[2], tokenized[3]
         return False, False, (0, 0), (0, 0)
 
@@ -1098,10 +1098,24 @@ class topep8():
             line = ''
         return line
 
-    def update_source_token(self, tokeno, tokid, tokval):
-        self.tokenized[tokeno][1] = tokval
-        if tokid:
-            self.tokenized[tokeno][0] = tokid
+    def update_source_token(self, tokeno, tokid, tokval, ir=None, ctx=None):
+        if tokid == tokenize.COMMENT:
+            ir = ir or ''
+            ctx = ctx or {}
+            param_list_from, ids_from_list = self.get_params_from_rule(
+                    ir, ctx['from_ver'], 'from')
+            param_list_to, ids_from_list = self.get_params_from_rule(
+                    ir, ctx['to_ver'], 'to')
+            remark = self.tokenized[tokeno][1]
+            for i,tok in enumerate(param_list_from):
+                if remark.find(tok) >= 0:
+                    remark = remark.replace(param_list_from[i],
+                                            param_list_to[i])
+            self.tokenized[tokeno][1] = remark
+        else:
+            self.tokenized[tokeno][1] = tokval
+            if tokid:
+                self.tokenized[tokeno][0] = tokid
 
     def insert_source_token(self, tokeno, tokid, tokval):
         self.tokenized.insert(tokeno, [tokid, tokval, [0,0], [0,0]])

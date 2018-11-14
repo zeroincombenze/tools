@@ -352,19 +352,18 @@ else
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
-    echo -e "${TRAVIS_HDR3_COLOR}### Installing Odoo $ODOO_URL${TRAVIS_TEXT_COLOR}"
-    export ODOO_URL="https://github.com/$REMOTE/$REPO_NAME/archive/$BRANCH.tar.gz"
+    ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
+    echo -e "${TRAVIS_HDR3_COLOR}### Installing Odoo from $ODOO_URL${TRAVIS_TEXT_COLOR}"
     if [[ "$TRAVIS" == "true" ]]; then
-      # run_n_echo "wget -nv -O odoo.tar.gz $ODOO_URL"
-      # run_n_echo "tar -xf odoo.tar.gz -C ${HOME}"
       run_n_echo "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
       run_n_echo "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
     elif [ ! -L ${ODOO_PATH} ]; then
       if [[ "$REMOTE" == "oca" ]]; then
         majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
         if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          run_n_echo "wget -nv -O $REPO_NAME.tar.gz $ODOO_URL"
-          run_n_echo "tar -xf $REPO_NAME.tar.gz -C $TRAVIS_SAVED_HOME"
+          run_n_echo "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+          run_n_echo "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+          run_n_echo "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
         fi
         if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
           SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
