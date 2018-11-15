@@ -5,8 +5,12 @@ Overview / Panoramica
 
 |en| {{description}}
 
+|
+
 |it| {{descrizione}}
 .. $if defined features
+
+|
 
 Features / Caratteristiche
 --------------------------
@@ -15,6 +19,9 @@ Features / Caratteristiche
 .. $fi
 .. $if defined certifications
 
+|
+|
+
 Certifications / Certificazioni
 -------------------------------
 
@@ -22,12 +29,16 @@ Certifications / Certificazioni
 .. $fi
 .. $if defined usage
 
-Usage / Utilizo
----------------
+|
+
+Usage / Utilizzo
+----------------
 
 {{usage}}
 .. $fi
 .. $if defined oca_diff
+
+|
 
 OCA comparation / Confronto con OCA
 -----------------------------------
@@ -35,6 +46,8 @@ OCA comparation / Confronto con OCA
 {{oca_diff}}
 .. $fi
 
+|
+|
 
 Getting started / Come iniziare
 ===============================
@@ -50,12 +63,16 @@ Prerequisites / Prerequisiti
 .. $fi
 .. $if defined installation
 
+|
+
 Installation / Installazione
 ----------------------------
 
 {{installation}}
 .. $fi
 .. $if defined configuration
+
+|
 
 Configuration / Configurazione
 ------------------------------
@@ -64,12 +81,16 @@ Configuration / Configurazione
 .. $fi
 .. $if defined upgrade
 
+|
+
 Upgrade / Aggiornamento
 -----------------------
 
 {{upgrade}}
 .. $fi
 .. $if defined support
+
+|
 
 Support / Supporto
 ------------------
@@ -78,6 +99,8 @@ Support / Supporto
 .. $fi
 .. $if defined maintenance
 
+|
+|
 
 Get involved / Ci mettiamo in gioco
 ===================================
@@ -86,12 +109,16 @@ Get involved / Ci mettiamo in gioco
 .. $fi
 .. $if defined troubleshooting
 
+|
+
 Troubleshooting / Risoluzione dei problemi
 ------------------------------------------
 
 {{troubleshooting}}
 .. $fi
 .. $if defined known_issues
+
+|
 
 Known issues / Roadmap
 ----------------------
@@ -120,6 +147,8 @@ FAQ / Domande & Risposte
 {{faq}}
 .. $fi
 
+|
+|
 
 Credits / Titoli di coda
 ========================
@@ -131,6 +160,9 @@ Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
 
 
 .. $if defined authors
+
+|
+
 Authors / Autori
 -----------------
 
@@ -158,6 +190,8 @@ Sponsor
 {{sponsor}}
 .. $fi
 .. $if defined copyright_notes
+
+|
 
 {{copyright_notes}}
 .. $fi

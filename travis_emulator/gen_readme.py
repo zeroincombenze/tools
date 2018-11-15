@@ -16,7 +16,7 @@ from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.66"
+__version__ = "0.2.1.67"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -68,7 +68,7 @@ MANIFEST_ITEMS = ('name', 'summary', 'version',
                   'category','author', 'website',
                   'license', 'depends', 'data',
                   'demo', 'test', 'installable',
-                  'maturity', 'description')
+                  'external_dependencies', 'maturity', 'description')
 RST2HTML = {
     # &': '&amp;',
     '©': '&copy',
@@ -227,7 +227,7 @@ def tohtml(text):
                     text[0:i],
                     url,
                     t[0: ii - 1].strip(),
-                    text[j + 3]
+                    text[j + 3:]
                 )
             else:
                 text = u'%s\aa href="%s"\h%s\a/a\h' % (
@@ -252,31 +252,54 @@ def tohtml(text):
             del lines[0]
             while not lines[0]:
                 del lines[0]
-    is_list = True
-    for line in lines:
-        if line[0:2] not in ('* ', '..'):
-            is_list = False
-            break
-    if is_list:
-        for i in range(len(lines)):
+    # is_list = True
+    # for line in lines:
+    #     if line[0:2] not in ('* ', '..'):
+    #         is_list = False
+    #         break
+    # if is_list:
+    #     for i in range(len(lines)):
+    #         if lines[i][0:2] != '..':
+    #             lines[i] = '<li>%s</li>' % lines[i][2:]
+    #     lines.insert(0, '<ul>')
+    #     lines.append('</ul>')
+    # else:
+    hdr_foo = False
+    if len(lines) > 1 and lines[0].find('<p>') < 0:
+        hdr_foo = True
+    is_list = False
+    in_list = False
+    i = 0
+    while i < len(lines):
+        if lines[i][0:2] != '..':
+            if lines[i][0:2] == '* ' and not in_list:
+                in_list = True
+            elif lines[i][0:2] != '* ' and in_list:
+                in_list = False
+        if not in_list and is_list:
+            lines.insert(i, '</ul>')
+            is_list = in_list
+            i += 1
+        elif in_list and not is_list:
+            lines.insert(i, '<ul>')
+            is_list = in_list
+            i += 1
+        if in_list:
             if lines[i][0:2] != '..':
                 lines[i] = '<li>%s</li>' % lines[i][2:]
-        lines.insert(0, '<ul>')
-        lines.append('</ul>')
-    else:
-        hdr_foo = False
-        if len(lines) > 1 and lines[0].find('<p>') < 0:
-            hdr_foo = True
-        for i in range(len(lines)):
+        else:
             if lines[i] == '':
                 lines[i] = '</p><p align="justify">'
                 hdr_foo = True
             else:
                 for t in RST2HTML_GRYMB.keys():
                     lines[i] = lines[i].replace(t,RST2HTML_GRYMB[t])
-        if hdr_foo:
-            lines.insert(0, '<p align="justify">')
-            lines.append('</p>')
+        i += 1
+    if is_list:
+        lines.append('</ul>')
+    if hdr_foo:
+        lines.insert(0, '<p align="justify">')
+        lines.append('</p>')
     return '\n'.join(lines)
 
 
@@ -858,7 +881,7 @@ def manifest_contents(ctx):
                 text = str(ctx['manifest'][item])
                 target += "    '%s': %s,\n" % (item, text)
     for item in ctx['manifest'].keys():
-        if item not in ctx['manifest']:
+        if item not in MANIFEST_ITEMS:
             if isinstance(ctx['manifest'][item], basestring):
                 text = ctx['manifest'][item].replace("'", '"')
                 target += "    '%s': '%s',\n" % (item, text)

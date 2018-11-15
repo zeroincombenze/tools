@@ -1,21 +1,65 @@
-|en|
 
-{{description}}
+Overview / Panoramica
+=====================
 
-|it|
+|en| {{description}}
 
-{{descrizione}}
+|
+
+|it| {{descrizione}}
+.. $if defined features
+
+|
+
+Features / Caratteristiche
+--------------------------
+
 {{features}}
-{{OCA_diff}}
-{{certifications}}
+.. $fi
+.. $if defined certifications
 
-|en|
+|
+
+Certifications / Certificazioni
+-------------------------------
+
+{{certifications}}
+.. $fi
+.. $if defined usage
+
+|
+
+Usage / Utilizo
+---------------
 
 {{usage}}
+.. $fi
+.. $if defined support
 
+|
+|
+
+Support / Supporto
+------------------
+
+{{support}}
+.. $fi
+
+|
+|
+
+Credits / Titoli di coda
+========================
+
+Copyright
 ---------
 
+Odoo is a trademark of `Odoo S.A. <https://www.odoo.com/>`__ (formerly OpenERP)
+
 .. $if defined authors
+
+|
+
 Authors / Autori
 -----------------
 
@@ -27,5 +71,18 @@ Contributors / Collaboratori
 ----------------------------
 
 {{contributors}}
+.. $fi
+.. $if defined acknowledges
+
+Acknowledges / Riconoscimenti
+-----------------------------
+
+{{acknowledges}}
+.. $fi
+.. $if defined copyright_notes
+
+|
+
+{{copyright_notes}}
 .. $fi
 .. $include readme_footer.rst

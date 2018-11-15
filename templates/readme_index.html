@@ -1,17 +1,33 @@
 <section class="oe_container">
     <div class="oe_row oe_spaced">
+.. $if branch in '8.0'
+        <h2 class="oe_slogan" style="color:#162832;">{{name}}</h2>
+.. $else
         <div class="oe_span12">
             <h2 class="oe_slogan" style="color:#162832;">{{name}}</h2>
         </div>
+.. $fi
+        <div class="oe_span6">
+            <p align="center">
+                <img src="{{grymb_image_en}}" alt="English"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{description}}</p>
+        </div>
+        <div class="oe_span6">
+            <p align="center">
+                <img src="{{grymb_image_it}}" alt="Italiano"/>
+            </p>
+            <p class="oe_mt16" align="justify">{{descrizione}}</p>
+        </div>
     </div>
-    <div class="oe_span6 text-center">
-        <img src="{{grymb_image_en}}" alt="English"/>
-        <p class="oe_mt16" align="justify">{{description}}</p>
+.. $if defined usage
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan" style="color:#162832;">Usage / Utilizzo</h3>
+        <div class="oe_span12">
+{{usage}}
+        </div>
     </div>
-    <div class="oe_span6 text-center">
-        <img src="{{grymb_image_it}}" alt="Italiano"/>
-        <p class="oe_mt16" align="justify">{{descrizione}}</p>
-    </div>
+.. $fi
 </section>
 
 <section class="oe_container oe_separator"/>

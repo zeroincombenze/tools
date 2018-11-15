@@ -13,6 +13,7 @@ status	msgid	msgstr
 	Adviser	Contabile
 	Agreement 	Convenzione
 	Alert	Avviso
+	Analytic Entries 	Registrazioni analitiche
 	Approve	Approva
 	Attachment	Allegato
 	Attendees	Partecipanti
@@ -24,16 +25,21 @@ status	msgid	msgstr
 	Bill	Fattura
 	Bookmark	Segnalibro
 	Button	Pulsante
-	Cancel	Cancella
-	Cancel Invoice	Cancella fattura
-	Cancel Invoices	Cancella fatture
+	Cancel	Annulla
+	Cancel Invoice	Annulla fattura
+	Cancel Invoices	Annulla fatture
+	Cancelled	Annullato
+	Carrier	Vettore
 	Cash Journal	Registro cassa
 	Check	Controllo
+	Checkbox	Casella
 	Code	Codice
 	Configuration	Configurazione
 	Confirm statement	Conferma registrazione
 	Contact	Contatto
 	Contacts	Contatti
+	Contributor	Collaboratore
+	Control Policy 	Procedimento di controllo
 	Create entries	Crea registrazioni
 	Created by	Creato da
 	Created on	Data di creazione
@@ -41,13 +47,20 @@ status	msgid	msgstr
 	Credit	Avere
 	Credit amount	Importo Avere
 	Currency	Divisa
+	Current	Attuale
 	Customer	Cliente
 	Customer Credit Notes	Note credito clienti
+	Customer Taxes 	IVA v/clienti
 	Dashboard	Cruscotto
 	Debit	Dare
 	Debit amount	Importo Dare
 	Default	Predefinito
 	Description	Descrizione
+	Description for Customers 	Descrizione per i clienti
+	Description for Delivery Orders 	Descrizione per ordini di consegna
+	Description for Internal Transfers 	Descrizione per trasferimenti interni
+	Description for Receptions 	Descrizione per entrate merci
+	Description for Vendors 	Descrizione per i fornitori
 	Destination Address	Indirizzo di destinazione
 	Display Name	Visualizza nome
 	Documents	Documenti
@@ -56,25 +69,34 @@ status	msgid	msgstr
 	Enable	Abilita
 	EORI Code	Codice EORI
 	EXJ	ACQ
+	Expense Account 	Conto di costo
 	Failed	Non riuscito
 	Favorited By	Preferito
 	Features	Funzionalità
 	Financial Reports	Rendiconti finanziari
 	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
+	Graph	Quadri
 	Help	Aiuto
+	Income Account 	Conto di ricavo
+	Income Statement	Conto Economico
 	Initial Balance	Saldo iniziale
+	Initial Balances	Saldi iniziali
 	Inventory	Magazzino
+	Inventory Adjustments	Rettifiche di inventario
 	Invoice	Fattura
 	Invoice Date	Data Fattura
 	Invoice paid	Fattura pagata
 	Invoice Refund	Nota di Credito
 	Invoice Type	Tipo Fattura
 	Invoicing	Contabilità
+	Invoicing Policy 	Procedimento di fatturazione
 	IPA Code	Codice IPA
 	Journal	Registro
+	Journal Entries	Registrazioni contabili
 	Journal Entry	Registrazione contabile
 	Journal Item	Movimento contabile
+	Journal Items	Movimenti contabili
 	Journals	Registri
 	Language	Lingua
 	Last Modified on	Data ultima modifica
@@ -83,18 +105,26 @@ status	msgid	msgstr
 	Last Updated on	Data ultima modifica
 	Legal Notice	Dati fiscali e legali
 	License Code	Numero licenza
+	Line	Riga
+	Lines	Righe
 	Link	Collegamento
 	Login	Accesso
 	Management	Gestione
 	Manual Reconciliation	Riconciliazione manuale
 	Master Data	Dati principali
 	Miscellaneous Journal	Sezionale generico
+	Notes	Note
 	Overdue Payments	Ritardo pagamenti
+	PA partner reference	Riferimento amministrazione PA
+	Package	Collo
+	Packaging 	Imballaggio
+	Packing	Imballo
 	Partner	Soggetto
 	Partner Company	Soggetto azienda
 	Partner/Customer	Soggetto/Cliente
 	Partners 	Soggetti
 	Payable Account	Conto di debito
+	Payables 	Debiti
 	Payment Method	Metodo di pagamento
 	Payment Term	Termine di pagamento
 	Payment Terms	Termini di pagamento
@@ -104,9 +134,15 @@ status	msgid	msgstr
 	Post Entry	Registrazione contabile
 	Post Office Code	Codice ufficio postale
 	Print Invoice	Stampa fattura
+	Professional register	Albo professionale
 	Profit Account	Conto profitti
 	Profit and Loss	Profitti e Perdite
+	Provider	Trasportatore
+	Purchase Bills 	Fatture di acquisto
 	Purchases	Acquisti
+	Receivables 	Crediti
+	Reception	Entrata merce
+	Receptions 	Entrate merci
 	Recipient	Destinatario
 	Recipient Code	Codice destinatario
 	Recipients	Destinatari
@@ -114,6 +150,8 @@ status	msgid	msgstr
 	Reconcile Entries	Riconcilia registrazioni
 	Reference	Riferimento
 	Refund	Nota credito
+	Register Code	Numero di iscrizione
+	Register Province	Provincia iscrizione
 	Registration Date	Data di registrazione
 	Related Partner	Soggetto collegato
 	Replace	Sostituisci
@@ -126,6 +164,7 @@ status	msgid	msgstr
 	SAJ	FAT
 	Sale Journal	Registro vendite
 	Sales	Vendite
+	Sales Journal	Registro vendite
 	Salesperson	Commerciale
 	Self Invoice Partner	Soggetto auto-fattura
 	Set	Imposta
@@ -134,10 +173,13 @@ status	msgid	msgstr
 	Status	Stato
 	Tab	Scheda
 	Table	Tabella
+	Tax Account	Conto Imposta
+	Tax Adjustments	Rettifiche di bilancio
 	Tax Authority	Agenza Entrate
 	Tax Authority Partner	Agenza delle Entrate
 	Tax Code	Codice IVA
 	Tax Nature	Natura dell'IVA
+	Tax Regime	Regime fiscale
 	Taxes	IVA
 	Template	Modello
 	The parent company	L'azienda controllante
@@ -155,5 +197,8 @@ status	msgid	msgstr
 	VAT payability	Esigibilità IVA
 	Vendor	Fornitore
 	Vendor Credit Notes	Note credito fornitori
+	Vendor Taxes	IVA da fornitori
 	Warning!	Attenzione!
+	Weight 	Peso
+	Wizard	Procedura giudata
 	Workflow	Flussso di lavoro
