@@ -40,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.7.44
+#__version__=0.3.7.45
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -170,21 +170,23 @@ find_odoo_ver() {
 build_odoo_param() {
 # build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|liberp|flectra])
+    # set -x  #debug
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
       echo "${!1}"
       return
     fi
+    local VENV=0
     local ITEM=$1 ROOT=/opt/odoo
     local odoo_fver odoo_ver odoo_vid MULTIVER REPOS
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
     local ODOO_UPSTREAM
     local VID PKGPATH PKGNAME
     local p p1 p11 p2 p3 p4 pd ldir r x
-    p1="v|V|odoo|ODOO|ocb|OCB"
+    p1="v|V|odoo|ODOO|ocb|OCB|VENV"
     p2="oca|oia|liberp|flectra|zero"
     p3="12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
     p4="12|11|10|9|8|7|6"
-    local rex="^($p1|$p2)?-?($p3|$p4)"
+    local rex="^($p1|$p2|VENV$p2)?[_-]?($p3|$p4)"
     local reo="^($p1)"
     local reg="^($p2)"
     local ref="($p3)"
@@ -227,6 +229,7 @@ build_odoo_param() {
       odoo_fver=11.0
       odoo_vid=11.0
     fi
+    [[ $odoo_vid =~ ^VENV ]] && VENV=1
     if [[ -z "$odoo_fver" && ! "$ITEM" == "HOME" && ! "$2" == "." ]]; then
       echo "Invalid Odoo version $2!"
       odoo_fver=11.0
@@ -447,26 +450,6 @@ build_odoo_param() {
     elif [ "$ITEM" == "PKGPATH" ]; then
       echo "$PKGPATH"
       return
-    elif [ "$ITEM" == "DDIR" ]; then
-      p="$ROOT/.local/share"
-      if [[ $odoo_vid =~ $reo ]]; then
-        p="$p/Odoo"
-      elif [ $MULTIVER -ne 0 ]; then
-        p="$p/Odoo$odoo_ver"
-      elif [ $odoo_ver -lt 8 ]; then
-        p="$ROOT/$odoo_vid/openerp/filestore"
-      else
-        p="$p/Odoo"
-      fi
-      if [ "$3" == "search" -a $odoo_ver -ge 8 ]; then
-        p1=/etc/odoo/
-        p11=/etc/
-        p4=.conf
-        pd=$p
-      else
-        echo $p
-        return
-      fi
     elif [ "$ITEM" == "MANIFEST" ]; then
       if [ $odoo_ver -ge 10 ]; then
         echo "__manifest__.py"
@@ -513,6 +496,30 @@ build_odoo_param() {
         echo ".openerp_serverrc"
       fi
       return
+    elif [ "$ITEM" == "DDIR" ]; then
+      if [ $VENV -ne 0 ]; then
+        p="$ROOT/$odoo_vid/.local/share"
+      else
+        p="$ROOT/.local/share"
+      fi
+      if [ $odoo_ver -lt 8 ]; then
+        p="$ROOT/$odoo_vid/openerp/filestore"
+      elif [[ $odoo_vid =~ $reo ]]; then
+        p="$p/Odoo"
+      elif [ $MULTIVER -ne 0 -a $VENV -eq 0 ]; then
+        p="$p/Odoo$odoo_ver"
+      else
+        p="$p/Odoo"
+      fi
+      if [ "$3" == "search" ]; then
+        pd=$p
+        p1=/etc/odoo/
+        p11=/etc/
+        p4=.conf
+      else
+        echo $p
+        return
+      fi
     elif [ "$ITEM" == "CONFN" ]; then
       p1=/etc/odoo/
       p11=/etc/
@@ -547,7 +554,7 @@ build_odoo_param() {
     if [ $MULTIVER -ne 0 -a "$ITEM" != "BIN" ]; then
       if [ "$odoo_vid" == "v7" -o "$odoo_vid" == "v6" ]; then
         p2=openerp
-      elif [ "${odoo_vid:0:1}" == "v" -o "${odoo_vid:0:1}" == "V" ]; then
+      elif [ "$ITEM" == "DDIR" -a $VENV -ne 0 ]; then
         p2=odoo
       else
         p2="odoo${odoo_ver}"
@@ -600,7 +607,7 @@ build_odoo_param() {
     fi
     if [ "$ITEM" == "DDIR" ]; then
       p=$(grep "data_dir *=" $p|awk -F= '{print $2}'|tr -d " ")
-      [ -z "$x" ] && p=$pd
+      [ -z "$p" ] && p=$pd
     elif [ "$ITEM" == "SVCNAME" ]; then
       p=$(basename $p)
     fi

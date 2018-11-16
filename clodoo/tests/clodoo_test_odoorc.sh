@@ -32,14 +32,14 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.44
+__version__=0.3.7.45
 
 
 test_01() {
     local s sts v w
     sts=0
-    opt_mult=0
-    opt_multi=0
+    export opt_mult=0
+    export opt_multi=0
     declare -A TRES
     TRES[6]="6.1"
     TRES[7]="7.0"
@@ -90,7 +90,14 @@ test_01() {
       test_result "full version $w" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
-      [ "$v" == "6" ] && w="odoo-$v.1" || w="ODOO-$v.0"
+      [ "$v" == "6" ] && w="ODOO-$v.1" || w="ODOO-$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      [ "$v" == "6" ] && w="VENV-$v.1" || w="VENV-$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param FULLVER $w)
       fi
@@ -103,8 +110,8 @@ test_01() {
 test_02() {
     local s sts v w
     sts=0
-    opt_mult=0
-    opt_multi=0
+    export opt_mult=0
+    export opt_multi=0
     declare -A TRES
     TRES[6.1]="6"
     TRES[7.0]="7"
@@ -126,7 +133,7 @@ test_02() {
       test_result "major version $w" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
-      [ "$v" == "6" ] && w="odoo-$v.1" || w="OCB-$v.0"
+      [ "$v" == "6" ] && w="OCB-$v.1" || w="OCB-$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param MAJVER $w)
       fi
@@ -139,8 +146,8 @@ test_02() {
 test_03() {
     local s sts v w
     sts=0
-    opt_mult=0
-    opt_multi=0
+    export opt_mult=0
+    export opt_multi=0
     declare -A TRES
     TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/openerp-server.conf
@@ -153,7 +160,13 @@ test_03() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param CONFN $v)
       fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
+      test_result "config unique filename $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param CONFN VENV-$v)
+      fi
+      test_result "config unique filename VENV-$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in 6 v7 7 8 9 10; do
@@ -166,11 +179,11 @@ test_03() {
           RES=$(build_odoo_param CONFN $v.0)
         fi
       fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
+      test_result "config unique filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
-    opt_mult=1
-    opt_multi=1
+    export opt_mult=1
+    export opt_multi=1
     declare -A TRES
     TRES[v7]=/etc/odoo/openerp-server.conf
     TRES[6]=/etc/odoo/odoo6-server.conf
@@ -183,7 +196,13 @@ test_03() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param CONFN $v)
       fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
+      test_result "config multi filename $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param CONFN VENV-$v)
+      fi
+      test_result "config multi filename VENV-$v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     for v in 6 v7 7 8 9 10 11; do
@@ -196,7 +215,7 @@ test_03() {
           RES=$(build_odoo_param CONFN $v.0)
         fi
       fi
-      test_result "config filename $v" "${TRES[$v]}" "$RES"
+      test_result "config multi filename $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     TRES[v7]=/var/log/odoo/openerp-server.log
@@ -403,8 +422,8 @@ test_03() {
 test_04() {
     local s sts v w
     sts=0
-    opt_mult=1
-    opt_multi=1
+    export opt_mult=1
+    export opt_multi=1
     declare -A TRES
     TRES[6.1]="/opt/odoo/6.1"
     TRES[v7]="/opt/odoo/v7"
@@ -426,6 +445,23 @@ test_04() {
         RES=$(build_odoo_param HOME $v "OCB")
       fi
       test_result "Home $v/OCB" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    TRES[6.1]="/opt/odoo/6.1/openerp/filestore"
+    TRES[v7]="/opt/odoo/v7/openerp/filestore"
+    TRES[7.0]="/opt/odoo/7.0/openerp/filestore"
+    TRES[v8.0]="/opt/odoo/.local/share/Odoo"
+    TRES[8.0]="/opt/odoo/.local/share/Odoo8"
+    TRES[9.0]="/opt/odoo/.local/share/Odoo9"
+    TRES[10.0]="/opt/odoo/.local/share/Odoo10"
+    TRES[VENV-10]="/opt/odoo/VENV-10/.local/share/Odoo"
+    TRES[11.0]="/opt/odoo/.local/share/Odoo11"
+    TRES[12.0]="/opt/odoo/.local/share/Odoo12"
+    for v in 6.1 v7 7.0 v8.0 8.0 9.0 10.0 VENV-10 11.0 12.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param DDIR $v)
+      fi
+      test_result "Filestore $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     TRES[6.1]="/opt/odoo/6.1/crm"
@@ -450,8 +486,8 @@ test_04() {
 test_05() {
     local s sts v w
     sts=0
-    opt_mult=0
-    opt_multi=0
+    export opt_mult=0
+    export opt_multi=0
     declare -A TRES
     z="OCB"
     TRES[zero-git]="git@github.com:zeroincombenze/$z"
@@ -561,8 +597,8 @@ test_05() {
 test_06() {
     local s sts v w x
     sts=0
-    opt_mult=1
-    opt_multi=1
+    export opt_mult=1
+    export opt_multi=1
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
@@ -659,8 +695,8 @@ test_06() {
 test_07() {
     local s sts v w
     sts=0
-    opt_mult=1
-    opt_multi=1
+    export opt_mult=1
+    export opt_multi=1
     local TRES="OCB account-analytic account_banking_cscs account-budgeting\
  account-closing account-consolidation account-financial-reporting\
  account-financial-tools account-fiscal-rule account_invoice_create_payment\
