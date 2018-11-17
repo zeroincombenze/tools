@@ -33,7 +33,7 @@ except BaseException:
                             import_file_get_hdr)
     
 from zerobug import Z0test
-__version__ = "0.3.7.45"
+__version__ = "0.3.7.46"
 
 
 MODULE_ID = 'clodoo'

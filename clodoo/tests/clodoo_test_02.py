@@ -28,12 +28,13 @@ except BaseException:
     from clodoolib import crypt
 
 
-__version__ = "0.3.7.45"
+__version__ = "0.3.7.46"
 
 
 MODULE_ID = 'clodoo'
-VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
-# VERSIONS_TO_TEST = ('12.0',)
+# VERSIONS_TO_TEST = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+# VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+VERSIONS_TO_TEST = ('12.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
@@ -96,17 +97,27 @@ oe_version=%s
     def check_4_user(self, oe_version, id=None, login_name=False):
         user = self.param_by_db(oe_version, field='user')
         dbname = self.param_by_db(oe_version, field='dbname')
-        id = id or 1
+        if not id:
+            sql = "select res_id from ir_model_data"
+            sql += " where module='base' and name='user_root';"
+            cmd = 'psql -At -U%s %s -c"%s"' % (user, dbname, sql)
+            p = Popen(cmd,
+                      stdin=PIPE,
+                      stdout=PIPE,
+                      stderr=PIPE,
+                      shell=True)
+            res, err = p.communicate()
+            id = eval(res) or 1
         sql = "select login from res_users" + \
               " where id=%d;" % id
-        cmd = 'psql -t -U%s %s -c"%s"' % (user, dbname, sql)
+        cmd = 'psql -At -U%s %s -c"%s"' % (user, dbname, sql)
         p = Popen(cmd,
                   stdin=PIPE,
                   stdout=PIPE,
                   stderr=PIPE,
                   shell=True)
         res, err = p.communicate()
-        login_name = login_name or ' %s' % self.login_2_test
+        login_name = '%s\n' % (login_name or self.login_2_test)
         if res.find(login_name) >= 0:
             return True
         else:
