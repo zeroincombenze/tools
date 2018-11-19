@@ -49,7 +49,7 @@ rmdir_if_exists() {
       if [ -n "$opt_odir" ]; then
         local DSTPATH=$opt_odir
       else
-        local DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$opt_org")
+        local DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$def_opt_org")
       fi
       local sts
       if [ -d $DSTPATH ]; then
@@ -276,6 +276,11 @@ odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
 [ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
+if [[ $odoo_vid =~ (12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
+  def_opt_org=
+else
+  def_opt_org=$opt_org
+fi
 if [ "${RPTNAME: -4}" == ".git" ]; then
   RPTNAME=${RPTNAME:0: -4}
 fi
@@ -285,7 +290,7 @@ fi
 if [ "${pkg_URL: -1}" == "/" ]; then
   pkg_URL=${pkg_URL:0: -1}
 fi
-odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB" $opt_org)
+odoo_root=$(build_odoo_param ROOT $odoo_vid "OCB" $def_opt_org)
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_fver=$odoo_fver
   if [ "$pkg_URL" == "$RPTNAME" ]; then
@@ -300,7 +305,7 @@ if [ -z "$new_odoo_vid" ]; then
   if [ -n "$opt_odir" ]; then
     DSTPATH=$opt_odir
   else
-    DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$opt_org")
+    DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$def_opt_org")
   fi
   [ "$x" != "$ORGNM" ] && exit 0
   if [ $opt_upd -gt 0 ]; then
@@ -328,7 +333,7 @@ if [ -z "$new_odoo_vid" ]; then
     if [ -n "$opt_odir" ]; then
       pardir=$(dirname $opt_odir)
     else
-      pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME" $opt_org)
+      pardir=$(build_odoo_param PARENTDIR $odoo_vid "$RPTNAME" $def_opt_org)
     fi
     if [ "$PWD" != "$pardir" ]; then
       run_traced "cd $pardir"
@@ -342,7 +347,7 @@ if [ -z "$new_odoo_vid" ]; then
   fi
   if [ "$RPTNAME" == "OCB" ]; then
     discover_multi
-    cfgfn=$(build_odoo_param CONFN "$odoo_vid" '' $opt_org)
+    cfgfn=$(build_odoo_param CONFN "$odoo_vid" '' $def_opt_org)
     if [ ! -f "$cfgfn" ]; then
       odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
       [ -z "$odoo_bin" ] && odoo_bin=$(build_odoo_param BIN "$odoo_vid")
@@ -375,11 +380,11 @@ else
     echo "Same source and target version"
     exit 1
   fi
-  SRCPATH=$(build_odoo_param HOME $odoo_vid "$git_repo" "$opt_org")
+  SRCPATH=$(build_odoo_param HOME $odoo_vid "$git_repo" "$def_opt_org")
   if [ -n "$opt_odir" ]; then
     DSTPATH=$opt_odir
   else
-    DSTPATH=$(build_odoo_param HOME $new_odoo_vid "$git_repo" "$opt_org")
+    DSTPATH=$(build_odoo_param HOME $new_odoo_vid "$git_repo" "$def_opt_org")
   fi
   if [ "$SRCPATH" == "$DSTPATH" ]; then
     echo "Same source and target version"
@@ -412,7 +417,7 @@ else
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"
   fi
-  odoo_root=$(build_odoo_param ROOT $new_odoo_vid "OCB" $opt_org)
+  odoo_root=$(build_odoo_param ROOT $new_odoo_vid "OCB" $def_opt_org)
 fi
 if [ -z "$new_odoo_vid" ]; then
   new_odoo_vid=$odoo_vid
