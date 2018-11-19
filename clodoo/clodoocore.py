@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.46"
+__version__ = "0.3.7.47"
 
 
 #############################################################################
@@ -756,8 +756,12 @@ def get_company_id(ctx):
 def get_country_id(ctx, value):
     if value:
         model = 'res.country'
-        ids = searchL8(ctx, model,
-                       [('code', '=', value.upper())])
+        if value[0:5] == 'base.':
+            ids = searchL8(ctx, model,
+                           [('code', '=', value[5:].upper())])
+        else:
+            ids = searchL8(ctx, model,
+                           [('code', '=', value.upper())])
         if not ids:
             ids = searchL8(ctx, model,
                            [('name', 'ilike', value)])
@@ -1292,14 +1296,14 @@ def get_db_alias(ctx, value, fmt=None):
 def get_model_alias(value):
     if value:
         items = value.split('.')
-        if len(items) == 3 and items[0][0].isalpha() and \
-                items[-1][0].isdigit():
+        if len(items) == 3 and items[0] and items[0][0].isalpha() and \
+                items[-1] and items[-1][0].isdigit():
             model = "ir.transodoo"
             name = ['module', 'name', 'version']
             value = [items[0], items[1], items[2]]
             hide_cid = True
             return model, name, value, hide_cid
-        elif len(items) == 2 and items[0][0].isalpha():
+        elif len(items) == 2 and items[0] and items[0][0].isalpha():
             model = "ir.model.data"
             name = ['module', 'name']
             value = [items[0], items[1]]

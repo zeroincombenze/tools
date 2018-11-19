@@ -181,7 +181,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.7.46"
+__version__ = "0.3.7.47"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -389,7 +389,7 @@ def do_login(ctx):
             try:
                 write_recordL8(ctx, user)
                 if not ctx.get('no_warning_pwd', False):
-                    os0.wlog(u"!DB=%s: updated user/pwd/mail %s to %s" % (
+                    os0.wlog(u"DB=%s: updated user/pwd/mail %s to %s" % (
                              tounicode(ctx['db_name']),
                              tounicode(username),
                              tounicode(ctx['login_user'])))
@@ -728,7 +728,9 @@ def do_single_action(ctx, action):
                     action = 'unit_test'
         act = lexec_name(ctx, action)
         if act in list(globals()):
-            if action == 'install_modules' and\
+            if action in ('install_modules',
+                          'upgrade_modules',
+                          'uninstall_modules') and\
                     not ctx.get('module_udpated', False):
                 globals()[lexec_name(ctx, 'update_modules')](ctx)
                 ctx['module_udpated'] = True
@@ -1387,11 +1389,33 @@ def act_update_modules(ctx):
                   [])
         ids = searchL8(ctx, model,
                        [('state', '=', 'to install')])
-        if ids and not ctx['dry_run']:
+        if ids:
             try:
                 executeL8(ctx,
                           model,
                           'button_install_cancel',
+                          ids)
+                time.sleep(2)
+            except BaseException:
+                pass
+        ids = searchL8(ctx, model,
+                       [('state', '=', 'to upgrade')])
+        if ids:
+            try:
+                executeL8(ctx,
+                          model,
+                          'button_upgrade_cancel',
+                          ids)
+                time.sleep(2)
+            except BaseException:
+                pass
+        ids = searchL8(ctx, model,
+                       [('state', '=', 'to remove')])
+        if ids:
+            try:
+                executeL8(ctx,
+                          model,
+                          'button_uninstall_cancel',
                           ids)
                 time.sleep(2)
             except BaseException:
@@ -4963,21 +4987,21 @@ def setup_user_config_param(ctx, username, name, value):
                              context=context)
     if len(group_ids) != 1:
         if isinstance(value, bool):
-            msg = u"!Parameter name '%s' not found!" % tounicode(name)
+            msg = u"!!Parameter name '%s' not found!!" % tounicode(name)
         else:
-            msg = u"!Parameter name '%s/%s' not found!" % (tounicode(name),
+            msg = u"!!Parameter name '%s/%s' not found!!" % (tounicode(name),
                                                            tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
-        return STS_FAILED
+        return sts
     user_ids = searchL8(ctx, 'res.users',
                         [('login', '=', username)])
     if len(user_ids) != 1:
-        msg = u"!User " + tounicode(username) + " not found!"
+        msg = u"!!User " + tounicode(username) + " not found!!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     user = browseL8(ctx, 'res.users', user_ids[0])
     if not user:
-        msg = u"!User " + tounicode(username) + " not found!"
+        msg = u"!!User " + tounicode(username) + " not found!!"
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     group_id = group_ids[0]
@@ -4997,7 +5021,11 @@ def setup_user_config_param(ctx, username, name, value):
                            context=context):
             if id != group_id and id in user.groups_id.ids:
                 vals['groups_id'] = [(3, id)]
-                writeL8(ctx, 'res.users', user_ids, vals)
+                try:
+                    writeL8(ctx, 'res.users', user_ids, vals)
+                except BaseException:
+                    msg = u"!!Error writing parameter %s" % name
+                    msg_log(ctx, ctx['level'] + 2, msg)
         if group_id not in user.groups_id.ids:
             vals['groups_id'] = [(4, group_id)]
             if isinstance(value, bool):
