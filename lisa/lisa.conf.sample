@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2018-08-21
+# Last update: 2018-11-20
 #
 # ---------------------------------------------------------------------
 #
@@ -213,11 +213,11 @@ PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
                python-psycopg2/psycopg2,python-reportlab/reportlab,\
                python-decorator/decorator,python-docutils/docutils,\
                python-feedparser/feedparser,python-gevent/gevent,\
-               python-jinja2/Jinja2,python-ldap,python-lxml/lxml,\
+               python-jinja2/Jinja2,python-lxml/lxml,\
                python-simplejson/simplejson,\
                python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-ldap,python-openid,\
+PIP_PKGS=oerplib,virtualenv,Babel,python-openid,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,requests,\
@@ -258,11 +258,11 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          libapache2-mod-auth-mysql,\
          vsftpd,postgresql-client-common,postgresql-contrib,\
          telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
-         python-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
+         python-virtualenv,python3-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
          unixODBC,unixODBC-devel,unixodbc,unixodbc-dev,\
          python-mysqldb,MYSQL-python,ruby-sass,rubygem-sass,nodejs,npm,java,\
-         python-mako,python-psycopg2,curl
+         python-mako,curl
 build_fileignore=*.log,*.bak,*.out,*.tmp,*.tracehis,*.tracehistory,*cover/,\
                  .coverage/,*coverage*,*~,test*,*.pdf,tmp/,tmp.*,npm-debug.log.*,\
                  *.pyc,*.conf,build/,dist/,conf/,filestore/,.git/,docs/,html/,\
@@ -316,7 +316,8 @@ PYTHON_LIB_XML_BOP=python-libxslt1,libxml2,python-libxml2,lxml
 openssh-server_BOP=openssh-client
 openssh-client_cmdname=ssh
 openssh-server_svcname=ssh
-pyldap_ReqPkgList=python-dev,openldap-devel
+python_ldap_ReqPkgList=libsasl2-dev python-dev libldap2-dev libssl-dev
+pyldap_ReqPkgList=python-dev,openldap-dev
 psutil_ReqPkgList=python-dev
 npm_ReqPkgList=nodejs
 nodejs_ReqPkgList=curl
@@ -374,7 +375,7 @@ REAL_libfreetype6-dev=freetype-devel
 REAL_openid=python-openid
 REAL_expect-dev=expect-devel
 RHEL_libpq-dev=postgresql-devel
-REAL_python3=python${PY3ID}
+# REAL_python3=python${PY3ID}
 REAL_python3-dev=python${PY3ID}-devel
 
 redis_svcname=redis
@@ -384,7 +385,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
          freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel,\
-         python2-simplejson,python34,python35,python36,python34-devel,,python35-devel,python36-devel,\
+         python2-simplejson,python3,python3-devel,\
          redhat-rpm-config
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
@@ -394,6 +395,7 @@ PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml
 openssh-server_BOP=openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils
 openssh-clients_cmdname=ssh
 openssh-server_svcname=sshd
+python_ldap_ReqPkgList=python-devel,openldap-devel
 pyldap_ReqPkgList=python-devel,openldap-devel
 psutil_ReqPkgList=python-devel
 

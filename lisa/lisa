@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.8
+__version__=0.3.0.10
 
 
 STS_FAILED=1
@@ -1110,6 +1110,7 @@ get_full_xtlcmd() {
     elif [ "$xtlcmd" == "pip" ]; then
       if [ "$1" == "update" ]; then
         xtlcmd="$xtlcmd install '$pkgname$lop$lreqver$rop$rreqver' --upgrade"
+        [ $opt_force -ne 0 ] && xtlcmd="$xtlcmd --ignore-installed"
       else
         xtlcmd="$xtlcmd ${1/remove/uninstall} '$pkgname$lop$lreqver$rop$rreqver'"
       fi
@@ -2436,7 +2437,7 @@ do_dry_update_package() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_dry_update_package($1 $2 $3)">>~/$THIS.his
     local cmd0
     cmd=$(get_full_xtlcmd $1 $2 $3 $4 "$5")
-    if [ ${UPDATED:-0} -eq 0 ] && [[  $cmd =~ apt-get.*upgrade ]]; then
+    if [ ${UPDATED:-0} -eq 0 ] && [[ $cmd =~ apt-get.*upgrade ]]; then
       if [[ $3 =~ y ]]; then cmd0="apt-get -y update"; else cmd0="apt-get update"; fi
       run_traced "$cmd0"
       UPDATED=1
@@ -3389,11 +3390,11 @@ please() {
 
 
 # main
-OPTOPTS=(h        b       c        D       d         E       e         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
-OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
-OPTACTI=(1        1       "="      "*"     "="       "="     "="       1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
-OPTDEFL=(1        0       ""       ""      ""        ""      ""        0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1          0          0       0)
-OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
+OPTOPTS=(h        b       c        D       d         E       e         f         g       H        I        i      J        L         l          m        N        n           o       p         P          q           r       s         T         u       V           v           X          y       1)
+OPTDEST=(opt_help opt_dbg opt_conf opt_dev opt_depth opt_osf opt_aae   opt_force opt_grf opt_host opt_xtly opt_if opt_xtln opt_log   opt_locale opt_mult opt_nake opt_dry_run opt_oed opt_nopip opt_pwd    opt_verbose opt_req opt_sub   test_mode use2xtl opt_version opt_verbose opt_nodeps opt_yes opt_1st)
+OPTACTI=(1        1       "="      "*"     "="       "="     "="       1         1       "="      "="      "="    "="      "="       "="        1        1        1           "="     1         "="        0           "="     "="       1         "="     "*"         "+"         1          1       1)
+OPTDEFL=(1        0       ""       ""      ""        ""      ""        0         0       ""       ""       ""     ""       ""        ""         0        0        0           ""      0         ""         -1          ""      ""        0         ""      ""          -1          0          0       0)
+OPTMETA=("help"   "dbg"   "file"   "dev"   "number"  "disto" "0-4,0-4" ""        "win"   "host"   "pkg(s)" "file" "pkg(s)" "logfile" "iso3166"  "multi"  ""       "noop"      "disto" "pip"     "password" "quiet"     "file"  "modules" "teste"   "file"  "version"   "verbose"   ""         "yes"   "first")
 OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "trace to build configuration"\
  "configuration file (def /etc/lisa/lisa.conf)"\
@@ -3401,6 +3402,7 @@ OPTHELP=("this help, type '$THIS help' for furthermore info"\
  "max depth level"\
  "emulate Linux distribution; may be Ubuntu[12|14],CentOS[6|7]. Use carefully!"\
  "action on parent and dependecies if error: (0=exit, 1=ignore, 2=if upd do install, 3=do upd/install)"\
+ "force pip installation with --ignore-installed"\
  "add graphical interface package(s)"\
  "[user@]host to export config files"\
  "declare package(s) as installed"\
@@ -3459,7 +3461,13 @@ opt_aaeR=$(echo "0$opt_aae"|awk -F, '{print $1}')
 opt_aaeD=$(echo "$opt_aae,2"|awk -F, '{print $2}')
 UPDATED=0
 python3 --version &>/dev/null
-[ $? -ne 127 ] && PY3ID=$(python3 --version 2>&1 |head -n1|grep -Eo [0-9]+\.[0-9]+|tr -d ".") || PY3ID=3
+if [ $? -ne 127 ]; then
+  PY3ID=$(python3 --version 2>&1 |head -n1|grep -Eo [0-9]+\.[0-9]+|tr -d ".")
+  x=$(yum search python$PY3ID 2>/dev/null|grep -Eo "python$PY3ID[a-z]*\."|grep -Eo ".*[^.]"|head -n1)
+  PY3ID=${x:6}
+  set_cfg_def "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
+fi
+[ -z "$PY3ID" ] && PY3ID=3
 
 for tid in 0 1 2 3; do
   CFG_init $tid
@@ -3468,15 +3476,18 @@ prdstk_level=0
 conf_level=0
 declare -a CONF_FNS
 conf_default
-# link_cfg $FCONF $FCONFDEF
 if [ ${opt_dbg:-0} -gt 0 ]; then rm -f ~/$THIS.his; fi
 OPTS="-$opt_dev"
 if [ ${opt_grf:-0} -gt 0 ]; then OPTS="${OPTS}g"; fi
 if [ ${opt_dbg:-0} -gt 0 ]; then OPTS="${OPTS}b"; fi
 if [ ${opt_nopip:-0} -gt 0 ]; then OPTS="${OPTS}p"; fi
 OPTS=${OPTS//--/-}
-# get_conf_pkg lisa.conf "" "" $OPTS
 set_from_conf_pkg "lisa" "lisa.conf" $OPTS
+if [ -n "$PY3ID" -a "$PY3ID" != "3" ]; then
+  set_cfg_def "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
+  YUM_PKGS="$(get_prm_value YUM_PKGS list)"
+  set_cfg_def "YUM_PKGS" "$YUM_PKGS python${PY3ID}-devel" "1" "CentOS7"
+fi
 if [ -n "$opt_xtly" ]; then
   SIMULATE_YES=" ${opt_xtly//,/ } "
 fi

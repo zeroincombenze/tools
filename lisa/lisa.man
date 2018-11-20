@@ -13,14 +13,15 @@ and/or Odoo server.
 LAMP means \fBLinux\fR \fIApache\fR \fIMysql\fR (now \fIMariadb\fR) \fIPHP\fR;
 in recent times, \fIPython\fR and \fIPostgresql\fR were added.
 .br
-Please pay attention, based on Linux distribution and version,
-package name you type may be replaced by \fBlisa\fR in order to build right environment,
-everytime and everywhere; i.e. when you type \fIlisa install apache2\fR and your
+Please pay attention to package name you type may be replaced by \fBlisa\fR
+in order to build the right environment, everytime and everywhere;
+replacement dependes by Linux distribution and version:
+i.e. when you type \fIlisa install apache2\fR and your
 machine is running CentOS, your command is replaced by \fIlisa install httpd\fR
 because apache2 package is named httpd on CentOS.
 .br
 \fBlisa\fR is just a front-end for \fIrpm\fR, \fIyum\fR, \fIdpkg\fR, \fIapt-get\fR,
-\fIpip\fR, \fIgit\fR, \fIwget\fR and other commands, it is not a real package installer.
+\fIpip\fR, \fIgit\fR, \fIwget\fR and other commands, it is not a real installer package.
 It requires \fByum\fR on CentOS and Red Hat Enterprise Linux family distros,
 \fBapt-get\fR on Ubuntu and Debian family distros. May be \fBlisa\fR installs
 some other package if required by installation process, like \fBpip\fR or \fBgit\fR
@@ -77,6 +78,7 @@ You can issue more actions separated by plus simbol: i.e. \fBinstall+config\fR
 You can manage many packages in every single command line; package names must be
 separated by comma: i.e. \fBapache2,php5\fR
 .br
+.br
 lisa supports package name using a requirement specifier.
 Generally speaking, a requirement specifier is composed of a required package name
 followed by optional version specifiers and optional installer. i.e:
@@ -85,7 +87,8 @@ followed by optional version specifiers and optional installer. i.e:
 .br
 Use quotes around package name with specifiers in the shell
 because >, <, and ! are processed by shell itself.
-Specify version, in this version od lisa, is valid only if installer is pip.
+Specified version, in this version of lisa, may be ignored by actual installer software;
+currently is supported by pip.
 Token !! (double exclamation mark) declare a different installer, if package
 may be installed by different software (i.e. yum/apt-get or pip or git)
 
@@ -101,8 +104,8 @@ parameter, comma separated in configuration file.
 .br
 If a package is already installed, is ignored and sub packages are not examined.
 This behaviour  may be changed by -e switch. Sub packages may nested.
-Before install package, \fBlisa\fR choices one of \fIyum\fR, \fIapt-get\fR,
-\fIpip\fR or other installer.
+To install package, \fBlisa\fR choices one of \fIyum\fR, \fIapt-get\fR,
+\fIpip\fR or other installer software.
 .br
 See http://wiki.zeroincombenze.org/en/Lisa page for furthermore informations.
 .br

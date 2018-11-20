@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.7.47
+__version__=0.3.7.48
 
 
 explore() {
@@ -71,17 +71,16 @@ do_action() {
     fi
     # local pardir=$(readlink -e $pkgdir)
     local opts=
+    local opts1=
     if [ $opt_verbose -gt 0 ]; then
-      local opts="-v"
+      opts="-v"
     else
-      local opts="-q"
+      opts="-q"
     fi
-    if [ $opt_multi -ne 0 ]; then
-      local opts="${opts}m"
-    fi
-    if [ $opt_dry_run -ne 0 ]; then
-      local opts="${opts}n"
-    fi
+    [ $opt_dry_run -ne 0 ] && opts="${opts}n"
+    opts1=$opts
+    [ $opt_multi -ne 0 ] && opts="${opts}m"
+    [ $opt_yes -ne 0 ] && opts="${opts}y"
     local sts=0
     local excl="${opt_excl//,/ }"
     local x
@@ -104,6 +103,15 @@ do_action() {
       ODOO_URL=$(build_odoo_param GIT_URL $odoo_vid $repo $opt_org)
       GIT_OPTS=$(build_odoo_param GIT_OPTS $odoo_vid $repo $opt_org)
       OPTS_ASM=$(build_odoo_param OPTS_ASM $odoo_vid $repo $opt_org)
+      if [ "$act" == "build" ]; then
+        for p in FLOG FPID CONFN; do
+          d=$(dirname $(build_odoo_param $p "$odoo_vid"))
+          if [ ! -d $d ]; then
+            run_traced "mkdir -p $d"
+            run_traced "chown odoo:odoo $d"
+          fi
+        done
+      fi
     fi
     if [ "$act" == "requirements" ]; then
       [ -n "$opt_deps" ] && dopts="-d $opt_deps" || dopts=
@@ -149,8 +157,6 @@ do_action() {
         breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR${TRAVIS_HDR3_COLOR}"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ breqs=$breqs${TRAVIS_HDR3_COLOR}"
-        opts=
-        [ $opt_yes -ne 0 ] && opts="${opts}y"
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$pyver" != "3"  ]]; then
@@ -251,12 +257,12 @@ do_action() {
       return $sts
     fi
     if [ "$act" == "build" -o "$act" == "rebuild" -o "$act" == "add_repository" ]; then
-      $TDIR/odoo_install_repository $ODOO_URL $odoo_vid $opts -O $opt_org $OPTS_ASM
+      run_traced "$TDIR/odoo_install_repository $ODOO_URL $odoo_vid $opts -O $opt_org $OPTS_ASM $opts_user"
     else
       run_traced "cd $pkgdir"
       if [ "$act" == "lint" ]; then
         if [ ! -L $pkgdir ]; then
-          travis lint $opts
+          travis lint $opts1
           sts=$?
         fi
       elif [ "$act" == "clean" ]; then
@@ -265,19 +271,19 @@ do_action() {
         else
           if [ "$USER" == "odoo" ]; then
             if [ "$repo" != "OCB" ]; then
-              please wep $opts || true
+              please wep $opts1 || true
             fi
             $TDIR/list_requirements.py -vPp $pkgdir -o
           fi
-          $TDIR/odoo_install_repository $repo $odoo_vid $opts -O $opt_org -r
+          run_traced "$TDIR/odoo_install_repository $repo $odoo_vid $opts -O $opt_org -r $opts_user"
         fi
       elif [ "$act" == "oca" ]; then
         if [ ! -L $pkgdir ]; then
-          please synchro . oca $opts
+          please synchro . oca $opts1
         fi
       elif [ "$act" == "oia" ]; then
         if [ ! -L $pkgdir ]; then
-          please synchro . oia $opts
+          please synchro . oia $opts1
         fi
       elif [ "$act" == "remote" ]; then
         if $(git status -s &>/dev/null); then
@@ -298,14 +304,14 @@ do_action() {
       elif [ "$act" == "upgrade" ]; then
         if [ ! -L $pkgdir ]; then
           if $(git status -s &>/dev/null); then
-            run_traced "git pull origin $odoo_fver"
+            run_traced "git pull origin $odoo_fver" "$pkg_user"
           else
             echo "No git repository!"
           fi
         fi
       elif [ "$act" == "zeroincombenze" ]; then
         if [ ! -L $pkgdir ]; then
-          please synchro . zeroincombenze $opts
+          please synchro . zeroincombenze $opts1
         fi
       else
         echo "Invalid action!"
@@ -314,11 +320,11 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       d        H           m         n            O         o        p         q           s          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "*>"        "+"         "="        1)
-OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "version"   "verbose"   "modules" "")
+OPTOPTS=(h        b          c        D       d        H           m         n            O         o        p         q           s          u          V           v           x         y)
+OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
+OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
+OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
@@ -373,6 +379,14 @@ else
   TRAVIS_HDR3_COLOR=
   TRAVIS_NOP_COLOR=
 fi
+if [ -n "$opt_user" -a "$opt_user" != "$USER" -a $EUID -eq 0 ]; then
+  pkg_user="$opt_user"
+elif [ -z "$opt_user" -a "$USER" != "travis" -a $EUID -eq 0 ]; then
+  pkg_user="odoo"
+else
+  pkg_user=
+fi
+[ -n "$pkg_user" ] && opts_user="-u$pkg_user" || opts_user=
 if [ -z "$opt_branch" ]; then
   opt_branch="6.1 7.0 8.0 9.0 10.0 11.0 12.0"
   multi_version_pkgs=1

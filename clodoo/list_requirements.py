@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.47'
+__version__ = '0.3.7.48'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -199,7 +199,7 @@ PIP_BASE_PACKAGES = ['Babel',
 BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
-                     'python-psycopg2',
+                     # 'python-psycopg2',
                      'python-simplejson',
                      'wkhtmltopdf',
                      ]

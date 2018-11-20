@@ -440,7 +440,7 @@ def _init_state():
             'prior_nl': '',
             'action': 'write',
             'stack': [],
-            'cond_stack': [],
+            'do_else': [],
             'out_fmt': 'rst',
             'in_fmt': 'rst'}
 
@@ -452,36 +452,66 @@ def value_of_term(ctx, term):
 
 
 def validate_condition(ctx, *args):
-    if args[0] == 'defined':
-        if args[1] in ctx and ctx[args[1]]:
-            res = True
+    val = ''
+    in_cond = False
+    i = 0
+    while  i < len(args):
+        pad = ',' if in_cond else ' '
+        if args[i][0].isalpha() or args[i][0] == '_':
+            if args[i] == 'defined':
+                i += 1
+                if args[i] in ctx and ctx[args[1]]:
+                    val += '%s%s' % ('True', pad)
+                else:
+                    val += '%s%s' % ('False', pad)
+            elif args[i] == 'isfile':
+                i += 1
+                val = expand_macro(ctx, args[i])
+                if os.path.isfile(val):
+                    val += '%s%s' % ('True', pad)
+                else:
+                    val += '%s%s' % ('False', pad)
+            elif args[i] in ctx or args[i] in ('not', 'in'):
+                val += '%s%s' % (args[i], pad)
+                if args[i] == 'in':
+                    in_cond = True
+                    val += '('
+            else:
+                val += '\'%s\'%s' % (expand_macro(ctx, args[i]), pad)
         else:
-            res = False
-        return res
-    left = value_of_term(ctx, args[0])
-    if args[1] == '==':
-        return left == value_of_term(ctx, args[2])
-    elif args[1] == '!=':
-        return left != value_of_term(ctx, args[2])
-    elif args[1] == 'in':
+            val += '%s%s' % (args[i], pad)
+        i += 1
+    if in_cond:
+        val += ')'
+    try:
+        res = eval(val, ctx)
+    except BaseException:
         res = False
-        i = 2
-        while i < len(args):
-            if left == value_of_term(ctx, args[i]):
-                res = True
-                break
-            i += 1
-        return res
-    elif args[1] == 'not' and args[2] == 'in':
-        res = True
-        i = 3
-        while i < len(args):
-            if left == value_of_term(ctx, args[i]):
-                res = False
-                break
-            i += 1
-        return res
-    return False
+    return res
+    # left = value_of_term(ctx, args[0])
+    # if args[1] == '==':
+    #     return left == value_of_term(ctx, args[2])
+    # elif args[1] == '!=':
+    #     return left != value_of_term(ctx, args[2])
+    # elif args[1] == 'in':
+    #     res = False
+    #     i = 2
+    #     while i < len(args):
+    #         if left == value_of_term(ctx, args[i]):
+    #             res = True
+    #             break
+    #         i += 1
+    #     return res
+    # elif args[1] == 'not' and args[2] == 'in':
+    #     res = True
+    #     i = 3
+    #     while i < len(args):
+    #         if left == value_of_term(ctx, args[i]):
+    #             res = False
+    #             break
+    #         i += 1
+    #     return res
+    # return False
 
 
 def default_token(ctx, token):
@@ -498,7 +528,7 @@ def is_preproc_line(ctx, line, state):
             conditions = line[7:].strip().split(' ')
             res = validate_condition(ctx, *conditions)
             state['stack'].append(res)
-            state['cond_stack'].append(res)
+            state['do_else'].append(res)
             if False in state['stack']:
                 state['action'] = 'susp'
             else:
@@ -511,7 +541,7 @@ def is_preproc_line(ctx, line, state):
                 res = validate_condition(ctx, *conditions)
                 state['stack'][-1] = res
                 if res:
-                    state['cond_stack'][-1] = res
+                    state['do_else'][-1] = res
                 if False in state['stack']:
                     state['action'] = 'susp'
                 else:
@@ -522,7 +552,7 @@ def is_preproc_line(ctx, line, state):
         is_preproc = True
         if state['action'] != 'pass1':
             if len(state['stack']):
-                state['stack'][-1] = not state['cond_stack'][-1]
+                state['stack'][-1] = not state['do_else'][-1]
                 if False in state['stack']:
                     state['action'] = 'susp'
                 else:
@@ -534,7 +564,7 @@ def is_preproc_line(ctx, line, state):
         if state['action'] != 'pass1':
             if len(state['stack']):
                 del state['stack'][-1]
-                del state['cond_stack'][-1]
+                del state['do_else'][-1]
             if len(state['stack']):
                 if False in state['stack']:
                     state['action'] = 'susp'

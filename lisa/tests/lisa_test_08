@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.8
+__version__=0.3.0.10
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -226,7 +226,7 @@ odoo (by git)
 --docutils (by yum/pip)
 --feedparser (by yum/pip)
 --Jinja2 (by yum/pip)
---python-ldap (by yum/pip)
+--python-ldap (by pip)
 --python-mako (by yum/pip)
 --python-markupsafe (by yum)
 --python-openid (by pip)
@@ -256,7 +256,7 @@ odoo (by git)
 --python-docutils (by yum/pip)
 --python-feedparser (by yum/pip)
 --Jinja2 (by yum/pip)
---python-ldap (by yum/pip)
+--python-ldap (by pip)
 --python-mako (by yum)
 --python-markupsafe (by yum)
 --python-openid (by pip)

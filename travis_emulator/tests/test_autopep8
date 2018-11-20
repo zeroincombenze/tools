@@ -319,14 +319,17 @@ test_03() {
       rm -f $TESTOUT
       cat <<EOF >$TESTSRC
 # (C) OpenERP (http://openerp.com)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 EOF
       cat <<EOF >$TESTRES
-# (C) OpenERP (https://odoo.com)
+# -*- coding: utf-8 -*-
+# (C) Odoo (https://odoo.com)
+# License LGPL-3.0 or later (http://www.gnu.org/licenses/lgpl).
 
 EOF
-      $RUNDIR/topep8 -qAA $TESTSRC -o $TESTOUT
+      $RUNDIR/topep8 -qAA -b10.0 $TESTSRC -o $TESTOUT
     fi
-    test_result "topep8 -AA 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
+    test_result "topep8 -AA -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

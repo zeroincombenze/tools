@@ -1,5 +1,6 @@
 > yum -y install python-wheel
 > pip install 'wheel' --upgrade --no-warn-conflicts
+#
 # yum -y install python
 # yum -y install python-setuptools
 > pip install 'setuptools' --upgrade --no-warn-conflicts
@@ -12,7 +13,6 @@
 > pip install 'xlwt' --no-warn-conflicts
 > pip install 'PyYAML' --no-warn-conflicts
 > pip install 'gdata' --no-warn-conflicts
-> yum -y install python-ldap
-> pip install 'python-ldap' --upgrade --no-warn-conflicts
+> pip install 'python-ldap' --no-warn-conflicts
 > pip install 'pytz' --no-warn-conflicts
 # pip install 'requests' --no-warn-conflicts

@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.8
+__version__=0.3.0.10
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -344,6 +344,7 @@ EOF
   cat <<EOF >$TESTDIR/res/python__RHEL.06.test
 > yum -y install python-wheel
 > pip install 'wheel' --upgrade --no-warn-conflicts
+#
 > yum -y update python
 > pip install 'setuptools' --upgrade --no-warn-conflicts
 > yum -y update python-virtualenv

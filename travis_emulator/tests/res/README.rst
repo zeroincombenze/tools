@@ -27,4 +27,4 @@ Contributors
 Acknoledges to
 --------------
 
-* unknown author <unknow@example.com>
+* lorenzo <lorenzo@libero.it>

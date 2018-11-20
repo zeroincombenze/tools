@@ -78,6 +78,21 @@ remark_openerp: # http://openerp.com
     [0]: http://openerp.com
     [6.1]: https://odoo.com
 #
+# Remark openerp
+remark_openerp2: # OpenERP
+    [0]: OpenERP
+    [6.1]: Odoo
+#
+# Remark license
+remark_license: # License
+    [6.1]: AGPL-3.0
+    [9.0]: LGPL-3.0
+#
+# Remark license
+remark_license2: # License
+    [6.1]: (http://www.gnu.org/licenses/agpl)
+    [9.0]: (http://www.gnu.org/licenses/lgpl)
+#
 # Rule instance basestring
 instance_basestring:
     isinstance($any, basestring)

@@ -53,20 +53,36 @@ Lorem ipsum
 -----------
 
 Lorem ipsum dolor sit amet
+.. \$if branch in '12.0'
+odoo 12.0
+.. \$elif branch in '10.0'
+odoo 10.0
+.. \$elif branch in '10.0'
+odoo 8.0
+.. \$else
 consectetur adipiscing elit
+.. \$fi
 EOF
       cat <<EOF >$TESTDIR/res/authors.txt
-.. \$if branch in '11.0'
+.. \$if branch in '12.0'
+* wrong author
+.. \$elif branch in '11.0'
 * SHS-AV s.r.l. <https://www.shs-av.com>
+.. \$elif branch in '10.0'
+* wrong author
 .. \$else
 * unknown authors
 .. \$fi
 EOF
       cat <<EOF >$TESTDIR/res/contributors.txt
-.. \$if branch in '11.0'
+.. \$if branch in '12.0'
+* wrong contributor <wrong@example.com>
+.. \$elif branch in '11.0'
 * antonio <antoniov@libero.it>
+.. \$elif branch in '10.0'
+* lorenzo <lorenzo@libero.it>
 .. \$else
-* unknown author <unknow@example.com>
+* unknown contributor <unknow@example.com>
 .. \$fi
 EOF
       cat <<EOF >$TESTDIR/res/header_contributors.txt
@@ -127,7 +143,7 @@ Contributors
 Acknoledges to
 --------------
 
-* unknown author <unknow@example.com>
+* lorenzo <lorenzo@libero.it>
 EOF
       pushd $TESTDIR/res &>/dev/null
       $RUNDIR/gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC

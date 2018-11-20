@@ -69,7 +69,7 @@ rmdir_if_exists() {
           if [ "$DSTPATH" != "$PWD" ]; then
             run_traced "cd $DSTPATH"
           fi
-          run_traced "git push origin --delete $odoo_fver"
+          run_traced "git push origin --delete $odoo_fver" "$pkg_user"
           if [ "$CWD" != "$PWD" ]; then
             run_traced "cd $CWD"
           fi
@@ -90,13 +90,13 @@ set_remote_info() {
     if [ "$(build_odoo_param VCS $odoo_vid)" == "git" ]; then
       rval=$(build_odoo_param RUPSTREAM $odoo_vid)
       if [[ ! "$rval" == "$UPSTREAM" ]]; then
-        [[ -n "$rval" ]] && run_traced "git remote remove upstream"
-        [[ -n "$UPSTREAM" ]] && run_traced "git remote add upstream $UPSTREAM"
+        [[ -n "$rval" ]] && run_traced "git remote remove upstream" "$pkg_user"
+        [[ -n "$UPSTREAM" ]] && run_traced "git remote add upstream $UPSTREAM" "$pkg_user"
       fi
       rval=$(build_odoo_param RORIGIN $odoo_vid)
       if [[ ! "$rval" == "$pkg_URL" ]]; then
-        [[ -n "$rval" ]] && run_traced "git remote remove origin"
-        [[ -n "$pkg_URL" ]] && run_traced "git remote add origin $pkg_URL"
+        [[ -n "$rval" ]] && run_traced "git remote remove origin" "$pkg_user"
+        [[ -n "$pkg_URL" ]] && run_traced "git remote add origin $pkg_URL" "$pkg_user"
       fi
     else
       echo "No git repositoy $RPTNAME!"
@@ -122,14 +122,14 @@ wep_other_branches() {
             lne="$(echo $lne)"
             IFS=" " read v x <<< "$lne"
             if [[ ! $v =~ (6.1|7.0|8.0|9.0|10.0|11.0|12.0) ]] ; then
-              run_traced "git push origin --delete $v"
+              run_traced "git push origin --delete $v" "$pkg_user"
             fi
           fi
         done < $TMPFILE
       fi
       for v in $(git branch|grep -Eo [0-9.]+); do
         if [[ -n "$v" && -n "$1" &&  ! "$v" == "$1" ]] ; then
-          run_traced "git branch -D $v"
+          run_traced "git branch -D $v" "$pkg_user"
         fi
       done
     fi
@@ -145,7 +145,7 @@ auto_add_files() {
      elif [ $PARSE -ne 0 ]; then
        if [[ $lne =~ (LICENSE|README\.md|README.rst) ]]; then
          lne=$(echo ${lne:1})
-         run_traced "git add $lne"
+         run_traced "git add $lne" "$pkg_user"
        fi
      fi
      done < $TMPFILE
@@ -157,10 +157,10 @@ commit_files() {
     local x=$(build_odoo_param RORIGIN $1)
     if [ "${x:0:15}" == "git@github.com:" ]; then
       # run_traced "git remote update"
-      run_traced "git checkout -b $odoo_fver origin/$odoo_fver"
-      run_traced "git format-patch --stdout origin/$odoo_fver -- $PWD | git am -3"
+      run_traced "git checkout -b $odoo_fver origin/$odoo_fver" "$pkg_user"
+      run_traced "git format-patch --stdout origin/$odoo_fver -- $PWD | git am -3" "$pkg_user"
       # run_traced "git branch $odoo_fver -D"
-      run_traced "git push origin $odoo_fver"
+      run_traced "git push origin $odoo_fver" "$pkg_user"
     fi
 }
 
@@ -216,11 +216,11 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b          c        D        j        L        m          n            O         o         q           r          U       V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1        1        1          1            "="       "="       0           1          1       "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0        0        0          0            ""        ""        -1          0          0       ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1        1        1        1          1            "="       "="       0           1          1       "="        "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0        0        0        0          0            ""        ""        -1          0          0       ""         ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "username" "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "default odoo branch"\
  "configuration file (def .travis.conf)"\
@@ -234,6 +234,7 @@ OPTHELP=("this help"\
  "silent mode"\
  "do just update remote info (if no new_odoo_ver supplied)"\
  "do not install, do upgrade"
+ "execute as username (def=odoo)"
  "show version"\
  "verbose mode"\
  "assume yes"\
@@ -281,6 +282,13 @@ if [[ $odoo_vid =~ (12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zer
 else
   def_opt_org=$opt_org
 fi
+if [ -n "$opt_user" -a "$opt_user" != "$USER" -a $EUID -eq 0 ]; then
+  pkg_user="$opt_user"
+elif [ -z "$opt_user" -a "$USER" != "travis" -a $EUID -eq 0 ]; then
+  pkg_user="odoo"
+else
+  pkg_user=
+fi
 if [ "${RPTNAME: -4}" == ".git" ]; then
   RPTNAME=${RPTNAME:0: -4}
 fi
@@ -312,11 +320,11 @@ if [ -z "$new_odoo_vid" ]; then
     if [ "$DSTPATH" != "$PWD" ]; then
       run_traced "cd $DSTPATH"
     fi
-    run_traced "git stash"
+    run_traced "git stash" "$pkg_user"
     if [ "$RPTNAME" == "OCB" ]; then
-      run_traced "git pull origin $odoo_fver --no-recurse-submodules"
+      run_traced "git pull origin $odoo_fver --no-recurse-submodules" "$pkg_user"
     else
-      run_traced "git pull origin $odoo_fver"
+      run_traced "git pull origin $odoo_fver" "$pkg_user"
     fi
     exit 0
   elif [ $opt_updrmt -eq 0 ]; then
@@ -339,7 +347,7 @@ if [ -z "$new_odoo_vid" ]; then
       run_traced "cd $pardir"
     fi
     pkgdir=$(basename $DSTPATH)
-    run_traced "git clone $pkg_URL $pkgdir/ $git_opts"
+    run_traced "git clone $pkg_URL $pkgdir/ $git_opts" "$pkg_user"
     # run_traced "chown -R odoo:odoo $DSTPATH"
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
@@ -351,8 +359,8 @@ if [ -z "$new_odoo_vid" ]; then
     if [ ! -f "$cfgfn" ]; then
       odoo_bin=$(build_odoo_param BIN "$odoo_vid" "search")
       [ -z "$odoo_bin" ] && odoo_bin=$(build_odoo_param BIN "$odoo_vid")
-      [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc"
-      [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc"
+      [ -f ~/.odoorc ] && run_traced "rm -f  ~/.odoorc" "$pkg_user"
+      [ -f ~/.openerp_serverrc ] && run_traced "rm -f  ~/.openerp_serverrc" "$pkg_user"
       user=$(build_odoo_param USER "$odoo_vid")
       flog=$(build_odoo_param FLOG "$odoo_vid")
       fpid=$(build_odoo_param FPID "$odoo_vid")
@@ -360,16 +368,17 @@ if [ -z "$new_odoo_vid" ]; then
       if [ $odoo_ver -ge 7 ]; then
         pdir=$(build_odoo_param DDIR "$odoo_vid")
         if [ ! -d $pdir ]; then
-          run_traced "mkdir -p $pdir"
+          run_traced "mkdir -p $pdir" "$pkg_user"
           # run_traced "chown odoo:odoo $pdir"
         fi
         [ $odoo_ver -gt 7 ] && pdir="-D $pdir" || pdir=
       fi
-      run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init"
-      if [ -f ~/.openerp_serverrc ]; then
-        run_traced "mv ~/.openerp_serverrc $cfgfn"
-      elif [ -f ~/.odoorc ]; then
-        run_traced "mv ~/.odoorc $cfgfn"
+      run_traced "$odoo_bin -r $user --logfile=$flog --pidfile=$fpid --xmlrpc-port=$rport $pdir -s --stop-after-init" "$pkg_user"
+      OHOME=$(build_odoo_param PARENTDIR "$odoo_vid")
+      if [ -f $OHOME/.openerp_serverrc ]; then
+        run_traced "mv $OHOME/.openerp_serverrc $cfgfn" "$pkg_user"
+      elif [ -f $OHOME/.odoorc ]; then
+        run_traced "mv $OHOME/.odoorc $cfgfn" "$pkg_user"
       fi
       run_traced "chown odoo:odoo $cfgfn"
       [ $opt_ucfg -ne 0 ] && update_odoo_conf $odoo_vid $opt_cfg
@@ -440,7 +449,7 @@ if [ "$RPTNAME" != "OCB" -a -n "$is_submodule" ]; then
   if [ -n "$root_orgnm" -a "$root_orgnm" == "$git_orgnm" ]; then
     x=$(git submodule status 2>/dev/null|grep $RPTNAME)
     if [ -z "$x" ]; then
-      run_traced "git submodule add -f $pkg_URL $RPTNAME/"
+      run_traced "git submodule add -f $pkg_URL $RPTNAME/" "$pkg_user"
     fi
   else
     echo "Warning: origin '$git_orgnm' of '$RPTNAME' does not match origin '$root_orgnm'!"
