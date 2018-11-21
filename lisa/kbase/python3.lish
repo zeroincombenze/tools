@@ -1,0 +1,47 @@
+# Python Configuration file
+# Please, if you update this configuration file, send a copy to
+# antoniomaria.vigliotti@gmail.com
+# so your configuration should be shared with other people.
+# Last update: 2018-11-20
+#
+# This file may be deployed in /etc/lisa directory.
+# See /etc/lisa/lisa.conf.sample for example of configuration file
+# Type:
+# > lisa help
+# or visit http://wiki.zeroincombenze.org/en/Lisa webpage
+# for furthermore information
+#
+[_Linux_]
+REAL_python-ldap=ldap3
+
+
+[_Debian_]
+ReqPkgList=pip3,wheel
+BOP=setuptools,python3-virtualenv virtualenv,libreadline6,PYTHON_LIB_XML,\
+    psycopg2-binary,simplejson,xlwt,PyYAML,gdata,ldap3,\
+    pytz,python3-requests
+
+
+[_Debian_DEV_]
+BOP=setuptools,python3-virtualenv virtualenv,libreadline6,PYTHON_LIB_XML,\
+    psycopg2-binary,simplejson,xlwt,PyYAML,gdata,ldap3,pytz,requests,\
+    python3-dev,libsasl2-dev,libldap2-dev,zlib1g-dev,libssl-dev,\
+    libreadline6-dev,libsqlite3-dev,tk-dev,libgdbm-dev,libpcap-dev,\
+    liblzma-dev,python3-yaml,mock
+
+
+[_CentOS7_]
+ReqPkgList=pip3,wheel
+BOP=setuptools,python3-virtualenv,virtualenv readline,\
+    psycopg2-binary,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,ldap3,pytz,requests
+
+
+[_CentOS7_DEV_]
+BOP=setuptools,python3-virtualenv,virtualenv readline,\
+    psycopg2-binary,PYTHON_LIB_XML,simplejson,xlwt,PyYAML,\
+    gdata,ldap3,pytz,requests,\
+    python3-devel,openldap-devel,zlib-devel,bzip2-devel,openssl-devel,\
+    ncurses-devel,readline-devel,sqlite-devel,tk-devel,gdbm-devel,\
+    libpcap-devel,xz-devel,postgresql-devel,libxml2-devel,\
+    libxslt-devel,python3-yaml,mock

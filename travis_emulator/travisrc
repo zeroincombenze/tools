@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.67
+#__version__=0.2.1.68
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -81,7 +81,7 @@ inherits_travis_opts() {
     A[E]="cdjmnqrv"
     A[N]="CKnOR"
     A[P]="cdfjmnOqruv"
-    A[T]="cKjnPpqrTv"
+    A[T]="cKPpqrTv"
     A[8]="dnquv"
     if [ -n "$2" ]; then
       for o in C c d F f K j m n O o P p q R r T u v; do
@@ -570,8 +570,6 @@ prepare_env_travis() {
     fi
     export BRANCH
     export VERSION=$BRANCH
-    # export TRAVIS_BUILD_DIR=$PKGPATH
-    # export VERBOSE_MODE=$opt_verbose
     if [ "$action" == "lint" ]; then
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then

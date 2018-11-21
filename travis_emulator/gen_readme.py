@@ -16,7 +16,7 @@ from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.67"
+__version__ = "0.2.1.68"
 
 GIT_USER = {
     'zero': 'zeroincombenze',

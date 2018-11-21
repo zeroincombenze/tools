@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.1.67
+__version__=0.2.1.68
 
 
 travis_test_bash() {
@@ -138,22 +138,16 @@ run_regression_test() {
       fi
       if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
-          ./tests/all_tests $OPTS
+          run_traced "./tests/all_tests $OPTS"
         else
-          cd ./tests; ./all_tests $OPTS
+          run_traced "cd ./tests; ./all_tests $OPTS"
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
-          fi
-          DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py
+          run_traced "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
         else
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
-          fi
-          cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py
+          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
         fi
         sts=$?
       else
@@ -237,14 +231,13 @@ conf_default
 link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
-prepare_env_travis "test"
+prepare_env_travis
 sts=$STS_SUCCESS
 if [ $test_mode -gt 0 ]; then
   do_chkconfig
   exit $STS_SUCCESS
 fi
 check_4_travis
-
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -260,7 +253,7 @@ if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
 if [ $opt_verbose -gt 0 ]; then
-  echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
+  echo -e "${TRAVIS_HDR3_COLOR}BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__${TRAVIS_TEXT_COLOR}"
 fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
   travis_test_bash

@@ -1390,34 +1390,40 @@ def act_update_modules(ctx):
         ids = searchL8(ctx, model,
                        [('state', '=', 'to install')])
         if ids:
+            msg = u"Found module to install ..."
+            msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx,
                           model,
                           'button_install_cancel',
                           ids)
-                time.sleep(2)
+                time.sleep(3)
             except BaseException:
                 pass
         ids = searchL8(ctx, model,
                        [('state', '=', 'to upgrade')])
         if ids:
+            msg = u"Found module to upgrade ..."
+            msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx,
                           model,
                           'button_upgrade_cancel',
                           ids)
-                time.sleep(2)
+                time.sleep(3)
             except BaseException:
                 pass
         ids = searchL8(ctx, model,
                        [('state', '=', 'to remove')])
         if ids:
+            msg = u"Found module to uninstall ..."
+            msg_log(ctx, ctx['level'] + 1, msg)
             try:
                 executeL8(ctx,
                           model,
                           'button_uninstall_cancel',
                           ids)
-                time.sleep(2)
+                time.sleep(3)
             except BaseException:
                 pass
     return STS_SUCCESS
@@ -1451,7 +1457,7 @@ def act_upgrade_modules(ctx):
                               ids)
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(2)
+                    time.sleep(3)
                 except BaseException:
                     msg = "!Module {0} not upgradable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
@@ -1496,7 +1502,7 @@ def act_uninstall_modules(ctx):
                               ids)
                     msg = "name={0}".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(2)
+                    time.sleep(3)
                 except BaseException:
                     msg = "!Module {0} not uninstallable!".format(m)
                     msg_log(ctx, ctx['level'] + 1, msg)
@@ -1553,7 +1559,7 @@ def act_install_modules(ctx):
                               ids)
                     msg = "name=%s" % m
                     msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(2)
+                    time.sleep(3)
                 except BaseException:
                     if ignore_not_installed:
                         msg = "Error installing %s" % m

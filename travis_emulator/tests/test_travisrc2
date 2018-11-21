@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.67
+__version__=0.2.1.68
 
 
 save_testenv() {
@@ -277,7 +277,7 @@ test_03() {
       RES=$(inherits_travis_opts "-rjPKT" "T")
       result_testenv
     fi
-    test_result "inherit opts T" "-KjPrTv" "$RES"
+    test_result "inherit opts T" "-KPrTv" "$RES"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=-1
       opt_dprj=1
