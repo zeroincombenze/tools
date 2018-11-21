@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-import datetime
 import time
 # import oerplib
 import clodoo
@@ -21,8 +20,6 @@ def msg_burst(text):
     if (t > 3):
         print text
         msg_time = time.time()
-# model = 'ir.model.fields'
-# for rec in clodoo.browseL8(right_ctx, model,clodoo.searchL8(right_ctx, model, [('model', '=', 'res.company')])):  print rec.name
 
 
 parser = parseoptargs("Manage 2 DBs",

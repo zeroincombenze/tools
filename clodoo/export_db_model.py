@@ -147,7 +147,7 @@ def export_table(ctx):
                 else:
                     try:
                         value = rec[f[0]][f[1]]
-                    except:
+                    except BaseException:
                         value = ''
                     value = get_symbolic_value(ctx, model, f[0], value)
                 if isinstance(value, (int, long)):

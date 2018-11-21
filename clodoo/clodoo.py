@@ -170,18 +170,16 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
-                        get_model_model, get_model_name,
-                        extract_vals_from_rec, cvt_from_ver_2_ver,
-                        declare_mandatory_fields)
+                        get_model_model, get_model_name)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
-                       default_conf, build_odoo_param)
+                       default_conf)
 from transodoo import read_stored_dict
 # TMP
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -270,6 +268,7 @@ def get_name_by_ver(ctx, model, name):
             if majver == 6:
                 return ''
     return name
+
 
 #############################################################################
 # Connection and database
@@ -2105,7 +2104,7 @@ def act_complete_partners(ctx):
                                 ('country_id', '=', italy_id)])
     else:
         partner_ids = []
-    for i,partner_id in enumerate(partner_ids):
+    for i, partner_id in enumerate(partner_ids):
         partner = browseL8(ctx, 'res.partner', partner_id)
         msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
         vals = {}
@@ -2127,25 +2126,26 @@ def act_complete_partners(ctx):
                             '|',
                             ('country_id', '=', False),
                             ('country_id', '=', italy_id)])
-    for i,partner_id in enumerate(partner_ids):
+    for i, partner_id in enumerate(partner_ids):
         partner = browseL8(ctx, 'res.partner', partner_id)
         msg_burst(4, '%-40.40s' % partner.name, i, len(partner_ids))
         vals = {}
         if partner.zip:
             city_ids = searchL8(ctx,
-                                 'res.city',
-                                 [('zip', '=', partner.zip),
-                                  ('country_id', '=', italy_id)])
+                                'res.city',
+                                [('zip', '=', partner.zip),
+                                 ('country_id', '=', italy_id)])
             if not len(city_ids):
                 city_ids = searchL8(ctx,
-                                     'res.city',
-                                     [('zip', '=', '%s%%' % partner.zip[0:4]),
-                                      ('country_id', '=', italy_id)])
+                                    'res.city',
+                                    [('zip', '=', '%s%%' % partner.zip[0:4]),
+                                     ('country_id', '=', italy_id)])
             if not len(city_ids):
-                city_ids = searchL8(ctx,
-                                     'res.city',
-                                     [('zip', '=', '%s%%%%' % partner.zip[0:3]),
-                                      ('country_id', '=', italy_id)])
+                city_ids = searchL8(
+                    ctx,
+                    'res.city',
+                    [('zip', '=', '%s%%%%' % partner.zip[0:3]),
+                     ('country_id', '=', italy_id)])
             state_id = None
             for id in city_ids:
                 city = browseL8(ctx, 'res.city', id)
@@ -2153,7 +2153,7 @@ def act_complete_partners(ctx):
                     state_id = city.state_id.id
                 elif city.state_id.id != state_id:
                     state_id = False
-                    break 
+                    break
             if state_id:
                 vals['state_id'] = state_id
         if vals:
@@ -4526,7 +4526,8 @@ def get_real_paramvalue(ctx, param):
 
 def get_real_actname(ctx, actv):
     if isinstance(actv, basestring) and \
-            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0', '_10.0', '_11.0', '_12.0'):
+            actv[-4:] in ('_6.1', '_7.0', '_8.0', '_9.0',
+                          '_10.0', '_11.0', '_12.0'):
         if actv[-3:] == ctx['oe_version']:
             act = actv[0:-4]
         else:
@@ -4586,11 +4587,11 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         else:
             nm = nm.split('/')[0].split(':')[0]
         if ctx['no_fvalidation'] or nm in ('db_type', 'oe_versions',
-                  'name2', 'name_first', 'name_last',
-                  'customer-supplier') or \
-                (len(ctx['validated_fields']) and 
+                                           'name2', 'name_first', 'name_last',
+                                           'customer-supplier') or \
+                (len(ctx['validated_fields']) and
                  nm in ctx['validated_fields']) or \
-                 validate_field(ctx, model, nm):
+                validate_field(ctx, model, nm):
             if nm in ctx.get('TRX_VALUE', ''):
                 translate_from_param(ctx, n, nm)
             else:
@@ -4627,11 +4628,11 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         row['street'] = '%s, %s' % (row['street'], row['street2'])
         row['street2'] = ''
     if 'customer-supplier' in row or not row.get('is_company', True) or \
-                row.get('company_type') == 'person':
-            if 'customer' in row:
-                row['customer'] = False
-            if 'supplier' in row:
-                row['supplier'] = False
+            row.get('company_type') == 'person':
+        if 'customer' in row:
+            row['customer'] = False
+        if 'supplier' in row:
+            row['supplier'] = False
     if 'customer-supplier' in row:
         if row['customer-supplier'].lower().find('customer') >= 0 or \
                 row['customer-supplier'].lower().find('client') >= 0:
@@ -4706,7 +4707,7 @@ def import_file(ctx, o_model, csv_fn):
             field_name = browseL8(ctx, field_model, field_id).name
             for field_name in ctx['MANDATORY']:
                 if field_name not in ctx['MANDATORY']:
-                    ctx['MANDATORY'],append(field_name)
+                    ctx['MANDATORY'].append(field_name)
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
@@ -4996,7 +4997,7 @@ def setup_user_config_param(ctx, username, name, value):
             msg = u"!!Parameter name '%s' not found!!" % tounicode(name)
         else:
             msg = u"!!Parameter name '%s/%s' not found!!" % (tounicode(name),
-                                                           tounicode(value))
+                                                             tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
         return sts
     user_ids = searchL8(ctx, 'res.users',

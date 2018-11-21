@@ -31,9 +31,9 @@ except BaseException:
                             _import_file_model, _model_has_company,
                             eval_value, get_query_id,
                             import_file_get_hdr)
-    
+
 from zerobug import Z0test
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 
 
 MODULE_ID = 'clodoo'

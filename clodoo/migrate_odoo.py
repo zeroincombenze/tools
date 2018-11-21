@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-import datetime
 import time
 # import oerplib
 import clodoo
@@ -21,8 +20,7 @@ def msg_burst(text):
     if (t > 3):
         print text
         msg_time = time.time()
-# model = 'ir.model.fields'
-# for rec in clodoo.browseL8(right_ctx, model,clodoo.searchL8(right_ctx, model, [('model', '=', 'res.company')])):  print rec.name
+
 
 def manage_error():
     dummy = ''
@@ -56,18 +54,18 @@ def drop_out_originals(ctx, model, id, vals):
             for do_id in do_ids:
                 if ctx['_cr']:
                     table = model.replace('.', '_')
-                    sql="update %s set %s='(id=%d) =>%d' where id=%d;" % (
+                    sql = "update %s set %s='(id=%d) =>%d' where id=%d;" % (
                         table, name, do_id, id, do_id)
                     try:
                         ctx['_cr'].execute(sql)
-                    except:
+                    except BaseException:
                         pass
                 else:
                     try:
                         clodoo.writeL8(ctx, model, do_ids,
                                        {name: '(id=%d) =>%d' % (
                                            do_id, id)})
-                    except:
+                    except BaseException:
                         pass
     if 'code' in vals:
         drop_out_original_field(ctx, model, id, vals, 'code')
@@ -79,20 +77,20 @@ def write_no_dup(ctx, model, ids, vals, rec_id):
     try_again = False
     try:
         clodoo.writeL8(ctx, model, ids, vals)
-    except:
+    except BaseException:
         try_again = True
         drop_out_originals(ctx, model, ids[0], vals)
     if try_again:
         try:
             try_again = False
             clodoo.writeL8(ctx, model, ids, vals)
-        except:
+        except BaseException:
             try_again, vals = set_tmp_keys(ctx, model, ids[0], vals)
     if try_again:
         try:
             try_again = False
             clodoo.writeL8(ctx, model, ids, vals)
-        except:
+        except BaseException:
             print 'Error writing record %d of %s' % (rec_id, model)
             manage_error()
 
@@ -104,7 +102,7 @@ def create_with_id(ctx, model, id, vals):
     if ctx['_cr']:
         table = '%s_id_seq' % model
         table = table.replace('.', '_')
-        sql_last='select last_value from %s;' % table
+        sql_last = 'select last_value from %s;' % table
         ctx['_cr'].execute(sql_last)
         rows = ctx['_cr'].fetchall()
         last_id = rows[0][0]
@@ -116,7 +114,7 @@ def create_with_id(ctx, model, id, vals):
     new_id = 0
     try:
         new_id = clodoo.createL8(ctx, model, vals)
-    except:
+    except BaseException:
         try_again = True
         drop_out_originals(ctx, model, id, vals)
     if try_again:
@@ -125,7 +123,7 @@ def create_with_id(ctx, model, id, vals):
             if sql_seq:
                 ctx['_cr'].execute(sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
-        except:
+        except BaseException:
             try_again, vals = set_tmp_keys(ctx, model, id, vals)
     if try_again:
         try:
@@ -133,33 +131,33 @@ def create_with_id(ctx, model, id, vals):
             if sql_seq:
                 ctx['_cr'].execute(sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
-        except:
+        except BaseException:
             if ctx['_cr']:
                 try_again = True
                 table = '%s' % model
                 table = table.replace('.', '_')
-                sql_del='delete from %s where id=%s;' % (table, id)
+                sql_del = 'delete from %s where id=%s;' % (table, id)
                 try:
                     ctx['_cr'].execute(sql_del)
-                except:
+                except BaseException:
                     try_again = False
     if try_again:
         try:
             if sql_seq:
                 ctx['_cr'].execute(sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
-        except:
+        except BaseException:
             print 'Error creating record %d of %s' % (id, model)
             manage_error()
             new_id = id
     if new_id != id:
         print "Cannot create record %d of %s" % (id, model)
-        dummy = raw_input('Press RET to continue')
+        raw_input('Press RET to continue')
     if last_id and last_id > 1 and last_id > id:
         sql = 'alter sequence %s restart %d;' % (table, last_id)
         try:
             ctx['_cr'].execute(sql)
-        except:
+        except BaseException:
             pass
 
 
@@ -170,7 +168,7 @@ def copy_table(left_ctx, right_ctx, model):
     clodoo.declare_mandatory_fields(left_ctx, model)
     if right_ctx['_cr']:
         table = model.replace('.', '_')
-        sql='select max(id) from %s;' % table
+        sql = 'select max(id) from %s;' % table
         right_ctx['_cr'].execute(sql)
         rows = right_ctx['_cr'].fetchall()
         last_id = rows[0][0]
@@ -179,7 +177,7 @@ def copy_table(left_ctx, right_ctx, model):
                                       [('id', '>', last_id)]):
                 try:
                     clodoo.unlinkL8(left_ctx, model, id)
-                except:
+                except BaseException:
                     print "Cannot delete record %d of %s" % (id, model)
                     dummy = raw_input('Press RET to continue')
     where = []
@@ -260,6 +258,5 @@ for model in ('account.invoice', 'account.invoice.line'):
     copy_table(left_ctx, right_ctx, model)
 
 raw_input('Press RET to validate invoices ...')
-ids = clodoo.searchL8(left_ctx, 'account.invoice', [('state', '=', 'draft')]) 
+ids = clodoo.searchL8(left_ctx, 'account.invoice', [('state', '=', 'draft')])
 clodoo.upd_invoices_2_posted(ids, left_ctx)
-

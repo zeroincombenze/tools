@@ -159,7 +159,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 
 
 #############################################################################
@@ -703,36 +703,36 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
     p3 = r'12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
     p4 = '12|11|10|9|8|7|6'
     rex = '^(%s|%s)?-?(%s|%s)' % (p1, p2, p3, p4)
-    reo = '^(%s)' % p1
-    reg = "^(%s)" % p2
-    ref = "(%s)" % p3
-    PKGPATH = ''
-    PKGNAME = ''
-    ROOT = ''
-    REPOS = ''
-    ldir = ''
+    # reo = '^(%s)' % p1
+    # reg = "^(%s)" % p2
+    # ref = "(%s)" % p3
+    # PKGPATH = ''
+    # PKGNAME = ''
+    # ROOT = ''
+    # REPOS = ''
+    # ldir = ''
     if re.match(r'(^\.$|^\.\.$|(\./|\.\./|~/|/))', odoo_vid) or \
-            item in ('RUPSTREAM','RORIGIN','VCS'):
+            item in ('RUPSTREAM', 'RORIGIN', 'VCS'):
         if odoo_vid:
-            cwd=os.path.abspath(odoo_vid)
+            cwd = os.path.abspath(odoo_vid)
         else:
-            cwd=os.path.abspath(os.getcwd())
+            cwd = os.path.abspath(os.getcwd())
         vid = ''
         while not vid and cwd:
-            if not PKGPATH and (
-                    os.path.isfile(os.join(cwd,'__manifest__.py')) or
-                    os.path.isfile(os.join(cwd,'__openerp__.py'))):
-                PKGPATH = cwd
-                PKGNAME = os.path.basename(PKGPATH)
+            # if not PKGPATH and (
+            #         os.path.isfile(os.join(cwd, '__manifest__.py')) or
+            #         os.path.isfile(os.join(cwd, '__openerp__.py'))):
+            #     PKGPATH = cwd
+            #     PKGNAME = os.path.basename(PKGPATH)
             rep = os.path.basename(cwd)
             if re.match(rex, rep):
-                ROOT = os.path.dirname(cwd)
+                # ROOT = os.path.dirname(cwd)
                 vid = rep
-                if ldir:
-                    REPOS = os.path.basename(ldir)
-                else:
-                    REPOS = 'OCB'
-            ldir = cwd
+                # if ldir:
+                #     REPOS = os.path.basename(ldir)
+                # else:
+                #     REPOS = 'OCB'
+            # ldir = cwd
             if cwd != '/':
                 os.path.abspath(os.join(cwd, '..'))
             else:
@@ -742,7 +742,7 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
             odoo_fver = get_odoo_full_ver(os.getcwd())
             if not odoo_fver:
                 odoo_fver = '11.0'
-            odoo_vid =  os.path.basename(os.path.dirname(os.getcwd()))
+            odoo_vid = os.path.basename(os.path.dirname(os.getcwd()))
         elif re.match(rex, odoo_vid):
             odoo_fver = get_odoo_full_ver(odoo_vid)
         else:
@@ -752,20 +752,20 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         odoo_fver = odoo_vid
     odoo_ver = int(odoo_fver.split('.')[0])
     if git_org:
-      GIT_ORGID=git_org
-      if re.match('(oca|oia|liberp|flectra)', git_org) and \
-            odoo_vid in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
-        if git_org[-4:] == '-git':
-            odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)
-        elif git_org[-5:] == '-http':
-            odoo_vid = '%s%d' % (git_org[0:-5], odoo_ver)
-        else:
-            odoo_vid = '%s%d' % (git_org, odoo_ver)
+        GIT_ORGID = git_org
+        if re.match('(oca|oia|liberp|flectra)', git_org) and odoo_vid in (
+                '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
+            if git_org[-4:] == '-git':
+                odoo_vid = '%s%d' % (git_org[0:-4], odoo_ver)
+            elif git_org[-5:] == '-http':
+                odoo_vid = '%s%d' % (git_org[0:-5], odoo_ver)
+            else:
+                odoo_vid = '%s%d' % (git_org, odoo_ver)
     elif re.match('(oca|oia|liberp|flectra)', odoo_vid):
         # TODO: all org_id
-        GIT_ORGID=odoo_vid[0:3]
+        GIT_ORGID = odoo_vid[0:3]
     else:
-        GIT_ORGID='zero'
+        GIT_ORGID = 'zero'
     if item == 'LICENSE':
         if odoo_ver < 9:
             return 'AGPL'

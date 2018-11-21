@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.7.48
+__version__=0.3.7.49
 
 
 test_01() {
@@ -575,13 +575,21 @@ test_05() {
     #
     for v in 12.0 11.0 10.0 8.0 7.0; do
       w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
-      TRES[zero]="$HOME/zero$w"
-      TRES[zero-git]="$HOME/zero$w"
-      TRES[zero-http]="$HOME/zero$w"
-      TRES[oca]="$HOME/oca$w"
-      TRES[oia]="$HOME/oia$w"
-      TRES[oia-git]="$HOME/oia$w"
-      TRES[oia-http]="$HOME/oia$w"
+      # TO FIX HOME
+      # TRES[zero]="$HOME/zero$w"
+      # TRES[zero-git]="$HOME/zero$w"
+      # TRES[zero-http]="$HOME/zero$w"
+      # TRES[oca]="$HOME/oca$w"
+      # TRES[oia]="$HOME/oia$w"
+      # TRES[oia-git]="$HOME/oia$w"
+      # TRES[oia-http]="$HOME/oia$w"
+      TRES[zero]="$RHOME/zero$w"
+      TRES[zero-git]="$RHOME/zero$w"
+      TRES[zero-http]="$RHOME/zero$w"
+      TRES[oca]="$RHOME/oca$w"
+      TRES[oia]="$RHOME/oia$w"
+      TRES[oia-git]="$RHOME/oia$w"
+      TRES[oia-http]="$RHOME/oia$w"
       for w in zero zero-git zero-http oca oia oia-git oia-http; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param HOME $v '' $w)
@@ -602,7 +610,7 @@ test_06() {
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
-        pushd ~/$v >/dev/null
+        pushd $RHOME/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -637,11 +645,11 @@ test_06() {
         popd >/dev/null
         # [ ${opt_dry_run:-0} -eq 0 ] && set -x   #debug
         if [ "${v:0:3}" != "oia" ]; then
-          x=$(readlink -f ~/$v)
-          RES=$(build_odoo_param HOME ~/$v)
-          test_result "HOME ~/$v" "$x" "$RES"
-          RES=$(build_odoo_param HOME ~/$v/addons)
-          test_result "HOME ~/$v/addons" "$x" "$RES"
+          x=$(readlink -f $RHOME/$v)
+          RES=$(build_odoo_param HOME $RHOME/$v)
+          test_result "HOME $RHOME/$v" "$x" "$RES"
+          RES=$(build_odoo_param HOME $RHOME/$v/addons)
+          test_result "HOME $RHOME/$v/addons" "$x" "$RES"
           RES=$(build_odoo_param HOME "$x")
           test_result "HOME $x" "$x" "$RES"
           RES=$(build_odoo_param HOME "$x/addons")
@@ -774,10 +782,11 @@ test_07() {
 Z0BUG_setup() {
     local VERSION=9.0
     local ODOO_REPO=local/odoo
+    RHOME="/opt/odoo"
     LCL_OE_PRJNAME="Odoo"
     LCL_OE_REPOS=l10n_italy
     LCL_OE_PKGNAME=l10n_it_base
-    LCL_OE_ROOT=~/dev/odoo/$VERSION
+    LCL_OE_ROOT=$RHOME/dev/odoo/$VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
     LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OE_PKGNAME
@@ -793,8 +802,8 @@ Z0BUG_setup() {
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
     fi
-    if [ -d ~/$VERSION/dependencies ]; then rm -fR ~/$VERSION/dependencies; fi
-    if [ -L ~/$VERSION/dependencies ]; then rm -f ~/$VERSION/dependencies; fi
+    if [ -d $RHOME/$VERSION/dependencies ]; then rm -fR $RHOME/$VERSION/dependencies; fi
+    if [ -L $RHOME/$VERSION/dependencies ]; then rm -f $RHOME/$VERSION/dependencies; fi
 }
 
 Z0BUG_teardown() {

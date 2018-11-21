@@ -11,7 +11,7 @@ import re
 import z0lib
 
 
-__version__ = '0.3.7.48'
+__version__ = '0.3.7.49'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -32,7 +32,7 @@ REQVERSION = {
     'ebaysdk': {'7.0': '==2.1.4'},
     'ERPpeek': {'0': '==1.6.1'},
     'feedparser': {'7.0': '==5.1.3', '10.0': '==5.2.1'},
-    'flake8': {'7.0': '==3.4.1'},           # Tested 3.5.0; 3.6.0 does not work 
+    'flake8': {'7.0': '==3.4.1'},           # Tested 3.5.0; 3.6.0 does not work
     'gdata': {'7.0': '==2.0.18'},
     'gevent': {'7.0': '==1.0.2', '10.0': '==1.1.2'},
     'greenlet': {'7.0': '==0.4.10'},
@@ -52,7 +52,7 @@ REQVERSION = {
     'psycopg2-binary': {'7.0': '>=2.0.0',
                         # '8.0': '==2.5.4',
                         # '10.0': '==2.6.2',
-                        '0': '==2.7.4'}, 
+                        '0': '==2.7.4'},
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
     'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
@@ -206,17 +206,17 @@ BIN_BASE_PACKAGES = ['curl',
 BIN_PACKAGES = ['git',
                 'cups',
                 ]
-cmd=['python3', '--version']
+cmd = ['python3', '--version']
 try:
-    p = Popen(cmd,stdin=PIPE,stdout=PIPE,stderr=PIPE)
+    p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     res, err = p.communicate()
     i = res.find('3.')
     if i >= 0:
         PY3ID = res[i] + res[i+2]
     else:
-        PY3ID="3"
-except:
-    PY3ID="3"
+        PY3ID = "3"
+except BaseException:
+    PY3ID = "3"
 PY3_DEV = 'python%s-dev' % PY3ID
 
 
@@ -227,7 +227,7 @@ def parse_requirements(reqfile):
         if line and line[0] != '#':
             items = line.split(';')
             if len(items) == 1 or eval(items[1].strip().replace(
-                    '_', '.').replace('python.version','python_version')):
+                    '_', '.').replace('python.version', 'python_version')):
                 item = items[0].strip()
                 reqlist.append(item)
     return reqlist

@@ -56,8 +56,8 @@ script:
 
 after_success:
   - cd ${TRAVIS_BUILD_DIR}/clodoo; travis_after_tests_success ${OPTS}
-  - cd ${TRAVIS_BUILD_DIR}/z0lib; travis_after_tests_success ${OPTS}
-  - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
-  - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
-  - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
+  # - cd ${TRAVIS_BUILD_DIR}/z0lib; travis_after_tests_success ${OPTS}
+  # - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
+  # - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
+  # - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
 

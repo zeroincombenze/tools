@@ -32,7 +32,7 @@ import sys
 from z0lib import parseoptargs
 
 
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -196,7 +196,6 @@ def write_stored_dict(ctx):
                             line['key'] = k2.split('.')[1]
                             break
                 writer.writerow(line)
-
 
 
 def transodoo_list(ctx):

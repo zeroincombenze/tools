@@ -125,9 +125,13 @@ def add_elem(row, ctx, MYDICT):
 
     ids = []
     if vals.get('code'):
-        ids = clodoo.searchL8(ctx, model, [('default_code', '=', vals['code'])])
+        ids = clodoo.searchL8(ctx, model, [('default_code',
+                                            '=',
+                                            vals['code'])])
     if not ids and vals.get('default_code'):
-        ids = clodoo.searchL8(ctx, model, [('default_code', '=', vals['default_code'])])
+        ids = clodoo.searchL8(ctx, model, [('default_code',
+                                            '=',
+                                            vals['default_code'])])
     if not ids:
         ids = clodoo.searchL8(ctx, model, [('name', '=', vals['name'])])
     if ids:

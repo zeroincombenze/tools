@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 
 
 #############################################################################
@@ -103,7 +103,11 @@ def searchL8(ctx, model, where, order=None, context=None):
 
 def browseL8(ctx, model, id, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
-        return ctx['odoo_session'].env[model].browse(id)
+        if context:
+            return ctx['odoo_session'].env[model].with_context(
+                ctx['odoo_session'].env[model].browse(id), context)
+        else:
+            return ctx['odoo_session'].env[model].browse(id)
     else:
         return ctx['odoo_session'].browse(model, id, context=context)
 
@@ -202,7 +206,7 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
                 name = 'applicable_type'
                 if name not in new_vals:
                     new_vals[name] = set_some_values(ctx, None, name, '',
-                        model=model, row=vals)
+                                                     model=model, row=vals)
                 if new_vals.get('type_tax_use', '') not in ('sale',
                                                             'purchase'):
                     if new_vals['description'][-1] == 'v':
@@ -263,7 +267,6 @@ def extr_table_res_country_state(ctx):
     return ['code', 'country_id', 'name']
 
 
-
 def extr_table_res_partner(ctx):
     return ['active', 'city',
             'comment', 'country_id', 'currency_id',
@@ -305,7 +308,7 @@ def extr_table_ir_sequence(ctx):
     return ['name', 'code', 'company_id',
             'number_next', 'number_next_actual',
             'padding', 'prefix', 'suffix',
-            'implementation','type', 'sequence_id']
+            'implementation', 'type', 'sequence_id']
 
 
 def extr_table_account_journal(ctx):
@@ -356,11 +359,10 @@ def extr_table_account_invoice(ctx):
             'fiscal_position', 'fiscal_position_id',
             'internal_number', 'journal_id', 'move_name',
             'name', 'number', 'origin', 'partner_id',
-            'partner_bank_id', # 'payment_term', 'payment_term_id',
+            'partner_bank_id',  # 'payment_term', 'payment_term_id',
             'reconciled', 'reference', 'residual',
             'registration_date', 'state',
             'split_payment', 'supplier_invoice_number', 'type']
-            # 'user_id']
 
 
 def extr_table_account_invoice_line(ctx):
@@ -371,15 +373,16 @@ def extr_table_account_invoice_line(ctx):
             'rc', 'sequence', 'uom_id',
             'uos_id', 'invoice_line_tax_id', 'invoice_line_tax_ids']
 
+
 def extr_table_generic(ctx, model, rec, keys=None):
     ir_model = 'ir.model.fields'
     field_names = []
     for field in browseL8(ctx, ir_model,
                           searchL8(ctx, ir_model,
                                    [('model', '=', model)])):
-        if not field.readonly and f.ttype not in ('binary',
-                                                  'reference',
-                                                  'one2many'):
+        if not field.readonly and field.ttype not in ('binary',
+                                                      'reference',
+                                                      'one2many'):
             field_names.append(field.name)
     return field_names
 
@@ -413,7 +416,7 @@ def extract_vals_from_rec(ctx, model, rec, keys=None):
             else:
                 try:
                     res[p] = rec[p].id
-                except:
+                except BaseException:
                     res[p] = rec[p]
     return res
 
@@ -484,8 +487,7 @@ def hub_name_2_ver(ctx, model, vals, btable=None, ttype=None):
 
 
 def btable_2_hub_account_account_type(ctx, model, res):
-    return {'user_type_id': 'user_type',
-    }
+    return {'user_type_id': 'user_type'}
 
 
 def ver_name_2_hub(ctx, model, res, btable=None, ttype=None):
@@ -513,7 +515,7 @@ def ver_name_2_hub(ctx, model, res, btable=None, ttype=None):
     else:
         func = 'btable_2_hub_%s' % model.replace('.', '_')
         if func in globals():
-            btable =  globals()[func](ctx, model, res)
+            btable = globals()[func](ctx, model, res)
             return ver_name_2_hub(ctx, model, res, btable=btable)
         elif model == 'res.users':
             if ctx['oe_version'] == "6.1":
@@ -555,7 +557,7 @@ def build_model_struct(ctx):
 
 def get_model_model(ctx, o_model):
     if 'model' in o_model:
-        if isinstance(o_model['model'], basestring): 
+        if isinstance(o_model['model'], basestring):
             model = o_model['model']
         else:
             model_selector = o_model.get('cur_model',
@@ -568,7 +570,7 @@ def get_model_model(ctx, o_model):
 
 def get_model_name(ctx, o_model):
     if 'model_name' in o_model:
-        if isinstance(o_model['model_name'], basestring): 
+        if isinstance(o_model['model_name'], basestring):
             model_name = o_model['model_name']
         else:
             model_selector = o_model.get('cur_model',
@@ -738,7 +740,7 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
 
 def get_company_id(ctx):
     value = get_db_alias(ctx, 'base.mycompany')
-    if not value or (isinstance(value, basestring) and not value.isdigit()): 
+    if not value or (isinstance(value, basestring) and not value.isdigit()):
         model = 'res.company'
         company_name = ctx.get('company_name', 'La % Azienda')
         ids = searchL8(ctx, model, [('name', 'ilike', company_name)])
@@ -747,7 +749,7 @@ def get_company_id(ctx):
         if ids:
             value = ids[0]
         else:
-            value =  1
+            value = 1
     if 'company_id' not in ctx and isinstance(value, (int, long)):
         ctx['company_id'] = value
     return value
@@ -797,8 +799,8 @@ def set_null_val_code_n_name(ctx, name, val, row=None):
     if name == 'code':
         if row and 'name' in row:
             value = hex(hash(row['name']))[2:]
-        else:
-            code = hex(hash(datetime.datetime.now().microsecond))[2:]
+        # else:
+        #     code = hex(hash(datetime.datetime.now().microsecond))[2:]
     return value
 
 
@@ -1145,9 +1147,9 @@ def validate_field(ctx, model, name):
     elif model in ('ir.config.parameter', ) and name in ('id', 'key', 'value'):
         return True
     elif searchL8(ctx,
-                'ir.model.fields',
-                [('model', '=', model),
-                 ('name', '=', name)]):
+                  'ir.model.fields',
+                  [('model', '=', model),
+                   ('name', '=', name)]):
         return True
     return False
 

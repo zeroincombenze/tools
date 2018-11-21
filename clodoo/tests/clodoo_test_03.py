@@ -11,12 +11,10 @@
 """
 
 # import pdb
-import os
-import re
+# import os
 # import os.path
 import sys
 
-from os0 import os0
 from zerobug import Z0test
 try:
     from clodoo.clodoolib import build_odoo_param
@@ -24,7 +22,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.7.48"
+__version__ = "0.3.7.49"
 
 
 MODULE_ID = 'clodoo'

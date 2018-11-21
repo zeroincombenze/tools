@@ -52,6 +52,7 @@ def sort_data(mod2xtl):
     mod2xtl['0'] = sorted(infos.keys())
     mod2xtl['ix0'] = 0
 
+
 def get_next(mod2xtl):
     item = '~'
     for id in VERSIONS_PLUS:
@@ -183,7 +184,8 @@ for id in VERSIONS_PLUS:
 # import pdb
 # pdb.set_trace()
 fd = open('moduli_da_installare.csv', 'w')
-fmto = '%-35.35s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
+fmto = '%-35.35s %-3.3s %-3.3s %-3.3s %-3.3s %-3.3s' \
+       ' %-4.4s %-4.4s %-40.40s %-20.20s %-10.10s'
 fmtx = '"%s",%s,%s,%s,%s,%s,%s,%s,"%s","%s","%s"\n'
 print fmto % ('Technical Name',
               VERSIONS[0],
@@ -197,16 +199,16 @@ print fmto % ('Technical Name',
               'Author',
               'Notes')
 line = fmtx % ('Technical Name',
-              VERSIONS[0],
-              '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
-              '%s.%s' % (VERSIONS[2][0:-1], VERSIONS[2][-1]),
-              '%s.%s' % (VERSIONS[3][0:-1], VERSIONS[3][-1]),
-              '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
-              '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
-              '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
-              'Description',
-              'Author',
-              'Notes')
+               VERSIONS[0],
+               '%s.%s' % (VERSIONS[1][0:-1], VERSIONS[1][-1]),
+               '%s.%s' % (VERSIONS[2][0:-1], VERSIONS[2][-1]),
+               '%s.%s' % (VERSIONS[3][0:-1], VERSIONS[3][-1]),
+               '%s.%s' % (VERSIONS[4][0:-1], VERSIONS[4][-1]),
+               '%s.%s' % (VERSIONS[5][0:-1], VERSIONS[5][-1]),
+               '%s.%s' % (VERSIONS[6][0:-1], VERSIONS[6][-1]),
+               'Description',
+               'Author',
+               'Notes')
 fd.write(line)
 while item != '~':
     item, vers = get_next(mod2xtl)
