@@ -19,7 +19,7 @@ Last Update / Ultimo aggiornamento: {{today}}
     :target: {{coverage-URL}}?branch={{branch}}
     :alt: Coverage
 .. |Codecov Status| image:: {{badge-codecov}}
-    :target: {{codecov-URL}}
+    :target: {{codecov-oca-URL}}
     :alt: Codecov
 .. |OCA project| image:: {{badge-OCA}}
     :target: {{OCA-URL}}
@@ -34,7 +34,7 @@ Last Update / Ultimo aggiornamento: {{today}}
     :target: {{try_me-URL}}
     :alt: Try Me
 .. |OCA Codecov Status| image:: {{badge-oca-codecov}}
-    :target: {{oca-codecov-URL}}
+    :target: {{codecov-oca-URL}}
     :alt: Codecov
 .. |Odoo Italia Associazione| image:: https://www.odoo-italia.org/images/Immagini/Odoo%20Italia%20-%20126x56.png
    :target: https://odoo-italia.org

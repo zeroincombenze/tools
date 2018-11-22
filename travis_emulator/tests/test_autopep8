@@ -61,6 +61,7 @@ from openerp.osv import orm,fields
 A=1
 B=A
 class my_class(osv.osv):
+    pass
 EOF
     fi
     # Validate against Odoo 6.1
@@ -71,6 +72,7 @@ from openerp.osv import orm,fields
 a=1
 B=A
 class my_class(osv.osv):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b6.1 $TESTSRC -o $TESTOUT
     fi
@@ -83,6 +85,7 @@ from openerp.osv import orm,fields
 a=1
 B=A
 class my_class(orm.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b7.0 $TESTSRC -o $TESTOUT
     fi
@@ -95,6 +98,7 @@ from openerp.osv import orm,fields
 a=1
 B=A
 class MyClass(orm.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAANu -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
@@ -107,6 +111,7 @@ from openerp import models,fields
 a=1
 B=A
 class MyClass(models.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b8.0 $TESTSRC -o $TESTOUT
     fi
@@ -119,6 +124,7 @@ from openerp import models,fields
 a=1
 B=A
 class MyClass(models.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b9.0 $TESTSRC -o $TESTOUT
     fi
@@ -131,6 +137,7 @@ from odoo import models,fields
 a=1
 B=A
 class MyClass(models.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b10.0 $TESTSRC -o $TESTOUT
     fi
@@ -142,6 +149,7 @@ from odoo import models,fields
 a=1
 B=A
 class MyClass(models.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b11.0 $TESTSRC -o $TESTOUT
     fi
@@ -153,6 +161,7 @@ from odoo import models,fields
 a=1
 B=A
 class MyClass(models.Model):
+    pass
 EOF
       $RUNDIR/topep8 -qAAN -F6.1 -b12.0 $TESTSRC -o $TESTOUT
     fi

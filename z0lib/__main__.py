@@ -22,7 +22,7 @@
 
 bash library for tools
 """
-
+from __future__ import print_function
 import os
 import sys
 # try:
@@ -58,8 +58,6 @@ if __name__ == "__main__":
         if os.path.isdir(MODULE_ID):
             os.chdir(MODULE_ID)
         os.system(VERSION_SH)
-    # else:
-    #     print build.version()
     for text in __doc__.split('\n'):
-        print text
+        print(text)
     sys.exit(0)

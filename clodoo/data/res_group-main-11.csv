@@ -2,6 +2,8 @@ oe_versions,user,name,value
 ,${zeroadm_login},Technical Features,True
 ,${zeroadm_login},Multi Companies,True
 -6.1,${zeroadm_login},Contact Creation,True
++11.0+12.0,${zeroadm_login},Show Full Accounting Features,True
++10.0,${zeroadm_login},Accounting / Payments,True
 +8.0,,sale.config.settings.group_scheduled_calls,True
 +7.0+8.0,,base.config.settings.module_multicompany,True
 +9.0,,base.config.settings.group_light_multi_company,True

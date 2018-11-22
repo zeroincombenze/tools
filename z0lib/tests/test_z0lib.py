@@ -22,16 +22,14 @@
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
-
 # import pdb
 import os
-# import os.path
 import sys
 from zerobug import Z0test
-from z0lib import parseoptargs
+import z0lib
 
 
-__version__ = "0.2.7.2"
+__version__ = "0.2.7.3"
 
 MODULE_ID = 'z0lib'
 TEST_FAILED = 1
@@ -48,10 +46,15 @@ class RegressionTest():
         self.Z = zarlib
 
     def test_01(self, z0ctx):
+        sts = self.Z.test_result(z0ctx,
+                                 "Version",
+                                 z0lib.__version__,
+                                 __version__)
+        #
         sts = TEST_SUCCESS
-        parser = parseoptargs("Unit Test",
-                              "© 2015-2017 by SHS-AV s.r.l.",
-                              version=__version__)
+        parser = z0lib.parseoptargs("Unit Test",
+                                    "© 2015-2018 by SHS-AV s.r.l.",
+                                    version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
         parser.add_argument('-V')
@@ -69,9 +72,9 @@ class RegressionTest():
 
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
-        parser = parseoptargs("Unit Test",
-                              "© 2015-2017 by SHS-AV s.r.l.",
-                              version=__version__)
+        parser = z0lib.parseoptargs("Unit Test",
+                                    "© 2015-2018 by SHS-AV s.r.l.",
+                                    version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
         parser.add_argument('-p', '--path',
@@ -107,9 +110,9 @@ class RegressionTest():
                                  'mytarget',
                                  ctx['mytarget'])
 
-        parser = parseoptargs("Unit Test",
-                              "© 2015-2017 by SHS-AV s.r.l.",
-                              version=__version__)
+        parser = z0lib.parseoptargs("Unit Test",
+                                    "© 2015-2018 by SHS-AV s.r.l.",
+                                    version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
         parser.add_argument('-p', '--path',
@@ -127,9 +130,9 @@ class RegressionTest():
                                  0,
                                  ctx['opt_verbose'])
 
-        parser = parseoptargs("Unit Test",
-                              "© 2015-2017 by SHS-AV s.r.l.",
-                              version=__version__)
+        parser = z0lib.parseoptargs("Unit Test",
+                                    "© 2015-2018 by SHS-AV s.r.l.",
+                                    version=__version__)
         parser.add_argument('-h')
         parser.add_argument('-n')
         parser.add_argument('-p', '--path',

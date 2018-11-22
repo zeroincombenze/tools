@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(name='z0lib',
       version='',
-      description='Bash zeroincombenze lib',
+      description='',
       classifiers=[
           'Development Status :: 1 - Planning',
       ])

@@ -41,21 +41,21 @@ IS_DEF = re.compile('def +')
 IS_CLASS = re.compile('class +')
 
 SYNTAX = {
-    'space': re.compile('\s+'),
-    'lparen': re.compile('\('),
-    'rparen': re.compile('\)'),
-    'lbrace': re.compile('\['),
-    'rbrace': re.compile('\]'),
-    'lbracket': re.compile('\{'),
-    'rbracket': re.compile('\}'),
-    'isalnum': re.compile('[a-zA-Z_][\w]*'),
-    'isdigit': re.compile('[\d]+'),
+    'space': re.compile(r'\s+'),
+    'lparen': re.compile(r'\('),
+    'rparen': re.compile(r'\)'),
+    'lbrace': re.compile(r'\['),
+    'rbrace': re.compile(r'\]'),
+    'lbracket': re.compile(r'\{'),
+    'rbracket': re.compile(r'\}'),
+    'isalnum': re.compile(r'[a-zA-Z_][\w]*'),
+    'isdigit': re.compile(r'[\d]+'),
     'begdoc1': re.compile('"""'),
     'begdoc2': re.compile('"""'),
     'begremark': re.compile('#'),
     'begtxt1': re.compile('"{1,2}($|[^"])'),
     'begtxt2': re.compile("'{1,2}($|[^'])"),
-    'dot': re.compile('\.'),
+    'dot': re.compile(r'\.'),
     'comma': re.compile(','),
     'colon': re.compile(':'),
     'assign': re.compile('='),
@@ -269,7 +269,7 @@ LAST_RID = -1
 def txt2regex(token):
     if token[0] != '^':
         token = '.*' + token
-    return token.replace('.', '\.')
+    return token.replace('.', r'\.')
 
 
 def regex2txt(token):
@@ -281,13 +281,13 @@ def regex2txt(token):
         '.*', '').replace(
         ' *', '').replace(
         ' +', '').replace(
-        '\(', '(').replace(
-        '\)', ')').replace(
-        '\[', '[').replace(
-        '\[', '[').replace(
-        '\{', '}').replace(
-        '\{', '}').replace(
-        '\.', '.')
+        r'\(', '(').replace(
+        r'\)', ')').replace(
+        r'\[', '[').replace(
+        r'\[', '[').replace(
+        r'\{', '}').replace(
+        r'\{', '}').replace(
+        r'\.', '.')
     return tok
 
 
@@ -445,7 +445,7 @@ def write_license_info(lines, ctx):
     lines.insert(lineno, '#')
     lineno += 1
     while re.match(
-            '^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)',
+            r'^# *([Cc]opyright|\([Cc]\)|©|http:|https:|\w+\@[a-zA-z0-9-.]+)',
             lines[lineno]):
         found_author = True
         if lines[lineno].find(auth_antoniov) >= 0:
@@ -600,8 +600,8 @@ def update_4_api(lines, lineno, ctx, ignore=None, select=None):
 def move_tk_line_up(lines, lineno, tk):
     if lineno > 0:
         i = lines[lineno].find(tk)
-        l = len(tk)
-        newln = lines[lineno][0:i] + lines[lineno][i+l+1:]
+        lt = len(tk)
+        newln = lines[lineno][0:i] + lines[lineno][i+lt+1:]
         if newln.strip() == "":
             lines[lineno] = ""
         else:
@@ -831,7 +831,7 @@ def parse_file(src_filepy, dst_filepy, ctx):
                                             lineno,
                                             ctx)
             del_empty_line = False
-        elif ctx['open_doc'] != 1 and re.match('\s*"""', lines[lineno]):
+        elif ctx['open_doc'] != 1 and re.match(r'\s*"""', lines[lineno]):
             if len(lines[lineno]) > 79:
                 ln1, ln2 = split_line(lines[lineno])
                 if ln2:

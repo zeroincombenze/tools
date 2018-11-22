@@ -4,8 +4,6 @@
 """
 
 from __future__ import print_function
-import io
-import ast
 import os
 import time
 import re
@@ -42,6 +40,7 @@ def set_odoo_path(ctx, version):
         print('Paths of Odoo %s not found' % version)
         return False
     return odoo_path
+
 
 def change_name(ctx, filename, version):
     filename = filename.replace(ctx['odoo_ver'], version)
@@ -119,7 +118,8 @@ def load_dictionary_from_file(pofn):
         #                         dummy = TNL_ACTION[msgid]
         #                     while dummy not in ('C', 'N', 'E', 'I') and \
         #                             len(dummy) <= 3:
-        #                         dummy=raw_input('>>> (Current,New,End,Ignore,<Text>)? ')
+        #                         dummy=raw_input(
+        #                             '>>> (Current,New,End,Ignore,<Text>)? ')
         #                     if dummy == 'E':
         #                         TNL_ACTION['*'] = dummy
         #                         return
@@ -162,8 +162,8 @@ def load_dictionary_from_file(pofn):
                     elif msgid in TNL_ACTION:
                         dummy = TNL_ACTION[msgid]
                     while dummy not in ('C', 'N', 'E', 'I') and \
-                                len(dummy) <= 3:
-                        dummy=raw_input(
+                            len(dummy) <= 3:
+                        dummy = raw_input(
                             '>>> (Current,New,End,Ignore,<Text>)? ')
                     if dummy == 'E':
                         TNL_ACTION['*'] = dummy
@@ -231,7 +231,7 @@ def parse_pofile(source):
             if msgid in TNL_DICT and msgstr != TNL_DICT[msgid]:
                 for k, value in message.__dict__.iteritems():
                     if k == 'string':
-                        message.string  = TNL_DICT[msgid]
+                        message.string = TNL_DICT[msgid]
                     elif value:
                         setattr(message, k, value)
                 ctr += 1
@@ -301,7 +301,7 @@ def load_dictionary(ctx):
                     ctx['module_name'], version))
                 continue
             print('Found path %s' % module_path)
-            pofn = os.path.join(module_path,'i18n', 'it.po')
+            pofn = os.path.join(module_path, 'i18n', 'it.po')
             if not os.path.isfile(pofn):
                 print('File %s not found!' % pofn)
                 return 0
@@ -352,8 +352,8 @@ def upgrade_db(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Translate Odoo Package",
-                          "© 2018 by SHS-AV s.r.l.",
-                          version=__version__)
+                                "© 2018 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-B', '--debug-template',
                         action='store_true',
                         dest='dbg_template')

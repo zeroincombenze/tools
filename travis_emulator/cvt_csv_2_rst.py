@@ -4,10 +4,7 @@
 """
 
 from __future__ import print_function
-import io
-import ast
 import os
-import re
 import sys
 import csv
 from os0 import os0
@@ -93,8 +90,8 @@ def convert_file(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Convert csv file into xml file",
-                          "© 2018 by SHS-AV s.r.l.",
-                          version=__version__)
+                                "© 2018 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
                         action='store',

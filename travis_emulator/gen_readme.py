@@ -6,7 +6,7 @@
 from __future__ import print_function, unicode_literals
 import ast
 import os
-import re
+# import re
 import sys
 from datetime import datetime
 from lxml import etree
@@ -30,13 +30,11 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'troubleshooting', 'known_issues',
                     'proposals_for_enhancement', 'history', 'faq',
                     'sponsor', 'copyright_notes', 'avaiable_addons',
-                    'contact_us',
-]
+                    'contact_us']
 DEFINED_TAG = ['name', 'summary', 'maturity',
-                  'module_name', 'repos_name',
-                  'today',
-                  'authors', 'contributors', 'acknowledges',
-]
+               'module_name', 'repos_name',
+               'today',
+               'authors', 'contributors', 'acknowledges']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
@@ -54,18 +52,19 @@ DEFINED_GRYMB_SYMBOLS = {
     'info': ['awesome/info.png', False],
     'halt': ['awesome/halt.png', False],
     'xml_schema': ['certificates/iso/icons/xml-schema.png',
-                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
-                   'certificates/iso/scope/xml-schema.md'],
-    'DesktopTelematico':  ['certificates/ade/icons/DesktopTelematico.png',
-                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
-                   'certificates/ade/scope/DesktopTelematico.md'],
+                   'https://github.com/zeroincombenze/grymb/'
+                   'blob/master/certificates/iso/scope/xml-schema.md'],
+    'DesktopTelematico':  [
+        'certificates/ade/icons/DesktopTelematico.png',
+        'https://github.com/zeroincombenze/grymb/'
+        'blob/master/certificates/ade/scope/Desktoptelematico.md'],
     'FatturaPA': ['certificates/ade/icons/fatturapa.png',
-                   'https://raw.githubusercontent.com/zeroincombenze/grymb' \
-                   'certificates/ade/scope/fatturapa.md'],
+                  'https://github.com/zeroincombenze/grymb/'
+                  'blob/master/certificates/ade/scope/fatturapa.md'],
 }
 EXCLUDED_MODULES = ['lxml', ]
 MANIFEST_ITEMS = ('name', 'summary', 'version',
-                  'category','author', 'website',
+                  'category', 'author', 'website',
                   'license', 'depends', 'data',
                   'demo', 'test', 'installable',
                   'external_dependencies', 'maturity', 'description')
@@ -188,7 +187,7 @@ def get_default_avaiable_addons(ctx):
                    'OCA Ver.',
                    'Description / Descrizione')
     text += lne
-    for pkg in  sorted(ctx['addons_info'].keys()):
+    for pkg in sorted(ctx['addons_info'].keys()):
         if not ctx['addons_info'][pkg].get('oca_installable', True):
             oca_version = '|halt|'
         elif ctx['addons_info'][pkg]['version'] == ctx[
@@ -223,14 +222,14 @@ def tohtml(text):
         if ii > 0 and jj > ii:
             url = t[ii + 1: jj]
             if (j + 3) < len(text):
-                text = u'%s\aa href="%s"\h%s\a/a\h%s' % (
+                text = u'%s\aa href="%s"\b%s\a/a\b%s' % (
                     text[0:i],
                     url,
                     t[0: ii - 1].strip(),
                     text[j + 3:]
                 )
             else:
-                text = u'%s\aa href="%s"\h%s\a/a\h' % (
+                text = u'%s\aa href="%s"\b%s\a/a\b' % (
                     text[0:i],
                     url,
                     t[0: ii - 1].strip()
@@ -240,7 +239,7 @@ def tohtml(text):
         i = text.find('`')
         j = text.find('`__')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
-    text = text.replace('\a', '<').replace('\h', '>')
+    text = text.replace('\a', '<').replace('\b', '>')
     lines = text.split('\n')
     while len(lines) > 1 and not lines[-1]:
         del lines[-1]
@@ -293,7 +292,7 @@ def tohtml(text):
                 hdr_foo = True
             else:
                 for t in RST2HTML_GRYMB.keys():
-                    lines[i] = lines[i].replace(t,RST2HTML_GRYMB[t])
+                    lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
         i += 1
     if is_list:
         lines.append('</ul>')
@@ -357,18 +356,18 @@ def expand_macro(ctx, token, out_fmt=None):
     elif token == 'badge-codecov':
         value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
             GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
-    elif token == 'badge-OCA':
-        value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-oca-%d.svg' % (
-            ctx['odoo_majver'])
+    elif token == 'badge-oca-codecov':
+        value = 'https://codecov.io/gh/%s/%s/branch/%s/graph/badge.svg' % (
+            'OCA', ctx['repos_name'], ctx['odoo_fver'])
     elif token == 'badge-doc':
-        value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-docs-%d.svg' % (
-            ctx['odoo_majver'])
+        value = 'https://www.zeroincombenze.it/wp-content/' \
+                'uploads/ci-ct/prd/button-docs-%d.svg' % (ctx['odoo_majver'])
     elif token == 'badge-help':
-        value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-help-%s.svg' % (
-            ctx['odoo_majver'])
+        value = 'https://www.zeroincombenze.it/wp-content/' \
+                'uploads/ci-ct/prd/button-help-%s.svg' % (ctx['odoo_majver'])
     elif token == 'badge-try_me':
-        value = 'https://www.zeroincombenze.it/wp-content/uploads/ci-ct/prd/button-try-it-%s.svg' % (
-            ctx['odoo_majver'])
+        value = 'https://www.zeroincombenze.it/wp-content/' \
+                'uploads/ci-ct/prd/button-try-it-%s.svg' % (ctx['odoo_majver'])
     elif token == 'maturity-URL':
         value = 'https://odoo-community.org/page/development-status'
     elif token == 'ci-travis-URL':
@@ -380,6 +379,9 @@ def expand_macro(ctx, token, out_fmt=None):
     elif token == 'codecov-URL':
         value = 'https://codecov.io/gh/%s/%s/branch/%s' % (
             GIT_USER[ctx['git_orgid']], ctx['repos_name'], ctx['odoo_fver'])
+    elif token == 'codecov-oca-URL':
+        value = 'https://codecov.io/gh/%s/%s/branch/%s' % (
+            'OCA', ctx['repos_name'], ctx['odoo_fver'])
     elif token == 'OCA-URL':
         value = 'https://github.com/OCA/%s/tree/%s' % (
             ctx['repos_name'], ctx['odoo_fver'])
@@ -414,11 +416,11 @@ def expand_macro_in_line(ctx, line, state=None):
     out_fmt = state.get('out_fmt', 'rst')
     i = line.find('{{')
     j = line.find('}}')
-    while i >=0 and j > i:
+    while i >= 0 and j > i:
         tokens = line[i + 2: j].split(':')
         value = expand_macro(ctx, tokens[0], out_fmt=out_fmt)
         if value is False or value is None:
-            print('Invalid macro %s' % token)
+            print('Invalid macro %s' % tokens[0])
             value = ''
         elif len(value.split('\n')) > 1:
             state, value = parse_source(ctx, value, state=state)
@@ -426,9 +428,9 @@ def expand_macro_in_line(ctx, line, state=None):
             value = tohtml(value)
         if len(tokens) > 1:
             fmt = tokens[1]
-            line = line[0:i] + (fmt % value) + line[j +2:]
+            line = line[0:i] + (fmt % value) + line[j + 2:]
         else:
-            line = line[0:i] + value + line[j +2:]
+            line = line[0:i] + value + line[j + 2:]
         i = line.find('{{')
         j = line.find('}}')
     return line
@@ -455,7 +457,7 @@ def validate_condition(ctx, *args):
     val = ''
     in_cond = False
     i = 0
-    while  i < len(args):
+    while i < len(args):
         pad = ',' if in_cond else ' '
         if args[i][0].isalpha() or args[i][0] == '_':
             if args[i] == 'defined':
@@ -671,7 +673,7 @@ def parse_source(ctx, source, state=None):
     #     state['in_fmt'] = 'raw'
     #     # return state, source
     target = ''
-    for lno,line in enumerate(source.split('\n')):
+    for lno, line in enumerate(source.split('\n')):
         nl_bef = False if lno == 0 else True
         state, is_preproc = is_preproc_line(ctx, line, state)
         if state['action'] != 'susp':
@@ -690,7 +692,9 @@ def parse_source(ctx, source, state=None):
                                                    state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text
-            elif state['in_fmt'] in ('authors', 'contributors', 'acknowledges'):
+            elif state['in_fmt'] in ('authors',
+                                     'contributors',
+                                     'acknowledges'):
                 text = line_of_list(ctx, state, line)
                 if text != '\t':
                     state, text = append_line(state, text, nl_bef=nl_bef)
@@ -798,7 +802,7 @@ def read_manifest(ctx):
     if manifest_file:
         ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
         ctx['manifest'] = {
-            os0.u(k):os0.u(v) for k,v in ctx['manifest'].items()}
+            os0.u(k): os0.u(v) for k, v in ctx['manifest'].items()}
         ctx['manifest_file'] = manifest_file
     else:
         ctx['manifest'] = {}
@@ -833,13 +837,13 @@ def read_all_manifests(ctx):
                     module_name[0:5] == 'test_'):
                 continue
             if manifest_file in files:
-                full_fn = os.path.join(root,manifest_file)
+                full_fn = os.path.join(root, manifest_file)
                 print(full_fn)  # debug
                 try:
                     addons_info[module_name] = ast.literal_eval(open(
                         full_fn).read())
                     addons_info[module_name] = {
-                        os0.u(k):os0.u(v) for k,v in addons_info[
+                        os0.u(k): os0.u(v) for k, v in addons_info[
                             module_name].items()}
                     if 'summary' not in addons_info[module_name]:
                         addons_info[module_name]['summary'] = addons_info[
@@ -864,24 +868,27 @@ def read_all_manifests(ctx):
                     module_name[0:5] == 'test_'):
                 continue
             if manifest_file in files:
-                full_fn = os.path.join(root,manifest_file)
+                full_fn = os.path.join(root, manifest_file)
                 oca_manifest = ast.literal_eval(open(full_fn).read())
                 oca_manifest = {
-                    os0.u(k):os0.u(v) for k,v in oca_manifest.items()}
+                    os0.u(k): os0.u(v) for k, v in oca_manifest.items()}
                 oca_version = adj_version(ctx, oca_manifest.get('version', ''))
                 if module_name not in addons_info:
                     addons_info[module_name] = {}
                     if 'summary' in oca_manifest:
-                        addons_info[module_name]['summary'] = oca_manifest['summary'].strip()
+                        addons_info[module_name][
+                            'summary'] = oca_manifest['summary'].strip()
                     else:
-                        addons_info[module_name]['summary'] = oca_manifest['name'].strip()
+                        addons_info[module_name][
+                            'summary'] = oca_manifest['name'].strip()
                     addons_info[module_name]['version'] = 'N/A'
                 addons_info[module_name]['oca_version'] = oca_version
                 if root.find('__unported__') >= 0:
                     addons_info[module_name]['oca_installable'] = False
                 else:
-                    addons_info[module_name]['oca_installable'] = oca_manifest.get(
-                        'installable', True)
+                    addons_info[module_name][
+                        'oca_installable'] = oca_manifest.get('installable',
+                                                              True)
     ctx['addons_info'] = addons_info
 
 
@@ -947,7 +954,7 @@ def index_html_content(ctx, source):
         xml_replace_text(ctx, root, 'h2', title)
         target += '\n%s' % etree.tostring(root, pretty_print=True)
     for t in RST2HTML.keys():
-        target = target.replace(t,RST2HTML[t])
+        target = target.replace(t, RST2HTML[t])
     return target
 
 
@@ -971,7 +978,8 @@ def set_default_values(ctx):
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
     ctx['summary'] = ctx['manifest'].get('summary', ctx['name']).strip()
-    ctx['zero_tools'] = '`Zeroincombenze Tools <https://github.com/zeroincombenze/tools>`__'
+    ctx['zero_tools'] = '`Zeroincombenze Tools ' \
+                        '<https://github.com/zeroincombenze/tools>`__'
     if ctx['odoo_layer'] == 'ocb':
         ctx['local_path'] = '/opt/odoo/%s' % ctx['odoo_fver']
     elif ctx['odoo_layer'] == 'repository':
@@ -1036,8 +1044,8 @@ def generate_readme(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Generate README",
-                          "© 2018 by SHS-AV s.r.l.",
-                          version=__version__)
+                                "© 2018 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
@@ -1077,7 +1085,8 @@ if __name__ == "__main__":
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:])
     if not ctx['git_orgid']:
-        ctx['git_orgid'] = build_odoo_param('GIT_ORGID', odoo_vid=ctx['odoo_vid'])
+        ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
+                                            odoo_vid=ctx['odoo_vid'])
     if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
         ctx['git_orgid'] = 'zero'
         print('Invalid git-org: use one of zero|oia|oca for -G switch (%s)' %

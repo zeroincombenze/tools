@@ -137,6 +137,8 @@ EOF
       elif [ -d ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ]; then
         ln -s ~/pypi/maintainer-quality-tools/maintainer-quality-tools/ ~/
         LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
+      elif [ -d $HOME/tools/maintainer-quality-tools/travis/ ]; then
+        LCLTEST_MQT_PATH=$HOME/tools/maintainer-quality-tools/travis
       else
         false
       fi
@@ -410,6 +412,8 @@ test_05() {
     fi
     if [ -d $TDIR/_travis ]; then
       test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
+    elif [ -d $HOME/build/local/travis_emulator/_travis ]; then
+      test_result "init_travis \$TOOLS_PATH" "$HOME/build/local/travis_emulator/_travis" "$TOOLS_PATH"
     else
       test_result "init_travis \$TOOLS_PATH" "/opt/odoo/dev/_travis" "$TOOLS_PATH"
     fi

@@ -4,9 +4,7 @@
 """
 
 from __future__ import print_function
-import ast
 import os
-import re
 import sys
 import z0lib
 
@@ -20,7 +18,7 @@ def parse_source(source):
 
 def parse_file(ctx):
     if not os.path.isfile(ctx['src_file']):
-            raise UserError('File %s not found' % ctx['src_file'])
+            raise IOError('File %s not found' % ctx['src_file'])
     if ctx['opt_verbose']:
         print("Reading %s" % ctx['src_file'])
     fd = open(ctx['src_file'], 'rb')
@@ -53,8 +51,8 @@ def parse_file(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Convert file",
-                          "© 2018 by SHS-AV s.r.l.",
-                          version=__version__)
+                                "© 2018 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
                         action='store',

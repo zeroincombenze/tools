@@ -182,11 +182,11 @@ class topep8():
                 self.lines[lineno] = self.lines[lineno].replace(
                     'https://www.zeroincombenze.it', website_zero)
             ipos = 1
-            x = re.match('^ *([Cc]opyright|\([Cc]\)|©)',
+            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
                          self.lines[lineno][ipos:])
             if x:
                 ipos += x.end() + 1
-            x = re.match('^ *([Cc]opyright|\([Cc]\)|©)',
+            x = re.match(r'^ *([Cc]opyright|\([Cc]\)|©)',
                          self.lines[lineno][ipos:])
             if x:
                 ipos += x.end() + 1
