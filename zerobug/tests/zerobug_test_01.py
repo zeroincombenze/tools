@@ -29,7 +29,7 @@ import os.path
 import sys
 # pdb.set_trace()
 from zerobug import Z0test
-import dummylib
+# import dummylib
 
 
 __version__ = "0.2.14"
@@ -52,8 +52,10 @@ if __name__ == "__main__":
         if os.environ.get('HOSTENV', '') == 'travis':
             UT_LIST = ["__version_0_" + __version__]
         else:
-            UT_LIST = ["__version_0_" + __version__,
-                       "__version_1_0.2.6%s/tools/z0lib/z0librc" %  os.environ.get('HOME', '')]
+            UT_LIST = [
+                "__version_0_" + __version__,
+                "__version_1_0.2.6%s/tools/z0lib/z0librc" % os.environ.get(
+                    'HOME', '')]
         UT_LIST.append("__version_V_0.2.0" + os.path.join(Z.test_dir,
                                                           "dummy_01.py"))
         UT_LIST.append("__version_v_0.2.1" + os.path.join(Z.test_dir,

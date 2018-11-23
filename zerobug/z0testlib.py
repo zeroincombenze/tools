@@ -67,7 +67,7 @@ Every unit test file may be called with follows switches:
     -n             count and display # unit tests (do no test, return success)
     -q             run tests in quiet mode (no echo)
     -r number      run tests counting 1st test next to number
-    -s number      run tests counting 1st test next to number (deprecated, MUST BECOME -r)
+    -s number      like -r (deprecated)
     -V             show version (do no test, return success);
                    version on unit test should be the same of tested software
     -v             verbose mode
@@ -627,7 +627,7 @@ class Z0test(object):
                 self.test_dir = self.this_dir
             self.pkg_dir = self.this_dir
         x = os.path.dirname(self.pkg_dir)
-        PYTHONPATH = os.environ['PYTHONPATH']
+        PYTHONPATH = os.environ.get('PYTHONPATH', '')
         if x not in sys.path:
             p = ':%s:' % PYTHONPATH
             if p.find(':%s:' % x) < 0:
@@ -676,7 +676,7 @@ class Z0test(object):
         -O              load odoorc library (only in bash scripts)
         -q --quiet      run tests without output (quiet mode)
         -r --restart    restart count next to number
-        -s --start      count 1st test next to number (deprecated MUST BECOME -r)
+        -s --start      count 1st test next to number (deprecated BECOME -r)
         -V --version    show version
         -v --verbose    verbose mode
         -x --qsanity    execute silently test library sanity check and exit
@@ -1347,9 +1347,9 @@ class Z0test(object):
         if not ctx.get('dry_run', False):
             if test_value != result_val:                     # pragma: no cover
                 print("Test '%s' failed: expected '%s', found '%s'" %
-                    (msg,
-                     test_value,
-                     result_val))
+                      (msg,
+                       test_value,
+                       result_val))
                 ctx['teststs'] = TEST_FAILED
                 if ctx.get('on_error', '') != 'continue':
                     raise AssertionError
