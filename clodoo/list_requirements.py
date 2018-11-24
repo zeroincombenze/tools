@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from subprocess import PIPE, Popen
-# import pdb
-# pdb.set_trace()
 import ast
 import sys
 import os
 import re
-from z0lib import z0lib
+import z0lib
 
 
 __version__ = '0.3.8'

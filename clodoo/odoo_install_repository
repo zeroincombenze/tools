@@ -156,10 +156,8 @@ commit_files() {
     local odoo_fver=$1
     local x=$(build_odoo_param RORIGIN $1)
     if [ "${x:0:15}" == "git@github.com:" ]; then
-      # run_traced "git remote update"
       run_traced "git checkout -b $odoo_fver origin/$odoo_fver" "$pkg_user"
       run_traced "git format-patch --stdout origin/$odoo_fver -- $PWD | git am -3" "$pkg_user"
-      # run_traced "git branch $odoo_fver -D"
       run_traced "git push origin $odoo_fver" "$pkg_user"
     fi
 }
@@ -312,6 +310,7 @@ if [ -z "$new_odoo_vid" ]; then
   fi
   if [ -n "$opt_odir" ]; then
     DSTPATH=$opt_odir
+    odoo_root=$DSTPATH
   else
     DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$def_opt_org")
   fi
@@ -348,7 +347,6 @@ if [ -z "$new_odoo_vid" ]; then
     fi
     pkgdir=$(basename $DSTPATH)
     run_traced "git clone $pkg_URL $pkgdir/ $git_opts" "$pkg_user"
-    # run_traced "chown -R odoo:odoo $DSTPATH"
   fi
   if [ "$DSTPATH" != "$PWD" ]; then
     run_traced "cd $DSTPATH"

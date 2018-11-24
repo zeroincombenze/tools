@@ -11,7 +11,10 @@ import sys
 import csv
 from babel.messages import pofile
 from os0 import os0
-from z0lib import z0lib
+try:
+    from z0lib import z0lib
+except ImportError:
+    import z0lib
 from clodoo import clodoo
 
 

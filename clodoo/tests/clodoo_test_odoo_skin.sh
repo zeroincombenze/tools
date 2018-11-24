@@ -128,9 +128,6 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
 fi
 
 
-
-
-
 UT1_LIST=
 UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi

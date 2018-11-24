@@ -35,36 +35,21 @@ Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 __version__=0.3.8
 
 
+test_01() {
+    RES=$($RUNDIR/list_requirements.py -V 2>&1)
+    test_result "list_requirements" "$__version__" "$RES"
+    #
+    TRES="python=astroid,Click,configparser,codecov,coveralls,docutils,flake8,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,pycparser,pyflakes,pylint,pylint-mccabe,pylint_odoo,pylint-plugin-utils,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,unittest2,urllib3[secure],whichcraft,wrapt,zerobug"
+    RES=$($RUNDIR/list_requirements.py -b10.0 -T -tpython)
+    test_result "list_requirements" "$TRES" "$RES"
+}
+
 Z0BUG_setup() {
-    [ -f ../../z0lib/z0lib/z0lib.py ] && cp -fp ../../z0lib/z0lib/z0lib.py $RUNDIR
-    [ -f ../z0lib/z0lib.py ] && cp -fp ../z0lib/z0lib.py $RUNDIR
-    [ -f ./z0librc ] && rm -f ./z0librc
-    # Just for regression tests
-    coveragerc_file="$RUNDIR/.coveragerc"
-    coveragerc_bak="$RUNDIR/coveragerc.bak"
-    if [ ! -f "$coveragerc_bak" ]; then
-      if [ -f "$coveragerc_file" ]; then
-         mv -f $coveragerc_file $coveragerc_bak
-      fi
-    fi
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    # if [ "${PWD:0:19}" == "/opt/odoo/dev/pypi/" ]; then
-    #   cp -p /opt/odoo/tools/z0lib/z0librc ./
-    # fi
-    for i in 6 7 8 9 10; do
-      pg_db_active -wa clodoo_test$i; dropdb -Uodoo$i --if-exists clodoo_test$i 2>/dev/null
-    done
+    :
 }
 
 Z0BUG_teardown() {
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    if [ -f "$coveragerc_bak" ]; then
-      mv -f $coveragerc_bak $coveragerc_file
-    fi
+    :
 }
 
 
@@ -84,12 +69,8 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
 fi
 
 
-PYPKGDIR=$(readlink -e $RUNDIR/..)
-export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
 UT1_LIST=
-UT_LIST="__version_V_0.3.8$RUNDIR/odoo_skin.sh"
-# UT_LIST="$UT_LIST __version_V_0.3.8$RUNDIR/transodoo.py"
-UT_LIST="$UT_LIST clodoo_test_01.py clodoo_test_02.py clodoo_test_03.py clodoo_test_list_requirements.sh clodoo_test_odoo_skin.sh clodoo_test_odoorc.sh clodoo_test_transodoo.sh"
+UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

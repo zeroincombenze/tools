@@ -109,9 +109,6 @@ if [ ${opt_oeLib:-0} -ne 0 ]; then
 fi
 
 
-
-
-
 UT1_LIST=
 # UT_LIST="__version_V_${__version__}$RUNDIR/transodoo.py"
 UT_LIST=
