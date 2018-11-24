@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.2.2
+# __version__=0.2.2.3
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -45,10 +45,10 @@ env:
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
 
   matrix:
-  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/clodoo
-  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
-  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zar
-  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zerobug
+  - LINT_CHECK="0" BASH_CHECK="0" TESTS="0" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/clodoo
+  - LINT_CHECK="0" BASH_CHECK="0" TESTS="0" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/z0lib
+  - LINT_CHECK="0" BASH_CHECK="0" TESTS="0" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zar
+  - LINT_CHECK="0" BASH_CHECK="0" TESTS="0" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${TRAVIS_BUILD_DIR}:${TRAVIS_BUILD_DIR}/zerobug
 
 script:
   - cd $MODULE_PATH; pwd
@@ -56,8 +56,8 @@ script:
 
 after_success:
   - cd ${TRAVIS_BUILD_DIR}/clodoo; travis_after_tests_success ${OPTS}
-  # - cd ${TRAVIS_BUILD_DIR}/z0lib; travis_after_tests_success ${OPTS}
-  # - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
-  # - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
-  # - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}/z0lib; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}/zar; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}/zerobug; travis_after_tests_success ${OPTS}
+  - cd ${TRAVIS_BUILD_DIR}; travis_after_tests_success zerobug,zar ${OPTS}
 
