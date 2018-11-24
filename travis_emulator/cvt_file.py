@@ -6,10 +6,10 @@
 from __future__ import print_function
 import os
 import sys
-import z0lib
+from z0lib import z0lib
 
 
-__version__ = "0.2.1.68"
+__version__ = "0.2.2"
 
 
 def parse_source(source):

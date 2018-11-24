@@ -8,10 +8,10 @@ import os
 import sys
 import csv
 from os0 import os0
-import z0lib
+from z0lib import z0lib
 
 
-__version__ = "0.2.1.68"
+__version__ = "0.2.2"
 
 
 def format_line(ctx, col_size, row, sep=None, flist=None):

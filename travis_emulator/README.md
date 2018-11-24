@@ -35,7 +35,7 @@ Install using odoo user.
 Configuration
 -------------
 
-    please config . global
+    please config global
 
 
 Usage
@@ -176,10 +176,6 @@ This module has been financially supported by
 ----
 
 **Odoo** is a trademark of [Odoo S.A.](https://www.odoo.com/) (formerly OpenERP, formerly TinyERP)
-
-**OCA**, or the [Odoo Community Association](http://odoo-community.org/), is a nonprofit organization whose
-mission is to support the collaborative development of Odoo features and
-promote its widespread use.
 
 **zeroincombenze®** is a trademark of [SHS-AV s.r.l.](http://www.shs-av.com/)
 which distributes and promotes **Odoo** ready-to-use on its own cloud infrastructure.

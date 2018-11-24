@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.7.3
+__version__=0.2.8
 
 
 test_00() {
@@ -50,7 +50,8 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
-
+PYPKGDIR=$(readlink -e $RUNDIR/..)
+export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
 UT1_LIST="test_wlog"
 UT_LIST="__version_1_${__version__}$RUNDIR/z0librc"
 UT_LIST="$UT_LIST test_00"

@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.1.68
+__version__=0.2.2
 
 Z0BUG_setup() {
     if [ ! -d /opt/odoo/7.0 ]; then
@@ -68,82 +68,81 @@ test_01() {
     echo "# Sample conf file for test">$TEST_LCONF
     echo "tgt9path=odoo@shsprd14:~/dev/pypi">>$TEST_LCONF
 
-    CWD=$PWD
-
     TRES=$($RUNDIR/dist_pkg -V)
     test_result "version" "$__version__" "$TRES"
 
-    cd $RUNDIR
+    pushd $RUNDIR >/dev/null
     TRES=$($RUNDIR/dist_pkg -W PKGPATH)
-    cd $CWD
-    test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+    popd >/dev/null
+    test_result "param PKGPATH" "$RUNDIR" "$TRES"
 
-    cd $RUNDIR
-    cd ..
-    TRES=$($RUNDIR/dist_pkg -W PKGPATH)
-    cd $CWD
-    test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+    # TODO: Test does not work in travis env
+    if [ "${PWD:0:18}" == "/opt/odoo/dev/pypi" ]; then
+      pushd $RUNDIR/.. >/dev/null
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+      popd >/dev/null
+      test_result "param PKGPATH" "$RUNDIR" "$TRES"
 
-    cd $TESTDIR
-    TRES=$($RUNDIR/dist_pkg -W PKGPATH)
-    cd $CWD
-    test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+      pushd $TESTDIR >/dev/null
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH)
+      popd >/dev/null
+      test_result "param PKGPATH" "$RUNDIR" "$TRES"
 
-    TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/conf)
-    test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/conf)
+      test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
 
-    TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/travis_emulator/conf)
-    test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
+      TRES=$($RUNDIR/dist_pkg -W PKGPATH -p /opt/odoo/dev/pypi/travis_emulator/travis_emulator/conf)
+      test_result "param PKGPATH" "/opt/odoo/dev/pypi/travis_emulator" "$TRES"
 
-    TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
-    test_result "param LGITPATH (travis)" "/opt/odoo/tools/travis_emulator" "$TRES"
+      TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
+      test_result "param LGITPATH (travis)" "/opt/odoo/tools/travis_emulator" "$TRES"
+    fi
 
     if [ "$HOSTNAME" == "shsdev14" ]; then
-      cd /opt/odoo/7.0
+      pushd /opt/odoo/7.0 >/dev/null
       TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
-      cd $CWD
+      popd >/dev/null
       test_result "param LGITPATH (odoo8)" "/opt/odoo/8.0" "$TRES"
     else
       test_result "dummy" "true" "true"
     fi
 
     if [ -d "/opt/openerp/7.0/zeroincombenze/l10n_it_bbone" ]; then
-      cd /opt/openerp/7.0/zeroincombenze/l10n_it_bbone
+      pushd /opt/openerp/7.0/zeroincombenze/l10n_it_bbone >/dev/null
       TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
-      cd $CWD
+      popd >/dev/null
       test_result "param LGITPATH (zeroincombenze)" "/opt/odoo/7.0/zeroincombenze" "$TRES"
     fi
 
-    cd $TESTDIR
+    pushd $TESTDIR >/dev/null
     TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
-    cd $CWD
+    popd >/dev/null
     test_result "commit travis_emulator 1" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
 
-    cd $TESTDIR
-    cd ..
+    pushd $TESTDIR/.. >/dev/null
     TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
-    cd $CWD
+    popd >/dev/null
     test_result "commit travis_emulator 2" "dist_pkg -n -C -p \"/opt/odoo/tools/travis_emulator\" travis_emulator travis_emulator" "$TRES"
 
     if [ "$HOSTNAME" == "shsdev14" ]; then
-      cd /opt/odoo/7.0
+      pushd /opt/odoo/7.0 >/dev/null
       TRES=$($RUNDIR/dist_pkg -nc $TEST_GCONF -C|head -n1)
-      cd $CWD
+      popd >/dev/null
       test_result "commit openerp" "dist_pkg -n -C -p \"/opt/odoo/8.0\" 7.0 openerp" "$TRES"
     else
       test_result "dummy" "true" "true"
     fi
     echo "# duplicate name for test">>$TEST_LCONF
     echo "distpath=/opt/odoo">>$TEST_LCONF
-    cd $TESTDIR
+    pushd $TESTDIR >/dev/null
     TRES=$($RUNDIR/dist_pkg -c $TEST_LCONF -W LGITPATH)
-    cd $CWD
+    popd >/dev/null
     test_result "param LGITPATH (odoo)" "/opt/odoo" "$TRES"
 
     if [ -d "/opt/openerp/7.0/server/openerp/workflow" ]; then
-      cd /opt/openerp/7.0/server/openerp/workflow
+      pushd /opt/openerp/7.0/server/openerp/workflow >/dev/null
       TRES=$($RUNDIR/dist_pkg -c $TEST_GCONF -W LGITPATH)
-      cd $CWD
+      popd >/dev/null
       test_result "param LGITPATH (workflow)" "/opt/odoo/7.0/server/openerp" "$TRES"
     fi
 

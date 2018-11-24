@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.1.68
+#__version__=0.2.2
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -638,10 +638,10 @@ prepare_env_travis() {
 }
 
 check_4_travis() {
-    if [ ! -d $PRJGPATH ]; then
+    if [ ! -d "$PRJPATH" ]; then
       echo "Invalid project path $PRJPATH"
       exit $STS_FAILED
-    elif [ ! -d $PKGPATH ]; then
+    elif [ ! -d "$PKGPATH" ]; then
       echo "Invalid package path $PKGPATH"
       exit $STS_FAILED
     fi

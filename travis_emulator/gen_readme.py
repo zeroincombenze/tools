@@ -11,12 +11,12 @@ import sys
 from datetime import datetime
 from lxml import etree
 from os0 import os0
-import z0lib
+from z0lib import z0lib
 from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.1.68"
+__version__ = "0.2.2"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -838,7 +838,6 @@ def read_all_manifests(ctx):
                 continue
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
-                print(full_fn)  # debug
                 try:
                     addons_info[module_name] = ast.literal_eval(open(
                         full_fn).read())

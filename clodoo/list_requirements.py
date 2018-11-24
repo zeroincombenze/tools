@@ -8,10 +8,10 @@ import ast
 import sys
 import os
 import re
-import z0lib
+from z0lib import z0lib
 
 
-__version__ = '0.3.7.49'
+__version__ = '0.3.8'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #

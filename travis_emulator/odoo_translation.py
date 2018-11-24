@@ -11,11 +11,11 @@ import sys
 import csv
 from babel.messages import pofile
 from os0 import os0
-import z0lib
-import clodoo
+from z0lib import z0lib
+from clodoo import clodoo
 
 
-__version__ = "0.2.1.68"
+__version__ = "0.2.2"
 
 MAX_RECS = 100
 TNL_DICT = {}

@@ -41,10 +41,9 @@ import sys
 import tokenize
 
 from os0 import os0
+from z0lib import z0lib
 
-from z0lib import parseoptargs
-
-__version__ = "0.2.1.68"
+__version__ = "0.2.2"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
@@ -1198,7 +1197,7 @@ def parse_file(ctx=None):
 
 
 if __name__ == "__main__":
-    parser = parseoptargs("Topep8",
+    parser = z0lib.parseoptargs("Topep8",
                           "© 2015-2018 by SHS-AV s.r.l.",
                           version=__version__)
     parser.add_argument('-h')
