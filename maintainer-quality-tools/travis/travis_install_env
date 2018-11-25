@@ -271,15 +271,23 @@ for p in os0 z0lib; do
     echo "> $PIP install $p $PIP_OPTS"
   fi
 done
-# if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
+if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
+  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
+  export PYTHONPATH=$HOME/dev
 #   # workaround for TravisCI
 #   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
 #   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
-# fi
+fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
   run_n_echo "$HOME/tools/install_tools.sh -qp"
-  [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
+  if [ -d $HOME/dev ]; then
+    run_n_echo "export PATH=$HOME/dev:$PATH"
+    [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
+    export PYTHONPATH=$HOME/dev
+  else:
+    echo "!! Directory $HOME/dev not found!"
+  fi
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     for p in clodoo configparser codecov coveralls flake8 oerplib odoorpc pylint unittest2 zerobug; do
@@ -292,6 +300,14 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
         echo "> $PIP install $p $PIP_OPTS"
       fi
     done
+  fi
+  if [ $opt_verbose -gt 0 ]; then
+    echo "Content of ${HOME}:"
+    ls -l ${HOME}
+    echo "Content of ${TRAVIS_BUILD_DIR}:"
+    ls -l ${TRAVIS_BUILD_DIR}
+    echo "Content of ${HOME}/dev:"
+    ls -l ${HOME}/dev
   fi
   exit $sts
 elif [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
