@@ -32,6 +32,7 @@ addons:
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
   # Tools are used to test themselves packages
+  - ln -s ${TRAVIS_BUILD_DIR}/../tools ${HOME}
   - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:$PATH
