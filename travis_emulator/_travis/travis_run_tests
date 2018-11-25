@@ -256,15 +256,15 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__${TRAVIS_TEXT_COLOR}"
 fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
-  travis_test_bash
+  [ "$TRAVIS_DEBUG_MODE" != "2" ] && travis_test_bash || true
   sts_bash=$?
 else
   sts_bash=127
 fi
 if [ $LINT_CHECK_DISABLED -eq 0 ]; then
-  please_test_flake8
+  [ "$TRAVIS_DEBUG_MODE" != "2" ] && please_test_flake8 || true
   sts_flake8=$?
-  please_test_pylint
+  [ "$TRAVIS_DEBUG_MODE" != "2" ] && please_test_pylint || true
   sts_pylint=$?
   if [ $sts_bash -ne 127 ]; then
     sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
@@ -276,10 +276,10 @@ else
 fi
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
-    do_test
+    [ "$TRAVIS_DEBUG_MODE" != "2" ] && do_test || true
     test_sts=$?
   elif [ $TEST_CHECK_ENABLED -gt 0 ]; then
-    do_test
+    [ "$TRAVIS_DEBUG_MODE" != "2" ] && do_test || true
     test_sts=$?
   fi
   sts=$test_sts

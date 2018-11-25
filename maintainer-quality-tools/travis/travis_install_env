@@ -193,14 +193,19 @@ if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -z "$PIP" -a -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
   [ -z "$PIP" ] && PIP=pip
 fi
-if [ -n "$YML_mgrodoo" ]; then
+if [ "$MQT_TEST_MODE" == "tools" ]; then
+  [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
+  [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+elif [ -n "$YML_mgrodoo" ]; then
   MGRODOO=$YML_mgrodoo
   LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
 else
   [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
   [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
 fi
-if [ -n "$YML_lisa" ]; then
+if [ "$MQT_TEST_MODE" == "tools" ]; then
+  LISA=$TRAVIS_BUILD_DIR/lisa/lisa
+elif [ -n "$YML_lisa" ]; then
   LISA=$YML_lisa
 else
   LISA=$HOME/tools/lisa/lisa
@@ -266,20 +271,18 @@ for p in os0 z0lib; do
     echo "> $PIP install $p $PIP_OPTS"
   fi
 done
-if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
-  # workaround for TravisCI
-  run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
-  run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
-fi
+# if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
+#   # workaround for TravisCI
+#   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
+#   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
+# fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
-  if [[ "$TRAVIS" == "true" ]]; then
-    run_n_echo "$HOME/tools/install_foreign.sh -qp"
-    [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
-    run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
-  fi
+  run_n_echo "$HOME/tools/install_tools.sh -qp"
+  [ -d $HOME/dev ] && run_n_echo "export PATH=$HOME/dev:$PATH"
+  # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
-    for p in oerplib odoorpc zerobug clodoo; do
+    for p in clodoo configparser codecov coveralls flake8 oerplib odoorpc pylint unittest2 zerobug; do
       if [[ "$TRAVIS" == "true" ]]; then
         eval $LISA status -q $f
         if [ $? -ne 0 ]; then

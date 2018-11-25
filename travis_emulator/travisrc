@@ -473,7 +473,8 @@ create_virtual_env() {
             cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/
           fi
         done
-        export PYPI_CACHED=$TRAVIS_HOME/.local
+        # export PYPI_CACHED=$TRAVIS_HOME/.local
+        export PYPI_CACHED=
       else
         export PYPI_CACHED=
       fi
@@ -490,9 +491,10 @@ create_virtual_env() {
       x=$(readlink -f $TRAVIS_BUILD_DIR/..)
       run_traced "cp -R $TRAVIS_CWD/ $x/"
       if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
-        for p in clodoo lisa travis_emulator z0lib zerobug; do
+        for p in clodoo lisa maintainer-quality-tools travis_emulator z0lib zerobug; do
           run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/"
         done
+        run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/"
       fi
     fi
     # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
@@ -554,11 +556,6 @@ prepare_env_travis() {
         fi
       fi
     fi
-    # if [ -n "$TRAVIS_RUNDIR" ]; then
-    #   if [[ ! :$PATH: =~ :$TRAVIS_RUNDIR: ]]; then
-    #     run_traced "export PATH=$TRAVIS_RUNDIR:$PATH"
-    #   fi
-    # fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
     if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/_travis/cfg ]; then
@@ -576,10 +573,10 @@ prepare_env_travis() {
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then
       export LINT_CHECK=0
-    elif [ "$PRJNAME" != "Odoo" ]; then
-      export LINT_CHECK=1
-    else
-      unset -v LINT_CHECK
+    # elif [ "$PRJNAME" != "Odoo" ]; then
+    #   export LINT_CHECK=1
+    # else
+    #   unset -v LINT_CHECK
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
       export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
@@ -1034,7 +1031,8 @@ robocopy() {
 clean_dirs() {
 # clean_dirs (directory)::
 # return:
-    local cmd excl f o p XXXX x
+    local cmd d excl f o p XXXX x
+    [ -n "$1" ] && d=$1 || d="."
     if [ ${opt_verbose:-0} -gt 0 ]; then
       p="-print "
     else
@@ -1051,7 +1049,7 @@ clean_dirs() {
     fi
     excl="(.git|lib|git|__to_remove|.local|.npm|tmp|.gem|node_modules|.cache$excl)"
     cmd="find"
-    for f in $1/*; do
+    for f in $d/*; do
       if [ -d $f ]; then
         if [ -n "$excl" ]; then
           if [[ ! $f =~ $excl ]]; then

@@ -1085,7 +1085,7 @@ fi
 sts=$STS_SUCCESS
 # init_travis
 prepare_env_travis "$action"
-check_4_travis
+# check_4_travis
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then
     process_local
@@ -1093,7 +1093,6 @@ if [ $sts -eq $STS_SUCCESS ]; then
   else
     [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
     mkdir -p $opt_logdir
-    # please wep -q &
     clean_dirs "$PRJPATH"
     [ "$PKGNAME" != "OCB" ] && set_executable
     if [ $opt_debug -ne 0 ]; then
