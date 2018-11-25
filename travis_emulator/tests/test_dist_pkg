@@ -159,9 +159,6 @@ if [ $sts -ne 127 ]; then
 fi
 
 
-
-
-
 UT1_LIST=""
 UT_LIST=""
 Z0BUG_setup

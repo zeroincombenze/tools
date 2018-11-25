@@ -91,7 +91,7 @@ def get_extra_params(odoo_version):
     for beta_msg in beta_msgs:
         extra_params.extend(['--msgs-no-count', beta_msg,
                              '--extra-params', '--enable=%s' % beta_msg])
-    # [antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check 
+    # [antoniov: 2018-09-12] Based on LINT_CHECK_LEVEL, disable some check
     for level_msg in level_msgs:
         extra_params.extend(['--msgs-no-count', level_msg,
                              '--extra-params', '--disable=%s' % level_msg])

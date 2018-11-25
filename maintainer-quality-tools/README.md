@@ -21,8 +21,8 @@ Note you can execute OCA MQT if you prefer, setting follow statement in .travis.
     export MQT_TEST_MODE=oca
 
 
-Sample travis configuration file (for version 7.0)
---------------------------------------------------
+Sample travis configuration file
+--------------------------------
 
 In order to setup TravisCI continuous integration for your project, just copy the
 content of the [`/sample_files`](https://github.com/zeroincombenze/tools/tree/master/maintainer-quality-tools/sample_files)
@@ -72,6 +72,7 @@ You can use the custom branch into the ODOO_REPO using the environment variable 
 ```
   ODOO_REPO="odoo/odoo" ODOO_BRANCH="saas-17"
 ```
+
 
 Module unit tests
 -----------------
@@ -252,6 +253,31 @@ If you want to make a build without tests, you can use the following directive:
 
 You will simply get the databases with packages installed, 
 but without running any tests.
+
+
+Other configurations
+--------------------
+
+You can higly customize you test: look at below table.
+
+ variable               | default value | meaning
+------------------------|---------------|--------------------------------------------------------------
+ DATA_DIR               | ~/data_dir    | Odoo data directory (data_dir in config file)
+ EXCLUDE                |               | Modules to exclude from test
+ INCLUDE                |               | Modules to test (all, if empry)
+ INSTALL_OPTIONS        |               | Options passed to odoo-bin/openerp-server to install modules
+ MQT_TEMPLATE_DB        |               | Read above
+ MQT_TEST_DB            |               | Read above
+ ODOO_REPO              | odoo/odoo     | OCB repository against test repository
+ ODOO_TEST_SELECT       | ALL           | Read above
+ ODOO_TNLBOT            | 0             | No yet documented
+ OPTIONS                |               | Options passed to odoo-bin/openerp-server to execute tests
+ SERVER_EXPECTED_ERRORS |               | # of expected errors after tests
+ TRAVIS_DEBUG_MODE      | 0             | Read above
+ UNBUFFER               | True          | Use unbuffer (colors) to log results
+ UNIT_TEST              |               | Read above
+ TEST                   |               | Read above
+ VERSION                |               | Odoo version to test (see above)
 
 
 MQT debug informations
