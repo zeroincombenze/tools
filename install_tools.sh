@@ -26,8 +26,7 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
   echo "Invalid environment"
   exit 1
 fi
-# for pkg in travis_emulator clodoo zar z0lib zerobug wok_code lisa tools; do
-for pkg in lisa; do
+for pkg in travis_emulator clodoo zar z0lib zerobug wok_code lisa tools; do
   l="RFLIST__$pkg"
   flist=${!l}
   [[ ! $1 =~ -.*q ]] && echo "[$pkg=$flist]"

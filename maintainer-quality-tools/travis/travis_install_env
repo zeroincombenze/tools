@@ -280,7 +280,7 @@ if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
 fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
-  run_n_echo "$HOME/tools/install_tools.sh -p"
+  run_n_echo "$HOME/tools/install_tools.sh -qp"
   if [ -d $HOME/dev ]; then
     run_n_echo "export PATH=$HOME/dev:$PATH"
     [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
