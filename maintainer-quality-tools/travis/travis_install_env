@@ -46,7 +46,7 @@ run_n_echo() {
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
-      if [ "${1:0:1}" != "#" ]; then
+      if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" ||  "$TRAVIS" == "true" ) ]]; then
         eval "$xcmd"
         sts=$?
       fi
@@ -236,48 +236,31 @@ if [ $opt_verbose -gt 0 ]; then
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ OPTS=$OPTS${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
 fi
-[[ "$TRAVIS" == "true" ]] && run_n_echo "$PIP install -q pip --upgrade"
+run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
 echo -e "${TRAVIS_HDR3_COLOR}### Build Secure Environment${TRAVIS_TEXT_COLOR}"
 for p in build-essential libssl-dev libffi-dev python-dev; do
-  if [[ "$TRAVIS" == "true" ]]; then
-    eval $LISA status -q $p
-    if [ $? -ne 0 ]; then
-      run_n_echo "$LISA install $p"
-    fi
-  else
-    echo "> $LISA install $p"
+  eval $LISA status -q $p
+  if [ $? -ne 0 ]; then
+    run_n_echo "$LISA install $p" "nolocal"
   fi
 done
 for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
-  if [[ "$TRAVIS" == "true" ]]; then
-    eval $LISA status -q $p
-    if [ $? -ne 0 ]; then
-      run_n_echo "$PIP install $p --upgrade"
-    fi
+  eval $LISA status -q $p &>/dev/null
+  if [ $? -ne 0 ]; then
+    run_n_echo "$PIP install $p" "nolocal"
   else
-    echo "> $LISA install $p --upgrade"
+    run_n_echo "$PIP install $p --upgrade" "nolocal"
   fi
 done
 # Secure environment OK
 echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
 for p in os0 z0lib; do
-  if [[ "$TRAVIS" == "true" ]]; then
-    eval $LISA status -q $p
-    if [ $? -ne 0 ]; then
-      run_n_echo "$PIP install $p $PIP_OPTS"
-    fi
-  else
-    echo "> $PIP install $p $PIP_OPTS"
+  eval $LISA status -q $p
+  if [ $? -ne 0 ]; then
+    run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
   fi
 done
-if [ "$TRAVIS" == "true" -a "$MQT_TEST_MODE" != "tools" ]; then
-  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
-  export PYTHONPATH=$HOME/dev
-#   # workaround for TravisCI
-#   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
-#   run_n_echo "cp $HOME/tools/z0lib/z0lib.py $HOME/tools/clodoo/"
-fi
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
   run_n_echo "$HOME/tools/install_tools.sh -qp"
@@ -291,13 +274,11 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     for p in clodoo configparser codecov coveralls flake8 oerplib odoorpc pylint unittest2 zerobug; do
-      if [[ "$TRAVIS" == "true" ]]; then
-        eval $LISA status -q $f
-        if [ $? -ne 0 ]; then
-          run_n_echo "$PIP install $p $PIP_OPTS"
-        fi
+      eval $LISA status -q $f &>/dev/null
+      if [ $? -ne 0 ]; then
+        run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
       else
-        echo "> $PIP install $p $PIP_OPTS"
+        run_n_echo "$PIP install $p --upgrade" "nolocal"
       fi
     done
   fi
@@ -313,6 +294,8 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
 elif [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
   run_n_echo "$TDIR/travis_install_nightly"
 else
+  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
+  export PYTHONPATH=$HOME/dev
   [ -z "${VERSION}" ] && VERSION="$opt_branch"
   [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
   : ${MQT_TEMPLATE_DB:="openerp_template"}
@@ -332,11 +315,9 @@ else
   fi
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Build Test Environment${TRAVIS_TEXT_COLOR}"
-    if [[ "$TRAVIS" == "true" ]]; then
-      # run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
-      # run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
-      run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS"   # To use last version ever
-    fi
+    # run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
+    # run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
+    run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
     run_n_echo "npm install eslint"
   fi
   if [ "${TESTS}" == "1" ]; then
