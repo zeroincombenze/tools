@@ -255,7 +255,7 @@ for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
 done
 # Secure environment OK
 echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
-for p in os0 z0lib; do
+for p in os0 configparser z0lib; do
   eval $LISA status -q $p
   if [ $? -ne 0 ]; then
     run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
