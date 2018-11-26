@@ -176,6 +176,24 @@ LINT_OR_TEST_CHECK="0"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
+if [ ${opt_humdrum:-0} -eq 0 ]; then
+  TRAVIS_TEXT_COLOR="\e[0;97;40m"
+  TRAVIS_HDR1_COLOR="\e[30;42m"
+  TRAVIS_HDR2_COLOR="\e[30;46m"
+  TRAVIS_HDR3_COLOR="\e[30;106m"
+  TRAVIS_NOP_COLOR="\e[35;40m"
+else
+  TRAVIS_TEXT_COLOR=
+  TRAVIS_HDR1_COLOR=
+  TRAVIS_HDR2_COLOR=
+  TRAVIS_HDR3_COLOR=
+  TRAVIS_NOP_COLOR=
+fi
+if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
+  run_n_echo "$TDIR/travis_install_nightly"
+  exit 0
+fi
+
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
@@ -193,48 +211,60 @@ if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -z "$PIP" -a -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
   [ -z "$PIP" ] && PIP=pip
 fi
-if [ "$MQT_TEST_MODE" == "tools" ]; then
-  [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
-  [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
-elif [ -n "$YML_mgrodoo" ]; then
-  MGRODOO=$YML_mgrodoo
-  LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
+if [ -d $HOME/dev ]; then
+  [ $opt_verbose -gt 0 ] && echo "\$ cd $HOME/tools"
+  cd $HOME/tools
+  run_n_echo "./install_tools.sh -qp"
+  run_n_echo "export PATH=$HOME/dev:$PATH"
+  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
+  export PYTHONPATH=$HOME/dev
 else
-  [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
-  [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+  echo "!! Directory $HOME/dev not found!"
 fi
-if [ "$MQT_TEST_MODE" == "tools" ]; then
-  LISA=$TRAVIS_BUILD_DIR/lisa/lisa
-elif [ -n "$YML_lisa" ]; then
-  LISA=$YML_lisa
-else
-  LISA=$HOME/tools/lisa/lisa
-  [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
-  [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
+MGRODOO=$(which manage_odoo 2>/dev/null)
+if [[ -z "$MGRODOO" ]]; then
+  if [ "$MQT_TEST_MODE" == "tools" ]; then
+    [ -f $TRAVIS_BUILD_DIR/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $TRAVIS_BUILD_DIR/clodoo/manage_odoo) || MGRODOO=manage_odoo
+  elif [ -n "$YML_mgrodoo" ]; then
+    MGRODOO=$YML_mgrodoo
+  else
+    [ -f $HOME/tools/clodoo/manage_odoo ] && MGRODOO=$(readlink -e $HOME/tools/clodoo/manage_odoo) || MGRODOO=manage_odoo
+  fi
 fi
-if [ ${opt_humdrum:-0} -eq 0 ]; then
-  TRAVIS_TEXT_COLOR="\e[0;97;40m"
-  TRAVIS_HDR1_COLOR="\e[30;42m"
-  TRAVIS_HDR2_COLOR="\e[30;46m"
-  TRAVIS_HDR3_COLOR="\e[30;106m"
-  TRAVIS_NOP_COLOR="\e[35;40m"
-else
-  TRAVIS_TEXT_COLOR=
-  TRAVIS_HDR1_COLOR=
-  TRAVIS_HDR2_COLOR=
-  TRAVIS_HDR3_COLOR=
-  TRAVIS_NOP_COLOR=
+LISTREQ=$(which list_requirements.py 2>/dev/null)
+if [[ -z "$LISTREQ" ]]; then
+  if [ "$MQT_TEST_MODE" == "tools" ]; then
+    [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+  elif [ -n "$YML_mgrodoo" ]; then
+    LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
+  else
+    [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+  fi
+fi
+LISA=$(which lisa 2>/dev/null)
+if [[ -z "$LISA" ]]; then
+  if [ "$MQT_TEST_MODE" == "tools" ]; then
+    LISA=$TRAVIS_BUILD_DIR/lisa/lisa
+  elif [ -n "$YML_lisa" ]; then
+    LISA=$YML_lisa
+  else
+    LISA=$HOME/tools/lisa/lisa
+    [ -f $TDIR/../../lisa/lisa ] && LISA=$(readlink -e $TDIR/../../lisa/lisa)
+    [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
+  fi
 fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PATH=$PATH${TRAVIS_HDR3_COLOR}"
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ OPTS=$OPTS${TRAVIS_HDR3_COLOR}"
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ PYTHONPATH=$PYTHONPATH${TRAVIS_HDR3_COLOR}"
 fi
 run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
@@ -263,14 +293,6 @@ for p in os0 configparser z0lib; do
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
-  run_n_echo "$HOME/tools/install_tools.sh -qp"
-  if [ -d $HOME/dev ]; then
-    run_n_echo "export PATH=$HOME/dev:$PATH"
-    [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
-    export PYTHONPATH=$HOME/dev
-  else
-    echo "!! Directory $HOME/dev not found!"
-  fi
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     for p in clodoo configparser codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
@@ -291,8 +313,6 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
     ls -l ${HOME}/dev
   fi
   exit $sts
-elif [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
-  run_n_echo "$TDIR/travis_install_nightly"
 else
   [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
   export PYTHONPATH=$HOME/dev
