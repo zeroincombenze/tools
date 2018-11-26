@@ -174,6 +174,7 @@ process_yaml_init() {
     fi
     TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
     ODOO_TNLBOT="${opt_tnl:-0}"
+    SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
     LINT_CHECK_LEVEL="${opt_llvl^^}"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
@@ -301,6 +302,7 @@ process_yaml_0() {
 }
 
 process_yaml_1() {
+    local val
     if [ -n "$lne" ]; then
       IFS=- read a b <<<"$lne"
       if [ -n "$a" ]; then
@@ -309,10 +311,9 @@ process_yaml_1() {
           YML_sect1=$a
           YML_sect="$YML_sect0.$YML_sect1"
         else
-          if [ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ]; then
-            if [[ "$b" =~ "true" && ${opt_keepE:-0} == 0 ]]; then
-              TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
-            fi
+          if [[ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ]]; then
+            [[ -z "$SYSTEM_SITE_PACKAGES" ]] && SYSTEM_SITE_PACKAGES="$b"
+            [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
           else
             YML_sect1=
             YML_sect="$YML_sect0"
@@ -947,16 +948,16 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     V           v           W        X       Y)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r opt_version opt_verbose opt_virt opt_tnl opt_fyaml)
-OPTACTI=(1        1         0         "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "*>"        "+"         0        "="     "=")
-OPTDEFL=(0        0         1         ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""          -1          1        ""      ".travis.yml")
-OPTMETA=("help"   "version" "version" "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "version"   "verbose"   ""       "0|1"   "file")
+OPTOPTS=(h        B         C          c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml)
+OPTACTI=(1        1         0          "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "=")
+OPTDEFL=(0        0         1          ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml")
+OPTMETA=("help"   "version" ""         "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
- "do not use cached PYPI"\
+ "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
- "travis_debug_mode: may be 0,1,2; w/o value from .travis.yml"\
+ "travis_debug_mode: may be 0,1,2 (w/o yaml dependents)"\
  "save virtual environment as ~/VME/VME{version}"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
@@ -970,10 +971,11 @@ OPTHELP=("this help"\
  "prefer python test over bash test when avaiable"\
  "silent mode"\
  "run restricted mode (w/o parsing travis.yml file)"\
+ "use PIP system packages (w/o yaml dependents)"\
  "show version"\
  "verbose mode"\
  "do not use virtualenv to run tests"\
- "enable translation test"\
+ "enable translation test (w/o yaml dependents)"\
  "file yaml to process (def .travis.yml)")
 OPTARGS=(action sub)
 

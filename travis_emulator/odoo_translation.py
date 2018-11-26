@@ -15,7 +15,10 @@ try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
-from clodoo import clodoo
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
 
 
 __version__ = "0.2.2"

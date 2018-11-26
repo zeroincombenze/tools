@@ -46,7 +46,7 @@ run_n_echo() {
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
-      if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" ||  "$TRAVIS" == "true" ) ]]; then
+      if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
         eval "$xcmd"
         sts=$?
       fi
@@ -179,7 +179,7 @@ MQT_TEST_MODE=${MQT_TEST_MODE,,}
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
-if [ "$TRAVIS" != "true" ]; then
+if [[ ! $TRAVIS =~ (true|emulate) ]]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
@@ -326,7 +326,7 @@ else
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
     [ $opt_verbose -gt 0 ] && node --version
-    if [[ "$TRAVIS" == "true" ]]; then
+    if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
       [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
@@ -358,7 +358,7 @@ else
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Tested repository is OCB${TRAVIS_TEXT_COLOR}"
-    if [[ "$TRAVIS" == "true" ]]; then
+    if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     elif [ ! -L ${ODOO_PATH} ]; then
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
@@ -392,7 +392,7 @@ else
       run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
-    if [[ "$TRAVIS" == "true" ]]; then
+    if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
         reqs="$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"

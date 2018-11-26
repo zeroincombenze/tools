@@ -402,18 +402,22 @@ custom_env() {
     grep -q "^export HOME=" $PWD/bin/activate
     if [ $? -ne 0 ]; then
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
-      [ -n "$2" ] && echo "[ -L ./bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+      [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -L ./bin/pip -a ! -f \$VIRTUAL_ENV/bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
       # echo "export PYTHONPATH=\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       # echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
-      echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
+      [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
       sed -i -e "s:^#.*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
     else
       sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
       sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
     fi
     sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
-    echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+    if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
+      echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+    else
+      echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+    fi
 }
 
 emulate_git_clone_OCB() {
@@ -446,6 +450,8 @@ create_virtual_env() {
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
     if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
       export TRAVIS=true
+    elif [[ "$SYSTEM_SITE_PACKAGES" != "true" ]]; then
+      export TRAVIS=emulate
     else
       export TRAVIS=false
     fi
@@ -467,6 +473,7 @@ create_virtual_env() {
       sts=$?
       [ $sts -ne 0 ] && return
       if [ ${opt_cache:-0} -ne 0 -a -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
+        echo "# .. loading stored packages ..."
         for d in bin include lib lib64 .local; do
           if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
             [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
@@ -505,7 +512,7 @@ drop_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then
       deactivate
     fi
-    if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 ]; then
+    if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 -a "$SYSTEM_SITE_PACKAGES" != "true" ]; then
       [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ] && rm -fR $TRAVIS_SAVED_HOME/VME/VME${VERSION}
       mkdir -p $TRAVIS_SAVED_HOME/VME/VME${VERSION}
       for d in bin include lib lib64 .local; do
@@ -704,7 +711,8 @@ conf_default() {
       set_cfg_def "upgrade_dow" "4"
     fi
     set_cfg_def "Environment" "bash"
-    set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
+    # set_cfg_def "virtualenv_opts" "--no-pip --no-setuptools --no-wheel"
+    set_cfg_def "virtualenv_opts" ""
     set_cfg_def "NPM_CONFIG_PREFIX" "$HOME/.npm-global"
     set_cfg_def "filedel" ".log .bak .out .tmp .tracehis .tracehistory ,cover .coverage .cover/ .coverage/ ~ test*.pdf tmp tmp.* npm-debug.log.*"
     set_cfg_def "fileignore" ".pyc .conf build/ dist/ conf/ filestore/ .git/ docs/ html/ latex/ .gz __old_* .gitrepname"
@@ -1603,27 +1611,6 @@ run_unvirt() {
     fi
     return $?
 }
-
-# run_svr_test_init() {
-#     local i
-#     local CMD
-#     coverage erase
-#     sts=0
-#     if [ "$PRJNAME" == "Odoo" ]; then
-#       run_svr_test_rm_ln init
-#       cp_n_upd_conf
-#      clone_dependencies
-#       sts=$?
-#       if [ "$PKGNAME" != "OCB" ]; then
-#         local x=$(readlink -e $PRJPATH/..)
-#       else
-#         local x=$(readlink -e $PRJPATH)
-#       fi
-#       run_unvirt "ln -s $x $HOME/${ODOO_REPO#*/}-$VERSION"
-#       run_unvirt "ln -s $PKGPATH $HOME/$PKGNAME-$VERSION"
-#     fi
-#     return $sts
-# }
 
 run_svr_test_exit() {
     if [ "$PRJNAME" == "Odoo" ]; then
