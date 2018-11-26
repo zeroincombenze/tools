@@ -402,7 +402,7 @@ custom_env() {
     grep -q "^export HOME=" $PWD/bin/activate
     if [ $? -ne 0 ]; then
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
-      [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -L ./bin/pip -a ! -f \$VIRTUAL_ENV/bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+      [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
       # echo "export PYTHONPATH=\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       # echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
@@ -436,6 +436,33 @@ emulate_git_clone_OCB() {
         fi
       fi
     done
+}
+
+git_clone() {
+# emulate git clone
+    local d x
+    while [[ -n "$1" && "${1:0:1}" == "-" ]]; do
+      shift
+    done
+    if [[ "$1" == "https://github.com/zeroincombenze/tools.git" ]]; then
+      if [[ -n "$2" ]]; then
+        d=$(readlink -m $2/..)
+      else
+        d="./"
+      fi
+      run_traced "cp -R $TRAVIS_SAVED_HOME/tools $d"
+      if [[ -n "$YML_lisa" ]]; then
+        x=$(dirname $YML_lisa)
+        run_traced "rsync -a $x/ $HOME/tools/lisa/"
+      fi
+      if [[ -n "$YML_mgrodoo" ]]; then
+        x=$(dirname $YML_mgrodoo)
+        run_traced "rsync -a $x/ $HOME/tools/clodoo/"
+      fi
+      if [ $opt_dbgmnt -ne 0 ]; then
+        run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
+      fi
+    fi
 }
 
 create_virtual_env() {

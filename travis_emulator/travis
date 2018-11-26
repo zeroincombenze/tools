@@ -165,12 +165,12 @@ process_yaml_init() {
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-    elif [ -f $HOME/tools/lisa/lisa ]; then
-      export YML_lisa=$HOME/tools/lisa/lisa
-      export YML_mgrodoo=$HOME/tools/clodoo/manage_odoo
-    else
-      export YML_lisa=lisa
-      export YML_mgrodoo=manage_odoo
+    # elif [ -f $HOME/tools/lisa/lisa ]; then
+    #   export YML_lisa=$HOME/tools/lisa/lisa
+    #   export YML_mgrodoo=$HOME/tools/clodoo/manage_odoo
+    # else
+    #   export YML_lisa=lisa
+    #   export YML_mgrodoo=manage_odoo
     fi
     TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
     ODOO_TNLBOT="${opt_tnl:-0}"
@@ -652,7 +652,8 @@ process_yaml_run_cmd() {
       tk=${x[$ix]}
       while [ "${tk:0:1}" == "-" ]; do ((ix++)); tk=${x[$ix]}; done
       if [ "$TRAVIS" != "true" -a "${x[$ix]}" == "https://github.com/zeroincombenze/tools.git" ]; then
-        xcmd="ln -s $TRAVIS_SAVED_HOME/tools $HOME"
+        # xcmd="cp -R $TRAVIS_SAVED_HOME/tools $HOME"
+        xcmd="$(echo $xcmd|sed -e 's/git clone/git_clone/g')"
       elif [ "${x[$ix]}" == "https://github.com/OCA/maintainer-quality-tools.git" ]; then
         if [ ${opt_virt:-0} -eq 0 ]; then
           if [ -d $HOME/maintainer-quality-tools/ -a ! -L $HOME/maintainer-quality-tools/ ]; then
@@ -720,8 +721,9 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-      x=$(readlink -f $MQT_PATH/..)
-      xcmd="cp -R $x ${HOME}/"
+      # x=$(readlink -f $MQT_PATH/..)
+      # xcmd="cp -R $x ${HOME}/"
+      xcmd=${xcmd/cp/mv}
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
     elif [ ${opt_virt:-0} -eq 0 -a "${x[$ix]}" == "ln" -a "${x[$ix1]}" == "-s" -a "${x[$ix2]:0:16}" == "/opt/odoo/build/" ]; then
