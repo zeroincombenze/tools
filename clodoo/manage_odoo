@@ -160,7 +160,7 @@ do_action() {
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
           if [[ $HOSTNAME =~ shs[a-z0-9]+ && "$USER" == "odoo" && "$pyver" != "3"  ]]; then
-            echo -e "${TRAVIS_TEXT_COLOR}Check for $f{TRAVIS_HDR3_COLOR}"
+            echo -e "${TRAVIS_TEXT_COLOR}Check for $f${TRAVIS_HDR3_COLOR}"
           elif [ "$f" == "$pkg" ]; then
             eval $LISA status -q $pkg -d0 &>/dev/null
             [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
@@ -170,6 +170,7 @@ do_action() {
         preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR${TRAVIS_HDR3_COLOR}"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ preqs=$preqs${TRAVIS_HDR3_COLOR}"
+        retsts=0
         for pass in 1 2 3; do
           [ $pass -eq 1 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package status${TRAVIS_TEXT_COLOR}"
           [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
@@ -200,12 +201,14 @@ do_action() {
                     echo "> $cmd"
                   else
                     run_traced "$cmd"
+                    s=$?; [ ${s-0} -ne 0 ] && retsts=$s
                   fi
                 fi
               fi
             fi
           done
         done
+        [ $retsts != 0 ] && echo -e "${TRAVIS_TEXT_COLOR}Enviroment installation does not match requirements!!${TRAVIS_HDR3_COLOR}"
         echo -e "${TRAVIS_HDR3_COLOR}### Analyzing npm packages${TRAVIS_TEXT_COLOR}"
         x=$(npm list|grep " less@")
         [ -z "$x" ] && x=$(npm list -g|grep " less@")

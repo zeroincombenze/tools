@@ -273,7 +273,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   fi
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
-    for p in clodoo configparser codecov coveralls flake8 oerplib odoorpc pylint unittest2 zerobug; do
+    for p in clodoo configparser codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
       eval $LISA status -q $f &>/dev/null
       if [ $? -ne 0 ]; then
         run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
