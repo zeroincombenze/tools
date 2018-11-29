@@ -399,18 +399,20 @@ custom_env() {
 # custom_env(VENV pyver)
     cd $1
     sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
-    grep -q "^export HOME=" $PWD/bin/activate
-    if [ $? -ne 0 ]; then
+    if $(grep -q "^export HOME=" $PWD/bin/activate); then
+      sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
+      sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
+    else
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
-      [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] || ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+      [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
       # echo "export PYTHONPATH=\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       # echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
-      sed -i -e "s:^#.*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
-    else
-      sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
-      sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
+      sed -i -e "s:^#\!*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
+    fi
+    if $(grep -qv \"-f.\\\$VIRTUAL_ENV/bin/pip.*sed\" $PWD/bin/activate); then
+      echo "[ -f $VIRTUAL_ENV/bin/pip ] && sed -i -e \"s|#\!.*python2.7|#\!\$VIRTUAL_ENV/bin/python2.7|\" \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
     fi
     sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
     if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
