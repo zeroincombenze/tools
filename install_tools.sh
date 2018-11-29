@@ -49,7 +49,7 @@ for pkg in travis_emulator clodoo zar z0lib zerobug wok_code lisa tools; do
     fi
   done
 done
-for fn in odoo_install_repository run_odoo_debug; do
+for fn in addsubm.sh run_odoo_debug.sh; do
   tgt="$DSTPATH/$fn"
   if [ -L "$tgt"  -o -f "$tgt" ]; then
     [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"

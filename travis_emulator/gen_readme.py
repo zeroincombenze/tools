@@ -11,7 +11,10 @@ import sys
 from datetime import datetime
 from lxml import etree
 from os0 import os0
-from z0lib import z0lib
+try:
+    from z0lib import z0lib
+except ImportError:
+    import z0lib
 from clodoo import build_odoo_param
 # import pdb
 

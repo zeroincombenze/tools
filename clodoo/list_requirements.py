@@ -6,7 +6,10 @@ import ast
 import sys
 import os
 import re
-import z0lib
+try:
+    from z0lib import z0lib
+except ImportError:
+    import z0lib
 
 
 __version__ = '0.3.8'
