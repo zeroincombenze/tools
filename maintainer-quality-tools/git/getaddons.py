@@ -53,7 +53,10 @@ def get_modules_info(path, depth=1):
         for module in os.listdir(path):
             manifest_path = is_module(os.path.join(path, module))
             if manifest_path:
-                manifest = ast.literal_eval(open(manifest_path).read())
+                try:
+                    manifest = ast.literal_eval(open(manifest_path).read())
+                except ImportError:
+                    raise Exception('Wrong file %s' % manifest_path)
                 if manifest.get('installable', True):
                     modules[module] = {
                         'application': manifest.get('application'),

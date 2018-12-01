@@ -15,7 +15,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.2.1"
 
 
 def format_line(col_size, row, sep=None, flist=None):
@@ -40,6 +40,7 @@ def format_line(col_size, row, sep=None, flist=None):
 
 
 def convert_text(src_string):
+    max_col_width = int(ctx['max_col_width'])
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
@@ -61,7 +62,8 @@ def convert_text(src_string):
             hdr_read = True
             continue
         for p in csv_obj.fieldnames:
-            col_size[p] = max(col_size[p], min(len(os0.u(row[p])), 40))
+            col_size[p] = max(col_size[p], min(len(os0.u(row[p])),
+                                               max_col_width))
     csv_fd.close()
     csv_fd = StringIO.StringIO(src_string)
     hdr_read = False
@@ -112,16 +114,10 @@ if __name__ == "__main__":
     parser.add_argument('-b', '--odoo-branch',
                         action='store',
                         dest='odoo_ver')
-    parser.add_argument('-i', '--id-prefix',
+    parser.add_argument('-m', '--max-col-width',
                         action='store',
-                        dest='id_prefix')
-    parser.add_argument('-j', '--id-mode',
-                        action='store',
-                        help='ctr,code',
-                        dest='id_mode')
-    parser.add_argument('-m', '--model',
-                        action='store',
-                        dest='odoo_model')
+                        dest='max_col_width',
+                        default="250")
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-V')

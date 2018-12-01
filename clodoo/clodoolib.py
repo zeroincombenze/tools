@@ -159,7 +159,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8"
+__version__ = "0.3.8.1"
 
 
 #############################################################################
@@ -720,8 +720,8 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         vid = ''
         while not vid and cwd:
             # if not PKGPATH and (
-            #         os.path.isfile(os.join(cwd, '__manifest__.py')) or
-            #         os.path.isfile(os.join(cwd, '__openerp__.py'))):
+            #         os.path.isfile(os.path.join(cwd, '__manifest__.py')) or
+            #         os.path.isfile(os.path.join(cwd, '__openerp__.py'))):
             #     PKGPATH = cwd
             #     PKGNAME = os.path.basename(PKGPATH)
             rep = os.path.basename(cwd)
@@ -734,7 +734,7 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
                 #     REPOS = 'OCB'
             # ldir = cwd
             if cwd != '/':
-                os.path.abspath(os.join(cwd, '..'))
+                cwd = os.path.abspath(os.path.join(cwd, '..'))
             else:
                 cwd = ''
     if odoo_vid:

@@ -1,4 +1,5 @@
 status	msgid	msgstr
+	* Be sure that an Outgoing Email Server is correctly configured;	* Verifica che il server di posta per invio sia correttamente configurato;
 	# of Digits	# di cifre
 	# of Items	# di voci
 	Account	Conto
@@ -76,10 +77,14 @@ status	msgid	msgstr
 	Financial Reports	Rendiconti finanziari
 	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
+	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
 	Graph	Quadri
 	Help	Aiuto
 	Income Account 	Conto di ricavo
 	Income Statement	Conto Economico
+	Incoming Email Servers	Server posta in arrivo
+	Incoming Mail Server	Server posta in arrivo
+	Incoming Mail Servers	Server posta in arrivo
 	Initial Balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
 	Inventory	Magazzino
@@ -91,7 +96,7 @@ status	msgid	msgstr
 	Invoice Type	Tipo Fattura
 	Invoicing	Contabilità
 	Invoicing Policy 	Procedimento di fatturazione
-	IPA Code	Codice IPA
+	IPA Code	Codice ufficio
 	Journal	Registro
 	Journal Entries	Registrazioni contabili
 	Journal Entry	Registrazione contabile
@@ -114,6 +119,10 @@ status	msgid	msgstr
 	Master Data	Dati principali
 	Miscellaneous Journal	Sezionale generico
 	Notes	Note
+	Outgoing Email Servers	Server posta invio
+	Outgoing Mail Server	Server posta invio
+	Outgoing Mail Server	Server posta invio
+	Outgoing Mails	Posta inviata
 	Overdue Payments	Ritardo pagamenti
 	PA partner reference	Riferimento amministrazione PA
 	Package	Collo
@@ -166,6 +175,7 @@ status	msgid	msgstr
 	Sales	Vendite
 	Sales Journal	Registro vendite
 	Salesperson	Commerciale
+	Search Incoming Mail Servers	Cerca server posta in arrivo
 	Self Invoice Partner	Soggetto auto-fattura
 	Set	Imposta
 	Set to draft	Bozza non definitiva
@@ -182,6 +192,7 @@ status	msgid	msgstr
 	Tax Regime	Regime fiscale
 	Taxes	IVA
 	Template	Modello
+	Test Connection	Prova connessione
 	The parent company	L'azienda controllante
 	Thumbnail	Miniatura
 	Timesheet	Foglio ore

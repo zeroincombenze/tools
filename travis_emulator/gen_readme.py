@@ -15,11 +15,14 @@ try:
     from z0lib import z0lib
 except ImportError:
     import z0lib
-from clodoo import build_odoo_param
+try:
+    from clodoo.clodoo import build_odoo_param
+except ImportError:
+    from clodoo import build_odoo_param
 # import pdb
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.2.1"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -803,7 +806,10 @@ def read_manifest(ctx):
             manifest_file = ''
             print('Warning: manifest file not found')
     if manifest_file:
-        ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
+        try:
+            ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
+        except ImportError:
+            raise Exception('Wrong file %s' % manifest_file)
         ctx['manifest'] = {
             os0.u(k): os0.u(v) for k, v in ctx['manifest'].items()}
         ctx['manifest_file'] = manifest_file
@@ -871,7 +877,10 @@ def read_all_manifests(ctx):
                 continue
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
-                oca_manifest = ast.literal_eval(open(full_fn).read())
+                try:
+                    oca_manifest = ast.literal_eval(open(full_fn).read())
+                except ImportError:
+                    raise Exception('Wrong file %s' % full_fn)
                 oca_manifest = {
                     os0.u(k): os0.u(v) for k, v in oca_manifest.items()}
                 oca_version = adj_version(ctx, oca_manifest.get('version', ''))

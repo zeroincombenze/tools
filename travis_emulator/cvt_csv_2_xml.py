@@ -15,7 +15,7 @@ except ImportError:
 
 
 
-__version__ = "0.2.2"
+__version__ = "0.2.2.1"
 
 
 def convert_file(ctx):

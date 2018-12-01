@@ -56,3 +56,8 @@ for fn in addsubm.sh run_odoo_debug.sh; do
     rm -f $tgt
   fi
 done
+export PYTHONPATH=$DSTPATH:$SRCPATH
+[ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
+echo "Please add followinf statements in your login file"
+echo "export PYTHONPATH=$DSTPATH:$SRCPATH"
+echo "export PATH=$DSTPATH:\$PATH"
