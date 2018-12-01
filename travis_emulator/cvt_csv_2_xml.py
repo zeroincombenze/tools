@@ -7,6 +7,7 @@ from __future__ import print_function
 import os
 import sys
 import csv
+from os0 import os0
 try:
     from z0lib import z0lib
 except ImportError:
@@ -64,9 +65,13 @@ def convert_file(ctx):
             target += '</odoo>\n'
         else:
             target += '</data>\n</openerp>\n'
-        target_fn = ctx['src_file'][0: -4] + '.xml'
-        with open(target_fn, 'w') as fd:
-            fd.write(target)
+        if not ctx['dst_file']:
+            ctx['dst_file'] = ctx['src_file'][0: -4] + '.xml'
+        if ctx['dst_file'] == '/dev/tty':
+            print(target)
+        else:
+            with open(ctx['dst_file'], 'w') as fd:
+                fd.write(os0.b(target))
 
 
 if __name__ == "__main__":

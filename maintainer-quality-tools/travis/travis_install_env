@@ -174,7 +174,7 @@ LINT_OR_TEST_CHECK="0"
 [ "${LINT_CHECK:-0}" == "0" -a "${TESTS:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
-[[ ! " oca oia zero " =~ " $MQT_TEST_MODE " ]] && MQT_TEST_MODE=zero
+[[ ! $MQT_TEST_MODE =~ (oca|oia|zero) ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
 if [ ${opt_humdrum:-0} -eq 0 ]; then
   TRAVIS_TEXT_COLOR="\e[0;97;40m"
@@ -191,7 +191,7 @@ else
 fi
 if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
   run_n_echo "$TDIR/travis_install_nightly"
-  exit 0
+  exit $?
 fi
 
 export MQT_TEST_MODE=$mode
@@ -260,7 +260,7 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V)${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PATH=$PATH${TRAVIS_HDR3_COLOR}"

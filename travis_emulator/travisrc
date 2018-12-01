@@ -400,20 +400,21 @@ custom_env() {
     cd $1
     sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
     if $(grep -q "^export HOME=" $PWD/bin/activate); then
-      sed -i -e 's:^export HOME=.*:export HOME="\$VIRTUAL_ENV":g' $PWD/bin/activate
-      sed -i -e "s:^#.*/bin/python:#\!$PWD/bin/python:g" $PWD/bin/python-config
+      sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
+      sed -i -e "s|^#.*/bin/python|#\!$PWD/bin/python|g" $PWD/bin/python-config
     else
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
       [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+      echo "for f in \$VIRTUAL_ENV/bin/*;do">>$PWD/bin/activate
+      echo "    [ -x \$f ] && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f">>$PWD/bin/activate
+      echo "done">>$PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
-      # echo "export PYTHONPATH=\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
-      # echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools:\$VIRTUAL_ENV/.local/lib/python$2/site-packages:/usr/lib/python$2/site-packages">>$PWD/bin/activate
       [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
       sed -i -e "s:^#\!*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
     fi
-    if $(grep -qv \"-f.\\\$VIRTUAL_ENV/bin/pip.*sed\" $PWD/bin/activate); then
-      echo "[ -f $VIRTUAL_ENV/bin/pip ] && sed -i -e \"s|#\!.*python2.7|#\!\$VIRTUAL_ENV/bin/python2.7|\" \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
-    fi
+    # if $(grep -qv \"-f...VIRTUAL_ENV/bin/pip.*sed\" $PWD/bin/activate); then
+    #   echo "[ -f $VIRTUAL_ENV/bin/pip ] && sed -i -e \"s|#\!.*python2.7|#\!\$VIRTUAL_ENV/bin/python2.7|\" \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+    # fi
     sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
     if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
       echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
@@ -502,7 +503,7 @@ create_virtual_env() {
       sts=$?
       [ $sts -ne 0 ] && return
       if [ ${opt_cache:-0} -ne 0 -a -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
-        echo "# .. loading stored packages ..."
+        echo "# .. loading stored packages from VME${VERSION} ..."
         for d in bin include lib lib64 .local; do
           if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
             [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d

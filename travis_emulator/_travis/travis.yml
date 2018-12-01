@@ -35,6 +35,7 @@ addons:
 
 before_install:
   - export TRAVIS_DEBUG_MODE="1"
+  - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
   # Tools are used to test themselves packages
   - export PATH=$TOOLS_PATH:$MQT_PATH:$PATH
   # - export OPTS="-j"

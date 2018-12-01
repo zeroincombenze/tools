@@ -312,7 +312,7 @@ process_yaml_1() {
           YML_sect="$YML_sect0.$YML_sect1"
         else
           if [[ "${YML_sect0}__$a" == "virtualenv__system_site_packages" ]]; then
-            [[ -z "$SYSTEM_SITE_PACKAGES" ]] && SYSTEM_SITE_PACKAGES="$b"
+            [[ -z "$opt_syspkg" ]] && SYSTEM_SITE_PACKAGES=$(echo $b)
             [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
           else
             YML_sect1=
@@ -959,12 +959,12 @@ OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
- "travis_debug_mode: may be 0,1,2 (w/o yaml dependents)"\
+ "travis_debug_mode: may be 0,1,2 (def yaml dependents)"\
  "save virtual environment as ~/VME/VME{version}"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\
- "lint_check_level: may be minimal,reduced,average,nearby,oca; w/o value from .travis.yml"\
+ "lint_check_level: may be minimal,reduced,average,nearby,oca; def value from .travis.yml"\
  "log directory (def=~/travis_log)"\
  "use local MQT"\
  "show missing line in report coverage"\
@@ -972,12 +972,12 @@ OPTHELP=("this help"\
  "git organization, i.e. oca or zeroincombenze"\
  "prefer python test over bash test when avaiable"\
  "silent mode"\
- "run restricted mode (w/o parsing travis.yml file)"\
- "use PIP system packages (w/o yaml dependents)"\
+ "run restricted mode (def parsing travis.yml file)"\
+ "use python system packages (def yaml dependents)"\
  "show version"\
  "verbose mode"\
  "do not use virtualenv to run tests"\
- "enable translation test (w/o yaml dependents)"\
+ "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)")
 OPTARGS=(action sub)
 

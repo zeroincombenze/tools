@@ -338,7 +338,11 @@ def package_from_list(deps_list, kw, PKG_LIST,
 def package_from_manifest(deps_list, manifest_file,
                           with_version=None, odoo_ver=None):
     if manifest_file:
-        manifest = ast.literal_eval(open(manifest_file, 'rU').read())
+        try:
+            manifest = ast.literal_eval(open(manifest_file, 'rU').read())
+        except SyntaxError:
+            print("!!Invalid manifest file %s!" % manifest_file)
+            manifest = {}
         if manifest.get('external_dependencies'):
             deps = manifest['external_dependencies']
             for kw in ('python', 'bin'):

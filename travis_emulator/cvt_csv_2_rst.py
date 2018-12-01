@@ -6,6 +6,7 @@
 from __future__ import print_function
 import os
 import sys
+import StringIO
 import csv
 from os0 import os0
 try:
@@ -17,7 +18,7 @@ except ImportError:
 __version__ = "0.2.2"
 
 
-def format_line(ctx, col_size, row, sep=None, flist=None):
+def format_line(col_size, row, sep=None, flist=None):
     sep = sep or False
     flist = flist or row
     if sep:
@@ -38,57 +39,69 @@ def format_line(ctx, col_size, row, sep=None, flist=None):
     return line
 
 
+def convert_text(src_string):
+    csv.register_dialect('odoo',
+                         delimiter=',',
+                         quotechar='\"',
+                         quoting=csv.QUOTE_MINIMAL)
+    ctr = 0
+    col_size = {}
+    text = ''
+    csv_fd = StringIO.StringIO(src_string)
+    hdr_read = False
+    csv_obj = csv.DictReader(csv_fd,
+                             fieldnames=[],
+                             restkey='undef_name',
+                             dialect='odoo')
+    for row in csv_obj:
+        if not hdr_read:
+            csv_obj.fieldnames = row['undef_name']
+            for p in csv_obj.fieldnames:
+                col_size[p] = min(len(os0.u(p)), 16)
+            hdr_read = True
+            continue
+        for p in csv_obj.fieldnames:
+            col_size[p] = max(col_size[p], min(len(os0.u(row[p])), 40))
+    csv_fd.close()
+    csv_fd = StringIO.StringIO(src_string)
+    hdr_read = False
+    csv_obj = csv.DictReader(csv_fd,
+                             fieldnames=[],
+                             restkey='undef_name',
+                             dialect='odoo')
+    for row in csv_obj:
+        if not hdr_read:
+            csv_obj.fieldnames = row['undef_name']
+            hdr_read = True
+            text += format_line(col_size, row['undef_name'],
+                                sep=True)
+            text += format_line(col_size, row['undef_name'])
+            text += format_line(col_size, row['undef_name'],
+                                sep=True)
+            continue
+        ctr += 1
+        text += format_line(col_size, row,
+                            flist=csv_obj.fieldnames)
+        text += format_line(col_size, row, sep=True,
+                            flist=csv_obj.fieldnames)
+    csv_fd.close()
+    return text
+
+
 def convert_file(ctx):
     if os.path.isfile(ctx['src_file']):
         if ctx['opt_verbose']:
             print("Reading %s" % ctx['src_file'])
-        csv.register_dialect('odoo',
-                             delimiter=',',
-                             quotechar='\"',
-                             quoting=csv.QUOTE_MINIMAL)
-        ctr = 0
-        col_size = {}
-        text = ''
-        with open(ctx['src_file'], 'rb') as csv_fd:
-            hdr_read = False
-            csv_obj = csv.DictReader(csv_fd,
-                                     fieldnames=[],
-                                     restkey='undef_name',
-                                     dialect='odoo')
-            for row in csv_obj:
-                if not hdr_read:
-                    csv_obj.fieldnames = row['undef_name']
-                    for p in csv_obj.fieldnames:
-                        col_size[p] = min(len(os0.u(p)), 16)
-                    hdr_read = True
-                    continue
-                for p in csv_obj.fieldnames:
-                    col_size[p] = max(col_size[p], min(len(os0.u(row[p])), 40))
-        with open(ctx['src_file'], 'rb') as csv_fd:
-            hdr_read = False
-            csv_obj = csv.DictReader(csv_fd,
-                                     fieldnames=[],
-                                     restkey='undef_name',
-                                     dialect='odoo')
-            import pdb
-            pdb.set_trace()
-            for row in csv_obj:
-                if not hdr_read:
-                    csv_obj.fieldnames = row['undef_name']
-                    hdr_read = True
-                    text += format_line(ctx, col_size, row['undef_name'],
-                                        sep=True)
-                    text += format_line(ctx, col_size, row['undef_name'])
-                    text += format_line(ctx, col_size, row['undef_name'],
-                                        sep=True)
-                    continue
-                ctr += 1
-                text += format_line(ctx, col_size, row,
-                                    flist=csv_obj.fieldnames)
-                text += format_line(ctx, col_size, row, sep=True,
-                                    flist=csv_obj.fieldnames)
-        with open(ctx['dst_file'], 'w') as fd:
-            fd.write(os0.b(text))
+        with open(ctx['src_file'], 'rb') as fd:
+            src_string = fd.read()
+            target = convert_text(src_string)
+        if not ctx['dst_file']:
+            ctx['dst_file'] = ctx['src_file'][0: -4] + '.rst'
+        if ctx['dst_file'] == '/dev/tty':
+            print(target)
+        else:
+            with open(ctx['dst_file'], 'w') as fd:
+                fd.write(os0.b(target))
 
 
 if __name__ == "__main__":
