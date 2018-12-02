@@ -320,26 +320,26 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        echo "$TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
+        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
       elif [ "$action" == "upgrade" ]; then
-        echo "$TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
+        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
         run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_vid -u $cmdlist -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
         s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         if [ $sts -ne $STS_SUCCESS ]; then
           break
         fi
       elif [ "$action" == "translate" ]; then
-        echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
+        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
         run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
         s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
       elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-        echo "$TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug.sh $odoo_vid -l -d $db -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
+        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       else
         if [[ -n "$cmdlist" &&  -z "$cf" && "$cmdlist"  =~ [0-9,]+ ]]; then
           for ph in $CFLOOP; do

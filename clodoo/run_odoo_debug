@@ -31,12 +31,13 @@ fi
 __version__=0.3.8.1
 
 
-OPTOPTS=(h        d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
-OPTDEST=(opt_help opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="      1       1        1       1       1        "="      "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
-OPTDEFL=(1        ""       0       0        0       0       0        ""       ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
-OPTMETA=("help"   "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        b          d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
+OPTDEST=(opt_help opt_branch opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "="        "="      1       1        1       1       1        "="      "="         1         "1"         "="       1         1         "="        1       "*>"        1           1       "=")
+OPTDEFL=(1        ""         ""       0       0        0       0       0        ""       ""          -1        0           ""        0         0         ""         0       ""          0           0       "")
+OPTMETA=("help"   "branch"   "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
+ "odoo branch (version id)"\
  "db name to test,translate o upgrade (require -m switch)"\
  "export it translation (conflict with -i -u -I)"\
  "do not create new DB and keep it after run"\
@@ -69,6 +70,9 @@ if [ $opt_help -gt 0 ]; then
   exit 0
 fi
 
+if [ -n "$opt_branch" -a -z "$odoo_vid" ]; then
+  odoo_vid=$opt_branch
+fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
