@@ -20,6 +20,14 @@
             <p class="oe_mt16" align="justify">{{descrizione}}</p>
         </div>
     </div>
+.. $if defined features
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan" style="color:#162832;">Features / Caratteristiche</h3>
+        <div class="oe_span12">
+{{features}}
+        </div>
+    </div>
+.. $fi
 .. $if defined usage
     <div class="oe_row oe_spaced">
         <h3 class="oe_slogan" style="color:#162832;">Usage / Utilizzo</h3>
