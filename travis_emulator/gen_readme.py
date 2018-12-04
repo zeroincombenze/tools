@@ -6,7 +6,7 @@
 from __future__ import print_function, unicode_literals
 import ast
 import os
-# import re
+import re
 import sys
 from datetime import datetime
 from lxml import etree
@@ -37,8 +37,8 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'features',
                     'proposals_for_enhancement', 'history', 'faq',
                     'sponsor', 'copyright_notes', 'avaiable_addons',
                     'contact_us']
-DEFINED_TAG = ['name', 'summary', 'maturity',
-               'module_name', 'repos_name',
+DEFINED_TAG = ['__init__', 'name', 'summary', 'sommario',
+               'maturity', 'module_name', 'repos_name',
                'today',
                'authors', 'contributors', 'acknowledges']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
@@ -257,54 +257,67 @@ def tohtml(text):
             del lines[0]
             while not lines[0]:
                 del lines[0]
-    # is_list = True
-    # for line in lines:
-    #     if line[0:2] not in ('* ', '..'):
-    #         is_list = False
-    #         break
-    # if is_list:
-    #     for i in range(len(lines)):
-    #         if lines[i][0:2] != '..':
-    #             lines[i] = '<li>%s</li>' % lines[i][2:]
-    #     lines.insert(0, '<ul>')
-    #     lines.append('</ul>')
-    # else:
+    is_table = True
+    for line in lines:
+        if line[0] != '|' and line[0:2] != '+-':
+            is_table = False
+            break
     hdr_foo = False
-    if len(lines) > 1 and lines[0].find('<p>') < 0:
-        hdr_foo = True
+    if not is_table:
+        if len(lines) > 1 and lines[0].find('<p>') < 0:
+            hdr_foo = True
     is_list = False
     in_list = False
     i = 0
     while i < len(lines):
-        if lines[i][0:2] != '..':
-            if lines[i][0:2] == '* ' and not in_list:
-                in_list = True
-            elif lines[i][0:2] != '* ' and in_list:
-                in_list = False
-        if not in_list and is_list:
-            lines.insert(i, '</ul>')
-            is_list = in_list
-            i += 1
-        elif in_list and not is_list:
-            lines.insert(i, '<ul>')
-            is_list = in_list
-            i += 1
-        if in_list:
+        if is_table:
             if lines[i][0:2] != '..':
-                lines[i] = '<li>%s</li>' % lines[i][2:]
+                if lines[i][0:2] == '+-':
+                    lines[i] = '</tr><tr>'
+                else:
+                    for t in RST2HTML_GRYMB.keys():
+                        lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
+                    cols = lines[i].split('|')
+                    del cols[0]
+                    row = ''
+                    for col in cols:
+                        row += '</td><td>' + col.strip()
+                    row = row[5:-4]
+                    lines[i] = row
         else:
-            if lines[i] == '':
-                lines[i] = '</p><p align="justify">'
-                hdr_foo = True
+            if lines[i][0:2] != '..':
+                if lines[i][0:2] == '* ' and not in_list:
+                    in_list = True
+                elif lines[i][0:2] != '* ' and in_list:
+                    in_list = False
+            if not in_list and is_list:
+                lines.insert(i, '</ul>')
+                is_list = in_list
+                i += 1
+            elif in_list and not is_list:
+                lines.insert(i, '<ul>')
+                is_list = in_list
+                i += 1
+            if in_list:
+                if lines[i][0:2] != '..':
+                    lines[i] = '<li>%s</li>' % lines[i][2:]
             else:
-                for t in RST2HTML_GRYMB.keys():
-                    lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
+                if lines[i] == '':
+                    lines[i] = '</p><p align="justify">'
+                    hdr_foo = True
+                else:
+                    for t in RST2HTML_GRYMB.keys():
+                        lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
         i += 1
-    if is_list:
+    if is_table:
+        lines[0] = '<table style="width:100%; padding:2px; ' \
+                   'border-spacing:2px; text-align:left;">' + lines[0][5:]
+        lines[-1] = '%s</table>' % lines[-1][:-4]
+    elif is_list:
         lines.append('</ul>')
-    if hdr_foo:
-        lines.insert(0, '<p align="justify">')
-        lines.append('</p>')
+        if hdr_foo:
+            lines.insert(0, '<p align="justify">')
+            lines.append('</p>')
     return '\n'.join(lines)
 
 
@@ -585,6 +598,8 @@ def is_preproc_line(ctx, line, state):
             is_preproc = True
         elif line[0:12] == '.. $block ':
             is_preproc = True
+        elif line[0:8] == '.. $set ':
+            is_preproc = True
     return state, is_preproc
 
 
@@ -698,6 +713,13 @@ def parse_source(ctx, source, state=None):
                                                    state=state)
                     state, text = append_line(state, text, nl_bef=nl_bef)
                     target += text
+                elif line[0:8] == '.. $set ':
+                    x = re.match(r'[a-zA-Z_]\w*', line[8:])
+                    if x:
+                        name = line[8:8 + x.end()]
+                        i = 9 + x.end()
+                        value = line[i:]
+                        ctx[name] = value
             elif state['in_fmt'] in ('authors',
                                      'contributors',
                                      'acknowledges'):
@@ -953,13 +975,7 @@ def xml_replace_text(ctx, root, item, text, pos=None):
 def index_html_content(ctx, source):
     # pdb.set_trace()
     target = ''
-    lines = ctx['descrizione'].split('\n')
-    if lines[0]:
-        title = '%s / %s' % (ctx['name'], lines[0])
-    elif len(lines) > 1 and lines[1]:
-        title = '%s / %s' % (ctx['name'], lines[1])
-    else:
-        title = ctx['name']
+    title = '%s / %s' % (ctx['summary'], ctx['sommario'])
     for section in source.split('\f'):
         root = etree.XML(section)
         xml_replace_text(ctx, root, 'h2', title)
@@ -1021,10 +1037,18 @@ def generate_readme(ctx):
                                                  odoo_vid=ctx['odoo_fver'])
         read_manifest(ctx)
     set_default_values(ctx)
-    for section in DEFINED_SECTIONS:
-        ctx[section] = parse_file(ctx, '%s.rst' % section, ignore_ntf=True)
     for section in DEFINED_TAG:
         ctx[section] = parse_file(ctx, '%s.txt' % section, ignore_ntf=True)
+    for section in DEFINED_SECTIONS:
+        ctx[section] = parse_file(ctx, '%s.rst' % section, ignore_ntf=True)
+    if not ctx['sommario']:
+        lines = ctx['descrizione'].split('\n')
+        if lines[0]:
+            ctx['sommario'] = lines[0]
+        elif len(lines) > 1 and lines[1]:
+            ctx['sommario'] = lines[1]
+        else:
+            ctx['sommario'] = ctx['name']
     if ctx['write_html']:
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_index.html'

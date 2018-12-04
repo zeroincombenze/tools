@@ -231,7 +231,7 @@ if [ "$opt_cpush" == "-O" ]; then
         if [ -f __openerp__.py -o -f __manifest__.py ]; then
           [ ! -d ./static ] && mkdir -p ./static
           [ ! -d ./static/description ] && mkdir -p ./static/description
-          run_traced "$TDIR/gen_readme.py -H -Gzero"
+          run_traced "$TDIR/gen_readme.py -H -Goia"
         fi
       fi
     done
