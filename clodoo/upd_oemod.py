@@ -9,7 +9,7 @@ import oerplib
 from z0lib import parseoptargs
 
 
-__version__ = "0.3.8.1"
+__version__ = "0.3.8.2"
 
 
 def initialize_params(ctx):

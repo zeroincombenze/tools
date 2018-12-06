@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.1
+__version__=0.3.8.2
 
 
 OPTOPTS=(h        b          d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
@@ -209,7 +209,7 @@ EOF
       src=$(readlink -f $opt_ofile)
       opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
     elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-      srcs=$(find $odoo_root -type d -name "$opt_modules")
+      srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
       f=0
       for src in $srcs; do
         if [ -n "$src" ]; then
