@@ -15,7 +15,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.1"
+__version__ = "0.2.2.2"
 
 
 def format_line(col_size, row, sep=None, flist=None):

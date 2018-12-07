@@ -14,7 +14,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.1"
+__version__ = "0.2.2.2"
 
 
 def convert_file(ctx):

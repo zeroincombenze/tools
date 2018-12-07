@@ -22,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.1"
+__version__ = "0.2.2.2"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -40,7 +40,7 @@ DEFINED_SECTIONS = ['description', 'descrizione', 'features',
 DEFINED_TAG = ['__init__', 'name', 'summary', 'sommario',
                'maturity', 'module_name', 'repos_name',
                'today',
-               'authors', 'contributors', 'acknowledges']
+               'authors', 'contributors', 'translators', 'acknowledges']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
@@ -722,6 +722,7 @@ def parse_source(ctx, source, state=None):
                         ctx[name] = value
             elif state['in_fmt'] in ('authors',
                                      'contributors',
+                                     'translators',
                                      'acknowledges'):
                 text = line_of_list(ctx, state, line)
                 if text != '\t':
@@ -747,6 +748,8 @@ def parse_source(ctx, source, state=None):
                     state['in_fmt'] = 'authors'
                 elif line.find('{{contributors}}') >= 0:
                     state['in_fmt'] = 'contributors'
+                elif line.find('{{translators}}') >= 0:
+                    state['in_fmt'] = 'translators'
                 elif line.find('{{acknowledges}}') >= 0:
                     state['in_fmt'] = 'acknowledges'
                 text = expand_macro_in_line(ctx, line, state=state)

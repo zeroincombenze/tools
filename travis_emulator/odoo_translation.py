@@ -21,7 +21,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.1"
+__version__ = "0.2.2.2"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -95,64 +95,6 @@ def load_dictionary_from_file(pofn):
     if os.path.isfile(pofn):
         if ctx['opt_verbose']:
             print("Reading %s into dictionary" % pofn)
-        # fd = io.open(pofn, mode='r', encoding='utf-8')
-        # source = fd.read()
-        # fd.close()
-        # msgid = ''
-        # msgstr = ''
-        # for line in source.split('\n'):
-        #     # print(line)
-        #     if line[0:5] == 'msgid':
-        #         token = line[5:].strip()
-        #         x = SYNTAX['string'].match(token)
-        #         msgid = token[1:x.end() - 1]
-        #         msgstr = ''
-        #     elif line[0:6] == 'msgstr':
-        #         token = line[6:].strip()
-        #         x = SYNTAX['string'].match(token)
-        #         msgstr = token[1:x.end() - 1]
-        #         if msgid:
-        #             if msgid in TNL_DICT:
-        #                 if msgstr != TNL_DICT[msgid]:
-        #                     print('* Duplicate key "%s"' % msgid)
-        #                     print('--- Current="%s"' % TNL_DICT[msgid])
-        #                     print('--- New="%s"' % msgstr)
-        #                     dummy = ''
-        #                     if '*' in TNL_ACTION:
-        #                         dummy = TNL_ACTION['*']
-        #                     elif msgid in TNL_ACTION:
-        #                         dummy = TNL_ACTION[msgid]
-        #                     while dummy not in ('C', 'N', 'E', 'I') and \
-        #                             len(dummy) <= 3:
-        #                         dummy=raw_input(
-        #                             '>>> (Current,New,End,Ignore,<Text>)? ')
-        #                     if dummy == 'E':
-        #                         TNL_ACTION['*'] = dummy
-        #                         return
-        #                     elif dummy == 'I':
-        #                         TNL_ACTION[msgid] = dummy
-        #                         continue
-        #                     elif len(dummy) >= 3:
-        #                         TNL_DICT[msgid] = dummy
-        #                         ctr += 1
-        #                     elif dummy == 'N':
-        #                         TNL_DICT[msgid] = msgstr
-        #                         ctr += 1
-        #                     else:
-        #                         TNL_ACTION[msgid] = dummy
-        #             else:
-        #                 TNL_DICT[msgid] = msgstr
-        #                 ctr += 1
-        #     else:
-        #         token = line.strip()
-        #         if token:
-        #             x = SYNTAX['string'].match(token)
-        #             if x:
-        #                 token = token[1:x.end() - 1]
-        #                 if msgstr:
-        #                     msgstr += token
-        #                 elif msgid:
-        #                     msgid += token
         catalog = pofile.read_po(open(pofn, 'r'))
         for message in catalog:
             msgid = message.id
@@ -198,37 +140,6 @@ def parse_pofile(source):
         ctr = 0
         if ctx['opt_verbose']:
             print("Reading %s for upgrade" % source)
-        # fd = io.open(source, mode='r', encoding='utf-8')
-        # source = fd.read()
-        # fd.close()
-        # new_source = ''
-        # for line in source.split('\n'):
-        #     # print(line)
-        #     if line[0:5] == 'msgid':
-        #         token = line[5:].strip()
-        #         x = SYNTAX['string'].match(token)
-        #         msgid = token[1:x.end() - 1]
-        #         msgstr = ''
-        #     elif line[0:6] == 'msgstr':
-        #         token = line[6:].strip()
-        #         x = SYNTAX['string'].match(token)
-        #         msgstr = token[1:x.end() - 1]
-        #         if msgid in TNL_DICT and msgstr != TNL_DICT[msgid]:
-        #             line = line.replace(msgstr, TNL_DICT[msgid])
-        #             ctr += 1
-        #     else:
-        #         token = line.strip()
-        #         if token:
-        #             x = SYNTAX['string'].match(token)
-        #             if x:
-        #                 line = ''
-        #     new_source += '%s\n' % line
-        # if new_source[-2:] == '\n\n':
-        #     new_source = new_source[0:-1]
-        # if new_source == source:
-        #     fdiff = False
-        # else:
-        #     fdiff = True
         fdiff = False
         catalog = pofile.read_po(open(source, 'r'))
         for message in catalog:
@@ -248,14 +159,11 @@ def parse_pofile(source):
     return False, ''
 
 
-def rewrite_pofile(pofn, target):
+def rewrite_pofile(ctx, pofn, target):
     if ctx['opt_verbose']:
         print("Writing %s " % pofn)
     tmpfile = '%s.tmp' % pofn
     bakfile = '%s.bak' % pofn
-    # fd = open(tmpfile, 'w')
-    # fd.write(os0.b(target))
-    # fd.close()
     pofile.write_po(open(tmpfile, 'w'), target)
     fd = open(pofn, 'rB')
     lefts = fd.read().split('\n')
@@ -293,7 +201,11 @@ def load_dictionary(ctx):
     ctr = load_default_dictionary(dict_name)
     ctx['pofiles'] = {}
     ctx['ctrs'] = {'0': ctr}
-    for version in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+    if ctx['branch']:
+        versions = [ctx['branch']]
+    else:
+        versions = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+    for version in versions:
         odoo_path = set_odoo_path(ctx, version)
         if odoo_path:
             module_path = False
@@ -317,6 +229,37 @@ def load_dictionary(ctx):
     return 0
 
 
+def set_header_pofile(ctx, pofile):
+    polines = pofile.split('\n')
+    potext = ''
+    for line in polines:
+        if line.startswith('"#\t*'):
+            potext += r'"# %s\n"' % ctx['module_name'] + '\n'
+        elif line.startswith('"# *'):
+            potext += r'"# %s\n"' % ctx['module_name'] + '\n'
+        elif line.startswith('"Project-Id-Version:'):
+            potext += r'"Project-Id-Version: Odoo (%s)\n"' % ctx(
+                'branch', '') + '\n'
+        elif line.startswith('"Last-Translator:'):
+            potext += r'"Last-Translator: %s <%s>\n"' % (
+                'Antonio M. Vigliotti',
+                'antoniomaria.vigliotti@gmail.com') + '\n'
+        elif line.startswith('"Language-Team:'):
+            potext += r'"Language-Team: %s (%s)\n"' % (
+                'Zeroincombenze',
+                'https://www.zeroincombenze.it/')+ '\n'
+            potext += r'"Language: it_IT\n"' + '\n'
+        elif line.startswith('"Language:'):
+            pass
+        elif line.startswith('"language'):
+            pass
+        elif line.startswith('"Plural-Forms:'):
+            potext += r'"Plural-Forms: nplurals=2; plural=(n != 1);\n"' + '\n'
+        else:
+            potext += line + '\n'
+    return potext
+
+
 def parse_file(ctx):
     for version in ctx['pofiles'].keys():
         pofn = ctx['pofiles'][version]
@@ -325,7 +268,7 @@ def parse_file(ctx):
             if ctx['opt_verbose']:
                 print("No change done")
         else:
-            rewrite_pofile(pofn, target)
+            rewrite_pofile(ctx, pofn, target)
     return 0
 
 
@@ -363,6 +306,10 @@ if __name__ == "__main__":
     parser.add_argument('-B', '--debug-template',
                         action='store_true',
                         dest='dbg_template')
+    parser.add_argument("-b", "--branch",
+                        help="Odoo branch",
+                        dest="branch",
+                        metavar="version")
     parser.add_argument("-c", "--config",
                         help="configuration file",
                         dest="conf_fn",

@@ -182,6 +182,13 @@ Acknowledges / Riconoscimenti
 
 {{acknowledges}}
 .. $fi
+.. $if defined translators
+
+Translations by / Traduzioni a cura di
+--------------------------------------
+
+{{translators}}
+.. $fi
 .. $if defined sponsor
 
 Sponsor
