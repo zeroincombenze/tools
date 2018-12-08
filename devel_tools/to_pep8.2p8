@@ -1,39 +1,41 @@
 #
-# topep8 configuration file (last update 2018-10-12)
+# topep8 configuration file (last update 2018-12-08)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 # Every rule starts with RULE_NAME aligned to left margin; all parameters
-# are indented right. RULE_NAME ha python syntax name.
+# are indented right. RULE_NAME has python syntax name.
 # If RULE_NAME ends with _78, rule may not applied to odoo 8.0 if -u switch
 # is supplied: means convert to odoo 8.0 holding old api.
 #   First parameter is STATEMENTS with python intructions to match rule
-#   Format of following lines is: <PARAM: VALUE>
+#   Format of indented lines is: <PARAM: VALUE>
 #   Paramaters may be:
 #       [VER] => Statement to replace/evaluate to specific odoo version
 #       [0] => Statement to replace/evaluate to all odoo versions
 #       action => action to apply is rule is validated;
 #                 currently may be just replace
 # Example:
-# c:
-#     class $name($more):
-#     [0]:    osv.osv_memory
-#     [7.0]:  orm.TransientModel
-#     [10.0]: models.TransientModel
+# c:                                    # Rule name is 'c'
+#     class $name($more):               # Python text to match
+#     [0]:    osv.osv_memory            # Default value for replacements
+#     [7.0]:  orm.TransientModel        # Replacements values from 7.0
+#     [10.0]: models.TransientModel     # Replacements values from 10.0
 #
-# In above example source of 10.0 "class myexample(models.TransientModel)";
-# is translated into "class myexample(orm.TransientModel)" if transation into
-# odoo from 7.0 to 9.0 and "class myexample(osv.osv_memory)" if transaltion
-# into odoo 6.1.
+# In above example reading source code of Odoo 10.0 with statement
+# >>> class myexample(models.TransientModel):
+# when translated into Odoo 7.0 becomes:
+# >>> class myexample(orm.TransientModel):
+# when translated into Odoo 6.1 becomes:
+# >>> class myexample(osv.osv_memory):
 # Notes:
 # - hash symbol # means remark both in this configuration file both in rules
-#   If hash symbol # is at leftmost column meand remark like this line
+#   If hash symbol # is at leftmost column means remark like this line
 #   If hash symbol # is after indentation or colon means rule for remark; i.e:
 #   remark: #
 # - If a specific odoo version is not declared, lower version is used (see
 #   example above)
-# - Statement to match rule is an python instructions with some macros:
+# - Statement to match rule is a python instructions with some macros:
 #   $any: match any python tokens
 #         when used in replace string means do not change token
 #   $more: match zero, one or more python tokens until token next $more matches

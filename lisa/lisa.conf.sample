@@ -205,7 +205,7 @@ VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
 VFYE2NL=None
 VFYERR=ssh,python
-NOINQ=vsftpd,postgresql-client-common,postgresql-contrib,ghostscript,odoo
+NOINQ=vsftpd,postgresql-client-common,postgresql95-client-common,postgresql-contrib,postgresql95-contrib,ghostscript,odoo
 NAME_VIRTUAL=LAMP,PYTHON_LIB_XML
 # Packages migrated into pip; format yum_apt-get_name/pip_name
 PIP_PYSTD_PKGS=python-pip/pip,python-setuptools/setuptools,python-wheel/wheel,\
@@ -240,7 +240,7 @@ GIT_PKGS=odoo,pandoc
 WGET_PKGS=lisa,wkhtmltopdf
 # Standard packages (intalled by yum or apt-get)
 STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
-         postgresql-server,python,mysql-server,postgresql,iptables-services,\
+         postgresql-server,postgresql95-server,python,mysql-server,postgresql,postgresql95,iptables-services,\
          php-mysql,php-common,php-xml,bzip2-devel,mod_ssl,mod_proxy_html,\
          docutils-doc,libart-2.0-2,\
          libcupsfilters1,libcupsimage2,libgs9,libgs9-common,\
@@ -256,7 +256,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          python-roman,python-suds,python-unittest2,\
          python-utidylib,python-vobject,python-werkzeug,wget,git,\
          libapache2-mod-auth-mysql,\
-         vsftpd,postgresql-client-common,postgresql-contrib,\
+         vsftpd,postgresql-client-common,postgresql95-client-common,postgresql-contrib,postgresql95-contrib,\
          telnet,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi,\
          python-virtualenv,python3-virtualenv,libxml2,libjpeg-turbo,libtiff,libyaml,\
          dejavu-fonts-common,dejavu-sans-fonts,fontpackages-filesystem,\
@@ -335,6 +335,8 @@ REAL_apache2=httpd
 # If user supplies wrong name for postgresql
 REAL_postgres=postgresql-server
 REAL_postgresql=postgresql-server
+REAL_postgres95=postgresql95
+REAL_postgresql95-server=postgresql95
 # If user supplies Debian name for php
 REAL_php5=php
 REAL_php5-mysql=php-mysql
@@ -384,7 +386,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          php-cli,libxslt,libxslt-python,python-devel,readline,zlib,libreadline6-dev,\
          php-mysql,php-common,php-xml,php-cli,openssh-clients,\
          bind-utils,openssl-devel,libxml2-devel,libxslt-devel,redis,zlib-devel,\
-         freetype,freetype-devel,cups,cups-devel,postgresql-devel,expect-devel,\
+         freetype,freetype-devel,cups,cups-devel,postgresql-devel,postgresql95-devel,expect-devel,\
          python2-simplejson,python3,python3-devel,\
          redhat-rpm-config
 NA_PKGS=antiword

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright 2018-19 SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
@@ -6,9 +7,9 @@
 #
 #    All Rights Reserved
 #
-"""Convert src python to PEP8 with OCA rules
+"""Convert src python to PEP8
 
-Based non rule file.
+Based on rule file.
 
 All rules are stored in self.LEX_RULES dictionary by rule id (name).
 Every rule has a python name; if name ends with _78, rule may not applied
@@ -47,7 +48,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.2"
+__version__ = "0.2.2.3"
 
 METAS = ('0', '6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
@@ -647,10 +648,10 @@ class topep8():
         return state, tokid, tokval, [1, 1]
 
     def parse_txt1_rule(self, value, state):
-        return parse_txt_rule(self, value, state, 'endstr1', 'escstr1')
+        return self.parse_txt_rule(value, state, 'endstr1', 'escstr1')
 
     def parse_txt2_rule(self, value, state):
-        return parse_txt_rule(self, value, state, 'endstr2', 'escstr2')
+        return self.parse_txt_rule(value, state, 'endstr2', 'escstr2')
 
     def parse_generic_rule(self, value, ipos, x, token_name):
         i = ipos
@@ -706,11 +707,11 @@ class topep8():
                 state, tokid, tokval, min_max = self.parse_doc_rule(
                     text, state, x)
             elif istkn == 'string1':
-                tokid, tokval, state['ipos'] = self.parse_txt1_rule(
-                    text, state['ipos'])
+                state, tokid, tokval, min_max = self.parse_txt1_rule(
+                    text, state)
             elif istkn == 'string2':
-                tokid, tokval, state['ipos'] = self.parse_txt2_rule(
-                    text, state['ipos'])
+                state, tokid, tokval, min_max = self.parse_txt2_rule(
+                    text, state)
             elif istkn == 'name':
                 tokid, tokval, state['ipos'] = self.parse_generic_rule(
                     text, state['ipos'], x, tokenize.NAME)
@@ -837,9 +838,15 @@ class topep8():
                     'action': 'replace',
             }
         try:
-            fd = open(rule_file, 'r')
-        except:
-            return
+            fd = open(rule_file, 'rU')
+        except IOError:
+            f = os.path.join(os.path.dirname(sys.argv[0]),
+                             os.path.basename(rule_file))
+            try:
+                fd = open(f, 'rU')
+                rule_file = f
+            except IOError:
+                return
         cur_rule = clear_cur_rule()
         cont_break = False
         for text_rule in fd:
@@ -864,6 +871,7 @@ class topep8():
     def compile_rules(self, ctx):
         self.LEX_RULES = {}
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
+        self.read_rules_from_file(ctx, self.set_rulefn(ctx['conf_fn']))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
         for ir in self.LEX_RULES.keys():
             if ir[-3:] == '_78' and ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
@@ -1157,6 +1165,7 @@ def get_filenames(ctx):
     dst_filepy = ctx['dst_filepy']
     return src_filepy, dst_filepy, ctx
 
+
 def get_versions(ctx):
     if ctx.get('odoo_ver', None) is None:
         ctx['odoo_ver'] = '11.0'
@@ -1240,6 +1249,12 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='no_nl_eof',
                         default=False)
+    parser.add_argument("-R", "--rule-file",
+                        action='store',
+                        help="configuration file",
+                        dest="conf_fn",
+                        metavar="file",
+                        default='')
     parser.add_argument('-q')
     parser.add_argument('-u', '--unit-test',
                         action='store_true',

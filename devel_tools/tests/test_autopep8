@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.2
+__version__=0.2.2.3
 
 
 test_01() {
@@ -57,9 +57,9 @@ c:
     [10.0]: MyClass
 EOF
       cat <<EOF >$TESTSRC
-from openerp.osv import orm,fields
-A=1
-B=A
+from openerp.osv import orm, fields
+A = 1
+B = A
 class my_class(osv.osv):
     pass
 EOF
@@ -68,9 +68,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
-a=1
-B=A
+from openerp.osv import orm, fields
+a = 1
+B = A
 class my_class(osv.osv):
     pass
 EOF
@@ -81,9 +81,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
-a=1
-B=A
+from openerp.osv import orm, fields
+a = 1
+B = A
 class my_class(orm.Model):
     pass
 EOF
@@ -94,9 +94,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
-a=1
-B=A
+from openerp.osv import orm, fields
+a = 1
+B = A
 class MyClass(orm.Model):
     pass
 EOF
@@ -107,9 +107,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import models,fields
-a=1
-B=A
+from openerp import models, fields
+a = 1
+B = A
 class MyClass(models.Model):
     pass
 EOF
@@ -120,9 +120,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import models,fields
-a=1
-B=A
+from openerp import models, fields
+a = 1
+B = A
 class MyClass(models.Model):
     pass
 EOF
@@ -133,9 +133,9 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from odoo import models,fields
-a=1
-B=A
+from odoo import models, fields
+a = 1
+B = A
 class MyClass(models.Model):
     pass
 EOF
@@ -145,9 +145,9 @@ EOF
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
-from odoo import models,fields
-a=1
-B=A
+from odoo import models, fields
+a = 1
+B = A
 class MyClass(models.Model):
     pass
 EOF
@@ -157,9 +157,9 @@ EOF
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
-from odoo import models,fields
-a=1
-B=A
+from odoo import models, fields
+a = 1
+B = A
 class MyClass(models.Model):
     pass
 EOF
@@ -167,6 +167,7 @@ EOF
     fi
     test_result "topep8 -AAN -F6.1 -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
+
 
 test_02() {
     local TESTOUT TESTRES TESTFN
@@ -190,10 +191,10 @@ c:
 EOF
       cat <<EOF >$TESTSRC
 # -*- coding: utf-8 -*-
-from odoo import models,fields
+from odoo import models, fields
 
-A=1
-B=A
+A = 1
+B = A
 
 class MyClass(models.Model):
 EOF
@@ -202,10 +203,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
+from openerp.osv import orm, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class my_class(osv.osv):
 
@@ -217,10 +218,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
+from openerp.osv import orm, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class my_class(orm.Model):
 
@@ -232,10 +233,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp.osv import orm,fields
+from openerp.osv import orm, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(orm.Model):
 
@@ -247,10 +248,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import models,fields
+from openerp import models, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(models.Model):
 
@@ -262,10 +263,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from openerp import models,fields
+from openerp import models, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(models.Model):
 
@@ -277,10 +278,10 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-from odoo import models,fields
+from odoo import models, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(models.Model):
 
@@ -291,10 +292,10 @@ EOF
     # Validate against Odoo 11.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
-from odoo import models,fields
+from odoo import models, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(models.Model):
 
@@ -305,10 +306,10 @@ EOF
     # Validate against Odoo 12.0
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTRES
-from odoo import models,fields
+from odoo import models, fields
 
-a=1
-B=A
+a = 1
+B = A
 
 class MyClass(models.Model):
 
@@ -317,6 +318,7 @@ EOF
     fi
     test_result "topep8 -AA -b12.0" "$TESTOUT" "$TESTRES" "diff"
 }
+
 
 test_03() {
     local TESTOUT TESTRES TESTFN
@@ -341,6 +343,32 @@ EOF
     test_result "topep8 -AA -b10.0 'odoo.com'" "$TESTOUT" "$TESTRES" "diff"
 }
 
+
+test_04() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_autopep_04
+    TESTSRC=$TESTDIR/res/$TESTFN.py
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/$TESTFN.out
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTSRC
+    einv_type_model = self.env['italy.ade.invoice.type']
+EOF
+      cat <<EOF >$TESTRES
+# -*- coding: utf-8 -*-
+    einv_type_model = self.env['fatturapa.document_type']
+
+EOF
+      $RUNDIR/topep8 -qAA -b10.0 -Rto_oca $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -AA -b10.0 -Rto_oca 'italy.ade.invoice.type'" "$TESTOUT" "$TESTRES" "diff"
+    # Reverse test
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      $RUNDIR/topep8 -qAA -b10.0 -Rto_ooia $TESTOUT -o $TESTOUT
+    fi
+    test_result "topep8 -AA -b10.0 -Rto_oia 'italy.ade.invoice.type'" "$TESTRES" "$TESTOUT" "diff"
+}
 
 
 

@@ -1,4 +1,4 @@
-# __version__=0.1.20
+# __version__=0.1.22
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -9,7 +9,7 @@ if [[ $1 =~ -.*h ]]; then
   exit 0
 fi
 RFLIST__travis_emulator="cvt_csv_2_rst.py cvt_csv_2_xml.py dist_pkg gen_addons_table.py gen_readme.py odoo_translation.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-RFLIST__devel_tools="topep8 topep8.py to_pep8.2p8 to_pep8.py"
+RFLIST__devel_tools="topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
 RFLIST__clodoo="awsfw . inv2draft_n_restore.py list_requirements.py makepo_it.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active"
 RFLIST__z0lib=". z0librc"
@@ -52,7 +52,7 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     fi
     if [ ! -f "$src" -a ! -d "$src" ]; then
       echo "File $src not found!"
-    elif [[ ! -L "$tgt" || $1 =~ -.*p ]]; then
+    elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ (topep8|to_pep8.2p8|to_pep8.py|topep8.py) ]]; then
       if [ -L "$tgt"  -o -f "$tgt" ]; then
         [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
         rm -f $tgt
@@ -72,8 +72,10 @@ for fn in addsubm.sh clodoo.py clodoocore.py clodoolib.py run_odoo_debug.sh z0li
 done
 export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
-echo "--------------------------------------------------"
-echo "Please add followinf statements in your login file"
-echo "export PYTHONPATH=$DSTPATH:$SRCPATH"
-echo "export PATH=$DSTPATH:\$PATH"
-echo "--------------------------------------------------"
+if [[ ! $1 =~ -.*q ]]; then
+  echo "--------------------------------------------------"
+  echo "Please add followinf statements in your login file"
+  echo "export PYTHONPATH=$DSTPATH:$SRCPATH"
+  echo "export PATH=$DSTPATH:\$PATH"
+  echo "--------------------------------------------------"
+fi

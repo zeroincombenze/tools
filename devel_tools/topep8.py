@@ -29,7 +29,7 @@ from z0lib import parseoptargs
 import tokenize
 
 
-__version__ = "0.2.2.2"
+__version__ = "0.2.2.3"
 
 
 ISALNUM_B = re.compile('^[a-zA-Z_][a-zA-Z0-9_]*')
@@ -1140,6 +1140,12 @@ if __name__ == "__main__":
                         action='store_true',
                         dest='no_nl_eof',
                         default=False)
+    parser.add_argument("-R", "--rule-file",
+                        action='store',
+                        help="configuration file",
+                        dest="conf_fn",
+                        metavar="file",
+                        default='')
     parser.add_argument('-q')
     parser.add_argument('-u', '--unit-test',
                         action='store_true',

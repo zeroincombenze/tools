@@ -1,8 +1,8 @@
 from setuptools import setup
 
-setup(name='devel-tools',
+setup(name='devel_tools',
       version='',
       description='',
       classifiers=[
-          'Development Status ::',
+          'Development Status :: 1 - Planning',
       ])
