@@ -9,6 +9,7 @@ import time
 import re
 import sys
 import csv
+from subprocess import PIPE, Popen
 from babel.messages import pofile
 from os0 import os0
 try:
@@ -78,7 +79,7 @@ def load_default_dictionary(source):
                 hdr_read = True
                 csv_obj.fieldnames = row['undef_name']
                 continue
-            msgid = os0.u(row['msgid'])
+            msgid = os0.u(row['msgid'].strip())
             TNL_DICT[msgid] = os0.u(row['msgstr'])
             TNL_ACTION[msgid] = 'C'
             if msgid == msgid[0].upper() + msgid[1:].lower():
@@ -159,12 +160,22 @@ def parse_pofile(source):
     return False, ''
 
 
-def rewrite_pofile(ctx, pofn, target):
+def rewrite_pofile(ctx, pofn, target, version):
     if ctx['opt_verbose']:
         print("Writing %s " % pofn)
     tmpfile = '%s.tmp' % pofn
     bakfile = '%s.bak' % pofn
     pofile.write_po(open(tmpfile, 'w'), target)
+    cmd = ['makepo_it.py',
+           '-b%s' % version,
+           '-m%s' % ctx['module_name'],
+           tmpfile]
+    out, err = Popen(cmd,
+                     stdin=PIPE,
+                     stdout=PIPE,
+                     stderr=PIPE,
+                     shell=False).communicate()
+     
     fd = open(pofn, 'rB')
     lefts = fd.read().split('\n')
     fd.close()
@@ -268,7 +279,7 @@ def parse_file(ctx):
             if ctx['opt_verbose']:
                 print("No change done")
         else:
-            rewrite_pofile(ctx, pofn, target)
+            rewrite_pofile(ctx, pofn, target, version)
     return 0
 
 

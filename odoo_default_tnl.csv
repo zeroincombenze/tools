@@ -10,18 +10,24 @@ status	msgid	msgstr
 	Action	Azione
 	Actions	Azioni
 	Address	Indirizzo
+	Administration ref.	Rif. ammin.
 	Administrator	Amministratore
 	Adviser	Contabile
-	Agreement 	Convenzione
+	Agreement	Convenzione
 	Alert	Avviso
+	Amount	Importo
+	Amount of Penalty	Importo della sazione
+	Amount Tax	Importo imposta
+	Amount Untaxed	Importo imponibile
 	Analytic Entries 	Registrazioni analitiche
 	Approve	Approva
+	Assignee / Partner	Cessionario / Committente
 	Attachment	Allegato
 	Attendees	Partecipanti
 	Background	Sfondo
 	Balance Sheet	Stato patrimoniale
-	Banck Accounts	C/c bancari
-	Bank name	Nome banca
+	Bank Accounts	C/c bancari
+	Bank Name	Nome banca
 	Bank Statement	Estratto conto bancario
 	Bill	Fattura
 	Bookmark	Segnalibro
@@ -34,28 +40,48 @@ status	msgid	msgstr
 	Cash Journal	Registro cassa
 	Check	Controllo
 	Checkbox	Casella
+	CIG Code	Codice CIG
 	Code	Codice
+	Company Country not set.	Nazione dell'azienda non impostata.
+	Company does not have fiscal code or VAT number.	Codice fiscale o partita IVA dell'azienda non impostati.
+	Company Email not set.	Email dell'azienda non impostata
+	Company Telephone number not set.	Numero di telefono dell'azienda non impostato.
+	Company TIN not set.	Partita IVA aziendale non impostata
 	Configuration	Configurazione
 	Confirm statement	Conferma registrazione
+	Confirm?	Conferma?
 	Contact	Contatto
 	Contacts	Contatti
+	Contract	Contratto
 	Contributor	Collaboratore
 	Control Policy 	Procedimento di controllo
+	Country code according to the ISO 3166-1 alpha-2 code standard	Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code
+	Country not set.	Nazione non impostata.
 	Create entries	Crea registrazioni
 	Created by	Creato da
 	Created on	Data di creazione
 	Creation date	Data di creazione
 	Credit	Avere
 	Credit amount	Importo Avere
+	CUP Code	Codice CUP
 	Currency	Divisa
 	Current	Attuale
 	Customer	Cliente
+	Customer city not set.	Città cliente non impostata
+	Customer country not set.	Nazione cliente non impostata.
 	Customer Credit Notes	Note credito clienti
+	Customer province not set.	Provincia cliente non impostata
+	Customer street not set.	Indirizzo cliente non impostato
 	Customer Taxes 	IVA v/clienti
+	Customer ZIP not set.	CAP cliente non impostato
 	Dashboard	Cruscotto
 	Debit	Dare
 	Debit amount	Importo Dare
 	Default	Predefinito
+	Deferred payability	Esigibilità differita
+	Delivery Address	Indirizzo di consegna
+	Delivery Date Time	Data e ora di consegna
+	Description	Descrizione
 	Description	Descrizione
 	Description for Customers 	Descrizione per i clienti
 	Description for Delivery Orders 	Descrizione per ordini di consegna
@@ -63,23 +89,59 @@ status	msgid	msgstr
 	Description for Receptions 	Descrizione per entrate merci
 	Description for Vendors 	Descrizione per i fornitori
 	Destination Address	Indirizzo di destinazione
+	Discount	Sconto
+	Discount or Supplement Details	Dettagli sconto o maggiorazione
 	Display Name	Visualizza nome
+	Document ID	ID documento
+	Document Type	Tipo documento
 	Documents	Documenti
+	E-invoice attachment changed	Allegato e-fattura modificato
+	E-invoice attachments	Allegati e-fattura
+	E-invoice attachments	Allegati e-fattura
+	E-invoice Discount Supplement Data	Dati sconto maggiorazione e-fattura
+	E-invoice Document Type	Tipo documento e-fattura
+	E-invoice Export File	File e-fattura esportato
+	E-invoice Export Files	File e-fattura esportati
+	E-invoice Format	Formato e-fattura
+	E-invoice Payment Data	Dati pagamento e-fattura
+	E-invoice Related DDT	DDT relativo alla e-fattura
+	E-invoice Related Document Type	Tipo documento relativo alla e-fattura
+	E-invoice sequence not configured.	Sequenza e-fattura non configurata.
+	E-invoice Welfare Fund Data	Dati cassa previdenziale e-fattura
+	Effective Date of Penalty	Data effettiva della sanzione
+	Electronic Bill	Fattura elettronica
+	Electronic Invoice	Fattura elettronica
+	Electronic Invoice Attachments	Allegati fattura elettronica
+	Electronic Invoice Fiscal Position	Posizione fiscale fattura elettronica
+	Electronic Invoice Payment Data	Dati pagamento fattura elettronica
+	Electronic Invoice Payment Method	Metodo pagamento fattura elettronica
+	Electronic Invoice Summary Data	Dati riepilogo fattura elettronica
 	Embedded	Integrato
 	Employee	Dipendente
 	Enable	Abilita
 	EORI Code	Codice EORI
 	EXJ	ACQ
 	Expense Account 	Conto di costo
+	Export EInvoice	Esporta fattura elettronica
 	Failed	Non riuscito
+	FatturaPA attachment changed	Allegato e-fattura modificato
+	FatturaPA attachments	Allegati fatturaPA
+	FatturaPA Export File	File fatturaPA esportato
+	FatturaPA Export Files	File fatturaPA esportati
+	FatturaPA fiscal position not set.	Posizione fiscale e-fattura non impostata
+	FatturaPA sequence not configured.	Sequenza e-fattura non configurata.
 	Favorited By	Preferito
 	Features	Funzionalità
 	Financial Reports	Rendiconti finanziari
+	Fiscal position used by FatturaPA	Posizione fiscale in e-Fattura
 	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
 	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
+	Format	Formato
 	Graph	Quadri
 	Help	Aiuto
+	Immediate payability	Esigibilità immediata
+	Incidental Charges	Spese accessorie
 	Income Account 	Conto di ricavo
 	Income Statement	Conto Economico
 	Incoming Email Servers	Server posta in arrivo
@@ -87,16 +149,23 @@ status	msgid	msgstr
 	Incoming Mail Servers	Server posta in arrivo
 	Initial Balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
+	Intermediary	Intermediario
 	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
 	Invoice	Fattura
+	Invoice %s has FatturaPA Export File yet	Il file della e-fattura %s è già stato esportato
 	Invoice Date	Data Fattura
+	Invoice does not have a number.	La fattura non ha un numero ufficiale.
+	Invoice line %s does not have tax.	La riga fattura %s non contiene IVA.
 	Invoice paid	Fattura pagata
 	Invoice Refund	Nota di Credito
 	Invoice Type	Tipo Fattura
+	Invoices must belong to the same company	Le fatture devono appartenere alla stessa azienda
+	Invoices must belong to the same partner.	Le fatture devono appartenere allo stesso soggetto.
 	Invoicing	Contabilità
 	Invoicing Policy 	Procedimento di fatturazione
 	IPA Code	Codice ufficio
+	Item Num.	Numero riga
 	Journal	Registro
 	Journal Entries	Registrazioni contabili
 	Journal Entry	Registrazione contabile
@@ -108,17 +177,43 @@ status	msgid	msgstr
 	Last printed page	Ultima pagina su bollato
 	Last Updated by	Ultima modifica di
 	Last Updated on	Data ultima modifica
+	Law reference	Riferimento legislativo
 	Legal Notice	Dati fiscali e legali
+	Legal Person	Persona giuridica
+	Legal Tax Representative	Rappresentante legale (fiscale)
 	License Code	Numero licenza
+	License Code	Codice licenza
 	Line	Riga
+	Line Number	Numero riga
+	Line Ref.	Rif. riga
 	Lines	Righe
 	Link	Collegamento
+	Liquidation State	Attiva/In liquidazione
 	Login	Accesso
 	Management	Gestione
 	Manual Reconciliation	Riconciliazione manuale
 	Master Data	Dati principali
+	Maximum Date for Payment	Data massima per il pagamento
+	Member Type	Tipo socio
 	Miscellaneous Journal	Sezionale generico
+	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
+	Natural Person	Persona fisica
+	Net Weight	Peso netto
+	No 'law reference' field for tax %s	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
+	No 'nature' field for tax %s	Natura base non imponibile' non valorizzato per l'imposta %s.
+	No taxable nature	Natura base non imponibile
+	Non taxable nature	Natura esenzione
 	Notes	Note
+	Number of Items	Numero di righe
+	Order	Ordine
+	Order Agreement Code	Codice commessa
+	Organization Address	Indirizzo organizzazione
+	Organization Country	Nazione organizzazione
+	Organization Municipality	Comune organizzazione
+	Organization Province	Provincia organizzazione
+	Organization Street Number	Numero civico organizzazione
+	Organization ZIP	CAP organizzazione
+	Out Invoices	Fatture emesse
 	Outgoing Email Servers	Server posta invio
 	Outgoing Mail Server	Server posta invio
 	Outgoing Mail Server	Server posta invio
@@ -129,27 +224,57 @@ status	msgid	msgstr
 	Packaging 	Imballaggio
 	Packing	Imballo
 	Partner	Soggetto
+	Partner %s is PA but has not IPA code	Soggetto %s è PA ma non ha un codice ufficio assegnato
+	Partner %s without PEC	Soggetto %s senza PEC
+	Partner %s without Recipient Code	Soggetto %s senza codice destinatario
 	Partner Company	Soggetto azienda
+	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
 	Partner/Customer	Soggetto/Cliente
 	Partners 	Soggetti
 	Payable Account	Conto di debito
 	Payables 	Debiti
+	Payment Amount	Importo pagamento
+	Payment Bank	Banca di pagamento
+	Payment Code	Codice pagamento
+	Payment Due Date	Scadenza pagamento
+	Payment Line	Riga di pagamento
 	Payment Method	Metodo di pagamento
 	Payment Term	Termine di pagamento
+	Payment term %s does not have a linked fatturaPA payment method	Termine di pagamento %s non ha legami con metodo pagamento fiscale della e-fattura.
+	Payment term %s does not have a linked fatturaPA payment term	Termine di pagamento %s non ha legami con termine pagamento fiscale della e-fattura.
+	Payment Term Days	Giorni termine di pagamento
+	Payment Term Start	Inizio termine di pagamento
 	Payment Terms	Termini di pagamento
 	Payments	Pagamenti
+	Payments Details	Dettagli pagamento
 	PDF Report	Rendiconti PDF
+	Percentage	Percentuale
+	Phase of Activity Progress	Fase dello stato avanzamento lavori
+	Pick up	Consegna
 	Post	Registra
 	Post Entry	Registrazione contabile
 	Post Office Code	Codice ufficio postale
 	Print Invoice	Stampa fattura
-	Professional register	Albo professionale
+	Professional Register	Albo professionale
 	Profit Account	Conto profitti
 	Profit and Loss	Profitti e Perdite
+	Protocol Number	Numero protocollo
 	Provider	Trasportatore
+	Province not set.	Provincia non impostata
 	Public administration	Pubblica amministrazione
+	Public Administration Reference Code	Codice di riferimento pubblica amministrazione
 	Purchase Bills 	Fatture di acquisto
 	Purchases	Acquisti
+	REA Capital	Capitale sociale
+	Rea Capital	Capitale sociale
+	REA Copartner	Unipersonale?
+	Rea Copartner	Unipersonale?
+	REA Liquidation	Attiva/In liquidazione
+	Rea Liquidation	Attiva/In liquidazione
+	REA Number	Numero REA
+	Rea Number	Numero REA
+	REA Office	Ufficio REA
+	Rea Office	Ufficio REA
 	Receivables 	Crediti
 	Reception	Entrata merce
 	Receptions 	Entrate merci
@@ -163,14 +288,27 @@ status	msgid	msgstr
 	Register Code	Numero di iscrizione
 	Register Province	Provincia iscrizione
 	Registration Date	Data di registrazione
+	Related DDT	DDT collegati
+	Related Documents	Documenti collegati
+	Related Documents Type	Tipo documenti collegati
+	Related Invoice	Fattura collegata
+	Related Invoice Code	Codice fattura collegata
+	Related Invoice Date	Data fattura collegata
+	Related Invoice Line	Riga fattura collegata
 	Related Partner	Soggetto collegato
+	Related Payments Data	Dati pagamenti collegati
 	Replace	Sostituisci
 	Replacement Tax	Imposta sostitutiva
 	Report	Rendiconto
 	Reporting	Rendicontazione
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
+	Resource Field	Campo risorsa
+	Resource ID	ID risorsa
+	Resource Model	Modello risorsa
+	Resource Name	Nome risorsa
 	Restore	Ripristinare
+	Results	Risultati
 	SAJ	FAT
 	Sale Journal	Registro vendite
 	Sales	Vendite
@@ -181,8 +319,14 @@ status	msgid	msgstr
 	Set	Imposta
 	Set to draft	Bozza non definitiva
 	Settings	Impostazioni
+	Split payment	Scissione pagamenti
+	Stable Organization	Stabile organizzazione
+	Stamp Amount	Importo bollo
 	Status	Stato
+	Stored Filename	Nome file memorizzato
+	Street not set.	Indirizzo non impostato
 	Subjected to electronic invoice	Soggetto a fattura elettronica
+	Supplement	Maggiorazione
 	Tab	Scheda
 	Table	Tabella
 	Tax Account	Conto Imposta
@@ -191,14 +335,21 @@ status	msgid	msgstr
 	Tax Authority Partner	Agenza delle Entrate
 	Tax Code	Codice IVA
 	Tax Nature	Natura dell'IVA
+	Tax Rate	Aliquota
 	Tax Regime	Regime fiscale
+	Tax Representative	Rappresentante fiscale
 	Taxes	IVA
 	Template	Modello
 	Test Connection	Prova connessione
+	The database object this attachment will be attached to.	L'oggetto del database a cui verrà assegnato questo allegato.
 	The parent company	L'azienda controllante
+	The record id this is attached to.	L'ID del record a cui questo è collegato.
+	Third Party/Sender	Terzo/Trasmittente
+	Third Person	Soggetto terzo
 	Thumbnail	Miniatura
 	Timesheet	Foglio ore
 	TIN	P.IVA
+	Too many taxes for invoice line %s.	Troppe imposte per la riga fattura %s.
 	Total Amount	Importo totale
 	Total Credit	Totale Avere
 	Total Debit	Totale Dare
@@ -215,3 +366,5 @@ status	msgid	msgstr
 	Weight 	Peso
 	Wizard	Procedura giudata
 	Workflow	Flussso di lavoro
+	You can either upload a file from your computer or copy/paste an internet link to your file.	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file.
+	ZIP not set.	CAP non impostato
