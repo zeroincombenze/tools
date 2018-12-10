@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.32.2
+__version__=1.3.32.3
 
 
 test_01() {
@@ -85,13 +85,16 @@ test_04() {
 }
 
 test_05() {
-    local RES TRES dtc
+    local RES TRES dtc dd
     if [ -f $OUTF ]; then
       RES=0
       for i in {10..8}; do
         dtc=$(date -d "today - $i day" +%Y%m%d)
-        grep "File zi01234567-$dtc.*delete" <<< $OUT &>/dev/null
-        [ $? -eq 0 ] || RES=1
+        dd=${dtc: -2}
+        if [ $dd -ne 1 ]; then
+          grep "File zi01234567-$dtc.*delete" <<< $OUT &>/dev/null
+          [ $? -eq 0 ] || RES=1
+        fi
       done
     else
       RES=1

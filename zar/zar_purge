@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32.2
+__version__=1.3.32.3
 
 
 OPTOPTS=(h        c        e      K        k          l       m          n            T         U          V           v)
@@ -68,7 +68,7 @@ fi
 if [ $opt_help -gt 0 ]
 then
   print_help "Purge postgres DB"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 CFG_init
@@ -82,7 +82,7 @@ wlog "=== Starting purge backup $__version__ by $opt_user ==="
 init_vars "$dbsel"
 dblist=$(create_db_list_from_file "$DBSEL" "$PGDIR" "$DBCKDIR" "$REDB")
 if [ "$BCKFORMAT" == "0" ]; then
-  wlog "-- Backup keep sql files --"
+  wlog "-- Backup keeps sql files --"
 else
   wlog "-- Backupped DBs stored in compress tar files --"
 fi
@@ -121,15 +121,17 @@ if [ $dovalid -gt 0 ]; then
       wlog "Delete monthly file older than $mindate_a (-$XNA months)"
       for fn in $db-*.sql; do
         dtc=${fn: -12: -4}
-        if [[ $dtc =~ ^[0-9]+$ ]]; then
-          :
-        else
+        if [[ ! $dtc =~ ^[0-9]+$ ]]; then
           dtc=99991231
         fi
         dd=${dtc: -2}
         if [ $dd -ne 1 -a $dtc -lt $mindate_r ] || [ $dd -eq 1 -a $dtc -lt $mindate_a ]; then
           if [ $opt_dry_run -gt 0 ]; then
-            echo "File $fn should be deleted!"
+            if [ ${test_mode:-0} -ne 0 ]; then
+              wlog "File $fn should be deleted!"
+            else
+              echo "File $fn should be deleted!"
+            fi
           else
             wlog "File $fn deleted!"
             rm -f $fn

@@ -6,7 +6,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2017 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -23,20 +23,22 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.14
+__version__=1.3.32.3
 
 
 db_act_list() {
 # db_act_list(-C|-c|-k|-l|-w|-z [pos])  # count_all, count, return older pid to kill, list sessions, return active sess to wait
     local act=$1
+    local fw
     local sql sqlc sess_ctr LOG wait4 valid_sess db pid w st older
     local pos=0
     [ -n "$2" ] && pos=$2
+    [ $PSQL_VER -ge 96 ] && fw="wait_event" || fw="waiting"
     if [ "$act" == "-z" ]; then local ord="desc"; else local ord=; fi
     if [ -z "$DB" ]; then
-      sql="select datname,pid,state_change,waiting,state from pg_stat_activity where pid<>pg_backend_pid() order by state_change $ord;"
+      sql="select datname,pid,state_change,$fw,state from pg_stat_activity where pid<>pg_backend_pid() order by state_change $ord;"
     else
-      sql="select datname,pid,state_change,waiting,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid() order by state_change $ord;"
+      sql="select datname,pid,state_change,$fw,state from pg_stat_activity where datname='$DB' and pid<>pg_backend_pid() order by state_change $ord;"
     fi
     if [ "$act" == "-c" -o "$act" == "-C" ]; then
       if [ -z "$DB" -o "$act" == "-C" ]; then
@@ -58,6 +60,9 @@ db_act_list() {
           ((sess_ctr++))
           db=$(echo $db)
           w=$(echo $w)
+          if [ $PSQL_VER -ge 96 ]; then
+            [ -z "$w" ] && w="f" || w="t"
+          fi
           st=$(echo $st)
           pid=$(echo $pid)
           if [ "$act" == "-l" ]; then
@@ -124,9 +129,10 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Check/kill for postgres DB sessions"\
-  "(C) 2016-2017 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Postgresql\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
+PSQL_VER=$(psql --version|grep -Eo "[0-9]\.[0-9]"|tr -d ".")
 if [ $pool -lt 1 ]; then
   pool=$(psql -Upostgres -tc "select setting from pg_settings where name='max_connections';"|head -n1)
   pool=$(echo $pool)

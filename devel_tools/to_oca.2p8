@@ -1,0 +1,15 @@
+#
+# topep8 configuration file (last update 2018-12-08)
+#
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+# Rules to convert Odoo Italia Associazione to OCA source
+fatturapa_document_type:
+    $tokens
+    [0]:    'italy.ade.invoice.type'
+    [6.1]:  'fatturapa.document_type'
+account_tax_kind:
+    $tokens
+    [0]:    'italy.ade.tax.nature'
+    [6.1]:  'account.tax.kind'
