@@ -1,4 +1,4 @@
-# __version__=0.1.22
+# __version__=0.1.23
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -63,7 +63,7 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     fi
   done
 done
-for fn in addsubm.sh clodoo.py clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib.pyc z0librun.py z0librun.pyc; do
+for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib.pyc z0librun.py z0librun.pyc; do
   tgt="$DSTPATH/$fn"
   if [ -L "$tgt"  -o -f "$tgt" ]; then
     [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
