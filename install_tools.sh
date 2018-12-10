@@ -74,7 +74,7 @@ export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
 if [[ ! $1 =~ -.*q ]]; then
   echo "--------------------------------------------------"
-  echo "Please add followinf statements in your login file"
+  echo "Please add following statements in your login file"
   echo "export PYTHONPATH=$DSTPATH:$SRCPATH"
   echo "export PATH=$DSTPATH:\$PATH"
   echo "--------------------------------------------------"
