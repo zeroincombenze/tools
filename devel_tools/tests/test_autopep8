@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.3
+__version__=0.2.2.4
 
 
 test_01() {
@@ -365,9 +365,25 @@ EOF
     test_result "topep8 -AA -b10.0 -Rto_oca 'italy.ade.invoice.type'" "$TESTOUT" "$TESTRES" "diff"
     # Reverse test
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      $RUNDIR/topep8 -qAA -b10.0 -Rto_ooia $TESTOUT -o $TESTOUT
+      $RUNDIR/topep8 -qAA -b10.0 -Rto_oia $TESTOUT -o $TESTOUT
     fi
     test_result "topep8 -AA -b10.0 -Rto_oia 'italy.ade.invoice.type'" "$TESTRES" "$TESTOUT" "diff"
+    #
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      cat <<EOF >$TESTSRC
+    einv_type_model = self.\\
+        env['fatturapa.document_type']
+EOF
+      cat <<EOF >$TESTRES
+# -*- coding: utf-8 -*-
+    einv_type_model = self.\\
+        env['italy.ade.invoice.type']
+
+EOF
+      $RUNDIR/topep8 -qAA -b10.0 -Rto_oia $TESTSRC -o $TESTOUT
+    fi
+    test_result "topep8 -AA -b10.0 -Rto_oia '\\'" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

@@ -35,7 +35,7 @@ Every entry is composed by:
     'parent':       parent rule while state is waiting for parent
 """
 
-import pdb
+# import pdb
 import os
 import re
 import sys
@@ -72,8 +72,27 @@ class topep8():
         self.tokenized = []
         abs_row = 1
         abs_col = 0
+        prior_line = ''
         for (tokid, tokval, (sarow, sacol), (earow, eacol),
                 line) in tokenize.generate_tokens(self.readline):
+            # if tokval == 'FatturaElettronicaHeader':
+            #     import pdb
+            #     pdb.set_trace()
+            if prior_line != line:
+                if prior_line.endswith('\\\n'):
+                    if prior_line[-3] == ' ':
+                        self.tokenized.append([tokenize.NL,
+                                               '\\',
+                                               (0, 1),
+                                               (0, 0)])
+                    else:
+                        self.tokenized.append([tokenize.NL,
+                                               '\\',
+                                               (0, 0),
+                                               (0, 0)])
+
+                prior_line = line
+
             srow = sarow - abs_row
             if sarow != abs_row:
                 scol = sacol
@@ -1083,6 +1102,8 @@ class topep8():
         ln = self.add_whitespace(start)
         ln += tokval
         if tokid in self.NEWLINES:
+            if tokval == '\\':
+                ln += '\n'
             self.last_newlines += 1
         else:
             self.last_newlines = 0

@@ -1,5 +1,5 @@
 #
-# topep8 configuration file (last update 2018-12-08)
+# topep8 configuration file (last update 2018-12-12)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -13,3 +13,11 @@ account_tax_kind:
     $tokens
     [0]:    'italy.ade.tax.nature'
     [6.1]:  'account.tax.kind'
+attach_model:
+    $tokens
+    [0]:    attach_model
+    [6.1]:  attach_obj
+invoice_model:
+    $tokens
+    [0]:    invoice_model
+    [6.1]:  invoice_obj

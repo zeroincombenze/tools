@@ -1,5 +1,5 @@
 #
-# topep8 configuration file (last update 2018-12-08)
+# topep8 configuration file (last update 2018-12-12)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -13,3 +13,31 @@ account_tax_kind:
     $tokens
     [0]:    'account.tax.kind'
     [6.1]:  'italy.ade.tax.nature'
+attach_model:
+    $tokens
+    [0]:    attach_obj
+    [6.1]:  attach_model
+invoice_model:
+    $tokens
+    [0]:    invoice_obj
+    [6.1]:  invoice_model
+msg_pa_wo_ipa:
+    $tokens
+    [0]:    'Partner %s is PA but does not have IPA code.'
+    [6.1]:  'Partner %s is PA but has not IPA code.'
+msg_no_email:
+    $tokens
+    [0]:    'Email address not set.'
+    [6.1]:  'Company Email not set.'
+msg_no_tin:
+    $tokens
+    [0]:    'TIN not set.'
+    [6.1]:  'Company TIN not set.'
+msg_e_related_DDT:
+    $tokens
+    [0]:    'E-invoice Related DDT'
+    [6.1]:  'E-invoice Related DdT'
+msg_related_DDT:
+    $tokens
+    [0]:    'Related DDT'
+    [6.1]:  'Related DdT'
