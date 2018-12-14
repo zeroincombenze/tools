@@ -372,11 +372,13 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
       cat <<EOF >$TESTSRC
+from odoo.addons.l10n_it_fatturapa.models.account import RELATED_DOCUMENT_TYPES
     einv_type_model = self.\\
         env['fatturapa.document_type']
 EOF
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
+from odoo.addons.l10n_it_einvoice_base.models.account import RELATED_DOCUMENT_TYPES
     einv_type_model = self.\\
         env['italy.ade.invoice.type']
 

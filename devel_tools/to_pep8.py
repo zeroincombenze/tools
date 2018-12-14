@@ -367,7 +367,7 @@ class topep8():
                        'string1',
                        'string2',
                        'remark_eol',
-                       'fullname',
+                       # 'fullname',
                        'int',
                        'name' ]
         self.SYNTAX_RE = {
@@ -690,8 +690,8 @@ class topep8():
     def parse_token_text(self, text, state):
         """Parse 1 token from source text"""
         for istkn in self.SYNTAX:
-            if not state['enhanced'] and istkn == 'fullname':
-                continue
+            # if not state['enhanced'] and istkn == 'fullname':
+            #     continue
             x = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
             if not x:
                 continue
@@ -746,7 +746,6 @@ class topep8():
     def compile_1_rule(self, rule):
         """Compile current rule for version <meta> parsing <value>
         """
-        # pdb.set_trace()
         keywords = []
         keyids = []
         min_max_list = []
@@ -797,6 +796,8 @@ class topep8():
             pass
         if text_rule[-1] == '\n':
             text_rule = text_rule[0: -1]
+        if not text_rule:
+            pass
         if text_rule[0] != '#' and text_rule[-1] == '\\':
             text_rule = text_rule[0: -1]
             next_cont = True
@@ -997,7 +998,6 @@ class topep8():
         return tokid, tokval
 
     def tokenize_source(self, ctx=None):
-        # pdb.set_trace()
         ctx = ctx or {}
         tokid = 1
         while tokid:

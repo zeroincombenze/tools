@@ -13,6 +13,14 @@ account_tax_kind:
     $tokens
     [0]:    'account.tax.kind'
     [6.1]:  'italy.ade.tax.nature'
+fatturapa_binding:
+    odoo.addons.$tokens.bindings
+    [0]:    l10n_it_fatturapa
+    [6.1]:  l10n_it_ade
+fatturapa_account:
+    odoo.addons.$tokens.models.account
+    [0]:    l10n_it_fatturapa
+    [6.1]:  l10n_it_einvoice_base
 attach_model:
     $tokens
     [0]:    attach_obj
@@ -21,10 +29,22 @@ invoice_model:
     $tokens
     [0]:    invoice_obj
     [6.1]:  invoice_model
+getPartnerId:
+    $tokens
+    [0]:    getPartnerId
+    [6.1]:  getPartnerCompanyId
 msg_pa_wo_ipa:
     $tokens
     [0]:    'Partner %s is PA but does not have IPA code.'
     [6.1]:  'Partner %s is PA but has not IPA code.'
+msg_line_wo_tax:
+    $tokens
+    [0]:    'Invoice line %s does not have tax.'
+    [6.1]:  'Invoice line %s has not tax.'
+msg_line_wo_tax2:
+    $tokens
+    [0]:    'Invoice line %s does not have tax'
+    [6.1]:  'Invoice line %s has not tax.'
 msg_no_email:
     $tokens
     [0]:    'Email address not set.'
@@ -41,3 +61,7 @@ msg_related_DDT:
     $tokens
     [0]:    'Related DDT'
     [6.1]:  'Related DdT'
+msg_line_wo_tax2:
+    $tokens
+    [0]:    "No 'nature' field for tax %s"
+    [6.1]:  "No 'nature' field for tax %s."

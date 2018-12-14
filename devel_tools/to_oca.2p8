@@ -13,6 +13,14 @@ account_tax_kind:
     $tokens
     [0]:    'italy.ade.tax.nature'
     [6.1]:  'account.tax.kind'
+fatturapa_binding:
+    odoo.addons.$tokens.bindings
+    [0]:    l10n_it_ade
+    [6.1]:  l10n_it_fatturapa
+fatturapa_account:
+    odoo.addons.$tokens.models.account
+    [0]:    l10n_it_einvoice_base
+    [6.1]:  l10n_it_fatturapa
 attach_model:
     $tokens
     [0]:    attach_model
@@ -21,3 +29,7 @@ invoice_model:
     $tokens
     [0]:    invoice_model
     [6.1]:  invoice_obj
+getPartnerId:
+    $tokens
+    [0]:    getPartnerCompanyId
+    [6.1]:  getPartnerId
