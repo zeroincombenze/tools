@@ -11,6 +11,9 @@ status	msgid	msgstr
 	Action	Azione
 	Actions	Azioni
 	Activity Progress	Stato avanzamento lavori
+	Add an internal note...	Aggiungi nota interna...
+	Add Pickings to DDT	Aggiungi prelievo al DdT
+	Add to DDT	Aggiungi al DdT
 	Address	Indirizzo
 	Addressee Code	Codice destinatario
 	Addressee PEC	PEC destinatario
@@ -21,6 +24,7 @@ status	msgid	msgstr
 	Agreement	Convenzione
 	Alert	Avviso
 	Amount	Importo
+	Amount in Words:	Importo in parole:
 	Amount of Penalty	Importo della sanzione
 	Amount Tax	Importo imposta
 	Amount Untaxed	Importo imponibile
@@ -33,22 +37,40 @@ status	msgid	msgstr
 	Attached report	Documento allegato
 	Attachment	Allegato
 	Attendees	Partecipanti
+	Automatically create the DDT	Crea automaticamente il DdT
 	Background	Sfondo
 	Balance Sheet	Stato patrimoniale
 	Bank Accounts	C/c bancari
 	Bank Name	Nome banca
 	Bank Statement	Estratto conto bancario
 	Bill	Fattura
+	Bill &amp; Ship To:	Indirizzo di fatturazione e consegna:
+	Bill To:	Indirizzo di fatturazione:
+	Billing Partner	Soggetto di fatturazione
+	Body Font(px):	Font corpo (px):
 	Bookmark	Segnalibro
+	Box	Scatole
+	Box-Pallet	Scatole/Pallet
+	Bulk	Sfuso
 	Button	Pulsante
 	Cadaster Code	Codice catastale
 	Cancel	Annulla
 	Cancel Invoice	Annulla fattura
 	Cancel Invoices	Annulla fatture
 	Cancelled	Annullato
+	CANCELLED INVOICE	FATTURA ANNULLATA
+	Cancelled Invoice	Fattura annullata
+	Cancelled Invoice #	Fattura annullata N.
+	Carriage Condition	Condizione di Trasporto/Reso
+	Carriage Conditions	Condizioni di Trasporto/Reso
+	Carriage Forward	Porto Franco (DDP) 
+	Carriage Paid	Porto Assegnato (EXW) 
 	Carrier	Vettore
+	Carrier's Signature	Firma del vettore
 	Cash Journal	Registro cassa
+	Charged in Invoice	Addebito in fattura (DDU) 
 	Check	Controllo
+	Check if picking done	Controlla se il prelievo è completato
 	Check if reverse charge EU invoices journal	Seleziona se registro fatture con inversione contabile
 	Check if this is a E-Invoice Journal	Seleziona se registro e-fatture
 	Check if this is a Proforma Journal	Selezione se registro avvisi di parcella
@@ -58,13 +80,17 @@ status	msgid	msgstr
 	Cities	Città
 	City is not set for %s.	Città non impostata per %s.
 	City not set.	Città non impostata
-	City's ZIP code. (Country dependent).	Cap della città (dipende dalla nazione)
+	City's ZIP code. (Country dependent).	CAP della città (dipende dalla nazione)
+	Client Ref:	Rif. Cliente
 	Code	Codice
+	Code group	Codice Raggruppamento
+	Commitment Date:	Data di conferma:
 	Company %s TIN not set.	P.IVA azienda %s non impostata.
 	Company Country not set.	Nazione dell'azienda non impostata.
 	Company does not have fiscal code or VAT	L'azienda non ha ne P.IVA ne codice fiscale
 	Company does not have fiscal code or VAT number.	Codice fiscale o partita IVA dell'azienda non impostati.
 	Company Email not set.	Email dell'azienda non impostata
+	Company Name Color	Nome colore aziendale
 	Company Telephone number not set.	Numero di telefono dell'azienda non impostato.
 	Company TIN not set.	Partita IVA aziendale non impostata
 	Configuration	Configurazione
@@ -87,12 +113,14 @@ status	msgid	msgstr
 	Credit amount	Importo Avere
 	CUP Code	Codice CUP
 	Currency	Divisa
+	Currency Name	Nome divisa
 	Current	Attuale
 	Customer	Cliente
 	Customer %s: city is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la città.
 	Customer %s: country is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la nazione.
 	Customer %s: street is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario l'indirizzo.
 	Customer %s: ZIP is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario il CAP.
+	Customer Address	Indirizzo cliente
 	Customer city is not set.	Città del cliente non impostata.
 	Customer city not set.	Città cliente non impostata
 	Customer country is not set.	Nazione del cliente non impostata.
@@ -106,27 +134,56 @@ status	msgid	msgstr
 	Customer ZIP not set.	CAP cliente non impostato
 	Dashboard	Cruscotto
 	Data of Third-Party Issuer Intermediary who emits the invoice on behalf of the seller/provider	Dati relativi al terzo intermediario soggetto emittente che emette la fattura per conto del cedente/prestatore
+	Date	Data
+	Date Ordered:	Data ordinato:
+	DDT	DdT
+	DdT	DdT
+	Ddt	DdT
+	DDT Create Invoice	Crea fattura da DdT
+	DdT Data	Dati DdT
+	DDT Date	Data DdT
+	Ddt id	Id DdT
+	Ddt ids	Id DdT
+	DDT Invoicing	Fatturazione DdT
+	DDT invoicing group	Raggr. Fatture da DdT
+	Ddt line	Riga DdT
+	DdT Number	Numero DdT
+	DDT number:	Numero DdT:
+	Ddt sequence	Sequenza DdT
+	DDT Type	Tipo DdT
+	DdT Type	Tipo DDT
 	Debit	Dare
 	Debit amount	Importo Dare
 	Default	Predefinito
+	Default Carriage Condition	Condizioni di Trasporto predefinite
+	Default Description of Goods	Aspetto dei beni predefinito
+	Default Method of Transportation	Trasporto a mezzo (predefinito)
+	Default Reason for Transportation	Causale di trasporto (predefinita)
 	Deferred payability	Esigibilità differita
 	Delivery Address	Indirizzo di consegna
+	Delivery Address	Indirizzo consegna
 	Delivery Date Time	Data e ora di consegna
-	Description	Descrizione
 	Description	Descrizione
 	Description for Customers 	Descrizione per i clienti
 	Description for Delivery Orders 	Descrizione per ordini di consegna
 	Description for Internal Transfers 	Descrizione per trasferimenti interni
 	Description for Receptions 	Descrizione per entrate merci
 	Description for Vendors 	Descrizione per i fornitori
+	Description of Goods	Aspetto dei beni
+	Descriptions of Goods	Aspetto dei beni
 	Destination Address	Indirizzo di destinazione
 	Discount	Sconto
+	Discount (%)	Sconto (%)
 	Discount or Supplement Details	Dettagli sconto o maggiorazione
 	Display Name	Visualizza nome
 	District	Distretto/provincia
+	Document {d} has invoice linked	Il documento {d} ha una fattura collegata
 	Document ID	ID documento
 	Document Type	Tipo documento
 	Documents	Documenti
+	Draft Invoice	Bozza fattura
+	Draft Invoice #	Bozza fattura N
+	Driver's Signature	Firma Conducente
 	E-invoice attachment changed	Allegato e-fattura modificato
 	E-invoice attachments	Allegati e-fattura
 	E-invoice Discount Supplement Data	Dati sconto maggiorazione e-fattura
@@ -154,6 +211,7 @@ status	msgid	msgstr
 	Embedded	Integrato
 	Employee	Dipendente
 	Enable	Abilita
+	End Date	Data finale
 	EORI Code	Codice EORI
 	EXJ	ACQ
 	Expense Account 	Conto di costo
@@ -178,14 +236,24 @@ status	msgid	msgstr
 	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
 	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
+	Force Net Weight	Forza peso netto
 	Format	Formato
 	Found another partner with same vat: %s	Trovato un altro soggetto con la stessa partita IVA: %s
+	From:	Da:
+	Goods Description	Aspetto esteriore dei beni
+	Goods Description	Aspetto dei beni
+	Goods on approval	Conto visione
 	Graph	Quadri
+	Gross Weight	Peso Lordo
+	Gross Weight	Peso lordo
+	Group By	Raggruppa per
 	Has pdf invoice print	Contiene stampa fattura in PDF
 	Help	Aiuto
 	History	Cronologia
+	ID	ID
 	If you want to add a PDF version of the invoice into the XML, select which one	Per aggiungere un PDF della fattura dentro l'XML selezionarne la versione
 	Immediate payability	Esigibilità immediata
+	Impossible to put in pack a package without details	Impossibile inserire nel collo una confezione senza dettagli
 	Incidental Charges	Spese accessorie
 	Income Account 	Conto di ricavo
 	Income Statement	Conto Economico
@@ -197,6 +265,7 @@ status	msgid	msgstr
 	Intermediary	Intermediario
 	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
+	Inventory Locations	Locationi d'Inventario
 	Invoice	Fattura
 	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
 	Invoice %s has FatturaPA Export File yet	Il file della e-fattura %s è già stato esportato
@@ -207,6 +276,8 @@ status	msgid	msgstr
 	Invoice paid	Fattura pagata
 	Invoice Refund	Nota di Credito
 	Invoice Type	Tipo Fattura
+	Invoiced	Fatturato
+	Invoices from DDT	Fatture da DdT
 	Invoices must belong to the same company	Le fatture devono appartenere alla stessa azienda
 	Invoices must belong to the same partner.	Le fatture devono appartenere allo stesso soggetto.
 	Invoicing	Contabilità
@@ -244,6 +315,8 @@ status	msgid	msgstr
 	Master Data	Dati principali
 	Maximum Date for Payment	Data massima per il pagamento
 	Member Type	Tipo socio
+	Method of Transportation	Trasporto a mezzo
+	Methods of Transportation	Trasporto a mezzo
 	Miscellaneous Journal	Sezionale generico
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
 	Natural Person	Persona fisica
@@ -254,9 +327,15 @@ status	msgid	msgstr
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
 	No taxable nature	Natura base non imponibile
 	Non taxable nature	Natura esenzione
+	Not every picking is in done status	Non tutti i prelievi sono completati
+	Note	Nota
 	Notes	Note
+	Nothing to invoice	Non ci sono DdT da fatturare
 	Number of Items	Numero di righe
+	One DDT - One Invoice	Un DdT - Una fattura
+	or	o
 	Order	Ordine
+	Orders:	Ordini:
 	Order Agreement Code	Codice commessa
 	Organization Address	Indirizzo organizzazione
 	Organization Country	Nazione organizzazione
@@ -273,9 +352,12 @@ status	msgid	msgstr
 	PA Code for Partner	Codice PA del soggetto
 	PA Code for this Record	Codice PA per questa registrazione
 	PA partner reference	Riferimento amministrazione PA
-	Package	Collo
+	Package	Confezionamento
+	Package Preparation	Preparazione confezionamento
+	Package Preparation Line	Riga preparazione confezionamento
 	Packaging 	Imballaggio
 	Packing	Imballo
+	Parcels	Colli
 	Partner	Soggetto
 	Partner %s Addressee Code must be 7 characters long.	Il codice destinatario del soggetto %s deve essere lungo 7 caratteri.
 	Partner %s is not PA but does not have Addressee Code.	Il soggetto %s, che non è una PA, non possiede un codice destinatario.
@@ -313,7 +395,12 @@ status	msgid	msgstr
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percentage	Percentuale
 	Phase of Activity Progress	Fase dello stato avanzamento lavori
-	Pick up	Consegna
+	Pick up	Prelievo
+	Pick up time	Ora ritiro
+	Picking	Prelievo
+	Picking %s already in ddt	Ordine di prelievo %s già nel DdT
+	Picking ids	ID prelievo
+	Pickings	Prelievi
 	Possible total amount rounding on the document (negative sign allowed)	Eventuale arrotondamento sull'importo totale del documento (è ammesso il segno negativo)
 	Post	Registra
 	Post Entry	Registrazione contabile
@@ -341,11 +428,15 @@ status	msgid	msgstr
 	Rea Number	Numero REA
 	REA Office	Ufficio REA
 	Rea Office	Ufficio REA
+	Reason For Transportation	Causale trasporto
+	Reason for Transportation	Causale trasporto
+	Reasons for Transportation	Causali trasporto
 	Receivables 	Crediti
 	Reception	Entrata merce
 	Receptions 	Entrate merci
 	Recipient	Destinatario
 	Recipient Code	Codice destinatario
+	Recipient's Signature	Firma destinatario
 	Recipients	Destinatari
 	Reconcile	Riconciliazione
 	Reconcile Entries	Riconcilia registrazioni
@@ -355,7 +446,9 @@ status	msgid	msgstr
 	Register Province	Provincia iscrizione
 	Register Registration Date	Data iscrizione albo
 	Registration Date	Data di registrazione
-	Related DDT	DDT collegati
+	Related DDT	DdT collegati
+	Related DDTs	DdT correlati
+	Related DdTs	DdT correlati
 	Related Documents	Documenti collegati
 	Related Documents Type	Tipo documenti collegati
 	Related Invoice	Fattura collegata
@@ -377,22 +470,51 @@ status	msgid	msgstr
 	Resource Name	Nome risorsa
 	Restore	Ripristinare
 	Results	Risultati
+	Returned	Reso
 	Reverse Charge Journal	Registro inversione contabile
 	Rounding	Arrotondamento
 	SAJ	FAT
+	Sale	Vendita
 	Sale Journal	Registro vendite
+	Sale order line	Riga ordine di vendita
 	Sales	Vendite
 	Sales Journal	Registro vendite
+	Sales Order	Ordine di vendita
 	Salesperson	Commerciale
+	Search DDT	Cerca DdT
 	Search Incoming Mail Servers	Cerca server posta in arrivo
+	Selected Picking %s have different carriage condition	I prelievi selezionati %s hanno condizioni di trasporto differenti
+	Selected Picking %s have different goods description	I prelievi selezionati %s hanno differenti aspetto esteriore dei beni
+	Selected Picking %s have different Partner	I prelievi selezionati %s sono a soggetti diversi
+	Selected Picking %s have different transportation method	I prelievi selezionati %s hanno metodo di trasporto differenti
+	Selected Picking %s have different transportation reason	I prelievi selezionati %s hanno Causali di trasporto differenti
+	Selected Picking is already linked to DDT: %s	I prelievi selezionati sono già collegati al DdT: %s
+	Selected Pickings have different carriage condition	I Picking selezionati hanno il Reso Merce differente
+	Selected pickings have different destinations	I Picking selezionati hanno destinazioni differenti
+	Selected Pickings have different goods description	I Picking selezionati hanno una differente Descrizione dell'aspetto esteriore dei beni
+	Selected Pickings have different parcels	I Picking selezionati hanno colli differenti
+	Selected Pickings have different Partner	I prelievi selezionati sono a soggetti diversi
+	Selected Pickings have different transportation method	I Picking selezionati hanno un metodo di trasporto differente
+	Selected Pickings have different transportation reason	I Picking selezionati hanno una Causale di trasporto differente
 	Self Invoice Partner	Soggetto auto-fattura
 	Sender	Mittente
 	Set	Imposta
-	Set to draft	Bozza non definitiva
+	Set done	Completato
+	Set to draft	Bozza
+	Setting	Impostazione
 	Settings	Impostazioni
+	Shipping Address	Indirizzo di spedizione
+	Shipping Informations	Informazioni spedizione
+	Shipping Partner	Consegna a soggetto
+	Shipping Partners	Soggetti delle consegne
+	Show prices and         discounts in ddt report	Mostra prezzi e sconti nella stampa del DdT
+	Show prices on report	Mostra prezzi su stampa
+	Size	Dimensioni
 	Split payment	Scissione pagamenti
 	Stable Organization	Stabile organizzazione
 	Stamp Amount	Importo bollo
+	Start Date	Data iniziale
+	State	Stato
 	Status	Stato
 	Stored Filename	Nome file memorizzato
 	Street is not set for %s.	Indirizzo non impostato per %s.
@@ -420,6 +542,7 @@ status	msgid	msgstr
 	The parent company	L'azienda controllante
 	The record id this is attached to.	L'ID del record a cui questo è collegato.
 	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
+	There is no invoicable line.	Non ci sono righe fatturabili
 	Third Party/Sender	Terzo/Trasmittente
 	Third Person	Soggetto terzo
 	This attachment contains the PDF report of the linked invoice	Questo allegato contiene il documento PDF della fattura collegata
@@ -427,14 +550,22 @@ status	msgid	msgstr
 	Thumbnail	Miniatura
 	Timesheet	Foglio ore
 	TIN	P.IVA
+	To Be Invoiced	Da Fatturare
+	To be Invoiced	Da fatturare
 	Too many taxes for invoice line %s	Troppe aliquote IVA per la riga fattura %s.
 	Too many taxes for invoice line %s.	Troppe imposte per la riga fattura %s.
 	Total Amount	Importo totale
 	Total Credit	Totale Avere
 	Total Debit	Totale Dare
+	Transfer	Trasferimento
+	Transportation Method	Trasporto a mezzo
+	Transportation Reason	Causale del trasporto
 	True if all the invoices have a printed report attached in the XML, False otherwise.	Vero se tutte le fatture hanno un documento di stampa allegato all'XML, falso altrimenti.
 	Type	Tipo
+	Type	Tipo
+	Type DDT	Tipo DdT
 	Unit Price	Prezzo unitario
+	Unit Price	Prezzo Unitario
 	Update	Aggiornamento
 	Upper administration (Province	Unità amministrativa di livello superiore (provincia District or Federal State).
 	"Use ""."" (dot) to search with abbreviation"	Utilizza “.” (il punto) per le abbreviazioni
@@ -442,18 +573,21 @@ status	msgid	msgstr
 	Username	Nome utente
 	Validated	Confermato
 	VAT number and fiscal code are not set for %s.	P:IVA e codice fiscale non impostati per %s.
+	VAT number:	Partita IVA:
 	VAT payability	Esigibilità IVA
 	VAT Tax Rate	Aliquota IVA
 	Vendor	Fornitore
 	Vendor Credit Notes	Note credito fornitori
 	Vendor Taxes	IVA da fornitori
+	View DdT	Vedi DdT
 	Virtual Stamp	Bollo virtuale
+	Volume	Volume
 	Warning	Attenzione
 	Warning!	Attenzione!
 	Web Site	Sito web
-	Weight 	Peso
-	Wizard	Procedura giudata
-	Workflow	Flussso di lavoro
+	Weight	Peso
+	Wizard	Procedura guidata
+	Workflow	Flusso di lavoro
 	You can either upload a file from your computer or copy/paste an internet link to your file.	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file.
 	Your company City is not set.	Città azienda non impostata.
 	Your company Country is not set.	Nazione azienda non impostata.
