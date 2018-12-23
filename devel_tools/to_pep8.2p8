@@ -1,5 +1,5 @@
 #
-# topep8 configuration file (last update 2018-12-08)
+# topep8 configuration file (last update 2018-12-22)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -13,8 +13,8 @@
 #   Paramaters may be:
 #       [VER] => Statement to replace/evaluate to specific odoo version
 #       [0] => Statement to replace/evaluate to all odoo versions
-#       action => action to apply is rule is validated;
-#                 currently may be just replace
+#       actions => actions to apply is rule is validated;
+#                  currently may be just replace
 # Example:
 # c:                                    # Rule name is 'c'
 #     class $name($more):               # Python text to match
@@ -42,7 +42,7 @@
 #   $expr: like more but match next token only at the same paren level
 #   $tokens: replace macro with specific odoo version replacements/evaluate
 #   $name: match any python name, i.e. a but not "a"
-#   $text: match any text/unicode, i.e "a" but not a
+#   $string: match any string/unicode, i.e "a" but not a
 #   $?: previous token may be found zero or one time
 #   $*: previous token may be found zero, one or more time
 #   $+: previous token may be found one or more time
@@ -53,12 +53,12 @@
 #
 # Rule import orm
 import_orm_1_78:
-    from $tokens import $more 
+    from $tokens import $any
     [6.1]:  openerp.osv
     [8.0]:  openerp
     [10.0]: odoo
 import_orm_2_78:
-    from $more import $more 
+    from $more import $any
     [6.1]: orm
     [8.0]: models
 # Rule class memory
@@ -75,6 +75,12 @@ class_transient_78:
     [7.0]: orm.TransientModel
     [8.0]: models.TransientModel
 #
+# decimal_precision
+decimal_precision:
+    import $tokens.addons.decimal_precision
+    [6.1]:  openerp
+    [10.0]: odoo
+#
 # Remark openerp
 remark_openerp: # http://openerp.com
     [0]: http://openerp.com
@@ -86,17 +92,54 @@ remark_openerp2: # OpenERP
     [6.1]: Odoo
 #
 # Remark license
-remark_license: # License
+remark_license1: # License
     [6.1]: AGPL-3.0
     [9.0]: LGPL-3.0
 #
 # Remark license
 remark_license2: # License
+    [0]: (http://www.gnu.org/licenses)
+    [6.1]: (https://www.gnu.org/licenses)
+#
+# Remark license
+remark_license3: # License
     [6.1]: (http://www.gnu.org/licenses/agpl)
     [9.0]: (http://www.gnu.org/licenses/lgpl)
+#
+# Remark license
+remark_license4: # License
+    [6.1]: (https://www.gnu.org/licenses/agpl)
+    [9.0]: (https://www.gnu.org/licenses/lgpl)
 #
 # Rule instance basestring
 instance_basestring:
     isinstance($any, basestring)
     [0]: basestring
     [6.1]: string_types
+#
+# Rule fields
+declare_field_to_7:
+    $name = fields.$any($expr)
+    actions: fields_to_7
+    parse_state: regular,fields_to_7
+    [0]:  type
+#
+# Rule fields
+init_field_to_8:
+    _columns = {
+    actions: init_fields_to_8
+    [0]:  type
+#
+# Rule fields
+declare_field_to_8:
+    $string: fields.$any($expr)
+    actions: fields_to_8
+    parse_state: fields_to_8
+    [0]:  type
+#
+# Rule fields
+reset_field_to_8:
+    }
+    actions: reset_to_8
+    parse_state: fields_to_8
+    [0]:  type

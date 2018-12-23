@@ -14,6 +14,8 @@ Based on rule file.
 All rules are stored in self.LEX_RULES dictionary by rule id (name).
 Every rule has a python name; if name ends with _78, rule may not applied
 to odoo 8.0 if -u switch is supplied: means convert to odoo 8.0 holding old api
+if name ends with to_8, rule is applied to version 8.0+
+if name ands with to_7, rule is applied to version 7.0-
 
 Every entry is composed by:
     'regex':        regular expresion to validate rule (text)
@@ -21,16 +23,19 @@ Every entry is composed by:
     'keyids':       list of keyids of above 'regex'
     'min_max_list': list of min/max repetition for every above keyword/keyid
                     item (-1 means no limit)
-    'action':       action to apply when rule is validated
-    'meta':         dictionay with Odoo version keywords to replace/evaluate
-    'meta_ids':     dictionay with Odoo version keyids to replace/evaluate
+    'actions':      list of actions to apply when rule is validated
+    'parse_state':  parse taste to validate rule
+    'meta':         dictionay of Odoo version with keywords to replace/evaluate
+    'meta_ids':     dictionay of Odoo version with keyids to replace/evaluate
     'state':        rule status, may be
                     ('active', 'wait4parent', 'wait4more', 'wait4expr')
     'wf_id':        current id in parsing workflow
     'min_max':      min and max repetition for current token
-    'level':        level of parens when waiting for expression
+    'level':        level of parens when waiting for expression end
     'matched_ids':  matched tokens list from source to replace against
                     parameters, while rule parsing
+    'tokeno_start': # of source token, starts match to rule
+    'tokeno_stop':  # of source token, ends match to rule
     'token_id':     next param token to match
     'parent':       parent rule while state is waiting for parent
 """
@@ -75,9 +80,6 @@ class topep8():
         prior_line = ''
         for (tokid, tokval, (sarow, sacol), (earow, eacol),
                 line) in tokenize.generate_tokens(self.readline):
-            # if tokval == 'FatturaElettronicaHeader':
-            #     import pdb
-            #     pdb.set_trace()
             if prior_line != line:
                 if prior_line.endswith('\\\n'):
                     if prior_line[-3] == ' ':
@@ -398,6 +400,35 @@ class topep8():
             'name': re.compile(r'[a-zA-Z_]\w*'),
         }
 
+        self.SYNTAX_TNL_ID = {
+            'space': tokenize.NOOP,
+            'escape': tokenize.NOOP,
+            'lparen': tokenize.LPAR,
+            'rparen': tokenize.RPAR,
+            'lbrace': tokenize.LBRACE,
+            'rbrace': tokenize.RBRACE,
+            'lbracket': tokenize.LBRACE,
+            'rbracket': tokenize.RBRACE,
+            'dot': tokenize.DOT,
+            'comma': tokenize.COMMA,
+            'colon': tokenize.COLON,
+            'assign': tokenize.EQUAL,
+            'op': tokenize.OP,
+            'strdoc1': tokenize.DOC,
+            'strdoc2': tokenize.DOC,
+            'string1': tokenize.STRING,
+            'escstr1': tokenize.OP,
+            'endstr1': tokenize.STRING,
+            'string2': tokenize.STRING,
+            'escstr2': tokenize.OP,
+            'endstr2': tokenize.STRING,
+            'remark_eol': tokenize.COMMENT,
+            'fullname': tokenize.NAME,
+            'int': tokenize.NUMBER,
+            'name': tokenize.NAME,
+            'string': tokenize.STRING,
+        }
+
     def set_active(self, ir):
         """Set rule state to active"""
         self.LEX_RULES[ir]['state'] = 'active'
@@ -410,6 +441,10 @@ class topep8():
         self.LEX_RULES[ir]['level'] = 0
         self.LEX_RULES[ir]['matched_ids'] = []
         self.LEX_RULES[ir]['token_id'] = 0
+        self.LEX_RULES[ir]['tokeno_start'] = -1
+        self.LEX_RULES[ir]['tokeno_stop'] = -1
+        self.LEX_RULES[ir]['tokeno_indent'] = -1
+
 
     def init_rule_state(self, ir):
         """Initialize rule state"""
@@ -482,6 +517,9 @@ class topep8():
         keywords = self.LEX_RULES[ir]['keywords']
         return keywords[self.cur_wf_id(ir)]
 
+    def in_states(self, ir):
+        return self.LEX_RULES[ir]['parse_state']
+
     def matches(self, ir, tokid, tokval):
         """Check if tokval matches rule token or tokid matches rule id"""
         if self.cur_tokval(ir):
@@ -496,6 +534,8 @@ class topep8():
         return self.LEX_RULES[ir]['token_id']
 
     def store_value_to_replace(self, ctx, ir, tokid, tokval):
+        if self.LEX_RULES[ir]['tokeno_start'] < 0:
+            self.LEX_RULES[ir]['tokeno_start'] = self.tokeno - 1
         param_list_from, ids_from_list = self.get_params_from_rule(
             ir, ctx['from_ver'], 'from')
         if tokid == tokenize.COMMENT:
@@ -521,7 +561,6 @@ class topep8():
             if ids_from_list[i] == tokenize.MORE:
                 if tokval == param_list_from[i + 1]:
                     self.LEX_RULES[ir]['token_id'] += 1
-            # elif not param_list_from[i] or tokval == param_list_from[i]:
             elif tokval == param_list_from[i]:
                 self.LEX_RULES[ir]['matched_ids'].append(self.tokeno - 1)
                 self.LEX_RULES[ir]['token_id'] += 1
@@ -530,7 +569,9 @@ class topep8():
                 self.LEX_RULES[ir]['token_id'] = 0
 
     def do_action(self, ctx, ir):
-        if self.LEX_RULES[ir]['action'] == 'replace':
+        if 'fields_to_7' not in self.LEX_RULES[ir]['actions']:
+            self.reset_action(ctx)
+        if 'replace' in self.LEX_RULES[ir]['actions']:
             if self.LEX_RULES[ir]['matched_ids']:
                 param_list_to, ids_from_list = self.get_params_from_rule(
                     ir, ctx['to_ver'], 'to')
@@ -556,7 +597,92 @@ class topep8():
                                              param_list_to[i])
                     i += 1
                     tokeno += 1
+        if 'fields_to_7' in self.LEX_RULES[ir]['actions']:
+            tokeno = self.LEX_RULES[ir]['tokeno_start']
+            if self.tokenized[tokeno - 1][0] == tokenize.INDENT:
+                self.LEX_RULES[ir]['tokeno_indent'] = tokeno - 1
+            if ctx['parse_state'] == 'regular':
+                ctx['parse_state'] = 'fields_to_7'
+                self.insert_source_token(tokeno,
+                                         tokenize.NAME,
+                                         '_columns')
+                tokeno += 1
+                self.insert_source_token(tokeno,
+                                         tokenize.EQUAL,
+                                         '=',
+                                         start=[0,1])
+                tokeno += 1
+                self.insert_source_token(tokeno,
+                                         tokenize.LBRACE,
+                                         '{',
+                                         start=[0,1])
+                tokeno += 1
+                self.insert_source_token(tokeno,
+                                         tokenize.NEWLINE,
+                                         '\n')
+            if self.LEX_RULES[ir]['tokeno_indent'] >= 0:
+                indent = self.tokenized[self.LEX_RULES[ir]['tokeno_indent']]
+                tokeno += 1
+                self.insert_source_token(tokeno,
+                                         indent[0],
+                                         indent[1] + '    ',
+                                         start=indent[2])
+                tokeno += 1
+                start = [0, 0]
+            else:
+                start = [0, 4]
+            self.update_source_token(tokeno,
+                                     tokenize.STRING,
+                                     "'%s'" % self.tokenized[tokeno][1],
+                                     start=start)
+            tokeno += 1
+            self.update_source_token(tokeno,
+                                     tokenize.COLON,
+                                     ':',
+                                     start=[0,-1])
+            tokeno += 3
+            self.update_source_token(tokeno,
+                                     tokenize.NAME,
+                                     self.tokenized[tokeno][1].lower())
+            tokeno = self.tokeno
+            self.insert_source_token(tokeno,
+                                     tokenize.COMMA,
+                                     ',')
+        if 'fields_to_8' in self.LEX_RULES[ir]['actions']:
+            tokeno = self.LEX_RULES[ir]['tokeno_start']
+            self.update_source_token(tokeno,
+                                     tokenize.NAME,
+                                     self.tokenized[tokeno][1][1:-1],
+                                     start=[0,-4])
+            tokeno += 1
+            self.update_source_token(tokeno,
+                                     tokenize.EQUAL,
+                                     '=',
+                                     start=[0, 1])
+            if self.tokenized[self.tokeno][1] == ',':
+                self.delete_source_token(self.tokeno)
+        if 'reset_to_8' in self.LEX_RULES[ir]['actions']:
+            self.delete_source_token(self.tokeno - 1)
+            ctx['parse_state'] = 'regular'
+        if 'init_fields_to_8' in self.LEX_RULES[ir]['actions']:
+            ctx['parse_state'] = 'fields_to_8'
+            tokeno = self.LEX_RULES[ir]['tokeno_start']
+            self.delete_source_token(tokeno)
+            self.delete_source_token(tokeno)
+            self.delete_source_token(tokeno)
 
+    def reset_action(self, ctx):
+        if ctx['parse_state'] == 'fields_to_7':
+            tokeno = self.tokeno
+            self.insert_source_token(tokeno,
+                                     tokenize.NEWLINE,
+                                     '\n')
+            tokeno += 1
+            self.insert_source_token(tokeno,
+                                     tokenize.RBRACE,
+                                     '}',
+                                     start=[1,4])
+            ctx['parse_state'] = 'regular'
 
     def get_key_n_id_from_rule(self, ir):
         return self.LEX_RULES[ir]['keywords'], self.LEX_RULES[ir]['keyids']
@@ -596,13 +722,19 @@ class topep8():
         tokid = tokenize.DOC
         return state, tokid, tokval, [1, 1]
 
-    def parse_remarkeol_rule(self, value, state, x):
+    def parse_strdoc1_rule(self, value, state, x):
+        return self.parse_doc_rule(self, value, state, x)
+
+    def parse_strdoc2_rule(self, value, state, x):
+        return self.parse_doc_rule(self, value, state, x)
+
+    def parse_remark_eol_rule(self, value, state, x):
         """Found token # (hash), all following it until eol is comment"""
         state, tokval = self.parse_eol_rule(value, state, x)
         tokid = tokenize.COMMENT
         return state, tokid, tokval, [1, 1]
 
-    def parse_escape_rule(self, value, state):
+    def parse_escape_rule(self, value, state, x):
         """Escape token replaces single python keyword. Escape rule may be:
         $any     means any python token
         $more    means zero, one o more python tokens
@@ -637,7 +769,7 @@ class topep8():
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
         state['ipos'] += x.end() + 1
         tokval = value[i + 1:state['ipos']]
-        if tokval in ('name', 'any', 'tokens'):
+        if tokval in ('name', 'any', 'tokens', 'string'):
             tokid = getattr(tokenize, tokval.upper())
             tokval = False
         elif tokval in ('more', 'expr'):
@@ -666,10 +798,10 @@ class topep8():
         tokid = tokenize.STRING
         return state, tokid, tokval, [1, 1]
 
-    def parse_txt1_rule(self, value, state):
+    def parse_string1_rule(self, value, state, x):
         return self.parse_txt_rule(value, state, 'endstr1', 'escstr1')
 
-    def parse_txt2_rule(self, value, state):
+    def parse_string2_rule(self, value, state, x):
         return self.parse_txt_rule(value, state, 'endstr2', 'escstr2')
 
     def parse_generic_rule(self, value, ipos, x, token_name):
@@ -679,19 +811,17 @@ class topep8():
         tokid = token_name
         return tokid, tokval, ipos
 
-    def init_state(self, enhanced=False, ident=False):
+    def init_state(self, enhanced=False, indent=False):
         return {
             'ipos': 0,
-            'replacing': False,
+            # 'replacing': False,
             'enhanced': enhanced,
-            'ident': ident,
+            'indent': indent,
         }
 
     def parse_token_text(self, text, state):
         """Parse 1 token from source text"""
         for istkn in self.SYNTAX:
-            # if not state['enhanced'] and istkn == 'fullname':
-            #     continue
             x = self.SYNTAX_RE[istkn].match(text[state['ipos']:])
             if not x:
                 continue
@@ -702,41 +832,25 @@ class topep8():
             i = state['ipos']
             if istkn in ('space', ):
                 state['ipos'] += x.end()
-                if not state['ident'] or i > 0:
+                if not state['indent'] or i > 0:
                     continue
                 tokid = tokenize.INDENT
-            elif istkn == 'escape':
-                state, tokid, tokval, min_max = self.parse_escape_rule(
-                    text, state)
-                # Token is one of prior repetition: $? $* $+
-                if tokid == -1:
-                    min_max_list[-1] = min_max
-                    continue
-                # elif tokid == tokenize.NAME:
-                #     state['replacing'] = 1
-                # elif tokid == tokenize.START_CAPTURE:
-                #     state['replacing'] = True
-                # elif tokid == tokenize.STOP_CAPTURE:
-                #     state['replacing'] = False
-            elif state['enhanced'] and istkn == 'remark_eol':
-                state, tokid, tokval, min_max = self.parse_remarkeol_rule(
-                    text, state, x)
-            elif istkn in ('strdoc1',
-                           'strdoc2'):
-                state, tokid, tokval, min_max = self.parse_doc_rule(
-                    text, state, x)
-            elif istkn == 'string1':
-                state, tokid, tokval, min_max = self.parse_txt1_rule(
-                    text, state)
-            elif istkn == 'string2':
-                state, tokid, tokval, min_max = self.parse_txt2_rule(
-                    text, state)
-            elif istkn == 'name':
-                tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                    text, state['ipos'], x, tokenize.NAME)
+            elif not state['enhanced'] and istkn == 'remark_eol':
+                continue
             else:
-                tokid, tokval, state['ipos'] = self.parse_generic_rule(
-                    text, state['ipos'], x, tokenize.OP)
+                action = 'parse_%s_rule' % istkn
+                if hasattr(self, action):
+                    action = getattr(self, action)
+                    state, tokid, tokval, min_max = action(
+                        text, state, x)
+                    # Token is one of prior repetition: $? $* $+
+                    if tokid == -1:
+                        min_max_list[-1] = min_max
+                        continue
+                else:
+                    tokid, tokval, state['ipos'] = self.parse_generic_rule(
+                        text, state['ipos'], x,
+                        self.SYNTAX_TNL_ID[istkn])
             break
         if unknown:
             print "Unknown token %s" % text[state['ipos']:]
@@ -751,7 +865,7 @@ class topep8():
         min_max_list = []
         replacements = {}
         replacem_ids = {}
-        state = self.init_state(enhanced=True, ident=False)
+        state = self.init_state(enhanced=True, indent=False)
         while state['ipos'] < len(rule['regex']):
             state, tokid, tokval, min_max = self.parse_token_text(
                 rule['regex'],
@@ -763,13 +877,13 @@ class topep8():
             if meta in rule['meta']:
                 replacements[meta] = []
                 replacem_ids[meta] = []
-                state = self.init_state(enhanced=False, ident=False)
+                state = self.init_state(enhanced=False, indent=False)
                 while state['ipos'] < len(rule['meta'][meta]):
                     if keyids[0] == tokenize.COMMENT:
                         state, tokid, tokval, min_max = \
-                            self.parse_remarkeol_rule(rule['meta'][meta],
-                                                      state,
-                                                      False)
+                            self.parse_remark_eol_rule(rule['meta'][meta],
+                                                       state,
+                                                       False)
                     else:
                         state, tokid, tokval, min_max = \
                             self.parse_token_text(rule['meta'][meta],
@@ -805,7 +919,7 @@ class topep8():
             cur_rule['regex'] += text_rule.rstrip()
             cont_break = next_cont
         elif text_rule[0] != '#':
-            state = self.init_state(enhanced=False, ident=True)
+            state = self.init_state(enhanced=False, indent=True)
             state, tokid, tokval, min_max = self.parse_token_text(text_rule,
                                                                   state)
             if tokid == tokenize.NAME:
@@ -826,18 +940,18 @@ class topep8():
                 while state['ipos'] < len(text_rule):
                     state, tokid, tokval, min_max = self.parse_token_text(
                         text_rule, state)
-                    if tokid == tokenize.OP and tokval == ':':
+                    if tokid == tokenize.COLON:
                         if not cur_rule['regex']:
                             cur_rule['regex'] = text_rule[
                                 state['ipos'] + 1:].strip()
                         elif meta:
                             cur_rule['meta'][meta] = text_rule[
                                 state['ipos'] + 1:].strip()
-                        elif item in ('action', ):
+                        elif item in ('actions', 'parse_state'):
                             cur_rule[item] = text_rule[
-                                state['ipos'] + 1:].strip()
+                                state['ipos'] + 1:].strip().split(',')
                         state['ipos'] = len(text_rule)
-                    elif tokid == tokenize.OP and tokval == '[' and not meta:
+                    elif tokid == tokenize.LBRACE and tokval == '[' and not meta:
                         i = text_rule[state['ipos']:].find(']')
                         meta = text_rule[
                             state['ipos']: state['ipos'] + i].strip()
@@ -855,7 +969,8 @@ class topep8():
                     'meta': {},
                     'meta_ids': {},
                     'regex': '',
-                    'action': 'replace',
+                    'actions': ['replace'],
+                    'parse_state': ['regular'],
             }
         try:
             fd = open(rule_file, 'rU')
@@ -889,12 +1004,21 @@ class topep8():
         return rule_file
 
     def compile_rules(self, ctx):
+        odoo_majver = int(ctx['to_ver'].split('.')[0])
         self.LEX_RULES = {}
         self.read_rules_from_file(ctx, self.set_rulefn(sys.argv[0]))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['conf_fn']))
         self.read_rules_from_file(ctx, self.set_rulefn(ctx['src_filepy']))
+        rules_to_rm = []
         for ir in self.LEX_RULES.keys():
-            if ir[-3:] == '_78' and ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
+            if ir.endswith('to_8') and odoo_majver < 8:
+                rules_to_rm.append(ir)
+                continue
+            elif ir.endswith('to_7') and odoo_majver > 7:
+                rules_to_rm.append(ir)
+                continue
+            if (ir.endswith('_78') or ir.endswith('to_8')) and \
+                    ctx['opt_ut7'] and ctx['to_ver'] == '8.0':
                 if '8.0' in self.LEX_RULES[ir]['meta']:
                     if '9.0' not in self.LEX_RULES[ir]['meta']:
                         self.LEX_RULES[ir]['meta']['9.0'] = self.LEX_RULES[
@@ -936,11 +1060,8 @@ class topep8():
                     self.LEX_RULES[ir]['keyids'].insert(
                         ix + i + offset,
                         self.LEX_RULES[ir]['meta_ids'][ver][i])
-                    # if del_items:
-                    #     items_to_delete.insert(0, i)
-                # for i in items_to_delete:
-                #     del self.LEX_RULES[ir]['meta'][ver][i]
-                #     del self.LEX_RULES[ir]['meta_ids'][ver][i]
+        for ir in rules_to_rm:
+            del self.LEX_RULES[ir]
 
     def match_parent_rule(self, ir, result):
         for ir1 in self.LEX_RULES.keys():
@@ -958,21 +1079,20 @@ class topep8():
         if tokid == tokenize.STRING and self.blk_header:
             if tokval[0:3] == '"""' or tokval[0:3] == "'''":
                 tokid = tokenize.DOC
-        elif tokid == tokenize.OP:
-            if tokval == '(':
-                self.paren_ctrs += 1
-            elif tokval == ')':
-                self.paren_ctrs -= 1
-            elif tokval == '[':
-                self.brace_ctrs += 1
-            elif tokval == ']':
-                self.brace_ctrs -= 1
-            elif tokval == '{':
-                self.bracket_ctrs += 1
-            elif tokval == '}':
-                self.bracket_ctrs -= 1
-            self.any_paren = self.paren_ctrs + self.brace_ctrs + \
-                self.bracket_ctrs
+        elif tokid == tokenize.LPAR:
+            self.paren_ctrs += 1
+        elif tokid == tokenize.RPAR:
+            self.paren_ctrs -= 1
+        elif tokid == tokenize.LBRACE and tokval == '[':
+            self.brace_ctrs += 1
+        elif tokid == tokenize.RBRACE and tokval == '[':
+            self.brace_ctrs -= 1
+        elif tokid == tokenize.LBRACE and tokval == '{':
+            self.bracket_ctrs += 1
+        elif tokid == tokenize.RBRACE and tokval == '}':
+            self.bracket_ctrs -= 1
+        self.any_paren = self.paren_ctrs + self.brace_ctrs + \
+            self.bracket_ctrs
         if self.any_paren:
             if tokid in self.INDENTS:
                 tokid = tokenize.NOOP
@@ -990,7 +1110,6 @@ class topep8():
         else:
             self.start = (srow, scol)
             self.stop = (erow, ecol)
-        # tokid = self.wash_tokid(tokid, tokval)
         if tokid != tokenize.COMMENT:
             self.file_header = False
             self.blk_header = False
@@ -999,6 +1118,7 @@ class topep8():
 
     def tokenize_source(self, ctx=None):
         ctx = ctx or {}
+        ctx['parse_state'] = 'regular'
         tokid = 1
         while tokid:
             tokid, tokval, (srow, scol), (erow, ecol) = self.next_token()
@@ -1008,23 +1128,27 @@ class topep8():
                 print ">>> %s(%s)" % (tokid, tokval)
             validated_rule_list = []
             for ir in self.LEX_RULES.keys():
+                if ctx['parse_state'] not in self.in_states(ir):
+                    continue
+                do_match = True
+                do_restart = True
                 # rule waiting for parent validation
                 if self.is_waiting4parent(ir):
-                    pass
+                    continue
                 # rule child of parent rule: set wait for parent result
                 elif self.cur_tokid(ir) == tokenize.PARENT_RULE:
                     self.set_waiting4parent(ir)
+                    continue
                 # replace string inside remark
                 elif self.cur_tokid(ir) == tokenize.COMMENT and \
                         tokid == tokenize.COMMENT:
-                    # import pdb
-                    # pdb.set_trace()
-                    # self.action_replace_token(ir, tokid, tokval)
                     self.store_value_to_replace(ctx,
                                                 ir,
                                                 tokid,
                                                 tokval)
                     self.set_next_state(ir)
+                    do_match = False
+                    do_restart = False
                 # found the <any> token rule
                 elif self.cur_tokid(ir) == tokenize.ANY:
                     self.store_value_to_replace(ctx,
@@ -1032,24 +1156,19 @@ class topep8():
                                                 tokid,
                                                 tokval)
                     self.set_next_state(ir)
+                    do_match = False
+                    do_restart = False
                 # found <zero, one or more> tokens rule
                 elif self.cur_tokid(ir) == tokenize.MORE:
                     self.set_waiting4more(ir)
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    continue
+                    do_restart = False
                 # found expression rule
                 elif self.cur_tokid(ir) == tokenize.EXPR:
                     self.set_waiting4expr(ir)
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    continue
+                    do_restart = False
+
                 # exact text match
-                elif self.matches(ir, tokid, tokval):
+                if do_match and self.matches(ir, tokid, tokval):
                     if self.is_waiting4more(ir):
                         self.set_active(ir)
                     elif self.is_waiting4expr(ir):
@@ -1074,7 +1193,7 @@ class topep8():
                                                 tokid,
                                                 tokval)
                     continue
-                else:
+                elif do_restart:
                     self.restart_state(ir)
                 # Rule is validated?
                 if self.is_validated(ir):
@@ -1086,6 +1205,17 @@ class topep8():
                 self.match_parent_rule(ir, True)
                 self.do_action(ctx, ir)
                 self.restart_state(ir)
+        self.unget_token()
+        while self.tokenized[self.tokeno][0] in self.GHOST_TOKENS or \
+                self.tokenized[self.tokeno][0] in (tokenize.NEWLINE,
+                                                   tokenize.ENDMARKER):
+            self.unget_token()
+        self.next_token()
+        self.reset_action(ctx)
+
+    def unget_token(self):
+        if self.tokeno > 0:
+            self.tokeno -= 1
 
     def next_token(self):
         if self.tokeno < len(self.tokenized):
@@ -1130,7 +1260,9 @@ class topep8():
             line = ''
         return line
 
-    def update_source_token(self, tokeno, tokid, tokval, ir=None, ctx=None):
+    def update_source_token(self, tokeno, tokid, tokval,
+                            ir=None, ctx=None, start=None):
+        start = start or [0,0]
         if tokid == tokenize.COMMENT:
             ir = ir or ''
             ctx = ctx or {}
@@ -1148,12 +1280,24 @@ class topep8():
             self.tokenized[tokeno][1] = tokval
             if tokid:
                 self.tokenized[tokeno][0] = tokid
+        start[0] += self.tokenized[tokeno][2][0]
+        if start[0] < 0:
+            start[0] = 0
+        start[1] += self.tokenized[tokeno][2][1]
+        if start[1] < 0:
+            start[1] = 0
+        self.tokenized[tokeno][2] = start
 
-    def insert_source_token(self, tokeno, tokid, tokval):
-        self.tokenized.insert(tokeno, [tokid, tokval, [0,0], [0,0]])
+    def insert_source_token(self, tokeno, tokid, tokval, start=None):
+        start = start or [0,0]
+        self.tokenized.insert(tokeno, [tokid, tokval, start, [0,0]])
+        if tokeno <= self.tokeno:
+            self.tokeno += 1
 
     def delete_source_token(self, tokeno):
         del self.tokenized[tokeno]
+        if tokeno <= self.tokeno:
+            self.tokeno -= 1
 
     def untokenize_2_text(self, ctx=None):
         # pdb.set_trace()
@@ -1198,7 +1342,6 @@ def get_versions(ctx):
 
 
 def parse_file(ctx=None):
-    # pdb.set_trace()
     ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
