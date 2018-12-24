@@ -7,9 +7,21 @@
 #
 #    All Rights Reserved
 #
-"""Convert src python to PEP8
+"""Convert source python to do pep8 and other conversion, based on rule file.
 
-Based on rule file.
+Rules are high-level regex where atomic items are the python tokens.
+Result of the pythonic regex is one or more actions as:
+- replace one or more tokens by other token(s) in source code
+- insert one or more tokens in source code
+- delete one or more tokens in source code
+
+The parameters to update, insert or delete code may depends by Odoo version
+and/or distribution. In this way porting between Odoo versions may automated.
+
+Rules can also allow change text inside comments.
+
+
+[...]
 
 All rules are stored in self.LEX_RULES dictionary by rule id (name).
 Every rule has a python name; if name ends with _78, rule may not applied
@@ -346,6 +358,8 @@ class topep8():
         tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
         tokenize.TOKENS = tokenize.N_TOKENS + 24
         tokenize.tok_name[tokenize.TOKENS] = 'TOKENS'
+        tokenize.LIST_SEP = tokenize.N_TOKENS + 25
+        tokenize.tok_name[tokenize.LIST_SEP] = 'LIST_SEP'
         #
         self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
         self.NEWLINES = [tokenize.NEWLINE, tokenize.NL]
@@ -364,16 +378,19 @@ class topep8():
                        'colon',
                        'assign',
                        'op',
+                       # TODO: string by tokenize
+                       'string',
                        'strdoc1',
                        'strdoc2',
-                       'string1',
-                       'string2',
+                       # 'string1',
+                       # 'string2',
                        'remark_eol',
                        # 'fullname',
                        'int',
                        'name' ]
         self.SYNTAX_RE = {
             'space': re.compile(r'\s+'),
+            # 'space': re.compile(tokenize.Whitespace),
             'escape': re.compile(r'\$'),
             'lparen': re.compile(r'\('),
             'rparen': re.compile(r'\)'),
@@ -386,6 +403,8 @@ class topep8():
             'colon': re.compile(r':'),
             'assign': re.compile(r'='),
             'op': re.compile(r'[-\\!%&+/|^?<>]+'),
+            # TODO: string by tokenize
+            'string': re.compile(tokenize.String),
             'strdoc1': re.compile(r"'''"),
             'strdoc2': re.compile(r'"""'),
             'string1': re.compile(r"'{1,2}($|[^'])"),
@@ -394,10 +413,13 @@ class topep8():
             'string2': re.compile(r'"{1,2}($|[^"])'),
             'endstr2': re.compile(r'("[^"]*")'),
             'escstr2': r'\"',
-            'remark_eol': re.compile(r'#'),
+            # 'remark_eol': re.compile(r'#'),
+            'remark_eol': re.compile(tokenize.Comment),
             'fullname': re.compile(r'[a-zA-Z_](\w*\.\w*)+'),
-            'int': re.compile(r'[\d]+'),
-            'name': re.compile(r'[a-zA-Z_]\w*'),
+            # 'int': re.compile(r'[\d]+'),
+            'int': re.compile(tokenize.Intnumber),
+            # 'name': re.compile(r'[a-zA-Z_]\w*'),
+            'name': re.compile(tokenize.Name)
         }
 
         self.SYNTAX_TNL_ID = {
@@ -427,6 +449,21 @@ class topep8():
             'int': tokenize.NUMBER,
             'name': tokenize.NAME,
             'string': tokenize.STRING,
+        }
+
+        self.ESCAPES = {
+            '?': (-1, False, [0, 1]),
+            '*': (-1, False, [0, -1]),
+            '+': (-1, False, [1, -1]),
+            '(': (tokenize.START_CAPTURE, False, [1, 1]),
+            ')': (tokenize.STOP_CAPTURE, False, [1, 1]),
+            '|': (tokenize.LIST_SEP, False, [1, 1]),
+            'name': (tokenize.NAME, False, [1, 1]),
+            'any': (tokenize.ANY, False, [1, 1]),
+            'tokens': (tokenize.TOKENS, False, [1, 1]),
+            'string': (tokenize.STRING, False, [1, 1]),
+            'more': (tokenize.MORE, False, [0, -1]),
+            'expr': (tokenize.EXPR, False, [0, -1]),
         }
 
     def set_active(self, ir):
@@ -568,108 +605,118 @@ class topep8():
                 self.LEX_RULES[ir]['matched_ids'] = []
                 self.LEX_RULES[ir]['token_id'] = 0
 
+    def do_action_replace(self, ctx, ir):
+        if self.LEX_RULES[ir]['matched_ids']:
+            param_list_to, ids_from_list = self.get_params_from_rule(
+                ir, ctx['to_ver'], 'to')
+            offset = 0
+            for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
+                if i < len(param_list_to):
+                    self.update_source_token(tokeno,
+                                             ids_from_list[i],
+                                             param_list_to[i],
+                                             ir=ir,
+                                             ctx=ctx)
+                else:
+                    tokeno -= offset
+                    offset += 1
+                    # param_to has less values than matched source
+                    self.delete_source_token(tokeno)
+            # check if param_to has more values than matched source
+            i = len(self.LEX_RULES[ir]['matched_ids'])
+            tokeno = self.LEX_RULES[ir]['matched_ids'][-1] + 1
+            while i < len(param_list_to):
+                self.insert_source_token(tokeno,
+                                         ids_from_list[i],
+                                         param_list_to[i])
+                i += 1
+                tokeno += 1
+
+    def do_action_fields_to_8(self, ctx, ir):
+        tokeno = self.LEX_RULES[ir]['tokeno_start']
+        self.update_source_token(tokeno,
+                                 tokenize.NAME,
+                                 self.tokenized[tokeno][1][1:-1],
+                                 start=[0,-4])
+        tokeno += 1
+        self.update_source_token(tokeno,
+                                 tokenize.EQUAL,
+                                 '=',
+                                 start=[0, 1])
+        if self.tokenized[self.tokeno][1] == ',':
+            self.delete_source_token(self.tokeno)
+
+    def do_action_fields_to_7(self, ctx, ir):
+        tokeno = self.LEX_RULES[ir]['tokeno_start']
+        if self.tokenized[tokeno - 1][0] == tokenize.INDENT:
+            self.LEX_RULES[ir]['tokeno_indent'] = tokeno - 1
+        if ctx['parse_state'] == 'regular':
+            ctx['parse_state'] = 'fields_to_7'
+            self.insert_source_token(tokeno,
+                                     tokenize.NAME,
+                                     '_columns')
+            tokeno += 1
+            self.insert_source_token(tokeno,
+                                     tokenize.EQUAL,
+                                     '=',
+                                     start=[0,1])
+            tokeno += 1
+            self.insert_source_token(tokeno,
+                                     tokenize.LBRACE,
+                                     '{',
+                                     start=[0,1])
+            tokeno += 1
+            self.insert_source_token(tokeno,
+                                     tokenize.NEWLINE,
+                                     '\n')
+        if self.LEX_RULES[ir]['tokeno_indent'] >= 0:
+            indent = self.tokenized[self.LEX_RULES[ir]['tokeno_indent']]
+            tokeno += 1
+            self.insert_source_token(tokeno,
+                                     indent[0],
+                                     indent[1] + '    ',
+                                     start=indent[2])
+            tokeno += 1
+            start = [0, 0]
+        else:
+            start = [0, 4]
+        self.update_source_token(tokeno,
+                                 tokenize.STRING,
+                                 "'%s'" % self.tokenized[tokeno][1],
+                                 start=start)
+        tokeno += 1
+        self.update_source_token(tokeno,
+                                 tokenize.COLON,
+                                 ':',
+                                 start=[0,-1])
+        tokeno += 3
+        self.update_source_token(tokeno,
+                                 tokenize.NAME,
+                                 self.tokenized[tokeno][1].lower())
+        tokeno = self.tokeno
+        self.insert_source_token(tokeno,
+                                 tokenize.COMMA,
+                                 ',')
+
+    def do_action_init_fields_to_8(self, ctx, ir):
+        ctx['parse_state'] = 'fields_to_8'
+        tokeno = self.LEX_RULES[ir]['tokeno_start']
+        self.delete_source_token(tokeno)
+        self.delete_source_token(tokeno)
+        self.delete_source_token(tokeno)
+
+    def do_action_reset_to_8(self, ctx, ir):
+        self.delete_source_token(self.tokeno - 1)
+        ctx['parse_state'] = 'regular'
+
     def do_action(self, ctx, ir):
         if 'fields_to_7' not in self.LEX_RULES[ir]['actions']:
             self.reset_action(ctx)
-        if 'replace' in self.LEX_RULES[ir]['actions']:
-            if self.LEX_RULES[ir]['matched_ids']:
-                param_list_to, ids_from_list = self.get_params_from_rule(
-                    ir, ctx['to_ver'], 'to')
-                offset = 0
-                for i,tokeno in enumerate(self.LEX_RULES[ir]['matched_ids']):
-                    if i < len(param_list_to):
-                        self.update_source_token(tokeno,
-                                                 ids_from_list[i],
-                                                 param_list_to[i],
-                                                 ir=ir,
-                                                 ctx=ctx)
-                    else:
-                        tokeno -= offset
-                        offset += 1
-                        # param_to has less values than matched source
-                        self.delete_source_token(tokeno)
-                # check if param_to has more values than matched source
-                i = len(self.LEX_RULES[ir]['matched_ids'])
-                tokeno = self.LEX_RULES[ir]['matched_ids'][-1] + 1
-                while i < len(param_list_to):
-                    self.insert_source_token(tokeno,
-                                             ids_from_list[i],
-                                             param_list_to[i])
-                    i += 1
-                    tokeno += 1
-        if 'fields_to_7' in self.LEX_RULES[ir]['actions']:
-            tokeno = self.LEX_RULES[ir]['tokeno_start']
-            if self.tokenized[tokeno - 1][0] == tokenize.INDENT:
-                self.LEX_RULES[ir]['tokeno_indent'] = tokeno - 1
-            if ctx['parse_state'] == 'regular':
-                ctx['parse_state'] = 'fields_to_7'
-                self.insert_source_token(tokeno,
-                                         tokenize.NAME,
-                                         '_columns')
-                tokeno += 1
-                self.insert_source_token(tokeno,
-                                         tokenize.EQUAL,
-                                         '=',
-                                         start=[0,1])
-                tokeno += 1
-                self.insert_source_token(tokeno,
-                                         tokenize.LBRACE,
-                                         '{',
-                                         start=[0,1])
-                tokeno += 1
-                self.insert_source_token(tokeno,
-                                         tokenize.NEWLINE,
-                                         '\n')
-            if self.LEX_RULES[ir]['tokeno_indent'] >= 0:
-                indent = self.tokenized[self.LEX_RULES[ir]['tokeno_indent']]
-                tokeno += 1
-                self.insert_source_token(tokeno,
-                                         indent[0],
-                                         indent[1] + '    ',
-                                         start=indent[2])
-                tokeno += 1
-                start = [0, 0]
-            else:
-                start = [0, 4]
-            self.update_source_token(tokeno,
-                                     tokenize.STRING,
-                                     "'%s'" % self.tokenized[tokeno][1],
-                                     start=start)
-            tokeno += 1
-            self.update_source_token(tokeno,
-                                     tokenize.COLON,
-                                     ':',
-                                     start=[0,-1])
-            tokeno += 3
-            self.update_source_token(tokeno,
-                                     tokenize.NAME,
-                                     self.tokenized[tokeno][1].lower())
-            tokeno = self.tokeno
-            self.insert_source_token(tokeno,
-                                     tokenize.COMMA,
-                                     ',')
-        if 'fields_to_8' in self.LEX_RULES[ir]['actions']:
-            tokeno = self.LEX_RULES[ir]['tokeno_start']
-            self.update_source_token(tokeno,
-                                     tokenize.NAME,
-                                     self.tokenized[tokeno][1][1:-1],
-                                     start=[0,-4])
-            tokeno += 1
-            self.update_source_token(tokeno,
-                                     tokenize.EQUAL,
-                                     '=',
-                                     start=[0, 1])
-            if self.tokenized[self.tokeno][1] == ',':
-                self.delete_source_token(self.tokeno)
-        if 'reset_to_8' in self.LEX_RULES[ir]['actions']:
-            self.delete_source_token(self.tokeno - 1)
-            ctx['parse_state'] = 'regular'
-        if 'init_fields_to_8' in self.LEX_RULES[ir]['actions']:
-            ctx['parse_state'] = 'fields_to_8'
-            tokeno = self.LEX_RULES[ir]['tokeno_start']
-            self.delete_source_token(tokeno)
-            self.delete_source_token(tokeno)
-            self.delete_source_token(tokeno)
+        for act in self.LEX_RULES[ir]['actions']:
+            action = 'do_action_%s' % act
+            if hasattr(self, action):
+                action = getattr(self, action)
+                action(ctx, ir)
 
     def reset_action(self, ctx):
         if ctx['parse_state'] == 'fields_to_7':
@@ -737,49 +784,47 @@ class topep8():
     def parse_escape_rule(self, value, state, x):
         """Escape token replaces single python keyword. Escape rule may be:
         $any     means any python token
+        $expr    means all tokens until global paren level decreases
         $more    means zero, one o more python tokens
                  (until token following $more in rule is matched)
         $name    means any python name
-        $expr    means all tokens until global paren level decreases
+        $string  means any python text
+        $tokens  means python name(s)/text based on version rule
         $?       previous token may be found zero or one time
         $*       previous token may be found zero, one or more time
         $+       previous token may be found one or more time
         $(       start capture replacement tokens
         $)       stop capture replacement tokens
+        $|       list separator
         Every other value means current rule depends on another rule.
         @return: min_max, token_id, token, next_ipos
         """
-        min_max = [1, 1]
         i = state['ipos']
-        if value[i + 1] == '?':
-            state['ipos'] += 2
-            return state, -1, False, [0, 1]
-        elif value[i + 1] == '*':
-            state['ipos'] += 2
-            return state, -1, False, [0, -1]
-        elif value[i + 1] == '+':
-            state['ipos'] += 2
-            return state, -1, False, [1, -1]
-        elif value[i + 1] == '(':
-            state['ipos'] += 2
-            return state, tokenize.START_CAPTURE, False, [1, 1]
-        elif value[i + 1] == ')':
-            state['ipos'] += 2
-            return state, tokenize.STOP_CAPTURE, False, [1, 1]
         x = self.SYNTAX_RE['name'].match(value[i + 1:])
-        state['ipos'] += x.end() + 1
-        tokval = value[i + 1:state['ipos']]
-        if tokval in ('name', 'any', 'tokens', 'string'):
-            tokid = getattr(tokenize, tokval.upper())
-            tokval = False
-        elif tokval in ('more', 'expr'):
-            tokid = getattr(tokenize, tokval.upper())
-            tokval = False
-            min_max = [0, -1]
+        if x:
+            state['ipos'] += x.end() + 1
+            x = value[i + 1: i + 1 + x.end()]
+        else:
+            state['ipos'] += 2
+            x = value[i + 1]
+        if x in self.ESCAPES:
+            tokid = self.ESCAPES[x][0]
+            tokval = self.ESCAPES[x][1]
+            min_max = self.ESCAPES[x][2]
         else:
             tokval = False
             tokid = tokenize.PARENT_RULE
+            min_max = [1, 1]
         return state, tokid, tokval, min_max
+
+    def parse_string_rule(self, value, state, x):
+        ipos = state['ipos']
+        i = ipos
+        ipos += x.end()
+        state['ipos'] = ipos
+        tokval = value[i:ipos]
+        tokid = tokenize.STRING
+        return state, tokid, tokval, [1, 1]
 
     def parse_txt_rule(self, value, state, endtok, esctok):
         i = state['ipos']
@@ -888,8 +933,6 @@ class topep8():
                         state, tokid, tokval, min_max = \
                             self.parse_token_text(rule['meta'][meta],
                                                   state)
-                    # if tokid not in (tokenize.START_CAPTURE,
-                    #                  tokenize.STOP_CAPTURE):
                     replacements[meta].append(tokval)
                     replacem_ids[meta].append(tokid)
         ir = rule['id']
@@ -1342,6 +1385,8 @@ def get_versions(ctx):
 
 
 def parse_file(ctx=None):
+    # import pdb
+    # pdb.set_trace()
     ctx = ctx or {}
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)

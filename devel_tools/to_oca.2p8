@@ -9,10 +9,18 @@ fatturapa_document_type:
     $tokens
     [0]:    'italy.ade.invoice.type'
     [6.1]:  'fatturapa.document_type'
+fatturapa_document_type2:
+    $tokens
+    [0]:    "italy.ade.invoice.type"
+    [6.1]:  "fatturapa.document_type"
 account_tax_kind:
     $tokens
     [0]:    'italy.ade.tax.nature'
     [6.1]:  'account.tax.kind'
+tax_kind_id:
+    $tokens
+    [0]:    tax_nature_id
+    [6.1]:  kind_id
 fatturapa_binding:
     odoo.addons.$tokens.bindings
     [0]:    l10n_it_ade

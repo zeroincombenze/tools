@@ -1,5 +1,5 @@
 #
-# topep8 configuration file (last update 2018-12-12)
+# topep8 configuration file (last update 2018-12-23)
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -9,10 +9,18 @@ fatturapa_document_type:
     $tokens
     [0]:    'fatturapa.document_type'
     [6.1]:  'italy.ade.invoice.type'
+fatturapa_document_type2:
+    $tokens
+    [0]:    "fatturapa.document_type"
+    [6.1]:  "italy.ade.invoice.type"
 account_tax_kind:
     $tokens
     [0]:    'account.tax.kind'
     [6.1]:  'italy.ade.tax.nature'
+tax_kind_id:
+    $tokens
+    [0]:    kind_id
+    [6.1]:  tax_nature_id
 fatturapa_binding:
     odoo.addons.$tokens.bindings
     [0]:    l10n_it_fatturapa
