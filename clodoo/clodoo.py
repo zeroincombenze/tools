@@ -179,7 +179,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.2"
+__version__ = "0.3.8.3"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -267,6 +267,10 @@ def get_name_by_ver(ctx, model, name):
                     'state_id', 'is_company', 'street2', 'type'):
             if majver == 6:
                 return ''
+    elif model == 'account.move.line':
+        if name == 'reconciled':
+            if majver < 10:
+                return 'reconcile_id'
     return name
 
 
@@ -794,7 +798,8 @@ def create_local_parms(ctx, act):
     for p in ('actions',
               'install_modules',
               'uninstall_modules',
-              'upgrade_modules'):
+              'upgrade_modules',
+              'data_selection'):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -884,6 +889,13 @@ def ident_user(ctx, u_id):
               tounicode(get_res_users(ctx, user, 'email')),
               tounicode(user.company_id.name))
     return msg
+
+
+def get_data_selection(ctx):
+    if not ctx['data_selection'] or ctx['data_selection'] == 'all':
+        ctx['data_selection'] = 'account_move,sale,purchase,project,mail,crm,'\
+                                'inventory,marketing,hr,analytic,sequence'
+    return ctx['data_selection'].split(',')
 
 
 #############################################################################
@@ -1035,37 +1047,42 @@ def act_drop_db(ctx):
 
 def act_wep_company(ctx):
     """Wep a DB (delete all record of company but keep res_parter"""
+    data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
     c_id = ctx['company_id']
     msg = ident_company(ctx, c_id)
     msg = "Wep company %s" % ctx['company_name']
     msg_log(ctx, ctx['level'], msg)
+    msg = ','.join(data_selection)
+    msg_log(ctx, ctx['level'], msg)
     set_server_isolated(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'mail' in data_selection:
         sts = remove_company_mail_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'project' in data_selection:
         sts = remove_company_project_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'purchase' in data_selection:
         sts = remove_company_purchases_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'crm' in data_selection:
         sts = remove_company_crm_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'sale' in data_selection:
         sts = remove_company_sales_records(ctx)
-    if sts == STS_SUCCESS:
-        sts = remove_company_logistic_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'inventory' in data_selection:
+        sts = remove_company_inventory_records(ctx)
+    if sts == STS_SUCCESS and 'marketing' in data_selection:
         sts = remove_company_marketing_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'hr' in data_selection:
         sts = remove_company_hr_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'analytic' in data_selection:
         sts = remove_company_analytics_records(ctx)
-    if sts == STS_SUCCESS:
-        sts = remove_company_account_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'account_move' in data_selection:
+        sts = remove_company_account_move_records(ctx)
+    if sts == STS_SUCCESS and 'product' in data_selection:
         sts = remove_company_product_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'partner' in data_selection:
         sts = remove_company_partner_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'account_base' in data_selection:
+        sts = remove_company_account_base_records(ctx)
+    if sts == STS_SUCCESS and 'company' in data_selection:
         if not ctx['dry_run']:
             company_id = ctx['company_id']
             model = 'res.company'
@@ -1092,37 +1109,40 @@ def act_wep_company(ctx):
 
 def act_wep_db(ctx):
     """Wep a DB (delete all record but keep res_parter)"""
+    data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
     msg = "Wep DB %s" % ctx['db_name']
     msg_log(ctx, ctx['level'], msg)
+    msg = ','.join(data_selection)
+    msg_log(ctx, ctx['level'], msg)
     set_server_isolated(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'mail' in data_selection:
         sts = remove_all_mail_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'mail' in data_selection:
         sts = remove_all_note_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'project' in data_selection:
         sts = remove_all_project_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'purchase' in data_selection:
         sts = remove_all_purchases_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'crm' in data_selection:
         sts = remove_all_crm_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'sale' in data_selection:
         sts = remove_all_sales_records(ctx)
-    if sts == STS_SUCCESS:
-        sts = remove_all_logistic_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'inventory' in data_selection:
+        sts = remove_all_inventory_records(ctx)
+    if sts == STS_SUCCESS and 'marketing' in data_selection:
         sts = remove_all_marketing_records(ctx)
-    if sts == STS_SUCCESS:
-        sts = remove_all_account_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'account_move' in data_selection:
+        sts = remove_all_account_move_records(ctx)
+    if sts == STS_SUCCESS and 'hr' in data_selection:
         sts = remove_all_hr_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'product' in data_selection:
         sts = remove_all_product_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'partner' in data_selection:
         sts = remove_all_partner_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'user' in data_selection:
         sts = remove_all_user_records(ctx)
-    if sts == STS_SUCCESS:
+    if sts == STS_SUCCESS and 'sequence' in data_selection:
         sts = reset_sequence(ctx)
     if sts == STS_SUCCESS:
         sts = reset_menuitem(ctx)
@@ -1742,7 +1762,7 @@ def act_check_partners(ctx):
 def act_set_periods(ctx):
     msg = u"Set account periods "
     msg_log(ctx, ctx['level'], msg)
-    model = 'account.fiscalyear'
+    majver = ctx['majver']
     company_id = ctx['company_id']
     fiscalyear_id, process_it, last_name, last_start, last_stop = \
         read_last_fiscalyear(company_id, ctx)
@@ -1753,17 +1773,48 @@ def act_set_periods(ctx):
                                  last_start,
                                  last_stop,
                                  'year')
-        code = re.findall('[0-9./-]+', name)[0]
-        fiscal_year_id = createL8(ctx, model, {'name': name,
-                                               'code': code,
-                                               'date_start': str(date_start),
-                                               'date_stop': str(date_stop),
-                                               'company_id': company_id})
+        if majver < 10:
+            model = 'account.fiscalyear'
+            code = re.findall('[0-9./-]+', name)[0]
+            fiscal_year_id = createL8(ctx, model, {
+                'name': name,
+                'code': code,
+                'date_start': str(date_start),
+                'date_stop': str(date_stop),
+                'company_id': company_id})
+        else:
+            model = 'date.range.type'
+            ids = searchL8(ctx, model,
+                           [('company_id', '=', company_id),
+                            ('name', '=', 'Annual')])
+            if not ids:
+                date_type_id = fiscal_year_id = createL8(
+                    ctx, model, {
+                        'name': 'Annual',
+                        'company_id': company_id
+                        })
+            else:
+                date_type_id = ids[0]
+            model = 'date.range'
+            fiscal_year_id = createL8(ctx, model, {
+                'name': name,
+                'date_start': str(date_start),
+                'date_end': str(date_stop),
+                'company_id': company_id,
+                'type_id': date_type_id})
         msg = u"Added fiscalyear %s" % name
         msg_log(ctx, ctx['level'], msg)
+        if majver < 10:
+            add_periods(ctx,
+                        company_id,
+                        fiscal_year_id,
+                        last_name,
+                        last_start,
+                        last_stop)
+    if majver >= 10:
         add_periods(ctx,
                     company_id,
-                    fiscal_year_id,
+                    False,
                     last_name,
                     last_start,
                     last_stop)
@@ -2334,25 +2385,46 @@ def act_upgrade_l10n_it_base(ctx):
 
 
 def read_last_fiscalyear(company_id, ctx):
-    model = 'account.fiscalyear'
+    majver = ctx['majver']
+    if majver < 10:
+        model = 'account.fiscalyear'
+    else:
+        model = 'date.range'
     fiscalyear_ids = searchL8(ctx, model,
                               [('company_id', '=', company_id)])
-    last_start = date(1970, 1, 1)
-    last_stop = date(1970, 12, 31)
-    last_name = ''
+    if fiscalyear_ids:
+        last_start = date(1970, 1, 1)
+        last_stop = date(1970, 12, 31)
+        process_it = False
+        last_name = ''
+    else:
+        last_start = date(datetime.now().year - 1, 1, 1)
+        last_stop = date(datetime.now().year - 1, 12, 31)
+        process_it = True
+        last_name = str(datetime.now().year - 1)
     valid_fiscalyear_id = 0
-    process_it = False
     for fiscalyear_id in fiscalyear_ids:
         fiscalyear = browseL8(ctx,  model, fiscalyear_id)
         name = fiscalyear.name
         date_start = fiscalyear.date_start
-        date_stop = fiscalyear.date_stop
-        ids = searchL8(ctx, 'account.period',
-                       [('company_id', '=', company_id),
-                        ('date_start', '>=', str(date_start)),
-                        ('date_stop', '<=', str(date_stop))])
+        if majver < 10:
+            date_stop = fiscalyear.date_stop
+            ids = searchL8(ctx, 'account.period',
+                           [('company_id', '=', company_id),
+                            ('date_start', '>=', str(date_start)),
+                            ('date_stop', '<=', str(date_stop))])
+        else:
+            date_stop = fiscalyear.date_end
+            ids = []
         if date.today() >= date_start and date.today() <= date_stop:
             valid_fiscalyear_id = fiscalyear_id
+            if majver >= 10:
+                if date_start > last_start:
+                    last_start = date_start
+                    process_it = True
+                    last_name = name
+                if date_stop > last_stop:
+                    last_stop = date_stop
         elif len(ids) == 0:
             valid_fiscalyear_id = fiscalyear_id
         else:
@@ -2367,53 +2439,132 @@ def read_last_fiscalyear(company_id, ctx):
 
 def add_periods(ctx, company_id, fiscalyear_id,
                 last_name, last_start, last_stop):
-    model = 'account.period'
-    period_ids = searchL8(ctx, model,
-                          [('company_id', '=', company_id),
-                           ('date_start', '>=', str(last_start)),
-                           ('date_stop', '<=', str(last_stop))])
-    for period_id in period_ids:
-        period = browseL8(ctx,  model, period_id)
-        name = period.name
-        date_start = period.date_start
-        date_stop = period.date_stop
-        special = period.special
-        name, date_start, date_stop = \
-            evaluate_date_n_name(ctx,
-                                 name,
-                                 date_start,
-                                 date_stop,
-                                 'period')
+    majver = ctx['majver']
+    if majver < 10:
+        model = 'account.period'
+        period_ids = searchL8(ctx, model,
+                              [('company_id', '=', company_id),
+                               ('date_start', '>=', str(last_start)),
+                               ('date_stop', '<=', str(last_stop))])
+        for period_id in period_ids:
+            period = browseL8(ctx,  model, period_id)
+            name = period.name
+            date_start = period.date_start
+            date_stop = period.date_stop
+            special = period.special
+            name, date_start, date_stop = \
+                evaluate_date_n_name(ctx,
+                                     name,
+                                     date_start,
+                                     date_stop,
+                                     'period')
+            ids = searchL8(ctx, model,
+                           [('company_id', '=', company_id),
+                            ('date_start', '=', str(date_start)),
+                            ('date_stop', '=', str(date_stop)),
+                            ('special', '=', special)])
+            if len(ids) == 0:
+                code = re.findall('[0-9./-]+', name)[0]
+                createL8(ctx, model, {'name': name,
+                                      'code': code,
+                                      'fiscalyear_id': fiscalyear_id,
+                                      'date_start': str(date_start),
+                                      'date_stop': str(date_stop),
+                                      'special': special,
+                                      'company_id': company_id})
+                msg = u"Added period %s" % name
+                msg_log(ctx, ctx['level'], msg)
+    else:
+        model = 'date.range.type'
         ids = searchL8(ctx, model,
                        [('company_id', '=', company_id),
-                        ('date_start', '=', str(date_start)),
-                        ('date_stop', '=', str(date_stop)),
-                        ('special', '=', special)])
-        if len(ids) == 0:
-            code = re.findall('[0-9./-]+', name)[0]
-            createL8(ctx, model, {'name': name,
-                                  'code': code,
-                                  'fiscalyear_id': fiscalyear_id,
-                                  'date_start': str(date_start),
-                                  'date_stop': str(date_stop),
-                                  'special': special,
-                                  'company_id': company_id})
-            msg = u"Added period %s" % name
-            msg_log(ctx, ctx['level'], msg)
+                        ('name', '=', 'Monthly')])
+        if not ids:
+            date_type_id = createL8(
+                ctx, model, {
+                    'name': 'Monthly',
+                    'company_id': company_id
+                    })
+        else:
+            date_type_id = ids[0]
+        model = 'date.range'
+        for month in range(12):
+            date_start = date(last_start.year, month + 1, 1)
+            day = calendar.monthrange(last_start.year, month + 1)[1]
+            date_stop = date(last_start.year, month + 1, day)
+            name = '%d/%02d' % (last_start.year, month + 1)
+            ids = searchL8(ctx, model,
+                           [('company_id', '=', company_id),
+                            ('date_start', '=', str(date_start)),
+                            ('date_end', '=', str(date_stop))])
+            if not ids:
+                createL8(ctx, model, {'name': name,
+                                      'date_start': str(date_start),
+                                      'date_end': str(date_stop),
+                                      'company_id': company_id,
+                                      'type_id': date_type_id})
+                msg = u"Added period %s" % name
+                msg_log(ctx, ctx['level'], msg)
+
+        model = 'date.range.type'
+        ids = searchL8(ctx, model,
+                       [('company_id', '=', company_id),
+                        ('name', '=', 'Quarter')])
+        if not ids:
+            date_type_id = createL8(
+                ctx, model, {
+                    'name': 'Quarter',
+                    'company_id': company_id
+                    })
+        else:
+            date_type_id = ids[0]
+        model = 'date.range'
+        for quarter in range(4):
+            bmonth = quarter * 3 + 1
+            emonth = quarter * 3 + 3
+            date_start = date(last_start.year, bmonth, 1)
+            day = calendar.monthrange(last_start.year, emonth)[1]
+            date_stop = date(last_start.year, emonth, day)
+            name = '%d/%dQ' % (last_start.year, quarter + 1)
+            ids = searchL8(ctx, model,
+                           [('company_id', '=', company_id),
+                            ('date_start', '=', str(date_start)),
+                            ('date_end', '=', str(date_stop))])
+            if not ids:
+                createL8(ctx, model, {'name': name,
+                                      'date_start': str(date_start),
+                                      'date_end': str(date_stop),
+                                      'company_id': company_id,
+                                      'type_id': date_type_id})
+                msg = u"Added period %s" % name
+                msg_log(ctx, ctx['level'], msg)
 
 
 def set_journal_per_year(ctx):
     company_id = ctx['company_id']
-    model = 'account.fiscalyear'
-    fy_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
-    if len(fy_ids) == 0:
-        return
-    fy_name = ''
-    last_date = date(1970, 1, 1)
-    for id in fy_ids:
-        if browseL8(ctx,  model, id).date_stop > last_date:
-            last_date = browseL8(ctx, model, id).date_stop
-            fy_name = str(last_date.year)
+    majver = ctx['majver']
+    if majver < 10:
+        model = 'account.fiscalyear'
+        fy_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
+        if len(fy_ids) == 0:
+            return
+        fy_name = ''
+        last_date = date(1970, 1, 1)
+        for id in fy_ids:
+            if browseL8(ctx,  model, id).date_stop > last_date:
+                last_date = browseL8(ctx, model, id).date_stop
+                fy_name = str(last_date.year)
+    else:
+        model = 'date.range'
+        fy_ids = searchL8(ctx, model, [('company_id', '=', company_id)])
+        if len(fy_ids) == 0:
+            return
+        fy_name = ''
+        date_stop = date(1970, 1, 1)
+        for id in fy_ids:
+            if browseL8(ctx,  model, id).date_end > date_stop:
+                date_stop = browseL8(ctx, model, id).date_end
+                date_start = browseL8(ctx, model, id).date_start
     model = 'account.journal'
     journal_ids = searchL8(ctx,
                            model, [('company_id', '=', company_id),
@@ -2431,84 +2582,106 @@ def set_journal_per_year(ctx):
     for ir_id in ir_ids:
         ir_sequence = browseL8(ctx, model, ir_id)
         fy = []
-        for o in ir_sequence.fiscal_ids:
-            fy_id = o.fiscalyear_id.id
-            fy.append(fy_id)
-        for fy_id in fy_ids:
-            if fy_id not in fy:
+        if majver < 10:
+            for o in ir_sequence.fiscal_ids:
+                fy_id = o.fiscalyear_id.id
+                fy.append(fy_id)
+            for fy_id in fy_ids:
+                if fy_id not in fy:
+                    fy_name = str(browseL8(ctx, 'account.fiscalyear',
+                                           fy_id).date_stop.year)
+                    vals = {}
+                    name = ir_sequence.name
+                    if len(name) > 59:
+                        vals['name'] = name[0:59] + ' ' + fy_name
+                    else:
+                        vals['name'] = name + ' ' + fy_name
+                    vals['implementation'] = ir_sequence.implementation
+                    vals['prefix'] = ir_sequence.prefix
+                    vals['suffix'] = ir_sequence.suffix
+                    vals['number_next'] = 1
+                    vals['number_increment'] = ir_sequence.number_increment
+                    vals['padding'] = ir_sequence.padding
+                    vals['company_id'] = company_id
+                    vals['code'] = False
+                    pfx = vals['prefix']
+                    sfx = vals['suffix']
+                    if vals['prefix']:
+                        vals['prefix'] = vals['prefix'].replace('%(year)s',
+                                                                fy_name)
+                    if vals['suffix']:
+                        vals['suffix'] = vals['suffix'].replace('%(year)s',
+                                                                fy_name)
+                    if pfx != vals['prefix'] or sfx != vals['suffix']:
+                        new_id = createL8(ctx, model, vals)
+                        createL8(ctx, 'account.sequence.fiscalyear',
+                                 {'sequence_id': new_id,
+                                  'sequence_main_id': ir_id,
+                                  'fiscalyear_id': fy_id})
+            for asf_id in searchL8(ctx, 'account.sequence.fiscalyear',
+                                   [('sequence_main_id', '=', ir_id)]):
+                id = browseL8(ctx, 'account.sequence.fiscalyear',
+                              asf_id).sequence_id.id
+                fy_id = browseL8(ctx, 'account.sequence.fiscalyear',
+                                 asf_id).fiscalyear_id.id
                 fy_name = str(browseL8(ctx, 'account.fiscalyear',
                                        fy_id).date_stop.year)
-                vals = {}
-                name = ir_sequence.name
-                if len(name) > 59:
-                    vals['name'] = name[0:59] + ' ' + fy_name
-                else:
-                    vals['name'] = name + ' ' + fy_name
-                vals['implementation'] = ir_sequence.implementation
-                vals['prefix'] = ir_sequence.prefix
-                vals['suffix'] = ir_sequence.suffix
-                vals['number_next'] = 1
-                vals['number_increment'] = ir_sequence.number_increment
-                vals['padding'] = ir_sequence.padding
-                vals['company_id'] = company_id
-                vals['code'] = False
-                pfx = vals['prefix']
-                sfx = vals['suffix']
-                if vals['prefix']:
-                    vals['prefix'] = vals['prefix'].replace('%(year)s',
-                                                            fy_name)
-                if vals['suffix']:
-                    vals['suffix'] = vals['suffix'].replace('%(year)s',
-                                                            fy_name)
-                if pfx != vals['prefix'] or sfx != vals['suffix']:
-                    new_id = createL8(ctx, model, vals)
-                    createL8(ctx, 'account.sequence.fiscalyear',
-                             {'sequence_id': new_id,
-                              'sequence_main_id': ir_id,
-                              'fiscalyear_id': fy_id})
-        for asf_id in searchL8(ctx, 'account.sequence.fiscalyear',
-                               [('sequence_main_id', '=', ir_id)]):
-            id = browseL8(ctx, 'account.sequence.fiscalyear',
-                          asf_id).sequence_id.id
-            fy_id = browseL8(ctx, 'account.sequence.fiscalyear',
-                             asf_id).fiscalyear_id.id
-            fy_name = str(browseL8(ctx, 'account.fiscalyear',
-                                   fy_id).date_stop.year)
-            name = browseL8(ctx, model, id).name
-            if not name.endswith(' ' + fy_name):
-                vals = {}
-                if name.endswith(fy_name):
-                    name = name[0: -4]
-                if len(name) > 59:
-                    vals['name'] = name[0:59] + ' ' + fy_name
-                else:
-                    vals['name'] = name + ' ' + fy_name
-                writeL8(ctx, model, [id], vals)
+                name = browseL8(ctx, model, id).name
+                if not name.endswith(' ' + fy_name):
+                    vals = {}
+                    if name.endswith(fy_name):
+                        name = name[0: -4]
+                    if len(name) > 59:
+                        vals['name'] = name[0:59] + ' ' + fy_name
+                    else:
+                        vals['name'] = name + ' ' + fy_name
+                    writeL8(ctx, model, [id], vals)
+        else:
+            found_range = False
+            for o in ir_sequence.date_range_ids:
+                if o.date_from >= date_start and o.date_to <= date_stop:
+                    found_range = True
+                    break
+            if not found_range:
+                createL8(ctx,
+                         'ir.sequence.date_range',
+                         {'sequence_id': ir_id,
+                          'date_from': str(date_start),
+                          'date_to': str(date_stop),
+                          'number_next': 1})
 
 
 def evaluate_date_n_name(ctx, last_name, last_start, last_stop, yp):
+    if yp == 'range':
+        yp_year = last_start.year
+    else:
+        yp_year = last_start.year + 1
     if yp == 'year':
         date_start = last_stop + timedelta(1)
     else:
         if last_start.day >= 28:
-            day = calendar.monthrange(last_start.year + 1, last_start.month)[1]
+            day = calendar.monthrange(yp_year, last_start.month)[1]
         else:
             day = last_start.day
-        date_start = date(last_start.year + 1,
+        date_start = date(yp_year,
                           last_start.month,
                           day)
+    if yp == 'range':
+        yp_year = last_stop.year
+    else:
+        yp_year = last_stop.year + 1
     if last_stop.day >= 28:
-        day = calendar.monthrange(last_stop.year + 1, last_stop.month)[1]
+        day = calendar.monthrange(yp_year, last_stop.month)[1]
     else:
         day = last_stop.day
-    date_stop = date(last_stop.year + 1,
+    date_stop = date(yp_year,
                      last_stop.month,
                      day)
-    n = (last_stop.year + 1) % 100
+    n = yp_year % 100
     o = last_stop.year % 100
     name = last_name.replace(str(o), str(n))
     n = o
-    o = (last_stop.year - 1) % 100
+    o = (yp_year - 1) % 100
     name = name.replace(str(o), str(n))
     return name, date_start, date_stop
 
@@ -2544,9 +2717,10 @@ def get_reconcile_from_inv(inv_id, ctx):
     model = 'account.invoice'
     account_invoice = browseL8(ctx, model,
                                inv_id)
-    if ctx['majver'] >= 10 and account_invoice.payment_move_line_ids:
-        for move_line_id in account_invoice.payment_move_line_ids:
-            reconciles.append(move_line_id.id)
+    if ctx['majver'] >= 10:
+        if account_invoice.payment_move_line_ids:
+            for move_line_id in account_invoice.payment_move_line_ids:
+                reconciles.append(move_line_id.id)
     elif account_invoice.payment_ids:
         partner_id = account_invoice.partner_id.id
         move_id = account_invoice.move_id.id
@@ -3054,8 +3228,9 @@ def unreconcile_invoices(reconcile_dict, ctx):
 def unreconcile_payments(ctx):
     msg = u"Unreconcile payments"
     msg_log(ctx, ctx['level'], msg)
+    reconciled_name = get_name_by_ver(ctx, 'account.move.line', 'reconciled')
     reconcile_list = searchL8(ctx, 'account.move.line',
-                              [('reconcile_id', '!=', False)])
+                              [(reconciled_name, '!=', False)])
     try:
         context = {'active_ids': reconcile_list}
         executeL8(ctx,
@@ -3662,7 +3837,10 @@ def hard_del_sql(model, hide_cid, ctx, where=None, exclusion=None):
         msg = u">>>%s" % query
         msg_log(ctx, ctx['level'], msg)
         decr_lev(ctx)
-        ctx['_cr'].execute(query)
+        try:
+            ctx['_cr'].execute(query)
+        except BaseException:
+            msg_log(ctx, ctx['level'], 'Error excuting sql')
 
 
 def remove_model_all_records(model, hide_cid, ctx, exclusion=None):
@@ -4035,8 +4213,12 @@ def remove_all_sales_records(ctx):
     return sts
 
 
-def remove_company_logistic_records(ctx):
-    models = validate_models(ctx, ('stock.picking.out',
+def remove_company_inventory_records(ctx):
+    models = validate_models(ctx, ('stock.inventory',
+                                   'stock.pack.operation',
+                                   # 'wk.order.mapping',
+                                   'stock.picking.package.preparation',
+                                   'stock.picking.out',
                                    'stock.picking.in',
                                    'stock.picking',
                                    'stock.move',
@@ -4068,7 +4250,7 @@ def remove_company_logistic_records(ctx):
     return sts
 
 
-def remove_all_logistic_records(ctx):
+def remove_all_inventory_records(ctx):
     sts = STS_SUCCESS
     return sts
 
@@ -4319,7 +4501,7 @@ def remove_all_user_records(ctx):
     return sts
 
 
-def remove_company_account_records(ctx):
+def remove_company_account_move_records(ctx):
     sts = STS_SUCCESS
     model = 'account.invoice'
     move_name = get_name_by_ver(ctx, model, 'move_name')
@@ -4361,7 +4543,56 @@ def remove_company_account_records(ctx):
                                   'account.banking.account.settings',
                                   'spesometro.comunicazione',
                                   'payment.mode',
-                                  'account.fiscal.position',
+                                  ))
+        records2keep = {}
+        special = {'account.invoice': 'set_state',
+                   'account.move': 'set_state',
+                   'account.voucher': 'set_state',
+                   }
+        specparams = {'account.invoice': (move_name, ''),
+                      'account.move': ('state', 'cancel'),
+                      'account.voucher': ('state', 'cancel'),
+                      }
+        sts = remove_group_records(models, records2keep, ctx,
+                                   hide_cid=False,
+                                   special=special,
+                                   specparams=specparams)
+    return sts
+
+
+def remove_company_account_base_records(ctx):
+    sts = STS_SUCCESS
+    model = 'account.invoice'
+    # move_name = get_name_by_ver(ctx, model, 'move_name')
+    if not ctx['dry_run']:
+        company_id = ctx['company_id']
+        if sts == STS_SUCCESS:
+            msg = u"Searching for invoices to delete"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = searchL8(ctx, model,
+                                  [('company_id', '=', company_id),
+                                   '|',
+                                   ('state', '=', 'paid'),
+                                   ('state', '=', 'open')])
+            reconcile_dict, move_dict = get_reconcile_from_invoices(record_ids,
+                                                                    ctx)
+            sts = unreconcile_invoices(reconcile_dict, ctx)
+        if sts == STS_SUCCESS:
+            msg = u"Setting invoices to cancel state"
+            msg_log(ctx, ctx['level'], msg)
+            record_ids = searchL8(ctx, model,
+                                  [('company_id', '=', company_id)])
+            if len(record_ids) > 0:
+                try:
+                    sts = upd_invoices_2_cancel(record_ids, ctx)
+                except BaseException:
+                    msg = u"Cannot delete invoices"
+                    msg_log(ctx, ctx['level'], msg)
+                    sts = STS_FAILED
+    if sts == STS_SUCCESS:
+        company_id = ctx['company_id']
+        models = validate_models(ctx,
+                                 ('account.fiscal.position',
                                   'account.tax.code',
                                   'account.tax',
                                   'account.journal',
@@ -4380,16 +4611,10 @@ def remove_company_account_records(ctx):
                             }
         else:
             records2keep = {}
-        special = {'account.invoice': 'set_state',
-                   'account.move': 'set_state',
-                   'account.voucher': 'set_state',
-                   'account.journal': 'deactivate',
+        special = {'account.journal': 'deactivate',
                    'account.tax': 'deactivate',
                    }
-        specparams = {'account.invoice': (move_name, ''),
-                      'account.move': ('state', 'cancel'),
-                      'account.voucher': ('state', 'cancel'),
-                      }
+        specparams = {}
         sts = remove_group_records(models, records2keep, ctx,
                                    hide_cid=False,
                                    special=special,
@@ -4397,7 +4622,7 @@ def remove_company_account_records(ctx):
     return sts
 
 
-def remove_all_account_records(ctx):
+def remove_all_account_move_records(ctx):
     models = validate_models(ctx, ('payment.line'))
     records2keep = {}
     special = {}

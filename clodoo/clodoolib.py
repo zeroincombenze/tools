@@ -85,6 +85,7 @@ LX_CFG_S = ('db_name',
             'install_modules',
             'uninstall_modules',
             'upgrade_modules',
+            'data_selection',
             'chart_of_account',
             'catalog_db',
             'custom_act',
@@ -142,7 +143,7 @@ LX_CFG_B = ('set_passepartout',
 # or else are just in line command
 LX_OPT_S = ('dbg_mode', 'do_sel_action', 'dry_run', 'lang', 'with_demo',
             'no_fvalidation',  'lgi_user', 'lgi_pwd', 'logfn', 'quiet_mode',
-            'xmlrpc_port', 'odoo_vid', 'exit_onerror')
+            'xmlrpc_port', 'odoo_vid', 'exit_onerror', 'data_selection')
 # List of pure boolean parameters in line command; may be in LX_CFG_S list too
 LX_OPT_B = ('dry_run', 'with_demo', 'no_fvalidation', 'exit_onerror')
 # List of numeric parameters in line command; may be in LX_CFG_S list too
@@ -159,7 +160,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.2"
+__version__ = "0.3.8.3"
 
 
 #############################################################################
@@ -329,6 +330,8 @@ def default_conf(ctx):
               'install_modules': False,
               'uninstall_modules': False,
               'upgrade_modules': False,
+              'data_selection': 'account_move,sale,purchase,project,mail,crm,'
+                                'inventory,marketing,hr,analytic',
               'zeroadm_mail': 'cc@shs-av.com',
               'zeroadm_login': 'zeroadm',
               'oneadm_mail': 'admin@example.com',
@@ -603,6 +606,11 @@ def create_parser(version, doc, ctx):
                         help="xmlrpc port",
                         dest="xmlrpc_port",
                         metavar="port",
+                        default="")
+    parser.add_argument("-S", "--data-selection",
+                        help="Select data to remove",
+                        dest="data_selection",
+                        metavar="list",
                         default="")
     parser.add_argument("-U", "--user",
                         help="login username",

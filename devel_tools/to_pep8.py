@@ -7,7 +7,11 @@
 #
 #    All Rights Reserved
 #
-"""Convert source python to do pep8 and other conversion, based on rule file.
+"""Aihoaih stands for "am I human or am I heap",
+tribute to a song of American rock band "The Killers".
+
+Acronym would mean this bot can read a python source code to customize it
+using convergent rules so result will be different from the others.
 
 Rules are high-level regex where atomic items are the python tokens.
 Result of the pythonic regex is one or more actions as:
@@ -52,6 +56,7 @@ Every entry is composed by:
     'parent':       parent rule while state is waiting for parent
 """
 
+from __future__ import print_function
 # import pdb
 import os
 import re
@@ -358,7 +363,9 @@ class topep8():
         tokenize.tok_name[tokenize.STOP_CAPTURE] = 'END_CAPTURE'
         tokenize.TOKENS = tokenize.N_TOKENS + 24
         tokenize.tok_name[tokenize.TOKENS] = 'TOKENS'
-        tokenize.LIST_SEP = tokenize.N_TOKENS + 25
+        tokenize.DECL_LIST = tokenize.N_TOKENS + 25
+        tokenize.tok_name[tokenize.DECL_LIST] = 'DECL_LIST'
+        tokenize.LIST_SEP = tokenize.N_TOKENS + 26
         tokenize.tok_name[tokenize.LIST_SEP] = 'LIST_SEP'
         #
         self.INDENTS = [tokenize.INDENT,  tokenize.DEDENT]
@@ -464,105 +471,155 @@ class topep8():
             'string': (tokenize.STRING, False, [1, 1]),
             'more': (tokenize.MORE, False, [0, -1]),
             'expr': (tokenize.EXPR, False, [0, -1]),
+            'list': (tokenize.DECL_LIST, False, [1, 1]),
         }
 
-    def set_active(self, ir):
+    def set_active(self, ir, irx):
         """Set rule state to active"""
-        self.LEX_RULES[ir]['state'] = 'active'
+        if 'state' in self.LEX_RULES[ir]:
+            if irx == 0 and not isinstance(self.LEX_RULES[ir]['state'], list):
+                self.LEX_RULES[ir]['state'] = 'active'
+            elif irx <= len(self.LEX_RULES[ir]['state']):
+                self.LEX_RULES[ir]['state'][irx] = 'active'
+            else:
+                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+        else:
+            if irx == 0:
+                self.LEX_RULES[ir]['state'] = 'active'
+            else:
+                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
 
-    def restart_state(self, ir):
+    def restart_state(self, ir, irx):
         """Restart rule state"""
-        self.set_active(ir)
-        self.LEX_RULES[ir]['wf_id'] = 0
-        self.LEX_RULES[ir]['cur_min_max'] = [1, 1]
-        self.LEX_RULES[ir]['level'] = 0
-        self.LEX_RULES[ir]['matched_ids'] = []
-        self.LEX_RULES[ir]['token_id'] = 0
-        self.LEX_RULES[ir]['tokeno_start'] = -1
-        self.LEX_RULES[ir]['tokeno_stop'] = -1
-        self.LEX_RULES[ir]['tokeno_indent'] = -1
+        self.set_active(ir, irx)
+        if 'wf_id' in self.LEX_RULES[ir]:
+            if irx == 0 and not isinstance(self.LEX_RULES[ir]['wf_id'], list):
+                self.LEX_RULES[ir]['wf_id'] = 0
+                self.LEX_RULES[ir]['cur_min_max'] = [1, 1]
+                self.LEX_RULES[ir]['level'] = 0
+                self.LEX_RULES[ir]['matched_ids'] = []
+                self.LEX_RULES[ir]['token_id'] = 0
+                self.LEX_RULES[ir]['tokeno_start'] = -1
+                self.LEX_RULES[ir]['tokeno_stop'] = -1
+                self.LEX_RULES[ir]['tokeno_indent'] = -1
+            elif irx <= len(self.LEX_RULES[ir]['wf_id']):
+                self.LEX_RULES[ir]['wf_id'][irx] = 0
+                self.LEX_RULES[ir]['cur_min_max'][irx] = [1, 1]
+                self.LEX_RULES[ir]['level'][irx] = 0
+                self.LEX_RULES[ir]['matched_ids'][irx] = []
+                self.LEX_RULES[ir]['token_id'][irx] = 0
+                self.LEX_RULES[ir]['tokeno_start'][irx] = -1
+                self.LEX_RULES[ir]['tokeno_stop'][irx] = -1
+                self.LEX_RULES[ir]['tokeno_indent'][irx] = -1
+            else:
+                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
+        else:
+            if irx == 0:
+                self.LEX_RULES[ir]['wf_id'] = 0
+                self.LEX_RULES[ir]['cur_min_max'] = [1, 1]
+                self.LEX_RULES[ir]['level'] = 0
+                self.LEX_RULES[ir]['matched_ids'] = []
+                self.LEX_RULES[ir]['token_id'] = 0
+                self.LEX_RULES[ir]['tokeno_start'] = -1
+                self.LEX_RULES[ir]['tokeno_stop'] = -1
+                self.LEX_RULES[ir]['tokeno_indent'] = -1
+            else:
+                raise IndexError, 'Invalid index %d for rule %s' % (irx, ir)
 
-
-    def init_rule_state(self, ir):
+    def init_rule_state(self, ir, irx):
         """Initialize rule state"""
-        self.restart_state(ir)
+        self.restart_state(ir, irx)
 
-    def set_next_state(self, ir):
+    def set_next_state(self, ir, irx):
         """Advance state to next"""
         self.LEX_RULES[ir]['wf_id'] += 1
         return self.LEX_RULES[ir]['wf_id']
 
-    def set_waiting4parent(self, ir):
+    def set_waiting4parent(self, ir, irx):
         """Set rule state to waiting for parent"""
-        self.LEX_RULES[ir]['parent'] = self.cur_tokval(ir)
+        self.LEX_RULES[ir]['parent'] = self.cur_tokval(ir, irx)
         self.LEX_RULES[ir]['state'] = 'wait4parent'
 
-    def is_waiting4parent(self, ir):
+    def is_waiting4parent(self, ir, irx):
         """Check for active rule"""
         if self.LEX_RULES[ir]['state'] != 'wait4parent':
             return False
         return True
 
-    def set_waiting4more(self, ir):
+    def set_waiting4more(self, ir, irx):
         """Set rule waiting for match to end token"""
-        self.set_next_state(ir)
+        self.set_next_state(ir, irx)
         self.LEX_RULES[ir]['state'] = 'wait4more'
 
-    def is_waiting4more(self, ir):
+    def is_waiting4more(self, ir, irx):
         """Check for active rule"""
         if self.LEX_RULES[ir]['state'] != 'wait4more':
             return False
         return True
 
-    def set_waiting4expr(self, ir):
+    def set_waiting4expr(self, ir, irx):
         """Set rule waiting for match to end token at the same level"""
-        self.set_next_state(ir)
+        self.set_next_state(ir, irx)
         self.LEX_RULES[ir]['state'] = 'wait4expr'
         self.LEX_RULES[ir]['level'] = self.any_paren
 
-    def is_waiting4expr(self, ir):
+    def is_waiting4expr(self, ir, irx):
         """Check for active rule"""
         if self.LEX_RULES[ir]['state'] != 'wait4expr' or \
                 self.LEX_RULES[ir]['level'] != self.any_paren:
             return False
         return True
 
-    def is_validated(self, ir):
+    def is_validated(self, ir, irx):
         """Check for validated rule"""
         keywords, tokids = self.get_key_n_id_from_rule(ir)
-        if self.cur_wf_id(ir) >= len(keywords):
+        if self.cur_wf_id(ir, irx) >= len(keywords):
             return True
         return False
 
-    def cur_state(self, ir):
+    def cur_state(self, ir, irx):
         """Get current active/valid rule state"""
         return self.LEX_RULES[ir]['state']
 
-    def cur_wf_id(self, ir):
+    def cur_wf_id(self, ir, irx):
         """Get current rule workflow position"""
         return self.LEX_RULES[ir]['wf_id']
 
-    def cur_tokid(self, ir):
-        if self.is_validated(ir):
+    def cur_tokid(self, ir, irx):
+        if self.is_validated(ir, irx):
             return 0
         tokids = self.LEX_RULES[ir]['keyids']
-        return tokids[self.cur_wf_id(ir)]
+        return tokids[self.cur_wf_id(ir, irx)]
 
-    def cur_tokval(self, ir):
-        if self.is_validated(ir):
+    def cur_tokval(self, ir, irx):
+        if self.is_validated(ir, irx):
             return ''
         keywords = self.LEX_RULES[ir]['keywords']
-        return keywords[self.cur_wf_id(ir)]
+        tokid = self.cur_tokid(ir, irx)
+        if tokid == tokenize.STRING and keywords[self.cur_wf_id(ir, irx)]:
+            return self.val_of_string(keywords[self.cur_wf_id(ir, irx)])
+        return keywords[self.cur_wf_id(ir, irx)]
 
     def in_states(self, ir):
         return self.LEX_RULES[ir]['parse_state']
 
-    def matches(self, ir, tokid, tokval):
+    def val_of_string(self, text):
+        ch = text[-1]
+        if ch in '"\'':
+            i = text.find(ch)
+            if i >= 0 and i < 3:
+                return text[i: -1]
+        return text
+
+    def matches(self, ir, irx, tokid, tokval):
         """Check if tokval matches rule token or tokid matches rule id"""
-        if self.cur_tokval(ir):
-            if tokval == self.cur_tokval(ir):
+        if self.cur_tokval(ir, irx):
+            if tokid == tokenize.STRING:
+                if self.val_of_string(tokval) == self.cur_tokval(ir, irx):
+                    return True
+            elif tokval == self.cur_tokval(ir, irx):
                 return True
-        elif tokid == self.cur_tokid(ir):
+        elif tokid == self.cur_tokid(ir, irx):
             return True
         return False
 
@@ -570,7 +627,7 @@ class topep8():
         """Get current match sequence position"""
         return self.LEX_RULES[ir]['token_id']
 
-    def store_value_to_replace(self, ctx, ir, tokid, tokval):
+    def store_value_to_replace(self, ctx, ir, irx, tokid, tokval):
         if self.LEX_RULES[ir]['tokeno_start'] < 0:
             self.LEX_RULES[ir]['tokeno_start'] = self.tokeno - 1
         param_list_from, ids_from_list = self.get_params_from_rule(
@@ -898,13 +955,17 @@ class topep8():
                         self.SYNTAX_TNL_ID[istkn])
             break
         if unknown:
-            print "Unknown token %s" % text[state['ipos']:]
+            print("Unknown token %s" % text[state['ipos']:])
             state['ipos'] += 1
         return state, tokid, tokval, min_max
 
     def compile_1_rule(self, rule):
         """Compile current rule for version <meta> parsing <value>
         """
+        bunch_keywords = []
+        bunch_keyids = []
+        bunch_min_max = []
+        bunch_ix = 0
         keywords = []
         keyids = []
         min_max_list = []
@@ -936,6 +997,7 @@ class topep8():
                     replacements[meta].append(tokval)
                     replacem_ids[meta].append(tokid)
         ir = rule['id']
+        irx = 0
         del rule['id']
         self.LEX_RULES[ir] = rule
         self.LEX_RULES[ir]['keywords'] = keywords
@@ -943,7 +1005,7 @@ class topep8():
         self.LEX_RULES[ir]['min_max_list'] = min_max_list
         self.LEX_RULES[ir]['meta'] = replacements
         self.LEX_RULES[ir]['meta_ids'] = replacem_ids
-        self. init_rule_state(ir)
+        self. init_rule_state(ir, irx)
 
     def extr_tokens_from_line(self, text_rule, cur_rule, parsed, cont_break):
         """Extract from line rule elements"""
@@ -1002,7 +1064,7 @@ class topep8():
                     elif tokid == tokenize.NAME:
                         item = tokval
                     else:
-                        print 'Invalid rule %s' % text_rule
+                        print('Invalid rule %s' % text_rule)
                         state['ipos'] += 1
         return cur_rule, parsed, cont_break
 
@@ -1106,13 +1168,14 @@ class topep8():
         for ir in rules_to_rm:
             del self.LEX_RULES[ir]
 
-    def match_parent_rule(self, ir, result):
+    def match_parent_rule(self, ir, irx, result):
         for ir1 in self.LEX_RULES.keys():
             if ir1 == ir:
                 continue
-            if self.cur_tokid(ir1) == tokenize.PARENT_RULE and \
-                    self.cur_tokval(ir1) == ir:
-                set_active(ir1)
+            for irx1 in [0, ]:
+                if self.cur_tokid(ir1, irx1) == tokenize.PARENT_RULE and \
+                        self.cur_tokval(ir1, irx1) == ir:
+                    set_active(ir1, irx1)
 
     def wash_tokid(self, tokid, tokval):
         if tokid == tokenize.INDENT:
@@ -1159,6 +1222,82 @@ class topep8():
         self.tabstop[scol] = tokenize.tok_name[tokid]
         return tokid, tokval
 
+    def process_wf_rule(self, ir, irx, tokid, tokval):
+        do_match = True
+        do_restart = True
+        # rule waiting for parent validation
+        if self.is_waiting4parent(ir, irx):
+            return False
+        # rule child of parent rule: set wait for parent result
+        elif self.cur_tokid(ir, irx) == tokenize.PARENT_RULE:
+            self.set_waiting4parent(ir, irx)
+            return False
+        # replace string inside remark
+        elif self.cur_tokid(ir, irx) == tokenize.COMMENT and \
+                tokid == tokenize.COMMENT:
+            self.store_value_to_replace(ctx,
+                                        ir,
+                                        irx,
+                                        tokid,
+                                        tokval)
+            self.set_next_state(ir, irx)
+            do_match = False
+            do_restart = False
+        # found the <any> token rule
+        elif self.cur_tokid(ir, irx) == tokenize.ANY:
+            self.store_value_to_replace(ctx,
+                                        ir,
+                                        irx,
+                                        tokid,
+                                        tokval)
+            self.set_next_state(ir, irx)
+            do_match = False
+            do_restart = False
+        # found <zero, one or more> tokens rule
+        elif self.cur_tokid(ir,irx) == tokenize.MORE:
+            self.set_waiting4more(ir, irx)
+            do_restart = False
+        # found expression rule
+        elif self.cur_tokid(ir, irx) == tokenize.EXPR:
+            self.set_waiting4expr(ir, irx)
+            do_restart = False
+
+        # exact text match
+        if do_match and self.matches(ir, irx, tokid, tokval):
+            if self.is_waiting4more(ir, irx):
+                self.set_active(ir, irx)
+            elif self.is_waiting4expr(ir, irx):
+                self.set_active(ir, irx)
+            else:
+                self.store_value_to_replace(ctx,
+                                            ir,
+                                            irx,
+                                            tokid,
+                                            tokval)
+            self.set_next_state(ir, irx)
+        # rule is waiting for <zero, one or more> tokens
+        elif self.is_waiting4more(ir, irx):
+            self.store_value_to_replace(ctx,
+                                        ir,
+                                        irx,
+                                        tokid,
+                                        tokval)
+            return False
+        # rule is waiting expression
+        elif self.is_waiting4expr(ir, irx):
+            self.store_value_to_replace(ctx,
+                                        ir,
+                                        irx,
+                                        tokid,
+                                        tokval)
+            return False
+        elif do_restart:
+            self.restart_state(ir, irx)
+        # Rule is validated?
+        if self.is_validated(ir, irx):
+            return True
+        return False
+
     def tokenize_source(self, ctx=None):
         ctx = ctx or {}
         ctx['parse_state'] = 'regular'
@@ -1168,86 +1307,23 @@ class topep8():
             if tokid in self.GHOST_TOKENS:
                 continue
             if ctx['opt_dbg']:
-                print ">>> %s(%s)" % (tokid, tokval)
+                print(">>> %s(%s)" % (tokid, tokval))
             validated_rule_list = []
             for ir in self.LEX_RULES.keys():
                 if ctx['parse_state'] not in self.in_states(ir):
                     continue
-                do_match = True
-                do_restart = True
-                # rule waiting for parent validation
-                if self.is_waiting4parent(ir):
-                    continue
-                # rule child of parent rule: set wait for parent result
-                elif self.cur_tokid(ir) == tokenize.PARENT_RULE:
-                    self.set_waiting4parent(ir)
-                    continue
-                # replace string inside remark
-                elif self.cur_tokid(ir) == tokenize.COMMENT and \
-                        tokid == tokenize.COMMENT:
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    self.set_next_state(ir)
-                    do_match = False
-                    do_restart = False
-                # found the <any> token rule
-                elif self.cur_tokid(ir) == tokenize.ANY:
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    self.set_next_state(ir)
-                    do_match = False
-                    do_restart = False
-                # found <zero, one or more> tokens rule
-                elif self.cur_tokid(ir) == tokenize.MORE:
-                    self.set_waiting4more(ir)
-                    do_restart = False
-                # found expression rule
-                elif self.cur_tokid(ir) == tokenize.EXPR:
-                    self.set_waiting4expr(ir)
-                    do_restart = False
-
-                # exact text match
-                if do_match and self.matches(ir, tokid, tokval):
-                    if self.is_waiting4more(ir):
-                        self.set_active(ir)
-                    elif self.is_waiting4expr(ir):
-                        self.set_active(ir)
-                    else:
-                        self.store_value_to_replace(ctx,
-                                                    ir,
-                                                    tokid,
-                                                    tokval)
-                    self.set_next_state(ir)
-                # rule is waiting for <zero, one or more> tokens
-                elif self.is_waiting4more(ir):
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    continue
-                # rule is waiting expression
-                elif self.is_waiting4expr(ir):
-                    self.store_value_to_replace(ctx,
-                                                ir,
-                                                tokid,
-                                                tokval)
-                    continue
-                elif do_restart:
-                    self.restart_state(ir)
-                # Rule is validated?
-                if self.is_validated(ir):
-                    validated_rule_list.append(ir)
+                irx = 0
+                if isinstance(self.cur_wf_id(ir, irx), int):
+                    if self.process_wf_rule(ir, 0, tokid, tokval):
+                        validated_rule_list.append(ir)
 
             for ir in validated_rule_list:
                 if ctx['opt_dbg']:
-                    print "    match_parent_rule(%s, True)" % (ir)
-                self.match_parent_rule(ir, True)
+                    print("    match_parent_rule(%s, True)" % (ir))
+                irx = 0
+                self.match_parent_rule(ir, irx, True)
                 self.do_action(ctx, ir)
-                self.restart_state(ir)
+                self.restart_state(ir, irx)
         self.unget_token()
         while self.tokenized[self.tokeno][0] in self.GHOST_TOKENS or \
                 self.tokenized[self.tokeno][0] in (tokenize.NEWLINE,
@@ -1391,16 +1467,16 @@ def parse_file(ctx=None):
     src_filepy, dst_filepy, ctx = get_filenames(ctx)
     ctx = get_versions(ctx)
     if ctx['opt_verbose']:
-        print "Reading %s -o%s -b%s" % (src_filepy,
+        print("Reading %s -o%s -b%s" % (src_filepy,
                                         ctx['from_ver'],
-                                        ctx['to_ver'])
+                                        ctx['to_ver']))
     source = topep8(src_filepy, ctx)
     source.compile_rules(ctx)
     source.tokenize_source(ctx)
     text_tgt = source.untokenize_2_text(ctx)
     if not ctx['dry_run']:
         if ctx['opt_verbose']:
-            print "Writing %s" % dst_filepy
+            print("Writing %s" % dst_filepy)
         if dst_filepy != src_filepy:
             fd = open(ctx['dst_filepy'], 'w')
             fd.write(os0.b(text_tgt))

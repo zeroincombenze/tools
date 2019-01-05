@@ -27,6 +27,10 @@ for prm in sys.argv:
         exit(1)
 
 with open(params['file'], 'rU') as fd:
+    LAST_TNL_NAME = 'Antonio M. Vigliotti'
+    LAST_TNL_MAIL = 'antoniomaria.vigliotti@gmail.com'
+    LAST_TEAM_NAME = 'Zeroincombenze'
+    LAST_TEAM_URL = 'https://www.zeroincombenze.it'
     polines = fd.read().split('\n')
     potext = ''
     for line in polines:
@@ -35,11 +39,14 @@ with open(params['file'], 'rU') as fd:
         elif line.startswith('"# *'):
             potext += r'"# %s\n"' % params['module'] + '\n'
         elif line.startswith('"Project-Id-Version:'):
-            potext += r'"Project-Id-Version: Odoo (%s)\n"' % params['branch'] + '\n'
+            potext += r'"Project-Id-Version: Odoo (%s)\n"' % params[
+                'branch'] + '\n'
         elif line.startswith('"Last-Translator:'):
-            potext += r'"Last-Translator: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>\n"' + '\n'
+            potext += r'"Last-Translator: %s <%s>\n"' % (
+                LAST_TNL_NAME, LAST_TNL_MAIL) + '\n'
         elif line.startswith('"Language-Team:'):
-            potext += r'"Language-Team: Zeroincombenze (https://www.zeroincombenze.it/)\n"' + '\n'
+            potext += r'"Language-Team: %s (%s)\n"' % (
+                LAST_TEAM_NAME, LAST_TEAM_URL) + '\n'
             potext += r'"Language: it_IT\n"' + '\n'
         elif line.startswith('"Language:'):
             pass

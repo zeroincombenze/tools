@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2016-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2016-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2
+__version__=0.2.2.1
 
 
 run_n_echo() {
@@ -147,7 +147,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Install packages to run travis tests\n if supplied 'oca' executes travis_install_nightly"\
-  "(C) 2016-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2016-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -197,7 +197,7 @@ fi
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
-if [[ ! $TRAVIS =~ (true|emulate) ]]; then
+if [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local ]]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
@@ -268,43 +268,43 @@ if [ $opt_verbose -gt 0 ]; then
   [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ PYTHONPATH=$PYTHONPATH${TRAVIS_HDR3_COLOR}"
 fi
-run_n_echo "$PIP install -q pip --upgrade" "nolocal"
+[[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
 echo -e "${TRAVIS_HDR3_COLOR}### Build Secure Environment${TRAVIS_TEXT_COLOR}"
 for p in build-essential libssl-dev libffi-dev python-dev; do
-  eval $LISA status -q $p
-  if [ $? -ne 0 ]; then
-    run_n_echo "$LISA install $p" "nolocal"
-  fi
+  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
+  [ $? -ne 0 ] && run_n_echo "$LISA install $p" "nolocal"
 done
-for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
-  eval $LISA status -q $p &>/dev/null
-  if [ $? -ne 0 ]; then
-    run_n_echo "$PIP install $p" "nolocal"
-  else
-    run_n_echo "$PIP install $p --upgrade" "nolocal"
-  fi
-done
+if [[ ! "$TRAVIS" == "false" ]]; then
+  for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
+    eval $LISA status -q $p &>/dev/null
+    if [ $? -ne 0 ]; then
+      run_n_echo "$PIP install $p" "nolocal"
+    else
+      run_n_echo "$PIP install $p --upgrade" "nolocal"
+    fi
+  done
+fi
 # Secure environment OK
 echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
 for p in os0 configparser z0lib; do
-  eval $LISA status -q $p
-  if [ $? -ne 0 ]; then
-    run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
-  fi
+  [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
+  [ $? -ne 0 ] && run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
-    for p in clodoo configparser codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
-      eval $LISA status -q $f &>/dev/null
-      if [ $? -ne 0 ]; then
-        run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
-      else
-        run_n_echo "$PIP install $p --upgrade" "nolocal"
-      fi
-    done
+    if [[ ! "$TRAVIS" == "false" ]]; then
+      for p in clodoo configparser codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
+        eval $LISA status -q $f &>/dev/null
+        if [ $? -ne 0 ]; then
+          run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
+        else
+          run_n_echo "$PIP install $p --upgrade" "nolocal"
+        fi
+      done
+    fi
   fi
   if [ $opt_verbose -gt 0 ]; then
     echo "Content of ${HOME}:"
@@ -337,8 +337,6 @@ else
   fi
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     echo -e "${TRAVIS_HDR3_COLOR}### Build Test Environment${TRAVIS_TEXT_COLOR}"
-    # run_n_echo "wget -q https://raw.githubusercontent.com/OCA/pylint-odoo/master/requirements.txt -O ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt"
-    # run_n_echo "$PIP install --upgrade -r ${HOME}/maintainer-quality-tools/travis/pylint_odoo_requirements.txt $PIP_OPTS"
     run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
     run_n_echo "npm install eslint"
   fi
@@ -411,7 +409,11 @@ else
   if [ "${TESTS}" != "1" ]; then
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
-      run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      if [[ "$TRAVIS" == "false" ]]; then
+        run_n_echo "$MGRODOO requirements -nb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      else
+        run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      fi
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
@@ -444,7 +446,11 @@ else
     fi
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
-      run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      if [[ "$TRAVIS" == "false" ]]; then
+        run_n_echo "$MGRODOO requirements -nb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      else
+        run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+      fi
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then

@@ -6,10 +6,17 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 import sys
-import clodoo
-from z0lib import parseoptargs
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from z0lib.z0lib import parseoptargs
+except ImportError:
+    from z0lib import parseoptargs
 
-__version__ = "0.3.8.2"
+
+__version__ = "0.3.8.3"
 
 
 def get_name_by_ver(ctx, name):

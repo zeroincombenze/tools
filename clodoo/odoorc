@@ -40,7 +40,7 @@
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
 
-#__version__=0.3.8.2
+#__version__=0.3.8.3
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -79,7 +79,7 @@ INVALID_MODNAMES="$OCB_SUBDIRS conf cover .cover .coverage egg-info .git html la
 INVALID_MODNAMES_RE="^(${INVALID_MODNAMES// /|})$"
 REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wip,"\
 "OCA/project,OCA/project-service,OCA/sale-workflow,OCA/purchase-workflow,OCA/multi-company,"\
-"OCA/commission,Odoo-Italia-Associazione/user_contributes,"\
+"zeroincombenze/commission,Odoo-Italia-Associazione/user_contributes,"\
 "local/didotech_80,local/profiles,local/uncovered,local/mymodules,local/themes,local/woven_fabric,"\
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
 "zeroincombenze/l10n-italy-supplemental,OCA/connector,OCA/social,OCA/event,"\

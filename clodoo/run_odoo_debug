@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.2
+__version__=0.3.8.3
 
 
 OPTOPTS=(h        b          d        e       k        i       I       l        L        m           M         n           o         s         t         U          u       V           v           w       x)
@@ -135,17 +135,6 @@ if [ -z "$opt_dbuser" ]; then
 fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
-    # mods=${opt_modules//,/ }
-    # for m in $mods; do
-    #   p=$(find $odoo_root -type d -name $m|head -n1)
-    #   if [ -f $p/$manifest ]; then
-    #     f=$p/$manifest
-    #     x=$(cat $f|grep -A10 depends|tr -d '\n'|awk -F"[" '{print $2}'|awk -F"]" '{print $1}'|tr -d '" '|tr -d "'")
-    #     if [ -n "$x" ]; then
-    #       opt_modules="$opt_modules,$x"
-    #     fi
-    #   fi
-    # done
     addons_list=
     [ -d $PWD/addons ] && addons_list=$addons_list,$PWD/addons
     [ -d $PWD/openerp/addons ] && addons_list=$addons_list,$PWD/openerp/addons
@@ -240,9 +229,9 @@ EOF
         opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
       fi
     elif [ $opt_upd -ne 0 -o $opt_xtl -ne 0 ]; then
-      opts="$optsiu"
-    else
       opts="$optsiu --test-enable"
+    else
+      opts="$optsiu"
     fi
   fi
 else
@@ -294,23 +283,17 @@ if [ $opt_dry_run -eq 0 ]; then
 fi
 if [ $opt_touch -eq 0 ]; then
   if [ $drop_db -gt 0 ]; then
-    if [ $opt_verbose -gt 0 ]; then
-      echo "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
-    fi
+    [ $opt_verbose -gt 0 ] && echo "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
     pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db
   fi
   if [ $create_db -gt 0 ]; then
-    if [ $opt_verbose -gt 0 ]; then
-      echo "createdb -U$opt_dbuser $opt_db"
-    fi
+    [ $opt_verbose -gt 0 ] && echo "createdb -U$opt_dbuser $opt_db"
     createdb -U$opt_dbuser $opt_db
   fi
   if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
     opts="--debug $opts"
   fi
-  if [ $opt_verbose -gt 0 -o $opt_dry_run -gt 0 ]; then
-    echo "$script $opts"
-  fi
+  echo "$script $opts"
   if [ $opt_dry_run -eq 0 ]; then
     eval $script $opts
   fi
