@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.2
+__version__=0.2.2.3
 
 
 save_testenv() {
@@ -244,8 +244,8 @@ test_03() {
     local s sts RES opts
     opt_conf=
     sts=0
+    opts_travis ""
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      opts_travis ""
       opt_verbose=1
       PRJNAME=
       CFG_init
@@ -387,7 +387,7 @@ test_04() {
       init_travis
       result_testenv
     fi
-    test_result "opts_travis OE (virtualenv_opts)" "--no-pip --no-setuptools --no-wheel" "$TRAVIS_ENVOPTS"
+    test_result "opts_travis OE (virtualenv_opts)" "" "$TRAVIS_ENVOPTS"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
 
     restore_testenv

@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.2
+#__version__=0.2.2.3
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -305,24 +305,6 @@ init_travis() {
     if [[ -z "$PKGPATH" || -z "$PRJPATH" ]]; then
       build_pypi_param ALL
     fi
-    # if [ "$PRJNAME" == "Odoo" ]; then
-    #   if [ -n "$SETUP" -a -f "$SETUP" ]; then
-    #     prjdesc=$(grep "'name' *:" $SETUP 2>/dev/null|awk -F":" '{print $2}'|tr -d "\"',\r\n")
-    #   else
-    #     prjdesc="Unrecognized Odoo module"
-    #   fi
-    # else
-    #   if [ -n "$SETUP" -a -f "$SETUP" ]; then
-    #     PRJNAME=$(grep "[^a-zA-Z0-9_]name *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
-    #     prjdesc=$(grep "[^a-zA-Z0-9_]description *=" $SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"',\r\n")
-    #     if [ "$prjdesc" == "description" ]; then
-    #       prjdesc="Unrecognized package"
-    #     fi
-    #   fi
-    # fi
-    # if [ "$PRJNAME" == "odoo" -o "$PRJNAME" == "openerp" ]; then
-    #   PRJNAME=Odoo
-    # fi
     if [ "$PRJNAME" == "Odoo" ]; then
       local npm_curpfx=$(npm config get prefix)
       NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
@@ -417,8 +399,12 @@ custom_env() {
     # fi
     sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
     if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
-      echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
-    else
+      if [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
+        echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+      else
+        echo -e "import site\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+      fi
+    elif [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
       echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
     fi
 }
@@ -480,7 +466,7 @@ create_virtual_env() {
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
     if [ "$TRAVIS_SAVED_HOME" == "/home/travis" ]; then
       export TRAVIS=true
-    elif [[ "$SYSTEM_SITE_PACKAGES" != "true" ]]; then
+    elif [ $opt_full -ne 0 ]; then
       export TRAVIS=emulate
     else
       export TRAVIS=false
@@ -510,13 +496,15 @@ create_virtual_env() {
             cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/
           fi
         done
-        # export PYPI_CACHED=$TRAVIS_HOME/.local
-        export PYPI_CACHED=
-      else
-        export PYPI_CACHED=
       fi
       custom_env "$TRAVIS_HOME" "$TRAVIS_PYTHON_VERSION"
       source bin/activate
+      # FIX
+      pip install flake8
+      if [ -d $HOME/lib/python2.7/site-packages/ ]; then
+        export PYPI_CACHED=$HOME/lib/python2.7/site-packages/
+      fi
+      # export PYPI_CACHED=
     fi
     mkdir -p $TRAVIS_HOME/build
     mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}

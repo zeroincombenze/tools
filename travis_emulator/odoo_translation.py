@@ -22,7 +22,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.2"
+__version__ = "0.2.2.3"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -83,8 +83,37 @@ def load_default_dictionary(source):
             TNL_DICT[msgid] = os0.u(row['msgstr'])
             TNL_ACTION[msgid] = 'C'
             if msgid == msgid[0].upper() + msgid[1:].lower():
-                TNL_DICT[msgid.lower()] = os0.u(row['msgstr']).lower()
-                TNL_ACTION[msgid.lower()] = 'C'
+                msg2 = msgid.lower()
+                TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
+                TNL_ACTION[msg2] = 'C'
+            if msgid[-1] == ':':
+                msg2 = msgid[:-1]
+                if row['msgstr'][-1] == ':':
+                    des2 = row['msgstr'][:-1]
+                else:
+                    des2 = row['msgstr']
+            else:
+                msg2 = msgid + ':'
+                if row['msgstr'][-1] == ':':
+                    des2 = row['msgstr']
+                else:
+                    des2 = row['msgstr'][:-1]
+            TNL_DICT[msg2] = des2
+            TNL_ACTION[msg2] = 'C'
+            if msgid[-1] == '.':
+                msg2 = msgid[:-1]
+                if row['msgstr'][-1] == '.':
+                    des2 = row['msgstr'][:-1]
+                else:
+                    des2 = row['msgstr']
+            else:
+                msg2 = msgid + '.'
+                if row['msgstr'][-1] == '.':
+                    des2 = row['msgstr']
+                else:
+                    des2 = row['msgstr'][:-1]
+            TNL_DICT[msg2] = des2
+            TNL_ACTION[msg2] = 'C'
             ctr += 1
         if ctx['opt_verbose']:
             print(" ... Read %d records" % ctr)
@@ -175,7 +204,6 @@ def rewrite_pofile(ctx, pofn, target, version):
                      stdout=PIPE,
                      stderr=PIPE,
                      shell=False).communicate()
-     
     fd = open(pofn, 'rB')
     lefts = fd.read().split('\n')
     fd.close()
@@ -226,13 +254,13 @@ def load_dictionary(ctx):
                         module_path = root
                         break
             if not module_path:
-                print('Module %s not found in Odoo %s' % (
+                print('*** Module %s not found in Odoo %s !!!' % (
                     ctx['module_name'], version))
                 continue
             print('Found path %s' % module_path)
             pofn = os.path.join(module_path, 'i18n', 'it.po')
             if not os.path.isfile(pofn):
-                print('File %s not found!' % pofn)
+                print('*** File %s not found !!!' % pofn)
                 return 0
             ctx['pofiles'][version] = pofn
             ctr = load_dictionary_from_file(pofn)
@@ -258,7 +286,7 @@ def set_header_pofile(ctx, pofile):
         elif line.startswith('"Language-Team:'):
             potext += r'"Language-Team: %s (%s)\n"' % (
                 'Zeroincombenze',
-                'https://www.zeroincombenze.it/')+ '\n'
+                'https://www.zeroincombenze.it/') + '\n'
             potext += r'"Language: it_IT\n"' + '\n'
         elif line.startswith('"Language:'):
             pass
@@ -304,8 +332,11 @@ def upgrade_db(ctx):
                                    ('src', '=', msgid)])
             if ids and len(ids) < MAX_RECS:
                 msg_burst(msgid)
-                clodoo.writeL8(ctx, model, ids, {'value': TNL_DICT[msgid]})
-                ctr += len(ids)
+                try:
+                    clodoo.writeL8(ctx, model, ids, {'value': TNL_DICT[msgid]})
+                    ctr += len(ids)
+                except IOError:
+                    print("*** Error writing %s !!!" % TNL_DICT[msgid])
         if ctx['opt_verbose']:
             print(" ... %d record upgraded" % ctr)
 
@@ -342,7 +373,7 @@ if __name__ == "__main__":
     parser.add_argument('-v')
     ctx = parser.parseoptargs(sys.argv[1:])
     if not ctx['module_name']:
-        print('Missing module name! Please, use -m switch')
+        print('*** Missing module name! Please, use -m switch !!!')
         sys.exit(1)
     sts = load_dictionary(ctx)
     if sts == 0:

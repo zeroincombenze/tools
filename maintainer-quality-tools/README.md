@@ -152,10 +152,10 @@ E124 | :x:     | :x:     |         |        | :white_check_mark: | [Closing brac
 E126 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line over-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E126.html)
 E128 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line under-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E128.html)
 E133 | :x:     | :x:     |         |        | :x: | [Closing bracket is missing indentation](https://lintlyci.github.io/Flake8Rules/rules/E133.html)
-E201 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
-E202 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
-E203 | :x:     | :x:     |         |        | :white_check_mark: | [Whitespace before ':'](https://lintlyci.github.io/Flake8Rules/rules/E203.html)
-E221 | :x:     | :x:     |         |        | :white_check_mark: | [Multiple spaces before operator](https://lintlyci.github.io/Flake8Rules/rules/E221.html)
+E201 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
+E202 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
+E203 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace before ':'](https://lintlyci.github.io/Flake8Rules/rules/E203.html)
+E221 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Multiple spaces before operator](https://lintlyci.github.io/Flake8Rules/rules/E221.html)
 E222 | :x:     | :x:     |         |        | :white_check_mark: |
 E225 | :x:     | :x:     |         |        | :white_check_mark: |
 E226 | :x:     | :x:     |         |        | :x: |
@@ -174,7 +174,8 @@ E301 | :x:     | :x:     |         |        | :white_check_mark: | [Expected 1 b
 E302 | :x:     | :x:     |         |        | :white_check_mark: | No __init__.py
 E303 | :x:     | :x:     |         |        | :white_check_mark: |
 E305 | :x:     | :x:     |         |        | :white_check_mark: |
-F401 | :x:     | :x:     |         |        | :x: | module imported but unused
+W391 | :x:     | :white_check_mark: |         |        | :white_check_mark: | blank line at end of file
+F401 | :x:     | :white_check_mark: |         |        | :x: | module imported but unused
 E501 | :x:     | :x:     |         |        | :white_check_mark: |
 W503 | :x:     | :x:     |         |        | :x: | No __init__.py
 W504 | :x:     | :x:     |         |        | :x: | No __init__.py
@@ -191,13 +192,13 @@ Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
 W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
 W0312 | :white_check_mark: |        |        |     | :white_check_mark: | [wrong-tabs-instead-of-spaces](http://pylint-messages.wikidot.com/messages:w0312)
 W0403 | :white_check_mark: |        |        |     | :white_check_mark: | relative-import
-W1401 | :x:     |         |         |        | :white_check_mark: | anomalous-backslash-in-string
+W1401 | :x:     | :white_check_mark: |         |        | :white_check_mark: | anomalous-backslash-in-string
 E7901 | :white_check_mark: |        |        |     | :white_check_mark: | [rst-syntax-error](https://pypi.org/project/pylint-odoo/1.4.0)
-C7902 | :x:     |         |         |        | :white_check_mark: | missing-readme
+C7902 | :x:     | :white_check_mark: |         |        | :white_check_mark: | missing-readme
 W7903 | :x:     |         |         |        | :white_check_mark: | javascript-lint
 W7908 | :white_check_mark: |        |        |     | :white_check_mark: | missing-newline-extrafiles
 W7909 | :x:     |         |         |        | :white_check_mark: | redundant-modulename-xml
-W7910 | :x:     |         |         |        | :white_check_mark: | wrong-tabs-instead-of-spaces
+W7910 | :x:     | :white_check_mark: |         |        | :white_check_mark: | wrong-tabs-instead-of-spaces
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
 C8103 | :x:     |         |         |        | :white_check_mark: | [manifest-deprecated-key](https://pypi.org/project/pylint-odoo/1.4.0)

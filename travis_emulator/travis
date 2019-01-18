@@ -53,7 +53,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.2
+__version__=0.2.2.3
 
 
 store_cfg_param_value() {
@@ -165,16 +165,14 @@ process_yaml_init() {
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
-    # elif [ -f $HOME/tools/lisa/lisa ]; then
-    #   export YML_lisa=$HOME/tools/lisa/lisa
-    #   export YML_mgrodoo=$HOME/tools/clodoo/manage_odoo
-    # else
-    #   export YML_lisa=lisa
-    #   export YML_mgrodoo=manage_odoo
     fi
     TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
     ODOO_TNLBOT="${opt_tnl:-0}"
-    SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
+    if [ $opt_full -ne 0 ]; then
+      SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
+    else
+      SYSTEM_SITE_PACKAGES="${opt_syspkg:-true}"
+    fi
     LINT_CHECK_LEVEL="${opt_llvl^^}"
     for i in {1..9}; do
       declare YML_CMD_DIS_$i=$(get_cfg_value "" "yaml__cmd_dis__$i")
@@ -950,17 +948,18 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C          c        D        E         f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml)
-OPTACTI=(1        1         0          "="      "="      1         1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "=")
-OPTDEFL=(0        0         1          ""       ""       0         0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml")
-OPTMETA=("help"   "version" ""         "file"   "number" ""        ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "=")
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml")
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
  "travis_debug_mode: may be 0,1,2 (def yaml dependents)"\
  "save virtual environment as ~/VME/VME{version}"\
+ "run final travis with full features"\
  "force yaml to run w/o cmd subst"\
  "execute tests in project dir rather in test dir (or expand macro if parseyaml)"\
  "keep DB and virtual environment after tests"\
@@ -988,7 +987,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Travis-ci emulator for local developer environment\nAction may be: lint, test, emulate (default), setup, chkconfig or parseyaml"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
@@ -1097,8 +1096,8 @@ if [ $sts -eq $STS_SUCCESS ]; then
   else
     [ "${opt_logdir:0:1}" == "~" ] && opt_logdir=$HOME/${opt_logdir:1}
     mkdir -p $opt_logdir
-    clean_dirs "$PRJPATH"
-    [ "$PKGNAME" != "OCB" ] && set_executable
+    [ $opt_full -ne 0 ] && clean_dirs "$PRJPATH"
+    [ $opt_full -ne 0 -a "$PKGNAME" != "OCB" ] && set_executable
     if [ $opt_debug -ne 0 ]; then
       process_yaml
       sts=2
