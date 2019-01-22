@@ -179,7 +179,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.3"
+__version__ = "0.3.8.4"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -4811,7 +4811,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
             nm = ctx['TRANSDICT'][nm] or nm
         else:
             nm = nm.split('/')[0].split(':')[0]
-        if ctx['no_fvalidation'] or nm in ('db_type', 'oe_versions',
+        if ctx['no_fvalidation'] or nm in ('id', 'db_type', 'oe_versions',
                                            'name2', 'name_first', 'name_last',
                                            'customer-supplier') or \
                 (len(ctx['validated_fields']) and
