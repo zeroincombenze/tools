@@ -5,7 +5,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com <info@shs-av.com>
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.7.42
+__version__=0.3.8.5
 
 
 rmdir_if_exists() {
@@ -45,6 +45,7 @@ rmdir_if_exists() {
       local RPTNAME=$1
       local odoo_vid=$2
       local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
+      local odoo_Rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
       local new_vid=$3
       if [ -n "$opt_odir" ]; then
         local DSTPATH=$opt_odir
@@ -69,7 +70,7 @@ rmdir_if_exists() {
           if [ "$DSTPATH" != "$PWD" ]; then
             run_traced "cd $DSTPATH"
           fi
-          run_traced "git push origin --delete $odoo_fver" "$pkg_user"
+          run_traced "git push origin --delete $odoo_Rver" "$pkg_user"
           if [ "$CWD" != "$PWD" ]; then
             run_traced "cd $CWD"
           fi
@@ -251,7 +252,7 @@ elif [ -z "$odoo_vid" -a -z "$opt_branch" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Add or duplicate odoo repository into local filesystem"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ $opt_verbose -eq -1 ]; then
@@ -272,6 +273,7 @@ discover_multi
 TMPFILE=$HOME/tmp_$$.out
 odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
+odoo_rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
 [ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
@@ -321,14 +323,14 @@ if [ -z "$new_odoo_vid" ]; then
     fi
     run_traced "git stash" "$pkg_user"
     if [ "$RPTNAME" == "OCB" ]; then
-      run_traced "git pull origin $odoo_fver --no-recurse-submodules" "$pkg_user"
+      run_traced "git pull origin $odoo_rver --no-recurse-submodules" "$pkg_user"
     else
-      run_traced "git pull origin $odoo_fver" "$pkg_user"
+      run_traced "git pull origin $odoo_rver" "$pkg_user"
     fi
     exit 0
   elif [ $opt_updrmt -eq 0 ]; then
     rmdir_if_exists $RPTNAME $odoo_vid ""
-    git_opts="-b $odoo_fver"
+    git_opts="-b $odoo_rver"
     if [ $opt_one -gt 0 ]; then
       x="--depth 1 --single-branch"
     else

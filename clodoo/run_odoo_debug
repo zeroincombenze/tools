@@ -28,16 +28,17 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.4
+__version__=0.3.8.5
 
 
-OPTOPTS=(h        b          d        e       k        i       I       l        L        m           M         n           o         p        s         t         U          u       V           v           w       x)
-OPTDEST=(opt_help opt_branch opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_stop  opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "="        "="      1       1        1       1       1        "="      "="         1         "1"         "="       "="      1         1         "="        1       "*>"        1           1       "=")
-OPTDEFL=(1        ""         ""       0       0        0       0       0        ""       ""          -1        0           ""        ""       0         0         ""         0       ""          0           0       "")
-OPTMETA=("help"   "branch"   "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    ""        "touch"   "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
+OPTDEST=(opt_help opt_branch opt_conf opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_stop  opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
+OPTACTI=(1        "=>"       "="      "="      1       1        1       1       1        "="      "="         1         "1"         "="       "="      1         1        1         "="        1       "*>"        1           1       "=")
+OPTDEFL=(1        ""         ""       ""       0       0        0       0       0        ""       ""          -1        0           ""        ""       0         0        0         ""         0       ""          0           0       "")
+OPTMETA=("help"   "branch"   "fname"  "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    ""        ""       "touch"   "user"     ""      "version"   "verbose"   0       "port")
 OPTHELP=("this help"\
  "odoo branch (version id)"\
+ "configuration file"\
  "db name to test,translate o upgrade (require -m switch)"\
  "export it translation (conflict with -i -u -I)"\
  "do not create new DB and keep it after run"\
@@ -51,6 +52,7 @@ OPTHELP=("this help"\
  "output file (if export multiple modules)"\
  "odoo root path"\
  "stop after init"\
+ "execute odoo test on module"\
  "touch config file, do not run odoo"\
  "db username"\
  "upgrade module (conflict with -e -i -I)"\
@@ -67,17 +69,20 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run odoo in debug mode"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-
 if [ -n "$opt_branch" -a -z "$odoo_vid" ]; then
   odoo_vid=$opt_branch
 fi
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
-confn=$(build_odoo_param CONFN $odoo_vid search)
+if [ -n "$opt_conf" ]; then
+  confn=$opt_conf
+else
+  confn=$(build_odoo_param CONFN $odoo_vid search)
+fi
 lconfn=$(build_odoo_param LCONFN $odoo_vid search)
 script=$(build_odoo_param BIN $odoo_vid search)
 if [ -n "$opt_odir" ]; then
@@ -88,7 +93,16 @@ else
   odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 fi
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
-
+create_db=0
+drop_db=0
+if [ $opt_test -ne 0 ]; then
+  opt_web=0
+  opt_lang=0 opt_exp=0 opt_imp=0
+  opt_upd=0 opt_stop=1
+  opt_xtl=1
+  [ -z "$opt_db" ] && opt_db="test_openerp_$odoo_ver"
+  create_db=1 drop_db=1
+fi
 if [ $opt_web -ne 0 ]; then
   rpcport=$(build_odoo_param RPCPORT $odoo_vid)
   odoo_user=$(build_odoo_param USER $odoo_vid)
@@ -97,8 +111,6 @@ else
   odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi
 
-create_db=0
-drop_db=0
 if [ $opt_lang -ne 0 ]; then
   opt_keep=1
   opt_stop=1
@@ -181,7 +193,8 @@ EOF
       opt_modules="$opt_modules,$x"
     fi
     popd >/dev/null
-    opts="-i $opt_modules --test-enable"
+    opts="-i $opt_modules"
+    [ $opt_test -ne 0 ] && opts="$opts --test-enable"
     create_db=1
   else
     mods=${opt_modules//,/ }
@@ -236,7 +249,8 @@ EOF
         opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
       fi
     elif [ $opt_upd -ne 0 -o $opt_xtl -ne 0 ]; then
-      opts="$optsiu --test-enable"
+      opts="$optsiu"
+      [ $opt_test -ne 0 ] && opts="$opts --test-enable"
     else
       opts="$optsiu"
     fi
@@ -262,7 +276,7 @@ fi
 if [ $opt_stop -gt 0 ]; then
   opts="$opts --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
-     opts="$opts --test-commit"
+    [ $opt_test -ne 0 ] && opts="$opts --test-commit"
   fi
 fi
 if [ -n "$opt_db" ]; then

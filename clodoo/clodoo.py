@@ -179,7 +179,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.4"
+__version__ = "0.3.8.5"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
