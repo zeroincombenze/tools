@@ -35,7 +35,7 @@ xtl_sudo=0
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
+# (C) 2015-2019 by zeroincombenze(R) <http://wiki.zeroincombenze.org/en/Odoo>
 # This free software is released under GNU Affero GPL3
 # Update follow line to enable dry_run rather actual executable script
 DRY_RUN=${xtl_test}

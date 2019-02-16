@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.5
+__version__=0.3.8.6
 
 
 explore() {
@@ -150,7 +150,7 @@ do_action() {
         for p in os0 z0lib; do
           eval $LISA status -q $p
           if [ $? -ne 0 ]; then
-            eval $PIP install $p
+            eval $PIP install --disable-pip-version-check $p
           fi
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing binary requirements${TRAVIS_TEXT_COLOR}"
@@ -193,7 +193,7 @@ do_action() {
                   x=$(eval $LISA version -q $f -d0)
                   echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
                 else
-                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts"
+                  cmd="$PIP install -q $f --upgrade --no-warn-conflicts --disable-pip-version-check"
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
                   [ $EUID -ne 0 -a $pass -eq 1 ] && cmd="$cmd --user"
                   echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"

@@ -2,7 +2,7 @@
 # Write text in wiki format from product output
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2016 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -25,7 +25,7 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__="0.1.1"
+__version__="0.1.2"
 
 # main
 OPTOPTS=(h        n            s       T       V           v)
@@ -48,7 +48,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Write wiki text from produtc output"\
-  "(C) 2015-2016 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 sts=0

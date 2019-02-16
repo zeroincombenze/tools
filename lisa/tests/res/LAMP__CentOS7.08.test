@@ -14,16 +14,16 @@
 > yum -y install python-pip
 > pip install 'pip' --upgrade
 > yum -y install python-wheel
-> pip install 'wheel' --upgrade --no-warn-conflicts
+> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check
 > yum -y install python-devel
-> pip install 'pyasn1' --no-warn-conflicts
-> pip install 'ndg-httpsclient' --no-warn-conflicts
-# pip install 'urllib3[secure]' --no-warn-conflicts
-> pip install 'cryptography' --no-warn-conflicts
+> pip install 'pyasn1' --no-warn-conflicts --disable-pip-version-check
+> pip install 'ndg-httpsclient' --no-warn-conflicts --disable-pip-version-check
+# pip install 'urllib3[secure]' --no-warn-conflicts --disable-pip-version-check
+> pip install 'cryptography' --no-warn-conflicts --disable-pip-version-check
 > yum -y install openssl
-> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts
-> pip install 'idna' --no-warn-conflicts
-> pip install 'certifi' --no-warn-conflicts
+> pip install 'pyOpenSSL' --upgrade --no-warn-conflicts --disable-pip-version-check
+> pip install 'idna' --no-warn-conflicts --disable-pip-version-check
+> pip install 'certifi' --no-warn-conflicts --disable-pip-version-check
 # yum -y install openssh-server
 # systemctl start sshd
 > systemctl enable sshd

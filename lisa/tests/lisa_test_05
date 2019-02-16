@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.10
+__version__=0.3.0.11
 
 
 test_run () {
@@ -331,22 +331,22 @@ EOF
 > rm -f wkhtmltox-0.12.1_linux-centos6-i386.rpm
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__Debian.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__CentOS6.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
       cat <<EOF >$TESTDIR/res/dateutil__CentOS7.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__Debian.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__CentOS6.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
       cat <<EOF >$TESTDIR/res/python-dateutil__CentOS7.05.test
-> pip install 'python-dateutil' --no-warn-conflicts
+> pip install 'python-dateutil' --no-warn-conflicts --disable-pip-version-check
 EOF
     fi
     Real_FH=$(xuname "-f")
@@ -421,7 +421,7 @@ EOF
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       cat <<EOF >$TESTDIR/res/python__Debian.05.test
 > apt-get -y install python-wheel
-> pip install 'wheel' --upgrade --no-warn-conflicts
+> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check
 > apt-get -y install xorg-x11-fonts-Type1
 > apt-get -y install xorg-x11-fonts-75dpi
 # apt-get -y install python
@@ -441,23 +441,23 @@ EOF
 EOF
       cat <<EOF >$TESTDIR/res/python__RHEL.05.test
 > yum -y install python-wheel
-> pip install 'wheel' --upgrade --no-warn-conflicts
+> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check
 #
 # yum -y install python
 # yum -y install python-setuptools
-> pip install 'setuptools' --upgrade --no-warn-conflicts
+> pip install 'setuptools' --upgrade --no-warn-conflicts --disable-pip-version-check
 > yum -y install python-virtualenv
-> pip install 'virtualenv' --no-warn-conflicts
+> pip install 'virtualenv' --no-warn-conflicts --disable-pip-version-check
 > yum -y install readline
 > yum -y install python-psycopg2
-> pip install 'psycopg2' --upgrade --no-warn-conflicts
+> pip install 'psycopg2' --upgrade --no-warn-conflicts --disable-pip-version-check
 > yum -y install python-simplejson
-> pip install 'xlwt' --no-warn-conflicts
-> pip install 'PyYAML' --no-warn-conflicts
-> pip install 'gdata' --no-warn-conflicts
-> pip install 'python-ldap' --no-warn-conflicts
-> pip install 'pytz' --no-warn-conflicts
-# pip install 'requests' --no-warn-conflicts
+> pip install 'xlwt' --no-warn-conflicts --disable-pip-version-check
+> pip install 'PyYAML' --no-warn-conflicts --disable-pip-version-check
+> pip install 'gdata' --no-warn-conflicts --disable-pip-version-check
+> pip install 'python-ldap' --no-warn-conflicts --disable-pip-version-check
+> pip install 'pytz' --no-warn-conflicts --disable-pip-version-check
+# pip install 'requests' --no-warn-conflicts --disable-pip-version-check
 EOF
     fi
 
@@ -494,6 +494,7 @@ Z0BUG_setup() {
       echo "Please, remove wkhtmltopdf file from /tmp"
       exit 1
     fi
+    export PYTHONWARNINGS="ignore"
 }
 
 

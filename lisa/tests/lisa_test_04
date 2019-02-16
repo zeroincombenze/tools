@@ -33,7 +33,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.0.10
+__version__=0.3.0.11
 
 test_run () {
 # test_run(msg,package,disto,cmd)
@@ -106,114 +106,114 @@ test_run () {
 }
 
 test_01() {
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.04.test
-  x=$(apachectl -v 2>/dev/null|head -n1)
-  apachectl -v &>/dev/null
-  sts=$?
-  if [ -n "$x" -a $sts -eq 0 ]; then
-    echo "apache2: installed by apt-get">$TESTDIR/res/apache2.04.test
-    echo "httpd: installed by yum">$TESTDIR/res/httpd.04.test
-    if [ "$Real_FH" == "Debian" ]; then
-      x=$(dpkg -s vsftpd|grep "Version"|head -n1|awk -F: '{print $2}')
-    elif [ "$Real_FH" == "RHEL" ]; then
-      x=$(yum info vsftpd|grep "Version"|head -n1|awk -F: '{print $2}')
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*.04.test
+      x=$(apachectl -v 2>/dev/null|head -n1)
+      apachectl -v &>/dev/null
+      sts=$?
+      if [ -n "$x" -a $sts -eq 0 ]; then
+        echo "apache2: installed by apt-get">$TESTDIR/res/apache2.04.test
+        echo "httpd: installed by yum">$TESTDIR/res/httpd.04.test
+        if [ "$Real_FH" == "Debian" ]; then
+          x=$(dpkg -s vsftpd|grep "Version"|head -n1|awk -F: '{print $2}')
+        elif [ "$Real_FH" == "RHEL" ]; then
+          x=$(yum info vsftpd|grep "Version"|head -n1|awk -F: '{print $2}')
+        fi
+        x=$(echo $x)
+        if [ -n "$x" ]; then
+          echo "--vsftpd: installed by apt-get">>$TESTDIR/res/apache2.04.test
+          echo "--vsftpd: installed by yum">>$TESTDIR/res/httpd.04.test
+        else
+          echo "--vsftpd could be installed by apt-get">>$TESTDIR/res/apache2.04.test
+          echo "--vsftpd could be installed by yum">>$TESTDIR/res/httpd.04.test
+        fi
+      else
+        echo "apache2 could be installed by apt-get">$TESTDIR/res/apache2.04.test
+        echo "httpd could be installed by yum">$TESTDIR/res/httpd.04.test
+      fi
+      x=$(python --version 2>&1|awk '{print $2}')
+      python --version &>/dev/null
+      sts=$?
+      if [ -n "$x" -a $sts -eq 0 ]; then
+        if [ "$Real_FH" == "RHEL" ]; then
+          echo "python: installed by yum">$TESTDIR/res/python.04.test
+        else
+          echo "python: installed by apt-get">$TESTDIR/res/python.04.test
+        fi
+      else
+        if [ "$Real_FH" == "RHEL" ]; then
+          echo "python could be installed by yum">$TESTDIR/res/python.04.test
+        else
+          echo "python could be installed by apt-get">$TESTDIR/res/python.04.test
+        fi
+      fi
     fi
-    x=$(echo $x)
-    if [ -n "$x" ]; then
-      echo "--vsftpd: installed by apt-get">>$TESTDIR/res/apache2.04.test
-      echo "--vsftpd: installed by yum">>$TESTDIR/res/httpd.04.test
-    else
-      echo "--vsftpd could be installed by apt-get">>$TESTDIR/res/apache2.04.test
-      echo "--vsftpd could be installed by yum">>$TESTDIR/res/httpd.04.test
-    fi
-  else
-    echo "apache2 could be installed by apt-get">$TESTDIR/res/apache2.04.test
-    echo "httpd could be installed by yum">$TESTDIR/res/httpd.04.test
-  fi
-  x=$(python --version 2>&1|awk '{print $2}')
-  python --version &>/dev/null
-  sts=$?
-  if [ -n "$x" -a $sts -eq 0 ]; then
-    if [ "$Real_FH" == "RHEL" ]; then
-      echo "python: installed by yum">$TESTDIR/res/python.04.test
-    else
-      echo "python: installed by apt-get">$TESTDIR/res/python.04.test
-    fi
-  else
-    if [ "$Real_FH" == "RHEL" ]; then
-      echo "python could be installed by yum">$TESTDIR/res/python.04.test
-    else
-      echo "python could be installed by apt-get">$TESTDIR/res/python.04.test
-    fi
-  fi
-fi
 
-for Package in apache2 httpd python; do
-  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
-     if [ "$Disto" == "." ]; then
-       opt_e=
-     else
-       opt_e="-E$Disto"
-     fi
-     if [ "$Disto" == "$Real_DISTO" ]; then
-       test_run "status $Package $opt_e" "$Package" "$Disto" "status"
-     fi
-  done
-done
+    for Package in apache2 httpd python; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+         else
+           opt_e="-E$Disto"
+         fi
+         if [ "$Disto" == "$Real_DISTO" ]; then
+           test_run "status $Package $opt_e" "$Package" "$Disto" "status"
+         fi
+      done
+    done
 
-if [ ${opt_dry_run:-0} -eq 0 ]; then
-  rm -f $TESTDIR/res/*.04.test
-  x=$(apachectl -v 2>/dev/null|head -n1)
-  apachectl -v &>/dev/null
-  sts=$?
-  if [ -n "$x" -a $sts -eq 0 ]; then
-    if [ "$Real_FH" == "Debian" ]; then
-      echo "apache2: $x">$TESTDIR/res/apache2.04.test
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTDIR/res/*.04.test
+      x=$(apachectl -v 2>/dev/null|head -n1)
+      apachectl -v &>/dev/null
+      sts=$?
+      if [ -n "$x" -a $sts -eq 0 ]; then
+        if [ "$Real_FH" == "Debian" ]; then
+          echo "apache2: $x">$TESTDIR/res/apache2.04.test
+        fi
+        if [ "$Real_FH" == "RHEL" ]; then
+          echo "httpd: $x">$TESTDIR/res/httpd.04.test
+        fi
+      else
+        echo "apache2 should be installed by apt-get">$TESTDIR/res/apache2.04.test
+        echo "httpd should be installed by yum">$TESTDIR/res/httpd.04.test
+      fi
+      if [ "$Real_FH" == "Debian" ]; then
+        x=$(dpkg -s vsftpd 2>/dev/null|grep "Version"|head -n1|awk -F: '{print $2}')
+      elif [ "$Real_FH" == "RHEL" ]; then
+        x=$(yum info vsftpd 2>/dev/null|grep "Version"|head -n1|awk -F: '{print $2}')
+      fi
+      x=$(echo $x)
+      if [ -n "$x" ]; then
+        echo "--vsftpd: $x">>$TESTDIR/res/apache2.04.test
+        echo "--vsftpd: $x">>$TESTDIR/res/httpd.04.test
+      else
+        echo "--vsftpd should be installed by apt-get">>$TESTDIR/res/apache2.04.test
+        echo "--vsftpd should be installed by yum">>$TESTDIR/res/httpd.04.test
+      fi
+      x=$(python --version 2>&1)
+      sts=$?
+      if [ -n "$x" -a $sts -eq 0 ]; then
+        echo "python: $x">$TESTDIR/res/python.04.test
+        echo "python: $x">$TESTDIR/res/python.04.test
+      else
+        echo "python: .(python --version)">$TESTDIR/res/python.04.test
+        echo "python: .(python --version)">$TESTDIR/res/python.04.test
+      fi
     fi
-    if [ "$Real_FH" == "RHEL" ]; then
-      echo "httpd: $x">$TESTDIR/res/httpd.04.test
-    fi
-  else
-    echo "apache2 should be installed by apt-get">$TESTDIR/res/apache2.04.test
-    echo "httpd should be installed by yum">$TESTDIR/res/httpd.04.test
-  fi
-  if [ "$Real_FH" == "Debian" ]; then
-    x=$(dpkg -s vsftpd 2>/dev/null|grep "Version"|head -n1|awk -F: '{print $2}')
-  elif [ "$Real_FH" == "RHEL" ]; then
-    x=$(yum info vsftpd 2>/dev/null|grep "Version"|head -n1|awk -F: '{print $2}')
-  fi
-  x=$(echo $x)
-  if [ -n "$x" ]; then
-    echo "--vsftpd: $x">>$TESTDIR/res/apache2.04.test
-    echo "--vsftpd: $x">>$TESTDIR/res/httpd.04.test
-  else
-    echo "--vsftpd should be installed by apt-get">>$TESTDIR/res/apache2.04.test
-    echo "--vsftpd should be installed by yum">>$TESTDIR/res/httpd.04.test
-  fi
-  x=$(python --version 2>&1)
-  sts=$?
-  if [ -n "$x" -a $sts -eq 0 ]; then
-    echo "python: $x">$TESTDIR/res/python.04.test
-    echo "python: $x">$TESTDIR/res/python.04.test
-  else
-    echo "python: .(python --version)">$TESTDIR/res/python.04.test
-    echo "python: .(python --version)">$TESTDIR/res/python.04.test
-  fi
-fi
 
-for Package in apache2 httpd python; do
-  for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
-     if [ "$Disto" == "." ]; then
-       opt_e=
-     else
-       opt_e="-E$Disto"
-     fi
-     if [ "$Disto" == "$Real_DISTO" ]; then
-       test_run "version $Package $opt_e" "$Package" "$Disto" "version"
-     fi
-  done
-done
+    for Package in apache2 httpd python; do
+      for Disto in . Ubuntu14 CentOS7 Ubuntu12 CentOS6; do
+         if [ "$Disto" == "." ]; then
+           opt_e=
+         else
+           opt_e="-E$Disto"
+         fi
+         if [ "$Disto" == "$Real_DISTO" ]; then
+           test_run "version $Package $opt_e" "$Package" "$Disto" "version"
+         fi
+      done
+    done
 }
 
 Z0BUG_setup() {
@@ -221,6 +221,7 @@ Z0BUG_setup() {
     x=$(xuname "-v")
     v=$(echo $x|awk -F. '{print $1}')
     Real_DISTO=$(xuname "-d")$v
+    export PYTHONWARNINGS="ignore"
 }
 
 

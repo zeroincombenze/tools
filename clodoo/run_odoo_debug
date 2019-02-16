@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.5
+__version__=0.3.8.6
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -95,6 +95,7 @@ fi
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
 create_db=0
 drop_db=0
+depmods=""
 if [ $opt_test -ne 0 ]; then
   opt_web=0
   opt_lang=0 opt_exp=0 opt_imp=0
@@ -139,7 +140,7 @@ elif [ $opt_upd -ne 0 ]; then
     exit 1
   fi
 elif [ $opt_xtl -ne 0 ]; then
-  opt_keep=1
+  # opt_keep=1
   if [ -z "$opt_modules" ]; then
     echo "Missing -m switch"
     exit 1
@@ -155,14 +156,18 @@ fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
     addons_list=
-    [ -d $PWD/addons ] && addons_list=$addons_list,$PWD/addons
-    [ -d $PWD/openerp/addons ] && addons_list=$addons_list,$PWD/openerp/addons
-    [ -d $PWD/server/openerp/addons ] && addons_list=$addons_list,$PWD/server/openerp/addons
+    [ -d $odoo_root/addons ] && addons_list=$addons_list,$odoo_root/addons
+    [ -d $odoo_root/openerp/addons ] && addons_list=$addons_list,$odoo_root/openerp/addons
+    [ -d $odoo_root/odoo/addons ] && addons_list=$addons_list,$odoo_root/odoo/addons
+    [ -d $odoo_root/server/openerp/addons ] && addons_list=$addons_list,$odoo_root/server/openerp/addons
+    srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+    [ -n "$srcs" ] && addons_list=$addons_list,$srcs
     addons_list=${addons_list:1}
-    pushd /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ >/dev/null
+    if [ -d /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ ]; then
+      pushd /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ >/dev/null
 cat <<EOF >./get_test_dependencies.py
 import sys
-from getaddons import get_addons, get_modules, is_installable_module
+from getaddons import get_addons, get_modules
 from test_server import get_test_dependencies
 ltype=''
 path=''
@@ -185,15 +190,18 @@ elif ltype == 'dep':
 else:
     print 'get_test_dependencies.py mod|dep path [addons_list]'
 EOF
-    if [ "$opt_modules" == "all" ];then
-      opt_modules=$(python ./get_test_dependencies.py mod $addons_list)
+      if [ "$opt_modules" == "all" ];then
+        depmods=$(python ./get_test_dependencies.py mod $addons_list)
+      else
+        depmods=$(python ./get_test_dependencies.py dep $addons_list $opt_modules)
+      fi
+      if [ -n "$depmods" -a $opt_test -eq 0 ]; then
+        opt_modules="$opt_modules,$depmods"
+      fi
+      popd >/dev/null
     fi
-    x=$(python ./get_test_dependencies.py dep $addons_list $opt_modules)
-    if [ -n "$x" ]; then
-      opt_modules="$opt_modules,$x"
-    fi
-    popd >/dev/null
     opts="-i $opt_modules"
+    optcdb=""
     [ $opt_test -ne 0 ] && opts="$opts --test-enable"
     create_db=1
   else
@@ -260,6 +268,7 @@ else
     opts=--load-language=it_IT
   else
     opts=""
+    optcdb=""
   fi
 fi
 if [ -z "$opt_xport" ]; then
@@ -273,6 +282,7 @@ if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o 
     fi
   fi
 fi
+optcdb="$optcdb --stop-after-init"
 if [ $opt_stop -gt 0 ]; then
   opts="$opts --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
@@ -281,8 +291,8 @@ if [ $opt_stop -gt 0 ]; then
 fi
 if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
+   optcdb="$optcdb -d $opt_db"
 fi
-
 if [ $opt_dry_run -eq 0 ]; then
   [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
   [ -f ~/.odoorc ] && rm -f ~/.odoorc
@@ -298,32 +308,33 @@ if [ $opt_dry_run -eq 0 ]; then
   if [ -n "$opt_llvl" ]; then
     sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" ~/$lconfn
   fi
-  if [ $opt_verbose -gt 0 ]; then
-    vim ~/$lconfn
-  fi
+  # if [ $opt_verbose -gt 0 ]; then
+  #   vim ~/$lconfn
+  # fi
 fi
 if [ $opt_touch -eq 0 ]; then
-  if [ $drop_db -gt 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
-    pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db
-  fi
+  [ $drop_db -gt 0 ] && run_traced "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
   if [ $create_db -gt 0 ]; then
-    [ $opt_verbose -gt 0 ] && echo "createdb -U$opt_dbuser $opt_db"
-    createdb -U$opt_dbuser $opt_db
+    if [ $odoo_ver -lt 10 ]; then
+      run_traced "createdb -U$opt_dbuser $opt_db"
+    fi
+    # [ $opt_test -ne 0 ] && od="-D" || od=
+    # [ $opt_verbose -gt 0 ] && echo "$TDIR/clodoo.py -A new_db -c ~/$lconfn -b $odoo_fver -d $opt_db $od"
+    #$TDIR/clodoo.py -A new_db -c ~/$lconfn -b $odoo_fver -d $opt_db $od
+    if [ -n "$depmods" -a $opt_test -ne 0 ]; then
+      run_traced "$script $optcdb --log-level=error -i $depmods"
+    else
+      run_traced "$script $optcdb --log-level=error"
+    fi
+    echo "===================================================================="
   fi
   if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
     opts="--debug $opts"
   fi
-  echo "$script $opts"
-  if [ $opt_dry_run -eq 0 ]; then
-    eval $script $opts
-  fi
+  run_traced "$script $opts"
   if [ $drop_db -gt 0 ]; then
     if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
-      if [ $opt_verbose -gt 0 ]; then
-        echo "dropdb -U$opt_dbuser --if-exists $opt_db"
-      fi
-      dropdb -U$opt_dbuser --if-exists $opt_db
+      run_traced "dropdb -U$opt_dbuser --if-exists $opt_db"
     fi
   fi
   if [ $opt_exp -ne 0 ]; then

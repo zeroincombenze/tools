@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 # *** security options ***
@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.10
+__version__=0.3.0.11
 
 
 STS_FAILED=1
@@ -670,17 +670,29 @@ get_pfxaction(){
 }
 
 get_realname() {
-# get_realname(pkgname [action] [OPTS])
+# get_realname(pkgname [action] [OPTS] [param] [SPECIMEN])
 # return: realname
-    local p pkgname tid
+    local p pkgname tid specimen
+    local pkg lop lreqver rop rreqver branch x xtlcmd
     if [ "$1" == "." ]; then
       p="EVERYTHINGS"
     else
       pkgname=$(echo "$1"|grep -Eo '[^!<=>\\[]*'|head -n1)
-      for tid in 0 1 2 3; do
-        p=$(get_cfg_value $tid REAL_$pkgname)
-        if [ -n "$p" ]; then break; fi
-      done
+      if [[ ! "$pkgname" == "$1" && -z "$5" ]]; then
+        specimen=$(get_specimen $1 "$2" "${3}n" "$4" "$5")
+        IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$specimen"
+      else
+        IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+      fi
+      if [[ "$FH" == "RHEL" && "${1:0:10}" == "postgresql" && "$lop" == "==" && "$lreqver" == "9.5" ]]; then
+        p=$pkgname
+        p="${p/postgresql/postgresql95}"
+      else
+        for tid in 0 1 2 3; do
+          p=$(get_cfg_value $tid REAL_$pkgname)
+          if [ -n "$p" ]; then break; fi
+        done
+      fi
     fi
     if [ -n "$p" ]; then
       pkgname=$p
@@ -708,7 +720,7 @@ get_realname() {
         fi
       fi
     fi
-    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "  $pkgname=get_realname($1 $2 $3)">>~/$THIS.his
+    [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " "  "  $pkgname=get_realname($1 $2 $3 '$4' '$5')">>~/$THIS.his
     echo $pkgname
 }
 
@@ -737,7 +749,11 @@ get_specimen() {
           rop="$op"
         fi
       done
-      pkgname=$(get_realname $1 "$2" $3 $4 "$5")
+      if [[ $3 =~ n ]]; then
+        pkgname=$pkg
+      else
+        pkgname=$(get_realname $1 "$2" $3 "$4" "$5")
+      fi
       p="$(get_prm_value ${pkgname}_Branch)"
       local branch=
       if [ -n "$p" ]; then
@@ -1115,7 +1131,7 @@ get_full_xtlcmd() {
         xtlcmd="$xtlcmd ${1/remove/uninstall} '$pkgname$lop$lreqver$rop$rreqver'"
       fi
       if [[ ! "$pkgname" == "pip" ]]; then
-        xtlcmd="$xtlcmd --no-warn-conflicts"
+        xtlcmd="$xtlcmd --no-warn-conflicts --disable-pip-version-check"
       fi
       if [ $EUID -ne 0 -a $test_mode -eq 0 ]; then
         xtlcmd="$xtlcmd --user"
@@ -1958,7 +1974,7 @@ satisfy_request() {
       [ $(is_virtualname $2) ] || ((prdstk_level++))
       if [[ $3 =~ b ]]; then local x="-qb"; else local x="-q"; fi
       for p in $ReqPkgList; do
-        realname=$(get_realname $p $1 $3)
+        realname=$(get_realname $p $1 $3 "$4" "$5")
         if [[ ! " SATISFIED " =~ [[:space:]]$realname[[:space:]] ]]; then
           verbose_msg "Analyzing $realname ..."
           if $(please status $realname $x "$4" ""); then
@@ -1983,7 +1999,7 @@ do_action_subpkg() {
     [[ $4 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_action_subpkg($1 $2 $3 $4 $5 $6)">>~/$THIS.his
     local p
     local x
-    local rs=$(get_realname $3 $2 $4)
+    local rs=$(get_realname $3 $2 $4 "$5" "$6")
     local realname
     local opts=$4
     if [[ $4 =~ [qQ] ]]; then
@@ -2621,6 +2637,21 @@ pre_dry_install_nodejs() {
     return $STS_SUCCESS
 }
 
+pre_dry_install_postgresql_server() {
+# pre_dry_install_postgresql(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_install_postgresql($1 $2 $3 $4 $5)">>~/$THIS.his; fi
+    IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
+    if [[ "$FH" == "RHEL" && "$lop" == "==" && "$lreqver" == "9.5" ]]; then
+      run_traced "rpm -ivh http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm"
+    fi
+}
+
+pre_dry_install_postgresql95_server() {
+# pre_dry_install_postgresql(action pkgname OPTS [param] [SPECIMEN])
+    if [[ $3 =~ b ]]; then printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "pre_dry_install_postgresql($1 $2 $3 $4 $5)">>~/$THIS.his; fi
+    run_traced "rpm -ivh http://yum.postgresql.org/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-2.noarch.rpm"
+}
+
 pre_dry_install_odoo() {
     # if [ "$FH" == "RHEL" ]; then
     #   if [ ! -f /etc/yum.repos.d/odoo.repo ]; then
@@ -2997,7 +3028,7 @@ do_dry_install_package() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  cmd=$cmd;">>~/$THIS.his
     run_traced "$cmd"
     cmd=$(get_act_xtlcmd $2 "$1" "$3" "$4" "$5")
-    pkgname=$(get_realname "$2" "update" $3)
+    pkgname=$(get_realname "$2" "update" "$3" "$4" "$5")
     # [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $pkgname=get_realname($2 update $3);">>~/$THIS.his
     xcmd=$(get_act_xtlcmd $pkgname "update" "$3" "$4" "$5")
     # [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "  $xcmd=get_act_xtlcmd($pkgname update $3 $4 $5);">>~/$THIS.his
@@ -3013,7 +3044,7 @@ do_1_tellme_package() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_1_tellme_package($1 $2 $3 $4)">>~/$THIS.his
     local pkg lop lreqver rop rreqver branch x xtlcmd
     IFS="~" read pkg lop lreqver rop rreqver branch x<<<"$5"
-    local pkgname=$(get_realname "$2" "" $3)
+    local pkgname=$(get_realname "$2" "" "$3" "$4" "$5")
     local sts=$STS_SUCCESS
     if [ "$4" == "realname" ]; then
       local iter=$(get_iter $pkgname $3)
@@ -3083,9 +3114,9 @@ do_1_info_package() {
       echo "lisa $__version__ is running on $DISTO ($FH family)"
       [ -n "$MACHARCH" ] && echo "Machine architecture is $MACHARCH"
     else
-      local pkgname=$(get_realname "$2" "" $3)
+      local pkgname=$(get_realname "$2" "" "$3" "$4" "$5")
       local pkglist=$(please tellme $2 $3 realname)
-      local p=$(get_realname "$2" "install" $3)
+      local p=$(get_realname "$2" "install" "$3" "$4" "$5")
       local xtlcmd=$(get_all_xtlcmd "" $p $3 $4 "$5")
       local svcname=$(get_prm_value "${pkgname}_svcname")
       local cmdname=$(get_prm_value "${pkgname}_cmdname")
@@ -3209,6 +3240,7 @@ do_local_function() {
         for d in $D; do
           cmd=${1}$d$c$x
           cmd=${cmd//__/_}
+          cmd=${cmd//-/_}
           if [ "$(type -t $cmd)" == "function" ]; then
             eval $cmd $act $4 $5$ij $6 "'$7'"
             s=$?
@@ -3273,7 +3305,7 @@ do_iter_prod() {
     [[ $3 =~ b ]] && printf "%${prdstk_level}.${prdstk_level}s %s\n" " " "do_iter_prod($1 $2 $3 $4 $5)">>~/$THIS.his
     local pfx=$(get_pfxaction $1)
     local act=$(get_realaction $1)
-    local pkgname=$(get_realname $2 $act $3)
+    local pkgname=$(get_realname $2 $act "$3" "$4" "$5")
     local iter p specimen x
     if [[ $3 =~ [qQ] ]]; then
       return 127
@@ -3330,7 +3362,7 @@ please() {
     if [ "$act" == "info" ]; then
       pkgname=$2
     else
-      pkgname=$(get_realname $2 "$act" $3)
+      pkgname=$(get_realname $2 "$act" "$3" "$4" "$5")
     fi
     specimen=$(get_specimen $2 "$act" $3)
     if [ -n "$5" -a -z "$specimen" ]; then
@@ -3435,7 +3467,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build an Odoo or LAMP server"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then

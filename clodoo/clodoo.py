@@ -176,10 +176,10 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        default_conf)
 from transodoo import read_stored_dict
 # TMP
-from subprocess import PIPE, Popen
+# from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.5"
+__version__ = "0.3.8.6"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -601,17 +601,17 @@ def init_user_ctx(ctx, user):
 
 def get_dblist(ctx):
     # Interface xmlrpc and jsonrpc are the same
-    if ctx['oe_version'] == '12.0':     # FIX: odoorcp wont work 12.0
-        res, err = Popen(['psql', '-Atl'],
-                         stdin=PIPE,
-                         stdout=PIPE,
-                         stderr=PIPE).communicate()
-        list = []
-        for r in res.split('\n'):
-            rs = r.split('|')
-            if len(rs) > 2 and rs[1] == 'odoo12':
-                list.append(rs[0])
-        return list
+    # if ctx['oe_version'] == '12.0':     # FIX: odoorcp wont work 12.0
+    #     res, err = Popen(['psql', '-Atl'],
+    #                      stdin=PIPE,
+    #                      stdout=PIPE,
+    #                      stderr=PIPE).communicate()
+    #     list = []
+    #     for r in res.split('\n'):
+    #         rs = r.split('|')
+    #         if len(rs) > 2 and rs[1] == 'odoo12':
+    #             list.append(rs[0])
+    #     return list
     if ctx['oe_version'] == '7.0':     # FIX
         time.sleep(1)
     return ctx['odoo_session'].db.list()
@@ -1029,12 +1029,14 @@ def act_drop_db(ctx):
             try:
                 cmd = 'pg_db_active -wa %s' % ctx['db_name']
                 os0.muteshell(cmd, simulate=False, keepout=False)
-                if ctx['oe_version'] == '12.0':   # FIX: odoorcp wont work 12.0
-                    os0.muteshell("dropdb -Upostgres --if-exists " +
-                                  ctx['db_name'])
-                else:
-                    ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                                                ctx['db_name'])
+                # if ctx['oe_version'] == '12.0': # FIX: odoorcp wont work 12.0
+                #     os0.muteshell("dropdb -Upostgres --if-exists " +
+                #                   ctx['db_name'])
+                # else:
+                #     ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                #                                 ctx['db_name'])
+                ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                                            ctx['db_name'])
                 sts = STS_SUCCESS
                 if ctx['db_name'][0:11] != 'clodoo_test':
                     time.sleep(2)

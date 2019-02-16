@@ -16,7 +16,7 @@ except ImportError:
     from z0lib import parseoptargs
 
 
-__version__ = "0.3.8.5"
+__version__ = "0.3.8.6"
 
 
 def get_name_by_ver(ctx, name):

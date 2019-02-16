@@ -1,5 +1,5 @@
 > apt-get -y install python-wheel
-> pip install 'wheel' --upgrade --no-warn-conflicts
+> pip install 'wheel' --upgrade --no-warn-conflicts --disable-pip-version-check
 > apt-get -y install xorg-x11-fonts-Type1
 > apt-get -y install xorg-x11-fonts-75dpi
 > apt-get -y update
