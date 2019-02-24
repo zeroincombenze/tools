@@ -1,4 +1,4 @@
-# __version__=0.1.23
+# __version__=0.1.23.1
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -63,6 +63,18 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     fi
   done
 done
+if [ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]; then
+  tgt=$DSTPATH/oca-autopep8
+  if [[ ! -L "$tgt" || $1 =~ -.*p ]]; then
+    if [ -L "$tgt"  -o -f "$tgt" ]; then
+      [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
+      rm -f $tgt
+      [ "${tgt: -3}" == ".py" -a -f ${tgt}c ] && rm -f ${tgt}c
+    fi
+    [[ ! $1 =~ -.*q ]] && echo "\$ ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt"
+    ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt
+  fi
+fi
 for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib.pyc z0librun.py z0librun.pyc; do
   tgt="$DSTPATH/$fn"
   if [ -L "$tgt"  -o -f "$tgt" ]; then
