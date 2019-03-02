@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.6"
+__version__ = "0.3.8.7"
 
 
 #############################################################################
@@ -104,8 +104,10 @@ def searchL8(ctx, model, where, order=None, context=None):
 def browseL8(ctx, model, id, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
         if context:
-            return ctx['odoo_session'].env[model].with_context(
-                ctx['odoo_session'].env[model].browse(id), context)
+            # return ctx['odoo_session'].env[model].with_context(
+            #     ctx['odoo_session'].env[model].browse(id), context)
+            return ctx['odoo_session'].env[model].browse(id).with_context(
+                context)
         else:
             return ctx['odoo_session'].env[model].browse(id)
     else:

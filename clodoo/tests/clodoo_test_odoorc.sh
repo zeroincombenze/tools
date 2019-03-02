@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.6
+__version__=0.3.8.7
 
 
 test_01() {
@@ -495,7 +495,7 @@ test_05() {
     TRES[oca]="https://github.com/OCA/$z"
     TRES[oia-git]="git@github.com:Odoo-Italia-Associazione/$z"
     TRES[oia-http]="https://github.com/Odoo-Italia-Associazione/$z"
-    TRES[liberp]="https://github.com/iw3hxn/$z"
+    TRES[librerp]="https://github.com/iw3hxn/server"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
       TRES[oia]=${TRES[oia-http]}
@@ -503,7 +503,7 @@ test_05() {
       TRES[zero]=${TRES[zero-http]}
       TRES[oia]=${TRES[oia-http]}
     fi
-    for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
+    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param URL $v $z $w)
@@ -530,7 +530,7 @@ test_05() {
     TRES[oca]="https://github.com/OCA"
     TRES[oia-git]="git@github.com:Odoo-Italia-Associazione"
     TRES[oia-http]="https://github.com/Odoo-Italia-Associazione"
-    TRES[liberp]="https://github.com/iw3hxn"
+    TRES[librerp]="https://github.com/iw3hxn"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
       TRES[oia]=${TRES[oia-http]}
@@ -538,7 +538,7 @@ test_05() {
       TRES[zero]=${TRES[zero-http]}
       TRES[oia]=${TRES[oia-http]}
     fi
-    for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
+    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param GIT_ORG $v $z $w)
@@ -555,13 +555,13 @@ test_05() {
     TRES[oia]="https://github.com/OCA/$z"
     TRES[oia-git]="https://github.com/OCA/$z"
     TRES[oia-http]="https://github.com/OCA/$z"
-    TRES[liberp]="https://github.com/iw3hxn/$z"
-    for w in zero zero-git zero-http oca oia oia-git oia-http liberp; do
+    TRES[librerp]="https://github.com/iw3hxn/$z"
+    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param UPSTREAM $v $z $w)
         fi
-        if [ "$v" == "6.1" -o "$w" == "oca" -o "$w" == "liberp" ]; then
+        if [ "$v" == "6.1" -o "$w" == "oca" -o "$w" == "librerp" ]; then
           test_result "UPSTREAM $w/$z $v" "" "$RES"
           s=$?; [ ${s-0} -ne 0 ] && sts=$s
         else
@@ -609,7 +609,7 @@ test_06() {
     export opt_multi=1
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 liberp6 oca7 oca8 oca10 oia7 oia8; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10 oia7 oia8; do
         pushd $RHOME/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
@@ -634,8 +634,8 @@ test_06() {
           w="/etc/odoo/odoo${w}-oca.conf"
         elif [[ "${v:0:3}" == "oia" ]]; then
           w="/etc/odoo/odoo${w}-oia.conf"
-        elif [[ "${v:0:6}" == "liberp" ]]; then
-          w="/etc/odoo/odoo${w}-liberp.conf"
+        elif [[ "${v:0:7}" == "librerp" ]]; then
+          w="/etc/odoo/odoo${w}-librerp.conf"
         else
           w=
         fi

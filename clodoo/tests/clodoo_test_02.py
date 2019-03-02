@@ -28,12 +28,12 @@ except BaseException:
     from clodoolib import crypt
 
 
-__version__ = "0.3.8.6"
+__version__ = "0.3.8.7"
 
 
 MODULE_ID = 'clodoo'
-VERSIONS_TO_TEST = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
-# VERSIONS_TO_TEST = ('11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+# VERSIONS_TO_TEST = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
+VERSIONS_TO_TEST = ('11.0', '10.0', '8.0', '7.0')
 # VERSIONS_TO_TEST = ('12.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
@@ -203,7 +203,7 @@ oe_version=%s
 
     def test_02(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 majver = int(eval(oe_version))
                 xmlrpc_port = 8160 + majver
@@ -236,7 +236,7 @@ oe_version=%s
 
     def test_03(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
                 #  or os.getcwd[0:19] != "/opt/odoo/dev/pypi/"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
@@ -289,7 +289,7 @@ oe_version=%s
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
         # datafn = 'res_users.csv'
         # dataffn = '%s/%s' % (self.Z.test_dir, datafn)
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     res = self.check_4_module(oe_version)
@@ -330,7 +330,7 @@ install_modules=%s
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
         datafn = 'res_users.csv'
         dataffn = '%s/%s' % (self.Z.test_dir, datafn)
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     res = self.check_4_user(oe_version)
@@ -411,7 +411,7 @@ base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,base.partner_
     def test_06(self, z0ctx):
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 xmlrpc_port, dbname = self.param_by_db(oe_version)
                 if not ctx['dry_run']:
@@ -448,7 +448,7 @@ crypt_password=%s
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
         datafn = 'res_partner.csv'
         dataffn = '%s/%s' % (self.Z.test_dir, datafn)
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     res = self.check_4_partner(oe_version,
@@ -506,7 +506,7 @@ base.partner_A,%s
     def test_09(self, z0ctx):
         sts = TEST_SUCCESS
         confn = '%s/test_clodoo.conf' % self.Z.test_dir
-        if os.environ.get("HOSTNAME", "") == "shsdef16":
+        if os.environ.get("HOSTNAME", "") in ("shsdef16", "shs17fid"):
             for oe_version in VERSIONS_TO_TEST:
                 if not ctx['dry_run']:
                     cmd = self.cmd

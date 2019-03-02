@@ -179,7 +179,7 @@ from transodoo import read_stored_dict
 # from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.6"
+__version__ = "0.3.8.7"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1176,7 +1176,9 @@ def act_new_db(ctx):
                 except BaseException:
                     ctx['server_version'] = ctx['odoo_session'].version
             try:
-                if ctx['svc_protocol'] == 'jsonrpc':
+                if ctx['oe_version'] == '12.0':   # FIX: odoorcp wont work 12.0
+                    os0.muteshell("createdb -Uodoo12 %s " % ctx['db_name'])
+                elif ctx['svc_protocol'] == 'jsonrpc':
                     ctx['odoo_session'].db.create(ctx['admin_passwd'],
                                                   ctx['db_name'],
                                                   ctx['with_demo'],
@@ -4050,7 +4052,7 @@ def reset_sequence(ctx):
             obj = browseL8(ctx, model, record_id)
             f_deleted = False
             if ctx['custom_act'] == 'cscs':
-                for i in (2014, 2015, 2016, 2017, 2018):
+                for i in (2014, 2015, 2016, 2017, 2018, 2019):
                     x = '/' + str(i) + '/'
                     if obj.prefix and obj.prefix.find(x) > 0:
                         try:
