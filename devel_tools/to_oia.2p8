@@ -18,6 +18,11 @@ l10n_it_fatturapa_out:
 fatturapa_document_type:
     $tokens
     parse_state: regular,xml
+    [0]:    'fiscal.document.type'
+    [6.1]:  'italy.ade.invoice.type'
+fatturapa_document_type_2:
+    $tokens
+    parse_state: regular,xml
     [0]:    'fatturapa.document_type'
     [6.1]:  'italy.ade.invoice.type'
 account_tax_kind:

@@ -1,4 +1,4 @@
-# __version__=0.1.23.1
+# __version__=0.1.23.3
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -8,9 +8,9 @@ if [[ $1 =~ -.*h ]]; then
   echo "  -q  quiet mode"
   exit 0
 fi
-RFLIST__travis_emulator="cvt_csv_2_rst.py cvt_csv_2_xml.py dist_pkg gen_addons_table.py gen_readme.py odoo_translation.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-RFLIST__devel_tools="topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
-RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py makepo_it.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
+RFLIST__travis_emulator="cvt_csv_2_rst.py cvt_csv_2_xml.py dist_pkg gen_addons_table.py gen_readme.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
+RFLIST__devel_tools="makepo_it.py odoo_translation.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
+RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="z0testrc"

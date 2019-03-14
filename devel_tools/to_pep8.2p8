@@ -61,6 +61,10 @@ import_orm_2_78:
     from $more import $any
     [6.1]: orm
     [8.0]: models
+import_exception_78:
+    from $more.exceptio import $any
+    [6.1]: openerp
+    [10.0]: odoo
 # Rule class memory
 class_memory_78:
     class $name($more):

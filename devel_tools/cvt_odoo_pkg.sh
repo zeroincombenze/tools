@@ -40,6 +40,7 @@ __version__=0.1.1
 
 cvt_dir() {
     # echo "cvt_dir ($1,$2)"
+    [ -d $2 ] && run_traced "rm -fR $tgtdir"
     [ ! -d $2 ] && run_traced "mkdir -p $2"
     [ -n "$opt_rule" ] && OPTS="-R$opt_rule" || OPTS=
     for f in $1/*; do
@@ -86,9 +87,9 @@ if [ "$opt_version" ]; then
 fi
 [ -z "$pkgpath" ] && opt_help=1
 if [ "$opt_dst" == "l" ]; then
-  tgtdir="~/tmp/left"
+  tgtdir="$HOME/tmp/left"
 elif [ "$opt_dst" == "r" ]; then
-  tgtdir="~/tmp/rigth"
+  tgtdir="$HOME/tmp/rigth"
 else
   opt_help=1
 fi
@@ -99,5 +100,4 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 [ ! -d ~/tmp ] && mkdir -p ~/tmp
-[ -d $tgtdir ] && rm -fR $tgtdir
 cvt_dir "$pkgpath" "$tgtdir"

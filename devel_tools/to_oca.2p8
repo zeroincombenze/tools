@@ -19,7 +19,7 @@ fatturapa_document_type:
     $tokens
     parse_state: regular,xml
     [0]:    'italy.ade.invoice.type'
-    [6.1]:  'fatturapa.document_type'
+    [6.1]:  'fiscal.document.type'
 account_tax_kind:
     $tokens
     [0]:    'italy.ade.tax.nature'

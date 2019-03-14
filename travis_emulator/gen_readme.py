@@ -259,7 +259,7 @@ def tohtml(text):
                 del lines[0]
     is_table = True
     for line in lines:
-        if line[0] != '|' and line[0:2] != '+-':
+        if line and line[0] != '|' and line[0:2] != '+-':
             is_table = False
             break
     hdr_foo = False
