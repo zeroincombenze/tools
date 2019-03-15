@@ -1,7 +1,7 @@
 #! /bin/bash
 # -*- coding: utf-8 -*-
 #
-# Force Odoo password
+# Convert Odoo package for comparision
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
