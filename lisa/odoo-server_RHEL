@@ -5,7 +5,7 @@ xtl_pidfile=/var/run/${xtl_id}/${xtl_name}.pid
 xtl_logfile=/var/log/${xtl_id}/${xtl_name}.log
 xtl_cfgfile=/etc/${xtl_id}/${xtl_name}.conf
 xtl_altcfgfile=/etc/${xtl_name}.conf
-xtl_version=10.0
+xtl_version=10
 xtl_fversion=10.0
 xtl_user=odoo
 xtl_test=0
@@ -31,7 +31,7 @@ xtl_sudo=0
 # Short-Description:    Complete Business Application software
 # Description:          Odoo is a complete suite of business tools.
 ### END INIT INFO
-# version: 0.4.7-RHEL
+# version: 0.4.8-RHEL
 # Warning: this is a customized ${xtl_Id} script, running Linux
 # It was tested on: CentOS6, CentOS7, Ubuntu12, Ubuntu14, Debian7, Debian8, Debian9
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
@@ -71,19 +71,19 @@ fi
 # Specify the user name (Default: odoo).
 USER=${xtl_user}
 # search for execution command script
-xtl_org=$(echo $(basename $0)|grep -Eo "(oca|oia|liberp|flectra|zero)")
-mult=$(echo $(basename $0)|grep -Eo "(7|8|9|10|11|12)")
+xtl_org=$(echo $(basename $0)|grep -Eo "(oca|oia|librerp|flectra|zero)")
+mult=$(echo $(basename $0)|grep -Eo "(6|7|8|9|10|11|12)")
 if [ -z "$mult" ]; then
   if [ -z "${xtl_org}" ]; then 
     LL="/usr/local/bin /usr/bin /opt/${USER}/v${xtl_version} /opt/${USER}/V${xtl_version} /opt/${USER}/v${xtl_fversion} /opt/${USER}/V${xtl_fversion} /opt/${USER}/${xtl_fversion} /opt/${USER}/OCB"
   else
-    LL="/opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_org}${xtl_version}"
+    LL="/opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_org}${xtl_version}/odoo"
   fi
 else
   if [ -z "${xtl_org}" ]; then 
-    LL="/opt/${USER}/VENV-${xtl_fversion} /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion}"
+    LL="/opt/${USER}/VENV-${xtl_fversion}/odoo /opt/${USER}/${xtl_fversion} /opt/${USER}/ODOO-${xtl_fversion} /opt/${USER}/odoo-${xtl_fversion}"
   else
-    LL="/opt/${USER}/VENV-${xtl_org}${xtl_version} /opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_fversion} /opt/${USER}/${xtl_fversion}"
+    LL="/opt/${USER}/VENV-${xtl_org}${xtl_version}/odoo /opt/${USER}/${xtl_org}${xtl_version} /opt/${USER}/VENV-${xtl_fversion}/odoo /opt/${USER}/${xtl_fversion}"
   fi
 fi
 DAEMON=
@@ -135,24 +135,56 @@ DAEMON_OPTS="$DAEMON_OPTS $2 $3 $4 $5 $6 $7 $8 $9"
 RETVAL=0
 
 
-check_lessc() {
-    lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+set_lessc() {
+    local f=$1
+    local minv=$2
+    [ -z "$minv" ] && minv=30000
+    local lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
     [ -z "$lv" ] && lv=0
-    if [ $lv -lt 20000 ]; then
-      x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    if [ $lv -ge $minv ]; then
+      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+      if [ $EUID -eq 0 ]; then
+        [ -x /usr/bin/lessc ] && rm -f /usr/bin/lessc
+        echo "$x $$ DAEMON ? $0: ln -s $f /usr/bin">>$LOGFILE
+        ln -s $f /usr/bin
+      else
+        local p=$(dirname $f)
+        echo "$x $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
+        export PATH=$p:$PATH
+      fi
+    fi
+}
+
+
+check_lessc() {
+    local d f
+    local lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    [ -z "$lv" ] && lv=0
+    if [ $lv -lt 30000 ]; then
+      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
       echo "$x $$ DAEMON ? $0: lessc --version: $(lessc --version 2>/dev/null)">>$LOGFILE
       echo "$x $$ DAEMON ? $0: Searching for lessc ...">>$LOGFILE
-      for f in $(find / -nowarn -type f -name lessc 2>/dev/null); do
-        lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|awk -F. '{print $1*10000 + $2*100 + $3}')
-        [ -z "$lv" ] && lv=0
-        if [ $lv -gt 20000 ]; then
-          p=$(dirname $f)
-          x=$(date +"%Y-%m-%d %H:%M:%S,000")
-          echo "$x $$ DAEMON ? $0: export PATH=$p:$PATH">>$LOGFILE
-          export PATH=$p:$PATH
-          break
+      local alt_less=
+      for d in $HOME/.npm-global $HOME/node_modules /usr/lib/node_modules; do
+        if [ -d $d ]; then
+          if [ -f $d/less/bin/lessc ]; then
+            f=$d/less/bin/lessc
+            lv=$($f --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+            [ -z "$lv" ] && lv=0
+            if [ $lv -gt 30000 ]; then
+              set_lessc $f 30000
+              break
+            elif [ $lv -gt 20000 ]; then
+              alt_less=$f
+            fi
+          fi
         fi
       done
+    fi
+    lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+    [ -z "$lv" ] && lv=0
+    if [ $lv -lt 20000 -a -n "$alt_less" ]; then
+      set_lessc $alt_less 20000
     fi
 }
 
@@ -162,6 +194,19 @@ checkpid() {
     pid=$(cat $PIDFILE)
     [ -d /proc/$pid ] && return 0
     return 1
+}
+
+
+check_4_venv() {
+    local p=$(dirname ${DAEMON})
+    [ "$(basename $p)" == "server" ] && p=$(dirname $p)
+    [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
+    if [ -f $p/bin/activate ]; then
+      local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+      echo "$x $$ DAEMON ? $0: cd $p; source ./bin/activate">>$LOGFILE
+      cd $p
+      source ./bin/activate
+    fi
 }
 
 
@@ -183,7 +228,8 @@ check_privsep_dir() {
     if [ "$PIDDIR" != "/var/run" -a "$PIDDIR" != "/run" ]; then
       uu=$(stat -c %U $PIDDIR)
       if [ "$uu" != "${USER}" ]; then
-        echo "Invalid pid directory owner!"
+        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
         chmod 0755 $PIDDIR
         chown ${USER}:${USER} $PIDDIR
       fi
@@ -191,7 +237,8 @@ check_privsep_dir() {
     if [ -f "$PIDFILE" ]; then
       uu=$(stat -c %U $PIDFILE)
       if [ "$uu" != "${USER}" ]; then
-        echo "Invalid pid file owner!"
+        local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+        echo "$x $$ DAEMON ? $0: Invalid pid directory owner!">>$LOGFILE
         chmod 0755 $PIDFILE
         chown ${USER}:${USER} $PIDFILE
       fi
@@ -258,7 +305,10 @@ start() {
     if [ "$1" != "mute" ]; then
         echo "Starting ${DESC}: "
     fi
+    check_4_venv
     check_lessc
+    local x=$(date +"%Y-%m-%d %H:%M:%S,000")
+    echo "$x $$ DAEMON ? $0: ${DAEMON} ${DAEMON_OPTS}">>$LOGFILE
     if [ "$FH" == "RHEL" ]; then
         start_RHEL
     elif [ "$FH" == "Debian" ]; then
@@ -324,6 +374,9 @@ stop() {
         exit 1
     fi
     RETVAL=$?
+    local p=$(dirname ${DAEMON})
+    [ "$(basename $p)" == "odoo" ] && p=$(dirname $p)
+    [ -f $p/bin/activate ] && deactivate
     return $RETVAL
 }
 

@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.7
+__version__=0.3.8.9
 
 
 test_01() {
@@ -83,6 +83,13 @@ test_01() {
       test_result "full version $w" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
+      [ "$v" == "6" ] && w="VENV-$v.1" || w="VENV-$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param FULLVER $w)
+      fi
+      test_result "full version $w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      #
       [ "$v" == "6" ] && w="odoo-$v.1" || w="odoo-$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param FULLVER $w)
@@ -91,13 +98,6 @@ test_01() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
       [ "$v" == "6" ] && w="ODOO-$v.1" || w="ODOO-$v.0"
-      if [ ${opt_dry_run:-0} -eq 0 ]; then
-        RES=$(build_odoo_param FULLVER $w)
-      fi
-      test_result "full version $w" "${TRES[$v]}" "$RES"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      #
-      [ "$v" == "6" ] && w="VENV-$v.1" || w="VENV-$v.0"
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param FULLVER $w)
       fi
@@ -298,6 +298,7 @@ test_03() {
       test_result "service name $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
     TRES[v7]=/opt/odoo/v7/server/openerp-server
     TRES[6]=/opt/odoo/6.1/server/openerp-server
     TRES[7]=/opt/odoo/7.0/openerp-server
@@ -319,6 +320,22 @@ test_03() {
       test_result "script name $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    TRES[6.1]=/opt/odoo/VENV-6.1/odoo/server/openerp-server
+    TRES[7.0]=/opt/odoo/VENV-7.0/odoo/openerp-server
+    TRES[8.0]=/opt/odoo/VENV-8.0/odoo/openerp-server
+    TRES[9.0]=/opt/odoo/VENV-9.0/odoo/openerp-server
+    TRES[10.0]=/opt/odoo/VENV-10.0/odoo/odoo-bin
+    TRES[11.0]=/opt/odoo/VENV-11.0/odoo/odoo-bin
+    TRES[12.0]=/opt/odoo/VENV-12.0/odoo/odoo-bin
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param BIN VENV-$v)
+      fi
+      test_result "script name VENV-$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     TRES[v7]=/opt/odoo/v7
     TRES[6]=/opt/odoo/6.1
     TRES[7]=/opt/odoo/7.0
@@ -340,6 +357,7 @@ test_03() {
       test_result "root dir $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
     TRES[v7]=__openerp__.py
     TRES[6]=__openerp__.py
     TRES[7]=__openerp__.py
@@ -360,6 +378,7 @@ test_03() {
       test_result "manifest $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
     TRES[v7]=8069
     TRES[v8.0]=8069
     TRES[6]=8166
@@ -381,6 +400,22 @@ test_03() {
       test_result "rpcport $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    TRES[6]=8166
+    TRES[7]=8167
+    TRES[8]=8168
+    TRES[9]=8169
+    TRES[10]=8170
+    TRES[11]=8171
+    for v in 6 7 8 9 10 11; do
+      [ "$v" == "6" ] && w="$v.1" || w="$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param RPCPORT VENV-$w)
+      fi
+      test_result "rpcport VENV-$w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     TRES[v7]=odoo
     TRES[v8.0]=odoo
     TRES[6]=odoo6
@@ -402,6 +437,22 @@ test_03() {
       test_result "user $v" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    TRES[6]=odoo6
+    TRES[7]=odoo7
+    TRES[8]=odoo8
+    TRES[9]=odoo9
+    TRES[10]=odoo10
+    TRES[11]=odoo11
+    for v in 6 7 8 9 10 11; do
+      [ "$v" == "6" ] && w="$v.1" || w="$v.0"
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param USER VENV-$w debug)
+      fi
+      test_result "user VENV-$w" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     TRES[6.1]="6.1"
     TRES[7.0]="7.0"
     TRES[8.0]="8.0"
@@ -447,6 +498,22 @@ test_04() {
       test_result "Home $v/OCB" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
+    #
+    TRES[6.1]="/opt/odoo/VENV-6.1/odoo"
+    TRES[7.0]="/opt/odoo/VENV-7.0/odoo"
+    TRES[8.0]="/opt/odoo/VENV-8.0/odoo"
+    TRES[9.0]="/opt/odoo/VENV-9.0/odoo"
+    TRES[10.0]="/opt/odoo/VENV-10.0/odoo"
+    TRES[11.0]="/opt/odoo/VENV-11.0/odoo"
+    TRES[12.0]="/opt/odoo/VENV-12.0/odoo"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param ROOT VENV-$v "crm")
+      fi
+      test_result "Root VENV-$v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
     TRES[6.1]="/opt/odoo/6.1/openerp/filestore"
     TRES[v7]="/opt/odoo/v7/openerp/filestore"
     TRES[7.0]="/opt/odoo/7.0/openerp/filestore"
@@ -478,6 +545,21 @@ test_04() {
         RES=$(build_odoo_param HOME $v "crm")
       fi
       test_result "Home $v/crm" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    TRES[6.1]="/opt/odoo/VENV-6.1/odoo/crm"
+    TRES[7.0]="/opt/odoo/VENV-7.0/odoo/crm"
+    TRES[8.0]="/opt/odoo/VENV-8.0/odoo/crm"
+    TRES[9.0]="/opt/odoo/VENV-9.0/odoo/crm"
+    TRES[10.0]="/opt/odoo/VENV-10.0/odoo/crm"
+    TRES[11.0]="/opt/odoo/VENV-11.0/odoo/crm"
+    TRES[12.0]="/opt/odoo/VENV-12.0/odoo/crm"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param HOME VENV-$v "crm")
+      fi
+      test_result "Home VENV-$v/crm" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
     return $sts
@@ -657,38 +739,50 @@ test_06() {
         fi
       done
     fi
+    return $sts
+}
+
+test_07() {
+    local s sts v w x
+    sts=0
+    export opt_mult=1
+    export opt_multi=1
+    declare -A TRES
+    #
     pushd $LCL_OE_PKGPATH >/dev/null
     RES=$(build_odoo_param PKGPATH '.')
     test_result "Test Odoo PKGPATH" "$LCL_OE_PKGPATH" "$RES"
+    RES=$(build_odoo_param ROOT '.')
+    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param HOME '.')
     test_result "Test Odoo HOME" "$LCL_OE_PRJPATH" "$RES"
     RES=$(build_odoo_param PARENTDIR '.')
     test_result "Test Odoo PARENTDIR" "$LCL_OE_ROOT" "$RES"
-    RES=$(build_odoo_param ROOT '.')
-    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
-    test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
+    test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
     test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
+    #
     pushd $LCL_OE_PRJPATH >/dev/null
     RES=$(build_odoo_param PKGPATH '.')
     test_result "Test Odoo PKGPATH" "" "$RES"
+    RES=$(build_odoo_param ROOT '.')
+    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param HOME '.')
     test_result "Test Odoo HOME" "$LCL_OE_PRJPATH" "$RES"
     RES=$(build_odoo_param PARENTDIR '.')
     test_result "Test Odoo PARENTDIR" "$LCL_OE_ROOT" "$RES"
-    RES=$(build_odoo_param ROOT '.')
-    test_result "Test Odoo ROOT" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
-    test_result "Test Odoo REPOS" "$LCL_OE_REPOS" "$RES"
+    test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
     test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
+    #
     pushd $LCL_OE_ROOT >/dev/null
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "OCB" "$RES"
@@ -697,10 +791,28 @@ test_06() {
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/OCB.git" "$RES"
     popd >/dev/null
+    #
+    pushd $LCL_VE_PKGPATH >/dev/null
+    RES=$(build_odoo_param PKGPATH '.')
+    test_result "Test Odoo PKGPATH" "$LCL_VE_PKGPATH" "$RES"
+    RES=$(build_odoo_param ROOT '.')
+    test_result "Test Odoo ROOT" "$LCL_VE_ROOT" "$RES"
+    RES=$(build_odoo_param HOME '.')
+    test_result "Test Odoo HOME" "$LCL_VE_PRJPATH" "$RES"
+    RES=$(build_odoo_param PARENTDIR '.')
+    test_result "Test Odoo PARENTDIR" "$LCL_VE_ROOT" "$RES"
+    RES=$(build_odoo_param REPOS '.')
+    test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
+    RES=$(build_odoo_param RORIGIN '.' default)
+    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    RES=$(build_odoo_param RUPSTREAM '.' default)
+    test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
+    popd >/dev/null
+    #
     return $sts
 }
 
-test_07() {
+test_08() {
     local s sts v w
     sts=0
     export opt_mult=1
@@ -779,24 +891,25 @@ test_07() {
     test_result "Module list 7.0" "$TRES" "$RES"
 }
 
+
 Z0BUG_setup() {
     local VERSION=9.0
     local ODOO_REPO=local/odoo
     RHOME="/opt/odoo"
-    LCL_OE_PRJNAME="Odoo"
-    LCL_OE_REPOS=l10n_italy
-    LCL_OE_PKGNAME=l10n_it_base
+    LCL_OO_PRJNAME="Odoo"
+    LCL_OO_REPOS=l10n_italy
+    LCL_OO_PKGNAME=l10n_it_base
     LCL_OE_ROOT=$RHOME/dev/odoo/$VERSION
-    LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OE_REPOS
-    LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OE_PKGNAME
-    LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OE_PKGNAME
+    LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OO_REPOS
+    LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OO_PKGNAME
+    LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OO_PKGNAME
     mkdir -p $LCL_OE_ROOT
     mkdir -p $LCL_OE_PRJPATH
     mkdir -p $LCL_OE_PKGPATH
     mkdir -p $LCL_OE_PKGPATH2
     touch $LCL_OE_PKGPATH/__openerp__.py
     touch $LCL_OE_PKGPATH2/__openerp__.py
-    LCL_OE_SETUP=__openerp__.py
+    LCL_OO_SETUP=__openerp__.py
     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
     if [ ! -f /etc/odoo/odoo9-server.conf ]; then
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
@@ -804,9 +917,26 @@ Z0BUG_setup() {
     fi
     if [ -d $RHOME/$VERSION/dependencies ]; then rm -fR $RHOME/$VERSION/dependencies; fi
     if [ -L $RHOME/$VERSION/dependencies ]; then rm -f $RHOME/$VERSION/dependencies; fi
+
+    LCL_VE_ROOT=$RHOME/dev/odoo/VENV-$VERSION/odoo
+    LCL_VE_PRJPATH=$LCL_VE_ROOT/$LCL_OO_REPOS
+    LCL_VE_PKGPATH=$LCL_VE_PRJPATH/$LCL_OO_PKGNAME
+    LCL_VE_PKGPATH2=$LCL_VE_PRJPATH/__unported__/$LCL_OO_PKGNAME
+    mkdir -p $RHOME/dev/odoo/VENV-$VERSION
+    mkdir -p $LCL_VE_ROOT
+    mkdir -p $LCL_VE_PRJPATH
+    mkdir -p $LCL_VE_PKGPATH
+    mkdir -p $LCL_VE_PKGPATH2
+    touch $LCL_VE_PKGPATH/__openerp__.py
+    touch $LCL_VE_PKGPATH2/__openerp__.py
 }
 
 Z0BUG_teardown() {
+    mkdir -p $LCL_VE_PKGPATH2
+    mkdir -p $LCL_VE_PKGPATH
+    mkdir -p $LCL_VE_PRJPATH
+    mkdir -p $LCL_VE_ROOT
+    mkdir -p $RHOME/dev/odoo/VENV-$VERSION
     rm -fR $LCL_OE_PKGPATH2
     rm -fR $LCL_OE_PKGPATH
     rm -fR $LCL_OE_PRJPATH

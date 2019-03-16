@@ -13,10 +13,10 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-# import pdb
+import pdb
 
 
-__version__ = "0.3.0"
+__version__ = "0.3.8.9"
 
 
 parser = z0lib.parseoptargs("Odoo test environment",
@@ -61,4 +61,11 @@ while gid:
                                                        group.name,
                                                        group.full_name)
 
-# pdb.set_trace()
+model = 'ir.translation'
+clodoo.unlinkL8(
+    ctx, model, clodoo.searchL8(
+        ctx, model, [('lang', '=', 'it_IT'),
+                     '|',
+                     ('name', '=', 'ir.module.module,description'),
+                     ('name', '=', 'ir.module.module,shortdesc')]))
+pdb.set_trace()

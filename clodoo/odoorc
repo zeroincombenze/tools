@@ -40,8 +40,9 @@
 # URL_BRANCH   URL tp specifice version of source git project (default value)
 # USER         Postgres username in multi-version environment
 # VCS          If GIT repository return "git" otherwise return ""
+# VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.8.7
+#__version__=0.3.8.9
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -169,7 +170,7 @@ find_odoo_ver() {
 }
 
 build_odoo_param() {
-# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS
+# build_odoo_param(BIN|CONFN|DDIR|FLOG|FPID|FULLVER|FULL_SVCNAME|GIT_BRANCH|GIT_OPTS|GIT_ORG|GIT_ORGNM|GIT_PROT|GIT_URL|HOME|INVALID_MODNAMES|INVALID_MODNAMES_RE|LICENSE|LCONFN|MAJVER|MANIFEST|OCB_SUBDIRS|OCB_SUBDIRS_RE|OPTS_ASM|PARENTDIR|PKGNAME|PKGPATH|REPOS|ROOT|RORIGIN|RPCPORT|RUPSTREAM|SVCNAME|UPSTREAM|URL|URL_BRANCH|USER|VCS|VENV
 #                  vid [{search|debug|default|<rptname>|<modname>}] [oca|zero|zero-http|zero-git|oia|oia-git|oia-http|librerp|flectra])
     # set -x  #debug
     if [[ $1 =~ (INVALID_MODNAMES|INVALID_MODNAMES_RE|OCB_SUBDIRS|OCB_SUBDIRS_RE) ]]; then
@@ -182,7 +183,7 @@ build_odoo_param() {
     local GIT_ORG GIT_ORGID GIT_ORGNM GIT_PROT GIT_OPTS OPTS_ASM
     local ODOO_UPSTREAM
     local VID PKGPATH PKGNAME
-    local p p1 p11 p2 p3 p4 pd ldir r x
+    local cdir d ldir p p1 p11 p2 p3 p4 pd r x
     p1="v|V|odoo|ODOO|ocb|OCB|VENV"
     p2="oca|oia|librerp|flectra|zero"
     p3="12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1"
@@ -192,21 +193,31 @@ build_odoo_param() {
     local reg="^($p2)"
     local ref="($p3)"
     if [[ "$2" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) || $ITEM =~ ^(RUPSTREAM|RORIGIN|VCS)$ ]]; then
-      [[ -n "$2" ]] && x=$(readlink -f $2) || x=$(readlink -f $PWD)
-      while [ -z "$odoo_vid" -a -n "$x" ]; do
-        if [ -z "$PKGPATH" ] && [ -f $x/__manifest__.py -o -f $x/__openerp__.py ]; then
-          PKGPATH=$x
-          PKGNAME=$(basename $x)
+      [[ -n "$2" ]] && cdir=$(readlink -f $2) || cdir=$(readlink -f $PWD)
+      while [[ -z "$odoo_vid" && -n "$cdir" ]]; do
+        if [[ -z "$PKGPATH" && ( -f $cdir/__manifest__.py || -f $cdir/__openerp__.py ) ]]; then
+          PKGPATH=$cdir
+          PKGNAME=$(basename $cdir)
         fi
-        r="$(basename $x)"
+        r="$(basename $cdir)"
+        if [[ -z "$REPOS" ]]; then
+          if [[ -f ./.travis.yml || ( -n "$PKGNAME" && -d $cdir/$PKGNAME ) ]]; then
+            [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
+          elif [[ -z "$PKGNAME" ]]; then
+            p=0
+            for d in $(find $PWD -maxdepth 2); do [[ -f $d/__manifest__.py || -f $d/__openerp__.py ]] && p=1; done
+            if [ $p -ne 0 ]; then
+              [[ $r =~ $rex ]] && REPOS=OCB || REPOS=$r
+            fi
+          fi
+        fi
         if [[ $r =~ $rex ]]; then
-          ROOT="$(dirname $x)"
+          ROOT="$(dirname $cdir)"
           odoo_vid=$r
-          [ -n "$ldir" ] && REPOS=$(basename $ldir) || REPOS=OCB
           break
         fi
-        ldir=$x
-        [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
+        ldir=$cdir
+        [ "$cdir" != "/" ] && cdir=$(readlink -e $cdir/..) || cdir=
       done
       if [ -z "$odoo_vid" ]; then
         REPOS=$(basename $PWD)
@@ -227,13 +238,13 @@ build_odoo_param() {
     if [[ -z "$odoo_fver" && $ODOO_BRANCH =~ $ref ]]; then
       odoo_fver=$ODOO_BRANCH
     elif [ -z "$odoo_vid" ]; then
-      odoo_fver=11.0
-      odoo_vid=11.0
+      odoo_fver=12.0
+      odoo_vid=12.0
     fi
     [[ $odoo_vid =~ ^VENV ]] && VENV=1
     if [[ -z "$odoo_fver" && ! "$ITEM" == "HOME" && ! "$2" == "." ]]; then
       echo "Invalid Odoo version $2!"
-      odoo_fver=11.0
+      odoo_fver=12.0
     fi
     odoo_ver=$(get_odoo_major_ver "$odoo_fver")
     if [ "$ITEM" == "LICENSE" ]; then
@@ -279,6 +290,11 @@ build_odoo_param() {
       MULTIVER=0
     fi
     odoo_rver="$odoo_fver"
+    if [ $VENV -ne 0 ]; then
+      VID="$ROOT/$odoo_vid/odoo"
+    else
+      VID="$ROOT/$odoo_vid"
+    fi
     if [[ $ITEM =~ ^(OPTS_ASM|GIT_OPTS|RORIGIN|GIT_BRANCH|GIT_ORG|GIT_ORGID|GIT_ORGNM|GIT_URL|RUPSTREAM|UPSTREAM|URL|URL_BRANCH|VCS)$ ]]; then
       if [[ $REPOS =~ $INVALID_MODNAMES_RE ]]; then
         GIT_ORGNM=""
@@ -435,23 +451,22 @@ build_odoo_param() {
       echo "$REPOS"
       return
     elif [ "$ITEM" == "ROOT" ]; then
-      echo "$ROOT/$odoo_vid"
+      echo "$VID"
+      return
+    elif [ "$ITEM" == "VENV" ]; then
+      echo "$VENV"
       return
     elif [ "$ITEM" == "HOME" ]; then
       if [ "$REPOS" == "OCB" ]; then
-        echo "$ROOT/$odoo_vid"
+        echo "$VID"
       elif [ -n "$REPOS" ]; then
-        echo "$ROOT/$odoo_vid/$REPOS"
+        echo "$VID/$REPOS"
       else
-        echo "$ROOT/$odoo_vid"
+        echo "$VID"
       fi
       return
     elif [ "$ITEM" == "PARENTDIR" ]; then
-      if [ "$REPOS" == "OCB" ]; then
-        echo "$ROOT"
-      else
-        echo "$ROOT/$odoo_vid"
-      fi
+      echo "$VID"
       return
     elif [ "$ITEM" == "PKGNAME" ]; then
       echo "$PKGNAME"
@@ -467,7 +482,7 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [[ $odoo_vid =~ $reo ]]; then
+      if [[ ! $odoo_vid =~ ^VENV && $odoo_vid =~ $reo ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
@@ -481,7 +496,7 @@ build_odoo_param() {
     elif [ "$ITEM" == "RPCPORT" ]; then
       if [ "$3" == "debug" ]; then
         ((p=18060+$odoo_ver))
-      elif [[ $odoo_vid =~ $reo ]]; then
+      elif [[ ! $odoo_vid =~ ^VENV && $odoo_vid =~ $reo ]]; then
         p=8069
       elif [ $MULTIVER -ne 0 ]; then
         if [ "$GIT_ORGID" == "oca" -o "$GIT_ORGID" == "librerp" ]; then
@@ -547,13 +562,13 @@ build_odoo_param() {
       p4=.pid
     elif [ "$ITEM" == "BIN" ]; then
       if [ $odoo_ver -lt 7 ]; then
-        p1=$ROOT/$odoo_vid/server/
-        p11=$ROOT/$odoo_vid/
+        p1=$VID/server/
+        p11=$VID/
       elif [ $odoo_ver -eq 7 -a "${odoo_vid:0:1}" == "v" ]; then
-        p1=$ROOT/$odoo_vid/server/
-        p11=$ROOT/$odoo_vid/
+        p1=$VID/server/
+        p11=$VID/
       else
-        p1=$ROOT/$odoo_vid/
+        p1=$VID/
       fi
       p4=
     else

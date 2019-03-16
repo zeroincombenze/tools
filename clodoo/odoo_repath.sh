@@ -1,4 +1,4 @@
-#__version__=0.1.4
+#__version__=0.3.8.9
 # Change os PATH in order to run lessc 2.0+ instead of lessc 1.7
 # Odoo won't work if lessc version is 2.0-
 # Standard ruby set lessc 1.7
@@ -46,8 +46,7 @@ lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*
 if [ $lv -lt 30000 ]; then
   echo "# Searching for lessc ..."
   alt_less=
-  # for f in $(find / -nowarn -type f -name lessc 2>/dev/null); do
-  for d in $HOME/.npm-global $HOME/node_modules; do
+  for d in $HOME/.npm-global $HOME/node_modules /usr/lib/node_modules; do
     if [ -d $d ]; then
       if [ -f $d/less/bin/lessc ]; then
         f=$d/less/bin/lessc
@@ -68,4 +67,11 @@ lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*
 if [ $lv -lt 20000 -a -n "$alt_less" ]; then
   set_lessc $alt_less 20000
 fi
-# lessc --version
+lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+[ -z "$lv" ] && lv=0
+if [ $lv -lt 20000 ]; then
+  npm install -g less@3.0.4 less-plugin-clean-css
+  lv=$(lessc --version 2>/dev/null|grep -Eo "[0-9.]+"|head -n1|awk -F. '{print $1*10000 + $2*100 + $3}')
+  [ -z "$lv" ] && lv=0
+  [ $lv -lt 20000 ] && npm install less@3.0.4 less-plugin-clean-css
+fi

@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.7
+__version__=0.3.8.9
 
 
 rmdir_if_exists() {
@@ -215,16 +215,17 @@ update_odoo_conf() {
 }
 
 
-OPTOPTS=(h        b          c        D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
-OPTDEST=(opt_help opt_branch opt_conf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
-OPTACTI=(1        "="        "="      1        1        1        1          1            "="       "="       0           1          1       "="        "*>"        "+"         1       1)
-OPTDEFL=(0        ""         ""       0        0        0        0          0            ""        ""        -1          0          0       ""         ""          -1          0       0)
-OPTMETA=("help"   "branch"   "file"   ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "username" "version"   "verbose"   ""      "")
+OPTOPTS=(h        b          c        C          D        j        L        m          n            O         o         q           r          U       u          V           v           y       1)
+OPTDEST=(opt_help opt_branch opt_conf opt_noconf opt_ucfg opt_only opt_link opt_multi  opt_dry_run  opt_org   opt_odir  opt_verbose opt_updrmt opt_upd opt_user   opt_version opt_verbose opt_yes opt_one)
+OPTACTI=(1        "="        "="      1          1        1        1        1          1            "="       "="       0           1          1       "="        "*>"        "+"         1       1)
+OPTDEFL=(0        ""         ""       0          0        0        0        0          0            ""        ""        -1          0          0       ""         ""          -1          0       0)
+OPTMETA=("help"   "branch"   "file"   ""         ""       ""       ""       ""         "do nothing" "git-org" "path"    "verbose"   ""         ""      "username" "version"   "verbose"   ""      "")
 OPTHELP=("this help"\
  "default odoo branch"\
  "configuration file (def .travis.conf)"\
- "update default values in /etc configuration file before creating script"\
- "manage just repository of git organization"\
+ "do not touch configuration file (conflict with -D)"\
+ "update default values in /etc configuration file before creating script (conflict with -C)"\
+ "install only repository owned by git organization"\
  "create symbolic link rather copy files (if new_odoo_ver supplied)"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
@@ -248,6 +249,9 @@ fi
 if [ -z "$git_repo" ]; then
   opt_help=1
 elif [ -z "$odoo_vid" -a -z "$opt_branch" ]; then
+  opt_help=1
+fi
+if [ $opt_noconf -ne 0 -a $opt_ucfg -ne 0 ]; then
   opt_help=1
 fi
 if [ $opt_help -gt 0 ]; then
@@ -462,6 +466,8 @@ cfgfn=$(build_odoo_param CONFN "$new_odoo_vid")
 if [ "$RPTNAME" == "OCB" ]; then
   DSTPATH="$DSTPATH/addons"
 fi
-[[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
+if [ $opt_noconf -eq 0 ]; then
+  [[ ! $(grep "^addons_path *= .*$DSTPATH" $cfgfn) ]] && run_traced "sed -i -e \"s|^addons_path *=.*|&,$DSTPATH|\" $cfgfn"
+fi
 rm -f $TMPFILE
 exit 0

@@ -3,7 +3,7 @@
 # Check for all odoo repositories
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.7
+__version__=0.3.8.9
 
 
 explore() {
@@ -66,10 +66,24 @@ do_action() {
     local f s
     if [ -n "$opt_odir" ]; then
       local pkgdir=$opt_odir
+      local odoo_root=$(build_odoo_param ROOT $opt_odir search)
     else
       local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
+      local odoo_root=$(build_odoo_param ROOT $odoo_vid search)
     fi
-    # local pardir=$(readlink -e $pkgdir)
+    ## echo "<<<pkgdir=$pkgdir>>>"   #debug
+    ## echo "<<<root=$odoo_root>>>"   #debug
+    local VENV=$(build_odoo_param VENV $odoo_vid)
+    [ -f $odoo_root/bin/activate ] && VENV=1
+    ## echo "<<<VENV=$VENV>>>"   #debug
+    if [ $VENV -ne 0 ]; then
+      local ve_root=$(dirname $odoo_root)
+      ## echo "<<<ve_root=$ve_root>>>"   #debug
+      [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
+      cd $ve_root
+      source ./bin/activate
+    fi
+    ## exit 1   #debug
     local opts=
     local opts1=
     if [ $opt_verbose -gt 0 ]; then
@@ -119,7 +133,7 @@ do_action() {
       if [ "$pyver" == "3" -o "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
         PIP=$(which pip3 2>/dev/null)
         if [ -z "$PIP" ]; then
-          for v in 3.5 3.6 3.4; do
+          for v in 3.6 3.5 3.4; do
             for p in /usr/local/bin /usr/bin; do
               [ -x $p/pip$v ] && PIP=$p/pip$v
               if [ -n "$PIP" ]; then
@@ -360,7 +374,7 @@ if [ $opt_verbose -eq -1 ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Check for all odoo repositories\nactions may be: add_repository build check-config clean lint list oca oia rebuild requirements status upgrade zeroincombenze"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 if [ "$actions" == "help" ]; then

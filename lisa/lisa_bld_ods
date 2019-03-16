@@ -4,7 +4,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 # This free software is released under GNU Affero GPL3
 #
 THIS=$(basename "$0")
@@ -34,7 +34,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.0.11
+__version__=0.3.0.12
 
 
 get_arch () {
@@ -140,7 +140,7 @@ OPTACTI=(1        "=>"      "=>"    1        "=>"     "=>"      "="     "=>"    
 OPTDEFL=(1        "10"      ""      0        ""        ""        ""      ""       0         ""       0            ""      0        ""       ""       "odoo"   ""          0)
 OPTMETA=("help"   "vid"     "file"  ""       "linux"   "id-name" "id"    "file"   "mult"    "name"   "do nothing" "file"  ""       "test"   "file"   "user"   "version"   "verbose")
 OPTHELP=("this help"\
- "select odoo version id: may be 6, 7, 8, 9, 10 or 11"\
+ "select odoo version id: may be 6, 7, 8, 9, 10, 11 or 12"\
  "set odoo configuration file (default search in /etc/{id_name}/{id_name}-server).conf"\
  "update default values in /etc configuration file before creating script"\
  "select linux distribution: RHEL or Debian (default is current platform)"\
@@ -166,7 +166,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Build Odoo daemon script (default name is odoo-server)"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 discover_multi

@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.7
+__version__=0.3.8.9
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -92,6 +92,8 @@ if [ -n "$opt_odir" ]; then
 else
   odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 fi
+VENV=$(build_odoo_param VENV $odoo_vid)
+[ -f $odoo_root/bin/activate ] && VENV=1
 manifest=$(build_odoo_param MANIFEST $odoo_vid search)
 create_db=0
 drop_db=0
@@ -111,7 +113,6 @@ else
   rpcport=$(build_odoo_param RPCPORT $odoo_vid debug)
   odoo_user=$(build_odoo_param USER $odoo_vid debug)
 fi
-
 if [ $opt_lang -ne 0 ]; then
   opt_keep=1
   opt_stop=1
@@ -140,7 +141,6 @@ elif [ $opt_upd -ne 0 ]; then
     exit 1
   fi
 elif [ $opt_xtl -ne 0 ]; then
-  # opt_keep=1
   if [ -z "$opt_modules" ]; then
     echo "Missing -m switch"
     exit 1
@@ -293,45 +293,49 @@ if [ -n "$opt_db" ]; then
    opts="$opts -d $opt_db"
    optcdb="$optcdb -d $opt_db"
 fi
-if [ $opt_dry_run -eq 0 ]; then
-  [ -f ~/.openerp_serverrc ] && rm -f ~/.openerp_serverrc
-  [ -f ~/.odoorc ] && rm -f ~/.odoorc
-  echo "cp $confn ~/$lconfn"
-  cp $confn ~/$lconfn
-  sed -i -e 's:^logfile *=.*:logfile = False:' ~/$lconfn
-  if [ -n "$opt_xport" ]; then
-    sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" ~/$lconfn
-  fi
-  if [ -n "$opt_dbuser" ]; then
-    sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" ~/$lconfn
-  fi
-  if [ -n "$opt_llvl" ]; then
-    sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" ~/$lconfn
-  fi
-  # if [ $opt_verbose -gt 0 ]; then
-  #   vim ~/$lconfn
-  # fi
-fi
 if [ $opt_touch -eq 0 ]; then
   [ $drop_db -gt 0 ] && run_traced "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
-  if [ $create_db -gt 0 ]; then
-    if [ $odoo_ver -lt 10 ]; then
-      run_traced "createdb -U$opt_dbuser $opt_db"
+  if [ $VENV -ne 0 ]; then
+    ve_root=$(dirname $odoo_root)
+    [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
+    cd $ve_root
+    source ./bin/activate
+  fi
+  if [ $create_db -gt 0 -a $odoo_ver -lt 10 ]; then
+    run_traced "createdb -U$opt_dbuser $opt_db"
+  fi
+  if [ $opt_dry_run -eq 0 ]; then
+    [ -f $HOME/.openerp_serverrc ] && rm -f $HOME/.openerp_serverrc
+    [ -f $HOME/.odoorc ] && rm -f $HOME/.odoorc
+    echo "\$ cp $confn $HOME/$lconfn"
+    cp $confn $HOME/$lconfn
+    sed -i -e 's:^logfile *=.*:logfile = False:' $HOME/$lconfn
+    if [ -n "$opt_xport" ]; then
+      sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" $HOME/$lconfn
     fi
-    # [ $opt_test -ne 0 ] && od="-D" || od=
-    # [ $opt_verbose -gt 0 ] && echo "$TDIR/clodoo.py -A new_db -c ~/$lconfn -b $odoo_fver -d $opt_db $od"
-    #$TDIR/clodoo.py -A new_db -c ~/$lconfn -b $odoo_fver -d $opt_db $od
+    if [ -n "$opt_dbuser" ]; then
+      sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" $HOME/$lconfn
+    fi
+    if [ -n "$opt_llvl" ]; then
+      sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" $HOME/$lconfn
+    fi
+  fi
+  if [ $create_db -gt 0 ]; then
     if [ -n "$depmods" -a $opt_test -ne 0 ]; then
       run_traced "$script $optcdb --log-level=error -i $depmods"
     else
       run_traced "$script $optcdb --log-level=error"
     fi
-    echo "===================================================================="
   fi
+  echo "===================================================================="
   if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
     opts="--debug $opts"
   fi
   run_traced "$script $opts"
+  if [ $VENV -ne 0 ]; then
+    [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
+    deactivate
+  fi
   if [ $drop_db -gt 0 ]; then
     if [ -z "$opt_modules" -o $opt_stop -eq 0 ]; then
       run_traced "dropdb -U$opt_dbuser --if-exists $opt_db"
