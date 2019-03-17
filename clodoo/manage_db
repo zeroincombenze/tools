@@ -130,9 +130,9 @@ OPTDEFL=(1        "7.0"     ""       ""            ""     -1        0           
 OPTMETA=("help"   "branch"  "file"   ""            "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose"   "")
 OPTHELP=("this help"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0 (def 7.0)"\
- "configuration file (only update)"\
+ "configuration file (only update/action)"\
  "add demo data to new db"\
- "set database name or regex when update (@ means odoo major version)"\
+ "set database name or regex when update/action (@ means odoo major version)"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
@@ -154,7 +154,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Manage Cloud DB(s) \n"\
-  "Action may be on of: install,update,upgrade,module,translate,rename_phase\ncmdlist of update may be upd_oemod,translation,clodoo action or phase\ncmdlist of module,upgrade is module list\ncmdlist of install is phase list: $PHASE_LIST\ncmdlist of rename_phase (phase) is old=new\n\n(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "Action may be on of: action,install,update,upgrade,module,translate,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of rename_phase (phase) is old=new\n\n(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 opts=
@@ -267,7 +267,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
       fi
       [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
     done
-  elif [[ $action =~ (update|module|translate|upgrade) ]]; then
+  elif [[ $action =~ (action|update|module|translate|upgrade) ]]; then
     if [ -f "$opt_conf" ]; then
       cf=$opt_conf
     elif [ -f "$opt_conf.conf" ]; then
@@ -290,7 +290,10 @@ for odoo_vid in ${odoo_vids//,/ }; do
       fi
     fi
     if [[ $action =~ (module|upgrade) && -z "$cmdlist" ]]; then
-      echo "No module liste declared!"
+      echo "No module list declared!"
+      exit 1
+    elif [[ "$action" == "action" && -z "$cmdlist" ]]; then
+      echo "No actions declared!"
       exit 1
     fi
     if [ -z "$opt_db" ]; then
@@ -331,18 +334,27 @@ for odoo_vid in ${odoo_vids//,/ }; do
         if [ $sts -ne $STS_SUCCESS ]; then
           break
         fi
+      elif [ "$action" == "action" ]; then
+        if [ "$cmdlist" == "upd_oemod" ]; then
+          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+          [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
+        elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
+          echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
+          [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
+        else
+          echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+          if [ $sts -ne $STS_SUCCESS ]; then
+            break
+          fi
+        fi
       elif [ "$action" == "translate" ]; then
         echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
         [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
-      elif [ -n "$cmdlist" -a "$cmdlist" == "upd_oemod" ]; then
-        run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
-        s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
-        [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
-      elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       else
-        if [[ -n "$cmdlist" && -z "$cf" && "$cmdlist"  =~ [0-9,]+ ]]; then
+        if [[ -n "$cmdlist" && -z "$cf" && "$cmdlist" =~ [0-9,]+ ]]; then
           if [ ! -d data ]; then
             echo "Directory data/ not found!"
             exit 1
