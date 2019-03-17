@@ -179,7 +179,7 @@ from transodoo import read_stored_dict
 # from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.9"
+__version__ = "0.3.8.10"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1699,15 +1699,120 @@ def act_check_coa(ctx):
     return STS_SUCCESS
 
 
+def act_check_tax(ctx):
+    msg = u"Check for tax compliance"
+    msg_log(ctx, ctx['level'], msg)
+    model = 'italy.ade.tax.nature'
+    tax_nature = {}
+    for tax in browseL8(ctx, model, searchL8(ctx, model, [])):
+        tax_nature[tax.code] = tax.id
+        tax_nature[tax.id] = tax.code
+    model = 'account.tax'
+    for tax in browseL8(ctx, model, searchL8(ctx, model, [])):
+        nature_id = False
+        payability = False
+        if tax.amount:
+            if re.search('[Aa]rt.*17[ -./]ter', tax.name):
+                payability = 'S'
+            elif re.search('split[ -]paym', tax.name):
+                payability = 'S'
+            elif re.search('cassa', tax.name):
+                payability = 'D'
+        else:
+            if re.search('[Rr]eg.* [Mm]in', tax.name):
+                nature_id = tax_nature['N2']
+            elif re.search('[Rr](eg)?.* [Ff]orf', tax.name):
+                nature_id = tax_nature['N2']
+            elif re.search('[Aa]rt.*40[^0-9]?.*c.*[34][^0-9]', tax.name):
+                nature_id = tax_nature['N7']
+            elif re.search('[Aa]rt.*41[^0-9]?.*c.*1[^0-9]?.*b', tax.name):
+                nature_id = tax_nature['N7']
+            elif re.search('[Aa]rt.*7[^0-9]?.*sex.*f', tax.name):
+                nature_id = tax_nature['N7']
+            elif re.search('[Aa]rt.*74[^0-9]?.*sex', tax.name):
+                nature_id = tax_nature['N7']
+            elif re.search('[Aa]rt.*74[^0-9]?.*c.*[78][^0-9]', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*17[^0-9]?.*c.*[26][^0-9]', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*38[^0-9]?', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*40[^0-9]?', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*41[^0-9]?.*427', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Rr]eg.* [Mm]arg', tax.name):
+                nature_id = tax_nature['N5']
+            elif re.search('[Ii][Vv][Aa] non? esp', tax.name):
+                nature_id = tax_nature['N5']
+            elif re.search('[Aa]rt.*10[^0-9]?', tax.name):
+                nature_id = tax_nature['N4']
+            elif re.search('[Aa]rt.*[89][^0-9]', tax.name):
+                nature_id = tax_nature['N3']
+            elif re.search('[Aa]rt.*7[12][^0-9]', tax.name):
+                nature_id = tax_nature['N3']
+            elif re.search('[Aa]rt.*7[^0-9]?.*(bis|ter|quater|quinq)',
+                           tax.name):
+                nature_id = tax_nature['N2']
+            elif re.search('[Aa]rt.*2[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Aa]rt.*3[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Aa]rt.*5[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Aa]rt.*13[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Aa]rt.*15[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('rev.* charge', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.match('[Ee]sente', tax.name):
+                nature_id = tax_nature['N4']
+            elif re.match(r'N\.?I\.?', tax.name):
+                nature_id = tax_nature['N3']
+            elif re.match('[Nn].* [Ii]mp', tax.name):
+                nature_id = tax_nature['N3']
+            elif re.match('[Nn].* [Ss]ogg', tax.name):
+                nature_id = tax_nature['N2']
+            elif re.match('[Ss]enza [Ii][Vv][Aa]', tax.name):
+                nature_id = tax_nature['N2']
+            elif re.match('[Ee]scl', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.match(r'F\.?C\.?', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Ff]uori [Cc]ampo', tax.name):
+                nature_id = tax_nature['N1']
+            elif re.search('[Aa]rt.*17[^0-9].*[^0-9]', tax.name):
+                nature_id = tax_nature['N1']
+        if nature_id:
+            writeL8(ctx, model, [tax.id], {'nature_id': nature_id,
+                                           'payability': False})
+            msg = 'Tax code %s: nature=%s' % (tax.description,
+                                              tax_nature[nature_id])
+            msg_log(ctx, ctx['level'] + 1, msg)
+        if payability:
+            writeL8(ctx, model, [tax.id], {'payability': payability,
+                                           'nature_id': False})
+            msg = 'Tax code %s: payability=%s' % (tax.description, payability)
+            msg_log(ctx, ctx['level'] + 1, msg)
+    return STS_SUCCESS
+
+
 def act_check_config(ctx):
     if not ctx['dry_run'] and 'def_company_id' in ctx:
-        if ctx['def_company_id'] is not None:
-            msg = u"Check config"
-            msg_log(ctx, ctx['level'], msg)
-
-            o_model = {}
-            csv_fn = "sale-shop.csv"
-            import_file(ctx, o_model, csv_fn)
+        msg = u"Check config"
+        msg_log(ctx, ctx['level'], msg)
+        model = 'ir.model.data'
+        ids = searchL8(ctx, model, [('module', '=', 'base'),
+                                    ('name', 'in', ('mycompany',
+                                                    'partner_mycompany',
+                                                    'user_admin2',
+                                                    'partner_admin2',
+                                                    'user_bot',
+                                                    'partner_bot'))])
+        for id in ids:
+            writeL8(ctx, model, id, {'module': 'base2'})
+    return STS_SUCCESS
 
 
 def act_check_partners(ctx):
@@ -1826,8 +1931,8 @@ def act_set_periods(ctx):
     return STS_SUCCESS
 
 
-def act_check_taxes(ctx):
-    msg = u"Check for taxes; period: " + \
+def act_check_tax_balance(ctx):
+    msg = u"Check for tax balance; period: " + \
         ctx['date_start'] + ".." + ctx['date_stop']
     msg_log(ctx, ctx['level'], msg)
     company_id = ctx['company_id']
