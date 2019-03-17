@@ -342,7 +342,15 @@ for odoo_vid in ${odoo_vids//,/ }; do
         echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
         [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       else
-        if [[ -n "$cmdlist" &&  -z "$cf" && "$cmdlist"  =~ [0-9,]+ ]]; then
+        if [[ -n "$cmdlist" && -z "$cf" && "$cmdlist"  =~ [0-9,]+ ]]; then
+          if [ ! -d data ]; then
+            echo "Directory data/ not found!"
+            exit 1
+          fi
+          if [ ! -d code ]; then
+            echo "Directory code/ not found!"
+            exit 1
+          fi
           for ph in $CFLOOP; do
             if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$ph[[:space:]] ]]; then
               [ $opt_verbose -gt 0 ] && echo "Warning: phase $ph is just for demo (use -D switch to enable)"
