@@ -1718,6 +1718,18 @@ def act_check_tax(ctx):
                 payability = 'S'
             elif re.search('cassa', tax.name):
                 payability = 'D'
+            if re.search('[Aa]rt.*74[^0-9]?.*c.*[78][^0-9]', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*17[^0-9]?.*c.*[26][^0-9]', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*38[^0-9]?', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*40[^0-9]?', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('[Aa]rt.*41[^0-9]?.*427', tax.name):
+                nature_id = tax_nature['N6']
+            elif re.search('rev.* charge', tax.name):
+                nature_id = tax_nature['N6']
         else:
             if re.search('[Rr]eg.* [Mm]in', tax.name):
                 nature_id = tax_nature['N2']
@@ -1731,16 +1743,6 @@ def act_check_tax(ctx):
                 nature_id = tax_nature['N7']
             elif re.search('[Aa]rt.*74[^0-9]?.*sex', tax.name):
                 nature_id = tax_nature['N7']
-            elif re.search('[Aa]rt.*74[^0-9]?.*c.*[78][^0-9]', tax.name):
-                nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*17[^0-9]?.*c.*[26][^0-9]', tax.name):
-                nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*38[^0-9]?', tax.name):
-                nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*40[^0-9]?', tax.name):
-                nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*41[^0-9]?.*427', tax.name):
-                nature_id = tax_nature['N6']
             elif re.search('[Rr]eg.* [Mm]arg', tax.name):
                 nature_id = tax_nature['N5']
             elif re.search('[Ii][Vv][Aa] non? esp', tax.name):
@@ -1764,8 +1766,6 @@ def act_check_tax(ctx):
                 nature_id = tax_nature['N1']
             elif re.search('[Aa]rt.*15[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('rev.* charge', tax.name):
-                nature_id = tax_nature['N6']
             elif re.match('[Ee]sente', tax.name):
                 nature_id = tax_nature['N4']
             elif re.match(r'N\.?I\.?', tax.name):
@@ -1791,8 +1791,7 @@ def act_check_tax(ctx):
                                               tax_nature[nature_id])
             msg_log(ctx, ctx['level'] + 1, msg)
         if payability:
-            writeL8(ctx, model, [tax.id], {'payability': payability,
-                                           'nature_id': False})
+            writeL8(ctx, model, [tax.id], {'payability': payability})
             msg = 'Tax code %s: payability=%s' % (tax.description, payability)
             msg_log(ctx, ctx['level'] + 1, msg)
     return STS_SUCCESS

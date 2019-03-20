@@ -218,7 +218,7 @@ status	msgid	msgstr
 	Default Reason for Transportation	Causale di trasporto (predefinita)
 	Default Setting	Impostazioni predefinite
 	Deferred payability	Esigibilità differita
-	Define a purchase journal for this company: '%s' (id: %d).	"Definire un registro di acquisto per questa azienda: ""%s"" (id: %d)."
+	Define a purchase journal for this company: '%s' (id: %d).	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)."
 	Delivery Address	Indirizzo consegna
 	Delivery Address	Indirizzo di consegna
 	Delivery Date Time	Data e ora di consegna
@@ -267,7 +267,7 @@ status	msgid	msgstr
 	E-invoice Export Files	File e-fattura esportati
 	E-invoice fiscal position not set.	Posizione fiscale non impostata.
 	E-invoice Format	Formato e-fattura
-	E-Invoice journal	Registro e-fatture
+	E-Invoice journal	Sezionale e-fatture
 	E-invoice Payment Data	Dati pagamento e-fattura
 	E-invoice Related DDT	DdT relativo alla e-fattura
 	E-invoice Related DdT	DdT relativo alla e-fattura
@@ -313,7 +313,7 @@ status	msgid	msgstr
 	File %s already present.	File %s già presente.
 	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
 	File is linked to bills yet.	Il file è già collegato alle fatture.
-	Financial Reports	Rendiconti finanziari
+	Financial Reports	Rapporti finanziari
 	Fiscal position used by electronic invoice	Posizione fiscale usata dalla fattura elettronica
 	Fiscal position used by FatturaPA	Posizione fiscale in e-Fattura
 	Fiscal Positions	Posizioni fiscali
@@ -332,9 +332,9 @@ status	msgid	msgstr
 	General Data	Dati generali
 	General information	Informazioni generali
 	Generated invoice	Fattura generata
-	Give a unique name for this report model	Assegnare un nome univoco all'impaginazione
-	Give a unique name for this report style	Assegnare un nome univoco allo stile
-	Give a unique name for this report template	Assegnare un nome univoco al modello
+	Give a unique name for this report model	Assegnamento nome univoco al rapporto
+	Give a unique name for this report style	Assegnamento nome univoco allo stile rapporto
+	Give a unique name for this report template	Assegnamento nome univoco al modello del rapporto
 	Global bill discount from document general data	Sconto globale fattura dai dati generali del documento
 	Goods Description	Aspetto dei beni
 	Goods Description	Aspetto esteriore dei beni
@@ -394,12 +394,12 @@ status	msgid	msgstr
 	Is pdf invoice print	È una stampa fattura in PDF
 	ISTAT code	Codice ISTAT
 	Item Num.	Numero riga
-	Journal	Registro
+	Journal	Registro sezionale
 	Journal Entries	Registrazioni contabili
 	Journal Entry	Registrazione contabile
 	Journal Item	Movimento contabile
 	Journal Items	Movimenti contabili
-	Journals	Registri
+	Journals	Registri sezionali
 	Keep empty to use the current date	Lasciare vuoto per usare la data corrente
 	Language	Lingua
 	Last Modified on	Data ultima modifica
@@ -422,6 +422,7 @@ status	msgid	msgstr
 	Link to existing supplier bill	Collega a fattura fornitore esistente
 	Liquidation State	Attiva/In liquidazione
 	Load Journals	Carica registri
+	Local Modules	Moduli disponibili
 	Login	Accesso
 	Make invoice	Fatturazione
 	Make invoices	Fatturazione
@@ -519,7 +520,7 @@ status	msgid	msgstr
 	Payment Terms	Termini di pagamento
 	Payments	Pagamenti
 	Payments Details	Dettagli pagamento
-	PDF Report	Rendiconti PDF
+	PDF Report	Rapporti PDF
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percent	Percentuale
 	Percentage	Percentuale
@@ -608,9 +609,9 @@ status	msgid	msgstr
 	Related Payments Data	Dati pagamenti collegati
 	Replace	Sostituisci
 	Replacement Tax	Imposta sostitutiva
-	Report	Rendiconto
-	Report print menu	Menù di stampa del documento
-	Reporting	Rendicontazione
+	Report	Rapporto
+	Report print menu	Menù di stampa rapporti
+	Reporting	Rapporti
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
 	Resource Field	Campo risorsa
@@ -620,7 +621,7 @@ status	msgid	msgstr
 	Restore	Ripristinare
 	Results	Risultati
 	Returned	Reso
-	Reverse Charge Journal	Registro inversione contabile
+	Reverse Charge Journal	Sezionale inversione contabile
 	Rounding	Arrotondamento
 	SAJ	FAT
 	Sale	Vendita
@@ -632,6 +633,7 @@ status	msgid	msgstr
 	Sales Journal	Registro vendite
 	Sales Order	Ordine di vendita
 	Salesperson	Commerciale
+	Save	Salva
 	Search DDT	Cerca DdT
 	Search Incoming Mail Servers	Cerca server posta in arrivo
 	Sections	Fasce
@@ -791,6 +793,7 @@ status	msgid	msgstr
 	View DdT	Vedi DdT
 	Virtual Stamp	Bollo virtuale
 	Volume	Volume
+	Warehouse	Magazzino
 	Warning	Attenzione
 	Warning!	Attenzione!
 	Waybill	DdT

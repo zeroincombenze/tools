@@ -86,8 +86,6 @@ db_list() {
     psql -Upostgres -Atl > $HOME/tmp.log
     while IFS=\| read db user a b c; do
       ((found++))
-      # db=$(echo $db)
-      # user=$(echo $user)
       if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
         if [[ $db =~ $opt_DB ]]; then
           DBlist=$DBlist,$db
@@ -120,6 +118,29 @@ declare_cfloop() {
       fi
     else
       CFLOOP="$PHASE_LIST"
+    fi
+}
+
+set_opt_conf() {
+    if [ -f "$opt_conf" ]; then
+      cf=$opt_conf
+    elif [ -f "$opt_conf.conf" ]; then
+      cf=$opt_conf.conf
+    elif [ -f "code/$opt_conf" ]; then
+      cf=code/$opt_conf
+    elif [ -f "code/$opt_conf.conf" ]; then
+      cf=code/$opt_conf.conf
+    else
+      cf=
+    fi
+    [ -n "$cf" ] && opts_cf="-c $cf" || opts_cf=""
+    if [ -n "$cf" ]; then
+      x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
+      x=${x: -2}
+      if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
+        echo "This file require -D switch to be executed!"
+        exit 1
+      fi
     fi
 }
 
@@ -197,7 +218,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
   else
     opt_db=
   fi
-  if [[ "$action" == "install" ]]; then
+  if [[ $action =~ (install|update) ]]; then
     if [ ! -d data ]; then
       echo "Directory data/ not found!"
       exit 1
@@ -206,6 +227,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
       echo "Directory code/ not found!"
       exit 1
     fi
+    [ $action == "update" ] && set_opt_conf
     declare_cfloop
     for cf in $CFLOOP; do
       if [ ! -f code/z0_install_$cf.conf ]; then
@@ -215,80 +237,103 @@ for odoo_vid in ${odoo_vids//,/ }; do
     done
     [ -f ~/.openerp_serverrc ] && run_traced "rm -f ~/.openerp_serverrc"
     [ -f .odoorc ] && run_traced "rm -f .odoorc"
+    if [ $action == "update" ]; then
+      [ -z "$opt_db" ] && opt_db=".*"
+      DBlist=$(db_list)
+      if [ -z "$DBlist" ]; then
+        if [ $found -eq 0 ]; then
+          [ $opt_verbose -gt 0 ] && echo "No DB found!"
+        else
+          [ $opt_verbose -gt 0 ] && echo "No DB found, owned by $opt_dbuser!"
+        fi
+        exit 1
+      fi
+      DBlist=${DBlist//,/ }
+    fi
     sts=0
     for cf in $CFLOOP; do
+      if [ "$cf" == "02" ]; then
+        opts="-lit_IT"
+      else
+        opts=
+      fi
       if [ "$cf" == "01" ]; then
-        if [ -n "$opt_db" ]; then
-          optdb="-d $opt_db -lit_IT"
+        if [ $action == "install" ]; then
+          if [ -n "$opt_db" ]; then
+            optdb="-d $opt_db -lit_IT"
+          else
+            optdb=
+          fi
+          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo $opts"
+          s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         else
-          optdb=
+          echo "Invalid phase $cf in update!"
+          sts=1
         fi
-        run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo $opt_x $opt_i"
-        s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
-      elif [ "$cf" == "00" -a $opt_del -eq 0 ]; then
-        [ $opt_verbose -gt 0 ] && echo "Warning: you must enable dropping DB using -o switch"
-        sts=1
+      elif [ "$cf" == "00" ]; then
+        if [ $action == "install" ]; then
+          if [ $opt_del -eq 0 ]; then
+            [ $opt_verbose -gt 0 ] && echo "Warning: you must enable dropping DB using -o switch"
+            sts=1
+          else
+            if $(psql -l|grep -q $db); then
+              datadir=$(build_odoo_param DDIR $odoo_vid search)
+              for f in $(grep -l "$db" $datadir/sessions/*); do run_traced "rm -f $f"; done
+              for f in $(grep -l "$db" /tmp/oe-sessions-odoo/*); do run_traced "rm -f $f"; done
+              [ -d $datadir/filestore/$db ] && run_traced "rm -fR $datadir/filestore/$db"
+              eval $WCMD
+              if [ "${HOSTNAME:0:3}" == "shs" ]; then
+                svcname=$(build_odoo_param SVCNAME $odoo_vid)
+                run_traced "sudo systemctl restart $svcname"
+                sleep 2
+              fi
+              run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+              if $(psql -l|grep -q $db); then
+                run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
+              fi
+              if $(psql -l|grep -q $db); then
+                echo "DB $db not dropped!"
+                sts=1
+              fi
+            else
+              echo "DB $db already dropped"
+            fi
+            sts=0
+          fi
+        else
+          echo "Invalid phase $cf in update!"
+          sts=1
+        fi
       elif [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$cf[[:space:]] ]]; then
         [ $opt_verbose -gt 0 ] && echo "Warning: phase $cf is just for demo (use -D switch to enable)"
       else
-        if [ -n "$opt_db" ]; then
-          db=$opt_db
+        if [ $action == "update" ]; then
+          W4T=0
+          for db in $DBlist; do
+            if [ $W4T -eq 0 -o $opt_dry_run -ne 0 ]; then
+              W4T=1
+            else
+              eval $WCMD
+            fi
+            run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+            s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
+            [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
+          done
         else
-          db=$(cat clodoo_last.conf|awk -F= '{print $2}')
-        fi
-        if [ "$cf" == "00" ]; then
-          if $(psql -l|grep -q $db); then
-            datadir=$(build_odoo_param DDIR $odoo_vid search)
-            for f in $(grep -l "$db" $datadir/sessions/*); do run_traced "rm -f $f"; done
-            for f in $(grep -l "$db" /tmp/oe-sessions-odoo/*); do run_traced "rm -f $f"; done
-            [ -d $datadir/filestore/$db ] && run_traced "rm -fR $datadir/filestore/$db"
-            eval $WCMD
-            if [ "${HOSTNAME:0:3}" == "shs" ]; then
-              svcname=$(build_odoo_param SVCNAME $odoo_vid)
-              run_traced "sudo systemctl restart $svcname"
-              sleep 2
-            fi
-            run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
-            if $(psql -l|grep -q $db); then
-              run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
-            fi
-            if $(psql -l|grep -q $db); then
-              echo "DB $db not dropped!"
-              sts=1
-            fi
+          if [ -n "$opt_db" ]; then
+            db=$opt_db
           else
-            echo "DB $db already dropped"
+            db=$(cat clodoo_last.conf|awk -F= '{print $2}')
           fi
-          sts=0
-        else
-          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
       fi
       [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
     done
-  elif [[ $action =~ (action|update|module|translate|upgrade) ]]; then
-    if [ -f "$opt_conf" ]; then
-      cf=$opt_conf
-    elif [ -f "$opt_conf.conf" ]; then
-      cf=$opt_conf.conf
-    elif [ -f "code/$opt_conf" ]; then
-      cf=code/$opt_conf
-    elif [ -f "code/$opt_conf.conf" ]; then
-      cf=code/$opt_conf.conf
-    else
-      cf=
-    fi
-    [ -n "$cf" ] && opts_cf="-c $cf" || opts_cf=""
+  elif [[ $action =~ (action|module|translate|upgrade) ]]; then
+    set_opt_conf
     declare_cfloop
-    if [ -n "$cf" ]; then
-      x=$(parse_URI "$cf" "" "+NAMEID+LOCAL")
-      x=${x: -2}
-      if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$x[[:space:]] ]]; then
-        echo "This file require -D switch to be executed!"
-        exit 1
-      fi
-    fi
     if [[ $action =~ (module|upgrade) && -z "$cmdlist" ]]; then
       echo "No module list declared!"
       exit 1
@@ -299,12 +344,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
     if [ -z "$opt_db" ]; then
       opt_db=".*"
     fi
-    if [ "$cf" == "code/z0_install_01.conf" ]; then
-      DBlist="$opt_db -lit_IT"
-      found=1
-    else
-      DBlist=$(db_list)
-    fi
+    DBlist=$(db_list)
     if [ -z "$DBlist" ]; then
       if [ $found -eq 0 ]; then
         [ $opt_verbose -gt 0 ] && echo "No DB found!"
@@ -328,7 +368,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
         [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
         if [ "$cmdlist" != "all" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_vid -u $cmdlist -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_vid -u $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
         if [ $sts -ne $STS_SUCCESS ]; then
@@ -336,15 +376,15 @@ for odoo_vid in ${odoo_vids//,/ }; do
         fi
       elif [ "$action" == "action" ]; then
         if [ "$cmdlist" == "upd_oemod" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_vid -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
           echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
           [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
         else
-          echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           if [ $sts -ne $STS_SUCCESS ]; then
             break
@@ -354,28 +394,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
         echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
         [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       else
-        if [[ -n "$cmdlist" && -z "$cf" && "$cmdlist" =~ [0-9,]+ ]]; then
-          if [ ! -d data ]; then
-            echo "Directory data/ not found!"
-            exit 1
-          fi
-          if [ ! -d code ]; then
-            echo "Directory code/ not found!"
-            exit 1
-          fi
-          for ph in $CFLOOP; do
-            if [ -z "$opt_with_demo" ] && [[ " $DEMO_PHASE_LIST " =~ [[:space:]]$ph[[:space:]] ]]; then
-              [ $opt_verbose -gt 0 ] && echo "Warning: phase $ph is just for demo (use -D switch to enable)"
-            else
-              run_traced "$TDIR/clodoo.py $opts -b$odoo_vid -c code/z0_install_$ph.conf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
-              s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
-            fi
-            if [ $sts -ne $STS_SUCCESS ]; then
-              break
-            fi
-          done
-        elif [ -n "$cmdlist" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+        if [ -n "$cmdlist" ]; then
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_vid -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           if [ $sts -ne $STS_SUCCESS ]; then
             break
@@ -385,7 +405,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
             echo "Configuration file $opt_conf not found!"
             exit 1
           fi
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -b$odoo_vid -c $cf -d $db -r$xmlport $opt_with_demo $opt_x $opt_i"
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -b$odoo_vid -c $cf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
       fi

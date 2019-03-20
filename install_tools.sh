@@ -1,4 +1,4 @@
-# __version__=0.1.23.3
+# __version__=0.2.2.4
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
@@ -17,6 +17,7 @@ RFLIST__zerobug="z0testrc"
 RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.csv templates"
+MOVED_FILES_RE="(makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
 SRCPATH=
 DSTPATH=
 [ -d ~/tools ] && SRCPATH=~/tools
@@ -52,7 +53,7 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     fi
     if [ ! -f "$src" -a ! -d "$src" ]; then
       echo "File $src not found!"
-    elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ (topep8|to_pep8.2p8|to_pep8.py|topep8.py) ]]; then
+    elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ $MOVED_FILES_RE ]]; then
       if [ -L "$tgt"  -o -f "$tgt" ]; then
         [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
         rm -f $tgt
