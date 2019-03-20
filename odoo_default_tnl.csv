@@ -128,6 +128,7 @@ status	msgid	msgstr
 	company	azienda
 	Company %s TIN not set.	P.IVA azienda %s non impostata.
 	Company Country not set.	Nazione dell'azienda non impostata.
+	Company Currency	Divisa aziendale
 	Company does not have fiscal code or VAT	L'azienda non ha ne P.IVA ne codice fiscale
 	Company does not have fiscal code or VAT number.	Codice fiscale o partita IVA dell'azienda non impostati.
 	Company Email not set.	Email dell'azienda non impostata
@@ -244,6 +245,7 @@ status	msgid	msgstr
 	Document ID	ID documento
 	Document report selection rules	Regole selezione impaginazione stampa
 	Document Type	Tipo documento
+	Document Type 	Tipo documento
 	Document type %s not handled.	Tipo documento %s non gestito.
 	Documents	Documenti
 	Down Payment of IRPEF	Acconto IRPEF
@@ -273,6 +275,7 @@ status	msgid	msgstr
 	E-invoice Related DdT	DdT relativo alla e-fattura
 	E-invoice Related Document Type	Tipo documento relativo alla e-fattura
 	E-invoice sequence not configured.	Sequenza e-fattura non configurata.
+	E-invoice State	Stato e-fattura
 	E-invoice Welfare Fund Data	Dati cassa previdenziale e-fattura
 	E-Invoice without VAT number	E-Fattura senza partita IVA 
 	Effective Date of Penalty	Data effettiva della sanzione
@@ -435,6 +438,7 @@ status	msgid	msgstr
 	Method of Transportation	Trasporto a mezzo
 	Methods of Transportation	Trasporto a mezzo
 	Miscellaneous Journal	Sezionale generico
+	Module	Modulo
 	Monthly	Mensile
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
 	Name field contains '%s'. Your System contains '%s'	"Il campo nome contiene ""%s"", il sistema contiene ""%s"""
@@ -562,6 +566,7 @@ status	msgid	msgstr
 	Quarterly	Trimestrale
 	Rate	Aliquota
 	Rates definition	Definizione aliquote
+	RC	Rev.Charge
 	REA Capital	Capitale sociale
 	Rea Capital	Capitale sociale
 	REA Copartner	Unipersonale?
@@ -681,7 +686,9 @@ status	msgid	msgstr
 	Show prices and         discounts in ddt report	Mostra prezzi e sconti nella stampa del DdT
 	Show prices on report	Mostra prezzi su stampa
 	Size	Dimensioni
+	Source	Sorgente
 	Split payment	Scissione pagamenti
+	Src	Sorgente2
 	Stable Organization	Stabile organizzazione
 	Stamp Amount	Importo bollo
 	Stamp Duty	Bollo
@@ -725,6 +732,7 @@ status	msgid	msgstr
 	Tax Registre Information System	Anagrafe tributaria
 	Tax Representative	Rappresentante fiscale
 	Tax Settlement	Liquidazione d'imposta
+	Tax Stamp	Bollo su fattura
 	Tax Withholding	Ritenuta
 	Taxable Base	Base imponibile
 	Taxes	IVA
@@ -759,8 +767,13 @@ status	msgid	msgstr
 	Total Amount	Importo totale
 	Total Credit	Totale Avere
 	Total Debit	Totale Dare
+	Total in Company Currency	Totale in valuta aziendale
+	Total in Invoice Currency	Totale in valuta
 	Transfer	Trasferimento
 	Transfer within the EU	Cessioni intracomunitarie
+	Translated field	Campo tradotto
+	Translation comments	Traduzione commenti
+	Translation Value	Traduzione
 	Transport document	Documento di Trasporto
 	Transportation Method	Trasporto a mezzo
 	Transportation Reason	Causale del trasporto
@@ -768,10 +781,12 @@ status	msgid	msgstr
 	Two distinct partners with VAT number %s and Fiscal Code %s already present in db.	Nel database sono già presenti due diversi partner con partita IVA %s e codice fiscale %s.
 	Type	Tipo
 	Type	Tipo
+	Type	Tipo
 	Type DDT	Tipo DdT
 	Unit of measure	Unità di misura
 	Unit Price	Prezzo unitario
 	Unit Price	Prezzo Unitario
+	Untaxed Amount in Company Currency	Imponibile in valuta aziendale
 	Up to	Fino a
 	Update	Aggiornamento
 	Upper administration (Province	Unità amministrativa di livello superiore (provincia District or Federal State).
