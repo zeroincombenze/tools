@@ -142,6 +142,8 @@ status	msgid	msgstr
 	Confirm?	Conferma?
 	Contact	Contatto
 	Contacts	Contatti
+	Contacts to notify	Contatti da notificare
+	Contacts to notify when PEC message can't be processed	Contatti da notificare quando il messaggio PEC non può essere processato
 	Contract	Contratto
 	Contributor	Collaboratore
 	Control Policy 	Procedimento di controllo
@@ -220,6 +222,8 @@ status	msgid	msgstr
 	Default Setting	Impostazioni predefinite
 	Deferred payability	Esigibilità differita
 	Define a purchase journal for this company: '%s' (id: %d).	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)."
+	Delivered	Consegnato
+	Delivered Date	Data consegna
 	Delivery Address	Indirizzo consegna
 	Delivery Address	Indirizzo di consegna
 	Delivery Date Time	Data e ora di consegna
@@ -283,11 +287,15 @@ status	msgid	msgstr
 	Electronic Bill Import	Importazione fattura elettronica
 	Electronic Invoice	Fattura elettronica
 	Electronic Invoice Attachments	Allegati fattura elettronica
+	Electronic Invoice Error	Errore fattura elettronica
 	Electronic Invoice Export Files	File fattura elettronica esportati
 	Electronic Invoice Fiscal Position	Posizione fiscale fattura elettronica
 	Electronic Invoice Payment Data	Dati pagamento fattura elettronica
 	Electronic Invoice Payment Method	Metodo pagamento fattura elettronica
+	Electronic Invoice Ready to Send	Fattura elettronica pronta per l'invio
+	Electronic Invoice State	Stato fattura elettronica
 	Electronic Invoice Summary Data	Dati riepilogo fattura elettronica
+	Email Thread	Discussione mail
 	Embedded	Integrato
 	Employee	Dipendente
 	Enable	Abilita
@@ -406,7 +414,9 @@ status	msgid	msgstr
 	Keep empty to use the current date	Lasciare vuoto per usare la data corrente
 	Language	Lingua
 	Last Modified on	Data ultima modifica
+	Last PEC Error Message	Messaggio di errore ultima PEC
 	Last printed page	Ultima pagina su bollato
+	Last Response from Exchange System	Ultimo responso da Sistema di Interscambio
 	Last Updated by	Ultima modifica di
 	Last Updated on	Data ultima modifica
 	Law reference	Riferimento legislativo
@@ -440,6 +450,7 @@ status	msgid	msgstr
 	Miscellaneous Journal	Sezionale generico
 	Module	Modulo
 	Monthly	Mensile
+	Multiple invoice to one xml	Fatture multiple in un solo xml
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
 	Name field contains '%s'. Your System contains '%s'	"Il campo nome contiene ""%s"", il sistema contiene ""%s"""
 	Name of Bank with BIC '%s' is not set. Can't create bank	"Impossibile creare la banca con BIC ""%s"", il nome non è impostato."
@@ -451,6 +462,7 @@ status	msgid	msgstr
 	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
 	No currency found with code %s.	Divisa con codice %s non trovata.
+	No incoming PEC server found. Please configure it.	Nessun server di ingresso PEC trovato. Configurarne uno.
 	No tax with percentage %s and nature %s found. Please configure this tax.	IVA con aliquota %s e natura %s non trovata, configurare questa imposta.
 	No taxable nature	Natura base non imponibile
 	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
@@ -525,6 +537,7 @@ status	msgid	msgstr
 	Payments	Pagamenti
 	Payments Details	Dettagli pagamento
 	PDF Report	Rapporti PDF
+	PEC message [%s] not processed	Messaggio PEC [%s] non processato
 	PEC to which the electronic invoice will be sent. Must be filled ONLY when the information element <CodiceDestinatario> is '0000000'	"Indirizzo PEC al quale inviare la fattura elettronica. Da valorizzare SOLO nei casi in cui l'elemento informativo <CodiceDestinatario> vale ""0000000"""
 	Percent	Percentuale
 	Percentage	Percentuale
@@ -578,6 +591,7 @@ status	msgid	msgstr
 	REA Office	Ufficio REA
 	Rea Office	Ufficio REA
 	REA Office Province Code ( %s ) not present in your system	Codice provincia dell'ufficio REA ( %s ) non presente nel sistema
+	Ready to Send	Pronto per invio
 	Real Estate	Immobili
 	Reason For Transportation	Causale trasporto
 	Reason for Transportation	Causale trasporto
@@ -588,6 +602,7 @@ status	msgid	msgstr
 	Receptions 	Entrate merci
 	Recipient	Destinatario
 	Recipient Code	Codice destinatario
+	Recipient Error	Errato destinatario
 	Recipient's Signature	Firma destinatario
 	Recipients	Destinatari
 	Reconcile	Riconciliazione
@@ -600,6 +615,7 @@ status	msgid	msgstr
 	Register Registration Date	Data iscrizione albo
 	Registered	Registrata
 	Registration Date	Data di registrazione
+	Rejected (PA)	Rifiutato da PA
 	Related DDT	DdT collegati
 	Related DDTs	DdT correlati
 	Related DdTs	DdT correlati
@@ -619,6 +635,7 @@ status	msgid	msgstr
 	Reporting	Rapporti
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
+	Reset to ready	Ripristina come pronto
 	Resource Field	Campo risorsa
 	Resource ID	ID risorsa
 	Resource Model	Modello risorsa
@@ -662,6 +679,11 @@ status	msgid	msgstr
 	Self-Invoicing	Auto-fattura
 	Semi-annual	Semestrale
 	Sender	Mittente
+	Sender Error	Invio errato
+	Sending User	Utente per invio
+	Sent	Inviato
+	Sent by	Inviato da
+	Sent Date	Data di invio
 	Set	Imposta
 	Set done	Completato
 	Set to draft	Bozza
@@ -786,6 +808,7 @@ status	msgid	msgstr
 	Unit of measure	Unità di misura
 	Unit Price	Prezzo unitario
 	Unit Price	Prezzo Unitario
+	Unsupported sending method	Metodo di invio non supportato
 	Untaxed Amount in Company Currency	Imponibile in valuta aziendale
 	Up to	Fino a
 	Update	Aggiornamento
@@ -825,7 +848,10 @@ status	msgid	msgstr
 	Xml Attachment	Allegato XML
 	XML contains tax %s. Product %s has tax %s. Using the XML one	Il file XML contiene l'imposta %s, il prodotto %s l'imposta %s. Verrà usata quella dell'XML.
 	You can either upload a file from your computer or copy/paste an internet link to your file.	È possibile caricare un file dal computer oppure fare copia/incolla di un collegamento Internet nel file.
+	You can not reset files in 'Delivered' state.	Non è possibile ripristinare un file già consegnato
 	You can only add one time each agent.	Si può aggiungere un solo agente per volta
+	You can only delete 'ready to send' files.	Si può eliminare solo un file pronto per invio
+	You can only send 'Ready to Send' files.	Non è possibile ripristinare un file pronto per invio
 	You can select only one XML file to link.	È possibile selezionare solo un file XML da collegare.
 	You can't delete invoiced settlements.	 Non è possibile cancellare provvigioni fatturate.
 	Your company City is not set.	Città azienda non impostata.
