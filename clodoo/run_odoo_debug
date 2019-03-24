@@ -342,7 +342,7 @@ if [ $opt_touch -eq 0 ]; then
     fi
   fi
   if [ $opt_exp -ne 0 ]; then
-    $TDIR/makepo_it.py -b$odoo_vid -m$opt_modules $src
+    makepo_it.py -b$odoo_vid -m$opt_modules $src
     echo "Translation exported to '$src' file"
   elif [ $opt_imp -ne 0 ]; then
     echo "Translation imported from '$src' file"

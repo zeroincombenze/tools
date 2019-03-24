@@ -82,17 +82,15 @@ up_oemod() {
 db_list() {
     DBlist=
     local db user a b c
-    local found=0
-    psql -Upostgres -Atl > $HOME/tmp.log
+    found=0
     while IFS=\| read db user a b c; do
       ((found++))
       if [ -n "$db" -a "$user" == "$opt_dbuser" ]; then
-        if [[ $db =~ $opt_DB ]]; then
+        if [[ $db =~ $opt_db ]]; then
           DBlist=$DBlist,$db
         fi
       fi
-    done < $HOME/tmp.log
-    rm -f $HOME/tmp.log
+    done < <(psql -Upostgres -Atl)
     DBlist=${DBlist:1}
     echo "$DBlist"
 }
@@ -145,22 +143,22 @@ set_opt_conf() {
 }
 
 OPTOPTS=(h        b         c        D             d      m         n           o       q           r           t         U          V           v           x)
-OPTDEST=(opt_help odoo_vids opt_conf opt_with_demo opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_dbuser opt_version opt_verbose opt_exit)
+OPTDEST=(opt_help odoo_vids opt_conf opt_with_demo opt_DB opt_multi opt_dry_run opt_del opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_exit)
 OPTACTI=(1        "="       "="      "*"           "="    1         1           1       0           "="         1         "="        "*"         "+"         1)
 OPTDEFL=(1        "7.0"     ""       ""            ""     -1        0           0       -1          ""          0         ""         ""          -1          0)
 OPTMETA=("help"   "branch"  "file"   ""            "name" ""        "noop"      "del"   "quiet"     "port"      "test"    "user"     "version"   "verbose"   "")
 OPTHELP=("this help"\
- "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0 (def 7.0)"\
+ "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or * (def 7.0)"\
  "configuration file (only update/action)"\
  "add demo data to new db"\
- "set database name or regex when update/action (@ means odoo major version)"\
+ "set database name or regex when update/action (@ is replaced by odoo major version)"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "delete DB if exists"\
  "silent mode"\
  "xmlrpc port"\
  "test mode (implies dry-run)"\
- "db user"\
+ "db user (@ is replaced by odoo major version)"\
  "show version end exit"\
  "verbose mode"\
  "exit on error")
@@ -198,8 +196,10 @@ fi
 for odoo_vid in ${odoo_vids//,/ }; do
   odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
   odoo_ver=$(build_odoo_param MAJVER $odoo_vid)
-  if [ -z "$opt_dbuser" ]; then
+  if [ -z "$opt_DBuser" ]; then
     opt_dbuser=$(build_odoo_param USER $odoo_vid)
+  else
+    opt_dbuser=${opt_DBuser/@/$odoo_ver}
   fi
   if [ -z "$opt_xmlport" ]; then
     xmlport=$(build_odoo_param RPCPORT $odoo_vid)
@@ -246,7 +246,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
         else
           [ $opt_verbose -gt 0 ] && echo "No DB found, owned by $opt_dbuser!"
         fi
-        exit 1
+        [ $opt_exit -ne 0 ] && exit 1
+        break
       fi
       DBlist=${DBlist//,/ }
     fi
