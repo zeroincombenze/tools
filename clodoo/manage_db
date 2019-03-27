@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.10
+__version__=0.3.8.11
 
 
 up_oemod() {
@@ -219,6 +219,9 @@ for odoo_vid in ${odoo_vids//,/ }; do
     opt_db=
   fi
   if [[ $action =~ (install|update) ]]; then
+    if [ ! -d data -a ! -d code -a -d ~/clodoo ]; then
+      cd ~/clodoo
+    fi
     if [ ! -d data ]; then
       echo "Directory data/ not found!"
       exit 1

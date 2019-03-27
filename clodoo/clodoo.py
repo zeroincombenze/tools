@@ -176,10 +176,10 @@ from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        default_conf)
 from transodoo import read_stored_dict
 # TMP
-# from subprocess import PIPE, Popen
+from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.10"
+__version__ = "0.3.8.11"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -601,18 +601,18 @@ def init_user_ctx(ctx, user):
 
 def get_dblist(ctx):
     # Interface xmlrpc and jsonrpc are the same
-    # if ctx['oe_version'] == '12.0':     # FIX: odoorcp wont work 12.0
-    #     res, err = Popen(['psql', '-Atl'],
-    #                      stdin=PIPE,
-    #                      stdout=PIPE,
-    #                      stderr=PIPE).communicate()
-    #     list = []
-    #     for r in res.split('\n'):
-    #         rs = r.split('|')
-    #         if len(rs) > 2 and rs[1] == 'odoo12':
-    #             list.append(rs[0])
-    #     return list
-    if ctx['oe_version'] == '7.0':     # FIX
+    if ctx['oe_version'] == '12.0':     # FIX: odoorpc wont work 12.0
+        res, err = Popen(['psql', '-Atl'],
+                         stdin=PIPE,
+                         stdout=PIPE,
+                         stderr=PIPE).communicate()
+        list = []
+        for r in res.split('\n'):
+            rs = r.split('|')
+            if len(rs) > 2 and rs[1] == 'odoo12':
+                list.append(rs[0])
+        return list
+    elif ctx['oe_version'] == '7.0':     # FIX
         time.sleep(1)
     return ctx['odoo_session'].db.list()
 
@@ -937,6 +937,42 @@ def act_echo_db(ctx):
     return STS_SUCCESS
 
 
+def act_set_qweb(ctx):
+    ident = ' ' * ctx['level']
+    model = 'ir.config_parameter'
+    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
+    if not ids:
+        clodoo.createL8(ctx, model, {'key': 'web.base.url.cvt2https',
+                                     'value': True})
+    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
+    if ids:
+        ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url')])
+    if ids:
+        param = clodoo.browseL8(ctx, model, ids[0])
+        if param.value.find('localhost') < 0:
+            web_url = param.value.replace('http:', 'https:')
+        else:
+            localhost = platform.node()
+            majver = ctx['majver']
+            web_url = ''
+            if localhost == 'shsprd17':
+                web_url = 'https://erp%d.zeroincombenze.it' % majver
+            elif localhost == 'shs17fid':
+                web_url = 'https://dev%d.zeroincombenze.it' % majver
+            elif localhost == 'vg7odoopro' and majver == 10:
+                web_url = 'https://%s.pro%d.odoo.vg7.it' % (ctx['db_name'],
+                                                            majver)
+            elif localhost == 'vg7odoopro' and majver == 8:
+                web_url = 'https://%s.pro.odoo.vg7.it' % ctx['db_name']
+            elif localhost == 'vg7odoodev' and majver == 10:
+                web_url = 'https://dev%d.odoo.vg7.it' % majver
+            elif localhost == 'vg7odoodev' and majver == 8:
+                web_url = 'https://dev.odoo.vg7.it'
+        if web_url != param.value:
+            clodoo.writeL8(ctx, model, ids[0], {'value': web_url})
+            print("%sParam %s updated to %s" % (ident, param.key, web_url))
+
+
 def act_show_db_params(ctx):
     ident = ' ' * ctx['level']
     print("%s- DB name       = %s " % (ident, ctx.get('db_name', "")))
@@ -1029,14 +1065,14 @@ def act_drop_db(ctx):
             try:
                 cmd = 'pg_db_active -wa %s' % ctx['db_name']
                 os0.muteshell(cmd, simulate=False, keepout=False)
-                # if ctx['oe_version'] == '12.0': # FIX: odoorcp wont work 12.0
-                #     os0.muteshell("dropdb -Upostgres --if-exists " +
-                #                   ctx['db_name'])
-                # else:
-                #     ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                #                                 ctx['db_name'])
-                ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                                            ctx['db_name'])
+                if ctx['oe_version'] == '12.0': # FIX: odoorpc wont work 12.0
+                    os0.muteshell("dropdb -Upostgres --if-exists " +
+                                  ctx['db_name'])
+                else:
+                    ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                                                ctx['db_name'])
+                # ctx['odoo_session'].db.drop(ctx['admin_passwd'],
+                #                             ctx['db_name'])
                 sts = STS_SUCCESS
                 if ctx['db_name'][0:11] != 'clodoo_test':
                     time.sleep(2)
@@ -1176,9 +1212,7 @@ def act_new_db(ctx):
                 except BaseException:
                     ctx['server_version'] = ctx['odoo_session'].version
             try:
-                if ctx['oe_version'] == '12.0':   # FIX: odoorcp wont work 12.0
-                    os0.muteshell("createdb -Uodoo12 %s " % ctx['db_name'])
-                elif ctx['svc_protocol'] == 'jsonrpc':
+                if ctx['svc_protocol'] == 'jsonrpc':
                     ctx['odoo_session'].db.create(ctx['admin_passwd'],
                                                   ctx['db_name'],
                                                   ctx['with_demo'],

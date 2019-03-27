@@ -16,7 +16,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.10"
+__version__ = "0.3.8.11"
 
 
 parser = z0lib.parseoptargs("Odoo test environment",
