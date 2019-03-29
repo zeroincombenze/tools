@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.32.3
+__version__=1.3.32.4
 
 
 test_01() {
@@ -106,9 +106,11 @@ EOF
     fi
 }
 
+
 Z0BUG_teardown() {
     :
 }
+
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_zar.log "$@" "-Z"
@@ -124,9 +126,6 @@ if [ $opt_zLib -ne 0 ]; then
   fi
   . $ZARLIB
 fi
-
-
-
 
 UT1_LIST=""
 UT_LIST=""
