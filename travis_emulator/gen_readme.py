@@ -22,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.3"
+__version__ = "0.2.2.4"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -218,14 +218,13 @@ def get_default_avaiable_addons(ctx):
 
 
 def tohtml(text):
-    # pdb.set_trace()
     i = text.find('`')
     j = text.find('`__')
-    while i > 0 and j > i:
+    while i >= 0 and j > i:
         t = text[i + 1: j]
         ii = t.find('<')
         jj = t.find('>')
-        if ii > 0 and jj > ii:
+        if ii >= 0 and jj > ii:
             url = t[ii + 1: jj]
             if (j + 3) < len(text):
                 text = u'%s\aa href="%s"\b%s\a/a\b%s' % (
@@ -315,9 +314,9 @@ def tohtml(text):
         lines[-1] = '%s</table>' % lines[-1][:-4]
     elif is_list:
         lines.append('</ul>')
-        if hdr_foo:
-            lines.insert(0, '<p align="justify">')
-            lines.append('</p>')
+    if hdr_foo:
+        lines.insert(0, '<p align="justify">')
+        lines.append('</p>')
     return '\n'.join(lines)
 
 
@@ -433,6 +432,13 @@ def expand_macro(ctx, token, out_fmt=None):
 def expand_macro_in_line(ctx, line, state=None):
     state = state or _init_state()
     out_fmt = state.get('out_fmt', 'rst')
+    if out_fmt == 'html':
+        for token in DEFINED_GRYMB_SYMBOLS:
+            value = '|' + token + '|'
+            i = line.find(value)
+            if i >= 0:
+                value = '\aimg src="{{grymb_image_%s}}"/\b' % token
+                line = line[0: i] + value + line[i + len(token) + 2:]
     i = line.find('{{')
     j = line.find('}}')
     while i >= 0 and j > i:
@@ -509,30 +515,6 @@ def validate_condition(ctx, *args):
     except BaseException:
         res = False
     return res
-    # left = value_of_term(ctx, args[0])
-    # if args[1] == '==':
-    #     return left == value_of_term(ctx, args[2])
-    # elif args[1] == '!=':
-    #     return left != value_of_term(ctx, args[2])
-    # elif args[1] == 'in':
-    #     res = False
-    #     i = 2
-    #     while i < len(args):
-    #         if left == value_of_term(ctx, args[i]):
-    #             res = True
-    #             break
-    #         i += 1
-    #     return res
-    # elif args[1] == 'not' and args[2] == 'in':
-    #     res = True
-    #     i = 3
-    #     while i < len(args):
-    #         if left == value_of_term(ctx, args[i]):
-    #             res = False
-    #             break
-    #         i += 1
-    #     return res
-    # return False
 
 
 def default_token(ctx, token):
@@ -690,9 +672,6 @@ def append_line(state, line, nl_bef=None):
 
 def parse_source(ctx, source, state=None):
     state = state or _init_state()
-    # if state['action'] == 'pass1':
-    #     state['in_fmt'] = 'raw'
-    #     # return state, source
     target = ''
     for lno, line in enumerate(source.split('\n')):
         nl_bef = False if lno == 0 else True
@@ -1040,10 +1019,18 @@ def generate_readme(ctx):
                                                  odoo_vid=ctx['odoo_fver'])
         read_manifest(ctx)
     set_default_values(ctx)
+    if ctx['write_html']:
+        out_fmt = 'html'
+    else:
+        out_fmt = None
     for section in DEFINED_TAG:
-        ctx[section] = parse_file(ctx, '%s.txt' % section, ignore_ntf=True)
+        ctx[section] = parse_file(ctx, '%s.txt' % section,
+                                  ignore_ntf=True,
+                                  out_fmt=out_fmt)
     for section in DEFINED_SECTIONS:
-        ctx[section] = parse_file(ctx, '%s.rst' % section, ignore_ntf=True)
+        ctx[section] = parse_file(ctx, '%s.rst' % section,
+                                  ignore_ntf=True,
+                                  out_fmt=out_fmt)
     if not ctx['sommario']:
         lines = ctx['descrizione'].split('\n')
         if lines[0]:
