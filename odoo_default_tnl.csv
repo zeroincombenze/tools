@@ -1,12 +1,21 @@
 status	msgid	msgstr
+	 email(s) sent	 email spedita/e
+	 email(s) should have been sent, but 	 email dovrebbe/ro essere stata/e spedita/e, ma 
+	 had unknown email address(es)	 ha indirizzo/i email sconosciuto/i
+	 letter(s) in report	 lettera(e) nel rapporto
+	 manual action(s) assigned:	 azione/i manuale/i assegnata/e:
+	 will be sent	 saranno spediti
 	(keep empty for invoicing all the settlements)	Lasciare vuoto per fatturare tutte le provvigioni
 	(keep empty for making the settlement of all agents)	Lasciare vuoto per creare le provvigioni per tutti gli agenti
 	* Be sure that an Outgoing Email Server is correctly configured;	* Verifica che il server di posta per invio sia correttamente configurato;
 	# of Digits	# di cifre
 	# of Items	# di voci
+	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
 	Account	Conto
 	Account Books	Libri contabili
+	Account Follow-up	Solleciti di pagamento
 	Account Invoice	Fattura
+	Account Move line	Riga contabile
 	Account Receivable	Conto di credito
 	Account Tax	Conto erario IVA
 	Accounting	Contabilità
@@ -15,6 +24,7 @@ status	msgid	msgstr
 	Acquiescence	Acquiescenza
 	Acronym of the Province to which the municipality indicated in the information element 1.2.3.4 <Comune> belongs. Must be filled if the information element 1.2.3.6 <Nazione> is equal to IT	Sigla della provincia a cui appartiene il comune indicato nell'elemento informativo 1.2.3.4 <Comune>. Da valorizzare se l'elemento informativo 1.2.3.6 <Nazione> è uguale a IT
 	Action	Azione
+	Action To Do	Azione da eseguire
 	Actions	Azioni
 	Activities	Impieghi
 	Activity Progress	Stato avanzamento lavori
@@ -30,6 +40,7 @@ status	msgid	msgstr
 	Administration ref.	Rif. ammin.
 	Administrator	Amministratore
 	Adviser	Contabile
+	After	Dopo
 	Agent	Agente
 	Agent information	Informazioni Agente
 	Agent line	Righe Agente
@@ -41,6 +52,7 @@ status	msgid	msgstr
 	Alert	Avviso
 	Amortization of Goods	Ammortamento dei beni
 	Amount	Importo
+	Amount due	Importo dovuto
 	Amount in Words:	Importo in parole:
 	Amount of Penalty	Importo della sanzione
 	Amount settled	Importo provvigione
@@ -49,6 +61,7 @@ status	msgid	msgstr
 	Analytic Entries 	Registrazioni analitiche
 	Annual	Annuale
 	Anonimous sale receipts journal	Registro corrispettivi
+	Anybody	Chiunque
 	Approve	Approva
 	Articles Code	Codici articolo
 	As a natural person, partner %s must have Name and Surname.	Il soggetto %s, persona fisica, deve avere nome e cognome.
@@ -238,6 +251,7 @@ status	msgid	msgstr
 	Descriptions of Goods	Aspetto dei beni
 	Destination Address	Indirizzo di destinazione
 	Detractions	Detrazioni
+	Discard	Rifiuta
 	Discount	Sconto
 	Discount (%)	Sconto (%)
 	Discount and Supplement Details	Dettagli  sconto e maggiorazione
@@ -269,7 +283,6 @@ status	msgid	msgstr
 	E-invoice attachment changed	Allegato e-fattura modificato
 	E-invoice attachments	Allegati e-fattura
 	E-invoice Discount Supplement Data	Dati sconto maggiorazione e-fattura
-	E-invoice Discount Supplement Data	Dati di sconto aggiuntivi
 	E-invoice Document Type	Tipo documento e-fattura
 	E-invoice Export File	File e-fattura esportato
 	E-invoice Export Files	File e-fattura esportati
@@ -416,6 +429,9 @@ status	msgid	msgstr
 	Last printed page	Ultima pagina su bollato
 	Last Updated by	Ultima modifica di
 	Last Updated on	Data ultima modifica
+	Latest Follow-up	Ultimo sollecito
+	Latest Follow-up Date	Data ultimo sollecito
+	Latest Follow-up Level	Livello ultimo sollecito
 	Law reference	Riferimento legislativo
 	Leads	Relazioni
 	Leads & Opportunities	Relazioni e opportunità
@@ -440,6 +456,8 @@ status	msgid	msgstr
 	Make invoices	Fatturazione
 	Make settlements	Calcola provvigioni
 	Management	Gestione
+	Manual Action	Azione manuale
+	Manual Follow-Ups	Solleciti manuali
 	Manual Reconciliation	Riconciliazione manuale
 	Master Data	Dati principali
 	Maximum Date for Payment	Data massima per il pagamento
@@ -672,6 +690,11 @@ status	msgid	msgstr
 	Self-Defence	Autotutela
 	Self-Invoicing	Auto-fattura
 	Semi-annual	Semestrale
+	Send a Letter	Invia una lettera
+	Send an Email	Invia una email
+	Send Follow-Ups	Invia solleciti di pagamento
+	Send follow-ups	Invia solleciti di pagamento
+	Send Overdue Email	Invia sollecito di ritardato pagamento
 	Sender	Mittente
 	Set	Imposta
 	Set done	Completato
