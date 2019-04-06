@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """
-Usage: get-addons [-m] path1 [path2 ...][ -e exclude_path]
+Usage: get-addons [-m] path1 [path2 ...][ -e exclude_modules]
           [ --only-applications ][ --exclude-applications]
           [ --only-localization][ --exclude-localization]
-Given a list  of paths, finds and returns a list of valid addons paths.
+Given a list of paths, finds and returns a list of valid addons paths.
 With -m flag, will return a list of modules names instead.
 """
 from __future__ import print_function
@@ -13,6 +13,8 @@ import os
 import sys
 
 from git_run import GitRun
+
+__version__ = '0.2.2.3'
 
 MANIFEST_FILES = [
     '__manifest__.py',
@@ -26,6 +28,7 @@ def is_module(path):
     """return False if the path doesn't contain an odoo module, and the full
     path to the module manifest otherwise"""
 
+    path = os.path.expanduser(path)
     if not os.path.isdir(path):
         return False
     files = os.listdir(path)
@@ -45,6 +48,7 @@ def get_modules(path, depth=1):
 def get_modules_info(path, depth=1):
     """ Return a digest of each installable module's manifest in path repo"""
     # Avoid empty basename when path ends with slash
+    path = os.path.expanduser(path)
     if not os.path.basename(path):
         path = os.path.dirname(path)
 
@@ -77,6 +81,7 @@ def is_addons(path):
 
 def get_addons(path, depth=1):
     """Return repositories in path. Can search in inner folders as depth."""
+    path = os.path.expanduser(path)
     if not os.path.exists(path) or depth < 0:
         return []
     res = []
@@ -97,6 +102,7 @@ def get_modules_changed(path, ref='HEAD'):
     :param ref: branch or remote/branch or sha to compare
     :return: List of paths of modules changed
     """
+    path = os.path.expanduser(path)
     git_run_obj = GitRun(os.path.join(path, '.git'))
     if ref != 'HEAD':
         fetch_ref = ref
@@ -176,8 +182,8 @@ def get_localizations_with_dependents(modules):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    params = argv[1:]
-    if not params:
+    argv = argv[1:]
+    if not argv:
         print(__doc__)
         return 1
 
@@ -186,22 +192,32 @@ def main(argv=None):
     localization = None
     exclude_modules = []
 
-    while params and params[0].startswith('-'):
-        param = params.pop(0)
-        if param == '-m':
-            list_modules = True
-        elif param == '-e':
-            exclude_modules = [x for x in params.pop(0).split(',')]
-        elif param == '--only-applications':
-            application = True
-        elif param == '--exclude-applications':
-            application = False
-        elif param == '--only-localization':
-            localization = True
-        elif param == '--exclude-localization':
-            localization = False
-        elif param.startswith('-'):
-            raise Exception('Unknown parameter: %s' % param)
+    params = []
+    while argv:
+        if argv[0].startswith('-'):
+            param = argv.pop(0)
+            if param == '-h' or param == '--help':
+                print(__doc__)
+                return 1
+            elif param == '-V' or param == '--version':
+                print(__version__)
+                return 1
+            elif param == '-m':
+                list_modules = True
+            elif param == '-e':
+                exclude_modules = [x for x in argv.pop(0).split(',')]
+            elif param == '--only-applications':
+                application = True
+            elif param == '--exclude-applications':
+                application = False
+            elif param == '--only-localization':
+                localization = True
+            elif param == '--exclude-localization':
+                localization = False
+            else:
+                raise Exception('Unknown parameter: %s' % param)
+        else:
+            params.append(argv.pop(0))
 
     if list_modules:
         modules = {}
@@ -224,11 +240,12 @@ def main(argv=None):
         res = sorted(list(res))
     else:
         lists = [get_addons(path) for path in params]
-        res = [x for l in lists for x in l]  # flatten list of lists
+        # return flatten list of lists without duplicates
+        res = dict.fromkeys([x for l in lists for x in l]).keys()
     if exclude_modules:
         res = [x for x in res if x not in exclude_modules]
     print(','.join(res))
-    return res
+    return 0
 
 
 if __name__ == "__main__":

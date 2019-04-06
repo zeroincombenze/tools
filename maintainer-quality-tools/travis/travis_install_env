@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.2
+__version__=0.2.2.3
 
 
 run_n_echo() {
@@ -358,8 +358,8 @@ else
     lessc --version
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
     if [ "${WEBSITE_REPO}" == "1" ]; then
-        if [ -f ~/.rvm/scripts/rvm ]; then
-            source ~/.rvm/scripts/rvm
+        if [ -f $HOME/.rvm/scripts/rvm ]; then
+            source $HOME/.rvm/scripts/rvm
         else
             source /usr/local/rvm/scripts/rvm
         fi

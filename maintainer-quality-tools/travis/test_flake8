@@ -6,7 +6,7 @@ import sys
 from getaddons import get_modules
 
 
-__version__ = '0.2.2.2'
+__version__ = '0.2.2.3'
 root_dir = os.path.dirname(os.path.abspath(__file__))
 flake8_config_dir = os.path.join(root_dir, 'cfg')
 folders = (os.environ.get("INCLUDE_LINT", "").split() or
