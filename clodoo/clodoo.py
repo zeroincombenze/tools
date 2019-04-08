@@ -170,7 +170,8 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
-                        get_model_model, get_model_name)
+                        get_model_model, get_model_name,
+                        extract_vals_from_rec)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
@@ -179,7 +180,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.11"
+__version__ = "0.3.8.12"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1746,67 +1747,67 @@ def act_check_tax(ctx):
         nature_id = False
         payability = False
         if tax.amount:
-            if re.search('[Aa]rt.*17[ -./]ter', tax.name):
+            if re.search('[Aa]rt[^0-9]17[ -./]ter', tax.name):
                 payability = 'S'
-            elif re.search('split[ -]paym', tax.name):
+            elif re.search('[Ss]plit[ -./][Pp]aym', tax.name):
                 payability = 'S'
             elif re.search('cassa', tax.name):
                 payability = 'D'
-            if re.search('[Aa]rt.*74[^0-9]?.*c.*[78][^0-9]', tax.name):
+            if re.search('[Aa]rt[^0-9]74[^0-9]?c[-./a-zA-Z]*[78][^0-9]', tax.name):
                 nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*17[^0-9]?.*c.*[26][^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]17[^0-9]?c[-./a-zA-Z]*[26][^0-9]', tax.name):
                 nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*38[^0-9]?', tax.name):
+            elif re.search('[Aa]rt[^0-9]38[^0-9]?', tax.name):
                 nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*40[^0-9]?', tax.name):
+            elif re.search('[Aa]rt[^0-9]40[^0-9]?', tax.name):
                 nature_id = tax_nature['N6']
-            elif re.search('[Aa]rt.*41[^0-9]?.*427', tax.name):
+            elif re.search('[Aa]rt[^0-9]41[^0-9]?[-./a-zA-Z]*427', tax.name):
                 nature_id = tax_nature['N6']
-            elif re.search('rev.* charge', tax.name):
+            elif re.search('[Rr]ev[a-zA-Z]* [Cc]harge', tax.name):
                 nature_id = tax_nature['N6']
         else:
-            if re.search('[Rr]eg.* [Mm]in', tax.name):
+            if re.search('[Rr]eg[a-zA-Z]* [Mm]in', tax.name):
                 nature_id = tax_nature['N2']
-            elif re.search('[Rr](eg)?.* [Ff]orf', tax.name):
+            elif re.search('[Rr](eg)?[a-zA-Z]* [Ff]orf', tax.name):
                 nature_id = tax_nature['N2']
-            elif re.search('[Aa]rt.*40[^0-9]?.*c.*[34][^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]40[^0-9]?c[-./a-zA-Z]*[34][^0-9]', tax.name):
                 nature_id = tax_nature['N7']
-            elif re.search('[Aa]rt.*41[^0-9]?.*c.*1[^0-9]?.*b', tax.name):
+            elif re.search('[Aa]rt[^0-9]41[^0-9]?c[-./a-zA-Z]*1[^0-9]?.*b', tax.name):
                 nature_id = tax_nature['N7']
-            elif re.search('[Aa]rt.*7[^0-9]?.*sex.*f', tax.name):
+            elif re.search('[Aa]rt[^0-9]7[^0-9]?[ -./]*sex.*f', tax.name):
                 nature_id = tax_nature['N7']
-            elif re.search('[Aa]rt.*74[^0-9]?.*sex', tax.name):
+            elif re.search('[Aa]rt[^0-9]74[^0-9]?[ -./]*sex', tax.name):
                 nature_id = tax_nature['N7']
-            elif re.search('[Rr]eg.* [Mm]arg', tax.name):
+            elif re.search('[Rr]eg[a-zA-Z]* [Mm]arg', tax.name):
                 nature_id = tax_nature['N5']
-            elif re.search('[Ii][Vv][Aa] non? esp', tax.name):
+            elif re.search('[Ii][Vv][Aa] n[-./a-zA-Z] esp', tax.name):
                 nature_id = tax_nature['N5']
-            elif re.search('[Aa]rt.*10[^0-9]?', tax.name):
+            elif re.search('[Aa]rt[^0-9]10[^0-9]?', tax.name):
                 nature_id = tax_nature['N4']
-            elif re.search('[Aa]rt.*[89][^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9][89][^0-9]', tax.name):
                 nature_id = tax_nature['N3']
-            elif re.search('[Aa]rt.*7[12][^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]7[12][^0-9]', tax.name):
                 nature_id = tax_nature['N3']
-            elif re.search('[Aa]rt.*7[^0-9]?.*(bis|ter|quater|quinq)',
+            elif re.search('[Aa]rt[^0-9]7[^0-9]?[ -./]*(bis|ter|quater|quinq)',
                            tax.name):
                 nature_id = tax_nature['N2']
-            elif re.search('[Aa]rt.*2[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]2[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('[Aa]rt.*3[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]3[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('[Aa]rt.*5[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]5[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('[Aa]rt.*13[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]13[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('[Aa]rt.*15[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]15[^0-9]', tax.name):
                 nature_id = tax_nature['N1']
             elif re.match('[Ee]sente', tax.name):
                 nature_id = tax_nature['N4']
             elif re.match(r'N\.?I\.?', tax.name):
                 nature_id = tax_nature['N3']
-            elif re.match('[Nn].* [Ii]mp', tax.name):
+            elif re.match('[Nn][a-zA-Z]* [Ii]mp', tax.name):
                 nature_id = tax_nature['N3']
-            elif re.match('[Nn].* [Ss]ogg', tax.name):
+            elif re.match('[Nn][a-zA-Z]* [Ss]ogg', tax.name):
                 nature_id = tax_nature['N2']
             elif re.match('[Ss]enza [Ii][Vv][Aa]', tax.name):
                 nature_id = tax_nature['N2']
@@ -1816,11 +1817,19 @@ def act_check_tax(ctx):
                 nature_id = tax_nature['N1']
             elif re.search('[Ff]uori [Cc]ampo', tax.name):
                 nature_id = tax_nature['N1']
-            elif re.search('[Aa]rt.*17[^0-9].*[^0-9]', tax.name):
+            elif re.search('[Aa]rt[^0-9]17[^0-9][-./a-zA-Z]*', tax.name):
                 nature_id = tax_nature['N1']
+        # import pdb
+        # pdb.set_trace()
         if nature_id:
-            writeL8(ctx, model, [tax.id], {'nature_id': nature_id,
-                                           'payability': False})
+            if ctx['majver'] < 10:
+                writeL8(ctx, model, [tax.id],
+                        {'nature_id': nature_id,
+                         'non_taxable_nature': tax_nature[nature_id],
+                         'payability': False})
+            else:
+                writeL8(ctx, model, [tax.id], {'nature_id': nature_id,
+                                               'payability': False})
             msg = 'Tax code %s: nature=%s' % (tax.description,
                                               tax_nature[nature_id])
             msg_log(ctx, ctx['level'] + 1, msg)

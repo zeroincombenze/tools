@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.11
+__version__=0.3.8.13
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -163,33 +163,8 @@ if [ -n "$opt_modules" ]; then
     srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
     [ -n "$srcs" ] && addons_list=$addons_list,$srcs
     addons_list=${addons_list:1}
-    if [ -d /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ ]; then
+    if [ -x /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/get_test_dependencies.py ]; then
       pushd /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ >/dev/null
-cat <<EOF >./get_test_dependencies.py
-import sys
-from getaddons import get_addons, get_modules
-from test_server import get_test_dependencies
-ltype=''
-path=''
-addons_list=None
-if len(sys.argv)>1: ltype=sys.argv[1]
-if len(sys.argv)>2: path=sys.argv[2]
-if len(sys.argv)>3: addons_list=sys.argv[3].split(',')
-if ltype == 'mod':
-    paths=path.split(',')
-    res=[]
-    for path in paths:
-        r=get_modules(path)
-        for m in r:
-            if m not in res:
-                res.append(m)
-    print ','.join(res)
-elif ltype == 'dep':
-    res=get_test_dependencies(path, addons_list)
-    print ','.join(res)
-else:
-    print 'get_test_dependencies.py mod|dep path [addons_list]'
-EOF
       if [ "$opt_modules" == "all" ];then
         depmods=$(python ./get_test_dependencies.py mod $addons_list)
       else
@@ -198,7 +173,9 @@ EOF
       if [ -n "$depmods" -a $opt_test -eq 0 ]; then
         opt_modules="$opt_modules,$depmods"
       fi
-      popd >/dev/null
+    else
+      echo "Test incomplete!"
+      echo "File /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/get_test_dependencies.py not found!"
     fi
     opts="-i $opt_modules"
     optcdb=""

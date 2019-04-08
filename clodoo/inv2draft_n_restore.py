@@ -16,7 +16,7 @@ except ImportError:
     from z0lib import parseoptargs
 
 
-__version__ = "0.3.8.11"
+__version__ = "0.3.8.12"
 
 
 def get_name_by_ver(ctx, name):
@@ -31,11 +31,18 @@ def get_name_by_ver(ctx, name):
     elif name == 'internal_number':
         if majver >= 10:
             return 'move_name'
+    elif name == 'reference':
+        if majver < 10:
+            return 'supplier_invoice_number'
+    elif name == 'supplier_invoice_number':
+        if majver >= 10:
+            return 'reference'
     return name
 
 
 def upd_invoice(ctx, tmp_num=False, cur_num=False, cur_dt=False):
     move_name = get_name_by_ver(ctx, 'move_name')
+    reference = get_name_by_ver(ctx, 'reference')
     if not tmp_num and not cur_num:
         print ">> Missing parameters"
         return
@@ -272,14 +279,15 @@ def ask4target(search_mode, target):
 
 
 def print_invoice_info(inv_id):
+    move_name = get_name_by_ver(ctx, 'move_name')
     model = 'account.invoice'
     try:
         inv_obj = clodoo.browseL8(ctx, model, inv_id)
-        print "Id=%d, Num=%s(%s), supply n.=%s, ref=%s cid=%d" % (
+        print "Id=%d, Num='%s'/'%s', supply n.='%s', ref='%s' cid=%d" % (
             inv_id,
             inv_obj.number,
-            inv_obj.internal_number,
-            inv_obj.supplier_invoice_number,
+            inv_obj[move_name],
+            inv_obj[reference],
             inv_obj.name,
             inv_obj.company_id)
     except BaseException:
@@ -352,6 +360,7 @@ company_id = 0
 year = 0
 period_ids = []
 move_name = get_name_by_ver(ctx, 'move_name')
+reference = get_name_by_ver(ctx, 'reference')
 while True:
     msg = "Cancel,Draft,Number,Quit,UnPublish,Replace,Sts,Validate,teXt,RB? "
     msg = msg + "[!?+] "
@@ -365,7 +374,7 @@ while True:
             exit()
         print "Type B* for Bite: set state to draft and restore prior status"
         print "Type C* for Cancel: set state to draft and cancel number"
-        print "Type D* for Draft: set state to draft (keep internal_number)"
+        print "Type D* for Draft: set state to draft (keep move_name)"
         print "Type N* for Number: set invoice to draft and ask for new number"
         print "Type P* for publish movements"
         print "Type S* for change invoice payment status"
@@ -413,7 +422,6 @@ while True:
             partner_id = set_type_of_id(target)
         if search_mode in (':A:', ':C:', ':N:', ':P:'):
             year, period_ids = ask4period(year)
-        # pdb.set_trace()
         invmov = INVMOV[action[0]]
         hdrdtl = HDRDTL[search_mode]
         actsrc = invmov + hdrdtl
@@ -600,7 +608,7 @@ while True:
         clodoo.writeL8(ctx,
                        'account.invoice',
                        rec_ids,
-                       {move_name: ''})
+                       {move_name: False})
     elif action[0] == 'N':
         for inv_id in rec_ids:
             print_invoice_info(inv_id)

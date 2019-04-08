@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.11"
+__version__ = "0.3.8.12"
 
 
 #############################################################################
@@ -401,7 +401,7 @@ def extract_vals_from_rec(ctx, model, rec, keys=None):
             field_names = extr_table_generic(ctx, model, rec)
     res = {}
     for p in field_names:
-        if getattr(rec, p):
+        if hasattr(rec, p) and getattr(rec, p):
             ir_model = 'ir.model.fields'
             field = browseL8(ctx, ir_model, searchL8(
                 ctx, ir_model, [('model', '=', model),
