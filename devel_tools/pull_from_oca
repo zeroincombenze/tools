@@ -35,7 +35,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.2.4
+__version__=0.2.2.5
 
 
 sync_tmp_2_tgt() {
@@ -62,6 +62,12 @@ sync_tmp_2_tgt() {
             run_traced "mv $f $t1/egg-info/${b,,}"
           fi
         done
+        if [ -f $t1/egg-info/description.rst -a ! -f $t1/egg-info/descrizione.rst ]; then
+          echo "Descrizione in italiano non (ancora) disponibile" >$t1/egg-info/descrizione.rst
+        fi
+        if [ -f $t1/egg-info/authors.txt ]; then
+          echo "* Odoo Community Association (OCA) <https://odoo-community.org>" >$t1/egg-info/authors.txt
+        fi
       else
         run_traced "rm -fR $d"
       fi

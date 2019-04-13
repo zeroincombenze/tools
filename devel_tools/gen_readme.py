@@ -22,7 +22,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.4"
+__version__ = "0.2.2.5"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -160,6 +160,10 @@ def get_template_fn(ctx, template, ignore_ntf=None):
     return full_fn
 
 
+def clean_summary(summary):
+    return ' '.join(x.strip() for x in summary.split('\n'))
+
+
 def generate_description_file(ctx):
     full_fn = './egg-info/description.rst'
     if ctx['opt_verbose']:
@@ -184,7 +188,7 @@ def get_default_avaiable_addons(ctx):
             lol = len(pkg)
     if lol > 36:
         lol = 36
-    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-50.50s |\n' % (lol, lol)
+    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-60.60s |\n' % (lol, lol)
     lne = fmt % ('', '', '', '')
     lne = lne.replace(' ', '-').replace('|', '+')
     text += lne
@@ -212,7 +216,7 @@ def get_default_avaiable_addons(ctx):
         text += fmt % (pkg,
                        version,
                        oca_version,
-                       ctx['addons_info'][pkg]['summary'].strip())
+                       ctx['addons_info'][pkg]['summary'])
         text += lne
     return text
 
@@ -448,7 +452,11 @@ def expand_macro_in_line(ctx, line, state=None):
             print('Invalid macro %s' % tokens[0])
             value = ''
         elif len(value.split('\n')) > 1:
-            state, value = parse_source(ctx, value, state=state)
+            line = line[0:i] + value + line[j + 2:]
+            state, value = parse_source(ctx, line, state=state)
+            if out_fmt == 'html':
+                value = tohtml(value)
+            return value
         if out_fmt == 'html':
             value = tohtml(value)
         if len(tokens) > 1:
@@ -860,6 +868,10 @@ def read_all_manifests(ctx):
                     if 'summary' not in addons_info[module_name]:
                         addons_info[module_name]['summary'] = addons_info[
                             module_name]['name'].strip()
+                    else:
+                        addons_info[module_name][
+                            'summary'] = clean_summary(
+                                addons_info[module_name]['summary'])
                     addons_info[module_name]['version'] = adj_version(
                         ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
@@ -892,7 +904,8 @@ def read_all_manifests(ctx):
                     addons_info[module_name] = {}
                     if 'summary' in oca_manifest:
                         addons_info[module_name][
-                            'summary'] = oca_manifest['summary'].strip()
+                            'summary'] = clean_summary(
+                                oca_manifest['summary'])
                     else:
                         addons_info[module_name][
                             'summary'] = oca_manifest['name'].strip()
@@ -955,7 +968,6 @@ def xml_replace_text(ctx, root, item, text, pos=None):
 
 
 def index_html_content(ctx, source):
-    # pdb.set_trace()
     target = ''
     title = '%s / %s' % (ctx['summary'], ctx['sommario'])
     for section in source.split('\f'):
@@ -986,7 +998,8 @@ def set_default_values(ctx):
     ctx['maturity'] = ctx['manifest'].get('development_status', 'Alfa')
     ctx['name'] = ctx['manifest'].get('name',
                                       ctx['module_name'].replace('_', ' '))
-    ctx['summary'] = ctx['manifest'].get('summary', ctx['name']).strip()
+    ctx['summary'] = ctx['manifest'].get(
+        'summary', ctx['name']).strip().replace('\n', ' ')
     ctx['zero_tools'] = '`Zeroincombenze Tools ' \
                         '<https://github.com/zeroincombenze/tools>`__'
     if ctx['odoo_layer'] == 'ocb':

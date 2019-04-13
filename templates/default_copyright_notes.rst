@@ -21,7 +21,7 @@ which distributes and promotes ready-to-use **Odoo** on own cloud infrastructure
 `Zeroincombenze® distribution of Odoo <https://wiki.zeroincombenze.org/en/Odoo>`__
 is mainly designed to cover Italian law and markeplace.
 
-|it| **zeroincombenze®** è un marchio registrato di `SHS-AV s.r.l. <https://www.shs-av.com/>`__
-che distribuisce e promuove **Odoo** pronto all'uso sullla propria infrastuttura.
-La distribuzione `Zeroincombenze® è progettata per le esigenze del mercato italiano.
+|it| **zeroincombenze®** è un marchio registrato da `SHS-AV s.r.l. <https://www.shs-av.com/>`__
+che distribuisce e promuove **Odoo** pronto all'uso sulla propria infrastuttura.
+La distribuzione `Zeroincombenze® <https://wiki.zeroincombenze.org/en/Odoo>`__ è progettata per le esigenze del mercato italiano.
 .. $fi
