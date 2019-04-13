@@ -414,17 +414,19 @@ else
       [ $opt_verbose -gt 0 ] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
     fi
     if [ "${WEBSITE_REPO}" == "1" ]; then
-        if [ -f $HOME/.rvm/scripts/rvm ]; then
-            source $HOME/.rvm/scripts/rvm
-        else
-            source /usr/local/rvm/scripts/rvm
-        fi
-        run_n_echo "rvm install ruby --latest"
-        run_n_echo "rvm use ruby --latest"
-        # Uninstall current versions to be sure that
-        # the correct version will be installed
-        run_n_echo "gem uninstall -aIx bootstrap-sass compass sass"
-        run_n_echo "gem install compass bootstrap-sass"
+      if [ -f $HOME/.rvm/scripts/rvm ]; then
+        source $HOME/.rvm/scripts/rvm
+      elif [ -f /usr/local/rvm/scripts/rvm ]; then
+        source /usr/local/rvm/scripts/rvm
+      else
+        echo "File rvm not found! rvm should be not work!"
+      fi
+      run_n_echo "rvm install ruby --latest"
+      run_n_echo "rvm use ruby --latest"
+      # Uninstall current versions to be sure that
+      # the correct version will be installed
+      run_n_echo "gem uninstall -aIx bootstrap-sass compass sass"
+      run_n_echo "gem install compass bootstrap-sass"
     fi
     # Update PhantomJS (v10 compat)
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
