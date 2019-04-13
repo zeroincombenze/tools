@@ -22,7 +22,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.3"
+__version__ = "0.2.2.4"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -342,10 +342,9 @@ def upgrade_db(ctx):
         clodoo.unlinkL8(
             ctx, model, clodoo.searchL8(
                 ctx, model, [('lang', '=', 'it_IT'),
-                             '|', '|',
-                             ('name', '=', 'ir.module.module,description'),
-                             ('name', '=', 'ir.module.module,shortdesc'),
-                             ('name', '=', 'ir.module.module,summary')]))
+                             ('name', 'in', ('ir.module.module,description'
+                                             'ir.module.module,shortdesc',
+                                             'ir.module.module,summary'))]))
         for msgid in TNL_DICT:
             ids = clodoo.searchL8(ctx, model,
                                   [('lang', '=', 'it_IT'),
@@ -359,8 +358,29 @@ def upgrade_db(ctx):
                     ctr += len(ids)
                 except IOError:
                     print("*** Error writing %s !!!" % TNL_DICT[msgid])
+            ids = clodoo.searchL8(
+                ctx, model,
+                [('lang', '=', 'it_IT'),
+                 ('name', 'in', ('ir.actions.act_window,name',
+                                 'ir.model,name',
+                                 'ir.module.category,name',
+                                 'ir.module.module,description'
+                                 'ir.module.module,shortdesc',
+                                 'ir.module.module,summary',
+                                 'ir.ui.menu,name',
+                                 )),
+                 ('src', '=', msgid)])
+            if ids and len(ids) < MAX_RECS:
+                msg_burst(msgid)
+                try:
+                    clodoo.writeL8(ctx, model, ids, {'value': TNL_DICT[msgid]})
+                    ctr += len(ids)
+                except IOError:
+                    print("*** Error writing %s !!!" % TNL_DICT[msgid])
         if ctx['opt_verbose']:
             print(" ... %d record upgraded" % ctr)
+        if ctx['load_language']:
+            clodoo.act_install_language(ctx)
 
 
 if __name__ == "__main__":
@@ -385,6 +405,9 @@ if __name__ == "__main__":
                         metavar="dbname",
                         default='')
     parser.add_argument('-h')
+    parser.add_argument('-l', '--load-language',
+                        action='store_true',
+                        dest='load_language')
     parser.add_argument('-m', '--module_name',
                         action='store',
                         help='filename',

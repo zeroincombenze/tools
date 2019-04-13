@@ -93,3 +93,6 @@ xml_partner_form_fatturapa:
     parse_state: regular,xml
     [0]:    'partner_form_fatturapa'
     [6.1]:  'partner_form_einvoice'
+fiscal_document_type_id:
+    [0]:    'fiscal_document_type_id'
+    [6.1]:  'invoice_type_id'

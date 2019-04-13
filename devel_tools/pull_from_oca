@@ -1,0 +1,172 @@
+#! /bin/bash
+#
+# Upgrade from OCA repositoty like 'git pull'
+# OCA path must be locally present with name ~/OCA<majver>/<repository>/...
+# Repository to upgrade must be present with name ~/<versio>/<repository>/...
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
+
+__version__=0.2.2.4
+
+
+sync_tmp_2_tgt() {
+# sync_tmp_2_tgt(tmpdir tgtpath)
+    local b d dlist f flist l rep t1
+    local tmpdir=$1
+    local tgtpath=$2
+    rep=$(basename $tgtpath)
+    # [ "${rep: -1}" == "/" ] && rep=${rep:0: -1}
+    # echo -en "$TRAVIS_HDR2_COLOR"
+    run_traced "shopt -s dotglob; rsync -a --ignore-existing $tgtpath/ $tmpdir/$rep/"
+    # echo -en "$TRAVIS_NOP_COLOR"
+    l=${#tgtpath}
+    dlist=$(find $tmpdir/$rep -type d -name readme|tr "\n" " ")
+    for d in $dlist; do
+      t1=$(dirname $d)
+      if [ ! -d $t1/egg-info ]; then
+        run_traced "mv $d $t1/egg-info"
+        for f in $t1/egg-info/*; do
+          b=$(basename $f)
+          if [ "${b,,}" == "contributors.rst" ]; then
+            run_traced "mv $f $t1/egg-info/contributors.txt"
+          else
+            run_traced "mv $f $t1/egg-info/${b,,}"
+          fi
+        done
+      else
+        run_traced "rm -fR $d"
+      fi
+    done
+    flist=$(find $tgtpath -type f -exec grep -l "antoniov" '{}' \;)
+    for f in $flist; do
+      t=${f:l}
+      t=${tmpdir}/${rep}$t
+      t1=($dirname $t)
+      run_traced "cp -f $f $t1"
+    done
+    [ -d $tmpdir/$rep/setup ] && run_traced "rm -fR $tmpdir/$rep/setup"
+    [ -d $tgtpath.bak ] && run_traced "rm -fR $tgtpath.bak"
+    d=$(dirname $tgtpath)
+    [ ! -d $d/__to_remove ] && run_traced "mkdir __to_remove"
+    [ -d $d/__to_remove/$rep ] && run_traced "rm -fR $d/__to_remove/$rep"
+    run_traced "mv $tgtpath $d/__to_remove/$rep"
+    run_traced "mv $tmpdir/$rep $tgtpath"
+    run_traced "~/regen_all_docs.sh $tgtpath zero"
+}
+
+OPTOPTS=(h        b          D        H           n           V           v)
+OPTDEST=(opt_help opt_branch opt_drop opt_humdrum opt_dry_run opt_version opt_verbose)
+OPTACTI=(1        "="        1        1           1           "*>"        "+")
+OPTDEFL=(0        ""         0        0           0           ""          -1)
+OPTMETA=("help"   "branch"   ""       ""          ""          ""          "")
+OPTHELP=("this help"\
+ "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
+ "drop oca repository before upgrade"\
+ "humdrum, display w/o colors"\
+ "do nothing (dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(tgtpath)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit $STS_SUCCESS
+fi
+if [ $opt_verbose -eq -1 ]; then
+  opt_verbose=1
+fi
+if [ -z "$opt_branch" ]; then
+  opt_help=1
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Upgrade from OCA like git pull"\
+  "(C) 2018-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit $STS_SUCCESS
+fi
+
+if [ ${opt_humdrum:-0} -eq 0 ]; then
+  TRAVIS_TEXT_COLOR="\e[0;97;40m"
+  TRAVIS_HDR1_COLOR="\e[30;42m"
+  TRAVIS_HDR2_COLOR="\e[30;46m"
+  TRAVIS_HDR3_COLOR="\e[30;106m"
+  TRAVIS_NOP_COLOR="\e[35;40m"
+else
+  TRAVIS_TEXT_COLOR=
+  TRAVIS_HDR1_COLOR=
+  TRAVIS_HDR2_COLOR=
+  TRAVIS_HDR3_COLOR=
+  TRAVIS_NOP_COLOR=
+fi
+
+
+INVALID_MODNAMES_RE=$(build_odoo_param INVALID_MODNAMES_RE)
+INVALID_MODNAMES_RE="${INVALID_MODNAMES_RE:0: -2}|profiles|uncovered|openupgrade)\$"
+if [ ! -d $tgtpath ]; then
+  echo "Directory $tgtpath not found!"
+  exit 1
+fi
+repo=$(basename $tgtpath)
+tgt_odoo_dir=$(dirname $tgtpath)
+tgt_odoo_fver=$(build_odoo_param FULLVER "$tgt_odoo_dir")
+if [ "$tgt_odoo_fver" != "$opt_branch" ]; then
+  echo "Directory $tgtpath is not for Odoo $opt_branch!"
+  exit 1
+fi
+odoo_ver=$(build_odoo_param MAJVER "$tgt_odoo_dir")
+src_odoo=$HOME/oca$odoo_ver/$repo
+if [ ! -d $src_odoo ]; then
+  echo "Odoo source repository $src_odoo not found!"
+  exit 1
+fi
+tmpdir=$HOME/tmp
+echo "Upgrade repository $repo from $src_odoo to $tgtpath ..."
+read -p "Proceed (yes/no)? " dummy
+if [[ -z "$dummy" || ! "$dummy" = "yes" ]]; then
+  echo "Command aborted."
+  exit 0
+fi
+mkdir -p $tmpdir
+[ -d $tmpdir/$repo ] && rm -fR $tmpdir/$repo
+OPTS=
+[ $opt_dry_run -ne 0 ] && OPTS=${OPTS}n
+[ -n "$OPTS" ] && OPTS="-$OPTS"
+# echo -en "$TRAVIS_HDR1_COLOR"
+if [ $opt_drop -ne 0 ]; then
+  run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -Cqy $OPTS"
+else
+  run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -UCq $OPTS"
+fi
+# echo -en "$TRAVIS_HDR1_COLOR"
+run_traced "shopt -u dotglob; rsync -aC --exclude=".*" $HOME/oca$odoo_ver/$repo/ $tmpdir/$repo/"
+# echo -en "$TRAVIS_NOP_COLOR"
+sync_tmp_2_tgt $tmpdir $tgtpath

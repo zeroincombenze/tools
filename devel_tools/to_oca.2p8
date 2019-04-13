@@ -55,4 +55,7 @@ xml_view_partner_form_fatturapa:
 xml_partner_form_fatturapa:
     parse_state: regular,xml
     [0]:    'partner_form_einvoice'
-    [6.1]:   'partner_form_fatturapa'
+    [6.1]:  'partner_form_fatturapa'
+fiscal_document_type_id:
+    [0]:    'invoice_type_id'
+    [6.1]:  'fiscal_document_type_id'
