@@ -134,8 +134,8 @@ Proposals for enhancement
 .. $fi
 .. $if defined history
 
-History / Cronologia
---------------------
+ChangeLog History / Cronologia modifiche
+----------------------------------------
 
 {{history}}
 .. $fi
