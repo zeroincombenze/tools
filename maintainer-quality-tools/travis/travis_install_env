@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.5
+__version__=0.2.2.6
 
 
 run_n_echo() {
@@ -358,7 +358,7 @@ else
     lessc --version
     run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
     [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.4"
-    CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1)
+    [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
       [ $opt_verbose -gt 0 ] && echo "Installed version of wkhtmltopdf is $WKHTMLTOPDF_VERSION"
     else
@@ -367,15 +367,17 @@ else
       MACHARCH="x86_64"
       [ -x $HOME/tools/z0lib/xuname ] && FH=$($HOME/tools/z0lib/xuname -f)
       [ -x $HOME/tools/z0lib/xuname ] && MACHARCH=$($HOME/tools/z0lib/xuname -m) 
+      mkdir wkhtmltox.rpm_files
+      pushd wkhtmltox.rpm_files > /dev/null
       if [[ "$FH" == "RHEL" ]]; then
         dist=$($HOME/tools/z0lib/xuname -d)
         dist=${dist,,}$($HOME/tools/z0lib/xuname -v|grep -Eo [0-9]|head -n1)
-        arext=".rpm"
+        pkgext=".rpm"
         if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
           wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_1-${dist}-amd64.rpm"
         elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
           wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
-          arext=".xz"
+          pkgext=".xz"
         else
           if [[ "$MACHARCH" == "x86_64" ]]; then
             wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-amd64.rpm"
@@ -383,21 +385,13 @@ else
             wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-${dist}-i386.rpm"
           fi
         fi
-        mkdir wkhtmltox.rpm_files
-        pushd wkhtmltox.rpm_files > /dev/null
-        run_n_echo "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${arext}"
-        if [ "$arext" == ".rpm" ]; then
-          run_n_echo "rpm2cpio wkhtmltox${arext} | cpio -idm"
-          run_n_echo "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
-        else
-          run_n_echo "tar -xf wkhtmltox${arext}"
-          run_n_echo "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
-          rm -fr ./wkhtmltox
-        fi
-        popd > /dev/null
       elif [[ "$FH" == "Debian" ]]; then
+        pkgext=".deb"
         if [[ ${WKHTMLTOPDF_VERSION} == "0.12.5" ]]; then
           wkhtmltopdf_wget="wkhtmltox_${WKHTMLTOPDF_VERSION}-1.$(lsb_release -sc)_amd64.deb"
+        elif [[ ${WKHTMLTOPDF_VERSION} == "0.12.4" ]]; then
+          wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-generic-amd64.tar.xz"
+          pkgext=".xz"
         else
           if [[ "$MACHARCH" == "x86_64" ]]; then
             wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-amd64.deb"
@@ -406,10 +400,22 @@ else
           fi
         fi
         run_n_echo "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
-        run_n_echo "dpkg --extract wkhtmltox.deb wkhtmltox.deb_files"
+      fi
+      run_n_echo "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
+      if [ "$pkgext" == ".rpm" ]; then
+        run_n_echo "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+        run_n_echo "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+      elif [ "$pkgext" == ".deb" ]; then
+        run_n_echo "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
         run_n_echo "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
         rm -r wkhtmltox.deb*
+      else
+        run_n_echo "tar -xf wkhtmltox${pkgext}"
+        run_n_echo "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        rm -fr ./wkhtmltox
       fi
+      popd > /dev/null
+      rm -fR wkhtmltox.rpm_files
       CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1)
       [ $opt_verbose -gt 0 ] && echo "Current version of wkhtmltopdf is $CUR_WKHTMLTOPDF_VERSION"
     fi

@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.2.5'
+__version__ = '0.2.2.6'
 
 
 def parse_depfile(depfile, owner=None):
