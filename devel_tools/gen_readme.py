@@ -1,6 +1,76 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
+Documentation generator
+
+This software generates the README.rst of OCB, repository and modules.
+It also generates the index.html of the module.
+
+Document may contains macro in format {{macro_name}}.
+Currently follow macro are supported:
+
+acknowledges
+authors         Authors list
+avaiable_addons
+branch          Odoo version for this repository/module
+certifications  Certificates list
+contact_us
+contributors    Contributors list
+configuration   How to configure
+copyright_notes
+description     English description of the repository/module (mandatory)
+descrizione     Descrizione modulo/progetto in italianao (obbligatoria)
+doc-URL         URL for button documentation
+faq             FAG
+features        Features of the repository/module
+GPL             same of gpl
+git_orgid       Git organization
+gpl             License name: may be A-GPL or L-GPL
+grymb_image_*   Symbol imagae (suffix is a supported symbol name)
+help-URL        URL for button help
+history         Changelog history
+known_issues    Known issues
+installation    How to install
+name            Module name (must be a python name)
+maintenance     Maintenance information
+maturity
+module_name
+OCA-URL         URL to the same repository/module of OCA in github.com
+oca_diff        OCA comparation
+odoo_layer      Document layer, may be: ocb, module or repository
+prerequisites   Installation prerequisites
+prior_branch    Previous Odoo versio of this repository/module
+proposals_for_enhancement
+repos_name      Repository/project name
+sponsor         Sponsors list
+sommario        Traduzione italiana di summary
+summary         Repository/module summary (CR are translated into spaces)
+support         Support informations
+today
+translators     Translators list
+troubleshooting Troubleshooting information
+try_me-URL      URL for button try-me
+upgrade         How to upgrade
+usage           How to usage
+
+Documentation may contains some graphical symbols in format |symbol|.
+Currently follows symbols are supported:
+
+check
+DesktopTelematico
+en
+exclamation
+FatturaPA
+halt
+info
+it
+late
+menu
+no_check
+right_do
+same
+warning
+xml_schema
 """
 
 from __future__ import print_function, unicode_literals
@@ -22,7 +92,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.5"
+__version__ = "0.2.2.6"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -188,7 +258,7 @@ def get_default_avaiable_addons(ctx):
             lol = len(pkg)
     if lol > 36:
         lol = 36
-    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-60.60s |\n' % (lol, lol)
+    fmt = '| %%-%d.%ds | %%-10.10s | %%-10.10s | %%-80.80s |\n' % (lol, lol)
     lne = fmt % ('', '', '', '')
     lne = lne.replace(' ', '-').replace('|', '+')
     text += lne
@@ -340,6 +410,8 @@ def expand_macro(ctx, token, out_fmt=None):
             value = '%d.0' % (ctx['odoo_majver'] - 1)
         else:
             value = '%d.1' % (ctx['odoo_majver'] - 1)
+    elif token == 'module_version':
+        value = ctx['manifest']['version']
     elif token == 'icon':
         fmt = 'https://raw.githubusercontent.com/%s/%s/%s/%s/static/'
         if ctx['odoo_majver'] < 8:
@@ -1082,7 +1154,7 @@ def generate_readme(ctx):
 
 if __name__ == "__main__":
     parser = z0lib.parseoptargs("Generate README",
-                                "© 2018 by SHS-AV s.r.l.",
+                                "© 2018-2019 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',
