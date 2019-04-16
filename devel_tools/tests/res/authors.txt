@@ -1,0 +1,9 @@
+.. $if branch in '12.0'
+* wrong author
+.. $elif branch in '11.0'
+* SHS-AV s.r.l. <https://www.shs-av.com>
+.. $elif branch in '10.0'
+* wrong author
+.. $else
+* unknown authors
+.. $fi
