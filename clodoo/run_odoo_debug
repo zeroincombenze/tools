@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.13
+__version__=0.3.8.14
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -68,7 +68,7 @@ if [ "$opt_version" ]; then
   exit 0
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Run odoo in debug mode"\
+  print_help "Run odoo for debug mode"\
   "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
@@ -155,53 +155,45 @@ if [ -z "$opt_dbuser" ]; then
 fi
 if [ -n "$opt_modules" ]; then
   if [ $opt_keep -eq 0 ]; then
-    addons_list=
-    [ -d $odoo_root/addons ] && addons_list=$addons_list,$odoo_root/addons
-    [ -d $odoo_root/openerp/addons ] && addons_list=$addons_list,$odoo_root/openerp/addons
-    [ -d $odoo_root/odoo/addons ] && addons_list=$addons_list,$odoo_root/odoo/addons
-    [ -d $odoo_root/server/openerp/addons ] && addons_list=$addons_list,$odoo_root/server/openerp/addons
-    srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
-    [ -n "$srcs" ] && addons_list=$addons_list,$srcs
-    addons_list=${addons_list:1}
-    if [ -x /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/get_test_dependencies.py ]; then
-      pushd /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ >/dev/null
+    PL="$(grep ^addons_path /etc/odoo/odoo10.conf|awk -F= '{print $2}')"
+    if [ -z "$($which odoo_dependencies.py 2>/dev/null)" ]; then
+      echo "Test incomplete!"
+      echo "File odoo_dependencies.py not found!"
+    else
       if [ "$opt_modules" == "all" ];then
-        depmods=$(python ./get_test_dependencies.py mod $addons_list)
+        depmods=$(odoo_dependencies.py -m $PL)
       else
-        depmods=$(python ./get_test_dependencies.py dep $addons_list $opt_modules)
+        depmods=$(odoo_dependencies.py -d $PL -PM $opt_modules)
       fi
       if [ -n "$depmods" -a $opt_test -eq 0 ]; then
         opt_modules="$opt_modules,$depmods"
       fi
-    else
-      echo "Test incomplete!"
-      echo "File /opt/odoo/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/get_test_dependencies.py not found!"
     fi
-    opts="-i $opt_modules"
-    optcdb=""
-    [ $opt_test -ne 0 ] && opts="$opts --test-enable"
+    OPTS="-i $opt_modules"
+    OPTDB=""
+    [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
     create_db=1
   else
     mods=${opt_modules//,/ }
-    opti=
+    OPTI=
     xi=-i
-    optu=
+    OPTU=
     xu=-u
     for m in $mods; do
       r=$(psql -U$opt_dbuser $opt_db -tc "select state from ir_module_module where name='$m';")
       if [[ $r =~ uninstalled ]]; then
-        opti="$opti$xi$m"
+        OPTI="$OPTI$xi$m"
         xi=,
       else
-        optu="$optu$xu$m"
+        OPTU="$OPTU$xu$m"
         xu=,
       fi
     done
-    optsiu="$opti $optu"
+    OPTSIU="$OPTI $OPTU"
     alt=
     if [ $opt_exp -ne 0 -a -n "$opt_ofile" ]; then
       src=$(readlink -f $opt_ofile)
-      opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
+      OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
     elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
       srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
       f=0
@@ -229,23 +221,23 @@ if [ -n "$opt_modules" ]; then
         exit 1
       fi
       if [ $opt_imp -ne 0 ]; then
-        opts="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
+        OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
       else
-        opts="--modules=$opt_modules --i18n-export=$src -lit_IT"
+        OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
       fi
     elif [ $opt_upd -ne 0 -o $opt_xtl -ne 0 ]; then
-      opts="$optsiu"
-      [ $opt_test -ne 0 ] && opts="$opts --test-enable"
+      OPTS="$OPTSIU"
+      [ $opt_test -ne 0 ] && OPTS="$OPTS --test-enable"
     else
-      opts="$optsiu"
+      OPTS="$OPTSIU"
     fi
   fi
 else
   if [ $opt_lang -ne 0 ]; then
-    opts=--load-language=it_IT
+    OPTS=--load-language=it_IT
   else
-    opts=""
-    optcdb=""
+    OPTS=""
+    OPTDB=""
   fi
 fi
 if [ -z "$opt_xport" ]; then
@@ -259,16 +251,16 @@ if [ -n "$opt_modules" -o $opt_upd -ne 0 -o $opt_xtl -ne 0 -o $opt_exp -ne 0 -o 
     fi
   fi
 fi
-optcdb="$optcdb --stop-after-init"
+OPTDB="$OPTDB --stop-after-init"
 if [ $opt_stop -gt 0 ]; then
-  opts="$opts --stop-after-init"
+  OPTS="$OPTS --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
-    [ $opt_test -ne 0 ] && opts="$opts --test-commit"
+    [ $opt_test -ne 0 ] && OPTS="$OPTS --test-commit"
   fi
 fi
 if [ -n "$opt_db" ]; then
-   opts="$opts -d $opt_db"
-   optcdb="$optcdb -d $opt_db"
+   OPTS="$OPTS -d $opt_db"
+   OPTDB="$OPTDB -d $opt_db"
 fi
 if [ $opt_touch -eq 0 ]; then
   [ $drop_db -gt 0 ] && run_traced "pg_db_active -a $opt_db; dropdb -U$opt_dbuser --if-exists $opt_db"
@@ -281,34 +273,44 @@ if [ $opt_touch -eq 0 ]; then
   if [ $create_db -gt 0 -a $odoo_ver -lt 10 ]; then
     run_traced "createdb -U$opt_dbuser $opt_db"
   fi
+  tty -s
+  if [ $? == 0 ]; then
+    OPT_CONF="--config=$confn --logfile=/dev/stdout"
+  else
+    OPT_CONF="--config=$confn --logfile=$HOME/$$.log"
+  fi
+  OPT_LLEV=
   if [ $opt_dry_run -eq 0 ]; then
     [ -f $HOME/.openerp_serverrc ] && rm -f $HOME/.openerp_serverrc
     [ -f $HOME/.odoorc ] && rm -f $HOME/.odoorc
     echo "\$ cp $confn $HOME/$lconfn"
     cp $confn $HOME/$lconfn
-    sed -i -e 's:^logfile *=.*:logfile = False:' $HOME/$lconfn
+    sed -i -e "s|^logfile *=.*|logfile = False|" $HOME/$lconfn
     if [ -n "$opt_xport" ]; then
-      sed -i -e "s:^xmlrpc_port *=.*:xmlrpc_port = $opt_xport:" $HOME/$lconfn
+    sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $HOME/$lconfn
+      OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
     fi
     if [ -n "$opt_dbuser" ]; then
-      sed -i -e "s:^db_user *=.*:db_user = $opt_dbuser:" $HOME/$lconfn
+      sed -i -e "s|^db_user *=.*|db_user = $opt_dbuser|" $HOME/$lconfn
+      OPT_CONF="$OPT_CONF --db_user=$opt_dbuser"
     fi
     if [ -n "$opt_llvl" ]; then
-      sed -i -e "s/^log_level *=.*/log_level = $opt_llvl/" $HOME/$lconfn
+      sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $HOME/$lconfn
+      OPT_LLEV="--log-level=$opt_llvl"
     fi
   fi
   if [ $create_db -gt 0 ]; then
     if [ -n "$depmods" -a $opt_test -ne 0 ]; then
-      run_traced "$script $optcdb --log-level=error -i $depmods"
+      run_traced "$script $OPTDB $OPT_CONF --log-level=error -i $depmods"
     else
-      run_traced "$script $optcdb --log-level=error"
+      run_traced "$script $OPTDB $OPT_CONF --log-level=error"
     fi
   fi
   echo "===================================================================="
   if [ $odoo_ver -lt 10 -a $opt_dry_run -eq 0 -a $opt_exp -eq 0 -a $opt_imp -eq 0 -a $opt_lang -eq 0 ]; then
-    opts="--debug $opts"
+    OPTS="--debug $OPTS"
   fi
-  run_traced "$script $opts"
+  run_traced "$script $OPT_CONF $OPT_LLEV $OPTS"
   if [ $VENV -ne 0 ]; then
     [ $opt_verbose -gt 0 ] && echo "\$ deactivate"
     deactivate

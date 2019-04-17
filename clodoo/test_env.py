@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# from __future__ import print_function, unicode_literals
+from __future__ import print_function
+
 import sys
 # import oerplib
 try:
@@ -16,7 +19,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.12"
+__version__ = "0.3.8.14"
 
 
 parser = z0lib.parseoptargs("Odoo test environment",
@@ -54,13 +57,13 @@ def show_module_group():
             group = clodoo.browseL8(ctx, model_grp, gid, context={'lang': 'en_US'})
             cid = group.category_id.id
             categ = clodoo.browseL8(ctx, model_ctg, cid, context={'lang': 'en_US'})
-            print '%6d) Category %s' % (cid, categ.name)
+            print('%6d) Category %s' % (cid, categ.name))
             for id in clodoo.searchL8(ctx, model_grp, [('category_id', '=', cid)]):
                 group = clodoo.browseL8(
                     ctx, model_grp, id, context={'lang': 'en_US'})
-                print '%6d) -- Value [%-16.16s] > [%s]' % (id,
+                print('%6d) -- Value [%-16.16s] > [%s]' % (id,
                                                            group.name,
-                                                           group.full_name)
+                                                           group.full_name))
 def clean_translations():
     model = 'ir.translation'
     where = [('lang', '=', 'it_IT'),
@@ -68,9 +71,9 @@ def clean_translations():
              ('name', '=', 'ir.module.module,description'),
              ('name', '=', 'ir.module.module,shortdesc')]
     ids = clodoo.searchL8(ctx, model, where)
-    print 'unlink %s' % ids
+    print('unlink %s' % ids)
     clodoo.unlinkL8(ctx, model, ids)
-    print '%d records deleted' % len(ids)
+    print('%d records deleted' % len(ids))
 
 
 def close_purchse_orders():
@@ -83,14 +86,14 @@ def close_purchse_orders():
             qty_received = po.product_qty
         else:
             qty_received = 0.0
-        print po.product_qty,po.qty_received,qty_received,po.qty_invoiced
+        print(po.product_qty,po.qty_received,qty_received,po.qty_invoiced)
         if qty_received > 0.0:
             clodoo.writeL8(ctx,model,po.id,{'qty_received': qty_received})
             ctr += 1
-    print '%d purchase order lines updated' % ctr
+    print('%d purchase order lines updated' % ctr)
 
 def inv_commission_from_order():
-    print 'If missed, copy commission in invoice line from sale order line'
+    print('If missed, copy commission in invoice line from sale order line')
     inv_model = 'account.invoice.line'
     ord_model = 'sale.order.line'
     agt_model = 'account.invoice.line.agent'
@@ -106,7 +109,7 @@ def inv_commission_from_order():
                         ctx, inv_model, inv_line.id,
                         {'agents': agents})
                     ctr += 1
-    print '%d records updated'
+    print('%d records updated')
 
 
 def set_products_2_delivery_order():
@@ -119,7 +122,7 @@ def set_products_2_delivery_order():
         if pp.invoice_delivery != 'order':
             clodoo.writeL8(ctx, model, pp.id, {'invoice_delivery':'order'})
             ctr += 1
-    print '%d product templates updated' % ctr
+    print('%d product templates updated' % ctr)
 
     model = 'product.product'
     ctr=0
@@ -130,14 +133,37 @@ def set_products_2_delivery_order():
         if pp.invoice_delivery != 'order':
             clodoo.writeL8(ctx, model, pp.id, {'invoice_delivery':'order'})
             ctr += 1
-    print '%d products updated' % ctr
+    print('%d products updated' % ctr)
 
 
-print 'Function avaiable:'
-print '    show_module_group()'
-print '    clean_translations()'
-print '    close_purchse_orders()'
-print '    set_products_2_delivery_order()'
-print '    inv_commission_from_order()'
+def update_einvoice_attachment():
+    model = 'account.invoice'
+    inv_id = raw_input('Type invoice id: ')
+    if inv_id:
+        inv_id = eval(inv_id)
+        inv = clodoo.browseL8(ctx, model, inv_id)
+        att = inv.fatturapa_attachment_out_id
+        if not att:
+            print('Invoice %s w/o attchment' % inv.number)
+            return
+        print('Processing invoice %s' % inv.number)
+        model = 'fatturapa.attachment.out'
+        att = clodoo.browseL8(ctx, model, att.id)
+        print('Attachment ID = %d, state=%s' % (att.id, att.state))
+        state = raw_input(
+            'State (ready,sent,sender|recipient_error,reject,validated): ')
+        if state:
+            clodoo.writeL8(ctx, model, att.id, {'state': state})
+
+
+print('Function avaiable:')
+print('    show_module_group()')
+print('    clean_translations()')
+print('    close_purchse_orders()')
+print('    set_products_2_delivery_order()')
+print('    inv_commission_from_order()')
+print('    update_einvoice_attachment()')
 
 pdb.set_trace()
+update_einvoice_attachment()
+

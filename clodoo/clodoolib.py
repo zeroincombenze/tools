@@ -160,7 +160,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.12"
+__version__ = "0.3.8.14"
 
 
 #############################################################################
@@ -567,11 +567,6 @@ def create_parser(version, doc, ctx):
                         dest="dbfilter",
                         metavar="regex",
                         default="")
-    parser.add_argument("-D", "--with-demo",
-                        help="create db with demo data",
-                        action="store_true",
-                        dest="with_demo",
-                        default=False)
     parser.add_argument("-i", "--ignore-name-validation",
                         help="ignore name validation fo csv columns",
                         action="store_true",
@@ -586,6 +581,11 @@ def create_parser(version, doc, ctx):
                         help="test execution mode",
                         action="store_true",
                         dest="dry_run",
+                        default=False)
+    parser.add_argument("-o", "--with-demo",
+                        help="create db with demo data",
+                        action="store_true",
+                        dest="with_demo",
                         default=False)
     parser.add_argument("-p", "--data-path",
                         help="Import file path",

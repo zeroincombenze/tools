@@ -31,7 +31,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.12"
+__version__ = "0.3.8.14"
 
 
 #############################################################################
@@ -383,16 +383,20 @@ def extr_table_generic(ctx, model, rec, keys=None):
                           searchL8(ctx, ir_model,
                                    [('model', '=', model)])):
         if not field.readonly and field.ttype not in ('binary',
-                                                      'reference',
-                                                      'one2many'):
+                                                      'reference'):
             field_names.append(field.name)
     return field_names
 
 
 def extract_vals_from_rec(ctx, model, rec, keys=None):
     if keys:
-        field_names = keys.keys()
-    else:
+        if isinstance(keys, dict):
+            field_names = keys.keys()
+        elif isinstance(keys, list):
+            field_names = keys
+        else:
+            keys = None
+    if not keys:
         func = 'extr_table_%s' % model
         func = func.replace('.', '_')
         if func in globals():
@@ -405,7 +409,7 @@ def extract_vals_from_rec(ctx, model, rec, keys=None):
             ir_model = 'ir.model.fields'
             field = browseL8(ctx, ir_model, searchL8(
                 ctx, ir_model, [('model', '=', model),
-                                ('name', '=', p)]))
+                                ('name', '=', p)])[0])
             if field.ttype == 'many2many':
                 val = []
                 for i in rec[p]:

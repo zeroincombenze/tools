@@ -171,7 +171,8 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name,
-                        extract_vals_from_rec)
+                        extract_vals_from_rec, declare_mandatory_fields,
+                        cvt_from_ver_2_ver)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
@@ -180,7 +181,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.12"
+__version__ = "0.3.8.14"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1582,11 +1583,12 @@ def act_uninstall_modules(ctx):
     return sts
 
 
-def act_install_modules(ctx):
+def act_install_modules(ctx, module_list=None):
     """Install modules from list"""
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = get_real_paramvalue(ctx, 'install_modules').split(',')
+    module_list = module_list or get_real_paramvalue(
+        ctx, 'install_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1845,6 +1847,11 @@ def act_check_config(ctx):
         msg = u"Check config"
         msg_log(ctx, ctx['level'], msg)
         model = 'ir.model.data'
+        for xid in browseL8(ctx, model,
+                 searchL8(ctx, model, [('module', '=', 'base2')])):
+            writeL8(ctx, model, xid.id, {'module': 'z0incombenze'})
+            msg_log(ctx, ctx['level'] + 1,
+                    'External id %d renamed from base2 to z0incombenze' % id)
         ids = searchL8(ctx, model, [('module', '=', 'base'),
                                     ('name', 'in', ('mycompany',
                                                     'partner_mycompany',
@@ -1853,7 +1860,84 @@ def act_check_config(ctx):
                                                     'user_bot',
                                                     'partner_bot'))])
         for id in ids:
-            writeL8(ctx, model, id, {'module': 'base2'})
+            writeL8(ctx, model, id, {'module': 'z0incombenze'})
+            msg_log(ctx, ctx['level'] + 1,
+                    'External id %d renamed from base to z0incombenze' % id)
+        ids = searchL8(ctx, model, [('module', '=', 'account'),
+                                    ('name', 'in', ('invoice_SO1701',
+                                                    'invoice_SO1801',
+                                                    'invoice_SO1803',
+                                                    'invoice_SO1901',
+                                                    'invoice_SO1902',
+                                                    'invoice_SO1903',
+                                                    'invoice_PO1701',
+                                                    'invoice_PO1801',
+                                                    'invoice_PO1802',
+                                                    'invoice_PO1901',
+                                                    'invoice_PO1902',
+                                                    'invoice_PO1903'))])
+        for id in ids:
+            writeL8(ctx, model, id, {'module': 'z0incombenze'})
+            msg_log(ctx, ctx['level'] + 1,
+                    'External id %d renamed from account to z0incombenze' % id)
+        customer_list = []
+        for xid in browseL8(ctx, model,
+                searchL8(ctx, model, [('model', '=', 'account.invoice'),
+                                      ('module', '=', 'z0incombenze')])):
+            inv = browseL8(ctx, 'account.invoice', xid.res_id)
+            if inv.partner_id.id not in customer_list:
+                customer_list.append(inv.partner_id.id)
+        if not customer_list:
+            return STS_SUCCESS
+        excl_list1 = [ x.id for x in browseL8(ctx, 'res.users',
+            searchL8(ctx,'res.users', []))]
+        excl_list2 = [ x.id for x in browseL8(ctx, 'res.company',
+            searchL8(ctx,'res.company', []))]
+        ids = [x.res_id for x in browseL8(ctx, model,
+            searchL8(ctx, model, [('model', '=', 'res.partner')]))]
+        part_avaiable = list(set(ids) - (set(excl_list1) | set(excl_list2)))
+        for part_id in excl_list2:
+            if part_id in excl_list1:
+                ids = searchL8(ctx, 'res.company',
+                               [('partner_id', '=', part_id)])
+                if ids:
+                    partner = browseL8(ctx, 'res.partner', part_id)
+                    vals = {'customer': False, 'is_company': True}
+                    for f in ('name', 'street', 'zip', 'city', 'vat'):
+                        vals[f] = partner[f]
+                    id = createL8(ctx, 'res.partner', vals)
+                    msg_log(ctx, ctx['level'] + 1,
+                            'New partner id %d for the company %s' % (
+                                id, vals['name']))
+                    writeL8(ctx, 'res.company', ids[0],
+                            {'partner_id': id})
+                    msg_log(ctx, ctx['level'] + 1,
+                            'Company id %d has a new partner id %d' % (
+                                ids[0], id))
+        for ix, xid in enumerate(browseL8(ctx, model, searchL8(
+                ctx, model, [('model', '=', 'res.partner'),
+                             ('res_id', 'in', customer_list)]))):
+            if xid.module != 'z0incombenze':
+                # if xid.res_id not in part_avaiable:
+                #     writeL8(ctx, model, xid.id,
+                #            {'res_id': part_avaiable.pop(0)})
+                ids = searchL8(ctx, model, [('module', '=', 'z0incombenze'),
+                                            ('name', '=', xid.name)])
+                if ids:
+                    xid2 = browseL8(ctx, model, ids[0])
+                    if xid2.res_id not in customer_list:
+                        writeL8(ctx, model, ids[0],
+                                {'res_id': customer_list[ix]})
+                        msg_log(ctx, ctx['level'] + 1,
+                                'External id %d renamed to z0incombenze' %
+                                ids[0])
+                else:
+                    id = createL8(ctx, model, {'module': 'z0incombenze',
+                                               'name': xid.name,
+                                               'model': 'res.partner',
+                                               'res_id': customer_list[ix]})
+                    msg_log(ctx, ctx['level'] + 1,
+                            'External id %d created' % id)
     return STS_SUCCESS
 
 

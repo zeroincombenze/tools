@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.12
+__version__=0.3.8.14
 
 
 rmdir_if_exists() {
@@ -316,7 +316,7 @@ if [ -z "$new_odoo_vid" ]; then
   fi
   if [ -n "$opt_odir" ]; then
     DSTPATH=$opt_odir
-    odoo_root=$DSTPATH
+    [ "$RPTNAME" == "OCB" ] && odoo_root=$DSTPATH || odoo_root=$(dirname $DSTPATH)
   else
     DSTPATH=$(build_odoo_param HOME $odoo_vid "$RPTNAME" "$def_opt_org")
   fi
