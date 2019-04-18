@@ -92,7 +92,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.6"
+__version__ = "0.2.2.7"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
