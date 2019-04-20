@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import sys
+from symbol import except_clause
 # import oerplib
 try:
     from clodoo import clodoo
@@ -19,8 +20,12 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.14"
+__version__ = "0.3.8.15"
 
+
+PAY_MOVE_STS_2_DRAFT = ['posted', ]
+INVOICES_STS_2_DRAFT = ['open', 'paid']
+STATES_2_DRAFT = ['open', 'paid', 'posted']
 
 parser = z0lib.parseoptargs("Odoo test environment",
                             "© 2017-2019 by SHS-AV s.r.l.",
@@ -50,7 +55,7 @@ def show_module_group():
     model_ctg = 'ir.module.category'
     gid = True
     while gid:
-        gid = raw_input('Type res.groups id: ')
+        gid = raw_input('Res.groups id: ')
         if gid:
             gid = int(gid)
         if gid:
@@ -136,15 +141,15 @@ def set_products_2_delivery_order():
     print('%d products updated' % ctr)
 
 
-def update_einvoice_attachment():
+def update_einvoice_out_attachment():
     model = 'account.invoice'
-    inv_id = raw_input('Type invoice id: ')
+    inv_id = raw_input('Invoice id: ')
     if inv_id:
         inv_id = eval(inv_id)
         inv = clodoo.browseL8(ctx, model, inv_id)
         att = inv.fatturapa_attachment_out_id
         if not att:
-            print('Invoice %s w/o attchment' % inv.number)
+            print('Invoice %s w/o attachment' % inv.number)
             return
         print('Processing invoice %s' % inv.number)
         model = 'fatturapa.attachment.out'
@@ -155,6 +160,45 @@ def update_einvoice_attachment():
         if state:
             clodoo.writeL8(ctx, model, att.id, {'state': state})
 
+def revaluate_due_date_in_invoces(inv_id):
+    model = 'account.invoice'
+    if not inv_id:
+        inv_id = raw_input('Invoice id: ')
+        if inv_id:
+            inv_id = eval(inv_id)
+    if inv_id:
+        inv = clodoo.browseL8(ctx, model, inv_id)
+        att = inv.fatturapa_attachment_in_id
+        if not att:
+            print('Invoice %s w/o attachment' % inv.number)
+            return
+        print('Processing invoice %s' % inv.number)
+        inv_state = inv.state
+        if inv.state in INVOICES_STS_2_DRAFT:
+            reconcile_dict, move_dict = clodoo.get_reconcile_from_invoices(
+                [inv_id], ctx)
+            clodoo.unreconcile_invoices(reconcile_dict, ctx)
+            try:
+                clodoo.upd_invoices_2_draft(move_dict, ctx)
+            except BaseException:
+                return
+        clodoo.executeL8(ctx,
+                         'fatturapa.attachment.in',
+                         'revaluate_due_date',
+                         att.id,
+                         )
+        if inv_state in INVOICES_STS_2_DRAFT:
+            try:
+                clodoo.upd_invoices_2_posted(move_dict, ctx)
+            except BaseException:
+                return
+            reconciles = reconcile_dict[inv_id]
+            if len(reconciles):
+                cur_reconciles, cur_reconcile_dict = \
+                    clodoo.refresh_reconcile_from_inv(
+                        inv_id, reconciles, ctx)
+                clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
+
 
 print('Function avaiable:')
 print('    show_module_group()')
@@ -162,8 +206,14 @@ print('    clean_translations()')
 print('    close_purchse_orders()')
 print('    set_products_2_delivery_order()')
 print('    inv_commission_from_order()')
-print('    update_einvoice_attachment()')
+print('    update_einvoice_out_attachment()')
+print('    revaluate_due_date_in_invoces()')
 
 pdb.set_trace()
-update_einvoice_attachment()
-
+model = 'account.invoice'
+for inv in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model,
+        [('type', 'in', ('in_invoice', 'in_refund')),
+         ('payment_term_id', '=', False)],order='number')):
+    if ((not inv.date_due or inv.date_invoice == inv.date_due) and
+            not inv.payment_term_id):
+        revaluate_due_date_in_invoces(inv.id)

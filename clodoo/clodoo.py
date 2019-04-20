@@ -172,7 +172,7 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name,
                         extract_vals_from_rec, declare_mandatory_fields,
-                        cvt_from_ver_2_ver)
+                        cvt_from_ver_2_ver, execute_action_L8)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
@@ -181,7 +181,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.14"
+__version__ = "0.3.8.15"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -261,9 +261,6 @@ def get_name_by_ver(ctx, model, name):
         if name == 'move_name':
             if majver < 10:
                 return 'internal_number'
-        elif name == 'action_invoice_draft':
-            if majver < 10:
-                return 'action_cancel_draft'
     elif model == 'res.partner':
         if name in ('zip', 'image', 'country_id', 'fax', 'street',
                     'state_id', 'is_company', 'street2', 'type'):
@@ -1394,36 +1391,8 @@ def act_workflow(ctx):
                 id = ids[0]
         else:
             id = o_model['model_keyids']
-        if model == 'account.invoice' and \
-                o_model['model_action'] == 'invoice_open':
-            if ctx['majver'] >= 10:
-                o_model['model_action'] = 'action_invoice_open'
-            try:
-                if ctx['majver'] >= 10:
-                    executeL8(ctx,
-                              model,
-                              'compute_taxes',
-                              [id])
-                else:
-                    executeL8(ctx,
-                              model,
-                              'button_compute',
-                              [id])
-                    executeL8(ctx,
-                              model,
-                              'button_reset_taxes',
-                              [id])
-            except BaseException:
-                        pass
         try:
-            if ctx['majver'] >= 10:
-                ctx['odoo_session'].execute(model,
-                                            o_model['model_action'],
-                                            id)
-            else:
-                ctx['odoo_session'].exec_workflow(model,
-                                                  o_model['model_action'],
-                                                  id)
+            execute_action_L8(ctx, model, action, ids)
         except BaseException:
             msg = 'Workflow (%s, %s, %d) Failed!' % (model,
                                                      o_model['model_action'],
@@ -1488,11 +1457,12 @@ def act_update_modules(ctx):
     return STS_SUCCESS
 
 
-def act_upgrade_modules(ctx):
+def act_upgrade_modules(ctx, module_list=None):
     """Upgrade module from list"""
     msg = u"Upgrade modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = get_real_paramvalue(ctx, 'upgrade_modules').split(',')
+    module_list = module_list or get_real_paramvalue(
+        ctx, 'upgrade_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
@@ -1821,8 +1791,6 @@ def act_check_tax(ctx):
                 nature_id = tax_nature['N1']
             elif re.search('[Aa]rt[^0-9]17[^0-9][-./a-zA-Z]*', tax.name):
                 nature_id = tax_nature['N1']
-        # import pdb
-        # pdb.set_trace()
         if nature_id:
             if ctx['majver'] < 10:
                 writeL8(ctx, model, [tax.id],
@@ -1850,8 +1818,9 @@ def act_check_config(ctx):
         for xid in browseL8(ctx, model,
                  searchL8(ctx, model, [('module', '=', 'base2')])):
             writeL8(ctx, model, xid.id, {'module': 'z0incombenze'})
-            msg_log(ctx, ctx['level'] + 1,
-                    'External id %d renamed from base2 to z0incombenze' % id)
+            msg_log(
+                ctx, ctx['level'] + 1,
+                'External id %d renamed from base2 to z0incombenze' % xid.id)
         ids = searchL8(ctx, model, [('module', '=', 'base'),
                                     ('name', 'in', ('mycompany',
                                                     'partner_mycompany',
@@ -1865,14 +1834,18 @@ def act_check_config(ctx):
                     'External id %d renamed from base to z0incombenze' % id)
         ids = searchL8(ctx, model, [('module', '=', 'account'),
                                     ('name', 'in', ('invoice_SO1701',
+                                                    'invoice_SO1702',
                                                     'invoice_SO1801',
+                                                    'invoice_SO1802',
                                                     'invoice_SO1803',
                                                     'invoice_SO1901',
                                                     'invoice_SO1902',
                                                     'invoice_SO1903',
                                                     'invoice_PO1701',
+                                                    'invoice_PO1702',
                                                     'invoice_PO1801',
                                                     'invoice_PO1802',
+                                                    'invoice_PO1803',
                                                     'invoice_PO1901',
                                                     'invoice_PO1902',
                                                     'invoice_PO1903'))])
@@ -1880,117 +1853,207 @@ def act_check_config(ctx):
             writeL8(ctx, model, id, {'module': 'z0incombenze'})
             msg_log(ctx, ctx['level'] + 1,
                     'External id %d renamed from account to z0incombenze' % id)
-        customer_list = []
-        for xid in browseL8(ctx, model,
-                searchL8(ctx, model, [('model', '=', 'account.invoice'),
-                                      ('module', '=', 'z0incombenze')])):
-            inv = browseL8(ctx, 'account.invoice', xid.res_id)
-            if inv.partner_id.id not in customer_list:
-                customer_list.append(inv.partner_id.id)
-        if not customer_list:
-            return STS_SUCCESS
-        excl_list1 = [ x.id for x in browseL8(ctx, 'res.users',
-            searchL8(ctx,'res.users', []))]
-        excl_list2 = [ x.id for x in browseL8(ctx, 'res.company',
-            searchL8(ctx,'res.company', []))]
-        ids = [x.res_id for x in browseL8(ctx, model,
-            searchL8(ctx, model, [('model', '=', 'res.partner')]))]
-        part_avaiable = list(set(ids) - (set(excl_list1) | set(excl_list2)))
-        for part_id in excl_list2:
-            if part_id in excl_list1:
-                ids = searchL8(ctx, 'res.company',
+        #
+        model_partner = 'res.partner'
+        model_user = 'res.users'
+        model_company = 'res.company'
+        model_invoice = 'account.invoice'
+        #
+        excl_list_user = [x.partner_id.id for x in browseL8(
+            ctx, model_user, searchL8(ctx, model_user, []))]
+        excl_list_company = [x.partner_id.id for x in browseL8(
+            ctx, model_company, searchL8(ctx, model_company, []))]
+        for part_id in excl_list_company:
+            if part_id in excl_list_user:
+                ids = searchL8(ctx, model_company,
                                [('partner_id', '=', part_id)])
                 if ids:
-                    partner = browseL8(ctx, 'res.partner', part_id)
+                    partner = browseL8(ctx, model_partner, part_id)
                     vals = {'customer': False, 'is_company': True}
                     for f in ('name', 'street', 'zip', 'city', 'vat'):
                         vals[f] = partner[f]
-                    id = createL8(ctx, 'res.partner', vals)
+                    new_id = createL8(ctx, model_partner, vals)
+                    excl_list_company.append(new_id)
                     msg_log(ctx, ctx['level'] + 1,
                             'New partner id %d for the company %s' % (
-                                id, vals['name']))
-                    writeL8(ctx, 'res.company', ids[0],
-                            {'partner_id': id})
+                                new_id, vals['name']))
+                    writeL8(ctx, model_company, ids[0],
+                            {'partner_id': new_id})
                     msg_log(ctx, ctx['level'] + 1,
                             'Company id %d has a new partner id %d' % (
-                                ids[0], id))
-        for ix, xid in enumerate(browseL8(ctx, model, searchL8(
-                ctx, model, [('model', '=', 'res.partner'),
-                             ('res_id', 'in', customer_list)]))):
-            if xid.module != 'z0incombenze':
-                # if xid.res_id not in part_avaiable:
-                #     writeL8(ctx, model, xid.id,
-                #            {'res_id': part_avaiable.pop(0)})
-                ids = searchL8(ctx, model, [('module', '=', 'z0incombenze'),
-                                            ('name', '=', xid.name)])
-                if ids:
-                    xid2 = browseL8(ctx, model, ids[0])
-                    if xid2.res_id not in customer_list:
-                        writeL8(ctx, model, ids[0],
-                                {'res_id': customer_list[ix]})
+                                ids[0], new_id))
+                    ids2 = searchL8(ctx, model,
+                                    [('module', '=', 'z0incombenze'),
+                                     ('model', '=', model_partner),
+                                     ('res_id', '=', ids[0])])
+                    if ids2:
+                        writeL8(ctx, model, ids2[0], {'res_id': new_id})
                         msg_log(ctx, ctx['level'] + 1,
-                                'External id %d renamed to z0incombenze' %
-                                ids[0])
+                                'External id %d with new res_id %d' % (
+                                ids2[0], new_id))
+        #
+        # Partners in demo data: cannot be used by other apps
+        partners_no_use = [x.res_id for x in browseL8(ctx, model,
+            searchL8(ctx, model, [('model', '=', model_partner),
+                                  ('module', '!=', 'z0incombenze')]))]
+        # Invoice from demo data: cannot be used by other apps
+        invoces_no_use = [x.res_id for x in browseL8(ctx, model,
+            searchL8(ctx, model, [('model', '=', model_invoice),
+                                  ('module', '!=', 'z0incombenze')]))]
+        # Customers/Suppliers demo: cannot be used by other apps
+        ids = [x.res_id for x in browseL8(ctx, model,
+            searchL8(ctx, model, [('model', '=', model_partner)]))]
+        partners_demo = list(
+            set(ids) - (set(excl_list_user) | set(excl_list_company)))
+        #
+        deletion_list = []
+        reserved_partner = []
+        for inv_id in invoces_no_use:
+            try:
+                inv = browseL8(ctx, model_invoice, inv_id)
+            except IOError:
+                id = searchL8(ctx, model, [('model', '=', model_invoice),
+                                           ('res_id', '=', inv_id)])
+                unlinkL8(ctx, model, [id])
+                deletion_list.append(inv_id)
+                continue
+            if inv.partner_id.id not in partners_demo:
+                if inv.partner_id.id not in reserved_partner:
+                    reserved_partner.append(inv.partner_id.id)
+                    partners_demo.append(inv.partner_id.id)
+        for inv_id in deletion_list:
+            ix = invoces_no_use.index(inv_id)
+            del invoces_no_use[ix]
+        for res_id in reserved_partner:
+            name = 'res_partner_%d' % (res_id + 1000)
+            id = createL8(ctx, model,
+                          {'module': 'base',
+                           'name': name,
+                           'model': model_partner,
+                           'res_id': res_id})
+            msg_log(ctx, ctx['level'] + 1,
+                    'External id %d name %s created' % (id, name))
+        #
+        z0_invoice_list = searchL8(ctx, model,
+                                   [('model', '=', model_invoice),
+                                    ('module', '=', 'z0incombenze')])
+        z0_customer_list = []
+        for xid in browseL8(ctx, model, z0_invoice_list):
+            inv = browseL8(ctx, model_invoice, xid.res_id)
+            if inv.partner_id.id not in z0_customer_list:
+                z0_customer_list.append(inv.partner_id.id)
+        if not z0_customer_list:
+            return STS_SUCCESS
+        partners_no_use = list(set(partners_no_use) | set(partners_demo))
+        customer_avaiable = searchL8(ctx, model_partner,
+                                     [('id', 'not in', partners_no_use)])
+        replacement_list = {}
+        for part_id in z0_customer_list:
+            if part_id in partners_no_use:
+                partner = browseL8(ctx, 'res.partner', part_id)
+                vals = {'customer': False, 'is_company': True}
+                for f in ('name', 'street', 'zip', 'city', 'vat'):
+                    vals[f] = partner[f]
+                id = createL8(ctx, 'res.partner', vals)
+                msg_log(ctx, ctx['level'] + 1,
+                        'New partner id %d' % id)
+                replacement_list[part_id] = id
+        for part_id in replacement_list:
+            ix = z0_customer_list.index(part_id)
+            del z0_customer_list[ix]
+            z0_customer_list.append(replacement_list[part_id])
+        for ix,part_id in enumerate(z0_customer_list):
+            if not searchL8(ctx, model, [('model', '=', 'res.partner'),
+                                         ('res_id', '=', part_id)]):
+                name = 'res_partner_%d' % (ix + 1)
+                ids = searchL8(ctx, model, [('module', '=', 'z0incombenze'),
+                                            ('name', '=', name)])
+                if ids:
+                    writeL8(ctx, model, ids[0], {'res_id': part_id})
                 else:
-                    id = createL8(ctx, model, {'module': 'z0incombenze',
-                                               'name': xid.name,
-                                               'model': 'res.partner',
-                                               'res_id': customer_list[ix]})
+                    id = createL8(ctx, model,
+                                  {'module': 'z0incombenze',
+                                   'name': name,
+                                   'model': 'res.partner',
+                                   'res_id': part_id})
                     msg_log(ctx, ctx['level'] + 1,
                             'External id %d created' % id)
+        for xid in browseL8(ctx, model, z0_invoice_list):
+            inv = browseL8(ctx, model_invoice, xid.res_id)
+            inv_id = xid.res_id
+            id = inv.partner_id.id
+            if id in replacement_list:
+                inv_state = inv.state
+                if inv.state in INVOICES_STS_2_DRAFT:
+                    reconcile_dict, move_dict = get_reconcile_from_invoices(
+                        [inv_id], ctx)
+                    upd_invoices_2_draft(move_dict, ctx)
+                writeL8(ctx, model_invoice, inv_id, 
+                        {'partner_id': replacement_list[id]})
+                msg_log(ctx, ctx['level'] + 1,
+                    'Invoice id %d, new partner id=%d' % (
+                        inv_id, replacement_list[id]))
+                if inv.state in INVOICES_STS_2_DRAFT:
+                    upd_invoices_2_posted(move_dict, ctx)
+                    reconciles = reconcile_dict[inv_id]
+                    if len(reconciles):
+                        cur_reconciles, cur_reconcile_dict = \
+                            refresh_reconcile_from_inv(
+                                inv_id, reconciles, ctx)
+                        reconcile_invoices(cur_reconcile_dict, ctx)
     return STS_SUCCESS
 
 
 def act_check_partners(ctx):
     msg = u"Check for partners"
     msg_log(ctx, ctx['level'], msg)
-    company_id = ctx['company_id']
-    partner_ids = searchL8(ctx, 'res.partner',
-                           [('company_id', '=', company_id)])
+    model = 'res.partner'
+    partner_ids = searchL8(ctx, 'res.partner', [])
     rec_ctr = 0
     for partner_id in partner_ids:
         try:
-            partner = browseL8(ctx, 'res.partner', partner_id)
+            partner = browseL8(ctx, model, partner_id)
         except BaseException:
-            msg = u"Wrong partner id=" + str(partner_id)
+            msg = u"Wrong partner id=%d" % partner_id
             msg_log(ctx, ctx['level'], msg)
             continue
         rec_ctr += 1
-        msg_burst(4, "Partner ",
+        msg_burst(4, 'Partner ',
                   rec_ctr,
                   partner.name)
         if partner.vat:
+            vals = {}
             iso = partner.vat.upper()[0:2]
             vatn = partner.vat[2:]
-            if iso >= "00" and iso <= "99" and len(partner.vat) == 11:
+            if iso == 'IT':
+                new_vat = partner.vat.upper().replace(' ','')
+                if new_vat != partner.vat:
+                    vals['vat'] = new_vat
+                    msg = u"Wrong VAT %s" % partner.vat
+                    msg_log(ctx, ctx['level'], msg)
+            elif partner.vat.isdigit() and len(partner.vat) == 11:
                 iso = 'IT'
                 vatn = partner.vat
-                vals = {}
                 vals['vat'] = iso + vatn
-                msg = u"Wrong VAT " + partner.vat
+                msg = u"Wrong VAT %s" % partner.vat
                 msg_log(ctx, ctx['level'], msg)
-                try:
-                    writeL8(ctx, 'res.partner', partner_id, vals)
-                except BaseException:
-                    msg = partner.name + " WRONG VAT"
-                    msg_log(ctx, ctx['level'], msg)
-            elif iso == "1I" and len(vatn) == 11:
+            elif iso == '1I' and len(vatn) == 11:
                 iso = 'IT'
-                vals = {}
                 vals['vat'] = iso + vatn
-                msg = u"Wrong VAT " + partner.vat
+                msg = u"Wrong VAT %s" % partner.vat
                 msg_log(ctx, ctx['level'], msg)
+            elif iso < 'AA' or iso > 'ZZ':
+                msg = partner.name + ' WRONG VAT'
+                msg_log(ctx, ctx['level'], msg)
+            elif vatn.strip() == '':
+                msg = '%s WRONG VAT' % partner.name 
+                msg_log(ctx, ctx['level'], msg)
+            if vals:
                 try:
                     writeL8(ctx, 'res.partner', [partner_id], vals)
-                except BaseException:
-                    msg = partner.name + " WRONG VAT"
+                except IOError:
+                    msg = partner.name + ' WRONG VAT'
                     msg_log(ctx, ctx['level'], msg)
-            elif iso < "AA" or iso > "ZZ":
-                msg = partner.name + " WRONG VAT"
-                msg_log(ctx, ctx['level'], msg)
-            elif vatn.strip() == "":
-                msg = partner.name + " WRONG VAT"
-                msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
@@ -2066,23 +2129,6 @@ def act_check_tax_balance(ctx):
                           [('company_id', '=', company_id),
                            ('date_start', '>=', ctx['date_start']),
                            ('date_stop', '<=', ctx['date_stop'])])
-    # model = 'account.tax'
-    # ids = searchL8(ctx, model,
-    #                   [('company_id', '=', company_id)])
-    # base_vat = {}
-    # vat_base = {}
-    # base_vat_nc = {}
-    # vat_base_nc = {}
-    # for id in ids:
-    #     tax_obj = browseL8(ctx,  model, id)
-    #     id_imp = tax_obj.base_code_id.id
-    #     id_iva = tax_obj.tax_code_id.id
-    #     base_vat[id_imp] = id_iva
-    #     vat_base[id_iva] = id_imp
-    #     id_imp_nc = tax_obj.ref_base_code_id.id
-    #     id_iva_nc = tax_obj.ref_tax_code_id.id
-    #     base_vat_nc[id_imp_nc] = id_iva_nc
-    #     vat_base_nc[id_iva_nc] = id_imp_nc
     STATES = STATES_2_DRAFT
     if ctx['draft_recs']:
         STATES.append('draft')
@@ -2963,10 +3009,12 @@ def get_reconcile_from_inv(inv_id, ctx):
                                  [('move_id', '=', move_id),
                                   ('partner_id', '=', partner_id), ])
         for move_line_id in move_line_ids:
-            type = browseL8(ctx, 'account.account',
-                            browseL8(ctx, 'account.move.line',
-                                     move_line_id).account_id.id).type
-            if type == 'receivable' or type == 'payable':
+            # type = browseL8(ctx, 'account.account',
+            #                 browseL8(ctx, 'account.move.line',
+            #                          move_line_id).account_id.id).type
+            type = browseL8(ctx, 'account.move.line',
+                move_line_id).account_id.type
+        if type in ('receivable', 'payable'):
                 reconciles.append(move_line_id)
         for move_line in account_invoice.payment_ids:
             move_id, move_line_id, mov_state = \
@@ -3001,13 +3049,18 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     else:
         move_id = False
     move_line_ids = searchL8(ctx, 'account.move.line',
-                             [('move_id', '=', move_id),
-                              ('partner_id', '=', partner_id), ])
+                             [('move_id', '=', move_id)])
     for move_line_id in move_line_ids:
-        type = browseL8(ctx, 'account.account',
-                        browseL8(ctx, 'account.move.line',
-                                 move_line_id).account_id.id).type
-        if type == 'receivable' or type == 'payable':
+        if ctx['majver'] >= 10:
+            type = browseL8(ctx, 'account.move.line',
+                move_line_id).account_id.user_type_id.type
+        else:
+            # type = browseL8(ctx, 'account.account',
+            #                 browseL8(ctx, 'account.move.line',
+            #                          move_line_id).account_id.id).type
+            type = browseL8(ctx, 'account.move.line',
+                move_line_id).account_id.type
+        if type in ('receivable', 'payable'):
             new_reconciles.append(move_line_id)
     partner_id = account_invoice.partner_id.id
     if account_invoice.move_id:
@@ -3017,13 +3070,17 @@ def refresh_reconcile_from_inv(inv_id, reconciles, ctx):
     company_id = account_invoice.company_id.id
     valid_recs = True
     for move_line_id in reconciles[1:]:
-        move_line = browseL8(ctx,
-                             'account.move.line', move_line_id)
-        if move_line.partner_id.id != partner_id or \
-                move_line.company_id.id != company_id:
-            valid_recs = False
-        else:
-            new_reconciles.append(move_line_id)
+        try:
+            move_line = browseL8(ctx,
+                                 'account.move.line', move_line_id)
+        except BaseException:
+            move_line = False
+        if move_line:
+            if move_line.partner_id.id != partner_id or \
+                    move_line.company_id.id != company_id:
+                valid_recs = False
+            else:
+                new_reconciles.append(move_line_id)
     if not valid_recs:
         new_reconciles = []
     reconcile_dict = {inv_id: new_reconciles}
@@ -3260,7 +3317,7 @@ def upd_invoices_2_cancel(move_dict, ctx):
         if len(invoices):
             try:
                 executeL8(ctx, model,
-                          'action_cancel',
+                          'action_invoice_cancel',
                           invoices)
             except BaseException:
                 # zero-amount invoices have not payments so keep 'paid' state
@@ -3291,12 +3348,36 @@ def upd_invoices_2_draft(move_dict, ctx):
         elif isinstance(move_dict, list) and i == 0:
             invoices = move_dict
         if len(invoices):
+            # for id in invoices:
+                # inv = browseL8(ctx, model, id)
+                # if (inv.type in ('out_invoice', 'out_refund') and
+                #         'fatturapa_attachment_out_id' in inv and
+                #         inv.fatturapa_attachment_out_id):
+                #     comment = inv.comment + '\a\axml_id=%d\n' % \
+                #         inv.fatturapa_attachment_out_id.id
+                #     try:
+                #         writeL8(ctx, model, id,
+                #                 {'fatturapa_attachment_out_id': False,
+                #                  'comment': comment})
+                #     except IOError:
+                #         pass
+                # elif (inv.type in ('in_invoice', 'in_refund') and
+                #         'fatturapa_attachment_in_id' in inv and
+                #         inv.fatturapa_attachment_out_id):
+                #     comment = inv.comment + '\a\axml_id=%d\n' % \
+                #         inv.fatturapa_attachment_out_id.id
+                #     try:
+                #         writeL8(ctx, model, id,
+                #                 {'fatturapa_attachment_in_id': False,
+                #                  'comment': comment})
+                #     except IOError:
+                #         pass
             try:
                 executeL8(ctx,
                           model,
                           'action_cancel',
                           invoices)
-            except BaseException:
+            except RuntimeError:
                 # zero-amount invoices have not payments so keep 'paid' state
                 for inv_id in invoices:
                     if browseL8(ctx, model, inv_id).state == 'paid':
@@ -3341,24 +3422,28 @@ def upd_invoices_2_posted(move_dict, ctx):
             # msg_log(ctx, ctx['level'], msg)
             for inv_id in invoices:
                 try:
-                    executeL8(ctx,
-                              'account.invoice',
-                              'button_compute',
-                              [inv_id])
-                    executeL8(ctx,
-                              'account.invoice',
-                              'button_reset_taxes',
-                              [inv_id])
-                except BaseException:
-                    pass
-                try:
-                    ctx['odoo_session'].exec_workflow(model,
-                                                      'invoice_open',
-                                                      inv_id)
-                except BaseException:
+                    execute_action_L8(ctx, model,
+                                      'action_invoice_open',
+                                      inv_id)
+                except RuntimeError:
                     msg = u"Cannot restore invoice status of %d" % inv_id
                     msg_log(ctx, ctx['level'], msg)
                     sts = STS_FAILED
+                #
+                inv = browseL8(ctx, 'account.invoice', inv_id)
+                if inv.comment:
+                    i = inv.comment.find('\a\axml_id=')
+                    if i >= 0:
+                        atts = inv.comment[i:]
+                        comment = inv.comment[0:i]
+                        fatturapa_attachment_out_id = eval(atts[8:])
+                        try:
+                            writeL8(ctx, 'account.invoice', inv_id,
+                                    {'fatturapa_attachment_out_id':
+                                        fatturapa_attachment_out_id,
+                                     'comment': comment})
+                        except BaseException:
+                            return 1
     return sts
 
 
@@ -3444,8 +3529,6 @@ def upd_movements_2_posted(move_dict, ctx):
 
 def unreconcile_invoices(reconcile_dict, ctx):
     for inv_id in reconcile_dict:
-        # msg = u"Unreconcile invoice %d" % inv_id
-        # msg_log(ctx, ctx['level'], msg)
         try:
             context = {'active_ids': reconcile_dict[inv_id]}
             executeL8(ctx,
