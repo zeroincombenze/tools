@@ -102,9 +102,9 @@ try:
 except ImportError:
     import os0
 try:
-    from z0lib.z0lib import parseoptargs
+    from z0lib.z0lib import z0lib
 except ImportError:
-    from z0lib import parseoptargs
+    from z0lib import z0lib
 try:
     from clodoo import clodoo
 except ImportError:
@@ -638,9 +638,9 @@ def main(ctx):
 
 if __name__ == "__main__":
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
-    parser = parseoptargs("Odoo dependencies",
-                          "© 2019 by SHS-AV s.r.l.",
-                          version=__version__)
+    parser = z0lib.parseoptargs("Odoo dependencies",
+                                "© 2019 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',
                         action='store',
