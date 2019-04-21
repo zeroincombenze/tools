@@ -86,6 +86,7 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
     rm -f $tgt
   fi
 done
+find $SRCPATH -name "*.pyc" -delete
 export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
 # echo "set -v">$DSTPATH/activate_tools
