@@ -27,14 +27,12 @@ import csv
 # import pdb
 import os
 import sys
-
-# import re
 try:
-    from z0lib.z0lib import parseoptargs
+    from z0lib.z0lib import z0lib
 except ImportError:
-    from z0lib import parseoptargs
+    from z0lib import z0lib
 
-__version__ = "0.3.8.15"
+__version__ = "0.3.8.16"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -311,9 +309,9 @@ def transodoo(ctx=None):
 
 
 if __name__ == "__main__":
-    parser = parseoptargs("Transodoo",
-                          "© 2017-2018 by SHS-AV s.r.l.",
-                          version=__version__)
+    parser = z0lib.parseoptargs("Transodoo",
+                                "© 2017-2019 by SHS-AV s.r.l.",
+                                version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--branch',
                         action='store',

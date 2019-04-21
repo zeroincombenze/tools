@@ -93,6 +93,8 @@ login_user, login_password parameters to connect DB.
 """
 from __future__ import print_function, unicode_literals
 
+import pdb
+pdb.set_trace()
 import sys
 import os
 import ast
