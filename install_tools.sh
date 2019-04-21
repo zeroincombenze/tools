@@ -1,4 +1,4 @@
-# __version__=0.2.2.7
+# __version__=0.2.2.8
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -7,6 +7,7 @@ if [[ $1 =~ -.*h ]]; then
   echo "  -h  this help"
   echo "  -p  mkdir $HOME/dev if not exists"
   echo "  -q  quiet mode"
+  echo "  -v  more verbose"
   exit 0
 fi
 
@@ -33,7 +34,7 @@ fi
 for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa tools; do
   l="RFLIST__$pkg"
   flist=${!l}
-  [[ ! $1 =~ -.*q ]] && echo "[$pkg=$flist]"
+  [[ $1 =~ -.*v ]] && echo "[$pkg=$flist]"
   for fn in $flist; do
     if [ "$fn" == "." ]; then
       src="$SRCPATH/${pkg}"
@@ -87,14 +88,13 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
 done
 export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
-echo "export PYTHONPATH=$SRCPATH">$DSTPATH/.activate_tools
-echo "export PATH=$DSTPATH:\$PATH">>$DSTPATH/.activate_tools
+# echo "set -v">$DSTPATH/activate_tools
+echo "[[ ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
+echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
+# echo "set +v">>$DSTPATH/activate_tools
 if [[ ! $1 =~ -.*q ]]; then
-  echo "--------------------------------------------------"
-  echo "Please add following statements in your login file"
-  echo ". $DSTPATH/.activate_tools"
-  ehco "Now you can type following commands:"
-  echo "export PYTHONPATH=$SRCPATH"
-  echo "export PATH=$DSTPATH:\$PATH"
-  echo "--------------------------------------------------"
+  echo "-----------------------------------------------------------"
+  echo "Please type and add following statements in your login file"
+  echo ". $DSTPATH/activate_tools"
+  echo "-----------------------------------------------------------"
 fi
