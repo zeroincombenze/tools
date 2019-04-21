@@ -1,18 +1,19 @@
-# __version__=0.2.2.5
+# __version__=0.2.2.7
+#
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 if [[ $1 =~ -.*h ]]; then
   echo "$THIS [-h][-p][-q]"
   echo "  -h  this help"
-  echo "  -p  mkdir ~/dev if not exists"
+  echo "  -p  mkdir $HOME/dev if not exists"
   echo "  -q  quiet mode"
   exit 0
 fi
 
 RFLIST__travis_emulator="cvt_csv_2_rst.py cvt_csv_2_xml.py dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
-RFLIST__devel_tools="generate_all_tnl gen_readme.py makepo_it.py odoo_translation.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
+RFLIST__devel_tools="generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
 RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_odoover_confn transodoo.py transodoo.csv upd_oemod.py"
-RFLIST__zar="pg_db_active"
+RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="z0testrc"
 RFLIST__wok_code="cvt_script"
@@ -21,10 +22,10 @@ RFLIST__tools="odoo_default_tnl.csv templates"
 MOVED_FILES_RE="(gen_readme.py|makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
 SRCPATH=
 DSTPATH=
-[ -d ~/tools ] && SRCPATH=~/tools
+[ -d $HOME/tools ] && SRCPATH=$HOME/tools
 [ -z "$SRCPATH" -a -d $TDIR/../tools ] && SRCPATH=$(readlink -f $TDIR/../tools)
-[[ ! -d ~/dev && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p ~/dev
-[ -d ~/dev ] && DSTPATH=~/dev
+[[ ! -d $HOME/dev && -n "$SRCPATH" && $1 =~ -.*p ]] && mkdir -p $HOME/dev
+[ -d $HOME/dev ] && DSTPATH=$HOME/dev
 if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
   echo "Invalid environment"
   exit 1
@@ -86,10 +87,14 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
 done
 export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
+echo "export PYTHONPATH=$SRCPATH">$DSTPATH/.activate_tools
+echo "export PATH=$DSTPATH:\$PATH">>$DSTPATH/.activate_tools
 if [[ ! $1 =~ -.*q ]]; then
   echo "--------------------------------------------------"
   echo "Please add following statements in your login file"
-  echo "export PYTHONPATH=$DSTPATH:$SRCPATH"
+  echo ". $DSTPATH/.activate_tools"
+  ehco "Now you can type following commands:"
+  echo "export PYTHONPATH=$SRCPATH"
   echo "export PATH=$DSTPATH:\$PATH"
   echo "--------------------------------------------------"
 fi
