@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Copyright 2017-2018, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
+# Copyright 2017-2019, Antonio M. Vigliotti <antoniomaria.vigliotti@gmail.com>
 #
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 from __future__ import print_function       #, unicode_literals
 import sys
 try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    from z0lib import z0lib
+try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
-try:
-    from z0lib.z0lib import parseoptargs
-except ImportError:
-    from z0lib import parseoptargs
 
 
-__version__ = "0.3.8.15"
+__version__ = "0.3.8.16"
 
 
 def get_name_by_ver(ctx, name):
@@ -304,9 +304,9 @@ def print_move_info(inv_id):
         inv_obj.company_id))
 
 
-parser = parseoptargs("Set invoice status",
-                      "© 2017-2018 by SHS-AV s.r.l.",
-                      version=__version__)
+parser = z0lib.parseoptargs("Set invoice status",
+                            "© 2017-2019 by SHS-AV s.r.l.",
+                            version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--config",
                     help="configuration command file",
