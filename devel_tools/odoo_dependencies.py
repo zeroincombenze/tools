@@ -26,7 +26,7 @@ optional arguments:
   -D file, --dbname file
                         DB name
   -d, --action-depends
-  -E, --missed-modules
+  -E, --only-missed
   -e, --external-dependencies
   -H, --action-help
   -j, --action-just-reverse-modules
@@ -81,7 +81,7 @@ Action 'tree' print modules tree. With -E switch print only missed modules.
 
 SPECIAL FEATURES
 
-Switch -N returns, for all actions, the count of modules.
+Switch -N returns, for all actions, the counting of modules.
 
 Switch -D replaces value of MODULES_TO_MATCH with installed module in DB;
 so, with -D, -m and -E switches and without -M switch, return installed modules
@@ -93,8 +93,6 @@ login_user, login_password parameters to connect DB.
 """
 from __future__ import print_function, unicode_literals
 
-import pdb
-pdb.set_trace()
 import sys
 import os
 import ast
@@ -403,19 +401,24 @@ def check_tree(path_list, matches=None, depth=None):
                 for sub in modules[module]['depends']:
                     if sub not in module_list:
                         if sub not in missed_modules:
-                            print(
-                                'Missed module %s, child of %s' %
-                                (sub, module))
-                            missed_modules[sub] = {'status': 'missed'}
+                            # print(
+                            #     'Missed module %s, child of %s' %
+                            #     (sub, module))
+                            missed_modules[sub] = {
+                                'status': 'missed, child of %s' % module}
                         cur_level = UNDEF_DEEP
                         break
                     if 'level' in modules[sub]:
                         cur_level = max(cur_level, modules[sub]['level'] + 1)
                         if cur_level > MAX_DEEP:
                             cur_level = MAX_DEEP
+                            modules[module]['status'] = 'too deep'
                             break
+                        else:
+                            modules[module]['status'] = 'OK'
                     else:
                         cur_level = -1
+                        modules[module]['status'] = 'broken by %s' % sub
                         break
                 if cur_level >= MAX_DEEP:
                     modules[module]['level'] = MAX_DEEP
@@ -444,7 +447,7 @@ def get_modules_list(path_list, depth=None, matches=None,
             if module not in res:
                 res.append(module)
     if matches:
-            if ctx['missed_modules']:
+            if ctx['only-missed']:
                 res = list((set(matches) - set(res)) |
                            set(ctx['modules_unstable']))
             else:
@@ -619,19 +622,23 @@ def main(ctx):
         error, modules = check_tree(ctx['path_list'],
                                     matches=ctx['modules_to_match'],
                                     depth=ctx['depth'])
-        if not ctx['missed_modules']:
+        if not ctx['only-missed']:
             if error:
-                print('Error in tree')
+                print('Broken tree structure')
             for level in range(MAX_DEEP):
                 for module in modules:
                     if modules[module].get('level', -1) == level:
-                        print('%2d %s %s' % (level, ' ' * level, module))
+                        print('%2d %s%s' % (level, ' ' * level, module))
             for module in modules:
                 if modules[module].get('level', -1) >= MAX_DEEP:
-                    print('%s %s' % ('-' * MAX_DEEP, module))
+                    print('%s %s (%s)' % ('-' * MAX_DEEP,
+                                          module,
+                                          modules[module].get('status', '')))
         for module in modules:
             if modules[module].get('level', -1) == -1:
-                print('%s %s' % ('*' * MAX_DEEP, module))
+                print('%s %s %s)' % ('*' * MAX_DEEP,
+                                     module,
+                                     modules[module].get('status', '')))
     else:
         print(__doc__)
         return 1
@@ -673,9 +680,9 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--action-depends',
                         action='store_true',
                         dest='act_depends')
-    parser.add_argument('-E', '--missed-modules',
+    parser.add_argument('-E', '--only-missed',
                         action='store_true',
-                        dest='missed_modules')
+                        dest='only-missed')
     parser.add_argument('-e', '--external-dependencies',
                         action='store_true',
                         default='',
@@ -768,7 +775,7 @@ if __name__ == "__main__":
     if ctx['db_name'] and not ctx['conf_fn']:
         print('No configuration file for DB access!')
         exit (1)
-    if ctx['missed_modules'] and (ctx['external_dependencies'] or
+    if ctx['only-missed'] and (ctx['external_dependencies'] or
                                   ctx['external_bin_dependencies']):
         print('Switches -E and -e or -b are mutually exclusive!')
         exit (1)

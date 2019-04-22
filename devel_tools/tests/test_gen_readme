@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.7
+__version__=0.2.2.8
 
 
 test_01() {
@@ -52,7 +52,7 @@ EOF
 Lorem ipsum
 -----------
 
-Lorem ipsum dolor sit amet
+Lorem ipsum *dolor* sit amet
 .. \$if branch in '12.0'
 odoo 12.0
 .. \$elif branch in '10.0'
@@ -126,7 +126,7 @@ Overview
 Lorem ipsum
 -----------
 
-Lorem ipsum dolor sit amet
+Lorem ipsum *dolor* sit amet
 consectetur adipiscing elit
 
 
@@ -181,7 +181,7 @@ Test file
 <h1>Overview</h1>
 
 <p align="justify">
-Lorem ipsum dolor sit amet
+Lorem ipsum <b>dolor</b> sit amet
 consectetur adipiscing elit
 </p>
 

@@ -92,7 +92,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.7"
+__version__ = "0.2.2.8"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -294,29 +294,46 @@ def get_default_avaiable_addons(ctx):
 def tohtml(text):
     i = text.find('`')
     j = text.find('`__')
-    while i >= 0 and j > i:
-        t = text[i + 1: j]
-        ii = t.find('<')
-        jj = t.find('>')
-        if ii >= 0 and jj > ii:
-            url = t[ii + 1: jj]
-            if (j + 3) < len(text):
-                text = u'%s\aa href="%s"\b%s\a/a\b%s' % (
-                    text[0:i],
-                    url,
-                    t[0: ii - 1].strip(),
-                    text[j + 3:]
-                )
-            else:
-                text = u'%s\aa href="%s"\b%s\a/a\b' % (
-                    text[0:i],
-                    url,
-                    t[0: ii - 1].strip()
-                )
+    k = text.find('`', i + 1)
+    while i >= 0 and (j > i or k > i):
+        if k > 0 and k < j:
+            text = u'%s\acode\b%s\a/code\b%s' % (
+                text[0:i],
+                text[i + 1: j],
+                text[j + 1:])
         else:
-            break
+            t = text[i + 1: j]
+            ii = t.find('<')
+            jj = t.find('>')
+            if ii >= 0 and jj > ii:
+                url = t[ii + 1: jj]
+                if (j + 3) < len(text):
+                    text = u'%s\aa href="%s"\b%s\a/a\b%s' % (
+                        text[0:i],
+                        url,
+                        t[0: ii - 1].strip(),
+                        text[j + 3:]
+                    )
+                else:
+                    text = u'%s\aa href="%s"\b%s\a/a\b' % (
+                        text[0:i],
+                        url,
+                        t[0: ii - 1].strip()
+                    )
+            else:
+                break
         i = text.find('`')
         j = text.find('`__')
+        k = text.find('`', i + 1)
+    i = text.find('*')
+    j = text.find('*', i + 1)
+    while i > 0 and j > i:
+        text = u'%s\ab\b%s\a/b\b%s' % (
+            text[0:i],
+            text[i + 1: j],
+            text[j + 1:])
+        i = text.find('*')
+        j = text.find('*', i + 1)
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     text = text.replace('\a', '<').replace('\b', '>')
     lines = text.split('\n')
@@ -508,6 +525,8 @@ def expand_macro(ctx, token, out_fmt=None):
 def expand_macro_in_line(ctx, line, state=None):
     state = state or _init_state()
     out_fmt = state.get('out_fmt', 'rst')
+    in_fmt = state.get('in_fmt', 'rst')
+    srctype = state.get('srctype', '')
     if out_fmt == 'html':
         for token in DEFINED_GRYMB_SYMBOLS:
             value = '|' + token + '|'
@@ -523,11 +542,27 @@ def expand_macro_in_line(ctx, line, state=None):
         if value is False or value is None:
             print('Invalid macro %s' % tokens[0])
             value = ''
-        elif len(value.split('\n')) > 1:
+        else:
+            if tokens[0] in ('authors',
+                             'contributors',
+                             'translators',
+                             'acknowledges'):
+                if len(value.split('\n')) > 1:
+                    state['srctype'] = tokens[0]
+                else:
+                    value = line_of_list(ctx, state, value)
+        if len(value.split('\n')) > 1:
+            if in_fmt == 'html':
+                state, value = parse_source(ctx, value, state=state)
+                if out_fmt == 'html':
+                    value = tohtml(value)
+                if 'srctype' in state:    del state['srctype']
+                return line[0:i] + value + line[j + 2:]
             line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(ctx, line, state=state)
             if out_fmt == 'html':
                 value = tohtml(value)
+            if 'srctype' in state:    del state['srctype']
             return value
         if out_fmt == 'html':
             value = tohtml(value)
@@ -538,6 +573,11 @@ def expand_macro_in_line(ctx, line, state=None):
             line = line[0:i] + value + line[j + 2:]
         i = line.find('{{')
         j = line.find('}}')
+    if srctype in ('authors',
+                   'contributors',
+                   'translators',
+                   'acknowledges'):
+        line = line_of_list(ctx, state, line)
     return line
 
 
@@ -693,38 +733,28 @@ def line_of_list(ctx, state, line):
     stop = True
     if line:
         if line[0] == '#':
-            text = '\t'
+            text = ''
         else:
             names = line.split(' ')
             if names[0] and names[0][0] == '*':
                 stop = False
-                if state['in_fmt'] == 'acknowledges':
+                if state['srctype'] == 'acknowledges':
                     ctr = 0
                     for i in range(3):
                         if ctx['contributors'].find(names[i]) >= 0:
                             ctr += 1
                     if ctr >= 2:
                         stop = True
-                        text = '\t'
+                        text = ''
     if not stop:
-        if state.get('out_fmt', 'rst') == 'html':
-            if state['in_fmt'] == 'authors':
-                fmt = '* `%s`__'
-            else:
-                fmt = '* %s'
-            if line[0:2] == '* ':
-                text = fmt % line[2:]
-            else:
-                text = fmt % line
+        if state['srctype'] == 'authors':
+            fmt = '* `%s`__'
         else:
-            if state['in_fmt'] == 'authors':
-                fmt = '* `%s`__'
-            else:
-                fmt = '* %s'
-            if line[0:2] == '* ':
-                text = fmt % line[2:]
-            else:
-                text = fmt % line
+            fmt = '* %s'
+        if line[0:2] == '* ':
+            text = fmt % line[2:]
+        else:
+            text = fmt % line
     return text
 
 
@@ -779,14 +809,6 @@ def parse_source(ctx, source, state=None):
                         i = 9 + x.end()
                         value = line[i:]
                         ctx[name] = value
-            elif state['in_fmt'] in ('authors',
-                                     'contributors',
-                                     'translators',
-                                     'acknowledges'):
-                text = line_of_list(ctx, state, line)
-                if text != '\t':
-                    state, text = append_line(state, text, nl_bef=nl_bef)
-                    target += text
             elif state['in_fmt'] == 'rst' and (
                     line and ((line == '=' * len(line)) or
                               (line == '-' * len(line)))):
@@ -802,24 +824,25 @@ def parse_source(ctx, source, state=None):
                     state, text = append_line(state, line, nl_bef=nl_bef)
                     target += text
             else:
-                in_fmt = state['in_fmt']
-                if line.find('{{authors}}') >= 0:
-                    state['in_fmt'] = 'authors'
-                elif line.find('{{contributors}}') >= 0:
-                    state['in_fmt'] = 'contributors'
-                elif line.find('{{translators}}') >= 0:
-                    state['in_fmt'] = 'translators'
-                elif line.find('{{acknowledges}}') >= 0:
-                    state['in_fmt'] = 'acknowledges'
                 text = expand_macro_in_line(ctx, line, state=state)
-                state['in_fmt'] = in_fmt
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     return state, target
 
 
-def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
+def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
+                     in_fmt=None, out_fmt=None):
     state = state or _init_state()
+    if out_fmt:
+        state['out_fmt'] = out_fmt
+    elif not state['out_fmt']:
+        state['out_fmt'] = 'raw'
+    if in_fmt:
+        state['in_fmt'] = in_fmt
+    elif filename.endswith('.html'):
+        state['in_fmt'] = 'html'
+    elif not state['in_fmt']:
+        state['in_fmt'] = 'raw'
     full_fn = get_template_fn(ctx, filename, ignore_ntf=ignore_ntf)
     if not full_fn:
         token = filename[0:-4]
@@ -857,18 +880,6 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None):
             fd.close()
         source = header + source + footer
     return parse_source(ctx, source, state=state)
-
-
-def parse_file(ctx, filename, ignore_ntf=None, out_fmt=None):
-    state = _init_state()
-    if out_fmt:
-        state['out_fmt'] = out_fmt
-    else:
-        #  state['action'] = 'pass1'
-        state['in_fmt'] = 'raw'
-    return parse_local_file(ctx, filename,
-                            ignore_ntf=ignore_ntf,
-                            state=state)[1]
 
 
 def read_manifest(ctx):
@@ -1008,7 +1019,7 @@ def manifest_contents(ctx):
     for item in MANIFEST_ITEMS:
         if item == 'description':
             if ctx['odoo_majver'] < 8:
-                text = parse_file(ctx, 'readme_manifest.rst')
+                text = parse_local_file(ctx, 'readme_manifest.rst')[1]
                 target += "    '%s': r'''%s''',\n" % (item, text)
         elif item in ctx['manifest']:
             if isinstance(ctx['manifest'][item], basestring):
@@ -1109,13 +1120,13 @@ def generate_readme(ctx):
     else:
         out_fmt = None
     for section in DEFINED_TAG:
-        ctx[section] = parse_file(ctx, '%s.txt' % section,
-                                  ignore_ntf=True,
-                                  out_fmt=out_fmt)
+        ctx[section] = parse_local_file(ctx, '%s.txt' % section,
+                                        ignore_ntf=True,
+                                        out_fmt=out_fmt)[1]
     for section in DEFINED_SECTIONS:
-        ctx[section] = parse_file(ctx, '%s.rst' % section,
-                                  ignore_ntf=True,
-                                  out_fmt=out_fmt)
+        ctx[section] = parse_local_file(ctx, '%s.rst' % section,
+                                        ignore_ntf=True,
+                                        out_fmt=out_fmt)[1]
     if not ctx['sommario']:
         lines = ctx['descrizione'].split('\n')
         if lines[0]:
@@ -1128,15 +1139,15 @@ def generate_readme(ctx):
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_index.html'
         target = index_html_content(ctx,
-                                    parse_file(ctx,
-                                               ctx['template_name'],
-                                               out_fmt='html'))
+                                    parse_local_file(ctx,
+                                                     ctx['template_name'],
+                                                     out_fmt='html')[1])
     else:
         if not ctx['template_name']:
             ctx['template_name'] = 'readme_main_%s.rst' % ctx['odoo_layer']
-        target = parse_file(ctx,
-                            ctx['template_name'],
-                            out_fmt='rst')
+        target = parse_local_file(ctx,
+                                  ctx['template_name'],
+                                  out_fmt='rst')[1]
     if ctx['rewrite_manifest']:
         target = manifest_contents(ctx)
     tmpfile = '%s.tmp' % ctx['dst_file']

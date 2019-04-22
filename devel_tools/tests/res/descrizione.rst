@@ -1,7 +1,7 @@
 Lorem ipsum
 -----------
 
-Lorem ipsum dolor sit amet
+Lorem ipsum *dolor* sit amet
 .. $if branch in '12.0'
 odoo 12.0
 .. $elif branch in '10.0'
