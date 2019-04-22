@@ -6,8 +6,12 @@ Lorem ipsum *dolor* sit amet
 odoo 12.0
 .. $elif branch in '10.0'
 odoo 10.0
-.. $elif branch in '10.0'
+.. $elif branch in '8.0'
 odoo 8.0
 .. $else
 consectetur adipiscing elit
 .. $fi
+
+.. image:: https://odoo-community.org/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org

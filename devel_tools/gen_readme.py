@@ -112,6 +112,10 @@ DEFINED_TAG = ['__init__', 'name', 'summary', 'sommario',
                'today',
                'authors', 'contributors', 'translators', 'acknowledges']
 DEFINED_TOKENS = DEFINED_TAG + DEFINED_SECTIONS
+LIST_TAG = ('authors',
+            'contributors',
+            'translators',
+            'acknowledges')
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
            'https://www.facebook.com/groups/openerp.italia/'],
@@ -291,7 +295,25 @@ def get_default_avaiable_addons(ctx):
     return text
 
 
-def tohtml(text):
+def tohtml(text, state=None):
+    state = state or {}
+    state['html_state'] = state.get('html_state', {})
+    if state['html_state'].get('tag') == 'image':
+        x = re.match(r' +:alt:', text)
+        if x:
+            state['html_state']['alt'] = text[x.end():].strip()
+            return state, ''
+        x = re.match(r' +:target:', text)
+        if x:
+            state['html_state']['alt'] = text[x.end():].strip()
+            return state, ''
+        value='<img src="%s">' % state['html_state']['url']
+        del state['html_state']
+        return state,value
+    elif text.startswith('.. image::'):
+        state['html_state']['tag'] = 'image'
+        state['html_state']['url'] = text[10:].strip()
+        return state, ''
     i = text.find('`')
     j = text.find('`__')
     k = text.find('`', i + 1)
@@ -408,7 +430,7 @@ def tohtml(text):
     if hdr_foo:
         lines.insert(0, '<p align="justify">')
         lines.append('</p>')
-    return '\n'.join(lines)
+    return state, '\n'.join(lines)
 
 
 def expand_macro(ctx, token, out_fmt=None):
@@ -423,10 +445,21 @@ def expand_macro(ctx, token, out_fmt=None):
     elif token == 'branch':
         value = ctx['odoo_fver']
     elif token == 'prior_branch':
-        if ctx['odoo_majver'] > 7:
-            value = '%d.0' % (ctx['odoo_majver'] - 1)
+        pmv = ctx['odoo_majver'] - 1
+        if pmv > 6:
+            value = '%d.0' % pmv
+        elif pmv == 6:
+            value = '%d.1' % pmv
         else:
-            value = '%d.1' % (ctx['odoo_majver'] - 1)
+            value = 'N/V'
+    elif token == 'prior2_branch':
+        pmv = ctx['odoo_majver'] - 2
+        if pmv > 6:
+            value = '%d.0' % pmv
+        elif pmv == 6:
+            value = '%d.1' % pmv
+        else:
+            value = 'N/V'
     elif token == 'module_version':
         value = ctx['manifest']['version']
     elif token == 'icon':
@@ -543,29 +576,28 @@ def expand_macro_in_line(ctx, line, state=None):
             print('Invalid macro %s' % tokens[0])
             value = ''
         else:
-            if tokens[0] in ('authors',
-                             'contributors',
-                             'translators',
-                             'acknowledges'):
+            if tokens[0] in LIST_TAG:
                 if len(value.split('\n')) > 1:
                     state['srctype'] = tokens[0]
                 else:
                     value = line_of_list(ctx, state, value)
+            else:
+                state['in_fmt'] = 'rst'
         if len(value.split('\n')) > 1:
-            if in_fmt == 'html':
+            if state['in_fmt'] == 'html':
                 state, value = parse_source(ctx, value, state=state)
                 if out_fmt == 'html':
-                    value = tohtml(value)
+                    state, value = tohtml(value, state=state)
                 if 'srctype' in state:    del state['srctype']
-                return line[0:i] + value + line[j + 2:]
+                return state, line[0:i] + value + line[j + 2:]
             line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(ctx, line, state=state)
             if out_fmt == 'html':
-                value = tohtml(value)
+                state, value = tohtml(value, state=state)
             if 'srctype' in state:    del state['srctype']
-            return value
+            return state, value
         if out_fmt == 'html':
-            value = tohtml(value)
+            state, value = tohtml(value, state=state)
         if len(tokens) > 1:
             fmt = tokens[1]
             line = line[0:i] + (fmt % value) + line[j + 2:]
@@ -573,12 +605,10 @@ def expand_macro_in_line(ctx, line, state=None):
             line = line[0:i] + value + line[j + 2:]
         i = line.find('{{')
         j = line.find('}}')
-    if srctype in ('authors',
-                   'contributors',
-                   'translators',
-                   'acknowledges'):
+    if srctype in LIST_TAG:
         line = line_of_list(ctx, state, line)
-    return line
+    state['in_fmt'] = in_fmt
+    return state, line
 
 
 def _init_state():
@@ -824,7 +854,12 @@ def parse_source(ctx, source, state=None):
                     state, text = append_line(state, line, nl_bef=nl_bef)
                     target += text
             else:
-                text = expand_macro_in_line(ctx, line, state=state)
+                state, text = expand_macro_in_line(ctx, line, state=state)
+                if (state['in_fmt'] == 'rst' and
+                        state['out_fmt'] == 'html' and
+                        (text.startswith('.. image::') or
+                         state.get('html_state'))):
+                    state, text = tohtml(text, state=state)
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     return state, target
@@ -862,9 +897,13 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     source = os0.u(fd.read())
     fd.close()
     if len(source) and filename == 'acknowledges.txt':
-        source = source.replace('branch', 'prior_branch')
-        state, source = parse_source(ctx, source, state=state)
-        source = parse_acknoledge_list(ctx, source)
+        state, source1 = parse_source(ctx,
+                                      source.replace('branch', 'prior_branch'),
+                                      state=state)
+        state, source2 = parse_source(ctx,
+                                      source.replace('branch', 'prior2_branch'),
+                                      state=state)
+        source = parse_acknoledge_list(ctx, source1 + source2)
     if len(source):
         full_hfn = get_template_fn(ctx, 'header_' + filename)
         header = ''
@@ -1115,15 +1154,16 @@ def generate_readme(ctx):
                                                  odoo_vid=ctx['odoo_fver'])
         read_manifest(ctx)
     set_default_values(ctx)
-    if ctx['write_html']:
-        out_fmt = 'html'
-    else:
-        out_fmt = None
     for section in DEFINED_TAG:
+        if ctx['write_html'] and section in LIST_TAG:
+            out_fmt = 'html'
+        else:
+            out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]
     for section in DEFINED_SECTIONS:
+        out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.rst' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]

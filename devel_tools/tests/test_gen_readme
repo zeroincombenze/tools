@@ -57,11 +57,15 @@ Lorem ipsum *dolor* sit amet
 odoo 12.0
 .. \$elif branch in '10.0'
 odoo 10.0
-.. \$elif branch in '10.0'
+.. \$elif branch in '8.0'
 odoo 8.0
 .. \$else
 consectetur adipiscing elit
 .. \$fi
+
+.. image:: https://odoo-community.org/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
 EOF
       cat <<EOF >$TESTDIR/res/authors.txt
 .. \$if branch in '12.0'
@@ -81,6 +85,8 @@ EOF
 * antonio <antoniov@libero.it>
 .. \$elif branch in '10.0'
 * lorenzo <lorenzo@libero.it>
+.. \$elif branch in '9.0'
+* Davide <davide@libero.it>
 .. \$else
 * unknown contributor <unknow@example.com>
 .. \$fi
@@ -129,6 +135,10 @@ Lorem ipsum
 Lorem ipsum *dolor* sit amet
 consectetur adipiscing elit
 
+.. image:: https://odoo-community.org/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
 
 
 * \`SHS-AV s.r.l. <https://www.shs-av.com>\`__
@@ -144,6 +154,7 @@ Acknoledges to
 --------------
 
 * lorenzo <lorenzo@libero.it>
+* Davide <davide@libero.it>
 EOF
       pushd $TESTDIR/res &>/dev/null
       $RUNDIR/gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC
@@ -172,6 +183,7 @@ Test file
 {{authors}}
 </section>
 EOF
+# FIX img tag
       cat <<EOF >$TESTRES
 
 <section class="oe_container">
@@ -183,6 +195,11 @@ Test file
 <p align="justify">
 Lorem ipsum <b>dolor</b> sit amet
 consectetur adipiscing elit
+</p><p align="justify">
+</p><p align="justify">
+</p><p align="justify">
+</p><p align="justify">
+&lt;img src="https://odoo-community.org/logo.png"&gt;
 </p>
 
 <ul>
