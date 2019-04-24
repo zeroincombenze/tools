@@ -92,7 +92,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.8"
+__version__ = "0.2.2.9"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -312,12 +312,13 @@ def tohtml(text, state=None):
     text = text.replace('\a', '<').replace('\b', '>')
 
     for token in DEFINED_GRYMB_SYMBOLS:
-        value = '|' + token + '|'
-        i = text.find(value)
-        if i >= 0:
-            value = expand_macro(
-                ctx, '<img src="{{grymb_image_%s}}"/>' % token)
-            text = text[0: i] + value + text[i + len(token) + 2:]
+        tok = '|' + token + '|'
+        i = text.find(tok)
+        while i >= 0:
+            value = '<img src="%s"/>' % expand_macro(ctx,
+                                                     'grymb_image_%s' % token)
+            text = text[0: i] + value + text[i + len(tok):]
+            i = text.find(tok)
 
     # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
     i = text.find('`')
@@ -353,25 +354,16 @@ def tohtml(text, state=None):
         i = text.find('`')
         j = text.find('`__')
         k = text.find('`', i + 1)
-    # Parse multi-line rst tags: <*>ITALIC<*> | <**>BOLD<**>
+    # Parse multi-line rst tags: <**>BOLD<**>
     i = text.find('**')
     j = text.find('**', i + 2)
     while i > 0 and j > i:
-        text = u'%s<i>%s</i>%s' % (
+        text = u'%s<b>%s</b>%s' % (
             text[0:i],
             text[i + 2: j],
             text[j + 2:])
-        i = text.find('*')
-        j = text.find('*', i + 2)
-    i = text.find('*')
-    j = text.find('*', i + 1)
-    while i > 0 and j > i:
-        text = u'%s<b>%s</b>%s' % (
-            text[0:i],
-            text[i + 1: j],
-            text[j + 1:])
-        i = text.find('*')
-        j = text.find('*', i + 2)
+        i = text.find('**')
+        j = text.find('**', i + 2)
     # Parse single line rst tags; remove trailing and tailing empty lines
     lines = text.split('\n')
     while len(lines) > 1 and not lines[-1]:
@@ -382,98 +374,123 @@ def tohtml(text, state=None):
     in_list = False
     in_table = False
     open_para = 0
-    i = 0
-    while i < len(lines):
-        if lines[i][0:2] != '..':
+    lineno = 0
+    while lineno < len(lines):
+        if lines[lineno][0:2] != '..':
             if state['html_state'].get('tag') == 'image':
-                x = re.match(r' +:alt:', lines[i])
+                x = re.match(r' +:alt:', lines[lineno])
                 if x:
-                    state['html_state']['alt'] = lines[i][x.end():].strip()
-                    del lines[i]
+                    state['html_state']['alt'] = lines[lineno][x.end():].strip()
+                    del lines[lineno]
                     continue
-                x = re.match(r' +:target:', lines[i])
+                x = re.match(r' +:target:', lines[lineno])
                 if x:
-                    state['html_state']['alt'] = lines[i][x.end():].strip()
-                    del lines[i]
+                    state['html_state']['target'] = lines[lineno][x.end():].strip()
+                    del lines[lineno]
                     continue
-                lines.insert(i,
+                lines.insert(lineno,
                     '<img src="%s"/>' % state['html_state']['url'])
-                del state['html_state']
-            elif re.match(r'^ *\+(-+\+)+ *$', lines[i]):
+                for tag in ('tag', 'alt', 'target'):
+                    if tag in state['html_state']:
+                        del state['html_state'][tag]
+            elif (lines[lineno] and lines[lineno][0] == ' ' and
+                    state['html_state'].get('tag') == 'code'):
+                pass
+            elif state['html_state'].get('tag') == 'code':
+                lines.insert(lineno, '</code>')
+                del state['html_state']['tag']
+            elif re.match(r'^ *\+(-+\+)+ *$', lines[lineno]):
                 if not in_table:
-                    lines.insert(i,
-                        '<table style="width:100%; padding:2px; '
-                        'border-spacing:2px; text-align:left;"><tr>')
+                    lines[lineno] ='<table style="width:100%; padding:2px; ' \
+                                   'border-spacing:2px; text-align:left;"><tr>'
                     in_table = True
                 else:
-                    lines[i] = '</tr><tr>'
-            elif in_table and re.match(r' *|.*| *$', lines[i]):
-                cols = lines[i].split('|')
+                    lines[lineno] = '</tr><tr>'
+            elif in_table and re.match(r' *|.*| *$', lines[lineno]):
+                cols = lines[lineno].split('|')
                 del cols[0]
                 row = ''
                 for col in cols:
                     row += '</td><td>' + col.strip()
                 row = row[5:-4]
-                lines[i] = row
+                lines[lineno] = row
             elif in_table:
-                lines[i - 1] = '%s</table>' % lines[i - 1][:-4]
+                lines[lineno - 1] = '%s</tr></table>' % lines[lineno - 1][:-4]
                 in_table = False
                 continue
-            elif lines[i][0:2] == '* ':
+            elif lines[lineno][0:2] == '* ':
                 if not in_list:
-                    lines.insert(i, '<ul>')
+                    lines.insert(lineno, '<ul>')
                     in_list = True
-                    i += 1
-                lines[i] = '<li>%s</li>' % lines[i][2:]
-            elif lines[i][0:2] != '* ' and in_list:
-                lines.insert(i, '</ul>')
+                    lineno += 1
+                lines[lineno] = '<li>%s</li>' % lines[lineno][2:]
+            elif lines[lineno][0:2] != '* ' and in_list:
+                lines.insert(lineno, '</ul>')
                 in_list = False
-                continue
-            elif lines[i] == '':
-                if open_para:
-                    lines[i] = '</p><p align="justify">'
+                # continue
+            elif lines[lineno] == '':
+                if state['html_state'].get('tag') == 'Code':
+                    lines[lineno] = '<code>'
+                    state['html_state']['tag'] = 'code'
+                elif open_para:
+                    lines[lineno] = '</p><p align="justify">'
                 else:
-                    lines[i] = '<p align="justify">'
+                    lines[lineno] = '<p align="justify">'
                     open_para += 1
-            elif (re.match(r'^=+$', lines[i]) and
-                    i > 0 and
-                    len(lines[i]) == len(lines[i - 1])):
-                lines[i - 1] = '<h1>%s</h1>' % lines[i - 1]
-                del lines[i]
+            elif (re.match(r'^=+$', lines[lineno]) and
+                    lineno > 0 and
+                    len(lines[lineno]) == len(lines[lineno - 1])):
+                lines[lineno - 1] = '<h1>%s</h1>' % lines[lineno - 1]
+                del lines[lineno]
                 continue
-            elif (re.match(r'^-+$', lines[i]) and
-                    i > 0 and
-                    len(lines[i]) == len(lines[i - 1])):
-                lines[i - 1] = '<h2>%s</h2>' % lines[i - 1]
-                del lines[i]
+            elif (re.match(r'^-+$', lines[lineno]) and
+                    lineno > 0 and
+                    len(lines[lineno]) == len(lines[lineno - 1])):
+                lines[lineno - 1] = '<h2>%s</h2>' % lines[lineno - 1]
+                del lines[lineno]
                 continue
+            elif re.match(r'^:: *$', lines[lineno]):
+                lines[lineno] = ''
+                state['html_state']['tag'] = 'Code'
+            elif lines[lineno] == '|':
+                lines[lineno] = '<br/>'
+            else:
+                i = lines[lineno].find('*')
+                j = lines[lineno].find('*', i + 1)
+                while i > 0 and j > i:
+                    lines[lineno] = u'%s<i>%s</i>%s' % (
+                        lines[lineno][0:i],
+                        lines[lineno][i + 1: j],
+                        lines[lineno][j + 1:])
+                    i = lines[lineno].find('*')
+                    j = lines[lineno].find('*', i + 1)
         else:
             if in_table:
-                lines.insert(i, '%s</table>' % lines[i -1][:-4])
+                lines[lineno - 1] = '</tr></table>'
                 in_table = False
             elif in_list:
-                lines.insert(i, '</ul>')
+                lines.insert(lineno, '</ul>')
                 in_list = False
             elif open_para:
-                lines.insert(i, '</p>')
+                lines.insert(lineno, '</p>')
                 open_para -= 1
-            if lines[i].startswith('.. image::'):
+            if lines[lineno].startswith('.. image::'):
                 state['html_state']['tag'] = 'image'
-                state['html_state']['url'] = lines[i][10:].strip()
-                del lines[i]
+                state['html_state']['url'] = lines[lineno][10:].strip()
+                del lines[lineno]
                 continue
-        i += 1
+        lineno += 1
     if state['html_state'].get('tag') == 'image':
         lines.append('<img src="%s"/>' % state['html_state']['url'])
         del state['html_state']
     elif in_table:
-        lines[-1] = '%s</table>' % lines[-1][:-4]
+        lines[-1] = '</tr></table>'
         in_table = False
     elif in_list:
         lines.append('</ul>')
         in_list = False
     if open_para:
-        lines.append('</p')
+        lines.append('</p>')
         open_para -= 1
     return state, '\n'.join(lines)
 

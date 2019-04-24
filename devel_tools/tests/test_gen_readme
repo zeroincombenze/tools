@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.8
+__version__=0.2.2.9
 
 
 test_01() {
@@ -52,7 +52,7 @@ EOF
 Lorem ipsum
 -----------
 
-Lorem ipsum *dolor* sit amet
+Lorem ipsum **dolor** sit amet
 .. \$if branch in '12.0'
 odoo 12.0
 .. \$elif branch in '10.0'
@@ -60,12 +60,24 @@ odoo 10.0
 .. \$elif branch in '8.0'
 odoo 8.0
 .. \$else
-consectetur adipiscing elit
+consectetur *adipiscing* elit
 .. \$fi
 
+* Feature A
+* Feature B
+::
+
+    >>> doc
+|
 .. image:: https://odoo-community.org/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
 EOF
       cat <<EOF >$TESTDIR/res/authors.txt
 .. \$if branch in '12.0'
@@ -132,12 +144,24 @@ Overview
 Lorem ipsum
 -----------
 
-Lorem ipsum *dolor* sit amet
-consectetur adipiscing elit
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
 
+* Feature A
+* Feature B
+::
+
+    >>> doc
+|
 .. image:: https://odoo-community.org/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
 
 
 
@@ -194,10 +218,26 @@ Test file
 <h2>test / Lorem ipsum</h2>
 <p align="justify">
 Lorem ipsum <b>dolor</b> sit amet
-consectetur adipiscing elit
+consectetur <i>adipiscing</i> elit
 </p><p align="justify">
+<ul>
+<li>Feature A</li>
+<li>Feature B</li>
+</ul>
+
+<code>
+    &gt;&gt;&gt; doc
+</code>
+<br/>
 </p>
 <img src="https://odoo-community.org/logo.png"/>
+<p align="justify">
+<table style="width:100%; padding:2px; border-spacing:2px; text-align:left;"><tr>
+<td>Feature A</td><td><img src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png"/></td>
+</tr><tr>
+<td>Feature B</td><td/>
+</tr></table>
+</p>
 
 <ul>
 <li><a href="https://www.shs-av.com">SHS-AV s.r.l.</a></li>
