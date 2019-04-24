@@ -1,4 +1,4 @@
-# __version__=0.2.2.8
+# __version__=0.2.2.9
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -31,6 +31,8 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
   echo "Invalid environment"
   exit 1
 fi
+find $SRCPATH -name "*.pyc" -delete
+find $DSTPATH -name "*.pyc" -delete
 for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa tools; do
   l="RFLIST__$pkg"
   flist=${!l}
@@ -86,7 +88,6 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
     rm -f $tgt
   fi
 done
-find $SRCPATH -name "*.pyc" -delete
 export PYTHONPATH=$DSTPATH:$SRCPATH
 [ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
 # echo "set -v">$DSTPATH/activate_tools

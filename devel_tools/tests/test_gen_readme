@@ -183,7 +183,6 @@ Test file
 {{authors}}
 </section>
 EOF
-# FIX img tag
       cat <<EOF >$TESTRES
 
 <section class="oe_container">
@@ -192,15 +191,13 @@ Test file
 
 <h1>Overview</h1>
 
+<h2>test / Lorem ipsum</h2>
 <p align="justify">
 Lorem ipsum <b>dolor</b> sit amet
 consectetur adipiscing elit
 </p><p align="justify">
-</p><p align="justify">
-</p><p align="justify">
-</p><p align="justify">
-&lt;img src="https://odoo-community.org/logo.png"&gt;
 </p>
+<img src="https://odoo-community.org/logo.png"/>
 
 <ul>
 <li><a href="https://www.shs-av.com">SHS-AV s.r.l.</a></li>

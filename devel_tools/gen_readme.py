@@ -296,30 +296,36 @@ def get_default_avaiable_addons(ctx):
 
 
 def tohtml(text, state=None):
+    if not text:
+        return state, text
     state = state or {}
     state['html_state'] = state.get('html_state', {})
-    if state['html_state'].get('tag') == 'image':
-        x = re.match(r' +:alt:', text)
-        if x:
-            state['html_state']['alt'] = text[x.end():].strip()
-            return state, ''
-        x = re.match(r' +:target:', text)
-        if x:
-            state['html_state']['alt'] = text[x.end():].strip()
-            return state, ''
-        value='<img src="%s">' % state['html_state']['url']
-        del state['html_state']
-        return state,value
-    elif text.startswith('.. image::'):
-        state['html_state']['tag'] = 'image'
-        state['html_state']['url'] = text[10:].strip()
-        return state, ''
+    # Convert gt & lt symbols to preserve html tags
+    i = text.find('<http')
+    while i >= 0:
+        j = text.find('>', i + 1)
+        if i >= 0 and j > i:
+            text = text[0:i] + '\a' + text[i + 1:]
+            text = text[0:j] + '\b' + text[j + 1:]
+        i = text.find('<http')
+    text = text.replace('<', '&lt;').replace('>', '&gt;')
+    text = text.replace('\a', '<').replace('\b', '>')
+
+    for token in DEFINED_GRYMB_SYMBOLS:
+        value = '|' + token + '|'
+        i = text.find(value)
+        if i >= 0:
+            value = expand_macro(
+                ctx, '<img src="{{grymb_image_%s}}"/>' % token)
+            text = text[0: i] + value + text[i + len(token) + 2:]
+
+    # Parse multi-line rst tags: <`>CODE<`> | <`>LINK<`__>
     i = text.find('`')
     j = text.find('`__')
     k = text.find('`', i + 1)
     while i >= 0 and (j > i or k > i):
         if k > 0 and k < j:
-            text = u'%s\acode\b%s\a/code\b%s' % (
+            text = u'%s<code>%s</code>%s' % (
                 text[0:i],
                 text[i + 1: j],
                 text[j + 1:])
@@ -330,14 +336,14 @@ def tohtml(text, state=None):
             if ii >= 0 and jj > ii:
                 url = t[ii + 1: jj]
                 if (j + 3) < len(text):
-                    text = u'%s\aa href="%s"\b%s\a/a\b%s' % (
+                    text = u'%s<a href="%s">%s</a>%s' % (
                         text[0:i],
                         url,
                         t[0: ii - 1].strip(),
                         text[j + 3:]
                     )
                 else:
-                    text = u'%s\aa href="%s"\b%s\a/a\b' % (
+                    text = u'%s<a href="%s">%s</a>' % (
                         text[0:i],
                         url,
                         t[0: ii - 1].strip()
@@ -347,94 +353,132 @@ def tohtml(text, state=None):
         i = text.find('`')
         j = text.find('`__')
         k = text.find('`', i + 1)
+    # Parse multi-line rst tags: <*>ITALIC<*> | <**>BOLD<**>
+    i = text.find('**')
+    j = text.find('**', i + 2)
+    while i > 0 and j > i:
+        text = u'%s<i>%s</i>%s' % (
+            text[0:i],
+            text[i + 2: j],
+            text[j + 2:])
+        i = text.find('*')
+        j = text.find('*', i + 2)
     i = text.find('*')
     j = text.find('*', i + 1)
     while i > 0 and j > i:
-        text = u'%s\ab\b%s\a/b\b%s' % (
+        text = u'%s<b>%s</b>%s' % (
             text[0:i],
             text[i + 1: j],
             text[j + 1:])
         i = text.find('*')
-        j = text.find('*', i + 1)
-    text = text.replace('<', '&lt;').replace('>', '&gt;')
-    text = text.replace('\a', '<').replace('\b', '>')
+        j = text.find('*', i + 2)
+    # Parse single line rst tags; remove trailing and tailing empty lines
     lines = text.split('\n')
     while len(lines) > 1 and not lines[-1]:
         del lines[-1]
     while len(lines) and not lines[0]:
         del lines[0]
-    if len(lines) > 2:
-        if lines[1] and lines[1][0] in ('=', '-'):
-            del lines[0]
-            del lines[0]
-            while not lines[0]:
-                del lines[0]
-    is_table = True
-    for line in lines:
-        if line and line[0] != '|' and line[0:2] != '+-':
-            is_table = False
-            break
-    hdr_foo = False
-    if not is_table:
-        if len(lines) > 1 and lines[0].find('<p>') < 0:
-            hdr_foo = True
     is_list = False
     in_list = False
+    in_table = False
+    open_para = 0
     i = 0
     while i < len(lines):
-        if is_table:
-            if lines[i][0:2] != '..':
-                if lines[i][0:2] == '+-':
+        if lines[i][0:2] != '..':
+            if state['html_state'].get('tag') == 'image':
+                x = re.match(r' +:alt:', lines[i])
+                if x:
+                    state['html_state']['alt'] = lines[i][x.end():].strip()
+                    del lines[i]
+                    continue
+                x = re.match(r' +:target:', lines[i])
+                if x:
+                    state['html_state']['alt'] = lines[i][x.end():].strip()
+                    del lines[i]
+                    continue
+                lines.insert(i,
+                    '<img src="%s"/>' % state['html_state']['url'])
+                del state['html_state']
+            elif re.match(r'^ *\+(-+\+)+ *$', lines[i]):
+                if not in_table:
+                    lines.insert(i,
+                        '<table style="width:100%; padding:2px; '
+                        'border-spacing:2px; text-align:left;"><tr>')
+                    in_table = True
+                else:
                     lines[i] = '</tr><tr>'
-                else:
-                    for t in RST2HTML_GRYMB.keys():
-                        lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
-                    cols = lines[i].split('|')
-                    del cols[0]
-                    row = ''
-                    for col in cols:
-                        row += '</td><td>' + col.strip()
-                    row = row[5:-4]
-                    lines[i] = row
-        else:
-            if lines[i][0:2] != '..':
-                if lines[i][0:2] == '* ' and not in_list:
+            elif in_table and re.match(r' *|.*| *$', lines[i]):
+                cols = lines[i].split('|')
+                del cols[0]
+                row = ''
+                for col in cols:
+                    row += '</td><td>' + col.strip()
+                row = row[5:-4]
+                lines[i] = row
+            elif in_table:
+                lines[i - 1] = '%s</table>' % lines[i - 1][:-4]
+                in_table = False
+                continue
+            elif lines[i][0:2] == '* ':
+                if not in_list:
+                    lines.insert(i, '<ul>')
                     in_list = True
-                elif lines[i][0:2] != '* ' and in_list:
-                    in_list = False
-            if not in_list and is_list:
+                    i += 1
+                lines[i] = '<li>%s</li>' % lines[i][2:]
+            elif lines[i][0:2] != '* ' and in_list:
                 lines.insert(i, '</ul>')
-                is_list = in_list
-                i += 1
-            elif in_list and not is_list:
-                lines.insert(i, '<ul>')
-                is_list = in_list
-                i += 1
-            if in_list:
-                if lines[i][0:2] != '..':
-                    lines[i] = '<li>%s</li>' % lines[i][2:]
-            else:
-                if lines[i] == '':
+                in_list = False
+                continue
+            elif lines[i] == '':
+                if open_para:
                     lines[i] = '</p><p align="justify">'
-                    hdr_foo = True
                 else:
-                    for t in RST2HTML_GRYMB.keys():
-                        lines[i] = lines[i].replace(t, RST2HTML_GRYMB[t])
+                    lines[i] = '<p align="justify">'
+                    open_para += 1
+            elif (re.match(r'^=+$', lines[i]) and
+                    i > 0 and
+                    len(lines[i]) == len(lines[i - 1])):
+                lines[i - 1] = '<h1>%s</h1>' % lines[i - 1]
+                del lines[i]
+                continue
+            elif (re.match(r'^-+$', lines[i]) and
+                    i > 0 and
+                    len(lines[i]) == len(lines[i - 1])):
+                lines[i - 1] = '<h2>%s</h2>' % lines[i - 1]
+                del lines[i]
+                continue
+        else:
+            if in_table:
+                lines.insert(i, '%s</table>' % lines[i -1][:-4])
+                in_table = False
+            elif in_list:
+                lines.insert(i, '</ul>')
+                in_list = False
+            elif open_para:
+                lines.insert(i, '</p>')
+                open_para -= 1
+            if lines[i].startswith('.. image::'):
+                state['html_state']['tag'] = 'image'
+                state['html_state']['url'] = lines[i][10:].strip()
+                del lines[i]
+                continue
         i += 1
-    if is_table:
-        lines[0] = '<table style="width:100%; padding:2px; ' \
-                   'border-spacing:2px; text-align:left;">' + lines[0][5:]
+    if state['html_state'].get('tag') == 'image':
+        lines.append('<img src="%s"/>' % state['html_state']['url'])
+        del state['html_state']
+    elif in_table:
         lines[-1] = '%s</table>' % lines[-1][:-4]
-    elif is_list:
+        in_table = False
+    elif in_list:
         lines.append('</ul>')
-    if hdr_foo:
-        lines.insert(0, '<p align="justify">')
-        lines.append('</p>')
+        in_list = False
+    if open_para:
+        lines.append('</p')
+        open_para -= 1
     return state, '\n'.join(lines)
 
 
-def expand_macro(ctx, token, out_fmt=None):
-    out_fmt = out_fmt or 'rst'
+def expand_macro(ctx, token):
     if token[0:12] == 'grymb_image_' and \
             token[12:] in DEFINED_GRYMB_SYMBOLS:
         value = 'https://raw.githubusercontent.com/zeroincombenze/grymb' \
@@ -560,18 +604,11 @@ def expand_macro_in_line(ctx, line, state=None):
     out_fmt = state.get('out_fmt', 'rst')
     in_fmt = state.get('in_fmt', 'rst')
     srctype = state.get('srctype', '')
-    if out_fmt == 'html':
-        for token in DEFINED_GRYMB_SYMBOLS:
-            value = '|' + token + '|'
-            i = line.find(value)
-            if i >= 0:
-                value = '\aimg src="{{grymb_image_%s}}"/\b' % token
-                line = line[0: i] + value + line[i + len(token) + 2:]
     i = line.find('{{')
     j = line.find('}}')
     while i >= 0 and j > i:
         tokens = line[i + 2: j].split(':')
-        value = expand_macro(ctx, tokens[0], out_fmt=out_fmt)
+        value = expand_macro(ctx, tokens[0])
         if value is False or value is None:
             print('Invalid macro %s' % tokens[0])
             value = ''
@@ -581,23 +618,24 @@ def expand_macro_in_line(ctx, line, state=None):
                     state['srctype'] = tokens[0]
                 else:
                     value = line_of_list(ctx, state, value)
-            else:
-                state['in_fmt'] = 'rst'
+            in_fmt = 'rst'
         if len(value.split('\n')) > 1:
             if state['in_fmt'] == 'html':
-                state, value = parse_source(ctx, value, state=state)
-                if out_fmt == 'html':
-                    state, value = tohtml(value, state=state)
+                state, value = parse_source(ctx, value, state=state,
+                                            in_fmt=in_fmt, out_fmt=out_fmt)
+                # if out_fmt == 'html':
+                #     state, value = tohtml(value, state=state)
                 if 'srctype' in state:    del state['srctype']
                 return state, line[0:i] + value + line[j + 2:]
             line = line[0:i] + value + line[j + 2:]
-            state, value = parse_source(ctx, line, state=state)
-            if out_fmt == 'html':
-                state, value = tohtml(value, state=state)
+            state, value = parse_source(ctx, line, state=state,
+                                        in_fmt=in_fmt, out_fmt=out_fmt)
+            # if out_fmt == 'html':
+            #     state, value = tohtml(value, state=state)
             if 'srctype' in state:    del state['srctype']
             return state, value
-        if out_fmt == 'html':
-            state, value = tohtml(value, state=state)
+        # if out_fmt == 'html':
+        #     state, value = tohtml(value, state=state)
         if len(tokens) > 1:
             fmt = tokens[1]
             line = line[0:i] + (fmt % value) + line[j + 2:]
@@ -607,7 +645,6 @@ def expand_macro_in_line(ctx, line, state=None):
         j = line.find('}}')
     if srctype in LIST_TAG:
         line = line_of_list(ctx, state, line)
-    state['in_fmt'] = in_fmt
     return state, line
 
 
@@ -768,7 +805,7 @@ def line_of_list(ctx, state, line):
             names = line.split(' ')
             if names[0] and names[0][0] == '*':
                 stop = False
-                if state['srctype'] == 'acknowledges':
+                if state.get('srctype') == 'acknowledges':
                     ctr = 0
                     for i in range(3):
                         if ctx['contributors'].find(names[i]) >= 0:
@@ -777,7 +814,7 @@ def line_of_list(ctx, state, line):
                         stop = True
                         text = ''
     if not stop:
-        if state['srctype'] == 'authors':
+        if state.get('srctype') == 'authors':
             fmt = '* `%s`__'
         else:
             fmt = '* %s'
@@ -810,8 +847,10 @@ def append_line(state, line, nl_bef=None):
     return state, text
 
 
-def parse_source(ctx, source, state=None):
+def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
     state = state or _init_state()
+    out_fmt = out_fmt or state.get('out_fmt', 'rst')
+    in_fmt = in_fmt or state.get('in_fmt', 'rst')
     target = ''
     for lno, line in enumerate(source.split('\n')):
         nl_bef = False if lno == 0 else True
@@ -839,7 +878,7 @@ def parse_source(ctx, source, state=None):
                         i = 9 + x.end()
                         value = line[i:]
                         ctx[name] = value
-            elif state['in_fmt'] == 'rst' and (
+            elif in_fmt == 'rst' and (
                     line and ((line == '=' * len(line)) or
                               (line == '-' * len(line)))):
                 if not state['prior_line']:
@@ -855,13 +894,10 @@ def parse_source(ctx, source, state=None):
                     target += text
             else:
                 state, text = expand_macro_in_line(ctx, line, state=state)
-                if (state['in_fmt'] == 'rst' and
-                        state['out_fmt'] == 'html' and
-                        (text.startswith('.. image::') or
-                         state.get('html_state'))):
-                    state, text = tohtml(text, state=state)
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
+    if in_fmt == 'rst' and out_fmt == 'html':
+        state, target = tohtml(target, state=state)
     return state, target
 
 
@@ -1093,9 +1129,13 @@ def index_html_content(ctx, source):
     target = ''
     title = '%s / %s' % (ctx['summary'], ctx['sommario'])
     for section in source.split('\f'):
-        root = etree.XML(section)
-        xml_replace_text(ctx, root, 'h2', title)
-        target += '\n%s' % etree.tostring(root, pretty_print=True)
+        try:
+            root = etree.XML(section)
+            xml_replace_text(ctx, root, 'h2', title)
+            target += '\n%s' % etree.tostring(root, pretty_print=True)
+        except SyntaxError as e:
+            print('***** Error %s *****' % e)
+            target += section
     for t in RST2HTML.keys():
         target = target.replace(t, RST2HTML[t])
     return target
@@ -1155,10 +1195,11 @@ def generate_readme(ctx):
         read_manifest(ctx)
     set_default_values(ctx)
     for section in DEFINED_TAG:
-        if ctx['write_html'] and section in LIST_TAG:
-            out_fmt = 'html'
-        else:
-            out_fmt = None
+        # if ctx['write_html'] and section in LIST_TAG:
+        #     out_fmt = 'html'
+        # else:
+        #     out_fmt = None
+        out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]
