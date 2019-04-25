@@ -355,9 +355,11 @@ test_04() {
       cat <<EOF >$TESTSRC
     einv_type_model = self.env['italy.ade.invoice.type']
 EOF
+      # OCA Italy changed e-invoice document type
+      # from fatturapa.document_type (in fatturapa) to fiscal.document.type
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-
-    einv_type_model = self.env['fatturapa.document_type']
+    einv_type_model = self.env['fiscal.document.type']
 
 EOF
       $RUNDIR/topep8 -qAA -b10.0 -Rto_oca $TESTSRC -o $TESTOUT
@@ -374,7 +376,7 @@ EOF
       cat <<EOF >$TESTSRC
 from odoo.addons.l10n_it_fatturapa.models.account import RELATED_DOCUMENT_TYPES
     einv_type_model = self.\\
-        env['fatturapa.document_type']
+        env['fiscal.document.type']
 EOF
       cat <<EOF >$TESTRES
 # -*- coding: utf-8 -*-

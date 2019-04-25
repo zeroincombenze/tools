@@ -182,6 +182,16 @@ RST2HTML_GRYMB = {
 }
 
 
+def items_2_unicode(src):
+    if isinstance(src, dict):
+        for x in src.keys():
+            src[x] = os0.u(src[x])
+    elif isinstance(src, list):
+        for i,x in enumerate(src):
+            src[i] = os0.u(x)
+    return src
+
+
 def get_template_fn(ctx, template, ignore_ntf=None):
     found = False
     layered_template = '%s_%s' % (ctx['odoo_layer'], template)
@@ -1212,10 +1222,6 @@ def generate_readme(ctx):
         read_manifest(ctx)
     set_default_values(ctx)
     for section in DEFINED_TAG:
-        # if ctx['write_html'] and section in LIST_TAG:
-        #     out_fmt = 'html'
-        # else:
-        #     out_fmt = None
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
@@ -1302,7 +1308,7 @@ if __name__ == "__main__":
                         dest='template_name')
     parser.add_argument('-V')
     parser.add_argument('-v')
-    ctx = parser.parseoptargs(sys.argv[1:])
+    ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
     if not ctx['git_orgid']:
         ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                             odoo_vid=ctx['odoo_vid'])
