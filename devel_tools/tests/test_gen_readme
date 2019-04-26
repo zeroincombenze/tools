@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.9
+__version__=0.2.2.10
 
 
 test_01() {
@@ -43,11 +43,13 @@ test_01() {
     TESTOUT=$TESTDIR/res/README.rst
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
+      # Files in module directory
       cat <<EOF >$TESTDIR/res/__manifest__.py
 {
     'name': 'test',
 }
 EOF
+      # Files in egg-info of module directory
       cat <<EOF >$TESTDIR/res/descrizione.rst
 Lorem ipsum
 -----------
@@ -69,7 +71,7 @@ consectetur *adipiscing* elit
 
     >>> doc
 |
-.. image:: https://odoo-community.org/logo.png
+.. image:: logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
@@ -86,6 +88,8 @@ EOF
 * SHS-AV s.r.l. <https://www.shs-av.com>
 .. \$elif branch in '10.0'
 * wrong author
+.. \$elif branch in '7.0'
+* SHS-AV s.r.l. <https://www.zeroincombenze.it>
 .. \$else
 * unknown authors
 .. \$fi
@@ -99,22 +103,13 @@ EOF
 * lorenzo <lorenzo@libero.it>
 .. \$elif branch in '9.0'
 * Davide <davide@libero.it>
+.. \$elif branch in '7.0'
+* antonio <antoniov@shs-av.com>
 .. \$else
 * unknown contributor <unknow@example.com>
 .. \$fi
 EOF
-      cat <<EOF >$TESTDIR/res/header_contributors.txt
-
-Contributors
-------------
-
-EOF
-      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
-
-Acknoledges to
---------------
-
-EOF
+      # Files in template directory
       cat <<EOF >$TESTSRC
 ===============
 |icon| {{name}}
@@ -130,7 +125,30 @@ Overview
 {{authors}}
 {{contributors}}
 {{acknowledges}}
+.. \$include footer.rst
 EOF
+      cat <<EOF >$TESTDIR/res/footer.rst
+
+----------------------
+
+.. |en| image:: {{grymb_image_en}}
+   :target: {{grymb_url_en}}
+.. |it| image:: {{grymb_image_it}}
+   :target: {{grymb_url_it}}
+EOF
+      cat <<EOF >$TESTDIR/res/header_contributors.txt
+
+Contributors
+------------
+
+EOF
+      cat <<EOF >$TESTDIR/res/header_acknowledges.txt
+
+Acknoledges to
+--------------
+
+EOF
+      # Files for test match
       cat <<EOF >$TESTRES
 ===========
 |icon| test
@@ -153,7 +171,7 @@ consectetur *adipiscing* elit
 
     >>> doc
 |
-.. image:: https://odoo-community.org/logo.png
+.. image:: https://raw.githubusercontent.com/zeroincombenze/rtest/11.0/mtest/static/description/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
@@ -179,12 +197,21 @@ Acknoledges to
 
 * lorenzo <lorenzo@libero.it>
 * Davide <davide@libero.it>
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+
+
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -q  -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {
@@ -195,6 +222,7 @@ test_02() {
     TESTOUT=$TESTDIR/res/index.html
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
+      # Files in template directory
       cat <<EOF >$TESTSRC
 <section class="oe_container">
 
@@ -207,6 +235,7 @@ Test file
 {{authors}}
 </section>
 EOF
+      # Files for test match
       cat <<EOF >$TESTRES
 
 <section class="oe_container">
@@ -230,7 +259,7 @@ consectetur <i>adipiscing</i> elit
 </code>
 <br/>
 </p>
-<img src="https://odoo-community.org/logo.png"/>
+<img src="logo.png"/>
 <p align="justify">
 <table style="width:100%; padding:2px; border-spacing:2px; text-align:left;"><tr>
 <td>Feature A</td><td><img src="https://raw.githubusercontent.com/zeroincombenze/grymb/master/awesome/check.png"/></td>
@@ -245,10 +274,104 @@ consectetur <i>adipiscing</i> elit
 </section>
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -H -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC
+      $RUNDIR/gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -H -q -b11.0 -lmodule -m mtest -r rtest -G zero -t $TESTSRC" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
+}
+
+
+test_03() {
+    local TESTOUT TESTRES TESTFN
+    TESTFN=test_gen_readme_03
+    TESTSRC=$TESTDIR/res/readme_manifest.rst
+    TESTRES=$TESTDIR/res/$TESTFN.test
+    TESTOUT=$TESTDIR/res/__openerp__.py
+    # TESTOUT=$TESTDIR/res/README.rst
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      rm -f $TESTOUT
+      # Files in module directory
+      cat <<EOF >$TESTDIR/res/__openerp__.py
+# (C) SHS-Av s.r.l.
+{
+    'name': 'test',
+    'depends': ['base', 'account'],
+}
+EOF
+      # Files in template directory
+      cat <<EOF >$TESTSRC
+
+Overview
+========
+
+|it| {{descrizione}}
+
+{{authors}}
+{{contributors}}
+.. \$include footer.rst
+EOF
+      # Files for test match
+      cat <<EOF >$TESTRES
+# (C) SHS-Av s.r.l.
+{
+    'name': 'test',
+    'depends': [
+        'base',
+        'account',
+    ],
+    'description': r'''
+Overview
+========
+
+|it| Lorem ipsum
+----------------
+
+Lorem ipsum **dolor** sit amet
+consectetur *adipiscing* elit
+
+* Feature A
+* Feature B
+::
+
+    >>> doc
+|
+.. image:: /mtest/static/src/img/logo.png
+   :alt: Odoo Community Association
+   :target: https://odoo-community.org
+
++-----------+---------+
+| Feature A | |check| |
++-----------+---------+
+| Feature B |         |
++-----------+---------+
+
+
+
+* \`SHS-AV s.r.l. <https://www.zeroincombenze.it>\`__
+
+
+Contributors
+------------
+
+* antonio <antoniov@shs-av.com>
+
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+
+
+''',
+}
+EOF
+      pushd $TESTDIR/res &>/dev/null
+      $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
+      popd &>/dev/null
+    fi
+    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

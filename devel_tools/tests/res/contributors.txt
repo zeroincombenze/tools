@@ -6,6 +6,8 @@
 * lorenzo <lorenzo@libero.it>
 .. $elif branch in '9.0'
 * Davide <davide@libero.it>
+.. $elif branch in '7.0'
+* antonio <antoniov@shs-av.com>
 .. $else
 * unknown contributor <unknow@example.com>
 .. $fi

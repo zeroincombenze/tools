@@ -18,7 +18,7 @@ consectetur *adipiscing* elit
 
     >>> doc
 |
-.. image:: https://odoo-community.org/logo.png
+.. image:: logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 

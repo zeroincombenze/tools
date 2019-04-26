@@ -19,7 +19,7 @@ consectetur *adipiscing* elit
 
     >>> doc
 |
-.. image:: https://odoo-community.org/logo.png
+.. image:: https://raw.githubusercontent.com/zeroincombenze/rtest/11.0/mtest/static/description/logo.png
    :alt: Odoo Community Association
    :target: https://odoo-community.org
 
@@ -45,3 +45,12 @@ Acknoledges to
 
 * lorenzo <lorenzo@libero.it>
 * Davide <davide@libero.it>
+
+----------------------
+
+.. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+.. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
+   :target: https://www.facebook.com/groups/openerp.italia/
+
+

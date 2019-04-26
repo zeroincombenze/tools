@@ -110,7 +110,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.9'
+__version__ = '0.2.2.10'
 
 
 MANIFEST_FILES = [

@@ -92,7 +92,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.9"
+__version__ = "0.2.2.10"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -145,9 +145,10 @@ DEFINED_GRYMB_SYMBOLS = {
 EXCLUDED_MODULES = ['lxml', ]
 MANIFEST_ITEMS = ('name', 'summary', 'version',
                   'category', 'author', 'website',
-                  'license', 'depends', 'data',
-                  'demo', 'test', 'installable',
-                  'external_dependencies', 'maturity', 'description')
+                  'maturity', 'license', 'depends',
+                  'external_dependencies',
+                  'data', 'demo', 'test',
+                  'installable')
 RST2HTML = {
     # &': '&amp;',
     '©': '&copy',
@@ -184,6 +185,7 @@ RST2HTML_GRYMB = {
 
 def items_2_unicode(src):
     if isinstance(src, dict):
+        # {src[k] = os0.u(v) for k, v in src.items()}
         for x in src.keys():
             src[x] = os0.u(src[x])
     elif isinstance(src, list):
@@ -249,7 +251,7 @@ def clean_summary(summary):
 
 
 def generate_description_file(ctx):
-    full_fn = './egg-info/description.rst'
+    full_fn = os.path.join(ctx['path_name'], 'egg-info/description.rst')
     if ctx['opt_verbose']:
         print("Writing %s" % full_fn)
     if not os.path.isdir('./egg-info'):
@@ -303,6 +305,26 @@ def get_default_avaiable_addons(ctx):
                        ctx['addons_info'][pkg]['summary'])
         text += lne
     return text
+
+
+def url_by_doc(ctx, url):
+    if not url.startswith('http') and not url.startswith('/'):
+        if ctx['rewrite_manifest']:
+            fmt = '/%s/static/src/img/%s'
+            url = fmt % (ctx['module_name'],
+                         url)
+        else:
+            fmt = 'https://raw.githubusercontent.com/%s/%s/%s/%s/static/'
+            if ctx['odoo_majver'] < 8:
+                fmt += 'src/img/%s'
+            else:
+                fmt += 'description/%s'
+            url = fmt % (GIT_USER[ctx['git_orgid']],
+                         ctx['repos_name'],
+                         ctx['odoo_fver'],
+                         ctx['module_name'],
+                         url)
+    return url
 
 
 def tohtml(text, state=None):
@@ -534,13 +556,7 @@ def expand_macro(ctx, token):
     elif token == 'module_version':
         value = ctx['manifest']['version']
     elif token == 'icon':
-        fmt = 'https://raw.githubusercontent.com/%s/%s/%s/%s/static/'
-        if ctx['odoo_majver'] < 8:
-            fmt += 'src/img/icon.png'
-        else:
-            fmt += 'description/icon.png'
-        value = fmt % (GIT_USER[ctx['git_orgid']], ctx['repos_name'],
-                       ctx['odoo_fver'], ctx['module_name'])
+        value = url_by_doc(ctx, 'icon.png')
     elif token == 'GIT_URL_ROOT':
         value = 'https://github.com/%s/%s' % (
             GIT_USER[ctx['git_orgid']], ctx['repos_name'])
@@ -920,7 +936,15 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     state, text = append_line(state, line, nl_bef=nl_bef)
                     target += text
             else:
+                # if re.match(r'^\.\. +.*image::', line):
+                #     import pdb
+                #     pdb.set_trace()
                 state, text = expand_macro_in_line(ctx, line, state=state)
+                if (not ctx['write_html'] and
+                        re.match(r'^\.\. +.*image::', text)):
+                    x = re.match(r'^\.\. +.*image::', text)
+                    url = url_by_doc(ctx, text[x.end():].strip())
+                    text = text[0:x.end() + 1] + url
                 state, text = append_line(state, text, nl_bef=nl_bef)
                 target += text
     if in_fmt == 'rst' and out_fmt == 'html':
@@ -989,28 +1013,23 @@ def read_manifest(ctx):
         ctx['manifest'] = {}
         return
     if ctx['odoo_majver'] >= 10:
-        if os.path.isfile('./__manifest__.py'):
-            manifest_file = './__manifest__.py'
-        elif os.path.isfile('./__openerp__.py'):
-            manifest_file = './__openerp__.py'
-        else:
-            manifest_file = ''
-            print('Warning: manifest file not found')
+        MANIFEST_LIST = ('__manifest__.py', '__openerp__.py')
     else:
-        if os.path.isfile('./__openerp__.py'):
-            manifest_file = './__openerp__.py'
-        else:
-            manifest_file = ''
-            print('Warning: manifest file not found')
+        MANIFEST_LIST = ('__openerp__.py', )
+    for manifest in MANIFEST_LIST:
+        manifest_file = os.path.join(ctx['path_name'], manifest)
+        if os.path.isfile(manifest_file):
+            break
+        manifest_file = ''
     if manifest_file:
         try:
-            ctx['manifest'] = ast.literal_eval(open(manifest_file).read())
+            ctx['manifest'] = items_2_unicode(
+                ast.literal_eval(open(manifest_file).read()))
         except ImportError:
             raise Exception('Wrong file %s' % manifest_file)
-        ctx['manifest'] = {
-            os0.u(k): os0.u(v) for k, v in ctx['manifest'].items()}
         ctx['manifest_file'] = manifest_file
     else:
+        print('Warning: manifest file not found')
         ctx['manifest'] = {}
 
 
@@ -1105,6 +1124,32 @@ def read_all_manifests(ctx):
     ctx['addons_info'] = addons_info
 
 
+def manifest_item(ctx, item):
+    if isinstance(ctx['manifest'][item], basestring):
+        text = ctx['manifest'][item].replace("'", '"')
+        target = "    '%s': '%s',\n" % (item, text)
+    elif isinstance(ctx['manifest'][item], list):
+        if len(ctx['manifest'][item]) == 0:
+            target = ''
+        elif len(ctx['manifest'][item]) == 1:
+            text = str(ctx['manifest'][item])
+            target = "    '%s': %s,\n" % (item, text)
+        else:
+            target = "    '%s': [\n" % item
+            for kk in ctx['manifest'][item]:
+                if isinstance(kk, basestring):
+                    text = kk.replace("'", '"')
+                    target += "        '%s',\n" % text
+                else:
+                    text = str(kk)
+                    target += "        %s,\n" % text
+            target += "    ],\n"
+    else:
+        text = str(ctx['manifest'][item])
+        target = "    '%s': %s,\n" % (item, text)
+    return target
+
+
 def manifest_contents(ctx):
     full_fn = ctx['manifest_file']
     source = ''
@@ -1119,25 +1164,14 @@ def manifest_contents(ctx):
         target += line + '\n'
     target += '{\n'
     for item in MANIFEST_ITEMS:
-        if item == 'description':
-            if ctx['odoo_majver'] < 8:
-                text = parse_local_file(ctx, 'readme_manifest.rst')[1]
-                target += "    '%s': r'''%s''',\n" % (item, text)
-        elif item in ctx['manifest']:
-            if isinstance(ctx['manifest'][item], basestring):
-                text = ctx['manifest'][item].replace("'", '"')
-                target += "    '%s': '%s',\n" % (item, text)
-            else:
-                text = str(ctx['manifest'][item])
-                target += "    '%s': %s,\n" % (item, text)
+        if item in ctx['manifest']:
+            target += manifest_item(ctx, item)
     for item in ctx['manifest'].keys():
-        if item not in MANIFEST_ITEMS:
-            if isinstance(ctx['manifest'][item], basestring):
-                text = ctx['manifest'][item].replace("'", '"')
-                target += "    '%s': '%s',\n" % (item, text)
-            else:
-                text = str(ctx['manifest'][item])
-                target += "    '%s': %s,\n" % (item, text)
+        if item != 'description' and item not in MANIFEST_ITEMS:
+            target += manifest_item(ctx, item)
+    if ctx['odoo_majver'] < 8:
+        text = parse_local_file(ctx, 'readme_manifest.rst')[1]
+        target += "    'description': r'''%s''',\n" % text
     target += '}\n'
     return target
 
@@ -1289,11 +1323,16 @@ if __name__ == "__main__":
                         action='store',
                         help='ocb|module|repository',
                         dest='odoo_layer')
-    parser.add_argument('-m', '--module_name',
+    parser.add_argument('-m', '--module-name',
                         action='store',
                         help='filename',
                         dest='module_name')
     parser.add_argument('-n')
+    parser.add_argument('-p', '--path-name',
+                        action='store',
+                        help='pathname',
+                        dest='path_name',
+                        default='.')
     parser.add_argument('-q')
     parser.add_argument('-R', '--rewrite-manifest',
                         action='store_true',
@@ -1334,5 +1373,7 @@ if __name__ == "__main__":
             ctx['odoo_layer'] = 'repository'
         print('Invalid layer: use one of ocb|module|repository '
               'for -l switch (%s)' % ctx['odoo_layer'])
+    # Avoid empty path when ends with slash
+    ctx['path_name'] = os.path.dirname(ctx['path_name']) if not os.path.basename(ctx['path_name']) else ctx['path_name']
     sts = generate_readme(ctx)
     sys.exit(sts)

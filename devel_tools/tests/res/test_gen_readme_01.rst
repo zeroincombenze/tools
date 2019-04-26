@@ -12,3 +12,4 @@ Overview
 {{authors}}
 {{contributors}}
 {{acknowledges}}
+.. $include footer.rst
