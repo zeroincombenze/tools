@@ -100,8 +100,8 @@ FAQ / Domande & Risposte
 {{faq}}
 .. $fi
 
-Credits / Titoli di coda
-========================
+Credits / Didascalie
+====================
 
 Copyright
 ---------

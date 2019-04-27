@@ -48,8 +48,8 @@ Support / Supporto
 |
 |
 
-Credits / Titoli di coda
-========================
+Credits / Didascalie
+====================
 
 Copyright
 ---------

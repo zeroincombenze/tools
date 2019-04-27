@@ -11,11 +11,15 @@ status	msgid	msgstr
 	# of Digits	# di cifre
 	# of Items	# di voci
 	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
+	00400 - Invalid tax %s nature for invoice %s	00400 – Natura %s non valida su fattura %s
+	00401 - Invalid tax %s nature for invoice %s	00401 – Natura %s non valida su fattura %s
+	00420 - Wrong tax %s nature/payment for invoice %s	00420 – Erarata natura/pagamento %s su fattura %s
 	Account	Conto
 	Account Books	Libri contabili
 	Account Follow-up	Solleciti di pagamento
 	Account Invoice	Fattura
 	Account Move line	Riga contabile
+	Account period	Periodo contabile
 	Account Receivable	Conto di credito
 	Account Tax	Conto erario IVA
 	Accounting	Contabilità
@@ -183,12 +187,14 @@ status	msgid	msgstr
 	Currency id	Divisa
 	Currency Name	Nome divisa
 	Current	Attuale
+	Current commitment not found	Dichiarativo corrente non trovato
 	Custom Header	Intestazione personalizzata
 	Customer	Cliente
 	Customer %s: city is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la città.
 	Customer %s: country is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessaria la nazione.
 	Customer %s: street is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario l'indirizzo.
 	Customer %s: ZIP is needed for XML generation.	Cliente %s: per la generazione dell'XML è necessario il CAP.
+	Customer account statement	Estratto conto contabile
 	Customer Address	Indirizzo cliente
 	Customer city is not set.	Città del cliente non impostata.
 	Customer city not set.	Città cliente non impostata
@@ -202,6 +208,7 @@ status	msgid	msgstr
 	Customer Taxes 	IVA v/clienti
 	Customer ZIP is not set.	CAP del cliente non impostato.
 	Customer ZIP not set.	CAP cliente non impostato
+	Customers/Suppliers	Clienti/Fornitori
 	Dashboard	Cruscotto
 	Data of Third-Party Issuer Intermediary who emits the invoice on behalf of the seller/provider	Dati relativi al terzo intermediario soggetto emittente che emette la fattura per conto del cedente/prestatore
 	Data Type	Tipo dati
@@ -235,6 +242,7 @@ status	msgid	msgstr
 	Default Description of Goods	Aspetto dei beni predefinito
 	Default Method of Transportation	Trasporto a mezzo (predefinito)
 	Default Reason for Transportation	Causale di trasporto (predefinita)
+	Default registration date	Data registrazione predefinita
 	Default Setting	Impostazioni predefinite
 	Deferred payability	Esigibilità differita
 	Define a purchase journal for this company: '%s' (id: %d).	"Definire un sezionale di acquisto per questa azienda: ""%s"" (id: %d)."
@@ -264,6 +272,7 @@ status	msgid	msgstr
 	Document ID	ID documento
 	Document report selection rules	Regole selezione impaginazione stampa
 	Document Type	Tipo documento
+	Document type	Tipo documento
 	Document Type 	Tipo documento
 	Document type %s not handled.	Tipo documento %s non gestito.
 	Documents	Documenti
@@ -313,12 +322,15 @@ status	msgid	msgstr
 	End Date	Data finale
 	Ending Page PDF	Pagina finale PDF
 	EORI Code	Codice EORI
+	Error	Errore
+	Error 00464: Partner id %d without fiscal data	Errore 00464: Soggetto id %d senza dati fiscali
 	Excise Duty	Accise
 	EXJ	ACQ
 	Expense Account 	Conto di costo
 	Export E-invoice	Esporta e-fattura
 	Export EInvoice	Esporta fattura elettronica
 	Export Electronic Invoice	Esporta fattura elettronica
+	Export VAT Communication	Esporta comunicazione IVA
 	External agent	Agente plurimandatario
 	Failed	Non riuscito
 	FatturaPA attachment changed	Allegato e-fattura modificato
@@ -336,10 +348,12 @@ status	msgid	msgstr
 	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
 	File is linked to bills yet.	Il file è già collegato alle fatture.
 	Financial Reports	Rapporti finanziari
+	Fiscal Document Type	Tipo documento fiscale
 	Fiscal position used by electronic invoice	Posizione fiscale usata dalla fattura elettronica
 	Fiscal position used by FatturaPA	Posizione fiscale in e-Fattura
 	Fiscal Positions	Posizioni fiscali
 	Fiscal Statements	Comunicazioni fiscali
+	Fiscalcode	Codice fiscale
 	Fixed percentage	Percentuale fissa
 	for all Outgoing Mail Servers and Fetchmail Servers.	per tutti i server di posta
 	Force Net Weight	Forza peso netto
@@ -395,6 +409,7 @@ status	msgid	msgstr
 	Inventory Adjustments	Rettifiche di inventario
 	Inventory Locations	Locationi d'Inventario
 	Invoice	Fattura
+	Invoice %s (%d), discarded tax line %s	Fattura %s (%d), scartata riga %s
 	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
 	Invoice %s has FatturaPA Export File yet	Il file della e-fattura %s è già stato esportato
 	Invoice %s has XML and can't be canceled. Delete the XML before.	File XML già presente per la fattura %s. Per annullarla eliminare prima il file.
@@ -465,6 +480,11 @@ status	msgid	msgstr
 	Method of Transportation	Trasporto a mezzo
 	Methods of Transportation	Trasporto a mezzo
 	Miscellaneous Journal	Sezionale generico
+	Missed address %s %s %S	Manca indirizzo %s %s %s
+	Missed city %s %s %S	Manca città %s %s %s
+	Missed company VAT number	Manca partita IVA aziendale
+	Missed company zip code	Manca CAP aziendale
+	Missed supplier invoice number %s, id=%d	Manca numero fattura fornitore %s, id=%d
 	Module	Modulo
 	Monthly	Mensile
 	Municipality or city to which the Stable Organization refers	Comune a cui si riferisce la stabile organizzazione
@@ -516,15 +536,21 @@ status	msgid	msgstr
 	Packing	Imballo
 	Parcels	Colli
 	Partner	Soggetto
+	Partner %s %d vat country differs from country	Soggetto %s %d nazione partita IVA diversa da anagrafico
+	Partner %s %d without fiscal data	Soggetto %s %d senza dati fiscali
 	Partner %s Addressee Code must be 7 characters long.	Il codice destinatario del soggetto %s deve essere lungo 7 caratteri.
+	Partner %s has wrong zip code	Soggetto %s con CAP sbagliato
 	Partner %s is not PA but does not have Addressee Code.	Il soggetto %s, che non è una PA, non possiede un codice destinatario.
 	Partner %s is PA but does not have IPA code.	Il soggetto %s, che è una PA, non possiede un codice IPA.
 	Partner %s is PA but has not IPA code	Soggetto %s è PA ma non ha un codice ufficio assegnato
 	Partner %s must have name and surname.	Il soggetto %s deve avere nome e cognome.
 	Partner %s must have VAT Number or Fiscal Code.	Il soggetto %s deve avere una partita IVA o un codice fiscale.
 	Partner %s TIN not set.	Partita IVA del soggetto %s non impostata.
+	Partner %s without city on address	Soggetto %s senza città
 	Partner %s without PEC	Soggetto %s senza PEC
+	Partner %s without province on address	Soggetto %s senza provincia
 	Partner %s without Recipient Code	Soggetto %s senza codice destinatario
+	Partner %s without street on address	Soggetto %s, indirizzo senza via
 	Partner Company	Soggetto azienda
 	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
 	Partner VAT number and fiscal code are not set.	Partita IVA e codice fiscale del soggetto non impostati.
@@ -622,6 +648,7 @@ status	msgid	msgstr
 	Reconcile Entries	Riconcilia registrazioni
 	Reference	Riferimento
 	Refresh attachment info	Refresh informazioni allegato
+	Refresh registration date	Riaggiorna data registrazione
 	Refund	Nota credito
 	Register Code	Numero di iscrizione
 	Register Province	Provincia iscrizione
@@ -697,7 +724,10 @@ status	msgid	msgstr
 	Send Overdue Email	Invia sollecito di ritardato pagamento
 	Sender	Mittente
 	Set	Imposta
+	Set Comm. Type	Imposta tipo comm.
 	Set done	Completato
+	Set invoice communication type	Imposta tipo communicazione
+	Set Invoice Type	Imposta tipo fattura fiscale
 	Set to draft	Bozza
 	Setting	Impostazione
 	Settings	Impostazioni
@@ -727,6 +757,8 @@ status	msgid	msgstr
 	Stamp Amount	Importo bollo
 	Stamp Duty	Bollo
 	Start Date	Data iniziale
+	Start Export Customer Invoices	Inizia esportazione fatture clienti
+	Start Export Supplier Invoices	Inizia esportazione fatture fornitori
 	State	Stato
 	Status	Stato
 	Stored Filename	Nome file memorizzato
@@ -755,11 +787,13 @@ status	msgid	msgstr
 	Tax Box	Cassetto fiscale
 	Tax Code	Codice IVA
 	Tax Concession	Agevolazione fiscale
+	Tax deductible	Imposta deducibile
 	Tax Exemption	Esenzione fiscale
 	Tax kind %s not found	Tipo imposta %s non trovato
 	Tax Nature	Natura dell'IVA
 	Tax Period	Periodo d'imposta
 	Tax Rate	Aliquota
+	Tax rate	Aliquota IVA
 	Tax receipt	Ricevuta fiscale
 	Tax Regime	Regime fiscale
 	Tax Regime %s not present in your system.	Regime fiscale %s non presente nel sistema.
@@ -767,7 +801,10 @@ status	msgid	msgstr
 	Tax Representative	Rappresentante fiscale
 	Tax Settlement	Liquidazione d'imposta
 	Tax Stamp	Bollo su fattura
+	Tax type	Tipo IVA
 	Tax Withholding	Ritenuta d'acconto
+	Taxable	Imponibile
+	Taxable amount	Importo imponibile
 	Taxable Base	Base imponibile
 	Taxes	IVA
 	Taxpayer	Contribuente
@@ -778,6 +815,8 @@ status	msgid	msgstr
 	The bill contains withholding tax with payment reason %s, but such a tax is not found in your system. Please set it.	La fattura contiene una ritenuta fiscale con causale pagamento %s. Tale ritenuta non è presente nel sistema, è necessario impostarla.
 	The database object this attachment will be attached to.	L'oggetto del database a cui verrà assegnato questo allegato.
 	The database object this attachment will be attached to.	L'oggetto del database a cui verrà assegnato questo allegato.
+	The Europe country group cannot be found. Please update the base module.	Nazioni europee non identificate. Aggiornare il modulo 'base'
+	The invoice date cannot be later than the date of registration!	Data fattura successiva a data registrazione
 	The lower limit cannot be greater than upper one.	Limite minimo maggiore del massimo
 	The parent company	L'azienda controllante
 	The record id this is attached to.	L'ID del record a cui questo è collegato.
@@ -788,6 +827,7 @@ status	msgid	msgstr
 	This attachment contains the PDF report of the linked invoice	Questo allegato contiene il documento PDF della fattura collegata
 	This is the default commission used in the sales where this agent is assigned. It can be changed on each operation if needed.	Provvigione predefinita usata nelle vendita per questo agente. Può essere cambiata in qualsiasi riga
 	This report will be automatically included in the created XML	Questo documento verrà incluso automaticamente nell'XML generato
+	This wizard set default invoice communication type	Procedura per impostare il tipo di comunicazione in fattura
 	This year	Questo anno
 	Thumbnail	Miniatura
 	Timesheet	Foglio ore
@@ -820,6 +860,9 @@ status	msgid	msgstr
 	Unit of measure	Unità di misura
 	Unit Price	Prezzo unitario
 	Unit Price	Prezzo Unitario
+	Unknow country of %s	Nazione di %s sconosciuta 
+	Unknow country of %s %s %S	Nazione di %s %s %s sconosciuta 
+	Untaxed Amount	Importo imponibile
 	Untaxed Amount in Company Currency	Imponibile in valuta aziendale
 	Up to	Fino a
 	Update	Aggiornamento
@@ -830,11 +873,14 @@ status	msgid	msgstr
 	Username	Nome utente
 	Users	Utenti
 	Validated	Confermato
+	VAT code	Codice IVA
+	VAT commitment	Dichiarazione IVA
 	VAT number %s of customer invoice is not the same of the current company	La partita IVA %s del cliente fattura non corrisponde a quella dell'azienda
 	VAT number and fiscal code are not set for %s.	P:IVA e codice fiscale non impostati per %s.
 	VAT number:	Partita IVA:
 	VAT payability	Esigibilità IVA
 	VAT Rate	Aliquota IVA
+	VAT rate	Aliquota IVA
 	VAT Settlement	Liquidazione IVA
 	VAT Tax Rate	Aliquota IVA
 	Vendor	Fornitore
@@ -867,6 +913,7 @@ status	msgid	msgstr
 	Your company Country is not set.	Nazione azienda non impostata.
 	Your company Street is not set.	Indirizzo azienda non impostato.
 	Your company ZIP is not set.	CAP azienda non impostato
+	Your download is ready	Il file scaricato è disponibile
 	ZIP Code	CAP
 	ZIP is not set for %s.	CAP non impostato per %s.
 	ZIP not set.	CAP non impostato
