@@ -63,7 +63,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.0.12
+__version__=0.3.0.13
 
 
 STS_FAILED=1
@@ -3500,6 +3500,7 @@ if [ $? -ne 127 ]; then
   set_cfg_def "REAL_python3-dev" "python${PY3ID}-devel" "0" "CentOS7"
 fi
 [ -z "$PY3ID" ] && PY3ID=3
+export PYTHONWARNINGS="ignore"
 
 for tid in 0 1 2 3; do
   CFG_init $tid

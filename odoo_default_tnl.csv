@@ -11,9 +11,20 @@ status	msgid	msgstr
 	# of Digits	# di cifre
 	# of Items	# di voci
 	%s partners have no credits and as such the action is cleared	Per i soggetti %s non risultano crediti e l'azione non è stata eseguita
+	00302 - Invalid fiscalcode of %s	00302 – Codice fiscale non valido %s
+	003XA - Partner %s without street on address	003XA - Soggetto %s senza indirizzo
+	003XC - Partner %s %d vat country differs from country	003XC – Soggetto %s %d nazione PIVA diversa da anagrafica
+	003XP - Partner %s without province on address	003XP - Soggetto %s senza provincia
+	003XY - Partner %s without city on address	003XY - Soggetto %s senza città
+	003XZ - Partner %s has wrong zip code	003XZ - Soggetto %s con CAP errato
 	00400 - Invalid tax %s nature for invoice %s	00400 – Natura %s non valida su fattura %s
+	00400 - Missed/wrong tax nature in %s	00400 –Natura assente o errata in %s
 	00401 - Invalid tax %s nature for invoice %s	00401 – Natura %s non valida su fattura %s
+	00401 - Invalid/wrong tax nature in %s	00401 – Natura non valida in %s
 	00420 - Wrong tax %s nature/payment for invoice %s	00420 – Erarata natura/pagamento %s su fattura %s
+	00420 - Wrong tax payability in %s	00420 – Errata esigibilità in %s
+	00424 - Invalid tax rate in %s	00424 – Aliquota IVA errata in %s
+	00464 - Partner %s without fiscal data	00464 - Soggetto %s senza dati fiscali
 	Account	Conto
 	Account Books	Libri contabili
 	Account Follow-up	Solleciti di pagamento
@@ -686,6 +697,8 @@ status	msgid	msgstr
 	Rounding	Arrotondamento
 	SAJ	FAT
 	Sale	Vendita
+	Sale invoice Line	Riga fattura di vendita
+	Sale invoice Lines	Righe fatture di vendita
 	Sale Journal	Registro vendite
 	Sale line	Righe di vendita
 	Sale order line	Riga ordine di vendita
