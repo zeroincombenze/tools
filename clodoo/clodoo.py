@@ -31,7 +31,7 @@ Tool syntax:
     optional arguments:
       -h, --help            show this help message and exit
       -A actions, --action-to-do actions
-                            action to do (use list_actions to dir)
+                            action to do (use help to dir)
       -b version, --odoo-branch version
                             talk server Odoo version
       -c file, --config file
@@ -161,6 +161,7 @@ import os.path
 import re
 import sys
 import time
+import inspect
 import platform
 from datetime import date, datetime, timedelta
 from os0 import os0
@@ -181,7 +182,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.16"
+__version__ = "0.3.8.17"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -723,7 +724,7 @@ def do_single_action(ctx, action):
             msg = u"> do_single_action(%s)" % action
             msg_log(ctx, ctx['level'] + 1, msg)
         if ctx.get('db_name', '') == 'auto':
-            if action not in ("list_actions", "show_params", "new_db"):
+            if action not in ("help", "list_actions", "show_params", "new_db"):
                 ctx['db_name'] = get_dbname(ctx, action)
                 lgiuser = do_login(ctx)
                 if not lgiuser:
@@ -900,13 +901,20 @@ def get_data_selection(ctx):
 #############################################################################
 # Public actions
 #
+def act_help(ctx):
+    print('%s' % ','.join(sorted(ctx['_lx_act'])))
+    return STS_SUCCESS
+
+
 def act_list_actions(ctx):
+    """List avaiable actions and doc"""
     for act in sorted(ctx['_lx_act']):
-        print("- %s" % act)
+        print("- %s: %s" % (act, globals()['act_%s' % act].__doc__))
     return STS_SUCCESS
 
 
 def act_show_params(ctx):
+    """Show system params; no username required"""
     if ctx['dbg_mode']:
         pwd = raw_input('password ')
     else:
@@ -921,6 +929,7 @@ def act_show_params(ctx):
 
 
 def act_list_db(ctx):
+    """List DBs to connect; no username required"""
     dblist = get_dblist(ctx)
     for db in sorted(dblist):
         ctx = init_db_ctx(ctx, db)
@@ -929,6 +938,7 @@ def act_list_db(ctx):
 
 
 def act_echo_db(ctx):
+    """Show current DB name"""
     if not ctx['quiet_mode']:
         msg = ident_db(ctx, ctx['db_name'])
         ident = ' ' * ctx['level']
@@ -937,6 +947,9 @@ def act_echo_db(ctx):
 
 
 def act_set_qweb(ctx):
+    """Add system param to convert web.base.url to https"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__)
     ident = ' ' * ctx['level']
     model = 'ir.config_parameter'
     ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
@@ -967,12 +980,15 @@ def act_set_qweb(ctx):
                 web_url = 'https://dev%d.odoo.vg7.it' % majver
             elif localhost == 'vg7odoodev' and majver == 8:
                 web_url = 'https://dev.odoo.vg7.it'
+
         if web_url != param.value:
             clodoo.writeL8(ctx, model, ids[0], {'value': web_url})
             print("%sParam %s updated to %s" % (ident, param.key, web_url))
+    return STS_SUCCESS
 
 
 def act_show_db_params(ctx):
+    """Show current DB name and tye"""
     ident = ' ' * ctx['level']
     print("%s- DB name       = %s " % (ident, ctx.get('db_name', "")))
     print("%s- DB type       = %s " % (ident, ctx.get('db_type', "")))
@@ -980,6 +996,7 @@ def act_show_db_params(ctx):
 
 
 def act_list_companies(ctx):
+    """List companies of current DB"""
     company_ids = get_companylist(ctx)
     for c_id in company_ids:
         ctx = init_company_ctx(ctx, c_id)
@@ -988,6 +1005,7 @@ def act_list_companies(ctx):
 
 
 def act_echo_company(ctx):
+    """Show current company name"""
     if not ctx['quiet_mode']:
         c_id = ctx['company_id']
         msg = ident_company(ctx, c_id)
@@ -997,6 +1015,7 @@ def act_echo_company(ctx):
 
 
 def act_show_company_params(ctx):
+    """Show current company name, country and partner"""
     ident = ' ' * ctx['level']
     print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
     print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
@@ -1008,6 +1027,7 @@ def act_show_company_params(ctx):
 
 
 def act_list_users(ctx):
+    """List users of current DB"""
     user_ids = get_userlist(ctx)
     for u_id in user_ids:
         user = browseL8(ctx, 'res.users', u_id)
@@ -1017,6 +1037,7 @@ def act_list_users(ctx):
 
 
 def act_echo_user(ctx):
+    """Show current username"""
     if not ctx['quiet_mode']:
         u_id = ctx['user_id']
         msg = ident_user(ctx, u_id)
@@ -1026,6 +1047,7 @@ def act_echo_user(ctx):
 
 
 def act_show_user_params(ctx):
+    """Show current username, partner, country and def company"""
     ident = ' ' * ctx['level']
     print("%s- user_id       = %d " % (ident, ctx.get('user_id', 0)))
     print("%s- user name     = %s " % (ident, ctx.get('user_name', "")))
@@ -1036,12 +1058,16 @@ def act_show_user_params(ctx):
 
 
 def act_unit_test(ctx):
-    """This function acts just for unit test"""
+    """This function does nothing, it acts just for unit test"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__)
     return STS_SUCCESS
 
 
 def act_run_unit_tests(ctx):
-    """"Run module unit test"""
+    """"Run module unit test (no yet avaiable)"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__)
     try:
         executeL8(ctx,
                   'ir.actions.server',
@@ -1053,10 +1079,10 @@ def act_run_unit_tests(ctx):
 
 
 def act_drop_db(ctx):
-    """Drop a DB"""
+    """Drop a DB %s, if exists"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__ % ctx['db_name'])
     sts = STS_SUCCESS
-    msg = "Drop DB %s" % ctx['db_name']
-    msg_log(ctx, ctx['level'], msg)
     if not ctx['dry_run']:
         ctr = 3
         sts = STS_FAILED
@@ -1083,13 +1109,15 @@ def act_drop_db(ctx):
 
 
 def act_wep_company(ctx):
-    """Wep a DB (delete all record of company but keep res_parter"""
+    """Wipe company %s: delete all records of company but not res_parter"""
+    if not ctx.get('company_name'):
+        msg_log(ctx, ctx['level'], 'No wipe action due to missed company!!!')
+        return STS_FAILED
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__ % ctx.get('company_name'))
     data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
     c_id = ctx['company_id']
-    msg = ident_company(ctx, c_id)
-    msg = "Wep company %s" % ctx['company_name']
-    msg_log(ctx, ctx['level'], msg)
     msg = ','.join(data_selection)
     msg_log(ctx, ctx['level'], msg)
     set_server_isolated(ctx)
@@ -1145,11 +1173,11 @@ def act_wep_company(ctx):
 
 
 def act_wep_db(ctx):
-    """Wep a DB (delete all record but keep res_parter)"""
+    """Wipe DB %s: delete all records of DB but not res_parter"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__ % ctx.get('db_name'))
     data_selection = get_data_selection(ctx)
     sts = STS_SUCCESS
-    msg = "Wep DB %s" % ctx['db_name']
-    msg_log(ctx, ctx['level'], msg)
     msg = ','.join(data_selection)
     msg_log(ctx, ctx['level'], msg)
     set_server_isolated(ctx)
@@ -1737,17 +1765,23 @@ def act_check_tax(ctx):
             elif re.search('cassa', tax.name):
                 payability = 'D'
             if re.search('[Aa]rt[^0-9]74[^0-9]?c[-./a-zA-Z]*[78][^0-9]', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
             elif re.search('[Aa]rt[^0-9]17[^0-9]?c[-./a-zA-Z]*[26][^0-9]', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
             elif re.search('[Aa]rt[^0-9]38[^0-9]?', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
             elif re.search('[Aa]rt[^0-9]40[^0-9]?', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
             elif re.search('[Aa]rt[^0-9]41[^0-9]?[-./a-zA-Z]*427', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
             elif re.search('[Rr]ev[a-zA-Z]* [Cc]harge', tax.name):
-                nature_id = tax_nature['N6']
+                if tax.type_tax_use == 'purchase':
+                    nature_id = tax_nature['N6']
         else:
             if re.search('[Rr]eg[a-zA-Z]* [Mm]in', tax.name):
                 nature_id = tax_nature['N2']
@@ -1837,6 +1871,7 @@ def act_check_config(ctx):
             msg_log(
                 ctx, ctx['level'] + 1,
                 'External id %d renamed from base2 to z0bug' % xid.id)
+
         for id in searchL8(ctx, model, [('module', '=', 'l10n_it_bbone'),
                                         ('name', 'like', 'it_')]):
             unlinkL8(ctx, model, [id])
@@ -1850,12 +1885,14 @@ def act_check_config(ctx):
             msg_log(
                 ctx, ctx['level'] + 1,
                 'External id %d renamed from base2 to z0bug' % xid.id)
+
         for xid in browseL8(ctx, model,
                  searchL8(ctx, model, [('module', '=', 'z0incombenze')])):
             writeL8(ctx, model, xid.id, {'module': 'z0bug'})
             msg_log(
                 ctx, ctx['level'] + 1,
                 'External id %d renamed from z0incombenze to z0bug' % xid.id)
+
         ids = searchL8(ctx, model, [('module', '=', 'base'),
                                     ('name', 'in', ('mycompany',
                                                     'partner_mycompany',
@@ -1888,12 +1925,12 @@ def act_check_config(ctx):
             writeL8(ctx, model, id, {'module': 'z0bug'})
             msg_log(ctx, ctx['level'] + 1,
                     'External id %d renamed from account to z0bug' % id)
-        #
+
         model_partner = 'res.partner'
         model_user = 'res.users'
         model_company = 'res.company'
         model_invoice = 'account.invoice'
-        #
+
         excl_list_user = [x.partner_id.id for x in browseL8(
             ctx, model_user, searchL8(ctx, model_user, []))]
         excl_list_company = [x.partner_id.id for x in browseL8(
@@ -2215,6 +2252,24 @@ def act_check_tax_balance(ctx):
                 msg = ident % (level, kk, tax_balance[level][kk])
                 msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
+
+
+def act_ena_del_in_journal(ctx):
+    """Enable delete flag of journals"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__)
+    model = 'account.journal'
+    return upd_del_in_journal(
+        ctx, searchL8(ctx, model, [('update_posted', '=', False)]))
+
+
+def act_dis_del_in_journal(ctx):
+    """Disable delete flag of journals"""
+    msg_log(ctx, ctx['level'],
+            globals()[inspect.stack()[0][3]].__doc__)
+    model = 'account.journal'
+    return upd_del_in_journal(
+        ctx, searchL8(ctx, model, [('update_posted', '=', True)]), value=False)
 
 
 def act_check_balance(ctx):
@@ -3147,16 +3202,16 @@ def get_reconcile_from_invoices(invoices, ctx):
     return reconcile_dict, move_dict
 
 
-def upd_journals_ena_del(journals, ctx):
+def upd_del_in_journal(ctx, journals, value=None):
     """Before set invoices to draft, invoice has to set in cancelled state.
     To do this, journal has to be enabled
     @param journals: journal list to enable update_posted
     """
+    value = value if isinstance(value, bool) else True
     if len(journals):
-        vals = {}
-        vals['update_posted'] = True
+        vals = {'update_posted': value}
         try:
-            msg = u"Update journals " + str(journals)
+            msg = u"Journals %s: update_posted=%s " % (str(journals), value)
             msg_log(ctx, ctx['level'], msg)
             writeL8(ctx, 'account.journal', journals, vals)
         except BaseException:
@@ -3722,7 +3777,7 @@ def set_account_type(ctx):
                 if len(inv_move_dict[state]):
                     move_dict[state] = list(set(move_dict[state]) |
                                             set(inv_move_dict[state]))
-    sts = upd_journals_ena_del(journals, ctx)
+    sts = upd_del_in_journal(ctx, journals)
     if sts == STS_SUCCESS:
         sts = unreconcile_invoices(reconcile_dict, ctx)
     if sts == STS_SUCCESS:
@@ -5856,7 +5911,7 @@ def main():
     do_newdb = False
     do_multidb = False
     for act in ctx['actions'].split(','):
-        if act not in ("list_actions", "show_params"):
+        if act not in ("help", "list_actions", "show_params"):
             conn2do = True
             if act not in ("drop_db", "list_db"):
                 login2do = True

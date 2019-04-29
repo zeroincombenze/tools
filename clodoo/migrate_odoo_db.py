@@ -13,7 +13,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.16"
+__version__ = "0.3.8.17"
 
 msg_time = time.time()
 
