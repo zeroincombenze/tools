@@ -20,7 +20,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.15"
+__version__ = "0.3.8.16"
 
 
 PAY_MOVE_STS_2_DRAFT = ['posted', ]
@@ -200,6 +200,24 @@ def revaluate_due_date_in_invoces(inv_id):
                 clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
 
 
+def print_tax_codes():
+    model = 'account.tax'
+    for rec in clodoo.browseL8(ctx, model,
+                               clodoo.searchL8(ctx, model, [])):
+        if ctx['majver'] < 9:
+            print('%-10.10s %-60.60s %.3f %s' % (
+                rec.description, rec.name, rec.amount, rec.parent_id))
+        else:
+            print('%-10.10s %-60.60s %.3f %s' % (
+                rec.description, rec.name, rec.amount, rec.parent_tax_ids))
+    if ctx['majver'] < 9:
+        dummy = raw_input('Press RET do print account.tax.code')
+        model = 'account.tax.code'
+        for rec in clodoo.browseL8(ctx, model,
+                                   clodoo.searchL8(ctx, model, [])):
+            print('%-16.16s %-60.60s' % (rec.code, rec.name))
+
+
 print('Function avaiable:')
 print('    show_module_group()')
 print('    clean_translations()')
@@ -208,6 +226,7 @@ print('    set_products_2_delivery_order()')
 print('    inv_commission_from_order()')
 print('    update_einvoice_out_attachment()')
 print('    revaluate_due_date_in_invoces()')
+print('    print_tax_codes()')
 
 pdb.set_trace()
 model = 'account.invoice'

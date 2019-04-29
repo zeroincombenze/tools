@@ -24,6 +24,7 @@ Structure:
 """
 
 import csv
+# import pdb
 import os
 import sys
 try:

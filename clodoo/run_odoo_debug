@@ -195,7 +195,7 @@ if [ -n "$opt_modules" ]; then
       src=$(readlink -f $opt_ofile)
       OPTS="--modules=$opt_modules --i18n-export=$src -lit_IT"
     elif [ $opt_exp -ne 0 -o $opt_imp -ne 0 ]; then
-      srcs=$(find $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
+      srcs=$(find -L $odoo_root  -not -path '*/__to_remove/*' -type d -name "$opt_modules")
       f=0
       for src in $srcs; do
         if [ -n "$src" ]; then
@@ -207,7 +207,7 @@ if [ -n "$opt_modules" ]; then
             f=1
             break
           else
-            alt=$(find $src/i18n -name '*.po'|head -n1)
+            alt=$(find -L $src/i18n -name '*.po'|head -n1)
             src=
             if [ -n "$alt" ]; then fi=1 break; fi
           fi

@@ -181,7 +181,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.15"
+__version__ = "0.3.8.16"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1719,6 +1719,17 @@ def act_check_tax(ctx):
         nature_id = False
         payability = False
         if tax.amount:
+            if tax.amount not in ():
+                if ((ctx['majver'] < 9 and
+                        not tax.parent_id and
+                        abs(tax.amount) not in (0.04, 0.1, .22)) or
+                    (ctx['majver'] >= 9 and
+                        not tax.parent_tax_ids and
+                        abs(tax.amount) not in (4, 10, 22))):
+                    writeL8(ctx, model, [tax.id],
+                            {'active': False})
+                    msg = 'Tax code %s deactivated' % tax.description
+                    msg_log(ctx, ctx['level'] + 1, msg)
             if re.search('[Aa]rt[^0-9]17[ -./]ter', tax.name):
                 payability = 'S'
             elif re.search('[Ss]plit[ -./][Pp]aym', tax.name):
@@ -1792,14 +1803,15 @@ def act_check_tax(ctx):
             elif re.search('[Aa]rt[^0-9]17[^0-9][-./a-zA-Z]*', tax.name):
                 nature_id = tax_nature['N1']
         if nature_id:
-            if ctx['majver'] < 10:
+            if ctx['majver'] < 9:
                 writeL8(ctx, model, [tax.id],
                         {'nature_id': nature_id,
                          'non_taxable_nature': tax_nature[nature_id],
                          'payability': False})
             else:
-                writeL8(ctx, model, [tax.id], {'nature_id': nature_id,
-                                               'payability': False})
+                writeL8(ctx, model, [tax.id],
+                        {'nature_id': nature_id,
+                         'payability': False})
             msg = 'Tax code %s: nature=%s' % (tax.description,
                                               tax_nature[nature_id])
             msg_log(ctx, ctx['level'] + 1, msg)
@@ -1815,12 +1827,35 @@ def act_check_config(ctx):
         msg = u"Check config"
         msg_log(ctx, ctx['level'], msg)
         model = 'ir.model.data'
+
         for xid in browseL8(ctx, model,
-                 searchL8(ctx, model, [('module', '=', 'base2')])):
-            writeL8(ctx, model, xid.id, {'module': 'z0incombenze'})
+                 searchL8(ctx, model, [('module', '=', 'l10n_it_base'),
+                                       ('name', 'like', 'it_')])):
+            writeL8(ctx, model, xid.id, {
+                'module': 'base',
+                'name': 'state_%s' % xid.name.lower()})
             msg_log(
                 ctx, ctx['level'] + 1,
-                'External id %d renamed from base2 to z0incombenze' % xid.id)
+                'External id %d renamed from base2 to z0bug' % xid.id)
+        for id in searchL8(ctx, model, [('module', '=', 'l10n_it_bbone'),
+                                        ('name', 'like', 'it_')]):
+            unlinkL8(ctx, model, [id])
+            msg_log(
+                ctx, ctx['level'] + 1,
+                'External id %d (l10n_it_bbone) removed' % xid.id)
+
+        for xid in browseL8(ctx, model,
+                 searchL8(ctx, model, [('module', '=', 'base2')])):
+            writeL8(ctx, model, xid.id, {'module': 'z0bug'})
+            msg_log(
+                ctx, ctx['level'] + 1,
+                'External id %d renamed from base2 to z0bug' % xid.id)
+        for xid in browseL8(ctx, model,
+                 searchL8(ctx, model, [('module', '=', 'z0incombenze')])):
+            writeL8(ctx, model, xid.id, {'module': 'z0bug'})
+            msg_log(
+                ctx, ctx['level'] + 1,
+                'External id %d renamed from z0incombenze to z0bug' % xid.id)
         ids = searchL8(ctx, model, [('module', '=', 'base'),
                                     ('name', 'in', ('mycompany',
                                                     'partner_mycompany',
@@ -1829,9 +1864,9 @@ def act_check_config(ctx):
                                                     'user_bot',
                                                     'partner_bot'))])
         for id in ids:
-            writeL8(ctx, model, id, {'module': 'z0incombenze'})
+            writeL8(ctx, model, id, {'module': 'z0bug'})
             msg_log(ctx, ctx['level'] + 1,
-                    'External id %d renamed from base to z0incombenze' % id)
+                    'External id %d renamed from base to z0bug' % id)
         ids = searchL8(ctx, model, [('module', '=', 'account'),
                                     ('name', 'in', ('invoice_SO1701',
                                                     'invoice_SO1702',
@@ -1850,9 +1885,9 @@ def act_check_config(ctx):
                                                     'invoice_PO1902',
                                                     'invoice_PO1903'))])
         for id in ids:
-            writeL8(ctx, model, id, {'module': 'z0incombenze'})
+            writeL8(ctx, model, id, {'module': 'z0bug'})
             msg_log(ctx, ctx['level'] + 1,
-                    'External id %d renamed from account to z0incombenze' % id)
+                    'External id %d renamed from account to z0bug' % id)
         #
         model_partner = 'res.partner'
         model_user = 'res.users'
@@ -1883,7 +1918,7 @@ def act_check_config(ctx):
                             'Company id %d has a new partner id %d' % (
                                 ids[0], new_id))
                     ids2 = searchL8(ctx, model,
-                                    [('module', '=', 'z0incombenze'),
+                                    [('module', '=', 'z0bug'),
                                      ('model', '=', model_partner),
                                      ('res_id', '=', ids[0])])
                     if ids2:
@@ -1895,11 +1930,11 @@ def act_check_config(ctx):
         # Partners in demo data: cannot be used by other apps
         partners_no_use = [x.res_id for x in browseL8(ctx, model,
             searchL8(ctx, model, [('model', '=', model_partner),
-                                  ('module', '!=', 'z0incombenze')]))]
+                                  ('module', '!=', 'z0bug')]))]
         # Invoice from demo data: cannot be used by other apps
         invoces_no_use = [x.res_id for x in browseL8(ctx, model,
             searchL8(ctx, model, [('model', '=', model_invoice),
-                                  ('module', '!=', 'z0incombenze')]))]
+                                  ('module', '!=', 'z0bug')]))]
         # Customers/Suppliers demo: cannot be used by other apps
         ids = [x.res_id for x in browseL8(ctx, model,
             searchL8(ctx, model, [('model', '=', model_partner)]))]
@@ -1936,7 +1971,7 @@ def act_check_config(ctx):
         #
         z0_invoice_list = searchL8(ctx, model,
                                    [('model', '=', model_invoice),
-                                    ('module', '=', 'z0incombenze')])
+                                    ('module', '=', 'z0bug')])
         z0_customer_list = []
         for xid in browseL8(ctx, model, z0_invoice_list):
             inv = browseL8(ctx, model_invoice, xid.res_id)
@@ -1966,13 +2001,13 @@ def act_check_config(ctx):
             if not searchL8(ctx, model, [('model', '=', 'res.partner'),
                                          ('res_id', '=', part_id)]):
                 name = 'res_partner_%d' % (ix + 1)
-                ids = searchL8(ctx, model, [('module', '=', 'z0incombenze'),
+                ids = searchL8(ctx, model, [('module', '=', 'z0bug'),
                                             ('name', '=', name)])
                 if ids:
                     writeL8(ctx, model, ids[0], {'res_id': part_id})
                 else:
                     id = createL8(ctx, model,
-                                  {'module': 'z0incombenze',
+                                  {'module': 'z0bug',
                                    'name': name,
                                    'model': 'res.partner',
                                    'res_id': part_id})
@@ -2506,94 +2541,27 @@ def act_update_4_next_generation(ctx):
     msg = u"Upgrade next generation"
     msg_log(ctx, ctx['level'], msg)
     model = 'ir.module.module'
-    model2 = 'ir.module.module.dependency'
-    ids = searchL8(ctx, model, [('state', '=', 'uninstallable')])
-    for id in ids:
+    model2 = 'ir.model.data'
+    for module in browseL8(ctx, model,
+            searchL8(ctx, model, ['|',
+                                  ('state', '=', 'uninstallable'),
+                                  ('state', '=', 'uninstalled')])):
+        module_name = module.name
         try:
-            unlinkL8(ctx, model, [id])
+            unlinkL8(ctx, model, [module.id])
+            msg = u"Clean module %s" % module_name
+            msg_log(ctx, ctx['level'] + 1, msg)
         except BaseException:
             pass
-    sts = act_update_modules(ctx)
-    ids = searchL8(ctx, model, [])
-    for id in ids:
-        module = ctx['odoo_session'].read(model,
-                                          [id],
-                                          ['name', 'dependencies_id'])
-        if module[0]['dependencies_id']:
-            for id2 in module[0]['dependencies_id']:
-                module2 = ctx['odoo_session'].read(model2, [id2], ['name'])
-                if len(module2) == 0:
-                    msg = 'dependency %d (%s) not found!' % (id2,
-                                                             module[0]['name'])
-                    msg_log(ctx, ctx['level'], msg)
-                    writeL8(ctx, model, [id],
-                            {'dependencies_id': [(2, id2)]})
-    ids = searchL8(ctx, model,
-                   ['|',
-                    ('state', '=', 'installed'),
-                    ('state', '=', 'to upgrade')])
-    module_ids = []
-    for id in ids:
-        module_ids.append(id)
-        writeL8(ctx, model, [id], {'state': 'to upgrade'})
-    for module in ('base', 'web', 'base_setup',
-                   'report_webkit', 'base_status', 'board', 'base_iban',
-                   'process', 'decimal_precision', 'plugin',
-                   'web_gantt', 'web_diagram', 'web_kanban', 'web_graph',
-                   'web_calendar', 'web_analytics', 'web_color',
-                   'web_export_view', 'base_import', 'web_gantt_chart',
-                   'mail', 'email_template', 'analytic',
-                   'product', 'account', 'knowledge',
-                   'document', 'fetchmail'):
-        ids = searchL8(ctx, model,
-                       [('name', '=', module)])
-        if len(ids) and ids[0] in module_ids:
-            msg = 'Check for %s' % (module)
-            msg_log(ctx, ctx['level'], msg)
-            id = ids[0]
-            ix = module_ids.index(id)
-            del module_ids[ix]
-            writeL8(ctx, model, [id], {'state': 'installed'})
-            ctx['upgrade_modules'] = module
-            act_upgrade_modules(ctx)
-    again = True
-    max_depth = 16
-    msg = 'Analyzing all dependencies'
-    msg_log(ctx, ctx['level'], msg)
-    while again:
-        again = False
-        max_depth -= 1
-        if max_depth == 0:
-            msg = 'Module inheritance too deep'
-            msg_log(ctx, ctx['level'], msg)
-            break
-        noop = False
-        for id in module_ids:
-            module = ctx['odoo_session'].read(model, [id], ['name',
-                                                            'state',
-                                                            'dependencies_id'])
-            msg = 'Check for %s (%s)' % (module[0]['name'],
-                                         module[0]['state'])
-            msg_log(ctx, ctx['level'], msg)
-            if module[0]['state'] != 'installed':
-                if module[0]['dependencies_id']:
-                    for id2 in module[0]['dependencies_id']:
-                        module2 = ctx['odoo_session'].read(model2,
-                                                           [id2],
-                                                           ['name', 'state'])
-                        if module2[0]['state'] != 'installed':
-                            noop = True
-                            break
-                if noop:
-                    noop = False
-                    continue
-                ix = module_ids.index(id)
-                del module_ids[ix]
-                writeL8(ctx, model, [id], {'state': 'installed'})
-                ctx['upgrade_modules'] = module[0]['name']
-                act_upgrade_modules(ctx)
-                again = True
-    return sts
+        for id in searchL8(ctx, model2, [('module', '=', module_name)]):
+            try:
+                unlinkL8(ctx, model2, [id])
+                msg_log(
+                    ctx, ctx['level'] + 1,
+                    'External id %d (%s) removed' % id, module_name)
+            except BaseException:
+                pass
+    return STS_SUCCESS
 
 
 def act_upgrade_l10n_it_base(ctx):
