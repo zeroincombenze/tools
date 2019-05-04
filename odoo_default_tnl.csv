@@ -26,6 +26,7 @@ status	msgid	msgstr
 	00424 - Invalid tax rate in %s	00424 – Aliquota IVA errata in %s
 	00464 - Partner %s without fiscal data	00464 - Soggetto %s senza dati fiscali
 	Account	Conto
+	Account balance at 0 filter	Filtro conti saldo a 0
 	Account Books	Libri contabili
 	Account Follow-up	Solleciti di pagamento
 	Account Invoice	Fattura
@@ -56,10 +57,10 @@ status	msgid	msgstr
 	Administrator	Amministratore
 	Adviser	Contabile
 	After	Dopo
-	Aged Partner Balance	Bilancio storico soggetto
-	Aged Partner Balance -	Bilancio storico soggetto -
-	Aged Partner Balance Wizard	Procedura bilancio storico soggetto
-	Aged Partner Balance XLSX	Bilancio storico soggetto XLSX
+	Aged Partner Balance	Poste ripartite per periodo
+	Aged Partner Balance -	Poste ripartite per periodo -
+	Aged Partner Balance Wizard	Procedura poste ripartite per periodo
+	Aged Partner Balance XLSX	Poste ripartite per periodo XLSX
 	Agent	Agente
 	Agent information	Informazioni Agente
 	Agent line	Righe Agente
@@ -234,6 +235,8 @@ status	msgid	msgstr
 	Date Invoice	Data fattura
 	Date month	Mese
 	Date Ordered:	Data ordinato:
+	Date range	Intervallo date
+	Date range filter	Filtro intervallo date
 	Date Reference	Riferimento data
 	DDT	DdT
 	DdT	DdT
@@ -298,6 +301,7 @@ status	msgid	msgstr
 	Draft Invoice	Bozza fattura
 	Draft Invoice #	Bozza fattura N
 	Driver's Signature	Firma Conducente
+	Due date filter	Filtro data scadenza
 	Duty Code	Codice tributo
 	E-bill Article Code	Codice articolo e-fattura
 	E-bill Default Account	Conto predefinito per e-fattura
@@ -337,6 +341,7 @@ status	msgid	msgstr
 	Employee	Dipendente
 	Enable	Abilita
 	End Date	Data finale
+	Ending balance	Saldo finale
 	Ending Page PDF	Pagina finale PDF
 	Entry	Registrazione
 	Entry number	Numero di registrazione
@@ -425,6 +430,7 @@ status	msgid	msgstr
 	Incoming Mail Servers	Server posta in arrivo
 	Indexed Content	Contenuto Indicizzato
 	Initial Balance	Saldo iniziale
+	Initial balance	Saldo iniziale
 	Initial Balances	Saldi iniziali
 	Intermediary	Intermediario
 	Inventory	Magazzino
@@ -525,13 +531,17 @@ status	msgid	msgstr
 	No taxable nature	Natura base non imponibile
 	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
 	Non taxable nature	Natura esenzione
+	Not due	Non dovuto
 	Not every picking is in done status	Non tutti i prelievi sono completati
+	Not Posted	Non validate
 	Note	Nota
 	Notes	Note
 	Nothing to invoice	Non ci sono DdT da fatturare
 	Number of Items	Numero di righe
 	Number Reference	Riferimento numero
+	OCA accounting reports	Rapporti finanziari vari
 	One DDT - One Invoice	Un DdT - Una fattura
+	Only overdue	Solo scaduto
 	Open Items	Partite aperte
 	Open Items -	Partite aperte -
 	Open Items Partner	Partite aperte
@@ -546,11 +556,13 @@ status	msgid	msgstr
 	Organization Province	Provincia organizzazione
 	Organization Street Number	Numero civico organizzazione
 	Organization ZIP	CAP organizzazione
+	Original	Originale
 	Other Administrative Data	Altri dati gestionali
 	Out Invoices	Fatture emesse
 	Outgoing Email Servers	Server posta invio
 	Outgoing Mail Server	Server posta invio
 	Outgoing Mails	Posta inviata
+	Overdue only	Solo scaduto
 	Overdue Payments	Ritardo pagamenti
 	PA Code for Partner	Codice PA del soggetto
 	PA Code for this Record	Codice PA per questa registrazione
@@ -579,6 +591,7 @@ status	msgid	msgstr
 	Partner %s without street on address	Soggetto %s, indirizzo senza via
 	Partner Company	Soggetto azienda
 	Partner cumul aged balance	Bilancio storico cumul. Soggetto
+	Partner cumul aged balance	Cumulo poste ripartite per data
 	Partner ending balance	Saldo finale soggetto
 	Partner Initial balance	Saldo iniziale soggetto
 	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
