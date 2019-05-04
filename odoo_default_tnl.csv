@@ -56,6 +56,10 @@ status	msgid	msgstr
 	Administrator	Amministratore
 	Adviser	Contabile
 	After	Dopo
+	Aged Partner Balance	Bilancio storico soggetto
+	Aged Partner Balance -	Bilancio storico soggetto -
+	Aged Partner Balance Wizard	Procedura bilancio storico soggetto
+	Aged Partner Balance XLSX	Bilancio storico soggetto XLSX
 	Agent	Agente
 	Agent information	Informazioni Agente
 	Agent line	Righe Agente
@@ -82,6 +86,7 @@ status	msgid	msgstr
 	As a natural person, partner %s must have Name and Surname.	Il soggetto %s, persona fisica, deve avere nome e cognome.
 	As a Public Administration, partner %s IPA Code must be 6 characters long.	Il soggetto %s, pubblica amministrazione, deve avere un codice IPA lungo 6 caratteri.
 	Assessment	Accertamento
+	Assigned Documents by Agent	Documenti assegnati per agente
 	Assignee / Partner	Cessionario / Committente
 	Attached report	Documento allegato
 	Attachment	Allegato
@@ -185,6 +190,7 @@ status	msgid	msgstr
 	Create commission invoices	Creazione fatture provvigioni
 	Create entries	Crea registrazioni
 	Create invoices	Creazione fatture
+	Create User	Crea utente
 	Created by	Creato da
 	Created Invoices	Fatture create
 	Created on	Data di creazione
@@ -332,6 +338,8 @@ status	msgid	msgstr
 	Enable	Abilita
 	End Date	Data finale
 	Ending Page PDF	Pagina finale PDF
+	Entry	Registrazione
+	Entry number	Numero di registrazione
 	EORI Code	Codice EORI
 	Error	Errore
 	Error 00464: Partner id %d without fiscal data	Errore 00464: Soggetto id %d senza dati fiscali
@@ -341,7 +349,10 @@ status	msgid	msgstr
 	Export E-invoice	Esporta e-fattura
 	Export EInvoice	Esporta fattura elettronica
 	Export Electronic Invoice	Esporta fattura elettronica
+	Export PDF	Esporta PDF
 	Export VAT Communication	Esporta comunicazione IVA
+	Export XLSX	Esporta XLSX
+	extend access to documents which have agent code equal to its id.	estende l'acceso ai documenti in cui è agente
 	External agent	Agente plurimandatario
 	Failed	Non riuscito
 	FatturaPA attachment changed	Allegato e-fattura modificato
@@ -358,6 +369,7 @@ status	msgid	msgstr
 	File %s already present.	File %s già presente.
 	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
 	File is linked to bills yet.	Il file è già collegato alle fatture.
+	Filter partners	Filtra soggetti
 	Financial Reports	Rapporti finanziari
 	Fiscal Document Type	Tipo documento fiscale
 	Fiscal position used by electronic invoice	Posizione fiscale usata dalla fattura elettronica
@@ -384,7 +396,6 @@ status	msgid	msgstr
 	Give a unique name for this report template	Assegnamento nome univoco al modello del rapporto
 	Global bill discount from document general data	Sconto globale fattura dai dati generali del documento
 	Goods Description	Aspetto dei beni
-	Goods Description	Aspetto esteriore dei beni
 	Goods on approval	Conto visione
 	Graph	Quadri
 	Gross Amount	Provvigione su prezzo
@@ -509,6 +520,7 @@ status	msgid	msgstr
 	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
 	No currency found with code %s.	Divisa con codice %s non trovata.
+	No partner allocated	Nessun soggetto allocato
 	No tax with percentage %s and nature %s found. Please configure this tax.	IVA con aliquota %s e natura %s non trovata, configurare questa imposta.
 	No taxable nature	Natura base non imponibile
 	No withholding tax found with document payment reason %s and rate %s.	Ritenuta con causale documento %s e aliquota %s non trovata.
@@ -520,6 +532,9 @@ status	msgid	msgstr
 	Number of Items	Numero di righe
 	Number Reference	Riferimento numero
 	One DDT - One Invoice	Un DdT - Una fattura
+	Open Items	Partite aperte
+	Open Items -	Partite aperte -
+	Open Items Partner	Partite aperte
 	Opportunities	Opportunità
 	or	o
 	Order	Ordine
@@ -563,11 +578,15 @@ status	msgid	msgstr
 	Partner %s without Recipient Code	Soggetto %s senza codice destinatario
 	Partner %s without street on address	Soggetto %s, indirizzo senza via
 	Partner Company	Soggetto azienda
+	Partner cumul aged balance	Bilancio storico cumul. Soggetto
+	Partner ending balance	Saldo finale soggetto
+	Partner Initial balance	Saldo iniziale soggetto
 	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
 	Partner VAT number and fiscal code are not set.	Partita IVA e codice fiscale del soggetto non impostati.
 	Partner/Customer	Soggetto/Cliente
 	Partners 	Soggetti
 	Payable Account	Conto di debito
+	Payable accounts only	Solo conti di debito
 	Payables 	Debiti
 	Payment Amount	Importo pagamento
 	Payment Bank	Banca di pagamento
@@ -648,6 +667,7 @@ status	msgid	msgstr
 	Reason for Transportation	Causale trasporto
 	Reasons for Transportation	Causali trasporto
 	Receipt	Scontrino fiscale
+	Receivable accounts only	Solo conti di credito
 	Receivables 	Crediti
 	Reception	Entrata merce
 	Receptions 	Entrate merci
@@ -686,6 +706,7 @@ status	msgid	msgstr
 	Reporting	Rapporti
 	Repository	Raccolta
 	Reset to Draft	Riporta in bozza
+	Residual	Residuo
 	Resource Field	Campo risorsa
 	Resource ID	ID risorsa
 	Resource Model	Modello risorsa
@@ -738,6 +759,7 @@ status	msgid	msgstr
 	Sender	Mittente
 	Set	Imposta
 	Set Comm. Type	Imposta tipo comm.
+	Set default agent authorization user profile	Imposta profilo autorizzativo predefinito
 	Set done	Completato
 	Set invoice communication type	Imposta tipo communicazione
 	Set Invoice Type	Imposta tipo fattura fiscale
@@ -760,6 +782,7 @@ status	msgid	msgstr
 	Shipping Informations	Informazioni spedizione
 	Shipping Partner	Consegna a soggetto
 	Shipping Partners	Soggetti delle consegne
+	Show partner details	Mostra dettagli soggetto
 	Show prices and         discounts in ddt report	Mostra prezzi e sconti nella stampa del DdT
 	Show prices on report	Mostra prezzi su stampa
 	Size	Dimensioni
@@ -899,6 +922,7 @@ status	msgid	msgstr
 	Vendor	Fornitore
 	Vendor Credit Notes	Note credito fornitori
 	Vendor Taxes	IVA da fornitori
+	View	Visualizza
 	View DdT	Vedi DdT
 	Virtual Stamp	Bollo virtuale
 	Volume	Volume

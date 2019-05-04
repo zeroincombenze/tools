@@ -20,6 +20,8 @@ RFLIST__zerobug="z0testrc"
 RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.csv templates"
+RFLIST__python_plus=""
+RFLIST__zerobug_odoo=""
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|gen_readme.py|makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
 SRCPATH=
 DSTPATH=
@@ -88,12 +90,10 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
     rm -f $tgt
   fi
 done
-export PYTHONPATH=$DSTPATH:$SRCPATH
-[ $(echo "$PATH"|grep -v "$DSTPATH") ] && export PATH=$DSTPATH:$PATH
-# echo "set -v">$DSTPATH/activate_tools
-echo "[[ ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
+echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
+echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
 echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
-# echo "set +v">>$DSTPATH/activate_tools
+. $DSTPATH/activate_tools
 if [[ ! $1 =~ -.*q ]]; then
   echo "-----------------------------------------------------------"
   echo "Please type and add following statements in your login file"

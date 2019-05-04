@@ -80,6 +80,7 @@ import re
 import sys
 from datetime import datetime
 from lxml import etree
+from python_plus import *
 from os0 import os0
 try:
     from z0lib import z0lib
@@ -92,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.10"
+__version__ = "0.2.2.11"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -573,7 +574,10 @@ def expand_macro(ctx, token):
         else:
             value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
     elif token == 'badge-gpl':
-        value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
+        if ctx['odoo_layer'].startswith('pypi'):
+            value = 'AGPL'
+        else:
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
         if value == 'AGPL':
             value = 'licence-%s--3-blue.svg' % value
         else:
@@ -632,7 +636,10 @@ def expand_macro(ctx, token):
             value = 'https://erp%s.zeroincombenze.it' % (
                 ctx['odoo_majver'])
     elif token in ('gpl', 'GPL'):
-        value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
+        if ctx['odoo_layer'].startswith('pypi'):
+            value = 'AGPL'
+        else:
+            value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
         if token == 'gpl':
             value = value.lower()
     elif token in ctx:
@@ -1008,6 +1015,49 @@ def parse_local_file(ctx, filename, ignore_ntf=None, state=None,
     return parse_source(ctx, source, state=state)
 
 
+def setup(**kwargs):
+    for kw in kwargs:
+        print(kw)
+
+
+def read_setup(ctx):
+    if ctx['odoo_layer'] == 'pypi':
+        MANIFEST_LIST = ('../setup.py', )
+    else:
+        MANIFEST_LIST = ('./setup.py', )
+    for manifest in MANIFEST_LIST:
+        manifest_file = os.path.join(ctx['path_name'], manifest)
+        if os.path.isfile(manifest_file):
+            break
+        manifest_file = ''
+    if manifest_file:
+        fd = open(manifest_file, 'rU')
+        lines = os0.u(fd.read()).split('\n')[1:]
+        fd.close()
+        source = ''
+        for line in lines:
+            if line.startswith('setup('):
+                line  = line[6:]
+                source += '{\n'
+            param = qsplit(line, '=', 1, strip=True, quoted=True)
+            if len(param) <= 1:
+                if line.endswith(')'):
+                    source += '%s\n}\n' % line[0: -1]
+                else:
+                    source += '%s\n' % line
+            else:
+                source += '\'%s\': %s\n' % (param[0], param[1])
+        try:
+            ctx['manifest'] = items_2_unicode(
+                ast.literal_eval(source))
+        except ImportError:
+            raise Exception('Wrong file %s' % manifest_file)
+        ctx['manifest_file'] = manifest_file
+    else:
+        print('Warning: manifest file not found')
+        ctx['manifest'] = {}
+
+
 def read_manifest(ctx):
     if ctx['odoo_layer'] != 'module':
         ctx['manifest'] = {}
@@ -1236,7 +1286,15 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
-    if ctx['odoo_layer'] == 'ocb':
+    if ctx['odoo_layer'] == 'pypirepo':
+        ctx['module_name'] = ''
+        ctx['repos_name'] = 'tools'
+        read_setup(ctx)
+    elif ctx['odoo_layer'] == 'pypi':
+        ctx['module_name'] = ''
+        ctx['repos_name'] = os.path.basename(os.getcwd())
+        read_setup(ctx)
+    elif ctx['odoo_layer'] == 'ocb':
         ctx['module_name'] = ''
         ctx['repos_name'] = 'OCB'
         read_all_manifests(ctx)
@@ -1321,7 +1379,7 @@ if __name__ == "__main__":
                         dest='write_html')
     parser.add_argument('-l', '--layer',
                         action='store',
-                        help='ocb|module|repository',
+                        help='ocb|module|repository|pypirepo',
                         dest='odoo_layer')
     parser.add_argument('-m', '--module-name',
                         action='store',
@@ -1348,32 +1406,44 @@ if __name__ == "__main__":
     parser.add_argument('-V')
     parser.add_argument('-v')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    if not ctx['git_orgid']:
-        ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
-                                            odoo_vid=ctx['odoo_vid'])
-    if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
+    if ctx['odoo_layer'] in ('pypirepo', 'pypi'):
         ctx['git_orgid'] = 'zero'
-        print('Invalid git-org: use one of zero|oia|oca for -G switch (%s)' %
-              ctx['git_orgid'])
-    ctx['odoo_fver'] = build_odoo_param('FULLVER', odoo_vid=ctx['odoo_vid'])
-    if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
-                                '9.0', '8.0', '7.0', '6.1'):
-        ctx['odoo_fver'] = '11.0'
-        print('Invalid odoo version: please use -b switch (%s)' %
-              ctx['odoo_fver'])
-    ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
-    if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
-        if ctx['odoo_majver'] >= 10 and os.path.isfile('./__manifest__.py'):
-            ctx['odoo_layer'] = 'module'
-        elif os.path.isfile('./__openerp__.py'):
-            ctx['odoo_layer'] = 'module'
-        elif os.path.basename(os.getcwd()) == ctx['odoo_fver']:
-            ctx['odoo_layer'] = 'ocb'
-        else:
-            ctx['odoo_layer'] = 'repository'
-        print('Invalid layer: use one of ocb|module|repository '
-              'for -l switch (%s)' % ctx['odoo_layer'])
+        ctx['odoo_fver'] = ctx['odoo_vid']
+        ctx['odoo_majver'] = 0
+    else:
+        ctx['odoo_fver'] = build_odoo_param('FULLVER',
+                                            odoo_vid=ctx['odoo_vid'])
+        if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
+                                    '9.0', '8.0', '7.0', '6.1'):
+            ctx['odoo_fver'] = '11.0'
+            print('Invalid odoo version: please use -b switch (%s)' %
+                  ctx['odoo_fver'])
+        ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
+        if not ctx['git_orgid']:
+            ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
+                                                odoo_vid=ctx['odoo_vid'])
+        if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
+            ctx['git_orgid'] = 'zero'
+            print('Invalid git-org: use -G %s or of zero|oia|oca' %
+                  ctx['git_orgid'])
+        if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
+            if (ctx['odoo_majver'] >= 10 and
+                    os.path.isfile('./__manifest__.py') and
+                    os.path.isfile('./__init__.py')):
+                ctx['odoo_layer'] = 'module'
+            elif (ctx['odoo_majver'] < 10 and
+                    os.path.isfile('./__openerp__.py') and
+                    os.path.isfile('./__init__.py')):
+                ctx['odoo_layer'] = 'module'
+            elif os.path.basename(os.getcwd()) == ctx['odoo_fver']:
+                ctx['odoo_layer'] = 'ocb'
+            else:
+                ctx['odoo_layer'] = 'repository'
+            print('Invalid layer: use -L %s or one of ocb|module|repository ' %
+                  ctx['odoo_layer'])
     # Avoid empty path when ends with slash
-    ctx['path_name'] = os.path.dirname(ctx['path_name']) if not os.path.basename(ctx['path_name']) else ctx['path_name']
+    ctx['path_name'] = os.path.dirname(
+        ctx['path_name']) if not os.path.basename(
+            ctx['path_name']) else ctx['path_name']
     sts = generate_readme(ctx)
     sys.exit(sts)
