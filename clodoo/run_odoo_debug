@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.17
+__version__=0.3.8.19
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -220,6 +220,7 @@ if [ -n "$opt_modules" ]; then
         fi
         exit 1
       fi
+      src=$(readlink -f $src)
       if [ $opt_imp -ne 0 ]; then
         OPTS="--modules=$opt_modules --i18n-import=$src -lit_IT --i18n-overwrite"
       else
@@ -255,7 +256,7 @@ OPTDB="$OPTDB --stop-after-init"
 if [ $opt_stop -gt 0 ]; then
   OPTS="$OPTS --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
-    [ $opt_test -ne 0 ] && OPTS="$OPTS --test-commit"
+    [ $opt_test -ne 0 $odoo_ver -lt 12 ] && OPTS="$OPTS --test-commit"
   fi
 fi
 if [ -n "$opt_db" ]; then

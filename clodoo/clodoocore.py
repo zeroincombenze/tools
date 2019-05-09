@@ -16,6 +16,7 @@ import oerplib
 from os0 import os0
 import datetime
 
+
 from clodoolib import debug_msg_log, msg_log, decrypt
 from transodoo import translate_from_sym, translate_from_to
 
@@ -31,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.17"
+__version__ = "0.3.8.19"
 
 
 #############################################################################
@@ -59,8 +60,7 @@ def psql_connect(ctx):
 #############################################################################
 # Connection and database
 #
-def connectL8(ctx):
-    """Open connection to Odoo service"""
+def cnx(ctx):
     try:
         if ctx['svc_protocol'] == 'jsonrpc':
             odoo = odoorpc.ODOO(ctx['db_host'],
@@ -72,7 +72,20 @@ def connectL8(ctx):
                                 port=ctx['xmlrpc_port'],
                                 version=ctx['oe_version'])
     except BaseException:                                    # pragma: no cover
-        return u"!Odoo server %s is not running!" % ctx['oe_version']
+        odoo = False
+    return odoo
+
+def connectL8(ctx):
+    """Open connection to Odoo service"""
+    odoo = cnx(ctx)
+    if not odoo:
+        if ctx['oe_version'] != '*': 
+            return u"!Odoo server %s is not running!" % ctx['oe_version']
+        if ctx['svc_protocol'] == 'jsonrpc':
+            ctx['svc_protocol'] = 'xmlrpc'
+        odoo = cnx(ctx)
+        if not odoo:
+            return u"!Odoo server %s is not running!" % ctx['oe_version']
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['server_version'] = odoo.version
     else:
@@ -81,10 +94,16 @@ def connectL8(ctx):
         except BaseException:
             ctx['server_version'] = odoo.version
     x = re.match(r'[0-9]+\.[0-9]+', ctx['server_version'])
-    if ctx['server_version'][0:x.end()] != ctx['oe_version']:
+    if (ctx['oe_version'] != '*' and 
+            ctx['server_version'][0:x.end()] != ctx['oe_version']):
         return u"!Invalid Odoo Server version: expected %s, found %s!" % \
             (ctx['oe_version'], ctx['server_version'])
+    elif ctx['oe_version'] == '*':
+        ctx['oe_version'] = ctx['server_version'][0:x.end()]
     ctx['majver'] = int(ctx['server_version'].split('.')[0])
+    if ctx['majver'] < 10 and ctx['svc_protocol'] == 'jsonrpc':
+        ctx['svc_protocol'] = 'xmlrpc'
+        return connectL8(ctx)
     ctx['odoo_session'] = odoo
     return True
 
@@ -442,6 +461,33 @@ def extr_table_generic(ctx, model, rec, keys=None):
     return field_names
 
 
+def get_val_from_field(ctx, model, rec, field_name, format=False):
+    res = None
+    if hasattr(rec, field_name) and getattr(rec, field_name):
+        ir_model = 'ir.model.fields'
+        field = browseL8(ctx, ir_model, searchL8(
+            ctx, ir_model, [('model', '=', model),
+                            ('name', '=', field_name)])[0])
+        if field.ttype in ('many2many', 'one2many'):
+            res = []
+            for i in rec[field_name]:
+                res.append(i.id)
+            if format == 'cmd':
+                res = [(6, 0, res)]
+        elif callable(rec[field_name]):
+            res = None
+        elif isinstance(rec[field_name], datetime.date):
+            res = rec[field_name]
+            if format in ('cmd', 'str'):
+                res = str(res)
+        else:
+            try:
+                res = rec[field_name].id
+            except BaseException:
+                res = rec[field_name]
+    return res
+
+
 def extract_vals_from_rec(ctx, model, rec, keys=None):
     if keys:
         if isinstance(keys, dict):
@@ -459,25 +505,7 @@ def extract_vals_from_rec(ctx, model, rec, keys=None):
             field_names = extr_table_generic(ctx, model, rec)
     res = {}
     for p in field_names:
-        if hasattr(rec, p) and getattr(rec, p):
-            ir_model = 'ir.model.fields'
-            field = browseL8(ctx, ir_model, searchL8(
-                ctx, ir_model, [('model', '=', model),
-                                ('name', '=', p)])[0])
-            if field.ttype == 'many2many':
-                val = []
-                for i in rec[p]:
-                    val.append(i.id)
-                res[p] = [(6, 0, val)]
-            elif callable(rec[p]):
-                continue
-            elif isinstance(rec[p], datetime.date):
-                res[p] = str(rec[p])
-            else:
-                try:
-                    res[p] = rec[p].id
-                except BaseException:
-                    res[p] = rec[p]
+        res[p] = get_val_from_field(ctx, model, rec, p)
     return res
 
 
@@ -1200,7 +1228,7 @@ def _query_expr(ctx, o_model, code, value):
     return value
 
 
-def validate_field(ctx, model, name):
+def is_valid_field(ctx, model, name):
     # FIX for Odoo 7.0
     if model in ('res.users', 'res.partner') and name in ('id', 'name'):
         return True
@@ -1215,7 +1243,7 @@ def validate_field(ctx, model, name):
 
 
 def _model_has_company(ctx, model):
-    return validate_field(ctx, model, 'company_id')
+    return is_valid_field(ctx, model, 'company_id')
 
 
 def get_macro_pos(value):

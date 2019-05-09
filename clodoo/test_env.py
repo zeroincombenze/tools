@@ -4,6 +4,8 @@
 from __future__ import print_function
 
 import sys
+import time
+import getpass
 from symbol import except_clause
 # import oerplib
 try:
@@ -20,9 +22,10 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.17"
+__version__ = "0.3.8.19"
 
 
+MAX_DEEP = 20
 PAY_MOVE_STS_2_DRAFT = ['posted', ]
 INVOICES_STS_2_DRAFT = ['open', 'paid']
 STATES_2_DRAFT = ['open', 'paid', 'posted']
@@ -49,10 +52,21 @@ ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                db=ctx['db_name'],
                                ctx=ctx)
+msg_time = time.time()
+
+
+def msg_burst(text):
+    global msg_time
+    t = time.time() - msg_time
+    if (t > 3):
+        print(text)
+        msg_time = time.time()
+
 
 def show_module_group():
     model_grp = 'res.groups'
     model_ctg = 'ir.module.category'
+    model_ir_md = 'ir.model.data'
     gid = True
     while gid:
         gid = raw_input('Res.groups id: ')
@@ -66,9 +80,18 @@ def show_module_group():
             for id in clodoo.searchL8(ctx, model_grp, [('category_id', '=', cid)]):
                 group = clodoo.browseL8(
                     ctx, model_grp, id, context={'lang': 'en_US'})
-                print('%6d) -- Value [%-16.16s] > [%s]' % (id,
-                                                           group.name,
-                                                           group.full_name))
+                ir_md = clodoo.browseL8(ctx, model_ir_md,
+                    clodoo.searchL8(ctx, model_ir_md,
+                                    [('model', '=', model_grp),
+                                     ('res_id', '=', id)]))
+                print('%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s"' % (
+                    id,
+                    group.name,
+                    group.full_name,
+                    ir_md.module,
+                    ir_md.name))
+
+
 def clean_translations():
     model = 'ir.translation'
     where = [('lang', '=', 'it_IT'),
@@ -218,6 +241,66 @@ def print_tax_codes():
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
 
 
+def print_user_profile(ctx):
+
+    def get_agent_names(agents):
+        agent_names = []
+        for agent in agents:
+            agent_names.append(agent.name)
+        return agent_names
+
+    user = raw_input('Username to simulate: ')
+    pwd = getpass.getpass()
+    pwd = pwd if pwd else 'prova2019'
+    uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
+                                   db=ctx['db_name'],
+                                   user=user,
+                                   pwd=pwd,
+                                   ctx=ctx)
+    user = clodoo.browseL8(ctx, 'res.users', uid)
+    print('***** %s *****' % user.name)
+    for model in 'sale.order', 'account.invoice', 'res.partner':
+        print('\n[%s]' % model)
+        for rec in clodoo.browseL8(ctx, model,
+                                   clodoo.searchL8(ctx, model, [])):
+            if model == 'res.partner':
+                print('%s %4d %-16.16s %s %s' % (
+                    model, rec.id, rec.name, rec.agent,
+                    get_agent_names(rec.agents)))
+            elif model == 'account.invoice':
+                print('%s %4d %-16.16s %s' % (
+                    model, rec.id, rec.number, get_agent_names(rec.agents)))
+            else:
+                print('%s %4d %-16.16s %s' % (
+                    model, rec.id, rec.name, get_agent_names(rec.agents)))
+
+
+def simulate_user_profile():
+    dummy = raw_input('Username ID to simulate: ')
+    user = clodoo.browseL8(ctx, 'res.users', int(dummy))
+    print('***** %s *****' % user.name)
+    model_ir = 'ir.rule'
+    for model in 'sale.order', 'account.invoice', 'res.partner':
+        print('\n[%s]' % model)
+        model_id = clodoo.searchL8(ctx, 'ir.model', [('model', '=', model)])
+        for rule in clodoo.browseL8(
+                ctx, model_ir, clodoo.searchL8(
+                    ctx, model_ir, [('model_id', '=', model_id)])):
+            print('\n[%s] %s' % (model, rule.name))
+            for rec in clodoo.browseL8(ctx, model,
+                                       clodoo.searchL8(ctx,
+                                                       model,
+                                                       rule.domain)):
+                if model == 'res.partner':
+                    print('%s %3d %-16.16s %s' % (
+                        model, rec.id, rec.name, rec.agent))
+                elif model == 'account.invoice':
+                    print('%s %3d %-16.16s %s' % (
+                        model, rec.id, rec.number, rec.agents))
+                else:
+                    print('%s %3d %-16.16s %s' % (
+                        model, rec.id, rec.name, rec.agents))
+
 print('Function avaiable:')
 print('    show_module_group()')
 print('    clean_translations()')
@@ -227,8 +310,127 @@ print('    inv_commission_from_order()')
 print('    update_einvoice_out_attachment()')
 print('    revaluate_due_date_in_invoces()')
 print('    print_tax_codes()')
+print('    print_user_profile(ctx)')
+print('    simulate_user_profile()')
+pdb.set_trace()
+
+def build_table_tree():
+    def new_empty_model(models, model):
+        if model not in models:
+            models[model] = {}
+            models[model]['depends'] = []
+            models[model]['maydepends'] = []
+            models[model]['m2m'] = []
+            models[model]['crossdep'] = []
+    model_list = []
+    models = {}
+    for model_rec in clodoo.browseL8(
+        ctx, 'ir.model', clodoo.searchL8(
+            ctx, 'ir.model', [])):
+        model = model_rec.model
+        msg_burst('%s ...' % model)
+        model_list.append(model)
+        new_empty_model(models, model)
+        level = 0
+        for field in clodoo.browseL8(
+            ctx, 'ir.model.fields', clodoo.searchL8(
+                ctx, 'ir.model.fields', [('model', '=', model)])):
+            if field.ttype == 'many2one' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if (field.required and
+                        field.relation not in models[model]['depends']):
+                    models[model]['depends'].append(field.relation)
+                    level = -1
+                if (not field.required and
+                        field.relation not in models[model]['maydepends']):
+                    models[model]['maydepends'].append(field.relation)
+            elif field.ttype == 'one2many' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if (field.required and
+                        model not in models[field.relation]['depends']):
+                    models[field.relation]['depends'].append(model)
+                    level = -1
+                if (not field.required and
+                        model not in models[field.relation]['maydepends']):
+                    models[field.relation]['maydepends'].append(model)
+            elif field.ttype in 'many2many' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if field.relation not in models[model]['m2m']:
+                    models[model]['m2m'].append(field.relation)
+                if model not in models[field.relation]['m2m']:
+                    models[field.relation]['m2m'].append(model)
+        if level == 0:
+            models[model]['level'] = level
+    for model in model_list:
+        msg_burst('%s ...' % model)
+        for sub in models[model]['depends']:
+            if model in models[sub]['depends']:
+                models[model]['crossdep'] = sub
+                models[sub]['crossdep'] = model
+    for model in model_list:
+        msg_burst('%s ...' % model)
+        models[model]['depends'] = list(set(models[model]['depends']) -
+                                        set(models[model]['crossdep']) )
+    missed_models = {}
+    max_iter = 99
+    parsing = True
+    while parsing:
+        parsing = False
+        max_iter -= 1
+        if max_iter <= 0:
+            break
+        for model in model_list:
+            msg_burst('%s ...' % model)
+            if 'level' not in models[model]:
+                parsing = True
+                cur_level = 0
+                for sub in models[model]['depends']:
+                    if 'level' in models[sub]:
+                        cur_level = max(cur_level, models[sub]['level'] + 1)
+                        if cur_level > MAX_DEEP:
+                            cur_level = MAX_DEEP
+                            models[model]['status'] = 'too deep'
+                            break
+                        else:
+                            models[model]['status'] = 'OK'
+                    elif model in models[sub]['depends']:
+                        models[model]['status'] = 'cross dep. with %s' % sub
+                        models[sub]['status'] = 'cross dep. with %s' % model
+                    else:
+                        cur_level = -1
+                        models[model]['status'] = 'broken by %s' % sub
+                        break
+                if cur_level >= MAX_DEEP:
+                    models[model]['level'] = MAX_DEEP
+                elif cur_level >= 0:
+                    models[model]['level'] = cur_level
+    for model in model_list:
+        if 'level' not in models[model]:
+            models[model]['level'] = MAX_DEEP + 1
+    return models
+
+models = build_table_tree()
+for level in range(MAX_DEEP):
+    for model in models:
+        if models[model].get('level', -1) == level:
+            print('%2d %s%s' % (level, ' ' * level, model))
+for model in models:
+    if models[model].get('level', -1) >= MAX_DEEP:
+        print('%s %s (%s)' % ('-' * MAX_DEEP,
+                              model,
+                              models[model].get('status', '')))
 
 pdb.set_trace()
+
+print_user_profile(ctx)
+simulate_user_profile()
+
+for rec in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
+    print(rec.name)
+
 model = 'account.invoice'
 for inv in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model,
         [('type', 'in', ('in_invoice', 'in_refund')),

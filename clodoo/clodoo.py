@@ -167,12 +167,13 @@ from datetime import date, datetime, timedelta
 from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
-                        validate_field, searchL8, browseL8, write_recordL8,
+                        is_valid_field, searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name,
-                        extract_vals_from_rec, declare_mandatory_fields,
+                        extract_vals_from_rec, get_val_from_field,
+                        declare_mandatory_fields,
                         cvt_from_ver_2_ver, execute_action_L8)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
@@ -182,7 +183,7 @@ from transodoo import read_stored_dict
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.17"
+__version__ = "0.3.8.19"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -406,32 +407,39 @@ def do_login(ctx):
 
 
 def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
-                 ctx=None):
+                 user=None, pwd=None, ctx=None):
     P_LIST = ('db_host', 'login_user', 'login_password', 'crypt_password',
               'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
-              'psycopg2')
+              'psycopg2', 'ena_inquire', 'no_login')
+    S_LIST = ('db_name', 'login_user', 'login_password',
+              'oe_version', 'svc_protocol')
 
-    def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None, ctx=None):
+    def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
+                      user=None, pwd=None, ctx=None):
         ctx = ctx or {}
-        saved = {}
-        if 'db_host' not in ctx or not ctx['db_host']:
+        # saved = {}
+        if not ctx.get('db_host'):
             ctx['db_host'] = 'localhost'
         if db:
             ctx['db_name'] = db
-        elif 'db_name' not in ctx or not ctx['db_name']:
+        elif not ctx.get('db_name'):
             ctx['db_name'] = 'demo'
-        if 'login_user' not in ctx or not ctx['login_user']:
+        if user:
+            ctx['login_user'] = user
+        elif not ctx.get('login_user'):
             ctx['login_user'] = 'admin'
-        if 'crypt_password' not in ctx or not ctx['crypt_password']:
-            if 'login_password' not in ctx or not ctx['login_password']:
-                ctx['crypt_password'] = crypt('admin')
+        if pwd:
+            ctx['login_password'] = pwd
+        elif 'crypt_password' not in ctx or not ctx['crypt_password']:
+            if not ctx.get('login_password'):
+                ctx['login_password'] = 'admin'
         if xmlrpc_port:
             ctx['xmlrpc_port'] = xmlrpc_port
         elif 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
             ctx['xmlrpc_port'] = 8069
         if oe_version:
             ctx['oe_version'] = oe_version
-        elif 'oe_version' not in ctx or not ctx['oe_version']:
+        elif not ctx.get('oe_version'):
             ctx['oe_version'] = '11.0'
         if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
             if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
@@ -442,8 +450,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             ctx['run_daemon'] = False
         else:
             ctx['run_daemon'] = True
-        for p in 'db_name', 'oe_version', 'svc_protocol':
-            saved[p] = ctx[p]
+        # for p in S_LIST:
+        #     saved[p] = ctx.get(p)
         ctx['caller'] = ''
         ctx['dbfilter'] = '.*'
         if 'level' not in ctx or not ctx['level']:
@@ -464,7 +472,12 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             ctx['set_passepartout'] = False
         if 'psycopg2' not in ctx:
             ctx['psycopg2'] = False
-        return ctx, saved
+        if 'ena_inquire' not in ctx:
+            ctx['ena_inquire'] = False
+        if 'no_login' not in ctx:
+            ctx['no_login'] = False
+        # return ctx, saved
+        return ctx
     ctx = ctx or {}
     confn = confn or ctx.get('conf_fn', './clodoo.conf')
     write_confn = False
@@ -483,20 +496,27 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         fd.close()
     except BaseException:
         write_confn = True
-        ctx, saved = oerp_env_fill(db=db, ctx=ctx)
+        ctx = oerp_env_fill(db=db, user=user, pwd=pwd, ctx=ctx)
         for p in (P_LIST):
             if p == 'db_name' and db:
                 ctx[p] = db
-            else:
+            elif ctx['ena_inquire']:
                 ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx, saved = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+        ctx = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+                                   user=user, pwd=pwd,
                                    oe_version=oe_version, ctx=ctx)
-    ctx, saved = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+    ctx = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
+                               user=user, pwd=pwd,
                                oe_version=oe_version, ctx=ctx)
     open_connection(ctx)
+    saved = {}
+    for p in S_LIST:
+        saved[p] = ctx.get(p)
     ctx = read_config(ctx)
-    for p in 'db_name', 'oe_version', 'svc_protocol':
+    for p in S_LIST:
         ctx[p] = saved[p]
+    if ctx['no_login']:
+        return False, ctx
     lgiuser = do_login(ctx)
     if not lgiuser:
         raise RuntimeError('Invalid user or password!')      # pragma: no cover
@@ -1042,7 +1062,8 @@ def act_echo_user(ctx):
         u_id = ctx['user_id']
         msg = ident_user(ctx, u_id)
         ident = ' ' * ctx['level']
-        print(" %s%s" % (ident, msg))
+        if 'test_unit_mode' not in ctx:
+            print(" %s%s" % (ident, msg))
     return STS_SUCCESS
 
 
@@ -2516,7 +2537,7 @@ def act_complete_partners(ctx):
                         'res.country',
                         [('code', '=', 'IT')])[0]
     model = 'res.partner'
-    if validate_field(ctx, model, 'province'):
+    if is_valid_field(ctx, model, 'province'):
         partner_ids = searchL8(ctx,
                                model,
                                [('province', '!=', None),
@@ -4001,7 +4022,7 @@ def setstate_model_all_records(model, hide_cid, field_name,
     msg = u"Searching for records to update status in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
-    if validate_field(ctx, model, field_name):
+    if is_valid_field(ctx, model, field_name):
         where = append_2_where(model,
                                field_name,
                                '!=',
@@ -4009,7 +4030,7 @@ def setstate_model_all_records(model, hide_cid, field_name,
                                where,
                                ctx)
     record_ids = searchL8(ctx, model, where)
-    if validate_field(ctx, model, 'state') and \
+    if is_valid_field(ctx, model, 'state') and \
             not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
         move_ctr = 0
@@ -4088,7 +4109,7 @@ def reactivate_model_all_records(model, hide_cid, field_name,
     msg = u"Searching for records to reactivate in %s" % model
     msg_log(ctx, ctx['level'], msg)
     where = build_where(model, hide_cid, exclusion, ctx)
-    if validate_field(ctx, model, field_name):
+    if is_valid_field(ctx, model, field_name):
         where = append_2_where(model,
                                field_name,
                                '=',
@@ -4096,7 +4117,7 @@ def reactivate_model_all_records(model, hide_cid, field_name,
                                where,
                                ctx)
     record_ids = searchL8(ctx, model, where)
-    if validate_field(ctx, model, 'state') and \
+    if is_valid_field(ctx, model, 'state') and \
             not ctx['dry_run'] and len(record_ids) > 0:
         num_moves = len(record_ids)
         move_ctr = 0
@@ -4132,7 +4153,7 @@ def deactivate_model_all_records(model, hide_cid, ctx,
     incr_lev(ctx)
     if reverse is None:
         reverse = False
-    if validate_field(ctx, model, 'active'):
+    if is_valid_field(ctx, model, 'active'):
         where = build_where(model, hide_cid, exclusion, ctx)
         if reverse:
             msg = u"Searching for records to reactivate in %s" % model
@@ -5157,7 +5178,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
                                            'customer-supplier') or \
                 (len(ctx['validated_fields']) and
                  nm in ctx['validated_fields']) or \
-                validate_field(ctx, model, nm):
+                is_valid_field(ctx, model, nm):
             if nm in ctx.get('TRX_VALUE', ''):
                 translate_from_param(ctx, n, nm)
             else:

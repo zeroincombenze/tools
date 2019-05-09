@@ -4,16 +4,22 @@ import sys
 import os
 import time
 # import oerplib
-import clodoo
 try:
-    from z0lib.z0lib import parseoptargs
+    from clodoo import clodoo
 except ImportError:
-    from z0lib import parseoptargs
+    import clodoo
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.17"
+__version__ = "0.3.8.19"
 
 msg_time = time.time()
 
@@ -253,16 +259,19 @@ def cvt_value(dst_ctx, src_ctx, model, field2many, name, key, company_id):
     if value:
         return value[0]
     writelog('Model %s key %s does not exist' % (
-        model, keys[0]))
+        model, name))
     return False
 
 
 def cvt_m2m_value(dst_ctx, src_ctx, model, rec, name, key, company_id):
     res = []
     for item in rec[name]:
-        keyval = clodoo.browseL8(src_ctx,
-                                 model,
-                                 item.id)[key]
+        if key == 'id':
+            keyval = item.id
+        else:
+            keyval = clodoo.browseL8(src_ctx,
+                                     model,
+                                     item.id)[key]
         where = [(key, '=', keyval)]
         if company_id:
             where.append(('company_id', '=', company_id))
@@ -397,9 +406,62 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                     writelog('Cannot create %s src id=%d' % (model, rec.id))
 
 
-parser = parseoptargs("Migrate Odoo DB",
-                      "© 2019 by SHS-AV s.r.l.",
-                      version=__version__)
+def build_table_tree():
+    query = "select tablename from pg_tables where schemaname = 'public';"
+    try:
+        ctx['_cr'].execute(query)
+    except BaseException:
+        raise "Internal SQL error"
+    rows = ctx['_cr'].fetchall()
+
+    module_list = matches or get_modules_list(path_list, depth=depth)
+    missed_modules = {}
+    max_iter = 99
+    parsing = True
+    while parsing:
+        parsing = False
+        max_iter -= 1
+        if max_iter <= 0:
+            break
+        for module in module_list:
+            if module not in modules:
+                missed_modules[module] = {'level': -1, 'status': 'missed'}
+            elif 'level' not in modules[module]:
+                parsing = True
+                cur_level = 0
+                for sub in modules[module]['depends']:
+                    if sub not in module_list:
+                        if sub not in missed_modules:
+                            # print(
+                            #     'Missed module %s, child of %s' %
+                            #     (sub, module))
+                            missed_modules[sub] = {
+                                'status': 'missed, child of %s' % module}
+                        cur_level = UNDEF_DEEP
+                        break
+                    if 'level' in modules[sub]:
+                        cur_level = max(cur_level, modules[sub]['level'] + 1)
+                        if cur_level > MAX_DEEP:
+                            cur_level = MAX_DEEP
+                            modules[module]['status'] = 'too deep'
+                            break
+                        else:
+                            modules[module]['status'] = 'OK'
+                    else:
+                        cur_level = -1
+                        modules[module]['status'] = 'broken by %s' % sub
+                        break
+                if cur_level >= MAX_DEEP:
+                    modules[module]['level'] = MAX_DEEP
+                elif cur_level >= 0:
+                    modules[module]['level'] = cur_level
+    modules={k:v for k, v in modules.items() if k in module_list}
+    modules.update(missed_modules)
+    return parsing, modules
+
+parser = z0lib.parseoptargs("Migrate Odoo DB",
+                            "© 2019 by SHS-AV s.r.l.",
+                            version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-C", "--command-file",
                     help="migration command file",
@@ -423,6 +485,10 @@ parser.add_argument("-I", "--inside-openupgrade",
                     action='store_true',
                     dest="inside_openupgrade",
                     default=False)
+parser.add_argument("-m", "--sel-model",
+                    help="Model to migrate",
+                    dest="sel_model",
+                    metavar="name")
 parser.add_argument('-n')
 parser.add_argument('-q')
 parser.add_argument('-V')
@@ -452,10 +518,19 @@ uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
 uid, dst_ctx = clodoo.oerp_set_env(ctx=dst_ctx)
 transodoo.read_stored_dict(src_ctx)
 dst_ctx['mindroot'] = src_ctx['mindroot']
-install_modules(dst_ctx, src_ctx)
-if dst_ctx['default_behavior'] or not os.path.isfile(dst_ctx['command_file']):
-    with open(dst_ctx['command_file'], 'w') as fd:
-        fd.write(r"""
+if not dst_ctx['sel_model']:
+    install_modules(dst_ctx, src_ctx)
+if dst_ctx['sel_model']:
+    dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
+    dst_ctx['_ml'] = {}
+    dst_ctx['_kl'] = {}
+    for model in dst_ctx['model_list']:
+        dst_ctx['_ml'][model] = 'inquire'
+        dst_ctx['_kl'][model] = 'name'
+else:
+    if dst_ctx['default_behavior'] or not os.path.isfile(dst_ctx['command_file']):
+        with open(dst_ctx['command_file'], 'w') as fd:
+            fd.write(r"""
 res.currency sql name
 res.country sql code
 res.country.state sql country_id,code
@@ -476,58 +551,58 @@ account.journal
 account.invoice
 account.invoice.line
 """)
-with open(dst_ctx['command_file'], 'r') as fd:
-    dst_ctx['_ml'] = {}
-    dst_ctx['_kl'] = {}
-    dst_ctx['model_list'] = []
-    for line in fd.read().split('\n'):
-        line = line.strip()
-        if line:
-            lines = line.split(' ')
-            model = lines[0]
-            if len(lines) > 1:
-                mode = lines[1]
-            else:
-                mode = 'inquire'
-            if len(lines) > 2:
-                keys = lines[2]
-            else:
-                keys = 'name'
-            dst_ctx['model_list'].append(model)
-            dst_ctx['_ml'][model] = mode
-            dst_ctx['_kl'][model] = keys
-    fd.close()
-    assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
-    mode_selection = {'i': 'image', 's': 'sql', 'N': ''}
-    for model in dst_ctx['model_list']:
-        mode = dst_ctx['_ml'][model] or 'inquire'
-        if assume_yes == 'Y':
-            if mode == 'inquire':
-                dummy = raw_input(
-                    'Copy table %s (Image,Sql,No)? ' % model)
-                mode = mode_selection[dummy.lower()]
-            else:
-                writelog('Copying table %s mode %s' % (model, mode))
-        elif  assume_yes == 'N':
-            continue
+    with open(dst_ctx['command_file'], 'r') as fd:
+        dst_ctx['_ml'] = {}
+        dst_ctx['_kl'] = {}
+        dst_ctx['model_list'] = []
+        for line in fd.read().split('\n'):
+            line = line.strip()
+            if line:
+                lines = line.split(' ')
+                model = lines[0]
+                if len(lines) > 1:
+                    mode = lines[1]
+                else:
+                    mode = 'inquire'
+                if len(lines) > 2:
+                    keys = lines[2]
+                else:
+                    keys = 'name'
+                dst_ctx['model_list'].append(model)
+                dst_ctx['_ml'][model] = mode
+                dst_ctx['_kl'][model] = keys
+        fd.close()
+assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
+mode_selection = {'i': 'image', 's': 'sql', 'N': ''}
+for model in dst_ctx['model_list']:
+    mode = dst_ctx['_ml'][model] or 'inquire'
+    if assume_yes == 'Y':
+        if mode == 'inquire':
+            dummy = raw_input(
+                'Copy table %s (Image,Sql,No)? ' % model)
+            mode = mode_selection[dummy.lower()]
         else:
-            if mode == 'inquire':
-                dummy = raw_input(
-                    'Copy table %s (Image,Sql,No)? ' % model)
-                mode = mode_selection[dummy.lower()]
-            else:
-                dummy = raw_input(
-                    'Copy table %s mode %s (Yes,No,All,Quit)? ' %
-                        (model, mode))
-                if dummy.lower() == 'q':
-                    break
-                elif dummy.lower() == 'n':
-                    continue
-                elif dummy.lower() == 'a':
-                    assume_yes = 'Y'
-        if not mode:
-            continue
-        copy_table(dst_ctx, src_ctx, model, mode=mode)
+            writelog('Copying table %s mode %s' % (model, mode))
+    elif  assume_yes == 'N':
+        continue
+    else:
+        if mode == 'inquire':
+            dummy = raw_input(
+                'Copy table %s (Image,Sql,No)? ' % model)
+            mode = mode_selection[dummy.lower()]
+        else:
+            dummy = raw_input(
+                'Copy table %s mode %s (Yes,No,All,Quit)? ' %
+                    (model, mode))
+            if dummy.lower() == 'q':
+                break
+            elif dummy.lower() == 'n':
+                continue
+            elif dummy.lower() == 'a':
+                assume_yes = 'Y'
+    if not mode:
+        continue
+    copy_table(dst_ctx, src_ctx, model, mode=mode)
 
 raw_input('Press RET to validate invoices ...')
 ids = clodoo.searchL8(dst_ctx, 'account.invoice', [('state', '=', 'draft')])

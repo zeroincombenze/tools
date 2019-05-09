@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.17
+__version__=0.3.8.19
 
 
 test_01() {
@@ -691,7 +691,7 @@ test_06() {
     export opt_multi=1
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10 oia7 oia8; do
+      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10; do
         pushd $RHOME/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
@@ -893,6 +893,15 @@ test_08() {
 
 
 Z0BUG_setup() {
+# Modules Tree for tests
+# l10n-italy/l10n_it_base
+# addons/web
+#   |---- addons/account
+#   |---- addons/base   
+#   |---- addons/sale
+#   \---- addons/web
+# unported/l10n_it_base
+
     local VERSION=9.0
     local ODOO_REPO=local/odoo
     RHOME="/opt/odoo"
@@ -902,8 +911,16 @@ Z0BUG_setup() {
     LCL_OE_ROOT=$RHOME/dev/odoo/$VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OO_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OO_PKGNAME
-    LCL_OE_PKGPATH2=$LCL_OE_PRJPATH/__unported__/$LCL_OO_PKGNAME
+    LCL_OE_PKGPATH2=$LCL_OE_ROOT/__unported__/$LCL_OO_PKGNAME
+    [ -f $LCL_OE_ROOT ] && rm -fR $LCL_OE_ROOT
     mkdir -p $LCL_OE_ROOT
+    mkdir -p $LCL_OE_ROOT/openerp
+    touch $LCL_OE_ROOT/openerp-server
+    mkdir -p $LCL_OE_ROOT/addons
+    mkdir -p $LCL_OE_ROOT/addons/base
+    mkdir -p $LCL_OE_ROOT/addons/account
+    mkdir -p $LCL_OE_ROOT/addons/sale
+    mkdir -p $LCL_OE_ROOT/addons/web
     mkdir -p $LCL_OE_PRJPATH
     mkdir -p $LCL_OE_PKGPATH
     mkdir -p $LCL_OE_PKGPATH2
@@ -924,6 +941,13 @@ Z0BUG_setup() {
     LCL_VE_PKGPATH2=$LCL_VE_PRJPATH/__unported__/$LCL_OO_PKGNAME
     mkdir -p $RHOME/dev/odoo/VENV-$VERSION
     mkdir -p $LCL_VE_ROOT
+    mkdir -p $LCL_VE_ROOT/openerp
+    touch $LCL_VE_ROOT/openerp-server
+    mkdir -p $LCL_VE_ROOT/addons
+    mkdir -p $LCL_VE_ROOT/addons/base
+    mkdir -p $LCL_VE_ROOT/addons/account
+    mkdir -p $LCL_VE_ROOT/addons/sale
+    mkdir -p $LCL_VE_ROOT/addons/web
     mkdir -p $LCL_VE_PRJPATH
     mkdir -p $LCL_VE_PKGPATH
     mkdir -p $LCL_VE_PKGPATH2

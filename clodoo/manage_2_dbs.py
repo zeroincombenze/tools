@@ -3,13 +3,22 @@
 import sys
 import time
 # import oerplib
-import clodoo
-from z0lib import parseoptargs
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 import transodoo
 # import pdb
 
 
-__version__ = '0.3.8.17'
+__version__ = '0.3.8.19'
 
 msg_time = time.time()
 
@@ -159,9 +168,9 @@ def copy_record(left_ctx, right_ctx, model, rec):
     return vals
 
 
-parser = parseoptargs("Manage 2 DBs",
-                      "© 2017-2018 by SHS-AV s.r.l.",
-                      version=__version__)
+parser = z0lib.parseoptargs("Manage 2 DBs",
+                            "© 2017-2018 by SHS-AV s.r.l.",
+                            version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--left-config",
                     help="configuration command file",
