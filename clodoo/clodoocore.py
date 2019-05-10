@@ -488,7 +488,7 @@ def get_val_from_field(ctx, model, rec, field_name, format=False):
     return res
 
 
-def extract_vals_from_rec(ctx, model, rec, keys=None):
+def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
     if keys:
         if isinstance(keys, dict):
             field_names = keys.keys()
@@ -504,8 +504,8 @@ def extract_vals_from_rec(ctx, model, rec, keys=None):
         else:
             field_names = extr_table_generic(ctx, model, rec)
     res = {}
-    for p in field_names:
-        res[p] = get_val_from_field(ctx, model, rec, p)
+    for field in field_names:
+        res[field] = get_val_from_field(ctx, model, rec, field, format=format)
     return res
 
 

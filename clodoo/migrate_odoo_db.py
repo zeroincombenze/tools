@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# from __future__ import print_function, unicode_literals
+from __future__ import print_function
+
 import sys
 import os
 import time
@@ -20,7 +23,79 @@ import transodoo
 
 
 __version__ = "0.3.8.19"
-
+MAX_DEEP = 20
+SYSTEM_MODELS = [
+    '_unknown',
+    'base inquire',
+    'base_import.import',
+    'base_import.tests.models.char.noreadonly',
+    'base_import.tests.models.char.readonly',
+    'base_import.tests.models.char.required',
+    'base_import.tests.models.char.states',
+    'base_import.tests.models.char.stillreadonly',
+    'base_import.tests.models.char',
+    'base_import.tests.models.m2o.related',
+    'base_import.tests.models.m2o.required.related',
+    'base_import.tests.models.m2o',
+    'base_import.tests.models.o2m.child',
+    'base_import.tests.models.o2m',
+    'base_import.tests.models.preview',
+    'base.language.export',
+    'base.language.import',
+    'base.language.install',
+    'base.module.update',
+    'base.update.translations',
+    'base',
+    'change.password.wizard',
+    'ir.actions.act_url',
+    'ir.actions.act_window_close',
+    'ir.actions.actions',
+    'ir.actions.client',
+    'ir.actions.report.xml',
+    'ir.autovacuum',
+    'ir.config_parameter',
+    'ir.exports',
+    'ir.fields.converter',
+    'ir.filters',
+    'ir.http inquire',
+    'ir.http',
+    'ir.logging',
+    'ir.model.data',
+    'ir.model.fields',
+    'ir.module.category',
+    'ir.module.module',
+    'ir.module.module.dependency',
+    'ir.needaction_mixin',
+    'ir.qweb',
+    'ir.qweb.field.contact',
+    'ir.qweb.field.date',
+    'ir.qweb.field.datetime',
+    'ir.qweb.field.duration',
+    'ir.qweb.field.html',
+    'ir.qweb.field.image',
+    'ir.qweb.field.integer',
+    'ir.qweb.field.many2one',
+    'ir.qweb.field.monetary',
+    'ir.qweb.field.qweb',
+    'ir.qweb.field.text',
+    'ir.qweb.field',
+    'ir.translation',
+    'ir.ui.menu',
+    'ir.ui.view',
+    'ir.values',
+    'report.base.report_irmodulereference',
+    'res.config.installer',
+    'res.config.settings',
+    'res.config',
+    'res.font',
+    'res.request.link',
+    'res.users.log',
+    'web_editor.converter.test',
+    'web_editor.converter.test.sub',
+    'web_tour.tour',
+    'workflow',
+    'workflow.instance',
+]
 msg_time = time.time()
 
 
@@ -28,12 +103,12 @@ def msg_burst(text):
     global msg_time
     t = time.time() - msg_time
     if (t > 3):
-        print text
+        print(text)
         msg_time = time.time()
 
 
 def writelog(msg):
-    print msg
+    print(msg)
     fd = open('./migrate_odoo.log', 'a')
     line = '%s,' % msg
 
@@ -237,7 +312,8 @@ def install_modules(dst_ctx, src_ctx):
 
 def set_where_from_keys(dst_ctx, src_ctx, model, rec, keys=None):
     keys = keys or dst_ctx['_kl'][model].split(',')
-    keys = clodoo.extract_vals_from_rec(dst_ctx, model, rec, keys=keys)
+    keys = clodoo.extract_vals_from_rec(dst_ctx, model, rec,
+                                        keys=keys, format='str')
     where = []
     for key in keys.keys():
         where.append((key, '=', keys[key]))
@@ -247,10 +323,9 @@ def set_where_from_keys(dst_ctx, src_ctx, model, rec, keys=None):
 def cvt_value(dst_ctx, src_ctx, model, field2many, name, key, company_id):
     if not field2many:
         return False
-    if dst_ctx['_ml'].get(model, 'image') == 'image':
-        return field2many
-    rec = clodoo.browseL8(src_ctx, model, field2many.id)
-    where = set_where_from_keys(dst_ctx, src_ctx, model, rec)
+    # if dst_ctx['_ml'].get(model, 'image') == 'image':
+    #     return field2many
+    where = set_where_from_keys(dst_ctx, src_ctx, model, field2many)
     if company_id:
         where.append(('company_id', '=', company_id))
     value = clodoo.searchL8(dst_ctx,
@@ -259,7 +334,7 @@ def cvt_value(dst_ctx, src_ctx, model, field2many, name, key, company_id):
     if value:
         return value[0]
     writelog('Model %s key %s does not exist' % (
-        model, name))
+        model, where[0][2]))
     return False
 
 
@@ -299,7 +374,7 @@ def copy_record(dst_ctx, src_ctx, model, rec):
                                'vat',
                                False)
 
-    vals = clodoo.extract_vals_from_rec(src_ctx, model, rec)
+    vals = clodoo.extract_vals_from_rec(src_ctx, model, rec, format='cmd')
     vals = clodoo.cvt_from_ver_2_ver(dst_ctx,
                                      model,
                                      src_ctx['oe_version'],
@@ -358,8 +433,6 @@ def copy_record(dst_ctx, src_ctx, model, rec):
 
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
-    import pdb
-    pdb.set_trace()
     clodoo.declare_mandatory_fields(dst_ctx, model)
     if mode == 'image' and src_ctx['_cr']:
         table = model.replace('.', '_')
@@ -406,16 +479,72 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                     writelog('Cannot create %s src id=%d' % (model, rec.id))
 
 
-def build_table_tree():
-    query = "select tablename from pg_tables where schemaname = 'public';"
-    try:
-        ctx['_cr'].execute(query)
-    except BaseException:
-        raise "Internal SQL error"
-    rows = ctx['_cr'].fetchall()
-
-    module_list = matches or get_modules_list(path_list, depth=depth)
-    missed_modules = {}
+def build_table_tree(ctx):
+    def new_empty_model(models, model):
+        if model not in models:
+            models[model] = {}
+            models[model]['depends'] = []
+            models[model]['maydepends'] = []
+            models[model]['m2m'] = []
+            models[model]['crossdep'] = []
+    model_list = []
+    models = {}
+    for model_rec in clodoo.browseL8(
+        ctx, 'ir.model', clodoo.searchL8(
+            ctx, 'ir.model', [])):
+        model = model_rec.model
+        if model in SYSTEM_MODELS:
+            continue
+        if model in ('base', 'base_import', 'report',
+                     'web_tour',):
+            continue
+        msg_burst('%s ...' % model)
+        model_list.append(model)
+        new_empty_model(models, model)
+        level = 0
+        for field in clodoo.browseL8(
+            ctx, 'ir.model.fields', clodoo.searchL8(
+                ctx, 'ir.model.fields', [('model', '=', model)])):
+            if field.ttype == 'many2one' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if (field.required and
+                        field.relation not in models[model]['depends']):
+                    models[model]['depends'].append(field.relation)
+                    level = -1
+                if (not field.required and
+                        field.relation not in models[model]['maydepends']):
+                    models[model]['maydepends'].append(field.relation)
+            elif field.ttype == 'one2many' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if (field.required and
+                        model not in models[field.relation]['depends']):
+                    models[field.relation]['depends'].append(model)
+                    level = -1
+                if (not field.required and
+                        model not in models[field.relation]['maydepends']):
+                    models[field.relation]['maydepends'].append(model)
+            elif field.ttype in 'many2many' and field.relation != model:
+                if field.relation not in models:
+                    new_empty_model(models, field.relation)
+                if field.relation not in models[model]['m2m']:
+                    models[model]['m2m'].append(field.relation)
+                if model not in models[field.relation]['m2m']:
+                    models[field.relation]['m2m'].append(model)
+        if level == 0:
+            models[model]['level'] = level
+    for model in model_list:
+        msg_burst('%s ...' % model)
+        for sub in models[model]['depends']:
+            if model in models[sub]['depends']:
+                models[model]['crossdep'] = sub
+                models[sub]['crossdep'] = model
+    for model in model_list:
+        msg_burst('%s ...' % model)
+        models[model]['depends'] = list(set(models[model]['depends']) -
+                                        set(models[model]['crossdep']) )
+    missed_models = {}
     max_iter = 99
     parsing = True
     while parsing:
@@ -423,41 +552,47 @@ def build_table_tree():
         max_iter -= 1
         if max_iter <= 0:
             break
-        for module in module_list:
-            if module not in modules:
-                missed_modules[module] = {'level': -1, 'status': 'missed'}
-            elif 'level' not in modules[module]:
+        for model in model_list:
+            msg_burst('%s ...' % model)
+            if 'level' not in models[model]:
                 parsing = True
                 cur_level = 0
-                for sub in modules[module]['depends']:
-                    if sub not in module_list:
-                        if sub not in missed_modules:
-                            # print(
-                            #     'Missed module %s, child of %s' %
-                            #     (sub, module))
-                            missed_modules[sub] = {
-                                'status': 'missed, child of %s' % module}
-                        cur_level = UNDEF_DEEP
-                        break
-                    if 'level' in modules[sub]:
-                        cur_level = max(cur_level, modules[sub]['level'] + 1)
+                for sub in models[model]['depends']:
+                    if 'level' in models[sub]:
+                        cur_level = max(cur_level, models[sub]['level'] + 1)
                         if cur_level > MAX_DEEP:
                             cur_level = MAX_DEEP
-                            modules[module]['status'] = 'too deep'
+                            models[model]['status'] = 'too deep'
                             break
                         else:
-                            modules[module]['status'] = 'OK'
+                            models[model]['status'] = 'OK'
+                    elif model in models[sub]['depends']:
+                        models[model]['status'] = 'cross dep. with %s' % sub
+                        models[sub]['status'] = 'cross dep. with %s' % model
                     else:
                         cur_level = -1
-                        modules[module]['status'] = 'broken by %s' % sub
+                        models[model]['status'] = 'broken by %s' % sub
                         break
                 if cur_level >= MAX_DEEP:
-                    modules[module]['level'] = MAX_DEEP
+                    models[model]['level'] = MAX_DEEP
                 elif cur_level >= 0:
-                    modules[module]['level'] = cur_level
-    modules={k:v for k, v in modules.items() if k in module_list}
-    modules.update(missed_modules)
-    return parsing, modules
+                    models[model]['level'] = cur_level
+    for model in model_list:
+        if 'level' not in models[model]:
+            models[model]['level'] = MAX_DEEP + 1
+    return models
+
+
+def primkey_table(ctx, model):
+    names = []
+    if model == 'res.country.state':
+        names = 'country_id,code'
+    elif clodoo.is_valid_field(ctx, model, 'code'):
+        names = 'code'
+    else:
+        names = 'name'
+    return names
+
 
 parser = z0lib.parseoptargs("Migrate Odoo DB",
                             "© 2019 by SHS-AV s.r.l.",
@@ -528,29 +663,23 @@ if dst_ctx['sel_model']:
         dst_ctx['_ml'][model] = 'inquire'
         dst_ctx['_kl'][model] = 'name'
 else:
-    if dst_ctx['default_behavior'] or not os.path.isfile(dst_ctx['command_file']):
+    if (dst_ctx['default_behavior'] or
+            not os.path.isfile(dst_ctx['command_file'])):
+        models = build_table_tree(dst_ctx)
         with open(dst_ctx['command_file'], 'w') as fd:
-            fd.write(r"""
-res.currency sql name
-res.country sql code
-res.country.state sql country_id,code
-res.city
-res.partner.bank
-account.fiscal.position
-res.partner
-res.company
-account.account.type
-account.account
-product.uom.categ
-product.uom
-product.category
-product.template
-product.product
-account.tax
-account.journal
-account.invoice
-account.invoice.line
-""")
+            for level in range(MAX_DEEP):
+                for model in models:
+                    names = primkey_table(dst_ctx, model)
+                    if models[model].get('level', -1) == level:
+                        fd.write('%s inquire %s\n' % (model,
+                                                    names))
+            for model in models:
+                if models[model].get('level', -1) >= MAX_DEEP:
+                    names = primkey_table(dst_ctx, model)
+                    if models[model].get('level', -1) == level:
+                        fd.write('%s inquire %s\n' % (model,
+                                                    names))
+
     with open(dst_ctx['command_file'], 'r') as fd:
         dst_ctx['_ml'] = {}
         dst_ctx['_kl'] = {}
@@ -573,7 +702,7 @@ account.invoice.line
                 dst_ctx['_kl'][model] = keys
         fd.close()
 assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
-mode_selection = {'i': 'image', 's': 'sql', 'N': ''}
+mode_selection = {'i': 'image', 's': 'sql', 'n': ''}
 for model in dst_ctx['model_list']:
     mode = dst_ctx['_ml'][model] or 'inquire'
     if assume_yes == 'Y':
