@@ -66,7 +66,7 @@ def set_versioned_name(mindroot, model, name, type, ver_name, ver):
     return mindroot
 
 
-def translate_from_to(ctx, model, src_name, src_ver, tgt_ver):
+def translate_from_to(ctx, model, src_name, src_ver, tgt_ver, type=False):
     mindroot = ctx.get('mindroot', {})
     if src_ver not in VERSIONS:
         print 'Invalid source version!'
@@ -77,13 +77,13 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver):
     kmodel = get_key1(model)
     k2 = get_key2(src_name, src_ver)
     name = src_name
-    for type in ('field', 'name'):
-        if kmodel in mindroot and \
-                type in mindroot[kmodel] and \
-                k2 in mindroot[kmodel][type]:
-            kk = mindroot[kmodel][type][k2]
-            if kk in mindroot[kmodel][type]:
-                name = mindroot[kmodel][type][kk][tgt_ver]
+    for tt in map(lambda x:x, ('name', 'field')) if not type else [type]:
+        if (kmodel in mindroot and
+                tt in mindroot[kmodel] and
+                k2 in mindroot[kmodel][tt]):
+            kk = mindroot[kmodel][tt][k2]
+            if kk in mindroot[kmodel][tt]:
+                name = mindroot[kmodel][tt][kk][tgt_ver]
                 break
     return name
 
@@ -106,6 +106,8 @@ def translate_from_sym(ctx, model, sym, tgt_ver):
 
 
 def read_stored_dict(ctx):
+    if 'mindroot' in ctx:
+        return
     csv.register_dialect('transodoo',
                          delimiter='\t',
                          quotechar='\"',

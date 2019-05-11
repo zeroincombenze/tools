@@ -9,6 +9,7 @@
 """
     Clodoo Regression Test Suite
 """
+from __future__ import print_function, unicode_literals
 
 # import pdb
 # import os.path
@@ -20,7 +21,7 @@ try:
                                do_single_action, isaction)
     from clodoo.clodoocore import (_get_model_bone, _get_model_code,
                                    _get_model_name, _import_file_dbtype,
-                                   _import_file_model, _model_has_company,
+                                   _import_file_model, model_has_company,
                                    eval_value, get_query_id,
                                    import_file_get_hdr)
 except BaseException:
@@ -28,18 +29,20 @@ except BaseException:
                         do_single_action, isaction)
     from clodoocore import (_get_model_bone, _get_model_code,
                             _get_model_name, _import_file_dbtype,
-                            _import_file_model, _model_has_company,
+                            _import_file_model, model_has_company,
                             eval_value, get_query_id,
                             import_file_get_hdr)
 
 from zerobug import Z0test
-__version__ = "0.3.8.19"
 
+
+__version__ = "0.3.8.19"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 MY_ACT = 'my_actions'
+
 CID = 9
 DEF_CID = 1
 REF_ID = 1
@@ -47,8 +50,10 @@ ID_0 = 11
 ID_1 = 1
 ID_I = 4
 ID_C_0 = 13
-MARK = u"Zeroincombenze®"
+MARK = "Zeroincombenze®"
 CTRY_IT = 110
+PARTNER_DEF = 2
+USER_DEF = 3
 
 
 def version():
@@ -72,149 +77,287 @@ class Oerp():
         self.value = ""
         # self.db = type('', (), {})
         self.db = {}
-        for model in ('res.zero',
-                      'res.one',
-                      'res.two',
-                      'res.three',
-                      'res.four',
-                      'res.five',
-                      'ir.model.data',
-                      'ir.model.fields'):
-            # setattr(self.db, name, {})
-            self.db['model'] = {}
-            if model == 'res.zero':
-                self.db[model] = {
-                    'id': ID_0,
-                    'name': 'myname',
-                    'ref': REF_ID,
-                    'description': MARK
-                }
-            elif model == 'res.one':
-                self.db[model] = {
-                    'id': ID_1,
-                    'name': 'myname',
-                    'company_id': CID,
-                    'ref0': ID_0
-                }
-            elif model == 'res.two':
-                self.db[model] = {
-                    'id': REF_ID,
-                    'name': 'myname',
-                    'country_id': CTRY_IT
-                }
-            elif model == 'res.three':
-                self.db[model] = {
-                    'id': ID_1,
-                    'name': 'name àèìòù',
-                    'company_id': CID,
-                    'ref0': ID_0
-                }
-            elif model == 'ir.model.data':
-                self.db[model] = {
-                    'id': ID_I,
-                    'module': 'base',
-                    'name': 'main_company',
-                    'res_id': ID_0
-                }
-            elif model == 'ir.model.fields':
-                self.db[model] = {
-                    'id': ID_C_0,
-                    'model': 'res.one',
-                    'module': 'base',
-                    'name': 'company_id',
-                    'ttype': 'many2one'
-                }
+
+        # system table: ir.model
+        model = 'ir.model'
+        self.db['model'] = {}
+        self.db[model] = {
+            1: {
+                'model': 'res.zero',
+                'module': 'test',
+                'name': 'res.zero',
+                'field_ids': []
+            },
+            2: {
+                'model': 'res.one',
+                'module': 'test',
+                'name': 'res.one',
+                'field_ids': []
+            },
+            3: {
+                'model': 'res.three',
+                'module': 'test',
+                'name': 'res.three',
+                'field_ids': []
+            },
+            4: {
+                'model': 'res.four',
+                'module': 'test',
+                'name': 'res.four',
+                'field_ids': []
+            },
+            5: {
+                'model': 'res.five',
+                'module': 'test',
+                'name': 'res.five',
+                'field_ids': []
+            },
+        }
+
+        # system table: ir.model.fields
+        model = 'ir.model.fields'
+        self.db['model'] = {}
+        self.db[model] = {
+            1: {
+                'model': 'res.zero',
+                'modules': 'test',
+                'name': 'name',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'char',
+            },
+            2: {
+                'model': 'res.zero',
+                'modules': 'test',
+                'name': 'ref',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'integer',
+            },
+            3: {
+                'model': 'res.zero',
+                'modules': 'test',
+                'name': 'description',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'text',
+            },
+            4: {
+                'model': 'res.one',
+                'modules': 'test',
+                'name': 'name',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'char',
+            },
+            5: {
+                'model': 'res.one',
+                'modules': 'test',
+                'name': 'ref0',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'integer',
+            },
+            6: {
+                'model': 'res.one',
+                'modules': 'test',
+                'name': 'company_id',
+                'readonly': False,
+                'relation': 'res.company',
+                'required': True,
+                'ttype': 'many2one',
+            },
+            7: {
+                'model': 'res.two',
+                'modules': 'test',
+                'name': 'name',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'char',
+            },
+            8: {
+                'model': 'res.two',
+                'modules': 'test',
+                'name': 'country_id',
+                'readonly': False,
+                'relation': 'res.country',
+                'required': True,
+                'ttype': 'many2one',
+            },
+            9: {
+                'model': 'res.three',
+                'modules': 'test',
+                'name': 'name',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'char',
+            },
+            10: {
+                'model': 'res.three',
+                'modules': 'test',
+                'name': 'ref0',
+                'readonly': False,
+                'relation': False,
+                'required': True,
+                'ttype': 'integer',
+            },
+            11: {
+                'model': 'res.three',
+                'modules': 'test',
+                'name': 'company_id',
+                'readonly': False,
+                'relation': 'res.company',
+                'required': True,
+                'ttype': 'many2one',
+            },
+        }
+
+        # system table: ir.model.data
+        model = 'ir.model.data'
+        self.db['model'] = {}
+        self.db[model] = {
+            1: {
+                'model': 'res.company',
+                'module': 'base',
+                'name': 'main_company',
+                'res_id': ID_0,
+            },
+        }
+
+        # date test table: res.zero
+        # name, ref, description
+        model = 'res.zero'
+        self.db['model'] = {}
+        self.db[model] = {
+            ID_0: {
+                'name': 'myname',
+                'ref': REF_ID,
+                'description': MARK,
+            },
+        }
+
+        # date test table: res.one
+        # name, ref0, company_id
+        model = 'res.one'
+        self.db['model'] = {}
+        self.db[model] = {
+            ID_1: {
+                'name': 'myname',
+                'ref0': ID_0,
+                'company_id': CID,
+            },
+        }
+
+        # date test table: res.two
+        # name, country_id
+        model = 'res.two'
+        self.db['model'] = {}
+        self.db[model] = {
+            REF_ID: {
+                'name': 'myname',
+                'country_id': CTRY_IT
+            },
+        }
+
+        # date test table: res.three
+        # name, ref0, company_id
+        model = 'res.three'
+        self.db['model'] = {}
+        self.db[model] = {
+            ID_1: {
+                'name': 'name àèìòù',
+                'ref0': ID_0,
+                'company_id': CID,
+            },
+        }
+
+    def comp_tuple(self, left,op, right):
+        if op == '=':
+            return left == right
+        elif op == '!=':
+            return left != right
+        elif op == 'ilike':
+            return left.lower().find(right.lower()) >= 0
+        return False
+
+    def eval_where(self, model, where):
+        if model == "":
+            raise IOError("*** No model supplied!!!")
+        if model not in self.db:
+            raise IOError("*** Invalid model %s !!!" % model)
+        if len(where) == 1:
+            return where[0]
+        left = where[0]
+        op = where[1]
+        right = where[2]
+        res = []
+        if left == 'id':
+            if right in self.db[model]:
+                res = [right]
+            else:
+                res = []
+        else:
+            for id in self.db[model]:
+                if left not in self.db[model][id]:
+                    raise IOError("*** Invalid field %s in model %s!!!" %
+                                   (left, model))
+                if self.comp_tuple(self.db[model][id][left], op, right):
+                    res.append(id)
+        return res
 
     def search(self, model, where, order=None, context=None):
         """Search simulation
         First time simulate null result
         """
         if model == "":
-            print "*** No model supplied!!!"
-            return None
+            raise IOError("*** No model supplied!!!")
         if model not in self.db:
-            print "*** Invalid " + model + " model!!!"
-            return None
-        ids = []
-        condok = 0
-        r = 0
-        for i, cond in enumerate(where):
-            n = cond[0]
-            if n == "|":
-                condok += 1
-                r = 2
-                continue
-            elif n not in self.db[model]:
-                print "*** Invalid " + model + "." + n + " field!!!"
-                return None
-            o = cond[1]
-            v = cond[2]
-            if isinstance(self.db[model][n], (int, long, float)):
-                if o == '=' and int(v) == self.db[model][n]:
-                    condok += 1
-                elif r > 0:
-                    r -= 1
-                    condok += 1
-            elif isinstance(self.db[model][n], basestring):
-                if o == '=' and v == self.db[model][n]:
-                    condok += 1
-                elif o == 'ilike' and self.db[model][n].find(v) >= 0:
-                    condok += 1
-                elif r > 0:
-                    r -= 1
-                    condok += 1
-            elif r > 0:
-                r -= 1
-                condok += 1
-        if condok == len(where):
-            if where == []:
-                ids = [999, self.db[model]['id']]
-            else:
-                ids = [self.db[model]['id']]
-            return ids
-        return[]
+            raise IOError("*** Invalid " + model + " model!!!")
+        res = [id for id in self.db[model]]
+        while where:
+            cond = self.eval_where(model, where.pop(0))
+            if cond == '|':
+                res = list(set(res) &
+                           (set(self.eval_where(model, where.pop(0))) |
+                            set(self.eval_where(model, where.pop(0)))))
+            elif cond == '&':
+                res = list(set(res) &
+                           set(self.eval_where(where.pop(0))) &
+                           set(self.eval_where(where.pop(0))))
+            elif isinstance(cond, (list, tuple)):
+                res = list(set(res) & set(cond))
+            elif isinstance(cond, (int, long, float)):
+                if id not in res:
+                    res.append(cond)
+        return res
 
-    def browse(self, model, ids, context=None):
-        if model == 'ir.model.data':
-            if ids == ID_I:
-                self.res_id = self.db[model]['res_id']
-                self.module = self.db[model]['module']
-                self.name = self.db[model]['name']
-                return self
-        elif model == 'ir.model.fields':
-            if ids == ID_C_0:
-                self.module = self.db[model]['module']
-                self.name = self.db[model]['name']
-                self.ttype = self.db[model]['ttype']
-                return self
-        elif model == 'res.zero':
-            if ids == ID_0:
-                self.name = self.db[model]['name']
-                self.ref = self.db[model]['ref']
-                self.description = self.db[model]['description']
-                return self
-        elif model == 'res.one':
-            if ids == ID_1:
-                self.name = self.db[model]['name']
-                self.ref0 = self.db[model]['ref0']
-                self.company_id = self.db[model]['company_id']
-                return self
-        elif model == 'res.two':
-            if ids == REF_ID:
-                self.name = self.db[model]['name']
-                self.country_id = self.db[model]['country_id']
-                return self
-        elif model == 'res.three':
-            if ids == ID_1:
-                self.name = self.db[model]['name']
-                self.ref0 = self.db[model]['ref0']
-                self.company_id = self.db[model]['company_id']
-                return self
-        else:
-            self.res_id = 0
+    def browse1(self, model, id, context=None):
+        if model == "":
+            raise IOError("*** No model supplied!!!")
+        if model not in self.db:
+            raise IOError("*** Invalid %s model!!!" % model)
+        if id not in self.db[model]:
+            return None
+        for field in self.db[model][id]:
+            setattr(self, field, self.db[model][id][field])
         return self
 
 
+    def browse(self, model, ids, context=None):
+        if isinstance(ids, list):
+            res = []
+            for id in ids:
+                res.append(self.browse1(model, id, context=context))
+            return res
+        else:
+            return self.browse1(model, ids, context=context)
 Oerp()
 
 
@@ -260,9 +403,19 @@ class Test():
 
     def __init__(self, zarlib):
         self.Z = zarlib
+        self.oerp = False
+        self.dbname = False
+
+    def new_db(self, dbname):
+        if dbname != self.dbname:
+            self.oerp = Oerp()
+            self.dbname = dbname
+        elif not self.oerp:
+            self.oerp = Oerp()
+        return self.oerp
 
     def init_test(self, model):
-        oerp = Oerp()
+        oerp = self.new_db('clodoo_test')
         o_model = {}
         ctx = {}
         ctx['odoo_session'] = oerp
@@ -272,8 +425,8 @@ class Test():
             ctx['company_id'] = CID
         else:
             o_model['hide_cid'] = True
-        ctx['def_partner_id'] = 2
-        ctx['def_user_id'] = 3
+        ctx['def_partner_id'] = PARTNER_DEF
+        ctx['def_user_id'] = USER_DEF
         ctx['def_country_id'] = CTRY_IT
         ctx['panda'] = 'P'
         ctx['P' + str(ctx['def_partner_id'])] = 'PP'
@@ -698,7 +851,7 @@ class Test():
         return sts
 
     def test_07(self, z0ctx):
-        msg = '_model_has_company'
+        msg = 'model_has_company'
         sts = TEST_SUCCESS
         for model in ("res.zero",
                       "res.one",
@@ -706,8 +859,8 @@ class Test():
             if sts == TEST_SUCCESS:
                 oerp, ctx, o_bones, csv_obj, csv_fn, row = \
                     self.init_test(model)
-                res = _model_has_company(ctx,
-                                         model)
+                res = model_has_company(ctx,
+                                        model)
                 if model == "res.zero":
                     tres = False
                 elif model == "res.one":
@@ -768,12 +921,6 @@ class Test():
                     res = get_query_id(ctx,
                                        o_bones,
                                        row)
-                    # if len(res) <= 1:
-                    #     sts = self.Z.test_result(z0ctx, msg, False, True)
-                    # else:
-                    #     sts = self.Z.test_result(z0ctx, msg, True, True)
-                    # if sts == TEST_SUCCESS:
-                    #     sts = self.Z.test_result(z0ctx, msg, 999, res[0])
                     sts = self.Z.test_result(z0ctx, msg, [], res)
 
                 for i in range(2):
@@ -781,10 +928,12 @@ class Test():
                         # repeat 2 time to check side effects
                         if model == 'res.zero':
                             row['id'] = ID_0
+                        elif model == 'res.one':
+                            row['id'] = ID_1
                         elif model == 'res.two':
                             row['id'] = REF_ID
-                        else:
-                            row['id'] = ''
+                        elif model == 'res.three':
+                            row['id'] = ID_1
                         row['name'] = 'not_exists'
                         res = get_query_id(ctx,
                                            o_bones,

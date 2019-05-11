@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# from __future__ import print_function, unicode_literals
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
+# from __future__ import print_function
 
 import sys
 import os
@@ -365,23 +365,23 @@ def cvt_m2m_value(dst_ctx, src_ctx, model, rec, name, key, company_id):
 def copy_record(dst_ctx, src_ctx, model, rec):
     company_id = False
     name = 'company_id'
-    if hasattr(rec, name):
-        company_id = cvt_value(dst_ctx,
-                               src_ctx,
-                               'res.company',
-                               rec,
-                               name,
-                               'vat',
-                               False)
-
+    # if hasattr(rec, name):
+    #     company_id = cvt_value(dst_ctx,
+    #                            src_ctx,
+    #                            'res.company',
+    #                            rec,
+    #                            name,
+    #                            'vat',
+    #                            False)
+    #
     vals = clodoo.extract_vals_from_rec(src_ctx, model, rec, format='cmd')
     vals = clodoo.cvt_from_ver_2_ver(dst_ctx,
                                      model,
                                      src_ctx['oe_version'],
                                      dst_ctx['oe_version'],
                                      vals)
-    if company_id:
-        vals[name] = company_id
+    # if company_id:
+    #     vals[name] = company_id
     for name, model2 in (('partner_id', 'res.partner'),
                          ('commercial_partner_id', 'res.partner')):
         if hasattr(rec, name):
@@ -433,6 +433,8 @@ def copy_record(dst_ctx, src_ctx, model, rec):
 
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
+    import pdb
+    pdb.set_trace()
     clodoo.declare_mandatory_fields(dst_ctx, model)
     if mode == 'image' and src_ctx['_cr']:
         table = model.replace('.', '_')
@@ -594,6 +596,23 @@ def primkey_table(ctx, model):
     return names
 
 
+def write_tree_conf(ctx):
+    models = build_table_tree(ctx)
+    with open(ctx['command_file'], 'w') as fd:
+        for level in range(MAX_DEEP):
+            for model in models:
+                names = primkey_table(ctx, model)
+                if models[model].get('level', -1) == level:
+                    fd.write('%s inquire %s\n' % (model,
+                                                  names))
+        for model in models:
+            if models[model].get('level', -1) >= MAX_DEEP:
+                names = primkey_table(ctx, model)
+                if models[model].get('level', -1) == level:
+                    fd.write('%s inquire %s\n' % (model,
+                                                  names))
+
+
 parser = z0lib.parseoptargs("Migrate Odoo DB",
                             "© 2019 by SHS-AV s.r.l.",
                             version=__version__)
@@ -655,54 +674,29 @@ transodoo.read_stored_dict(src_ctx)
 dst_ctx['mindroot'] = src_ctx['mindroot']
 if not dst_ctx['sel_model']:
     install_modules(dst_ctx, src_ctx)
-if dst_ctx['sel_model']:
-    dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
+
+if (dst_ctx['default_behavior'] or
+        not os.path.isfile(dst_ctx['command_file'])):
+    write_tree_conf(dst_ctx)
+with open(dst_ctx['command_file'], 'r') as fd:
     dst_ctx['_ml'] = {}
     dst_ctx['_kl'] = {}
-    for model in dst_ctx['model_list']:
-        dst_ctx['_ml'][model] = 'inquire'
-        dst_ctx['_kl'][model] = 'name'
-else:
-    if (dst_ctx['default_behavior'] or
-            not os.path.isfile(dst_ctx['command_file'])):
-        models = build_table_tree(dst_ctx)
-        with open(dst_ctx['command_file'], 'w') as fd:
-            for level in range(MAX_DEEP):
-                for model in models:
-                    names = primkey_table(dst_ctx, model)
-                    if models[model].get('level', -1) == level:
-                        fd.write('%s inquire %s\n' % (model,
-                                                    names))
-            for model in models:
-                if models[model].get('level', -1) >= MAX_DEEP:
-                    names = primkey_table(dst_ctx, model)
-                    if models[model].get('level', -1) == level:
-                        fd.write('%s inquire %s\n' % (model,
-                                                    names))
-
-    with open(dst_ctx['command_file'], 'r') as fd:
-        dst_ctx['_ml'] = {}
-        dst_ctx['_kl'] = {}
-        dst_ctx['model_list'] = []
-        for line in fd.read().split('\n'):
-            line = line.strip()
-            if line:
-                lines = line.split(' ')
-                model = lines[0]
-                if len(lines) > 1:
-                    mode = lines[1]
-                else:
-                    mode = 'inquire'
-                if len(lines) > 2:
-                    keys = lines[2]
-                else:
-                    keys = 'name'
-                dst_ctx['model_list'].append(model)
-                dst_ctx['_ml'][model] = mode
-                dst_ctx['_kl'][model] = keys
-        fd.close()
+    dst_ctx['model_list'] = []
+    for line in fd.read().split('\n'):
+        line = line.strip()
+        if line:
+            lines = line.split(' ')
+            model = lines[0]
+            mode = 'inquire' if len(lines[0]) == 0 else lines[1]
+            keys = 'name' if len(lines) <= 2 else lines[2]
+            dst_ctx['model_list'].append(model)
+            dst_ctx['_ml'][model] = mode
+            dst_ctx['_kl'][model] = keys
+    fd.close()
 assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
 mode_selection = {'i': 'image', 's': 'sql', 'n': ''}
+if dst_ctx['sel_model']:
+    dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
 for model in dst_ctx['model_list']:
     mode = dst_ctx['_ml'][model] or 'inquire'
     if assume_yes == 'Y':

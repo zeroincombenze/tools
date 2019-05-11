@@ -1,32 +1,46 @@
 model	name	type	6.1	7.0	8.0	9.0	10.0	11.0	12.0
-res_groups	MANAGER	name	Manager	Manager	Manager	Manager	Manager	Manager	Manager
-res_groups	USER_OWN	name	User	User	See Own Leads	See Own Leads	User: Own Documents Only	User: Own Documents Only	User: Own Documents Only
-res_groups	ADMINISTRATION_SETTINGS	name	Configuration	Settings	Settings	Settings	Settings	Settings	Settings
-res_groups	SALES	name	Sales Management	Sales	Sales	Sales	Sales	Sales	Sales
-res_groups	PROJECT	name	Project Management	Project	Project	Project	Project	Project	Project
-res_groups	MANAGE_INVENTORY_VALUATION	name	Manage Inventory valuation	Manage Inventory valuation	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods
-res_groups	WAREHOUSE	name	Warehouse Management	Warehouse	Warehouse	Warehouse	Warehouse	Warehouse	Warehouse
-res_groups	KNOWLEDGE	name	Knowledge Management	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge
-res_groups	MANAGE_MULTIPLE_LOCATION	name	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage multiple stock_locations	Manage multiple stock_locations	Manage multiple stock_locations
-res_groups	MANAGE_LOGISTIC_SERIAL_NUMBERS	name	Manage Logistic Serial Numbers	Manage Logistic Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
-res_groups	USER_ALL	name	User - All Leads	See all Leads	See all Leads	See all Leads	User: All Documents	User: All Documents	User: All Documents
-res_groups	MANAGE_SERIAL_NUMBERS	name	Manage Serial Numbers	Manage Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
-res_groups	POINT_OF_SALE	name	Point of Sales	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale
-res_groups	PURCHASES	name	Purchase Management	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases
-res_groups	PURCHASE_PRICELISTS	name	Purchase Pricelists	Purchase Pricelists	Purchase Pricelists	Pricelists On Product	Pricelists On Product	Pricelists On Product	Pricelists On Product
-res_groups	KNOWLEDGE_USER	name	User	User	User	Knowledge user	Knowledge user	Knowledge user	Knowledge user
-res_groups	FINANCIAL_MANAGER	name	Manager	Financial Manager	Financial Manager	Adviser	Adviser	Adviser	Adviser
-account_account_type	TYPE	field	report_type	report_type	report_type	type	type	type	type
 account_account	USER_TYPE	field	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id
-account_tax	ACCOUNT_ID	field	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id
-account_tax	ACCOUNT_REFUND_ID	field	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
-account_tax	TYPE	field	type	type	type	amount_type	amount_type	amount_type	amount_type
-res_partner	REC_ID	field	property_account_receivable	property_account_receivable	property_account_receivable	property_account_receivable_id	property_account_receivable_id	property_account_receivable_id	property_account_receivable_id
-res_partner	PAY_ID	field	property_account_payable	property_account_payable	property_account_payable	property_account_payable_id	property_account_payable_id	property_account_payable_id	property_account_payable_id
+account_account_type	TYPE	field	report_type	report_type	report_type	type	type	type	type
+account_invoice	FISCAL_POSITION	field	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account_invoice	MOVE_NAME	field	internal_number	internal_number	internal_number	move_name	move_name	move_name	move_name
 account_invoice	PAYMENT_TERM	field	payment_term	payment_term	payment_term	payment_term_id	payment_term_id	payment_term_id	payment_term_id
-account_invoice	FISCAL_POSITION	field	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account_invoice	SUPPLIER_NUMBER	field	supplier_invoice_number	supplier_invoice_number	supplier_invoice_number	reference	reference	reference	reference
 account_invoice_line	LINE_TAX	field	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_id	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids	invoice_line_tax_ids
 account_invoice_line	UOM	field	uos_id	uos_id	uos_id	uom_id	uom_id	uom_id	uom_id
+account_move_line	RECONCILE_ID	field	reconciled	reconciled	reconciled	reconciled	reconcile_id	reconcile_id	reconcile_id
+account_tax	ACCOUNT_ID	field	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id
+account_tax	ACCOUNT_REFUND_ID	field	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
+account_tax	TYPE	field	type	type	type	amount_type	amount_type	amount_type	amount_type
+res_groups	ADMINISTRATION_SETTINGS	name	Configuration	Settings	Settings	Settings	Settings	Settings	Settings
+res_groups	FINANCIAL_MANAGER	name	Manager	Financial Manager	Financial Manager	Adviser	Adviser	Adviser	Adviser
+res_groups	KNOWLEDGE	name	Knowledge Management	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge
+res_groups	KNOWLEDGE_USER	name	User	User	User	Knowledge user	Knowledge user	Knowledge user	Knowledge user
+res_groups	MANAGE_INVENTORY_VALUATION	name	Manage Inventory valuation	Manage Inventory valuation	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods	Manage Inventory Valuation and Costing Methods
+res_groups	MANAGE_LOGISTIC_SERIAL_NUMBERS	name	Manage Logistic Serial Numbers	Manage Logistic Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
+res_groups	MANAGE_MULTIPLE_LOCATION	name	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage Multiple Locations and Warehouses	Manage multiple stock_locations	Manage multiple stock_locations	Manage multiple stock_locations
+res_groups	MANAGE_SERIAL_NUMBERS	name	Manage Serial Numbers	Manage Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers	Manage Lots / Serial Numbers
+res_groups	MANAGER	name	Manager	Manager	Manager	Manager	Manager	Manager	Manager
+res_groups	POINT_OF_SALE	name	Point of Sales	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale	Point of Sale
+res_groups	PROJECT	name	Project Management	Project	Project	Project	Project	Project	Project
+res_groups	PURCHASE_PRICELISTS	name	Purchase Pricelists	Purchase Pricelists	Purchase Pricelists	Pricelists On Product	Pricelists On Product	Pricelists On Product	Pricelists On Product
+res_groups	PURCHASES	name	Purchase Management	Purchases	Purchases	Purchases	Purchases	Purchases	Purchases
+res_groups	SALES	name	Sales Management	Sales	Sales	Sales	Sales	Sales	Sales
+res_groups	USER_ALL	name	User - All Leads	See all Leads	See all Leads	See all Leads	User: All Documents	User: All Documents	User: All Documents
+res_groups	USER_OWN	name	User	User	See Own Leads	See Own Leads	User: Own Documents Only	User: Own Documents Only	User: Own Documents Only
+res_groups	WAREHOUSE	name	Warehouse Management	Warehouse	Warehouse	Warehouse	Warehouse	Warehouse	Warehouse
+res_partner	COUNTRY_ID	field		country_id	country_id	country_id	country_id	country_id	country_id
+res_partner	FAX	field		fax	fax	fax	fax		
+res_partner	IMAGE	field		image	image	image	image	image	image
+res_partner	IS_COMPANY	field		is_company	is_company	is_company	is_company	is_company	is_company
+res_partner	PAY_ID	field	property_account_payable	property_account_payable	property_account_payable	property_account_payable_id	property_account_payable_id	property_account_payable_id	property_account_payable_id
+res_partner	REC_ID	field	property_account_receivable	property_account_receivable	property_account_receivable	property_account_receivable_id	property_account_receivable_id	property_account_receivable_id	property_account_receivable_id
+res_partner	STATE_ID	field		state_id	state_id	state_id	state_id	state_id	state_id
+res_partner	STREET	field		street	street	street	street	street	street
+res_partner	STREET2	field		street2	street2	street2	street2	street2	street2
+res_partner	TYPE	field		type	type	type	type	type	type
+res_partner	ZIP	field		zip	zip	zip	zip	zip	zip
+res_users	COUNTRY_ID	field		country_id	country_id	country_id	country_id	country_id	country_id
+res_users	EMAIL	field	user_email	email	email	email	email	email	email
+res_users	LANG	field	context_lang	lang	lang	lang	lang	lang	lang
 res_users	PARTNER_ID	field		partner_id	partner_id	partner_id	partner_id	partner_id	partner_id
+res_users	TZ	field	context_tz	tz	tz	tz	tz	tz	tz

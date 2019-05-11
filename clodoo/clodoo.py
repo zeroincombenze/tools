@@ -167,18 +167,19 @@ from datetime import date, datetime, timedelta
 from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
-                        is_valid_field, searchL8, browseL8, write_recordL8,
+                        is_valid_field, is_required_field, model_has_company,
+                        searchL8, browseL8, write_recordL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name,
                         extract_vals_from_rec, get_val_from_field,
-                        declare_mandatory_fields,
-                        cvt_from_ver_2_ver, execute_action_L8)
+                        get_model_structure, execute_action_L8,
+                        cvt_from_ver_2_ver, cvt_value_from_ver_to_ver)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf)
-from transodoo import read_stored_dict
+from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
@@ -255,24 +256,6 @@ def incr_lev(ctx):
         ctx['level'] += 1
     else:
         ctx['level'] = 0
-
-
-def get_name_by_ver(ctx, model, name):
-    majver = ctx['majver']
-    if model == 'account.invoice':
-        if name == 'move_name':
-            if majver < 10:
-                return 'internal_number'
-    elif model == 'res.partner':
-        if name in ('zip', 'image', 'country_id', 'fax', 'street',
-                    'state_id', 'is_company', 'street2', 'type'):
-            if majver == 6:
-                return ''
-    elif model == 'account.move.line':
-        if name == 'reconciled':
-            if majver < 10:
-                return 'reconcile_id'
-    return name
 
 
 #############################################################################
@@ -3257,7 +3240,11 @@ def put_invoices_record_date(invoices, min_rec_date, ctx):
     list_keys = {}
     company_id = None
     journal_id = None
-    move_name = get_name_by_ver(ctx, model, 'move_name')
+    move_name = translate_from_to(ctx,
+                                  model,
+                                  'move_name'
+                                  '10.0',
+                                  ctx['oe_version'])
     for inv_id in invoices:
         invoice = invoice_model.browse(inv_id)
         if not company_id:
@@ -3435,7 +3422,12 @@ def upd_invoices_2_draft(move_dict, ctx):
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
-                fname = get_name_by_ver(ctx, model, 'action_invoice_draft')
+                fname = translate_from_to(ctx,
+                                          model,
+                                          'action_invoice_draft',
+                                          '10.0',
+                                          ctx['oe_version'],
+                                          type='action')
                 executeL8(ctx,
                           model,
                           fname,
@@ -3590,7 +3582,11 @@ def unreconcile_invoices(reconcile_dict, ctx):
 def unreconcile_payments(ctx):
     msg = u"Unreconcile payments"
     msg_log(ctx, ctx['level'], msg)
-    reconciled_name = get_name_by_ver(ctx, 'account.move.line', 'reconciled')
+    reconciled_name = translate_from_to(ctx,
+                                        'account.move.line',
+                                        'reconciled',
+                                        '7.0',
+                                        ctx['oe_version'])
     reconcile_list = searchL8(ctx, 'account.move.line',
                               [(reconciled_name, '!=', False)])
     try:
@@ -4866,7 +4862,11 @@ def remove_all_user_records(ctx):
 def remove_company_account_move_records(ctx):
     sts = STS_SUCCESS
     model = 'account.invoice'
-    move_name = get_name_by_ver(ctx, model, 'move_name')
+    move_name = translate_from_to(ctx,
+                              model,
+                              'move_name',
+                              '10.0',
+                              ctx['oe_version'])
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
@@ -4925,7 +4925,6 @@ def remove_company_account_move_records(ctx):
 def remove_company_account_base_records(ctx):
     sts = STS_SUCCESS
     model = 'account.invoice'
-    # move_name = get_name_by_ver(ctx, model, 'move_name')
     if not ctx['dry_run']:
         company_id = ctx['company_id']
         if sts == STS_SUCCESS:
@@ -4999,7 +4998,11 @@ def remove_all_account_move_records(ctx):
 def analyze_invoices(ctx, inv_type):
     company_id = ctx['company_id']
     model = 'account.invoice'
-    move_name = get_name_by_ver(ctx, model, 'move_name')
+    move_name = translate_from_to(ctx,
+                                  model,
+                                  'move_name',
+                                  '10.0',
+                                  ctx['oe_version'])
     period_ids = searchL8(ctx, 'account.period',
                           [('company_id', '=', company_id),
                            ('date_start', '>=', ctx['date_start']),
@@ -5160,7 +5163,11 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
         ctx['validated_fields'] = []
     model = get_model_model(ctx, o_model)
     for n in csv:
-        nm = get_name_by_ver(ctx, model, n)
+        nm = translate_from_to(ctx,
+                               model,
+                               n,
+                               '7.0',
+                               ctx['oe_version'])
         if not nm:
             continue
         if n in csv_obj.fieldnames:
@@ -5181,7 +5188,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
                 is_valid_field(ctx, model, nm):
             if nm in ctx.get('TRX_VALUE', ''):
                 translate_from_param(ctx, n, nm)
-            else:
+            elif csv[n] != 'None':
                 row[nm] = csv[n]
     if 'company_id' not in row and not o_model.get('hide_cid', False):
         row['company_id'] = False
@@ -5198,7 +5205,6 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
                                       nm,
                                       row[nm],
                                       row=row)
-
     if 'name2' in row:
         if 'name' in row:
             row['name'] = '%s %s' % (row['name'], row['name2'])
@@ -5249,8 +5255,8 @@ def parse_in_fields(ctx, o_model, row, ids, cur_obj):
                             o_model['alias_field']):
             continue
         if isinstance(row[nm], basestring):
-            if nm == o_model['alias_field']:
-                continue
+            # if nm == o_model['alias_field']:
+            #    continue
             if row[nm].find('${header_id}') >= 0:
                 update_header_id = False
             row[nm] = row[nm].replace('\\n', '\n')
@@ -5279,27 +5285,19 @@ def import_file(ctx, o_model, csv_fn):
     """
     msg = u"Import file " + csv_fn
     debug_msg_log(ctx, ctx['level'] + 1, msg)
+    model = get_model_model(ctx, o_model)
+    get_model_structure(ctx, model)
     if not ctx.get('company_id'):
         init_company_ctx(ctx, get_company_id(ctx))
     if 'company_id' in ctx:
         company_id = ctx['company_id']
-    model = get_model_model(ctx, o_model)
     if ctx.get('full_model'):
-        if not ctx.get('translate_ext_names'):
-            ctx['MANDATORY'] = []
-        field_model = 'ir.model.fields'
-        for field_id in searchL8(ctx,
-                                 field_model,
-                                 [('model', '=', model)]):
-            field_name = browseL8(ctx, field_model, field_id).name
-            for field_name in ctx['MANDATORY']:
-                if field_name not in ctx['MANDATORY']:
-                    ctx['MANDATORY'].append(field_name)
+        ctx['MANDATORY'] = extr_table_generic(ctx, model)
     csv.register_dialect('odoo',
                          delimiter=',',
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
-    csv_ffn = ctx['data_path'] + "/" + csv_fn
+    csv_ffn = os.path.join(ctx['data_path'], csv_fn)
     if csv_ffn[-4:] == '.csv':
         ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
     if os.path.isfile(ver_csv):
@@ -5489,11 +5487,14 @@ def import_config_file(ctx, csv_fn):
                          delimiter=',',
                          quotechar='\"',
                          quoting=csv.QUOTE_MINIMAL)
-    csv_ffn = ctx['data_path'] + "/" + csv_fn
+
+    csv_ffn = os.path.join(ctx['data_path'], csv_fn)
     if csv_ffn[-4:] == '.csv':
         ver_csv = '%s_%s%s' % (csv_ffn[0:-4], ctx['oe_version'], csv_ffn[-4:])
     if os.path.isfile(ver_csv):
         csv_ffn = ver_csv
+    if not os.path.isfile(csv_ffn):
+        csv_ffn = csv_fn
     if os.path.isfile(csv_ffn):
         csv_fd = open(csv_ffn, 'rb')
         hdr_read = False
@@ -5568,9 +5569,12 @@ def setup_user_config_param(ctx, username, name, value):
     if v is not None:
         value = v
     if isinstance(value, bool):
-        group_ids = searchL8(ctx, 'res.groups',
-                             [('name', '=', name)],
-                             context=context)
+        if isinstance(name, (int, long)):
+            group_ids = [name]
+        else:
+            group_ids = searchL8(ctx, 'res.groups',
+                                 [('name', '=', name)],
+                                 context=context)
     else:
         cat_ids = searchL8(ctx, 'ir.module.category',
                            [('name', '=', name)],

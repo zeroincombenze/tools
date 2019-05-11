@@ -1,3 +1,2 @@
-id,name,login,signature,email,tz,partner_id,new_password
-base.user_root,Administrator,administrator,"Ammin.","me@example.com","Europe/Rome",None,None
-base.user_admin2,Admin,admin2,"Amministratore2","me2@example.com",,base.partner_user2,newpwd
+oe_versions,user,name,value
+,admin2,base.group_system,True

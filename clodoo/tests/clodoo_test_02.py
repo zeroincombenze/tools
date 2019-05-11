@@ -55,13 +55,13 @@ class Test():
                      'conf_fn': './no_filename.conf',})
             self.ctx['test_unit_mode'] = True
 
-        if not z0ctx['dry_run']:
-            clodoo.act_drop_db(self.ctx)
-            sts = clodoo.act_new_db(self.ctx)
-        sts = self.Z.test_result(z0ctx,
-                                 'new_db()',
-                                 TEST_SUCCESS,
-                                 sts)
+        # if not z0ctx['dry_run']:
+        #     clodoo.act_drop_db(self.ctx)
+        #     sts = clodoo.act_new_db(self.ctx)
+        # sts = self.Z.test_result(z0ctx,
+        #                          'new_db()',
+        #                          TEST_SUCCESS,
+        #                         sts)
         if not z0ctx['dry_run']:
             self.uid, self.ctx = clodoo.oerp_set_env(
                 db='clodoo_test',
@@ -194,6 +194,85 @@ class Test():
                                      'ir_model[field_id] (cmd)',
                                      [(6, 0, record_list)],
                                      RES)
+        return sts
+
+    def test_04(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
+            return sts
+        ctx = self.ctx
+        model = 'res.users'
+        vals = {
+            'name': 'admin',
+            'partner_id': 1,
+            'email': 'myname@example.com'
+        }
+        for tgt_ver in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+            for name in vals:
+                if not z0ctx['dry_run']:
+                    new_name, RES = clodoo.cvt_value_from_ver_to_ver(
+                        ctx,
+                        model,
+                        name,
+                        vals[name],
+                        '7.0',
+                        tgt_ver)
+                else:
+                    RES = new_name = True
+                if name == 'name':
+                    TRES = vals[name]
+                    sts = self.Z.test_result(z0ctx,
+                                             'cvt(%s)' % name,
+                                             TRES,
+                                             RES)
+                elif name == 'partner_id':
+                    if tgt_ver == '6.1':
+                        TRES = False
+                    else:
+                        TRES = vals[name]
+                    sts = self.Z.test_result(z0ctx,
+                                             'cvt(%s)' % name,
+                                             TRES,
+                                             RES)
+                elif name == 'email':
+                    if tgt_ver == '6.1':
+                        TRES = 'user_email'
+                    else:
+                        TRES = name
+                    sts = self.Z.test_result(z0ctx,
+                                             'cvt(%s)' % name,
+                                             TRES,
+                                             new_name)
+        return sts
+
+    def test_05(self, z0ctx):
+        sts = TEST_SUCCESS
+        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
+            return sts
+        ctx = self.ctx
+        model = 'res.users'
+        vals = {
+            'name': 'admin',
+            'partner_id': 1,
+            'email': 'myname@example.com'
+        }
+        for tgt_ver in ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+            if not z0ctx['dry_run']:
+                new_vals = clodoo.cvt_from_ver_2_ver(ctx,
+                                                     model,
+                                                     '7.0',
+                                                     tgt_ver,
+                                                     vals)
+            else:
+                new_vals = vals
+            if tgt_ver == '6.1':
+                TRES = ['name', 'user_email']
+            else:
+                TRES = sorted(vals.keys())
+            sts = self.Z.test_result(z0ctx,
+                                     'cvt_rec(res.users)',
+                                     TRES,
+                                     sorted(new_vals.keys()))
         return sts
 
 

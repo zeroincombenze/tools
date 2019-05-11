@@ -18,7 +18,7 @@ import datetime
 
 
 from clodoolib import debug_msg_log, msg_log, decrypt
-from transodoo import translate_from_sym, translate_from_to
+from transodoo import read_stored_dict, translate_from_sym, translate_from_to
 
 try:
     import psycopg2
@@ -123,8 +123,6 @@ def searchL8(ctx, model, where, order=None, context=None):
 def browseL8(ctx, model, id, context=None):
     if ctx['svc_protocol'] == 'jsonrpc':
         if context:
-            # return ctx['odoo_session'].env[model].with_context(
-            #     ctx['odoo_session'].env[model].browse(id), context)
             return ctx['odoo_session'].env[model].browse(id).with_context(
                 context)
         else:
@@ -134,6 +132,7 @@ def browseL8(ctx, model, id, context=None):
 
 
 def createL8(ctx, model, vals):
+    vals = drop_invalid_fields(ctx, model, vals)
     vals = complete_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         return ctx['odoo_session'].env[model].create(vals)
@@ -142,6 +141,7 @@ def createL8(ctx, model, vals):
 
 
 def write_recordL8(ctx, record):
+    vals = drop_invalid_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['odoo_session'].write(record)
     else:
@@ -149,6 +149,7 @@ def write_recordL8(ctx, record):
 
 
 def writeL8(ctx, model, ids, vals):
+    vals = drop_invalid_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         return ctx['odoo_session'].env[model].write(ids,
                                                     vals)
@@ -229,49 +230,78 @@ def execute_action_L8(ctx, model, action, ids):
 # Version adaptive functions
 #
 def complete_fields(ctx, model, vals):
-    for name in ctx.get('MANDATORY', []):
-        if name not in vals or not vals[name]:
+    to_delete = []
+    for name in ctx.get('STRUCT', {}).get(model, {}):
+        if (is_required_field(ctx, model, name) and
+                (name not in vals or not vals[name])):
             vals[name] = set_some_values(ctx, None, name, '',
                                          model=model, row=vals)
+            if not vals.get(name):
+                to_delete.append(name)
+    return drop_fields(ctx, model, vals, to_delete)
+
+
+def drop_fields(ctx, model, vals, to_delete):
+    for name in to_delete:
+        del vals[name]
+        msg = u"Invalid field %s of %s)" % (name, model)
+        debug_msg_log(ctx, 6, msg)
     return vals
 
 
-def cvt_value_from_ver_to_ver(ctx, model, name, value, src_ver, tgt_ver):
-    if model == 'account.account.type':
-        if name in ('type', 'report_type'):
-            if src_ver == '10.0':
-                if value in ('receivable', 'liquidity'):
-                    value = 'asset'
-                elif value == 'payable':
-                    value = 'liability'
-                else:
-                    value = 'expense'
-    elif model == 'account.tax':
-        if name == 'amount':
-            if src_ver == '10.0' and tgt_ver == '8.0':
-                value = value / 100
-            elif src_ver == '8.0' and tgt_ver == '10.0':
-                value = value * 100
-    elif model == 'ir.sequence':
-        if name == 'code':
-            if src_ver == '10.0' and tgt_ver == '8.0':
-                if not searchL8(ctx,
-                                'ir.sequence.type',
-                                [('code', '=', value)]):
-                    createL8(ctx, 'ir.sequence.type',
-                             {'code': value,
-                              'name': value.replace('.', ' ')})
-    return value
+def drop_invalid_fields(ctx, model, vals):
+    if model in ctx.get('STRUCT', {}).get(model, {}):
+        to_delete = list(set(vals.keys()) - set(ctx['STRUCT'][model].keys()))
+        return drop_fields(ctx, model, vals, to_delete)
+    return vals
+
+
+def cvt_value_from_ver_to_ver(ctx, model, name, value, src_ver, tgt_ver=None):
+    tgt_ver = tgt_ver or ctx['oe_version']
+    new_name = translate_from_to(ctx,
+                                 model,
+                                 name,
+                                 src_ver,
+                                 tgt_ver)
+    if not new_name:
+        return '', False
+    majver = int(tgt_ver.split('.')[0])
+    if new_name:
+        if model == 'account.account.type':
+            if name in ('type', 'report_type'):
+                if src_ver == '10.0':
+                    if value in ('receivable', 'liquidity'):
+                        value = 'asset'
+                    elif value == 'payable':
+                        value = 'liability'
+                    else:
+                        value = 'expense'
+        elif model == 'account.tax':
+            if name == 'amount':
+                if src_ver == '10.0' and tgt_ver == '8.0':
+                    value = value / 100
+                elif src_ver == '8.0' and tgt_ver == '10.0':
+                    value = value * 100
+        elif model == 'ir.sequence':
+            if name == 'code':
+                if src_ver == '10.0' and tgt_ver == '8.0':
+                    if not searchL8(ctx,
+                                    'ir.sequence.type',
+                                    [('code', '=', value)]):
+                        createL8(ctx, 'ir.sequence.type',
+                                 {'code': value,
+                                  'name': value.replace('.', ' ')})
+    return new_name, value
 
 
 def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
     if ctx.get('mindroot'):
         new_vals = {}
-        for name in vals.keys():
-            new_name = translate_from_to(ctx, model, name,
-                                         src_ver, tgt_ver)
-            new_vals[new_name] = cvt_value_from_ver_to_ver(
-                ctx, model, new_name, vals[name], src_ver, tgt_ver)
+        for name in vals:
+            new_name, value = cvt_value_from_ver_to_ver(
+                ctx, model, name, vals[name], src_ver, tgt_ver)
+            if new_name and value:
+                new_vals[new_name] = value
         if model == 'account.tax':
             if 'type' in new_vals and src_ver == '10.0' and tgt_ver == '8.0':
                 if new_vals['type'] == 'group':
@@ -321,7 +351,7 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
         elif model == 'account.invoice':
             if 'state' in new_vals and new_vals['state'] != 'cancel':
                 new_vals['state'] = 'draft'
-        vals = new_vals
+        vals = dict([x for x in new_vals.items() if x[1] is not None])
     return vals
 
 
@@ -449,42 +479,39 @@ def extr_table_account_invoice_line(ctx):
             'uos_id', 'invoice_line_tax_id', 'invoice_line_tax_ids']
 
 
-def extr_table_generic(ctx, model, rec, keys=None):
-    ir_model = 'ir.model.fields'
+def extr_table_generic(ctx, model, keys=None):
+    get_model_structure(ctx, model)
     field_names = []
-    for field in browseL8(ctx, ir_model,
-                          searchL8(ctx, ir_model,
-                                   [('model', '=', model)])):
-        if not field.readonly and field.ttype not in ('binary',
-                                                      'reference'):
-            field_names.append(field.name)
+    for field in ctx['STRUCT'][model]:
+        if not field['readonly']:
+            field_names.append(field)
     return field_names
 
 
-def get_val_from_field(ctx, model, rec, field_name, format=False):
-    res = None
-    if hasattr(rec, field_name) and getattr(rec, field_name):
-        ir_model = 'ir.model.fields'
-        field = browseL8(ctx, ir_model, searchL8(
-            ctx, ir_model, [('model', '=', model),
-                            ('name', '=', field_name)])[0])
-        if field.ttype in ('many2many', 'one2many'):
+def get_val_from_field(ctx, model, rec, field, format=False):
+    if not hasattr(rec, field):
+        return None
+    res = rec[field]
+    if res:
+        if callable(rec[field]):
+            return None
+        get_model_structure(ctx, model)
+        if ctx['STRUCT'][model][field]['ttype'] in ('many2many', 'one2many'):
             res = []
-            for i in rec[field_name]:
-                res.append(i.id)
+            for id in rec[field]:
+                res.append(id.id)
             if format == 'cmd':
                 res = [(6, 0, res)]
-        elif callable(rec[field_name]):
-            res = None
-        elif isinstance(rec[field_name], datetime.date):
-            res = rec[field_name]
+        elif ctx['STRUCT'][model][field]['ttype'] in ('date', 'datetime'):
             if format in ('cmd', 'str'):
                 res = str(res)
-        else:
-            try:
-                res = rec[field_name].id
-            except BaseException:
-                res = rec[field_name]
+        elif ctx['STRUCT'][model][field]['ttype'] == 'many2one':
+            res = rec[field].id
+            if format in ('cmd', 'str'):
+                res = [(6, 0, res)]
+        elif ctx['STRUCT'][model][field]['ttype'] == ('integer', 'float'):
+            if format in ('cmd', 'str'):
+                res = str(res)
     return res
 
 
@@ -502,126 +529,48 @@ def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
         if func in globals():
             field_names = globals()[func](ctx)
         else:
-            field_names = extr_table_generic(ctx, model, rec)
+            field_names = extr_table_generic(ctx, model)
     res = {}
     for field in field_names:
         res[field] = get_val_from_field(ctx, model, rec, field, format=format)
     return res
 
 
-def declare_mandatory_fields(ctx, model):
+def get_model_structure(ctx, model):
+    read_stored_dict(ctx)
+    if ctx.get('STRUCT', {}).get(model, {}):
+        return
+    ctx['STRUCT'] = ctx.get('STRUCT', {})
+    ctx['STRUCT'][model] = ctx['STRUCT'].get(model, {})
     ir_model = 'ir.model.fields'
-    ctx['MANDATORY'] = []
     for field in browseL8(ctx,
                           ir_model,
                           searchL8(ctx,
                                    ir_model,
-                                   [('model', '=', model),
-                                    ('required', '=', True)])):
-        ctx['MANDATORY'].append(field.name)
-    for name in ('code', 'name'):
-        if name not in ctx['MANDATORY']:
-            ids = searchL8(ctx,
-                           ir_model,
-                           [('model', '=', model),
-                            ('name', '=', name)])
-            if ids:
-                ctx['MANDATORY'].append(name)
-
-
-def hub_name_2_ver(ctx, model, vals, btable=None, ttype=None):
-    """Convert universal format name to specific odoo version name.
-    If btable is empty, build bound table to translate fields.
-    Bound table ha format ver_name=z0_name.
-    ver_name is versioned field name
-    z0_name is universal field name or False is does not exist,
-    In res.user, this function always remove country_id field.
-    """
-    if 'MANDATORY' not in ctx:
-        declare_mandatory_fields(ctx, model)
-    ttype = ttype or 'fields'
-    if btable:
-        for p in btable:
-            if isinstance(btable[p], basestring):
-                if p not in vals and btable[p] in vals:
-                    vals[p] = vals[btable[p]]
-                if btable[p] in vals:
-                    del vals[btable[p]]
-            else:
-                if p in vals:
-                    del vals[p]
-    elif model == 'res.users':
-        if ctx['oe_version'] == "6.1":
-            btable = {
-                'partner_id': False,
-                'context_lang': 'lang',
-                'context_tz': 'tz',
-                'user_email': 'email',
-                'country_id': False,
+                                   [('model', '=', model)])):
+        required = True if field.name in ('code', 'name') else field.required
+        readonly = field.readonly or field.ttype in ('binary', 'reference')
+        ctx['STRUCT'][model][field.name] = {
+            'ttype': field.ttype,
+            'required': required,
+            'readonly': readonly,
             }
-            return hub_name_2_ver(ctx, model, vals, btable=btable)
-    elif model == 'account.invoice':
-        if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
-            btable = {
-                'internal_number': 'move_name',
+    # FIX for Odoo 7.0
+    field = 'id'
+    if field not in ctx['STRUCT'][model]:
+        ctx['STRUCT'][model][field] = {
+            'ttype': 'integer',
+            'required': False,
+            'readonly': True,
+        }
+    field = 'name'
+    if model in ('res.users', 'res.partner'):
+        if field not in ctx['STRUCT'][model]:
+            ctx['STRUCT'][model][field] = {
+                'ttype': 'char',
+                'required': True,
+                'readonly': False,
             }
-            return hub_name_2_ver(ctx, model, vals, btable=btable)
-        elif ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
-            btable = {
-                'move_name': 'internal_number',
-            }
-            return ver_name_2_hub(ctx, model, vals, btable=btable)
-    return vals
-
-
-def btable_2_hub_account_account_type(ctx, model, res):
-    return {'user_type_id': 'user_type'}
-
-
-def ver_name_2_hub(ctx, model, res, btable=None, ttype=None):
-    """Convert browsed versioned name to universal names.
-    If btable is empty, build bound table to translate fields.
-    Bound table ha format z0_name=ver_name.
-    z0_name is universal field name,
-    ver_name is versioned field name or False is does not exist
-    Field name may have format res_id.name , which refer to another model.
-    In res.user, this function always add country_id field.
-    """
-    ttype = ttype or 'fields'
-    if btable:
-        for p in btable:
-            if isinstance(btable[p], basestring):
-                i = btable[p].find('.')
-                if i >= 0:
-                    p1 = btable[p][0:i]
-                    p2 = btable[p][i + 1:]
-                    setattr(res, p, res[p1][p2])
-                else:
-                    setattr(res, p, res[btable[p]])
-            else:
-                setattr(res, p, btable[p])
-    else:
-        func = 'btable_2_hub_%s' % model.replace('.', '_')
-        if func in globals():
-            btable = globals()[func](ctx, model, res)
-            return ver_name_2_hub(ctx, model, res, btable=btable)
-        elif model == 'res.users':
-            if ctx['oe_version'] == "6.1":
-                btable = {
-                    'partner_id': False,
-                    'lang': 'context_lang',
-                    'tz': 'context_tz',
-                    'email': 'user_email',
-                    'country_id': 'company_id.country_id',
-                }
-                return ver_name_2_hub(ctx, model, res, btable=btable)
-        elif model == 'account.invoice':
-            if ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
-                btable = {
-                    'move_name': 'internal_number',
-                }
-                return hub_name_2_ver(ctx, model, res, btable=btable)
-    return res
 
 
 def build_model_struct(ctx):
@@ -715,8 +664,8 @@ def _get_model_bone(ctx, o_model):
                 if 'hide_cid' in ctx:
                     hide_cid = ctx['hide_cid']
                 else:
-                    hide_cid = not _model_has_company(ctx,
-                                                      model)
+                    hide_cid = not model_has_company(ctx,
+                                                     model)
     if model is None:
         if 'model' in o_model:
             model = o_model['model']
@@ -725,8 +674,8 @@ def _get_model_bone(ctx, o_model):
             if 'hide_cid' in o_model:
                 hide_cid = o_model['hide_cid']
             else:
-                hide_cid = not _model_has_company(ctx,
-                                                  model)
+                hide_cid = not model_has_company(ctx,
+                                                 model)
     return model, hide_cid
 
 
@@ -1229,20 +1178,20 @@ def _query_expr(ctx, o_model, code, value):
 
 
 def is_valid_field(ctx, model, name):
-    # FIX for Odoo 7.0
-    if model in ('res.users', 'res.partner') and name in ('id', 'name'):
-        return True
-    elif model in ('ir.config.parameter', ) and name in ('id', 'key', 'value'):
-        return True
-    elif searchL8(ctx,
-                  'ir.model.fields',
-                  [('model', '=', model),
-                   ('name', '=', name)]):
+    get_model_structure(ctx, model)
+    if name in ctx['STRUCT'][model]:
         return True
     return False
 
 
-def _model_has_company(ctx, model):
+def is_required_field(ctx, model, name):
+    get_model_structure(ctx, model)
+    if name in ctx['STRUCT'][model]:
+        return ctx['STRUCT'][model][name]['required']
+    return False
+
+
+def model_has_company(ctx, model):
     return is_valid_field(ctx, model, 'company_id')
 
 
