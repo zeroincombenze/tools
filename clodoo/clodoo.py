@@ -108,8 +108,8 @@ full_model     load all field values, even if not in csv
 header_id      id of header when import header/details files
 lang           language, format lang_COUNTRY, i.e. it_IT (default en_US)
 name2          if present, is merged with name
-name_first     if present with name last, are merged to compse name
-name_last      if present with name first, are merged to compse name
+name_first     if present with name last, are merged to compose name
+name_last      if present with name first, are merged to compose name
 street2        if present and just numeric, is merged with street
 zeroadm_mail   default user mail from conf file or <def_mail> if -D switch
 zeroadm_login  default admin username from conf file
@@ -120,10 +120,10 @@ botadm_login   default bot username from conf file
 _today         date.today()
 _current_year  date.today().year
 _last_year'    date.today().year - 1
-TRANSDICT      dictionary with field translation, format csv_name: field_name;
+TNL_DICT       dictionary with field translation, format csv_name: field_name;
                i.e {'partner_name': 'name'}
                or csv_position: field_name, i.e. {'0': 'name'}
-TRX_VALUE      dictionary with value translation for field;
+TNL_VALUE      dictionary with value translation for field;
                format is field_name: {csv_value: field_value, ...}
                i.e. {'country': {'Inghilterra': 'Regno Unito'}}
                special value '$BOOLEAN' return True or False
@@ -134,7 +134,7 @@ EXPR           evaluate value from expression, format csv_name: expression;
                or other fields of record in format row[field_name]
                i.e. {'is_company': 'row["ref"] != ""'}
                     {'is_company': 'csv["CustomerRef"] != ""'}
-MANDATORY      dictionary with mandatory field names
+MANDATORY      dictionary with mandatory field names (obsolete)
 
 
 Import searches for existing data (this behavior differs from Odoo standard)
@@ -149,7 +149,7 @@ db_type: select record if DB name matches db type; values are
     'V' for VG7 customers
     'C' other customers
 oe_versions: select record if matches Odoo version
-    i.e  +11.0+10.0 => select recod if Odoo 11.0 or 10.0
+    i.e  +11.0+10.0 => select record if Odoo 11.0 or 10.0
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 """
 from __future__ import print_function
@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.19"
+__version__ = "0.3.8.20"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -471,7 +471,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             tkn = line.split('=')
             tkn = map(lambda x: x.strip(), tkn)
             for p in P_LIST:
-                if tkn[0] == p:
+                if tkn[0] == p and tkn[1] != 'False':
                     if p == 'xmlrpc_port':
                         ctx[p] = int(tkn[1])
                     else:
@@ -734,10 +734,10 @@ def do_single_action(ctx, action):
                     action = 'unit_test'
         act = lexec_name(ctx, action)
         if act in list(globals()):
-            if action in ('install_modules',
+            if (action in ('install_modules',
                           'upgrade_modules',
-                          'uninstall_modules') and\
-                    not ctx.get('module_udpated', False):
+                          'uninstall_modules') and
+                    not ctx.get('module_udpated', False)):
                 globals()[lexec_name(ctx, 'update_modules')](ctx)
                 ctx['module_udpated'] = True
             return globals()[act](ctx)
@@ -802,7 +802,8 @@ def create_local_parms(ctx, act):
               'install_modules',
               'uninstall_modules',
               'upgrade_modules',
-              'data_selection'):
+              'data_selection',
+              'modules_2_manage',):
         pv = get_param_ver(ctx, p)
         if conf_obj.has_option(action, pv):
             lctx[p] = conf_obj.get(action, pv)
@@ -1576,7 +1577,10 @@ def act_uninstall_modules(ctx):
                                 ('state', '=', 'uninstalled')],
                                context=context)
             if len(ids):
-                unlinkL8(ctx, model, ids)
+                try:
+                    unlinkL8(ctx, model, ids)
+                except BaseException:
+                    pass
         else:
             msg = "name({0})".format(m)
             msg_log(False, ctx['level'] + 1, msg)
@@ -5149,7 +5153,7 @@ def add_external_name(ctx, o_model, row, id):
 
 def translate_ext_names(ctx, o_model, csv, csv_obj):
     def translate_from_param(ctx, n, nm):
-        values = ctx['TRX_VALUE'][nm]
+        values = ctx['TNL_VALUE'][nm]
         if csv[n] in values:
             row[nm] = values[csv[n]]
         elif '$BOOLEAN' in values:
@@ -5174,10 +5178,10 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
             ipos = csv_obj.fieldnames.index(n)
         else:
             ipos = -1
-        if ctx.get('TRANSDICT', '') and ipos in ctx['TRANSDICT']:
-            nm = ctx['TRANSDICT'][ipos] or nm
-        elif nm in ctx.get('TRANSDICT', ''):
-            nm = ctx['TRANSDICT'][nm] or nm
+        if ctx.get('TNL_DICT') and ipos in ctx['TNL_DICT']:
+            nm = ctx['TNL_DICT'][ipos] or nm
+        elif ctx.get('TNL_DICT') and nm in ctx.get('TNL_DICT'):
+            nm = ctx['TNL_DICT'][nm] or nm
         else:
             nm = nm.split('/')[0].split(':')[0]
         if ctx['no_fvalidation'] or nm in ('id', 'db_type', 'oe_versions',
@@ -5186,7 +5190,7 @@ def translate_ext_names(ctx, o_model, csv, csv_obj):
                 (len(ctx['validated_fields']) and
                  nm in ctx['validated_fields']) or \
                 is_valid_field(ctx, model, nm):
-            if nm in ctx.get('TRX_VALUE', ''):
+            if nm in ctx.get('TNL_VALUE', ''):
                 translate_from_param(ctx, n, nm)
             elif csv[n] != 'None':
                 row[nm] = csv[n]

@@ -22,79 +22,54 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.19"
+__version__ = "0.3.8.20"
 MAX_DEEP = 20
+SYSTEM_MODEL_ROOT = [
+    'base.config.',
+    'base_import.',
+    'base.language.',
+    'base.module.',
+    'base.setup.',
+    'base.update.',
+    'ir.actions.',
+    'ir.exports.',
+    'ir.model.',
+    'ir.module.',
+    'ir.qweb.',
+    'report.',
+    'res.config.',
+    'web_editor.',
+    'web_tour.',
+    'workflow.',
+]
 SYSTEM_MODELS = [
     '_unknown',
-    'base inquire',
-    'base_import.import',
-    'base_import.tests.models.char.noreadonly',
-    'base_import.tests.models.char.readonly',
-    'base_import.tests.models.char.required',
-    'base_import.tests.models.char.states',
-    'base_import.tests.models.char.stillreadonly',
-    'base_import.tests.models.char',
-    'base_import.tests.models.m2o.related',
-    'base_import.tests.models.m2o.required.related',
-    'base_import.tests.models.m2o',
-    'base_import.tests.models.o2m.child',
-    'base_import.tests.models.o2m',
-    'base_import.tests.models.preview',
-    'base.language.export',
-    'base.language.import',
-    'base.language.install',
-    'base.module.update',
-    'base.update.translations',
     'base',
+    # 'base.config.settings',
+    'base_import',
     'change.password.wizard',
-    'ir.actions.act_url',
-    'ir.actions.act_window_close',
-    'ir.actions.actions',
-    'ir.actions.client',
-    'ir.actions.report.xml',
     'ir.autovacuum',
     'ir.config_parameter',
     'ir.exports',
     'ir.fields.converter',
     'ir.filters',
-    'ir.http inquire',
     'ir.http',
     'ir.logging',
-    'ir.model.data',
-    'ir.model.fields',
-    'ir.module.category',
-    'ir.module.module',
-    'ir.module.module.dependency',
+    'ir.model',
     'ir.needaction_mixin',
     'ir.qweb',
-    'ir.qweb.field.contact',
-    'ir.qweb.field.date',
-    'ir.qweb.field.datetime',
-    'ir.qweb.field.duration',
-    'ir.qweb.field.html',
-    'ir.qweb.field.image',
-    'ir.qweb.field.integer',
-    'ir.qweb.field.many2one',
-    'ir.qweb.field.monetary',
-    'ir.qweb.field.qweb',
-    'ir.qweb.field.text',
-    'ir.qweb.field',
+    'ir.rule',
     'ir.translation',
     'ir.ui.menu',
     'ir.ui.view',
     'ir.values',
-    'report.base.report_irmodulereference',
-    'res.config.installer',
-    'res.config.settings',
+    'report',
     'res.config',
     'res.font',
     'res.request.link',
     'res.users.log',
-    'web_editor.converter.test',
-    'web_editor.converter.test.sub',
-    'web_tour.tour',
+    'web_tour',
     'workflow',
-    'workflow.instance',
 ]
 msg_time = time.time()
 
@@ -269,11 +244,24 @@ def install_modules(dst_ctx, src_ctx):
     model = 'ir.module.module'
     for module_src in clodoo.browseL8(src_ctx, model,
             clodoo.searchL8(src_ctx, model, [('state', '=', 'installed')])):
-        module = module_src.name
-        msg_burst('Analyzing module %s' % (module))
+        old_module = module_src.name
+        module = transodoo.translate_from_to(src_ctx,
+                                             'ir.module.module',
+                                             old_module,
+                                             src_ctx['oe_version'],
+                                             dst_ctx['oe_version'],
+                                             type='module')
+        if module == old_module:
+            module = transodoo.translate_from_to(src_ctx,
+                                                 'ir.module.module',
+                                                 old_module,
+                                                 src_ctx['oe_version'],
+                                                 dst_ctx['oe_version'],
+                                                 type='merge')
+        msg_burst('Analyzing module %s (%s)' % (module, old_module))
         if not clodoo.searchL8(dst_ctx, model,
                                [('name', '=', module),
-                                ('state', '=', 'uninstalled')]):
+                                ('state', '=', 'installed')]):
             if assume_yes:
                 writelog('Installing module %s' % module)
                 dummy = 'Y'
@@ -311,12 +299,20 @@ def install_modules(dst_ctx, src_ctx):
 
 
 def set_where_from_keys(dst_ctx, src_ctx, model, rec, keys=None):
-    keys = keys or dst_ctx['_kl'][model].split(',')
-    keys = clodoo.extract_vals_from_rec(dst_ctx, model, rec,
-                                        keys=keys, format='str')
+    kk = dst_ctx['_kl'].get(model) or primkey_table(src_ctx,
+                                                    model)
+    keys = []
+    for keyval in kk:
+        for key in keyval:
+            if key not in keys:
+                keys.append(key)
+    keyval = clodoo.extract_vals_from_rec(src_ctx,
+                                          model,
+                                          rec, keys=keys)
     where = []
-    for key in keys.keys():
-        where.append((key, '=', keys[key]))
+    for key in keyval:
+        if keyval[key]:
+            where.append((key, '=', keyval[key]))
     return where
 
 
@@ -338,7 +334,7 @@ def cvt_value(dst_ctx, src_ctx, model, field2many, name, key, company_id):
     return False
 
 
-def cvt_m2m_value(dst_ctx, src_ctx, model, rec, name, key, company_id):
+def cvt_m2m_value(dst_ctx, src_ctx, model, name, value, format=False):
     res = []
     for item in rec[name]:
         if key == 'id':
@@ -362,80 +358,161 @@ def cvt_m2m_value(dst_ctx, src_ctx, model, rec, name, key, company_id):
     return [(6, 0, res)]
 
 
-def copy_record(dst_ctx, src_ctx, model, rec):
-    company_id = False
-    name = 'company_id'
-    # if hasattr(rec, name):
-    #     company_id = cvt_value(dst_ctx,
-    #                            src_ctx,
-    #                            'res.company',
-    #                            rec,
-    #                            name,
-    #                            'vat',
-    #                            False)
-    #
-    vals = clodoo.extract_vals_from_rec(src_ctx, model, rec, format='cmd')
+def cvt_o2m_value(dst_ctx, src_ctx, model, name, value, format=False):
+    relation = src_ctx['STRUCT'][model][name]['relation']
+    rel_mode = get_model_copy_mode(dst_ctx, relation)
+    if rel_mode == 'image':
+        return value
+    if '_CACHE' not in src_ctx:
+        src_ctx['_CACHE'] = {}
+    if model not in src_ctx['_CACHE']:
+        src_ctx['_CACHE'][model] = {}
+    if value:
+        if not relation:
+            raise RuntimeError('No relation for field %s of %s' % (name,
+                                                                   model))
+        clodoo.get_model_structure(src_ctx, relation)
+        clodoo.get_model_structure(dst_ctx, relation)
+        new_value = []
+        for id in value:
+            if id in src_ctx['_CACHE'][model]:
+                if src_ctx['_CACHE'][model]:
+                    new_value.append(src_ctx['_CACHE'][model][id])
+            else:
+                rel_rec = clodoo.browseL8(src_ctx, relation, id)
+                where = set_where_from_keys(dst_ctx, src_ctx, relation,
+                                            rel_rec)
+                ids = clodoo.searchL8(dst_ctx, relation, where)
+                if len(ids) > 1:
+                    writelog('Wrong translation model %s id %d!' % (model,
+                                                                    id))
+                if len(ids) >= 1:
+                    new_value.append(ids[0])
+                    src_ctx['_CACHE'][model][id] = ids[0]
+                else:
+                    writelog('Model %s id %d does not exits!' % (model,
+                                                                id))
+                    src_ctx['_CACHE'][model][id] = False
+        value = new_value
+    if format == 'cmd':
+        value = [(6, 0, value)]
+    return value
+
+
+def cvt_m2m_value(dst_ctx, src_ctx, model, name, value, format=False):
+    relation = src_ctx['STRUCT'][model][name]['relation']
+    rel_mode = get_model_copy_mode(dst_ctx, relation)
+    if rel_mode == 'image':
+        return value
+    if '_CACHE' not in src_ctx:
+        src_ctx['_CACHE'] = {}
+    if model not in src_ctx['_CACHE']:
+        src_ctx['_CACHE'][model] = {}
+    if value:
+        if not relation:
+            raise RuntimeError('No relation for field %s of %s' % (name,
+                                                                   model))
+        clodoo.get_model_structure(src_ctx, relation)
+        clodoo.get_model_structure(dst_ctx, relation)
+        new_value = []
+        for id in value:
+            if id in src_ctx['_CACHE'][model]:
+                if src_ctx['_CACHE'][model]:
+                    new_value.append(src_ctx['_CACHE'][model][id])
+            else:
+                rel_rec = clodoo.browseL8(src_ctx, relation, id)
+                where = set_where_from_keys(dst_ctx, src_ctx, relation,
+                                            rel_rec)
+                ids = clodoo.searchL8(dst_ctx, relation, where)
+                if len(ids) > 1:
+                    writelog('Wrong translation model %s id %d!' % (model,
+                                                                    id))
+                if len(ids) >= 1:
+                    new_value.append(ids[0])
+                    src_ctx['_CACHE'][model][id] = ids[0]
+                else:
+                    writelog('Model %s id %d does not exits!' % (model,
+                                                                id))
+                    src_ctx['_CACHE'][model][id] = False
+        value = new_value
+    if format == 'cmd':
+        value = [(6, 0, value)]
+    return value
+
+
+def cvt_m2o_value(dst_ctx, src_ctx, model, name, value, format=False):
+    relation = src_ctx['STRUCT'][model][name]['relation']
+    rel_mode = get_model_copy_mode(dst_ctx, relation)
+    if rel_mode == 'image':
+        return value
+    if '_CACHE' not in src_ctx:
+        src_ctx['_CACHE'] = {}
+    if model not in src_ctx['_CACHE']:
+        src_ctx['_CACHE'][model] = {}
+    if value:
+        if not relation:
+            raise RuntimeError('No relation for field %s of %s' % (name,
+                                                                   model))
+        clodoo.get_model_structure(src_ctx, relation)
+        clodoo.get_model_structure(dst_ctx, relation)
+        new_value = False
+        if value in src_ctx['_CACHE'][model]:
+            if src_ctx['_CACHE'][model]:
+                new_value = src_ctx['_CACHE'][model][id]
+        else:
+            rel_rec = clodoo.browseL8(src_ctx, relation, id)
+            where = set_where_from_keys(dst_ctx, src_ctx, relation, rel_rec)
+            ids = clodoo.searchL8(dst_ctx, relation, where)
+            if len(ids) > 1:
+                writelog('Wrong translation model %s id %d!' % (model,
+                                                                id))
+            if len(ids) >= 1:
+                new_value.append(ids[0])
+                src_ctx['_CACHE'][model][id] = ids[0]
+            else:
+                writelog('Model %s id %d does not exits!' % (model,
+                                                            id))
+                src_ctx['_CACHE'][model][id] = False
+        value = new_value
+    return value
+
+
+def cvt_state_value(dst_ctx, src_ctx, model, name, value):
+    if value == 'open':
+        value = 'draft'
+    elif value == 'paid':
+        value = 'draft'
+    pass
+
+
+def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
+    mode = mode or get_model_copy_mode(ctx, model)
+    vals = clodoo.extract_vals_from_rec(src_ctx, model, rec)
+    for name in vals:
+        if src_ctx['STRUCT'][model][name]['ttype'] in ('one2many'):
+            vals[name] = cvt_o2m_value(dst_ctx, src_ctx, model, name,
+                                       vals[name], format='cmd')
+        elif src_ctx['STRUCT'][model][name]['ttype'] in ('many2many'):
+            vals[name] = cvt_m2m_value(dst_ctx, src_ctx, model, name,
+                                       vals[name], format='cmd')
+        elif src_ctx['STRUCT'][model][name]['ttype'] in ('many2one'):
+            vals[name] = cvt_m2o_value(dst_ctx, src_ctx, model, name,
+                                       vals[name], format='cmd')
+        elif name == 'state':
+            vals[name] = cvt_state_value(dst_ctx, src_ctx, model, name,
+                                         vals[name], format='cmd')
     vals = clodoo.cvt_from_ver_2_ver(dst_ctx,
                                      model,
                                      src_ctx['oe_version'],
                                      dst_ctx['oe_version'],
                                      vals)
-    # if company_id:
-    #     vals[name] = company_id
-    for name, model2 in (('partner_id', 'res.partner'),
-                         ('commercial_partner_id', 'res.partner')):
-        if hasattr(rec, name):
-            vals[name] = cvt_value(dst_ctx,
-                                   src_ctx,
-                                   model2,
-                                   getattr(rec, name),
-                                   name, 
-                                   'vat',
-                                   False)
-    for name, model2 in (('account_id', 'account.account'),
-                          ('journal_id', 'account.journal'),
-                          ('country_id', 'res.country')):
-        if hasattr(rec, name):
-            vals[name] = cvt_value(dst_ctx,
-                                   src_ctx,
-                                   model2,
-                                   getattr(rec, name),
-                                   name, 
-                                   'code',
-                                   company_id)
-    for name, model2 in (('currency_id', 'res.currency'),
-                         ('product_id', 'product.product'),
-                         ('uom_id', 'product.uom'),
-                         ('uos_id', 'product.uom')):
-        if hasattr(rec, name):
-            vals[name] = cvt_value(dst_ctx,
-                                   src_ctx,
-                                   model2,
-                                   getattr(rec, name),
-                                   name, 
-                                   'name',
-                                   False)
-    for name, model2 in (('invoice_line_tax_id', 'account.tax'),
-                         ('invoice_line_tax_ids', 'account.tax')):
-        if hasattr(rec, name):
-            vals[name] = cvt_m2m_value(dst_ctx,
-                                       src_ctx,
-                                       model2,
-                                       getattr(rec, name),
-                                       name,
-                                       'description',
-                                       company_id)
-    name = 'state'
-    if hasattr(rec, name):
-        if vals[name] == 'open':
-            vals[name] = 'draft'
     return vals
 
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
-    import pdb
-    pdb.set_trace()
-    clodoo.declare_mandatory_fields(dst_ctx, model)
+    clodoo.get_model_structure(src_ctx, model)
+    clodoo.get_model_structure(dst_ctx, model)
+    mode = mode or get_model_copy_mode(ctx, model)
     if mode == 'image' and src_ctx['_cr']:
         table = model.replace('.', '_')
         sql = 'select max(id) from %s;' % table
@@ -455,7 +532,7 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
     for rec in clodoo.browseL8(src_ctx, model, clodoo.searchL8(
             src_ctx, model, where, order='id')):
         msg_burst('%s %d' % (model, rec.id))
-        vals = copy_record(dst_ctx, src_ctx, model, rec)
+        vals = copy_record(dst_ctx, src_ctx, model, rec, mode=mode)
         if mode == 'image':
             ids = clodoo.searchL8(dst_ctx, model,
                                   [('id', '=', rec.id)])
@@ -471,8 +548,10 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                 where.append(('active','=',False))
                 ids = clodoo.searchL8(dst_ctx, model,
                                       where)
-
-            if ids:
+            if len(ids) > 1:
+                writelog('Wrong translation model %s id %d!' % (model,
+                                                                rec.id))
+            if len(ids) >= 1:
                 write_no_dup(dst_ctx, model, ids, vals, rec.id)
             else:
                 try:
@@ -489,18 +568,25 @@ def build_table_tree(ctx):
             models[model]['maydepends'] = []
             models[model]['m2m'] = []
             models[model]['crossdep'] = []
+
     model_list = []
     models = {}
+    import pdb
+    pdb.set_trace()
     for model_rec in clodoo.browseL8(
         ctx, 'ir.model', clodoo.searchL8(
             ctx, 'ir.model', [])):
         model = model_rec.model
+        discard = False
+        for root in SYSTEM_MODEL_ROOT:
+            if model.startswith(root):
+                discard = True
+                break
+        if discard:
+            continue
         if model in SYSTEM_MODELS:
             continue
-        if model in ('base', 'base_import', 'report',
-                     'web_tour',):
-            continue
-        msg_burst('%s ...' % model)
+        msg_burst('    get %s ...' % model)
         model_list.append(model)
         new_empty_model(models, model)
         level = 0
@@ -537,13 +623,13 @@ def build_table_tree(ctx):
         if level == 0:
             models[model]['level'] = level
     for model in model_list:
-        msg_burst('%s ...' % model)
+        msg_burst('    crossdep %s ...' % model)
         for sub in models[model]['depends']:
             if model in models[sub]['depends']:
                 models[model]['crossdep'] = sub
                 models[sub]['crossdep'] = model
     for model in model_list:
-        msg_burst('%s ...' % model)
+        msg_burst('    dependencies %s ...' % model)
         models[model]['depends'] = list(set(models[model]['depends']) -
                                         set(models[model]['crossdep']) )
     missed_models = {}
@@ -555,7 +641,7 @@ def build_table_tree(ctx):
         if max_iter <= 0:
             break
         for model in model_list:
-            msg_burst('%s ...' % model)
+            msg_burst('    sorting %s ...' % model)
             if 'level' not in models[model]:
                 parsing = True
                 cur_level = 0
@@ -586,31 +672,84 @@ def build_table_tree(ctx):
 
 
 def primkey_table(ctx, model):
+    clodoo.get_model_structure(ctx, model)
+    ir_model = 'ir.model.constraint'
     names = []
-    if model == 'res.country.state':
-        names = 'country_id,code'
-    elif clodoo.is_valid_field(ctx, model, 'code'):
-        names = 'code'
-    else:
-        names = 'name'
+    keys = []
+    for rec in clodoo.browseL8(ctx, ir_model,
+        clodoo.searchL8(ctx, ir_model,
+            [('model', '=', model)], order='type')):
+        name = rec.name
+        if rec.name.startswith(model.replace('.', '_')):
+            if rec.type == 'u':
+                if keys:
+                    names.append(keys)
+                keys = []
+            name = rec.name[len(model) + 1:]
+            tok_id = ''
+            for tok in name.split('_'):
+                if tok == 'id':
+                    tok_id += '_id'
+                    if tok_id in ctx['STRUCT'][model]:
+                        keys.append(tok_id)
+                        tok_id = ''
+                elif tok in ctx['STRUCT'][model]:
+                    keys.append(tok)
+                    tok_id = ''
+                else:
+                    tok_id = tok
+            if rec.type == 'u':
+                names.append(keys)
+                keys = []
+    if keys:
+        names.append(keys)
+    if not names:
+        if model == 'res.country.state':
+            names = ['country_id', 'code']
+        elif model in ('account.invoice', 'account.invoice.line'):
+            names = ['number']
+        elif clodoo.is_valid_field(ctx, model, 'code'):
+            names = ['code']
+        else:
+            names = ['name']
     return names
 
 
 def write_tree_conf(ctx):
+    print('Analizing source models ...')
     models = build_table_tree(ctx)
     with open(ctx['command_file'], 'w') as fd:
         for level in range(MAX_DEEP):
             for model in models:
+                msg_burst('    keys %s ...' % model)
                 names = primkey_table(ctx, model)
                 if models[model].get('level', -1) == level:
-                    fd.write('%s inquire %s\n' % (model,
-                                                  names))
+                    fd.write('%d\t%s\tinquire\t%s\n' % (level,
+                                                        model,
+                                                        names))
         for model in models:
+            msg_burst('    keys %s ...' % model)
             if models[model].get('level', -1) >= MAX_DEEP:
                 names = primkey_table(ctx, model)
                 if models[model].get('level', -1) == level:
-                    fd.write('%s inquire %s\n' % (model,
-                                                  names))
+                    fd.write('%d\t%s\tinquire\t%s\n' % (level,
+                                                        model,
+                                                        names))
+
+
+def get_model_copy_mode(ctx, model):
+    mode = ctx['_ml'][model] or 'inquire'
+    if mode == 'inquire':
+        mode_selection = {'i': 'image', 's': 'sql', 'n': 'no'}
+        dummy = ''
+        while not dummy:
+            dummy = raw_input('Copy table %s (Image,Sql,No)? ' % model)
+            if dummy and dummy[0].lower() in mode_selection:
+                mode = mode_selection[dummy[0].lower()]
+            else:
+                dummy = ''
+        ctx['_ml'][model] = mode
+    return mode
 
 
 parser = z0lib.parseoptargs("Migrate Odoo DB",
@@ -621,7 +760,7 @@ parser.add_argument("-C", "--command-file",
                     help="migration command file",
                     dest="command_file",
                     metavar="file",
-                    default='./migrate_odoo.conf')
+                    default='./migrate_odoo.csv')
 parser.add_argument("-c", "--dst-config",
                     help="target DB configuration file",
                     dest="dst_conf_fn",
@@ -662,12 +801,11 @@ parser.add_argument("-y", "--assume-yes",
                     dest="assume_yes",
                     default=False)
 
-dst_ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-src_ctx = dst_ctx.copy()
-dst_ctx['db_name'] = dst_ctx['dst_db_name']
-dst_ctx['conf_fn'] = dst_ctx['dst_conf_fn']
-src_ctx['db_name'] = src_ctx['src_db_name']
-src_ctx['conf_fn'] = src_ctx['src_conf_fn']
+src_ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+dst_ctx = src_ctx.copy()
+for param in ('db_name', 'conf_fn'):
+    dst_ctx[param] = dst_ctx['dst_%s' % param]
+    src_ctx[param] = src_ctx['src_%s' % param]
 uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
 uid, dst_ctx = clodoo.oerp_set_env(ctx=dst_ctx)
 transodoo.read_stored_dict(src_ctx)
@@ -675,9 +813,10 @@ dst_ctx['mindroot'] = src_ctx['mindroot']
 if not dst_ctx['sel_model']:
     install_modules(dst_ctx, src_ctx)
 
-if (dst_ctx['default_behavior'] or
-        not os.path.isfile(dst_ctx['command_file'])):
-    write_tree_conf(dst_ctx)
+if (src_ctx['default_behavior'] or
+        not os.path.isfile(src_ctx['command_file'])):
+    write_tree_conf(src_ctx)
+
 with open(dst_ctx['command_file'], 'r') as fd:
     dst_ctx['_ml'] = {}
     dst_ctx['_kl'] = {}
@@ -685,45 +824,21 @@ with open(dst_ctx['command_file'], 'r') as fd:
     for line in fd.read().split('\n'):
         line = line.strip()
         if line:
-            lines = line.split(' ')
-            model = lines[0]
-            mode = 'inquire' if len(lines[0]) == 0 else lines[1]
-            keys = 'name' if len(lines) <= 2 else lines[2]
+            lines = line.split('\t')
+            level = lines[0]
+            model = lines[1]
+            mode = 'inquire' if len(lines[1]) <= 2 else lines[2]
+            keys = 'name' if len(lines) <= 3 else eval(lines[3])
             dst_ctx['model_list'].append(model)
             dst_ctx['_ml'][model] = mode
             dst_ctx['_kl'][model] = keys
     fd.close()
 assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
-mode_selection = {'i': 'image', 's': 'sql', 'n': ''}
 if dst_ctx['sel_model']:
     dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
 for model in dst_ctx['model_list']:
-    mode = dst_ctx['_ml'][model] or 'inquire'
-    if assume_yes == 'Y':
-        if mode == 'inquire':
-            dummy = raw_input(
-                'Copy table %s (Image,Sql,No)? ' % model)
-            mode = mode_selection[dummy.lower()]
-        else:
-            writelog('Copying table %s mode %s' % (model, mode))
-    elif  assume_yes == 'N':
-        continue
-    else:
-        if mode == 'inquire':
-            dummy = raw_input(
-                'Copy table %s (Image,Sql,No)? ' % model)
-            mode = mode_selection[dummy.lower()]
-        else:
-            dummy = raw_input(
-                'Copy table %s mode %s (Yes,No,All,Quit)? ' %
-                    (model, mode))
-            if dummy.lower() == 'q':
-                break
-            elif dummy.lower() == 'n':
-                continue
-            elif dummy.lower() == 'a':
-                assume_yes = 'Y'
-    if not mode:
+    mode = get_model_copy_mode(dst_ctx, model)
+    if mode not in ('sql', 'image'):
         continue
     copy_table(dst_ctx, src_ctx, model, mode=mode)
 

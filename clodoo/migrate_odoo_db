@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.19
+__version__=0.3.8.20
 
 
 set_priv() {
@@ -86,11 +86,11 @@ reassign_owner() {
 }
 
 # main
-OPTOPTS=(h        B         b          c        D       d        F        n            O          r       q           S        V           v)
-OPTDEST=(opt_help opt_debug opt_branch opt_conf opt_del opt_db   opt_from opt_dry_run  opt_oupath opt_red opt_verbose opt_safe opt_version opt_verbose)
-OPTACTI=(1        1         "="        "="      1       "=>"     "="      1            "="        1       0           1        "*>"        "+")
-OPTDEFL=(1        0         ""         ""       0       ""       ""       0            ""         0       -1          0        ""          -1)
-OPTMETA=("help"   ""        "version"  "file"   ""      "dbname" "ver"    "do nothing" "path"     ""      "silent"    ""       "version"    "verbose")
+OPTOPTS=(h        B         b          c        D       d        F        n            O          P         r       q           S        U        V           v)
+OPTDEST=(opt_help opt_debug opt_branch opt_conf opt_del opt_db   opt_from opt_dry_run  opt_oupath opt_dpath opt_red opt_verbose opt_safe opt_user opt_version opt_verbose)
+OPTACTI=(1        1         "="        "="      1       "=>"     "="      1            "="        "="       1       0           1        "="      "*>"        "+")
+OPTDEFL=(1        0         ""         ""       0       ""       ""       0            ""         ""        0       -1          0        "admin"  ""          -1)
+OPTMETA=("help"   ""        "version"  "file"   ""      "dbname" "ver"    "do nothing" "path"     "path"    ""      "silent"    ""       "user"   "version"    "verbose")
 OPTHELP=("this help"\
  "activate debug statements"\
  "to odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
@@ -99,10 +99,12 @@ OPTHELP=("this help"\
  "DB name to upgrade"\
  "from odoo branch, value like -b switch"\
  "do nothing (dry-run)"\
- "openupgrade path (def ~/openupgrade)"\
+ "openupgrade initial path (def ~/openupgrade)"\
+ "downloaded openupgrade path (def ~/tmp)"\
  "reduct repository only to addons and l10n_italy"
  "silent mode"\
  "safe mode (do upgrade all before upgrade)"\
+ "login username"\
  "show version"\
  "verbose mode")
 OPTARGS=()
@@ -126,9 +128,10 @@ if [ ! -x $opt_oupath/scripts/migrate.py ]; then
   echo "git clone https://github.com/OCA/openupgrade.git openupgrade/ --depth 1"
   exit 1
 fi
-OPENUPGRADE=opt_oupath=$HOME/openupgrade
+[ -z $opt_dpath ] && opt_dpath=$HOME/tmp
+[ ! -d "$opt_dpath" ] && mkdir -p $opt_dpath
 if [ -z $opt_db ]; then
-  echo "Missed dayabase to upgrade! Please use -d switch"
+  echo "Missed database to upgrade! Please use -d switch"
   exit 1
 fi
 if [ -z $opt_from ]; then
@@ -158,9 +161,10 @@ while [ $running ]; do
   tgt_ver=$src_ver
   ((tgt_ver++))
   tgt_vid=${src_vid/$src_ver/$tgt_ver}
+  [[ $tgt_vid =~ ^[Vv] ]] && tgt_vid=$(build_odoo_param FULLVER ${tgt_vid:1})
   src_user=$(build_odoo_param USER $src_vid)
   tgt_user=$(build_odoo_param USER $tgt_vid)
-  [ -n "$opt_conf" ] && confn=$opt_conf || confn=$(build_odoo_param CONFN $src_vid)
+  [ -n "$opt_conf" -a "$src_vid" == "$opt_from" ] && confn=$opt_conf || confn=$(build_odoo_param CONFN $src_vid)
   lconf=$(build_odoo_param LCONFN $src_vid search)
   odoo_bin=$(basename $(build_odoo_param BIN $src_vid))
   echo "Pass 1: test migration from $src_vid to $tgt_vid .."
@@ -171,16 +175,15 @@ while [ $running ]; do
   if [ "$src_user" != "$tgt_user" ]; then
     reassign_owner ${src_db}_migrated $src_user $tgt_user
   fi
-  run_traced "run_odoo_debug -b $tgt_vid -d ${src_db}_migrated -umall -s"
+  run_traced "$TDIR/run_odoo_debug -b $tgt_vid -d ${src_db}_migrated -umall -s"
   src_vid=$tgt_vid
   src_ver=$tgt_ver
   src_db=${src_db}_migrated
   [ $tgt_ver -ge $final_ver ] && break
 done
 opt_dry_run=$SAVE_DRY_RUN
+
 echo "Pass 2: test environment migration from $from_ver to $final_ver .."
-#
-# opt_dry_run=1         #DEBUG
 if [ $opt_del -ne 0 ]; then
   run_traced "pg_db_active -wa ${opt_db}_migrated"
   run_traced "dropdb -Upostgres ${opt_db}_migrated"
@@ -188,10 +191,13 @@ fi
 src_user=$(build_odoo_param USER $opt_from)
 if [ $opt_safe -ne 0 ]; then
   set_priv $opt_db $src_user
-  run_traced "run_odoo_debug -b $opt_from -d $opt_db -umall -s"
+  run_traced "$TDIR/run_odoo_debug -b $opt_from -d $opt_db -umall -s"
 fi
 [ $opt_dry_run -ne 0 ] && exit 0
 # pass 2: execute commands
+[[ -z "$pwd" ]] && read -sp "Login password for login user $opt_user: "  pwd
+echo ""
+[ -z "$pwd" ] && pwd=admin
 running=1
 src_vid=$opt_from
 src_db=$opt_db
@@ -200,9 +206,10 @@ while [ $running ]; do
   tgt_ver=$src_ver
   ((tgt_ver++))
   tgt_vid=${src_vid/$src_ver/$tgt_ver}
+  [[ $tgt_vid =~ ^[Vv] ]] && tgt_vid=$(build_odoo_param FULLVER ${tgt_vid:1})
   src_user=$(build_odoo_param USER $src_vid)
   tgt_user=$(build_odoo_param USER $tgt_vid)
-  [ -n "$opt_conf" ] && confn=$opt_conf || confn=$(build_odoo_param CONFN $src_vid)
+  [ -n "$opt_conf" -a "$src_vid" == "$opt_from" ] && confn=$opt_conf || confn=$(build_odoo_param CONFN $src_vid)
   lconf=$(build_odoo_param LCONFN $src_vid search)
   odoo_bin=$(basename $(build_odoo_param BIN $src_vid))
   echo "Pass 2: migrating from $src_vid to $tgt_vid .."
@@ -214,30 +221,38 @@ while [ $running ]; do
   [ -f $HOME/.odoorc ] && rm -f $HOME/.odoorc
   echo "\$ cp $confn $HOME/$lconf"
   cp $confn $HOME/$lconf
-  apath=$(grep "^addons_path *=" $HOME/$lconf|awk -F= '{print $2}'|tr ',' ' ')
-  addons_path=
-  for path in $apath; do
-    if [[ $path =~ (/addons/?|/openerp/addons/?|/odoo/addons/?|/l10n-italy/?)$ ]]; then
-      addons_path=$addons_path,$path
-    fi
-  done
-  addons_path=${addons_path:1}
-  run_traced "sed -i -e 's:^db_port *=.*:db_port = 5432:' $HOME/$lconf"
-  [ $opt_red -ne 0 ] && run_traced "sed -i -e 's:^addons_path *=.*:addons_path = '$addons_path':' $HOME/$lconf"
   run_traced "sed -i -e 's:^db_user *=.*:db_user = '$src_user':' $HOME/$lconf"
-  run_traced "$opt_oupath/scripts/migrate.py -C $HOME/$lconf -D $src_db -R $tgt_vid"
-  if [ -d /var/tmp/openupgrade/$tgt_vid/server/ ]; then
-    confn=/var/tmp/openupgrade/$tgt_vid/server.cfg
-    run_traced "python /var/tmp/openupgrade/$tgt_vid/server/$odoo_bin --update=all --database=${src_db}_migrated --config=$confn --stop-after-init --no-xmlrpc"
+  run_traced "sed -i -e 's:^db_port *=.*:db_port = 5432:' $HOME/$lconf"
+  echo "psycopg2=True">>$HOME/$lconf
+  echo "login_user=$opt_user">>$HOME/$lconf
+  echo "login_password=$pwd">>$HOME/$lconf
+  src_fver=$(build_odoo_param FULLVER $src_vid)
+  echo "oe_version=$src_fver">>$HOME/$lconf
+  apath=$(grep "^addons_path *=" $HOME/$lconf|awk -F= '{print $2}'|tr ',' ' ')
+  ML=$(odoo_dependencies.py $apath -c $HOME/$lconf -D $src_db -A mod)
+  tgt_confn=$(build_odoo_param CONFN $tgt_vid)
+  apath=$(grep "^addons_path *=" $tgt_confn|awk -F= '{print $2}'|tr ',' ' ')
+  M2D=$(odoo_dependencies.py $apath -A mod -M $ML -E)
+  if [ -n "$M2D" ]; then
+    echo "**** Warning! Uninstall modules $M2D"
+    read -p "Press RET to start uninstall"
+    # echo "actions=uninstall">>$HOME/$lconf
+    # echo "uninstall_modules=$M2D2">>$HOME/$lconf
+    run_traced "$TDIR/clodoo.py -c $HOME/$lconf -d $src_db -A uninstall_modules -m $M2D"
+  fi 
+  run_traced "$opt_oupath/scripts/migrate.py -B $opt_dpath -C $HOME/$lconf -D $src_db -R $tgt_vid"
+  if [ -d $opt_dpath/$tgt_vid/server/ ]; then
+    confn=$opt_dpath/$tgt_vid/server.cfg
+    run_traced "python $opt_dpath/$tgt_vid/server/$odoo_bin --update=all --database=${src_db}_migrated --config=$confn --stop-after-init --no-xmlrpc"
   else
-    echo "Something is wrong .. cannot find directory /var/tmp/openupgrade/$tgt_vid/server/"
+    echo "Something is wrong .. cannot find directory $opt_dpath/$tgt_vid/server/"
     [ $opt_dry_run -eq 0 ] && exit 1
   fi
   if [ "$src_user" != "$tgt_user" ]; then
     run_traced "reassign_owner ${src_db}_migrated $src_user $tgt_user"
     run_traced "sed -i -e 's:^db_user *=.*:db_user = '$tgt_user':' $confn"
   fi
-  run_traced "run_odoo_debug -b $tgt_vid -d ${src_db}_migrated -umall -s"
+  run_traced "$TDIR/run_odoo_debug -b $tgt_vid -d ${src_db}_migrated -umall -s"
   src_vid=$tgt_vid
   src_ver=$tgt_ver
   src_db=${src_db}_migrated

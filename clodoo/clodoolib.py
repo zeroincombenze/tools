@@ -85,6 +85,7 @@ LX_CFG_S = ('db_name',
             'uninstall_modules',
             'upgrade_modules',
             'data_selection',
+            'modules_2_manage',
             'chart_of_account',
             'catalog_db',
             'custom_act',
@@ -159,7 +160,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.19"
+__version__ = "0.3.8.20"
 
 
 #############################################################################
@@ -331,6 +332,7 @@ def default_conf(ctx):
               'upgrade_modules': False,
               'data_selection': 'account_move,sale,purchase,project,mail,crm,'
                                 'inventory,marketing,hr,analytic',
+              'modules_2_manage': '',
               'zeroadm_mail': 'cc@shs-av.com',
               'zeroadm_login': 'zeroadm',
               'oneadm_mail': 'admin@example.com',
@@ -448,8 +450,12 @@ def create_params_dict(ctx):
         if hasattr(opt_obj, 'dbfilter') and opt_obj.dbfilter != "":
             ctx['dbfilter'] = opt_obj.dbfilter
             ctx['multi_db'] = True
-        if hasattr(opt_obj, 'upgrade_modules') and opt_obj.upgrade_modules:
-            ctx['upgrade_modules'] = opt_obj.upgrade_modules
+        if (hasattr(opt_obj, 'modules_2_manage') and
+                hasattr(opt_obj, 'do_sel_action')):
+            if opt_obj.do_sel_action in ('install_modules',
+                                         'uninstall_modules',
+                                         'upgrade_modules'):
+                ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path
     if ctx['db_host'] == 'False':
@@ -576,6 +582,11 @@ def create_parser(version, doc, ctx):
                         dest="lang",
                         metavar="iso_lang",
                         default=False)
+    parser.add_argument("-m", "--modules-2-manage",
+                        help="Module list to upgrade",
+                        dest="modules_2_manage",
+                        metavar="list",
+                        default="")
     parser.add_argument("-n", "--dry-run",
                         help="test execution mode",
                         action="store_true",
@@ -616,11 +627,6 @@ def create_parser(version, doc, ctx):
                         dest="lgi_user",
                         metavar="username",
                         default=None)
-    parser.add_argument("-u", "--upgrade-modules",
-                        help="Module list to upgrade",
-                        dest="upgrade_modules",
-                        metavar="list",
-                        default="")
     parser.add_argument("-v", "--verbose",
                         help="run with debugging output",
                         action="store_true",

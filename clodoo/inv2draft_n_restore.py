@@ -17,7 +17,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.8.19"
+__version__ = "0.3.8.20"
 
 
 def get_name_by_ver(ctx, name):
@@ -323,6 +323,8 @@ parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+import pdb
+pdb.set_trace()
 uid, ctx = clodoo.oerp_set_env(ctx=ctx)
 print("Invoice set Draft and Restore - %s" % __version__)
 

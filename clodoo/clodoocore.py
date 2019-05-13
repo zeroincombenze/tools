@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.19"
+__version__ = "0.3.8.20"
 
 
 #############################################################################
@@ -243,7 +243,10 @@ def complete_fields(ctx, model, vals):
 
 def drop_fields(ctx, model, vals, to_delete):
     for name in to_delete:
-        del vals[name]
+        if isinstance(vals, (list, tuple)):
+            del vals[vals.index(name)]
+        else:
+            del vals[name]
         msg = u"Invalid field %s of %s)" % (name, model)
         debug_msg_log(ctx, 6, msg)
     return vals
@@ -251,7 +254,11 @@ def drop_fields(ctx, model, vals, to_delete):
 
 def drop_invalid_fields(ctx, model, vals):
     if model in ctx.get('STRUCT', {}).get(model, {}):
-        to_delete = list(set(vals.keys()) - set(ctx['STRUCT'][model].keys()))
+        if isinstance(vals, (list, tuple)):
+            to_delete = list(set(vals) - set(ctx['STRUCT'][model].keys()))
+        else:
+            to_delete = list(set(vals.keys()) - 
+                             set(ctx['STRUCT'][model].keys()))
         return drop_fields(ctx, model, vals, to_delete)
     return vals
 
@@ -355,135 +362,13 @@ def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
     return vals
 
 
-def extr_table_res_city(ctx):
-    return ['country_id', 'name', 'zip',
-            'state_id', 'phone_prefix', 'istat_code',
-            'cadaster_code']
-
-
-def extr_table_res_lang(ctx):
-    return ['active', 'code', 'date_format',
-            'decimal_point', 'direction', 'grouping',
-            'iso_code', 'name', 'thousands_sep',
-            'time_format', 'translatable']
-
-
-def extr_table_res_country_state(ctx):
-    return ['code', 'country_id', 'name']
-
-
-def extr_table_res_partner(ctx):
-    return ['active', 'city',
-            'comment', 'country_id', 'currency_id',
-            'customer', 'email', 'fax',
-            'fiscalcode', 'individual',
-            'lang', 'mobile', 'name',
-            'parent_id', 'pec_mail', 'phone',
-            'ref', 'splitmode', 'split_next',
-            'state_id', 'street', 'street2',
-            'supplier', 'title', 'type',
-            'vat', 'zip', 'fiscal_position',
-            'property_account_payable', 'property_account_payable_id',
-            'property_account_receivable', 'property_account_receivable_id']
-
-
-def extr_table_res_company(ctx):
-    return ['country_id', 'name', 'partner_id', 'currency_id']
-
-
-def extr_table_account_fiscal_position(ctx):
-    return ['company_id', 'name', 'note',
-            'sequence', 'vat_required']
-
-
-def extr_table_account_account_type(ctx):
-    return ['code', 'name', 'note', 'type', 'report_type']
-
-
-def extr_table_account_account(ctx):
-    return ['code', 'company_id', 'currency_id',
-            'name', 'user_type', 'user_type_id']
-
-
-def extr_table_ir_sequence_type(ctx):
-    return ['name', 'code']
-
-
-def extr_table_ir_sequence(ctx):
-    return ['name', 'code', 'company_id',
-            'number_next', 'number_next_actual',
-            'padding', 'prefix', 'suffix',
-            'implementation', 'type', 'sequence_id']
-
-
-def extr_table_account_journal(ctx):
-    return ['name', 'code', 'company_id', 'type', 'sequence_id']
-
-
-def extr_table_product_uom_categ(ctx):
-    return ['name', ]
-
-
-def extr_table_product_uom(ctx):
-    return ['name', 'category_id', 'factor', 'uom_type']
-
-
-def extr_table_product_category(ctx):
-    return ['name', ]
-
-
-def extr_table_account_tax(ctx):
-    return ['name', 'description', 'company_id',
-            'account_collected_id', 'account_id', 'amount',
-            'account_paid_id', 'refund_account_id',
-            'type', 'type_tax_use', 'amount_type', 'nature_id',
-            'parent_id', 'non_taxable_nature', 'applicable_type',
-            'base_code_id', 'tax_code_id',
-            'ref_base_code_id', 'ref_tax_code_id']
-
-
-def extr_table_product_template(ctx):
-    return ['name', 'company_id', 'uom_id', 'categ_id', 'uom_po_id']
-
-
-def extr_table_product_product(ctx):
-    return ['name', 'company_id', 'uom_id',
-            'categ_id', 'uom_po_id', 'product_tmpl_id']
-
-
-def extr_table_res_partner_bank(ctx):
-    return ['name', 'acc_number', 'bank_name',
-            'company_id', 'currency_id']
-
-
-def extr_table_account_invoice(ctx):
-    return ['account_id', 'amount_net_pay', 'amount_sp',
-            'amount_tax', 'amount_total', 'amount_untaxed',
-            'comment', 'commercial_partner_id', 'company_id',
-            'currency_id', 'date_due', 'date_invoice',
-            'fiscal_position', 'fiscal_position_id',
-            'internal_number', 'journal_id', 'move_name',
-            'name', 'number', 'origin', 'partner_id',
-            'partner_bank_id',  # 'payment_term', 'payment_term_id',
-            'reconciled', 'reference', 'residual',
-            'registration_date', 'state',
-            'split_payment', 'supplier_invoice_number', 'type']
-
-
-def extr_table_account_invoice_line(ctx):
-    return ['account_id', 'company_id', 'currency_id',
-            'discount', 'invoice_id', 'name',
-            'origin', 'partner_id', 'price_subtotal',
-            'price_unit', 'product_id', 'quantity',
-            'rc', 'sequence', 'uom_id',
-            'uos_id', 'invoice_line_tax_id', 'invoice_line_tax_ids']
-
-
-def extr_table_generic(ctx, model, keys=None):
+def extr_table_generic(ctx, model, keys=None, alls=None):
     get_model_structure(ctx, model)
     field_names = []
     for field in ctx['STRUCT'][model]:
-        if not field['readonly']:
+        if (alls or
+                (keys and field in keys) or
+                (not keys and not ctx['STRUCT'][model][field]['readonly'])):
             field_names.append(field)
     return field_names
 
@@ -552,6 +437,7 @@ def get_model_structure(ctx, model):
         readonly = field.readonly or field.ttype in ('binary', 'reference')
         ctx['STRUCT'][model][field.name] = {
             'ttype': field.ttype,
+            'relation': field.relation,
             'required': required,
             'readonly': readonly,
             }
@@ -560,6 +446,7 @@ def get_model_structure(ctx, model):
     if field not in ctx['STRUCT'][model]:
         ctx['STRUCT'][model][field] = {
             'ttype': 'integer',
+            'relation': False,
             'required': False,
             'readonly': True,
         }
@@ -568,6 +455,7 @@ def get_model_structure(ctx, model):
         if field not in ctx['STRUCT'][model]:
             ctx['STRUCT'][model][field] = {
                 'ttype': 'char',
+                'relation': False,
                 'required': True,
                 'readonly': False,
             }

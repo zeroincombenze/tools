@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.19
+__version__=0.3.8.20
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
@@ -256,7 +256,7 @@ OPTDB="$OPTDB --stop-after-init"
 if [ $opt_stop -gt 0 ]; then
   OPTS="$OPTS --stop-after-init"
   if [ $opt_exp -eq 0 -a $opt_imp -eq 0 -a  $opt_lang -eq 0 ]; then
-    [ $opt_test -ne 0 $odoo_ver -lt 12 ] && OPTS="$OPTS --test-commit"
+    [ $opt_test -ne 0 -a $odoo_ver -lt 12 ] && OPTS="$OPTS --test-commit"
   fi
 fi
 if [ -n "$opt_db" ]; then
