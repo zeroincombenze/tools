@@ -134,7 +134,7 @@ EXPR           evaluate value from expression, format csv_name: expression;
                or other fields of record in format row[field_name]
                i.e. {'is_company': 'row["ref"] != ""'}
                     {'is_company': 'csv["CustomerRef"] != ""'}
-MANDATORY      dictionary with mandatory field names (obsolete)
+MANDATORY      dictionary with mandatory field names
 
 
 Import searches for existing data (this behavior differs from Odoo standard)

@@ -229,6 +229,17 @@ def execute_action_L8(ctx, model, action, ids):
 ###########################################################
 # Version adaptive functions
 #
+def drop_fields(ctx, model, vals, to_delete):
+    for name in to_delete:
+        if isinstance(vals, (list, tuple)):
+            del vals[vals.index(name)]
+        else:
+            del vals[name]
+        msg = u"Invalid field %s of %s)" % (name, model)
+        debug_msg_log(ctx, 6, msg)
+    return vals
+
+
 def complete_fields(ctx, model, vals):
     to_delete = []
     for name in ctx.get('STRUCT', {}).get(model, {}):
@@ -239,17 +250,6 @@ def complete_fields(ctx, model, vals):
             if not vals.get(name):
                 to_delete.append(name)
     return drop_fields(ctx, model, vals, to_delete)
-
-
-def drop_fields(ctx, model, vals, to_delete):
-    for name in to_delete:
-        if isinstance(vals, (list, tuple)):
-            del vals[vals.index(name)]
-        else:
-            del vals[name]
-        msg = u"Invalid field %s of %s)" % (name, model)
-        debug_msg_log(ctx, 6, msg)
-    return vals
 
 
 def drop_invalid_fields(ctx, model, vals):
@@ -298,6 +298,9 @@ def cvt_value_from_ver_to_ver(ctx, model, name, value, src_ver, tgt_ver=None):
                         createL8(ctx, 'ir.sequence.type',
                                  {'code': value,
                                   'name': value.replace('.', ' ')})
+        elif model == 'res.partner':
+            if name == 'type':
+                type = 'contact'
     return new_name, value
 
 
@@ -392,10 +395,10 @@ def get_val_from_field(ctx, model, rec, field, format=False):
                 res = str(res)
         elif ctx['STRUCT'][model][field]['ttype'] == 'many2one':
             res = rec[field].id
-            if format in ('cmd', 'str'):
+            if format == 'cmd':
                 res = [(6, 0, res)]
         elif ctx['STRUCT'][model][field]['ttype'] == ('integer', 'float'):
-            if format in ('cmd', 'str'):
+            if format == 'cmd':
                 res = str(res)
     return res
 
@@ -420,10 +423,22 @@ def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
         res[field] = get_val_from_field(ctx, model, rec, field, format=format)
     return res
 
-
-def get_model_structure(ctx, model):
+FIX_7_0 = {
+    'res.partner': {'name': {'required': True}},
+    'res.users': {'name': {'required': True}},
+    'account.invoice': {'company_id': {'readonly': False}},
+    'account.invoice': {'number': {'readonly': False}},
+    'account.invoice': {'date_invoice': {'readonly': False}},
+    'account.invoice': {'journal_id': {'readonly': False}},
+    'account.invoice.line': {'company_id': {'readonly': False}},
+    'account.invoice.line': {'number': {'readonly': False}},
+    'account.invoice.line': {'date_invoice': {'readonly': False}},
+    'account.invoice.line': {'journal_id': {'readonly': False}},
+}
+def get_model_structure(ctx, model, ignore=None):
     read_stored_dict(ctx)
-    if ctx.get('STRUCT', {}).get(model, {}):
+    ignore = ignore or []
+    if ctx.get('STRUCT', {}).get(model, {}) and not ignore:
         return
     ctx['STRUCT'] = ctx.get('STRUCT', {})
     ctx['STRUCT'][model] = ctx['STRUCT'].get(model, {})
@@ -433,8 +448,13 @@ def get_model_structure(ctx, model):
                           searchL8(ctx,
                                    ir_model,
                                    [('model', '=', model)])):
-        required = True if field.name in ('code', 'name') else field.required
-        readonly = field.readonly or field.ttype in ('binary', 'reference')
+        res = FIX_7_0.get(model, {}).get(field, {}).get('required', None)
+        required = res if res is not None else field.required
+        res = FIX_7_0.get(model, {}).get(field, {}).get('readonly', None)
+        readonly = res if res is not None else field.readonly
+        readonly = readonly or field.ttype in ('binary', 'reference')
+        if field.name in ignore:
+            readonly = True
         ctx['STRUCT'][model][field.name] = {
             'ttype': field.ttype,
             'relation': field.relation,
