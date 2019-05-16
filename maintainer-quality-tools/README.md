@@ -147,10 +147,13 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 
 Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
 -----|---------|---------|---------|--------|-----|------
+E121 | :x:     | :x:     |         |        | :x: | [continuation line under-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E121.html)
 E123 | :x:     | :x:     |         |        | :x: | [Closing bracket does not match indentation of opening bracket's line](https://lintlyci.github.io/Flake8Rules/rules/E123.html)
 E124 | :x:     | :x:     |         |        | :white_check_mark: | [Closing bracket does not match visual indentation](https://lintlyci.github.io/Flake8Rules/rules/E124.html)
 E126 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line over-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E126.html)
+E127 | :x:     | :x:     |         |        | :white_check_mark: | [continuation line over-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E127.html)
 E128 | :x:     | :x:     |         |        | :white_check_mark: | [Continuation line under-indented for visual indent](https://lintlyci.github.io/Flake8Rules/rules/E128.html)
+E131 | :x:     | :x:     |         |        | :x: | [continuation line unaligned for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E131.html)
 E133 | :x:     | :x:     |         |        | :x: | [Closing bracket is missing indentation](https://lintlyci.github.io/Flake8Rules/rules/E133.html)
 E201 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
 E202 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
@@ -177,12 +180,13 @@ E305 | :x:     | :x:     |         |        | :white_check_mark: |
 W391 | :x:     | :white_check_mark: |         |        | :white_check_mark: | blank line at end of file
 F401 | :x:     | :white_check_mark: |         |        | :x: | module imported but unused
 E501 | :x:     | :x:     |         |        | :white_check_mark: |
+E502 | :x:     | :x:     |         |        | :white_check_mark: | [the backslash is redundant between brackets](https://lintlyci.github.io/Flake8Rules/rules/E502.html)
 W503 | :x:     | :x:     |         |        | :x: | No __init__.py
 W504 | :x:     | :x:     |         |        | :x: | No __init__.py
 F601 | :x:     | :x:     |         |        | :x: | dictionary key name repeated with different values
 E722 | :x:     | :x:     |         |        | :white_check_mark: | do not use bare except
 F811 | :x:     | :x:     |         |        | :x: | redefinition of unused name from line N (No __init__.py)
-
+F841 | :x:     | :x:     |         |        | :x: | [local variable 'context' is assigned to but never used](https://lintlyci.github.io/Flake8Rules/rules/F841.html)
 
 
 PYLINT (see http://pylint-messages.wikidot.com/all-codes for details)
@@ -201,12 +205,14 @@ W7909 | :x:     |         |         |        | :white_check_mark: | redundant-mo
 W7910 | :x:     | :white_check_mark: |         |        | :white_check_mark: | wrong-tabs-instead-of-spaces
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
+W7950 | :x:     |         |         |        | :white_check_mark: | odoo-addons-relative-import
 C8103 | :x:     |         |         |        | :white_check_mark: | [manifest-deprecated-key](https://pypi.org/project/pylint-odoo/1.4.0)
 C8104 | :x:     |         |         |        | :white_check_mark: | [class-camelcase](https://pypi.org/project/pylint-odoo/1.4.0)
 W8104 | :x:     |         |         |        | :white_check_mark: | api-one-deprecated
 C8105 | :x:     |         |         |        | :white_check_mark: | [license-allowed](https://pypi.org/project/pylint-odoo/1.4.0)
 C8108 | :x:     |         |         |        | :white_check_mark: | method-compute
 R8110 | :x:     |         |         |        | :white_check_mark: | old-api7-method-defined
+W8202 | :x:     |         |         |        | :white_check_mark: | use-vim-comment
 N/A   | :x:     |         |         |        | :white_check_mark: | sql-injection
 N/A   | :x:     |         |         |        | :white_check_mark: | duplicate-id-csv
 N/A   | :x:     |         |         |        | :white_check_mark: | create-user-wo-reset-password
@@ -259,13 +265,13 @@ but without running any tests.
 Other configurations
 --------------------
 
-You can higly customize you test: look at below table.
+You can highly customize you test: look at below table.
 
  variable               | default value | meaning
 ------------------------|---------------|--------------------------------------------------------------
  DATA_DIR               | ~/data_dir    | Odoo data directory (data_dir in config file)
  EXCLUDE                |               | Modules to exclude from test
- INCLUDE                |               | Modules to test (all, if empry)
+ INCLUDE                |               | Modules to test (all, if empty)
  INSTALL_OPTIONS        |               | Options passed to odoo-bin/openerp-server to install modules
  MQT_TEMPLATE_DB        |               | Read above
  MQT_TEST_DB            |               | Read above
@@ -279,6 +285,7 @@ You can higly customize you test: look at below table.
  UNIT_TEST              |               | Read above
  TEST                   |               | Read above
  VERSION                |               | Odoo version to test (see above)
+ WKHTMLTOPDF_VERSION    | 0.12.4        | Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)
 
 
 MQT debug informations

@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.7
+__version__=0.2.2.8
 
 
 run_n_echo() {
@@ -198,7 +198,7 @@ fi
 export MQT_TEST_MODE=$mode
 [ -z "$PKGNAME" ] && PKGNAME=$(basename $TRAVIS_BUILD_DIR)
 PIP=pip
-if [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local ]]; then
+if [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
   PIP_OPTS="--user"
 else
   PIP_OPTS=
@@ -272,18 +272,19 @@ fi
 [[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
 echo -e "${TRAVIS_HDR3_COLOR}### Build Secure Environment${TRAVIS_TEXT_COLOR}"
-for p in build-essential libssl-dev libffi-dev python-dev; do
+# for p in build-essential libssl-dev libffi-dev python-dev; do
+for p in build-essential libssl-dev libffi-dev; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
   [ $? -ne 0 ] && run_n_echo "$LISA install $p" "nolocal"
 done
 if [[ ! "$TRAVIS" == "false" ]]; then
   for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
-    eval $LISA status -q $p &>/dev/null
-    if [ $? -ne 0 ]; then
-      run_n_echo "$PIP install $p" "nolocal"
-    else
-      run_n_echo "$PIP install $p --upgrade" "nolocal"
-    fi
+    # eval $LISA status -q $p &>/dev/null
+    # if [ $? -ne 0 ]; then
+    #   run_n_echo "$PIP install $p" "nolocal"
+    # else
+      run_n_echo "$PIP install $p --upgrade --ignore-installed" "nolocal"
+    # fi
   done
 fi
 # Secure environment OK
