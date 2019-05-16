@@ -25,9 +25,6 @@ Last Update / Ultimo aggiornamento: {{today}}
 .. |Codecov Status| image:: {{badge-codecov}}
     :target: {{codecov-oca-URL}}
     :alt: Codecov
-.. |OCA project| image:: {{badge-OCA}}
-    :target: {{OCA-URL}}
-    :alt: OCA
 .. |Tech Doc| image:: {{badge-doc}}
     :target: {{doc-URL}}
     :alt: Technical Documentation

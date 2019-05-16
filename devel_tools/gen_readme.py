@@ -19,7 +19,7 @@ contributors    Contributors list
 configuration   How to configure
 copyright_notes
 description     English description of the repository/module (mandatory)
-descrizione     Descrizione modulo/progetto in italianao (obbligatoria)
+descrizione     Descrizione modulo/progetto in italiano (obbligatoria)
 doc-URL         URL for button documentation
 faq             FAG
 features        Features of the repository/module
@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.11"
+__version__ = "0.2.2.12"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -195,50 +195,74 @@ def items_2_unicode(src):
     return src
 
 
-def get_template_fn(ctx, template, ignore_ntf=None):
-    found = False
-    layered_template = '%s_%s' % (ctx['odoo_layer'], template)
-    no_body = False
-    if template[0:7] in ('header_', 'footer_'):
-        no_body = True
+def get_full_fn(ctx, src_path, filename):
+    if src_path.startswith('./'):
+        full_fn = os.path.join(ctx['path_name'],
+                               src_path[2:].replace('${p}',
+                                                    ctx['product_doc']),
+                               filename)
+    else:
+        full_fn = os.path.join(src_path.replace('${p}',
+                                                ctx['product_doc']),
+                               filename)
+    return full_fn
+
+
+def iter_tempate_path(debug_mode=None, body=None):
     for src_path in ('.',
-                     './egg-info',
-                     '/opt/odoo/dev/pypi/tools/templates',
-                     '/opt/odoo/dev/templates'):
-        if src_path.find('/dev/pypi/tools/') >= 0 and not ctx['dbg_template']:
+                    '/opt/odoo/dev/pypi/tools/templates/${p}',
+                    '/opt/odoo/dev/templates/${p}',
+                    '/opt/odoo/dev/pypi/tools/templates',
+                    '/opt/odoo/dev/templates'):
+        if src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
             continue
-        if no_body and src_path.find('./egg-info') >= 0:
+        elif src_path.find('/dev/templates') >= 0 and debug_mode:
             continue
-        if not no_body:
-            full_fn = os.path.join(src_path, layered_template)
+        if not body and src_path.find('./egg-info') >= 0:
+            continue
+        yield src_path
+
+
+def get_template_fn(ctx, template, ignore_ntf=None):
+
+    def search_tmpl(ctx, template, body):
+        found = False
+        if body:
+            layered_template = '%s_%s' % (ctx['odoo_layer'], template)
+            product_template = '%s_%s' % (ctx['product_doc'], template)
+        else:
+            layered_template = product_template = False
+        for src_path in iter_tempate_path(debug_mode=ctx['dbg_template'],
+                                          body=body):
+            if body:
+                full_fn = get_full_fn(ctx, src_path, product_template)
+                if os.path.isfile(full_fn):
+                    found = True
+                    break
+                full_fn = get_full_fn(ctx, src_path, layered_template)
+                if os.path.isfile(full_fn):
+                    found = True
+                    break
+            full_fn = get_full_fn(ctx, src_path, template)
             if os.path.isfile(full_fn):
                 found = True
                 break
-        full_fn = os.path.join(src_path, template)
-        if os.path.isfile(full_fn):
-            found = True
-            break
-        if template == 'acknowledges.txt':
-            full_fn = os.path.join(src_path, 'contributors.txt')
-            if os.path.isfile(full_fn):
-                found = True
-                break
-    if no_body:
-        if not found:
+            if template == 'acknowledges.txt':
+                full_fn = get_full_fn(ctx, src_path, 'contributors.txt')
+                if os.path.isfile(full_fn):
+                    found = True
+                    break
+        if not body and not found:
             full_fn = ''
-        return full_fn
+        return found, full_fn
+
+    body = True if template[0:7] not in ('header_', 'footer_') else False
+    found, full_fn = search_tmpl(ctx, template, body)
     if not found:
+        if not body:
+            return full_fn
         def_template = 'default_' + template
-        for src_path in ('.',
-                         '/opt/odoo/dev/pypi/tools/templates',
-                         '/opt/odoo/dev/templates'):
-            if src_path.find('/dev/pypi/tools/') >= 0 and not ctx[
-                    'dbg_template']:
-                continue
-            full_fn = os.path.join(src_path, def_template)
-            if os.path.isfile(full_fn):
-                found = True
-                break
+        found, full_fn = search_tmpl(ctx, def_template, False)
     if not found:
         if ignore_ntf:
             full_fn = ''
@@ -252,14 +276,39 @@ def clean_summary(summary):
 
 
 def generate_description_file(ctx):
-    full_fn = os.path.join(ctx['path_name'], 'egg-info/description.rst')
+    full_fn = get_full_fn(ctx, 'egg-info', 'description.rst')
     if ctx['opt_verbose']:
         print("Writing %s" % full_fn)
-    if not os.path.isdir('./egg-info'):
-        os.makedirs('./egg-info')
+    if not os.path.isdir(os.path.dirname(full_fn)):
+        os.makedirs(os.path.dirname(full_fn))
     fd = open(full_fn, 'w')
     fd.write(os0.b(ctx['description']))
     fd.close()
+
+
+def get_default_prerequisites(ctx):
+    if 'addons_info' not in ctx:
+        return ''
+    text = '''.. $if branch in '12.0'
+* python 3.5+
+* postgresql 9.5+ (experimental 10.0+)
+.. $fi
+.. $if branch in '11.0'
+* python 3.5+
+* postgresql 9.2+ (best 9.5)
+.. $fi
+.. $if branch in '6.1' '7.0' '8.0' '9.0' '10.0'
+* python 2.7+ (best 2.7.5+)
+* postgresql 9.2+ (best 9.5)
+.. $fi
+'''
+    if os.path.isfile(os.path.join(ctx['path_name'], 'requirements.txt')):
+        fd = open(os.path.join(ctx['path_name'], 'requirements.txt'), 'rU')
+        for pkg in fd.read().split('\n'):
+            if pkg and pkg[0] != '#':
+                text += '* %s\n' % pkg.strip()
+        fd.close()
+    return text
 
 
 def get_default_avaiable_addons(ctx):
@@ -358,11 +407,11 @@ def tohtml(text, state=None):
     j = text.find('`__')
     k = text.find('`', i + 1)
     while i >= 0 and (j > i or k > i):
-        if k > 0 and k < j:
+        if k > 0 and (k < j or j < 0):
             text = u'%s<code>%s</code>%s' % (
                 text[0:i],
-                text[i + 1: j],
-                text[j + 1:])
+                text[i + 1: k],
+                text[k + 1:])
         else:
             t = text[i + 1: j]
             ii = t.find('<')
@@ -574,7 +623,7 @@ def expand_macro(ctx, token):
         else:
             value = 'https://img.shields.io/badge/maturity-Alfa-black.png'
     elif token == 'badge-gpl':
-        if ctx['odoo_layer'].startswith('pypi'):
+        if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
             value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
@@ -636,7 +685,7 @@ def expand_macro(ctx, token):
             value = 'https://erp%s.zeroincombenze.it' % (
                 ctx['odoo_majver'])
     elif token in ('gpl', 'GPL'):
-        if ctx['odoo_layer'].startswith('pypi'):
+        if ctx['product_doc'] == 'pypi':
             value = 'AGPL'
         else:
             value = build_odoo_param('LICENSE', odoo_vid=ctx['odoo_fver'])
@@ -943,9 +992,6 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                     state, text = append_line(state, line, nl_bef=nl_bef)
                     target += text
             else:
-                # if re.match(r'^\.\. +.*image::', line):
-                #     import pdb
-                #     pdb.set_trace()
                 state, text = expand_macro_in_line(ctx, line, state=state)
                 if (not ctx['write_html'] and
                         re.match(r'^\.\. +.*image::', text)):
@@ -1020,8 +1066,16 @@ def setup(**kwargs):
         print(kw)
 
 
+def read_manifest_file(manifest_path):
+    try:
+        manifest = ast.literal_eval(open(manifest_path).read())
+    except IOError, ImportError:
+        raise Exception('Wrong manifest file %s' % manifest_path)
+    return items_2_unicode(manifest)
+
+
 def read_setup(ctx):
-    if ctx['odoo_layer'] == 'pypi':
+    if ctx['product_doc'] == 'pypi':
         MANIFEST_LIST = ('../setup.py', )
     else:
         MANIFEST_LIST = ('./setup.py', )
@@ -1054,7 +1108,8 @@ def read_setup(ctx):
             raise Exception('Wrong file %s' % manifest_file)
         ctx['manifest_file'] = manifest_file
     else:
-        print('Warning: manifest file not found')
+        if not ctx['suppress_warning']:
+            print('Warning: manifest file not found')
         ctx['manifest'] = {}
 
 
@@ -1072,14 +1127,11 @@ def read_manifest(ctx):
             break
         manifest_file = ''
     if manifest_file:
-        try:
-            ctx['manifest'] = items_2_unicode(
-                ast.literal_eval(open(manifest_file).read()))
-        except ImportError:
-            raise Exception('Wrong file %s' % manifest_file)
+        ctx['manifest'] = read_manifest_file(manifest_file)
         ctx['manifest_file'] = manifest_file
     else:
-        print('Warning: manifest file not found')
+        if not ctx['suppress_warning']:
+            print('Warning: manifest file not found')
         ctx['manifest'] = {}
 
 
@@ -1114,11 +1166,7 @@ def read_all_manifests(ctx):
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
                 try:
-                    addons_info[module_name] = ast.literal_eval(open(
-                        full_fn).read())
-                    addons_info[module_name] = {
-                        os0.u(k): os0.u(v) for k, v in addons_info[
-                            module_name].items()}
+                    addons_info[module_name] = read_manifest_file(full_fn)
                     if 'summary' not in addons_info[module_name]:
                         addons_info[module_name]['summary'] = addons_info[
                             module_name]['name'].strip()
@@ -1147,12 +1195,7 @@ def read_all_manifests(ctx):
                 continue
             if manifest_file in files:
                 full_fn = os.path.join(root, manifest_file)
-                try:
-                    oca_manifest = ast.literal_eval(open(full_fn).read())
-                except ImportError:
-                    raise Exception('Wrong file %s' % full_fn)
-                oca_manifest = {
-                    os0.u(k): os0.u(v) for k, v in oca_manifest.items()}
+                oca_manifest = read_manifest_file(full_fn)
                 oca_version = adj_version(ctx, oca_manifest.get('version', ''))
                 if module_name not in addons_info:
                     addons_info[module_name] = {}
@@ -1242,7 +1285,11 @@ def index_html_content(ctx, source):
     for section in source.split('\f'):
         try:
             root = etree.XML(section)
-            xml_replace_text(ctx, root, 'h2', title)
+        except SyntaxError as e:
+            print('***** Error %s *****' % e)
+            root = e
+        xml_replace_text(ctx, root, 'h2', title)
+        try:
             target += '\n%s' % etree.tostring(root, pretty_print=True)
         except SyntaxError as e:
             print('***** Error %s *****' % e)
@@ -1286,13 +1333,12 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
-    if ctx['odoo_layer'] == 'pypirepo':
-        ctx['module_name'] = ''
+    if ctx['product_doc'] == 'pypi':
+        if ctx['odoo_layer'] == 'repository':
+            ctx['module_name'] = ''
+        else:
+            ctx['module_name'] = os.path.basename(ctx['path_name'])
         ctx['repos_name'] = 'tools'
-        read_setup(ctx)
-    elif ctx['odoo_layer'] == 'pypi':
-        ctx['module_name'] = ''
-        ctx['repos_name'] = os.path.basename(os.getcwd())
         read_setup(ctx)
     elif ctx['odoo_layer'] == 'ocb':
         ctx['module_name'] = ''
@@ -1302,7 +1348,7 @@ def generate_readme(ctx):
         ctx['module_name'] = ''
         # ctx['repos_name'] = build_odoo_param('REPOS',
         #                                      odoo_vid=ctx['odoo_fver'])
-        ctx['repos_name'] = os.path.basename(os.getcwd())
+        ctx['repos_name'] = os.path.basename(ctx['path_name'])
         read_all_manifests(ctx)
     else:
         if not ctx['module_name']:
@@ -1379,13 +1425,18 @@ if __name__ == "__main__":
                         dest='write_html')
     parser.add_argument('-l', '--layer',
                         action='store',
-                        help='ocb|module|repository|pypirepo',
+                        help='ocb|module|repository',
                         dest='odoo_layer')
     parser.add_argument('-m', '--module-name',
                         action='store',
                         help='filename',
                         dest='module_name')
     parser.add_argument('-n')
+    parser.add_argument('-P', '--product-doc',
+                        action='store',
+                        help='name',
+                        dest='product_doc',
+                        default='')
     parser.add_argument('-p', '--path-name',
                         action='store',
                         help='pathname',
@@ -1405,8 +1456,17 @@ if __name__ == "__main__":
                         dest='template_name')
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-w', '--suppress-warning',
+                        action='store_true',
+                        dest='suppress_warning')
     ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
-    if ctx['odoo_layer'] in ('pypirepo', 'pypi'):
+    ctx['path_name'] = os.path.abspath(ctx['path_name'])
+    if not ctx['product_doc']:
+        if ctx['path_name'].find('/pypi/') >= 0:
+            ctx['product_doc'] = 'pypi'
+        else:
+            ctx['product_doc'] = 'odoo'
+    if ctx['product_doc'] == 'pypi':
         ctx['git_orgid'] = 'zero'
         ctx['odoo_fver'] = ctx['odoo_vid']
         ctx['odoo_majver'] = 0
@@ -1415,35 +1475,44 @@ if __name__ == "__main__":
                                             odoo_vid=ctx['odoo_vid'])
         if ctx['odoo_fver'] not in ('12.0', '11.0', '10.0',
                                     '9.0', '8.0', '7.0', '6.1'):
-            ctx['odoo_fver'] = '11.0'
+            ctx['odoo_fver'] = '12.0'
             print('Invalid odoo version: please use -b switch (%s)' %
                   ctx['odoo_fver'])
         ctx['odoo_majver'] = int(ctx['odoo_fver'].split('.')[0])
         if not ctx['git_orgid']:
             ctx['git_orgid'] = build_odoo_param('GIT_ORGID',
                                                 odoo_vid=ctx['odoo_vid'])
-        if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
-            ctx['git_orgid'] = 'zero'
+    if ctx['git_orgid'] not in ('zero', 'oia', 'oca'):
+        ctx['git_orgid'] = 'zero'
+        if not ctx['suppress_warning']:
             print('Invalid git-org: use -G %s or of zero|oia|oca' %
                   ctx['git_orgid'])
-        if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
+    if ctx['odoo_layer'] not in ('ocb', 'module', 'repository'):
+        if ctx['product_doc'] == 'odoo':
             if (ctx['odoo_majver'] >= 10 and
-                    os.path.isfile('./__manifest__.py') and
-                    os.path.isfile('./__init__.py')):
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                '__manifest__.py')) and
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                '__init__.py'))):
                 ctx['odoo_layer'] = 'module'
             elif (ctx['odoo_majver'] < 10 and
-                    os.path.isfile('./__openerp__.py') and
-                    os.path.isfile('./__init__.py')):
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                '__openerp__.py')) and
+                    os.path.isfile(os.path.join(ctx['path_name'],
+                                                '__init__.py'))):
                 ctx['odoo_layer'] = 'module'
-            elif os.path.basename(os.getcwd()) == ctx['odoo_fver']:
+            elif os.path.basename(ctx['path_name']) == ctx['odoo_fver']:
                 ctx['odoo_layer'] = 'ocb'
             else:
                 ctx['odoo_layer'] = 'repository'
+        else:
+            if os.path.isfile(os.path.join(ctx['path_name'],
+                                           '../setup.py')):
+                ctx['odoo_layer'] = 'module'
+            else:
+                ctx['odoo_layer'] = 'repository'
+        if not ctx['suppress_warning']:
             print('Invalid layer: use -L %s or one of ocb|module|repository ' %
                   ctx['odoo_layer'])
-    # Avoid empty path when ends with slash
-    ctx['path_name'] = os.path.dirname(
-        ctx['path_name']) if not os.path.basename(
-            ctx['path_name']) else ctx['path_name']
     sts = generate_readme(ctx)
     sys.exit(sts)

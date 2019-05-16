@@ -4,10 +4,10 @@
 Return module list or dependencies list or depends list of odoo modules.
 
 usage: odoo_dependencies.py [-h] [-A {dep,help,jrq,mod,rev,tree}] [-a]
-                            [-B DEPENDS_BY] [-b] [-c file] [-D file] [-d] [-E]
-                            [-e] [-H] [-j] [-M MODULES_TO_MATCH] [-m] [-N]
-                            [-n] [-o] [-P] [-q] [-R] [-r] [-S SEP_LIST] [-V]
-                            [-v] [-1]
+                            [-b version] [-B DEPENDS_BY] [-c file] [-D file]
+                            [-E] [-e] [-H] [-j] [-M MODULES_TO_MATCH] [-m]
+                            [-N] [-n] [-o] [-P] [-q] [-R] [-r] [-S SEP_LIST]
+                            [-V] [-v] [-x] [-1]
                             [path_list [path_list ...]]
 
 Odoo dependencies
@@ -19,13 +19,13 @@ optional arguments:
   -h, --help            show this help message and exit
   -A {dep,help,jrq,mod,rev,tree}, --action {dep,help,jrq,mod,rev,tree}
   -a, --and-list
+  -b version, --branch version
+                        Odoo branch
   -B DEPENDS_BY, --depends-by DEPENDS_BY
-  -b, --external-bin-dependencies
   -c file, --config file
                         configuration command file
   -D file, --dbname file
                         DB name
-  -d, --action-depends
   -E, --only-missed
   -e, --external-dependencies
   -H, --action-help
@@ -42,11 +42,15 @@ optional arguments:
   -S SEP_LIST, --sep-list SEP_LIST
   -V, --version         show program's version number and exit
   -v, --verbose         verbose mode
+  -x, --external-bin-dependencies
   -1, --no-depth
 
-This app can exectuce following actions:
+© 2019 by SHS-AV s.r.l.
+
+
+This app can execute following actions:
   mod: print module list of paths (by -m switch too)
-  dep: print dependencies list of modules (by -d switch too)
+  dep: print dependencies list of modules 
   rev: print dependents list of module in paths (use -r switch too)
   jrq: print just strict dependents list of module in paths (use -j switch too)
   tree: print modules tree
@@ -61,7 +65,7 @@ With -B switch returns modules list which have one or more dependencies
 in DEPENDS_BY. In conjunction with -a switch return module which have all
 dependencies in DEPENDS_BY.
 
-Action 'dep' or -d returns children dependencies list from MODULES_TO_MATCH;
+Action 'dep' returns children dependencies list from MODULES_TO_MATCH;
 MODULES_TO_MATCH is get from -M switch or else they are get from path_list.
 With -R switch, the search traverses directories.
 Modules in list depend from one or more MODULES_TO_MATCH.
@@ -110,7 +114,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.11'
+__version__ = '0.2.2.12'
 
 
 MANIFEST_FILES = [
@@ -564,7 +568,10 @@ def get_just_dependents_list(path_list, matches=None, depth=None,
 def main(ctx):
     ctx['modules_unstable'] = []
     if ctx['db_name']:
-        uid, ctx = clodoo.oerp_set_env(ctx=ctx)
+        if ctx['branch']:
+            uid, ctx = clodoo.oerp_set_env(ctx=ctx, oe_version=ctx['branch'])
+        else:
+            uid, ctx = clodoo.oerp_set_env(ctx=ctx)
         model = 'ir.module.module'
         if not ctx['modules_to_match']:
             ctx['modules_to_match'] = sorted([x.name for x in
@@ -659,14 +666,14 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--and-list',
                         action='store_true',
                         dest='and_list')
+    parser.add_argument("-b", "--branch",
+                        help="Odoo branch",
+                        dest="branch",
+                        metavar="version")
     parser.add_argument('-B', '--depends-by',
                         action='store',
                         default='',
                         dest='depends_by')
-    parser.add_argument('-b', '--external-bin-dependencies',
-                        action='store_true',
-                        default='',
-                        dest='external_bin_dependencies')
     parser.add_argument("-c", "--config",
                         help="configuration command file",
                         dest="conf_fn",
@@ -677,9 +684,9 @@ if __name__ == "__main__":
                         dest="db_name",
                         metavar="file",
                         default=False)
-    parser.add_argument('-d', '--action-depends',
-                        action='store_true',
-                        dest='act_depends')
+    # parser.add_argument('-d', '--action-depends',
+    #                     action='store_true',
+    #                     dest='act_depends')
     parser.add_argument('-E', '--only-missed',
                         action='store_true',
                         dest='only-missed')
@@ -723,6 +730,10 @@ if __name__ == "__main__":
                         dest='sep_list')
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-x', '--external-bin-dependencies',
+                        action='store_true',
+                        default='',
+                        dest='external_bin_dependencies')
     parser.add_argument('-1', '--no-depth',
                         action='store_true',
                         dest='no_depth')

@@ -34,7 +34,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = "0.2.2.11"
+__version__ = "0.2.2.12"
 
 msg_time = time.time()
 
@@ -99,8 +99,11 @@ def convert_text(src_string):
                 col_size[p] = min(len(p), 16)
             hdr_read = True
             continue
-        for p in csv_obj.fieldnames:
-            col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
+        if row[csv_obj.fieldnames[0]][0:4] == '.. $':
+            pass
+        else:
+            for p in csv_obj.fieldnames:
+                col_size[p] = max(col_size[p], min(len(row[p]), max_col_width))
     csv_fd.close()
     csv_fd = StringIO.StringIO(src_string)
     hdr_read = False
@@ -118,9 +121,14 @@ def convert_text(src_string):
             text += format_line(col_size, row['undef_name'], sep=True)
             continue
         row = items_2_unicode(row)
-        ctr += 1
-        text += format_line(col_size, row, flist=csv_obj.fieldnames)
-        text += format_line(col_size, row, sep=True, flist=csv_obj.fieldnames)
+        if row[csv_obj.fieldnames[0]][0:4] == '.. $':
+            text += row[csv_obj.fieldnames[0]]
+            text += '\n'
+        else:
+            ctr += 1
+            text += format_line(col_size, row, flist=csv_obj.fieldnames)
+            text += format_line(col_size, row, sep=True,
+                                flist=csv_obj.fieldnames)
     csv_fd.close()
     return text
 

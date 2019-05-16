@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.11
+__version__=0.2.2.12
 
 
 test_01() {
@@ -46,7 +46,7 @@ test_01() {
       # Files in module directory
       cat <<EOF >$TESTDIR/res/__manifest__.py
 {
-    'name': 'test',
+    'name': 'mtest',
 }
 EOF
       # Files in egg-info of module directory
@@ -150,9 +150,9 @@ Acknoledges to
 EOF
       # Files for test match
       cat <<EOF >$TESTRES
-===========
-|icon| test
-===========
+============
+|icon| mtest
+============
 
 Test file
 
@@ -208,10 +208,10 @@ Acknoledges to
 
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
+      $RUNDIR/gen_readme.py -q -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -q  -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -q  -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo -w" "$TESTOUT" "$TESTRES" "diff"
 }
 
 test_02() {

@@ -32,11 +32,11 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.11
+__version__=0.2.2.12
 
 
 #
-# Nodules Tree for tests (* means missed module)
+# Modules Tree for tests (* means missed module)
 # l10n-italy/l10n_it_base
 #   |---- addons/sale
 #   |       |---- */sales_team
