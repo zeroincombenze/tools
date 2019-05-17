@@ -216,11 +216,10 @@ if [ -d $HOME/tools ]; then
   [ $opt_verbose -gt 0 ] && echo "\$ cd $HOME/tools"
   cd $HOME/tools
   run_n_echo "./install_tools.sh -qp"
-  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev:$HOME/tools"
-  export PYTHONPATH=$HOME/dev:$HOME/tools
 fi
 if [ -d $HOME/dev ]; then
-  run_n_echo "export PATH=$HOME/dev:$PATH"
+  [ $opt_verbose -gt 0 ] && echo "\$ . $HOME/dev/activate_tools"
+  . $HOME/dev/activate_tools
 else
   echo "!! Directory $HOME/dev not found!"
 fi
@@ -318,8 +317,8 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   fi
   exit $sts
 else
-  [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
-  export PYTHONPATH=$HOME/dev
+  # [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
+  # export PYTHONPATH=$HOME/dev
   [ -z "${VERSION}" ] && VERSION="$opt_branch"
   [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
   : ${MQT_TEMPLATE_DB:="openerp_template"}
@@ -476,9 +475,9 @@ else
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
       if [[ "$TRAVIS" == "false" ]]; then
-        run_n_echo "$MGRODOO requirements -nb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_n_echo "$MGRODOO requirements -nBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       else
-        run_n_echo "$MGRODOO requirements -b '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_n_echo "$MGRODOO requirements -Bb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
@@ -513,9 +512,9 @@ else
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       if [[ "$TRAVIS" == "false" ]]; then
-        run_n_echo "$MGRODOO requirements -nb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_n_echo "$MGRODOO requirements -nBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       else
-        run_n_echo "$MGRODOO requirements -b $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_n_echo "$MGRODOO requirements -Bb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
     run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."

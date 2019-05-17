@@ -114,7 +114,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.12'
+__version__ = '0.2.2.14'
 
 
 MANIFEST_FILES = [
@@ -746,8 +746,8 @@ if __name__ == "__main__":
     if not ctx['action']:
         if ctx['act_modules']:
             ctx['action'] ='mod'
-        elif ctx['act_depends']:
-            ctx['action'] ='dep'
+        # elif ctx['act_depends']:
+        #     ctx['action'] ='dep'
         elif ctx['act_just_reverse_modules']:
             ctx['action'] ='jrq'
         elif ctx['act_reverse_modules']:

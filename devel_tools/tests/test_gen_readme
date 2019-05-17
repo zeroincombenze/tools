@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.12
+__version__=0.2.2.14
 
 
 test_01() {
@@ -43,13 +43,13 @@ test_01() {
     TESTOUT=$TESTDIR/res/README.rst
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       rm -f $TESTOUT
-      # Files in module directory
+      # Files in module directory (tested branch is 11.0)
       cat <<EOF >$TESTDIR/res/__manifest__.py
 {
     'name': 'mtest',
 }
 EOF
-      # Files in egg-info of module directory
+      # Files in egg-info of module directory (tested branch is 11.0)
       cat <<EOF >$TESTDIR/res/descrizione.rst
 Lorem ipsum
 -----------
@@ -235,7 +235,7 @@ Test file
 {{authors}}
 </section>
 EOF
-      # Files for test match
+      # Files for test match  (tested branch is 11.0)
       cat <<EOF >$TESTRES
 
 <section class="oe_container">
@@ -244,7 +244,7 @@ Test file
 
 <h1>Overview</h1>
 
-<h2>test / Lorem ipsum</h2>
+<h2>mtest / Lorem ipsum</h2>
 <p align="justify">
 Lorem ipsum <b>dolor</b> sit amet
 consectetur <i>adipiscing</i> elit
@@ -274,10 +274,10 @@ consectetur <i>adipiscing</i> elit
 </section>
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
+      $RUNDIR/gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qH -b11.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
 }
 
 
@@ -368,10 +368,10 @@ Contributors
 }
 EOF
       pushd $TESTDIR/res &>/dev/null
-      $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res
+      $RUNDIR/gen_readme.py -qR -b7.0 -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo
       popd &>/dev/null
     fi
-    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res" "$TESTOUT" "$TESTRES" "diff"
+    test_result "gen_readme.py -qR -b7.0  -lmodule -mmtest -rrtest -Gzero -t$TESTSRC -p$TESTDIR/res -Podoo" "$TESTOUT" "$TESTRES" "diff"
 }
 
 

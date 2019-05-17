@@ -1,4 +1,4 @@
-# __version__=0.2.2.11
+# __version__=0.2.2.12
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))

@@ -37,10 +37,10 @@ if [ -z "$TRAVISLIBDIR" ]; then
 fi
 . $TRAVISLIBDIR
 
-__version__=0.2.2.12
+__version__=0.2.2.15
 [ -f $TDIR/../../clodoo/list_requirements.py ] && LISTREQ=$TDIR/../../clodoo/list_requirements.py || LISTREQ=list_requirements.py 
 YAML_TMPL=~/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/sample_files/.travis.yml
-NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|nodejs|npm|openssl|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
+NO_APT_GET="(build-essential|curl|git|gradle|gzip|java|lessc|nodejs|npm|openssl|python-setuptools|python-simplejson|PhantomJS|rvm|ruby|sass|scss|tesseract|wget|wkhtmltopdf|zip)"
 
 
 expand_macro() {
@@ -335,10 +335,17 @@ format_yaml() {
           echo "$line">>$fntmp
         elif [[ $lne =~ -\ TRANSIFEX=... ]]; then
           :
+        elif [[ $lne =~ -\ WKHTMLTOPDF_VERSION=... || "$cur_sect" == "global" ]]; then
+          if [  $odoo_ver -ge 10 ]; then
+            echo "  - WKHTMLTOPDF_VERSION=\"0.12.4\"">>$fntmp
+          else
+            echo "  - WKHTMLTOPDF_VERSION=\"0.12.1\"">>$fntmp
+          fi
+          cur_sect=
         elif [[ $lne =~ -\ travis_install_nightly ]]; then
           echo "# $line">>$fntmp
         elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
-          [ "$PKGNAME" == "OCB" ] && line=${line/1/0}
+          # [ "$PKGNAME" == "OCB" ] && line=${line/1/0}
           echo "$line">>$fntmp
         elif [[ $lne == -\ pip\ install\ -r\ .*/maintainer-quality-tools/requirements.txt ]]; then
           echo "# $line">>$fntmp
@@ -372,11 +379,7 @@ format_yaml() {
         elif [ "$line" == "before_install:" ]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
-          if [ $opt_debug -ne 0 ]; then
-            echo "  - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
-          else
-            echo "  - export TRAVIS_DEBUG_MODE=\"0\"">>$fntmp
-          fi
+          echo "  - export TRAVIS_DEBUG_MODE=\"1\"">>$fntmp
           # echo "  - pip install urllib3[secure] --upgrade; true">>$fntmp
           if [ "$PKGNAME" == "OCB" ]; then
             echo "  - \"export DISPLAY=:99.0\"">>$fntmp
@@ -386,6 +389,9 @@ format_yaml() {
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         elif [ "$line" == "env:" ]; then
+          cur_sect=${line:0: -1}
+          echo "$line">>$fntmp
+        elif [[ $line =~ global: ]]; then
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         elif [ "$line" == "addons:" ]; then
@@ -1187,11 +1193,11 @@ format_readme() {
 FCONF=$TDIR/.$THIS.conf
 
 # main
-OPTOPTS=(h        a        A         B         b         c         C        d        e        F        G       i       L         n            N        o       O        R        q           u       V           v           X       0)
-OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_nenh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z)
-OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1        "="      1       1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1)
-OPTDEFL=(1        0        0         0         ""        0         "zero"   0        0        "7.0"    0       0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0)
-OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""       "ver"    ""      ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      "")
+OPTOPTS=(h        a        A         B         b         c         C        d        e        F        G       i       L         n            N        o       O        R        q           u       V           v           X       0     1)
+OPTDEST=(opt_help opt_aggr opt_nauto opt_debug odoo_vid  opt_Camel opt_copy opt_diff opt_nenh opt_from opt_gpl opt_imp opt_nlint opt_dry_run  opt_nonl opt_out opt_c2o  opt_rule opt_verbose opt_ut7 opt_version opt_verbose opt_xec opt_z opt_1)
+OPTACTI=(1        "+"      '+'       1         "="       1         "="      1        1        "="      1       1       1         1            1        "="     1        "="      0           1       "*>"        "+"         1       1     1)
+OPTDEFL=(1        0        0         0         ""        0         "zero"   0        0        "7.0"    0       0       0         0            0        ""      0        ""       -1          0       ""          -1          0       0     0)
+OPTMETA=("help"   "aggres" ""        ""        "version" "camel"   "org"    "diff"   ""       "ver"    ""      ""      ""        "do nothing" ""       "file"  ""       "file"   "silent"   "ut7"   "version"    "verbose"   ""      ""    "")
 OPTHELP=("this help"\
  "enable non-whitespace changes (may issue multiple -a)"\
  "do not execute autoflake (-A) neither autopep8 (-AA)"\
@@ -1215,7 +1221,8 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode"\
  "make file.py executable"\
- "create yaml file from zero")
+ "create yaml file from zero"\
+ "do not recurse travese directories")
 OPTARGS=(fullname)
 
 parseoptargs "$@"
@@ -1265,7 +1272,11 @@ OPTS=
 [ -n "$opt_from" ] && OPTS="$OPTS -F$opt_from"
 [ -n "$opt_copy" ] && OPTS="${OPTS} -C$opt_copy"
 [ -n "$opt_rule" ] && OPTS="${OPTS} -R$opt_rule"
-LIST="$(find $path $optfnd -name "$selfl")"
+if [ $opt_1 -ne 0 ]; then
+  LIST="$selfl"
+else
+  LIST="$(find $path $optfnd -name "$selfl")"
+fi
 for fl in $LIST; do
   sts=0
   p=$(dirname $fl)
@@ -1274,7 +1285,7 @@ for fl in $LIST; do
     echo "Reading $f in $p"
   fi
   pushd $p >/dev/null
-  if [ "${f: -4}" == ".xml" -o "${f: -4}" == ".xsd" ]; then
+  if [ "${f: -4}" == ".xml" -o "${f: -4}" == ".xsd" -o "${f: -5}" == ".html" ]; then
     format_xml $f
   elif [ "${f: -4}" == ".yml" ]; then
     format_yaml $f

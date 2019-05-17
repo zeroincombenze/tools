@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.12"
+__version__ = "0.2.2.14"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -210,6 +210,7 @@ def get_full_fn(ctx, src_path, filename):
 
 def iter_tempate_path(debug_mode=None, body=None):
     for src_path in ('.',
+                     './egg-info',
                     '/opt/odoo/dev/pypi/tools/templates/${p}',
                     '/opt/odoo/dev/templates/${p}',
                     '/opt/odoo/dev/pypi/tools/templates',
