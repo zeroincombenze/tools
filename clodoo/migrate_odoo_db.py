@@ -22,7 +22,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.20"
+__version__ = "0.3.8.21"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -531,8 +531,6 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
                 pass
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
-    import pdb
-    pdb.set_trace()
     clodoo.get_model_structure(src_ctx, model,
                                ignore=IGNORE_FIELDS.get(model, []))
     clodoo.get_model_structure(dst_ctx, model,
@@ -560,6 +558,17 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
         copy_record(dst_ctx, src_ctx, model, rec, mode=mode)
 
 
+def is_system_model(model):
+    is_system = False
+    for root in SYSTEM_MODEL_ROOT:
+        if model.startswith(root):
+            is_system = True
+            break
+    if model in SYSTEM_MODELS:
+        is_system = True
+    return is_system
+
+
 def build_table_tree(ctx):
     def new_empty_model(models, model):
         if model not in models:
@@ -575,14 +584,7 @@ def build_table_tree(ctx):
         ctx, 'ir.model', clodoo.searchL8(
             ctx, 'ir.model', [])):
         model = model_rec.model
-        discard = False
-        for root in SYSTEM_MODEL_ROOT:
-            if model.startswith(root):
-                discard = True
-                break
-        if discard:
-            continue
-        if model in SYSTEM_MODELS:
+        if is_system_model(model):
             continue
         msg_burst('    get %s ...' % model)
         model_list.append(model)
@@ -668,17 +670,17 @@ def build_table_tree(ctx):
             models[model]['level'] = MAX_DEEP + 1
     return models
 
-
+PKEYS = {
+    'res.country.state': ['country_id', 'code'],
+    'res.partner': ['name', 'vat'],
+    'res.company': ['vat'],
+}
 def primkey_table(ctx, model):
     clodoo.get_model_structure(ctx, model,
                                ignore=IGNORE_FIELDS.get(model, []))
     ir_model = 'ir.model.constraint'
-    if model == 'res.country.state':
-        names = ['country_id', 'code']
-    elif model == 'res.partner':
-        names = ['name', 'vat']
-    elif model == 'res.company':
-        names = ['vat']
+    if model in PKEYS:
+        names = PKEYS[model]
     else:
         names = []
         prior_name = ''
@@ -703,6 +705,7 @@ def primkey_table(ctx, model):
                         tok_id = ''
                     else:
                         tok_id = tok
+                break
     if not names:
         if clodoo.is_valid_field(ctx, model, 'company_id'):
             names = ['company_id']
@@ -735,6 +738,8 @@ def write_tree_conf(ctx):
 
 
 def get_model_copy_mode(ctx, model):
+    if is_system_model(model):
+        return 'No'
     mode = ctx['_ml'][model] or 'inquire'
     if mode == 'inquire':
         mode_selection = {'i': 'image', 's': 'sql', 'n': 'no'}

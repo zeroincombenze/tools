@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.20
+__version__=0.3.8.21
 
 
 explore() {
@@ -177,7 +177,13 @@ do_action() {
             echo -e "${TRAVIS_TEXT_COLOR}Check for $f${TRAVIS_HDR3_COLOR}"
           elif [ "$f" == "$pkg" ]; then
             eval $LISA status -q $pkg -d0 &>/dev/null
-            [ $? -ne 0 ] && run_traced "$LISA install -q $f -d0"
+            if [ $? -ne 0 ]; then
+              if [ $opt_nobin -ne 0 ]; then
+                echo "***Warning: packge $f must be installed by $LISA install -q $f -d0"
+              else
+                run_traced "$LISA install -q $f -d0"
+              fi
+            fi
           fi
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing python requirements${TRAVIS_TEXT_COLOR}"
@@ -193,6 +199,7 @@ do_action() {
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
             reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')
+            [ -n "$reqver" ] && xreqver=$(echo $|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
             sts=0
             if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
               sts=1
@@ -202,7 +209,8 @@ do_action() {
             fi
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
               [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
-              if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $curver == $reqver) || ($op == "<" && ! $curver < $reqver) || ($op == ">" && ! $curver > $reqver) || ($op == ">=" && $curver < $reqver) || ($op == "<=" && $curver > $reqver) ]]; then
+              xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
+              if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $xcurver == $xreqver) || ($op == "<" && ! $xcurver < $xreqver) || ($op == ">" && ! $xcurver > $xreqver) || ($op == ">=" && $xcurver < $xreqver) || ($op == "<=" && $xcurver > $xreqver) ]]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)
                   echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
@@ -337,12 +345,13 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        b          c        D       d        H           m         n            O         o        p         q           s          u          V           v           x         y)
-OPTDEST=(opt_help opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
-OPTDEFL=(0        ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
-OPTMETA=("help"   "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
+OPTOPTS=(h        B         b          c        D       d        H           m         n            O         o        p         q           s          u          V           v           x         y)
+OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        1         "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
+OPTDEFL=(0        0         ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
+OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
+ "do not install binary packages in requirements action"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)"\
  "configuration file (def .travis.conf)"\
  "default module list"\
