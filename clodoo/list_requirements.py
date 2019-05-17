@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.21'
+__version__ = '0.3.8.22'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -145,6 +145,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'QUnitSuite',
                      'restructuredtext_lint',
                      'rfc3986',
+                     'setuptools',
                      'unittest2',
                      'urllib3[secure]',
                      'whichcraft',
@@ -156,7 +157,7 @@ BIN_TEST_PACKAGES = ['build-essential',
                      'libffi-dev',
                      'libssl-dev',
                      'python-dev',
-                     'python-setuptools',
+                     # 'python-setuptools',
                      ]
 RPC_PACKAGES = ['clodoo',
                 'odoorpc',
@@ -201,7 +202,7 @@ BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
                      # 'python-psycopg2',
-                     'python-simplejson',
+                     # 'python-simplejson',
                      'wkhtmltopdf',
                      ]
 BIN_PACKAGES = ['git',
@@ -287,11 +288,11 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                         'python-Levenshtein',
                                         with_version=with_version,
                                         odoo_ver=odoo_ver)
-            elif item == 'simplejson':
-                deps_list = add_package(deps_list, kw,
-                                        'python-simplejson',
-                                        with_version=with_version,
-                                        odoo_ver=odoo_ver)
+            # elif item == 'simplejson':
+            #     deps_list = add_package(deps_list, kw,
+            #                             'python-simplejson',
+            #                             with_version=with_version,
+            #                             odoo_ver=odoo_ver)
             elif item == 'lxml':
                 if odoo_ver in ('11.0', '12.0'):
                     for itm in (PY3_DEV, 'libxml2-dev',

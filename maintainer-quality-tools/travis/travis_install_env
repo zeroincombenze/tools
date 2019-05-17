@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.8
+__version__=0.2.2.9
 
 
 run_n_echo() {
@@ -263,10 +263,10 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_TEXT_COLOR}\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
   echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PATH=$PATH${TRAVIS_HDR3_COLOR}"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ OPTS=$OPTS${TRAVIS_HDR3_COLOR}"
-  [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}\$ PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ PYTHONPATH=$PYTHONPATH${TRAVIS_HDR3_COLOR}"
+  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}# PATH=$PATH${TRAVIS_HDR3_COLOR}"
+  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}# OPTS=$OPTS${TRAVIS_HDR3_COLOR}"
+  [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}# PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
+  echo -e "${TRAVIS_TEXT_COLOR}# PYTHONPATH=$PYTHONPATH${TRAVIS_HDR3_COLOR}"
 fi
 [[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)

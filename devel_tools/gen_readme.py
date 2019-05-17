@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.14"
+__version__ = "0.2.2.15"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -119,9 +119,11 @@ LIST_TAG = ('authors',
             'acknowledges')
 DEFINED_GRYMB_SYMBOLS = {
     'it': ['flags/it_IT.png',
-           'https://www.facebook.com/groups/openerp.italia/'],
+           'https://www.facebook.com/Zeroincombenze-'
+           'Software-gestionale-online-249494305219415/'],
     'en': ['flags/en_US.png',
-           'https://www.facebook.com/groups/openerp.italia/'],
+           'https://www.facebook.com/Zeroincombenze-'
+           'Software-gestionale-online-249494305219415/'],
     'check': ['awesome/check.png', False],
     'no_check': ['awesome/no_check.png', False],
     'menu': ['awesome/menu.png', False],
@@ -1178,6 +1180,10 @@ def read_all_manifests(ctx):
                     addons_info[module_name]['version'] = adj_version(
                         ctx, addons_info[module_name].get('version', ''))
                     addons_info[module_name]['oca_version'] = 'N/A'
+                    # if 'maintainer' not in addons_info[module_name]:
+                    #    addons_info[module_name]['maintainer'] = \
+                    #        'Antonio Maria Vigliotti '
+                    #        '<antoniomaria.vigliotti@gmail.com>'
                     if root.find('__unported__') >= 0:
                         addons_info[module_name]['installable'] = False
                 except KeyError:

@@ -3,7 +3,7 @@
 # Tool for internal use
 #
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -258,13 +258,11 @@ format_yaml() {
         fi
         lne=$(echo $line)
         if [[ "$cur_sect" == "odoo_repo" && ! $lne =~ -\ TESTS=...\ ODOO_REPO=.*/OCB ]]; then
-          x=$(echo $opt_copy|grep -Eo [a-z]+|head -n1)
-          org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
-          # if [ $opt_ut7 -eq 0 ]; then
-          #   echo "  - TESTS=\"1\" ODOO_REPO=\"\$TRAVIS_REPO_SLUG\"">>$fntmp
-          # else
-          echo "  - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"">>$fntmp
-          #fi
+          if [[ ! "${found[repo_zero]}" == "t" ]]; then
+            x=$(echo $opt_copy|grep -Eo [a-z]+|head -n1)
+            org=$(build_odoo_param GIT_ORGNM $odoo_vid "" "$x")
+            echo "  - TESTS=\"1\" ODOO_REPO=\"$org/OCB\"">>$fntmp
+          fi
           cur_sect=
         fi
         if [ -z "$line" ]; then
@@ -336,12 +334,17 @@ format_yaml() {
         elif [[ $lne =~ -\ TRANSIFEX=... ]]; then
           :
         elif [[ $lne =~ -\ WKHTMLTOPDF_VERSION=... || "$cur_sect" == "global" ]]; then
-          if [  $odoo_ver -ge 10 ]; then
-            echo "  - WKHTMLTOPDF_VERSION=\"0.12.4\"">>$fntmp
+          if [[ "$cur_sect" == "global" ]]; then
+            if [  $odoo_ver -ge 10 ]; then
+              echo "  - WKHTMLTOPDF_VERSION=\"0.12.4\"">>$fntmp
+            else
+              echo "  - WKHTMLTOPDF_VERSION=\"0.12.1\"">>$fntmp
+            fi
+            cur_sect=
+            echo "$line">>$fntmp
           else
-            echo "  - WKHTMLTOPDF_VERSION=\"0.12.1\"">>$fntmp
+            :
           fi
-          cur_sect=
         elif [[ $lne =~ -\ travis_install_nightly ]]; then
           echo "# $line">>$fntmp
         elif [[ $lne =~ -\ LINT_CHECK=... ]]; then
@@ -392,7 +395,7 @@ format_yaml() {
           cur_sect=${line:0: -1}
           echo "$line">>$fntmp
         elif [[ $line =~ global: ]]; then
-          cur_sect=${line:0: -1}
+          cur_sect=$(echo ${line:0: -1})
           echo "$line">>$fntmp
         elif [ "$line" == "addons:" ]; then
           cur_sect=${line:0: -1}
@@ -1232,7 +1235,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "PEP8 source python file\nfull path name maybe supplied as a single parameter\nor with two separated values (dir + basename)"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -1329,7 +1332,7 @@ for fl in $LIST; do
     if [ "$(diff -q $f $f.new)" ]; then
       if [ $opt_dry_run -eq 0 ]; then
         if [ -n "$opt_out" ]; then
-          mv $f.new $opt_out
+          [[ "$(readlink -f $f.new)" == "$(readlink -f $opt_out)" ]] || mv $f.new $opt_out
           if [ $opt_diff -gt 0 ]; then
             diff $f $opt_out
           fi

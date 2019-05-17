@@ -32,14 +32,14 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.21
+__version__=0.3.8.22
 
 
 test_01() {
     RES=$($RUNDIR/list_requirements.py -V 2>&1)
     test_result "list_requirements" "$__version__" "$RES"
     #
-    TRES="python=astroid,Click,configparser,codecov,coveralls,docutils,flake8,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,pycparser,pyflakes,pylint,pylint-mccabe,pylint_odoo,pylint-plugin-utils,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,unittest2,urllib3[secure],whichcraft,wrapt,zerobug"
+    TRES="python=astroid,Click,configparser,codecov,coveralls,docutils,flake8,isort,lazy_object_proxy,lxml,MarkupSafe,mock,pbr,pycparser,pyflakes,pylint,pylint-mccabe,pylint_odoo,pylint-plugin-utils,PyWebDAV,PyYAML,QUnitSuite,restructuredtext_lint,rfc3986,setuptools,unittest2,urllib3[secure],whichcraft,wrapt,zerobug"
     RES=$($RUNDIR/list_requirements.py -b10.0 -T -tpython)
     test_result "list_requirements" "$TRES" "$RES"
 }
