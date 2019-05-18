@@ -44,15 +44,16 @@ run_n_echo() {
     else
       pfx="> "
     fi
+    [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m$pfx$xcmd"
+    [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && echo -en "pfx$xcmd"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
       if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
         eval "$xcmd"
         sts=$?
       fi
-    else
-      [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}$pfx$xcmd${TRAVIS_HDR3_COLOR}"
     fi
+    [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[${PS_TXT_COLOR}m\n"
+    [ ${opt_humdrum:-0} -eq 0 -a -z "$PS_TXT_COLOR" ] && echo -en "\e7${PS1}\e8\e[K\n"
     return $sts
 }
 
@@ -177,19 +178,6 @@ LINT_OR_TEST_CHECK="0"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! $MQT_TEST_MODE =~ (oca|oia|zero) ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
-if [ ${opt_humdrum:-0} -eq 0 ]; then
-  TRAVIS_TEXT_COLOR="\e[0;97;40m"
-  TRAVIS_HDR1_COLOR="\e[30;42m"
-  TRAVIS_HDR2_COLOR="\e[30;46m"
-  TRAVIS_HDR3_COLOR="\e[30;106m"
-  TRAVIS_NOP_COLOR="\e[35;40m"
-else
-  TRAVIS_TEXT_COLOR=
-  TRAVIS_HDR1_COLOR=
-  TRAVIS_HDR2_COLOR=
-  TRAVIS_HDR3_COLOR=
-  TRAVIS_NOP_COLOR=
-fi
 if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
   run_n_echo "$TDIR/travis_install_nightly"
   exit $?
@@ -213,12 +201,12 @@ if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
   [ -z "$PIP" ] && PIP=pip
 fi
 if [ -d $HOME/tools ]; then
-  [ $opt_verbose -gt 0 ] && echo "\$ cd $HOME/tools"
+  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
   cd $HOME/tools
   run_n_echo "./install_tools.sh -qp"
 fi
 if [ -d $HOME/dev ]; then
-  [ $opt_verbose -gt 0 ] && echo "\$ . $HOME/dev/activate_tools"
+  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
   . $HOME/dev/activate_tools
 else
   echo "!! Directory $HOME/dev not found!"
@@ -256,21 +244,21 @@ if [[ -z "$LISA" ]]; then
   fi
 fi
 if [ $opt_verbose -gt 0 ]; then
-  echo -e "${TRAVIS_HDR3_COLOR}$0 $__version__${TRAVIS_TEXT_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}\$ MQT_TEST_MODE=$MQT_TEST_MODE${TRAVIS_HDR3_COLOR}"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}# PATH=$PATH${TRAVIS_HDR3_COLOR}"
-  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "${TRAVIS_TEXT_COLOR}# OPTS=$OPTS${TRAVIS_HDR3_COLOR}"
-  [ -n "$PYPI_CACHED" ] && echo -e "${TRAVIS_TEXT_COLOR}# PYPI_CACHED=$PYPI_CACHED${TRAVIS_HDR3_COLOR}"
-  echo -e "${TRAVIS_TEXT_COLOR}# PYTHONPATH=$PYTHONPATH${TRAVIS_HDR3_COLOR}"
+  echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$PIP.$($PIP --version)\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ alias lisa=$LISA.$($LISA -V)\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ alias manage_odoo=$MGRODOO.$($MGRODOO -V)\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ alias list_requirements.py=$LISTREQ.$($LISTREQ -V 2>&1)\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ TRAVIS_DEBUG_MODE=$TRAVIS_DEBUG_MODE\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m\$ MQT_TEST_MODE=$MQT_TEST_MODE\e[${PS_HDR3_COLOR}m"
+  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# PATH=$PATH\e[${PS_HDR3_COLOR}m"
+  [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# OPTS=$OPTS\e[${PS_HDR3_COLOR}m"
+  [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
+  echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
 fi
 [[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
-echo -e "${TRAVIS_HDR3_COLOR}### Build Secure Environment${TRAVIS_TEXT_COLOR}"
+echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
 # for p in build-essential libssl-dev libffi-dev python-dev; do
 for p in build-essential libssl-dev libffi-dev; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
@@ -287,13 +275,13 @@ if [[ ! "$TRAVIS" == "false" ]]; then
   done
 fi
 # Secure environment OK
-echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
+echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
 for p in os0 configparser z0lib; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
   [ $? -ne 0 ] && run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
-  echo -e "${TRAVIS_HDR3_COLOR}### Build Tools Environment${TRAVIS_TEXT_COLOR}"
+  echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     if [[ ! "$TRAVIS" == "false" ]]; then
@@ -337,12 +325,12 @@ else
       run_n_echo "ln -sf $(nvm which 6) $CURRENT_NODE"
   fi
   if [ "${LINT_CHECK:-1}" != "0" ]; then
-    echo -e "${TRAVIS_HDR3_COLOR}### Build Test Environment${TRAVIS_TEXT_COLOR}"
+    echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
     run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
     run_n_echo "npm install eslint"
   fi
   if [ "${TESTS}" == "1" ]; then
-    echo -e "${TRAVIS_HDR3_COLOR}### Install Packages for Base Environment${TRAVIS_TEXT_COLOR}"
+    echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
@@ -442,7 +430,7 @@ else
     fi
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
-    echo -e "${TRAVIS_HDR3_COLOR}### Tested repository is OCB${TRAVIS_TEXT_COLOR}"
+    echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     elif [ ! -L ${ODOO_PATH} ]; then
@@ -450,7 +438,7 @@ else
     fi
   else
     ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
-    echo -e "${TRAVIS_HDR3_COLOR}### Installing Odoo from $ODOO_URL${TRAVIS_TEXT_COLOR}"
+    echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
     if [[ "$TRAVIS" == "true" ]]; then
       run_n_echo "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
       run_n_echo "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
@@ -550,5 +538,5 @@ else
     fi
   fi
 fi
-echo -e "${TRAVIS_TEXT_COLOR}"
+echo -e "\e[${PS_TXT_COLOR}m"
 exit $sts

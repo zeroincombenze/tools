@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.8.1
+__version__=0.2.8.2
 
 
 test_run() {
@@ -41,14 +41,17 @@ test_run() {
    local SAVE_FLOG=$FLOG
    local SAVE_opt_verbose=$opt_verbose
    local SAVE_opt_dry_run=$opt_dry_run
+   local SAVE_opt_humdrum=${opt_humdrum:-0}
    FLOG_ECHO=
    FLOG=
    opt_verbose=
+   opt_humdrum=1
    if [ "${1:0:3}" == "cd " -o "$1" == "cd" ]; then
      opt_dry_run=1
    fi
    run_traced "$1"
    local s=$?
+   opt_humdrum=$SAVE_opt_humdrum
    opt_dry_run=$SAVE_opt_dry_run
    opt_verbose=$SAVE_opt_verbose
    FLOG=$SAVE_FLOG
