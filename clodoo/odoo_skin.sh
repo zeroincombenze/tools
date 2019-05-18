@@ -4,9 +4,29 @@
 # set_color
 # Set color for Odoo web interface
 #
+# Files layout:
+# {web_module_root}/static/src/xml/base.xml
+#     xml web interface to build web pages, i.e. login and/or db management
+# {web_module_root}/static/src/css/base.css
+#     css used to build web pages base on base.xml. This file is created by
+#     base.sass using sass command.
+#     This css are also used to print qweb pages
+# {web_module_root}/static/src/css/img/*
+#     Directory with base image like favicon, odoo logo, etc. Main are:
+#     - favicon.ico -> favicon (16x16px image)
+#     - logo.png -> odoo logo (1); about 180x46px
+#     - logo2.png -> odoo logo (1); about 190x46px
+#     - no_logo.png -> trasparent logo (1); bout 180x46px
+#     (1) name is defined by above base.xml
+# {base_module_root}/static/src/img/*
+#     Directory with some images used in internal views:
+#     - avatar.png -> avatar for users
+#     - company_image.png -> palceholder for company in partner view
+#     - icon.png -> placeholer for app w/o icon
+#
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -310,7 +330,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Manage odoo themes (8.0+) & skin (all versions)"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Odoo\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 if [ "$DEV_ENVIRONMENT" == "$THIS" ]; then
@@ -353,9 +373,11 @@ if [ -z "$opt_webdir" ]; then
     opt_webdir=$TESTDIR/odoo/addons/web/static/src/css
   else
     xml=$(findpkg $opt_xml "$odoo_root/addons/web/static/src/xml $odoo_root/website $odoo_root")
+    set -x  #debug
     if [ -n "$xml" ]; then
       opt_webdir=$(dirname $xml)
     fi
+    set +x #debug
   fi
 fi
 if [ -z "$opt_webdir" ]; then

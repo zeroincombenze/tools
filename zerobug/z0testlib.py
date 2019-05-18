@@ -687,7 +687,7 @@ class Z0test(object):
         """
         parser = argparse.ArgumentParser(
             description="Regression test on " + self.module_id,
-            epilog="© 2015-2018 by SHS-AV s.r.l."
+            epilog="© 2015-2019 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-b", "--debug",
                             help="run tests in debug mode",
