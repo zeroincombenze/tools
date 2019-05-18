@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.4
+__version__=0.2.2.6
 
 
 save_testenv() {
@@ -197,7 +197,7 @@ test_01() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis OE (PRJNAME)" "$LCL_OE_PRJNAME" "$PRJNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis OE (REPOS)" "$LCL_OE_REPOS" "$REPOS"
+    test_result "opts_travis OE (REPOSNAME)" "$LCL_OE_REPOS" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis OE (SETUP)" "$LCL_OE_PKGPATH/$LCL_OE_SETUP" "$SETUP"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -229,7 +229,7 @@ test_02() {
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis PY (PRJNAME)" "$LCL_PY_PRJNAME" "$PRJNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
-    test_result "opts_travis PY (REPOS)" "$LCL_PY_REPOS" "$REPOS"
+    test_result "opts_travis PY (REPOSNAME)" "$LCL_PY_REPOS" "$REPOSNAME"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s
     test_result "opts_travis PY (SETUP)" "$LCL_PY_PKGPATH/$LCL_PY_SETUP" "$SETUP"
     s=$?; [ ${s-0} -ne 0 ] && sts=$s

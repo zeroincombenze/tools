@@ -7,7 +7,7 @@
 #
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
-# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.4
+__version__=0.2.2.6
 
 
 travis_test_bash() {
@@ -203,7 +203,7 @@ if [ "$opt_version" ]; then
 fi
 if [ $opt_help -gt 0 ]; then
   print_help "Run test in travis environment"\
-  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
 
@@ -256,15 +256,15 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "${TRAVIS_HDR3_COLOR}BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__${TRAVIS_TEXT_COLOR}"
 fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
-  [ "$TRAVIS_DEBUG_MODE" != "2" ] && travis_test_bash || true
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || travis_test_bash
   sts_bash=$?
 else
   sts_bash=127
 fi
 if [ $LINT_CHECK_DISABLED -eq 0 ]; then
-  [ "$TRAVIS_DEBUG_MODE" != "2" ] && please_test_flake8 || true
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || please_test_flake8
   sts_flake8=$?
-  [ "$TRAVIS_DEBUG_MODE" != "2" ] && please_test_pylint || true
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || please_test_pylint
   sts_pylint=$?
   if [ $sts_bash -ne 127 ]; then
     sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
@@ -276,10 +276,10 @@ else
 fi
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
-    [ "$TRAVIS_DEBUG_MODE" != "2" ] && do_test || true
+    [ "$TRAVIS_DEBUG_MODE" == "2" ] || do_test
     test_sts=$?
   elif [ $TEST_CHECK_ENABLED -gt 0 ]; then
-    [ "$TRAVIS_DEBUG_MODE" != "2" ] && do_test || true
+    [ "$TRAVIS_DEBUG_MODE" == "2" ] || do_test
     test_sts=$?
   fi
   sts=$test_sts
