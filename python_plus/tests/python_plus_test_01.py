@@ -14,10 +14,10 @@ import os
 import os.path
 import sys
 from zerobug import Z0test
-from python_plus import *
+from python_plus import qsplit
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.0.1"
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1

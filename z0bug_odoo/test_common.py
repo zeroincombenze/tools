@@ -11,7 +11,7 @@ else:
     from odoo.modules.module import get_module_resource
 
 
-__version__='0.1.0'
+__version__='0.1.0.1'
 
 class SingleTransactionCase(test_common.SingleTransactionCase):
 
@@ -34,9 +34,9 @@ class SingleTransactionCase(test_common.SingleTransactionCase):
         if int(release.major_version.split('.')[0]) < 8:
             return self.pool(model).browse(self.cr,
                                            self.uid,
-                                           create(self.cr,
-                                                  self.uid,
-                                                  values))
+                                           self.pool(model).reate(self.cr,
+                                                                  self.uid,
+                                                                  values))
         return self.pool(model).create(values)
 
     def write_rec(self, model, id, values):

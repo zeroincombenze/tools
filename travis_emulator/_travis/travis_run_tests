@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.6
+__version__=0.2.2.7
 
 
 travis_test_bash() {
@@ -87,9 +87,19 @@ please_test_flake8() {
     echo "======== Testing test_flake8 ========"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       # FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
-      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg"
+      if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg
+      else
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
+      fi
+      run_traced "flake8 . --config=${FLAKE8_CONFIG}"
       local status1=$?
-      run_traced "flake8 . --config=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg"
+      if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
+      else
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
+      fi
+      run_traced "flake8 . --config=${FLAKE8_CONFIG}"
       local status2=$?
       sts=$((${status1} || ${status2}))
     else
@@ -211,19 +221,6 @@ fi
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
-if [ "${HOSTNAME:0:3}" == "shs" ]; then
-  TRAVIS_TEXT_COLOR="\e[0;97;40m"
-  TRAVIS_HDR1_COLOR="\e[30;42m"
-  TRAVIS_HDR2_COLOR="\e[30;46m"
-  TRAVIS_HDR3_COLOR="\e[30;106m"
-  TRAVIS_NOP_COLOR="\e[35;40m"
-else
-  TRAVIS_TEXT_COLOR=
-  TRAVIS_HDR1_COLOR=
-  TRAVIS_HDR2_COLOR=
-  TRAVIS_HDR3_COLOR=
-  TRAVIS_NOP_COLOR=
-fi
 
 opts_travis
 CFG_init
@@ -252,8 +249,15 @@ if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DI
 if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
 if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
 if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+if [ -d $HOME/dev ]; then
+  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+  . $HOME/dev/activate_tools
+else
+  echo "!! Directory $HOME/dev not found!"
+fi
 if [ $opt_verbose -gt 0 ]; then
-  echo -e "${TRAVIS_HDR3_COLOR}BASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__${TRAVIS_TEXT_COLOR}"
+  echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
+  echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
 fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
   [ "$TRAVIS_DEBUG_MODE" == "2" ] || travis_test_bash

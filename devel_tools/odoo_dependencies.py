@@ -306,34 +306,6 @@ def get_addons(path, depth=1):
     return res
 
 
-def get_modules_changed(path, ref='HEAD'):
-    """Get modules changed from git diff-index {ref}
-    :param path: String path of git repo
-    :param ref: branch or remote/branch or sha to compare
-    :return: List of paths of modules changed
-    """
-    path = os.path.expanduser(path)
-    git_run_obj = GitRun(os.path.join(path, '.git'))
-    if ref != 'HEAD':
-        fetch_ref = ref
-        if ':' not in fetch_ref:
-            # to force create branch
-            fetch_ref += ':' + fetch_ref
-        git_run_obj.run(['fetch'] + fetch_ref.split('/', 1))
-    items_changed = git_run_obj.get_items_changed(ref)
-    folders_changed = set([
-        item_changed.split('/')[0]
-        for item_changed in items_changed
-        if '/' in item_changed]
-    )
-    modules = set(get_modules(path))
-    modules_changed = list(modules & folders_changed)
-    modules_changed_path = [
-        os.path.join(path, module_changed)
-        for module_changed in modules_changed]
-    return modules_changed_path
-
-
 def add_auto_install(modules, to_install):
     """ Append automatically installed glue modules to to_install if their
     dependencies are already present. to_install is a set. """

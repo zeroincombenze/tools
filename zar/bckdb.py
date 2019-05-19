@@ -352,8 +352,8 @@ class Backup_Mirror:
         fsql = f + "-????????" + self.pre_ext
         f_ids = glob.glob(fsql)
         for f in f_ids:
-            l = len(f) - len(self.pre_ext)
-            fsql = f[0:l] + self.sql_ext
+            llen = len(f) - len(self.pre_ext)
+            fsql = f[0:llen] + self.sql_ext
             if not os.path.isfile(fsql):
                 ftmp = f
                 if os.path.isfile(ftmp):

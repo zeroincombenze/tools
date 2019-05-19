@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.2.12
+# __version__=0.2.2.7
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -15,12 +15,17 @@ cache:
 python:
   - "2.7"
 
+virtualenv:
+  system_site_packages: true
+
 git:
   submodules: false
+  depth: false
 
 addons:
   apt:
     sources:
+#      - pov-wkhtmltopdf
 #    Search your sources alias here:
 #      https://github.com/travis-ci/apt-source-whitelist/blob/master/ubuntu.json
     packages:
@@ -30,7 +35,6 @@ addons:
 #     For wkhtmltopdf, see the env section below
 
 before_install:
-  - export TRAVIS_DEBUG_MODE="1"
   # Tools are used to test themselves packages
   - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
   - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
@@ -43,11 +47,13 @@ install:
 
 env:
   global:
-  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0"
+  - TRAVIS_DEBUG_MODE="1"  
+  - TRAVIS_DEBUG_MODE="1"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="MINIMAL"
 
   matrix:
   - LINT_CHECK="1" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/z0lib PYTHONPATH=${MODULE_PATH}
-  - LINT_CHECK="1" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${MODULE_PATH}
+  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${MODULE_PATH}
   - LINT_CHECK="1" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator PYTHONPATH=${MODULE_PATH}
   - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${MODULE_PATH}
   - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${MODULE_PATH}

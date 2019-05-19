@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.6
+__version__=0.2.2.7
 
 
 store_cfg_param_value() {
@@ -159,6 +159,7 @@ process_yaml_init() {
     else
       YML_repo=
     fi
+    export TRAVIS_PULL_REQUEST="false"
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
     export TRAVIS_PYTHON_VERSION=2.7
@@ -455,10 +456,10 @@ process_yaml_exit() {
 }
 
 process_yaml_global() {
-    run_traced "cd $TRAVIS_BUILD_DIR"
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
+    run_traced "cd $TRAVIS_BUILD_DIR"
     for lne in $YML_global; do
       line="export $(process_yaml_quote_xtl $lne)"
       run_traced "$line"
@@ -850,9 +851,9 @@ process_yaml() {
       done
       echo "Python sys.path list:"
       echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD SYSTEM_SITE_PACKAGES; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD SYSTEM_SITE_PACKAGES; do
          lne1=${!lne}
-         if [ -n "$lne1" ]; then
+         if [[ -n "$lne1" || $lne =~ PATH ]]; then
            wlog "\$ $lne=$lne1"
          fi
       done

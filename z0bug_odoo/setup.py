@@ -4,5 +4,5 @@ setup(name='z0bug_odoo',
       version='',
       description='',
       classifiers=[
-          'Development Status ::',
+          'Development Status :: 1 - Planning',
       ])

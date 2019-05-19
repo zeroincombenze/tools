@@ -46,7 +46,8 @@ class _OdooBaseContext(object):
         :param str addon: Addon name
         :returns str: Gettext from addon .pot content
         """
-        import cStringIO, codecs
+        import cStringIO
+        import codecs
         buffer = cStringIO.StringIO()
         codecs.getwriter("utf8")(buffer)
         self.trans_export(lang, [addon], buffer, 'po', self.cr)

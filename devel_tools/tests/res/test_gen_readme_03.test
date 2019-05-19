@@ -45,9 +45,9 @@ Contributors
 ----------------------
 
 .. |en| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/en_US.png
-   :target: https://www.facebook.com/groups/openerp.italia/
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
 .. |it| image:: https://raw.githubusercontent.com/zeroincombenze/grymb/master/flags/it_IT.png
-   :target: https://www.facebook.com/groups/openerp.italia/
+   :target: https://www.facebook.com/Zeroincombenze-Software-gestionale-online-249494305219415/
 
 
 ''',

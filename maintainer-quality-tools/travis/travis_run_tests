@@ -72,6 +72,11 @@ if __name__ == '__main__':
         os.environ.get('GITHUB_EMAIL') and
         os.environ.get('GITHUB_TOKEN')
     )
+    must_run_tnlbot = (
+        os.environ.get('ODOO_TNLBOT') == '1' and
+        not tests_enabled and
+        not is_pull_request
+    )
 
     # Test list. Each test is a list with command + arguments.
     tests = []
@@ -88,6 +93,9 @@ if __name__ == '__main__':
 
     if must_run_makepot:
         tests.append(['travis_makepot'])
+
+    if must_run_tnlbot:
+        tests.append(['travis_tnlbot.py'])
 
     if tests:
         exit(main(tests))

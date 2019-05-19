@@ -1,5 +1,5 @@
 # Odoo yaml template for travis-ci
-# __version__=0.2.2.6
+# __version__=0.2.2.7
 # Can used both in local travis emulator both in travis environment
 # Notice: in local travis emulator macroes are substituted at 2 layers:
 # - format: ${macro} are replaced before execution (at travis.yml read)
@@ -34,7 +34,6 @@ addons:
 #     For wkhtmltopdf, see the env section below
 
 before_install:
-  - export TRAVIS_DEBUG_MODE="1"
   - git clone https://github.com/zeroincombenze/tools.git ${HOME}/tools --depth=1
   # Tools are used to test themselves packages
   - export PATH=$TOOLS_PATH:$MQT_PATH:$PATH
@@ -45,7 +44,8 @@ install:
 
 env:
   global:
-  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" TRANSIFEX="0"
+  - TRAVIS_DEBUG_MODE="1"
+  - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="MINIMAL"
 
   matrix:
   - LINT_CHECK="1" BASH_CHECK="0" DEV_ENVIRONMENT=${PKGNAME} TESTS="1"

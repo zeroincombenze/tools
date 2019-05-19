@@ -221,10 +221,10 @@ class Restore_Image:
                               keepout=os0.debug_mode)
         if p != self.ftp_dir:                                   # Change dir
             self.chdir(p)                                       # Set directory
-        l = len(self.sql_ext) + 9
-        # i = len(f) - l
+        llen = len(self.sql_ext) + 9
+        # i = len(f) - llen
         # Extract dbname from XXXXX-YYYYMMDD.SQL
-        dbname = f[0:-l]
+        dbname = f[0:-llen]
         # if dbname == "wp-zi-it":
         #     os0.wlog("  db", dbname, "not upgradable!!!")
         if os.path.isfile(f):
@@ -330,7 +330,7 @@ class Restore_Image:
         src_str = ctx['siteURL']
         ix = fqn_str.find(src_str)
         while ix >= 0:
-            l = len(ctx['siteURL'])
+            llen = len(ctx['siteURL'])
             j = ix - 1
             sep = ' '
             while sep == ' ':
@@ -353,10 +353,10 @@ class Restore_Image:
                     j = j - 1
                 n = fqn_str[j + 1:ix1]
                 i = int(n)
-                if i >= l:
+                if i >= llen:
                     src = fqn_str[j + 1:ix] + ctx['siteURL']
                     j = len(ctx['testURL'])
-                    n = str(i + j - l)
+                    n = str(i + j - llen)
                     tgt = n + fqn_str[ix1:ix] + ctx['testURL']
                     os0.trace_debug(
                         "> sed|{0}|{1}|".format(src, tgt))
@@ -488,8 +488,8 @@ class Restore_Image:
                     fzip_fn = ""
 
         f = os.path.basename(fqn)                               # Just filename
-        l = len(self.sql_ext) + 9
-        i = len(f) - l
+        llen = len(self.sql_ext) + 9
+        i = len(f) - llen
         # Extract date (YYYYMMDD) from XXXXX-YYYYMMDD.SQL
         dts = f[i + 1:i + 9]
         if dbtype == "psql":
@@ -644,8 +644,8 @@ class Restore_Image:
         fsql = f + "-????????" + self.pre_ext
         f_ids = glob.glob(fsql)
         for f in f_ids:
-            l = len(f) - len(self.pre_ext)
-            fsql = f[0:l] + self.sql_ext
+            llen = len(f) - len(self.pre_ext)
+            fsql = f[0:llen] + self.sql_ext
             if not os.path.isfile(fsql):
                 ftmp = f
                 if os.path.isfile(ftmp):

@@ -80,7 +80,7 @@ import re
 import sys
 from datetime import datetime
 from lxml import etree
-from python_plus import *
+from python_plus import qsplit
 from os0 import os0
 try:
     from z0lib import z0lib

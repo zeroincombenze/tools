@@ -158,6 +158,7 @@ E133 | :x:     | :x:     |         |        | :x: | [Closing bracket is missing 
 E201 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace after '('](https://lintlyci.github.io/Flake8Rules/rules/E201.html)
 E202 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace before ')'](https://lintlyci.github.io/Flake8Rules/rules/E202.html)
 E203 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Whitespace before ':'](https://lintlyci.github.io/Flake8Rules/rules/E203.html)
+E211 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [whitespace before '('](https://lintlyci.github.io/Flake8Rules/rules/E211.html)
 E221 | :x:     | :white_check_mark: |         |        | :white_check_mark: | [Multiple spaces before operator](https://lintlyci.github.io/Flake8Rules/rules/E221.html)
 E222 | :x:     | :x:     |         |        | :white_check_mark: |
 E225 | :x:     | :x:     |         |        | :white_check_mark: |
@@ -170,6 +171,8 @@ E261 | :x:     | :x:     |         |        | :white_check_mark: |
 E262 | :x:     | :x:     |         |        | :white_check_mark: |
 E265 | :x:     | :x:     |         |        | :white_check_mark: |
 E266 | :x:     | :x:     |         |        | :white_check_mark: | [too many leading '#' for block comment](https://lintlyci.github.io/Flake8Rules/rules/E266.html)
+E271 | :x:     | :x:     |         |        | :white_check_mark: | [multiple spaces after keyword](https://lintlyci.github.io/Flake8Rules/rules/E271.html)
+E272 | :x:     | :x:     |         |        | :white_check_mark: | [multiple spaces before keyword](https://lintlyci.github.io/Flake8Rules/rules/E272.html)
 W291 | :x:     | :x:     |         |        | :white_check_mark: |
 W292 | :x:     | :x:     |         |        | :white_check_mark: | [no newline at end of file](https://lintlyci.github.io/Flake8Rules/rules/W292.html)
 W293 | :x:     | :x:     |         |        | :white_check_mark: |
@@ -184,6 +187,7 @@ E502 | :x:     | :x:     |         |        | :white_check_mark: | [the backslas
 W503 | :x:     | :x:     |         |        | :x: | No __init__.py
 W504 | :x:     | :x:     |         |        | :x: | No __init__.py
 F601 | :x:     | :x:     |         |        | :x: | dictionary key name repeated with different values
+E701 | :x:     | :x:     |         |        | :white_check_mark: | multiple statements on one line (colon)
 E722 | :x:     | :x:     |         |        | :white_check_mark: | do not use bare except
 F811 | :x:     | :x:     |         |        | :x: | redefinition of unused name from line N (No __init__.py)
 F841 | :x:     | :x:     |         |        | :x: | [local variable 'context' is assigned to but never used](https://lintlyci.github.io/Flake8Rules/rules/F841.html)

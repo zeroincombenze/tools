@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.6
+#__version__=0.2.2.7
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -583,11 +583,12 @@ prepare_env_travis() {
     fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
-    if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/_travis/cfg ]; then
-      export FLAKE8_CONFIG_DIR=$PRJPATH/_travis/cfg
-    elif [ -d $PRJPATH/cfg ]; then
-      export FLAKE8_CONFIG_DIR=$PRJPATH/cfg
-    elif [ -d $MQT_PATH/cfg ]; then
+    # if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/_travis/cfg ]; then
+    #   export FLAKE8_CONFIG_DIR=$PRJPATH/_travis/cfg
+    # elif [ -d $PRJPATH/cfg ]; then
+    #   export FLAKE8_CONFIG_DIR=$PRJPATH/cfg
+    # elif [ -d $MQT_PATH/cfg ]; then
+    if [ -d $MQT_PATH/cfg ]; then
       export FLAKE8_CONFIG_DIR=$MQT_PATH/cfg
     else
       export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
