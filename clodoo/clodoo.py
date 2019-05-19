@@ -172,7 +172,7 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
-                        get_model_model, get_model_name,
+                        get_model_model, get_model_name, extr_table_generic,
                         extract_vals_from_rec, get_val_from_field,
                         get_model_structure, execute_action_L8,
                         cvt_from_ver_2_ver, cvt_value_from_ver_to_ver)
@@ -956,15 +956,15 @@ def act_set_qweb(ctx):
             globals()[inspect.stack()[0][3]].__doc__)
     ident = ' ' * ctx['level']
     model = 'ir.config_parameter'
-    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
+    ids = searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
     if not ids:
-        clodoo.createL8(ctx, model, {'key': 'web.base.url.cvt2https',
-                                     'value': True})
-    ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
+        createL8(ctx, model, {'key': 'web.base.url.cvt2https',
+                              'value': True})
+    ids = searchL8(ctx, model, [('key', '=', 'web.base.url.cvt2https')])
     if ids:
-        ids = clodoo.searchL8(ctx, model, [('key', '=', 'web.base.url')])
+        ids = searchL8(ctx, model, [('key', '=', 'web.base.url')])
     if ids:
-        param = clodoo.browseL8(ctx, model, ids[0])
+        param = browseL8(ctx, model, ids[0])
         if param.value.find('localhost') < 0:
             web_url = param.value.replace('http:', 'https:')
         else:
@@ -986,7 +986,7 @@ def act_set_qweb(ctx):
                 web_url = 'https://dev.odoo.vg7.it'
 
         if web_url != param.value:
-            clodoo.writeL8(ctx, model, ids[0], {'value': web_url})
+            writeL8(ctx, model, ids[0], {'value': web_url})
             print("%sParam %s updated to %s" % (ident, param.key, web_url))
     return STS_SUCCESS
 
@@ -1425,7 +1425,7 @@ def act_workflow(ctx):
         else:
             id = o_model['model_keyids']
         try:
-            execute_action_L8(ctx, model, action, ids)
+            execute_action_L8(ctx, model, o_model.get('model_action'), ids)
         except BaseException:
             msg = 'Workflow (%s, %s, %d) Failed!' % (model,
                                                      o_model['model_action'],

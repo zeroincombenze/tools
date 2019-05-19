@@ -473,7 +473,7 @@ def cvt_state_value(dst_ctx, src_ctx, model, name, value):
 
 
 def load_record(dst_ctx, src_ctx, model, rec, mode=None):
-    mode = mode or get_model_copy_mode(ctx, model)
+    mode = mode or get_model_copy_mode(src_ctx, model)
     vals = clodoo.extract_vals_from_rec(src_ctx, model, rec, format='str')
     for nm in MANDATORY_FIELDS.get(model, []):
         if nm not in vals:
@@ -500,7 +500,7 @@ def load_record(dst_ctx, src_ctx, model, rec, mode=None):
 
 
 def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
-    mode = mode or get_model_copy_mode(ctx, model)
+    mode = mode or get_model_copy_mode(src_ctx, model)
     vals = load_record(dst_ctx, src_ctx, model, rec, mode=mode)
     if mode == 'image':
         ids = clodoo.searchL8(dst_ctx, model,
@@ -535,7 +535,7 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                                ignore=IGNORE_FIELDS.get(model, []))
     clodoo.get_model_structure(dst_ctx, model,
                                ignore=IGNORE_FIELDS.get(model, []))
-    mode = mode or get_model_copy_mode(ctx, model)
+    mode = mode or get_model_copy_mode(src_ctx, model)
     if mode == 'image' and src_ctx['_cr']:
         table = model.replace('.', '_')
         sql = 'select max(id) from %s;' % table

@@ -127,7 +127,7 @@ def inv_commission_from_order():
     agt_model = 'account.invoice.line.agent'
     ctr = 0
     for inv_line in clodoo.browseL8(ctx, inv_model, clodoo.searchL8(
-        ctx, inv_model, [])):
+            ctx, inv_model, [])):
         if not inv_line.agents.amount:
             for ord_line in inv_line.sale_line_ids:
                 if ord_line.agents.amount:

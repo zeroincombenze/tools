@@ -141,7 +141,7 @@ def createL8(ctx, model, vals):
 
 
 def write_recordL8(ctx, record):
-    vals = drop_invalid_fields(ctx, model, vals)
+    # vals = drop_invalid_fields(ctx, model, vals)
     if ctx['svc_protocol'] == 'jsonrpc':
         ctx['odoo_session'].write(record)
     else:
@@ -426,14 +426,14 @@ def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
 FIX_7_0 = {
     'res.partner': {'name': {'required': True}},
     'res.users': {'name': {'required': True}},
-    'account.invoice': {'company_id': {'readonly': False}},
-    'account.invoice': {'number': {'readonly': False}},
-    'account.invoice': {'date_invoice': {'readonly': False}},
-    'account.invoice': {'journal_id': {'readonly': False}},
-    'account.invoice.line': {'company_id': {'readonly': False}},
-    'account.invoice.line': {'number': {'readonly': False}},
-    'account.invoice.line': {'date_invoice': {'readonly': False}},
-    'account.invoice.line': {'journal_id': {'readonly': False}},
+    'account.invoice': {'company_id': {'readonly': False},
+                        'number': {'readonly': False},
+                        'date_invoice': {'readonly': False},
+                        'journal_id': {'readonly': False}},
+    'account.invoice.line': {'company_id': {'readonly': False},
+                             'number': {'readonly': False},
+                             'date_invoice': {'readonly': False},
+                             'journal_id': {'readonly': False}},
 }
 def get_model_structure(ctx, model, ignore=None):
     read_stored_dict(ctx)
