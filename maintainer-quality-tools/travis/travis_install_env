@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.11
+__version__=0.2.2.12
 
 
 run_n_echo() {
@@ -45,7 +45,7 @@ run_n_echo() {
       pfx="> "
     fi
     [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m$pfx$xcmd"
-    [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && echo -en "pfx$xcmd"
+    [ $opt_verbose -gt 0 -a ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && echo -en "$pfx$xcmd"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       if [[ "${1:0:1}" != "#" && ( "$2" != "nolocal" || $TRAVIS =~ (true|emulate) ) ]]; then
         eval "$xcmd"
@@ -53,7 +53,6 @@ run_n_echo() {
       fi
     fi
     [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[${PS_TXT_COLOR}m\n"
-    [ ${opt_humdrum:-0} -eq 0 -a -z "$PS_TXT_COLOR" ] && echo -en "\e7${PS1}\e8\e[K\n"
     return $sts
 }
 

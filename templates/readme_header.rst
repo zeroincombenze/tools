@@ -15,18 +15,15 @@
 ==========================================
 |Zeroincombenze| {{repos_name}} {{branch}}
 ==========================================
-.. $elif git_orgid == 'oia'
-====================================================
-|Odoo Italia Associazione| {{repos_name}} {{branch}}
-====================================================
 .. $fi
+|Maturity| |Build Status| |Coverage Status| |Codecov Status| |license gpl| |Tech Doc| |Help| |Try Me|
 
 .. $else
 ==================================
 Odoo {{branch}} (formerly OpenERP)
 ==================================
 
+|Build Status| |Coverage Status| |Codecov Status| |license gpl| |Tech Doc| |Help| |Try Me|
 .. $fi
-|Maturity| |Build Status| |Coverage Status| |Codecov Status| |license gpl| |Tech Doc| |Help| |Try Me|
 
 .. contents::
