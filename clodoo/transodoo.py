@@ -32,7 +32,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.22"
+__version__ = "0.3.8.23"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 

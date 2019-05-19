@@ -22,7 +22,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.22"
+__version__ = "0.3.8.23"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',

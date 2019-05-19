@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.22
+__version__=0.3.8.23
 
 
 explore() {
@@ -199,7 +199,7 @@ do_action() {
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
             reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')
-            [ -n "$reqver" ] && xreqver=$(echo $|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+            [ -n "$reqver" ] && xreqver=$(echo $|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=
             sts=0
             if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
               sts=1
@@ -210,14 +210,14 @@ do_action() {
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
               [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
               xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}')
-              if [[ (-z "$op" && $sts > 0 && $pass -lt 3) || ($op == "==" && ! $xcurver == $xreqver) || ($op == "<" && ! $xcurver < $xreqver) || ($op == ">" && ! $xcurver > $xreqver) || ($op == ">=" && $xcurver < $xreqver) || ($op == "<=" && $xcurver > $xreqver) ]]; then
+              if [ -z "$op" -a $sts -ne 0 -a $pass -lt 3 ] || [ $op == "==" -a $xcurver -ne $xreqver ] || [ $op == "<" -a $xcurver -ge $xreqver ] || [ $op == ">" -a $xcurver -le $xreqver ] || [ $op == ">=" -a $xcurver -lt $xreqver ] || [ $op == "<=" -a $xcurver -gt $xreqver ]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)
                   echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
                 else
                   cmd="$PIP install -q $f --upgrade --no-warn-conflicts --disable-pip-version-check"
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
-                  [ $EUID -ne 0 -a $pass -eq 1 ] && cmd="$cmd --user"
+                  [ $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
                   echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
                   if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
                     echo "> $cmd"

@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.22'
+__version__ = '0.3.8.23'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -111,6 +111,7 @@ ALIAS = {
     'pypdf': 'pyPdf',
     'pygments': 'Pygments',
     'python-chart': 'Python-Chart',
+    'python-docutils': 'docutils',
     'pywebdav': 'PyWebDAV',
     'pyyaml': 'PyYAML',
     'requests': 'requests[security]',
