@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.23"
+__version__ = "0.3.8.24"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -417,7 +417,10 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             if not ctx.get('login_password'):
                 ctx['login_password'] = 'admin'
         if xmlrpc_port:
-            ctx['xmlrpc_port'] = xmlrpc_port
+            if isinstance(ctx[p], basestring):
+                ctx['xmlrpc_port'] = eval(xmlrpc_port)
+            else:
+                ctx['xmlrpc_port'] = xmlrpc_port
         elif 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
             ctx['xmlrpc_port'] = 8069
         if oe_version:
@@ -509,6 +512,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         fd.write('[options]\n')
         for p in (P_LIST):
             if p == 'xmlrpc_port':
+                if isinstance(ctx[p], basestring):
+                    ctx[p] = eval(ctx[p])
                 if ctx[p] != 8069:
                     fd.write('%s=%d\n' % (p, ctx[p]))
             elif p == 'oe_version' and ctx[p] == '11.0':
@@ -925,7 +930,7 @@ def act_show_params(ctx):
         pwd = False
     print("- hostname      = %s " % ctx['db_host'])
     print("- protocol      = %s " % ctx['svc_protocol'])
-    print("- port          = %s " % ctx['xmlrpc_port'])
+    print("- port          = %d " % ctx['xmlrpc_port'])
     print("- odoo version  = %s " % ctx['oe_version'])
     if pwd:
         print("- password      = %s " % crypt(pwd))

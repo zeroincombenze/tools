@@ -24,7 +24,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.8.23"
+__version__ = "0.3.8.24"
 
 
 MODULE_ID = 'clodoo'
@@ -54,14 +54,12 @@ class Test():
                      'no_login': True,
                      'conf_fn': './no_filename.conf',})
             self.ctx['test_unit_mode'] = True
-
-        # if not z0ctx['dry_run']:
-        #     clodoo.act_drop_db(self.ctx)
-        #     sts = clodoo.act_new_db(self.ctx)
-        # sts = self.Z.test_result(z0ctx,
-        #                          'new_db()',
-        #                          TEST_SUCCESS,
-        #                         sts)
+            clodoo.act_drop_db(self.ctx)
+            sts = clodoo.act_new_db(self.ctx)
+        sts = self.Z.test_result(z0ctx,
+                                 'new_db()',
+                                 TEST_SUCCESS,
+                                sts)
         if not z0ctx['dry_run']:
             self.uid, self.ctx = clodoo.oerp_set_env(
                 db='clodoo_test',

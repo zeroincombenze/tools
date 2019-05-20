@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2019-05-17
+# Last update: 2019-05-19
 #
 # ---------------------------------------------------------------------
 #
@@ -173,6 +173,7 @@ REAL_OSSERVICE=service
 # # Real name of python-pip and python-setuptools
 # REAL_python-pip=pip
 REAL_python-setuptools=setuptools
+REAL_python-docutils=docutils
 # If user supplies mysql
 REAL_mysql=mysql-server
 # Other packages
@@ -200,6 +201,8 @@ REAL_ipy=IPy
 REAL_usb=pyusb
 REAL_pyxb=PyXB
 REAL_pypdf2=PyPDF2
+REAL_pywebdav=PyWebDAV
+REAL_python-simplejson=simplejson
 # Commands templates
 VFYUPP=ssh,lisa
 VFYPSX=pip,mysql,psql,python,wkhtmltopdf,wget,gcc
@@ -211,12 +214,12 @@ NAME_VIRTUAL=LAMP,PYTHON_LIB_XML
 PIP_PYSTD_PKGS=python-pip/pip,python-wheel/wheel,\
                python-pyparsing/pyparsing,python-beaker/beaker,\
                python-psycopg2/psycopg2,python-reportlab/reportlab,\
-               python-decorator/decorator,python-docutils/docutils,\
+               python-decorator/decorator,\
                python-feedparser/feedparser,python-gevent/gevent,\
                python-jinja2/Jinja2,python-lxml/lxml,\
                python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-openid,\
+PIP_PKGS=oerplib,virtualenv,Babel,python-openid,setuptools,simplejson,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,requests,\
@@ -230,7 +233,7 @@ PIP_PKGS=oerplib,virtualenv,Babel,python-openid,\
     pylint_odoo,pyflakes,clodoo,os0,z0lib,psycopg2-binary,PyXB,\
     phonenumbers,ebaysdk,html2text,pyldap,PyPDF2,xlrd,viivakoodi,py3o,fdb,\
     sqlalchemy,checksumdir,barcode,python-levenshtein,num2words,ofxparse,\
-    suds-jurko,zpl2,idna,certifi
+    suds-jurko,zpl2,idna,certifi,docutils,PyWebDAV
 NPM_PKGS=eslint,node
 NA_PKGS=
 # Packages cloned by git
@@ -247,7 +250,7 @@ STD_PKGS=gcc,iptables,epel-release,yum-utils,openssh-server,\
          libijs-0.35,libjbig2dec0,liblcms2-2,libpaper-utils,libpaper1,\
          libpoppler44,libtidy-0.99-0,libwebp5,libwebpmux1,poppler-data,\
          poppler-utils,python-babel,python-babel-localedata,python-decorator,\
-         python-docutils,python-feedparser,python-gevent,python-greenlet,\
+         python-feedparser,python-gevent,python-greenlet,\
          python-imaging,python-jinja2,python-markupsafe,\
          python-pil,python-pybabel,\
          python-pygments,python-pyinotify,python-pyparsing,\

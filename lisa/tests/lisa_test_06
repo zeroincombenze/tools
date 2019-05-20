@@ -96,7 +96,7 @@ test_run () {
     elif [ "$Package" == "openssh-server" ]; then
       opt_ij="-I$Package,openssh-client,openssh-clients,mod_ssl,mod_proxy_html,iptables-services,bind-utils"
     elif [ "$Package" == "python" ]; then
-      opt_ij="-Jpython-wheel,wheel -I$Package,python-setuptools,setuptools,python-pip,pip,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
+      opt_ij="-Jpython-wheel,wheel -I$Package,setuptools,python-pip,pip,python-virtualenv,virtualenv,readline,libreadline6,libxslt-python,python-libxslt1,libxml2,python-libxml2,libxml2-python,psycopg2,python-psycopg2,simplejson,xlwt,PyYAML,gdata,python-ldap,lxml,pytz"
     elif [ "$Package" == "wkhtmltopdf" ]; then
       opt_ij="-I$Package,wget,xorg-x11-fonts-Type1,xorg-x11-fonts-75dpi"
     fi
