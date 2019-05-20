@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.24
+__version__=0.3.8.25
 
 
 explore() {
@@ -187,6 +187,8 @@ do_action() {
           fi
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing python requirements${TRAVIS_TEXT_COLOR}"
+        [ -f $pkgdir/requirements.txt ] && run_traced "$PIP install -r $pkg/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
+        [ -n "$opt_deps" -a -f $opt_deps/requirements.txt ] && run_traced "$PIP install -r $opt_deps/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
         preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR${TRAVIS_HDR3_COLOR}"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ preqs=$preqs${TRAVIS_HDR3_COLOR}"
@@ -196,6 +198,9 @@ do_action() {
           [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
           [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
           for f in $preqs; do
+            if $(grep -q ^$f $pkgdir/requirements.txt); then
+              continue
+            fi
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
             reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')

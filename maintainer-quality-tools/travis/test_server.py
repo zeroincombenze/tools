@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.11'
+__version__ = '0.2.2.12'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -141,10 +141,14 @@ def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
     :return: Addons path
     """
     addons_path_list = []
+    for ldir in ('server/openerp', 'openerp', 'odoo'):
+        if os.path.isdir(os.path.join(server_path, ldir, 'addons')):
+            addons_path_list = [os.path.join(server_path, ldir, 'addons')]
+            break
+    addons_path_list.append(os.path.join(server_path, "addons"))
     if odoo_test_select != 'NO-CORE':
         addons_path_list.extend(get_addons(travis_base_dir))
     addons_path_list.extend(get_addons(travis_dependencies_dir))
-    addons_path_list.append(os.path.join(server_path, "addons"))
     addons_path = ','.join(addons_path_list)
     return addons_path
 
@@ -371,7 +375,7 @@ def set_conf_data(addons_path, data_dir):
     return conf_data
 
 
-def create_server_conf(data, version):
+def write_server_conf(data, version):
     """Create (or edit) default configuration file of odoo
     :params data: Dict with all info to save in file"""
     fname_conf = os.path.expanduser('~/.openerp_serverrc')
@@ -405,10 +409,11 @@ def get_environment():
     odoo_unittest = str2bool(os.environ.get("UNIT_TEST"))
     odoo_unittest |= str2bool(os.environ.get('ODOO_TNLBOT', '0'))
     install_options = os.environ.get("INSTALL_OPTIONS", "").split()
-    travis_home = os.environ.get("HOME", "~/")
+    travis_home = os.environ.get("HOME", os.path.expanduser("~"))
     travis_dependencies_dir = os.path.join(travis_home, 'dependencies')
     odoo_branch = os.environ.get("ODOO_BRANCH")
-    data_dir = os.path.expanduser(os.environ.get("DATA_DIR", '~/data_dir'))
+    data_dir = os.path.expanduser(
+        os.environ.get("DATA_DIR", os.path.expanduser('~/data_dir')))
     odoo_test_select = os.environ.get('ODOO_TEST_SELECT', 'ALL')
     dbtemplate = os.environ.get('MQT_TEMPLATE_DB', 'openerp_template')
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
@@ -540,7 +545,7 @@ def main(argv=None):
     if script_name == 'Script not found!':
         return 1
     conf_data = set_conf_data(addons_path, data_dir)
-    create_server_conf(conf_data, odoo_version)
+    write_server_conf(conf_data, odoo_version)
     tested_addons_list = get_addons_to_check(travis_base_dir,
                                              odoo_include,
                                              odoo_exclude,

@@ -33,6 +33,18 @@ RUNDIR=$(readlink -e $TESTDIR/..)
 __version__=0.2.2.12
 
 
+conf_default() {
+    if [ -z "$PS_TXT_COLOR" ]; then
+      export PS_TXT_COLOR="0;97;40"
+      export PS_RUN_COLOR="1;34;46"
+      export PS_NOP_COLOR="35;40"
+      export PS_HDR1_COLOR="30;42"
+      export PS_HDR2_COLOR="30;43"
+      export PS_HDR3_COLOR="30;47"
+    fi
+}
+
+
 run_n_echo() {
     local xcmd="$1"
     local sts=$STS_SUCCESS
@@ -173,6 +185,7 @@ fi
 LINT_OR_TEST_CHECK="0"
 [ "${LINT_CHECK:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
 [ "${LINT_CHECK:-0}" == "0" -a "${TESTS:-0}" == "1" ] && LINT_OR_TEST_CHECK="1"
+conf_default
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! $MQT_TEST_MODE =~ (oca|oia|zero) ]] && MQT_TEST_MODE=zero
