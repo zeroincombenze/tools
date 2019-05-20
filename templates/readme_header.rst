@@ -16,14 +16,14 @@
 |Zeroincombenze| {{repos_name}} {{branch}}
 ==========================================
 .. $fi
-|Maturity| |Build Status| |Coverage Status| |Codecov Status| |license gpl| |Tech Doc| |Help| |Try Me|
+|Maturity| |Build Status| |Coverage Status| |Codecov Status| |license gpl| |Try Me|
 
 .. $else
 ==================================
 Odoo {{branch}} (formerly OpenERP)
 ==================================
 
-|Build Status| |Coverage Status| |Codecov Status| |license gpl| |Tech Doc| |Help| |Try Me|
+|Build Status| |Coverage Status| |Codecov Status| |license gpl| |Try Me|
 .. $fi
 
 .. contents::

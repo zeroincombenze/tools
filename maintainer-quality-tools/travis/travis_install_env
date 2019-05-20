@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.12
+__version__=0.2.2.13
 
 
 conf_default() {
@@ -220,6 +220,10 @@ fi
 if [ -d $HOME/dev ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
   . $HOME/dev/activate_tools
+  if [ -f $HOME/dev/sitecustomize.py ]; then
+    PYLIB=$(findpkg "" "$HOME/lib $HOME/lib64 $HOME/virtualenv" "lib lib64 python$TRAVIS_PYTHON_VERSION", "python$TRAVIS_PYTHON_VERSION site-packages" "site-packages")
+    [ -n "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $PYLIB"
+  fi
 else
   echo "!! Directory $HOME/dev not found!"
 fi
@@ -267,6 +271,7 @@ if [ $opt_verbose -gt 0 ]; then
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# OPTS=$OPTS\e[${PS_HDR3_COLOR}m"
   [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
+  echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
 fi
 [[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)

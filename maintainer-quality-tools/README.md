@@ -182,7 +182,7 @@ E303 | :x:     | :x:     |         |        | :white_check_mark: |
 E305 | :x:     | :x:     |         |        | :white_check_mark: |
 W391 | :x:     | :white_check_mark: |         |        | :white_check_mark: | blank line at end of file
 F401 | :x:     | :white_check_mark: |         |        | :x: | module imported but unused
-E501 | :x:     | :x:     |         |        | :white_check_mark: |
+E501 | :x:     | :x:     |         |        | :white_check_mark: | [line too long](https://lintlyci.github.io/Flake8Rules/rules/E501.html)
 E502 | :x:     | :x:     |         |        | :white_check_mark: | [the backslash is redundant between brackets](https://lintlyci.github.io/Flake8Rules/rules/E502.html)
 W503 | :x:     | :x:     |         |        | :x: | No __init__.py
 W504 | :x:     | :x:     |         |        | :x: | No __init__.py
