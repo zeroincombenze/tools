@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.13
+__version__=0.2.2.14
 
 
 conf_default() {
@@ -221,7 +221,7 @@ if [ -d $HOME/dev ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
   . $HOME/dev/activate_tools
   if [ -f $HOME/dev/sitecustomize.py ]; then
-    PYLIB=$(findpkg "" "$HOME/lib $HOME/lib64 $HOME/virtualenv" "lib lib64 python$TRAVIS_PYTHON_VERSION", "python$TRAVIS_PYTHON_VERSION site-packages" "site-packages")
+    PYLIB=$(findpkg "" "$HOME/virtualenv lib lib64 local python${TRAVIS_PYTHON_VERSION}_with_system_site_packages" "lib lib64 local python${TRAVIS_PYTHON_VERSION} site-packages" "lib lib64 local python${TRAVIS_PYTHON_VERSION} site-packages"  "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
     [ -n "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $PYLIB"
   fi
 else
@@ -302,7 +302,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     if [[ ! "$TRAVIS" == "false" ]]; then
-      for p in clodoo configparser codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
+      for p in clodoo codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
         eval $LISA status -q $f &>/dev/null
         if [ $? -ne 0 ]; then
           run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
