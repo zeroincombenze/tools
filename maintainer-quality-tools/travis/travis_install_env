@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.14
+__version__=0.2.2.15
 
 
 conf_default() {
@@ -220,15 +220,11 @@ fi
 if [ -d $HOME/dev ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
   . $HOME/dev/activate_tools
-  echo "Searching python library path"
-  set -x    #debug
   if [ -f $HOME/dev/sitecustomize.py ]; then
-    cat $HOME/dev/sitecustomize.py  #debug
     PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
     [ -n "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $PYLIB"
     [ -z "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $(which pip)"
   fi
-  set +x    #debug
 else
   echo "!! Directory $HOME/dev not found!"
 fi
@@ -244,9 +240,9 @@ if [[ -z "$MGRODOO" ]]; then
 fi
 LISTREQ=$(which list_requirements.py 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
-  if [ "$MQT_TEST_MODE" == "tools" ]; then
-    [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
-  elif [ -n "$YML_mgrodoo" ]; then
+  # if [ "$MQT_TEST_MODE" == "tools" ]; then
+  #   [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
+  if [ -n "$YML_mgrodoo" ]; then
     LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
   else
     [ -f $HOME/tools/clodoo/list_requirements.py ] && LISTREQ=$HOME/tools/clodoo/list_requirements.py || LISTREQ=list_requirements.py
@@ -254,9 +250,9 @@ if [[ -z "$LISTREQ" ]]; then
 fi
 LISA=$(which lisa 2>/dev/null)
 if [[ -z "$LISA" ]]; then
-  if [ "$MQT_TEST_MODE" == "tools" ]; then
-    LISA=$TRAVIS_BUILD_DIR/lisa/lisa
-  elif [ -n "$YML_lisa" ]; then
+  # if [ "$MQT_TEST_MODE" == "tools" ]; then
+  #   LISA=$TRAVIS_BUILD_DIR/lisa/lisa
+  if [ -n "$YML_lisa" ]; then
     LISA=$YML_lisa
   else
     LISA=$HOME/tools/lisa/lisa
@@ -307,7 +303,7 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     if [[ ! "$TRAVIS" == "false" ]]; then
-      for p in clodoo codecov coveralls install flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2 zerobug; do
+      for p in codecov coveralls flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2; do
         eval $LISA status -q $f &>/dev/null
         if [ $? -ne 0 ]; then
           run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
