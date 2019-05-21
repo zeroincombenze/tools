@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.7
+__version__=0.2.2.8
 
 
 save_testenv() {
@@ -410,17 +410,17 @@ test_05() {
       init_travis
       result_testenv
     fi
-    if [ -d $TDIR/_travis ]; then
-      test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
-    elif [ -d $HOME/build/local/travis_emulator/_travis ]; then
-      test_result "init_travis \$TOOLS_PATH" "$HOME/build/local/travis_emulator/_travis" "$TOOLS_PATH"
-    else
-      test_result "init_travis \$TOOLS_PATH" "/opt/odoo/dev/_travis" "$TOOLS_PATH"
-    fi
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # if [ -d $TDIR/_travis ]; then
+    #   test_result "init_travis \$TOOLS_PATH" "$RUNDIR/_travis" "$TOOLS_PATH"
+    # elif [ -d $HOME/build/local/travis_emulator/_travis ]; then
+    #   test_result "init_travis \$TOOLS_PATH" "$HOME/build/local/travis_emulator/_travis" "$TOOLS_PATH"
+    # else
+    #   test_result "init_travis \$TOOLS_PATH" "/opt/odoo/dev/_travis" "$TOOLS_PATH"
+    # fi
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     # FIX: temporarly disabled
     # test_result "init_travis \$MQT_PATH" "$LCLTEST_MQT_PATH" "$MQT_PATH"
-    s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    # s=$?; [ ${s-0} -ne 0 ] && sts=$s
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       opt_verbose=1
       MQT_VERBOSE_MODE=

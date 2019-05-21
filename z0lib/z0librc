@@ -3,7 +3,7 @@
 # Copyright (C) SHS-AV s.r.l. (<http://ww.zeroincombenze.it>)
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
-__version__=0.2.8.3
+__version__=0.2.8.4
 STS_FAILED=1
 STS_SUCCESS=0
 PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
@@ -559,7 +559,7 @@ run_traced() {
         [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m"
         eval "$xcmd"
         sts=$?
-        [ ${opt_verbose:-0} -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[${PS_TXT_COLOR}m"
+        [ ${opt_verbose:-0} -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[0m\e[${PS_TXT_COLOR}m"
         # [ ${opt_verbose:-0} -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -z "$PS_TXT_COLOR" ] && echo -en "\e7${PS1}\e8\e[K"
       fi
     elif [ "${1:0:6}" != "sleep " ]; then
@@ -593,16 +593,8 @@ export -f run_traced
 #    Level 5 subdirectory list (space separated) where file could be found (mayby be empty)
 findpkg() {
     if [ "$(echo :$SHELLOPTS:|grep :xtrace: 2>/dev/null)" ]; then set +x; local SET_X="set -x"; else local SET_X=; fi
-    local p2=
-    local p3=
-    local p4=
-    local p5=
-    local p6=
-    local r2=
-    local r3=
-    local r4=
-    local r5=
-    local r6=
+    local p2 p3 p4 p5 p6
+    local r2 r3 r4 r5 r6
     local result=
     for p2 in $2; do
       r2=$p2

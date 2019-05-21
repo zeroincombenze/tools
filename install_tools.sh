@@ -71,6 +71,7 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     fi
   done
 done
+[ -d "$DSTPATH/_travis" ] && rm -fR $DSTPATH/_travis 
 if [ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]; then
   tgt=$DSTPATH/oca-autopep8
   if [[ ! -L "$tgt" || $1 =~ -.*p ]]; then

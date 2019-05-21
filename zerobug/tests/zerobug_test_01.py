@@ -54,7 +54,7 @@ if __name__ == "__main__":
         else:
             UT_LIST = [
                 "__version_0_" + __version__,
-                "__version_1_0.2.8.2%s/tools/z0lib/z0librc" % os.environ.get(
+                "__version_1_0.2.8.4%s/tools/z0lib/z0librc" % os.environ.get(
                     'HOME', '')]
         UT_LIST.append("__version_V_0.2.0" + os.path.join(Z.test_dir,
                                                           "dummy_01.py"))

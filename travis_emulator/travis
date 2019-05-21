@@ -7,10 +7,10 @@
 # Tree directory: see README of MQT for furthermore info
 #   ~/tools                             stable environment
 #       ./travis_emulator               stable travis emulator
+#       ./maintainer-quality-tools      copied to $HOME when running test
 #           ./_travis                   TOOLS_PATH (script like travis_runs_tests, travis_after_tests_success)
 #           travis.yml                  YML_FILE: defalut travis.yml file (-r or missed in tested dir)
 #               ./cfg                   pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
-#       ./maintainer-quality-tools      copied to $HOME when running test
 #           ./travis                    MQT_PATH
 #               ./cfg                   pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
 #       ./clodoo                        tool to build environment
@@ -18,14 +18,14 @@
 #   ~/dev                               alternate stable environment -> TOOLS_PATH
 #       ./clodoo                        alternate tool to build environment
 #       ./lisa                          alternate tool to build environment
-#   ~/dev/pypy/                         development environment (-M switch)
+#   ~/dev/pypi/                         development environment (-M switch)
 #       ./travis_emulator
 #           ./travis_emulator           development travis emulator
+#       ./maintainer-quality-tools
+#           ./maintainer-quality-tools  copied to $HOME when running test
 #               ./_travis               TOOLS_PATH  (-M switch)
 #               travis.yml              YML_FILE: defalut travis.yml file (-M and -r or missed in tested dir)
 #                   ./cfg               pylint & flake8 conf files (-r switch) -> FLAKE8_CONFIG_DIR
-#       ./maintainer-quality-tools
-#           ./maintainer-quality-tools  copied to $HOME when running test
 #               ./travis                MQT_PATH (-M switch)
 #                   ./cfg               pylint & flake8 conf files -> FLAKE8_CONFIG_DIR
 #       ./clodoo
@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.7
+__version__=0.2.2.8
 
 
 store_cfg_param_value() {
@@ -167,7 +167,7 @@ process_yaml_init() {
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
     fi
-    TRAVIS_DEBUG_MODE="${opt_dlvl:-0}"
+    TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
     ODOO_TNLBOT="${opt_tnl:-0}"
     if [ $opt_full -ne 0 ]; then
       export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
@@ -254,6 +254,7 @@ process_yaml_do() {
         lne="# $lne"
       else
         YML_global="$YML_global $lne"
+        [[ "$line" =~ TRAVIS_DEBUG_MODE= ]] && eval $lne
       fi
     elif [ "$YML_sect" == "env.matrix" ]; then
       YML_matrix="$YML_matrix $lne"
@@ -724,8 +725,7 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-      # x=$(readlink -f $MQT_PATH/..)
-      # xcmd="cp -R $x ${HOME}/"
+tny
       xcmd=${xcmd/cp/mv}
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
@@ -771,7 +771,7 @@ process_yaml_run_cmd() {
           xcmd="$(echo $xcmd|sed -e 's|${OPTS}|'$OPTS'|g')"
           x[$ix]=$OPTS
         else
-          for xpkg in travis_install_nightly travis_run_tests travis_after_tests_success; do
+          for xpkg in travis_install_nightly travis_after_tests_success; do
             if [ "${x[$ix]}" == "$xpkg" ]; then
               xtlcmd="$xpkg"
               if [ "$xlint" != "1" -o "$xtest" == "1" ] && [ "$xcd" != "1" -a $opt_force -eq 0 ]; then
@@ -804,7 +804,7 @@ process_yaml_run_cmd() {
       if [ "$c" != "$xcmd" -a "${xcmd:0:1}" != "#" ]; then
          wlog "\e[${PS_NOP_COLOR}m## $c\e[${PS_TXT_COLOR}m"
       fi
-      echo -en "\e[${PS_TXT_COLOR}m"; run_traced "$line1$xcmd"
+      run_traced "$line1$xcmd"
     fi
     return $?
 }
@@ -840,7 +840,8 @@ process_yaml() {
       return 1
     fi
     if [ -f $YML_FILE ]; then
-      wlog "\e[${PS_HDR1_COLOR}m=== Process YAML file ===\e[${PS_TXT_COLOR}m"
+      echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
+      wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
       process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
       create_virtual_env
@@ -849,9 +850,11 @@ process_yaml() {
         X="$(which $lne) --version: $($lne --version 2>&1)"
         eval $lne --version
       done
-      echo "Python sys.path list:"
-      echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD SYSTEM_SITE_PACKAGES; do
+      if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+        echo "Python sys.path list:"
+        echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+      fi
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD PYPI_CACHED SYSTEM_SITE_PACKAGES; do
          lne1=${!lne}
          if [[ -n "$lne1" || $lne =~ PATH ]]; then
            wlog "\$ $lne=$lne1"
@@ -910,7 +913,7 @@ process_yaml() {
         wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
         process_yaml_after_success
       fi
-      if [ "$TRAVIS_DEBUG_MODE" == "2" ]; then
+      if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
         read -p "Press RET to continue ..."
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
@@ -921,7 +924,7 @@ process_yaml() {
       process_local
       sts=$?
     fi
-    echo -e "\e7${PS1}\e8\e[K"
+    echo -e "\e[0m"
     return $sts
 }
 
@@ -958,7 +961,7 @@ OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
  "configuration file (def .travis.conf)"\
- "travis_debug_mode: may be 0,1,2 (def yaml dependents)"\
+ "travis_debug_mode: may be 0,1,2 or 9 (def yaml dependents)"\
  "save virtual environment as ~/VME/VME{version}"\
  "run final travis with full features"\
  "force yaml to run w/o cmd subst"\
@@ -1072,18 +1075,18 @@ if [ "$action" == "setup" ]; then
   if [ ! -d $DEF_DEVPATH ]; then
     run_traced mkdir -p $DEF_DEVPATH
   fi
-  if [ ! -d $DEF_DEVPATH/_travis ]; then
-    run_traced  mkdir -p $DEF_DEVPATH/_travis
-  fi
-  if [ ! -d $DEF_DEVPATH/_travis/cfg ]; then
-    run_traced mkdir -p $DEF_DEVPATH/_travis/cfg
-  fi
-  if [ "$TDIR" != "$DEF_DEVPATH" ]; then
-    run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
-    for f in travis_run_tests travis_after_tests_success; do
-      run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
-    done
-  fi
+  # if [ ! -d $DEF_DEVPATH/_travis ]; then
+  #   run_traced  mkdir -p $DEF_DEVPATH/_travis
+  # fi
+  # if [ ! -d $DEF_DEVPATH/_travis/cfg ]; then
+  #   run_traced mkdir -p $DEF_DEVPATH/_travis/cfg
+  # fi
+  # if [ "$TDIR" != "$DEF_DEVPATH" ]; then
+  #   run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
+  #   for f in travis_run_tests travis_after_tests_success; do
+  #     run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
+  #   done
+  # fi
   exit $STS_SUCCESS
 fi
 
@@ -1096,6 +1099,7 @@ if $(echo $PWD|grep -q "/VENV"); then
 fi
 prepare_env_travis "$action"
 # check_4_travis
+echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then
     process_local

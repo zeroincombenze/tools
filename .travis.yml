@@ -39,15 +39,14 @@ before_install:
   - ln -s ${TRAVIS_BUILD_DIR} ${HOME}
   - cp -R ${TRAVIS_BUILD_DIR}/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
-  - export PATH=${TRAVIS_BUILD_DIR}/travis_emulator/_travis:${PATH}
-  - export OPTS="${OPTS}"
+  - export PATH=${HOME}/maintainer-quality-tools/_travis:${PATH}
+  # - export OPTS="-j"
 
 install:
   - travis_install_env tools
 
 env:
   global:
-  - TRAVIS_DEBUG_MODE="1"  
   - TRAVIS_DEBUG_MODE="1"
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="MINIMAL"
 
@@ -56,7 +55,7 @@ env:
   - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/clodoo PYTHONPATH=${MODULE_PATH}
   - LINT_CHECK="1" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/travis_emulator PYTHONPATH=${MODULE_PATH}
   - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zar PYTHONPATH=${MODULE_PATH}
-  - LINT_CHECK="0" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${MODULE_PATH}
+  - LINT_CHECK="1" BASH_CHECK="0" TESTS="1" MODULE_PATH=${TRAVIS_BUILD_DIR}/zerobug PYTHONPATH=${MODULE_PATH}
 
 script:
   - cd $MODULE_PATH; pwd

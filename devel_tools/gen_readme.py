@@ -1096,12 +1096,11 @@ def read_setup(ctx):
             if line.startswith('setup('):
                 line  = line[6:]
                 source += '{\n'
+            if line.endswith(')'):
+                line = line[:: -1].replace(')', '}', 1)[:: -1]
             param = qsplit(line, '=', 1, strip=True, quoted=True)
             if len(param) <= 1:
-                if line.endswith(')'):
-                    source += '%s\n}\n' % line[0: -1]
-                else:
-                    source += '%s\n' % line
+                source += '%s\n' % line
             else:
                 source += '\'%s\': %s\n' % (param[0], param[1])
         try:

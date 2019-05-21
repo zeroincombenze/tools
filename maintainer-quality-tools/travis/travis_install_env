@@ -45,7 +45,7 @@ conf_default() {
 }
 
 
-run_n_echo() {
+run_traced() {
     local xcmd="$1"
     local sts=$STS_SUCCESS
     local pfx=
@@ -191,7 +191,7 @@ MQT_TEST_MODE=${MQT_TEST_MODE,,}
 [[ ! $MQT_TEST_MODE =~ (oca|oia|zero) ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
 if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
-  run_n_echo "$TDIR/travis_install_nightly"
+  run_traced "$TDIR/travis_install_nightly"
   exit $?
 fi
 
@@ -215,15 +215,15 @@ fi
 if [ -d $HOME/tools ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
   cd $HOME/tools
-  run_n_echo "./install_tools.sh -qp"
+  run_traced "./install_tools.sh -qp"
 fi
 if [ -d $HOME/dev ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
   . $HOME/dev/activate_tools
   if [ -f $HOME/dev/sitecustomize.py ]; then
     PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
-    [ -n "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $PYLIB"
-    [ -z "$PYLIB" ] && run_n_echo "cp $HOME/dev/sitecustomize.py $(which pip)"
+    [ -n "$PYLIB" ] && run_traced "cp $HOME/dev/sitecustomize.py $PYLIB"
+    [ -z "$PYLIB" ] && run_traced "cp $HOME/dev/sitecustomize.py $(which pip)"
   fi
 else
   echo "!! Directory $HOME/dev not found!"
@@ -260,6 +260,9 @@ if [[ -z "$LISA" ]]; then
     [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
   fi
 fi
+# if [ "$MQT_TEST_MODE" == "tools" ]; then
+#   run_traced "export PATH=$HOME/maintainer-quality-tools/_travis/:$PATH"
+# fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$PIP.$($PIP --version)\e[${PS_HDR3_COLOR}m"
@@ -274,21 +277,21 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
   echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
 fi
-[[ ! "$TRAVIS" == "false" ]] && run_n_echo "$PIP install -q pip --upgrade" "nolocal"
+[[ ! "$TRAVIS" == "false" ]] && run_traced "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
 echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
 # for p in build-essential libssl-dev libffi-dev python-dev; do
 for p in build-essential libssl-dev libffi-dev; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-  [ $? -ne 0 ] && run_n_echo "$LISA install $p" "nolocal"
+  [ $? -ne 0 ] && run_traced "$LISA install $p" "nolocal"
 done
 if [[ ! "$TRAVIS" == "false" ]]; then
   for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
     # eval $LISA status -q $p &>/dev/null
     # if [ $? -ne 0 ]; then
-    #   run_n_echo "$PIP install $p" "nolocal"
+    #   run_traced "$PIP install $p" "nolocal"
     # else
-      run_n_echo "$PIP install $p --upgrade --ignore-installed" "nolocal"
+      run_traced "$PIP install $p --upgrade --ignore-installed" "nolocal"
     # fi
   done
 fi
@@ -296,19 +299,22 @@ fi
 echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
 for p in os0 configparser z0lib; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
-  [ $? -ne 0 ] && run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
+  [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
 done
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
-  # run_n_echo "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
+  # run_traced "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     if [[ ! "$TRAVIS" == "false" ]]; then
-      for p in codecov coveralls flake8==3.5.0 oerplib odoorpc pylint==1.6.4 unittest2; do
+      # for p in Click codecov coveralls flake8==3.5.0 oerplib odoorpc pylint==1.6.4 run_pylint unittest2; do
+      echo "- reqs=\$($LISTREQ -t python -s ' ' -qBTR)"
+      reqs="$($LISTREQ -t python -s ' ' -qBTR)"
+      for p in $reqs; do  
         eval $LISA status -q $f &>/dev/null
         if [ $? -ne 0 ]; then
-          run_n_echo "$PIP install $p $PIP_OPTS" "nolocal"
+          run_traced "$PIP install $p $PIP_OPTS" "nolocal"
         else
-          run_n_echo "$PIP install $p --upgrade" "nolocal"
+          run_traced "$PIP install $p --upgrade" "nolocal"
         fi
       done
     fi
@@ -340,30 +346,30 @@ else
       CURRENT_NODE=$(which node)
       source ${HOME}/.nvm/nvm.sh
       nvm install 6
-      run_n_echo "ln -sf $(nvm which 6) $CURRENT_NODE"
+      run_traced "ln -sf $(nvm which 6) $CURRENT_NODE"
   fi
   if [ "${LINT_CHECK:-1}" != "0" ]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
-    run_n_echo "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
-    run_n_echo "npm install eslint"
+    run_traced "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
+    run_traced "npm install eslint"
   fi
   if [ "${TESTS}" == "1" ]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-    run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+    run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/node"
     [ $opt_verbose -gt 0 ] && node --version
     if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_n_echo "npm install -g less@3.0.4 less-plugin-clean-css"
+      run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     else
-      run_n_echo "npm install less@3.0.4 less-plugin-clean-css"
+      run_traced "npm install less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin) -name lessc 2>/dev/null)
-      [ -n "$x" ] && run_n_echo "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
+      [ -n "$x" ] && run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/lessc"
     fi
     lessc --version
-    run_n_echo "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
+    run_traced "rm -f $VIRTUAL_ENV/lib/python2.7/no-global-site-packages.txt"
     [ -z "${WKHTMLTOPDF_VERSION}" ] && export WKHTMLTOPDF_VERSION="0.12.4"
     [ -n "$(which example.com 2>/dev/null)" ] && CUR_WKHTMLTOPDF_VERSION=$(wkhtmltopdf --version|grep -Eo [0-9.]+|head -n1) || CUR_WKHTMLTOPDF_VERSION=
     if [[ "$CUR_WKHTMLTOPDF_VERSION" == "$WKHTMLTOPDF_VERSION" ]]; then
@@ -406,19 +412,19 @@ else
             wkhtmltopdf_wget="wkhtmltox-${WKHTMLTOPDF_VERSION}_linux-$(lsb_release -sc)-i386.deb"
           fi
         fi
-        run_n_echo "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
+        run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox.deb"
       fi
-      run_n_echo "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
+      run_traced "wget -q --timeout=240 https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/${WKHTMLTOPDF_VERSION}/${wkhtmltopdf_wget} -O wkhtmltox${pkgext}"
       if [ "$pkgext" == ".rpm" ]; then
-        run_n_echo "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
-        run_n_echo "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "rpm2cpio wkhtmltox${pkgext} | cpio -idm"
+        run_traced "cp ./usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
       elif [ "$pkgext" == ".deb" ]; then
-        run_n_echo "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
-        run_n_echo "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "dpkg --extract wkhtmltox${pkgext} wkhtmltox.deb_files"
+        run_traced "cp wkhtmltox.deb_files/usr/local/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
         rm -r wkhtmltox.deb*
       else
-        run_n_echo "tar -xf wkhtmltox${pkgext}"
-        run_n_echo "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
+        run_traced "tar -xf wkhtmltox${pkgext}"
+        run_traced "cp ./wkhtmltox/bin/wkhtmltopdf ${HOME}/maintainer-quality-tools/travis/wkhtmltopdf"
         rm -fr ./wkhtmltox
       fi
       popd > /dev/null
@@ -434,39 +440,39 @@ else
       else
         echo "File rvm not found! rvm should be not work!"
       fi
-      run_n_echo "rvm install ruby --latest"
-      run_n_echo "rvm use ruby --latest"
+      run_traced "rvm install ruby --latest"
+      run_traced "rvm use ruby --latest"
       # Uninstall current versions to be sure that
       # the correct version will be installed
-      run_n_echo "gem uninstall -aIx bootstrap-sass compass sass"
-      run_n_echo "gem install compass bootstrap-sass"
+      run_traced "gem uninstall -aIx bootstrap-sass compass sass"
+      run_traced "gem install compass bootstrap-sass"
     fi
     # Update PhantomJS (v10 compat)
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
-      run_n_echo "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
-      run_n_echo "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
+      run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
+      run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
     fi
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Tested repository is OCB\e[${PS_TXT_COLOR}m"
     if [[ $TRAVIS =~ (true|emulate) ]]; then
-      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     elif [ ! -L ${ODOO_PATH} ]; then
-      run_n_echo "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
+      run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
     ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
     echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
     if [[ "$TRAVIS" == "true" ]]; then
-      run_n_echo "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-      run_n_echo "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+      run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+      run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
     elif [ ! -L ${ODOO_PATH} ]; then
       if [[ "$REMOTE" == "oca" ]]; then
         majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
         if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          run_n_echo "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-          run_n_echo "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-          run_n_echo "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
+          run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+          run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+          run_traced "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
         fi
         if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
           SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
@@ -474,19 +480,19 @@ else
       else
         SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
       fi
-      run_n_echo "ln -s $SRCREPOPATH ${ODOO_PATH}"
+      run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
     fi
   fi
   if [ "${TESTS}" != "1" ]; then
     dopts=
     if [ -z "$PYPI_CACHED" ]; then
       if [[ "$TRAVIS" == "false" ]]; then
-        run_n_echo "$MGRODOO requirements -nBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -nBb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       else
-        run_n_echo "$MGRODOO requirements -Bb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -Bb '.' -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
-    run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       if [ $opt_verbose -gt 0 ]; then
         echo "- reqs=\$($LISTREQ -b$VERSION -p'.' $dopts -t python -s ' ' -qBTR)"
@@ -502,7 +508,7 @@ else
     dopts=
     mkdir -p ${HOME}/dependencies
     cp_n_upd_odoo_conf
-    run_n_echo "$TDIR/clone_oca_dependencies"
+    run_traced "$TDIR/clone_oca_dependencies"
     sts=$?
     if [ $sts -ne 0 ]; then
       echo "- Error cloning dependencies"
@@ -518,33 +524,33 @@ else
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       if [[ "$TRAVIS" == "false" ]]; then
-        run_n_echo "$MGRODOO requirements -nBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -nBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       else
-        run_n_echo "$MGRODOO requirements -Bb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -Bb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
-    run_n_echo "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
+    run_traced "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."
     if [[ $ODOO_TEST_SELECT == "APPLICATIONS" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py" ]]; then
-        run_n_echo "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
+        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${TRAVIS_BUILD_DIR}/addons/website/tests/test_crawl.py"
       elif [[ -f "${ODOO_PATH}/addons/website/tests/test_crawl.py" ]]; then
-        run_n_echo "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${ODOO_PATH}/addons/website/tests/test_crawl.py"
+        run_traced "sed -i \"s/self.url_open(url)/self.url_open(url, timeout=100)/g\" ${ODOO_PATH}/addons/website/tests/test_crawl.py"
       fi
     elif [[ $ODOO_TEST_SELECT == "LOCALIZATION" ]]; then
       if [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py" ]]; then
-        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py"
+        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__manifest__.py"
       elif [[ -f "${ODOO_PATH}/addons/account/__manifest__.py" ]]; then
-        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__manifest__.py"
+        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__manifest__.py"
       elif [[ -f "${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py" ]]; then
-        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py"
+        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${TRAVIS_BUILD_DIR}/addons/account/__openerp__.py"
       elif [[ -f "${ODOO_PATH}/addons/account/__openerp__.py" ]]; then
-        run_n_echo "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__openerp__.py"
+        run_traced "sed -i \"/'_auto_install_l10n'/d\" ${ODOO_PATH}/addons/account/__openerp__.py"
       fi
     fi
     if [[ -f "${TRAVIS_BUILD_DIR}/odoo/tests/common.py" ]]; then
-      run_n_echo "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
+      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${TRAVIS_BUILD_DIR}/odoo/tests/common.py"
     elif [[ -f "${ODOO_PATH}/odoo/tests/common.py" ]]; then
-      run_n_echo "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
+      run_traced "sed -i \"s/'phantomjs'/'disable_phantomjs'/g\" ${ODOO_PATH}/odoo/tests/common.py"
     fi
     if [ $opt_verbose -gt 0 ]; then
       echo "Content of ${HOME}:"

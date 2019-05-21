@@ -247,13 +247,13 @@ Look at follow table to understand which set of tests are enabled or disabled:
 
    statement     |    application     | module l10n_*      |    odoo/addons     | addons + dependencies
 -----------------|--------------------|--------------------|--------------------|-----------------------
-     ALL         | :white_check_mark: | :white_check_mark: | :white_check_mark: |  :white_check_mark:
-  APPLICATIONS   | :white_check_mark: | :x:                | :x:                |  Only if application
-  LOCALIZATION   | :x:                | :white_check_mark: | :x:                |  Only module l10n_*
-     CORE        | :x:                | :x:                | :white_check_mark: |  :x:
- NO-APPLICATION  | :x:                | :white_check_mark: | :white_check_mark: |  No if application
- NO-LOCALIZATION | :white_check_mark: | :x:                | :white_check_mark: |  No if module l10n_*
-   NO-CORE       | :white_check_mark: | :white_check_mark: | :x:                |  :white_check_mark:
+     ALL         | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
+  APPLICATIONS   | :white_check_mark: | :x:                | :x:                | Only if application
+  LOCALIZATION   | :x:                | :white_check_mark: | :x:                | Only module l10n_*
+     CORE        | :x:                | :x:                | :white_check_mark: | :x:
+ NO-APPLICATION  | :x:                | :white_check_mark: | :white_check_mark: | No if application
+ NO-LOCALIZATION | :white_check_mark: | :x:                | :white_check_mark: | No if module l10n_*
+   NO-CORE       | :white_check_mark: | :white_check_mark: | :x:                | :white_check_mark:
 
 
 Disable test
@@ -296,13 +296,21 @@ MQT debug informations
 ----------------------
 
 If you declare the following directive in <env global> section:
-`TRAVIS_DEBUG_MODE="1"`
+`TRAVIS_DEBUG_MODE="n"`
 
-enable debug mode execution during local session of test.
+where "n" means:
+
+ Parameter              |  "0"  |         "1"        |        "2"         |  "9"
+------------------------|-------|--------------------+--------------------+--------------------
+ Informative messages   | :x:   | :white_check_mark: | :white_check_mark: | :white_check_mark:
+ Inspect internal data  | :x:   | :x:                | :white_check_mark: | :white_check_mark:
+ Installation log level | ERROR | WARN               | INFO               | :x: 
+ Execution logo level   | INFO  | TEST               | TEST               | :x:
+ 
 Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.
 
 When MQT is execute in local environment the value
-`TRAVIS_DEBUG_MODE="2"`
+`TRAVIS_DEBUG_MODE="9"`
 
 does not execute unit test. It is used to debug MQT itself.
 

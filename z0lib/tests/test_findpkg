@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.8.3
+__version__=0.2.8.4
 
 
 test_01() {
@@ -85,6 +85,10 @@ test_02() {
     p=$(dirname $p)
     result=$(findpkg "psql9" "$p" "$p2" "$p1" "$Y1 $Y2" "9.1")
     test_result "find myself ($Y2/psql9 3)" "$TRES" "$result"
+
+    result=$(findpkg "" "$p" "$p2" "$p1" "$Y1 $Y2" "9.2")
+    TRES=$(readlink -e $p/$p2/$p1/$Y1)
+    test_result "find myself ($Y1)" "$TRES" "$result"
 }
 
 test_03() {
