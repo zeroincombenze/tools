@@ -71,19 +71,14 @@ do_action() {
       local pkgdir=$(build_odoo_param HOME $odoo_vid "$repo")
       local odoo_root=$(build_odoo_param ROOT $odoo_vid search)
     fi
-    ## echo "<<<pkgdir=$pkgdir>>>"   #debug
-    ## echo "<<<root=$odoo_root>>>"   #debug
     local VENV=$(build_odoo_param VENV $odoo_vid)
     [ -f $odoo_root/bin/activate ] && VENV=1
-    ## echo "<<<VENV=$VENV>>>"   #debug
     if [ $VENV -ne 0 ]; then
       local ve_root=$(dirname $odoo_root)
-      ## echo "<<<ve_root=$ve_root>>>"   #debug
       [ $opt_verbose -gt 0 ] && echo "\$ cd $ve_root; source ./bin/activate"
       cd $ve_root
       source ./bin/activate
     fi
-    ## exit 1   #debug
     local opts=
     local opts1=
     if [ $opt_verbose -gt 0 ]; then

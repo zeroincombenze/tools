@@ -1,0 +1,82 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Run coverall after successful test
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2018 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.2.2.7
+
+
+OPTOPTS=(h        j        n            q           r     t         V           v)
+OPTDEST=(opt_help opt_dprj opt_dry_run  opt_verbose opt_r test_mode opt_version opt_verbose)
+OPTACTI=(1        1        1            0           1     1         "*>"        "+")
+OPTDEFL=(0        0        0            -1          01    0         ""          -1)
+OPTMETA=("help"   "dprj"   "do nothing" "quiet"     ""    "test"    "version"   "verbose")
+OPTHELP=("this help"\
+ "execute tests in project dir rather in test dir"\
+ "do nothing (dry-run)"\
+ "silent mode"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
+ "test mode (implies dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(pkglist)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Run coverall after successfull test"\
+  "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+prepare_env_travis "coverage"
+sts=$STS_SUCCESS
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
+fi
+check_4_travis
+run_coverage_test $pkglist
+exit $?

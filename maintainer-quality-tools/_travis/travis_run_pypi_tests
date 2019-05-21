@@ -1,0 +1,295 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Run test in travis environment
+# This script is default script to run syntax and regression tests
+# Should be replaced by OCA maintainer-quality-tools os something like it!
+#
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+TRAVISLIBDIR=$(findpkg travisrc "$TDIR $TDIR/.. $HOME/tools/travis_emulator $HOME/dev ${PYPATH//:/ } . .." "travis_emulator")
+if [ -z "$TRAVISLIBDIR" ]; then
+  echo "Library file travisrc not found!"
+  exit 2
+fi
+. $TRAVISLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.2.2.7
+
+
+travis_test_bash() {
+    echo "======== Testing test_bash   ========"
+    sts=$STS_SUCCESS
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      local f p param
+      local shellcheck_ignore=$(grep -Eo "^ignore *= *[0-9,]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+      local shellcheck_exclude=$(grep -Eo "^exclude *= *[^#]+" $TDIR/cfg/travis_run_shellcheck.cfg|tr -d " "|awk -F= '{print $2}')
+      shellcheck_exclude="${shellcheck_exclude//,/ } *.py"
+      shellcheck_exclude=$(echo $shellcheck_exclude)
+      param=
+      if [ -n "$shellcheck_exclude" ]; then
+        for p in $shellcheck_exclude; do
+          if [ "${p: -1}" == "/" ]; then
+            param="$param -not -path '$p'"
+          else
+            param="$param -not -name '$p'"
+          fi
+        done
+      fi
+      for f in $(find . -type f $param -executable|tr "\n" " "); do
+        local mime=$(file -b --mime-type $f)
+        if [ "$mime" == "text/x-shellscript" ]; then
+          [ ${opt_verbose:-0} -gt 0 ] && echo "$ shellcheck -e $shellcheck_ignore $f"
+          bash -n $f
+          if [ $? -eq 0 ]; then shellcheck -e $shellcheck_ignore $f; fi
+          local s=$?
+          if [ $sts -eq $STS_SUCCESS ]; then
+            if [ "$(grep ^[[:space:]]*set[[:space:]]*-x $f 2>/dev/null)" ]; then
+              echo "Invalid statement 'set -x' in $f"
+              sts=$STS_FAILED
+            fi
+          else
+            sts=$STS_FAILED
+          fi
+        fi
+      done
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_flake8() {
+    echo "======== Testing test_flake8 ========"
+    run_traced "export FLAKE8_CONFIG_DIR=$(readlink -f $TDIR/../travis/cfg)"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      # FLAKE8_CONFIG_DIR="$TOOLS_PATH/cfg"
+      if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg
+      else
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__.cfg
+      fi
+      run_traced "flake8 . --config=${FLAKE8_CONFIG}"
+      local status1=$?
+      if [[ -n "$LINT_CHECK_LEVEL" && -f ${FLAKE8_CONFIG_DIR}/travis_run_flake8__init__$LINT_CHECK_LEVEL.cfg ]]; then
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8_$LINT_CHECK_LEVEL.cfg
+      else
+        local FLAKE8_CONFIG=${FLAKE8_CONFIG_DIR}/travis_run_flake8.cfg
+      fi
+      run_traced "flake8 . --config=${FLAKE8_CONFIG}"
+      local status2=$?
+      sts=$((${status1} || ${status2}))
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+please_test_pylint() {
+    echo "======== Testing test_pylint ========"
+    sts=$STS_SUCCESS
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      TRAVIS_BUILD_DIR=$PKGPATH
+      MODULES_TO_TEST=$TRAVIS_BUILD_DIR
+      PYLINT_CONFIG_DIR="$FLAKE8_CONFIG_DIR"
+      if [ "$PRJNAME" == "Odoo" ]; then
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint.cfg
+      else
+        pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
+      fi
+      if [ ${opt_verbose:-0} -gt 0 ]; then
+        echo "export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}"
+      fi
+      export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
+      IFS="/" read -a REPO <<< "${ODOO_REPO}"
+      export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
+      #run pylint command
+      run_traced "pylint --rcfile=$pylint_rcfile ${MODULES_TO_TEST}"
+      sts=$?
+    fi
+    return $sts
+}
+
+run_regression_test() {
+    local x
+    echo "======== Running regression_test ========"
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
+        local OPTS=$(inherits_travis_opts "n" "T")
+      else
+        local OPTS=$(inherits_travis_opts "" "T")
+      fi
+      x=$(readlink -e $PWD/..)
+      if [ $(echo ":$PYTHONPATH:"|grep -qv ":$x:"  2>/dev/null) ]; then
+        run_traced "export PYTHONPATH=${PYTHONPATH}:$x"
+      fi
+      if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
+        if [ ${opt_dprj:-0} -gt 0 ]; then
+          run_traced "./tests/all_tests $OPTS"
+        else
+          run_traced "cd ./tests; ./all_tests $OPTS"
+        fi
+        sts=$?
+      elif [ -f ./tests/test_$PRJNAME.py ]; then
+        if [ ${opt_dprj:-0} -gt 0 ]; then
+          run_traced "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
+        else
+          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
+        fi
+        sts=$?
+      else
+        elog "!????? Module test for $PRJNAME not found!??????"
+        sts=$STS_FAILED
+      fi
+    else
+      sts=$STS_SUCCESS
+    fi
+    return $sts
+}
+
+do_test () {
+    if [ "$PRJNAME" == "Odoo" ]; then
+      if [ $opt_verbose -gt 0 ]; then
+        echo "\$ run_server_test"
+      fi
+      run_server_test
+    else
+      if [ $opt_verbose -gt 0 ]; then
+        echo "\$ run_regression_test"
+      fi
+      run_regression_test
+    fi
+    sts=$?
+    return $sts
+}
+
+
+OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
+OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
+OPTACTI=(1        "="      1        1         1            1        0           1     1        1         "*>"        "+")
+OPTDEFL=(0        ""       0        0         0            0        -1          0     0        0         ""          -1)
+OPTMETA=("help"   "file"   "dprj"   "check"   "do nothing" ""       "qiet"     "rxt"  "test"   "test"    "version"   "verbose")
+OPTHELP=("this help"\
+ "configuration file (def .travis.conf)"\
+ "execute tests in project dir rather in test dir"\
+ "do bash, flake8 and pylint checks"\
+ "do nothing (dry-run)"\
+ "prefer python test over bash test when avaiable"\
+ "silent mode"\
+ "run rescricted mode (w/o parsing travis.yml file)"\
+ "do regression tests"\
+ "test mode (implies dry-run)"\
+ "show version"\
+ "verbose mode")
+OPTARGS=(pkg PRJNAME)
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Run test in travis environment"\
+  "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+
+[ "${MQT_DRY_RUN:-0}" == "1" ] && opt_dry_run=1
+[ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
+[ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
+[ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
+
+opts_travis
+CFG_init
+conf_default
+link_cfg $DIST_CONF $TCONF
+if [ $opt_verbose -gt 1 ]; then set -x; fi
+init_travis
+prepare_env_travis
+sts=$STS_SUCCESS
+if [ $test_mode -gt 0 ]; then
+  do_chkconfig
+  exit $STS_SUCCESS
+fi
+check_4_travis
+if [ ${opt_regr:-0} -gt 0 ]; then
+  LINT_CHECK="0"
+  TESTS="1"
+fi
+if [ ${opt_check:-0} -gt 0 ]; then
+  BASH_CHECK="1"
+  LINT_CHECK="1"
+fi
+if [ "${BASH_CHECK:-0}" == "1" ]; then BASH_CHECK_ENABLED=1; else BASH_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-0}" == "1" ]; then LINT_CHECK_ENABLED=1; else LINT_CHECK_ENABLED=0; fi
+if [ "${LINT_CHECK:-1}" == "0" ]; then LINT_CHECK_DISABLED=1; else LINT_CHECK_DISABLED=0; fi
+if [ "${TESTS:-0}" == "1" ]; then TEST_CHECK_ENABLED=1; else TEST_CHECK_ENABLED=0; fi
+if [ -z "${TESTS}" ]; then TESTS_UNSPECIFIED=1; else TESTS_UNSPECIFIED=0; fi
+if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRANSIFEX_CHECK_ENABLED=0; fi
+if [ -d $HOME/dev ]; then
+  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+  . $HOME/dev/activate_tools
+else
+  echo "!! Directory $HOME/dev not found!"
+fi
+if [ $opt_verbose -gt 0 ]; then
+  echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
+  echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
+fi
+if [ $BASH_CHECK_ENABLED -gt 0 ]; then
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || travis_test_bash
+  sts_bash=$?
+else
+  sts_bash=127
+fi
+if [ $LINT_CHECK_DISABLED -eq 0 ]; then
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || please_test_flake8
+  sts_flake8=$?
+  [ "$TRAVIS_DEBUG_MODE" == "2" ] || please_test_pylint
+  sts_pylint=$?
+  if [ $sts_bash -ne 127 ]; then
+    sts=$(($sts_bash || $sts_flake8 || $sts_pylint))
+  else
+    sts=$(($sts_flake8 || $sts_pylint))
+  fi
+else
+  sts=$STS_SUCCESS
+fi
+if [ $sts -eq $STS_SUCCESS ]; then
+  if [ $TESTS_UNSPECIFIED -gt 0 -a $LINT_CHECK_ENABLED -eq 0 ]; then
+    [ "$TRAVIS_DEBUG_MODE" == "2" ] || do_test
+    test_sts=$?
+  elif [ $TEST_CHECK_ENABLED -gt 0 ]; then
+    [ "$TRAVIS_DEBUG_MODE" == "2" ] || do_test
+    test_sts=$?
+  fi
+  sts=$test_sts
+else
+  test_sts=
+fi
+do_summary "$sts_bash" "$sts_flake8" "$sts_pylint" "$test_sts"
+exit $sts
