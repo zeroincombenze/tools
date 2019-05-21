@@ -204,7 +204,7 @@ do_action() {
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1|tr -d "'")
             reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')
-            [ -n "$reqver" ] && xreqver=$(echo $|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
+            [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
             sts=0
             if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
               sts=1
@@ -216,7 +216,7 @@ do_action() {
               [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
               [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
               echo "DUMPLOG($pkg <$xreqver>$op<$xcurver> <<$reqver>>$op<<$curver>> sts=$sts)"       #debug
-              if [ $sts -ne 0 -a $pass -lt 3 -a -z "$op" ] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
+              if [ $sts -ne 0 -a $pass -lt 3 -a -z "$op" ] || [ $xcurver -ne $xreqver -a "$op" == '=' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)
                   echo -e "${TRAVIS_TEXT_COLOR}$x but expected $op$reqver${TRAVIS_HDR3_COLOR}"
