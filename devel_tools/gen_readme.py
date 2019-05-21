@@ -725,19 +725,13 @@ def expand_macro_in_line(ctx, line, state=None):
             if state['in_fmt'] == 'html':
                 state, value = parse_source(ctx, value, state=state,
                                             in_fmt=in_fmt, out_fmt=out_fmt)
-                # if out_fmt == 'html':
-                #     state, value = tohtml(value, state=state)
                 if 'srctype' in state:    del state['srctype']
                 return state, line[0:i] + value + line[j + 2:]
             line = line[0:i] + value + line[j + 2:]
             state, value = parse_source(ctx, line, state=state,
                                         in_fmt=in_fmt, out_fmt=out_fmt)
-            # if out_fmt == 'html':
-            #     state, value = tohtml(value, state=state)
             if 'srctype' in state:    del state['srctype']
             return state, value
-        # if out_fmt == 'html':
-        #     state, value = tohtml(value, state=state)
         if len(tokens) > 1:
             fmt = tokens[1]
             line = line[0:i] + (fmt % value) + line[j + 2:]
@@ -1339,6 +1333,8 @@ def set_default_values(ctx):
 
 
 def generate_readme(ctx):
+    # import pdb
+    # pdb.set_trace()
     if ctx['product_doc'] == 'pypi':
         if ctx['odoo_layer'] == 'repository':
             ctx['module_name'] = ''
