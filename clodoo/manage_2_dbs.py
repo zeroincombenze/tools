@@ -18,7 +18,7 @@ import transodoo
 # import pdb
 
 
-__version__ = '0.3.8.28'
+__version__ = '0.3.8.29'
 
 msg_time = time.time()
 
