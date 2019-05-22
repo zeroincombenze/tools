@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.27
+__version__=0.3.8.28
 
 
 explore() {
@@ -198,7 +198,7 @@ do_action() {
             fi
             op=$(echo "$f"|grep -Eo '[<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>]*'|tr "[" "\n"|tr -d "'"|head -n1)
-            reqver=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr "\n" " "|tr -d "'"|awk '{print $2}')
+            reqver=$(echo "$f"|grep -Eo '[^!<=>]*'|tr -d "'"|tr "[" "\n"|tr "]" "\n"|tail -n1)
             [ -n "$reqver" ] && xreqver=$(echo $reqver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xreqver=0
             sts=0
             if [ $pass -eq 1 -a "$pkg" == "coverage" ]; then
