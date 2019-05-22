@@ -26,14 +26,14 @@ import sys
 import zerobug
 
 
-__version__ = "0.2.14.1"
+__version__ = "0.2.14.2"
 
 
 if __name__ == "__main__":
     if 'DEV_ENVIRONMENT' in os.environ:
         if os.path.isdir('./tests'):
             os.chdir('./tests')
-            sts = execfile("os0_test_01.py")
+            sts = execfile("test_zerobug.py")
             sys.exit(sts)
 
     print zerobug.z0testlib.__version__

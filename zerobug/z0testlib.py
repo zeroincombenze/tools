@@ -1,23 +1,6 @@
 # -*- coding: utf-8 -*-
-#
-#
-#    Copyright (C) SHS-AV s.r.l. (http://www.shs-av.com/)
-#    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
+# Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """@mainpage
 Zeroincombenze® continuous testing framework with tools for python programs
 ===========================================================================
@@ -154,7 +137,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.1"
+__version__ = "0.2.14.2"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1388,6 +1371,17 @@ class Z0test(object):
         del z0ctx
         return sts
 
+    def build_os_tree(self, ctx, os_tree):
+        """Create a filesytem tree to test"""
+        root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
+        if not os.path.isdir(root):
+            os.mkdir(root)
+        for path in os_tree:
+            if path[0] not in ('.', '/'):
+                path = os.path.join(root, path)
+                if not os.path.isdir(path):
+                    os.mkdir(path)
+        return root
+ 
 
 # main = Z0test(autorun=True)
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
