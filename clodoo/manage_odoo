@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.29
+__version__=0.3.8.30
 
 
 explore() {
@@ -210,7 +210,7 @@ do_action() {
             if [ $sts -eq 1 ] || [ $pass -gt 1 -a -n "$reqver" ]; then
               [ $sts -eq 0 ] && curver=$($PIP show $pkg|grep ^[Vv]ersion|awk -F: '{print $2}'|tr -d ', \r\n\(\)') || curver=
               [ -n "$curver" ] && xcurver=$(echo $curver|grep -Eo '[0-9]+\.[0-9]+(\.[0-9]+|)'|awk -F. '{print $1*10000 + $2*100 + $3}') || xcurver=0
-              echo "DUMPLOG($pkg <$xreqver>$op<$xcurver> <<$reqver>>$op<<$curver>> sts=$sts)"       #debug
+              # echo "DUMPLOG($pkg <$xreqver>$op<$xcurver> <<$reqver>>$op<<$curver>> sts=$sts)"       #debug
               if [ $sts -ne 0 -a $pass -lt 3 -a -z "$op" ] || [ $xcurver -ne $xreqver -a "$op" == '==' ] || [ $xcurver -ge $xreqver -a "$op" == '<' ] || [ $xcurver -le $xreqver -a "$op" == '>' ] || [ $xcurver -lt $xreqver -a "$op" == '>=' ] || [ $xcurver -gt $xreqver -a "$op" == '<=' ]; then
                 if [ $pass -eq 3 ]; then
                   x=$(eval $LISA version -q $f -d0)

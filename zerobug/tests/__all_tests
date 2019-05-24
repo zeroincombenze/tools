@@ -1,6 +1,6 @@
-#!/bin/bash
+#! /bin/bash
 # -*- coding: utf-8 -*-
-# Regression tests on MQT
+# Regression tests on zerobug
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -32,26 +32,51 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.15
+__version__=0.2.14.3
 
 
-test_00() {
-    local CWD=$PWD
-    cd $Z0LIBDIR
-    local OK=$(_install_z0librc "-n")
-    cd $CWD
-    test_result "check for lib version (2)" "cp ./z0librc /etc/z0librc" "$OK"
+Z0BUG_setup() {
+    # Just for regression tests
+    coveragerc_file="$RUNDIR/.coveragerc"
+    coveragerc_bak="$RUNDIR/coveragerc.bak"
+    if [ ! -f "$coveragerc_bak" ]; then
+      if [ -f "$coveragerc_file" ]; then
+         mv -f $coveragerc_file $coveragerc_bak
+      fi
+    fi
+    if [ -f "$coveragerc_file" ]; then
+      rm -f $coveragerc_file
+    fi
+    # if [ ! -f "$TESTDIR/z0testlib.py" -a ! -L "$TESTDIR/z0testlib.py" ]; then
+    #   cp $RUNDIR/z0testlib.py $TESTDIR/
+    # fi
 }
 
+Z0BUG_teardown() {
+    if [ -f "$coveragerc_file" ]; then
+      rm -f $coveragerc_file
+    fi
+    if [ -f "$coveragerc_bak" ]; then
+      mv -f $coveragerc_bak $coveragerc_file
+    fi
+    if [ -f "$TESTDIR/z0testlib.py" -o -L "$TESTDIR/z0testlib.py" ]; then
+      rm -f $TESTDIR/z0testlib.py
+    fi
+
+}
+
+
 Z0BUG_init
-parseoptest -l$TESTDIR/test_z0lib.log "$@"
+parseoptest -l$TESTDIR/test_zerobug.log "$@"
 sts=$?
 if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
-PYPKGDIR=$(readlink -e $RUNDIR/..)
-export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
+
+
+
+
 UT1_LIST=
 UT_LIST=
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi

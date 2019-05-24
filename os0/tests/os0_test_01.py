@@ -1,25 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.it>)
-#    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-# For software version see main
+# Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
      Test module os0
      This module provide OS indipendent interface
@@ -32,6 +13,10 @@
      2016-07-01  antoniov    python 2.7.5
                              CentOS V7.0
 """
+# from __future__ import print_function,unicode_literals
+from __future__ import print_function
+from past.builtins import basestring
+from builtins import chr
 
 # import pdb
 import os
@@ -39,13 +24,13 @@ import os.path
 from os0 import os0
 from sys import platform as _platform
 import sys
-from zerobug import Z0test
+from zerobug import Z0BUG
 
 MODULE_ID = 'os0'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.2.13"
+__version__ = "0.2.14.2"
 
 TITLE = "os0 regression test. Version: " + __version__
 FLOGTMP = "os0_test.log"
@@ -55,7 +40,7 @@ def version():
     return __version__
 
 
-class Test:
+class RegressionTest:
     # Execute code tests os.path library at low level
     # The purpose is not test os.path module but OpenVMS version on module.
     # Local OpenVMS filesystem has some structure like Windows
@@ -130,7 +115,7 @@ class Test:
                                  fzero)
         if os.path.isfile(tlog_pathname):
             os.remove(tlog_pathname)
-        tlog_pathname = os.path.join(self.Z.test_dir,
+        tlog_pathname = os.path.join(self.Z.testdir,
                                      FLOGTMP)
         fzero = False
         fexts = False
@@ -606,29 +591,9 @@ class Test:
 
 
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
-    sts = Z.main_file(ctx, Test)
-    exit(sts)
-
-    #    T = Test()
-    #    # Need debug mode to avoid security fault in Linux
-    #    os0.set_debug_mode(True)
-    #    if os0.version != "0.2.13":
-    #        raise Exception("Test not executable: invalid os0 version")
-    #    if 'DEV_ENVIRONMENT' in os.environ:
-    #        LOCAL_ECHO = False
-    #    else:
-    #        LOCAL_ECHO = True
-    #    T.SetUp()
-    #    T.test_01()
-    #    T.test_02()
-    #    T.test_03()
-    #    T.test_04()
-    #    T.test_05()
-    #    T.test_06()
-#
-#
-    #    os0.wlog("Test successfully ended. See {0} file".
-    #             format(os0.setlfilename(os0.tlog_fn)))
+    exit(Z0BUG.main_local(
+        Z0BUG.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        RegressionTest)
+    )

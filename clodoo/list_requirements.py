@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.29'
+__version__ = '0.3.8.30'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -170,6 +170,7 @@ PIP_BASE_PACKAGES = ['Babel',
                      'decorator',
                      'docutils',
                      'feedparser',
+                     'future',
                      'gdata',
                      'gevent',
                      'Jinja2',
@@ -384,7 +385,7 @@ def add_manifest(root, manifests, reqfiles, files):
 def main():
     # global __version__
     parser = z0lib.parseoptargs("List Odoo requirements",
-                                "© 2017-2018 by SHS-AV s.r.l.",
+                                "© 2017-2019 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-b', '--odoo-branch',

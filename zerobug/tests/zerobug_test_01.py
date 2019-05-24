@@ -1,38 +1,22 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
-#    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
 """
+from __future__ import print_function,unicode_literals
+from past.builtins import basestring
 
 # import pdb
 import os
 import os.path
 import sys
 # pdb.set_trace()
-from zerobug import Z0test
+from zerobug import Z0BUG
 # import dummylib
 
 
-__version__ = "0.2.14.2"
+__version__ = "0.2.14.3"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -45,8 +29,8 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
+    Z = Z0BUG
+    ctx = Z0BUG.parseoptest(sys.argv[1:],
                         version=version())
     if os.name == 'posix':
         if os.environ.get('HOSTENV', '') == 'travis':
@@ -56,21 +40,13 @@ if __name__ == "__main__":
                 "__version_0_" + __version__,
                 "__version_1_0.2.8.4%s/tools/z0lib/z0librc" % os.environ.get(
                     'HOME', '')]
-        UT_LIST.append("__version_V_0.2.0" + os.path.join(Z.test_dir,
-                                                          "dummy_01.py"))
-        UT_LIST.append("__version_v_0.2.1" + os.path.join(Z.test_dir,
-                                                          "dummy_01.py"))
-        UT_LIST.append("__version_P_0.2.2" + os.path.join(Z.test_dir,
-                                                          "dummy_01.py"))
+        UT_LIST.append("__version_V_0.2.0${testdir}/dummy_01.py")
+        UT_LIST.append("__version_v_0.2.1${testdir}/dummy_01.py")
+        UT_LIST.append("__version_P_0.2.2${testdir}/dummy_01.py")
     else:                                                   # pragma: no cover
         UT_LIST = ["__version_0_" + __version__,
-                   "__version_V_0.2.0" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py"),
-                   "__version_v_0.2.1" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py"),
-                   "__version_P_0.2.2" + os.path.join(Z.test_dir,
-                                                      "dummy_01.py")]
-    sts = Z.main_file(ctx, UT=UT_LIST)
+                   "__version_V_0.2.0${testdir}/dummy_01.py",
+                   "__version_v_0.2.1${testdir}/dummy_01.py",
+                   "__version_P_0.2.2${testdir}/dummy_01.py"]
+    sts = Z0BUG.main_file(ctx, UT=UT_LIST)
     exit(sts)
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

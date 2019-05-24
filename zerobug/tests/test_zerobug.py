@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """
     Zeroincombenze® unit test library for python programs Regression Test Suite
@@ -10,10 +10,10 @@
 import os
 import os.path
 import sys
-from zerobug import Z0test
+from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.2"
+__version__ = "0.2.14.3"
 
 MODULE_ID = 'zerobug'
 
@@ -25,18 +25,17 @@ def version():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
+    ctx = Z0BUG.parseoptest(sys.argv[1:],
+                            version=version())
     # Just for regression tests
-    coveragerc_file = os.path.join(Z.pkg_dir, '.coveragerc')
-    coveragerc_bak = os.path.join(Z.pkg_dir, 'coveragerc.bak')
+    coveragerc_file = os.path.join(Z0BUG.rundir, '.coveragerc')
+    coveragerc_bak = os.path.join(Z0BUG.rundir, 'coveragerc.bak')
     if not os.path.isfile(coveragerc_bak):
         if os.path.isfile(coveragerc_file):
             os.rename(coveragerc_file, coveragerc_bak)
     if os.path.isfile(coveragerc_file):
         os.remove(coveragerc_file)
-    sts = Z0test.main_file(ctx)
+    sts = Z0BUG.main_file(ctx)
     if os.path.isfile(coveragerc_file):
         os.remove(coveragerc_file)
     if os.path.isfile(coveragerc_bak):

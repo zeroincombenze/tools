@@ -36,6 +36,7 @@ Area managed:
 @author: Antonio M. Vigliotti antoniomaria.vigliotti@gmail.com
 """
 
+from __future__ import print_function, unicode_literals
 # import pdb
 import os
 import argparse

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 """@mainpage
-Zeroincombenze® continuous testing framework with tools for python programs
-===========================================================================
+zerobug
+=======
+
+Zeroincombenze® continuous testing framework for python and bash programs
+-------------------------------------------------------------------------
 
 This library can run unit test of target package software.
 Supported languages are *python* (through z0testlib.py)
@@ -19,10 +22,10 @@ total unit test to execute, that is a sort of advancing test progress.
 
 *zerobug* is built on follow concepts:
 
--# test main - it is a main program to executes all test runners
--# test runner - it is a programm to executes one or more test suites
--# test suite - it is a collection of test cases
--# test case -it is a smallest unit test
+* test main - it is a main program to executes all test runners
+* test runner - it is a program to executes one or more test suites
+* test suite - it is a collection of test cases
+* test case -it is a smallest unit test
 
 Test main file (usually is called 'all_tests') execute the test suite declared
 in source file. If no test list declared, it searches for test runner files
@@ -39,37 +42,42 @@ it.
 
 Every unit test file may be called with follows switches:
 
-    $ unit_test [-hek][-l file][-Nnq][-s number][-Vv][-z number][-0]
-    where:
-    -h             this help
-    -e             enable echoing even if not interactive tty
-    -f             RESERVED TO --failfast (stop on first failure)
-    -k             keep current logfile
-    -l file        set logfile name
-    -N             create new logfile
-    -n             count and display # unit tests (do no test, return success)
-    -q             run tests in quiet mode (no echo)
-    -r number      run tests counting 1st test next to number
-    -s number      like -r (deprecated)
-    -V             show version (do no test, return success);
-                   version on unit test should be the same of tested software
-    -v             verbose mode
-    -x             execute silently library sanity check and exit [no bash]
-    -X             execute library sanity check and exit [no bash]
-    -z number      display total # tests when execute them
-    -0             no count # unit tests
-    -1             run test for coverage
-    (w/o switches) do run test and return test result
+  -h, --help            show this help message and exit
+  -b, --debug           run tests in debug mode
+  -e, --echo            enable echoing even if not interactive tty
+  -J                    load travisrc
+  -k, --keep            keep current logfile
+  -l file, --logname file
+                        set logfile name
+  -N, --new             create new logfile
+  -n, --dry-run         count and display # unit tests
+  -O                    load odoorc
+  -q, --quiet           run tests without output (quiet mode)
+  -r number, --restart number
+                        set to counted tests, 1st one next to this
+  -s number, --start number
+                        set to counted tests, 1st one next to this
+  -V, --version         show program's version number and exit
+  -v, --verbose         verbose mode
+  -x, --qsanity         like -X but run silently
+  -X, --esanity         execute test library sanity check and exit
+  -z number, --end number
+                        display total # tests when execute them
+  -0, --no-count        no count # unit tests
+  -1, --coverage        run tests for coverage
+  -3, --python3         use python3
+
+  (w/o switches) do run test and return test result
 
 
 Package, test environment and deployment are:
 
     ./                  Package directory
-                        inside python test program is self.pkg_dir
+                        inside python test program is self.rundir
                         inside bash test script is $RUNDIR
     ./tests             Unit test directory
                         should contains one of 'all_tests' or 'test_PKGNAME'
-                        inside python test program is self.test_dir
+                        inside python test program is self.testdir
                         inside bash test script is $TESTDIR
     ./tests/z0testlib   Python file unit test library from zerobug package
                         may be not present if zerobug python package installed
@@ -79,8 +87,8 @@ Package, test environment and deployment are:
     ./tests/z0librc     Local bash script library for bash scripts;
                         Could be in user root directory or in /etc directory
                         inside bash test script is $Z0LIBDIR
-    ./_travis           Interface to travis emulator if present;
-                        it used in local host to emualte some travis functions
+    ./_travis           Interface to travis emulator if present (obsolete);
+                        it used in local host to emulate some travis functions
                         inside bash test script is $TRAVISDIR
 
 Unit test can run in package directory or in ./tests directory of package.
@@ -88,11 +96,10 @@ Unit test can run in package directory or in ./tests directory of package.
 
 Every test can inquire internal context.
 
-    this_fqn      parent caller full qualified name (i.e. /opt/odoo/z0bug.pyc)
-    this          parent name, w/o extension (i.e. z0bug)
-    ctr;          test counter [both bash and python tests]
+    ctr           test counter [both bash and python tests]
     dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
     esanity       True if required sanity check with echo                  "-X"
+    logfn         real trace log file name from switch                     "-l"
     max_test      # of tests to execute [both bash and python tests]       "-z"
     min_test      # of test executed before this one                       "-r"
     on_error      behavior after error, 'continue' or 'raise' (default)
@@ -100,18 +107,22 @@ Every test can inquire internal context.
     opt_new       new log file [both bash and python tests]                "-N"
     opt_noctr     do not count # tests [both bash and python tests]        "-0"
     opt_verbose   show messages during execution                           "-v"
-    logfn         real trace log file name from switch                     "-l"
+    os_name       name of pltaform: posix, win32 or wms
+    python3       Execute test in python3                                  "-3"
     qsanity       True if required sanity check w/o echo                   "-x"
     run4cover     Run tests for coverage (use coverage run rather python)  "-1"
+    rundir        directory of this package (see self.rundir)
     run_daemon    True if execution w/o tty as stdio
     run_on_top    Top test (not parent)
     run_tty       Opposite of run_daemon
+    testdir       unit test directory (see self.testdir)
+    this          parent name, w/o extension (i.e. z0bug)
+    this_fqn      parent caller full qualified name (i.e. /opt/odoo/z0bug.pyc)
     tlog          default tracelog file name
+    _parser       cmd line parser
     _run_autotest True if running auto-test
-    _parser       parser
     _opt_obj      parser obj, to acquire optional switches
     WLOGCMD       override opt_echo; may be None, 'echo', 'echo-1', 'echo-0'
-    Z0            this library object
 
 Environment read:
 
@@ -120,14 +131,17 @@ DEV_ENVIRONMENT Name of package; if set test is under travis emulator control
 COVERAGE_PROCESS_START
                 Name of coverage conf file; if set test is running for coverage
 """
-from __future__ import print_function
+from __future__ import print_function,unicode_literals
+from past.builtins import basestring
 
 # import pdb
 import os
 import os.path
 import sys
 import subprocess
+from string import Template
 from subprocess import Popen, PIPE
+from shutil import rmtree
 # import logging
 import argparse
 import inspect
@@ -137,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.2"
+__version__ = "0.2.14.3"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -199,23 +213,25 @@ LX_OPT_ARGS = {'opt_debug': '-b',
                'opt_verbose': '-v',
                'max_test': '-z',
                'opt_noctr': '-0',
-               'run4cover': '-1'}
-#
-#
-# class ZeroBugPlugin(coverage.plugin.CoveragePlugin):
-#
-#     def file_tracer(self, filename):
-#         fd = open('./coverage.z0bug', 'a')
-#         fd.write("%s\n" % filename)
-#         fd.close()
-#         print "<<<<<%s>>>>>" % filename
-#         # return FileTracer(filename)
-#
-#
-# class FileTracer(coverage.plugin.FileTracer):
-#
-#     def __init__(self, filename):
-#         pass
+               'run4cover': '-1',
+               'python3': '-3'}
+
+
+class Macro(Template):
+    delimiter = '${'
+    idpattern = r'[^}]+?}'
+
+    def substitute(self, **kwargs):
+        nk = {}
+        for k,v in kwargs.items():
+            nk[k + '}'] = v
+        return super(Macro, self).substitute(**nk)
+
+    def safe_substitute(self, **kwargs):
+        nk = {}
+        for k,v in kwargs.items():
+            nk[k + '}'] = v
+        return super(Macro, self).safe_substitute(**nk)
 
 
 class SanityTest():
@@ -600,23 +616,23 @@ class Z0test(object):
         this_dir = os.path.dirname(this_fqn)
         self.this_dir = this_dir
         if os.path.basename(this_dir) == 'tests':
-            self.test_dir = self.this_dir
-            self.pkg_dir = os.path.abspath(self.this_dir + '/..')
+            self.testdir = self.this_dir
+            self.rundir = os.path.abspath(os.path.join(self.this_dir, '..'))
         else:                                               # pragma: no cover
-            if os.path.isdir('.tests'):
-                self.test_dir = os.path.join(self.this_dir,
-                                             'tests')
+            if os.path.isdir('./tests'):
+                self.testdir = os.path.join(self.this_dir,
+                                            'tests')
             else:
-                self.test_dir = self.this_dir
-            self.pkg_dir = self.this_dir
-        x = os.path.dirname(self.pkg_dir)
+                self.testdir = self.this_dir
+            self.rundir = self.this_dir
+        x = os.path.dirname(self.rundir)
         PYTHONPATH = os.environ.get('PYTHONPATH', '')
         if x not in sys.path:
             p = ':%s:' % PYTHONPATH
             if p.find(':%s:' % x) < 0:
                 PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
         if this == 'test_zerobug':
-            x = '%s/%s' % (self.pkg_dir, 'dummy')
+            x = '%s/%s' % (self.rundir, 'dummy')
             PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
         os.putenv('PYTHONPATH', PYTHONPATH)
         self.PYTHONPATH = PYTHONPATH
@@ -624,7 +640,7 @@ class Z0test(object):
             if this[0:5] == 'test_':
                 id = this[5:]
             elif this[0:5] == 'all_tests':
-                id = os.path.basename(self.pkg_dir)
+                id = os.path.basename(self.rundir)
             else:
                 id = this
             if id[-3:] >= '_00' and id[-3:] <= '_99':
@@ -636,7 +652,7 @@ class Z0test(object):
         self.module_id = id
         self.pattern = self.module_id + "_test*"
         # If auto regression test is executing
-        self.def_tlog_fn = os.path.join(self.test_dir,
+        self.def_tlog_fn = os.path.join(self.testdir,
                                         self.module_id + "_test.log")
         self.ctr_list = []
         if self.autorun:
@@ -756,6 +772,11 @@ class Z0test(object):
                             action="store_true",
                             dest="run4cover",
                             default=False)
+        parser.add_argument("-3", "--python3",
+                            help="use python3",
+                            action="store_true",
+                            dest="python3",
+                            default=False)
         return parser
 
     def create_params_dict(self, ctx):
@@ -802,7 +823,7 @@ class Z0test(object):
             ctx['opt_noctr'] = True
             if not ctx.get('COVERAGE_PROCESS_START', ''):   # pragma: no cover
                 ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
-                    os.path.join(self.pkg_dir,
+                    os.path.join(self.rundir,
                                  '.coveragerc'))
         return ctx
 
@@ -878,6 +899,9 @@ class Z0test(object):
 
     def parseoptest(self, arguments, version=None, tlog=None):
         ctx = {}
+        ctx['os_name'] = os.name
+        ctx['rundir'] = self.rundir
+        ctx['testdir'] = self.testdir
         this_fqn = self.get_this_fqn()
         ctx['this_fqn'] = this_fqn
         this = os0.nakedname(os.path.basename(this_fqn))
@@ -973,12 +997,33 @@ class Z0test(object):
             ctx = self.restore_opt(ctx, p)
         return ctx
 
-    def test_version(self, ctx, version, tver, file):
+    def test_version(self, ctx, testname):
+        """testname format is '__version_T_VVVVFILE' where:
+        T: type - May be:
+               'V' = exec 'testfile -V'
+               'v' = exec 'testfile -v'
+               'P' = exec 'testfile --version'
+               '1' = use VVVV
+               '0' = use internal value __version__
+        VVVV: version - Version to match (must be {0-9.}+)
+        FILE: pathfile to execute to match version (macro expanded)
+        """
         if ctx['dry_run']:
             ctx['ctr'] = 1
             return TEST_SUCCESS
-        x = os.path.basename(file)
-        msg = "version %s" % x
+        tver = testname[10]
+        file = ''
+        version = ''
+        i = 12
+        while i < len(testname):
+            if testname[i].isdigit() or testname[i] == '.':
+                version = version + testname[i]
+            else:
+                file = Macro(testname[i:])
+                file = file.safe_substitute(**ctx)
+                break
+            i += 1
+        msg = "version %s" % os.path.basename(file)
         res = ""
         cmd = ""
         if tver == "V":
@@ -1000,6 +1045,25 @@ class Z0test(object):
         return self.test_result(ctx,
                                 msg,
                                 version,
+                                res)
+
+    def doctest(self, ctx, testname):
+        """testname format is '__doctest_FILE' where:
+        FILE: pathfile to execute doctest (macro expanded)
+        """
+        if ctx['dry_run']:
+            return TEST_SUCCESS
+        file = Macro(testname[10:])
+        file = file.safe_substitute(**ctx)
+        msg = "doctest %s" % os.path.basename(file)
+        cmd = 'python -m doctest %s' % file
+        FNULL = open(os.devnull, 'w')
+        res = subprocess.call(['python', '-m', 'doctest', file],
+                              stdout=FNULL,
+                              stderr=subprocess.STDOUT)
+        return self.test_result(ctx,
+                                msg,
+                                TEST_SUCCESS,
                                 res)
 
     def exec_tests_4_count(self, test_list, ctx, TestCls=None):
@@ -1025,18 +1089,23 @@ class Z0test(object):
             ctx['dry_run'] = True
             basetn = os.path.basename(testname)
             ctx['ctr'] = 0
-            if testname[0:6] == '__test':
+            if testname.startswith('__test'):
                 # ctx['dry_run'] = True
                 ctx['ctr'] = int(testname[7:9])
-            elif testname[0:9] == '__version':
-                self.test_version(ctx, "", "", "")
+            elif testname.startswith('__version'):
+                self.test_version(ctx, testname)
+            elif testname.startswith('__doctest'):
+                self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
                 getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
                 if os.path.dirname(testname) == "":
-                    testname = os.path.join(self.test_dir, testname)
+                    testname = os.path.join(self.testdir, testname)
                 if basetn.endswith('.py'):
-                    test_w_args = ['python'] + [testname] + opt4childs
+                    if ctx.get('python3', False):
+                        test_w_args = ['python3'] + [testname] + opt4childs
+                    else:
+                        test_w_args = ['python'] + [testname] + opt4childs
                 else:
                     test_w_args = [testname] + opt4childs
                 self.dbgmsg(ctx, " %s" % test_w_args)
@@ -1093,31 +1162,22 @@ class Z0test(object):
                          ctx.get('run4cover', False)))
             opt4childs = self.inherit_opts(ctx)
             basetn = os.path.basename(testname)
-            if testname[0:6] == '__test':
+            if testname.startswith('__test'):
                 sts = self.test_result(ctx,
                                        testname,
                                        True,
                                        True)
-            elif testname[0:9] == '__version':
-                t = testname[10]
-                x = ''
-                v = ''
-                i = 12
-                while i < len(testname):
-                    if str.isdigit(testname[i]) or testname[i] == '.':
-                        v = v + testname[i]
-                    else:
-                        x = testname[i:]
-                        break
-                    i += 1
-                sts = self.test_version(ctx, v, t, x)
+            elif testname.startswith('__version'):
+                sts = self.test_version(ctx, testname)
+            elif testname.startswith('__doctest'):
+                self.doctest(ctx, testname)
             elif TestCls and hasattr(TestCls, testname):
                 if ctx.get('opt_debug', False):
                     self.dbgmsg(ctx, " %s" % testname)
                 sts = getattr(T, testname)(ctx)
             elif os0.nakedname(basetn) != ctx['this']:
                 if os.path.dirname(testname) == "":
-                    testname = os.path.join(self.test_dir, testname)
+                    testname = os.path.join(self.testdir, testname)
                 if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
                     # if ctx.get('run4cover', False):
                     #     ctx['ctr'] = self.ctr_list[ix]
@@ -1143,7 +1203,10 @@ class Z0test(object):
                                        ctx['COVERAGE_PROCESS_START'],
                                        testname] + opt4childs
                     else:
-                        test_w_args = ['python'] + [testname] + opt4childs
+                        if ctx.get('python3', False):
+                            test_w_args = ['python3'] + [testname] + opt4childs
+                        else:
+                            test_w_args = ['python'] + [testname] + opt4childs
                     self.dbgmsg(ctx, " %s" % test_w_args)
                     sts = subprocess.call(test_w_args)
                 else:
@@ -1231,7 +1294,7 @@ class Z0test(object):
                 not ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, '- Search for files %s' % self.pattern)
             test_files = os.path.abspath(
-                os.path.join(self.test_dir,
+                os.path.join(self.testdir,
                              self.pattern))
             for fn in sorted(glob.glob(test_files)):
                 if len(fn) - fn.rfind('.') <= 4:
@@ -1282,9 +1345,9 @@ class Z0test(object):
     def dbgmsg(self, ctx, msg):
         if ctx.get('opt_debug', False):
             if msg[0] == "!":
-                fd = open(self.test_dir + '/z0bug.tracehis', 'w')
+                fd = open(os.path.join(self.testdir, 'z0bug.tracehis'), 'w')
             else:
-                fd = open(self.test_dir + '/z0bug.tracehis', 'a')
+                fd = open(os.path.join(self.testdir, 'z0bug.tracehis'), 'a')
             fd.write("%s> %s\n" % (os.path.basename(ctx['this_fqn']), msg))
             fd.close()
 
@@ -1372,16 +1435,28 @@ class Z0test(object):
         return sts
 
     def build_os_tree(self, ctx, os_tree):
-        """Create a filesytem tree to test"""
+        """Create a filesytem tree to test
+        """
         root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
         if not os.path.isdir(root):
             os.mkdir(root)
         for path in os_tree:
             if path[0] not in ('.', '/'):
                 path = os.path.join(root, path)
-                if not os.path.isdir(path):
-                    os.mkdir(path)
+            if not os.path.isdir(path):
+                os.mkdir(path)
         return root
  
+    def remove_os_tree(self, ctx, os_tree):
+        """Remove a filesytem tree created to test"""
+        root = os.path.join(os.path.dirname(ctx['this_fqn']), 'res')
+        if not os.path.isdir(root):
+            return
+        for path in os_tree:
+            if path[0] not in ('.', '/'):
+                path = os.path.join(root, path)
+            if not os.path.isdir(path):
+                continue
+            rmtree(path, ignore_errors=True)
 
 # main = Z0test(autorun=True)

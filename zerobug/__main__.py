@@ -26,7 +26,7 @@ import sys
 import zerobug
 
 
-__version__ = "0.2.14.2"
+__version__ = "0.2.14.3"
 
 
 if __name__ == "__main__":

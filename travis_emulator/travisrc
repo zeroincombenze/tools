@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.8
+#__version__=0.2.2.9
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -574,7 +574,8 @@ wash_virtual_env() {
 prepare_env_travis() {
     local action="$1"
     local v x
-    if [[ $action =~ (lint|test|emulate|test|coverage) ]]; then
+    # if [[ $action =~ (lint|test|emulate|test|coverage) ]]; then
+    if [[ $action =~ (lint|test|emulate|test) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
           if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
@@ -589,28 +590,12 @@ prepare_env_travis() {
     fi
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
-    # if [ "$PRJNAME" == "travis_emulator" -a -d $PRJPATH/_travis/cfg ]; then
-    #   export FLAKE8_CONFIG_DIR=$PRJPATH/_travis/cfg
-    # elif [ -d $PRJPATH/cfg ]; then
-    #   export FLAKE8_CONFIG_DIR=$PRJPATH/cfg
-    # elif [ -d $MQT_PATH/cfg ]; then
-    # if [ -d $HOME//dev/_travis/cfg ]; then
-    #   export FLAKE8_CONFIG_DIR=$MQT_PATH/cfg
-    # if [ -d $MQT_PATH/cfg ]; then
-    #   export FLAKE8_CONFIG_DIR=$MQT_PATH/cfg
-    # else
-    #   export FLAKE8_CONFIG_DIR=$TOOLS_PATH/cfg
-    # fi
     export BRANCH
     export VERSION=$BRANCH
     if [ "$action" == "lint" ]; then
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then
       export LINT_CHECK=0
-    # elif [ "$PRJNAME" != "Odoo" ]; then
-    #   export LINT_CHECK=1
-    # else
-    #   unset -v LINT_CHECK
     fi
     if [ "$PRJNAME" == "Odoo" ]; then
       export ODOO_REPO=$REMOTEREPO/${PRJNAME,,}
@@ -1250,110 +1235,6 @@ coverage() {
       :
     fi
     return $?
-}
-
-run_coverage_test() {
-# run_coverage_test pkglist
-    if [ -n "$1" ]; then
-      coverage_combine_n_report $1
-    else
-      run_coverage_1_test
-    fi
-    return $?
-}
-
-coverage_combine_n_report() {
-# coverage_combine_n_report pkglist
-    cd $PRJPATH
-    local COVRF=.coverage
-    if [ -f ./$COVRF ]; then
-      rm -f ./$COVRF
-    fi
-    local pkglist=${1//,/ }
-    for p in $pkglist; do
-      if [ -f $p/$COVRF ]; then
-        if [ -f ./$COVRF ]; then
-          run_traced "coverage combine ./$COVRF $p/$COVRF"
-        else
-          run_traced "cp $p/$COVRF ./$COVRF"
-        fi
-      fi
-    done
-    coverage report
-    sts=$?
-    if [ $sts -eq $STS_SUCCESS ]; then
-      if [ -n "$COVERALLS_REPO_TOKEN" ]; then
-        COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
-        sts=$STS_SUCCESS
-      fi
-    fi
-    return $sts
-}
-
-run_coverage_1_test() {
-    cd $PRJPATH
-    if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "$PRJNAME" != "Odoo" ]; then
-        if [ ${opt_verbose:-0} -gt 0 ]; then
-          echo "export COVERAGE_FILE=$(readlink -f ./.coverage)"
-        fi
-        export COVERAGE_FILE=$(readlink -f ./.coverage)
-        if [ -f ./__main__.py ]; then
-          coverage erase
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py"
-          fi
-          DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run --source $PRJNAME __main__.py
-          if [ ${opt_mis:-0} -gt 0 ]; then
-            coverage report -m
-          else
-            coverage report
-          fi
-          sts=$?
-        elif [ -f ./tests/test_$PRJNAME.py ]; then
-          coverage erase
-          if [ ${opt_verbose:-0} -gt 0 ]; then
-            echo "export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)"
-          fi
-          export COVERAGE_PROCESS_START=$(readlink -f ./.coveragerc)
-          if [ ${opt_dprj:-0} -gt 0 ]; then
-            if [ ${opt_verbose:-0} -gt 0 ]; then
-              echo "DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run -a ./tests/test_$PRJNAME.py"
-            fi
-            DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run -a ./tests/test_$PRJNAME.py
-          else
-            if [ ${opt_verbose:-0} -gt 0 ]; then
-              echo "cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run -a --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py"
-            fi
-            cd ./tests; DEV_ENVIRONMENT=$PRJNAME PYTHONPATH=$PYTHONPATH:$PKGPATH coverage run -a --rcfile=$COVERAGE_PROCESS_START test_$PRJNAME.py
-          fi
-          if [ ${opt_mis:-0} -gt 0 ]; then
-            coverage report -m
-          else
-            coverage report
-          fi
-          sts=$?
-        else
-          sts=$STS_FAILED
-        fi
-        if [ $sts -eq $STS_SUCCESS ]; then
-          if [ -n "$COVERALLS_REPO_TOKEN" ]; then
-            COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN coveralls
-            sts=$STS_SUCCESS
-          fi
-        fi
-      else
-        if [ ${opt_mis:-0} -gt 0 ]; then
-          coverage report -m
-        else
-          coverage report
-        fi
-        sts=$?
-      fi
-    else
-      sts=$STS_SUCCESS
-    fi
-    return $sts
 }
 
 run_annotate_test() {

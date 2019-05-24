@@ -1,8 +1,8 @@
 from setuptools import setup
 
 setup(name='os0',
-      version='0.2.14',
-      description='OS indipendent interface',
+      version='',
+      description='',
       classifiers=[
           'Development Status :: 1 - Planning',
       ])

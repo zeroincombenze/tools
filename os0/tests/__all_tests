@@ -10,7 +10,7 @@ else
 . /etc/z0librc
 fi
 
-__version__=0.2.8.1
+__version__=0.2.14.2
 OPTOPTS=(h        n            V           v)
 OPTDEST=(opt_help opt_dry_run  opt_version opt_verbose)
 OPTACTI=(1        "1>"         "*>"        1)
@@ -45,7 +45,7 @@ if [ $opt_dry_run -gt 0 ]; then
   exit 0
 fi
 if [ -f "$td/$tf" ]; then
-  if [ `python -m doctest $1 $td/$tf` ]; then
+  if [ $(python -m doctest $1 $td/$tf) ]; then
     python $td/os0_test_01.py
   fi
 else

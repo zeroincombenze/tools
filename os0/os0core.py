@@ -1,24 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-#
-#    Copyright (C) SHS-AV s.r.l. (<http://www.zeroincombenze.it>)
-#    All Rights Reserved
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#
+# Copyright (C) 2013-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 r"""@mainpage
 OS routines for Linux, OpenVMS and Windows
 
@@ -74,6 +56,37 @@ Notes:
    support for filename version
 """
 
+# Compatible python2/3 code
+#  from past.builtins import basestring
+#  from builtins import chr
+#  import sys
+#  
+#  def isunicode(object):
+#      if sys.version_info[0] < 3:
+#          return isinstance(object, unicode)
+#      return isinstance(object, str)
+#  
+#   def isbytestr(object):
+#      if sys.version_info[0] < 3:
+#          return isinstance(object, str)
+#      return isinstance(object, bytes)
+#  
+#  a=u"aa"
+#  b=b'bb'
+#  print('a=%s (%s)\nb=%s (%s)' %(a, type(a), b, type(b)))
+#  print('unicode(a)?', isunicode(a))
+#  print('unicode(b)?', isunicode(b))
+#  
+#  print('byte(a)?', isbytestr(a))
+#  print('byte(b)?', isbytestr(b))
+
+
+
+from __future__ import print_function,unicode_literals
+# from __future__ import print_function
+from past.builtins import basestring
+from builtins import chr
+
 import os
 import os.path
 import sys
@@ -84,7 +97,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.14"
+__version__ = "0.2.14.2"
 
 
 class Os0():
@@ -122,16 +135,26 @@ class Os0():
         if _platform == "OpenVMS":
             self.bginp_fn = self.setlfilename("/dev/null", self.LFN_FLAT)
 
+    def isunicode(self, object):
+        if sys.version_info[0] < 3:
+            return isinstance(object, unicode)
+        return isinstance(object, str)
+
+    def isbytestr(self, object):
+        if sys.version_info[0] < 3:
+            return isinstance(object, str)
+        return isinstance(object, bytes)
+
     def set_codeset(self, cs):
         self.PYCODESET = cs
 
     def b(self, s):
-        if isinstance(s, unicode):
+        if self.isunicode(s):
             return s.encode(self.PYCODESET)
         return s
 
     def u(self, s):
-        if isinstance(s, str):
+        if self.isbytestr(s):
             return unicode(s, self.PYCODESET)
         return s
 
@@ -309,8 +332,6 @@ class Os0():
         @new:             if True, create a new empty tracelog file
         @echo:            echo message onto console
         """
-        # import pdb
-        # pdb.set_trace()
         if self.fh:
             self.fh.flush()
             self.fh.close()
@@ -371,49 +392,29 @@ class Os0():
         sp = ''
         for arg in args:
             try:
-                if isinstance(arg, unicode):
-                    txt = txt + sp + arg.encode('utf-8')
-                elif isinstance(arg, str):
-                    txt = txt + sp + arg
+                if isinstance(arg, basestring):
+                    txt = txt + sp + self.u(arg)
                 else:
-                    txt = txt + sp + str(arg).encode('utf-8')
+                    txt = txt + sp + self.u(str(arg))
             except:
-                x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
-                txt = txt + sp + x.encode('utf-8')
+                x = chr(0x3b1) + chr(0x3b2) + chr(0x3b3)
+                txt = txt + sp + x
             sp = ' '
         self.trace_msg(txt, dbg_mode=False)
-    #
-    # def wlog1(self, *args):
-    #     """Write a log/debug message onto tracelog file"""
-    #     txt = ""
-    #     for arg in args:
-    #         try:
-    #             if isinstance(arg, unicode):
-    #                 txt = txt + arg.encode('utf-8')
-    #             elif isinstance(arg, str):
-    #                 txt = txt + arg
-    #             else:
-    #                 txt = txt + str(arg).encode('utf-8')
-    #         except:
-    #             x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
-    #             txt = txt + x.encode('utf-8')
-    #     self.trace_msg(txt, dbg_mode=False)
 
     def trace_debug(self, *args):
-        """Likw wlog but only if debug mode is active """
+        """Like wlog but only if debug mode is active """
         txt = ""
         sp = ''
         for arg in args:
             try:
-                if isinstance(arg, unicode):
-                    txt = txt + sp + arg.encode('utf-8')
-                elif isinstance(arg, str):
-                    txt = txt + sp + arg
+                if isinstance(arg, basestring):
+                    txt = txt + sp + self.u(arg)
                 else:
-                    txt = txt + sp + str(arg).encode('utf-8')
+                    txt = txt + sp + self.u(str(arg))
             except:
-                x = unichr(0x3b1) + unichr(0x3b2) + unichr(0x3b3)
-                txt = txt + sp + x.encode('utf-8')
+                x = chr(0x3b1) + chr(0x3b2) + chr(0x3b3)
+                txt = txt + sp + x
             sp = ' '
         self.trace_msg(txt, dbg_mode=True)
 

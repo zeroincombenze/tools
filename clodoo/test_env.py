@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import sys
 import time
+import re
 import getpass
 from symbol import except_clause
 # import oerplib
@@ -22,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.29"
+__version__ = "0.3.8.30"
 
 
 MAX_DEEP = 20
@@ -239,6 +240,76 @@ def print_tax_codes():
         for rec in clodoo.browseL8(ctx, model,
                                    clodoo.searchL8(ctx, model, [])):
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
+
+
+def synchro(ctx, model, vals):
+    sts = 0
+    ids = []
+    if 'id' in vals:
+        ids = clodoo.search(ctx, model, [('id', '=', vals['id'])])
+        if not ids or ids[0] != vals['id']:
+            raise IOError('ID %d does not exist in %s' %
+                            vals['id'], model)
+        del vals['id']
+    # if not ids and 'vg7_id' in vals:
+    #     ids = clodoo.search(ctx, model, [('vg7_id', '=', vals['vg7_id'])])
+    if not ids and 'code' in vals:
+        where = [('code', '=', vals['code'])]
+        if 'company_id' in vals:
+            where.append([('company_id', '=', vals['company_id'])])
+        ids = clodoo.search(ctx, model, where)
+    if not ids and 'name' in vals:
+        where = [('name', '=', vals['name'])]
+        if 'company_id' in vals:
+            where.append([('company_id', '=', vals['company_id'])])
+        ids = clodoo.search(ctx, model, where)
+    if ids:
+        clodoo.write(ctx, model, ids, vals)
+    else:
+        ids = [clodoo.create(ctx, model, vals)]
+    return ids
+
+
+def create_RA_config(ctx):
+    model = 'res.company'
+    ids = clodoo.searchL8(ctx, model, [], order='id')
+    if len(ids) == 0:
+        print('No company found!')
+        return
+    elif len(ids) == 1:
+        company_id = ids[0]
+    elif len(ids) > 1:
+        company_id = ids[1]
+    company = clodoo.browseL8(ctx, model, company_id)
+    print('Campany setup is %s' % company.name)
+    model = 'account.account'
+    credit_acc_id = False
+    debit_acc_id = False
+    for acc in clodoo.browseL8(
+        ctx, model, clodoo.search(
+            ctx, model, [('name', 'ilike', 'ritenut')])):
+        if re.match('[Er]rario.*[Rr]itenut.*autonom', acc.name):
+            debit_acc_id = acc.id
+        elif re.match('[Cr]redit.*[Rr]itenut.*acc', acc.name):
+            credit_acc_id = acc.id
+        elif re.match('[Dd]ebit.*[Ri]itenut.*acc', acc.name):
+            debit_acc_id = acc.id
+        elif re.match('[Cr]redit.*RA', acc.name):
+            credit_acc_id = acc.id
+        elif re.match('[Dd]ebit.*RA', acc.name):
+            debit_acc_id = acc.id
+        elif re.match('[Cr]redit.*[Rr]itenut', acc.name) and not credit_acc_id:
+            credit_acc_id = acc.id
+        elif re.match('[Dd]ebit.*[Ri]itenut', acc.name) and not debit_acc_id:
+            debit_acc_id = acc.id
+    model = 'withholding.tax'
+    vals = {'name': '1040',
+            'code': '1040',
+            'account_receivable_id': credit_acc_id,
+            'account_payable_id': debit_acc_id,
+            'company_id': company_id,
+    }
+    synchro(ctx, model, vals)
 
 
 def print_user_profile(ctx):
