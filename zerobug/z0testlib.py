@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.3"
+__version__ = "0.2.14.4"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -216,6 +216,48 @@ LX_OPT_ARGS = {'opt_debug': '-b',
                'run4cover': '-1',
                'python3': '-3'}
 
+DEFAULT_COVERARC = r"""
+[report]
+include =
+#    ${TRAVIS_BUILD_DIR}/*
+    *.py
+
+omit =
+    */scenario/*
+    */scenarios/*
+    */test/*
+    */tests/*
+    *_example/*
+    __main__.py
+    setup.py
+    */lib*/python*
+    */__init__.py
+    */__openerp__.py
+    */__manifest__.py
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about null context checking
+    if context is None:
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == .__main__.:
+    if 0:
+    if False:
+
+    # Ignore unit test failure
+    return TEST_FAILED
+"""
 
 class Macro(Template):
     delimiter = '${'
@@ -602,16 +644,19 @@ class Z0test(object):
     """The command line program to execute all tests in professional way.
     """
 
+    def version(self):
+        return __version__
+
     def __init__(self, argv=None, id=None, version=None, autorun=False):
         self.autorun = autorun
-        this_fqn = self.get_this_fqn()
+        this_fqn = None
         if argv is None:
             argv = sys.argv[1:]
-            if len(sys.argv) > 0:
+            if len(sys.argv) > 0 and sys.argv[0] != '-c':
                 this_fqn = sys.argv[0]
         else:
             self.autorun = True
-        this_fqn = os.path.abspath(this_fqn)
+        this_fqn = os.path.abspath(this_fqn or self.get_this_fqn())
         this = os0.nakedname(os.path.basename(this_fqn))
         this_dir = os.path.dirname(this_fqn)
         self.this_dir = this_dir
@@ -637,9 +682,9 @@ class Z0test(object):
         os.putenv('PYTHONPATH', PYTHONPATH)
         self.PYTHONPATH = PYTHONPATH
         if not id:
-            if this[0:5] == 'test_':
+            if this.startswith('test_'):
                 id = this[5:]
-            elif this[0:5] == 'all_tests':
+            elif this.startswith('all_tests') or this == '__main__':
                 id = os.path.basename(self.rundir)
             else:
                 id = this
@@ -820,7 +865,7 @@ class Z0test(object):
                 os.environ["COVERAGE_PROCESS_START"]
             ctx['run4cover'] = True
         if ctx['run4cover']:
-            ctx['opt_noctr'] = True
+            # ctx['opt_noctr'] = True
             if not ctx.get('COVERAGE_PROCESS_START', ''):   # pragma: no cover
                 ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
                     os.path.join(self.rundir,
@@ -888,13 +933,20 @@ class Z0test(object):
     def get_this_fqn(self):
         i = 1
         valid = False
+        auto_this = False
         while not valid:
             this_fqn = os.path.abspath(inspect.stack()[i][1])
             this = os0.nakedname(os.path.basename(this_fqn))
             if this in ("__init__", "pdb", "cmd", "z0testlib"):
                 i += 1
+                if this == "__init__":
+                    auto_this = this_fqn
             else:
                 valid = True
+                if this == 'pkgutil':
+                    this_fqn = os.path.dirname(auto_this)
+                    id = 'test_%s.py' % os.path.basename(this_fqn)
+                    this_fqn = os.path.join(this_fqn, id)
         return this_fqn
 
     def parseoptest(self, arguments, version=None, tlog=None):
@@ -1137,14 +1189,11 @@ class Z0test(object):
         else:
             self.dbgmsg(ctx, '.exec_all_tests')
         ctx = self.ready_opts(ctx)
-        if not ctx.get('_run_autotest', False) and \
-                ctx.get('run4cover', False) and \
-                not os.path.isfile(ctx['COVERAGE_PROCESS_START']):
+        if (not ctx.get('_run_autotest', False) and
+                ctx.get('run4cover', False and
+                not os.path.isfile(ctx['COVERAGE_PROCESS_START']))):
             fd = open(ctx['COVERAGE_PROCESS_START'], 'w')
-            fd.write("[report]\n")
-            fd.write("omit =\n")
-            fd.write("    */usr/lib*/python*\n")
-            fd.write("    */__init__.py\n")
+            fd.write(DEFAULT_COVERARC)
             fd.close()
         ix = 0
         sts = 0
@@ -1179,21 +1228,6 @@ class Z0test(object):
                 if os.path.dirname(testname) == "":
                     testname = os.path.join(self.testdir, testname)
                 if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
-                    # if ctx.get('run4cover', False):
-                    #     ctx['ctr'] = self.ctr_list[ix]
-                    #     ix += 1
-                    # else:
-                    #     test_w_args = ['python', testname, '-n']
-                    #     self.dbgmsg(ctx, " %s" % test_w_args)
-                    #     p = Popen(test_w_args,
-                    #               stdin=PIPE,
-                    #               stdout=PIPE,
-                    #               stderr=PIPE)
-                    #     res, err = p.communicate()
-                    #     try:
-                    #         ctx['ctr'] += int(res)
-                    #     except:
-                    #         ctx['ctr'] += 0
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     if ctx.get('run4cover', False):
                         test_w_args = ['coverage',
@@ -1210,17 +1244,6 @@ class Z0test(object):
                     self.dbgmsg(ctx, " %s" % test_w_args)
                     sts = subprocess.call(test_w_args)
                 else:
-                    # test_w_args = [testname, '-n']
-                    # self.dbgmsg(ctx, " %s" % test_w_args)
-                    # p = Popen(test_w_args,
-                    #           stdin=PIPE,
-                    #           stdout=PIPE,
-                    #           stderr=PIPE)
-                    # res, err = p.communicate()
-                    # try:
-                    #     ctx['ctr'] += int(res)
-                    # except:
-                    #     ctx['ctr'] += 0
                     self.dbgmsg(ctx, " %s %s" % (testname, opt4childs))
                     test_w_args = [testname] + opt4childs
                     sts = subprocess.call(test_w_args)
@@ -1458,5 +1481,3 @@ class Z0test(object):
             if not os.path.isdir(path):
                 continue
             rmtree(path, ignore_errors=True)
-
-# main = Z0test(autorun=True)

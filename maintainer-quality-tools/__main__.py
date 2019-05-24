@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""z0bug
+"""mqt
 """
 
 import os
@@ -8,7 +8,7 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.4"
+__version__ = "0.2.2.18"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
             sts = STS_FAILED
         sys.exit(sts)
 
-    print(Z0BUG.version())
+    print(__version__)
     if action != '-V':
         for text in __doc__.split('\n'):
             print text

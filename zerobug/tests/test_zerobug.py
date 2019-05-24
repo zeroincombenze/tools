@@ -13,17 +13,12 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.3"
-
-MODULE_ID = 'zerobug'
+__version__ = "0.2.14.4"
 
 
 def version():
     return __version__
 
-
-#
-# Run main if executed as a script
 if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                             version=version())

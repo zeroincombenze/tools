@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.17
+__version__=0.2.2.18
 
 
 travis_test_bash() {
@@ -147,23 +147,73 @@ run_regression_test() {
       if [ $(echo ":$PYTHONPATH:"|grep -qv ":$x:"  2>/dev/null) ]; then
         run_traced "export PYTHONPATH=${PYTHONPATH}:$x"
       fi
+      run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
+      COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
+      cat <<EOF >$COVERAGE_PROCESS_START
+[report]
+include =
+#    ${TRAVIS_BUILD_DIR}/*
+    *.py
+
+omit =
+    */scenario/*
+    */scenarios/*
+    */test/*
+    */tests/*
+    *_example/*
+    __main__.py
+    setup.py
+    */lib*/python*
+    */__init__.py
+    */__openerp__.py
+    */__manifest__.py
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about null context checking
+    if context is None:
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+
+    # Don't complain if non-runnable code isn't run:
+    if __name__ == .__main__.:
+    if 0:
+    if False:
+
+    # Ignore unit test failure
+    return TEST_FAILED
+EOF
       if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "./tests/all_tests $OPTS"
+          run_traced "./tests/all_tests $OPTS -1"
         else
-          run_traced "cd ./tests; ./all_tests $OPTS"
+          run_traced "cd ./tests; ./all_tests $OPTS -1"
         fi
         sts=$?
       elif [ -f ./tests/test_$PRJNAME.py ]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
-          run_traced "DEV_ENVIRONMENT=$PRJNAME python ./tests/test_$PRJNAME.py"
+          run_traced "DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START ./tests/test_$PRJNAME.py"
         else
-          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME python test_$PRJNAME.py"
+          run_traced "cd ./tests; DEV_ENVIRONMENT=$PRJNAME coverage run -a --rcfile $COVERAGE_PROCESS_START test_$PRJNAME.py"
         fi
         sts=$?
       else
         elog "!????? Module test for $PRJNAME not found!??????"
         sts=$STS_FAILED
+      fi
+      if [ ! -f .coverage ]; then
+        echo "Result coverage file not found!"
+      elif [ ${opt_dprj:-0} -eq 0 ]; then
+        run_traced "mv .coverage .."
+        run_traced "cd .."
       fi
     else
       sts=$STS_SUCCESS

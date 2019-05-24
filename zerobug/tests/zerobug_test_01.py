@@ -16,7 +16,7 @@ from zerobug import Z0BUG
 # import dummylib
 
 
-__version__ = "0.2.14.3"
+__version__ = "0.2.14.4"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
