@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# from __future__ import print_function, unicode_literals
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
+# from __future__ import print_function
 
 import sys
 import time
@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.30"
+__version__ = "0.3.8.31"
 
 
 MAX_DEEP = 20
@@ -49,6 +49,11 @@ parser.add_argument('-n')
 parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
+parser.add_argument("-x", "--exec",
+                    help="internal function to execute",
+                    dest="function",
+                    metavar="python_name",
+                    default='')
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                db=ctx['db_name'],
@@ -64,7 +69,8 @@ def msg_burst(text):
         msg_time = time.time()
 
 
-def show_module_group():
+def show_module_group(ctx):
+    print('Show group infos and external names')
     model_grp = 'res.groups'
     model_ctg = 'ir.module.category'
     model_ir_md = 'ir.model.data'
@@ -93,7 +99,8 @@ def show_module_group():
                     ir_md.name))
 
 
-def clean_translations():
+def clean_translations(ctx):
+    print('Delete unuseful translations')
     model = 'ir.translation'
     where = [('lang', '=', 'it_IT'),
              '|',
@@ -105,9 +112,10 @@ def clean_translations():
     print('%d records deleted' % len(ids))
 
 
-def close_purchse_orders():
-    model='purchase.order.line'
-    ctr=0
+def close_purchse_orders(ctx):
+    print('Close purchase orders')
+    model = 'purchase.order.line'
+    ctr = 0
     for po in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
         if po.qty_invoiced == 0.0:
             qty_received = po.product_qty
@@ -121,27 +129,58 @@ def close_purchse_orders():
             ctr += 1
     print('%d purchase order lines updated' % ctr)
 
-def inv_commission_from_order():
-    print('If missed, copy commission in invoice line from sale order line')
+
+def inv_commission_from_order(ctx):
+    print('If missed, copy commission in invoice lines from sale order lines')
     inv_model = 'account.invoice.line'
     ord_model = 'sale.order.line'
     agt_model = 'account.invoice.line.agent'
     ctr = 0
-    for inv_line in clodoo.browseL8(ctx, inv_model, clodoo.searchL8(
+    for inv_line in clodoo.browseL8(
+        ctx, inv_model, clodoo.searchL8(
             ctx, inv_model, [])):
-        if not inv_line.agents.amount:
-            for ord_line in inv_line.sale_line_ids:
-                if ord_line.agents.amount:
-                    agents = [(0, 0, {'agent': x.agent.id,
-                                      'commission': x.commission.id}) for x in ord_line.agents]
-                    clodoo.writeL8(
-                        ctx, inv_model, inv_line.id,
-                        {'agents': agents})
-                    ctr += 1
-    print('%d records updated')
+        if inv_line.agents.amount:
+            continue
+        for ord_line in inv_line.sale_line_ids:
+            if not ord_line.agents.amount:
+                continue
+            agents = [(0, 0,
+                       {'agent': x.agent.id,
+                        'commission':
+                            x.commission.id}) for x in ord_line.agents]
+            clodoo.writeL8(
+                ctx, inv_model, inv_line.id,
+                {'agents': agents})
+            ctr += 1
+    print('%d invoice lines updated' % ctr)
 
 
-def set_products_2_delivery_order():
+def order_commission_by_partner(ctx):
+    ctr = 0
+    print('If missed, set commission in order lines from customer')
+    ord_model = 'sale.order.line'
+    sale_agent_model = 'sale.order.line.agent'
+    agt_model = 'account.invoice.line.agent'
+    ctr = 0
+    for ord_line in clodoo.browseL8(
+        ctx, ord_model, clodoo.searchL8(
+            ctx, ord_model, [])):
+        if ord_line.agents:
+            clodoo.unlinkL8(ctx, sale_agent_model, ord_line.agents.id)
+        rec = []
+        for agent in ord_line.order_id.partner_id.agents:
+            rec.append({
+                'agent': ord_line.order_id.partner_id.agents.id,
+                'commission': ord_line.order_id.partner_id.agents.commission.id,
+            })
+        clodoo.writeL8(ctx, ord_model, ord_line.id,
+                       {'agents': [(0, 0, rec[0])]})
+        ctr += 1
+    print('%d sale order lines updated' % ctr)
+
+
+def set_products_2_delivery_order(ctx):
+    print('Set purchase methos to purchase in all products')
     model = 'product.template'
     ctr=0
     for pp in clodoo.browseL8(ctx, model,clodoo.searchL8(ctx, model, [])):
@@ -165,7 +204,8 @@ def set_products_2_delivery_order():
     print('%d products updated' % ctr)
 
 
-def update_einvoice_out_attachment():
+def update_einvoice_out_attachment(ctx):
+    print('Update e-attachment of invoice')
     model = 'account.invoice'
     inv_id = raw_input('Invoice id: ')
     if inv_id:
@@ -184,7 +224,9 @@ def update_einvoice_out_attachment():
         if state:
             clodoo.writeL8(ctx, model, att.id, {'state': state})
 
-def revaluate_due_date_in_invoces(inv_id):
+
+def revaluate_due_date_in_invoces(ctx, inv_id=False):
+    print('Revaluate all due dates of invoices from xml')
     model = 'account.invoice'
     if not inv_id:
         inv_id = raw_input('Invoice id: ')
@@ -224,7 +266,8 @@ def revaluate_due_date_in_invoces(inv_id):
                 clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
 
 
-def print_tax_codes():
+def print_tax_codes(ctx):
+    print('Show all tax codes')
     model = 'account.tax'
     for rec in clodoo.browseL8(ctx, model,
                                clodoo.searchL8(ctx, model, [])):
@@ -246,33 +289,36 @@ def synchro(ctx, model, vals):
     sts = 0
     ids = []
     if 'id' in vals:
-        ids = clodoo.search(ctx, model, [('id', '=', vals['id'])])
+        ids = clodoo.searchL8(ctx, model, [('id', '=', vals['id'])])
         if not ids or ids[0] != vals['id']:
             raise IOError('ID %d does not exist in %s' %
                             vals['id'], model)
         del vals['id']
     # if not ids and 'vg7_id' in vals:
-    #     ids = clodoo.search(ctx, model, [('vg7_id', '=', vals['vg7_id'])])
+    #     ids = clodoo.searchL8(ctx, model, [('vg7_id', '=', vals['vg7_id'])])
     if not ids and 'code' in vals:
         where = [('code', '=', vals['code'])]
         if 'company_id' in vals:
-            where.append([('company_id', '=', vals['company_id'])])
-        ids = clodoo.search(ctx, model, where)
+            where.append(('company_id', '=', vals['company_id']))
+        ids = clodoo.searchL8(ctx, model, where)
     if not ids and 'name' in vals:
         where = [('name', '=', vals['name'])]
         if 'company_id' in vals:
-            where.append([('company_id', '=', vals['company_id'])])
-        ids = clodoo.search(ctx, model, where)
+            where.append(('company_id', '=', vals['company_id']))
+        ids = clodoo.searchL8(ctx, model, where)
     if ids:
-        clodoo.write(ctx, model, ids, vals)
+        clodoo.writeL8(ctx, model, ids, vals)
     else:
-        ids = [clodoo.create(ctx, model, vals)]
+        ids = [clodoo.createL8(ctx, model, vals)]
     return ids
 
 
 def create_RA_config(ctx):
+    print('Set withholding tax configuration to test')
     model = 'res.company'
-    ids = clodoo.searchL8(ctx, model, [], order='id')
+    ids = clodoo.searchL8(ctx, model,
+                          [('name', 'ilike', ctx['def_company_name'])],
+                          order='id')
     if len(ids) == 0:
         print('No company found!')
         return
@@ -285,14 +331,17 @@ def create_RA_config(ctx):
     model = 'account.account'
     credit_acc_id = False
     debit_acc_id = False
+    where = [('name', 'ilike', 'ritenut')]
+    if company_id:
+        where.append(('company_id', '=', company_id))
     for acc in clodoo.browseL8(
-        ctx, model, clodoo.search(
-            ctx, model, [('name', 'ilike', 'ritenut')])):
+        ctx, model, clodoo.searchL8(
+            ctx, model, where)):
         if re.match('[Er]rario.*[Rr]itenut.*autonom', acc.name):
             debit_acc_id = acc.id
         elif re.match('[Cr]redit.*[Rr]itenut.*acc', acc.name):
             credit_acc_id = acc.id
-        elif re.match('[Dd]ebit.*[Ri]itenut.*acc', acc.name):
+        elif re.match('[Dd]ebit.*[Rr]itenut.*acc', acc.name):
             debit_acc_id = acc.id
         elif re.match('[Cr]redit.*RA', acc.name):
             credit_acc_id = acc.id
@@ -300,24 +349,43 @@ def create_RA_config(ctx):
             debit_acc_id = acc.id
         elif re.match('[Cr]redit.*[Rr]itenut', acc.name) and not credit_acc_id:
             credit_acc_id = acc.id
-        elif re.match('[Dd]ebit.*[Ri]itenut', acc.name) and not debit_acc_id:
+        elif re.match('[Dd]ebit.*[Rr]itenut', acc.name) and not debit_acc_id:
             debit_acc_id = acc.id
+    model = 'account.payment.term'
+    where = [('name', 'ilike', '15')]
+    ids = clodoo.searchL8(ctx, model, where)
     model = 'withholding.tax'
     vals = {'name': '1040',
-            'code': '1040',
             'account_receivable_id': credit_acc_id,
             'account_payable_id': debit_acc_id,
-            'company_id': company_id,
     }
+    if ctx['majver'] >= 10:
+        vals['code'] = '1040'
+        vals['company_id'] = company_id
+    if ids:
+        vals['payment_term'] = ids[0]
     synchro(ctx, model, vals)
 
 
-def print_user_profile(ctx):
+def simulate_user_profile(ctx):
+    print('Show data as required user')
 
     def get_agent_names(agents):
         agent_names = []
-        for agent in agents:
-            agent_names.append(agent.name)
+        try:
+            for agent in agents:
+                agent_names.append(agent.name)
+        except BaseException:
+            agent_names.append('N/A')
+        return agent_names
+
+    def get_agent_names_line(agents):
+        agent_names = []
+        try:
+            for agent in agents.agent:
+                agent_names.append(agent.name)
+        except BaseException:
+            agent_names.append('N/A')
         return agent_names
 
     user = raw_input('Username to simulate: ')
@@ -332,58 +400,176 @@ def print_user_profile(ctx):
     print('***** %s *****' % user.name)
     for model in 'sale.order', 'account.invoice', 'res.partner':
         print('\n[%s]' % model)
+        if model == 'res.partner':
+            print('%-11.11s %4s %-32.32s %s %s' % (
+                'model', 'id', 'name', 'type', 'agents')
+            )
+            model2 = model
+            where = [('customer', '=', True), ('parent_id', '=', False)]
+        elif model == 'account.invoice':
+            print('%-15.15s %4s %-20.20s %s' % (
+                'model', 'id', 'number', 'agents')
+            )
+            model2 = 'account.invoice.line'
+            where = []
+        else:
+            print('%-10.10s %4s %-16.16s %-32.32s %s' % (
+                'model', 'id', 'name', 'customer', 'agents')
+            )
+            model2 = 'sale.order.line'
+            where = []
         for rec in clodoo.browseL8(ctx, model,
-                                   clodoo.searchL8(ctx, model, [])):
+                                   clodoo.searchL8(ctx, model, where)):
             if model == 'res.partner':
-                print('%s %4d %-16.16s %s %s' % (
-                    model, rec.id, rec.name, rec.agent,
+                print('%s %4d %-32.32s %s %s' % (
+                    model, rec.id, rec.name, rec.type,
                     get_agent_names(rec.agents)))
             elif model == 'account.invoice':
-                print('%s %4d %-16.16s %s' % (
+                print('%s %4d %-20.20s %s' % (
                     model, rec.id, rec.number, get_agent_names(rec.agents)))
             else:
-                print('%s %4d %-16.16s %s' % (
-                    model, rec.id, rec.name, get_agent_names(rec.agents)))
-
-
-def simulate_user_profile():
-    dummy = raw_input('Username ID to simulate: ')
-    user = clodoo.browseL8(ctx, 'res.users', int(dummy))
-    print('***** %s *****' % user.name)
-    model_ir = 'ir.rule'
-    for model in 'sale.order', 'account.invoice', 'res.partner':
-        print('\n[%s]' % model)
-        model_id = clodoo.searchL8(ctx, 'ir.model', [('model', '=', model)])
-        for rule in clodoo.browseL8(
-                ctx, model_ir, clodoo.searchL8(
-                    ctx, model_ir, [('model_id', '=', model_id)])):
-            print('\n[%s] %s' % (model, rule.name))
-            for rec in clodoo.browseL8(ctx, model,
-                                       clodoo.searchL8(ctx,
-                                                       model,
-                                                       rule.domain)):
+                print('%s %4d %-16.16s %-32.32s %s' % (
+                    model, rec.id, rec.name, rec.partner_id.name,
+                    get_agent_names(rec.agents)))
+            if model2:
                 if model == 'res.partner':
-                    print('%s %3d %-16.16s %s' % (
-                        model, rec.id, rec.name, rec.agent))
-                elif model == 'account.invoice':
-                    print('%s %3d %-16.16s %s' % (
-                        model, rec.id, rec.number, rec.agents))
+                    where = [('parent_id', '=', rec.id)]
+                elif model2 == 'account.invoice.line':
+                    where = [('invoice_id', '=', rec.id)]
                 else:
-                    print('%s %3d %-16.16s %s' % (
-                        model, rec.id, rec.name, rec.agents))
+                    where = [('order_id', '=', rec.id)]
+                for rec2 in clodoo.browseL8(
+                    ctx, model2, clodoo.searchL8(
+                        ctx, model2, where)):
+                    if model == 'res.partner':
+                        print('    %s %4d %-32.32s %s %s' % (
+                            model2, rec2.id, rec2.name, rec.type,
+                            get_agent_names(rec.agents)))
+                    elif model == 'account.invoice':
+                        print('    %s %4d %-32.32s %s' % (
+                            model2, rec2.id, rec2.name,
+                            get_agent_names_line(rec2.agents)))
+                    else:
+                        print('    %s %4d %-32.32s %s' % (
+                            model2, rec2.id, rec2.name,
+                            get_agent_names_line(rec2.agents)))
+
+
+
+def reset_email_vg7bot(ctx):
+    model = 'res.users'
+    model2 = 'res.partner'
+    ids = clodoo.searchL8(ctx, model,
+                          [('login', '=', 'vg7bot')])
+    if len(ids) == 0:
+        print('No user found!')
+        return
+    ctr = 0
+    for user in clodoo.browseL8(ctx, model, ids):
+        partner_id = user.partner_id.id
+        partner = clodoo.browseL8(ctx, model2, partner_id)
+        if partner.email != 'noreply@vg7.it':
+            clodoo.writeL8(ctx, model2, partner_id, {'email': 'noreply@vg7.it'})
+            ctr += 1
+    print('%d record updated' % ctr)
+
+
+def create_commission_env(ctx):
+    print('Set commission configuration to test')
+    ictr = 0
+    uctr = 0
+    model = 'sale.commission'
+    COMMISSIONS = {
+        'prov10': {'id': False, 'fix_qty': 10},
+        'prov5': {'id': False, 'fix_qty': 5},
+    }
+    for commission in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [])):
+        if commission.name in COMMISSIONS:
+            COMMISSIONS[commission.name]['id'] = commission.id
+    for commission in COMMISSIONS:
+        vals = {
+            'name': commission,
+            'fix_qty': COMMISSIONS[commission]['fix_qty'],
+        }
+        if not COMMISSIONS[commission]['id']:
+            id = clodoo.createL8(ctx, model, vals)
+            COMMISSIONS[commission]['id'] = id
+            ictr += 1
+        else:
+            clodoo.writeL8(ctx, model, COMMISSIONS[commission]['id'], vals)
+            uctr += 1
+
+    model = 'res.partner'
+    AGENTS = {
+        'Agente A': {'id': False, 'commission': COMMISSIONS['prov10']['id']},
+        'Agente B': {'id': False, 'commission': COMMISSIONS['prov5']['id']},
+    }
+    for agent in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [])):
+        if agent.name in AGENTS:
+            AGENTS[agent.name]['id'] = agent.id
+    for agent in AGENTS:
+        vals = {
+            'name': agent,
+            'agent': True,
+            'is_company': True,
+            'customer': False,
+            'supplier': True,
+            'commission': AGENTS[agent]['commission'],
+        }
+        if not AGENTS[agent]['id']:
+            clodoo.createL8(ctx, model, vals)
+            ictr += 1
+        else:
+            clodoo.writeL8(ctx, model, AGENTS[agent]['id'], vals)
+            uctr += 1
+
+    model = 'res.partner'
+    CUSTOMERS = {
+        'IT12345670017': {'id': False, 'agents': AGENTS['Agente B']['id']},
+        'IT02345670018': {'id': False, 'agents': AGENTS['Agente A']['id']},
+        'IT00118439991': {'id': False, 'agents': AGENTS['Agente A']['id']},
+        'IT03675290286': {'id': False, 'agents': AGENTS['Agente B']['id']},
+    }
+    for customer in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [])):
+        if customer.vat in CUSTOMERS:
+            CUSTOMERS[customer.vat]['id'] = customer.id
+    for customer in CUSTOMERS:
+        vals = {
+            'agents': [(6, 0, [CUSTOMERS[customer]['agents']])],
+        }
+        if not CUSTOMERS[customer]['id']:
+            clodoo.createL8(ctx, model, vals)
+            ictr += 1
+        else:
+            clodoo.writeL8(ctx, model, CUSTOMERS[customer]['id'], vals)
+            uctr += 1
+    print('%d records created, %d records updated' % (ictr, uctr))
+
+if ctx['function']:
+    function = ctx['function']
+    globals()[function](ctx)
+    exit()
 
 print('Function avaiable:')
-print('    show_module_group()')
-print('    clean_translations()')
-print('    close_purchse_orders()')
-print('    set_products_2_delivery_order()')
-print('    inv_commission_from_order()')
-print('    update_einvoice_out_attachment()')
-print('    revaluate_due_date_in_invoces()')
-print('    print_tax_codes()')
-print('    print_user_profile(ctx)')
-print('    simulate_user_profile()')
+print('    show_module_group(ctx)')
+print('    clean_translations(ctx)')
+print('    close_purchse_orders(ctx)')
+print('    set_products_2_delivery_order(ctx)')
+print('    order_commission_by_partner(ctx)')
+print('    inv_commission_from_order(ctx)')
+print('    update_einvoice_out_attachment(ctx)')
+print('    revaluate_due_date_in_invoces(ctx)')
+print('    print_tax_codes(ctx)')
+print('    simulate_user_profile(ctx)')
+print('    reset_email_vg7bot(ctx)')
 pdb.set_trace()
+
 
 def build_table_tree():
     def new_empty_model(models, model):
@@ -493,11 +679,8 @@ for model in models:
         print('%s %s (%s)' % ('-' * MAX_DEEP,
                               model,
                               models[model].get('status', '')))
-
 pdb.set_trace()
 
-print_user_profile(ctx)
-simulate_user_profile()
 
 for rec in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
     print(rec.name)

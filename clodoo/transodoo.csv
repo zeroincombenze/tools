@@ -2,8 +2,7 @@ model	name	type	6.1	7.0	8.0	9.0	10.0	11.0	12.0
 account_account	USER_TYPE	field	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id
 account_account_type	TYPE	field	report_type	report_type	report_type	type	type	type	type
 account_invoice	ACTION_INVOICE_CANCEL	action	invoice_cancel	invoice_cancel	invoice_cancel	invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
-account_invoice	ACTION_INVOICE_DRAFT	action	action_cancel_draft	action_cancel_draft	action_cancel_draft	action_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
-account_invoice	ACTION_INVOICE_DRAFT	action	action_cancel_draft	action_cancel_draft	action_cancel_draft	action_cancel_draft	invoice_cancel	invoice_cancel	invoice_cancel
+account_invoice	ACTION_INVOICE_DRAFT	action	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
 account_invoice	ACTION_INVOICE_OPEN	action	invoice_open	invoice_open	invoice_open	invoice_open	action_invoice_open	action_invoice_open	action_invoice_open
 account_invoice	FISCAL_POSITION	field	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account_invoice	MOVE_NAME	field	internal_number	internal_number	internal_number	move_name	move_name	move_name	move_name
@@ -352,3 +351,4 @@ res_users	EMAIL	field	user_email	email	email	email	email	email	email
 res_users	LANG	field	context_lang	lang	lang	lang	lang	lang	lang
 res_users	PARTNER_ID	field		partner_id	partner_id	partner_id	partner_id	partner_id	partner_id
 res_users	TZ	field	context_tz	tz	tz	tz	tz	tz	tz
+sale_order	ACTION_ORDER_CONFIRM	action	order_confirm	order_confirm	order_confirm	action_confirm	action_confirm	action_confirm	action_confirm

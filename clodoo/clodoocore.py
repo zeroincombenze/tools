@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.30"
+__version__ = "0.3.8.31"
 
 
 #############################################################################
@@ -167,24 +167,22 @@ def unlinkL8(ctx, model, ids):
 
 
 def executeL8(ctx, model, action, *args):
+    action = translate_from_to(ctx,
+                               model,
+                               action,
+                               '10.0',
+                               ctx['oe_version'],
+                               type='action')
     if ctx['majver'] >= 10:
         if (model == 'account.invoice'):
             if action == 'invoice_open':
                 action = 'action_invoice_open'
-            elif action == 'action_cancel_draft':
-                action = 'action_invoice_draft'
-            elif action == 'invoice_cancel':
-                action = 'action_invoice_cancel'
             elif action == 'action_cancel_draft':
                 action = 'invoice_cancel'
     else:
         if (model == 'account.invoice'):
             if action == 'action_invoice_open':
                 action = 'invoice_open'
-            elif action == 'action_invoice_draft':
-                action = 'action_cancel_draft'
-            elif action == 'action_invoice_cancel':
-                action = 'invoice_cancel'
             elif action == 'invoice_cancel':
                 action = 'action_cancel_draft'
     if ctx['majver'] < 10 and action == 'invoice_open':

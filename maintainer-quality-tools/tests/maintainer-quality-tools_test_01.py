@@ -42,9 +42,10 @@ read 'by TRavisCI' means both TravisCI both local travis-emulator):
 # import pdb
 import os
 import sys
+import shutil
 from zerobug import Z0test
 
-__version__ = "0.2.2.18"
+__version__ = "0.2.2.20"
 
 MODULE_ID = 'maintainer-quality-tools'
 
@@ -60,12 +61,30 @@ class RegressionTest():
 
     def __init__(self, z0bug):
         self.Z = z0bug
+        for f in ('getaddons', 'test_server', 'git_run', 'travis_helpers'):
+            shutil.copy('../travis/%s.py' % f, './')
 
     def test_01(self, z0ctx):
+        import test_server
         sts = TEST_SUCCESS
-        # call(cmd, stdin=stdinp_fd, stdout=stdout_fd, shell=True)
-        # command = ['git', 'clone', '-q', url, '-b', branch,
-        #    '--single-branch', '--depth=1', checkout_dir]
+        tres = True
+        res = True
+        for repo in ('odoo/odoo', 'OCA/OCB', 'zeroincombenze/OCB'):
+            for ver in ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0'):
+                if not z0ctx['dry_run']:
+                    res = test_server.get_server_path(
+                        repo,
+                        ver,
+                        os.path.join(z0ctx['testdir'], 'res'))
+                    tres = os.path.join(
+                        z0ctx['testdir'],
+                        'res',
+                        '%s-%s' % (repo.split('/')[1], ver))
+                sts = self.Z.test_result(
+                    z0ctx,
+                    'get_server_path(%s,%s)' % (repo, ver),
+                    tres,
+                    res)
         return sts
 
 

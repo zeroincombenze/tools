@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.30
+__version__=0.3.8.31
 
 
 up_oemod() {
@@ -378,7 +378,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
         [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
         if [ "$cmdlist" != "all" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_fver -u $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
         if [ $sts -ne $STS_SUCCESS ]; then

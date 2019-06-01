@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.4"
+__version__ = "0.2.14.5"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -652,7 +652,7 @@ class Z0test(object):
         this_fqn = None
         if argv is None:
             argv = sys.argv[1:]
-            if len(sys.argv) > 0 and sys.argv[0] != '-c':
+            if len(sys.argv) > 0 and sys.argv[0][0] != '-':
                 this_fqn = sys.argv[0]
         else:
             self.autorun = True
@@ -937,13 +937,15 @@ class Z0test(object):
         while not valid:
             this_fqn = os.path.abspath(inspect.stack()[i][1])
             this = os0.nakedname(os.path.basename(this_fqn))
-            if this in ("__init__", "pdb", "cmd", "z0testlib"):
+            if this[0] == '<' and this[-1] == '>':
+                i += 1
+            elif this in ("__init__", "pdb", "cmd", "z0testlib"):
                 i += 1
                 if this == "__init__":
                     auto_this = this_fqn
             else:
                 valid = True
-                if this == 'pkgutil':
+                if this in ('pkgutil', 'runpy'):
                     this_fqn = os.path.dirname(auto_this)
                     id = 'test_%s.py' % os.path.basename(this_fqn)
                     this_fqn = os.path.join(this_fqn, id)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from subprocess import PIPE, Popen
 import ast
 import sys
@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.30'
+__version__ = '0.3.8.31'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -135,6 +135,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'MarkupSafe',
                      'mock',
                      'pbr',
+                     'pycodestyle',
                      'pycparser',
                      'pyflakes',
                      'pylint',
@@ -405,7 +406,7 @@ def main():
                         metavar="file list",
                         default="")
     parser.add_argument('-n')
-    parser.add_argument("-o", "--output",
+    parser.add_argument("-O", "--output",
                         help="Write output to file requirements.txt",
                         dest="out_file",
                         action="store_true")

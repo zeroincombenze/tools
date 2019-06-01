@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.30"
+__version__ = "0.3.8.31"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1877,20 +1877,24 @@ def act_check_config(ctx):
 
         for xid in browseL8(ctx, model,
                  searchL8(ctx, model, [('module', '=', 'l10n_it_base'),
-                                       ('name', 'like', 'it_')])):
-            writeL8(ctx, model, xid.id, {
-                'module': 'base',
-                'name': 'state_%s' % xid.name.lower()})
-            msg_log(
-                ctx, ctx['level'] + 1,
-                'External id %d renamed from base2 to z0bug' % xid.id)
+                                       ('model', '=', 'res.county.state'),
+                                       ('name', 'like', r'it\_%')])):
+            if xid.name.startswith('it_') and len(xid.name) == 5:
+                writeL8(ctx, model, xid.id, {
+                    'module': 'base',
+                    'name': 'state_%s' % xid.name.lower()})
+                msg_log(
+                    ctx, ctx['level'] + 1,
+                    'External id %d renamed l10n_it_base -> base' % xid.id)
 
         for id in searchL8(ctx, model, [('module', '=', 'l10n_it_bbone'),
-                                        ('name', 'like', 'it_')]):
-            unlinkL8(ctx, model, [id])
-            msg_log(
-                ctx, ctx['level'] + 1,
-                'External id %d (l10n_it_bbone) removed' % xid.id)
+                                        ('model', '=', 'res.county.state'),
+                                        ('name', 'like', r'it\_%')]):
+            if xid.name.startswith('it_') and len(xid.name) == 5:
+                unlinkL8(ctx, model, [id])
+                msg_log(
+                    ctx, ctx['level'] + 1,
+                    'External id %d (l10n_it_bbone) removed' % xid.id)
 
         for xid in browseL8(ctx, model,
                  searchL8(ctx, model, [('module', '=', 'base2')])):
@@ -1898,7 +1902,6 @@ def act_check_config(ctx):
             msg_log(
                 ctx, ctx['level'] + 1,
                 'External id %d renamed from base2 to z0bug' % xid.id)
-
         for xid in browseL8(ctx, model,
                  searchL8(ctx, model, [('module', '=', 'z0incombenze')])):
             writeL8(ctx, model, xid.id, {'module': 'z0bug'})
@@ -2033,36 +2036,48 @@ def act_check_config(ctx):
         customer_avaiable = searchL8(ctx, model_partner,
                                      [('id', 'not in', partners_no_use)])
         replacement_list = {}
+        replacement_name_list = {}
         for part_id in z0_customer_list:
             if part_id in partners_no_use:
-                partner = browseL8(ctx, 'res.partner', part_id)
+                partner = browseL8(ctx, model_partner, part_id)
                 vals = {'customer': False, 'is_company': True}
                 for f in ('name', 'street', 'zip', 'city', 'vat'):
                     vals[f] = partner[f]
-                id = createL8(ctx, 'res.partner', vals)
-                msg_log(ctx, ctx['level'] + 1,
-                        'New partner id %d' % id)
+                ids = searchL8(ctx, model_partner,
+                               [('vat', '=', vals['vat']),
+                                ('id', '!=', part_id)])
+                if ids:
+                    id = ids[0]
+                else:
+                    id = createL8(ctx, model_partner, vals)
+                    msg_log(ctx, ctx['level'] + 1,
+                            'New partner id %d' % id)
                 replacement_list[part_id] = id
+                ids = searchL8(ctx, model, [('model', '=', model_partner),
+                                            ('res_id', '=', part_id)])
+                if ids:
+                    replacement_name_list[id] = browseL8(
+                        ctx, model, ids[0]).name
         for part_id in replacement_list:
             ix = z0_customer_list.index(part_id)
             del z0_customer_list[ix]
             z0_customer_list.append(replacement_list[part_id])
-        for ix,part_id in enumerate(z0_customer_list):
-            if not searchL8(ctx, model, [('model', '=', 'res.partner'),
-                                         ('res_id', '=', part_id)]):
-                name = 'res_partner_%d' % (ix + 1)
-                ids = searchL8(ctx, model, [('module', '=', 'z0bug'),
-                                            ('name', '=', name)])
-                if ids:
-                    writeL8(ctx, model, ids[0], {'res_id': part_id})
-                else:
-                    id = createL8(ctx, model,
-                                  {'module': 'z0bug',
-                                   'name': name,
-                                   'model': 'res.partner',
-                                   'res_id': part_id})
-                    msg_log(ctx, ctx['level'] + 1,
-                            'External id %d created' % id)
+        for ix, part_id in enumerate(z0_customer_list):
+            name = replacement_name_list.get(part_id,
+                                             'res_partner_%d' % (ix + 1))
+
+            ids = searchL8(ctx, model, [('module', '=', 'z0bug'),
+                                        ('name', '=', name)])
+            if ids:
+                writeL8(ctx, model, ids[0], {'res_id': part_id})
+            else:
+                id = createL8(ctx, model,
+                              {'module': 'z0bug',
+                               'name': name,
+                               'model': model_partner,
+                               'res_id': part_id})
+                msg_log(ctx, ctx['level'] + 1,
+                        'External id %d created' % id)
         for xid in browseL8(ctx, model, z0_invoice_list):
             inv = browseL8(ctx, model_invoice, xid.res_id)
             inv_id = xid.res_id
@@ -2072,6 +2087,7 @@ def act_check_config(ctx):
                 if inv.state in INVOICES_STS_2_DRAFT:
                     reconcile_dict, move_dict = get_reconcile_from_invoices(
                         [inv_id], ctx)
+                    unreconcile_invoices(reconcile_dict, ctx)
                     upd_invoices_2_draft(move_dict, ctx)
                 writeL8(ctx, model_invoice, inv_id, 
                         {'partner_id': replacement_list[id]})
@@ -3415,7 +3431,7 @@ def upd_invoices_2_draft(move_dict, ctx):
             try:
                 executeL8(ctx,
                           model,
-                          'action_cancel',
+                          'action_invoice_cancel',
                           invoices)
             except RuntimeError:
                 # zero-amount invoices have not payments so keep 'paid' state
@@ -3431,15 +3447,9 @@ def upd_invoices_2_draft(move_dict, ctx):
                             msg_log(ctx, ctx['level'], msg)
                 invoices = list(set(invoices) - set(passed))
             try:
-                fname = translate_from_to(ctx,
-                                          model,
-                                          'action_invoice_draft',
-                                          '10.0',
-                                          ctx['oe_version'],
-                                          type='action')
                 executeL8(ctx,
                           model,
-                          fname,
+                          'action_invoice_draft',
                           invoices)
             except BaseException:
                 msg = u"Cannot update invoice status %s" % str(invoices)

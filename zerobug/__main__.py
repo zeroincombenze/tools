@@ -3,12 +3,15 @@
 """z0bug
 """
 
+from __future__ import print_function,unicode_literals
 import os
 import sys
+import subprocess
 from zerobug import Z0BUG
+import pdb
 
 
-__version__ = "0.2.14.4"
+__version__ = "0.2.14.5"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -16,8 +19,8 @@ if __name__ == "__main__":
     action = False
     if len(sys.argv) > 1:
         action = sys.argv[1]
-    if action == '-H':
-        print('%s [-H] [-T] [-V]' % Z0BUG.module_id)
+    if action == '-h':
+        print('%s [-h] [-H] [-T] [-V]' % Z0BUG.module_id)
         sys.exit(STS_SUCCESS)
     test_file = 'test_%s.py' % Z0BUG.module_id
     # gen_test_file = 'all_tests.py'
@@ -26,15 +29,16 @@ if __name__ == "__main__":
         if (os.path.isdir('./tests') and
                 os.path.isfile(os.path.join('tests', test_file))):
             os.chdir('./tests')
-            sts = execfile(test_file)
+            sts = subprocess.call(test_file)
         elif os.path.isfile(test_file):
-            sts = execfile(test_file)
+            sts = subprocess.call(test_file)
         else:
             sts = STS_FAILED
         sys.exit(sts)
 
-    print(Z0BUG.version())
+    if action != '-H':
+        print(Z0BUG.version())
     if action != '-V':
         for text in __doc__.split('\n'):
-            print text
+            print(text)
     sys.exit(0)

@@ -32,7 +32,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.30"
+__version__ = "0.3.8.31"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -285,7 +285,8 @@ def transodoo(ctx=None):
                                     ctx['model'],
                                     ctx['sym'],
                                     ctx['oe_from_ver'],
-                                    ctx['odoo_ver'])
+                                    ctx['odoo_ver'],
+                                    type=ctx['opt_kind'])
         else:
             print translate_from_sym(ctx,
                                      ctx['model'],
