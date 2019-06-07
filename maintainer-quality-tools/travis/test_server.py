@@ -324,7 +324,10 @@ def new_server_instance(db, odoo_unittest, server_path, script_name,
         print("Using previous openerp_template database.")
     else:
         # unbuffer keeps output colors
-        cmd_odoo = ["unbuffer"] if unbuffer else []
+        if os.environ.get('TRAVIS_PDB') == 'True':
+            cmd_odoo = []
+        else:
+            cmd_odoo = ["unbuffer"] if unbuffer else []
         # [antoniov: 2018-02-28]
         script_path = get_script_path(server_path, script_name)
         cmd_odoo += [script_path,
@@ -480,6 +483,8 @@ def get_log_level(odoo_version, test_enable, tnlbot=False):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
+    import pdb
+    pdb.set_trace()
     run_from_env_var('RUN_COMMAND_MQT', os.environ)
     # travis_home = os.environ.get("HOME", "~/")
     # travis_dependencies_dir = os.path.join(travis_home, 'dependencies')
@@ -573,13 +578,22 @@ def main(argv=None):
 
     # Running tests [antoniov: 2018-02-28]
     script_path = get_script_path(server_path, script_name)
-    cmd_odoo_test = ["python", "-m", "coverage", "run",
-                     script_path,
-                     "-d", database,
-                     "--db-filter=^%s$" % database,
-                     "--stop-after-init",
-                     "--log-level", test_loglevel,
-                     ]      # 2
+    if os.environ.get('TRAVIS_PDB') == 'True':
+        cmd_odoo_test = ["python",
+                         script_path,
+                         "-d", database,
+                         "--db-filter=^%s$" % database,
+                         "--stop-after-init",
+                         "--log-level", test_loglevel,
+                         ]      # 2
+    else:
+        cmd_odoo_test = ["python", "-m", "coverage", "run",
+                         script_path,
+                         "-d", database,
+                         "--db-filter=^%s$" % database,
+                         "--stop-after-init",
+                         "--log-level", test_loglevel,
+                         ]      # 2
 
     if test_loghandler is not None:
         cmd_odoo_test += ['--log-handler', test_loghandler]
@@ -589,7 +603,6 @@ def main(argv=None):
         to_test_list = tested_addons_list
         # [antoniov: 2018-02-28]
         cmd_odoo_install = [
-            # "%s/%s" % (server_path, script_name),
             script_path,
             "-d", database,
             "--stop-after-init",
@@ -629,13 +642,17 @@ def main(argv=None):
             else:
                 command[-1] = to_test
                 # Run test command; unbuffer keeps output colors
-                command_call = (["unbuffer"] if unbuffer else []) + command
-            if travis_debug_mode > 1:
+                if (os.environ.get('TRAVIS_PDB') != 'True' and
+                        odoo_version != "6.1"):
+                    command_call = (["unbuffer"] if unbuffer else []) + command
+                else:
+                    command_call = command
+            if travis_debug_mode >= 9:
                 errors = 0
             else:
                 # [antoniov: 2018-02-17] bleah!!!
                 if odoo_version == "6.1":
-                    subprocess.call(command_call[2:])
+                    subprocess.call(command_call[1:])
                 # [/antoniov]
                 print(" ".join(cmd_strip_secret(command_call)))
                 pipe = subprocess.Popen(command_call,

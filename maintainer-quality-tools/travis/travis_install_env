@@ -299,7 +299,7 @@ if [[ ! "$TRAVIS" == "false" ]]; then
 fi
 # Secure environment OK
 echo -e "\e[${PS_HDR3_COLOR}m### Build Base Environment\e[${PS_TXT_COLOR}m"
-for p in os0 configparser z0lib; do
+for p in os0 configparser future z0lib; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
   [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
 done
