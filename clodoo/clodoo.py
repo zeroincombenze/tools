@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -271,6 +271,13 @@ def open_connection(ctx):
 
 def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
+
+    def get_login_user(ctx):
+        # if ctx['majver'] < 12:
+        return ctx['odoo_session'].env.user
+        # return ctx['odoo_session'].env['res.users'].browse(
+        #     ctx['odoo_session'].env.uid)
+
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
     userlist = ctx['login_user'].split(',')
@@ -308,11 +315,15 @@ def do_login(ctx):
     for username in userlist:
         for pwd in cryptlist:
             try:
+                msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
+                                                 username,
+                                                 pwd)
+                debug_msg_log(ctx, ctx['level'] + 2, msg)
                 if ctx['svc_protocol'] == 'jsonrpc':
-                    ctx['odoo_session'].login(db_name,
+                    ctx['odoo_session'].login(db=db_name,
                                               login=username,
                                               password=decrypt(pwd))
-                    user = ctx['odoo_session'].env.user
+                    user = get_login_user(ctx)
                 else:
                     user = ctx['odoo_session'].login(database=db_name,
                                                      user=username,
@@ -323,11 +334,15 @@ def do_login(ctx):
         if not user:
             for pwd in pwdlist:
                 try:
+                    msg = "do_login_%s(%s,$1$%s)" % (ctx['svc_protocol'],
+                                                     username,
+                                                     crypt(pwd))
+                    debug_msg_log(ctx, ctx['level'] + 2, msg)
                     if ctx['svc_protocol'] == 'jsonrpc':
-                        ctx['odoo_session'].login(db_name,
+                        ctx['odoo_session'].login(db=db_name,
                                                   login=username,
                                                   password=pwd)
-                        user = ctx['odoo_session'].env.user
+                        user = get_login_user(ctx)
                     else:
                         user = ctx['odoo_session'].login(database=db_name,
                                                          user=username,
@@ -395,7 +410,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
               'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
               'psycopg2', 'ena_inquire', 'no_login')
     S_LIST = ('db_name', 'login_user', 'login_password',
-              'oe_version', 'svc_protocol')
+              'oe_version', 'svc_protocol', 'lang')
 
     def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
                       user=None, pwd=None, ctx=None):
@@ -538,6 +553,18 @@ def get_context(ctx):
     context = {}
     context['lang'] = 'en_US'
     return context
+
+
+def set_msg(msg, modname, ignore_not_installed):
+    sts = STS_SUCCESS
+    if ignore_not_installed:
+        fmt = msg
+        msg = fmt % modname
+    else:
+        fmt = '!%s!!' % msg
+        msg = fmt % modname
+        sts = STS_FAILED
+    return msg, sts
 
 
 def init_db_ctx(ctx, db):
@@ -1025,6 +1052,8 @@ def act_echo_company(ctx):
 
 def act_show_company_params(ctx):
     """Show current company name, country and partner"""
+    if not ctx.get('company_id'):
+        init_company_ctx(ctx, get_company_id(ctx))
     ident = ' ' * ctx['level']
     print("%s- company_id    = %d " % (ident, ctx.get('company_id', 0)))
     print("%s- company name  = %s " % (ident, ctx.get('company_name', "")))
@@ -1325,6 +1354,9 @@ def act_per_company(ctx):
         del ctx['actions_mc']
     company_ids = get_companylist(ctx)
     saved_actions = ctx['actions']
+    if ctx['dbg_mode']:
+        msg = u"> per_company(%s =~ %s)" % (company_ids, ctx['companyfilter'])
+        msg_log(ctx, ctx['level'] + 1, msg)
     sts = STS_SUCCESS
     for c_id in company_ids:
         company = browseL8(ctx, 'res.company', c_id)
@@ -1335,6 +1367,9 @@ def act_per_company(ctx):
             ctx['actions'] = saved_actions
             sts = do_actions(ctx)
             if sts != STS_SUCCESS:
+                if ctx['dbg_mode']:
+                    msg = u"> break action(per_company)"
+                    msg_log(ctx, ctx['level'] + 1, msg)
                 break
     return sts
 
@@ -1504,91 +1539,114 @@ def act_upgrade_modules(ctx, module_list=None):
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
+    model = 'ir.module.module'
     sts = STS_SUCCESS
-    for m in module_list:
-        if m == "":
+    for mx in module_list:
+        if mx == "":
             continue
-        ids = searchL8(ctx, 'ir.module.module',
-                       [('name', '=', m),
-                        ('state', '=', 'installed')],
-                       context=context)
-        if not ctx['dry_run']:
-            if len(ids):
-                if cur_lang != 'en_US':
-                    cur_lang = 'en_US'
-                    set_user_lang(ctx, cur_lang)
-                try:
-                    executeL8(ctx,
-                              'ir.module.module',
-                              'button_immediate_upgrade',
-                              ids)
-                    msg = "name={0}".format(m)
-                    msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(3)
-                except BaseException:
-                    msg = "!Module {0} not upgradable!".format(m)
-                    msg_log(ctx, ctx['level'] + 1, msg)
-                    sts = STS_FAILED
-            else:
-                msg = "Module {0} not installed!".format(m)
-                msg_log(ctx, ctx['level'] + 1, msg)
+        if mx[-1] == '!':
+            modname = mx[0:-1]
+            ignore_not_installed = True
         else:
-            msg = "name({0})".format(m)
-            msg_log(False, ctx['level'] + 1, msg)
+            modname = mx
+            ignore_not_installed = False
+        msg = "name(%s) .." % mx
+        msg_log(False, ctx['level'] + 1, msg)
+        module_ids = searchL8(ctx, model,
+                              [('name', '=', modname)],
+                              context=context)
+        if not module_ids:
+            msg, sts = set_msg('Module %s not found!',
+                               modname,
+                               True)
+            msg_log(ctx, ctx['level'] + 1, msg)
+            continue
+        if ctx['dry_run']:
+            continue
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state == 'installed':
+            if cur_lang != 'en_US':
+                cur_lang = 'en_US'
+                set_user_lang(ctx, cur_lang)
+            try:
+                executeL8(ctx,
+                          'ir.module.module',
+                          'button_immediate_upgrade',
+                          module_ids)
+                time.sleep(len(module.dependencies_id) + 1)
+            except BaseException:
+                msg, sts = set_msg('Error upgrading %s!',
+                                   modname,
+                                   ignore_not_installed)
+                msg_log(ctx, ctx['level'] + 1, msg)
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state != 'installed':
+            msg, sts = set_msg('Module %s not upgraded!',
+                               modname,
+                               ignore_not_installed)
+            msg_log(ctx, ctx['level'] + 1, msg)
+        if sts == STS_FAILED and ctx['exit_onerror']:
+            break
     if cur_lang != user_lang:
         set_user_lang(ctx, user_lang)
     return sts
 
 
-def act_uninstall_modules(ctx):
+def act_uninstall_modules(ctx, module_list=None):
     """Uninstall module from list"""
     msg = u"Uninstall unuseful modules"
     msg_log(ctx, ctx['level'], msg)
-    module_list = get_real_paramvalue(ctx, 'uninstall_modules').split(',')
+    module_list = module_list or get_real_paramvalue(
+        ctx, 'uninstall_modules').split(',')
     context = get_context(ctx)
     user_lang = get_user_lang(ctx)
     cur_lang = user_lang
     model = 'ir.module.module'
     sts = STS_SUCCESS
-    for m in module_list:
-        if m == "":
+    for mx in module_list:
+        if mx == "":
             continue
-        ids = searchL8(ctx, model,
-                       [('name', '=', m),
-                        ('state', '=', 'installed')],
-                       context=context)
-        if not ctx['dry_run']:
-            if len(ids):
-                if cur_lang != 'en_US':
-                    cur_lang = 'en_US'
-                    set_user_lang(ctx, cur_lang)
-                try:
-                    executeL8(ctx,
-                              model,
-                              'button_immediate_uninstall',
-                              ids)
-                    msg = "name={0}".format(m)
-                    msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(3)
-                except BaseException:
-                    msg = "!Module {0} not uninstallable!".format(m)
-                    msg_log(ctx, ctx['level'] + 1, msg)
-                    sts = STS_FAILED
-            else:
-                msg = "Module {0} already uninstalled!".format(m)
-                msg_log(ctx, ctx['level'] + 1, msg)
-                ids = searchL8(ctx, model,
-                               [('name', '=', m),
-                                ('state', '=', 'uninstalled')],
-                               context=context)
-            if len(ids):
-                try:
-                    unlinkL8(ctx, model, ids)
-                except BaseException:
-                    pass
+        if mx[-1] == '!':
+            modname = mx[0:-1]
+            ignore_not_installed = True
         else:
-            msg = "name({0})".format(m)
-            msg_log(False, ctx['level'] + 1, msg)
+            modname = mx
+            ignore_not_installed = False
+        msg = "name(%s) .." % mx
+        msg_log(False, ctx['level'] + 1, msg)
+        module_ids = searchL8(ctx, model,
+                              [('name', '=', modname)],
+                              context=context)
+        if not module_ids:
+            msg, sts = set_msg('Module %s not found!',
+                               modname,
+                               True)
+            msg_log(ctx, ctx['level'] + 1, msg)
+            continue
+        if ctx['dry_run']:
+            continue
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state != 'uninstalled':
+            if cur_lang != 'en_US':
+                cur_lang = 'en_US'
+                set_user_lang(ctx, cur_lang)
+            try:
+                executeL8(ctx,
+                          model,
+                          'button_immediate_uninstall',
+                          module_ids)
+                time.sleep(3)
+            except BaseException:
+                msg = 'Error uninstalling %s!' % modname
+                msg_log(ctx, ctx['level'] + 1, msg)
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state != 'uninstalled':
+            msg, sts = set_msg('Module %s not uninstalled!',
+                               modname,
+                               ignore_not_installed)
+            msg_log(ctx, ctx['level'] + 1, msg)
+        if sts == STS_FAILED and ctx['exit_onerror']:
+            break
     if cur_lang != user_lang:
         set_user_lang(ctx, user_lang)
     return sts
@@ -1596,6 +1654,7 @@ def act_uninstall_modules(ctx):
 
 def act_install_modules(ctx, module_list=None):
     """Install modules from list"""
+
     msg = u"Install modules"
     msg_log(ctx, ctx['level'], msg)
     module_list = module_list or get_real_paramvalue(
@@ -1609,58 +1668,47 @@ def act_install_modules(ctx, module_list=None):
         if mx == "":
             continue
         if mx[-1] == '!':
-            m = mx[0:-1]
+            modname = mx[0:-1]
             ignore_not_installed = True
         else:
-            m = mx
+            modname = mx
             ignore_not_installed = False
-        ids = searchL8(ctx, model,
-                       [('name', '=', m),
-                        ('state', '=', 'uninstalled')],
-                       context=context)
-        if not ctx['dry_run']:
-            if len(ids):
-                if cur_lang != 'en_US':
-                    cur_lang = 'en_US'
-                    set_user_lang(ctx, cur_lang)
-                try:
-                    executeL8(ctx,
-                              model,
-                              'button_immediate_install',
-                              ids)
-                    msg = "name=%s" % m
-                    msg_log(ctx, ctx['level'] + 1, msg)
-                    time.sleep(3)
-                except BaseException:
-                    if ignore_not_installed:
-                        msg = "Error installing %s" % m
-                    else:
-                        msg = "!Error installing %s!" % m
-                        sts = STS_FAILED
-                    msg_log(ctx, ctx['level'] + 1, msg)
-
-            ids = searchL8(ctx, 'ir.module.module',
-                           [('name', '=', m)],
-                           context=context)
-            if not ids:
-                if ignore_not_installed:
-                    msg = "Module %s does not exist" % m
-                else:
-                    msg = "!Module %s does not exist!" % m
-                    sts = STS_FAILED
-                msg_log(ctx, ctx['level'] + 1, msg)
+        msg = "name(%s) .." % mx
+        msg_log(False, ctx['level'] + 1, msg)
+        module_ids = searchL8(ctx, model,
+                              [('name', '=', modname)],
+                              context=context)
+        if not module_ids:
+            msg, sts = set_msg('Module %s not found!',
+                               modname,
+                               ignore_not_installed)
+            msg_log(ctx, ctx['level'] + 1, msg)
+            if ctx['exit_onerror']:
+                break
             else:
-                state = browseL8(ctx, model, ids[0]).state
-                if state != 'installed':
-                    if ignore_not_installed:
-                        msg = "Module %s %s" % (m, state)
-                    else:
-                        msg = "!Module %s %s!" % (m, state)
-                        sts = STS_FAILED
-                    msg_log(ctx, ctx['level'] + 1, msg)
-        else:
-            msg = "name(%s)" % m
-            msg_log(False, ctx['level'] + 1, msg)
+                continue
+        if ctx['dry_run']:
+            continue
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state != 'installed':
+            if cur_lang != 'en_US':
+                cur_lang = 'en_US'
+                set_user_lang(ctx, cur_lang)
+            try:
+                executeL8(ctx,
+                          model,
+                          'button_immediate_install',
+                          module_ids)
+                time.sleep(len(module.dependencies_id) + 1)
+            except BaseException:
+                msg = 'Error installing %s!' % modname
+                msg_log(ctx, ctx['level'] + 1, msg)
+        module = browseL8(ctx, model, module_ids[0])
+        if module.state != 'installed':
+            msg, sts = set_msg('Module %s not installed!',
+                               modname,
+                               ignore_not_installed)
+            msg_log(ctx, ctx['level'] + 1, msg)
         if sts == STS_FAILED and ctx['exit_onerror']:
             break
     if cur_lang != user_lang:
@@ -1673,6 +1721,13 @@ def act_install_language(ctx):
     lang = ctx.get('lang', 'en_US')
     model = 'res.lang'
     ids = searchL8(ctx, model, [('code', '=', lang)])
+    if not ids:
+        ids = searchL8(ctx, model, [('code', '=', lang),
+                                    ('active', '=', False)])
+        if len(ids):
+            msg = u"Activate language %s" % lang
+            msg_log(ctx, ctx['level'], msg)
+            writeL8(ctx, model, ids[0], {'active': True})
     if len(ids) == 0:
         msg = u"Install language %s" % lang
         msg_log(ctx, ctx['level'], msg)
@@ -1684,13 +1739,14 @@ def act_install_language(ctx):
                   'base.language.install',
                   'lang_install',
                   [id])
-    msg = u"Translate language %s terms" % lang
-    msg_log(ctx, ctx['level'], msg)
-    id = createL8(ctx, 'base.update.translations', {'lang': lang})
-    executeL8(ctx,
-              'base.update.translations',
-              'act_update',
-              [id])
+    if lang != 'en_US':
+        msg = u"Translate language %s terms" % lang
+        msg_log(ctx, ctx['level'], msg)
+        id = createL8(ctx, 'base.update.translations', {'lang': lang})
+        executeL8(ctx,
+                  'base.update.translations',
+                  'act_update',
+                  [id])
     return STS_SUCCESS
 
 
@@ -2012,15 +2068,15 @@ def act_check_config(ctx):
         for inv_id in deletion_list:
             ix = invoces_no_use.index(inv_id)
             del invoces_no_use[ix]
-        for res_id in reserved_partner:
-            name = 'res_partner_%d' % (res_id + 1000)
-            id = createL8(ctx, model,
-                          {'module': 'base',
-                           'name': name,
-                           'model': model_partner,
-                           'res_id': res_id})
-            msg_log(ctx, ctx['level'] + 1,
-                    'External id %d name %s created' % (id, name))
+        # for res_id in reserved_partner:
+        #     name = 'res_partner_%d' % (res_id + 1000)
+        #     id = createL8(ctx, model,
+        #                   {'module': 'base',
+        #                    'name': name,
+        #                    'model': model_partner,
+        #                    'res_id': res_id})
+        #     msg_log(ctx, ctx['level'] + 1,
+        #             'External id %d name %s created' % (id, name))
         #
         z0_invoice_list = searchL8(ctx, model,
                                    [('model', '=', model_invoice),
@@ -5263,6 +5319,10 @@ def parse_in_fields(ctx, o_model, row, ids, cur_obj):
     vals = {}
     if row.get('name'):
         name_new = row['name']
+    elif row.get('code'):
+        name_new = row['code']
+    elif row.get('key'):
+        name_new = row['key']
     for nm in row:
         if not nm or nm in ('id',
                             'db_type',
@@ -5403,7 +5463,7 @@ def import_file(ctx, o_model, csv_fn):
                                                                ids,
                                                                cur_obj)
             if 'company_id' in ctx and 'company_id' in vals:
-                if int(vals['company_id']) != company_id:
+                if vals['company_id'] != company_id:
                     continue
             if len(ids):
                 if update_header_id:
@@ -5598,10 +5658,13 @@ def setup_user_config_param(ctx, username, name, value):
         cat_ids = searchL8(ctx, 'ir.module.category',
                            [('name', '=', name)],
                            context=context)
-        group_ids = searchL8(ctx, 'res.groups',
-                             [('category_id', 'in', cat_ids),
-                              ('name', '=', value)],
-                             context=context)
+        if isinstance(value, (int, long)):
+            group_ids = [value]
+        else:
+            group_ids = searchL8(ctx, 'res.groups',
+                                 [('category_id', 'in', cat_ids),
+                                  ('name', '=', value)],
+                                 context=context)
     if len(group_ids) != 1:
         if isinstance(value, bool):
             msg = u"!!Parameter name '%s' not found!!" % tounicode(name)
@@ -5610,15 +5673,21 @@ def setup_user_config_param(ctx, username, name, value):
                                                              tounicode(value))
         msg_log(ctx, ctx['level'] + 2, msg)
         return sts
-    user_ids = searchL8(ctx, 'res.users',
-                        [('login', '=', username)])
-    if len(user_ids) != 1:
-        msg = u"!!User " + tounicode(username) + " not found!!"
-        msg_log(ctx, ctx['level'] + 2, msg)
-        return STS_FAILED
+    if isinstance(username, int):
+        user_ids = [username]
+    else:
+        user_ids = searchL8(ctx, 'res.users',
+                            [('login', '=', username)])
+        if len(user_ids) != 1:
+            msg = u"!!User " + tounicode(username) + " not found!!"
+            msg_log(ctx, ctx['level'] + 2, msg)
+            return STS_FAILED
     user = browseL8(ctx, 'res.users', user_ids[0])
     if not user:
-        msg = u"!!User " + tounicode(username) + " not found!!"
+        if isinstance(username, int):
+            msg = u"!!Invalid %d username!!" % username
+        else:
+            msg = u"!!Invalid username: %s!!" % tounicode(username)
         msg_log(ctx, ctx['level'] + 2, msg)
         return STS_FAILED
     group_id = group_ids[0]

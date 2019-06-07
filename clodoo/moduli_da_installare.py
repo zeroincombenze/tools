@@ -3,9 +3,20 @@
 import os
 import sys
 import csv
-from z0lib import parseoptargs
-import clodoo
+
 from os0 import os0
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
+import transodoo
 # import pdb
 
 __version__ = "0.2.0"
@@ -81,9 +92,9 @@ def get_realname(item):
     return item.strip()
 
 
-parser = parseoptargs("Modules to install",
-                      "© 2017-2018 by SHS-AV s.r.l.",
-                      version=__version__)
+parser = z0lib.parseoptargs("Modules to install",
+                            "© 2017-2019 by SHS-AV s.r.l.",
+                            version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--config",
                     help="configuration command file",

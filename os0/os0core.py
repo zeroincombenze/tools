@@ -97,7 +97,7 @@ from subprocess import call
 # from datetime import datetime
 
 
-__version__ = "0.2.14.2"
+__version__ = "0.2.14.3"
 
 
 class Os0():
@@ -162,6 +162,8 @@ class Os0():
         """Convert text to bool"""
         if isinstance(t, bool):
             return t
+        elif not isinstance(t, basestring):
+            return dflt
         elif t.lower() in ["true", "t", "1", "y", "yes", "on", "enabled"]:
             return True
         elif t.lower() in ["false", "f", "0", "n", "no", "off", "disabled"]:

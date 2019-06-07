@@ -160,7 +160,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 
 #############################################################################
@@ -309,7 +309,7 @@ def default_conf(ctx):
               'dbfiltert': '(openerp|odoo|test)',
               'dbfilterz': 'zi[0-9]{8}',
               'dbtypefilter': '',
-              'companyfilter': '(?![Zz]eroincombenze.*)',
+              'companyfilter': r'(?![Zz]eroincombenze.*)',
               'userfilter': '.*',
               'lang': 'en_US',
               'with_demo': '0',
@@ -465,7 +465,7 @@ def create_params_dict(ctx):
     else:
         ctx['oe_version'] = build_odoo_param('FULLVER', ctx['odoo_vid'])
     if not ctx['svc_protocol']:
-        if ctx['oe_version'] in ('9.0', '10.0', '11.0', '12.0'):
+        if ctx['oe_version'] in ('10.0', '11.0', '12.0'):
             ctx['svc_protocol'] = 'jsonrpc'
         else:
             ctx['svc_protocol'] = 'xmlrpc'

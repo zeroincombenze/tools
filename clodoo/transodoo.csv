@@ -318,7 +318,7 @@ ir.module.module	WEBSITE_SALE_PRICE_TIER	module	website_sale_qty	website_sale_qt
 ir.module.module	WEBSITE_SALE_STOCK	module	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock
 res_city	NUTS	field		nuts					
 res_city	PROVINCE_ID	field	province_id	province_id					
-res_groups	ADMINISTRATION_SETTINGS	name	Configuration	Settings	Settings	Settings	Settings	Settings	Settings
+res_groups	ADMINISTRATION_SETTINGS	name	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager
 res_groups	FINANCIAL_MANAGER	name	Manager	Financial Manager	Financial Manager	Adviser	Adviser	Adviser	Adviser
 res_groups	KNOWLEDGE	name	Knowledge Management	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge	Knowledge
 res_groups	KNOWLEDGE_USER	name	User	User	User	Knowledge user	Knowledge user	Knowledge user	Knowledge user

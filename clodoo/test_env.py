@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 
 MAX_DEEP = 20
@@ -84,19 +84,30 @@ def show_module_group(ctx):
             cid = group.category_id.id
             categ = clodoo.browseL8(ctx, model_ctg, cid, context={'lang': 'en_US'})
             print('%6d) Category %s' % (cid, categ.name))
-            for id in clodoo.searchL8(ctx, model_grp, [('category_id', '=', cid)]):
-                group = clodoo.browseL8(
-                    ctx, model_grp, id, context={'lang': 'en_US'})
+            uniq_field = []
+            grp_ids = clodoo.searchL8(ctx, model_grp,
+                                      [('category_id', '=', cid)])
+            for group in clodoo.browseL8(ctx, model_grp, grp_ids):
+                if group.implied_ids:
+                    uniq_field.append(group.id)
+                    uniq_field += [x.id for x in group.implied_ids]
+            for group in clodoo.browseL8(ctx, model_grp, grp_ids,
+                                         context={'lang': 'en_US'}):
                 ir_md = clodoo.browseL8(ctx, model_ir_md,
                     clodoo.searchL8(ctx, model_ir_md,
                                     [('model', '=', model_grp),
-                                     ('res_id', '=', id)]))
-                print('%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s"' % (
-                    id,
+                                     ('res_id', '=', group.id)]))
+                if group.id in uniq_field:
+                    tag = '*'
+                else:
+                    tag = ''
+                print('%6d) -- Value [%-16.16s] > [%-32.32s] as "%s.%s" {%s}' % (
+                    group.id,
                     group.name,
                     group.full_name,
                     ir_md.module,
-                    ir_md.name))
+                    ir_md.name,
+                    tag))
 
 
 def clean_translations(ctx):
@@ -669,6 +680,16 @@ def build_table_tree():
             models[model]['level'] = MAX_DEEP + 1
     return models
 
+model = 'ir.module.module'
+mlist = []
+for i,app in enumerate(clodoo.browseL8(
+    ctx,model,clodoo.searchL8(
+        ctx,model,[('state','=','installed')], order='name'))):
+    print('%3d %-40.40s %s' % (i+1, app.name, app.author))
+    mlist.append(app.name)
+print(mlist)
+pdb.set_trace()
+
 models = build_table_tree()
 for level in range(MAX_DEEP):
     for model in models:
@@ -679,8 +700,6 @@ for model in models:
         print('%s %s (%s)' % ('-' * MAX_DEEP,
                               model,
                               models[model].get('status', '')))
-pdb.set_trace()
-
 
 for rec in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
     print(rec.name)

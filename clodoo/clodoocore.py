@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 
 #############################################################################
@@ -69,11 +69,12 @@ def cnx(ctx):
         else:
             odoo = oerplib.OERP(server=ctx['db_host'],
                                 protocol=ctx['svc_protocol'],
-                                port=ctx['xmlrpc_port'],
-                                version=ctx['oe_version'])
+                                port=ctx['xmlrpc_port'])
+            # version=ctx['oe_version'])
     except BaseException:                                    # pragma: no cover
         odoo = False
     return odoo
+
 
 def connectL8(ctx):
     """Open connection to Odoo service"""
@@ -682,7 +683,7 @@ def import_file_get_hdr(ctx, o_model, csv_obj, csv_fn, row):
 
 
 def get_company_id(ctx):
-    value = get_db_alias(ctx, 'base.mycompany')
+    value = get_db_alias(ctx, 'z0bug.mycompany')
     if not value or (isinstance(value, basestring) and not value.isdigit()):
         model = 'res.company'
         company_name = ctx.get('company_name', 'La % Azienda')

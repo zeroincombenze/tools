@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.31
+__version__=0.3.8.34
 
 
 up_oemod() {
@@ -142,12 +142,13 @@ set_opt_conf() {
     fi
 }
 
-OPTOPTS=(h        b         c        D       d      m         n           o             q           r           t         U          V           v           x)
-OPTDEST=(opt_help odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_exit)
-OPTACTI=(1        "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         1)
-OPTDEFL=(1        "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          0)
-OPTMETA=("help"   "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "")
+OPTOPTS=(h        B       b      c        D       d      m         n           o             q           r           t         U          V           v           x)
+OPTDEST=(opt_help opt_dbg odoo_vids opt_conf opt_del opt_DB opt_multi opt_dry_run opt_with_demo opt_verbose opt_xmlport test_mode opt_DBuser opt_version opt_verbose opt_exit)
+OPTACTI=(1        1       "="       "="      1       "="    1         1           "*"           0           "="         1         "="        "*"         "+"         1)
+OPTDEFL=(1        0       "10.0"    ""       0       ""     -1        0           ""            -1          ""          0         ""         ""          -1          0)
+OPTMETA=("help"   ""      "branch"  "file"   "del"   "name" ""        "noop"      ""            "quiet"     "port"      "test"    "user"     "version"   "verbose"   "")
 OPTHELP=("this help"\
+ "execute clodoo in debug mode"\
  "branch: must be 6.1 7.0 8.0 9.0 10.0 11.0 12.0 or * (def 10.0)"\
  "configuration file (only update/action)"\
  "delete DB if exists"\
@@ -176,10 +177,11 @@ if [ $opt_help -gt 0 ]; then
   "Action may be on of: action,install,update,upgrade,module,translate,reassign,rename,rename_phase\ncmdlist of action may be upd_oemod or clodoo action\ncmdlist of module,upgrade is module list\ncmdlist of install/update is phase list: $PHASE_LIST\ncmdlist of reassign is new username\ncmdlist of rename_phase (phase) is old=new\ncmdlist of rename is a csv filename with module renames list\n\n(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit 0
 fi
-opts=
-if [ $opt_dry_run -ne 0 ]; then
-  opts="$opts -n"
-fi
+OPTS=
+[ $opt_dry_run -ne 0 ] && OPTS="${OPTS}n"
+[ $opt_dbg -ne 0 ] && OPTS="${OPTS}v"
+[ -n "$OPTS" ] && OPTS="-${OPTS}"
+
 WCMD=$(which pg_db_active 2>/dev/null)
 if [ -n "$WCMD" ]; then
   WCMD="$WCMD -k"
@@ -257,11 +259,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
     sts=0
     for cf in $CFLOOP; do
       # TODO FIX
-      if [ "$cf" == "02" ]; then
-        opts="-lit_IT"
-      else
-        opts=
-      fi
+       opts=
       if [ "$cf" == "01" ]; then
         if [ $action == "install" ]; then
           if [ -n "$opt_db" ]; then
@@ -269,7 +267,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           else
             optdb=
           fi
-          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf $optdb -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         else
           echo "Invalid phase $cf in update!"
@@ -297,7 +295,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
                 run_traced "sudo systemctl restart $svcname"
                 sleep 2
               fi
-              run_traced "nice $TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+              run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
               if $(psql -l|grep -q $db); then
                 run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_dbuser $db"
               fi
@@ -325,7 +323,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
             else
               eval $WCMD
             fi
-            run_traced "nice $TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+            run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
             s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
             [ $sts -ne 0 -a $opt_exit -ne 0 ] && break
           done
@@ -335,7 +333,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
           else
             db=$(cat clodoo_last.conf|awk -F= '{print $2}')
           fi
-          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c code/z0_install_$cf.conf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
       fi
@@ -378,7 +376,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
         [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
         if [ "$cmdlist" != "all" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
         if [ $sts -ne $STS_SUCCESS ]; then
@@ -386,15 +384,15 @@ for odoo_vid in ${odoo_vids//,/ }; do
         fi
       elif [ "$action" == "action" ]; then
         if [ "$cmdlist" == "upd_oemod" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS -b$odoo_fver -c=code/z0_install_10.conf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
           echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
           [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
         else
-          echo "$TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           if [ $sts -ne $STS_SUCCESS ]; then
             break
@@ -405,7 +403,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
         [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
       else
         if [ -n "$cmdlist" ]; then
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           if [ $sts -ne $STS_SUCCESS ]; then
             break
@@ -415,7 +413,7 @@ for odoo_vid in ${odoo_vids//,/ }; do
             echo "Configuration file $opt_conf not found!"
             exit 1
           fi
-          run_traced "nice $TDIR/clodoo.py $opts $opts_cf -b$odoo_fver -c $cf -d $db -r$xmlport $opt_with_demo $opts"
+          run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -b$odoo_fver -c $cf -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
         fi
       fi

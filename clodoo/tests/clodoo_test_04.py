@@ -28,13 +28,13 @@ except BaseException:
     from clodoolib import crypt
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 
 MODULE_ID = 'clodoo'
 # VERSIONS_TO_TEST = ('12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1')
 VERSIONS_TO_TEST = ('11.0', '10.0', '8.0', '7.0')
-# VERSIONS_TO_TEST = ('11.0',)
+# VERSIONS_TO_TEST = ('12.0',)
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 

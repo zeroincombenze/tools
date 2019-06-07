@@ -15,6 +15,7 @@ import os
 # import os.path
 import sys
 from datetime import datetime
+from subprocess import PIPE, Popen
 
 from zerobug import Z0test
 # import oerplib
@@ -24,7 +25,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 
 MODULE_ID = 'clodoo'
@@ -42,24 +43,45 @@ class Test():
         self.Z = zarlib
         self.ctx = {}
         self.uid = False
+        self.db = 'clodoo_test'
+
+    def check_4_db(self, dbname):
+        cmd = ['psql'] + ['-Upostgres'] + ['-tl']
+        p = Popen(cmd,
+                  stdin=PIPE,
+                  stdout=PIPE,
+                  stderr=PIPE)
+        res, err = p.communicate()
+        dbname = ' %s ' % dbname
+        if res.find(dbname) >= 0:
+            return True
+        else:
+            return False
 
     def test_01(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-            return sts
+        # if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
+        #     return sts
         if not z0ctx['dry_run']:
             self.uid, self.ctx = clodoo.oerp_set_env(
-                db='clodoo_test',
+                db=self.db,
                 ctx={'oe_version': '*',
                      'no_login': True,
                      'conf_fn': './no_filename.conf',})
             self.ctx['test_unit_mode'] = True
             clodoo.act_drop_db(self.ctx)
             sts = clodoo.act_new_db(self.ctx)
+            res = self.check_4_db(self.db)
+        else:
+            res = True
         sts = self.Z.test_result(z0ctx,
-                                 'new_db()',
+                                 "new_db(%s)" % self.db,
                                  TEST_SUCCESS,
                                 sts)
+        sts = self.Z.test_result(z0ctx,
+                                 "new_db(%s)" % self.db,
+                                 True,
+                                 res)
         if not z0ctx['dry_run']:
             self.uid, self.ctx = clodoo.oerp_set_env(
                 db='clodoo_test',

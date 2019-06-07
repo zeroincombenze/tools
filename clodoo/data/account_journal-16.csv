@@ -15,19 +15,19 @@ oe_versions,id,company_id,name,update_posted,code,type,centralisation,rev_charge
 ,,"${company_id}",Chiusura Profitti & Perdite,False,OLPJ,general,True,False,False,False
 ,,"${company_id}",Voci di chiusura patrimoniale,True,OPCJ,general,True,False,False,False
 ,,"${company_id}",Autofatture UE,True,SAJ2,sale,,True,False,False
-,,base.mycompany,Contante,True,BNK1,cash,,False,False,False
-,,base.mycompany,Banca,True,BNK2,bank,,False,False,False
--9.0-10.0-11.0,,base.mycompany,Note di Credito Fornitori,True,ECNJ,purchase_refund,,False,False,False
--9.0-10.0-11.0,,base.mycompany,Sezionale Acquisti,True,EXJ,purchase,,False,False,False
+,,z0bug.mycompany,Contante,True,BNK1,cash,,False,False,False
+,,z0bug.mycompany,Banca,True,BNK2,bank,,False,False,False
+-9.0-10.0-11.0,,z0bug.mycompany,Note di Credito Fornitori,True,ECNJ,purchase_refund,,False,False,False
+-9.0-10.0-11.0,,z0bug.mycompany,Sezionale Acquisti,True,EXJ,purchase,,False,False,False
 +9.0+10.0+11.0,,"${company_id}",Sezionale Acquisti,True,FATTU,purchase,,False,False,False
-,,base.mycompany,Proposte di Parcella,True,EXJ2,purchase,,False,False,True
-,,base.mycompany,Movimenti vari,True,MISC,general,,False,False,False
-,,base.mycompany,Voci di apertura,True,OPEJ,general,True,False,False,False
--9.0-10.0-11.0,,base.mycompany,Sezionale Vendite,True,SAJ,sale,,False,False,False
+,,z0bug.mycompany,Proposte di Parcella,True,EXJ2,purchase,,False,False,True
+,,z0bug.mycompany,Movimenti vari,True,MISC,general,,False,False,False
+,,z0bug.mycompany,Voci di apertura,True,OPEJ,general,True,False,False,False
+-9.0-10.0-11.0,,z0bug.mycompany,Sezionale Vendite,True,SAJ,sale,,False,False,False
 +9.0+10.0+11.0,,"${company_id}",Sezionale Vendite,True,FAT,sale,,False,False,False
--9.0-10.0-11.0,,base.mycompany,Note di Credito,True,SCNJ,sale_refund,,False,False,False
-,,base.mycompany,Giornale Magazzino,True,STJ,general,,False,False,False
-,,base.mycompany,Utile o Perdita,False,OCLJ,general,True,False,False,False
-,,base.mycompany,Chiusura Profitti & Perdite,False,OLPJ,general,True,False,False,False
-,,base.mycompany,Voci di chiusura patrimoniale,True,OPCJ,general,True,False,False,False
-,,base.mycompany,Autofatture UE,True,SAJ2,sale,,True,False,False
+-9.0-10.0-11.0,,z0bug.mycompany,Note di Credito,True,SCNJ,sale_refund,,False,False,False
+,,z0bug.mycompany,Giornale Magazzino,True,STJ,general,,False,False,False
+,,z0bug.mycompany,Utile o Perdita,False,OCLJ,general,True,False,False,False
+,,z0bug.mycompany,Chiusura Profitti & Perdite,False,OLPJ,general,True,False,False,False
+,,z0bug.mycompany,Voci di chiusura patrimoniale,True,OPCJ,general,True,False,False,False
+,,z0bug.mycompany,Autofatture UE,True,SAJ2,sale,,True,False,False

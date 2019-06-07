@@ -36,7 +36,7 @@ except BaseException:
 from zerobug import Z0test
 
 
-__version__ = "0.3.8.31"
+__version__ = "0.3.8.34"
 
 MODULE_ID = 'clodoo'
 TEST_FAILED = 1
@@ -278,7 +278,10 @@ class Oerp():
             },
         }
 
-    def comp_tuple(self, left,op, right):
+    def comp_tuple(self, left, op, right):
+        """Apply for op between 2 operands
+        op may be '==', '!=' or 'ilike'
+        """
         if op == '=':
             return left == right
         elif op == '!=':
@@ -288,6 +291,7 @@ class Oerp():
         return False
 
     def eval_where(self, model, where):
+        """Evaluate sql where condition"""
         if model == "":
             raise IOError("*** No model supplied!!!")
         if model not in self.db:
@@ -313,8 +317,7 @@ class Oerp():
         return res
 
     def search(self, model, where, order=None, context=None):
-        """Search simulation
-        First time simulate null result
+        """Simulate search function
         """
         if model == "":
             raise IOError("*** No model supplied!!!")
@@ -339,6 +342,7 @@ class Oerp():
         return res
 
     def browse1(self, model, id, context=None):
+        """Simulate browse function on single record"""
         if model == "":
             raise IOError("*** No model supplied!!!")
         if model not in self.db:
@@ -351,6 +355,7 @@ class Oerp():
 
 
     def browse(self, model, ids, context=None):
+        """Simulate browse on 1 or more records"""
         if isinstance(ids, list):
             res = []
             for id in ids:
