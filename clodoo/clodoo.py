@@ -3095,7 +3095,7 @@ def get_reconcile_from_inv(inv_id, ctx):
             type = browseL8(ctx, 'account.move.line',
                 move_line_id).account_id.type
         if type in ('receivable', 'payable'):
-                reconciles.append(move_line_id)
+            reconciles.append(move_line_id)
         for move_line in account_invoice.payment_ids:
             move_id, move_line_id, mov_state = \
                 get_payment_info(move_line, ctx)

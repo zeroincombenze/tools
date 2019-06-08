@@ -260,7 +260,7 @@ class Test():
                                os.path.expanduser("~")),
                 'odoo_%s.log' % self.odoo_version.replace('.', '-'))
             conf_data = set_conf_data(addons_path, logfile=self.logfile)
-            self.rpcport = conf_data['xmlrpc_port']
+            self.rpcport = conf_data.get('xmlrpc_port', 8069)
             write_server_conf(conf_data, self.odoo_version)
             cmd_odoo = get_odoo_cmd(script_path)
             print('script_name=%s' % script_name)
