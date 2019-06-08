@@ -301,9 +301,11 @@ def default_conf(ctx):
               'admin_passwd': 'admin',
               'db_user': 'postgres',
               'db_host': 'localhost',
+              'oe_version': '*',
               'svc_protocol': '',
               'xmlrpc_port': '8069',
               'odoo_vid': '11.0',
+              'db_name': 'demo',
               'dbfilter': '.*',
               'dbfilterd': 'demo',
               'dbfiltert': '(openerp|odoo|test)',
@@ -350,11 +352,15 @@ def default_conf(ctx):
               'chart_of_account': 'configurable_chart_template',
               'catalog_db': 'zeroincombenze',
               'psycopg2': 'False',
-              # 'model_name': 'name',
+              'caller': '',
+              'level': 4,
+              'dry_run': False,
+              'multi_user': False,
+              'ena_inquire': False,
+              'no_login': False,
               'TRANSDICT': {}
               }
     return DEFDCT
-
 
 def get_versioned_option(conf_obj, sect, param, is_bool=None, defval=None):
     is_bool = is_bool or False

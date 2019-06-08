@@ -6,6 +6,7 @@
 #
 #    All Rights Reserved
 #
+import pdb
 """
     Clodoo Regression Test Suite
 """
@@ -14,8 +15,12 @@
 import os
 # import os.path
 import sys
+import ast
 from datetime import datetime
-from subprocess import PIPE, Popen
+import time
+from subprocess import PIPE, Popen, STDOUT
+from multiprocessing import Process
+from configparser import ConfigParser
 
 from zerobug import Z0test
 # import oerplib
@@ -32,6 +37,183 @@ MODULE_ID = 'clodoo'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
+MANIFEST_FILES = [
+    '__manifest__.py',
+    '__odoo__.py',
+    '__openerp__.py',
+    '__terp__.py',
+]
+
+
+def get_server_path(odoo_full, odoo_version, travis_home):
+    odoo_version = odoo_version.replace('/', '-')
+    odoo_org, odoo_repo = odoo_full.split('/')
+    server_dirname = "%s-%s" % (odoo_repo, odoo_version)
+    server_path = os.path.join(travis_home, server_dirname)
+    return server_path
+
+
+def get_server_script(server_path):
+    if os.path.isfile(os.path.join(server_path, 'odoo-bin')):
+        return 'odoo-bin'
+    elif os.path.isfile(os.path.join(server_path, 'openerp-server')):
+        return 'openerp-server'
+    return 'Script not found!'
+
+
+def get_script_path(server_path, script_name):
+    script_path = os.path.join(server_path, 'server')
+    if os.path.isdir(script_path):
+        script_path = os.path.join(server_path, 'server', script_name)
+    else:
+        script_path = os.path.join(server_path, script_name)
+    return script_path
+
+
+def set_conf_data(addons_path, data_dir=None, logfile=None):
+    data_dir = data_dir or os.path.expanduser(
+        os.environ.get(
+            'DATA_DIR', os.path.expanduser('~/data_dir')))
+    conf_data = {
+        'addons_path': addons_path,
+        'data_dir': data_dir,
+        'db_password': 'shs13av0',
+    }
+    if logfile:
+        conf_data['logfile'] = logfile
+    if os.uname()[1][0:3] == 'shs':
+        pid = os.getpid()
+        if pid > 18000:
+            rpcport = str(pid)
+        else:
+            rpcport = str(18000 + pid)
+        conf_data['xmlrpc_port'] = rpcport
+        conf_data['db_user'] = 'odoo'
+    return conf_data
+
+
+def get_modules(path, depth=1):
+    """ Return modules of path repo (used in test_server.py)"""
+    return sorted(list(get_modules_info(path, depth).keys()))
+
+
+def get_modules_info(path, depth=1):
+    """ Return a digest of each installable module's manifest in path repo"""
+    # Avoid empty basename when path ends with slash
+    path = os.path.expanduser(path)
+    if not os.path.basename(path):
+        path = os.path.dirname(path)
+
+    modules = {}
+    if os.path.isdir(path) and depth > 0:
+        for module in os.listdir(path):
+            manifest_path = is_module(os.path.join(path, module))
+            if manifest_path:
+                try:
+                    manifest = ast.literal_eval(open(manifest_path).read())
+                except ImportError:
+                    raise Exception('Wrong file %s' % manifest_path)
+                if manifest.get('installable', True):
+                    modules[module] = {
+                        'application': manifest.get('application'),
+                        'depends': manifest.get('depends') or [],
+                        'auto_install': manifest.get('auto_install'),
+                    }
+            else:
+                deeper_modules = get_modules_info(
+                    os.path.join(path, module), depth-1)
+                modules.update(deeper_modules)
+    return modules
+
+
+def is_module(path):
+    """return False if the path doesn't contain an odoo module, and the full
+    path to the module manifest otherwise"""
+
+    path = os.path.expanduser(path)
+    if not os.path.isdir(path):
+        return False
+    files = os.listdir(path)
+    filtered = [x for x in files if x in (MANIFEST_FILES + ['__init__.py'])]
+    if len(filtered) == 2 and '__init__.py' in filtered:
+        return os.path.join(
+            path, next(x for x in filtered if x != '__init__.py'))
+    else:
+        return False
+
+
+def is_addons(path):
+    res = get_modules(path) != []
+    return res
+
+def get_addons(path, depth=1):
+    path = os.path.expanduser(path)
+    if not os.path.exists(path) or depth < 0:
+        return []
+    res = []
+    if is_addons(path):
+        res.append(path)
+    else:
+        new_paths = [os.path.join(path, x)
+                     for x in sorted(os.listdir(path))
+                     if os.path.isdir(os.path.join(path, x))]
+        for new_path in new_paths:
+            res.extend(get_addons(new_path, depth-1))
+    return res
+
+
+def get_addons_path(travis_dependencies_dir, travis_base_dir, server_path,
+                    odoo_test_select):
+    addons_path_list = []
+    for ldir in ('server/openerp', 'openerp', 'odoo'):
+        if os.path.isdir(os.path.join(server_path, ldir, 'addons')):
+            addons_path_list = [os.path.join(server_path, ldir, 'addons')]
+            break
+    addons_path_list.append(os.path.join(server_path, "addons"))
+    if travis_base_dir:
+        if odoo_test_select != 'NO-CORE':
+            addons_path_list.extend(get_addons(travis_base_dir))
+    if travis_dependencies_dir:
+        addons_path_list.extend(get_addons(travis_dependencies_dir))
+    addons_path = ','.join(addons_path_list)
+    return addons_path
+
+
+def write_server_conf(data, version):
+    fname_conf = os.path.expanduser('~/.openerp_serverrc')
+    if not os.path.exists(fname_conf):
+        fconf = open(fname_conf, "w")
+        fconf.close()
+    config = ConfigParser()
+    config.read(fname_conf)
+    if not config.has_section('options'):
+        config['options'] = {}
+    config['options'].update(data)
+    with open(fname_conf, 'w') as configfile:
+        config.write(configfile)
+
+
+def get_odoo_cmd(script_path, db=None, modules=None, loglevel=None):
+    loglevel = loglevel or 'info'
+    cmd_odoo = [
+        script_path,
+        '--log-level=%s' % loglevel,
+    ]
+    if db:
+        cmd_odoo += ['-d', db]
+    if modules:
+        cmd_odoo += ['--stop-after-init',
+                     '--init', ','.join(modules)]
+    return cmd_odoo
+
+
+def run_odoo_cmd(cmd_odoo):
+    prc = Popen(cmd_odoo,
+                stderr=PIPE,
+                stdout=PIPE)
+    res, err = prc.communicate()
+    print(res)
+
 
 def version():
     return __version__
@@ -44,14 +226,16 @@ class Test():
         self.ctx = {}
         self.uid = False
         self.db = 'clodoo_test'
+        self.odoo_full = 'zeroincombenze/OCB'
+        self.odoo_version = '10.0'
 
     def check_4_db(self, dbname):
         cmd = ['psql'] + ['-Upostgres'] + ['-tl']
-        p = Popen(cmd,
-                  stdin=PIPE,
-                  stdout=PIPE,
-                  stderr=PIPE)
-        res, err = p.communicate()
+        prc = Popen(cmd,
+                    stdin=PIPE,
+                    stdout=PIPE,
+                    stderr=PIPE)
+        res, err = prc.communicate()
         dbname = ' %s ' % dbname
         if res.find(dbname) >= 0:
             return True
@@ -60,37 +244,82 @@ class Test():
 
     def test_01(self, z0ctx):
         sts = TEST_SUCCESS
-        # if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-        #     return sts
         if not z0ctx['dry_run']:
+            travis_home = os.environ.get("HOME", os.path.expanduser("~"))
+            server_path = get_server_path(self.odoo_full,
+                                          self.odoo_version,
+                                          travis_home)
+            script_name = get_server_script(server_path)
+            script_path = get_script_path(server_path, script_name)
+            addons_path = get_addons_path(False,
+                                          False,
+                                          server_path,
+                                          'ALL')
+            self.logfile = os.path.join(
+                os.environ.get('HOME',
+                               os.path.expanduser("~")),
+                'odoo_%s.log' % self.odoo_version.replace('.', '-'))
+            conf_data = set_conf_data(addons_path, logfile=self.logfile)
+            self.rpcport = conf_data['xmlrpc_port']
+            write_server_conf(conf_data, self.odoo_version)
+            cmd_odoo = get_odoo_cmd(script_path)
+            print('script_name=%s' % script_name)
+            print('script_path=%s' % script_path)
+            print('addons_path=%s' % addons_path)
+            print('conf_data=%s' % conf_data)
+            print('cmd_odoo=%s' % cmd_odoo)
+            # run_odoo_cmd(cmd_odoo)
+            prc = Process(target=run_odoo_cmd, args=(cmd_odoo,))
+            prc.start()
+            time.sleep(3)
             self.uid, self.ctx = clodoo.oerp_set_env(
                 db=self.db,
                 ctx={'oe_version': '*',
                      'no_login': True,
+                     'xmlrpc_port': self.rpcport,
                      'conf_fn': './no_filename.conf',})
+        else:
+            self.ctx = {'oe_version': self.odoo_version}
+        sts = self.Z.test_result(z0ctx,
+                                 "connect(%s)" % self.db,
+                                 self.odoo_version,
+                                 self.ctx['oe_version'])
+
+        if not z0ctx['dry_run']:
             self.ctx['test_unit_mode'] = True
             clodoo.act_drop_db(self.ctx)
             sts = clodoo.act_new_db(self.ctx)
-            res = self.check_4_db(self.db)
-        else:
-            res = True
         sts = self.Z.test_result(z0ctx,
                                  "new_db(%s)" % self.db,
                                  TEST_SUCCESS,
                                 sts)
+        if not z0ctx['dry_run']:
+            res = self.check_4_db(self.db)
+        else:
+            res = True
         sts = self.Z.test_result(z0ctx,
-                                 "new_db(%s)" % self.db,
+                                 "_db(%s)" % self.db,
                                  True,
                                  res)
         if not z0ctx['dry_run']:
             self.uid, self.ctx = clodoo.oerp_set_env(
-                db='clodoo_test',
+                db=self.db,
                 ctx={'oe_version': self.ctx['oe_version'],
+                     'xmlrpc_port': self.rpcport,
                      'conf_fn': './no_filename.conf',})
             self.ctx['test_unit_mode'] = True
+            res = self.uid
+        else:
+            res = 1
+        sts = self.Z.test_result(z0ctx,
+                                 "login_%s" % self.db,
+                                 1,
+                                 res)
+        if not z0ctx['dry_run']:
+            prc.terminate()
         return sts
 
-    def test_02(self, z0ctx):
+    def __test_02(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
             return sts
@@ -183,7 +412,7 @@ class Test():
                                      RES[0:10])
         return sts
 
-    def test_03(self, z0ctx):
+    def __test_03(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
             return sts
@@ -216,7 +445,7 @@ class Test():
                                      RES)
         return sts
 
-    def test_04(self, z0ctx):
+    def __test_04(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
             return sts
@@ -265,7 +494,7 @@ class Test():
                                              new_name)
         return sts
 
-    def test_05(self, z0ctx):
+    def __test_05(self, z0ctx):
         sts = TEST_SUCCESS
         if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
             return sts

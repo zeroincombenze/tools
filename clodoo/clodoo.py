@@ -405,80 +405,55 @@ def do_login(ctx):
 
 
 def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
-                 user=None, pwd=None, ctx=None):
-    P_LIST = ('db_host', 'login_user', 'login_password', 'crypt_password',
-              'db_name', 'xmlrpc_port', 'oe_version', 'svc_protocol',
-              'psycopg2', 'ena_inquire', 'no_login')
-    S_LIST = ('db_name', 'login_user', 'login_password',
-              'oe_version', 'svc_protocol', 'lang')
+                 user=None, pwd=None, lang=None, ctx=None):
+    D_LIST = ('ena_inquire', 'caller', 'level', 'dry_run', 'multi_user',
+              'set_passepartout', 'psycopg2', 'no_login')
+    P_LIST = ('db_host', 'db_name', 'admin_passwd',
+              'login_user', 'login_password', 'crypt_password',
+              'login2_user', 'login2_password', 'crypt2_password',
+              'svc_protocol', 'oe_version', 'xmlrpc_port',
+              'lang')
+    S_LIST = ('db_host', 'db_name', 'admin_passwd',
+              'login_user', 'login_password',
+              'svc_protocol', 'oe_version', 'xmlrpc_port',
+              'lang')
+    DEFLT = default_conf(ctx)
 
     def oerp_env_fill(db=None, xmlrpc_port=None, oe_version=None,
-                      user=None, pwd=None, ctx=None):
+                      user=None, pwd=None, lang=None, ctx=None,
+                      inquire=None):
         ctx = ctx or {}
-        # saved = {}
-        if not ctx.get('db_host'):
-            ctx['db_host'] = 'localhost'
-        if db:
-            ctx['db_name'] = db
-        elif not ctx.get('db_name'):
-            ctx['db_name'] = 'demo'
-        if user:
-            ctx['login_user'] = user
-        elif not ctx.get('login_user'):
-            ctx['login_user'] = 'admin'
-        if pwd:
-            ctx['login_password'] = pwd
-        elif 'crypt_password' not in ctx or not ctx['crypt_password']:
-            if not ctx.get('login_password'):
-                ctx['login_password'] = 'admin'
-        if xmlrpc_port:
-            if isinstance(ctx[p], basestring):
-                ctx['xmlrpc_port'] = eval(xmlrpc_port)
-            else:
-                ctx['xmlrpc_port'] = xmlrpc_port
-        elif 'xmlrpc_port' not in ctx or not ctx['xmlrpc_port']:
-            ctx['xmlrpc_port'] = 8069
-        if oe_version:
-            ctx['oe_version'] = oe_version
-        elif not ctx.get('oe_version'):
-            ctx['oe_version'] = '11.0'
-        if 'svc_protocol' not in ctx or not ctx['svc_protocol']:
-            if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
-                ctx['svc_protocol'] = 'xmlrpc'
-            elif ctx.get('oe_version'):
-                ctx['svc_protocol'] = 'jsonrpc'
+        for p in D_LIST + P_LIST:
+            if p == 'db_name' and db:
+                ctx[p] = db
+            elif p == 'login_user' and user:
+                ctx[p] = user
+            elif p == 'login_password' and pwd:
+                ctx[p] = pwd
+            elif p == 'xmlrpc_port' and xmlrpc_port:
+                if isinstance(ctx[p], basestring):
+                    ctx[p] = eval(xmlrpc_port)
+                else:
+                    ctx[p] = xmlrpc_port
+            elif p == 'oe_version' and oe_version and oe_version != '*':
+                ctx[p] = oe_version
+            elif p == 'svc_protocol' and p not in ctx:
+                if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+                    ctx[p] = 'xmlrpc'
+                elif ctx.get('oe_version'):
+                    ctx[p] = 'jsonrpc'
+            elif p == 'lang' and lang:
+                ctx[p] = lang
+            elif p not in ctx and p in DEFLT:
+                ctx[p] = DEFLT[p]
+            elif p not in ctx and inquire:
+                ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
         if os.isatty(0):
             ctx['run_daemon'] = False
         else:
             ctx['run_daemon'] = True
-        # for p in S_LIST:
-        #     saved[p] = ctx.get(p)
-        ctx['caller'] = ''
-        ctx['dbfilter'] = '.*'
-        if 'level' not in ctx or not ctx['level']:
-            ctx['level'] = 4
-        if 'dry_run' not in ctx:
-            ctx['dry_run'] = False
-        if 'login_password' not in ctx:
-            ctx['login_password'] = ''
-        if 'login2_user' not in ctx:
-            ctx['login2_user'] = ''
-        if 'crypt2_password' not in ctx:
-            ctx['crypt2_password'] = ''
-        if 'login2_password' not in ctx:
-            ctx['login2_password'] = ''
-        if 'multi_user' not in ctx:
-            ctx['multi_user'] = False
-        if 'set_passepartout' not in ctx:
-            ctx['set_passepartout'] = False
-        if 'psycopg2' not in ctx:
-            ctx['psycopg2'] = False
-        if 'ena_inquire' not in ctx:
-            ctx['ena_inquire'] = False
-        if 'no_login' not in ctx:
-            ctx['no_login'] = False
-        # return ctx, saved
         return ctx
+
     ctx = ctx or {}
     confn = confn or ctx.get('conf_fn', './clodoo.conf')
     write_confn = False
@@ -497,18 +472,13 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
         fd.close()
     except BaseException:
         write_confn = True
-        ctx = oerp_env_fill(db=db, user=user, pwd=pwd, ctx=ctx)
-        for p in (P_LIST):
-            if p == 'db_name' and db:
-                ctx[p] = db
-            elif ctx['ena_inquire']:
-                ctx[p] = raw_input('%s[def=%s]? ' % (p, ctx[p]))
-        ctx = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
-                                   user=user, pwd=pwd,
-                                   oe_version=oe_version, ctx=ctx)
-    ctx = oerp_env_fill(db=db, xmlrpc_port=xmlrpc_port,
-                               user=user, pwd=pwd,
-                               oe_version=oe_version, ctx=ctx)
+    ctx = oerp_env_fill(db=db,
+                        xmlrpc_port=xmlrpc_port,
+                        user=user, pwd=pwd,
+                        oe_version=oe_version,
+                        lang=lang,
+                        ctx=ctx,
+                        inquire=write_confn and ctx.get('ena_inquire'))
     open_connection(ctx)
     saved = {}
     for p in S_LIST:
@@ -531,7 +501,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                     ctx[p] = eval(ctx[p])
                 if ctx[p] != 8069:
                     fd.write('%s=%d\n' % (p, ctx[p]))
-            elif p == 'oe_version' and ctx[p] == '11.0':
+            elif p == 'oe_version' and ctx[p] == '*':
                 pass
             elif p == 'svc_protocol' and ctx[p] == 'xmlrpc':
                 pass
@@ -540,6 +510,8 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
             elif p == 'psycopg2' and not ctx[p]:
                 pass
             elif p == 'db_name' and ctx[p] == 'demo':
+                pass
+            elif p == 'admin_passwd' and ctx[p] == 'admin':
                 pass
             elif p == 'crypt_password':
                 fd.write('%s=%s\n' % (p, crypt(ctx[p])))

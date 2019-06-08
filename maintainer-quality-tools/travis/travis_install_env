@@ -133,6 +133,30 @@ cp_n_upd_odoo_conf() {
     done < "$confn"
 }
 
+git_clone_ocb() {
+    ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
+    echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
+    if [[ "$TRAVIS" == "true" ]]; then
+      run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+      run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+    elif [ ! -L ${ODOO_PATH} ]; then
+      if [[ "$REMOTE" == "oca" ]]; then
+        majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
+        if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+          run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
+          run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
+          run_traced "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
+        fi
+        if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
+          SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
+        fi
+      else
+        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
+      fi
+      run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
+    fi
+}
+
 
 OPTOPTS=(h        b          j        K        H           n            q           T        t         V           v)
 OPTDEST=(opt_help opt_branch opt_dprj opt_lint opt_humdrum opt_dry_run  opt_verbose opt_regr test_mode opt_version opt_verbose)
@@ -230,6 +254,8 @@ if [ -d $HOME/dev ]; then
 else
   echo "!! Directory $HOME/dev not found!"
 fi
+run_traced "$PIP install -q pip --upgrade" "nolocal"
+run_traced "$PIP install -q future --upgrade" "nolocal"
 MGRODOO=$(which manage_odoo 2>/dev/null)
 if [[ -z "$MGRODOO" ]]; then
   if [ "$MQT_TEST_MODE" == "tools" ]; then
@@ -242,8 +268,6 @@ if [[ -z "$MGRODOO" ]]; then
 fi
 LISTREQ=$(which list_requirements.py 2>/dev/null)
 if [[ -z "$LISTREQ" ]]; then
-  # if [ "$MQT_TEST_MODE" == "tools" ]; then
-  #   [ -f $TRAVIS_BUILD_DIR/clodoo/list_requirements.py ] && LISTREQ=$TRAVIS_BUILD_DIR/clodoo/list_requirements.py || LISTREQ=list_requirements.py
   if [ -n "$YML_mgrodoo" ]; then
     LISTREQ=$(dirname $YML_mgrodoo)/list_requirements.py
   else
@@ -252,8 +276,6 @@ if [[ -z "$LISTREQ" ]]; then
 fi
 LISA=$(which lisa 2>/dev/null)
 if [[ -z "$LISA" ]]; then
-  # if [ "$MQT_TEST_MODE" == "tools" ]; then
-  #   LISA=$TRAVIS_BUILD_DIR/lisa/lisa
   if [ -n "$YML_lisa" ]; then
     LISA=$YML_lisa
   else
@@ -262,9 +284,6 @@ if [[ -z "$LISA" ]]; then
     [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
   fi
 fi
-# if [ "$MQT_TEST_MODE" == "tools" ]; then
-#   run_traced "export PATH=$HOME/maintainer-quality-tools/_travis/:$PATH"
-# fi
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}m$0 $__version__\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m\$ alias pip=$PIP.$($PIP --version)\e[${PS_HDR3_COLOR}m"
@@ -279,7 +298,6 @@ if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
   echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
 fi
-[[ ! "$TRAVIS" == "false" ]] && run_traced "$PIP install -q pip --upgrade" "nolocal"
 # Build secure environment (python2)
 echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"
 # for p in build-essential libssl-dev libffi-dev python-dev; do
@@ -289,12 +307,7 @@ for p in build-essential libssl-dev libffi-dev; do
 done
 if [[ ! "$TRAVIS" == "false" ]]; then
   for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
-    # eval $LISA status -q $p &>/dev/null
-    # if [ $? -ne 0 ]; then
-    #   run_traced "$PIP install $p" "nolocal"
-    # else
-      run_traced "$PIP install $p --upgrade --ignore-installed" "nolocal"
-    # fi
+    run_traced "$PIP install $p --upgrade --ignore-installed" "nolocal"
   done
 fi
 # Secure environment OK
@@ -303,12 +316,22 @@ for p in os0 configparser future z0lib; do
   [[ "$TRAVIS" == "false" ]] || eval $LISA status -q $p
   [ $? -ne 0 ] && run_traced "$PIP install $p $PIP_OPTS" "nolocal"
 done
+[ -z "${VERSION}" ] && VERSION="$opt_branch"
+[ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
+: ${MQT_TEMPLATE_DB:="openerp_template"}
+: ${MQT_TEST_DB:="openerp_test"}
+: ${ODOO_REPO:="odoo/odoo"}
+IFS="/" read -a REPO <<< "${ODOO_REPO}"
+export REMOTE="${REPO[0],,}"
+export REPO_NAME="${REPO[1]}"
+export BRANCH="${ODOO_BRANCH}"
+[[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
+export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
+
 if [ "$MQT_TEST_MODE" == "tools" ]; then
   echo -e "\e[${PS_HDR3_COLOR}m### Build Tools Environment\e[${PS_TXT_COLOR}m"
-  # run_traced "cp ${TRAVIS_BUILD_DIR}/z0lib/z0lib.py $HOME/maintainer-quality-tools/travis/"
   if [ -z "$PYPI_CACHED" ]; then
     if [[ ! "$TRAVIS" == "false" ]]; then
-      # for p in Click codecov coveralls flake8==3.5.0 oerplib odoorpc pylint==1.6.4 run_pylint unittest2; do
       echo "- reqs=\$($LISTREQ -t python -s ' ' -qBTR)"
       reqs="$($LISTREQ -t python -s ' ' -qBTR)"
       for p in $reqs; do  
@@ -321,6 +344,9 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
       done
     fi
   fi
+  if [ "${ODOO_REPO}" != "odoo/odoo" ]; then
+    git_clone_ocb
+  fi
   if [ $opt_verbose -gt 0 ]; then
     echo "Content of ${HOME}:"
     ls -l ${HOME}
@@ -331,19 +357,6 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   fi
   exit $sts
 else
-  # [ $opt_verbose -gt 0 ] && echo "\$ export PYTHONPATH=$HOME/dev"
-  # export PYTHONPATH=$HOME/dev
-  [ -z "${VERSION}" ] && VERSION="$opt_branch"
-  [ -z "${ODOO_BRANCH}"  ] && export ODOO_BRANCH=${VERSION}
-  : ${MQT_TEMPLATE_DB:="openerp_template"}
-  : ${MQT_TEST_DB:="openerp_test"}
-  : ${ODOO_REPO:="odoo/odoo"}
-  IFS="/" read -a REPO <<< "${ODOO_REPO}"
-  export REMOTE="${REPO[0],,}"
-  export REPO_NAME="${REPO[1]}"
-  export BRANCH="${ODOO_BRANCH}"
-  [[ $BRANCH == *"/"*  ]] && export BRANCH=${BRANCH/\//-}
-  export ODOO_PATH=${HOME}/$REPO_NAME-$ODOO_BRANCH
   if [ -f "${HOME}/.nvm/nvm.sh" ]; then
       CURRENT_NODE=$(which node)
       source ${HOME}/.nvm/nvm.sh
@@ -463,27 +476,7 @@ else
       run_traced "ln -s ${TRAVIS_BUILD_DIR} ${ODOO_PATH}"
     fi
   else
-    ODOO_URL="https://github.com/$REMOTE/$REPO_NAME.git"
-    echo -e "\e[${PS_HDR3_COLOR}m### Installing Odoo from $ODOO_URL\e[${PS_TXT_COLOR}m"
-    if [[ "$TRAVIS" == "true" ]]; then
-      run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-      run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-    elif [ ! -L ${ODOO_PATH} ]; then
-      if [[ "$REMOTE" == "oca" ]]; then
-        majver=$(echo $BRANCH|grep -Eo [0-9]+|head -n1)
-        if [[ ! -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          run_traced "git clone --depth=50 https://github.com/$REMOTE/$REPO_NAME.git -b $BRANCH ${ODOO_PATH}"
-          run_traced "git --work-tree=${ODOO_PATH} --git-dir=${ODOO_PATH}/.git remote rename origin $REMOTE"
-          run_traced "mv ${ODOO_PATH} $TRAVIS_SAVED_HOME/oca$majver"
-        fi
-        if [[ -d $TRAVIS_SAVED_HOME/oca$majver ]]; then
-          SRCREPOPATH="$TRAVIS_SAVED_HOME/${REMOTE}${majver}"
-        fi
-      else
-        SRCREPOPATH="$TRAVIS_SAVED_HOME/$BRANCH"
-      fi
-      run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
-    fi
+    git_clone_ocb
   fi
   if [ "${TESTS}" != "1" ]; then
     dopts=
