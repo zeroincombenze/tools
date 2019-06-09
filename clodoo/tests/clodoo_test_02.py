@@ -77,7 +77,7 @@ def set_conf_data(addons_path, data_dir=None, logfile=None):
     conf_data = {
         'addons_path': addons_path,
         'data_dir': data_dir,
-        'db_password': 'shs13av0',
+        'db_password': clodoo.decrypt('Wg".:gfL'),
     }
     if logfile:
         conf_data['logfile'] = logfile
@@ -215,6 +215,45 @@ def run_odoo_cmd(cmd_odoo):
     print(res)
 
 
+def str_secret(obj):
+
+    def str_list_secret(obj):
+        obj_secret = []
+        skip_next = False
+        for param in obj:
+            if skip_next:
+                skip_next = False
+                continue
+            if param.startswith('--pass'):
+                obj_secret.append(param.split('=')[0] + '=***')
+                continue
+            if param.startswith('--pwd'):
+                obj_secret.append('--log-db=***')
+                continue
+            obj_secret.append(param)
+        return obj_secret
+
+    def str_dict_secret(obj):
+        obj_secret = obj.copy()
+        for param in obj:
+            if param in ('db_password',
+                         'login_password',
+                         'crypt_password',
+                         'login2_password',
+                         'crypt2_password',
+                         'oneadm_pwd',
+                         'botadm_pwd',
+                         'admin_passwd'):
+                obj_secret[param] = '***'
+        return obj_secret
+
+    if isinstance(obj, (list, tuple)):
+        return str_list_secret(obj)
+    elif isinstance(obj, dict):
+        return str_dict_secret(obj)
+    return obj
+
+
 def version():
     return __version__
 
@@ -266,7 +305,7 @@ class Test():
             print('script_name=%s' % script_name)
             print('script_path=%s' % script_path)
             print('addons_path=%s' % addons_path)
-            print('conf_data=%s' % conf_data)
+            print('conf_data=%s' % str_secret(conf_data))
             print('cmd_odoo=%s' % cmd_odoo)
             # run_odoo_cmd(cmd_odoo)
             prc = Process(target=run_odoo_cmd, args=(cmd_odoo,))
@@ -319,10 +358,8 @@ class Test():
             prc.terminate()
         return sts
 
-    def __test_02(self, z0ctx):
+    def test_02(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-            return sts
         ctx = self.ctx
         if not z0ctx['dry_run']:
             ids = clodoo.searchL8(ctx, 'res.users', [])
@@ -407,15 +444,13 @@ class Test():
             else:
                 RES = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             sts = self.Z.test_result(z0ctx,
-                                     'user[login_date] (date[time])',
+                                    'user[login_date] (date[time])',
                                      datetime.now().strftime('%Y-%m-%d'),
                                      RES[0:10])
         return sts
 
-    def __test_03(self, z0ctx):
+    def test_03(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-            return sts
         ctx = self.ctx
         if not z0ctx['dry_run']:
             model = 'ir.model'
