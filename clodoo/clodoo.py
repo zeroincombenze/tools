@@ -168,7 +168,7 @@ from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         is_valid_field, is_required_field, model_has_company,
-                        searchL8, browseL8, write_recordL8,
+                        searchL8, browseL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
@@ -273,10 +273,7 @@ def do_login(ctx):
     """Do a login into DB; try using more usernames and passwords"""
 
     def get_login_user(ctx):
-        # if ctx['majver'] < 12:
         return ctx['odoo_session'].env.user
-        # return ctx['odoo_session'].env['res.users'].browse(
-        #     ctx['odoo_session'].env.uid)
 
     msg = "do_login()"
     debug_msg_log(ctx, ctx['level'] + 1, msg)
@@ -362,34 +359,25 @@ def do_login(ctx):
         msg = ident_user(ctx, user.id)
         msg_log(ctx, ctx['level'], msg)
     if ctx['set_passepartout']:
-        wrong = False
+        vals = {}
         if user.login != ctx['login_user']:
-            user.login = ctx['login_user']
-            wrong = True
+            vals['login'] = ctx['login_user']
         if ctx['crypt_password'] and pwd != ctx['crypt_password']:
-            user.new_password = decrypt(ctx['crypt_password'])
-            wrong = True
+            vals['new_password'] = decrypt(ctx['crypt_password'])
         elif ctx['login_password'] and pwd != ctx['login_password']:
-            user.new_password = ctx['login_password']
-            wrong = True
+            vals['new_password'] = ctx['login_password']
         if ctx['oe_version'] != '6.1':
-            if ctx['with_demo'] and user.email != ctx['def_email']:
-                user.email = set_some_values(ctx,
-                                             None,
-                                             'email',
-                                             user.email,
-                                             model='res.users')
-                wrong = True
-            elif not ctx['with_demo'] and user.email != ctx['zeroadm_mail']:
-                user.email = set_some_values(ctx,
-                                             None,
-                                             'email',
-                                             user.email,
-                                             model='res.users')
-                wrong = True
-        if wrong:
+            if ((ctx['with_demo'] and user.email != ctx['def_email']) or
+                    (not ctx['with_demo'] and
+                     user.email != ctx['zeroadm_mail'])):
+                vals['email'] = set_some_values(ctx,
+                                                None,
+                                                'email',
+                                                user.email,
+                                                model='res.users')
+        if vals:
             try:
-                write_recordL8(ctx, user)
+                writeL8(ctx, 'res.users', user.id, vals)
                 if not ctx.get('no_warning_pwd', False):
                     os0.wlog(u"DB=%s: updated user/pwd/mail %s to %s" % (
                              tounicode(ctx['db_name']),

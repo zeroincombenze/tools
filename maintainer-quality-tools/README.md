@@ -147,6 +147,7 @@ FLAKE8 (see http://flake8.pycqa.org/en/latest/user/error-codes.html for deatils)
 
 Test | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Note
 -----|---------|---------|---------|--------|-----|------
+E117 | :x:     | :x:     |         |        | :x: | over-indented
 E121 | :x:     | :x:     |         |        | :x: | [continuation line under-indented for hanging indent](https://lintlyci.github.io/Flake8Rules/rules/E121.html)
 E123 | :x:     | :x:     |         |        | :x: | [Closing bracket does not match indentation of opening bracket's line](https://lintlyci.github.io/Flake8Rules/rules/E123.html)
 E124 | :x:     | :x:     |         |        | :white_check_mark: | [Closing bracket does not match visual indentation](https://lintlyci.github.io/Flake8Rules/rules/E124.html)

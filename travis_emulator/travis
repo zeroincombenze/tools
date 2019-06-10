@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.9
+__version__=0.2.2.10
 
 
 store_cfg_param_value() {
@@ -166,8 +166,9 @@ process_yaml_init() {
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
+      export TRAVIS_PDB="True"
     fi
-    TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
+    export TRAVIS_DEBUG_MODE="${opt_dlvl:-1}"
     ODOO_TNLBOT="${opt_tnl:-0}"
     if [ $opt_full -ne 0 ]; then
       export SYSTEM_SITE_PACKAGES="${opt_syspkg:-false}"
@@ -725,7 +726,7 @@ process_yaml_run_cmd() {
         fi
       fi
     elif [ "${x[$ix]}" == "mv" -a "${x[$ix1]}" == "${HOME}/tools/maintainer-quality-tools" ]; then
-tny
+# tny
       xcmd=${xcmd/cp/mv}
     elif [ "${x[$ix]}" == "rvm" -a "${x[$ix1]}" == "install" ]; then
       xcmd="# $xcmd"
@@ -831,8 +832,11 @@ process_yaml() {
       if [ ! -f $YML_FILE ]; then
         YML_FILE=$PRJPATH/$opt_fyaml
       fi
-      if [ ! -f $YML_FILE ]; then
+      if [ ! -f $YML_FILE -a $opt_py3 -eq 0 ]; then
         YML_FILE=$TOOLS_PATH/travis.yml
+      fi
+      if [ ! -f $YML_FILE -a $opt_py3 -ne 0 ]; then
+        YML_FILE=$TOOLS_PATH/travis3.yml
       fi
     fi
     if [ ! -d "$MQT_PATH" ]; then
@@ -846,15 +850,19 @@ process_yaml() {
       sts=$STS_SUCCESS
       create_virtual_env
       wlog "\e[${PS_HDR2_COLOR}m===== [Build System informations] =====\e[${PS_TXT_COLOR}m"
-      for lne in python pip; do
+      for lne in python python3 pip; do
         X="$(which $lne) --version: $($lne --version 2>&1)"
         eval $lne --version
       done
       if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
         echo "Python sys.path list:"
-        echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+        if [ $opt_py3 -ne 0 ]; then
+          echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python3
+        else
+          echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+        fi
       fi
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD TRAVIS_PDB PYPI_CACHED SYSTEM_SITE_PACKAGES; do
          lne1=${!lne}
          if [[ -n "$lne1" || $lne =~ PATH ]]; then
            wlog "\$ $lne=$lne1"
@@ -952,11 +960,11 @@ checkpid() {
 }
 
 
-OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y)
-OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml)
-OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "=")
-OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml")
-OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file")
+OPTOPTS=(h        B         C         c        D        E         F        f         j        k        L        l              M          m       n            O         p        q           r     S            V           v           W        X       Y             3)
+OPTDEST=(opt_help opt_debug opt_cache opt_conf opt_dlvl opt_keepE opt_full opt_force opt_dprj opt_keep opt_llvl opt_logdir     opt_dbgmnt opt_mis opt_dry_run  opt_org   opt_pyth opt_verbose opt_r  opt_syspkg   opt_version opt_verbose opt_virt opt_tnl opt_fyaml    opt_py3)
+OPTACTI=(1        1         0         "="      "="      1         1        1         1        1        "="      "="            1          1       "1>"         "="       1        0           1     "="          "*>"        "+"         0        "="     "="           1)
+OPTDEFL=(0        0         1         ""       ""       0         0        0         0        0        ""       "~/travis_log" 0          0       0            "local"   0        -1          0     ""           ""          -1          1        ""      ".travis.yml" 0)
+OPTMETA=("help"   "version" ""        "file"   "number" ""        ""       ""        "dprj"   ""       "number" "dir"          ""         ""      "do nothing" "git-org" ""       "verbose"   "res" "false|true" "version"   "verbose"   ""       "0|1"   "file"        "")
 OPTHELP=("this help"\
  "debug mode: do not create log"\
  "do not use stored PYPI"\
@@ -981,7 +989,8 @@ OPTHELP=("this help"\
  "verbose mode"\
  "do not use virtualenv to run tests"\
  "enable translation test (def yaml dependents)"\
- "file yaml to process (def .travis.yml)")
+ "file yaml to process (def .travis.yml)"\
+ "use python3")
 OPTARGS=(action sub)
 
 parseoptargs "$@"

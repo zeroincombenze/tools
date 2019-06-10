@@ -264,9 +264,9 @@ class Test():
         self.Z = zarlib
         self.ctx = {}
         self.uid = False
-        self.db = 'clodoo_test'
-        self.odoo_full = 'zeroincombenze/OCB'
-        self.odoo_version = '10.0'
+        self.db = os.environ.get('MQT_TEST_DB', 'clodoo_test')
+        self.odoo_full = os.environ.get('ODOO_REPO', 'zeroincombenze/OCB')
+        self.odoo_version = os.environ.get("VERSION", '10.0')
 
     def check_4_db(self, dbname):
         cmd = ['psql'] + ['-Upostgres'] + ['-tl']
@@ -285,6 +285,8 @@ class Test():
         sts = TEST_SUCCESS
         if not z0ctx['dry_run']:
             travis_home = os.environ.get("HOME", os.path.expanduser("~"))
+            print('Odoo repo=%s' % self.odoo_full)
+            print('Odoo ver=%s' % self.odoo_version)
             server_path = get_server_path(self.odoo_full,
                                           self.odoo_version,
                                           travis_home)
@@ -480,10 +482,8 @@ class Test():
                                      RES)
         return sts
 
-    def __test_04(self, z0ctx):
+    def test_04(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-            return sts
         ctx = self.ctx
         model = 'res.users'
         vals = {
@@ -529,10 +529,8 @@ class Test():
                                              new_name)
         return sts
 
-    def __test_05(self, z0ctx):
+    def test_05(self, z0ctx):
         sts = TEST_SUCCESS
-        if os.environ.get("HOSTNAME", "") not in ("shsdef16", "shs17fid"):
-            return sts
         ctx = self.ctx
         model = 'res.users'
         vals = {

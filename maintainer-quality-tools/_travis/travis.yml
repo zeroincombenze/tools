@@ -48,10 +48,9 @@ env:
   global:
   - TRAVIS_DEBUG_MODE="1"
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="MINIMAL"
-  - ODOO_REPO="zeroincombenze/OCB" VERSION="10.0"
 
   matrix:
-  - LINT_CHECK="1" BASH_CHECK="0" DEV_ENVIRONMENT=${PKGNAME} TESTS="1"
+  - DEV_ENVIRONMENT=${PKGNAME} LINT_CHECK="1" BASH_CHECK="0" TESTS="1"
 
 script:
   - travis_run_pypi_tests ${OPTS}

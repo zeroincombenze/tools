@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.9
+#__version__=0.2.2.10
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -462,7 +462,11 @@ create_virtual_env() {
     local TRAVIS_CWD=$PWD
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
-    local CURPYVER=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    if [ $opt_py3 -ne 0 ]; then
+      local CURPYVER=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    else
+      local CURPYVER=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    fi
     local sts=0
     drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
@@ -507,7 +511,7 @@ create_virtual_env() {
       source bin/activate
       # FIX
       # pip install flake8
-      if [ -d $HOME/lib/python2.7/site-packages/ ]; then
+      if [ $opt_py3 -eq 0 -a -d $HOME/lib/python2.7/site-packages/ ]; then
         export PYPI_CACHED=$HOME/lib/python2.7/site-packages/
       fi
       export PS_RUN_COLOR=$SAVE_COLOR
@@ -522,7 +526,7 @@ create_virtual_env() {
       x=$(readlink -f $TRAVIS_BUILD_DIR/..)
       run_traced "cp -R $TRAVIS_CWD/ $x/"
       if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
-        for p in clodoo lisa maintainer-quality-tools travis_emulator z0lib zerobug; do
+        for p in clodoo lisa maintainer-quality-tools travis_emulator z0bug_odoo z0lib zerobug; do
           run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/"
         done
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/"
@@ -591,7 +595,7 @@ prepare_env_travis() {
     NPM_CONFIG_PREFIX=$(get_cfg_value "" "NPM_CONFIG_PREFIX")
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
     export BRANCH
-    export VERSION=$BRANCH
+    [ -z "$VERSION" ] && export VERSION=$BRANCH
     if [ "$action" == "lint" ]; then
       export LINT_CHECK=1
     elif [ "$action" == "test" ]; then

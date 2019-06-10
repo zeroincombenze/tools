@@ -139,14 +139,15 @@ def createL8(ctx, model, vals):
         return ctx['odoo_session'].env[model].create(vals)
     else:
         return ctx['odoo_session'].create(model, vals)
-
-
-def write_recordL8(ctx, record):
-    # vals = drop_invalid_fields(ctx, model, vals)
-    if ctx['svc_protocol'] == 'jsonrpc':
-        ctx['odoo_session'].write(record)
-    else:
-        ctx['odoo_session'].write_record(record)
+#
+#
+# def write_recordL8(ctx, record):
+#     # vals = drop_invalid_fields(ctx, model, vals)
+#     if ctx['svc_protocol'] == 'jsonrpc':
+#         model = record.__class__.__name__
+#         ctx['odoo_session'].env[model].write(record)
+#     else:
+#         ctx['odoo_session'].write_record(record)
 
 
 def writeL8(ctx, model, ids, vals):

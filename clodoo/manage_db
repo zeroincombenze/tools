@@ -164,8 +164,8 @@ OPTHELP=("this help"\
  "verbose mode"\
  "exit on error")
 OPTARGS=(action cmdlist)
-PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 17 18 19 20 22 30 31 32 50 51 52 53 54 55 61 62 90 91 92"
-DEMO_PHASE_LIST="50 51 52 53 54 55 61 62"
+PHASE_LIST="00 01 02 03 10 11 12 13 14 15 16 17 18 19 20 22 30 31 32 50 51 53 54 55 61 62 90 91 92"
+DEMO_PHASE_LIST="50 51 53 54 55 61 62"
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
