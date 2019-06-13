@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.20'
+__version__ = '0.2.2.21'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -483,8 +483,6 @@ def get_log_level(odoo_version, test_enable, tnlbot=False):
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    import pdb
-    pdb.set_trace()
     run_from_env_var('RUN_COMMAND_MQT', os.environ)
     # travis_home = os.environ.get("HOME", "~/")
     # travis_dependencies_dir = os.path.join(travis_home, 'dependencies')

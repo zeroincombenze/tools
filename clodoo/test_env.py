@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.34"
+__version__ = "0.3.8.35"
 
 
 MAX_DEEP = 20
@@ -680,16 +680,24 @@ def build_table_tree():
             models[model]['level'] = MAX_DEEP + 1
     return models
 
-model = 'ir.module.module'
-mlist = []
-for i,app in enumerate(clodoo.browseL8(
-    ctx,model,clodoo.searchL8(
-        ctx,model,[('state','=','installed')], order='name'))):
-    print('%3d %-40.40s %s' % (i+1, app.name, app.author))
-    mlist.append(app.name)
-print(mlist)
-pdb.set_trace()
+def display_modules(ctx):
+    model = 'ir.module.module'
+    mlist = []
+    for i,app in enumerate(clodoo.browseL8(
+        ctx,model,clodoo.searchL8(
+            ctx,model,[('state','=','installed')], order='name'))):
+        print('%3d %-40.40s %s' % (i+1, app.name, app.author))
+        mlist.append(app.name)
+    print(mlist)
 
+model = 'account.account.type'
+for rec in clodoo.browseL8(
+    ctx,model,
+        clodoo.searchL8(ctx, model, []),
+            context={'lang': 'en_US'}):
+    print(rec.name)
+
+pdb.set_trace()
 models = build_table_tree()
 for level in range(MAX_DEEP):
     for model in models:

@@ -22,7 +22,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.34"
+__version__ = "0.3.8.35"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -509,6 +509,15 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
             write_no_dup(dst_ctx, model, ids, vals, rec.id)
         else:
             create_with_id(dst_ctx, model, rec.id, vals)
+    elif dst_ctx['use_synchro'] and model in ('res.partner', ):
+        vals['vg7_id'] = rec.id
+        # if rec.id >= 120:
+        #     import pdb
+        #    pdb.set_trace()
+        clodoo.executeL8(dst_ctx,
+                         model,
+                         'synchro',
+                         vals)
     else:
         where = set_where_from_keys(dst_ctx, src_ctx, model, rec)
         ids = clodoo.searchL8(dst_ctx, model,
@@ -745,7 +754,13 @@ def get_model_copy_mode(ctx, model):
         mode_selection = {'i': 'image', 's': 'sql', 'n': 'no'}
         dummy = ''
         while not dummy:
-            dummy = raw_input('Copy table %s (Image,Sql,No)? ' % model)
+            if dst_ctx['sel_model']:
+                if model in dst_ctx['sel_model']:
+                    dummy = 'S'
+                else:
+                    dummy = 'N'
+            else:
+                dummy = raw_input('Copy table %s (Image,Sql,No)? ' % model)
             if dummy and dummy[0].lower() in mode_selection:
                 mode = mode_selection[dummy[0].lower()]
             else:
@@ -786,6 +801,10 @@ parser.add_argument("-m", "--sel-model",
                     metavar="name")
 parser.add_argument('-n')
 parser.add_argument('-q')
+parser.add_argument("-s", "--use-synchro",
+                    action='store_true',
+                    dest="use_synchro",
+                    default=False)
 parser.add_argument('-V')
 parser.add_argument('-v')
 parser.add_argument("-w", "--src-config",

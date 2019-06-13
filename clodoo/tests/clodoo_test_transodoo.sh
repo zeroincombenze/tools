@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.34
+__version__=0.3.8.35
 
 
 test_01() {
@@ -132,6 +132,31 @@ test_04() {
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 }
+
+test_05() {
+    local k v RES
+    declare -A TRES
+    TRES[6.1]="Asset"
+    TRES[7.0]="Asset"
+    TRES[8.0]="Asset"
+    TRES[9.0]="Current Assets"
+    TRES[10.0]="Current Assets"
+    TRES[11.0]="Current Assets"
+    TRES[12.0]="Current Assets"
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N report_type -s Asset -f 7.0 -b$v)
+      test_result "translate value/report_type/Asset from 7.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+    #
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+      RES=$($RUNDIR/transodoo.py translate -m account.account.type -k value -N report_type -s "Current Assets" -f 10.0 -b$v)
+      test_result "translate translate value/report_type/Current Assets from 10.0 to $v" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    done
+}
+
 
 Z0BUG_setup() {
     :

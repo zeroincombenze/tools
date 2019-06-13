@@ -1,6 +1,29 @@
 model	name	type	6.1	7.0	8.0	9.0	10.0	11.0	12.0
 account_account	USER_TYPE	field	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id
 account_account_type	TYPE	field	report_type	report_type	report_type	type	type	type	type
+account_account_type	report_type	value	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets
+account_account_type	report_type	value	Bank	Bank	Bank	Bank and Cash	Bank and Cash	Bank and Cash	Bank and Cash
+account_account_type	report_type	value	Cash	Cash	Cash	Credit Card	Credit Card	Credit Card	Credit Card
+account_account_type	report_type	value	Equity	Equity	Equity	Equity	Equity	Equity	Equity
+account_account_type	report_type	value		Check	Check				
+account_account_type	report_type	value	Payable	Payable	Payable	Payable	Payable	Payable	Payable
+account_account_type	report_type	value	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable
+account_account_type	report_type	value	Expense	Expense	Expense	Expenses	Expenses	Expenses	Expenses
+account_account_type	report_type	value	Income	Income	Income	Income	Income	Income	Income
+account_account_type	report_type	value	Liability	Liability	Liability	Current Liabilities	Current Liabilities	Current Liabilities	Current Liabilities
+account_account_type	report_type	value				Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets
+account_account_type	report_type	value				Prepayments	Prepayments	Prepayments	Prepayments
+account_account_type	report_type	value				Fixed Assets	Fixed Assets	Fixed Assets	Fixed Assets
+account_account_type	report_type	value		Tax	Tax	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities
+account_account_type	report_type	value				Current Year Earnings	Current Year Earnings	Current Year Earnings	Current Year Earnings
+account_account_type	report_type	value				Other Income	Other Income	Other Income	Other Income
+account_account_type	report_type	value				Depreciation	Depreciation	Depreciation	Depreciation
+account_account_type	report_type	value				Cost of Revenue	Cost of Revenue	Cost of Revenue	Cost of Revenue
+account_account_type	report_type	value	Root/View	Root/View	Root/View				
+account_account_type	report_type	value		Asset View	Asset View				
+account_account_type	report_type	value		Expense View	Expense View				
+account_account_type	report_type	value		Liability View	Liability View				
+account_account_type	report_type	value		Income View	Income View				
 account_invoice	ACTION_INVOICE_CANCEL	action	invoice_cancel	invoice_cancel	invoice_cancel	invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
 account_invoice	ACTION_INVOICE_DRAFT	action	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
 account_invoice	ACTION_INVOICE_OPEN	action	invoice_open	invoice_open	invoice_open	invoice_open	action_invoice_open	action_invoice_open	action_invoice_open

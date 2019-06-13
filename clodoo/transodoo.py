@@ -9,20 +9,29 @@
 #
 """Translate Odoo name to migrate from version to another
 Structure:
-[model]:       Odoo model name
-[model][type]: may be name or field; name translate simple name like function,
-               filed translate a field name (require addictional value)
-[model][type]['name']    entry for name
-[model][type]['name'][name]  specific name entry
-[model][type]['name'][name][ver] = versioned name
+[pymodel]:       Odoo model name
+[pymodel][type]: may be:
+    name:    symbolic name of a field
+    field:   field name to translate
+    action:  action/function to translate
+    module:  module name to translate
+    merge:   module name merged with
+    value:value of field to translate (name is the field name)
 
-[model][type]['field']    entry for field
-[model][type]['name'][name.ver] = SYM of field
-[model][type]['field'][SYM]    entry for SYM field
-[model][type]['name'][SYM][ver] = versioned name
+[pymodel][type]['name']    entry for name
+[pymodel][type]['name'][name]  specific name entry
+[pymodel][type]['name'][name][ver] = versioned name
+
+[pymodel][type]['field']    entry for field
+[pymodel][type]['name'][name.ver] = SYM of field
+[pymodel][type]['field'][SYM]    entry for SYM field
+[pymodel][type]['name'][SYM][ver] = versioned name
 
 """
+from __future__ import print_function, unicode_literals
+from past.builtins import basestring
 
+import re
 import csv
 # import pdb
 import os
@@ -32,85 +41,149 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.34"
+__version__ = "0.3.8.35"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
-def get_key1(model):
+def get_pymodel(model):
     return model.replace('.', '_').lower()
 
 
-def get_key2(model, ver):
-    return get_key1(model) + '.' + ver
+def get_ver_name(name, ver):
+    if name:
+        return  '%s__%s' % (ver, name)
+    return name
 
 
-def set_alias(mindroot, model, name, type):
-    kmodel = get_key1(model)
-    if kmodel not in mindroot:
-        mindroot[kmodel] = {}
-    if type not in mindroot[kmodel]:
-        mindroot[kmodel][type] = {}
-    sym = name.upper()
-    if sym not in mindroot[kmodel][type]:
-        mindroot[kmodel][type][sym] = {}
+def is_uname(name):
+    if re.match(r'^[0-9]+\.[0-9]+__', name):
+        return False
+    return True
+
+
+def set_uname(type, name, name_v6, name_vl):
+    if type != 'value':
+        return name.upper()
+    else:
+        return '%s^%s^%s' % (name, name_v6, name_vl)
+
+
+def build_alias_struct(mindroot, model, uname, type, fld_name):
+    pymodel = get_pymodel(model)
+    if pymodel not in mindroot:
+        mindroot[pymodel] = {}
+    if type not in mindroot[pymodel]:
+        mindroot[pymodel][type] = {}
+    if type != 'value' and uname not in mindroot[pymodel][type]:
+        mindroot[pymodel][type][uname] = {}
+    if (type == 'value' and fld_name):
+        if fld_name not in mindroot[pymodel][type]:
+            mindroot[pymodel][type][fld_name] = {}
+        if uname not in mindroot[pymodel][type][fld_name]:
+            mindroot[pymodel][type][fld_name][uname] = {}
     return mindroot
 
 
-def set_versioned_name(mindroot, model, name, type, ver_name, ver):
-    mindroot = set_alias(mindroot, model, name, type)
-    kmodel = get_key1(model)
-    sym = name.upper()
-    k2 = get_key2(ver_name, ver)
-    mindroot[kmodel][type][k2] = sym
-    mindroot[kmodel][type][sym][ver] = ver_name
+def link_versioned_name(mindroot, model, uname, type, src_name, ver, fld_name):
+    mindroot = build_alias_struct(mindroot, model, uname, type, fld_name)
+    pymodel = get_pymodel(model)
+    ver_name = get_ver_name(src_name, ver)
+    if type == 'value':
+        if ver_name:
+            mindroot[pymodel][type][fld_name][ver_name] = uname
+        mindroot[pymodel][type][fld_name][uname][ver] = src_name
+    else:
+        if ver_name:
+            mindroot[pymodel][type][ver_name] = uname
+        mindroot[pymodel][type][uname][ver] = src_name
     return mindroot
 
 
-def translate_from_to(ctx, model, src_name, src_ver, tgt_ver, type=False):
+def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
+                      type=False, fld_name=False):
+    """Translate the symbol <src_name> from <src_ver> of odoo into
+    <tgt_ver> of odoo.
+    If type not supplied, transaltion is applied for <name> and <fld_name> types
+    The param <fld_name> must by supplied just if type is <value>; if field name
+    is dependent by version, last version of name must be used
+    """
     mindroot = ctx.get('mindroot', {})
     if src_ver not in VERSIONS:
-        print 'Invalid source version!'
+        print('Invalid source version!')
         return ''
     if tgt_ver not in VERSIONS:
-        print 'Invalid target version!'
+        print('Invalid target version!')
         return ''
-    kmodel = get_key1(model)
-    k2 = get_key2(src_name, src_ver)
+    if type == 'value' and not fld_name:
+        print('Translation of value require field name!')
+        return ''
+    pymodel = get_pymodel(model)
+    ver_name = get_ver_name(src_name, src_ver)
     name = src_name
-    for tt in map(lambda x:x, ('name', 'field')) if not type else [type]:
-        if (kmodel in mindroot and
-                tt in mindroot[kmodel] and
-                k2 in mindroot[kmodel][tt]):
-            kk = mindroot[kmodel][tt][k2]
-            if kk in mindroot[kmodel][tt]:
-                name = mindroot[kmodel][tt][kk][tgt_ver]
-                break
+    if ver_name:
+        for typ in map(lambda x:x, ('name', 'field')) if not type else [type]:
+            if typ != 'value':
+                if (pymodel in mindroot and
+                        typ in mindroot[pymodel] and
+                        ver_name in mindroot[pymodel][typ]):
+                    uname = mindroot[pymodel][typ][ver_name]
+                    if (uname in mindroot[pymodel][typ] and
+                            tgt_ver in mindroot[pymodel][typ][uname]):
+                        name = mindroot[pymodel][typ][uname][tgt_ver]
+                        break
+            else:
+                if (pymodel in mindroot and
+                        typ in mindroot[pymodel] and
+                        fld_name in mindroot[pymodel][typ] and
+                        ver_name in mindroot[pymodel][typ][fld_name]):
+                    uname = mindroot[pymodel][typ][fld_name][ver_name]
+                    if (uname in mindroot[pymodel][typ][fld_name] and
+                            tgt_ver in mindroot[pymodel][typ][uname][uname]):
+                        name = mindroot[pymodel][typ][fld_name][uname][tgt_ver]
+                        break
     return name
 
 
 def translate_from_sym(ctx, model, sym, tgt_ver):
     mindroot = ctx.get('mindroot', {})
     if tgt_ver not in VERSIONS:
-        print 'Invalid target version!'
+        print('Invalid target version!')
         return ''
-    kmodel = get_key1(model)
+    pymodel = get_pymodel(model)
     name = ''
-    for type in ('name', 'field'):
-        if kmodel in mindroot and \
-                type in mindroot[kmodel] and \
-                sym in mindroot[kmodel][type] and \
-                tgt_ver in mindroot[kmodel][type][sym]:
-            name = mindroot[kmodel][type][sym][tgt_ver]
+    for typ in ('name', 'field'):
+        if pymodel in mindroot and \
+                typ in mindroot[pymodel] and \
+                sym in mindroot[pymodel][typ] and \
+                tgt_ver in mindroot[pymodel][typ][sym]:
+            name = mindroot[pymodel][typ][sym][tgt_ver]
             break
     return name
+
+
+def debug_show(mindroot):
+    for ln1 in mindroot:
+        print('%s' % ln1)
+        if iter(mindroot[ln1]):
+            for ln2 in mindroot[ln1]:
+                print('    %s' % ln2)
+                if iter(mindroot[ln1][ln2]):
+                    for ln3 in mindroot[ln1][ln2]:
+                        print('        %s' % ln3)
+                        if not isinstance(mindroot[ln1][ln2][ln3], basestring) and iter(mindroot[ln1][ln2][ln3]):
+                            for ln4 in mindroot[ln1][ln2][ln3]:
+                                print('            %s' % ln4)
+                                if not isinstance(mindroot[ln1][ln2][ln3][ln4], basestring) and iter(mindroot[ln1][ln2][ln3][ln4]):
+                                    for ln5 in mindroot[ln1][ln2][ln3][ln4]:
+                                        print('                %s' % ln5)
 
 
 def read_stored_dict(ctx):
     if 'mindroot' in ctx:
         return
     csv.register_dialect('transodoo',
-                         delimiter='\t',
-                         quotechar='\"',
+                         delimiter=b'\t',
+                         quotechar=b'\"',
                          quoting=csv.QUOTE_MINIMAL)
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
         p = os.path.dirname(__file__) or '.'
@@ -120,6 +193,7 @@ def read_stored_dict(ctx):
             ctx['dict_fn'] = '~/dev/transodoo.csv'
         else:
             ctx['dict_fn'] = 'transodoo.csv'
+    # ctx['dict_fn'] = './__transodoo.csv'        #debug
     mindroot = {}
     with open(ctx['dict_fn'], 'rb') as f:
         hdr = False
@@ -127,50 +201,50 @@ def read_stored_dict(ctx):
                                 fieldnames=[],
                                 restkey='undef_name',
                                 dialect='transodoo')
+        # import pdb
+        # pdb.set_trace()
         for line in reader:
             row = line['undef_name']
             if not hdr:
-                MODEL = 0
-                NAME = 1
-                TYPE = -1
-                V6 = 2
-                for i in (0, 1, 2):
-                    if row[i] == 'model':
-                        MODEL = i
-                    elif row[i] == 'name':
-                        NAME = i
-                    elif row[i] == 'type':
-                        TYPE = i
-                        V6 = 3
+                MODEL = row.index('model')
+                NAME = row.index('name')
+                TYPE = row.index('type')
+                V6 = row.index('6.1')
+                VL = len(row) - 1
                 hdr = True
                 continue
-            if TYPE < 0:
-                row[TYPE] = ''
-            mindroot = set_alias(mindroot, row[MODEL], row[NAME], row[TYPE])
+            mindroot = build_alias_struct(mindroot,
+                                          row[MODEL],
+                                          row[NAME],
+                                          row[TYPE],
+                                          False)
             i = V6 - 1
+            uname = set_uname(row[TYPE], row[NAME], row[V6], row[VL])
             for ver in VERSIONS:
                 i += 1
                 if i >= len(row):
-                    mindroot = set_versioned_name(mindroot,
-                                                  row[MODEL],
-                                                  row[NAME],
-                                                  row[TYPE],
-                                                  row[i - 1],
-                                                  ver)
+                    mindroot = link_versioned_name(mindroot,
+                                                   row[MODEL],
+                                                   uname,
+                                                   row[TYPE],
+                                                   row[i - 1],
+                                                   ver,
+                                                   row[NAME])
                 else:
-                    mindroot = set_versioned_name(mindroot,
-                                                  row[MODEL],
-                                                  row[NAME],
-                                                  row[TYPE],
-                                                  row[i],
-                                                  ver)
+                    mindroot = link_versioned_name(mindroot,
+                                                   row[MODEL],
+                                                   uname,
+                                                   row[TYPE],
+                                                   row[i],
+                                                   ver,
+                                                   row[NAME])
     ctx['mindroot'] = mindroot
 
 
 def write_stored_dict(ctx):
     csv.register_dialect('transodoo',
-                         delimiter='\t',
-                         quotechar='\"',
+                         delimiter=b'\t',
+                         quotechar=b'\"',
                          quoting=csv.QUOTE_MINIMAL)
     if 'dict_fn' not in ctx or not ctx['dict_fn']:
         p = os.path.dirname(__file__) or '.'
@@ -192,28 +266,52 @@ def write_stored_dict(ctx):
                 line['model'] = k1.split('.')[0]
                 line['name'] = k1.split('.')[1]
                 line['key'] = ''
-                for k2 in mindroot:
-                    if '0' in mindroot[k2]:
-                        if mindroot[k2]['0']:
-                            line['key'] = k2.split('.')[1]
+                for ver_name in mindroot:
+                    if '0' in mindroot[ver_name]:
+                        if mindroot[ver_name]['0']:
+                            line['key'] = ver_name.split('.')[1]
                             break
                 writer.writerow(line)
 
 
 def transodoo_list(ctx):
+
+    def do_line_ver(mindroot, nm, typ, fld_name):
+        if not is_uname(nm):
+            return ''
+        line = '\n'
+        if typ == 'value':
+            line += '  %s\n' % fld_name
+        for ver in VERSIONS:
+            if typ == 'value':
+                if ver in mindroot[ctx['pymodel']][typ][fld_name][nm]:
+                    line += '    - %4.4s: %s\n' % (
+                        ver, mindroot[ctx['pymodel']][typ][fld_name][nm][ver])
+            else:
+                if ver in mindroot[ctx['pymodel']][typ][nm]:
+                    line += ' - %4.4s: %s\n' % (
+                        ver, mindroot[ctx['pymodel']][typ][nm][ver])
+        return line
+
     if 'mindroot' not in ctx:
         mindroot = {}
     else:
         mindroot = ctx['mindroot']
-    for t in mindroot:
-        if t.split('.')[0] == ctx['model']:
-            if '0' not in mindroot[t]:
-                line = '%s %s\n' % (t.split('.')[0],
-                                    t.split('.')[1])
-                for ver in VERSIONS:
-                    if not ctx['odoo_ver'] or ver == ctx['odoo_ver']:
-                        line += ' - [%s]="%s"\n' % (ver, mindroot[t][ver])
-                print line
+    # import pdb
+    # pdb.set_trace()
+    if ctx['pymodel'] not in mindroot:
+        return
+    line = '=====[ %s ]=====\n' % ctx['model']
+    for typ in mindroot[ctx['pymodel']]:
+        line += '\n%s\n' % typ
+        if typ == 'value':
+            for fld_name in mindroot[ctx['pymodel']][typ]:
+                for nm in mindroot[ctx['pymodel']][typ][fld_name]:
+                    line += do_line_ver(mindroot, nm, typ, fld_name)
+        else:
+            for nm in mindroot[ctx['pymodel']][typ]:
+                line += do_line_ver(mindroot, nm, typ, False)
+        print(line)
 
 
 def transodoo_edit(ctx):
@@ -221,7 +319,7 @@ def transodoo_edit(ctx):
         mindroot = {}
     else:
         mindroot = ctx['mindroot']
-    model = get_key1(ctx['model'])
+    model = get_pymodel(ctx['model'])
     while True:
         while not model:
             m = raw_input('Model (def=%s, type END to end): ' % model)
@@ -229,7 +327,7 @@ def transodoo_edit(ctx):
                 ctx['mindroot'] = mindroot
                 return 0
             if m:
-                model = get_key1(model)
+                model = get_pymodel(model)
         name = ctx['sym']
         while not name:
             name = raw_input(
@@ -244,10 +342,10 @@ def transodoo_edit(ctx):
         if key == 'END':
             ctx['mindroot'] = mindroot
             return 0
-        mindroot = set_alias(mindroot, model, name, key)
-        k1 = get_key1(model)
+        mindroot = build_alias_struct(mindroot, model, name, key, False)
+        k1 = get_pymodel(model)
         def_term = name.lower()
-        print "Model %s, sym=%s, key=%s" % (model, name, key)
+        print("Model %s, sym=%s, key=%s" % (model, name, key))
         for ver in VERSIONS:
             term = ''
             while not term:
@@ -266,7 +364,7 @@ def transodoo_edit(ctx):
                 elif term != r'\N':
                     def_term = term
             mindroot[k1][ver] = term
-        print mindroot[k1]
+        print(mindroot[k1])
 
 
 def transodoo(ctx=None):
@@ -281,32 +379,33 @@ def transodoo(ctx=None):
     elif ctx['action'] == 'translate':
         read_stored_dict(ctx)
         if ctx['oe_from_ver']:
-            print translate_from_to(ctx,
-                                    ctx['model'],
+            print(translate_from_to(ctx,
+                                    ctx['pymodel'],
                                     ctx['sym'],
                                     ctx['oe_from_ver'],
                                     ctx['odoo_ver'],
-                                    type=ctx['opt_kind'])
+                                    type=ctx['opt_kind'],
+                                    fld_name=ctx['field_name']))
         else:
-            print translate_from_sym(ctx,
-                                     ctx['model'],
+            print(translate_from_sym(ctx,
+                                     ctx['pymodel'],
                                      ctx['sym'],
-                                     ctx['odoo_ver'])
+                                     ctx['odoo_ver']))
     elif ctx['action'] == 'test':
         read_stored_dict(ctx)
         for ver in VERSIONS:
             name = translate_from_sym(ctx, 'res.groups', 'SALES', ver)
-            print 'SALES = %s[%s]' % (name,
-                                      ver)
+            print('SALES = %s[%s]' % (name,
+                                      ver))
         source = 'Sales'
         for ver in VERSIONS:
             name = translate_from_to(ctx, 'res.groups', source, '7.0', ver)
-            print 'Source=%s[%s] => Target=%s[%s]' % (source,
+            print('Source=%s[%s] => Target=%s[%s]' % (source,
                                                       '7.0',
                                                       name,
-                                                      ver)
+                                                      ver))
     else:
-        print "Invalid action!"
+        print("Invalid action!")
         return 1
     return 0
 
@@ -336,6 +435,9 @@ if __name__ == "__main__":
                         action='store',
                         dest='model',
                         default='res.groups')
+    parser.add_argument('-N', '--field-name',
+                        action='store',
+                        dest='field_name')
     parser.add_argument('-n')
     parser.add_argument('-q')
     parser.add_argument('-s', '--symbol',
@@ -347,16 +449,16 @@ if __name__ == "__main__":
     parser.add_argument('action',
                         help='edit,list,translate,test')
     ctx = parser.parseoptargs(sys.argv[1:])
-    ctx['model'] = ctx['model'].replace('.', '_').lower()
+    ctx['pymodel'] = ctx['model'].replace('.', '_').lower()
     if ctx['odoo_ver']:
         if ctx['odoo_ver'] not in VERSIONS:
-            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
-                                                          VERSIONS)
+            print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
+                                                          VERSIONS))
             sys.exit(1)
     if ctx['oe_from_ver']:
         if ctx['oe_from_ver'] not in VERSIONS:
-            print 'Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
-                                                          VERSIONS)
+            print('Invalid version %s!\nUse one of %s' % (ctx['odoo_ver'],
+                                                          VERSIONS))
             sys.exit(1)
     sts = transodoo(ctx=ctx)
     exit(sts)
