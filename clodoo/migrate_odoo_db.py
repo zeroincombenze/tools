@@ -22,7 +22,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.35"
+__version__ = "0.3.8.36"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -75,6 +75,7 @@ IGNORE_FIELDS = {
     'res.partner': ['message_follower_ids',
                     'rea_code',
                     'child_ids'],
+    'account.account': 'parent_id',
 }
 MANDATORY_FIELDS = {
     'account.invoice': ['company_id'],
@@ -502,6 +503,15 @@ def load_record(dst_ctx, src_ctx, model, rec, mode=None):
 def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
     mode = mode or get_model_copy_mode(src_ctx, model)
     vals = load_record(dst_ctx, src_ctx, model, rec, mode=mode)
+    if model == 'account.account.type':
+        if 'type' in vals and vals.get('type'):
+            vals['type'] = transodoo.translate_from_to(src_ctx,
+                                                       model,
+                                                       vals['type'],
+                                                       src_ctx['oe_version'],
+                                                       dst_ctx['oe_version'],
+                                                       type='value',
+                                                       fld_name='report_type')
     if mode == 'image':
         ids = clodoo.searchL8(dst_ctx, model,
                               [('id', '=', rec.id)])
@@ -509,11 +519,11 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
             write_no_dup(dst_ctx, model, ids, vals, rec.id)
         else:
             create_with_id(dst_ctx, model, rec.id, vals)
-    elif dst_ctx['use_synchro'] and model in ('res.partner', ):
+    elif dst_ctx['use_synchro'] and model in ('res.partner',
+                                              'account.account',
+                                              'account.account.type'):
         vals['vg7_id'] = rec.id
         # if rec.id >= 120:
-        #     import pdb
-        #    pdb.set_trace()
         clodoo.executeL8(dst_ctx,
                          model,
                          'synchro',
@@ -561,8 +571,9 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                     if not dst_ctx['assume_yes']:
                         dummy = raw_input('Press RET to continue')
     where = []
-    for rec in clodoo.browseL8(src_ctx, model, clodoo.searchL8(
-            src_ctx, model, where, order='id')):
+    for rec in clodoo.browseL8(
+        src_ctx, model, clodoo.searchL8(
+            src_ctx, model, where, order='id'), context={'lang': 'en_US'}):
         msg_burst('%s %d' % (model, rec.id))
         copy_record(dst_ctx, src_ctx, model, rec, mode=mode)
 
@@ -683,6 +694,7 @@ PKEYS = {
     'res.country.state': ['country_id', 'code'],
     'res.partner': ['name', 'vat'],
     'res.company': ['vat'],
+    'account.account.type': ['name']
 }
 def primkey_table(ctx, model):
     clodoo.get_model_structure(ctx, model,
@@ -749,7 +761,7 @@ def write_tree_conf(ctx):
 def get_model_copy_mode(ctx, model):
     if is_system_model(model):
         return 'No'
-    mode = ctx['_ml'][model] or 'inquire'
+    mode = ctx['_ml'].get(model) or 'inquire'
     if mode == 'inquire':
         mode_selection = {'i': 'image', 's': 'sql', 'n': 'no'}
         dummy = ''
@@ -863,6 +875,6 @@ for model in dst_ctx['model_list']:
         continue
     copy_table(dst_ctx, src_ctx, model, mode=mode)
 
-raw_input('Press RET to validate invoices ...')
-ids = clodoo.searchL8(dst_ctx, 'account.invoice', [('state', '=', 'draft')])
-clodoo.upd_invoices_2_posted(ids, dst_ctx)
+# raw_input('Press RET to validate invoices ...')
+# ids = clodoo.searchL8(dst_ctx, 'account.invoice', [('state', '=', 'draft')])
+# clodoo.upd_invoices_2_posted(ids, dst_ctx)

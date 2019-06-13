@@ -83,6 +83,7 @@ LX_CFG_S = ('db_name',
             'heavy_trx',
             'install_modules',
             'uninstall_modules',
+            'purge_modules',
             'upgrade_modules',
             'data_selection',
             'modules_2_manage',
@@ -121,6 +122,7 @@ LX_CFG_S = ('db_name',
 # Must be declared in LX_CFG_S
 LX_CFG_SB = ('install_modules',
              'uninstall_modules',
+             'purge_modules',
              'actions',
              'actions_db',
              'actions_mc',
@@ -160,7 +162,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.35"
+__version__ = "0.3.8.36"
 
 
 #############################################################################
@@ -331,6 +333,7 @@ def default_conf(ctx):
               'custom_act': '',
               'install_modules': False,
               'uninstall_modules': False,
+              'purge_modules': False,
               'upgrade_modules': False,
               'data_selection': 'account_move,sale,purchase,project,mail,crm,'
                                 'inventory,marketing,hr,analytic',
@@ -460,7 +463,8 @@ def create_params_dict(ctx):
                 hasattr(opt_obj, 'do_sel_action')):
             if opt_obj.do_sel_action in ('install_modules',
                                          'uninstall_modules',
-                                         'upgrade_modules'):
+                                         'upgrade_modules',
+                                         'purge_modules'):
                 ctx[opt_obj.do_sel_action] = opt_obj.modules_2_manage
         if hasattr(opt_obj, 'data_path') and opt_obj.data_path != "":
             ctx['data_path'] = opt_obj.data_path

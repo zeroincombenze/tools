@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.35
+__version__=0.3.8.36
 
 
 explore() {
@@ -182,7 +182,7 @@ do_action() {
           fi
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing python requirements${TRAVIS_TEXT_COLOR}"
-        [ -f $pkgdir/requirements.txt ] && run_traced "$PIP install -r $pkg/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
+        [ -f $pkgdir/requirements.txt ] && run_traced "$PIP install -r $pkgdir/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
         [ -n "$opt_deps" -a -f $opt_deps/requirements.txt ] && run_traced "$PIP install -r $opt_deps/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
         preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR${TRAVIS_HDR3_COLOR}"

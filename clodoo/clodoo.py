@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.35"
+__version__ = "0.3.8.36"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -794,6 +794,7 @@ def create_local_parms(ctx, act):
               'install_modules',
               'uninstall_modules',
               'upgrade_modules',
+              'purge_modules',
               'data_selection',
               'modules_2_manage',):
         pv = get_param_ver(ctx, p)
@@ -849,6 +850,7 @@ def create_local_parms(ctx, act):
                 lctx[p] = pv
     for p in ('install_modules',
               'uninstall_modules',
+              'purge_modules',
               'actions',
               'hide_cid'):
         pv = get_param_ver(ctx, p)
@@ -1549,6 +1551,38 @@ def act_upgrade_modules(ctx, module_list=None):
             break
     if cur_lang != user_lang:
         set_user_lang(ctx, user_lang)
+    return sts
+
+
+def act_purge_modules(ctx, module_list=None):
+    """Purge module from list"""
+    msg = u"Purge unuseful modules"
+    msg_log(ctx, ctx['level'], msg)
+    module_list = module_list or get_real_paramvalue(
+        ctx, 'purge_modules').split(',')
+    if not ctx.get('_cr'):
+        msg = u"Purge require sql access!"
+        msg_log(ctx, ctx['level'], msg)
+        msg = u"Please set sql parameters (db_* odoo params)"
+        msg_log(ctx, ctx['level'], msg)
+        return STS_FAILED
+    sts = STS_SUCCESS
+    for mx in module_list:
+        if mx == "":
+            continue
+        for table in ('ir_translation',
+                      'base.module.upgrade',
+                      ):
+            query = '''delete from %s where module='%s' ''' % (table, mx)
+            incr_lev(ctx)
+            msg = u">>>%s" % query
+            msg_log(ctx, ctx['level'], msg)
+            decr_lev(ctx)
+            try:
+                ctx['_cr'].execute(query)
+            except BaseException:
+                msg_log(ctx, ctx['level'], 'Error excuting sql')
+
     return sts
 
 
