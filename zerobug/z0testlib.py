@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.5"
+__version__ = "0.2.14.6"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -652,7 +652,9 @@ class Z0test(object):
         this_fqn = None
         if argv is None:
             argv = sys.argv[1:]
-            if len(sys.argv) > 0 and sys.argv[0][0] != '-':
+            if (len(sys.argv) > 0 and
+                    sys.argv[0] and
+                    sys.argv[0][0] != '-'):
                 this_fqn = sys.argv[0]
         else:
             self.autorun = True
@@ -673,9 +675,12 @@ class Z0test(object):
         x = os.path.dirname(self.rundir)
         PYTHONPATH = os.environ.get('PYTHONPATH', '')
         if x not in sys.path:
-            p = ':%s:' % PYTHONPATH
-            if p.find(':%s:' % x) < 0:
-                PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+            if PYTHONPATH:
+                p = ':%s:' % PYTHONPATH
+                if p.find(':%s:' % x) < 0:
+                    PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+            else:
+                PYTHONPATH = x
         if this == 'test_zerobug':
             x = '%s/%s' % (self.rundir, 'dummy')
             PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
@@ -934,7 +939,7 @@ class Z0test(object):
         i = 1
         valid = False
         auto_this = False
-        while not valid:
+        while not valid and i < len(inspect.stack()):
             this_fqn = os.path.abspath(inspect.stack()[i][1])
             this = os0.nakedname(os.path.basename(this_fqn))
             if this[0] == '<' and this[-1] == '>':

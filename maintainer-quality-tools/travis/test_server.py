@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.21'
+__version__ = '0.2.2.22'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -337,7 +337,7 @@ def new_server_instance(db, odoo_unittest, server_path, script_name,
                      "--init", ','.join(preinstall_modules),
                      ] + install_options + server_options   # 1
         print(" ".join(cmd_strip_secret(cmd_odoo)))
-        if travis_debug_mode < 2:
+        if travis_debug_mode < 9:
             try:
                 subprocess.check_call(cmd_odoo)
             except subprocess.CalledProcessError as e:
@@ -422,6 +422,12 @@ def get_environment():
     database = os.environ.get('MQT_TEST_DB', 'openerp_test')
     travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
     unbuffer = str2bool(os.environ.get('UNBUFFER', True))
+    if travis_debug_mode:
+        print('DEBUG: test_server.sys.path=%s' % sys.path)
+    set_sys_path()
+    if travis_debug_mode:
+        print('DEBUG: test_server.sys.path=%s' % sys.path)
+
     server_path = get_server_path(odoo_full,
                                   odoo_branch or odoo_version,
                                   travis_home)
@@ -478,6 +484,15 @@ def get_log_level(odoo_version, test_enable, tnlbot=False):
             test_loglevel = 'info'
             test_loghandler = 'openerp.tools.yaml_import:DEBUG'
     return options, test_loglevel, test_loghandler
+
+
+def set_sys_path():
+    x = -1
+    for i in range(len(sys.path)):
+        x = i if sys.path[i].endswith('/tools') else x
+    if x > 0:
+        sys.path.insert(0, sys.path[x])
+        del sys.path[x + 1]
 
 
 def main(argv=None):

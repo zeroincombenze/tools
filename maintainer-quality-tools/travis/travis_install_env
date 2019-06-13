@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.21
+__version__=0.2.2.22
 
 
 conf_default() {
@@ -296,7 +296,11 @@ if [ $opt_verbose -gt 0 ]; then
   [ "$MQT_TEST_MODE" == "tools" ] && echo -e "\e[${PS_TXT_COLOR}m# OPTS=$OPTS\e[${PS_HDR3_COLOR}m"
   [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
-  echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+  if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+    echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python3
+  else
+    echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+  fi
 fi
 # Build secure environment (python2)
 echo -e "\e[${PS_HDR3_COLOR}m### Build Secure Environment\e[${PS_TXT_COLOR}m"

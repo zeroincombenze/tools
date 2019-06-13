@@ -62,7 +62,7 @@
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.14.5
+__version__=0.2.14.6
 
 export opt_dry_run
 export ctr
@@ -521,10 +521,10 @@ exec_all_tests () {
           fi
           if [ "${basetn: -3}" == ".py" ]; then
             if [ ${run4cover:-0} -ne 0 ]; then
-              dbgmsg " coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs"
+              dbgmsg "\$ coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs"
               coverage run -a --rcfile=$COVERAGE_PROCESS_START $testname $opt4childs
             else
-              dbgmsg " python $testname $opt4childs"
+              dbgmsg "\$ python $testname $opt4childs"
               python $testname $opt4childs
             fi
             s=$?

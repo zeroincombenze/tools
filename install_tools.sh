@@ -1,4 +1,4 @@
-# __version__=0.2.2.13
+# __version__=0.2.2.14
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -91,7 +91,8 @@ for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib
     rm -f $tgt
   fi
 done
-echo -e "import site\nsite.addsitedir('$SRCPATH')">$DSTPATH/sitecustomize.py
+# echo -e "import site\nsite.addsitedir('$SRCPATH')">$DSTPATH/sitecustomize.py
+echo -e "import sys\nsys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
 echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
 echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
 echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools

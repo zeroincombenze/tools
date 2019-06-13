@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2018-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
+from __future__ import print_function
 
 try:
     import odoo.release as release
 except ImportError:
-    import openerp.release as release
-if int(release.major_version.split('.')[0]) < 10:
-    import openerp.tests.common as test_common
-    from openerp import workflow
-    from openerp.modules.module import get_module_resource
+    try:
+        import openerp.release as release
+    except ImportError:
+        release = ''
+if release:
+    if int(release.major_version.split('.')[0]) < 10:
+        import openerp.tests.common as test_common
+        from openerp import workflow
+        from openerp.modules.module import get_module_resource
+    else:
+        import odoo.tests.common as test_common
+        from odoo.modules.module import get_module_resource
 else:
-    import odoo.tests.common as test_common
-    from odoo.modules.module import get_module_resource
+    print('No Odoo environment found!')
 
-
-__version__='0.1.0.1'
+__version__='0.1.0.1.1'
 
 class SingleTransactionCase(test_common.SingleTransactionCase):
 

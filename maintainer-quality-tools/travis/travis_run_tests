@@ -9,6 +9,15 @@ import sys
 from travis_helpers import success_msg, fail_msg
 
 
+def set_sys_path():
+    x = -1
+    for i in range(len(sys.path)):
+        x = i if sys.path[i].endswith('/tools') else x
+    if x > 0:
+        sys.path.insert(0, sys.path[x])
+        del sys.path[x + 1]
+
+
 def main(test_list):
     """
     Loop through each test and run them, add display results at the end
@@ -53,6 +62,12 @@ if __name__ == '__main__':
     tests_enabled = os.environ.get('TESTS') == '1'
     tests_unspecified = os.environ.get('TESTS') is None
     is_oca_project = os.environ.get('TRAVIS_REPO_SLUG', '').startswith('OCA/')
+    travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
+    if travis_debug_mode:
+        print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
+    set_sys_path()
+    if travis_debug_mode:
+        print('DEBUG: travis_run_tests.sys.path=%s' % sys.path)
 
     # TRAVIS_PULL_REQUEST contains the pull request number or 'false'
     is_pull_request = os.environ.get('TRAVIS_PULL_REQUEST') != 'false'
