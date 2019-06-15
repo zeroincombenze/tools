@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.23
+__version__=0.2.2.24
 
 
 conf_default() {
@@ -523,9 +523,9 @@ else
     dopts="-d$dependencies_dir"
     if [ -z "$PYPI_CACHED" ]; then
       if [[ "$TRAVIS" == "false" ]]; then
-        run_traced "$MGRODOO requirements -nBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -nLBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       else
-        run_traced "$MGRODOO requirements -Bb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
+        run_traced "$MGRODOO requirements -LBb $ocb_dir $dopts -vsy -O$MQT_TEST_MODE -o${ODOO_PATH} -p${TRAVIS_PYTHON_VERSION:0:1}"
       fi
     fi
     run_traced "cp ${HOME}/maintainer-quality-tools/cfg/.coveragerc ."

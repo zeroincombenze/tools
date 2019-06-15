@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.2.23"
+__version__ = "0.2.2.24"
 
 MODULE_ID = 'maintainer-quality-tools'
 
