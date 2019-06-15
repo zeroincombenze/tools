@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.36
+__version__=0.3.8.37
 
 
 explore() {
@@ -174,7 +174,7 @@ do_action() {
             eval $LISA status -q $pkg -d0 &>/dev/null
             if [ $? -ne 0 ]; then
               if [ $opt_nobin -ne 0 ]; then
-                echo "***Warning: packge $f must be installed by $LISA install -q $f -d0"
+                echo "***Warning: packge $f may be installed by $LISA install -q $f -d0"
               else
                 run_traced "$LISA install -q $f -d0"
               fi
@@ -218,7 +218,7 @@ do_action() {
                 else
                   cmd="$PIP install -q $f --upgrade --no-warn-conflicts --disable-pip-version-check"
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
-                  [ $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
+                  [ $opt_noloc -eq 0 -a $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
                   echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
                   if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
                     echo "> $cmd"
@@ -346,11 +346,11 @@ do_action() {
     return $sts
 }
 
-OPTOPTS=(h        B         b          c        D       d        H           m         n            O         o        p         q           s          u          V           v           x         y)
-OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
-OPTACTI=(1        1         "="        "="      1       "="      1           1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
-OPTDEFL=(0        0         ""         ""       0       ""       0           0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
-OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
+OPTOPTS=(h        B         b          c        D       d        H           L         m         n            O         o        p         q           s          u          V           v           x         y)
+OPTDEST=(opt_help opt_nobin opt_branch opt_conf opt_def opt_deps opt_humdrum opt_noloc opt_multi opt_dry_run  opt_org   opt_odir opt_pyver opt_verbose opt_nostop opt_user   opt_version opt_verbose opt_excl  opt_yes)
+OPTACTI=(1        1         "="        "="      1       "="      1           1         1         1            "="       "="      "="       1           1          "="        "*>"        "+"         "="       1)
+OPTDEFL=(0        0         ""         ""       0       ""       0           0         0         0            "zero"    ""       ""        -1          0          ""         ""          -1          ""        0)
+OPTMETA=("help"   ""        "branch"   "file"   ""      "dir"    ""          ""        ""        "do nothing" "git-org" "path"   ""        "verbose"   ""         "username" "version"   "verbose"   "modules" "")
 OPTHELP=("this help"\
  "do not install binary packages in requirements action"\
  "branchs to do action; one or more of [v]6.1 [v]7.0 [v]8.0 [v]9.0 [v]10.0 [v]11.0 [v]12.0 (comma separated)"\
@@ -358,6 +358,7 @@ OPTHELP=("this help"\
  "default module list"\
  "dependencies directory"\
  "humdrum, display w/o colors"\
+ "avoid install pip packages in local"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "if add_module|[re]build, git organization, one of oca oia[-git|-http] zero[-git|-http] (def zero)"\

@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.36"
+__version__ = "0.3.8.37"
 
 
 MAX_DEEP = 20
