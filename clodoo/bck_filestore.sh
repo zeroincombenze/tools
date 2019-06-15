@@ -36,7 +36,7 @@ TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
 
-__version__=0.3.8.37
+__version__=0.3.8.38
 
 
 OPTOPTS=(h        b          n            q           t       V           v)

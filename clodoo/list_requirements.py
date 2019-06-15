@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.37'
+__version__ = '0.3.8.38'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -511,7 +511,7 @@ def main():
         except BaseException:
             pkgs = []
         for kw in ('python1', 'python2'):
-            for p in deps_list[kw]:
+            for p in sorted(deps_list[kw]):
                 if p not in pkgs:
                     pkgs.append(p)
         if len(pkgs):
@@ -527,9 +527,10 @@ def main():
                 if kw == ctx['itypes'] or (ctx['itypes'] == 'both' and
                                            kw in ('python', 'bin')):
                     if ctx['opt_verbose']:
-                        print('%s=%s' % (kw, ctx['sep'].join(deps_list[kw])))
+                        print('%s=%s' % (
+                            kw, ctx['sep'].join(sorted(deps_list[kw]))))
                     else:
-                        print(ctx['sep'].join(deps_list[kw]))
+                        print(ctx['sep'].join(sorted(deps_list[kw])))
 
 
 if __name__ == "__main__":

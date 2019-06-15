@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.37
+__version__=0.3.8.38
 
 
 explore() {
@@ -151,7 +151,7 @@ do_action() {
       [ -f $TDIR/../lisa/lisa ] && LISA=$(readlink -e $TDIR/../lisa/lisa)
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias pip=$PIP.$($PIP --version)${TRAVIS_HDR3_COLOR}"
       [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ alias lisa=$LISA.$($LISA -V)${TRAVIS_HDR3_COLOR}"
-      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && PYPI_CACHED=$HOME/.local
+      [ ${TRAVIS_DEBUG_MODE:-0} -ge 8 ] && PYPI_CACHED=$HOME/.local
       [ $multi_version_pkgs -eq 0 ] && OPT_BRANCH=-b$odoo_fver || OPT_BRANCH=
       if [ -z "$PYPI_CACHED" ]; then
         echo -e "${TRAVIS_HDR3_COLOR}### Build Base Environment${TRAVIS_TEXT_COLOR}"
@@ -194,6 +194,7 @@ do_action() {
           [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
           for f in $preqs; do
             if $(grep -q ^$f $pkgdir/requirements.txt); then
+              [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ] && echo "Package $f included in $pkgdir/requirements.txt"
               continue
             fi
             op=$(echo "$f"|grep -Eo '[!<=>]*'|head -n1)
@@ -220,7 +221,7 @@ do_action() {
                   [ $pass -eq 2 ] && cmd="$cmd --no-deps --ignore-requires-python"
                   [ $opt_noloc -eq 0 -a $EUID -ne 0 -a $pass -eq 1 -a -d $HOME/.local ] && cmd="$cmd --user"
                   echo -e "${TRAVIS_TEXT_COLOR}Update '$pkg' version '$curver' with version '$reqver'${TRAVIS_HDR3_COLOR}"
-                  if [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ]; then
+                  if [ ${TRAVIS_DEBUG_MODE:-0} -ge 9 ]; then
                     echo "> $cmd"
                   else
                     run_traced "$cmd"
@@ -228,6 +229,8 @@ do_action() {
                   fi
                 fi
               fi
+            elif [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ]; then
+              echo "Package $f installed ..."
             fi
           done
         done
