@@ -301,12 +301,13 @@ If you declare the following directive in <env global> section:
 
 where "n" means:
 
- Parameter              |  "0"  |         "1"        |        "2"         |  "9"
-------------------------|-------|--------------------+--------------------+--------------------
- Informative messages   | :x:   | :white_check_mark: | :white_check_mark: | :white_check_mark:
- Inspect internal data  | :x:   | :x:                | :white_check_mark: | :white_check_mark:
- Installation log level | ERROR | WARN               | INFO               | :x: 
- Execution logo level   | INFO  | TEST               | TEST               | :x:
+ Parameter              |  "0"  |         "1"        |        "2"         |                    |  "9"
+------------------------|-------|--------------------+--------------------+--------------------+--------------------
+ Informative messages   | :x:   | :white_check_mark: | :white_check_mark: | :white_check_mark: | :white_check_mark:
+ Inspect internal data  | :x:   | :x:                | :white_check_mark: | :white_check_mark: | :white_check_mark:
+ MQT tests              | :x:   | :x:                | :x:                | :white_check_mark: | :white_check_mark:
+ Installation log level | ERROR | WARN               | INFO               | INFO               | :x: 
+ Execution logo level   | INFO  | TEST               | TEST               | TEST               | :x:
  
 Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.
 

@@ -155,6 +155,9 @@ git_clone_ocb() {
       fi
       run_traced "ln -s $SRCREPOPATH ${ODOO_PATH}"
     fi
+    if [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]; then
+      run_traced "psql -l -U postgres"
+    fi
 }
 
 

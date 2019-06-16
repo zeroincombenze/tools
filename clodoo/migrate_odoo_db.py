@@ -6,7 +6,8 @@ from __future__ import print_function, unicode_literals
 import sys
 import os
 import time
-# import oerplib
+# import inspect
+
 try:
     from clodoo import clodoo
 except ImportError:
@@ -75,7 +76,9 @@ IGNORE_FIELDS = {
     'res.partner': ['message_follower_ids',
                     'rea_code',
                     'child_ids'],
-    'account.account': 'parent_id',
+    'account.account': ['parent_id',
+                        'parent_left',
+                        'parent_right'],
 }
 MANDATORY_FIELDS = {
     'account.invoice': ['company_id'],
@@ -415,6 +418,10 @@ def cvt_m2m_value(dst_ctx, src_ctx, model, name, value, format=False):
                                                                     id))
                         src_ctx['_CACHE'][model][id] = False
         value = new_value if new_value else False
+    # if not value and str(
+    #     inspect.getmembers(
+    #         value,inspect.isclass)[0][1]).startswith('<class'):
+    #     value = False
     if format == 'cmd' and value:
         value = [(6, 0, value)]
     return value
@@ -523,7 +530,6 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
                                               'account.account',
                                               'account.account.type'):
         vals['vg7_id'] = rec.id
-        # if rec.id >= 120:
         clodoo.executeL8(dst_ctx,
                          model,
                          'synchro',
@@ -873,6 +879,8 @@ for model in dst_ctx['model_list']:
     mode = get_model_copy_mode(dst_ctx, model)
     if mode not in ('sql', 'image'):
         continue
+    if model == 'account.account':
+        src_ctx['no_recurse'] = True
     copy_table(dst_ctx, src_ctx, model, mode=mode)
 
 # raw_input('Press RET to validate invoices ...')

@@ -288,7 +288,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                 deps_list[kw].append(item)
             if item == 'barcode':
                 deps_list = add_package(deps_list, kw,
-                                        'python-Levenshtein',
+                                        '\'python-Levenshtein\'',
                                         with_version=with_version,
                                         odoo_ver=odoo_ver)
             # elif item == 'simplejson':
