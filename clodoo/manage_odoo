@@ -163,8 +163,8 @@ do_action() {
           fi
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing binary requirements${TRAVIS_TEXT_COLOR}"
-        breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR${TRAVIS_HDR3_COLOR}"
+        breqs=$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t bin -s ' ' -qBTR)
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ breqs=$breqs${TRAVIS_HDR3_COLOR}"
         for f in $breqs npm; do
           pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|head -n1)
@@ -183,9 +183,9 @@ do_action() {
         done
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_HDR3_COLOR}### Analyzing python requirements${TRAVIS_TEXT_COLOR}"
         [ -f $pkgdir/requirements.txt ] && run_traced "$PIP install -r $pkgdir/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
-        [ -n "$opt_deps" -a -f $opt_deps/requirements.txt ] && run_traced "$PIP install -r $opt_deps/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
-        preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ $LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR${TRAVIS_HDR3_COLOR}"
+        preqs="$($LISTREQ $OPT_BRANCH -p $pkgdir $dopts -t python -s ' ' -qBPTR)"
+        [ -n "$opt_deps" -a -f $opt_deps/requirements.txt ] && run_traced "$PIP install -r $opt_deps/requirements.txt --upgrade --no-warn-conflicts --disable-pip-version-check"
         [ $opt_verbose -gt 0 ] && echo -e "${TRAVIS_TEXT_COLOR}\$ preqs=$preqs${TRAVIS_HDR3_COLOR}"
         retsts=0
         for pass in 1 2 3; do
@@ -234,6 +234,13 @@ do_action() {
             fi
           done
         done
+        if [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ]; then
+          echo -e "${TRAVIS_HDR3_COLOR}### Test import python packages${TRAVIS_TEXT_COLOR}"
+          rm -fR $HOME/tmp_test.py
+          echo -e "from passlib.context import CryptContext\n">>$HOME/tmp_test.py
+          echo -e "exit\n">>$HOME/tmp_test.py
+          run_traced "python $HOME/tmp_test.py"
+        fi
         [ $retsts != 0 ] && echo -e "${TRAVIS_TEXT_COLOR}Enviroment installation does not match requirements!!${TRAVIS_HDR3_COLOR}"
         echo -e "${TRAVIS_HDR3_COLOR}### Analyzing npm packages${TRAVIS_TEXT_COLOR}"
         x=$(npm list|grep " less@")
