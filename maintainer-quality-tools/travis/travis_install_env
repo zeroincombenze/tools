@@ -364,23 +364,29 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   fi
   exit $sts
 else
-  if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+  if [ "${LINT_CHECK:-1}" != "0" ]; then
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $(node --version)"
+    if [ -f "${HOME}/.nvm/nvm.sh" ]; then
       CURRENT_NODE=$(which node)
       source ${HOME}/.nvm/nvm.sh
       nvm install 6
       run_traced "ln -sf $(nvm which 6) $CURRENT_NODE"
-  fi
-  if [ "${LINT_CHECK:-1}" != "0" ]; then
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "2> node version: $(node --version)"
+    fi
     echo -e "\e[${PS_HDR3_COLOR}m### Build Test Environment\e[${PS_TXT_COLOR}m"
     run_traced "$PIP install --upgrade --pre --no-deps git+https://github.com/OCA/pylint-odoo.git $PIP_OPTS" "nolocal"   # To use last version ever
-    run_traced "npm install eslint"
+    if [[ $TRAVIS =~ (true|emulate) ]]; then
+      run_traced "npm install -g eslint"
+    else
+      run_traced "npm install eslint"
+    fi
   fi
   if [ "${TESTS}" == "1" ]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
     x=$(which nodejs 2>/dev/null)
     [[ -z "$x" ]] && x=$(which node 2>/dev/null)
     run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/node"
-    [ $opt_verbose -gt 0 ] && node --version
+    [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
