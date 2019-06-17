@@ -365,8 +365,9 @@ if [ "$MQT_TEST_MODE" == "tools" ]; then
   exit $sts
 else
   if [ "${LINT_CHECK:-1}" != "0" ]; then
-    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $(node --version)"
-    if [ -f "${HOME}/.nvm/nvm.sh" ]; then
+    NODE_VER=$(node --version|grep -Eo "[0-9]+"|head -n1)
+    if [ $NODE_VER -lt 6 -a -f "${HOME}/.nvm/nvm.sh" ]; then
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "1> node version: $NODE_VER"
       CURRENT_NODE=$(which node)
       source ${HOME}/.nvm/nvm.sh
       nvm install 6
@@ -383,10 +384,13 @@ else
   fi
   if [ "${TESTS}" == "1" ]; then
     echo -e "\e[${PS_HDR3_COLOR}m### Install Packages for Base Environment\e[${PS_TXT_COLOR}m"
-    x=$(which nodejs 2>/dev/null)
-    [[ -z "$x" ]] && x=$(which node 2>/dev/null)
-    run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/node"
-    [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
+    NODE_VER=$(node --version|grep -Eo "[0-9]+"|head -n1)
+    if [ $NODE_VER -lt 6 ]; then
+      x=$(which nodejs 2>/dev/null)
+      [[ -z "$x" ]] && x=$(which node 2>/dev/null)
+      run_traced "ln -s $x $HOME/maintainer-quality-tools/travis/node"
+      [ $opt_verbose -gt 0 ] && echo "3> node version: $(node --version)"
+    fi
     if [[ $TRAVIS =~ (true|emulate) ]]; then
       run_traced "npm install -g less@3.0.4 less-plugin-clean-css"
       x=$(find $(npm bin -g 2>/dev/null) -name lessc 2>/dev/null)
