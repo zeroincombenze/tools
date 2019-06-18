@@ -3,7 +3,7 @@
 # Please, if you update configuratione file, send a copy to
 # antoniomaria.vigliotti@gmail.com
 # in order to share your configuration with other people.
-# Last update: 2019-05-20
+# Last update: 2019-06-08
 #
 # ---------------------------------------------------------------------
 #
@@ -219,7 +219,7 @@ PIP_PYSTD_PKGS=python-pip/pip,python-wheel/wheel,\
                python-jinja2/Jinja2,python-lxml/lxml,\
                python-mako/Mako,openssl/pyOpenSSL
 # Packages intalled by pip
-PIP_PKGS=oerplib,virtualenv,Babel,python-openid,setuptools,simplejson,\
+PIP_PKGS=oerplib,virtualenv,future,Babel,python-openid,setuptools,simplejson,\
     Babel,pytok,pyasn1,ndg-httpsclient,pytz,gdata,PyYAML,xlwt,unidecode,urllib3,\
     passlib,unicodecsv,pydot,vatnumber,BeautifulSoup,mock,lxml,\
     python-dateutil,psutil,pychart,python-ldap,requests,\

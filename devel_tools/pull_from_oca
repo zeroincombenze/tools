@@ -39,14 +39,18 @@ __version__=0.2.2.15
 
 
 sync_tmp_2_tgt() {
-# sync_tmp_2_tgt(tmpdir tgtpath)
-    local b d dlist f flist l rep t1
+# sync_tmp_2_tgt(tmpdir tgtpath repo)
+    local b d dlist f flist l t1
     local tmpdir=$1
     local tgtpath=$2
-    rep=$(basename $tgtpath)
+    local repo=$3
     # [ "${rep: -1}" == "/" ] && rep=${rep:0: -1}
     # echo -en "$TRAVIS_HDR2_COLOR"
-    run_traced "shopt -s dotglob; rsync -a --ignore-existing $tgtpath/ $tmpdir/$rep/"
+    if [ "$repo" == "OCB" ]; then
+      run_traced "shopt -s dotglob; rsync -a --ignore-existing $tgtpath/ $tmpdir/"
+    else
+      run_traced "shopt -s dotglob; rsync -a --ignore-existing $tgtpath/ $tmpdir/$rep/"
+    fi
     # echo -en "$TRAVIS_NOP_COLOR"
     l=${#tgtpath}
     dlist=$(find $tmpdir/$rep -type d -name readme|tr "\n" " ")
@@ -141,15 +145,15 @@ if [ ! -d $tgtpath ]; then
   echo "Directory $tgtpath not found!"
   exit 1
 fi
-repo=$(basename $tgtpath)
 tgt_odoo_dir=$(dirname $tgtpath)
-tgt_odoo_fver=$(build_odoo_param FULLVER "$tgt_odoo_dir")
+tgt_odoo_fver=$(build_odoo_param FULLVER "$tgtpath")
 if [ "$tgt_odoo_fver" != "$opt_branch" ]; then
-  echo "Directory $tgtpath is not for Odoo $opt_branch!"
+  echo "Directory $tgtpath is $tgt_odoo_fver: not for Odoo $opt_branch!"
   exit 1
 fi
-odoo_ver=$(build_odoo_param MAJVER "$tgt_odoo_dir")
-src_odoo=$HOME/oca$odoo_ver/$repo
+odoo_ver=$(build_odoo_param MAJVER "$tgt_odoo_fver")
+repo=$(build_odoo_param REPOS "$tgtpath")
+[ "$repo" != "OCB" ] && src_odoo=$HOME/oca$odoo_ver/$repo || src_odoo=$HOME/oca$odoo_ver
 if [ ! -d $src_odoo ]; then
   echo "Odoo source repository $src_odoo not found!"
   exit 1
@@ -167,12 +171,14 @@ OPTS=
 [ $opt_dry_run -ne 0 ] && OPTS=${OPTS}n
 [ -n "$OPTS" ] && OPTS="-$OPTS"
 # echo -en "$TRAVIS_HDR1_COLOR"
-if [ $opt_drop -ne 0 ]; then
-  run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -Cqy $OPTS"
-else
-  run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -UCq $OPTS"
+if [ "$repo" != "OCB" ]; then
+  if [ $opt_drop -ne 0 ]; then
+    run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -Cqy $OPTS"
+  else
+    run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $HOME/oca$odoo_ver/$repo -UCq $OPTS"
+  fi
 fi
 # echo -en "$TRAVIS_HDR1_COLOR"
-run_traced "shopt -u dotglob; rsync -aC --exclude=".*" $HOME/oca$odoo_ver/$repo/ $tmpdir/$repo/"
+run_traced "shopt -u dotglob; rsync -aC --exclude=".*" $src_odoo/ $tmpdir/$repo/"
 # echo -en "$TRAVIS_NOP_COLOR"
 sync_tmp_2_tgt $tmpdir $tgtpath
