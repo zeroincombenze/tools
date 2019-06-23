@@ -41,7 +41,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.38"
+__version__ = "0.3.8.40"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -76,7 +76,10 @@ def build_alias_struct(mindroot, model, uname, type, fld_name):
         mindroot[pymodel][type] = {}
     if type != 'value' and uname not in mindroot[pymodel][type]:
         mindroot[pymodel][type][uname] = {}
-    if (type == 'value' and fld_name):
+    if (type == 'value' and
+            fld_name and
+            (uname.find('^${') < 0 or
+             not uname.endswith('}'))):
         if fld_name not in mindroot[pymodel][type]:
             mindroot[pymodel][type][fld_name] = {}
         if uname not in mindroot[pymodel][type][fld_name]:
@@ -89,14 +92,34 @@ def link_versioned_name(mindroot, model, uname, type, src_name, ver, fld_name):
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, ver)
     if type == 'value':
-        if ver_name:
-            mindroot[pymodel][type][fld_name][ver_name] = uname
-        mindroot[pymodel][type][fld_name][uname][ver] = src_name
+        if src_name.startswith('${') and src_name.endswith('}'):
+            mindroot[pymodel][type][fld_name] = src_name
+        else:
+            if ver_name:
+                mindroot[pymodel][type][fld_name][ver_name] = uname
+            mindroot[pymodel][type][fld_name][uname][ver] = src_name
     else:
         if ver_name:
             mindroot[pymodel][type][ver_name] = uname
         mindroot[pymodel][type][uname][ver] = src_name
     return mindroot
+
+
+def tnl_by_code(ctx, model, src_name, src_ver, tgt_ver, name):
+    src_majver = int(src_ver.split('.')[0])
+    tgt_majver = int(tgt_ver.split('.')[0])
+    if name == '${amount}':
+        if isinstance(src_name, basestring):
+            src_name = float(src_name)
+        if (src_majver < 9 and tgt_majver >= 9):
+            if src_name in (0.04, 0,05, 0.1, .22):
+                name = src_name * 100
+        elif (src_majver >= 9 and tgt_majver < 9):
+            if src_name in (4, 5, 10, 22):
+                name = src_name / 100
+        else:
+            name = src_name
+    return name
 
 
 def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
@@ -134,12 +157,20 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
             else:
                 if (pymodel in mindroot and
                         typ in mindroot[pymodel] and
-                        fld_name in mindroot[pymodel][typ] and
-                        ver_name in mindroot[pymodel][typ][fld_name]):
-                    uname = mindroot[pymodel][typ][fld_name][ver_name]
-                    if (uname in mindroot[pymodel][typ][fld_name] and
-                            tgt_ver in mindroot[pymodel][typ][uname][uname]):
-                        name = mindroot[pymodel][typ][fld_name][uname][tgt_ver]
+                        fld_name in mindroot[pymodel][typ]):
+                    if ver_name in mindroot[pymodel][typ][fld_name]:
+                        uname = mindroot[pymodel][typ][fld_name][ver_name]
+                        if (uname in mindroot[pymodel][typ][fld_name] and
+                                tgt_ver in mindroot[
+                                    pymodel][typ][fld_name][uname]):
+                            name = mindroot[
+                                pymodel][typ][fld_name][uname][tgt_ver]
+                            break
+                    elif (mindroot[pymodel][typ][fld_name].startswith('${') and
+                            mindroot[pymodel][typ][fld_name].endswith('}')):
+                        name = tnl_by_code(ctx, model, src_name, src_ver,
+                                           tgt_ver,
+                                           mindroot[pymodel][typ][fld_name])
                         break
     return name
 
@@ -161,8 +192,10 @@ def translate_from_sym(ctx, model, sym, tgt_ver):
     return name
 
 
-def debug_show(mindroot):
+def debug_show(mindroot, model=None):
     for ln1 in mindroot:
+        if model and model != ln1:
+            continue
         print('%s' % ln1)
         if iter(mindroot[ln1]):
             for ln2 in mindroot[ln1]:
@@ -201,8 +234,6 @@ def read_stored_dict(ctx):
                                 fieldnames=[],
                                 restkey='undef_name',
                                 dialect='transodoo')
-        # import pdb
-        # pdb.set_trace()
         for line in reader:
             row = line['undef_name']
             if not hdr:
@@ -297,8 +328,6 @@ def transodoo_list(ctx):
         mindroot = {}
     else:
         mindroot = ctx['mindroot']
-    # import pdb
-    # pdb.set_trace()
     if ctx['pymodel'] not in mindroot:
         return
     line = '=====[ %s ]=====\n' % ctx['model']

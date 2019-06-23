@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.24
+__version__=0.2.2.25
 
 
 travis_test_bash() {
@@ -122,9 +122,9 @@ please_test_pylint() {
         pylint_rcfile=${PYLINT_CONFIG_DIR}/travis_run_pylint_PYPI.cfg
       fi
       if [ ${opt_verbose:-0} -gt 0 ]; then
-        echo "export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}"
+        echo "export PYTHONPATH=$(readlink -f $TRAVIS_BUILD_DIR/..):${MODULES_TO_TEST}:${PYTHONPATH}"
       fi
-      export PYTHONPATH=${PYTHONPATH}:${MODULES_TO_TEST}
+      export PYTHONPATH=$(readlink -f $TRAVIS_BUILD_DIR/..):${MODULES_TO_TEST}:${PYTHONPATH}
       IFS="/" read -a REPO <<< "${ODOO_REPO}"
       export PATH=${PATH}:${PWD}/../${REPO[1]}-${VERSION}/openerp
       #run pylint command
@@ -144,8 +144,9 @@ run_regression_test() {
         local OPTS=$(inherits_travis_opts "" "T")
       fi
       x=$(readlink -e $PWD/..)
-      if [ $(echo ":$PYTHONPATH:"|grep -qv ":$x:"  2>/dev/null) ]; then
-        run_traced "export PYTHONPATH=${PYTHONPATH}:$x"
+      if [ $(echo ":$PYTHONPATH:"|grep -q ":$x:"  2>/dev/null) ]; then
+        PYTHONPATH=${PYTHONPATH/:$x/}
+        run_traced "export PYTHONPATH=$x:${PYTHONPATH}"
       fi
       run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
       COVERAGE_PROCESS_START=$(readlink -f .coveragerc)

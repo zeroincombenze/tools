@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.10
+#__version__=0.2.2.11
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -459,7 +459,6 @@ git_clone() {
 
 create_virtual_env() {
     local f p x
-    local TRAVIS_CWD=$PWD
     local HOME_BRANCH=$HOME/$BRANCH
     export TRAVIS_BRANCH=$BRANCH
     if [ $opt_py3 -ne 0 ]; then
@@ -468,6 +467,8 @@ create_virtual_env() {
       local CURPYVER=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
     fi
     local sts=0
+    local VER=${VERSION}
+    [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
     drop_test_db
     export TRAVIS_SAVED_HOME=$HOME
     export TRAVIS_HOME=$(readlink -f $HOME/VENV_$$)
@@ -479,9 +480,9 @@ create_virtual_env() {
       export TRAVIS=false
     fi
     SET_GLOBAL_PYVER=$(get_cfg_value "" "SET_GLOBAL_PYVER")
-    if [ ${SET_GLOBAL_PYVER:-0} -ne 0 -a "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
-      sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
-    fi
+    # if [ ${SET_GLOBAL_PYVER:-0} -ne 0 -a "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
+    #   sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
+    # fi
     TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
     if [ ${opt_virt:-0} -eq 0 ]; then
       mkdir -p $TRAVIS_HOME
@@ -498,12 +499,12 @@ create_virtual_env() {
       local SAVE_COLOR=$PS_RUN_COLOR
       export PS_RUN_COLOR=$PS_HDR3_COLOR
       echo -en "\e[${PS_RUN_COLOR}m"
-      if [ ${opt_cache:-0} -ne 0 -a -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ]; then
-        echo "# .. loading stored packages from VME${VERSION} ..."
+      if [ ${opt_cache:-0} -ne 0 -a -n "${VER}" -a -d "$TRAVIS_SAVED_HOME/VME/VME${VER}" ]; then
+        echo "# .. loading stored packages from VME${VER} ..."
         for d in bin include lib lib64 .local; do
-          if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ]; then
+          if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}/$d" ]; then
             [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
-            cp -R $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d $TRAVIS_HOME/
+            run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VER}/$d $TRAVIS_HOME/"
           fi
         done
       fi
@@ -540,16 +541,18 @@ drop_virtual_env() {
     if [ ${opt_virt:-0} -gt 0 ]; then
       deactivate
     fi
+    local VER=${VERSION}
+    [ -z "$VER" ] && VER="${TRAVIS_PYTHON_VERSION:0:1}"
     if [ ${opt_virt:-0} -gt 0 -a ${opt_keepE:-0} -ne 0 -a "$SYSTEM_SITE_PACKAGES" != "true" ]; then
-      [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" ] && rm -fR $TRAVIS_SAVED_HOME/VME/VME${VERSION}
-      mkdir -p $TRAVIS_SAVED_HOME/VME/VME${VERSION}
+      [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}" ] && rm -fR $TRAVIS_SAVED_HOME/VME/VME${VER}
+      mkdir -p $TRAVIS_SAVED_HOME/VME/VME${VER}
       for d in bin include lib lib64 .local; do
         if [ -d "$TRAVIS_HOME/$d" ]; then
-          [ -d "$TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME/VME${VERSION}/$d"
-          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME/VME${VERSION}/"
+          [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}/$d" ] && run_traced "rm -fR $TRAVIS_SAVED_HOME/VME/VME${VER}/$d"
+          run_traced "cp -R $TRAVIS_HOME/$d $TRAVIS_SAVED_HOME/VME/VME${VER}/"
         fi
       done
-      custom_env "$TRAVIS_SAVED_HOME/VME/VME${VERSION}" "$TRAVIS_PYTHON_VERSION"
+      custom_env "$TRAVIS_SAVED_HOME/VME/VME${VER}" "$TRAVIS_PYTHON_VERSION"
     fi
     cd
     if [ ${opt_keep:-0} -eq 0 ]; then

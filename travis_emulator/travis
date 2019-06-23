@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.10
+__version__=0.2.2.11
 
 
 store_cfg_param_value() {
@@ -162,7 +162,8 @@ process_yaml_init() {
     export TRAVIS_PULL_REQUEST="false"
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
-    export TRAVIS_PYTHON_VERSION=2.7
+    python_matrix=
+    # export TRAVIS_PYTHON_VERSION=2.7
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
@@ -244,7 +245,8 @@ process_yaml_do() {
       lne=$(process_yaml_unquote "$line")
     fi
     if [ "$YML_sect" == "python" ]; then
-      export TRAVIS_PYTHON_VERSION=$lne
+      python_matrix="$python_matrix $lne"
+      # export TRAVIS_PYTHON_VERSION=$lne
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
       YML_packages="$YML_packages $lne"
@@ -846,23 +848,11 @@ process_yaml() {
     if [ -f $YML_FILE ]; then
       echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
       wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
+      TRAVIS_CWD=$PWD
       process_yaml_file "$YML_FILE"
       sts=$STS_SUCCESS
-      create_virtual_env
       wlog "\e[${PS_HDR2_COLOR}m===== [Build System informations] =====\e[${PS_TXT_COLOR}m"
-      for lne in python python3 pip; do
-        X="$(which $lne) --version: $($lne --version 2>&1)"
-        eval $lne --version
-      done
-      if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-        echo "Python sys.path list:"
-        if [ $opt_py3 -ne 0 ]; then
-          echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python3
-        else
-          echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
-        fi
-      fi
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH PYTHONPATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_PYTHON_VERSION TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD TRAVIS_PDB PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD TRAVIS_PDB PYPI_CACHED SYSTEM_SITE_PACKAGES; do
          lne1=${!lne}
          if [[ -n "$lne1" || $lne =~ PATH ]]; then
            wlog "\$ $lne=$lne1"
@@ -873,61 +863,90 @@ process_yaml() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
       fi
       if [ $sts -eq $STS_SUCCESS ]; then
-        if [ -z "$YML_matrix" ]; then
-          YML_matrix=":"
-        fi
-        for lne in $YML_matrix; do
-          if [ "$lne" == ":" ]; then
-            line1=
-            lne1=
+        if [ -z "$python_matrix" ]; then
+          if [ $opt_py3 -ne 0 ]; then
+            export python_matrix="2.7"
           else
-            line1="$lne"
-            lne1=$(process_yaml_quote "$lne")
+            export python_matrix="3.5"
           fi
-          if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
-            if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
-              continue
+        fi
+        for TRAVIS_PYTHON_VERSION in $python_matrix; do
+          wlog "\e[${PS_HDR1_COLOR}m===== [Build python $TRAVIS_PYTHON_VERSION] =====\e[${PS_TXT_COLOR}m"
+          export TRAVIS_PYTHON_VERSION
+          for lne in PYTHONPATH TRAVIS_PYTHON_VERSION; do
+            lne1=${!lne}
+            if [[ -n "$lne1" || $lne =~ PATH ]]; then
+              wlog "\$ $lne=$lne1"
+            fi
+          done
+          CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
+          [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
+          eval $PYTHON --version
+          if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+            # echo "Python sys.path list:"
+            if [ $opt_py3 -ne 0 ]; then
+              echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
+            else
+              echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
             fi
           fi
-          wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
-          wash_virtual_env
-          process_yaml_global
-          if [ $sts -eq $STS_SUCCESS ]; then
-            process_yaml_before_install
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          if [ -z "$YML_matrix" ]; then
+            YML_matrix=":"
           fi
-          if [ $sts -eq $STS_SUCCESS ]; then
-            process_yaml_install "$line1"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          fi
-          if [ $sts -eq $STS_SUCCESS ]; then
-            process_yaml_before_script "$line1"
-            s=$?; [ ${s-0} -ne 0 ] && sts=$s
-          fi
-          if [ $sts -eq $STS_SUCCESS ]; then
-            wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
-            for lne in $YML_script; do
-              process_yaml_run_cmd "$lne"
-              s=$?; [ ${s-0} -ne 0 ] && sts=$s
-              if [ $sts -ne $STS_SUCCESS ]; then
-                elog "!Script aborted by error!!"
-                break
+          for lne in $YML_matrix; do
+            if [ "$lne" == ":" ]; then
+              line1=
+              lne1=
+            else
+              line1="$lne"
+              lne1=$(process_yaml_quote "$lne")
+            fi
+            if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
+              if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
+                continue
               fi
-            done
-          fi
+            fi
+            wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
+            create_virtual_env
+            # wash_virtual_env
+            process_yaml_global
+            if [ $sts -eq $STS_SUCCESS ]; then
+              process_yaml_before_install
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              process_yaml_install "$line1"
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              process_yaml_before_script "$line1"
+              s=$?; [ ${s-0} -ne 0 ] && sts=$s
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              wlog "\e[${PS_HDR2_COLOR}m===== [Script matrix $lne1] =====\e[${PS_TXT_COLOR}m"
+              for lne in $YML_script; do
+                process_yaml_run_cmd "$lne"
+                s=$?; [ ${s-0} -ne 0 ] && sts=$s
+                if [ $sts -ne $STS_SUCCESS ]; then
+                  elog "!Script aborted by error!!"
+                  break
+                fi
+              done
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
+              process_yaml_after_success
+            fi
+            if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
+              read -p "Press RET to continue ..."
+            fi
+            if [ $sts -eq $STS_SUCCESS ]; then
+              process_yaml_exit
+            fi
+            drop_virtual_env
+          done
         done
       fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        wlog "\e[${PS_HDR2_COLOR}m===== [After success] =====\e[${PS_TXT_COLOR}m"
-        process_yaml_after_success
-      fi
-      if [ "$TRAVIS_DEBUG_MODE" == "9" ]; then
-        read -p "Press RET to continue ..."
-      fi
-      if [ $sts -eq $STS_SUCCESS ]; then
-        process_yaml_exit
-      fi
-      drop_virtual_env
     else
       process_local
       sts=$?

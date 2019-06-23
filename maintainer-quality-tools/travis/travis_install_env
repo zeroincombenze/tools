@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.24
+__version__=0.2.2.25
 
 
 conf_default() {
@@ -300,9 +300,9 @@ if [ $opt_verbose -gt 0 ]; then
   [ -n "$PYPI_CACHED" ] && echo -e "\e[${PS_TXT_COLOR}m# PYPI_CACHED=$PYPI_CACHED\e[${PS_HDR3_COLOR}m"
   echo -e "\e[${PS_TXT_COLOR}m# PYTHONPATH=$PYTHONPATH\e[${PS_HDR3_COLOR}m"
   if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-    echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python3
+    echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
   else
-    echo -e "import sys\nfor p in sys.path:\n    print(p)\n"|python
+    echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
   fi
 fi
 # Build secure environment (python2)

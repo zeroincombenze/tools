@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.38"
+__version__ = "0.3.8.40"
 
 
 #############################################################################
@@ -429,12 +429,29 @@ FIX_7_0 = {
     'account.invoice': {'company_id': {'readonly': False},
                         'number': {'readonly': False},
                         'date_invoice': {'readonly': False},
-                        'journal_id': {'readonly': False}},
+                        'journal_id': {'readonly': False},
+                        'account_id': {'readonly': False},
+                        'amount_tax': {'readonly': False},
+                        'amount_total': {'readonly': False},
+                        'amount_untaxed': {'readonly': False},
+                        'internal_number': {'readonly': False},
+                        'move_id': {'readonly': False},
+                        'name': {'readonly': False},
+                        'partner_id': {'readonly': False},
+                        },
     'account.invoice.line': {'company_id': {'readonly': False},
                              'number': {'readonly': False},
                              'date_invoice': {'readonly': False},
                              'journal_id': {'readonly': False}},
 }
+FIX_ALL = {
+    'message_follower_ids': {'readonly': True},
+    'message_ids': {'readonly': True},
+    'message_is_follower': {'readonly': True},
+    'message_summary': {'readonly': True},
+    'message_unread': {'readonly': True},
+}
+
 def get_model_structure(ctx, model, ignore=None):
     read_stored_dict(ctx)
     ignore = ignore or []
@@ -450,11 +467,16 @@ def get_model_structure(ctx, model, ignore=None):
                                    [('model', '=', model)])):
         res = FIX_7_0.get(model, {}).get(field, {}).get('required', None)
         required = res if res is not None else field.required
-        res = FIX_7_0.get(model, {}).get(field, {}).get('readonly', None)
-        readonly = res if res is not None else field.readonly
-        readonly = readonly or field.ttype in ('binary', 'reference')
-        if field.name in ignore:
+        if (field.name == 'id' or
+                (ctx['majver'] >= 9 and field.compute) or
+                field.name in ignore or
+                field.ttype in ('binary', 'reference')):
             readonly = True
+        else:
+            readonly = FIX_ALL.get(
+                model, {}).get(field, {}).get('readonly', False) or \
+                FIX_7_0.get(
+                model, {}).get(field, {}).get('readonly', False)
         ctx['STRUCT'][model][field.name] = {
             'ttype': field.ttype,
             'relation': field.relation,

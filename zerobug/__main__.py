@@ -11,7 +11,7 @@ from zerobug import Z0BUG
 import pdb
 
 
-__version__ = "0.2.14.6"
+__version__ = "0.2.14.7"
 STS_FAILED = 1
 STS_SUCCESS = 0
 

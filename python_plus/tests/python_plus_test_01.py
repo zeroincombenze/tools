@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright SHS-AV s.r.l. <http://www.zeroincombenze.org>)
-#
+# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
-#
-#    All Rights Reserved
-#
 """
     Python-plus Regression Test Suite
 """
+from __future__ import print_function, unicode_literals
 
+# import pdb
 import os
 import os.path
 import sys
-from zerobug import Z0test
-from python_plus import qsplit
+from zerobug import Z0BUG
+from python_plus import text_type, bytestr_type, isbytestr, qsplit, _b, _u
 
-
-__version__ = "0.1.0.1"
 
 MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
+__version__ = "0.1.0.2"
 
 
 def version():
@@ -35,6 +31,51 @@ class Test():
         self.Z = zarlib
 
     def test_01(self, z0ctx):
+        res = sys.version_info[0]
+        sts = self.Z.test_result(z0ctx,
+                                 "python%s" % res,
+                                 res,
+                                 res)
+
+        btext = b'abcdef'
+        res = isinstance(btext, bytestr_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "isinstance(b'abcdef', bytestr_type)",
+                                 True,
+                                 res)
+
+        utext = u'abcdef'
+        res = isinstance(utext, text_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "res = isinstance(u'abcdef', text_type)",
+                                 True,
+                                 res)
+
+        res = isinstance(_b(btext), bytestr_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "isinstance(_b(b'abcdef'), bytestr_type)",
+                                 True,
+                                 res)
+
+        res = isinstance(_u(btext), text_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "isinstance(_u(b'abcdef'), text_type)",
+                                 True,
+                                 res)
+
+        res = isinstance(_u(utext), text_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "isinstance(_u(u'abcdef'), text_type)",
+                                 True,
+                                 res)
+
+        res = isinstance(_b(utext), bytestr_type)
+        sts = self.Z.test_result(z0ctx,
+                                 "isinstance(_b(u'abcdef'), bytestr_type)",
+                                 True,
+                                 res)
+
+    def test_02(self, z0ctx):
         res = qsplit(b'abc,def', b',')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'abc,def', b',')",
@@ -52,7 +93,7 @@ class Test():
                                   res)
         return sts
 
-    def test_02(self, z0ctx):
+    def test_03(self, z0ctx):
         res = qsplit(b'abc,def', b',', quoted=True)
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'abc,def', b','), quoted=True",
@@ -70,7 +111,7 @@ class Test():
                                   res)
         return sts
 
-    def test_03(self, z0ctx):
+    def test_04(self, z0ctx):
         res = qsplit(b'"\\\"abc\\\"",def', b',', e='\\')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'\"\\\"abc\\\"\",def', b','), e='\\'",
@@ -88,7 +129,7 @@ class Test():
                                  res)
         return sts
 
-    def test_04(self, z0ctx):
+    def test_05(self, z0ctx):
         res = qsplit(u'abc,def', u',')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(u'abc,def', u',')",
@@ -107,8 +148,8 @@ class Test():
         return sts
 
 if __name__ == "__main__":
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
-    sts = Z.main_local(ctx, Test)
-    exit(sts)
+    exit(Z0BUG.main_local(
+        Z0BUG.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        Test))

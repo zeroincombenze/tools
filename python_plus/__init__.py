@@ -1,25 +1,62 @@
 from __future__ import print_function, unicode_literals
+from past.builtins import basestring
+import sys
 
-__version__='0.1.0.1'
+__version__='0.1.0.2'
+
+PYCODESET = 'utf-8'
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+if PY3:
+    text_type = str
+    bytestr_type = bytes
+elif PY2:
+    text_type = unicode
+    bytestr_type = str
+
+def isunicode(object):
+    if PY2:
+        return isinstance(object, unicode)
+    return isinstance(object, str)
 
 
-def utf8s(src):
+def isbytestr(object):
+    if PY2:
+        return isinstance(object, str)
+    return isinstance(object, bytes)
+
+
+def _b(s):
+    if isinstance(s, text_type):
+        return s.encode(PYCODESET)
+    return s
+
+
+def _u(s):
+    if isinstance(s, bytestr_type):
+        if PY3:
+            return s.decode(PYCODESET)
+        return unicode(s, PYCODESET)
+    return s
+
+
+def bstrings(src):
     if isinstance(src, dict):
         for x in src.keys():
-            src[x] = x.encode('utf-8')
+            src[x] = x.encode(PYCODESET)
     elif isinstance(src, list):
         for i,x in enumerate(src):
-            src[i] = x.encode('utf-8')
+            src[i] = x.encode(PYCODESET)
     return src
 
 
 def unicodes(src):
     if isinstance(src, dict):
         for x in src.keys():
-            src[x] = unicode(x)
+            src[x] = _u(x)
     elif isinstance(src, list):
         for i,x in enumerate(src):
-            src[i] = unicode(x)
+            src[i] = _u(x)
     return src
 
 
@@ -27,6 +64,10 @@ def qsplit(*args, **kwargs):
     src = args[0]
     if len(args) > 1 and args[1]:
         sep = args[1]
+        if isinstance(sep, (tuple, list)):
+            sep = unicodes(sep)
+        elif isinstance(sep, basestring):
+            sep = _u(sep)
     else:
         sep=[' ', '\t', '\n', '\r']
     if len(args) > 2 and args[2]:
@@ -37,7 +78,7 @@ def qsplit(*args, **kwargs):
     escape = kwargs.get('e', False)
     quoted = kwargs.get('quoted', False)
     strip = kwargs.get('strip', False)
-    source = unicode(src)
+    source = _u(src)
     sts = False
     result = []
     item = ''
@@ -75,6 +116,6 @@ def qsplit(*args, **kwargs):
         result.append(item.strip())
     else:
         result.append(item)
-    if isinstance(src, str):
-        return utf8s(result)
+    if isinstance(src, bytestr_type):
+        return bstrings(result)
     return result

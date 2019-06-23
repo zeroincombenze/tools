@@ -1,4 +1,5 @@
 model	name	type	6.1	7.0	8.0	9.0	10.0	11.0	12.0
+account_account	TYPE	field	type	type	type				
 account_account	USER_TYPE	field	user_type	user_type	user_type	user_type_id	user_type_id	user_type_id	user_type_id
 account_account_type	TYPE	field	report_type	report_type	report_type	type	type	type	type
 account_account_type	report_type	value	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets
@@ -37,6 +38,7 @@ account_move_line	RECONCILE_ID	field	reconciled	reconciled	reconciled	reconciled
 account_tax	ACCOUNT_ID	field	account_collected_id	account_collected_id	account_collected_id	account_id	account_id	account_id	account_id
 account_tax	ACCOUNT_REFUND_ID	field	account_paid_id	account_paid_id	account_paid_id	refund_account_id	refund_account_id	refund_account_id	refund_account_id
 account_tax	TYPE	field	type	type	type	amount_type	amount_type	amount_type	amount_type
+account_tax	amount	value	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}	${amount}
 ir.model	ACCOUNT.INCOTERMS	model	stock.incoterms	stock.incoterms	stock.incoterms	stock.incoterms	stock.incoterms	stock.incoterms	account.incoterms
 ir.model	BASE.AUTOMATION	model	base.action.rule	base.action.rule	base.action.rule	base.action.rule	base.action.rule	base.automation	base.automation
 ir.model	BASE.AUTOMATION.LEAD.TEST	model	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.action.rule.lead.test	base.automation.lead.test	base.automation.lead.test
@@ -339,6 +341,7 @@ ir.module.module	WEBSITE_RATING_PROJECT	module	website_rating_project_issue	webs
 ir.module.module	WEBSITE_SALE	module	website_sale_options	website_sale_options	website_sale_options	website_sale_options	website_sale_options	website_sale_options	website_sale
 ir.module.module	WEBSITE_SALE_PRICE_TIER	module	website_sale_qty	website_sale_qty	website_sale_qty	website_sale_qty	website_sale_price_tier	website_sale_price_tier	website_sale_price_tier
 ir.module.module	WEBSITE_SALE_STOCK	module	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock_options	website_sale_stock
+product_product	NAME	field	name_template	name_template	name	name	name	name	name
 res_city	NUTS	field		nuts					
 res_city	PROVINCE_ID	field	province_id	province_id					
 res_groups	ADMINISTRATION_SETTINGS	name	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager	base.group_erp_manager

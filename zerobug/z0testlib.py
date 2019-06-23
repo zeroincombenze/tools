@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.6"
+__version__ = "0.2.14.7"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -672,20 +672,26 @@ class Z0test(object):
             else:
                 self.testdir = self.this_dir
             self.rundir = self.this_dir
-        x = os.path.dirname(self.rundir)
+        # Testing package dir must be the 1.st one in sys.path
+        this_pkg_dir = os.path.dirname(self.rundir)
         PYTHONPATH = os.environ.get('PYTHONPATH', '')
-        if x not in sys.path:
+        if this_pkg_dir not in sys.path:
             if PYTHONPATH:
                 p = ':%s:' % PYTHONPATH
-                if p.find(':%s:' % x) < 0:
-                    PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+                if p.find(':%s:' % this_pkg_dir) < 0:
+                    PYTHONPATH = '%s:%s' % (this_pkg_dir, PYTHONPATH)
             else:
-                PYTHONPATH = x
+                PYTHONPATH = this_pkg_dir
         if this == 'test_zerobug':
-            x = '%s/%s' % (self.rundir, 'dummy')
-            PYTHONPATH = '%s:%s' % (x, PYTHONPATH)
+            this_pkg_dir = '%s/%s' % (self.rundir, 'dummy')
+            PYTHONPATH = '%s:%s' % (this_pkg_dir, PYTHONPATH)
         os.putenv('PYTHONPATH', PYTHONPATH)
         self.PYTHONPATH = PYTHONPATH
+        if this_pkg_dir in sys.path:
+            ix = sys.path.index(this_pkg_dir)
+            del sys.path[ix]
+        sys.path.insert(0, this_pkg_dir)
+        #
         if not id:
             if this.startswith('test_'):
                 id = this[5:]
@@ -1125,6 +1131,19 @@ class Z0test(object):
                                 TEST_SUCCESS,
                                 res)
 
+    def set_mime_python_ver(testname, with_python3):
+        import pdb
+        pdb.set_trace()
+        fd = open(testname, 'rbU')
+        code = fd.read()
+        fd.close()
+        code.replace('#!/usr/bin/env python',
+                     '#!/usr/bin/env python3',
+                     1)
+        fd = open(testname, 'w')
+        fd.write(code)
+        fd.close()
+
     def exec_tests_4_count(self, test_list, ctx, TestCls=None):
         if ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, '.exec_tests_4_count (autotest)')
@@ -1236,6 +1255,7 @@ class Z0test(object):
                     testname = os.path.join(self.testdir, testname)
                 if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
+                    # set_mime_python_ver(testname, ctx.get('python3', False))
                     if ctx.get('run4cover', False):
                         test_w_args = ['coverage',
                                        'run',

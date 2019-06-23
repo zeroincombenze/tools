@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.38"
+__version__ = "0.3.8.40"
 
 
 MAX_DEEP = 20
@@ -212,6 +212,25 @@ def set_products_2_delivery_order(ctx):
         if pp.invoice_delivery != 'order':
             clodoo.writeL8(ctx, model, pp.id, {'invoice_delivery':'order'})
             ctr += 1
+    print('%d products updated' % ctr)
+
+
+def set_products_2_consumable(ctx):
+    print('Set consumable in the stockable products')
+    model = 'product.template'
+    ctr=0
+    for pp in clodoo.browseL8(ctx, model,clodoo.searchL8(ctx, model,
+            [('type', '=', 'product')])):
+        clodoo.writeL8(ctx, model, pp.id, {'type':'consu'})
+        ctr += 1
+    print('%d product templates updated' % ctr)
+
+    model = 'product.product'
+    ctr=0
+    for pp in clodoo.browseL8(ctx, model,clodoo.searchL8(ctx, model,
+            [('type', '=', 'product')])):
+        clodoo.writeL8(ctx, model, pp.id, {'type':'consu'})
+        ctr += 1
     print('%d products updated' % ctr)
 
 
@@ -572,6 +591,7 @@ print('    show_module_group(ctx)')
 print('    clean_translations(ctx)')
 print('    close_purchse_orders(ctx)')
 print('    set_products_2_delivery_order(ctx)')
+print('    set_products_2_consumable(ctx)')
 print('    order_commission_by_partner(ctx)')
 print('    inv_commission_from_order(ctx)')
 print('    update_einvoice_out_attachment(ctx)')
