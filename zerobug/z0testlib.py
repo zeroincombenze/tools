@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.7"
+__version__ = "0.2.14.8"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -1088,7 +1088,7 @@ class Z0test(object):
                 file = file.safe_substitute(**ctx)
                 break
             i += 1
-        msg = "version %s" % os.path.basename(file)
+        msg = "version %s %s" % (os.path.basename(file), version)
         res = ""
         cmd = ""
         if tver == "V":
@@ -1132,8 +1132,6 @@ class Z0test(object):
                                 res)
 
     def set_mime_python_ver(testname, with_python3):
-        import pdb
-        pdb.set_trace()
         fd = open(testname, 'rbU')
         code = fd.read()
         fd.close()
@@ -1256,7 +1254,8 @@ class Z0test(object):
                 if basetn[-3:] == '.py' or basetn[-4:] == '.pyc':
                     self.dbgmsg(ctx, '- ctr=%d' % ctx['ctr'])
                     # set_mime_python_ver(testname, ctx.get('python3', False))
-                    if ctx.get('run4cover', False):
+                    if (ctx.get('run4cover', False) and
+                            not ctx.get('dry_run', False)):
                         test_w_args = ['coverage',
                                        'run',
                                        '-a',

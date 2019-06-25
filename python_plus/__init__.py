@@ -14,6 +14,7 @@ elif PY2:
     text_type = unicode
     bytestr_type = str
 
+
 def isunicode(object):
     if PY2:
         return isinstance(object, unicode)
@@ -42,18 +43,24 @@ def _u(s):
 
 def bstrings(src):
     if isinstance(src, dict):
-        for x in src.keys():
-            src[x] = x.encode(PYCODESET)
+        src2 = src.copy()
+        for x in src2.keys():
+            if isinstance(x, text_type):
+                del src[x]
+            src[_b(x)] = _b(src2[x])
     elif isinstance(src, list):
         for i,x in enumerate(src):
-            src[i] = x.encode(PYCODESET)
+            src[i] = _b(x)
     return src
 
 
 def unicodes(src):
     if isinstance(src, dict):
-        for x in src.keys():
-            src[x] = _u(x)
+        src2 = src.copy()
+        for x in src2.keys():
+            if isinstance(x, bytestr_type):
+                del src[x]
+            src[_u(x)] = _u(src2[x])
     elif isinstance(src, list):
         for i,x in enumerate(src):
             src[i] = _u(x)

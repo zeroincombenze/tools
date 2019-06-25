@@ -11,12 +11,11 @@ from past.builtins import basestring
 import os
 import os.path
 import sys
-# pdb.set_trace()
 from zerobug import Z0BUG
 # import dummylib
 
 
-__version__ = "0.2.14.7"
+__version__ = "0.2.14.8"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -29,7 +28,6 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    Z = Z0BUG
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                         version=version())
     if os.name == 'posix':

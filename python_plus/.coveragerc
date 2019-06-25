@@ -13,8 +13,7 @@ omit =
     *_example/*
     __main__.py
     setup.py
-    */usr/lib*/python*
-    */__init__.py
+    */usr/lib*/python[23]
     */__openerp__.py
     */__manifest__.py
 # Regexes for lines to exclude from consideration

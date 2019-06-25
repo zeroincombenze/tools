@@ -13,28 +13,31 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.7"
+__version__ = "0.2.14.8"
 
 
 def version():
     return __version__
 
 if __name__ == "__main__":
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
-                            version=version())
-    # Just for regression tests
-    coveragerc_file = os.path.join(Z0BUG.rundir, '.coveragerc')
-    coveragerc_bak = os.path.join(Z0BUG.rundir, 'coveragerc.bak')
-    if not os.path.isfile(coveragerc_bak):
-        if os.path.isfile(coveragerc_file):
-            os.rename(coveragerc_file, coveragerc_bak)
-    if os.path.isfile(coveragerc_file):
-        os.remove(coveragerc_file)
-    sts = Z0BUG.main_file(ctx)
-    if os.path.isfile(coveragerc_file):
-        os.remove(coveragerc_file)
-    if os.path.isfile(coveragerc_bak):
-        os.rename(coveragerc_bak, coveragerc_file)
-    exit(sts)
+    exit(Z0BUG.main_file(
+        Z0BUG.parseoptest(sys.argv[1:],
+                          version=version()))
+    )
 
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+    # ctx = Z0BUG.parseoptest(sys.argv[1:],
+    #                         version=version())
+    # # Just for regression tests
+    # coveragerc_file = os.path.join(Z0BUG.rundir, '.coveragerc')
+    # coveragerc_bak = os.path.join(Z0BUG.rundir, 'coveragerc.bak')
+    # if not os.path.isfile(coveragerc_bak):
+    #     if os.path.isfile(coveragerc_file):
+    #         os.rename(coveragerc_file, coveragerc_bak)
+    # if os.path.isfile(coveragerc_file):
+    #     os.remove(coveragerc_file)
+    # sts = Z0BUG.main_file(ctx)
+    # if os.path.isfile(coveragerc_file):
+    #     os.remove(coveragerc_file)
+    # if os.path.isfile(coveragerc_bak):
+    #     os.rename(coveragerc_bak, coveragerc_file)
+    # exit(sts)

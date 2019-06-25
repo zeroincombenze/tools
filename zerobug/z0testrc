@@ -62,7 +62,7 @@
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.14.7
+__version__=0.2.14.8
 
 export opt_dry_run
 export ctr
@@ -120,7 +120,7 @@ parseoptest() {
       exit 0
     elif [ $opt_help -gt 0 ]; then
       print_help "Regression test on $module_id"\
-      "(C) 2015-2018 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
+      "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Zerobug\nAuthor: antoniomaria.vigliotti@gmail.com"
       exit 0
     fi
     if [ ${opt_echo:-1} -eq 0 ]; then
@@ -410,7 +410,7 @@ test_version() {
     if [ -n "$3" ]; then
       x=$(basename $3)
     fi
-    msg="version $x"
+    msg="version $x $1"
     if [ "$2" == "V" ]; then
       cmd="$3 -V"
     elif [ "$2" == "v" ]; then

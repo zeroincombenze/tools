@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.11
+#__version__=0.2.2.12
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -453,6 +453,10 @@ git_clone() {
       if [ $opt_dbgmnt -ne 0 ]; then
         run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
         run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis/ $HOME/tools/maintainer-quality-tools/_travis/"
+        x=${TRAVIS_REPO_SLUG#*/}
+        if [ -n "$x" -a -d $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ ]; then 
+          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ $HOME/tools/$x/"
+        fi
       fi
     fi
 }
@@ -491,7 +495,6 @@ create_virtual_env() {
       export HOME=$TRAVIS_HOME
     else
       hash -r
-      unset PYTHONPATH
       echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
       virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
       sts=$?
@@ -527,14 +530,13 @@ create_virtual_env() {
       x=$(readlink -f $TRAVIS_BUILD_DIR/..)
       run_traced "cp -R $TRAVIS_CWD/ $x/"
       if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
-        for p in clodoo lisa maintainer-quality-tools travis_emulator z0bug_odoo z0lib zerobug; do
+        for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
           run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/"
         done
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/"
       fi
     fi
-    # run_traced "export REPO_CACHED=$TRAVIS_BUILD_DIR"
-    run_traced "cd $TRAVIS_BUILD_DIR"
+    [ "$PWD" != "$TRAVIS_BUILD_DIR" ] && run_traced "cd $TRAVIS_BUILD_DIR"
 }
 
 drop_virtual_env() {

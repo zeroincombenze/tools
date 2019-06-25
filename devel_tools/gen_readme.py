@@ -80,7 +80,7 @@ import re
 import sys
 from datetime import datetime
 from lxml import etree
-from python_plus import qsplit
+from python_plus import qsplit, unicodes
 from os0 import os0
 try:
     from z0lib import z0lib
@@ -186,17 +186,6 @@ RST2HTML_GRYMB = {
 }
 
 
-def items_2_unicode(src):
-    if isinstance(src, dict):
-        # {src[k] = os0.u(v) for k, v in src.items()}
-        for x in src.keys():
-            src[x] = os0.u(src[x])
-    elif isinstance(src, list):
-        for i,x in enumerate(src):
-            src[i] = os0.u(x)
-    return src
-
-
 def get_full_fn(ctx, src_path, filename):
     if src_path.startswith('./'):
         full_fn = os.path.join(ctx['path_name'],
@@ -213,10 +202,10 @@ def get_full_fn(ctx, src_path, filename):
 def iter_tempate_path(debug_mode=None, body=None):
     for src_path in ('.',
                      './egg-info',
-                    '/opt/odoo/dev/pypi/tools/templates/${p}',
-                    '/opt/odoo/dev/templates/${p}',
-                    '/opt/odoo/dev/pypi/tools/templates',
-                    '/opt/odoo/dev/templates'):
+                     '/opt/odoo/dev/pypi/tools/templates/${p}',
+                     '/opt/odoo/dev/templates/${p}',
+                     '/opt/odoo/dev/pypi/tools/templates',
+                     '/opt/odoo/dev/templates'):
         if src_path.find('/dev/pypi/tools/') >= 0 and not debug_mode:
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
@@ -1071,7 +1060,7 @@ def read_manifest_file(manifest_path):
         manifest = ast.literal_eval(open(manifest_path).read())
     except IOError, ImportError:
         raise Exception('Wrong manifest file %s' % manifest_path)
-    return items_2_unicode(manifest)
+    return unicodes(manifest)
 
 
 def read_setup(ctx):
@@ -1080,7 +1069,8 @@ def read_setup(ctx):
     else:
         MANIFEST_LIST = ('./setup.py', )
     for manifest in MANIFEST_LIST:
-        manifest_file = os.path.join(ctx['path_name'], manifest)
+        manifest_file = os.path.abspath(
+            os.path.join(ctx['path_name'], manifest))
         if os.path.isfile(manifest_file):
             break
         manifest_file = ''
@@ -1101,7 +1091,7 @@ def read_setup(ctx):
             else:
                 source += '\'%s\': %s\n' % (param[0], param[1])
         try:
-            ctx['manifest'] = items_2_unicode(
+            ctx['manifest'] = unicodes(
                 ast.literal_eval(source))
         except ImportError:
             raise Exception('Wrong file %s' % manifest_file)
@@ -1462,7 +1452,7 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--suppress-warning',
                         action='store_true',
                         dest='suppress_warning')
-    ctx = items_2_unicode(parser.parseoptargs(sys.argv[1:]))
+    ctx = unicodes(parser.parseoptargs(sys.argv[1:]))
     ctx['path_name'] = os.path.abspath(ctx['path_name'])
     if not ctx['product_doc']:
         if ctx['path_name'].find('/pypi/') >= 0:

@@ -11,7 +11,10 @@ import os
 import os.path
 import sys
 from zerobug import Z0BUG
-from python_plus import text_type, bytestr_type, isbytestr, qsplit, _b, _u
+from python_plus import (text_type, bytestr_type,
+                         unicodes, bstrings,
+                         _u, _b,
+                         isbytestr, qsplit)
 
 
 MODULE_ID = 'python_plus'
@@ -76,6 +79,62 @@ class Test():
                                  res)
 
     def test_02(self, z0ctx):
+        btext = [b'abc', b'def']
+        res = unicodes(btext)
+        sts = self.Z.test_result(z0ctx,
+                                 "unicodes([b'abc',b'def'])",
+                                 [u'abc', u'def'],
+                                 res)
+
+        res = bstrings(btext)
+        sts = self.Z.test_result(z0ctx,
+                                 "bstrings([b'abc',b'def'])",
+                                 [b'abc', b'def'],
+                                 res)
+
+        utext = [u'abc', u'def']
+        res = bstrings(utext)
+        sts = self.Z.test_result(z0ctx,
+                                 "bstrings([u'abc',u'def'])",
+                                 [b'abc', b'def'],
+                                 res)
+
+        res = unicodes(utext)
+        sts = self.Z.test_result(z0ctx,
+                                 "unicodes([u'abc',u'def'])",
+                                 [u'abc', u'def'],
+                                 res)
+
+    def test_03(self, z0ctx):
+        btext = {b'1': b'abc',
+                 b'2':  b'def'}
+        res = unicodes(btext)
+        sts = self.Z.test_result(z0ctx,
+                                 "unicodes({{b'1': b'abc', b'2':  b'def'})",
+                                 {u'1': u'abc', u'2':  u'def'},
+                                 res)
+
+        res = bstrings(btext)
+        sts = self.Z.test_result(z0ctx,
+                                 "bstrings({{b'1': b'abc', b'2':  b'def'})",
+                                 {b'1': b'abc', b'2':  b'def'},
+                                 res)
+
+        utext = {u'1': u'abc',
+                 u'2':  u'def'}
+        res = bstrings(utext)
+        sts = self.Z.test_result(z0ctx,
+                                 "bstrings({u'1': u'abc', u'2':  u'def'})",
+                                 {b'1': b'abc', b'2':  b'def'},
+                                 res)
+
+        res = unicodes(utext)
+        sts = self.Z.test_result(z0ctx,
+                                 "unicodes({u'1': u'abc', u'2':  u'def'})",
+                                 {u'1': u'abc', u'2':  u'def'},
+                                 res)
+
+    def test_04(self, z0ctx):
         res = qsplit(b'abc,def', b',')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'abc,def', b',')",
@@ -93,7 +152,7 @@ class Test():
                                   res)
         return sts
 
-    def test_03(self, z0ctx):
+    def test_05(self, z0ctx):
         res = qsplit(b'abc,def', b',', quoted=True)
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'abc,def', b','), quoted=True",
@@ -111,7 +170,7 @@ class Test():
                                   res)
         return sts
 
-    def test_04(self, z0ctx):
+    def test_06(self, z0ctx):
         res = qsplit(b'"\\\"abc\\\"",def', b',', e='\\')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(b'\"\\\"abc\\\"\",def', b','), e='\\'",
@@ -129,7 +188,7 @@ class Test():
                                  res)
         return sts
 
-    def test_05(self, z0ctx):
+    def test_07(self, z0ctx):
         res = qsplit(u'abc,def', u',')
         sts = self.Z.test_result(z0ctx,
                                  "qsplit(u'abc,def', u',')",

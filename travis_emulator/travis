@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.11
+__version__=0.2.2.12
 
 
 store_cfg_param_value() {
@@ -460,10 +460,10 @@ process_yaml_exit() {
 }
 
 process_yaml_global() {
+    [ "$PWD" != "$TRAVIS_BUILD_DIR" ] && run_traced "cd $TRAVIS_BUILD_DIR"
     if [ "$TRAVIS_DEBUG_MODE" != "0" ]; then
       wlog "\e[${PS_HDR3_COLOR}m------ [[env.global] in .travis.yml] ------\e[${PS_TXT_COLOR}m"
     fi
-    run_traced "cd $TRAVIS_BUILD_DIR"
     for lne in $YML_global; do
       line="export $(process_yaml_quote_xtl $lne)"
       run_traced "$line"
@@ -850,9 +850,10 @@ process_yaml() {
       wlog "\e[${PS_HDR1_COLOR}m$(printf '%-80.80s' '=== Process YAML file ===')\e[${PS_TXT_COLOR}m"
       TRAVIS_CWD=$PWD
       process_yaml_file "$YML_FILE"
+      unset PYTHONPATH
       sts=$STS_SUCCESS
-      wlog "\e[${PS_HDR2_COLOR}m===== [Build System informations] =====\e[${PS_TXT_COLOR}m"
-      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_REPO_SLUG TRAVIS_BRANCH HOME_BRANCH TRAVIS_CWD TRAVIS_PDB PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+      wlog "\e[${PS_HDR2_COLOR}m===== [System informations] =====\e[${PS_TXT_COLOR}m"
+      for lne in TCONF YML_FILE YML_lisa YML_mgrodoo YML_repo MQT_DEF_PATH MQT_PATH TOOLS_PATH PRJNAME PKGNAME REPOSNAME BRANCH PRJPATH PKGPATH PATH TRAVIS_REPO_SLUG TRAVIS_CWD TRAVIS_PDB; do
          lne1=${!lne}
          if [[ -n "$lne1" || $lne =~ PATH ]]; then
            wlog "\$ $lne=$lne1"
@@ -883,7 +884,6 @@ process_yaml() {
           [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
           eval $PYTHON --version
           if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
-            # echo "Python sys.path list:"
             if [ $opt_py3 -ne 0 ]; then
               echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
             else
@@ -908,6 +908,12 @@ process_yaml() {
             fi
             wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
             create_virtual_env
+            for lne in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+              lne1=${!lne}
+              if [[ -n "$lne1" || $lne =~ PATH ]]; then
+                wlog "\$ $lne=$lne1"
+              fi
+            done
             # wash_virtual_env
             process_yaml_global
             if [ $sts -eq $STS_SUCCESS ]; then
