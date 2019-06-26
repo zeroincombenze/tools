@@ -16,6 +16,8 @@ def set_sys_path():
     if x > 0:
         sys.path.insert(0, sys.path[x])
         del sys.path[x + 1]
+    else:
+        sys.path.insert(0, os.path.join(os.environ.get('HOME'), 'tools'))
 
 
 def main(test_list):

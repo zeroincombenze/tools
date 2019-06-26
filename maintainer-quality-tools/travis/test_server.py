@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.26'
+__version__ = '0.2.2.27'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -493,6 +493,8 @@ def set_sys_path():
     if x > 0:
         sys.path.insert(0, sys.path[x])
         del sys.path[x + 1]
+    else:
+        sys.path.insert(0, os.path.join(os.environ.get('HOME'), 'tools'))
 
 
 def main(argv=None):

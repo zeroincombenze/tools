@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.12
+__version__=0.2.2.13
 
 
 store_cfg_param_value() {
@@ -908,10 +908,10 @@ process_yaml() {
             fi
             wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
             create_virtual_env
-            for lne in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
-              lne1=${!lne}
-              if [[ -n "$lne1" || $lne =~ PATH ]]; then
-                wlog "\$ $lne=$lne1"
+            for p in PATH TRAVIS TRAVIS_BUILD_DIR TRAVIS_HOME TRAVIS_BRANCH HOME_BRANCH PYPI_CACHED SYSTEM_SITE_PACKAGES; do
+              X=${!p}
+              if [[ -n "$X" || $p =~ PATH ]]; then
+                wlog "\$ $p=$X"
               fi
             done
             # wash_virtual_env
