@@ -18,7 +18,7 @@ def set_sys_path():
         # TODO: findpkg in python
         PYTHON_VER = 'python%s' % os.environ.get('TRAVIS_PYTHON_VERSION')
         HOME = os.environ.get('HOME')
-        shcmd = 'source /opt/odoo/dev/z0lib/z0librc; findpkg ""'
+        shcmd = 'source %s/dev/z0lib/z0librc; findpkg ""' % HOME
         shcmd += ' "%s' % os.path.join(HOME, 'virtualenv')
         shcmd += ' %s' % os.path.join(HOME,
                                       'python%s_with_system_site_packages' %
