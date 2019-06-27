@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.27
+__version__=0.2.2.28
 
 
 conf_default() {
@@ -215,7 +215,7 @@ LINT_OR_TEST_CHECK="0"
 conf_default
 [ -z "MQT_TEST_MODE" ] && IFS="/" read MQT_TEST_MODE PKGNAME <<< "${TRAVIS_REPO_SLUG}"
 MQT_TEST_MODE=${MQT_TEST_MODE,,}
-[[ ! $MQT_TEST_MODE =~ (oca|oia|zero) ]] && MQT_TEST_MODE=zero
+[[ ! $MQT_TEST_MODE =~ (oca|zero) ]] && MQT_TEST_MODE=zero
 [ -z "$mode" ] && mode=$MQT_TEST_MODE
 if [[ "$TRAVIS" == "true" && "$MQT_TEST_MODE" == "oca" ]]; then
   run_traced "$TDIR/travis_install_nightly"
@@ -247,9 +247,13 @@ if [ -d $HOME/tools ]; then
   run_traced "./install_tools.sh $x"
 fi
 if [ -d $HOME/dev ]; then
-  [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-  . $HOME/dev/activate_tools
-  [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+  if [ -f $HOME/dev/activate_tools ]; then
+    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+    . $HOME/dev/activate_tools
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+  else
+    echo "!! Error! File $HOME/dev/activate_tools not found!"
+  fi
   if [ -f $HOME/dev/sitecustomize.py ]; then
     PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
     [ -n "$PYLIB" ] && run_traced "cp $HOME/dev/sitecustomize.py $PYLIB"
@@ -258,7 +262,7 @@ if [ -d $HOME/dev ]; then
     echo "Warning! File $HOME/dev/sitecustomize.py not found!"
   fi
 else
-  echo "!! Directory $HOME/dev not found!"
+  echo "!! Error! Directory $HOME/dev not found!"
 fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 run_traced "$PIP install -q future --upgrade" "nolocal"
