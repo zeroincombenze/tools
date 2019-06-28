@@ -11,37 +11,37 @@ from travis_helpers import success_msg, fail_msg
 
 
 def set_sys_path():
-    SITECUSTOMIZE = os.path.join(os.environ.get('HOME'),
-                                 'dev',
-                                 'sitecustomize.py')
-    if os.path.isfile(SITECUSTOMIZE):
-        # TODO: findpkg in python
-        PYTHON_VER = 'python%s' % os.environ.get('TRAVIS_PYTHON_VERSION')
-        HOME = os.environ.get('HOME')
-        shcmd = 'source %s/dev/z0lib/z0librc; findpkg ""' % HOME
-        shcmd += ' "%s' % os.path.join(HOME, 'virtualenv')
-        shcmd += ' %s' % os.path.join(HOME,
-                                      'python%s_with_system_site_packages' %
-                                      os.environ.get('TRAVIS_PYTHON_VERSION'))
-        shcmd += ' %s' % os.path.join(HOME, 'local')
-        shcmd += ' %s' % os.path.join(HOME, '.local')
-        shcmd += ' %s' % os.path.join(HOME, 'lib64')
-        shcmd += ' %s"' % os.path.join(HOME, 'lib')
-        shcmd += ' "%s' % PYTHON_VER
-        shcmd += ' site-packages local lib64 lib"'
-        shcmd += ' "%s' % PYTHON_VER
-        shcmd += ' site-packages local lib64 lib"'
-        shcmd += ' "%s' % PYTHON_VER
-        shcmd += ' site-packages"'
-        shcmd += ' "site-packages"'
-        if travis_debug_mode > 2:
-            print('Searching with %s' % shcmd)
-        PYLIB = subprocess.check_output(shcmd, shell=True)
-        if PYLIB:
-            PYLIB = os.path.join(PYLIB.replace('\n', ''), 'sitecustomize.py')
-            if travis_debug_mode > 2:
-                print('cp %s %s ' % (SITECUSTOMIZE, PYLIB))
-            shutil.copyfile(SITECUSTOMIZE, PYLIB)
+    # SITECUSTOMIZE = os.path.join(os.environ.get('HOME'),
+    #                              'dev',
+    #                              'sitecustomize.py')
+    # if os.path.isfile(SITECUSTOMIZE):
+    #     # TODO: findpkg in python
+    #     PYTHON_VER = 'python%s' % os.environ.get('TRAVIS_PYTHON_VERSION')
+    #     HOME = os.environ.get('HOME')
+    #     shcmd = 'source %s/dev/z0lib/z0librc; findpkg ""' % HOME
+    #     shcmd += ' "%s' % os.path.join(HOME, 'virtualenv')
+    #     shcmd += ' %s' % os.path.join(HOME,
+    #                                   'python%s_with_system_site_packages' %
+    #                                   os.environ.get('TRAVIS_PYTHON_VERSION'))
+    #     shcmd += ' %s' % os.path.join(HOME, 'local')
+    #     shcmd += ' %s' % os.path.join(HOME, '.local')
+    #     shcmd += ' %s' % os.path.join(HOME, 'lib64')
+    #     shcmd += ' %s"' % os.path.join(HOME, 'lib')
+    #     shcmd += ' "%s' % PYTHON_VER
+    #     shcmd += ' site-packages local lib64 lib"'
+    #     shcmd += ' "%s' % PYTHON_VER
+    #     shcmd += ' site-packages local lib64 lib"'
+    #     shcmd += ' "%s' % PYTHON_VER
+    #     shcmd += ' site-packages"'
+    #     shcmd += ' "site-packages"'
+    #     if travis_debug_mode > 2:
+    #         print('Searching with %s' % shcmd)
+    #     PYLIB = subprocess.check_output(shcmd, shell=True)
+    #     if PYLIB:
+    #         PYLIB = os.path.join(PYLIB.replace('\n', ''), 'sitecustomize.py')
+    #         if travis_debug_mode > 2:
+    #             print('cp %s %s ' % (SITECUSTOMIZE, PYLIB))
+    #         shutil.copyfile(SITECUSTOMIZE, PYLIB)
     x = -1
     for i in range(len(sys.path)):
         x = i if sys.path[i].endswith('/tools') else x

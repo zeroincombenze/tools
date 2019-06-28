@@ -1,4 +1,4 @@
-# __version__=0.2.2.15
+# __version__=0.2.2.16
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -7,6 +7,7 @@ if [[ $1 =~ -.*h ]]; then
   echo "  -h  this help"
   echo "  -p  mkdir $HOME/dev if not exists"
   echo "  -q  quiet mode"
+  echo "  -S  set sitecustomize.py"
   echo "  -v  more verbose"
   exit 0
 fi
@@ -97,7 +98,15 @@ echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" 
 echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools
 echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
 . $DSTPATH/activate_tools
-if [[ ! $1 =~ -.*q ]]; then
+if [[ $1 =~ -.*S ]]; then
+  if [ -f $HOME/dev/sitecustomize.py ]; then
+    PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}* $HOME/local $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
+    [[ -n "$PYLIB" && ! $1 =~ -.*q ]] && echo "cp $HOME/dev/sitecustomize.py $PYLIB"
+    [ -n "$PYLIB" ] && cp $HOME/dev/sitecustomize.py $PYLIB
+  else
+    echo "Warning! File $HOME/dev/sitecustomize.py not found!"
+  fi
+elif [[ ! $1 =~ -.*q ]]; then
   echo "-----------------------------------------------------------"
   echo "Please type and add following statements in your login file"
   echo ". $DSTPATH/activate_tools"
