@@ -109,6 +109,7 @@ status	msgid	msgstr
 	Bills Total	Totale fatture
 	Body Font(px):	Font corpo (px):
 	Bookmark	Segnalibro
+	Both	Ambedue
 	Box	Scatole
 	Box-Pallet	Scatole/Pallet
 	Bulk	Sfuso
@@ -550,6 +551,7 @@ status	msgid	msgstr
 	Order	Ordine
 	Order Agreement Code	Codice commessa
 	Orders:	Ordini:
+	Ordinary	Ordinario
 	Organization Address	Indirizzo organizzazione
 	Organization Country	Nazione organizzazione
 	Organization Municipality	Comune organizzazione
@@ -626,6 +628,7 @@ status	msgid	msgstr
 	Percent	Percentuale
 	Percentage	Percentuale
 	Period End Date	Data inizio periodo
+	Period selection	Selezione periodo
 	Period Start Date	Data fine periodo
 	Period: from %s to %s	Periodo: da %s a %s
 	Permanent Establishment	Stabile organizzazione
@@ -645,6 +648,7 @@ status	msgid	msgstr
 	Preview link	Collegamento anteprima
 	Print Invoice	Stampa fattura
 	Product for invoicing	Prodotto da fatturare
+	Product Template	Modello di prodotto
 	Product used to model ScontoMaggiorazione XML element on bills.	Prodotto usato come modello per l'elemento XML ScontoMaggiorazione delle fatture.
 	Professional Register	Albo professionale
 	Profit Account	Conto profitti
@@ -690,6 +694,7 @@ status	msgid	msgstr
 	Recipients	Destinatari
 	Reconcile	Riconciliazione
 	Reconcile Entries	Riconcilia registrazioni
+	Record to delete	Riga da eliminare
 	Reference	Riferimento
 	Refresh attachment info	Refresh informazioni allegato
 	Refresh registration date	Riaggiorna data registrazione
@@ -744,6 +749,7 @@ status	msgid	msgstr
 	Save	Salva
 	Search DDT	Cerca DdT
 	Search Incoming Mail Servers	Cerca server posta in arrivo
+	Search Key	Chiave di ricerca
 	Sections	Fasce
 	sections	Fasce
 	Select the date up to which you want to make the settlements:	Selezionare la data finale per il calcolo delle provvigioni
@@ -823,6 +829,7 @@ status	msgid	msgstr
 	Supplier data	Dati fornitore
 	Supplier Invoice Line	Righe fatture fornitori
 	Surname field contains '%s'. Your System contains '%s'	"Il campo cognome contiene ""%s"", il sistema contiene ""%s"""
+	Synchronization	Sincronizzazione
 	Tab	Scheda
 	Table	Tabella
 	Take this action, if you want import data from e-invoice xml file	Eseguire questa azione per importare una e-fattura da file xml

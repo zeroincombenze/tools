@@ -99,6 +99,14 @@ echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" 
 echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
 . $DSTPATH/activate_tools
 if [[ $1 =~ -.*S ]]; then
+  PYPATH=$(echo -e "import sys\nfor x in sys.path:\n if x.find('site-packages')>=0:  print x,"|python)
+  for pth in $PYPATH; do
+    if [ -f $pth/sitecustomize.py ]; then
+      :
+    fi
+  done
+  PYPATH=$(echo -e "import sys\nfor x in sys.path:\n if x.find('site-packages')>=0:  print(x,end=' ')"|python3)
+
   if [ -f $HOME/dev/sitecustomize.py ]; then
     PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}* $HOME/local $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
     [[ -n "$PYLIB" && ! $1 =~ -.*q ]] && echo "cp $HOME/dev/sitecustomize.py $PYLIB"
