@@ -200,7 +200,7 @@ Test  | MINIMAL | REDUCED | AVERAGE | NEARBY | OCA | Notes
 ------|---------|---------|---------|--------|-----|------
 W0101 | :x:     |         |         |        | :white_check_mark: | [unreachable](http://pylint-messages.wikidot.com/messages:w0101)
 W0312 | :white_check_mark: |        |        |     | :white_check_mark: | [wrong-tabs-instead-of-spaces](http://pylint-messages.wikidot.com/messages:w0312)
-W0403 | :white_check_mark: |        |        |     | :white_check_mark: | relative-import
+W0403 | :x:     |         |         |        | :white_check_mark: | relative-import
 W1401 | :x:     | :white_check_mark: |         |        | :white_check_mark: | anomalous-backslash-in-string
 E7901 | :white_check_mark: |        |        |     | :white_check_mark: | [rst-syntax-error](https://pypi.org/project/pylint-odoo/1.4.0)
 C7902 | :x:     | :white_check_mark: |         |        | :white_check_mark: | missing-readme
@@ -211,6 +211,7 @@ W7910 | :x:     | :white_check_mark: |         |        | :white_check_mark: | w
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
 W7950 | :x:     |         |         |        | :white_check_mark: | odoo-addons-relative-import
+E8102 | :x:     |         |         |        | :white_check_mark: | invalid-commit
 C8103 | :x:     |         |         |        | :white_check_mark: | [manifest-deprecated-key](https://pypi.org/project/pylint-odoo/1.4.0)
 C8104 | :x:     |         |         |        | :white_check_mark: | [class-camelcase](https://pypi.org/project/pylint-odoo/1.4.0)
 W8104 | :x:     |         |         |        | :white_check_mark: | api-one-deprecated
