@@ -23,7 +23,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.40"
+__version__ = "0.3.8.42"
 
 
 MAX_DEEP = 20
@@ -149,7 +149,8 @@ def inv_commission_from_order(ctx):
     ctr = 0
     for inv_line in clodoo.browseL8(
         ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, [])):
+            ctx, inv_model, [], order='invoice_id')):
+        msg_burst('%s ...' % inv_line.invoice_id.name)
         if inv_line.agents.amount:
             continue
         for ord_line in inv_line.sale_line_ids:
@@ -163,6 +164,13 @@ def inv_commission_from_order(ctx):
                 ctx, inv_model, inv_line.id,
                 {'agents': agents})
             ctr += 1
+    inv_model = 'account.invoice'
+    for invoice in clodoo.browseL8(
+        ctx, inv_model, clodoo.searchL8(
+            ctx, inv_model, [])):
+        msg_burst('%s ...' % invoice.number)
+        clodoo.writeL8(ctx, inv_model, invoice.id,
+            {'number': invoice.number})
     print('%d invoice lines updated' % ctr)
 
 
@@ -175,7 +183,8 @@ def order_commission_by_partner(ctx):
     ctr = 0
     for ord_line in clodoo.browseL8(
         ctx, ord_model, clodoo.searchL8(
-            ctx, ord_model, [])):
+            ctx, ord_model, [], order='order_id')):
+        msg_burst('%s ...' % ord_line.order_id.name)
         if ord_line.agents:
             clodoo.unlinkL8(ctx, sale_agent_model, ord_line.agents.id)
         rec = []
@@ -184,9 +193,17 @@ def order_commission_by_partner(ctx):
                 'agent': ord_line.order_id.partner_id.agents.id,
                 'commission': ord_line.order_id.partner_id.agents.commission.id,
             })
-        clodoo.writeL8(ctx, ord_model, ord_line.id,
-                       {'agents': [(0, 0, rec[0])]})
-        ctr += 1
+        if rec:
+            clodoo.writeL8(ctx, ord_model, ord_line.id,
+                           {'agents': [(0, 0, rec[0])]})
+            ctr += 1
+    ord_model = 'sale.order'
+    for order in clodoo.browseL8(
+        ctx, ord_model, clodoo.searchL8(
+            ctx, ord_model, [])):
+        msg_burst('%s ...' % order.name)
+        clodoo.writeL8(ctx, ord_model, order.id,
+            {'name': order.name})
     print('%d sale order lines updated' % ctr)
 
 
@@ -296,6 +313,24 @@ def revaluate_due_date_in_invoces(ctx, inv_id=False):
                 clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
 
 
+def delivery_address_same_customer(ctx):
+    print('Set delivery address to the same of customer')
+    model = 'sale.order'
+    numbers = raw_input('Sale Order number like: ')
+    ctr = 0
+    for so in clodoo.browseL8(
+        ctx,model,clodoo.searchL8(
+            ctx, model, [('name', 'like', numbers)])):
+        if (so.partner_shipping_id != so.partner_id or
+                so.partner_invoice_id != so.partner_id):
+            clodoo.writeL8(ctx, model, so.id,
+                           {'partner_shipping_id': so.partner_id.id,
+                            'partner_invoice_id': so.partner_id.id})
+            print('so.number=%s' % so.name)
+            ctr += 1
+    print('%d sale orders updated' % ctr)
+
+
 def print_tax_codes(ctx):
     print('Show all tax codes')
     model = 'account.tax'
@@ -341,6 +376,60 @@ def synchro(ctx, model, vals):
     else:
         ids = [clodoo.createL8(ctx, model, vals)]
     return ids
+
+
+def set_tax_code_on_invoice(ctx):
+    print('Set tax code on invoice lines, if missed and if no line amount')
+    pdb.set_trace()
+    inv_model = 'account.invoice'
+    inv_line_model = 'account.invoice.line'
+    inv_id = raw_input('Invoice id: ')
+    if inv_id:
+        inv_id = int(inv_id)
+        invoice = clodoo.browseL8(ctx, inv_model, inv_id)
+        tax_id = clodoo.searchL8(ctx,
+                                 'account.tax',
+                                 [('description', '=', '22v'),
+                                  ('company_id', '=', invoice.company_id.id)])
+        if tax_id:
+            tax_id = tax_id[0]
+        else:
+            print('Tax 22v not found!')
+        ctr = 0
+        for inv_line in clodoo.browseL8(
+            ctx, inv_line_model, clodoo.searchL8(
+                ctx, inv_line_model, [('invoice_id', '=', inv_id)])):
+            msg_burst('%s ...' % inv_line.name)
+            if inv_line.invoice_line_tax_ids:
+                continue
+            if inv_line.price_subtotal != 0.0:
+                print('Line w/o tax but with total amount!')
+                continue
+            clodoo.writeL8(
+                ctx, inv_line_model, inv_line.id,
+                    {'invoice_line_tax_ids': [(6, 0, [tax_id])]})
+            ctr += 1
+
+        clodoo.writeL8(ctx, inv_model, inv_id,
+                {'number': invoice.number})
+    print('%d invoice lines updated' % ctr)
+
+
+def set_payment_data_on_report(ctx):
+    print('Set payment data layout on invoice and order reports')
+    model = 'ir.actions.report.xml'
+    mode = raw_input('Mode (odoo,auto,footer,header,none): ')
+    ctr = 0
+    if mode:
+        for rpt in clodoo.browseL8(
+            ctx, model,
+                clodoo.searchL8(ctx, model,
+                                [('model', 'in', ('account.invoice',
+                                                  'sale.order'))])):
+            print('Processing report %s' % rpt.name)
+            clodoo.writeL8(ctx, model, rpt.id, {'payment_term_position': mode})
+            ctr += 1
+    print('%d reports updated' % ctr)
 
 
 def create_RA_config(ctx):
@@ -473,8 +562,8 @@ def simulate_user_profile(ctx):
                         ctx, model2, where)):
                     if model == 'res.partner':
                         print('    %s %4d %-32.32s %s %s' % (
-                            model2, rec2.id, rec2.name, rec.type,
-                            get_agent_names(rec.agents)))
+                            model2, rec2.id, rec2.name, rec2.type,
+                            get_agent_names(rec2.agents)))
                     elif model == 'account.invoice':
                         print('    %s %4d %-32.32s %s' % (
                             model2, rec2.id, rec2.name,
@@ -483,7 +572,6 @@ def simulate_user_profile(ctx):
                         print('    %s %4d %-32.32s %s' % (
                             model2, rec2.id, rec2.name,
                             get_agent_names_line(rec2.agents)))
-
 
 
 def reset_email_vg7bot(ctx):
@@ -567,8 +655,11 @@ def create_commission_env(ctx):
     for customer in clodoo.browseL8(
         ctx, model, clodoo.searchL8(
             ctx, model, [])):
-        if customer.vat in CUSTOMERS:
+        msg_burst('%s ...' % customer.name)
+        if not customer.parent_id and customer.vat in CUSTOMERS:
             CUSTOMERS[customer.vat]['id'] = customer.id
+        elif customer.parent_id and customer.agents:
+            clodoo.writeL8(ctx, model, customer.id, {'agents': [(6, 0, [])]})
     for customer in CUSTOMERS:
         vals = {
             'agents': [(6, 0, [CUSTOMERS[customer]['agents']])],
@@ -581,6 +672,272 @@ def create_commission_env(ctx):
             uctr += 1
     print('%d records created, %d records updated' % (ictr, uctr))
 
+
+def show_empty_ddt(ctx):
+    print('Show DdT without lines')
+    model='stock.picking.package.preparation'
+    for ddt in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
+        msg_burst('%s ...' % ddt.ddt_number)
+        if not ddt.line_ids:
+            print('DdT n.%s del %s (Id=%d) without lines' % (
+                ddt.ddt_number, ddt.date, ddt.id))
+
+
+def test_synchro(ctx):
+
+    def check_product(product_id, vals, company_id):
+        model = 'product.product'
+        if not product_id or product_id < 1:
+            raise IOError('!!Syncro product Failed!')
+        product = clodoo.browseL8(ctx, model, product_id)
+        if product.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if isinstance(vals['vg7_id'], basestring):
+            vals['vg7_id'] = int(vals['vg7_id'])
+        if product.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        if vals.get('vg7:code') and product.default_code != vals['vg7:code']:
+            raise IOError('!!Invalid Code!')
+        if (vals.get('vg7:description') and
+                product.name != vals['vg7:description']):
+            raise IOError('!!Invalid Name!')
+
+    def check_partner(partner_id, vals, company_id):
+        model = 'res.partner'
+        if not partner_id or partner_id < 1:
+            raise IOError('!!Syncro partner Failed!')
+        partner = clodoo.browseL8(ctx, model, partner_id)
+        if partner.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if partner.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        if (vals.get('vg7:name') and
+                partner.name != vals['vg7:name']):
+            raise IOError('!!Invalid Name!')
+
+    def check_sale_order(order_id, vals, company_id):
+        model = 'sale.order'
+        if not order_id or order_id < 1:
+            raise IOError('!!Syncro sale order Failed!')
+        order = clodoo.browseL8(ctx, model, order_id)
+        if order.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if order.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        if vals.get('partner_id') and order.partner_id.id != vals['partner_id']:
+            raise IOError('!!Invalid Partner ID!')
+
+    def check_sale_order_line(line_id, vals, company_id, order_id):
+        model = 'sale.order.line'
+        if not line_id or line_id < 1:
+            raise IOError('!!Syncro sale order line Failed!')
+        line = clodoo.browseL8(ctx, model, line_id)
+        if line.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if line.order_id.id != order_id:
+            raise IOError('!!Invalid Order ID!')
+        if line.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        model = 'account.tax'
+        id = clodoo.searchL8(ctx, model, [('description', '=', '22v'),
+                                         ('company_id', '=', company_id)])
+        if not line.tax_id or id != [x.id for x in line.tax_id]:
+            raise IOError('!!Invalid VAT code!')
+
+    def check_invoice(invoice_id, vals, company_id):
+        print('Write invoice ..')
+        model = 'account.invoice'
+        if not invoice_id or invoice_id < 1:
+            raise IOError('!!Syncro invoice Failed!')
+        invoice = clodoo.browseL8(ctx, model, invoice_id)
+        if invoice.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if invoice.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        if vals.get('partner_id') and invoice.partner_id.id != vals['partner_id']:
+            raise IOError('!!Invalid Partner ID!')
+
+    def check_invoice_line(line_id, vals, company_id, invoice_id):
+        model = 'account.invoice.line'
+        if not line_id or line_id < 1:
+            raise IOError('!!Syncro invoice line Failed!')
+        line = clodoo.browseL8(ctx, model, line_id)
+        if line.company_id.id != company_id:
+            raise IOError('!!Invalid Company!')
+        if line.invoice_id.id != invoice_id:
+            raise IOError('!!Invalid Order ID!')
+        if line.vg7_id != vals['vg7_id']:
+            raise IOError('!!Invalid vg7_id!')
+        model = 'account.tax'
+        id = clodoo.searchL8(ctx, model, [('description', '=', '22v'),
+                                         ('company_id', '=', company_id)])
+        if (not line.invoice_line_tax_ids or
+                id != [x.id for x in line.invoice_line_tax_ids]):
+            raise IOError('!!Invalid VAT code!')
+
+    def write_product(ctx, company_id, vg7_id=None, code=None, name=None):
+        print('Write product ..')
+        model = 'product.product'
+        vg7_id = vg7_id or 1
+        code = code or 'A'
+        name = name or 'Product A'
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7:code': code,
+            'vg7:description': name,
+        }
+        product_id = clodoo.executeL8(ctx,
+                                      model,
+                                      'synchro',
+                                      vals)
+        check_product(product_id, vals, company_id)
+        return vg7_id
+
+    def write_partner(ctx, company_id, vg7_id=None, name=None):
+        print('Write partner ..')
+        model = 'res.partner'
+        vg7_id = vg7_id or 7
+        name = name or 'Partner A'
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7:name': name,
+        }
+        partner_id = clodoo.executeL8(ctx,
+                                      model,
+                                      'synchro',
+                                      vals)
+        check_partner(partner_id, vals, company_id)
+        return vg7_id
+
+    def write_sale_order(ctx, company_id, partner_id=None,
+                         vg7_order_id=None, state=None):
+        print('Write sale order ..')
+        model = 'sale.order'
+        partner_id = partner_id or ctx[
+            'odoo_session'].env.ref('z0bug.res_partner_2').id
+        vg7_id = vg7_order_id or 1
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'partner_id': partner_id,
+        }
+        if state:
+            vals['state'] = state
+        order_id = clodoo.executeL8(ctx,
+                                    model,
+                                    'synchro',
+                                    vals)
+        check_sale_order(order_id, vals, company_id)
+
+        model = 'sale.order.line'
+        vg7_order_id = vg7_id
+        vg7_id = vg7_order_id * 100
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7_order_id': vg7_order_id,
+            'partner_id': partner_id,
+            'name': 'Product A',
+            'vg7_product_id': vg7_id_product_a,
+            'price_unit': 10.50,
+        }
+        line_id = clodoo.executeL8(ctx,
+                                   model,
+                                   'synchro',
+                                   vals)
+        check_sale_order_line(line_id, vals, company_id, order_id)
+
+        vg7_id = vg7_order_id * 100 + 1
+        # Field partner_id does not exit: test to avoid crash
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7_order_id': 1,
+            'partner_id': partner_id,
+            'name': 'Product B',
+            'vg7_product_id': 4,
+            'price_unit': 25.50,
+            'tax_id': '22v',
+        }
+        line_id = clodoo.executeL8(ctx,
+                                   model,
+                                   'synchro',
+                                   vals)
+        check_sale_order_line(line_id, vals, company_id, order_id)
+
+        id = clodoo.executeL8(ctx,
+                              'sale.order',
+                              'commit',
+                              order_id)
+        if id < 0:
+            raise IOError('!!Commit Failed!')
+
+    def write_invoice(ctx, company_id, partner_id=None, vg7_invoice_id=None,
+                      state=None):
+        print('Write invoice ..')
+        model = 'account.invoice'
+        partner_id = partner_id or ctx[
+            'odoo_session'].env.ref('z0bug.res_partner_2').id
+        vg7_id = vg7_invoice_id or 5
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'partner_id': partner_id,
+        }
+        if state:
+            vals['state'] = state
+        invoice_id = clodoo.executeL8(ctx,
+                                      model,
+                                      'synchro',
+                                      vals)
+        check_invoice(invoice_id, vals, company_id)
+
+        model = 'account.invoice.line'
+        vg7_invoice_id = vg7_id
+        vg7_id = 200 * vg7_invoice_id
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7_invoice_id': vg7_invoice_id,
+            'partner_id': partner_id,
+            'name': 'Product A',
+            'vg7_product_id': vg7_id_product_a,
+            'price_unit': 10.50,
+        }
+        line_id = clodoo.executeL8(ctx,
+                                   model,
+                                   'synchro',
+                                   vals)
+        check_invoice_line(line_id, vals, company_id, invoice_id)
+
+        id = clodoo.executeL8(ctx,
+                              'account.invoice',
+                              'commit',
+                              invoice_id)
+        if id < 0:
+            raise IOError('!!Commit Failed!')
+
+    company_id = 3
+
+    # Repeat 2 times to check correct synchronization
+    vg7_id_product_a = write_product(ctx, company_id)
+    vg7_id_product_a = write_product(ctx, company_id, vg7_id='1')
+
+    # Repeat 2 times to check correct synchronization
+    write_partner(ctx, company_id)
+    write_partner(ctx, company_id)
+
+    # Repeat 2 times with different state
+    write_sale_order(ctx, company_id)
+    write_sale_order(ctx, company_id, state='sale')
+
+    # Repeat 2 times with different state
+    write_invoice(ctx, company_id)
+    write_invoice(ctx, company_id, state='open')
+
+
 if ctx['function']:
     function = ctx['function']
     globals()[function](ctx)
@@ -590,16 +947,22 @@ print('Function avaiable:')
 print('    show_module_group(ctx)')
 print('    clean_translations(ctx)')
 print('    close_purchse_orders(ctx)')
+print('    inv_commission_from_order(ctx)')
+print('    order_commission_by_partner(ctx)')
 print('    set_products_2_delivery_order(ctx)')
 print('    set_products_2_consumable(ctx)')
-print('    order_commission_by_partner(ctx)')
-print('    inv_commission_from_order(ctx)')
 print('    update_einvoice_out_attachment(ctx)')
 print('    revaluate_due_date_in_invoces(ctx)')
+print('    delivery_address_same_customer(ctx)')
 print('    print_tax_codes(ctx)')
+print('    set_tax_code_on_invoice(ctx)')
+print('    set_payment_data_on_report(ctx)')
 print('    simulate_user_profile(ctx)')
 print('    reset_email_vg7bot(ctx)')
+print('    show_empty_ddt(ctx)')
+
 pdb.set_trace()
+test_synchro(ctx)
 
 
 def build_table_tree():
@@ -700,6 +1063,7 @@ def build_table_tree():
             models[model]['level'] = MAX_DEEP + 1
     return models
 
+
 def display_modules(ctx):
     model = 'ir.module.module'
     mlist = []
@@ -710,6 +1074,9 @@ def display_modules(ctx):
         mlist.append(app.name)
     print(mlist)
 
+
+pdb.set_trace()
+
 model = 'account.account.type'
 for rec in clodoo.browseL8(
     ctx,model,
@@ -717,7 +1084,6 @@ for rec in clodoo.browseL8(
             context={'lang': 'en_US'}):
     print(rec.name)
 
-pdb.set_trace()
 models = build_table_tree()
 for level in range(MAX_DEEP):
     for model in models:

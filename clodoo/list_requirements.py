@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.40'
+__version__ = '0.3.8.42'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -54,6 +54,7 @@ REQVERSION = {
                         # '8.0': '==2.5.4',
                         # '10.0': '==2.6.2',
                         '0': '==2.7.4'},
+    'pycodestyle': {'0': '==2.3.1'},
     'pydot': {'7.0': '==1.0.2', '8.0': '==1.2.3'},
     'Pygments': {'7.0': '==2.0.2', '0': '==2.2'},        # Version by test pkgs
     'pylint': {'7.0': '==1.6.4'},                        # Version by test pkgs
