@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.42"
+__version__ = "0.3.8.43"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1992,6 +1992,18 @@ def act_check_config(ctx):
             msg_log(ctx, ctx['level'] + 1,
                     'External id %d renamed from account to z0bug' % id)
 
+        ids = searchL8(ctx, model, [])
+        for i,id in enumerate(ids):
+            xref = browseL8(ctx, model, id)
+            msg_burst(ctx['level'] + 1,
+                      'xreference',
+                      i,
+                      len(ids))
+            try:
+                browseL8(ctx, xref.model, xref.res_id)
+            except BaseException:
+                print('!! Invalid external reference %s.%s' % (xref.module,
+                                                               xref.name))
         model_partner = 'res.partner'
         model_user = 'res.users'
         model_company = 'res.company'
@@ -2013,7 +2025,7 @@ def act_check_config(ctx):
                     new_id = createL8(ctx, model_partner, vals)
                     excl_list_company.append(new_id)
                     msg_log(ctx, ctx['level'] + 1,
-                            'New partner id %d for the company %s' % (
+                            'New partner no user id %d for the company %s' % (
                                 new_id, vals['name']))
                     writeL8(ctx, model_company, ids[0],
                             {'partner_id': new_id})

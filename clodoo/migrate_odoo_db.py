@@ -23,7 +23,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.42"
+__version__ = "0.3.8.43"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -580,15 +580,18 @@ def copy_record(dst_ctx, src_ctx, model, rec, mode=None):
             write_no_dup(dst_ctx, model, ids, vals, rec.id)
         else:
             id = create_with_id(dst_ctx, model, rec.id, vals)
-    elif dst_ctx['use_synchro'] and model in ('res.partner',
+    elif dst_ctx['use_synchro'] and model in ('res.country',
+                                              'res.partner',
                                               'account.account',
                                               'account.account.type',
                                               'account.invoice',
                                               'account.invoice.line',
                                               'account.tax',
                                               'product.template',
-                                              'product.product'):
-        vals['vg7_id'] = rec.id
+                                              'product.product',
+                                              'sale.order',
+                                              'sale.order.line'):
+        vals['oe7_id'] = rec.id
         id = clodoo.executeL8(dst_ctx,
                               model,
                               'synchro',
@@ -621,6 +624,14 @@ def detail_model(model):
     if model in ('account.invoice', 'sale.order'):
         return '%s.line' % model
     return False
+
+
+def commit_table(dst_ctx, src_ctx, model):
+    id = 1          # TOFIX
+    id = clodoo.executeL8(dst_ctx,
+                          model,
+                          'commit',
+                          id)
 
 
 def copy_table(dst_ctx, src_ctx, model, mode=None):
@@ -671,6 +682,8 @@ def copy_table(dst_ctx, src_ctx, model, mode=None):
                                                     type='field')
             for det_rec in rec[det_field]:
                 copy_record(dst_ctx, src_ctx, det_model, det_rec, mode=mode)
+    if det_model:
+        commit_table(dst_ctx, src_ctx, model)
 
 
 def is_system_model(model):
@@ -971,3 +984,4 @@ for model in dst_ctx['model_list']:
     if mode not in ('sql', 'image'):
         continue
     copy_table(dst_ctx, src_ctx, model, mode=mode)
+

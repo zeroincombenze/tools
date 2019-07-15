@@ -8,7 +8,7 @@ from z0lib import parseoptargs
 # import pdb
 
 
-__version__ = "0.3.8.42"
+__version__ = "0.3.8.43"
 msg_time = time.time()
 
 
