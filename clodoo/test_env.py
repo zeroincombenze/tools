@@ -8,6 +8,7 @@ import time
 import re
 import getpass
 from symbol import except_clause
+from cgitb import reset
 # import oerplib
 try:
     from clodoo import clodoo
@@ -88,6 +89,33 @@ def env_ref(ctx, xref):
         if ids:
             return clodoo.browseL8(ctx, 'ir.model.data', ids[0]).res_id
     return False
+
+
+def synchro(ctx, model, vals):
+    sts = 0
+    ids = []
+    if 'id' in vals:
+        ids = clodoo.searchL8(ctx, model, [('id', '=', vals['id'])])
+        if not ids or ids[0] != vals['id']:
+            raise IOError('ID %d does not exist in %s' %
+                            vals['id'], model)
+        del vals['id']
+    if not ids and 'code' in vals:
+        where = [('code', '=', vals['code'])]
+        if 'company_id' in vals:
+            where.append(('company_id', '=', vals['company_id']))
+        ids = clodoo.searchL8(ctx, model, where)
+    if not ids and 'name' in vals:
+        where = [('name', '=', vals['name'])]
+        if 'company_id' in vals:
+            where.append(('company_id', '=', vals['company_id']))
+        ids = clodoo.searchL8(ctx, model, where)
+    if ids:
+        clodoo.writeL8(ctx, model, ids, vals)
+    else:
+        ids = [clodoo.createL8(ctx, model, vals)]
+    return ids
+
 
 def show_module_group(ctx):
     print('Show group infos and external names')
@@ -370,37 +398,8 @@ def print_tax_codes(ctx):
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
 
 
-def synchro(ctx, model, vals):
-    sts = 0
-    ids = []
-    if 'id' in vals:
-        ids = clodoo.searchL8(ctx, model, [('id', '=', vals['id'])])
-        if not ids or ids[0] != vals['id']:
-            raise IOError('ID %d does not exist in %s' %
-                            vals['id'], model)
-        del vals['id']
-    # if not ids and 'vg7_id' in vals:
-    #     ids = clodoo.searchL8(ctx, model, [('vg7_id', '=', vals['vg7_id'])])
-    if not ids and 'code' in vals:
-        where = [('code', '=', vals['code'])]
-        if 'company_id' in vals:
-            where.append(('company_id', '=', vals['company_id']))
-        ids = clodoo.searchL8(ctx, model, where)
-    if not ids and 'name' in vals:
-        where = [('name', '=', vals['name'])]
-        if 'company_id' in vals:
-            where.append(('company_id', '=', vals['company_id']))
-        ids = clodoo.searchL8(ctx, model, where)
-    if ids:
-        clodoo.writeL8(ctx, model, ids, vals)
-    else:
-        ids = [clodoo.createL8(ctx, model, vals)]
-    return ids
-
-
 def set_tax_code_on_invoice(ctx):
     print('Set tax code on invoice lines, if missed and if no line amount')
-    pdb.set_trace()
     inv_model = 'account.invoice'
     inv_line_model = 'account.invoice.line'
     inv_id = raw_input('Invoice id: ')
@@ -509,6 +508,7 @@ def manage_riba(ctx):
 
 def set_payment_data_on_report(ctx):
     print('Set payment data layout on invoice and order reports')
+    print('Require module "base_multireport"')
     model = 'ir.actions.report.xml'
     mode = raw_input('Mode (odoo,auto,footer,header,none): ')
     ctr = 0
@@ -526,17 +526,9 @@ def set_payment_data_on_report(ctx):
 
 def create_RA_config(ctx):
     print('Set withholding tax configuration to test')
-    model = 'res.company'
-    ids = clodoo.searchL8(ctx, model,
-                          [('name', 'ilike', ctx['def_company_name'])],
-                          order='id')
-    if len(ids) == 0:
-        print('No company found!')
-        return
-    elif len(ids) == 1:
-        company_id = ids[0]
-    elif len(ids) > 1:
-        company_id = ids[1]
+    company_id = env_ref(ctx, 'z0bug.mycompany')
+    if not company_id:
+        raise IOError('!!Internal error: no company found!')
     company = clodoo.browseL8(ctx, model, company_id)
     print('Campany setup is %s' % company.name)
     model = 'account.account'
@@ -580,6 +572,8 @@ def create_RA_config(ctx):
 def create_RiBA_config(ctx):
     print('Set RiBA configuration to test')
     company_id = env_ref(ctx, 'z0bug.mycompany')
+    if not company_id:
+        raise IOError('!!Internal error: no company found!')
     company_partner_id = env_ref(ctx, 'z0bug.partner_mycompany')
     banks = clodoo.browseL8(ctx, 'res.partner', company_partner_id).bank_ids
     journal_id = clodoo.searchL8(ctx, 'account.journal',
@@ -726,21 +720,32 @@ def simulate_user_profile(ctx):
                             get_agent_names_line(rec2.agents)))
 
 
-def reset_email_vg7bot(ctx):
-    model = 'res.users'
-    model2 = 'res.partner'
-    ids = clodoo.searchL8(ctx, model,
-                          [('login', '=', 'vg7bot')])
-    if len(ids) == 0:
-        print('No user found!')
-        return
+def reset_email_admins(ctx):
+
+    def reset_email_user(ctx, username):
+        model = 'res.users'
+        model2 = 'res.partner'
+        email = {'vg7bot': 'vg7bot@vg7.it',
+                 'vg7admin': 'noreply@vg7.it',
+                 'zeroadm': 'noreply@zeroincombenze.it',}[username]
+        ctr = 0
+        ids = clodoo.searchL8(ctx, model,
+                              [('login', '=', username)])
+        if len(ids) == 0:
+            print('No user %s found!' % username)
+            return ctr
+        for user in clodoo.browseL8(ctx, model, ids):
+            partner_id = user.partner_id.id
+            partner = clodoo.browseL8(ctx, model2, partner_id)
+            if partner.email != 'noreply@vg7.it':
+                clodoo.writeL8(ctx, model2, partner_id, {'email': email})
+                ctr += 1
+                print('User %s mail changed!' % username)
+        return ctr
     ctr = 0
-    for user in clodoo.browseL8(ctx, model, ids):
-        partner_id = user.partner_id.id
-        partner = clodoo.browseL8(ctx, model2, partner_id)
-        if partner.email != 'noreply@vg7.it':
-            clodoo.writeL8(ctx, model2, partner_id, {'email': 'noreply@vg7.it'})
-            ctr += 1
+    ctr += reset_email_user(ctx, 'vg7bot')
+    ctr += reset_email_user(ctx, 'vg7admin')
+    ctr += reset_email_user(ctx, 'zeroadm')
     print('%d record updated' % ctr)
 
 
@@ -840,14 +845,15 @@ def change_ddt_number(ctx):
     model='stock.picking.package.preparation'
     ddt_id = raw_input('DdT id: ')
     if ddt_id:
+        ddt_id = int(ddt_id)
         ddt = clodoo.browseL8(ctx, model, ddt_id)
         print('Currnt DdT number is: %s' % ddt.ddt_number)
         ddt_number = raw_input('New number: ')
         if ddt_number:
             clodoo.writeL8(ctx, model, ddt_id, {'ddt_number': ddt_number})
             ddt = clodoo.browseL8(ctx, model, ddt_id)
-            print('DdT number of id %d changed with' % (ddt_id,
-                                                        ddt.ddt_number))
+            print('DdT number of id %d changed with %s' % (ddt_id,
+                                                           ddt.ddt_number))
 
 def print_model_synchro_data(ctx):
     print('Show XML data to build model for synchro module')
@@ -912,7 +918,8 @@ def test_synchro_vg7(ctx):
             if not rec.is_company:
                 raise IOError('!!Invalid field %s.is_company!' % model)
         for ext_ref in vals:
-            if model == 'sale.order.line' and ext_ref == 'partner_id':
+            if (model in ('sale.order.line', 'account.invoice.line') and
+                    ext_ref == 'partner_id'):
                 continue
             elif ext_ref in ('vg7_id', 'vg7:id'):
                 if isinstance(vals[ext_ref], basestring):
@@ -926,12 +933,12 @@ def test_synchro_vg7(ctx):
                 loc_name = ext_ref[4:]
                 if loc_name in ('street_number', 'surename'):
                     continue
-                elif loc_name == 'description' and model in ('res.country',
-                                                       'product.product'):
+                elif (model in ('res.country', 'product.product') and
+                        loc_name == 'description'):
                     loc_name = 'name'
-                elif loc_name == 'piva' and model in ('res.partner',):
+                elif model == 'res.partner' and loc_name == 'piva':
                     loc_name = 'vat'
-                elif loc_name == 'company' and model in ('res.partner',):
+                elif model == 'res.partner' and loc_name == 'company':
                     loc_name = 'name'
             else:
                 if ext_ref.startswith('vg7_'):
@@ -944,13 +951,18 @@ def test_synchro_vg7(ctx):
                 elif loc_name == 'street' and model in ('res.partner',):
                     value = getattr(rec, loc_name)
                     vals[ext_ref] = vals[ext_ref] + ', 13'
-                elif loc_name == 'tax_id' and model == 'sale.order.line':
+                elif ((loc_name == 'tax_id' and model == 'sale.order.line') or
+                      (loc_name == 'invoice_line_tax_ids' and
+                       model == 'account.invoice.line')):
                     id = clodoo.searchL8(ctx, 'account.tax',
                                          [('description', '=', vals[ext_ref]),
                                           ('company_id', '=', company_id)])
-                    if not rec.tax_id or id != [x.id for x in rec.tax_id]:
+                    if not rec[loc_name] or id != [x.id for x in rec[loc_name]]:
                         raise IOError('!!Invalid VAT code!')
                     continue
+                elif ext_ref == 'state':
+                    value = getattr(rec, loc_name)
+                    vals[ext_ref] = 'draft'
                 else:
                     try:
                         value = getattr(rec, loc_name).id
@@ -964,6 +976,12 @@ def test_synchro_vg7(ctx):
                         elif loc_name == 'order_id':
                             if value in TNL['sale.order']['LOC']:
                                 value = TNL['sale.order']['LOC'][value]
+                        elif loc_name == 'invoice_id':
+                            if value in TNL['account.invoice']['LOC']:
+                                value = TNL['account.invoice']['LOC'][value]
+                    elif model == 'res.partner' and loc_name == 'country_id':
+                        if value in TNL['res.country']['LOC']:
+                            value = TNL['res.country']['LOC'][value]
                 if value != vals[ext_ref]:
                     raise IOError('!!Invalid field %s.%s!' % (model, loc_name))
 
@@ -989,8 +1007,12 @@ def test_synchro_vg7(ctx):
                                       model,
                                       'synchro',
                                       vals)
-        TNL[model]['LOC'][country_id] = vg7_id
-        TNL[model]['EXT'][vg7_id] = country_id
+        if isinstance(vg7_id, basestring):
+            TNL[model]['LOC'][country_id] = int(vg7_id)
+            TNL[model]['EXT'][int(vg7_id)] = country_id
+        else:
+            TNL[model]['LOC'][country_id] = vg7_id
+            TNL[model]['EXT'][vg7_id] = country_id
         check_country(ctx, TNL, country_id, vals)
         return vg7_id
 
@@ -1025,7 +1047,6 @@ def test_synchro_vg7(ctx):
     def check_partner(ctx, TNL, partner_id, vals):
         general_check(ctx, TNL, 'res.partner', partner_id, vals)
 
-
     def write_partner(ctx, TNL, company_id, vg7_id=None, name=None):
         model = 'res.partner'
         print('Write %s ..' % model)
@@ -1048,6 +1069,7 @@ def test_synchro_vg7(ctx):
                 'vg7:company': name,
                 'vg7:street': 'Via Porta Nuova',
                 'vg7:street_number': '13',
+                'vg7:country_id': 39,
             }
         if vg7_id == 7:
             vals['vg7:piva'] = '00385870480'
@@ -1094,6 +1116,7 @@ def test_synchro_vg7(ctx):
         check_sale_order(ctx, TNL, order_id, vals)
 
         model = 'sale.order.line'
+        print('Write %s ..' % model)
         if model not in TNL:
             TNL[model] = {}
             TNL[model]['LOC'] = {}
@@ -1117,6 +1140,7 @@ def test_synchro_vg7(ctx):
         TNL[model]['EXT'][vg7_id] = line_id
         check_sale_order_line(ctx, TNL, line_id, vals)
 
+        print('Write %s ..' % model)
         vg7_id = vg7_order_id * 100 + 1
         # Field partner_id does not exit: test to avoid crash
         vals = {
@@ -1143,46 +1167,27 @@ def test_synchro_vg7(ctx):
                               order_id)
         if id < 0:
             raise IOError('!!Commit Failed!')
+        if state:
+            rec = clodoo.browseL8(ctx, 'sale.order', order_id)
+            if rec['state'] != state:
+                raise IOError('!!Invalid state!')
         return vg7_id
 
+    def check_invoice(ctx, TNL, invoice_id, vals):
+        general_check(ctx, TNL, 'account.invoice', invoice_id, vals)
 
+    def check_invoice_line(ctx, TNL, line_id, vals):
+        general_check(ctx, TNL, 'account.invoice.line', line_id, vals)
 
-
-    def check_invoice(invoice_id, vals, company_id):
-        print('Write invoice ..')
+    def write_invoice(ctx, TNL, company_id, partner_id=None,
+                      vg7_invoice_id=None, state=None):
         model = 'account.invoice'
-        if not invoice_id or invoice_id < 1:
-            raise IOError('!!Syncro invoice Failed!')
-        invoice = clodoo.browseL8(ctx, model, invoice_id)
-        if invoice.company_id.id != company_id:
-            raise IOError('!!Invalid Company!')
-        if invoice.vg7_id != vals['vg7_id']:
-            raise IOError('!!Invalid vg7_id!')
-        if vals.get('partner_id') and invoice.partner_id.id != vals['partner_id']:
-            raise IOError('!!Invalid Partner ID!')
+        print('Write %s ..' % model)
+        if model not in TNL:
+            TNL[model] = {}
+            TNL[model]['LOC'] = {}
+            TNL[model]['EXT'] = {}
 
-    def check_invoice_line(line_id, vals, company_id, invoice_id):
-        model = 'account.invoice.line'
-        if not line_id or line_id < 1:
-            raise IOError('!!Syncro invoice line Failed!')
-        line = clodoo.browseL8(ctx, model, line_id)
-        if line.company_id.id != company_id:
-            raise IOError('!!Invalid Company!')
-        if line.invoice_id.id != invoice_id:
-            raise IOError('!!Invalid Order ID!')
-        if line.vg7_id != vals['vg7_id']:
-            raise IOError('!!Invalid vg7_id!')
-        model = 'account.tax'
-        id = clodoo.searchL8(ctx, model, [('description', '=', '22v'),
-                                         ('company_id', '=', company_id)])
-        if (not line.invoice_line_tax_ids or
-                id != [x.id for x in line.invoice_line_tax_ids]):
-            raise IOError('!!Invalid VAT code!')
-
-    def write_invoice(ctx, company_id, partner_id=None, vg7_invoice_id=None,
-                      state=None):
-        print('Write invoice ..')
-        model = 'account.invoice'
         partner_id = partner_id or ctx[
             'odoo_session'].env.ref('z0bug.res_partner_2').id
         vg7_id = vg7_invoice_id or 5
@@ -1197,25 +1202,55 @@ def test_synchro_vg7(ctx):
                                       model,
                                       'synchro',
                                       vals)
-        check_invoice(invoice_id, vals, company_id)
+        TNL[model]['LOC'][invoice_id] = vg7_id
+        TNL[model]['EXT'][vg7_id] = invoice_id
+        check_invoice(ctx, TNL, invoice_id, vals)
 
         model = 'account.invoice.line'
+        print('Write %s ..' % model)
+        if model not in TNL:
+            TNL[model] = {}
+            TNL[model]['LOC'] = {}
+            TNL[model]['EXT'] = {}
         vg7_invoice_id = vg7_id
-        vg7_id = 200 * vg7_invoice_id
+        vg7_id = vg7_invoice_id * 200
         vals = {
             'company_id': company_id,
             'vg7_id': vg7_id,
             'vg7_invoice_id': vg7_invoice_id,
             'partner_id': partner_id,
             'name': 'Product A',
-            'vg7_product_id': vg7_id_product_a,
+            'vg7_product_id': ctx['vg7_id_product_a'],
             'price_unit': 10.50,
         }
         line_id = clodoo.executeL8(ctx,
                                    model,
                                    'synchro',
                                    vals)
-        check_invoice_line(line_id, vals, company_id, invoice_id)
+        TNL[model]['LOC'][line_id] = vg7_id
+        TNL[model]['EXT'][vg7_id] = line_id
+        check_invoice_line(ctx, TNL, line_id, vals)
+
+        print('Write %s ..' % model)
+        vg7_id = vg7_invoice_id * 200 + 1
+        # Field partner_id does not exit: test to avoid crash
+        vals = {
+            'company_id': company_id,
+            'vg7_id': vg7_id,
+            'vg7_invoice_id': vg7_invoice_id,
+            'partner_id': partner_id,
+            'name': 'Product B',
+            'vg7_product_id': ctx['vg7_id_product_b'],
+            'price_unit': 25.50,
+            'invoice_line_tax_ids': '22v',
+        }
+        line_id = clodoo.executeL8(ctx,
+                                   model,
+                                   'synchro',
+                                   vals)
+        TNL[model]['LOC'][line_id] = vg7_id
+        TNL[model]['EXT'][vg7_id] = line_id
+        check_invoice_line(ctx, TNL, line_id, vals)
 
         id = clodoo.executeL8(ctx,
                               'account.invoice',
@@ -1223,6 +1258,11 @@ def test_synchro_vg7(ctx):
                               invoice_id)
         if id < 0:
             raise IOError('!!Commit Failed!')
+        if state:
+            rec = clodoo.browseL8(ctx, 'account.invoice', invoice_id)
+            if rec['state'] != state:
+                raise IOError('!!Invalid state!')
+        return vg7_id
 
     company_id = env_ref(ctx, 'z0bug.mycompany')
     if not company_id:
@@ -1262,14 +1302,13 @@ def test_synchro_vg7(ctx):
 
     write_partner(ctx, TNL, company_id, vg7_id=17)
 
-    pdb.set_trace()
     # Repeat 2 times with different state
     write_sale_order(ctx, TNL, company_id)
     write_sale_order(ctx, TNL, company_id, state='sale')
 
     # Repeat 2 times with different state
-    # write_invoice(ctx, company_id)
-    # write_invoice(ctx, company_id, state='open')
+    write_invoice(ctx, TNL, company_id)
+    write_invoice(ctx, TNL, company_id, state='open')
 
 
 if ctx['function']:
@@ -1292,7 +1331,7 @@ print('    print_tax_codes(ctx)')
 print('    set_tax_code_on_invoice(ctx)')
 print('    set_payment_data_on_report(ctx)')
 print('    simulate_user_profile(ctx)')
-print('    reset_email_vg7bot(ctx)')
+print('    reset_email_admins(ctx)')
 print('    show_empty_ddt(ctx)')
 print('    change_ddt_number(ctx)')
 

@@ -1992,18 +1992,6 @@ def act_check_config(ctx):
             msg_log(ctx, ctx['level'] + 1,
                     'External id %d renamed from account to z0bug' % id)
 
-        ids = searchL8(ctx, model, [])
-        for i,id in enumerate(ids):
-            xref = browseL8(ctx, model, id)
-            msg_burst(ctx['level'] + 1,
-                      'xreference',
-                      i,
-                      len(ids))
-            try:
-                browseL8(ctx, xref.model, xref.res_id)
-            except BaseException:
-                print('!! Invalid external reference %s.%s' % (xref.module,
-                                                               xref.name))
         model_partner = 'res.partner'
         model_user = 'res.users'
         model_company = 'res.company'
@@ -2164,6 +2152,19 @@ def act_check_config(ctx):
                             refresh_reconcile_from_inv(
                                 inv_id, reconciles, ctx)
                         reconcile_invoices(cur_reconcile_dict, ctx)
+
+        ids = searchL8(ctx, model, [])
+        for i,id in enumerate(ids):
+            xref = browseL8(ctx, model, id)
+            msg_burst(ctx['level'] + 1,
+                      'xreference',
+                      i,
+                      len(ids))
+            try:
+                browseL8(ctx, xref.model, xref.res_id)
+            except BaseException:
+                print('!! Invalid external reference %s.%s' % (xref.module,
+                                                               xref.name))
     return STS_SUCCESS
 
 
