@@ -529,7 +529,7 @@ def create_RA_config(ctx):
     company_id = env_ref(ctx, 'z0bug.mycompany')
     if not company_id:
         raise IOError('!!Internal error: no company found!')
-    company = clodoo.browseL8(ctx, model, company_id)
+    company = clodoo.browseL8(ctx, 'res.company', company_id)
     print('Campany setup is %s' % company.name)
     model = 'account.account'
     credit_acc_id = False
@@ -945,6 +945,12 @@ def test_synchro_vg7(ctx):
                     loc_name = ext_ref[4:]
                 else:
                     loc_name = ext_ref
+            if model == 'account.invoice' and loc_name == 'number':
+                loc_name = 'move_name'
+            elif model == 'res.partner' and loc_name == 'region':
+                loc_name = 'state_id'
+            elif model == 'res.partner' and loc_name == 'postal_code':
+                loc_name = 'zip'
             if hasattr(rec, loc_name):
                 if loc_name == 'vat' and model in ('res.partner',):
                     value = getattr(rec, loc_name)[2:]
@@ -982,11 +988,17 @@ def test_synchro_vg7(ctx):
                     elif model == 'res.partner' and loc_name == 'country_id':
                         if value in TNL['res.country']['LOC']:
                             value = TNL['res.country']['LOC'][value]
+                    elif model == 'res.partner' and loc_name == 'state_id':
+                        value = clodoo.browseL8(ctx,
+                            'res.country.state', value).name.upper()
                 if value != vals[ext_ref]:
                     raise IOError('!!Invalid field %s.%s!' % (model, loc_name))
 
     def check_country(ctx, TNL, country_id, vals):
         general_check(ctx, TNL, 'res.country', country_id, vals)
+
+    def check_country_state(ctx, TNL, country_state_id, vals):
+        general_check(ctx, TNL, 'res.country.state', country_state_id, vals)
 
     def write_country(ctx, TNL, vg7_id=None, code=None, name=None):
         model = 'res.country'
@@ -1014,6 +1026,41 @@ def test_synchro_vg7(ctx):
             TNL[model]['LOC'][country_id] = vg7_id
             TNL[model]['EXT'][vg7_id] = country_id
         check_country(ctx, TNL, country_id, vals)
+
+        model = 'res.country.state'
+        print('Write %s ..' % model)
+        if model not in TNL:
+            TNL[model] = {}
+            TNL[model]['LOC'] = {}
+            TNL[model]['EXT'] = {}
+
+        vg7_id = vg7_id or 11
+        code = 'TO'
+        name = 'Torino'
+        vals = {
+            'country_id': country_id,
+            'code': code,
+            'name': name,
+        }
+        country_state_id = clodoo.executeL8(ctx,
+                                            model,
+                                            'synchro',
+                                            vals)
+        check_country_state(ctx, TNL, country_state_id, vals)
+
+        vg7_id = vg7_id or 2
+        code = 'MI'
+        name = 'Milano'
+        vals = {
+            'code': code,
+            'name': name,
+        }
+        country_state_id = clodoo.executeL8(ctx,
+                                            model,
+                                            'synchro',
+                                            vals)
+        check_country_state(ctx, TNL, country_state_id, vals)
+
         return vg7_id
 
     def check_product(ctx, TNL, product_id, vals):
@@ -1069,7 +1116,10 @@ def test_synchro_vg7(ctx):
                 'vg7:company': name,
                 'vg7:street': 'Via Porta Nuova',
                 'vg7:street_number': '13',
+                'vg7:postal_code': '10100',
+                'vg7:city': 'Torino',
                 'vg7:country_id': 39,
+                'vg7:region': 'TORINO',
             }
         if vg7_id == 7:
             vals['vg7:piva'] = '00385870480'
@@ -1107,6 +1157,12 @@ def test_synchro_vg7(ctx):
         }
         if state:
             vals['state'] = state
+        # Search for sale order if connector uninstalled
+        ids = clodoo.searchL8(ctx, model,
+                              [('name', '=', 'SO002'),
+                               ('vg7_id', '=', False)])
+        if ids:
+            vals['name'] = 'SO002'
         order_id = clodoo.executeL8(ctx,
                                     model,
                                     'synchro',
@@ -1198,6 +1254,12 @@ def test_synchro_vg7(ctx):
         }
         if state:
             vals['state'] = state
+        # Search for account invoice if connector uninstalled
+        ids = clodoo.searchL8(ctx, model,
+                              [('number', '=', 'FAT/2019/0006'),
+                               ('vg7_id', '=', False)])
+        if ids:
+            vals['number'] = 'FAT/2019/0006'
         invoice_id = clodoo.executeL8(ctx,
                                       model,
                                       'synchro',
