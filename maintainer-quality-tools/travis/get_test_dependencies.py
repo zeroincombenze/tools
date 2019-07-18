@@ -19,7 +19,7 @@ from six import string_types
     
 from test_server import get_test_dependencies
 
-__version__ = '0.2.2.30'
+__version__ = '0.2.2.31'
 
 
 def get_module_list(paths):

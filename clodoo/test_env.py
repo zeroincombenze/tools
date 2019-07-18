@@ -24,7 +24,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.43"
+__version__ = "0.3.8.44"
 
 
 MAX_DEEP = 20
@@ -433,79 +433,6 @@ def set_tax_code_on_invoice(ctx):
                 {'number': invoice.number})
     print('%d invoice lines updated' % ctr)
 
-
-def manage_riba(ctx):
-    print('Do various actions on RiBA list')
-    riba_id = False
-    while not riba_id:
-        riba_id = raw_input('RiBA list id: ')
-        if not riba_id:
-            return
-        riba_id = int(riba_id)
-        riba_list = clodoo.browseL8(ctx, 'riba.distinta', riba_id)
-        print('Riba list # %s' % riba_list.name)
-        print('Riba list state: %s' % riba_list.state)
-        if riba_list.state == 'accepted':
-            action = raw_input('Action: Cancel,Draft,Quit: ')
-            action = action[0].upper() if action else 'Q'
-            if action == 'C':
-                print('Cancelling RiBA list ..')
-                for move in riba_list.acceptance_move_ids:
-                    clodoo.executeL8(ctx,
-                                     'account.move',
-                                     'button_cancel',
-                                      move.id)
-                    for line in move.line_ids:
-                        if (line.user_type_id.type != 'receivable' or
-                                not line.reconciled):
-                            continue
-                        try:
-                            move_ids = [x.id for x in 
-                                line.full_reconcile_id.reconciled_line_ids]
-                            context = {'active_ids': move_ids}
-                            clodoo.executeL8(ctx,
-                                             'account.unreconcile',
-                                             'trans_unrec',
-                                             None,
-                                             context)
-                        except BaseException:
-                            print('!!Move unceconiliable!')
-                for move in riba_list.acceptance_move_ids:
-                    clodoo.unlinkL8(ctx,
-                                    'account.move',
-                                    move.id)
-                for riba in riba_list.line_ids:
-                    clodoo.writeL8(ctx, 'riba.distinta.line', riba.id,
-                                   {'state': 'draft',})
-                clodoo.writeL8(ctx, 'riba.distinta', riba_id,
-                               {'state': 'draft',
-                                'date_accepted': False})
-                try:
-                    clodoo.executeL8(ctx,
-                                     'riba.distinta',
-                                     'riba_cancel',
-                                     riba_id)
-                    # clodoo.executeL8(ctx,
-                    #                  'riba.distinta',
-                    #                  'confirm',
-                    #                  riba_id)
-                except BaseException:
-                    pass
-            elif action == 'D':
-                for riba in riba_list.line_ids:
-                    clodoo.writeL8(ctx, 'riba.distinta.line', riba.id,
-                                   {'state': 'draft',})
-                clodoo.writeL8(ctx, 'riba.distinta', riba_id,
-                               {'state': 'draft',
-                                'date_accepted': False})
-        elif riba_list.state == 'draft':
-            action = raw_input('Action: Accepted,Quit: ')
-            action = action[0].upper() if action else 'Q'
-            if action == 'A':
-                clodoo.writeL8(ctx, 'riba.distinta', riba_id,
-                               {'state': 'accepted'})
-        riba_id = ''
-
 def set_payment_data_on_report(ctx):
     print('Set payment data layout on invoice and order reports')
     print('Require module "base_multireport"')
@@ -569,6 +496,7 @@ def create_RA_config(ctx):
         vals['payment_term'] = ids[0]
     synchro(ctx, model, vals)
 
+
 def create_RiBA_config(ctx):
     print('Set RiBA configuration to test')
     company_id = env_ref(ctx, 'z0bug.mycompany')
@@ -630,6 +558,192 @@ def create_RiBA_config(ctx):
     else:
         clodoo.writeL8(ctx, model, riba_id, vals)
         print('RiBA configuration updated')
+
+
+def manage_riba(ctx):
+
+    def set_riba_state(ctx, riba_list, state):
+        line_state = {
+            'draft': 'draft',
+            'accepted': 'confirmed',
+            'accredited': 'accredited',
+            'paid': 'paid',
+            'unsolved': 'unsolved',
+            'cancel': 'cancel',
+        }[state]
+        for riba in riba_list.line_ids:
+            clodoo.writeL8(ctx, 'riba.distinta.line', riba.id,
+                           {'state': line_state,})
+        vals = {'state': state}
+        if state in ('draft', 'cancel'):
+            vals['date_accepted'] = False
+        if state in ('draft', 'cancel', 'accepted'):
+            vals['date_accreditation'] = False
+        if state in ('draft', 'cancel', 'accepted', 'accredited'):
+            vals['date_paid'] = False
+        clodoo.writeL8(ctx, 'riba.distinta', riba_id, vals)
+
+    def unreconcile_move(ctx, move):
+        for line in move.line_ids:
+            if (line.user_type_id.type != 'receivable' or
+                    not line.reconciled):
+                continue
+            try:
+                move_ids = [x.id for x in 
+                    line.full_reconcile_id.reconciled_line_ids]
+                context = {'active_ids': move_ids}
+                clodoo.executeL8(ctx,
+                                 'account.unreconcile',
+                                 'trans_unrec',
+                                 None,
+                                 context)
+            except BaseException:
+                print('!!Move %d unreconciliable!' % move.id)
+
+    def cancel_riba_moves(ctx, riba_list, moves, by_line=None):
+        if not moves:
+            return
+        try:
+            move_list = iter(moves)
+            move_list = moves
+        except TypeError:
+            move_list = [moves]
+        for item in move_list:
+            if by_line:
+                move = item.move_id
+            else:
+                move = item
+            unreconcile_move(ctx, move)
+            clodoo.executeL8(ctx,
+                             'account.move',
+                             'button_cancel',
+                              move.id)
+        for item in move_list:
+            if by_line:
+                move = item.move_id
+            else:
+                move = item
+            try:
+                clodoo.unlinkL8(ctx,
+                                'account.move',
+                                move.id)
+            except BaseException:
+                print('!!Move %d not deleted!' % move.id)
+
+    def riba_new(ctx, riba_list):
+        set_riba_state(ctx, riba_list, 'draft')
+
+    print('Do various actions on RiBA list')
+    riba_id = False
+    while not riba_id:
+        riba_id = raw_input('RiBA list id: ')
+        if not riba_id:
+            return
+        riba_id = int(riba_id)
+        riba_list = clodoo.browseL8(ctx, 'riba.distinta', riba_id)
+        print('Riba list # %s -  state: %s' % (riba_list.name,
+                                               riba_list.state))
+        for move in riba_list.unsolved_move_ids:
+            print('- Unsolved %d' % move.id)
+        if riba_list.state == 'paid':
+            action = raw_input('Action: Accredited,Quit: ')
+            action = action[0].upper() if action else 'Q'
+            if action == 'A':
+                print('Restore RiBA list to Accredited ..')
+                cancel_riba_moves(ctx, riba_list,
+                                  riba_list.payment_ids, by_line=True)
+                set_riba_state(ctx, riba_list, 'accredited')
+        elif riba_list.state == 'accredited':
+            action = raw_input('Action: do_Paid,Accepted,State_paid,Quit,Unsolved: ')
+            action = action[0].upper() if action else 'Q'
+            if action == 'P':
+                try:
+                    clodoo.executeL8(ctx,
+                                     'riba.distinta',
+                                     'riba_paid',
+                                     riba_id)
+                except BaseException:
+                    pass
+            elif action == 'A':
+                print('Restore RiBA list to accepted ..')
+                cancel_riba_moves(ctx, riba_list,
+                                  riba_list.accreditation_move_id)
+                set_riba_state(ctx, riba_list, 'accepted')
+            elif action == 'S':
+                set_riba_state(ctx, riba_list, 'paid')
+            elif action == 'U':
+                for move in riba_list.unsolved_move_ids:
+                    print('- Unsolved %d' % move.id)
+                    sub = raw_input('Move: Delete,Skip')
+                    sub = sub[0].upper() if sub else 'S'
+                    if sub == 'D':
+                        unreconcile_move(ctx, move)
+                        clodoo.executeL8(ctx,
+                                         'account.move',
+                                         'button_cancel',
+                                          move.id)
+                        try:
+                            clodoo.unlinkL8(ctx,
+                                            'account.move',
+                                            move.id)
+                        except BaseException:
+                            print('!!Move %d not deleted!' % move.id)
+        elif riba_list.state == 'accepted':
+            action = raw_input('Action: do_Accredited,Cancel,State_accredited,Quit: ')
+            action = action[0].upper() if action else 'Q'
+            if action == 'A':
+                try:
+                    clodoo.executeL8(ctx,
+                                     'riba.distinta',
+                                     'riba_accredited',
+                                     riba_id)
+                except BaseException:
+                    pass
+            elif action == 'C':
+                print('Cancelling RiBA list ..')
+                # TODO: remove after debug
+                cancel_riba_moves(ctx, riba_list,
+                                  riba_list.accreditation_move_id)
+                cancel_riba_moves(ctx, riba_list,
+                                  riba_list.acceptance_move_ids)
+                set_riba_state(ctx, riba_list, 'draft')
+                try:
+                    clodoo.executeL8(ctx,
+                                     'riba.distinta',
+                                     'riba_cancel',
+                                     riba_id)
+                except BaseException:
+                    pass
+            elif action == 'S':
+                set_riba_state(ctx, riba_list, 'accredited')
+        elif riba_list.state == 'draft':
+            action = raw_input('Action: do_Accepted,State_accepted,Quit: ')
+            action = action[0].upper() if action else 'Q'
+            if action == 'A':
+                try:
+                    clodoo.executeL8(ctx,
+                                     'riba.distinta',
+                                     'riba_accepted',
+                                     riba_id)
+                except BaseException:
+                    pass
+            elif action == 'S':
+                set_riba_state(ctx, riba_list, 'accepted')
+        elif riba_list.state == 'cancel':
+            action = raw_input('Action: do_Draft,State_cancel,Quit: ')
+            action = action[0].upper() if action else 'Q'
+            if action == 'A':
+                # riba_new(ctx, riba_list)
+                try:
+                    clodoo.executeL8(ctx,
+                                     'riba.distinta',
+                                     'riba_new',
+                                     riba_id)
+                except BaseException:
+                    pass
+            elif action == 'S':
+                set_riba_state(ctx, riba_list, 'cancel')
+        riba_id = ''
 
 
 def simulate_user_profile(ctx):
@@ -1392,6 +1506,8 @@ print('    delivery_address_same_customer(ctx)')
 print('    print_tax_codes(ctx)')
 print('    set_tax_code_on_invoice(ctx)')
 print('    set_payment_data_on_report(ctx)')
+print('    create_RiBA_config(ctx)')
+print('    manage_riba(ctx)')
 print('    simulate_user_profile(ctx)')
 print('    reset_email_admins(ctx)')
 print('    show_empty_ddt(ctx)')

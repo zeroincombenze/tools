@@ -22,6 +22,9 @@ git:
   submodules: false
   depth: false
 
+services:
+  - postgresql
+
 addons:
   apt:
     sources:
