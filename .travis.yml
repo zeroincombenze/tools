@@ -68,3 +68,6 @@ script:
 
 after_success:
   - cd PYTHONPATH=${MODULE_PATH}; travis_after_tests_success ${OPTS}
+
+after_failure:
+  - cat ${HOME}/odoo_10-0.log
