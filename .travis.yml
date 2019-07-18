@@ -50,7 +50,7 @@ install:
 
 env:
   global:
-  - TRAVIS_DEBUG_MODE="1"
+  - TRAVIS_DEBUG_MODE="2"
   - TESTS="0" LINT_CHECK="0" BASH_CHECK="0" LINT_CHECK_LEVEL="MINIMAL"
 
   matrix:
