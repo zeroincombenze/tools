@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.32.5
+__version__=1.3.32.6
 
 
 test_01() {
@@ -42,7 +42,7 @@ test_01() {
     else
       RES=
     fi
-    test_result "bck test log" "$OUTF" "$RES"
+    test_result "zar_bck -T (found log)" "$OUTF" "$RES"
     return $?
 }
 
@@ -54,7 +54,7 @@ test_02() {
     else
       RES=1
     fi
-    test_result "bck DB test" "0" "$RES"
+    test_result "zar_bck -T (backup copy ignored)" "0" "$RES"
     return $?
 }
 
@@ -66,29 +66,41 @@ test_03() {
     else
       RES=1
     fi
-    test_result "bck DB not classified" "0" "$RES"
+    test_result "zar_bck -T (db not classified)" "0" "$RES"
     return $?
 }
 
 test_04() {
-    local RES TRES
-    if [ -f $OUTF ]; then
-      grep "pg_dump .*/zi01234567.*\.sql .*zi01234567" $OUTF  &>/dev/null
-      RES=$?
-    else
-      RES=1
-    fi
-    test_result "bck DB backupped" "0" "$RES"
+    local db RES TRES
+    for db in zi01234567 zi01234589; do
+      if [ -f $OUTF ]; then
+        grep "pg_dump .*/$db.*\.sql .*$db" $OUTF  &>/dev/null
+        RES=$?
+      else
+        RES=1
+      fi
+      test_result "zar_bck -T (log) # $db" "0" "$RES"
+    done
     return $?
 }
 
+test_05() {
+    local dtc RES TRES
+    dtc=$(date +%Y%m%d)
+    for db in zi01234567 zi01234589; do
+      [ -f $TESTDIR/res/backups/${db}-$dtc.sql ] && RES=0 || RES=1
+      test_result "zar_bck -T (found ${db}-$dtc.sql)" "0" "$RES"
+    done
+    return $?
+}
 
 Z0BUG_setup() {
+    Z0BUG_build_os_tree "backups"
     rm -f $TESTDIR/bckdb.log
-    rm -f $TESTDIR/backups/*.sql
+    rm -f $TESTDIR/res/backups/*.sql
     local CONFN=$TESTDIR/zar.conf
     cat <<EOF >$CONFN
-DBA_filter=zi01234567
+DBA_filter=zi0123
 DBA_keep_recent=7
 DBA_keep_monthly=3
 production_host=$HOSTNAME
@@ -108,9 +120,32 @@ EOF
 
 
 Z0BUG_teardown() {
-    :
+    [ ${opt_dry_run:-0} -eq 0 ] && Z0BUG_remove_os_tree "backups"
 }
 
+
+Z0BUG_build_os_tree() {
+    local p path os_tree root
+    os_tree="${1//,/ }"
+    root=$TESTDIR/res
+    [ ! -d "$root" ] && mkdir -p $root
+    for p in $os_tree; do
+      [[ ${p:0} =~ [./] ]] && path=$p || path=$root/$p
+      [ ! -d $path ] && mkdir -p $path
+    done
+}
+
+Z0BUG_remove_os_tree() {
+    local p path os_tree root
+    os_tree="${1//,/ }"
+    root=$TESTDIR/res
+    [ ! -d "$root" ] && return
+    for p in $os_tree; do
+      [[ ${p:0} =~ [./] ]] && path=$p || path=$root/$p
+      [ ! -d $path ] && continue
+      rm -fR $path
+    done
+}
 
 Z0BUG_init
 parseoptest -l$TESTDIR/test_zar.log "$@" "-Z"

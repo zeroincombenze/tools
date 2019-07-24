@@ -48,32 +48,26 @@ test_01() {
 
 test_02() {
     local RES TRES
+    local tod=$(date +%Y%m%d)
     if [ -f $OUTF ]; then
-      for db in zi01234567; do
+      for db in zi01234567 zi01234589; do
         grep "DB to Restore: .*$db" $OUTF  &>/dev/null
         RES=$?
         test_result "zar_rest -T (found db $db in log file)" "0" "$RES"
       done
+
+      for db in zi01234567 zi01234589; do
+        grep "File $TESTDIR/res/backups/${db}-$tod.sql .* $db" $OUTF  &>/dev/null
+        RES=$?
+        test_result "zar_rest -T (db $db to restore detected)" "0" "$RES"
+      done
+
     else
       RES=1
     fi
     return $?
 }
 
-test_03() {
-    local RES TRES
-    if [ -f $OUTF ]; then
-      for db in zi01234567; do
-        local dtc=$(date +%Y%m%d)
-        grep "File .*/zi01234567-$dtc.sql .* yesterday" <<< $OUT &>/dev/null
-        RES=$?
-        test_result "zar_rest -T (found 'into' db in log)" "0" "$RES"
-      done
-    else
-      RES=1
-    fi
-    return $?
-}
 
 Z0BUG_setup() {
     local i db dtc tod dd
@@ -94,12 +88,12 @@ Z0BUG_setup() {
 DBA_filter=zi0123
 DBA_keep_recent=7
 DBA_keep_monthly=3
-production_host=$HOSTNAME
-development_host=${HOSTNAME//s/z}-DEV
+development_host=$HOSTNAME
+production_host=${HOSTNAME//s/z}-DEV
 bck_db=yesterday
 PRD_num_days_before=0
 EOF
-    local cmd="$RUNDIR/zar_rest -T zi01234567"
+    local cmd="$RUNDIR/zar_rest -T"
     OUTF=$TESTDIR/restdb.log
     if [ ${opt_dry_run:-0} -eq 0 ]; then
       OUT=$(eval $cmd)

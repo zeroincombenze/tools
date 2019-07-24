@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.13
+__version__=0.2.2.14
 
 
 store_cfg_param_value() {
@@ -109,9 +109,9 @@ store_cfg_param_value() {
 process_local() {
     wlog "=== Simulate YAML test ==="
     if [ -f $TOOLS_PATH/travis_run_tests ]; then
-      if [ "$action" == "lint" ]; then
+      if [[ $action =~ (force-lint|lint) ]]; then
         opts=$(inherits_travis_opts "K" "T")
-      elif [ "$action" == "test" ]; then
+      elif [[ $action =~ (force-test|test) ]]; then
         opts=$(inherits_travis_opts "T" "T")
       else
         opts=$(inherits_travis_opts "KT" "T")
@@ -119,10 +119,10 @@ process_local() {
       run_traced "TOOLS_PATH=$TOOLS_PATH $TOOLS_PATH/travis_run_tests $opts"
       sts=$?
     elif [ $opt_r -gt 0 ]; then
-      if [ "$action" == "test" ]; then
+      if [[ $action =~ (force-test|test) ]]; then
         please_run_tests "-T"
         sts=$?
-      elif [ "$action" == "lint" ]; then
+      elif [[ $action =~ (force-lint|lint) ]]; then
         please_run_tests "-K"
         sts=$?
       else
@@ -132,7 +132,7 @@ process_local() {
     else
       sts=127
     fi
-    if [ $sts -eq $STS_SUCCESS -a "$action" != "lint" -a "$action" != "test" ]; then
+    if [ $sts -eq $STS_SUCCESS ] && [[ $action =~ (force-lint|lint|force-test|test) ]]; then
       opts=$(inherits_travis_opts "" "A")
       run_traced "$TOOLS_PATH/travis_after_tests_success $opts"
       if [ $? -ne 0 ]; then sts=$?; fi
@@ -207,23 +207,23 @@ process_yaml_do() {
       local line="$1"
     fi
     if [[ "$line" =~ LINT_CHECK=... ]]; then
-      if [ "$action" == "lint" ]; then
+      if [ "$action" == "force-lint" ]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']0[\"']/LINT_CHECK=\"1\"/g)
-      elif [ "$action" == "test" ]; then
+      elif [ "$action" == "force-test" ]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']1[\"']/LINT_CHECK=\"0\"/g)
       fi
     fi
     if [[ "$line" =~ BASH_CHECK=... ]]; then
-      if [ "$action" == "lint" ]; then
+      if [ "$action" == "force-lint" ]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']0[\"']/BASH_CHECK=\"1\"/g)
-      elif [ "$action" == "test" ]; then
+      elif [ "$action" == "force-test" ]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']1[\"']/BASH_CHECK=\"0\"/g)
       fi
     fi
     if [[ "$line" =~ TESTS=... ]]; then
-      if [ "$action" == "lint" ]; then
+      if [ "$action" == "force-lint" ]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"']1[\"']/TESTS=\"0\"/g)
-      elif [ "$action" == "test" ]; then
+      elif [ "$action" == "force-test" ]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"']0[\"']/TESTS=\"1\"/g)
       fi
     fi
@@ -882,7 +882,7 @@ process_yaml() {
           done
           CURPYVER=$(echo $TRAVIS_PYTHON_VERSION|grep -Eo [0-9]|head -n1)
           [ "$CURPYVER" != "3" ] && PYTHON=python || PYTHON=python3
-          eval $PYTHON --version
+          # eval $PYTHON --version
           if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
             if [ $opt_py3 -ne 0 ]; then
               echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
@@ -903,8 +903,15 @@ process_yaml() {
             fi
             if [[ "$lne1" =~ ODOO_REPO=.[A-Za-z]+ ]]; then
               if [[ ! "$lne1" =~ ODOO_REPO=.$YML_repo. ]]; then
+                wlog "\e[${PS_HDR3_COLOR}mMatrix skipped due invalid repo\e[${PS_TXT_COLOR}m"
                 continue
               fi
+            elif [[ "$action" == "lint" && ! "$lne1" =~ LINT=.1. ]]; then
+              wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the lint action\e[${PS_TXT_COLOR}m"
+              continue
+            elif [[ "$action" == "test" && ! "$lne1" =~ TEST=.1. ]]; then
+              wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the test action\e[${PS_TXT_COLOR}m"
+              continue
             fi
             wlog "\e[${PS_HDR1_COLOR}m===== [Build job $lne1] =====\e[${PS_TXT_COLOR}m"
             create_virtual_env
@@ -1024,15 +1031,15 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: lint, test, emulate (default), setup, chkconfig or parseyaml"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), new_vm, chkconfig or parseyaml"\
   "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
 export PYTHONWARNINGS="ignore"
 [ -z "$action" ] && action=emulate
-ACTIONS="lint test emulate setup chkconfig parseyaml"
-VIRTACTS="lint test emulate"
+ACTIONS="force-lint lint force-test test emulate new_vm chkconfig parseyaml"
+VIRTACTS="force-lint lint force-test test emulate"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
   if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
     :
@@ -1051,7 +1058,50 @@ link_cfg $DIST_CONF $TCONF
 if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
-if [ "$action" == "parseyaml" ]; then
+if [ "$action" == "new_vm" ]; then
+   if [ -z "$sub" ]; then
+     echo "Missed vm name!"
+     echo "use: $0 new_vm VMNAME"
+     exit 1
+   fi
+   # set -x   #debug
+   TRAVIS_CWD=$PWD
+   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+   [[ "${opt_syspkg:-true}" == "true" ]] && export SYSTEM_SITE_PACKAGES=true
+   [[ "${opt_syspkg:-true}" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+   VENV_DIR=$(readlink -f ~/VME/$sub)
+   VENV_TMP=${VENV_DIR}~
+   [ -d $VENV_TMP ] && run_traced "rm -fR $VENV_TMP"
+   if [ $opt_py3 -eq 0 ]; then
+     TRAVIS_PYTHON_VERSION="2.7"
+     PIP=pip
+   else
+     TRAVIS_PYTHON_VERSION="3.5"
+     PIP=pip3
+   fi
+   TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
+   echo "\$ virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP"
+   virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP
+   sts=$?
+   [ $sts -eq 0 ] || exit $sts 
+   LISTREQ=$(which list_requirements.py 2>/dev/null)
+   run_traced "cd $VENV_TMP"
+   echo "\$ source bin/activate"
+   source bin/activate
+   req=$($LISTREQ -PBRT -t python -s" ")
+   req="${req/python=/}"
+   echo $req|tr -d "'"|tr " " "\n" > $HOME/requirements.txt
+   run_traced "$PIP install -r $HOME/requirements.txt --force-reinstall"
+   # run_traced "$PIP install -r $HOME/requirements.txt"
+   echo "\$ deactivate"
+   deactivate
+   cd $TRAVIS_CWD
+   find $VENV_TMP -name "*.pyc" -delete
+   [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
+   run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
+   # set +x   #debug
+   exit $sts
+elif [ "$action" == "parseyaml" ]; then
   # init_travis
   prepare_env_travis "$action"
   check_4_travis
@@ -1103,36 +1153,14 @@ if [ "$action" == "parseyaml" ]; then
   sts=$STS_SUCCESS
   exit $sts
 fi
-if [ "$action" == "setup" ]; then
-  opt_r=0
-  DEF_DEVPATH=$(readlink -f ~/dev)
-  if [ ! -d $DEF_DEVPATH ]; then
-    run_traced mkdir -p $DEF_DEVPATH
-  fi
-  # if [ ! -d $DEF_DEVPATH/_travis ]; then
-  #   run_traced  mkdir -p $DEF_DEVPATH/_travis
-  # fi
-  # if [ ! -d $DEF_DEVPATH/_travis/cfg ]; then
-  #   run_traced mkdir -p $DEF_DEVPATH/_travis/cfg
-  # fi
-  # if [ "$TDIR" != "$DEF_DEVPATH" ]; then
-  #   run_traced cp $TDIR/$THIS $DEF_DEVPATH/$THIS
-  #   for f in travis_run_tests travis_after_tests_success; do
-  #     run_traced cp $TDIR/_travis/$f $DEF_DEVPATH/_travis/$f
-  #   done
-  # fi
-  exit $STS_SUCCESS
+
+if [[ $PWD == $HOME ]]; then
+  echo "Cannot execute travis-ci from home directory!"
+  exit 1
 fi
 
 sts=$STS_SUCCESS
-# init_travis
-if $(echo $PWD|grep -q "/VENV"); then
-  echo "Curent directory is a virtualized environment."
-  echo "Test cannot be executed!"
-  exit 1
-fi
 prepare_env_travis "$action"
-# check_4_travis
 echo -e "\e[0;30;107m$(printf '%-80.80s' ' ')\e[0m"
 if [ $sts -eq $STS_SUCCESS ]; then
   if [ $opt_r -gt 0 ]; then

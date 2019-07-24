@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.13
+#__version__=0.2.2.14
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -377,13 +377,110 @@ drop_test_db() {
     fi
 }
 
+venv_mgr_rename() {
+    local d f mime VENV VIRTUAL_ENV V
+    [ -n "$1" ] && VENV=$(readlink -f $1)
+    [ -n "$2" ] && VIRTUAL_ENV=$(readlink -f $2)
+    if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ "$VENV" == "$VIRTUAL_ENV" ]]; then
+      echo "Source and destination directories are the same!"
+      echo "use: venv_mgr cp|mv VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ ! -d "$VENV" ]]; then
+      echo "Source directory $VENV does not exist!" 
+      exit 1
+    fi
+    if [[ "$3" == "merge" ]]; then
+      if [[ ! -d "$VIRTUAL_ENV" ]]; then
+        echo "Destination directory $VIRTUAL_ENV does not exist!" 
+        exit 1
+      fi
+      for d in bin include lib lib64 .local; do
+        if [ -d "$VENV/$d" ]; then
+          rsync -a $VENV/$d/ $VIRTUAL_ENV/$d/
+        fi
+      done
+      V=$VIRTUAL_ENV
+    else
+      V=$VENV
+    fi
+    # for f in $(find $V/bin $V/lib -type f); do
+    for f in $V/bin/*; do
+      mime=$(file --mime-type -b $f)
+      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+        # echo "sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
+        sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
+      fi
+    done
+    pushd $V >/dev/null
+    if [ -L ./lib64 ]; then
+      rm -f ./lib64
+      ln -s ./lib ./lib64
+    fi
+    sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="'$VIRTUAL_ENV'":g' $PWD/bin/activate
+    if $(grep -q "^export HOME=" $PWD/bin/activate); then
+      sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
+    else
+      sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+      echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+    fi
+    if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
+      if [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
+        echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+      else
+        echo -e "import site\nsite.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+      fi
+    elif [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
+      echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+    fi
+    popd >/dev/null
+}
+
+venv_mgr_test() {
+    local f x
+    cd $1
+    . bin/activate
+    for f in python pip coveralls codecov flake8 pylint; do
+      x=$(readlink -e $(which $f))
+      [[ ! $x =~ ^$1 ]] && echo "Corrupted VME ($f)"
+      eval $f --version
+    done
+    deactivate
+}
+
+venv_mgr() {
+# venv_mgr {cp|mv|merge} VENV NEW_VENV
+    local cmd=$1
+    if [[ "$cmd" == "cp" ]]; then
+      venv_mgr_rename $2 $3
+      cp $2 $3
+      venv_mgr_test $3
+    elif [[ "$cmd" == "mv" ]]; then
+      venv_mgr_rename $2 $3
+      mv $2 $3
+      venv_mgr_test $3
+    elif [[ "$cmd" == "merge" ]]; then
+      venv_mgr_rename $2 $3 merge
+      venv_mgr_test $3
+    else
+      echo "Invalid cmd $1!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+}
+
 custom_env() {
 # custom_env(VENV pyver)
     cd $1
     sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
     if $(grep -q "^export HOME=" $PWD/bin/activate); then
       sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
-      sed -i -e "s|^#.*/bin/python|#\!$PWD/bin/python|g" $PWD/bin/python-config
+      # sed -i -e "s|^#.*/bin/python|#\!$PWD/bin/python|g" $PWD/bin/python-config
     else
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
       [ "$SYSTEM_SITE_PACKAGES" != "true" -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
@@ -391,12 +488,9 @@ custom_env() {
       echo "    [ -x \$f ] && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f">>$PWD/bin/activate
       echo "done">>$PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
-      [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
-      sed -i -e "s:^#\!*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
+      # [[ "$SYSTEM_SITE_PACKAGES" == "true" ]] && echo "[ -d $HOME/tools ] && export PYTHONPATH=$HOME/tools">>$PWD/bin/activate
+      # sed -i -e "s:^#\!*/bin/python:#!$PWD/bin/python:g" $PWD/bin/python-config
     fi
-    # if $(grep -qv \"-f...VIRTUAL_ENV/bin/pip.*sed\" $PWD/bin/activate); then
-    #   echo "[ -f $VIRTUAL_ENV/bin/pip ] && sed -i -e \"s|#\!.*python2.7|#\!\$VIRTUAL_ENV/bin/python2.7|\" \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
-    # fi
     sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
     if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
       if [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
@@ -406,58 +500,6 @@ custom_env() {
       fi
     elif [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
       echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
-    fi
-}
-
-emulate_git_clone_OCB() {
-# emulate_git_clone_OCB(src tgt)
-    local d f
-    local SAVE_COLOR=$PS_RUN_COLOR
-    export PS_RUN_COLOR="1;90;46"
-    run_traced "mkdir -p $2/"
-    valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
-    for d in $1/*; do
-      f=$(basename $d)
-      if [[ " $valid " =~ " $f " ]]; then
-        if [ -d $1/$f ]; then
-          run_traced "cp -R $1/$f/ $2/"
-        else
-          run_traced "cp $1/$f $2"
-        fi
-      fi
-    done
-    export PS_RUN_COLOR=$SAVE_COLOR
-}
-
-git_clone() {
-# emulate git clone
-    local d x
-    while [[ -n "$1" && "${1:0:1}" == "-" ]]; do
-      shift
-    done
-    if [[ "$1" == "https://github.com/zeroincombenze/tools.git" ]]; then
-      if [[ -n "$2" ]]; then
-        d=$(readlink -m $2/..)
-      else
-        d="./"
-      fi
-      run_traced "cp -R $TRAVIS_SAVED_HOME/tools $d"
-      if [[ -n "$YML_lisa" ]]; then
-        x=$(dirname $YML_lisa)
-        run_traced "rsync -a $x/ $HOME/tools/lisa/"
-      fi
-      if [[ -n "$YML_mgrodoo" ]]; then
-        x=$(dirname $YML_mgrodoo)
-        run_traced "rsync -a $x/ $HOME/tools/clodoo/"
-      fi
-      if [ $opt_dbgmnt -ne 0 ]; then
-        run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
-        run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis/ $HOME/tools/maintainer-quality-tools/_travis/"
-        x=${TRAVIS_REPO_SLUG#*/}
-        if [ -n "$x" -a -d $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ ]; then 
-          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ $HOME/tools/$x/"
-        fi
-      fi
     fi
 }
 
@@ -504,14 +546,15 @@ create_virtual_env() {
       echo -en "\e[${PS_RUN_COLOR}m"
       if [ ${opt_cache:-0} -ne 0 -a -n "${VER}" -a -d "$TRAVIS_SAVED_HOME/VME/VME${VER}" ]; then
         echo "# .. loading stored packages from VME${VER} ..."
-        for d in bin include lib lib64 .local; do
-          if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}/$d" ]; then
-            [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
-            run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VER}/$d $TRAVIS_HOME/"
-          fi
-        done
+        run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME${VER} $TRAVIS_HOME"
+        # for d in bin include lib lib64 .local; do
+        #   if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}/$d" ]; then
+        #     [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
+        #     run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VER}/$d $TRAVIS_HOME/"
+        #   fi
+        # done
       fi
-      custom_env "$TRAVIS_HOME" "$TRAVIS_PYTHON_VERSION"
+      # custom_env "$TRAVIS_HOME" "$TRAVIS_PYTHON_VERSION"
       source bin/activate
       # FIX
       # pip install flake8
@@ -580,11 +623,62 @@ wash_virtual_env() {
     hash -r
 }
 
+emulate_git_clone_OCB() {
+# emulate_git_clone_OCB(src tgt)
+    local d f
+    local SAVE_COLOR=$PS_RUN_COLOR
+    export PS_RUN_COLOR="1;90;46"
+    run_traced "mkdir -p $2/"
+    valid="addons babel.cfg bin CONTRIBUTING.md COPYRIGHT debian doc gen_translations.sh gunicorn.conf.py LICENSE logging.json Makefile MANIFEST.in npybabel.py odoo odoo.py odoo-bin openerp openerp-cron-worker openerp-gevent openerp-server openerp-web openerp-web.cfg openerp-wsgi.py README.md requirements.txt server setup setup.cfg setup.py win32"
+    for d in $1/*; do
+      f=$(basename $d)
+      if [[ " $valid " =~ " $f " ]]; then
+        if [ -d $1/$f ]; then
+          run_traced "cp -R $1/$f/ $2/"
+        else
+          run_traced "cp $1/$f $2"
+        fi
+      fi
+    done
+    export PS_RUN_COLOR=$SAVE_COLOR
+}
+
+git_clone() {
+# emulate git clone
+    local d x
+    while [[ -n "$1" && "${1:0:1}" == "-" ]]; do
+      shift
+    done
+    if [[ "$1" == "https://github.com/zeroincombenze/tools.git" ]]; then
+      if [[ -n "$2" ]]; then
+        d=$(readlink -m $2/..)
+      else
+        d="./"
+      fi
+      run_traced "cp -R $TRAVIS_SAVED_HOME/tools $d"
+      if [[ -n "$YML_lisa" ]]; then
+        x=$(dirname $YML_lisa)
+        run_traced "rsync -a $x/ $HOME/tools/lisa/"
+      fi
+      if [[ -n "$YML_mgrodoo" ]]; then
+        x=$(dirname $YML_mgrodoo)
+        run_traced "rsync -a $x/ $HOME/tools/clodoo/"
+      fi
+      if [ $opt_dbgmnt -ne 0 ]; then
+        run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
+        run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis/ $HOME/tools/maintainer-quality-tools/_travis/"
+        x=${TRAVIS_REPO_SLUG#*/}
+        if [ -n "$x" -a -d $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ ]; then 
+          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ $HOME/tools/$x/"
+        fi
+      fi
+    fi
+}
+
 prepare_env_travis() {
     local action="$1"
     local v x
-    # if [[ $action =~ (lint|test|emulate|test|coverage) ]]; then
-    if [[ $action =~ (lint|test|emulate|test) ]]; then
+    if [[ $action =~ (force-lint|lint|force-test|test|emulate|test) ]]; then
       if [ -n "$TOOLS_PATH" ]; then
         if [ ${opt_r:-0} -gt 0 ]; then
           if [[ ! :$PATH: =~ :$TOOLS_PATH: ]]; then
@@ -601,9 +695,9 @@ prepare_env_travis() {
     export NPM_CONFIG_PREFIX=$NPM_CONFIG_PREFIX
     export BRANCH
     [ -z "$VERSION" ] && export VERSION=$BRANCH
-    if [ "$action" == "lint" ]; then
+    if [ "$action" == "force-lint" ]; then
       export LINT_CHECK=1
-    elif [ "$action" == "test" ]; then
+    elif [ "$action" == "force-test" ]; then
       export LINT_CHECK=0
     fi
     if [ "$PRJNAME" == "Odoo" ]; then

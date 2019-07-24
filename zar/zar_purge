@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32.5
+__version__=1.3.32.6
 
 
 OPTOPTS=(h        c        e      K        k          l       m          n            T         U          V           v)
@@ -126,12 +126,8 @@ if [ $dovalid -gt 0 ]; then
         fi
         dd=${dtc: -2}
         if [ $dd -ne 1 -a $dtc -lt $mindate_r ] || [ $dd -eq 1 -a $dtc -lt $mindate_a ]; then
-          if [ $opt_dry_run -gt 0 ]; then
-            if [ ${test_mode:-0} -ne 0 ]; then
-              wlog "File $fn should be deleted!"
-            else
-              echo "File $fn should be deleted!"
-            fi
+          if [ $opt_dry_run -gt 0 -a ${test_mode:-0} -eq 0 ]; then
+            echo "File $fn should be deleted!"
           else
             wlog "File $fn deleted!"
             rm -f $fn

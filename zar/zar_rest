@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32.5
+__version__=1.3.32.6
 
 
 kill_process() {
@@ -208,7 +208,7 @@ get_sqlfname() {
     fi
     if [ ! -f $SQLFNAME ]; then
       wlog "No file $SQLFNAME found!"
-      passed="$passed $NEWDB $dtdb"
+      passed="$passed $NEWDB-$dtdb"
       SQLFNAME=
     fi
 }
@@ -416,7 +416,7 @@ if [ $dovalid -gt 0 ]; then
     if [ "$BCK_ENV" == "PRD" ]; then
       for NEWDB in ${NEWDBS//,/ }; do
         for ND in ${NDAYSB//,/ }; do
-          if [[ " $passed " =~ [[:space:]]$NEWDB[[:space:]] ]]; then
+          if [[ " $passed " =~ [[:space:]]$NEWDB- ]]; then
             continue
           fi
           if [ -z "$opt_name" ]; then
@@ -428,7 +428,7 @@ if [ $dovalid -gt 0 ]; then
             else
               dtdb=$(date -d yesterday +"%Y%m%d")
             fi
-            if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+            if [[ " $passed " =~ [[:space:]]$NEWDB-$dtdb[[:space:]] ]]; then
               continue
             fi
           else
@@ -464,7 +464,7 @@ if [ $dovalid -gt 0 ]; then
           else
             dtdb=$(date -d today +"%Y%m%d")
           fi
-          if [[ " $passed " =~ [[:space:]]$dtdb[[:space:]] ]]; then
+          if [[ " $passed " =~ [[:space:]]${db}-$dtdb[[:space:]] ]]; then
             continue
           fi
         else
@@ -476,10 +476,10 @@ if [ $dovalid -gt 0 ]; then
           wlog "Restored DBs are set for test because Development Host"
         fi
         get_sqlfname "$db" $dtdb
-        if [ -z "$SQLFNAME" ]; then
-          continue
-        fi
         if [ -n "$opt_name" ]; then
+          break
+        fi
+        if [ -n "$SQLFNAME" ]; then
           break
         fi
       done
@@ -513,7 +513,7 @@ if [ $dovalid -gt 0 ]; then
     if [ -n "$opt_name" ]; then
       break
     fi
-    passed="$passed $NEWDB $dtdb"
+    passed="$passed $NEWDB-$dtdb"
   done
   popd >/dev/null
   find $DBCKDIR -name "*.err" -size 0 -delete

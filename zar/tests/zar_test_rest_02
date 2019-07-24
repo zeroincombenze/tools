@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=1.3.32.5
+__version__=1.3.32.6
 
 
 test_01() {
@@ -42,44 +42,56 @@ test_01() {
     else
       RES=
     fi
-    test_result "rest test log" "$OUTF" "$RES"
+    test_result "zar_rest -T (found log)" "$OUTF" "$RES"
     return $?
 }
 
 test_02() {
     local RES TRES
     if [ -f $OUTF ]; then
-      grep "DB to Restore: zi01234567" $OUTF  &>/dev/null
-      RES=$?
+      for db in zi01234567; do
+        grep "DB to Restore: .*$db" $OUTF  &>/dev/null
+        RES=$?
+        test_result "zar_rest -T (found db $db in log file)" "0" "$RES"
+      done
     else
       RES=1
     fi
-    test_result "rest list" "0" "$RES"
     return $?
 }
 
 test_03() {
     local RES TRES
     if [ -f $OUTF ]; then
-      local dtc=$(date +%Y%m%d)
-      grep -q "File .*/zi01234567-$dtc.sql .* zi01234567" <<< $OUT &>/dev/null
-      RES=$?
+      for db in zi01234567; do
+        local dtc=$(date +%Y%m%d)
+        grep -q "File .*/${db}-$dtc.sql .* $db" <<< $OUT &>/dev/null
+        RES=$?
+        test_result "zar_rest -T (found 'into' db in log)" "0" "$RES"
+      done
     else
       RES=1
     fi
-    test_result "restore into" "0" "$RES"
     return $?
 }
 
 Z0BUG_setup() {
+    local i db dtc tod dd
+    Z0BUG_build_os_tree "backups"
     rm -f $TESTDIR/restdb.log
-    rm -f $TESTDIR/backups/*.sql
+    rm -f $TESTDIR/res/backups/*.sql
     local tod=$(date +%Y%m%d)
-    touch $TESTDIR/backups/zi01234567-$tod.sql
-    touch $TESTDIR/backups/zi01234567.err
+    for db in zi01234567 zi01234589; do
+      touch $TESTDIR/res/backups/${db}-$tod.sql
+      # touch $TESTDIR/res/backups/${db}.err
+      for i in {10..8}; do
+          dtc=$(date -d "today - $i day" +%Y%m%d)
+          touch $TESTDIR/res/backups/${db}-$dtc.sql
+      done
+    done
     local CONFN=$TESTDIR/zar.conf
     cat <<EOF >$CONFN
-DBA_filter=zi01234567
+DBA_filter=zi0123
 DBA_keep_recent=7
 DBA_keep_monthly=3
 development_host=$HOSTNAME
@@ -99,7 +111,31 @@ EOF
 
 
 Z0BUG_teardown() {
-    :
+    [ ${opt_dry_run:-0} -eq 0 ] && Z0BUG_remove_os_tree "backups"
+}
+
+
+Z0BUG_build_os_tree() {
+    local p path os_tree root
+    os_tree="${1//,/ }"
+    root=$TESTDIR/res
+    [ ! -d "$root" ] && mkdir -p $root
+    for p in $os_tree; do
+      [[ ${p:0} =~ [./] ]] && path=$p || path=$root/$p
+      [ ! -d $path ] && mkdir -p $path
+    done
+}
+
+Z0BUG_remove_os_tree() {
+    local p path os_tree root
+    os_tree="${1//,/ }"
+    root=$TESTDIR/res
+    [ ! -d "$root" ] && return
+    for p in $os_tree; do
+      [[ ${p:0} =~ [./] ]] && path=$p || path=$root/$p
+      [ ! -d $path ] && continue
+      rm -fR $path
+    done
 }
 
 
