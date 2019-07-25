@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=1.3.32.6
+__version__=1.3.32.7
 
 
 kill_process() {
@@ -91,7 +91,7 @@ stop_services() {
     fi
     SVCS2="$(get_cfg_value 0 services_2_restart)"
     if [ -z "$SVCS2" ]; then
-      SVCS2="ir_mail_server base_action_rule"
+      SVCS2="base_action_rule"
     else
       SVCS2=${SVCS2//,/ }
     fi
@@ -208,7 +208,7 @@ get_sqlfname() {
     fi
     if [ ! -f $SQLFNAME ]; then
       wlog "No file $SQLFNAME found!"
-      passed="$passed $NEWDB-$dtdb"
+      passed="$passed $NEWDB-$dtdb ${db}-$dtdb"
       SQLFNAME=
     fi
 }
@@ -218,15 +218,16 @@ create_script_db_2_restore() {
     local NEWDB="$1"
     local fsql=$2
     local dtc=$(date "+%Y-%m-%d %H:%M:%S")
-    local owner=
-    wlog "Prepare file script $fsql ..."
+    wlog "Prepare file script $fsql from $SQLFNAME ..."
     if [ -n "$ORIGINAL_OWN" -a $ORIGINAL_OWN -ne 0 ]; then
-      owner=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z0-9_]+"|head -n1|awk -F: '{print $2}')
-      owner=$(echo $owner)
-      reass_own=0
+      NEW_OWNER=$(head $SQLFNAME -n100|grep -Eo "Owner: *[a-zA-Z0-9_]+"|head -n1|awk -F: '{print $2}')
+      NEW_OWNER=$(echo $NEW_OWNER)
+      OLD_OWNER=$opt_user
+      # reass_own=0
     else
-      owner=$OE_OWN
-      reass_own=1
+      NEW_OWNER=$OE_OWN
+      # OLD_OWNER=$PRD_OE_OWN
+      OLD_OWNER=$opt_user
     fi
     echo "\\c postgres">$fsql
     echo "\\echo Creating new DB \"$NEWDB\" ($dtc)">>$fsql
@@ -235,12 +236,12 @@ create_script_db_2_restore() {
     echo "\\c \"$NEWDB\"">>$fsql
     echo "\\echo Loading data from $SQLFNAME into DB \"$NEWDB\"">>$fsql
     echo "\\i $SQLFNAME">>$fsql
-    echo "\\echo Set owner of \"$NEWDB\" to $owner;">>$fsql
-    echo "ALTER DATABASE \"$NEWDB\" OWNER TO $owner;">>$fsql
-    if [ $reass_own -ne 0 -a "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
-      echo "\\echo Reassign owner from $PRD_OE_OWN to $owner">>$fsql
-      echo "REASSIGN OWNED BY $PRD_OE_OWN TO $DEV_OE_OWN;">>$fsql
-    fi
+    # echo "\\echo Set NEW_OWNER of \"$NEWDB\" to $NEW_OWNER;">>$fsql
+    # echo "ALTER DATABASE \"$NEWDB\" OWNER TO $NEW_OWNER;">>$fsql
+    # if [ $reass_own -ne 0 -a "$PRD_OE_OWN" != "$DEV_OE_OWN" ]; then
+    #   echo "\\echo Reassign owner from $PRD_OE_OWN to $NEW_OWNER">>$fsql
+    #   echo "REASSIGN OWNED BY $PRD_OE_OWN TO $DEV_OE_OWN;">>$fsql
+    # fi
 }
 
 inherit_options() {
@@ -412,13 +413,16 @@ passed=""
 if [ $dovalid -gt 0 ]; then
   pushd $DBCKDIR >/dev/null
   for db in $dblist; do
+    # if [[ " $passed " =~ [[:space:]]${db}- ]]; then
+    #   continue
+    # fi
     set_db_vars "$db"
     if [ "$BCK_ENV" == "PRD" ]; then
       for NEWDB in ${NEWDBS//,/ }; do
         for ND in ${NDAYSB//,/ }; do
-          if [[ " $passed " =~ [[:space:]]$NEWDB- ]]; then
-            continue
-          fi
+          # if [[ " $passed " =~ [[:space:]]$NEWDB- ]]; then
+          #   continue
+          # fi
           if [ -z "$opt_name" ]; then
             if [[ $ND =~ [0-9]{8} ]]; then
               dtdb=$ND
@@ -428,7 +432,7 @@ if [ $dovalid -gt 0 ]; then
             else
               dtdb=$(date -d yesterday +"%Y%m%d")
             fi
-            if [[ " $passed " =~ [[:space:]]$NEWDB-$dtdb[[:space:]] ]]; then
+            if [[ " $passed " =~ [[:space:]]${db}-$dtdb[[:space:]] || " $passed " =~ [[:space:]]$NEWDB-$dtdb[[:space:]] ]]; then
               continue
             fi
           else
@@ -448,8 +452,9 @@ if [ $dovalid -gt 0 ]; then
           if [ "$NEWDB" == "$DBSEL" -a "$dtdb" != "00000000" ]; then
             backup_db $DBSEL
           fi
+          break
         done
-        if [ -n "$opt_name" ]; then
+        if [[ -n "$opt_name" || -n "$SQLFNAME" ]]; then
           break
         fi
       done
@@ -476,10 +481,7 @@ if [ $dovalid -gt 0 ]; then
           wlog "Restored DBs are set for test because Development Host"
         fi
         get_sqlfname "$db" $dtdb
-        if [ -n "$opt_name" ]; then
-          break
-        fi
-        if [ -n "$SQLFNAME" ]; then
+        if [[ -n "$opt_name" || -n "$SQLFNAME" ]]; then
           break
         fi
       done
@@ -493,9 +495,10 @@ if [ $dovalid -gt 0 ]; then
         wlog "Should start restore $NEWDB"
       fi
       run_traced "pg_db_active -k"
-      run_traced "pg_db_active -wa $db; dropdb --if-exists -U$opt_user $NEWDB"
+      run_traced "pg_db_active -wa $NEWDB; dropdb --if-exists -U$opt_user $NEWDB"
       [ $opt_dry_run -eq 0 ] && eval $TDIR/$THIS -R "$NEWDB" &
       run_traced "psql -U$opt_user -d postgres -f $fsql -o $NEWDB.log 2>$NEWDB.err"
+      run_traced "reassign_owner \"$NEWDB\" \"$OLD_OWNER\" \"$NEW_OWNER\""
       if [ $opt_dry_run -eq 0 ]; then
         if [ $opt_mail -gt 0 ]; then
           stop_services "$NEWDB" "quick"
@@ -513,7 +516,7 @@ if [ $dovalid -gt 0 ]; then
     if [ -n "$opt_name" ]; then
       break
     fi
-    passed="$passed $NEWDB-$dtdb"
+    passed="$passed $NEWDB-$dtdb ${db}-$dtdb"
   done
   popd >/dev/null
   find $DBCKDIR -name "*.err" -size 0 -delete

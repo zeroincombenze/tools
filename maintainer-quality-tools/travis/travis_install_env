@@ -261,7 +261,6 @@ if [ -d $HOME/dev ]; then
       PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
     fi
     [ -n "$PYLIB" ] && run_traced "cp $HOME/dev/sitecustomize.py $PYLIB"
-    # [ -z "$PYLIB" ] && run_traced "cp $HOME/dev/sitecustomize.py $(dirname $(which pip))"
   else
     echo "Warning! File $HOME/dev/sitecustomize.py not found!"
   fi

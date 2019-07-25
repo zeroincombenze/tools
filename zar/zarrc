@@ -5,7 +5,7 @@
 # This software is free software under GNU Affero GPL3
 # Bash general purpose library
 #
-#__version__=1.3.32.6
+#__version__=1.3.32.7
 
 detached_login() {
 # detached_login([path] [path2] [path3])
@@ -200,11 +200,13 @@ init_vars() {
       fi
       x=DB$sfx
       XDB=${!x}
-      if [ -z "$XDB" ]; then
-        eval DB$sfx="'$(get_cfg_value 0 DB${sfx}_filter)'"
-        eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
-        eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
-      fi
+      x=NC${sfx}
+      XNC=${!x}
+      x=NA${sfx}
+      XNA=${!x}
+      [ -z "$XDB" ] && eval DB$sfx="'$(get_cfg_value 0 DB${sfx}_filter)'"
+      [ -z "$XNC" ] && eval NC$sfx="$(get_cfg_value 0 DB${sfx}_keep_recent)"
+      [ -z "$XNA" ] && eval NA$sfx="$(get_cfg_value 0 DB${sfx}_keep_monthly)"
       if [ "$ACTION" != "restdb" ] && [ -n "$dbsel" -o  ${opt_ex:-0} -ne 0 ]; then
         x=DB$sfx
         XDB=${!x}
@@ -271,7 +273,7 @@ set_db_vars() {
       XNC=${!x}
       x=NA${sfx}
       XNA=${!x}
-      if [ -n "$XDB" ] && [[ $db =~ $XDB ]]; then
+      if [[ -n "$XDB" && $db =~ $XDB ]]; then
         break
       fi
    done
@@ -476,4 +478,39 @@ create_db_list_from_file() {
       fi
     done
     echo "$dblist"
+}
+
+reassign_owner() {
+# reassign_owner(db old new)
+    if [ -z "$1" -o -z "$3" ]; then
+      echo $0 DB OLD_OWNER NEW_OWNER
+      exit 1
+    fi
+    local DB=$1
+    local OLD_OWNER=$2
+    local NEW_OWNER=$3
+    local tbl
+    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON DATABASE $DB TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'ALTER DATABASE $DB OWNER TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO $NEW_OWNER' $DB"
+    run_traced "psql -Upostgres -qc 'ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO $NEW_OWNER' $DB"
+    if [ $opt_dry_run -eq 0 ]; then
+      [ $opt_verbose -gt 0 ] && echo "Reassigning all tables ..."
+      for tbl in $(psql -Upostgres -qAtc "select tablename from pg_tables where schemaname = 'public'" $DB); do
+        psql -Upostgres -qc "ALTER TABLE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+      done
+      for tbl in $(psql -Upostgres -qAtc "select sequence_name from information_schema.sequences where sequence_schema = 'public'" $DB); do
+        psql -Upostgres -qc "ALTER SEQUENCE \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON SEQUENCE \"$tbl\" TO $NEW_OWNER" $DB
+      done
+      for tbl in $(psql -qAtc "select table_name from information_schema.views where table_schema = 'public'" $DB); do
+        psql -Upostgres -qc "ALTER VIEW \"$tbl\" OWNER TO $NEW_OWNER" $DB
+        psql -Upostgres -qc "GRANT ALL PRIVILEGES ON TABLE \"$tbl\" TO $NEW_OWNER" $DB
+      done
+    fi
+    [ -n "$OLD_OWNER" ] && run_traced "psql -Upostgres -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
 }

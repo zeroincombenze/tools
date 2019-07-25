@@ -377,7 +377,28 @@ drop_test_db() {
     fi
 }
 
+venv_mgr_install_pkg() {
+#venv_mgr_install_pkg(VENV PKG)
+    local VENV PKG
+    [ -n "$1" ] && VENV=$(readlink -f $1)
+    PKG=$2
+    if [[ -z "$VENV" || -z "$PKG" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr_install_pkg VENV PKG"
+      exit 1
+    fi
+    if [[ ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    cd $VENV/bin/activate
+    . ./bin/activate
+    pip install $PKG --upgrade --no-warn-conflicts --disable-pip-version-check
+    deactivate
+}
+
 venv_mgr_rename() {
+#venv_mgr_rename(VENV NEW_VENV [merge])
     local d f mime VENV VIRTUAL_ENV V
     [ -n "$1" ] && VENV=$(readlink -f $1)
     [ -n "$2" ] && VIRTUAL_ENV=$(readlink -f $2)
@@ -388,16 +409,16 @@ venv_mgr_rename() {
     fi
     if [[ "$VENV" == "$VIRTUAL_ENV" ]]; then
       echo "Source and destination directories are the same!"
-      echo "use: venv_mgr cp|mv VENV NEW_VENV"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
       exit 1
     fi
-    if [[ ! -d "$VENV" ]]; then
-      echo "Source directory $VENV does not exist!" 
+    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
       exit 1
     fi
     if [[ "$3" == "merge" ]]; then
-      if [[ ! -d "$VIRTUAL_ENV" ]]; then
-        echo "Destination directory $VIRTUAL_ENV does not exist!" 
+      if [[ ! -d $VIRTUAL_ENV  || ! -d $VIRTUAL_ENV/bin || ! -f $VIRTUAL_ENV/bin/activate ]]; then
+        echo "Invalid destination virtual env $VIRTUAL_ENV!"
         exit 1
       fi
       for d in bin include lib lib64 .local; do
@@ -409,7 +430,6 @@ venv_mgr_rename() {
     else
       V=$VENV
     fi
-    # for f in $(find $V/bin $V/lib -type f); do
     for f in $V/bin/*; do
       mime=$(file --mime-type -b $f)
       if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
@@ -442,8 +462,19 @@ venv_mgr_rename() {
 }
 
 venv_mgr_test() {
-    local f x
-    cd $1
+#venv_mgr_test(VENV)
+    local f x VENV
+    [ -n "$1" ] && VENV=$(readlink -f $1)
+    if [[ -z "$VENV" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    cd $VENV
     . bin/activate
     for f in python pip coveralls codecov flake8 pylint; do
       x=$(readlink -e $(which $f))

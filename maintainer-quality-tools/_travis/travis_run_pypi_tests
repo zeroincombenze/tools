@@ -141,11 +141,14 @@ run_regression_test() {
       fi
       run_traced "COVERAGE_PROCESS_START=$(readlink -f .coveragerc)"
       COVERAGE_PROCESS_START=$(readlink -f .coveragerc)
-      cat <<EOF >$COVERAGE_PROCESS_START
+      if [ ! -f $COVERAGE_PROCESS_START ]; then
+        cat <<EOF >$COVERAGE_PROCESS_START
+# Config file .coveragerc 2019-07-19
+
 [report]
 include =
-#    ${TRAVIS_BUILD_DIR}/*
-    *.py
+    */${TRAVIS_BUILD_DIR}/*
+    # *.py
 
 omit =
     */scenario/*
@@ -155,8 +158,7 @@ omit =
     *_example/*
     __main__.py
     setup.py
-    */lib*/python[23]
-    # */__init__.py
+    */lib*/python*/*
     */__openerp__.py
     */__manifest__.py
 # Regexes for lines to exclude from consideration
@@ -182,7 +184,9 @@ exclude_lines =
 
     # Ignore unit test failure
     return TEST_FAILED
+
 EOF
+      fi
       if [[ -f ./tests/all_tests && ${opt_pyth:-0} -eq 0 || ! -f ./tests/test_$PRJNAME.py ]]; then
         if [ ${opt_dprj:-0} -gt 0 ]; then
           run_traced "./tests/all_tests $OPTS -1"
@@ -264,6 +268,7 @@ fi
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
+
 
 opts_travis
 CFG_init

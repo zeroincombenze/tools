@@ -163,7 +163,6 @@ process_yaml_init() {
     export MQT_TEMPLATE_DB="openerp_template$YML_pid"
     export MQT_TEST_DB="openerp_test$YML_pid"
     python_matrix=
-    # export TRAVIS_PYTHON_VERSION=2.7
     if [ $opt_dbgmnt -ne 0 ]; then
       export YML_lisa=$HOME/dev/pypi/lisa/lisa/lisa
       export YML_mgrodoo=$HOME/dev/pypi/clodoo/clodoo/manage_odoo
@@ -207,23 +206,23 @@ process_yaml_do() {
       local line="$1"
     fi
     if [[ "$line" =~ LINT_CHECK=... ]]; then
-      if [ "$action" == "force-lint" ]; then
+      if [[ $action =~ (force-lint|lint) ]]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']0[\"']/LINT_CHECK=\"1\"/g)
-      elif [ "$action" == "force-test" ]; then
+      elif [[ $action =~ (force-test|test) ]]; then
         line=$(echo "$line"|sed -e s/LINT_CHECK=[\"']1[\"']/LINT_CHECK=\"0\"/g)
       fi
     fi
     if [[ "$line" =~ BASH_CHECK=... ]]; then
-      if [ "$action" == "force-lint" ]; then
+      if [[ $action =~ (force-lint|lint) ]]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']0[\"']/BASH_CHECK=\"1\"/g)
-      elif [ "$action" == "force-test" ]; then
+      elif [[ $action =~ (force-test|test) ]]; then
         line=$(echo "$line"|sed -e s/BASH_CHECK=[\"']1[\"']/BASH_CHECK=\"0\"/g)
       fi
     fi
     if [[ "$line" =~ TESTS=... ]]; then
-      if [ "$action" == "force-lint" ]; then
+      if [[ $action =~ (force-lint|lint) ]]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"']1[\"']/TESTS=\"0\"/g)
-      elif [ "$action" == "force-test" ]; then
+      elif [[ $action =~ (force-test|test) ]]; then
         line=$(echo "$line"|sed -e s/TESTS=[\"']0[\"']/TESTS=\"1\"/g)
       fi
     fi
@@ -246,7 +245,6 @@ process_yaml_do() {
     fi
     if [ "$YML_sect" == "python" ]; then
       python_matrix="$python_matrix $lne"
-      # export TRAVIS_PYTHON_VERSION=$lne
       lne="#"
     elif [ "$YML_sect" == "addons.apt.packages" ]; then
       YML_packages="$YML_packages $lne"
@@ -909,7 +907,7 @@ process_yaml() {
             elif [[ "$action" == "lint" && ! "$lne1" =~ LINT=.1. ]]; then
               wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the lint action\e[${PS_TXT_COLOR}m"
               continue
-            elif [[ "$action" == "test" && ! "$lne1" =~ TEST=.1. ]]; then
+            elif [[ "$action" == "test" && ! "$lne1" =~ TESTS=.1. ]]; then
               wlog "\e[${PS_HDR3_COLOR}mMatrix skipped because does not match the test action\e[${PS_TXT_COLOR}m"
               continue
             fi
@@ -1064,7 +1062,6 @@ if [ "$action" == "new_vm" ]; then
      echo "use: $0 new_vm VMNAME"
      exit 1
    fi
-   # set -x   #debug
    TRAVIS_CWD=$PWD
    TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
    [[ "${opt_syspkg:-true}" == "true" ]] && export SYSTEM_SITE_PACKAGES=true
@@ -1099,7 +1096,6 @@ if [ "$action" == "new_vm" ]; then
    find $VENV_TMP -name "*.pyc" -delete
    [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
    run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
-   # set +x   #debug
    exit $sts
 elif [ "$action" == "parseyaml" ]; then
   # init_travis
