@@ -26,6 +26,7 @@ services:
   - postgresql
 
 addons:
+  postgresql: "9.5"
   apt:
     sources:
 #      - pov-wkhtmltopdf

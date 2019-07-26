@@ -7,7 +7,7 @@ if [[ $1 =~ -.*h ]]; then
   echo "  -h  this help"
   echo "  -p  mkdir $HOME/dev if not exists"
   echo "  -q  quiet mode"
-  echo "  -S  set sitecustomize.py"
+  # echo "  -S  set sitecustomize.py"
   echo "  -v  more verbose"
   exit 0
 fi
