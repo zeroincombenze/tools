@@ -283,6 +283,7 @@ class Test():
 
     def test_01(self, z0ctx):
         sts = TEST_SUCCESS
+        travis_debug_mode = eval(os.environ.get('TRAVIS_DEBUG_MODE', '0'))
         if not z0ctx['dry_run']:
             travis_home = os.environ.get("HOME", os.path.expanduser("~"))
             print('Odoo repo=%s' % self.odoo_full)
@@ -312,7 +313,12 @@ class Test():
             # run_odoo_cmd(cmd_odoo)
             prc = Process(target=run_odoo_cmd, args=(cmd_odoo,))
             prc.start()
-            time.sleep(3)
+            if os.environ.get('TRAVIS', '') == 'true':
+                time.sleep(6)
+            else:
+                time.sleep(3)
+            if travis_debug_mode >= 2:
+                pass
             self.uid, self.ctx = clodoo.oerp_set_env(
                 db=self.db,
                 ctx={'oe_version': '*',
@@ -333,7 +339,7 @@ class Test():
         sts = self.Z.test_result(z0ctx,
                                  "new_db(%s)" % self.db,
                                  TEST_SUCCESS,
-                                sts)
+                                 sts)
         if not z0ctx['dry_run']:
             res = self.check_4_db(self.db)
         else:
@@ -475,7 +481,7 @@ class Test():
                 RES = clodoo.get_val_from_field(ctx, model, rec,
                                                 'field_id', format='cmd')
             else:
-                RES = [(6, 9, record_list)]
+                RES = [(6, 0, record_list)]
             sts = self.Z.test_result(z0ctx,
                                      'ir_model[field_id] (cmd)',
                                      [(6, 0, record_list)],

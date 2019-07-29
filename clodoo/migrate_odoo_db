@@ -85,6 +85,118 @@ reassign_owner() {
     [ -n "$OLD_OWNER" ] && run_traced "psql -Upostgres -qc 'GRANT $OLD_OWNER TO $NEW_OWNER;' $DB"
 }
 
+load_openupgrade() {
+# load_openupgrade(ver)
+    local odoo_fver=$1 x ver
+    if [[ -d $opt_oupath && -d $opt_oupath/scripts ]]; then
+      if [[ -d $opt_oupath/odoo && -f $opt_oupath/odoo/release.py ]]; then
+        pushd $opt_oupath/odoo > /dev/null
+      elif [[ -d $opt_oupath/openerp && -f $opt_oupath/openerp/release.py ]]; then
+        pushd $opt_oupath/openerp > /dev/null
+      fi
+      x=$(echo -e "from __future__ import print_function\nimport release\nprint(release.version)\n"|python)
+      ver=$(get_odoo_full_ver "$x")
+      popd &>/dev/null
+    fi
+    if [[ ! -d $opt_oupath || ! -x $opt_oupath/scripts/migrate.py || ! "$ver" == "$odoo_fver" ]]; then
+      pushd $(dirname $opt_oupath) > /dev/null
+      [[ -d $opt_oupath ]] && rm -fR $opt_oupath
+      run_traced "git clone https://github.com/OCA/openupgrade.git $opt_oupath --depth 1 -b $odoo_fver"
+      popd > /dev/null
+    fi
+    if [ ! -x $opt_oupath/scripts/migrate.py ]; then
+      echo "Package openupgrade not found in $opt_oupath"
+      echo "Please type following lines to install:"
+      echo "cd $HOME"
+      echo "git clone https://github.com/OCA/openupgrade.git openupgrade/ --depth 1 -b $odoo_fver"
+      exit 1
+    fi
+}
+
+add_versioned_tnl() {
+    local tgt_fver=$(build_odoo_param FULLVER $tgt_vid)
+    cd $opt_oupath
+    cat << EOF > $TDIR/migrate_odoo_db_add_tnl.py
+import sys
+sys.path.append('')
+sys.path.append('$TDIR')
+import transodoo
+import openerp.addons.openupgrade_records.lib.apriori as apriori
+VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
+ctx = {}
+transodoo.read_stored_dict(ctx)
+
+
+def add_tnl_item(ctx, model, module, new_module, type=False):
+    tnl = transodoo.translate_from_to(ctx, model, module, '$src_fver','$tgt_fver', type=type)
+    if tnl != new_module:
+        ver_names = {}
+        name = module
+        for ver in VERSIONS:
+            if ver == '$tgt_fver':
+                name = new_module
+            ver_names[ver] = name
+        uname = transodoo.set_uname(typ, name, [ver_names[x] for x in VERSIONS])
+        for ver in VERSIONS:
+            ctx['mindroot']  = transodoo.link_versioned_name(
+                ctx['mindroot'],
+                model,
+                uname,
+                typ,
+                ver_names[ver],
+                ver)
+    return ctx
+
+model = 'ir.module.module'
+if hasattr(apriori, 'renamed_modules'):
+    typ = 'module'
+    for module in apriori.renamed_modules:
+        new_module = apriori.renamed_modules[module]
+        ctx = add_tnl_item(ctx, model, module, new_module, type=typ)
+if hasattr(apriori, 'merged_modules'):
+    typ = 'merge'
+    for item in apriori.merged_modules:
+        module = item[0]
+        new_module = item[1]
+        ctx = add_tnl_item(ctx, model, module, new_module, type=typ)
+if hasattr(apriori, 'renamed_models'):
+    model = 'ir.model'
+    typ = 'model'
+    for item in apriori.renamed_models:
+        module = item[0]
+        new_module = item[1]
+        ctx = add_tnl_item(ctx, model, module, new_module, type=typ)
+
+transodoo.write_stored_dict(ctx)
+EOF
+    python $TDIR/migrate_odoo_db_add_tnl.py
+}
+translate_ml() {
+#translate_ml(ML)
+    local tgt_fver=$(build_odoo_param FULLVER $tgt_vid)
+    cd $opt_oupath
+    cat << EOF > $TDIR/migrate_odoo_db_tnl_ml.py
+import sys
+sys.path.append('$TDIR')
+import transodoo
+
+ctx = {}
+transodoo.read_stored_dict(ctx)
+
+ML = '$1'.split(',')
+NEW_ML = []
+model = 'ir.module.module'
+for item in ML:
+    tnl = transodoo.translate_from_to(ctx, model, item, '$src_fver','$tgt_fver', type='module')
+    if tnl == item:
+        tnl = transodoo.translate_from_to(ctx, model, item, '$src_fver','$tgt_fver', type='merge')
+    NEW_ML.append(tnl)
+
+print ','.join(NEW_ML)
+EOF
+    python $TDIR/migrate_odoo_db_tnl_ml.py
+}
+
 # main
 OPTOPTS=(h        B         b          c        D       d        F        n            O          P         r       q           S        U        V           v)
 OPTDEST=(opt_help opt_debug opt_branch opt_conf opt_del opt_db   opt_from opt_dry_run  opt_oupath opt_dpath opt_red opt_verbose opt_safe opt_user opt_version opt_verbose)
@@ -121,13 +233,6 @@ if [ $opt_help -gt 0 ]; then
 fi
 
 [ -z $opt_oupath ] && opt_oupath=$HOME/openupgrade
-if [ ! -x $opt_oupath/scripts/migrate.py ]; then
-  echo "Package openupgrade not found in $opt_oupath"
-  echo "Please type following lines to install:"
-  echo "cd $HOME"
-  echo "git clone https://github.com/OCA/openupgrade.git openupgrade/ --depth 1"
-  exit 1
-fi
 [ -z $opt_dpath ] && opt_dpath=$HOME/tmp
 [ ! -d "$opt_dpath" ] && mkdir -p $opt_dpath
 if [ -z $opt_db ]; then
@@ -149,6 +254,8 @@ if [ $final_ver -le $from_ver ]; then
   echo "final version must be greater than original version" 
 fi
 discover_multi
+
+
 # Pass 1: test for environment
 echo "Pass 1: test environment migration from $from_ver to $final_ver .."
 SAVE_DRY_RUN=$opt_dry_run
@@ -201,12 +308,17 @@ echo ""
 running=1
 src_vid=$opt_from
 src_db=$opt_db
+PROTECTED_MODULES="account,base,board,document,knowledge,l10n_it_base,l10n_it_fiscal,sale,product,purchase,sale,stock"
+
 while [ $running ]; do
   src_ver=$(build_odoo_param MAJVER $src_vid)
   tgt_ver=$src_ver
   ((tgt_ver++))
   tgt_vid=${src_vid/$src_ver/$tgt_ver}
   [[ $tgt_vid =~ ^[Vv] ]] && tgt_vid=$(build_odoo_param FULLVER ${tgt_vid:1})
+  src_fver=$(build_odoo_param FULLVER $src_vid)
+  load_openupgrade $tgt_vid
+  add_versioned_tnl
   src_user=$(build_odoo_param USER $src_vid)
   tgt_user=$(build_odoo_param USER $tgt_vid)
   [ -n "$opt_conf" -a "$src_vid" == "$opt_from" ] && confn=$opt_conf || confn=$(build_odoo_param CONFN $src_vid)
@@ -226,20 +338,29 @@ while [ $running ]; do
   echo "psycopg2=True">>$HOME/$lconf
   echo "login_user=$opt_user">>$HOME/$lconf
   echo "login_password=$pwd">>$HOME/$lconf
-  src_fver=$(build_odoo_param FULLVER $src_vid)
   echo "oe_version=$src_fver">>$HOME/$lconf
   apath=$(grep "^addons_path *=" $HOME/$lconf|awk -F= '{print $2}'|tr ',' ' ')
-  ML=$(odoo_dependencies.py $apath -c $HOME/$lconf -D $src_db -A mod)
+  ML=$(odoo_dependencies.py $apath -c $HOME/$lconf -D $src_db -A dep)
+  echo "Modules found in DB: $ML"
+  echo "Protected modules: $PROTECTED_MODULES"
+  PML=$(odoo_dependencies.py $apath -A dep -M $PROTECTED_MODULES)
   tgt_confn=$(build_odoo_param CONFN $tgt_vid)
   apath=$(grep "^addons_path *=" $tgt_confn|awk -F= '{print $2}'|tr ',' ' ')
+  # Module list not avaiable in new version
+  ML=$(translate_ml "$ML")
+  echo "New module names: $ML"
   M2D=$(odoo_dependencies.py $apath -A mod -M $ML -E)
   if [ -n "$M2D" ]; then
     echo "**** Warning! Uninstall modules $M2D"
-    read -p "Press RET to start uninstall"
-    # echo "actions=uninstall">>$HOME/$lconf
-    # echo "uninstall_modules=$M2D2">>$HOME/$lconf
+    read -p "Press RET to start uninstall module no avaiable on new version"
     run_traced "$TDIR/clodoo.py -c $HOME/$lconf -d $src_db -A uninstall_modules -m $M2D"
-  fi 
+    sts=$?
+    if [ $sts -ne 0 ]; then
+      echo "Something is wrong .. cannot cannot uninstall some modules"
+      exit 1
+    fi
+  fi
+  [ -d $opt_dpath/$tgt_vid ] && run_traced "rm -fR $opt_dpath/$tgt_vid"
   run_traced "$opt_oupath/scripts/migrate.py -B $opt_dpath -C $HOME/$lconf -D $src_db -R $tgt_vid"
   if [ -d $opt_dpath/$tgt_vid/server/ ]; then
     confn=$opt_dpath/$tgt_vid/server.cfg

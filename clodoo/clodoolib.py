@@ -20,6 +20,7 @@ import inspect
 import os
 import re
 import time
+import subprocess
 from datetime import date
 
 from os0 import os0
@@ -720,20 +721,86 @@ def get_odoo_full_ver(odoo_vid):
     return odoo_fver
 
 
-def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
-    p1 = 'v|V|odoo|ODOO|ocb|OCB'
-    p2 = 'oca|oia|liberp|flectra|zero'
+def build_odoo_param(item, odoo_vid=None, debug=None, suppl=None,
+                     git_org=None, multi=None):
+    p1 = 'v|V|odoo|ODOO|ocb|OCB|VENV'
+    p2 = 'oca|oia|librerp|flectra|zero'
     p3 = r'12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1'
     p4 = '12|11|10|9|8|7|6'
     rex = '^(%s|%s)?-?(%s|%s)' % (p1, p2, p3, p4)
-    # reo = '^(%s)' % p1
-    # reg = "^(%s)" % p2
+    reo = '^(%s)' % p1
+    reg = '^(%s)' % p2
     # ref = "(%s)" % p3
     # PKGPATH = ''
     # PKGNAME = ''
     # ROOT = ''
     # REPOS = ''
     # ldir = ''
+    suppl = suppl or ''
+
+    def build_name(item, odoo_vid, odoo_ver, multi, VENV, VID):
+        if item == 'CONFN':
+            p1 = '/etc/odoo/'
+            p11 = '/etc/'
+            p4 = '.conf'
+        elif item == 'FLOG':
+            p1 = '/var/log/odoo/'
+            p11 = '/var/log/'
+            p4 = '.log'
+        elif item == 'FPID':
+            p1 = '/var/run/odoo/'
+            p11 = '/var/run/'
+            p4 = '.pid'
+        elif item in ('FULL_SVCNAME', 'SVCNAME'):
+            p1 = '/etc/init.d/'
+            p11 = ''
+            p4 = ''
+        elif item == 'BIN':
+            if odoo_ver < 7:
+                p1 = '%s/server/' % VID
+                p11 = '%s/' % VID
+            elif odoo_ver == 7 and odoo_vid[0] == 'v':
+                p1 = '%s/server/' % VID
+                p11 = '%s/' % VID
+            else:
+                p1 = '%s/' % VID
+                p11 = ''
+            p4 = ''
+        else:
+            raise KeyError('Invalid item %s' % item)
+        if multi and item != 'BIN':
+            if odoo_vid in ('v7', 'v6'):
+                p2 = 'openerp'
+            elif item == 'DDIR' and not VENV:
+                p2 = 'odoo'
+            else:
+                p2 = 'odoo%d' % odoo_ver
+        elif multi and item == "BIN":
+            if odoo_ver >= 10:
+                p2 = 'odoo'
+            else:
+                p2 = 'openerp'
+        elif odoo_ver < 7 or odoo_vid == 'v7':
+            p2 = 'openerp'
+        else:
+            p2 = 'odoo'
+        if item in ('CONFN', 'FULL_SVCNAME', 'SVCNAME', 'FLOG', 'FPID', 'DDIR'):
+            if multi and re.match(reg, odoo_vid):
+                p3 = ''.join([x for x in odoo_vid if x.isalpha()])
+            elif odoo_ver >= 10:
+                p3 = ''
+            else:
+                p3 = '-server'
+        elif odoo_ver >= 10:
+            if item == 'BIN':
+                p3 = '-bin'
+            else:
+                p3 = ''
+        else:
+            p3 = '-server'
+        p = ''.join((p1, p2, p3, p4))
+        return p
+
     if re.match(r'(^\.$|^\.\.$|(\./|\.\./|~/|/))', odoo_vid) or \
             item in ('RUPSTREAM', 'RORIGIN', 'VCS'):
         if odoo_vid:
@@ -760,6 +827,7 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
                 cwd = os.path.abspath(os.path.join(cwd, '..'))
             else:
                 cwd = ''
+    ROOT = os.path.expanduser('~')
     if odoo_vid:
         if odoo_vid == '.':
             odoo_fver = get_odoo_full_ver(os.getcwd())
@@ -773,7 +841,12 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
     else:
         odoo_vid = '11.0'
         odoo_fver = odoo_vid
+    VENV = odoo_vid.startswith('VENV')
     odoo_ver = int(odoo_fver.split('.')[0])
+    if VENV:
+        VID = os.path.join(ROOT, odoo_vid, 'odoo')
+    else:
+        VID = os.path.join(ROOT, odoo_vid)
     if git_org:
         GIT_ORGID = git_org
         if re.match('(oca|oia|liberp|flectra)', git_org) and odoo_vid in (
@@ -798,21 +871,57 @@ def build_odoo_param(item, odoo_vid=None, suppl=None, git_org=None):
         return odoo_fver
     elif item == 'MAJVER':
         return odoo_ver
+    elif item == 'ROOT':
+        return VID
     elif item == 'GIT_ORGID':
         return GIT_ORGID
-    elif item == 'CONFN':
-        if odoo_ver >= 10:
-            sfx = ''
-        else:
-            sfx = '-server'
-        if odoo_vid[0].lower() == 'v':
-            v = ''
-        else:
-            v = str(odoo_ver)
-        confn = 'odoo%s%s.conf' % (v, sfx)
-        return confn
+    elif item in ('CONFN', 'FLOG', 'FPID', 'FULL_SVCNAME', 'BIN'):
+        return build_name(item, odoo_vid, odoo_ver, multi, VENV, VID)
+    elif item == 'SVCNAME':
+        return os.path.basename(build_name(item, odoo_vid, odoo_ver, multi, VENV, VID))
     elif item == 'PKGNAME':
         return os.path.basename(os.getcwd())
     elif item == 'REPOS':
         return os.path.basename(os.path.dirname(os.getcwd()))
-    return False
+    elif item == 'MANIFEST':
+        if odoo_ver >= 10:
+            return '__manifest__.py'
+        else:
+            return '__openerp__.py'
+    elif item == 'RPCPORT':
+        if debug:
+            p = 18060 + odoo_ver
+        elif not VENV and re.match(reo, odoo_vid):
+            p = 8069
+        elif multi:
+            p = 8160 + odoo_ver
+        else:
+            p = 8069
+        return p
+    elif item == 'USER':
+        if not VENV and re.match(reo, odoo_vid):
+            p = 'odoo'
+        elif multi:
+            p = 'odoo%d' % odoo_ver
+        elif odoo_ver < 8:
+            p = 'odoo'
+        else:
+            p = 'odoo'
+        return p
+    else:
+        odoorc = os.path.join(os.path.dirname(__file__), 'odoorc')
+        if multi:
+            cmd = 'source %s; opt_multi=1; build_odoo_param %s %s %s' % (
+                odoorc,
+                item,
+                odoo_vid,
+                suppl)
+        else:
+            cmd = 'source %s; build_odoo_param %s %s %s' % (
+                odoorc,
+                item,
+                odoo_vid,
+                suppl)
+        res = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        out, err = res.communicate()
+    return out.split('\n')[0]

@@ -61,14 +61,24 @@ def is_uname(name):
     return True
 
 
-def set_uname(type, name, name_v6, name_vl):
-    if type != 'value':
+def set_uname(type, name, ver_names):
+    if type == 'name':
         return name.upper()
-    else:
-        return '%s^%s^%s' % (name, name_v6, name_vl)
+    prior_name = ''
+    key = ''
+    for i, ver in enumerate(VERSIONS):
+        if ver_names[i] and ver_names[i] != prior_name:
+            if key:
+                key = '%s|%s' % (key, ver_names[i])
+            else:
+                key = ver_names[i]
+            prior_name = ver_names[i]
+    if type == 'value':
+        return key
+    return key.upper()
 
 
-def build_alias_struct(mindroot, model, uname, type, fld_name):
+def build_alias_struct(mindroot, model, uname, type, fld_name=False):
     pymodel = get_pymodel(model)
     if pymodel not in mindroot:
         mindroot[pymodel] = {}
@@ -87,8 +97,10 @@ def build_alias_struct(mindroot, model, uname, type, fld_name):
     return mindroot
 
 
-def link_versioned_name(mindroot, model, uname, type, src_name, ver, fld_name):
-    mindroot = build_alias_struct(mindroot, model, uname, type, fld_name)
+def link_versioned_name(mindroot, model, uname, type, src_name, ver,
+                        fld_name=False):
+    mindroot = build_alias_struct(mindroot, model, uname, type,
+                                  fld_name=fld_name)
     pymodel = get_pymodel(model)
     ver_name = get_ver_name(src_name, ver)
     if type == 'value':
@@ -240,35 +252,28 @@ def read_stored_dict(ctx):
                 MODEL = row.index('model')
                 NAME = row.index('name')
                 TYPE = row.index('type')
-                V6 = row.index('6.1')
-                VL = len(row) - 1
+                VER_IX = {}
+                for ver in VERSIONS:
+                    VER_IX[ver] = row.index(ver)
                 hdr = True
                 continue
             mindroot = build_alias_struct(mindroot,
                                           row[MODEL],
                                           row[NAME],
-                                          row[TYPE],
-                                          False)
-            i = V6 - 1
-            uname = set_uname(row[TYPE], row[NAME], row[V6], row[VL])
+                                          row[TYPE])
+            ver_names = []
             for ver in VERSIONS:
-                i += 1
-                if i >= len(row):
-                    mindroot = link_versioned_name(mindroot,
-                                                   row[MODEL],
-                                                   uname,
-                                                   row[TYPE],
-                                                   row[i - 1],
-                                                   ver,
-                                                   row[NAME])
-                else:
-                    mindroot = link_versioned_name(mindroot,
-                                                   row[MODEL],
-                                                   uname,
-                                                   row[TYPE],
-                                                   row[i],
-                                                   ver,
-                                                   row[NAME])
+                ver_names.append(row[VER_IX[ver]])
+
+            uname = set_uname(row[TYPE], row[NAME], ver_names)
+            for ver in VERSIONS:
+                mindroot = link_versioned_name(mindroot,
+                                               row[MODEL],
+                                               uname,
+                                               row[TYPE],
+                                               row[VER_IX[ver]],
+                                               ver,
+                                               fld_name=row[NAME])
     ctx['mindroot'] = mindroot
 
 
@@ -287,22 +292,75 @@ def write_stored_dict(ctx):
             ctx['dict_fn'] = 'transodoo.csv'
     with open(ctx['dict_fn'], 'wb') as f:
         writer = csv.DictWriter(f,
-                                fieldnames=('model', 'name', 'key') + VERSIONS,
+                                fieldnames=('model', 'name', 'type') + VERSIONS,
                                 dialect='transodoo')
         writer.writeheader()
         mindroot = ctx['mindroot']
-        for k1 in mindroot:
-            line = mindroot[k1]
-            if '0' not in line:
-                line['model'] = k1.split('.')[0]
-                line['name'] = k1.split('.')[1]
-                line['key'] = ''
-                for ver_name in mindroot:
-                    if '0' in mindroot[ver_name]:
-                        if mindroot[ver_name]['0']:
-                            line['key'] = ver_name.split('.')[1]
-                            break
-                writer.writerow(line)
+        for pymodel in sorted(mindroot.keys()):
+            if pymodel == 'ir_model':
+                model = 'ir.model'
+            elif pymodel == 'ir_module_module':
+                model = 'ir.module.module'
+            elif pymodel == 'account_account':
+                model = 'account.account'
+            elif pymodel == 'account_account_type':
+                model = 'account.account.type'
+            elif pymodel == 'account_invoice':
+                model = 'account.invoice'
+            elif pymodel == 'account_tax':
+                model = 'account.tax'
+            elif pymodel == 'res_city':
+                model = 'res.city'
+            elif pymodel == 'res_partner':
+                model = 'res.partner'
+            elif pymodel == 'res_users':
+                model = 'res.users'
+            elif pymodel == 'sale_order':
+                model = 'sale.order'
+            else:
+                model = pymodel
+            for typ in sorted(mindroot[pymodel].keys()):
+                for uname in sorted(mindroot[pymodel][typ].keys()):
+                    if not is_uname(uname):
+                        continue
+                    if typ != 'value':
+                        line = {
+                            'model': model,
+                            'type': typ,
+                            'name':  uname,
+                        }
+                        for ver_name in sorted(
+                                mindroot[pymodel][typ][uname].keys()):
+                            line[ver_name] = mindroot[
+                                pymodel][typ][uname][ver_name]
+                        if len(line) > 3:
+                            writer.writerow(line)
+                        continue
+                    if isinstance(mindroot[pymodel][typ][uname], basestring):
+                        line = {
+                            'model': model,
+                            'type': typ,
+                            'name':  uname,
+                        }
+                        for ver_name in VERSIONS:
+                            line[ver_name] = mindroot[pymodel][typ][uname]
+                        if len(line) > 3:
+                            writer.writerow(line)
+                        continue
+                    for fld in mindroot[pymodel][typ][uname]:
+                        if not is_uname(fld):
+                            continue
+                        line = {
+                            'model': model,
+                            'type': typ,
+                            'name':  uname,
+                        }
+                        for ver_name in sorted(
+                                mindroot[pymodel][typ][uname][fld].keys()):
+                            line[ver_name] = mindroot[
+                                pymodel][typ][uname][fld][ver_name]
+                        if len(line) > 3:
+                            writer.writerow(line)
 
 
 def transodoo_list(ctx):
@@ -371,7 +429,7 @@ def transodoo_edit(ctx):
         if key == 'END':
             ctx['mindroot'] = mindroot
             return 0
-        mindroot = build_alias_struct(mindroot, model, name, key, False)
+        mindroot = build_alias_struct(mindroot, model, name, key)
         k1 = get_pymodel(model)
         def_term = name.lower()
         print("Model %s, sym=%s, key=%s" % (model, name, key))

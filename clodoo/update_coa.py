@@ -1,10 +1,14 @@
+# flake8: noqa
 # -*- coding: utf-8 -*-
 # Import file library
 import sys
 # import os
 import time
 import clodoo
-import z0lib
+try:
+    from z0lib import z0lib
+except ImportError:
+    import z0lib
 # import pdb
 
 

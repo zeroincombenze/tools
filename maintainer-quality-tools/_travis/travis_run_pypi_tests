@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.31
+__version__=0.2.2.32
 
 
 travis_test_bash() {
@@ -307,10 +307,10 @@ if [ -d $HOME/dev ]; then
     PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
   fi
   if [ -n "$PYLIB" ]; then
-     for pth in ${PYTHONPATH//:/ } $TRAVIS_BUILD_DIR; do
+     for pth in ${PYTHONPATH//:/ } $(readlink -e $TRAVIS_BUILD_DIR/..); do
        if $(echo ":$PYTHONPATH:"|grep -qv ":$pth:" 2>/dev/null); then
          [ ${opt_verbose:-0} -gt 0 ] && echo "Adding $pth in sys.path ..."
-         echo "sys.path.insert(0,'$pth')" >> $PYLIB/sitecustomize.py
+         echo "if '$pth' not in sys.path:    sys.path.insert(0,'$pth')" >> $PYLIB/sitecustomize.py
        fi
      done
      export PYTHONPATH=

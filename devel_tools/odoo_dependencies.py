@@ -68,9 +68,9 @@ dependencies in DEPENDS_BY.
 Action 'dep' returns children dependencies list from MODULES_TO_MATCH;
 MODULES_TO_MATCH is get from -M switch or else they are get from path_list.
 With -R switch, the search traverses directories.
-Modules in list depend from one or more MODULES_TO_MATCH.
+Returned modules in list depend from one or more MODULES_TO_MATCH.
 This is the default behavior or using -o switch.
-Modules in list depends from MODULES_TO_MATCH if -a switch (and) is supplied.
+Modules in list depends from all MODULES_TO_MATCH if supplied -a switch (and).
 MODULES_TO_MATCH are includes in dependencies list.
 If you want to avoid this inclusion, use -P switch (pure).
 You can also limit list to modules supplied by -B switch.
@@ -89,7 +89,7 @@ Switch -N returns, for all actions, the counting of modules.
 
 Switch -D replaces value of MODULES_TO_MATCH with installed module in DB;
 so, with -D, -m and -E switches and without -M switch, return installed modules
-list in DB without python code. List contains module with stae 'to*' too.
+list in DB without python code. List contains module with state 'to*' too.
 
 With -D switch you have to supply configuration files; one of them is ordinary
 odoo configuration file; you must add another configuration file with:

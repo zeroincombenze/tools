@@ -891,97 +891,178 @@ def get_model_copy_mode(ctx, model):
     return mode
 
 
-parser = z0lib.parseoptargs("Migrate Odoo DB",
-                            "© 2019 by SHS-AV s.r.l.",
-                            version=__version__)
-parser.add_argument('-h')
-parser.add_argument("-C", "--command-file",
-                    help="migration command file",
-                    dest="command_file",
-                    metavar="file",
-                    default='./migrate_odoo.csv')
-parser.add_argument("-c", "--dst-config",
-                    help="target DB configuration file",
-                    dest="dst_conf_fn",
-                    metavar="file",
-                    default='./inv2draft_n_restore.conf')
-parser.add_argument("-D", "--default-behavior",
-                    action="store_true",
-                    dest="default_behavior")
-parser.add_argument("-d", "--dst-db_name",
-                    help="Target database name",
-                    dest="dst_db_name",
-                    metavar="name",
-                    default='demo')
-parser.add_argument("-I", "--inside-openupgrade",
-                    action='store_true',
-                    dest="inside_openupgrade",
-                    default=False)
-parser.add_argument("-m", "--sel-model",
-                    help="Model to migrate",
-                    dest="sel_model",
-                    metavar="name")
-parser.add_argument('-n')
-parser.add_argument('-q')
-parser.add_argument("-s", "--use-synchro",
-                    action='store_true',
-                    dest="use_synchro",
-                    default=False)
-parser.add_argument('-V')
-parser.add_argument('-v')
-parser.add_argument("-w", "--src-config",
-                    help="Source DB configuration file",
-                    dest="src_conf_fn",
-                    metavar="file",
-                    default='./inv2draft_n_restore.conf')
-parser.add_argument("-x", "--src-db_name",
-                    help="Source database name",
-                    dest="src_db_name",
-                    metavar="name",
-                    default='demo')
-parser.add_argument("-y", "--assume-yes",
-                    action='store_true',
-                    dest="assume_yes",
-                    default=False)
+def migrate_1_table(src_ctx, dst_ctx):
+    uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
+    uid, dst_ctx = clodoo.oerp_set_env(ctx=dst_ctx)
+    transodoo.read_stored_dict(src_ctx)
+    dst_ctx['mindroot'] = src_ctx['mindroot']
+    if not dst_ctx['sel_model']:
+        install_modules(dst_ctx, src_ctx)
 
-src_ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
-dst_ctx = src_ctx.copy()
-for param in ('db_name', 'conf_fn'):
-    dst_ctx[param] = dst_ctx['dst_%s' % param]
-    src_ctx[param] = src_ctx['src_%s' % param]
-uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
-uid, dst_ctx = clodoo.oerp_set_env(ctx=dst_ctx)
-transodoo.read_stored_dict(src_ctx)
-dst_ctx['mindroot'] = src_ctx['mindroot']
-if not dst_ctx['sel_model']:
-    install_modules(dst_ctx, src_ctx)
+    if (src_ctx['default_behavior'] or
+            not os.path.isfile(src_ctx['command_file'])):
+        write_tree_conf(src_ctx)
 
-if (src_ctx['default_behavior'] or
-        not os.path.isfile(src_ctx['command_file'])):
-    write_tree_conf(src_ctx)
+    with open(dst_ctx['command_file'], 'r') as fd:
+        dst_ctx['_ml'] = {}
+        dst_ctx['_kl'] = {}
+        dst_ctx['model_list'] = []
+        for line in fd.read().split('\n'):
+            line = line.strip()
+            if line:
+                lines = line.split('\t')
+                level = lines[0]
+                model = lines[1]
+                mode = 'inquire' if len(lines[1]) <= 2 else lines[2]
+                keys = 'name' if len(lines) <= 3 else eval(lines[3])
+                dst_ctx['model_list'].append(model)
+                dst_ctx['_ml'][model] = mode
+                dst_ctx['_kl'][model] = keys
+        fd.close()
+    assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
+    if dst_ctx['sel_model']:
+        dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
+    for model in dst_ctx['model_list']:
+        mode = get_model_copy_mode(dst_ctx, model)
+        if mode not in ('sql', 'image'):
+            continue
+        copy_table(dst_ctx, src_ctx, model, mode=mode)
 
-with open(dst_ctx['command_file'], 'r') as fd:
-    dst_ctx['_ml'] = {}
-    dst_ctx['_kl'] = {}
-    dst_ctx['model_list'] = []
-    for line in fd.read().split('\n'):
-        line = line.strip()
-        if line:
-            lines = line.split('\t')
-            level = lines[0]
-            model = lines[1]
-            mode = 'inquire' if len(lines[1]) <= 2 else lines[2]
-            keys = 'name' if len(lines) <= 3 else eval(lines[3])
-            dst_ctx['model_list'].append(model)
-            dst_ctx['_ml'][model] = mode
-            dst_ctx['_kl'][model] = keys
-    fd.close()
-assume_yes = 'Y' if dst_ctx['assume_yes'] else 'Q'
-if dst_ctx['sel_model']:
-    dst_ctx['model_list'] = dst_ctx['sel_model'].split(',')
-for model in dst_ctx['model_list']:
-    mode = get_model_copy_mode(dst_ctx, model)
-    if mode not in ('sql', 'image'):
-        continue
-    copy_table(dst_ctx, src_ctx, model, mode=mode)
+
+def migrate_database_pass(src_ctx, dst_ctx, phase=None):
+    phase = phase or 1
+    if phase == 1:
+        saved_dry_run = src_ctx['dry_run']
+        src_ctx['dry_run'] = True
+        dst_ctx['dry_run'] = src_ctx['dry_run']
+    src_odoo_ver = src_ctx['$opt_from']
+    src_db = src_ctx['src_db_name']
+    while 1:
+        dst_odoo_ver = '%d.%s' % (int(src_odoo_ver.split('.')[0]) + 1,
+                                  src_odoo_ver.split('.')[1])
+        src_user = clodoo.build_odoo_param('USER', odoo_vid=src_odoo_ver)
+        dst_user = clodoo.build_odoo_param('USER', odoo_vid=dst_odoo_ver)
+        break
+    if phase == 1:
+        src_ctx['dry_run'] = saved_dry_run 
+        dst_ctx['dry_run'] = src_ctx['dry_run']
+
+
+def migrate_database(src_ctx, dst_ctx):
+    migrate_database_pass(src_ctx, dst_ctx, phase=1)
+    migrate_database_pass(src_ctx, dst_ctx, phase=2)
+
+
+if __name__ == "__main__":
+    parser = z0lib.parseoptargs("Migrate Odoo DB",
+                                "© 2019 by SHS-AV s.r.l.",
+                                version=__version__)
+    parser.add_argument('-h')
+    parser.add_argument('-B', '--debug-statements',
+                        action='store_true',
+                        dest='opt_debug',
+                        default=False)
+    parser.add_argument('-b', '--branch',
+                        action='store',
+                        dest='opt_branch',
+                        default='')
+    parser.add_argument("-C", "--command-file",
+                        help="migration command file",
+                        dest="command_file",
+                        metavar="file",
+                        default='./migrate_odoo.csv')
+    parser.add_argument("-c", "--dst-config",
+                        help="target DB configuration file",
+                        dest="dst_conf_fn",
+                        metavar="file")
+    parser.add_argument("-D", "--del-db-if-exist",
+                        action="store_true",
+                        dest="opt_del")
+    parser.add_argument("-d", "--dst-db_name",
+                        help="Target database name",
+                        dest="dst_db_name",
+                        metavar="name")
+    parser.add_argument('-F', '--from-odoo-ver',
+                        action='store',
+                        dest='opt_from')
+    parser.add_argument("-I", "--inside-openupgrade",
+                        action='store_true',
+                        dest="inside_openupgrade",
+                        default=False)
+    parser.add_argument("-k", "--default-behavior",
+                        action="store_true",
+                        dest="default_behavior")
+    parser.add_argument("-m", "--sel-model",
+                        help="Model to migrate",
+                        dest="sel_model",
+                        metavar="name")
+    parser.add_argument('-n')
+    parser.add_argument("-O", "--openupgrade-path",
+                        help="Openupgrade path",
+                        dest="opt_oupath",
+                        metavar="directory")
+    parser.add_argument("-P", "--openupgrade-working-path",
+                        help="Openupgrade working path",
+                        dest="opt_dpath",
+                        metavar="directory")
+    parser.add_argument('-q')
+    parser.add_argument("-S", "--safe-mode",
+                        action="store_true",
+                        dest="opt_safe",
+                        help="safe mode (do upgrade all before upgrade)")
+    parser.add_argument("-s", "--use-synchro",
+                        action='store_true',
+                        dest="use_synchro",
+                        default=False)
+    parser.add_argument("-U", "--user",
+                        help="login username",
+                        dest="lgi_user",
+                        metavar="username",
+                        default="admin")
+    parser.add_argument('-V')
+    parser.add_argument('-v')
+    parser.add_argument("-w", "--src-config",
+                        help="Source DB configuration file",
+                        dest="src_conf_fn",
+                        metavar="file")
+    parser.add_argument("-x", "--src-db_name",
+                        help="Source database name",
+                        dest="src_db_name",
+                        metavar="name")
+    parser.add_argument("-y", "--assume-yes",
+                        action='store_true',
+                        dest="assume_yes",
+                        default=False)
+
+    src_ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
+    import pdb
+    pdb.set_trace()
+    if not src_ctx['opt_oupath']:
+        src_ctx['opt_oupath'] = os.path.join(os.path.expanduser('~'),
+                                             'openupgrade')
+    if not src_ctx['opt_dpath']:
+        src_ctx['opt_dpath'] = os.path.join(os.path.expanduser('~'), 'tmp')
+    if src_ctx['dst_db_name'] and not src_ctx['src_db_name']:
+        src_ctx['src_db_name'], src_ctx['dst_db_name'] = \
+        src_ctx['dst_db_name'], '%s_migrated' % src_ctx['dst_db_name']
+    elif not src_ctx['dst_db_name'] and src_ctx['src_db_name']:
+        src_ctx['dst_db_name'] = '%s_migrated' % src_ctx['dst_db_name']
+    elif not src_ctx['dst_db_name'] and not src_ctx['src_db_name']:
+        raise KeyError('Missed database to upgrade! Please use -d switch')
+    if not src_ctx['opt_from'] and not src_ctx['src_conf_fn']:
+        raise KeyError('Missed original odoo version! Please use -F switch')
+    if not src_ctx['opt_branch'] and not src_ctx['dst_conf_fn']:
+        raise KeyError('Missed final odoo version! Please use -b switch')
+    if (int(src_ctx['opt_from'].split('.')[0]) >=
+            int(src_ctx['opt_branch'].split('.')[0])):
+        raise KeyError('Final version must be greater than original version')
+    dst_ctx = src_ctx.copy()
+    for param in ('db_name', 'conf_fn'):
+        dst_ctx[param] = dst_ctx['dst_%s' % param]
+        src_ctx[param] = src_ctx['src_%s' % param]
+
+    if src_ctx['sel_model']:
+        migrate_1_table(src_ctx, dst_ctx)
+    else:
+        migrate_database(src_ctx, dst_ctx)
 

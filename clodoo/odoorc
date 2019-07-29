@@ -482,7 +482,7 @@ build_odoo_param() {
       fi
       return
     elif [ "$ITEM" == "USER" ]; then
-      if [[ ! $odoo_vid =~ ^VENV && $odoo_vid =~ $reo ]]; then
+      if [[ $VENV -eq 0 && $odoo_vid =~ $reo ]]; then
         p="odoo"
       elif [ $MULTIVER -ne 0 ]; then
         p="odoo$odoo_ver"
