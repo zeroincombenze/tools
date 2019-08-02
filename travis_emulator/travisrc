@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.14
+#__version__=0.2.2.15
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -397,17 +397,44 @@ venv_mgr_install_pkg() {
     deactivate
 }
 
-venv_mgr_rename() {
-#venv_mgr_rename(VENV NEW_VENV [merge])
-    local d f mime VENV VIRTUAL_ENV V
+venv_mgr_test() {
+#venv_mgr_test(VENV)
+    local f x VENV
     [ -n "$1" ] && VENV=$(readlink -f $1)
-    [ -n "$2" ] && VIRTUAL_ENV=$(readlink -f $2)
+    if [[ -z "$VENV" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    cd $VENV
+    . bin/activate
+    for f in python pip coveralls codecov flake8 pylint; do
+      x=$(readlink -e $(which $f))
+      [[ ! $x =~ ^$1 ]] && echo "Corrupted VME ($f)"
+      [ "$f" != "pylint" ] && eval $f --version
+      [ "$f" == "pylint" ] && eval $f --version 2>/dev/null
+    done
+    deactivate
+}
+
+venv_mgr() {
+# venv_mgr {chk|cp|mv|merge} VENV NEW_VENV
+    # set -x  #debug
+    local d f mime VENV VIRTUAL_ENV V
+    local cmd=$1
+    [ -n "$2" ] && VENV=$(readlink -f $2)
+    [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
+    [[ "$cmd" == "chk" ]] && VIRTUAL_ENV=$VENV
     if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
       echo "Missed parameters!"
       echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
       exit 1
     fi
-    if [[ "$VENV" == "$VIRTUAL_ENV" ]]; then
+    if [[ "$VENV" == "$VIRTUAL_ENV" && ! "$cmd" == "chk" ]]; then
       echo "Source and destination directories are the same!"
       echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
       exit 1
@@ -416,7 +443,16 @@ venv_mgr_rename() {
       echo "Invalid virtual env $VENV!"
       exit 1
     fi
-    if [[ "$3" == "merge" ]]; then
+    if [[ "$cmd" == "chk" ]]; then
+      V=$VENV
+    elif [[ "$cmd" == "cp" ]]; then
+      if [[ -d $VIRTUAL_ENV ]]; then
+        echo "Destination virtual env $VIRTUAL_ENV already exists!"
+        exit 1
+      fi
+      cp -r $VENV $VIRTUAL_ENV
+      V=$VIRTUAL_ENV
+    elif [[ "$cmd" == "merge" ]]; then
       if [[ ! -d $VIRTUAL_ENV  || ! -d $VIRTUAL_ENV/bin || ! -f $VIRTUAL_ENV/bin/activate ]]; then
         echo "Invalid destination virtual env $VIRTUAL_ENV!"
         exit 1
@@ -428,6 +464,10 @@ venv_mgr_rename() {
       done
       V=$VIRTUAL_ENV
     else
+      if [[ -d $VIRTUAL_ENV ]]; then
+        echo "Destination virtual env $VIRTUAL_ENV already exists!"
+        exit 1
+      fi
       V=$VENV
     fi
     for f in $V/bin/*; do
@@ -435,6 +475,7 @@ venv_mgr_rename() {
       if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
         # echo "sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
         sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
+        [[ "$cmd" == "chk" ]] && chmod +x $f 
       fi
     done
     pushd $V >/dev/null
@@ -459,50 +500,11 @@ venv_mgr_rename() {
       echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
     fi
     popd >/dev/null
-}
-
-venv_mgr_test() {
-#venv_mgr_test(VENV)
-    local f x VENV
-    [ -n "$1" ] && VENV=$(readlink -f $1)
-    if [[ -z "$VENV" ]]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
-      exit 1
+    if [[ "$cmd" == "mv" ]]; then
+      mv $VENV $VIRTUAL_ENV
     fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
-    cd $VENV
-    . bin/activate
-    for f in python pip coveralls codecov flake8 pylint; do
-      x=$(readlink -e $(which $f))
-      [[ ! $x =~ ^$1 ]] && echo "Corrupted VME ($f)"
-      eval $f --version
-    done
-    deactivate
-}
-
-venv_mgr() {
-# venv_mgr {cp|mv|merge} VENV NEW_VENV
-    local cmd=$1
-    if [[ "$cmd" == "cp" ]]; then
-      venv_mgr_rename $2 $3
-      cp $2 $3
-      venv_mgr_test $3
-    elif [[ "$cmd" == "mv" ]]; then
-      venv_mgr_rename $2 $3
-      mv $2 $3
-      venv_mgr_test $3
-    elif [[ "$cmd" == "merge" ]]; then
-      venv_mgr_rename $2 $3 merge
-      venv_mgr_test $3
-    else
-      echo "Invalid cmd $1!"
-      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
-      exit 1
-    fi
+    set +x  #debug
+    venv_mgr_test $VIRTUAL_ENV
 }
 
 custom_env() {
@@ -557,9 +559,6 @@ create_virtual_env() {
       export TRAVIS=false
     fi
     SET_GLOBAL_PYVER=$(get_cfg_value "" "SET_GLOBAL_PYVER")
-    # if [ ${SET_GLOBAL_PYVER:-0} -ne 0 -a "$TRAVIS_PYTHON_VERSION" != "$CURPYVER" ]; then
-    #   sudo update-alternatives --set python /usr/bin/python$TRAVIS_PYTHON_VERSION
-    # fi
     TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
     if [ ${opt_virt:-0} -eq 0 ]; then
       mkdir -p $TRAVIS_HOME
@@ -569,7 +568,7 @@ create_virtual_env() {
     else
       hash -r
       echo "\$ virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME"
-      virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
+      [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $TRAVIS_HOME
       sts=$?
       [ $sts -ne 0 ] && return
       local SAVE_COLOR=$PS_RUN_COLOR
@@ -578,24 +577,15 @@ create_virtual_env() {
       if [ ${opt_cache:-0} -ne 0 -a -n "${VER}" -a -d "$TRAVIS_SAVED_HOME/VME/VME${VER}" ]; then
         echo "# .. loading stored packages from VME${VER} ..."
         run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME${VER} $TRAVIS_HOME"
-        # for d in bin include lib lib64 .local; do
-        #   if [ -d "$TRAVIS_SAVED_HOME/VME/VME${VER}/$d" ]; then
-        #     [ -d "$TRAVIS_HOME/$d" ] && rm -fR $TRAVIS_HOME/$d
-        #     run_traced "cp -R $TRAVIS_SAVED_HOME/VME/VME${VER}/$d $TRAVIS_HOME/"
-        #   fi
-        # done
       fi
-      # custom_env "$TRAVIS_HOME" "$TRAVIS_PYTHON_VERSION"
       source bin/activate
-      # FIX
-      # pip install flake8
       if [ $opt_py3 -eq 0 -a -d $HOME/lib/python2.7/site-packages/ ]; then
         export PYPI_CACHED=$HOME/lib/python2.7/site-packages/
       fi
       export PS_RUN_COLOR=$SAVE_COLOR
     fi
-    mkdir -p $TRAVIS_HOME/build
-    mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
+    [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build
+    [ ${opt_dry_run:-0} -eq 0 ] && mkdir -p $TRAVIS_HOME/build/${TRAVIS_REPO_SLUG%%/*}
     export TRAVIS_BUILD_DIR="$TRAVIS_HOME/build/$TRAVIS_REPO_SLUG"
     if [ "$PKGNAME" == "OCB" ]; then
       emulate_git_clone_OCB $TRAVIS_CWD $TRAVIS_BUILD_DIR

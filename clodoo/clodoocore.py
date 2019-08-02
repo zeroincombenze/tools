@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.44"
+__version__ = "0.3.8.45"
 
 
 #############################################################################
@@ -175,18 +175,18 @@ def executeL8(ctx, model, action, *args):
                                '10.0',
                                ctx['oe_version'],
                                type='action')
-    if ctx['majver'] >= 10:
-        if (model == 'account.invoice'):
-            if action == 'invoice_open':
-                action = 'action_invoice_open'
-            elif action == 'action_cancel_draft':
-                action = 'invoice_cancel'
-    else:
-        if (model == 'account.invoice'):
-            if action == 'action_invoice_open':
-                action = 'invoice_open'
-            elif action == 'invoice_cancel':
-                action = 'action_cancel_draft'
+    # if ctx['majver'] >= 10:
+    #     if (model == 'account.invoice'):
+    #         if action == 'invoice_open':
+    #             action = 'action_invoice_open'
+    #         elif action == 'action_cancel_draft':
+    #             action = 'invoice_cancel'
+    # else:
+    #     if (model == 'account.invoice'):
+    #         if action == 'action_invoice_open':
+    #             action = 'invoice_open'
+    #         elif action == 'invoice_cancel':
+    #             action = 'action_cancel_draft'
     if ctx['majver'] < 10 and action == 'invoice_open':
         return ctx['odoo_session'].exec_workflow(model,
                                                 action,
@@ -198,8 +198,7 @@ def executeL8(ctx, model, action, *args):
 
 def execute_action_L8(ctx, model, action, ids):
     sts = STS_SUCCESS
-    if (model == 'account.invoice' and
-            action in ('invoice_open', 'action_invoice_open')):
+    if (model == 'account.invoice'):
         ids = [ids] if isinstance(ids, int) else ids
         try:
             if ctx['majver'] >= 10:
@@ -217,6 +216,15 @@ def execute_action_L8(ctx, model, action, ids):
                           'button_reset_taxes',
                           ids)
                 ids = ids[0]
+        except RuntimeError:
+                    pass
+    elif (model == 'sale.order'):
+        ids = [ids] if isinstance(ids, int) else ids
+        try:
+            executeL8(ctx,
+                      model,
+                      'compute_tax_id',
+                      ids)
         except RuntimeError:
                     pass
     executeL8(ctx,

@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.14
+__version__=0.2.2.15
 
 
 store_cfg_param_value() {
@@ -1021,7 +1021,7 @@ OPTHELP=("this help"\
  "enable translation test (def yaml dependents)"\
  "file yaml to process (def .travis.yml)"\
  "use python3")
-OPTARGS=(action sub)
+OPTARGS=(action sub sub2)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -1029,14 +1029,14 @@ if [ "$opt_version" ]; then
   exit $STS_SUCCESS
 fi
 if [ $opt_help -gt 0 ]; then
-  print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), new_vm, chkconfig or parseyaml"\
+  print_help "Travis-ci emulator for local developer environment\nAction may be: [force-]lint, [force-]test, emulate (default), (new|chk|cp|mv|merge)_vm, chkconfig or parseyaml"\
   "(C) 2015-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
 
 export PYTHONWARNINGS="ignore"
 [ -z "$action" ] && action=emulate
-ACTIONS="force-lint lint force-test test emulate new_vm chkconfig parseyaml"
+ACTIONS="chk_vm cp_vm force-lint lint force-test merge_vm mv_vm test emulate new_vm chkconfig parseyaml"
 VIRTACTS="force-lint lint force-test test emulate"
 if [[ " $ACTIONS " =~ [[:space:]]$action[[:space:]] ]]; then
   if [[ " $VIRTACTS " =~ [[:space:]]$action[[:space:]] ]]; then
@@ -1057,46 +1057,61 @@ if [ $opt_verbose -gt 1 ]; then set -x; fi
 init_travis
 
 if [ "$action" == "new_vm" ]; then
-   if [ -z "$sub" ]; then
-     echo "Missed vm name!"
-     echo "use: $0 new_vm VMNAME"
-     exit 1
-   fi
-   TRAVIS_CWD=$PWD
-   TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
-   [[ "${opt_syspkg:-true}" == "true" ]] && export SYSTEM_SITE_PACKAGES=true
-   [[ "${opt_syspkg:-true}" == "true" ]] && TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
-   VENV_DIR=$(readlink -f ~/VME/$sub)
-   VENV_TMP=${VENV_DIR}~
-   [ -d $VENV_TMP ] && run_traced "rm -fR $VENV_TMP"
-   if [ $opt_py3 -eq 0 ]; then
-     TRAVIS_PYTHON_VERSION="2.7"
-     PIP=pip
-   else
-     TRAVIS_PYTHON_VERSION="3.5"
-     PIP=pip3
-   fi
-   TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p /usr/bin/python$TRAVIS_PYTHON_VERSION"
-   echo "\$ virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP"
-   virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP
-   sts=$?
-   [ $sts -eq 0 ] || exit $sts 
-   LISTREQ=$(which list_requirements.py 2>/dev/null)
-   run_traced "cd $VENV_TMP"
-   echo "\$ source bin/activate"
-   source bin/activate
-   req=$($LISTREQ -PBRT -t python -s" ")
-   req="${req/python=/}"
-   echo $req|tr -d "'"|tr " " "\n" > $HOME/requirements.txt
-   run_traced "$PIP install -r $HOME/requirements.txt --force-reinstall"
-   # run_traced "$PIP install -r $HOME/requirements.txt"
-   echo "\$ deactivate"
-   deactivate
-   cd $TRAVIS_CWD
-   find $VENV_TMP -name "*.pyc" -delete
-   [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
-   run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
-   exit $sts
+  if [ -z "$sub" ]; then
+    echo "Missed vm name!"
+    echo "use: $0 new_vm VMNAME"
+    exit 1
+  fi
+  TRAVIS_CWD=$PWD
+  TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
+  if [[ "${opt_syspkg:-true}" == "true" ]]; then
+    export SYSTEM_SITE_PACKAGES=true
+    TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS --system-site-packages"
+    VENV_DIR=$(readlink -f ~/VME/${sub}-with-syspkg)
+  else
+    VENV_DIR=$(readlink -f ~/VME/${sub}-wo-syspkg)
+  fi
+  VENV_TMP=${VENV_DIR}~
+  [ -d $VENV_TMP ] && run_traced "rm -fR $VENV_TMP"
+  if [ $opt_py3 -ne 0 ]; then
+    # TRAVIS_PYTHON_VERSION="3.5"
+    PYTHON=python3
+    PYTHON_BIN=$(readlink -e $(which python3))
+    TRAVIS_PYTHON_VERSION=$(python3 --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    PIP=pip3
+  else
+    # TRAVIS_PYTHON_VERSION="2.7"
+    PYTHON=python
+    PYTHON_BIN=$(readlink -e $(which python))
+    TRAVIS_PYTHON_VERSION=$(python --version 2>&1|grep -Eo "[0-9]+\.[0-9]+")
+    PIP=pip
+  fi
+  TRAVIS_ENVOPTS="$TRAVIS_ENVOPTS -p $PYTHON_BIN"
+  echo "\$ virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP"
+  [ ${opt_dry_run:-0} -ne 0 ] || virtualenv -q $TRAVIS_ENVOPTS $VENV_TMP
+  sts=$?
+  [ $sts -eq 0 ] || exit $sts 
+  LISTREQ=$(which list_requirements.py 2>/dev/null)
+  run_traced "cd $VENV_TMP"
+  echo "\$ source bin/activate"
+  [ ${opt_dry_run:-0} -eq 0 ] && source bin/activate
+  run_traced "$PIP install future"
+  req=$($LISTREQ -PBRT -t python -s" ")
+  req="${req/python=/}"
+  echo $req|tr -d "'"|tr " " "\n" > $HOME/requirements.txt
+  run_traced "$PIP install -r $HOME/requirements.txt --force-reinstall"
+  # run_traced "$PIP install -r $HOME/requirements.txt"
+  echo "\$ deactivate"
+  [ ${opt_dry_run:-0} -eq 0 ] && eactivate
+  cd $TRAVIS_CWD
+  find $VENV_TMP -name "*.pyc" -delete
+  [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
+  run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
+  exit $sts
+elif [[ $action =~ (chk_vm|cp_vm|mv_vm|merge_vm) ]]; then
+  run_traced "venv_mgr ${action:0: -3} $sub $sub2"
+  sts=$?
+  exit $sts
 elif [ "$action" == "parseyaml" ]; then
   # init_travis
   prepare_env_travis "$action"

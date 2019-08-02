@@ -178,13 +178,13 @@ from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         cvt_from_ver_2_ver, cvt_value_from_ver_to_ver)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
-                       default_conf)
+                       default_conf, build_odoo_param)
 from transodoo import read_stored_dict, translate_from_to
 # TMP
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.44"
+__version__ = "0.3.8.45"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -2172,9 +2172,16 @@ def act_check_partners(ctx):
     msg = u"Check for partners"
     msg_log(ctx, ctx['level'], msg)
     model = 'res.partner'
+
+    italy_id = searchL8(ctx,
+                        'res.country',
+                        [('code', '=', 'IT')])[0]
     partner_ids = searchL8(ctx, 'res.partner', [])
     rec_ctr = 0
     for partner_id in partner_ids:
+        if partner_id == 105:
+            import pdb
+            pdb.set_trace()
         try:
             partner = browseL8(ctx, model, partner_id)
         except BaseException:
@@ -2185,8 +2192,61 @@ def act_check_partners(ctx):
         msg_burst(4, 'Partner ',
                   rec_ctr,
                   partner.name)
+        vals = {}
+        if not partner.country_id and (partner.street or partner.city):
+            vals['country_id'] = italy_id
+            msg = u"Wrong country of %s" % partner.name
+            msg_log(ctx, ctx['level'], msg)
+        elif partner.country_id:
+            vals['country_id'] =  partner.country_id.id
+        else:
+            vals['country_id'] =  False
+        if is_valid_field(ctx, model, 'province'):
+            if (partner.province and
+                    vals['country_id'] == italy_id and
+                    not partner.state_id):
+                state_ids = searchL8(ctx,
+                                     'res.country.state',
+                                     [('code', '=', partner.province.code),
+                                      ('country_id', '=', vals['country_id'])])
+                if state_ids:
+                    vals['state_id'] = state_ids[0]
+                    msg = u"Wrong province of %s" % partner.name
+                    msg_log(ctx, ctx['level'], msg)
+
+        if (not vals.get('state_id') and
+                not partner.state_id and
+                partner.zip and
+                vals['country_id'] == italy_id):
+            city_ids = searchL8(ctx,
+                                'res.city',
+                                [('zip', '=', partner.zip),
+                                 ('country_id', '=', vals['country_id'])])
+            if not len(city_ids):
+                city_ids = searchL8(ctx,
+                                    'res.city',
+                                    [('zip', '=', '%s%%' % partner.zip[0:4]),
+                                     ('country_id', '=', vals['country_id'])])
+            if not len(city_ids):
+                city_ids = searchL8(
+                    ctx,
+                    'res.city',
+                    [('zip', '=', '%s%%%%' % partner.zip[0:3]),
+                     ('country_id', '=', vals['country_id'])])
+            state_id = None
+            for id in city_ids:
+                city = browseL8(ctx, 'res.city', id)
+                if state_id is None:
+                    state_id = city.state_id.id
+                    msg = u"Wrong province of %s" % partner.name
+                    msg_log(ctx, ctx['level'], msg)
+                elif city.state_id.id != state_id:
+                    state_id = False
+                    break
+            if state_id:
+                vals['state_id'] = state_id
+
         if partner.vat:
-            vals = {}
             iso = partner.vat.upper()[0:2]
             vatn = partner.vat[2:]
             if iso == 'IT':
@@ -2195,14 +2255,11 @@ def act_check_partners(ctx):
                     vals['vat'] = new_vat
                     msg = u"Wrong VAT %s" % partner.vat
                     msg_log(ctx, ctx['level'], msg)
-            elif partner.vat.isdigit() and len(partner.vat) == 11:
+            elif (vals['country_id'] == italy_id and
+                    partner.vat.isdigit() and
+                    len(partner.vat) == 11):
                 iso = 'IT'
                 vatn = partner.vat
-                vals['vat'] = iso + vatn
-                msg = u"Wrong VAT %s" % partner.vat
-                msg_log(ctx, ctx['level'], msg)
-            elif iso == '1I' and len(vatn) == 11:
-                iso = 'IT'
                 vals['vat'] = iso + vatn
                 msg = u"Wrong VAT %s" % partner.vat
                 msg_log(ctx, ctx['level'], msg)
@@ -2210,14 +2267,33 @@ def act_check_partners(ctx):
                 msg = partner.name + ' WRONG VAT'
                 msg_log(ctx, ctx['level'], msg)
             elif vatn.strip() == '':
+                vals['vat'] = False
                 msg = '%s WRONG VAT' % partner.name 
                 msg_log(ctx, ctx['level'], msg)
-            if vals:
-                try:
-                    writeL8(ctx, 'res.partner', [partner_id], vals)
-                except IOError:
-                    msg = partner.name + ' WRONG VAT'
-                    msg_log(ctx, ctx['level'], msg)
+
+        if partner.fiscalcode and vals['country_id'] == italy_id:
+            new_fc = partner.fiscalcode.upper()
+            if new_fc != partner.fiscalcode.upper():
+                vals['fiscalcode'] = new_fc
+                msg = '%s wrong fiscalcode' % partner.name 
+                msg_log(ctx, ctx['level'], msg)
+
+        if partner.zip:
+            new_zip = partner.zip.strip()
+            if new_zip != partner.zip:
+                vals['zip'] = new_zip
+                msg = '%s wrong zip' % partner.name 
+                msg_log(ctx, ctx['level'], msg)
+
+        if (not vals['country_id'] or
+                vals['country_id'] == partner.country_id.id):
+            del vals['country_id']
+        if vals:
+            try:
+                writeL8(ctx, 'res.partner', [partner_id], vals)
+            except IOError:
+                msg = 'ERROR updating %s' % partner.name
+                msg_log(ctx, ctx['level'], msg)
     return STS_SUCCESS
 
 
@@ -3467,30 +3543,8 @@ def upd_invoices_2_draft(move_dict, ctx):
         elif isinstance(move_dict, list) and i == 0:
             invoices = move_dict
         if len(invoices):
-            # for id in invoices:
-                # inv = browseL8(ctx, model, id)
-                # if (inv.type in ('out_invoice', 'out_refund') and
-                #         'fatturapa_attachment_out_id' in inv and
-                #         inv.fatturapa_attachment_out_id):
-                #     comment = inv.comment + '\a\axml_id=%d\n' % \
-                #         inv.fatturapa_attachment_out_id.id
-                #     try:
-                #         writeL8(ctx, model, id,
-                #                 {'fatturapa_attachment_out_id': False,
-                #                  'comment': comment})
-                #     except IOError:
-                #         pass
-                # elif (inv.type in ('in_invoice', 'in_refund') and
-                #         'fatturapa_attachment_in_id' in inv and
-                #         inv.fatturapa_attachment_out_id):
-                #     comment = inv.comment + '\a\axml_id=%d\n' % \
-                #         inv.fatturapa_attachment_out_id.id
-                #     try:
-                #         writeL8(ctx, model, id,
-                #                 {'fatturapa_attachment_in_id': False,
-                #                  'comment': comment})
-                #     except IOError:
-                #         pass
+            import pdb
+            pdb.set_trace()
             try:
                 executeL8(ctx,
                           model,

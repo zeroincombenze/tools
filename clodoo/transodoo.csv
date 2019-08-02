@@ -5,17 +5,17 @@ account.account.type	REPORT_TYPE|TYPE	field	report_type	report_type	report_type	
 account.account.type	report_type	value	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets
 account.account.type	report_type	value				Fixed Assets	Fixed Assets	Fixed Assets	Fixed Assets
 account.account.type	report_type	value	Income	Income	Income	Income	Income	Income	Income
-account.account.type	report_type	value	Payable	Payable	Payable	Payable	Payable	Payable	Payable
 account.account.type	report_type	value				Prepayments	Prepayments	Prepayments	Prepayments
 account.account.type	report_type	value	Liability	Liability	Liability	Current Liabilities	Current Liabilities	Current Liabilities	Current Liabilities
 account.account.type	report_type	value				Current Year Earnings	Current Year Earnings	Current Year Earnings	Current Year Earnings
+account.account.type	report_type	value		Check	Check				
 account.account.type	report_type	value		Tax	Tax	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities
 account.account.type	report_type	value		Asset View	Asset View				
 account.account.type	report_type	value		Income View	Income View				
 account.account.type	report_type	value				Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets
-account.account.type	report_type	value		Check	Check				
 account.account.type	report_type	value				Cost of Revenue	Cost of Revenue	Cost of Revenue	Cost of Revenue
 account.account.type	report_type	value	Root/View	Root/View	Root/View				
+account.account.type	report_type	value	Payable	Payable	Payable	Payable	Payable	Payable	Payable
 account.account.type	report_type	value	Cash	Cash	Cash	Credit Card	Credit Card	Credit Card	Credit Card
 account.account.type	report_type	value		Expense View	Expense View				
 account.account.type	report_type	value	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable
@@ -26,7 +26,7 @@ account.account.type	report_type	value		Liability View	Liability View
 account.account.type	report_type	value	Expense	Expense	Expense	Expenses	Expenses	Expenses	Expenses
 account.account.type	report_type	value				Depreciation	Depreciation	Depreciation	Depreciation
 account.invoice	INVOICE_CANCEL_DRAFT|ACTION_INVOICE_DRAFT	action	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	invoice_cancel_draft	action_invoice_draft	action_invoice_draft	action_invoice_draft
-account.invoice	INVOICE_CANCEL|ACTION_INVOICE_CANCEL	action	invoice_cancel	invoice_cancel	invoice_cancel	invoice_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
+account.invoice	INVOICE_CANCEL|ACTION_INVOICE_CANCEL	action	action_cancel	action_cancel	action_cancel	action_cancel	action_invoice_cancel	action_invoice_cancel	action_invoice_cancel
 account.invoice	INVOICE_OPEN|ACTION_INVOICE_OPEN	action	invoice_open	invoice_open	invoice_open	invoice_open	action_invoice_open	action_invoice_open	action_invoice_open
 account.invoice	FISCAL_POSITION|FISCAL_POSITION_ID	field	fiscal_position	fiscal_position	fiscal_position	fiscal_position_id	fiscal_position_id	fiscal_position_id	fiscal_position_id
 account.invoice	INTERNAL_NUMBER|MOVE_NAME	field	internal_number	internal_number	internal_number	move_name	move_name	move_name	move_name

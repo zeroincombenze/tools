@@ -24,7 +24,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.44"
+__version__ = "0.3.8.45"
 
 
 MAX_DEEP = 20
@@ -196,9 +196,28 @@ def inv_commission_from_order(ctx):
     ord_model = 'sale.order.line'
     agt_model = 'account.invoice.line.agent'
     ctr = 0
+    mode = ''
+    while not mode.startswith('A') and not mode.startswith('R'):
+        mode = raw_input('Mode (Add_missed,Recalculate)? ')
+        mode = mode[0].upper() if mode else ''
+    ids = raw_input('IDS to manage (empy means all)?')
+    if ids:
+        ids = eval(ids)
+        if isinstance(ids, int):
+            where = [('invoice_id', '=', ids)]
+            where1 = [('id', '=', ids)]
+        else:
+            where = [('invoice_id', 'in', ids)]
+            where1 = [('id', 'in', ids)]
+    else:
+        where = []
+        where1 = []
+    where.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
+    where1.append(('type', 'in', ('out_invoice', 'out_refund')))
+
     for inv_line in clodoo.browseL8(
         ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, [], order='invoice_id')):
+            ctx, inv_model, where, order='invoice_id desc')):
         msg_burst('%s ...' % inv_line.invoice_id.name)
         if inv_line.agents.amount:
             continue
@@ -216,7 +235,7 @@ def inv_commission_from_order(ctx):
     inv_model = 'account.invoice'
     for invoice in clodoo.browseL8(
         ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, [])):
+            ctx, inv_model, where1, order='id desc')):
         msg_burst('%s ...' % invoice.number)
         clodoo.writeL8(ctx, inv_model, invoice.id,
             {'number': invoice.number})
@@ -226,15 +245,33 @@ def inv_commission_from_order(ctx):
 def order_commission_by_partner(ctx):
     ctr = 0
     print('If missed, set commission in order lines from customer')
+    mode = ''
+    while not mode.startswith('A') and not mode.startswith('R'):
+        mode = raw_input('Mode (Add_missed,Recalculate)? ')
+        mode = mode[0].upper() if mode else ''
+    ids = raw_input('IDS to manage (empy means all)?')
+    if ids:
+        ids = eval(ids)
+        if isinstance(ids, int):
+            where = [('order_id', '=', ids)]
+            where1 = [('id', '=', ids)]
+        else:
+            where = [('order_id', 'in', ids)]
+            where1 = [('id', 'in', ids)]
+    else:
+        where = []
+        where1 = []
     ord_model = 'sale.order.line'
     sale_agent_model = 'sale.order.line.agent'
     agt_model = 'account.invoice.line.agent'
     ctr = 0
     for ord_line in clodoo.browseL8(
         ctx, ord_model, clodoo.searchL8(
-            ctx, ord_model, [], order='order_id')):
+            ctx, ord_model, where, order='order_id desc')):
         msg_burst('%s ...' % ord_line.order_id.name)
         if ord_line.agents:
+            if mode == 'A':
+                continue
             clodoo.unlinkL8(ctx, sale_agent_model, ord_line.agents.id)
         rec = []
         for agent in ord_line.order_id.partner_id.agents:
@@ -249,7 +286,7 @@ def order_commission_by_partner(ctx):
     ord_model = 'sale.order'
     for order in clodoo.browseL8(
         ctx, ord_model, clodoo.searchL8(
-            ctx, ord_model, [])):
+            ctx, ord_model, where1, order='id desc')):
         msg_burst('%s ...' % order.name)
         clodoo.writeL8(ctx, ord_model, order.id,
             {'name': order.name})
@@ -834,7 +871,6 @@ def configure_fiscal_position(ctx):
         if journal_gcrc_id:
             vals['payment_journal_id'] = journal_gcrc_id
         rc_type_id = synchro(ctx, model, vals)
-    pdb.set_trace()
 
 
 def simulate_user_profile(ctx):
@@ -1676,7 +1712,6 @@ print('    show_empty_ddt(ctx)')
 print('    change_ddt_number(ctx)')
 
 pdb.set_trace()
-test_synchro_vg7(ctx)
 
 
 def build_table_tree():
@@ -1788,8 +1823,6 @@ def display_modules(ctx):
         mlist.append(app.name)
     print(mlist)
 
-
-pdb.set_trace()
 
 model = 'account.account.type'
 for rec in clodoo.browseL8(
