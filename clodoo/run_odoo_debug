@@ -28,14 +28,14 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.45
+__version__=0.3.8.46
 
 
-OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         p        s         T        t         U          u       V           v           w       x)
-OPTDEST=(opt_help opt_branch opt_conf opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_odir opt_stop  opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_xport)
-OPTACTI=(1        "=>"       "="      "="      1       1        1       1       1        "="      "="         1         "1"         "="       "="      1         1        1         "="        1       "*>"        1           1       "=")
-OPTDEFL=(1        ""         ""       ""       0       0        0       0       0        ""       ""          -1        0           ""        ""       0         0        0         ""         0       ""          0           0       "")
-OPTMETA=("help"   "branch"   "fname"  "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    "dir"    ""        ""       "touch"   "user"     ""      "version"   "verbose"   0       "port")
+OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
+OPTDEST=(opt_help opt_branch opt_conf opt_db   opt_exp opt_keep opt_imp opt_xtl opt_lang opt_llvl opt_modules opt_multi opt_dry_run opt_ofile opt_ou opt_odir opt_stop  opt_test opt_touch opt_dbuser opt_upd opt_version opt_verbose opt_web opt_venv opt_xport)
+OPTACTI=(1        "=>"       "="      "="      1       1        1       1       1        "="      "="         1         "1"         "="       1      "="      1         1        1         "="        1       "*>"        1           1       1        "=")
+OPTDEFL=(1        ""         ""       ""       0       0        0       0       0        ""       ""          -1        0           ""        0      ""       0         0        0         ""         0       ""          0           0       0        "")
+OPTMETA=("help"   "branch"   "fname"  "dbname" ""      ""       ""      ""      ""       "level"  "modules"   ""        "no op"     "file"    ""     "dir"    ""        ""       "touch"   "user"     ""      "version"   "verbose"   0       ""       "port")
 OPTHELP=("this help"\
  "odoo branch (version id)"\
  "configuration file"\
@@ -50,6 +50,7 @@ OPTHELP=("this help"\
  "multi-version odoo environment"\
  "do nothing (dry-run)"\
  "output file (if export multiple modules)"\
+ "use openupgrade, if avaiable"\
  "odoo root path"\
  "stop after init"\
  "execute odoo test on module"\
@@ -59,6 +60,7 @@ OPTHELP=("this help"\
  "show version"\
  "verbose mode"\
  "run as web server"\
+ "run virtualenv if avaiable"
  "set odoo xmlrpc port")
 OPTARGS=(odoo_vid)
 
@@ -75,6 +77,7 @@ fi
 if [ -n "$opt_branch" -a -z "$odoo_vid" ]; then
   odoo_vid=$opt_branch
 fi
+[ $opt_venv -ne 0 ] && odoo_vid="VENV-$odoo_vid"
 discover_multi
 odoo_fver=$(build_odoo_param FULLVER $odoo_vid)
 odoo_ver=$(build_odoo_param MAJVER $odoo_fver)
@@ -89,6 +92,15 @@ if [ -n "$opt_odir" ]; then
   odoo_root=$opt_odir
   x=$(basename $script)
   script="$opt_odir/$x"
+elif [ $opt_ou -ne 0 ]; then
+  x=$(basename $script)
+  script=
+  [ -z "$script" -a -f ~/tmp/$odoo_fver/server/$x ] && script=~/tmp/$odoo_fver/server/$x
+  [ -z "$script" -a -f ~/tmp/$odoo_fver/$x ] && script=~/tmp/$odoo_fver/$x
+  if [ -z "$script" ]; then
+    echo "Openupgrade script not found"
+    exit 1
+  fi
 else
   odoo_root=$(build_odoo_param ROOT $odoo_vid search)
 fi

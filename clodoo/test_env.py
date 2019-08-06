@@ -24,7 +24,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.45"
+__version__ = "0.3.8.46"
 
 
 MAX_DEEP = 20
@@ -172,7 +172,7 @@ def clean_translations(ctx):
     print('%d records deleted' % len(ids))
 
 
-def close_purchse_orders(ctx):
+def close_purchase_orders(ctx):
     print('Close purchase orders')
     model = 'purchase.order.line'
     ctr = 0
@@ -293,8 +293,8 @@ def order_commission_by_partner(ctx):
     print('%d sale order lines updated' % ctr)
 
 
-def set_products_2_delivery_order(ctx):
-    print('Set purchase methos to purchase in all products')
+def products_2_delivery_order(ctx):
+    print('Set purchase methods to purchase in all products')
     model = 'product.template'
     ctr=0
     for pp in clodoo.browseL8(ctx, model,clodoo.searchL8(ctx, model, [])):
@@ -399,7 +399,7 @@ def revaluate_due_date_in_invoces(ctx, inv_id=False):
                 clodoo.reconcile_invoices(cur_reconcile_dict, ctx)
 
 
-def delivery_address_same_customer(ctx):
+def delivery_addr_same_customer(ctx):
     print('Set delivery address to the same of customer')
     model = 'sale.order'
     numbers = raw_input('Sale Order number like: ')
@@ -1096,6 +1096,59 @@ def change_ddt_number(ctx):
             print('DdT number of id %d changed with %s' % (ddt_id,
                                                            ddt.ddt_number))
 
+def deduplicate_partner(ctx):
+    print('Deduplicate partners')
+    model = 'res.partner'
+    prior_name = ''
+    prior_partner = False
+    for partner in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order='name')):
+        msg_burst('%s ...' % partner.name)
+        if partner.name and partner.name == prior_name:
+            print('Found duplicate name %s as %d and %d' % (
+                partner.name, partner.id, prior_partner.id))
+            candidate = False
+            if prior_partner.id > partner.id:
+                if (prior_partner.activities_count == 0 and
+                        len(prior_partner.invoice_ids) == 0):
+                    candidate = prior_partner
+            if not candidate and prior_partner.id < partner.id:
+                if (partner.activities_count == 0 and
+                        len(partner.invoice_ids) == 0):
+                    candidate = partner
+            if not candidate:
+                if (partner.activities_count == 0 and
+                        len(partner.invoice_ids) == 0):
+                    candidate = partner
+                elif (prior_partner.activities_count == 0 and
+                        len(prior_partner.invoice_ids) == 0):
+                    candidate = prior_partner
+            if candidate:
+                vals = {}
+                if candidate.type == 'contact':
+                    vals = {'active': False}
+                vg7_id = False
+                if candidate.vg7_id:
+                    vg7_id = candidate.vg7_id
+                    vals['vg7_id'] = False
+                if vals:
+                    print('Candidate to delete is %d' % candidate.id)
+                    clodoo.writeL8(ctx, model, candidate.id, vals)
+                if vg7_id:
+                    vals = {'vg7_id': vg7_id}
+                    if candidate == partner:
+                        clodoo.writeL8(ctx, model, prior_partner.id, vals)
+                        print('Assigned vg7_id %d to record %d' % (
+                            vg7_id, prior_partner.id))
+                    elif candidate == prior_partner:
+                        clodoo.writeL8(ctx, model, partner.id, vals)
+                        print('Assigned vg7_id %d to record %d' % (
+                            vg7_id, partner.id))
+        prior_name = partner.name
+        prior_partner = partner
+
+
 def print_model_synchro_data(ctx):
     print('Show XML data to build model for synchro module')
     model = ''
@@ -1690,26 +1743,22 @@ if ctx['function']:
     exit()
 
 print('Function avaiable:')
-print('    show_module_group(ctx)')
-print('    clean_translations(ctx)')
-print('    close_purchse_orders(ctx)')
-print('    inv_commission_from_order(ctx)')
-print('    order_commission_by_partner(ctx)')
-print('    set_products_2_delivery_order(ctx)')
-print('    set_products_2_consumable(ctx)')
-print('    update_einvoice_out_attachment(ctx)')
-print('    revaluate_due_date_in_invoces(ctx)')
-print('    delivery_address_same_customer(ctx)')
-print('    print_tax_codes(ctx)')
-print('    set_tax_code_on_invoice(ctx)')
-print('    set_payment_data_on_report(ctx)')
-print('    configure_RiBA(ctx)')
-print('    manage_riba(ctx)')
-print('    configure_email_template(ctx)')
-print('    simulate_user_profile(ctx)')
-print('    reset_email_admins(ctx)')
-print('    show_empty_ddt(ctx)')
-print('    change_ddt_number(ctx)')
+print('  Sale orders                         Account invoices')
+print('  - order_commission_by_partner(ctx)  - inv_commission_from_order(ctx)')
+print('  - delivery_addr_same_customer(ctx)  - revaluate_due_date_in_invoces(ctx)')
+print('                                      - update_einvoice_out_attachment(ctx)')
+print('                                      - set_tax_code_on_invoice(ctx)')
+print('  Purchase orders                     DdT')
+print('  - products_2_delivery_order(ctx)    - change_ddt_number(ctx)')
+print('  - close_purchase_orders(ctx)        - show_empty_ddt(ctx)')
+print('  Products/Partners                   RiBA')
+print('  - set_products_2_consumable(ctx)    - configure_RiBA(ctx)')
+print('  - deduplicate_partner(ctx)          - manage_riba(ctx)')
+print('  System                              ...')
+print('  - show_module_group(ctx)            - clean_translations(ctx)')
+print('  - print_tax_codes(ctx)              - set_payment_data_on_report(ctx)')
+print('  - configure_email_template(ctx)     - simulate_user_profile(ctx)')
+print('  - reset_email_admins(ctx)')
 
 pdb.set_trace()
 

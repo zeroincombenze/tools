@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.45"
+__version__ = "0.3.8.46"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -1079,32 +1079,33 @@ def act_run_unit_tests(ctx):
     return STS_SUCCESS
 
 
-def act_drop_db(ctx):
+def act_drop_db(ctx, db_name=None):
     """Drop a DB %s, if exists"""
+    db_name = db_name or ctx['db_name']
     msg_log(ctx, ctx['level'],
-            globals()[inspect.stack()[0][3]].__doc__ % ctx['db_name'])
+            globals()[inspect.stack()[0][3]].__doc__ % db_name)
     sts = STS_SUCCESS
     if not ctx['dry_run']:
         ctr = 3
         sts = STS_FAILED
         while sts == STS_FAILED and ctr > 0:
             try:
-                cmd = 'pg_db_active -wa %s' % ctx['db_name']
+                cmd = 'pg_db_active -wa %s' % db_name
                 os0.muteshell(cmd, simulate=False, keepout=False)
                 if ctx['oe_version'] == '12.0': # FIX: odoorpc wont work 12.0
                     os0.muteshell("dropdb -Upostgres --if-exists " +
-                                  ctx['db_name'])
+                                  db_name)
                 else:
                     ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                                                ctx['db_name'])
+                                                db_name)
                 # ctx['odoo_session'].db.drop(ctx['admin_passwd'],
-                #                             ctx['db_name'])
+                #                             db_name)
                 sts = STS_SUCCESS
-                if ctx['db_name'][0:11] != 'clodoo_test':
+                if db_name[0:11] != 'clodoo_test':
                     time.sleep(2)
             except BaseException:
                 ctr -= 1
-                if ctx['db_name'][0:11] != 'clodoo_test':
+                if db_name[0:11] != 'clodoo_test':
                     time.sleep(3)
     return sts
 
@@ -1919,6 +1920,24 @@ def act_check_tax(ctx):
     return STS_SUCCESS
 
 
+def act_check_xid(ctx):
+    if not ctx['dry_run']:
+        model = 'ir.model.data'
+        ids = searchL8(ctx, model, [])
+        for i,id in enumerate(ids):
+            xref = browseL8(ctx, model, id)
+            msg_burst(ctx['level'] + 1,
+                      'xreference',
+                      i,
+                      len(ids))
+            try:
+                browseL8(ctx, xref.model, xref.res_id)
+            except BaseException:
+                print('!! Invalid external reference %s.%s' % (xref.module,
+                                                               xref.name))
+    return STS_SUCCESS
+
+
 def act_check_config(ctx):
     if not ctx['dry_run'] and 'def_company_id' in ctx:
         msg = u"Check config"
@@ -2062,16 +2081,6 @@ def act_check_config(ctx):
         for inv_id in deletion_list:
             ix = invoces_no_use.index(inv_id)
             del invoces_no_use[ix]
-        # for res_id in reserved_partner:
-        #     name = 'res_partner_%d' % (res_id + 1000)
-        #     id = createL8(ctx, model,
-        #                   {'module': 'base',
-        #                    'name': name,
-        #                    'model': model_partner,
-        #                    'res_id': res_id})
-        #     msg_log(ctx, ctx['level'] + 1,
-        #             'External id %d name %s created' % (id, name))
-        #
         z0_invoice_list = searchL8(ctx, model,
                                    [('model', '=', model_invoice),
                                     ('module', '=', 'z0bug')])
@@ -2152,19 +2161,6 @@ def act_check_config(ctx):
                             refresh_reconcile_from_inv(
                                 inv_id, reconciles, ctx)
                         reconcile_invoices(cur_reconcile_dict, ctx)
-
-        ids = searchL8(ctx, model, [])
-        for i,id in enumerate(ids):
-            xref = browseL8(ctx, model, id)
-            msg_burst(ctx['level'] + 1,
-                      'xreference',
-                      i,
-                      len(ids))
-            try:
-                browseL8(ctx, xref.model, xref.res_id)
-            except BaseException:
-                print('!! Invalid external reference %s.%s' % (xref.module,
-                                                               xref.name))
     return STS_SUCCESS
 
 
@@ -2179,9 +2175,6 @@ def act_check_partners(ctx):
     partner_ids = searchL8(ctx, 'res.partner', [])
     rec_ctr = 0
     for partner_id in partner_ids:
-        if partner_id == 105:
-            import pdb
-            pdb.set_trace()
         try:
             partner = browseL8(ctx, model, partner_id)
         except BaseException:

@@ -5,8 +5,8 @@ Return module list or dependencies list or depends list of odoo modules.
 
 usage: odoo_dependencies.py [-h] [-A {dep,help,jrq,mod,rev,tree}] [-a]
                             [-b version] [-B DEPENDS_BY] [-c file] [-D file]
-                            [-E] [-e] [-H] [-j] [-M MODULES_TO_MATCH] [-m]
-                            [-N] [-n] [-o] [-P] [-q] [-R] [-r] [-S SEP_LIST]
+                            [-E] [-e] [-H] [-M MODULES_TO_MATCH]
+                            [-N] [-n] [-o] [-P] [-q] [-R] [-S SEP_LIST]
                             [-V] [-v] [-x] [-1]
                             [path_list [path_list ...]]
 
@@ -29,16 +29,13 @@ optional arguments:
   -E, --only-missed
   -e, --external-dependencies
   -H, --action-help
-  -j, --action-just-reverse-modules
   -M MODULES_TO_MATCH, --modules-to-match MODULES_TO_MATCH
-  -m, --action-modules
   -N, --only-count
   -n, --dry-run         do nothing (dry-run)
   -o, --or-list
   -P, --pure-list
   -q, --quiet           silent mode
   -R, --recurse
-  -r, --action-reverse-modules
   -S SEP_LIST, --sep-list SEP_LIST
   -V, --version         show program's version number and exit
   -v, --verbose         verbose mode
@@ -49,16 +46,16 @@ optional arguments:
 
 
 This app can execute following actions:
-  mod: print module list of paths (by -m switch too)
+  mod: print module list of paths
   dep: print dependencies list of modules 
-  rev: print dependents list of module in paths (use -r switch too)
-  jrq: print just strict dependents list of module in paths (use -j switch too)
+  rev: print dependents list of module in paths
+  jrq: print just strict dependents list of module in paths
   tree: print modules tree
 
 Action 'mod' returns module list from path_list (comma separated). 
 With -R switch, the search traverses directories.
-With -M switch, list contains only modules in MODULES_TO_MATCH.
-With -E switch, list contains only modules in MODULES_TO_MATCH
+With -M switch, list matches only modules in MODULES_TO_MATCH.
+With -E switch, list matches only modules in MODULES_TO_MATCH
                 not found in path_list.
 See below for -D and -c switches.
 With -B switch returns modules list which have one or more dependencies
@@ -70,22 +67,22 @@ MODULES_TO_MATCH is get from -M switch or else they are get from path_list.
 With -R switch, the search traverses directories.
 Returned modules in list depend from one or more MODULES_TO_MATCH.
 This is the default behavior or using -o switch.
-Modules in list depends from all MODULES_TO_MATCH if supplied -a switch (and).
+Modules in list may depend from all MODULES_TO_MATCH with -a switch (and).
 MODULES_TO_MATCH are includes in dependencies list.
 If you want to avoid this inclusion, use -P switch (pure).
 You can also limit list to modules supplied by -B switch.
 
-Action 'rev' -or -r return ancestor modules by list of modules to match
+Action 'rev' return ancestor modules by list of modules to match
 supplied by -B switch or module base.
 With -1 switch, it does not traverses parent tree.
 
-Action 'jrq' or -q is like -r but returns strictly list of common ancestors.
+Action 'jrq' is like 'rev' but returns strictly list of common ancestors.
 
 Action 'tree' print modules tree. With -E switch print only missed modules.
 
 SPECIAL FEATURES
 
-Switch -N returns, for all actions, the counting of modules.
+Switch -N returns, for all actions, the reckoning of modules.
 
 Switch -D replaces value of MODULES_TO_MATCH with installed module in DB;
 so, with -D, -m and -E switches and without -M switch, return installed modules
@@ -114,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.15'
+__version__ = '0.2.2.16'
 
 
 MANIFEST_FILES = [
@@ -537,7 +534,7 @@ def get_just_dependents_list(path_list, matches=None, depth=None,
     return sorted(list(depends))
 
 
-def main(ctx):
+def retrieve_db_modules(ctx):
     ctx['modules_unstable'] = []
     if ctx['db_name']:
         if ctx['branch']:
@@ -556,6 +553,11 @@ def main(ctx):
                     ctx, model, [('state', 'in',
                                  ['to install', 'to upgrade', 'to remove'])]))
             ])
+    return ctx
+
+
+def main(ctx):
+    ctx = retrieve_db_modules(ctx)
     if ctx['action'] == 'mod':
         res = get_modules_list(ctx['path_list'],
                                depth=ctx['depth'],
@@ -626,14 +628,13 @@ def main(ctx):
 
 if __name__ == "__main__":
     ACTIONS = ('dep', 'help', 'jrq', 'mod', 'rev', 'tree')
-    parser = z0lib.parseoptargs("Odoo dependencies",
+    parser = z0lib.parseoptargs("Odoo dependencies management",
                                 "© 2019 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument('-A', '--action',
                         action='store',
                         choices=ACTIONS,
-                        # default='help',
                         dest='action')
     parser.add_argument('-a', '--and-list',
                         action='store_true',
@@ -669,9 +670,9 @@ if __name__ == "__main__":
     parser.add_argument('-H', '--action-help',
                         action='store_true',
                         dest='act_show_full_help')
-    parser.add_argument('-j', '--action-just-reverse-modules',
-                        action='store_true',
-                        dest='act_just_reverse_modules')
+    # parser.add_argument('-j', '--action-just-reverse-modules',
+    #                     action='store_true',
+    #                     dest='act_just_reverse_modules')
     parser.add_argument('-M', '--modules-to-match',
                         action='store',
                         default='',
@@ -693,9 +694,9 @@ if __name__ == "__main__":
     parser.add_argument('-R', '--recurse',
                         action='store_true',
                         dest='recurse')
-    parser.add_argument('-r', '--action-reverse-modules',
-                        action='store_true',
-                        dest='act_reverse_modules')
+    # parser.add_argument('-r', '--action-reverse-modules',
+    #                     action='store_true',
+    #                     dest='act_reverse_modules')
     parser.add_argument('-S', '--sep-list',
                         action='store',
                         default=',',
@@ -716,15 +717,15 @@ if __name__ == "__main__":
             ctx['path_list'] and  ctx['path_list'][0] in ACTIONS):
         ctx['action'] = ctx['path_list'].pop(0)
     if not ctx['action']:
-        if ctx['act_modules']:
-            ctx['action'] ='mod'
+        # if ctx['act_modules']:
+        #     ctx['action'] ='mod'
         # elif ctx['act_depends']:
         #     ctx['action'] ='dep'
-        elif ctx['act_just_reverse_modules']:
-            ctx['action'] ='jrq'
-        elif ctx['act_reverse_modules']:
-            ctx['action'] ='rev'
-        elif ctx['act_show_full_help']:
+        # elif ctx['act_just_reverse_modules']:
+        #     ctx['action'] ='jrq'
+        # elif ctx['act_reverse_modules']:
+        #     ctx['action'] ='rev'
+        if ctx['act_show_full_help']:
             ctx['action'] ='help'
     if ctx['action'] not in ACTIONS:
         print('Invalid action!')

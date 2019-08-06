@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.15
+__version__=0.2.2.16
 
 
 #
@@ -62,17 +62,17 @@ test_01() {
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
 
-    OPTS="-mR $LCL_OE_ROOT"
+    OPTS="-A mod -R $LCL_OE_ROOT"
     TRES="account,base,l10n_it_base,sale,web"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
 
-    OPTS="mod $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH"
+    OPTS="-A mod $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH"
     TRES="account,base,l10n_it_base,sale,web"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
 
-    OPTS="-mR $LCL_OE_ROOT -M account,l10n_it_base,l10n_it_ade"
+    OPTS="-A mod -R $LCL_OE_ROOT -M account,l10n_it_base,l10n_it_ade"
     TRES="account,l10n_it_base"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
@@ -89,102 +89,115 @@ test_01() {
 }
 
 test_02() {
-    local TRES RES
+    local TRES RES OPTS
+    OPTS="-A dep $LCL_OE_ROOT"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
-    test_result "od -A dep $LCL_OE_ROOT" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT -R"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT -R)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
-    test_result "od -A dep $LCL_OE_ROOT -R" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT -1"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT -1)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES=""
-    test_result "od -A dep $LCL_OE_ROOT -1" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,analytic,base,base_setup,l10n_it_base,procurement,product,report,sale,sales_team,web,web_planner,web_tour"
-    test_result "od -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,analytic,base,base_setup,l10n_it_ade,l10n_it_base,procurement,product,report,sale,sales_team,web_planner,web_tour"
-    test_result "od -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -1 -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,analytic,base,base_setup,l10n_it_ade,l10n_it_base,product,report,sale,web_planner"
-    test_result "od -1 -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -M account,l10n_it_base,l10n_it_ade" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT -R -B base,sale"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT -R -B base,sale)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="base,sale"
-    test_result "od -A dep $LCL_OE_ROOT -R -B base,sale" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT/addons -1a -Maccount,sale"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT/addons -1a -Maccount,sale)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="account,report"
-    test_result "od -A dep $LCL_OE_ROOT/addons -1a -Maccount,sale" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -PM account,l10n_it_base,l10n_it_ade"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -PM account,l10n_it_base,l10n_it_ade)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="analytic,base,base_setup,procurement,product,report,sale,sales_team,web_planner,web_tour"
-    test_result "od -A dep $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -PM account,l10n_it_base,l10n_it_ade" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 }
 
 test_03() {
-    local TRES RES
+    local TRES RES OPTS
+    OPTS="-A rev $LCL_OE_ROOT"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -r $LCL_OE_ROOT)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="base"
-    test_result "od -r $LCL_OE_ROOT" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A rev -R $LCL_OE_ROOT"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -Rr $LCL_OE_ROOT)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="base,l10n_it_base,web"
-    test_result "od -Rr $LCL_OE_ROOT" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A rev -R $LCL_OE_ROOT -B base"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -Rr $LCL_OE_ROOT -B base)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="base,l10n_it_base,web"
-    test_result "od -Rr $LCL_OE_ROOT -B base" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 
+    OPTS="-A rev -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base"
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      RES=$($RUNDIR/odoo_dependencies.py -1r $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base)
+      RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     fi
     TRES="base,l10n_it_base,web"
-    test_result "od -1r $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base" "$TRES" "$RES"
+    test_result "od $OPTS" "$TRES" "$RES"
 }
 
 test_04() {
     local TRES RES OPTS
-    OPTS="-1j $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base"
+    OPTS="-A jrq -1 $LCL_OE_ROOT/addons,$LCL_OE_PRJPATH -B base"
     TRES="web"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
 
-    OPTS="-Re -A dep $LCL_OE_ROOT"
+    OPTS="-A dep -Re $LCL_OE_ROOT"
     TRES="lxml,vatnumber"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
 
-    OPTS="-Rx -A dep $LCL_OE_ROOT"
+    OPTS="-A dep -Rx $LCL_OE_ROOT"
     TRES="wkhtmltox"
     [ ${opt_dry_run:-0} -eq 0 ] && RES=$($RUNDIR/odoo_dependencies.py $OPTS)
     test_result "od $OPTS" "$TRES" "$RES"
