@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.46"
+__version__ = "0.3.8.47"
 
 
 #############################################################################
@@ -74,6 +74,27 @@ def cnx(ctx):
     except BaseException:                                    # pragma: no cover
         odoo = False
     return odoo
+
+
+def exec_sql(ctx, query, response=None):
+    try:
+        ctx['_cr'].execute(query)
+        if response:
+            response = ctx['_cr'].fetchall()
+        else:
+            response = True
+    except psycopg2.OperationalError:
+        os0.wlog('Error executing sql %s' % query)
+        response = False
+    return response
+
+
+def sql_reconnect(ctx):
+    try:
+        ctx['_cr'].close()
+    except BaseException:
+        pass
+    ctx['_cr'] = psql_connect(ctx)
 
 
 def connectL8(ctx):
@@ -259,105 +280,247 @@ def drop_invalid_fields(ctx, model, vals):
     return vals
 
 
-def cvt_value_from_ver_to_ver(ctx, model, name, value, src_ver, tgt_ver=None):
-    tgt_ver = tgt_ver or ctx['oe_version']
-    new_name = translate_from_to(ctx,
-                                 model,
-                                 name,
-                                 src_ver,
-                                 tgt_ver)
-    if not new_name:
-        return '', False
-    majver = int(tgt_ver.split('.')[0])
-    if new_name:
-        if model == 'account.account.type':
-            if name in ('type', 'report_type'):
-                if src_ver == '10.0':
-                    if value in ('receivable', 'liquidity'):
-                        value = 'asset'
-                    elif value == 'payable':
-                        value = 'liability'
-                    else:
-                        value = 'expense'
-        elif model == 'account.tax':
-            if name == 'amount':
-                if src_ver == '10.0' and tgt_ver == '8.0':
-                    value = value / 100
-                elif src_ver == '8.0' and tgt_ver == '10.0':
-                    value = value * 100
-        elif model == 'ir.sequence':
-            if name == 'code':
-                if src_ver == '10.0' and tgt_ver == '8.0':
-                    if not searchL8(ctx,
-                                    'ir.sequence.type',
-                                    [('code', '=', value)]):
-                        createL8(ctx, 'ir.sequence.type',
-                                 {'code': value,
-                                  'name': value.replace('.', ' ')})
-        elif model == 'res.partner':
-            if name == 'type':
-                type = 'contact'
-    return new_name, value
+def tnl_2_ver_seq_code(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                       default=None):
+    if src_ver == '10.0' and tgt_ver == '8.0':
+        if not searchL8(ctx,
+                        'ir.sequence.type',
+                        [('code', '=', vals[new_name])]):
+            createL8(ctx, 'ir.sequence.type',
+                     {'code': vals[new_name],
+                      'name': vals[new_name].replace('.', ' ')})
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_acc_type(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                       default=None):
+    TNL_9_TO_10 = {
+        'income': 'other',
+        'none': 'other',
+        'liability': 'payable',
+        'asset': 'other',
+        'expense': 'other',
+    }
+    TNL_10_TO_9 = {
+        'receivable': 'asset',
+        'liquidity': 'asset',
+        'payable': 'liability',
+        'other': 'none',
+    }
+    tbl = False
+    src_v = int(src_ver.split('.')[0])
+    tgt_v = int(tgt_ver.split('.')[0])
+    if src_v < 10 and tgt_v >= 10:
+        tbl = TNL_9_TO_10
+    elif src_v >= 10 and tgt_v < 10:
+        tbl = TNL_10_TO_9
+    if tbl:
+        vals[new_name] = tbl[vals[name]]
+    # vals[new_name] = translate_from_to(ctx,
+    #                                    model,
+    #                                    vals[name],
+    #                                    src_ver,
+    #                                    tgt_ver,
+    #                                    type='value',
+    #                                    fld_name='report_type')
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_group(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                    default=None):
+    '''Type Group'''
+    if name != new_name:
+        del vals[name]
+    if new_name in vals and src_ver == '10.0' and tgt_ver == '8.0':
+        if vals[new_name] == 'group':
+            vals['child_depend'] = True
+            del vals[new_name]
+    return vals
+
+
+def tnl_2_ver_type_tax_use(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                           default=None):
+    if vals.get(new_name) not in ('sale', 'purchase'):
+        if vals['description'][-1] == 'v':
+            vals[new_name] = 'sale'
+        else:
+            vals[new_name] = 'purchase'
+        if vals['type_tax_use'] == 'sale':
+            code = 'IT%s%sD' % (
+                'D', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code',
+                           [('code', '=', code)])
+            if ids:
+                vals['base_code_id'] = ids[0]
+                vals['ref_base_code_id'] = ids[0]
+            code = 'IT%s%sV' % (
+                'D', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code',
+                           [('code', '=', code)])
+            if ids:
+                vals['tax_code_id'] = ids[0]
+                vals['ref_tax_code_id'] = ids[0]
+        elif vals['type_tax_use'] == 'purchase':
+            code = 'IT%s%sD' % (
+                'C', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code',
+                           [('code', '=', code)])
+            if ids:
+                vals['base_code_id'] = ids[0]
+                vals['ref_base_code_id'] = ids[0]
+            code = 'IT%s%sV' % (
+                'C', vals['description'][0:-1])
+            ids = searchL8(ctx, 'account.tax.code',
+                           [('code', '=', code)])
+            if ids:
+                vals['tax_code_id'] = ids[0]
+                vals['ref_tax_code_id'] = ids[0]
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_tax_amount(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                         default=None):
+    if src_ver == '10.0' and tgt_ver == '8.0':
+        vals[new_name] = vals[new_name] / 100
+    elif src_ver == '8.0' and tgt_ver == '10.0':
+        vals[new_name] = vals[new_name] * 100
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_vat(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                  default=None):
+    '''External vat may not contain ISO code'''
+    if (isinstance(vals[new_name], basestring) and
+            len(vals[new_name]) == 11 and
+            vals[new_name].isdigit()):
+        vals[new_name] = 'IT%s' % vals[new_name]
+    else:
+        vals[new_name] = vals[new_name]
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_state_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                       default=None):
+    if 'country_id' in vals:
+        vals[new_name] = get_state_id(ctx, vals[new_name],
+                                      country_id=vals['country_id'])
+    else:
+        vals[new_name] = get_state_id(ctx, vals[new_name])
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_child_id(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                       default=None):
+    if int(tgt_ver.split('.')[0]) >= 10 and vals[name]:
+        vals = {}
+    return vals
+
+
+def tnl_2_ver_set_value(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                        default=None):
+    vals[new_name] = default
+    if name != new_name:
+        del vals[name]
+    return vals
+
+
+def tnl_2_ver_drop_record(ctx, model, vals, new_name, name, src_ver, tgt_ver,
+                          default=None):
+    vals = {}
+    return vals
 
 
 def cvt_from_ver_2_ver(ctx, model, src_ver, tgt_ver, vals):
+
+    APPLY = {
+        'account.account.type': {'type': 'acc_type()',
+                                 'report_type': 'acc_type()',
+        },
+        'account.account': {'child_id': 'child_id()',
+        },
+        'account.tax': {'type': 'group()',
+                        'type_tax_use': 'type_tax_use()',
+        },
+        'res.partner': {'is_company': 'true',
+                        'vat': 'vat()',
+                        'state_id': 'state_id()',
+        },
+        'ir.sequence': {'code': 'seq_code()',
+        },
+    }
+
+    def process_fields(ctx, model, vals, src_ver, tgt_ver,
+                       field_list=None, excl_list=None):
+        for name in vals.copy():
+            new_name = translate_from_to(ctx,
+                                         model,
+                                         name,
+                                         src_ver,
+                                         tgt_ver)
+            if not new_name:
+                new_name = name
+            if name == 'company_id':
+                if ctx.get('by_company'):
+                    vals[name] = ctx['company_id']
+            elif model in APPLY:
+                default = ''
+                if new_name in APPLY[model]:
+                    default = APPLY[model][new_name]
+                if field_list and new_name and new_name not in field_list:
+                    continue
+                if excl_list and new_name and new_name in excl_list:
+                    continue
+                if default.endswith('()'):
+                    apply = 'tnl_2_ver_%s' % default[:-2]
+                    default = False
+                elif default:
+                    apply = 'tnl_2_ver_set_value'
+                    if default == 'true':
+                        default = os0.str2bool(default, True)
+                else:
+                    apply = ''
+                if not apply or apply not in list(globals()):
+                    if name != new_name:
+                        vals[new_name] = vals[name]
+                        del vals[name]
+                    continue
+                if not new_name:
+                    vals = globals()[apply](ctx, model, vals, name, name,
+                                            src_ver, tgt_ver, default=default)
+                else:
+                    vals = globals()[apply](ctx, model, vals, new_name, name,
+                                            src_ver, tgt_ver, default=default)
+                if not vals:
+                    break
+        return vals
+
     if ctx.get('mindroot'):
-        new_vals = {}
-        for name in vals:
-            new_name, value = cvt_value_from_ver_to_ver(
-                ctx, model, name, vals[name], src_ver, tgt_ver)
-            if new_name and value:
-                new_vals[new_name] = value
-        if model == 'account.tax':
-            if 'type' in new_vals and src_ver == '10.0' and tgt_ver == '8.0':
-                if new_vals['type'] == 'group':
-                    new_vals['child_depend'] = True
-                    new_vals['type'] = ''
-            if tgt_ver == '8.0':
-                name = 'applicable_type'
-                if name not in new_vals:
-                    new_vals[name] = set_some_values(ctx, None, name, '',
-                                                     model=model, row=vals)
-                if new_vals.get('type_tax_use', '') not in ('sale',
-                                                            'purchase'):
-                    if new_vals['description'][-1] == 'v':
-                        new_vals['type_tax_use'] = 'sale'
-                    else:
-                        new_vals['type_tax_use'] = 'purchase'
-                if new_vals['type_tax_use'] == 'sale':
-                    code = 'IT%s%sD' % (
-                        'D', new_vals['description'][0:-1])
-                    ids = searchL8(ctx, 'account.tax.code',
-                                   [('code', '=', code)])
-                    if ids:
-                        new_vals['base_code_id'] = ids[0]
-                        new_vals['ref_base_code_id'] = ids[0]
-                    code = 'IT%s%sV' % (
-                        'D', new_vals['description'][0:-1])
-                    ids = searchL8(ctx, 'account.tax.code',
-                                   [('code', '=', code)])
-                    if ids:
-                        new_vals['tax_code_id'] = ids[0]
-                        new_vals['ref_tax_code_id'] = ids[0]
-                elif new_vals['type_tax_use'] == 'purchase':
-                    code = 'IT%s%sD' % (
-                        'C', new_vals['description'][0:-1])
-                    ids = searchL8(ctx, 'account.tax.code',
-                                   [('code', '=', code)])
-                    if ids:
-                        new_vals['base_code_id'] = ids[0]
-                        new_vals['ref_base_code_id'] = ids[0]
-                    code = 'IT%s%sV' % (
-                        'C', new_vals['description'][0:-1])
-                    ids = searchL8(ctx, 'account.tax.code',
-                                   [('code', '=', code)])
-                    if ids:
-                        new_vals['tax_code_id'] = ids[0]
-                        new_vals['ref_tax_code_id'] = ids[0]
-        elif model == 'account.invoice':
-            if 'state' in new_vals and new_vals['state'] != 'cancel':
-                new_vals['state'] = 'draft'
-        vals = dict([x for x in new_vals.items() if x[1] is not None])
+        if not ctx.get('by_company') and 'company_id' in vals:
+            ctx['company_id'] = vals['company_id']
+        elif model_has_company(ctx, model):
+            ctx['company_id'] = ctx['def_company_id']
+        if ctx.get('company_id'):
+            ctx['country_id'] = browseL8(ctx, 'res.company',
+                    ctx['company_id']).partner_id.country_id.id
+        else:
+            ctx['country_id'] = False
+        pf_list = ('company_id', 'country_id', 'street')
+        vals = process_fields(ctx, model, vals, src_ver, tgt_ver,
+                              field_list=pf_list)
+        vals = process_fields(ctx, model, vals, src_ver, tgt_ver,
+                              excl_list=pf_list)
     return vals
 
 

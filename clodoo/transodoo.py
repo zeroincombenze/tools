@@ -41,7 +41,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.46"
+__version__ = "0.3.8.47"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -170,7 +170,15 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                 if (pymodel in mindroot and
                         typ in mindroot[pymodel] and
                         fld_name in mindroot[pymodel][typ]):
-                    if ver_name in mindroot[pymodel][typ][fld_name]:
+                    if isinstance(mindroot[pymodel][typ][fld_name],
+                                   basestring):
+                        item = mindroot[pymodel][typ][fld_name]
+                        if item.startswith('${') and item.endswith('}'):
+                            name = tnl_by_code(ctx, model, src_name, src_ver,
+                                               tgt_ver,
+                                               item)
+                            break
+                    elif ver_name in mindroot[pymodel][typ][fld_name]:
                         uname = mindroot[pymodel][typ][fld_name][ver_name]
                         if (uname in mindroot[pymodel][typ][fld_name] and
                                 tgt_ver in mindroot[
@@ -178,12 +186,6 @@ def translate_from_to(ctx, model, src_name, src_ver, tgt_ver,
                             name = mindroot[
                                 pymodel][typ][fld_name][uname][tgt_ver]
                             break
-                    elif (mindroot[pymodel][typ][fld_name].startswith('${') and
-                            mindroot[pymodel][typ][fld_name].endswith('}')):
-                        name = tnl_by_code(ctx, model, src_name, src_ver,
-                                           tgt_ver,
-                                           mindroot[pymodel][typ][fld_name])
-                        break
     return name
 
 

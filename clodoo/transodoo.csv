@@ -5,17 +5,17 @@ account.account.type	REPORT_TYPE|TYPE	field	report_type	report_type	report_type	
 account.account.type	report_type	value	Asset	Asset	Asset	Current Assets	Current Assets	Current Assets	Current Assets
 account.account.type	report_type	value				Fixed Assets	Fixed Assets	Fixed Assets	Fixed Assets
 account.account.type	report_type	value	Income	Income	Income	Income	Income	Income	Income
+account.account.type	report_type	value	Payable	Payable	Payable	Payable	Payable	Payable	Payable
 account.account.type	report_type	value				Prepayments	Prepayments	Prepayments	Prepayments
 account.account.type	report_type	value	Liability	Liability	Liability	Current Liabilities	Current Liabilities	Current Liabilities	Current Liabilities
 account.account.type	report_type	value				Current Year Earnings	Current Year Earnings	Current Year Earnings	Current Year Earnings
-account.account.type	report_type	value		Check	Check				
 account.account.type	report_type	value		Tax	Tax	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities	Non-current Liabilities
 account.account.type	report_type	value		Asset View	Asset View				
 account.account.type	report_type	value		Income View	Income View				
 account.account.type	report_type	value				Non-current Assets	Non-current Assets	Non-current Assets	Non-current Assets
+account.account.type	report_type	value		Check	Check				
 account.account.type	report_type	value				Cost of Revenue	Cost of Revenue	Cost of Revenue	Cost of Revenue
 account.account.type	report_type	value	Root/View	Root/View	Root/View				
-account.account.type	report_type	value	Payable	Payable	Payable	Payable	Payable	Payable	Payable
 account.account.type	report_type	value	Cash	Cash	Cash	Credit Card	Credit Card	Credit Card	Credit Card
 account.account.type	report_type	value		Expense View	Expense View				
 account.account.type	report_type	value	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable	Receivable

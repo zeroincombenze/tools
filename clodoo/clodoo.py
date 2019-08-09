@@ -168,14 +168,14 @@ from os0 import os0
 
 from clodoocore import (eval_value, get_query_id, import_file_get_hdr,
                         is_valid_field, is_required_field, model_has_company,
-                        searchL8, browseL8,
+                        exec_sql, sql_reconnect, searchL8, browseL8,
                         createL8, writeL8, unlinkL8, executeL8, connectL8,
                         get_res_users, psql_connect, put_model_alias,
                         set_some_values, get_company_id, build_model_struct,
                         get_model_model, get_model_name, extr_table_generic,
                         extract_vals_from_rec, get_val_from_field,
                         get_model_structure, execute_action_L8,
-                        cvt_from_ver_2_ver, cvt_value_from_ver_to_ver)
+                        cvt_from_ver_2_ver)
 from clodoolib import (crypt, debug_msg_log, decrypt, init_logger, msg_burst,
                        msg_log, parse_args, tounicode, read_config,
                        default_conf, build_odoo_param)
@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.46"
+__version__ = "0.3.8.47"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -420,7 +420,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                 ctx[p] = pwd
             elif p == 'xmlrpc_port' and xmlrpc_port:
                 if isinstance(ctx[p], basestring):
-                    ctx[p] = eval(xmlrpc_port)
+                    ctx[p] = int(xmlrpc_port)
                 else:
                     ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':

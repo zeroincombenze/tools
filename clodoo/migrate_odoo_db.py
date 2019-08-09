@@ -33,10 +33,10 @@ except ImportError:
         import z0lib
 # from odoo10_score import odoo_score
 import transodoo
-# import pdb
+import pdb
 
 
-__version__ = "0.3.8.46"
+__version__ = "0.3.8.47"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -112,6 +112,7 @@ DET_FIELD = {
     'sale.order': 'order_line',
 }
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
+DEF_CONF = {}
 msg_time = time.time()
 
 
@@ -142,6 +143,68 @@ def manage_error():
         if dummy == 'D' or dummy == 'd':
             import pdb
             pdb.set_trace()
+
+
+def exec_sql(ctx, query, response=None):
+    return clodoo.exec_sql(ctx, query, response=response)
+
+
+def copy_db(ctx, old_db, new_db):
+    sql = 'drop database if exists "%s"' % new_db
+    exec_sql(ctx, sql)
+    run_traced('pg_db_active', '-wa', '%s' % old_db)
+    sql = 'create database "%s" with template "%s"' % (new_db, old_db)
+    return exec_sql(ctx, sql)
+
+
+def env_ref(ctx, xref):
+    xrefs = xref.split('.')
+    if len(xrefs) == 2:
+        ids = clodoo.searchL8(ctx, 'ir.model.data', [('module', '=', xrefs[0]),
+                                                     ('name', '=', xrefs[1])])
+        if ids:
+            return clodoo.browseL8(ctx, 'ir.model.data', ids[0]).res_id
+    return False
+
+
+def reassign_db_owner(ctx, dbname, old_user, new_user):
+    sql = "GRANT ALL PRIVILEGES ON DATABASE %s TO %s" % (dbname, new_user)
+    exec_sql(ctx, sql)
+    sql = "ALTER DATABASE %s OWNER TO %s" % (dbname, new_user)
+    exec_sql(ctx, sql)
+    sql = "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO %s" % new_user
+    exec_sql(ctx, sql)
+    sql = "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO %s" % new_user
+    exec_sql(ctx, sql)
+    sql = "GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO %s" % new_user
+    exec_sql(ctx, sql)
+    sql = "ALTER DEFAULT PRIVILEGES GRANT ALL ON TABLES TO %s" % new_user
+    exec_sql(ctx, sql)
+    sql = "ALTER DEFAULT PRIVILEGES GRANT ALL ON SEQUENCES TO %s" % new_user
+    exec_sql(ctx, sql)
+    sql = "select tablename from pg_tables where schemaname = 'public'"
+    recs = exec_sql(ctx, sql, response=True)
+    for rec in recs:
+        sql = 'ALTER TABLE "%s" OWNER TO %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+        sql = 'GRANT ALL PRIVILEGES ON TABLE "%s" TO %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+    sql = "select sequence_name from information_schema.sequences where sequence_schema = 'public'"
+    recs = exec_sql(ctx, sql, response=True)
+    for rec in recs:
+        sql = 'ALTER SEQUENCE "%s" OWNER TO $NEW_OWNER %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+        sql = 'GRANT ALL PRIVILEGES ON SEQUENCE "%s" TO %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+    sql = "select table_name from information_schema.views where table_schema = 'public'"
+    recs = exec_sql(ctx, sql, response=True)
+    for rec in recs:
+        sql = 'ALTER VIEW "%s" OWNER TO %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+        sql = 'GRANT ALL PRIVILEGES ON TABLE "%s" TO %s' % (rec[0], new_user)
+        exec_sql(ctx, sql)
+    sql = 'GRANT %s TO %s' % (old_user, new_user)
+
 
 
 def set_tmp_keys(ctx, model, id, vals):
@@ -187,14 +250,14 @@ def extract_paths(config, item):
     return config.get('options', item).strip().split(',')
 
 
-def run_odoo_alltest(odoo_vid, confn, db_name, logfn):
+def run_odoo_alltest(odoo_vid, confn, db_name, logfile):
     src_odoo_bin = clodoo.build_odoo_param(
             'BIN', odoo_vid=odoo_vid, multi=True)
     run_traced(src_odoo_bin,
                '-c', confn,
                '-u', 'all',
                '-d', db_name,
-               '--logfile=%s_server.log' % logfn[0:-4],
+               '--logfile=%s' % logfile,
                '--stop-after-init')
 
 
@@ -217,9 +280,8 @@ def wep_logs(ctx):
             shutil.rmtree(tmp_dir)
     if os.path.isfile(ctx['logfn']):
         os.remove(ctx['logfn'])
-    logfn = '%s_server.log' % ctx['logfn'][0:-4]
-    if os.path.isfile(logfn):
-        os.remove(logfn)
+    if os.path.isfile(ctx['logfile']):
+        os.remove(ctx['logfile'])
 
 
 def wep_db(src_ctx, tgt_ctx, dbname, dbname2):
@@ -235,10 +297,7 @@ def wep_db(src_ctx, tgt_ctx, dbname, dbname2):
 def wep_sql_modules(tgt_ctx, bad_module_list):
     query = "update ir_module_module set state='uninstalled'" \
             " where name in (%s);" % str(bad_module_list)[1:-1]
-    try:
-        tgt_ctx['_cr'].execute(query)
-    except BaseException:
-        os0.wlog('Error executing sql %s' % query)
+    exec_sql(tgt_ctx, query)
 
 
 def ren_db(old_dbname, new_dbname, db_user):
@@ -275,10 +334,7 @@ def drop_out_originals(ctx, model, id, vals):
                     table = model.replace('.', '_')
                     sql = "update %s set %s='(id=%d) =>%d' where id=%d;" % (
                         table, name, do_id, id, do_id)
-                    try:
-                        ctx['_cr'].execute(sql)
-                    except BaseException:
-                        pass
+                    exec_sql(ctx, sql)
                 else:
                     try:
                         clodoo.writeL8(ctx, model, do_ids,
@@ -338,13 +394,12 @@ def create_with_id(ctx, model, id, vals):
         table = '%s_id_seq' % model
         table = table.replace('.', '_')
         sql_last = 'select last_value from %s;' % table
-        ctx['_cr'].execute(sql_last)
-        rows = ctx['_cr'].fetchall()
+        rows = exec_sql(ctx, sql_last, response=True)
         last_id = rows[0][0]
         if id > 0:
             if last_id != id:
                 sql_seq = 'alter sequence %s restart %d;' % (table, id)
-                ctx['_cr'].execute(sql_seq)
+                exec_sql(ctx, sql_seq)
     try_again = False
     new_id = 0
     try:
@@ -356,7 +411,7 @@ def create_with_id(ctx, model, id, vals):
         try:
             try_again = False
             if sql_seq:
-                ctx['_cr'].execute(sql_seq)
+                exec_sql(ctx, sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
         except BaseException:
             try_again, vals = set_tmp_keys(ctx, model, id, vals)
@@ -364,7 +419,7 @@ def create_with_id(ctx, model, id, vals):
         try:
             try_again = False
             if sql_seq:
-                ctx['_cr'].execute(sql_seq)
+                exec_sql(ctx, sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
         except BaseException:
             if ctx['_cr']:
@@ -379,7 +434,7 @@ def create_with_id(ctx, model, id, vals):
     if try_again:
         try:
             if sql_seq:
-                ctx['_cr'].execute(sql_seq)
+                exec_sql(ctx, sql_seq)
             new_id = clodoo.createL8(ctx, model, vals)
         except BaseException:
             os0.wlog('Error creating record %d of %s' % (id, model))
@@ -391,10 +446,8 @@ def create_with_id(ctx, model, id, vals):
             raw_input('Press RET to continue')
     if last_id and last_id > 1 and last_id > id:
         sql = 'alter sequence %s restart %d;' % (table, last_id)
-        try:
-            ctx['_cr'].execute(sql)
-        except BaseException:
-            pass
+        exec_sql(ctx, sql)
+
 
 def install_modules(tgt_ctx, src_ctx):
     assume_yes = tgt_ctx['assume_yes']
@@ -501,10 +554,6 @@ def cvt_o2m_value(tgt_ctx, src_ctx, model, name, value, format=False):
         src_ctx['_CACHE'] = {}
     if model not in src_ctx['_CACHE']:
         src_ctx['_CACHE'][model] = {}
-    if '_CACHE' not in tgt_ctx:
-        tgt_ctx['_CACHE'] = {}
-    if model not in tgt_ctx['_CACHE']:
-        tgt_ctx['_CACHE'][model] = {}
     if value:
         if not relation:
             raise RuntimeError('No relation for field %s of %s' % (name,
@@ -558,10 +607,6 @@ def cvt_m2m_value(tgt_ctx, src_ctx, model, name, value, format=False):
         src_ctx['_CACHE'] = {}
     if model not in src_ctx['_CACHE']:
         src_ctx['_CACHE'][model] = {}
-    if '_CACHE' not in tgt_ctx:
-        tgt_ctx['_CACHE'] = {}
-    if model not in tgt_ctx['_CACHE']:
-        tgt_ctx['_CACHE'][model] = {}
     if value:
         if not relation:
             raise RuntimeError('No relation for field %s of %s' % (name,
@@ -619,10 +664,6 @@ def cvt_m2o_value(tgt_ctx, src_ctx, model, name, id, format=False):
         src_ctx['_CACHE'] = {}
     if model not in src_ctx['_CACHE']:
         src_ctx['_CACHE'][model] = {}
-    if '_CACHE' not in tgt_ctx:
-        tgt_ctx['_CACHE'] = {}
-    if model not in tgt_ctx['_CACHE']:
-        tgt_ctx['_CACHE'][model] = {}
     if id:
         if not relation:
             raise RuntimeError('No relation for field %s of %s' % (name,
@@ -672,24 +713,29 @@ def load_record(tgt_ctx, src_ctx, model, rec, mode=None):
     for nm in MANDATORY_FIELDS.get(model, []):
         if nm not in vals:
             vals[nm] = ''
-    for name in vals.copy():
-        if src_ctx['STRUCT'][model][name]['ttype'] in ('one2many'):
-            vals[name] = cvt_o2m_value(tgt_ctx, src_ctx, model, name,
-                                       vals[name], format='cmd')
-        elif src_ctx['STRUCT'][model][name]['ttype'] in ('many2many'):
-            vals[name] = cvt_m2m_value(tgt_ctx, src_ctx, model, name,
-                                       vals[name], format='cmd')
-        elif src_ctx['STRUCT'][model][name]['ttype'] in ('many2one'):
-            vals[name] = cvt_m2o_value(tgt_ctx, src_ctx, model, name,
-                                       vals[name], format='cmd')
-        if (vals[name] is False and
-                src_ctx['STRUCT'][model][name]['ttype'] != 'boolean'):
-            del vals[name]
     vals = clodoo.cvt_from_ver_2_ver(tgt_ctx,
                                      model,
                                      src_ctx['oe_version'],
                                      tgt_ctx['oe_version'],
                                      vals)
+    for name in vals.copy():
+        if name not in tgt_ctx['STRUCT'][model]:
+            del vals[name]
+            continue
+        elif name == 'company_id' and src_ctx['by_company']:
+            continue
+        elif tgt_ctx['STRUCT'][model][name]['ttype'] in ('one2many'):
+            vals[name] = cvt_o2m_value(tgt_ctx, tgt_ctx, model, name,
+                                       vals[name], format='cmd')
+        elif tgt_ctx['STRUCT'][model][name]['ttype'] in ('many2many'):
+            vals[name] = cvt_m2m_value(tgt_ctx, tgt_ctx, model, name,
+                                       vals[name], format='cmd')
+        elif tgt_ctx['STRUCT'][model][name]['ttype'] in ('many2one'):
+            vals[name] = cvt_m2o_value(tgt_ctx, tgt_ctx, model, name,
+                                       vals[name], format='cmd')
+        if (vals[name] is False and
+                tgt_ctx['STRUCT'][model][name]['ttype'] != 'boolean'):
+            del vals[name]
     return vals
 
 
@@ -806,49 +852,22 @@ def commit_table(tgt_ctx, src_ctx, model):
     return id
 
 
+def synchro(tgt_ctx, model, rec):
+    tgt_ctx['_COMMIT'][model] = False
+
+
 def copy_record(tgt_ctx, src_ctx, model, rec, mode=None):
     msg_burst('%s %d' % (model, rec.id))
     mode = mode or get_model_copy_mode(src_ctx, model)
     # Avoid loop nesting
     src_ctx['_CACHE'] = src_ctx.get('_CACHE', {})
     src_ctx['_CACHE'][model] = src_ctx['_CACHE'].get(model, {})
-    tgt_ctx['_CACHE'] = tgt_ctx.get('_CACHE', {})
-    tgt_ctx['_CACHE'][model] = tgt_ctx['_CACHE'].get(model, {})
-    tgt_ctx['_COMMIT'][model] = False
     if rec.id in src_ctx['_CACHE'][model]:
         return
     src_ctx['_CACHE'][model][rec.id] = False
     vals = load_record(tgt_ctx, src_ctx, model, rec, mode=mode)
-    if model == 'account.account.type':
-        if 'type' in vals and vals.get('type'):
-            vals['type'] = transodoo.translate_from_to(src_ctx,
-                                                       model,
-                                                       vals['type'],
-                                                       src_ctx['oe_version'],
-                                                       tgt_ctx['oe_version'],
-                                                       type='value',
-                                                       fld_name='report_type')
-    elif model == 'account.account':
-        if vals.get('child_id'):
-            return
-        if 'user_type_id' in vals and vals.get('use_type_id'):
-            vals['user_type_id'] = transodoo.translate_from_to(
-                src_ctx,
-                model,
-                vals['user_type_id'],
-                src_ctx['oe_version'],
-                tgt_ctx['oe_version'],
-                type='value',
-                fld_name='report_type')
-    elif model == 'account.tax':
-        if 'amount' in vals and vals.get('amount'):
-            vals['amount'] = transodoo.translate_from_to(src_ctx,
-                                                         model,
-                                                         vals['amount'],
-                                                         src_ctx['oe_version'],
-                                                         tgt_ctx['oe_version'],
-                                                         type='value',
-                                                         fld_name='amount')
+    if not vals:
+        return
     if mode == 'image':
         ids = clodoo.searchL8(tgt_ctx, model,
                               [('id', '=', rec.id)])
@@ -866,8 +885,8 @@ def copy_record(tgt_ctx, src_ctx, model, rec, mode=None):
         where = set_where_from_keys(tgt_ctx, src_ctx, model, rec)
         ids = clodoo.searchL8(tgt_ctx, model,
                               where)
-        if not ids and hasattr(rec, 'active'):
-            where.append(('active','=',False))
+        if not ids and 'active' in tgt_ctx['STRUCT'][model]:
+            where.append(('active', '=', False))
             ids = clodoo.searchL8(tgt_ctx, model,
                                   where)
         if len(ids) > 1:
@@ -924,12 +943,13 @@ def copy_table(tgt_ctx, src_ctx, model, mode=None):
             ignore=IGNORE_FIELDS.get(det_model, []) + IGNORE_FIELDS['*'])
     tgt_ctx['_COMMIT'] = {}
 
+    import pdb
+    pdb.set_trace()
     mode = mode or get_model_copy_mode(src_ctx, model)
     if mode == 'image' and src_ctx['_cr']:
         table = model.replace('.', '_')
         sql = 'select max(id) from %s;' % table
-        src_ctx['_cr'].execute(sql)
-        rows = src_ctx['_cr'].fetchall()
+        rows = exec_sql(src_ctx, sql, response=True)
         last_id = rows[0][0]
         if last_id > 0:
             for id in clodoo.searchL8(tgt_ctx, model,
@@ -941,6 +961,12 @@ def copy_table(tgt_ctx, src_ctx, model, mode=None):
                     if not tgt_ctx['assume_yes']:
                         dummy = raw_input('Press RET to continue')
     where = set_where_from_txtids(src_ctx['sel_ids'])
+    if src_ctx['by_company']:
+        company_id = env_ref(src_ctx, 'z0bug.mycompany')
+        if not company_id:
+            print('!!Internal error: no company found!')
+        else:
+            where.append(('company_id', '=', company_id))
     for rec in clodoo.browseL8(
         src_ctx, model, clodoo.searchL8(
             src_ctx, model, where, order='id'), context={'lang': 'en_US'}):
@@ -1165,7 +1191,9 @@ def get_model_copy_mode(ctx, model):
     return mode
 
 
-def migrate_1_table(src_ctx, tgt_ctx):
+def migrate_sel_tables(src_ctx, tgt_ctx):
+    src_ctx = init_ctx(src_ctx)
+    src_ctx, tgt_ctx, src_config = adjust_ctx(src_ctx, tgt_ctx)
     uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
     uid, tgt_ctx = clodoo.oerp_set_env(ctx=tgt_ctx)
     transodoo.read_stored_dict(src_ctx)
@@ -1212,52 +1240,37 @@ def init_ctx(src_ctx, phase=None):
             'MAJVER', odoo_vid=src_ctx['from_branch'], multi=True)
     src_ctx['src_conf_fn'] = src_ctx['from_confn']
     src_ctx['src_db_name'] = src_ctx['from_dbname']
-    if not src_ctx.get('login_password'):
-        src_ctx['login_password'] = getpass.getpass(
-                'Password for login user %s: ' % src_ctx['lgi_user'])
     return src_ctx
 
 
 def adjust_ctx(src_ctx, tgt_ctx):
-    for item in ('odoo_ver', 'odoo_fver', 'vid', 'db_name', 'conf_fn',
-                 'level', 'db_host', 'xmlrpc_port', 'db_user', 'db_port',
-                 'psycopg2', 'login_user', 'login_password', 'logfile'):
+    for item in ('odoo_ver', 'odoo_fver', 'vid', 'conf_fn', 'svc_protocol',
+                 'db_name',  'level', 'db_host', 'xmlrpc_port',
+                 'db_user', 'db_port', 'psycopg2',
+                 'login_user', 'login_password', 'logfile'):
         src_param = 'src_%s' % item
         tgt_param = 'tgt_%s' % item
         if item == 'odoo_ver':
-            tgt_ctx[tgt_param] = src_ctx[src_param] + 1
+            if not src_ctx['sel_model']:
+                tgt_ctx[tgt_param] = src_ctx[src_param] + 1
         elif item == 'odoo_fver':
-            tgt_ctx[tgt_param] = src_ctx[src_param].replace(
-                str(src_ctx['src_odoo_ver']),
-                str(tgt_ctx['tgt_odoo_ver']))
-            src_ctx['branch'] = src_ctx[src_param]
-            src_ctx['oe_version'] = src_ctx[src_param]
-            tgt_ctx['branch'] = tgt_ctx[tgt_param]
-            tgt_ctx['oe_version'] = tgt_ctx[tgt_param]
-            if src_ctx[src_param] in ('6.1', '7.0', '8.0'):
-                src_ctx['svc_protocol'] = 'xmlrpc'
-            elif src_ctx[src_param]:
-                src_ctx['svc_protocol'] = 'jsonrpc'
-            if tgt_ctx[tgt_param] in ('6.1', '7.0', '8.0'):
-                tgt_ctx['svc_protocol'] = 'xmlrpc'
-            elif tgt_ctx[tgt_param]:
-                tgt_ctx['svc_protocol'] = 'jsonrpc'
+            if not src_ctx['sel_model']:
+                tgt_ctx[tgt_param] = src_ctx[src_param].replace(
+                    str(src_ctx['src_odoo_ver']),
+                    str(tgt_ctx['tgt_odoo_ver']))
         elif item == 'vid':
-            tgt_ctx[tgt_param] = src_ctx[src_param].replace(
-                str(src_ctx['src_odoo_ver']),
-                str(tgt_ctx['tgt_odoo_ver']))
-            if tgt_ctx[tgt_param].startswith('v'):
-                tgt_ctx[tgt_param] = tgt_ctx['tgt_odoo_fver']
-        elif item == 'db_name':
-            if src_ctx['src_vid'] == src_ctx['from_branch']:
-                src_ctx[item] = src_ctx[src_param]
-            if tgt_ctx['tgt_odoo_ver'] == tgt_ctx['final_ver']:
-                if tgt_ctx['final_dbname']:
-                    tgt_ctx[item] = tgt_ctx['final_dbname']
-                else:
-                    tgt_ctx[item] = '%s_migrated' % src_ctx[item]
+            if not src_ctx['sel_model']:
+                tgt_ctx[tgt_param] = src_ctx[src_param].replace(
+                    str(src_ctx['src_odoo_ver']),
+                    str(tgt_ctx['tgt_odoo_ver']))
+                if tgt_ctx[tgt_param].startswith('v'):
+                    tgt_ctx[tgt_param] = tgt_ctx['tgt_odoo_fver']
             else:
-                tgt_ctx[item] = '%s_migrated' % src_ctx[item]
+                tgt_ctx[tgt_param] = tgt_ctx['final_branch']
+                tgt_ctx['tgt_odoo_fver'] = clodoo.build_odoo_param(
+                    'FULLVER', odoo_vid=tgt_ctx['final_branch'], multi=True)
+                tgt_ctx['tgt_odoo_ver'] = clodoo.build_odoo_param(
+                    'MAJVER', odoo_vid=tgt_ctx['final_branch'], multi=True)
         elif item == 'conf_fn':
             if src_ctx['src_vid'] == src_ctx['from_branch']:
                 src_ctx[item] = src_ctx[src_param]
@@ -1268,7 +1281,6 @@ def adjust_ctx(src_ctx, tgt_ctx):
                 raise IOError('File %s not found' % src_ctx[item])
             src_config = ConfigParser.SafeConfigParser()
             src_config.read(src_ctx[item])
-            src_config.set('options', 'oe_version', src_ctx['oe_version'])
             if tgt_ctx['tgt_odoo_ver'] == tgt_ctx['final_ver']:
                 if tgt_ctx.get('final_confn'):
                     tgt_ctx[item] = tgt_ctx['final_confn']
@@ -1282,44 +1294,157 @@ def adjust_ctx(src_ctx, tgt_ctx):
                 raise IOError('File %s not found' % tgt_ctx[item])
             tgt_config = ConfigParser.SafeConfigParser()
             tgt_config.read(tgt_ctx[item])
+        elif item == 'svc_protocol':
+            src_ctx['branch'] = src_ctx['src_odoo_fver']
+            src_ctx['oe_version'] = src_ctx['src_odoo_fver']
+            src_config.set('options', 'oe_version', src_ctx['oe_version'])
+            if not src_ctx.get(item):
+                if src_ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+                    src_ctx['svc_protocol'] = 'xmlrpc'
+                elif src_ctx['oe_version']:
+                    src_ctx['svc_protocol'] = 'jsonrpc'
+            tgt_ctx['branch'] = tgt_ctx['tgt_odoo_fver']
+            tgt_ctx['oe_version'] = tgt_ctx['tgt_odoo_fver']
+            tgt_config.set('options', 'oe_version', tgt_ctx['oe_version'])
+            if not tgt_ctx.get(item):
+                if tgt_ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+                    tgt_ctx['svc_protocol'] = 'xmlrpc'
+                elif tgt_ctx['oe_version']:
+                    tgt_ctx['svc_protocol'] = 'jsonrpc'
+        elif item == 'db_name':
+            if src_ctx['src_vid'] == src_ctx['from_branch']:
+                src_ctx[item] = src_ctx[src_param]
+            if tgt_ctx['tgt_odoo_ver'] == tgt_ctx['final_ver']:
+                if tgt_ctx['final_dbname']:
+                    tgt_ctx[item] = tgt_ctx['final_dbname']
+                else:
+                    tgt_ctx[item] = '%s_migrated' % src_ctx[item]
+            else:
+                tgt_ctx[item] = '%s_migrated' % src_ctx[item]
         elif item == 'level':
-            src_ctx[item] = 2
-            tgt_ctx[item] = 2
-        elif item in ('db_host', 'xmlrpc_port', 'db_user'):
-            src_ctx[item] = src_config.get('options', item)
-            tgt_ctx[item] = tgt_config.get('options', item)
-        elif item == 'db_port':
-            src_ctx[item] = 5432
-            tgt_ctx[item] = 5432
-            src_config.set('options', item, str(src_ctx[item]))
+            src_ctx[item] = DEF_CONF[item]
+            tgt_ctx[item] = DEF_CONF[item]
+        elif item in ('db_host', 'xmlrpc_port', 'db_user', 'logfile',
+                      'db_port'):
+            if src_config.has_option('options', item):
+                src_ctx[item] = src_config.get('options', item)
+            else:
+                src_ctx[item] = DEF_CONF[item]
+            if tgt_config.has_option('options', item):
+                tgt_ctx[item] = tgt_config.get('options', item)
+            else:
+                tgt_ctx[item] = DEF_CONF[item]
         elif item == 'psycopg2':
             src_ctx[item] = True
             src_config.set('options', item, str(src_ctx[item]))
         elif item == 'login_user':
-            src_ctx[item] = src_ctx['lgi_user']
-            src_config.set('options', item, src_ctx[item])
-            src_config.set(
-                'options', 'login_password', src_ctx['login_password'])
-        elif item == 'logfile':
-            src_config.set('options', item, src_ctx['logfn'])
+            if src_config.has_option('options', item):
+                src_ctx[item] = src_config.get('options', item)
+            elif src_ctx.get('lgi_user'):
+                src_ctx[item] = src_ctx['lgi_user']
+                src_config.set('options', item, src_ctx[item])
+            if tgt_config.has_option('options', item):
+                tgt_ctx[item] = tgt_config.get('options', item)
+            elif tgt_ctx.get('lgi_user') != 'admin':
+                tgt_ctx[item] = tgt_ctx['lgi_user']
+            else:
+                tgt_ctx[item] = src_ctx[item]
+            # tgt_config.set('options', item, tgt_ctx[item])
+            found_pwd = False
+            for nm in ('crypt_password', 'login_password'):
+                if src_ctx.get(nm):
+                    src_config.set('options', nm, src_ctx[nm])
+                    found_pwd = True
+                elif src_config.has_option('options', nm):
+                    src_ctx[nm] = src_config.get('options', nm)
+                    found_pwd = True
+                elif not found_pwd:
+                    src_ctx['login_password'] = getpass.getpass(
+                            'Password for login user %s: ' %
+                            src_ctx['lgi_user'])
+                    src_config.set('options', 'login_password',
+                                   src_ctx['login_password'])
+                if tgt_ctx.get(nm):
+                    # tgt_config.set('options', nm, tgt_ctx[nm])
+                    pass
+                elif tgt_config.has_option('options', nm):
+                    tgt_ctx[nm] = tgt_config.get('options', nm)
+                elif src_ctx.get(nm):
+                    tgt_ctx[nm] = src_ctx[nm]
     return src_ctx, tgt_ctx, src_config
 
 
 def shift_ctx(src_ctx, tgt_ctx, phase=None):
     phase = phase or 1
-    src_ctx['src_vid'], tgt_ctx['tgt_vid'] = tgt_ctx['tgt_vid'], False 
-    src_ctx['src_odoo_fver'], tgt_ctx[
-        'tgt_odoo_fver'] = tgt_ctx['tgt_odoo_fver'], False
-    src_ctx['src_odoo_ver'], tgt_ctx[
-        'tgt_odoo_ver'] = tgt_ctx['tgt_odoo_ver'], False
-    src_ctx['db_name'], tgt_ctx[
-        'db_name'] = tgt_ctx['db_name'], False
-    src_ctx['conf_fn'], tgt_ctx[
-        'conf_fn'] = tgt_ctx['conf_fn'], False
+    for item in ('src_vid', 'src_odoo_fver', 'tgt_odoo_ver',
+                 'db_name', 'conf_fn', 'login_user',
+                 'login_password', 'crypt_password',
+                 'db_host', 'xmlrpc_port', 'db_user'):
+        src_ctx[item], tgt_ctx[item] = tgt_ctx[item], False 
     if phase > 1:
         dummy = raw_input('Please restart service Odoo %s' %
                           src_ctx['src_odoo_fver'])
     return src_ctx, tgt_ctx
+
+
+def prepare_config_file(src_ctx, src_config):
+    src_lconf = clodoo.build_odoo_param(
+        'LCONFN', odoo_vid=src_ctx['src_vid'], multi=True)
+    full_lconf = os.path.join(os.path.expanduser('~'),
+                              src_lconf)
+    for fn in ('.openerp_serverrc', '.odoorc'):
+        tmp_lconf = os.path.join(os.path.expanduser('~'), fn)
+        if os.path.isfile(tmp_lconf):
+            os.remove(tmp_lconf)
+    os0.wlog('>>> copy %s %s' % (src_ctx['conf_fn'], full_lconf))
+    shutil.copyfile(src_ctx['conf_fn'], full_lconf)
+    src_config.write(open(full_lconf, 'w+'))
+    src_config.read(full_lconf)
+    return full_lconf
+
+
+def migrate_odoo(src_ctx, tgt_ctx, full_lconf, bad_module_list):
+    if not os.path.exists(src_ctx['opt_dpath']):
+        os.mkdir(src_ctx['opt_dpath'])
+    tmp_dir = os.path.join(src_ctx['opt_dpath'],
+                           tgt_ctx['tgt_odoo_fver'])
+    if os.path.isdir(tmp_dir):
+        shutil.rmtree(tmp_dir)
+    # if tgt_ctx['tgt_odoo_ver'] < 10:
+    if False:
+        cmd = os.path.join(src_ctx['opt_oupath'], 'scripts', 'migrate.py')
+        run_traced(cmd,
+                   '-C', full_lconf,
+                   '-B', src_ctx['opt_dpath'],
+                   '-D', src_ctx['db_name'],
+                   '-R', tgt_ctx['tgt_odoo_fver'])
+        tmp_dbname = '%s_migrated' % src_ctx['db_name']
+        if tgt_ctx['db_name'] != tmp_dbname:
+            ren_db(tmp_dbname, tgt_ctx['db_name'], src_ctx['db_user'])
+        if src_ctx['db_user'] != tgt_ctx['db_user']:
+            reassign_db_owner(tgt_ctx,
+                              tgt_ctx['db_name'],
+                              src_ctx['db_user'],
+                              tgt_ctx['db_user'])
+            wep_sql_modules(tgt_ctx, bad_module_list)
+            # run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
+            #                  tgt_ctx['db_name'], src_ctx['logfile'])
+        return
+    openupgradelib = os.path.join(src_ctx['opt_dpath'], 'openupgradelib')
+    if os.path.exists(openupgradelib):
+        shutil.rmtree(openupgradelib)
+    run_traced('git', 'clone', '--single-branch', '--depth=1',
+                'https://github.com/OCA/openupgradelib.git',
+                openupgradelib)
+    sys.path.append(openupgradelib)
+    if not copy_db(src_ctx, src_ctx['db_name'], tgt_ctx['db_name']):
+        exit(1)
+    if src_ctx['db_user'] != tgt_ctx['db_user']:
+        reassign_db_owner(tgt_ctx,
+                          tgt_ctx['db_name'],
+                          src_ctx['db_user'],
+                          tgt_ctx['db_user'])
+        wep_sql_modules(tgt_ctx, bad_module_list)
 
 
 def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
@@ -1331,10 +1456,6 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
     while 1:
         os0.wlog('-' * 80)
         src_ctx, tgt_ctx, src_config = adjust_ctx(src_ctx, tgt_ctx)
-        src_lconf = clodoo.build_odoo_param(
-            'LCONFN', odoo_vid=src_ctx['src_vid'], multi=True)
-        full_lconf = os.path.join(os.path.expanduser('~'),
-                                  src_lconf)
         for param in ('vid', 'odoo_fver', 'odoo_ver'):
             os0.wlog('Pass %d migration: %s from %s to %s ..' %
                  (phase, param,
@@ -1343,36 +1464,22 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
             os0.wlog('Pass %d migration: %s from %s to %s ..' %
                  (phase, param, src_ctx[param], tgt_ctx[param]))
         if phase > 1:
-            tmp_lconf = os.path.join(os.path.expanduser('~'),
-                                    '.openerp_serverrc')
-            if os.path.isfile(tmp_lconf):
-                os.remove(tmp_lconf)
-            tmp_lconf = os.path.join(os.path.expanduser('~'),
-                                    '.odoorc')
-            if os.path.isfile(tmp_lconf):
-                os.remove(tmp_lconf)
-            os0.wlog('>>> copy %s %s' % (src_ctx['conf_fn'], full_lconf))
-            shutil.copyfile(src_ctx['conf_fn'], full_lconf)
-            src_config.write(open(full_lconf, 'w+'))
-            src_config.read(full_lconf)
-            if (src_ctx['opt_safe'] and
-                    src_ctx['src_vid'] == src_ctx['from_branch']):
-                run_traced('clodoo.py',
-                           '-A', 'check_config',
-                           '-c', full_lconf,
-                           '-d', '^%s$' % src_ctx['from_dbname'])
-                run_odoo_alltest(src_ctx['src_vid'], full_lconf,
-                                 src_ctx['from_dbname'], src_ctx['logfn'])
+            full_lconf = prepare_config_file(src_ctx, src_config)
             tgt_config = ConfigParser.SafeConfigParser()
             tgt_config.read(tgt_ctx['conf_fn'])
-            load_openupgrade(src_ctx, tgt_ctx['tgt_odoo_fver'])
-            add_versioned_tnl(
-                src_ctx, src_ctx['src_odoo_fver'], tgt_ctx['tgt_odoo_fver'])
+            if tgt_ctx['tgt_odoo_fver'] in ('7.0', '8.0', '9.0'):
+                load_openupgrade(src_ctx, tgt_ctx['tgt_odoo_fver'])
+                add_versioned_tnl(
+                    src_ctx, src_ctx['src_odoo_fver'],
+                    tgt_ctx['tgt_odoo_fver'])
             wep_db(src_ctx, tgt_ctx, tgt_ctx['db_name'],
                     '%s_migrated' % src_ctx['db_name'])
             os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
             uid, src_ctx = clodoo.oerp_set_env(
                 ctx=src_ctx, confn=full_lconf, db=src_ctx['db_name'])
+            if (src_ctx['opt_safe'] and
+                    src_ctx['src_vid'] == src_ctx['from_branch']):
+                clodoo.act_check_config(src_ctx)
             src_paths = extract_paths(src_config, 'addons_path')
             os0.wlog('addons_path=%s' % src_paths)
             src_module_list = odoo_dependencies(src_ctx, 'dep',
@@ -1381,36 +1488,19 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
             os0.wlog('Module list to migrate=%s' % src_module_list)
             tgt_paths = extract_paths(tgt_config, 'addons_path')
             tgt_module_list = odoo_dependencies(
-                tgt_ctx, 'mod', False, False, tgt_paths, tgt_ctx['tgt_odoo_fver'])
+                tgt_ctx, 'mod', False, False, tgt_paths,
+                tgt_ctx['tgt_odoo_fver'])
             os0.wlog('Avaiable modules on target version=%s' % tgt_module_list)
             tnl_module_list, bad_module_list = translate_ml(src_ctx,
-                src_module_list, src_ctx['src_odoo_fver'], tgt_ctx['tgt_odoo_fver'], tgt_module_list)
+                src_module_list,
+                src_ctx['src_odoo_fver'],
+                tgt_ctx['tgt_odoo_fver'],
+                tgt_module_list)
             os0.wlog('Translated list after migration=%s' % tnl_module_list)
             os0.wlog('Not avaiable modules on target=%s' % bad_module_list)
             if bad_module_list:
                 remove_unmigrable_modules(src_ctx, bad_module_list)
-
-            tmp_dir = os.path.join(src_ctx['opt_dpath'], tgt_ctx['tgt_odoo_fver'])
-            if os.path.isdir(tmp_dir):
-                shutil.rmtree(tmp_dir)
-
-            cmd = os.path.join(src_ctx['opt_oupath'], 'scripts', 'migrate.py')
-            run_traced(cmd,
-                       '-C', full_lconf,
-                       '-B', src_ctx['opt_dpath'],
-                       '-D', src_ctx['db_name'],
-                       '-R', tgt_ctx['tgt_odoo_fver'])
-            tmp_dbname = '%s_migrated' % src_ctx['db_name']
-            if tgt_ctx['db_name'] != tmp_dbname:
-                ren_db(tmp_dbname, tgt_ctx['db_name'], src_ctx['db_user'])
-            if src_ctx['db_user'] != tgt_ctx['db_user']:
-                run_traced('pg_db_reassign_owner',
-                           '-d', tgt_ctx['db_name'],
-                           '-o', src_ctx['db_user'],
-                           '-U', tgt_ctx['db_user'])
-                wep_sql_modules(tgt_ctx, bad_module_list)
-                run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
-                                 tgt_ctx['db_name'], src_ctx['logfn'])
+            migrate_odoo(src_ctx, tgt_ctx, full_lconf, bad_module_list)
         if tgt_ctx['tgt_odoo_ver'] >= src_ctx['final_ver']:
             break
         src_ctx, tgt_ctx = shift_ctx(src_ctx, tgt_ctx, phase=phase)
@@ -1585,6 +1675,7 @@ def add_versioned_tnl(ctx, src_fver, tgt_fver):
 
 
 def parse_ctx(src_ctx):
+    global DEF_CONF
     if not src_ctx['opt_oupath']:
         src_ctx['opt_oupath'] = os.path.join(os.path.expanduser('~'),
                                              'openupgrade')
@@ -1629,7 +1720,7 @@ def parse_ctx(src_ctx):
     if not src_ctx['final_branch']:
         tgt_config = ConfigParser.SafeConfigParser()
         tgt_config.read(src_ctx['final_confn'])
-        src_ctx['tgt_odoo_fver'] = src_config.get('options', 'oe_version')
+        src_ctx['tgt_odoo_fver'] = tgt_config.get('options', 'oe_version')
         src_ctx['final_branch'] = src_ctx['tgt_odoo_fver']
     src_ctx['tgt_odoo_ver'] = clodoo.build_odoo_param(
             'MAJVER', odoo_vid=src_ctx['final_branch'], multi=True)
@@ -1642,8 +1733,10 @@ def parse_ctx(src_ctx):
     if not src_ctx['logfn']:
         src_ctx['logfn'] = os.path.join(os.path.expanduser('~'),
                                         'migrate_odoo_db.log')
+    src_ctx['logfile'] = '%s_server.log' % src_ctx['logfn'][0:-4]
     src_ctx['final_ver'] = src_ctx['tgt_odoo_ver']
     tgt_ctx = src_ctx.copy()
+    DEF_CONF = clodoo.default_conf(src_ctx)
     return src_ctx, tgt_ctx
 
 
@@ -1660,11 +1753,10 @@ if __name__ == "__main__":
                         action='store',
                         dest='final_branch',
                         default='')
-    parser.add_argument("-C", "--command-file",
-                        help="migration command file",
-                        dest="command_file",
-                        metavar="file",
-                        default='./migrate_odoo.csv')
+    parser.add_argument("-C", "--by-company",
+                        action="store_true",
+                        help="select only records of main company",
+                        dest="by_company")
     parser.add_argument("-c", "--tgt-config",
                         help="target DB configuration file",
                         dest="final_confn",
@@ -1687,6 +1779,11 @@ if __name__ == "__main__":
                         help="Ids to migrate",
                         dest="sel_ids",
                         metavar="ids")
+    parser.add_argument("-K", "--command-file",
+                        help="migration command file",
+                        dest="command_file",
+                        metavar="file",
+                        default='./migrate_odoo.csv')
     parser.add_argument("-k", "--default-behavior",
                         action="store_true",
                         dest="default_behavior")
@@ -1748,7 +1845,7 @@ if __name__ == "__main__":
     os0.wlog('=' * 80)
     os0.wlog("Migration database %s beginning ...", __version__)
     if src_ctx['sel_model']:
-        migrate_1_table(src_ctx, tgt_ctx)
+        migrate_sel_tables(src_ctx, tgt_ctx)
     else:
         migrate_database(src_ctx, tgt_ctx)
 
