@@ -32,7 +32,7 @@ import logging
 
 
 _logger = logging.getLogger()
-__version__ = '0.2.2.32'
+__version__ = '0.2.2.33'
 
 
 def parse_depfile(depfile, owner=None):
@@ -154,11 +154,10 @@ def run(deps_checkout_dir, build_dir):
         command = ['pip', 'install', '--no-binary', 'pycparser',
                    '-Ur', reqfilename]
         _logger.info('Calling %s', ' '.join(command))
-        if os.environ.get('MQT_TEST_MODE', 'oca') == 'oca':
-            try:
-                subprocess.check_call(command)
-            except:
-                print('Cannot install/upgrade %s' % reqfilename)
+        try:
+            subprocess.check_call(command)
+        except:
+            print('Cannot install/upgrade %s' % reqfilename)
 
 
 if __name__ == '__main__':
