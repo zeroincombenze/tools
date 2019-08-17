@@ -1,4 +1,4 @@
-# __version__=0.2.2.18
+ # __version__=0.2.2.18
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -7,7 +7,7 @@ if [[ $1 =~ -.*h ]]; then
   echo "  -h  this help"
   echo "  -p  mkdir $HOME/dev if not exists"
   echo "  -q  quiet mode"
-  # echo "  -S  set sitecustomize.py"
+  echo "  -S  store sitecustomize.py in python path"
   echo "  -v  more verbose"
   exit 0
 fi
@@ -99,20 +99,22 @@ echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" 
 echo "[[ ! -d $DSTPATH || :\$PATH: =~ :$DSTPATH: ]] || export PATH=$DSTPATH:\$PATH">>$DSTPATH/activate_tools
 . $DSTPATH/activate_tools
 if [[ $1 =~ -.*S ]]; then
-  PYPATH=$(echo -e "import sys\nfor x in sys.path:\n if x.find('site-packages')>=0:  print x,"|python)
-  for pth in $PYPATH; do
-    if [ -f $pth/sitecustomize.py ]; then
-      :
-    fi
-  done
-  PYPATH=$(echo -e "import sys\nfor x in sys.path:\n if x.find('site-packages')>=0:  print(x,end=' ')"|python3)
-
   if [ -f $HOME/dev/sitecustomize.py ]; then
-    PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}* $HOME/local $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
-    [[ -n "$PYLIB" && ! $1 =~ -.*q ]] && echo "cp $HOME/dev/sitecustomize.py $PYLIB"
-    [ -n "$PYLIB" ] && cp $HOME/dev/sitecustomize.py $PYLIB
-  else
-    echo "Warning! File $HOME/dev/sitecustomize.py not found!"
+    PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
+    if [ -n "$PYLIB" ]; then
+      if [ -f $PYLIB/sitecustomize.py ]; then
+        if grep -qv "import sys" $PYLIB/sitecustomize.py; then
+          [[ ! $1 =~ -.*q ]] && echo "\$ cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py"
+          cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py
+        else
+          [[ ! $1 =~ -.*q ]] && echo "\$ tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py"
+          tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py
+        fi
+      else
+        [[ ! $1 =~ -.*q ]] && echo "\$ cp $HOME/dev/sitecustomize.py $PYLIB"
+        cp $HOME/dev/sitecustomize.py $PYLIB
+      fi
+    fi
   fi
 elif [[ ! $1 =~ -.*q ]]; then
   echo "-----------------------------------------------------------"

@@ -26,7 +26,7 @@ except ImportError:
 import pdb
 
 
-__version__ = "0.3.8.47"
+__version__ = "0.3.8.48"
 
 
 MAX_DEEP = 20
@@ -63,11 +63,21 @@ parser.add_argument('-n')
 parser.add_argument('-q')
 parser.add_argument('-V')
 parser.add_argument('-v')
+parser.add_argument("-w", "--src-config",
+                    help="Source DB configuration file",
+                    dest="from_confn",
+                    metavar="file")
 parser.add_argument("-x", "--exec",
                     help="internal function to execute",
                     dest="function",
                     metavar="python_name",
                     default='')
+parser.add_argument("-z", "--src-db_name",
+                    help="Source database name",
+                    dest="from_dbname",
+                    metavar="name")
+
+
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                db=ctx['db_name'],
@@ -1233,7 +1243,9 @@ def test_synchro_vg7(ctx):
                 loc_name = ext_ref[4:]
                 if loc_name in ('street_number', 'surename'):
                     continue
-                elif (model in ('res.country', 'product.product') and
+                elif (model in ('res.country',) and loc_name == 'description'):
+                    continue
+                elif (model in ('product.product', ) and
                         loc_name == 'description'):
                     loc_name = 'name'
                 elif model == 'res.partner' and loc_name == 'piva':
@@ -1709,7 +1721,8 @@ def test_synchro_vg7(ctx):
     if product_x_ids:
         ctx['vg7_id_product_x'] = product_x_ids[0]
     else:
-        product_x_ids = clodoo.searchL8(ctx, 'product.product', [])[0]
+        ctx['vg7_id_product_x'] = clodoo.searchL8(
+            ctx, 'product.product', [])[0]
 
     # Repeat 2 times to check correct synchronization
     write_country(ctx, TNL)
@@ -1739,6 +1752,142 @@ def test_synchro_vg7(ctx):
     # Repeat 2 times with different state
     write_invoice(ctx, TNL, company_id)
     write_invoice(ctx, TNL, company_id, state='open')
+
+    write_country(ctx, TNL)
+
+
+def test_synchro_mdb(ctx):
+
+    def bulk_cmd(src_ctx, tgt_ctx, model):
+        return ['python',
+                os.path.join(os.path.dirname(__file__), 'migrate_odoo_db.py'),
+                '-w', src_ctx['from_confn'],
+                '-z', src_ctx['from_dbname'],
+                '-d', tgt_ctx['db_name'],
+                '-c', tgt_ctx['conf_fn'],
+                '-m', model]
+
+    def run_traced(cmd):
+        print('>>> %s' % ' '.join(cmd))
+        os.system(' '.join(cmd))
+
+    def general_check(src_ctx, tgt_ctx, model, id):
+        if not id or id < 1:
+            raise IOError('!!Syncro %s Failed!' % model)
+        src_rec = clodoo.browseL8(src_ctx, model, id,
+                                  context={'lang': 'en_US'})
+        if model in ('res.country', 'account.account'):
+            code = src_rec.code
+            tgt_ids = clodoo.searchL8(tgt_ctx, model, [('code', '=', code)])
+            if not tgt_ids or len(tgt_ids) != 1:
+                raise IOError('!!Syncro %s Failed!' % model)
+            tgt_rec = clodoo.browseL8(tgt_ctx, model, tgt_ids[0])
+            if src_rec.code != tgt_rec.code:
+                raise IOError('!!Syncro %s Failed!' % model)
+        elif model in ('account.account.type', ):
+            name = src_rec.name
+            tgt_ids = clodoo.searchL8(tgt_ctx, model, [('name', '=', name)])
+            if not tgt_ids or len(tgt_ids) != 1:
+                raise IOError('!!Syncro %s Failed!' % model)
+            tgt_rec = clodoo.browseL8(tgt_ctx, model, tgt_ids[0],
+                                      context={'lang': 'en_US'})
+            if src_rec.name != tgt_rec.name:
+                raise IOError('!!Syncro %s Failed!' % model)
+        else:
+            raise IOError('!!Syncro %s Failed!' % model)
+        if model in ('account.account', ):
+            import pdb
+            pdb.set_trace()
+            if src_rec.name != tgt_rec.name:
+                raise IOError('!!Syncro %s Failed!' % model)
+
+    def check_country(src_ctx, tgt_ctx, country_id):
+        general_check(src_ctx, tgt_ctx, 'res.country', country_id)
+
+    def write_country(src_ctx, tgt_ctx, code=None, name=None):
+        model = 'res.country'
+        print('Write %s ..' % model)
+        code = code or 'IT'
+        ids = clodoo.searchL8(src_ctx, model, [('code', '=', code)])
+        if not ids:
+            raise 'Test interrupted due record %s not found in %s' % (code,
+                                                                      model)
+        cmd = bulk_cmd(src_ctx, tgt_ctx, model)
+        cmd.append('-i')
+        cmd.append(str(ids)[1:-1])
+        run_traced(cmd)
+        return ids[0]
+
+    def check_account_type(src_ctx, tgt_ctx, acc_id):
+        general_check(src_ctx, tgt_ctx, 'account.account.type', acc_id)
+
+    def write_account_type(src_ctx, tgt_ctx, code=None, name=None):
+        model = 'account.account.type'
+        print('Write %s ..' % model)
+        ids = clodoo.searchL8(src_ctx, model, [])
+        if not ids:
+            raise 'Test interrupted due record %s not found in %s' % (code,
+                                                                      model)
+        cmd = bulk_cmd(src_ctx, tgt_ctx, model)
+        cmd.append('-i')
+        cmd.append(str(ids[0]))
+        run_traced(cmd)
+        return ids[0]
+
+    def check_account_account(src_ctx, tgt_ctx, acc_id):
+        general_check(src_ctx, tgt_ctx, 'account.account', acc_id)
+
+    def write_account_account(src_ctx, tgt_ctx, company_id,
+                              code=None, name=None):
+        model = 'account.account'
+        print('Write %s ..' % model)
+        ids = clodoo.searchL8(
+            src_ctx, model, [('code', '=', '152100'),
+                             ('company_id', '=', company_id)])
+        if not ids:
+            raise 'Test interrupted due record %s not found in %s' % (code,
+                                                                      model)
+        cmd = bulk_cmd(src_ctx, tgt_ctx, model)
+        cmd.append('-i')
+        cmd.append(str(ids[0]))
+        cmd.append('-C')
+        run_traced(cmd)
+        return ids[0]
+
+    print('Test synchro migrate DB')
+    if not ctx['from_confn'] or not ctx['from_dbname']:
+        print('Missed multi-DB parameter: -w -z')
+        return
+    tgt_ctx = ctx
+    src_ctx = ctx.copy()
+    src_ctx['db_name'] = src_ctx['from_dbname']
+    src_ctx['conf_fn'] = src_ctx['from_confn']
+    uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
+    src_company_id = env_ref(src_ctx, 'z0bug.mycompany')
+    if not src_company_id:
+        raise IOError('!!Internal error: no company to test found in src!')
+    tgt_company_id = env_ref(tgt_ctx, 'z0bug.mycompany')
+    if not tgt_company_id:
+        raise IOError('!!Internal error: no company to test found in tgt!')
+
+    src_ctx['partner_MR_ids'] = clodoo.searchL8(src_ctx, 'res.partner',
+                                                [('name','like','Rossi')])
+    product_x_ids = clodoo.searchL8(src_ctx, 'product.product',
+                                    [('default_code','like','MISC')])
+    if product_x_ids:
+        src_ctx['vg7_id_product_x'] = product_x_ids[0]
+    else:
+        src_ctx['vg7_id_product_x'] = clodoo.searchL8(
+            src_ctx, 'product.product', [])[0]
+
+    country_id = write_country(src_ctx, tgt_ctx)
+    check_country(src_ctx, tgt_ctx,country_id)
+
+    acc_type_id = write_account_type(src_ctx, tgt_ctx)
+    check_account_type(src_ctx, tgt_ctx, acc_type_id)
+
+    account_id = write_account_account(src_ctx, tgt_ctx, src_company_id)
+    check_account_account(src_ctx, tgt_ctx, account_id)
 
 
 def check_rec_links(ctx):

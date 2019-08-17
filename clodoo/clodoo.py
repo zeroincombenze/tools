@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.47"
+__version__ = "0.3.8.48"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -3536,8 +3536,6 @@ def upd_invoices_2_draft(move_dict, ctx):
         elif isinstance(move_dict, list) and i == 0:
             invoices = move_dict
         if len(invoices):
-            import pdb
-            pdb.set_trace()
             try:
                 executeL8(ctx,
                           model,

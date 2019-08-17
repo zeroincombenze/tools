@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.47
+__version__=0.3.8.48
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -95,8 +95,8 @@ if [ -n "$opt_odir" ]; then
 elif [ $opt_ou -ne 0 ]; then
   x=$(basename $script)
   script=
-  [ -z "$script" -a -f ~/tmp/$odoo_fver/server/$x ] && script=~/tmp/$odoo_fver/server/$x
-  [ -z "$script" -a -f ~/tmp/$odoo_fver/$x ] && script=~/tmp/$odoo_fver/$x
+  [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/server/$x ] && script=~/tmp/ou_$odoo_fver/server/$x
+  [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/$x ] && script=~/tmp/ou_$odoo_fver/$x
   if [ -z "$script" ]; then
     echo "Openupgrade script not found"
     exit 1

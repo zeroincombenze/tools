@@ -32,7 +32,7 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.47"
+__version__ = "0.3.8.48"
 
 
 #############################################################################
@@ -77,6 +77,7 @@ def cnx(ctx):
 
 
 def exec_sql(ctx, query, response=None):
+    ctx['_cr'] = psql_connect(ctx)
     try:
         ctx['_cr'].execute(query)
         if response:
@@ -86,6 +87,10 @@ def exec_sql(ctx, query, response=None):
     except psycopg2.OperationalError:
         os0.wlog('Error executing sql %s' % query)
         response = False
+    try:
+        ctx['_cr'].close()
+    except psycopg2.OperationalError:
+        pass
     return response
 
 
@@ -584,6 +589,8 @@ def extract_vals_from_rec(ctx, model, rec, keys=None, format=False):
 
 FIX_7_0 = {
     'res.partner': {'name': {'required': True}},
+    'product.product': {'name': {'required': True}},
+    'product.template': {'name': {'required': True}},
     'res.users': {'name': {'required': True}},
     'account.invoice': {'company_id': {'readonly': False},
                         'number': {'readonly': False},
@@ -652,7 +659,8 @@ def get_model_structure(ctx, model, ignore=None):
             'readonly': True,
         }
     field = 'name'
-    if model in ('res.users', 'res.partner'):
+    if model in ('res.users', 'res.partner', 'product.product',
+                 'product.template'):
         if field not in ctx['STRUCT'][model]:
             ctx['STRUCT'][model][field] = {
                 'ttype': 'char',

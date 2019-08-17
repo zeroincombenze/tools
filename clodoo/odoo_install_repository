@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.47
+__version__=0.3.8.48
 
 
 rmdir_if_exists() {
@@ -47,6 +47,7 @@ rmdir_if_exists() {
       local odoo_fver=$(build_odoo_param FULLVER "$odoo_vid")
       local odoo_Rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
       local new_vid=$3
+      local b fn
       if [ -n "$opt_odir" ]; then
         local DSTPATH=$opt_odir
       else
@@ -74,6 +75,23 @@ rmdir_if_exists() {
           if [ "$CWD" != "$PWD" ]; then
             run_traced "cd $CWD"
           fi
+        fi
+        if [ "$RPTNAME" == "OCB" ]; then
+          OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
+          run_traced "mkdir $HOME/__to_remove"
+          run_traced "mkdir $HOME/__to_remove/OCB"
+          for fn in $DSTPATH/*; do
+            if [ -f "$fn" ]; then
+              run_traced "mv $fn $HOME/__to_remove/OCB"
+            else
+              b=$(basename $fn)
+              if [[ $b =~ $OCB_SUBDIRS_RE ]]; then
+                run_traced "mv $fn $HOME/__to_remove/OCB"
+              else
+                run_traced "mv $fn $HOME/__to_remove/"
+              fi
+            fi
+          done
         fi
         run_traced "rm -fR $DSTPATH"
       fi
@@ -144,7 +162,7 @@ auto_add_files() {
      if [[ "$lne" =~ "# Untracked files:" ]]; then
        PARSE=1
      elif [ $PARSE -ne 0 ]; then
-       if [[ $lne =~ (LICENSE|README\.md|README.rst) ]]; then
+       if [[ $lne =~ (LICENSE|README\.md|README\.rst|.*\.bak) ]]; then
          lne=$(echo ${lne:1})
          run_traced "git add $lne" "$pkg_user"
        fi
@@ -358,6 +376,7 @@ if [ -z "$new_odoo_vid" ]; then
     run_traced "cd $DSTPATH"
   fi
   if [ "$RPTNAME" == "OCB" ]; then
+    run_traced "mv $HOME/__to_remove $DSTPATH"
     discover_multi
     cfgfn=$(build_odoo_param CONFN "$odoo_vid" '' $def_opt_org)
     if [ ! -f "$cfgfn" ]; then

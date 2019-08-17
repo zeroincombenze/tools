@@ -231,15 +231,6 @@ if [[ ! $TRAVIS =~ (true|emulate) && -d $HOME/.local && ! "$SYSTEM_SITE_PACKAGES
 else
   PIP_OPTS=
 fi
-# if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
-#   PIP=
-#   [ -f /usr/bin/pip$TRAVIS_PYTHON_VERSION ] && PIP=/usr/bin/pip$TRAVIS_PYTHON_VERSION
-#   [ -z "$PIP" -a -f /usr/bin/pip3 ] && PIP=/usr/bin/pip3
-#   [ -z "$PIP" -a -f /usr/bin/pip3.5 ] && PIP=/usr/bin/pip3.5
-#   [ -z "$PIP" -a -f /usr/bin/pip3.6 ] && PIP=/usr/bin/pip3.6
-#   [ -z "$PIP" -a -f /usr/bin/pip3.4 ] && PIP=/usr/bin/pip3.4
-#   [ -z "$PIP" ] && PIP=pip
-# fi
 if [ -d $HOME/tools ]; then
   [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
   cd $HOME/tools
@@ -265,17 +256,18 @@ if [ -d $HOME/dev ]; then
       fi
     fi
   fi
-  if [ -z "$PYLIB" ]; then
-    if [ -f $HOME/dev/activate_tools ]; then
-      [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-      . $HOME/dev/activate_tools
-      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-    else
-      echo "!! Error! File $HOME/dev/activate_tools not found!"
-    fi
-  fi
 else
   echo "!! Error! Directory $HOME/dev not found!"
+fi
+if echo -e "import sys\nfor x in sys.path:\n  print x,"|python|grep -qv " $HOME/tools "; then
+  echo "Warning: sitecustomize.py without effect! Use PYTHONPATH method"
+  if [ -f $HOME/dev/activate_tools ]; then
+    [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+    . $HOME/dev/activate_tools
+    [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+  else
+    echo "Path to tools not active! Tests may fail!"
+  fi
 fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 run_traced "$PIP install -q future --upgrade" "nolocal"

@@ -269,7 +269,6 @@ fi
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
 
-
 opts_travis
 CFG_init
 conf_default

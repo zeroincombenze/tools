@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.47
+__version__=0.3.8.48
 VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="12 11 10 9 8 7 6"
 
@@ -518,6 +518,12 @@ test_05() {
       fi
       test_result "Home $v/OCB" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
+
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param PARENTDIR $v "OCB")
+      fi
+      test_result "Parent dir $v/OCB" "/opt/odoo" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
     TRES[6.1]="/opt/odoo/VENV-6.1/odoo"
@@ -567,6 +573,12 @@ test_05() {
         RES=$(build_odoo_param HOME $v "crm")
       fi
       test_result "Home $v/crm" "${TRES[$v]}" "$RES"
+      s=$?; [ ${s-0} -ne 0 ] && sts=$s
+
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        RES=$(build_odoo_param PARENTDIR $v "crm")
+      fi
+      test_result "Parent dir $v/crm" "/opt/odoo/$v" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
     done
 
@@ -674,8 +686,6 @@ test_06() {
         fi
       done
     done
-
-
     #
     for v in 12.0 11.0 10.0 8.0 7.0; do
       w=$(echo $v|grep -Eo "[0-9]+"|head -n1)
@@ -747,7 +757,6 @@ test_07() {
         test_result "Configuration file ./$v" "$w" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         popd >/dev/null
-        # [ ${opt_dry_run:-0} -eq 0 ] && set -x   #debug
         if [ "${v:0:3}" != "oia" ]; then
           x=$(readlink -f $RHOME/$v)
           RES=$(build_odoo_param HOME $RHOME/$v)
