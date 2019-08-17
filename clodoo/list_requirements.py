@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.48'
+__version__ = '0.3.8.49'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -40,7 +40,7 @@ REQVERSION = {
     'ipy': {'7.0': '>=0.83'},
     'isort': {'0': '==4.3.4'},                           # Version by test pkgs
     'jcconv': {'7.0': '==0.2.3'},
-    'Jinja2': {'7.0': '==2.7.3', '10.0': '==2.8'},
+    'Jinja2': {'7.0': '==2.7.3', '9.0': '==2.8.1'},
     'lxml': {'7.0': '>=3.4.1', '10.0': '==3.5.0', '0': '==4.2.1'},
     'Mako':  {'7.0': '==1.0.1', '8.0': '==1.0.4'},
     'MarkupSafe': {'7.0': '>=0.23'},                    # Tested 1.0

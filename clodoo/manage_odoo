@@ -32,7 +32,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.48
+__version__=0.3.8.49
 
 
 explore() {
@@ -193,10 +193,10 @@ do_action() {
           [ $pass -eq 2 ] && echo -e "${TRAVIS_HDR3_COLOR}### Upgrade versioned package${TRAVIS_TEXT_COLOR}"
           [ $pass -eq 3 ] && echo -e "${TRAVIS_HDR3_COLOR}### Check for package version${TRAVIS_TEXT_COLOR}"
           for f in $preqs; do
-            if $(grep -q ^$f $pkgdir/requirements.txt); then
-              [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ] && echo "Package $f included in $pkgdir/requirements.txt"
-              continue
-            fi
+            # if $(grep -q ^$f $pkgdir/requirements.txt); then
+            #   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 -a $pass -eq 1 ] && echo "Package $f included in $pkgdir/requirements.txt"
+            #   continue
+            # fi
             op=$(echo "$f"|grep -Eo '[!<=>]*'|head -n1)
             pkg=$(echo "$f"|grep -Eo '[^!<=>\\[]*'|tr -d "'"|head -n1)
             reqver=$(echo "$f"|grep -Eo '[^!<=>]*'|tr -d "'"|sed -n '2 p')
