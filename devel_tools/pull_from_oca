@@ -35,7 +35,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.2.17
+__version__=0.2.2.18
 
 
 do_edit_module() {
@@ -67,31 +67,77 @@ do_edit_module() {
 }
 
 
-sync_tmp_2_tgt() {
-# sync_tmp_2_tgt(tmpdir tgtpath repo)
-    local b d dlist f fn flist l t1 OPTS
-    local tmpdir=$1
-    local tgtpath=$2
+rsync_file() {
+# rsync_file(fn tmpdir strategy)
+    local fn=$1
+    local tmpdir=$2
+    local b=$(basename $fn)
+    local xtgy=$3
+    [[ $b =~ .*\.bak$ || "$b" == "__to_remove" ]] && return
+    if [ "$xtgy" == "zero" ]; then
+      run_traced "cp $fn $tmpdir/$b"
+    elif [ "$xtgy" == "oca" ]; then
+      [ ! -f $tmpdir/$b ] && run_traced "cp $fn $tmpdir/$b"
+    fi
+}
+
+rsync_module() {
+# rsync_module(fn tmpdir repo strategy)
+    local fn=$1
+    local tmpdir=$2
+    local b=$(basename $fn)
     local repo=$3
+    local xtgy=$4
+    [[ $b =~ .*\.bak$ || "$b" == "__to_remove" ]] && return
+    if [ "$xtgy" == "zero" ]; then
+      run_traced "rsync -a --ignore-existing $fn/ $tmpdir/"
+    elif [ "$xtgy" == "oca" ]; then
+      [ ! -d $tmpdir ] && run_traced "rsync -a --ignore-existing $fn/ $tmpdir/"
+    elif [ "$xtgy" == "req" ]; then
+      if [[ "$repo" == "OCB" && $b =~ (addons|odoo|openerp) ]]; then
+        tmpdir=$tmpdir/$b
+      fi
+      for module in $fn/*; do
+          b=$(basename $module)
+          run_traced "vfdiff -bme $module $tmpdir/$b"
+          sts=$?
+          if [ $sts -eq 0 ]; then
+            echo "Module $b of $fn is the same of $tmpdir/$b"
+          else
+            read -p "Use zeroincombenze module $b (y,n)" dummy
+            if [ "$dummy" == "y" ]; then
+              run_traced "rsync -a --ignore-existing $module/ $tmpdir/$b/"
+            fi
+          fi
+      done 
+    fi
+}
+
+sync_tmp_2_tgt() {
+# sync_tmp_2_tgt(tgtpath tmpdir repo strategy)
+    local b d dlist f flist l module t1 OPTS
+    local tgtpath=$1
+    local tmpdir=$2
+    local repo=$3
+    local xtgy=$4
     [ $opt_dry_run -ne 0 ] && OPTS=${OPTS}n
     [ -n "$OPTS" ] && OPTS="-$OPTS"
     OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
     OCB_SUBDIRS_RE="${OCB_SUBDIRS_RE:0: -2}|.git|.github)\$"
     run_traced "shopt -s dotglob"
     if [ "$repo" == "OCB" ]; then
-      for fn in $tgtpath/*; do
-        b=$(basename $fn)
-        [[ $b =~ .*\.bak$ || "$b" == "__to_remove" ]] && continue
-        if [ -f "$fn" ]; then
-          run_traced "cp $fn $tmpdir/$b"
+      for module in $tgtpath/*; do
+        if [ -f "$module" ]; then
+          rsync_file $module $tmpdir $xtgy
         else
+          b=$(basename $module)
           if [[ $b =~ $OCB_SUBDIRS_RE ]]; then
-            run_traced "rsync -a --ignore-existing $fn/ $tmpdir/$b"
+            rsync_module $module $tmpdir $repo $xtgy
           fi
         fi
       done
     else
-      run_traced "rsync -a --ignore-existing $tgtpath/ $tmpdir/"
+      rsync_module $tgtpath $tmpdir $repo $xtgy
     fi
     l=${#tgtpath}
     ((l++))
@@ -147,16 +193,17 @@ sync_tmp_2_tgt() {
     $TDIR/regen_all_docs $tgtpath zero $OPTS
 }
 
-OPTOPTS=(h        b          D        H           n           V           v           y)
-OPTDEST=(opt_help opt_branch opt_drop opt_humdrum opt_dry_run opt_version opt_verbose opt_yes)
-OPTACTI=(1        "="        1        1           1           "*>"        "+"         1)
-OPTDEFL=(0        ""         0        0           0           ""          -1          0)
-OPTMETA=("help"   "branch"   ""       ""          ""          ""          ""          "")
+OPTOPTS=(h        b          D        H           n           s        V           v           y)
+OPTDEST=(opt_help opt_branch opt_drop opt_humdrum opt_dry_run opt_xtgy opt_version opt_verbose opt_yes)
+OPTACTI=(1        "="        1        1           1           "="      "*>"        "+"         1)
+OPTDEFL=(0        ""         0        0           0           "zero"   ""          -1          0)
+OPTMETA=("help"   "branch"   ""       ""          ""          "name"   ""          ""          "")
 OPTHELP=("this help"\
  "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "drop oca repository before upgrade"\
  "humdrum, display w/o colors"\
  "do nothing (dry-run)"\
+ "strategy: may be (zero,oca,req)"\
  "show version"\
  "verbose mode"\
  "assume yes")
@@ -171,6 +218,9 @@ if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
 if [ -z "$opt_branch" ]; then
+  opt_help=1
+fi
+if [[ ! $opt_xtgy =~ (zero|oca|req) ]]; then
   opt_help=1
 fi
 if [ $opt_help -gt 0 ]; then
@@ -222,18 +272,19 @@ if [ $opt_yes -eq 0 ]; then
 fi
 tmpdir=$HOME/tmp
 [ ! -d $tmpdir ] && run_traced "mkdir -p $tmpdir"
-[ "$repo" != "OCB" ] && tmp_odoo=$tmpdir/$repo || tmp_odoo=$tmpdir/$odoo_fver
+[ "$repo" != "OCB" ] && tmp_odoo=$tmpdir/$odoo_fver/$repo || tmp_odoo=$tmpdir/$odoo_fver
 [ "$PWD" == "$tmp_odoo" ] && cd $HOME
 OPTS=
 [ $opt_dry_run -ne 0 ] && OPTS=${OPTS}n
 [ -n "$OPTS" ] && OPTS="-$OPTS"
 [ -d $tmp_odoo ] && run_traced "rm -fR $tmp_odoo"
 if [ $opt_drop -ne 0 ]; then
-  run_traced "odoo_install_repository -b$opt_branch $repo -Ooca -o $tmp_odoo -Cqy $OPTS"
+  run_traced "odoo_install_repository -boca$odoo_ver $repo -Ooca -o $tmp_odoo -Cqy $OPTS"
 else
+  run_traced "odoo_install_repository -boca$odoo_ver $repo -Ooca -UCq $OPTS"
   run_traced "mkdir $tmp_odoo"
   run_traced "shopt -u dotglob; rsync -aC --exclude='.*' $src_oca/ $tmp_odoo/"
 fi
-[ $opt_dry_run -ne 0 ] && mkdir -p $tmp_odoo
-sync_tmp_2_tgt $tmp_odoo $tgtpath $repo
+[ $opt_dry_run -ne 0 -a ! -d $tmp_odoo ] && mkdir -p $tmp_odoo
+sync_tmp_2_tgt $tgtpath $tmp_odoo $repo $opt_xtgy
 run_traced "shopt -u dotglob"

@@ -617,8 +617,7 @@ class Test():
         }
         for ver in VERSIONS_TO_TEST:
             w = 'VENV-%s' % ver
-            res = build_odoo_param('HOME', odoo_vid=w, suppl='crm',
-                                   multi=True)
+            res = build_odoo_param('HOME', odoo_vid=w, suppl='crm', multi=True)
             sts = self.Z.test_result(z0ctx,
                                      'Home %s/crm' % w,
                                      TRES[ver],
@@ -630,10 +629,7 @@ class Test():
 
 
 if __name__ == "__main__":
-    # import pdb
-    # pdb.set_trace()
-    Z = Z0test
-    ctx = Z.parseoptest(sys.argv[1:],
-                        version=version())
-    sts = Z.main_local(ctx, Test)
+    ctx = Z0test.parseoptest(sys.argv[1:],
+                             version=version())
+    sts = Z0test.main_local(ctx, Test)
     exit(sts)

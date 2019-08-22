@@ -12,7 +12,7 @@ from past.builtins import basestring
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -30,7 +30,6 @@ class RegressionTest():
 
     def test_01(self, z0ctx):
         if z0ctx['dry_run']:
-            # sts = TEST_SUCCESS
             sts = self.Z.sanity_check('-q', full=z0ctx)
             z0ctx['ctr'] = 46
         else:

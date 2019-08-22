@@ -7,15 +7,13 @@
 from __future__ import print_function,unicode_literals
 from past.builtins import basestring
 
-# import pdb
 import os
 import os.path
 import sys
 from zerobug import Z0BUG
-# import dummylib
 
 
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1

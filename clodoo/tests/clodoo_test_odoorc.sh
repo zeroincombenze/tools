@@ -697,13 +697,13 @@ test_06() {
       # TRES[oia]="$HOME/oia$w"
       # TRES[oia-git]="$HOME/oia$w"
       # TRES[oia-http]="$HOME/oia$w"
-      TRES[zero]="$RHOME/zero$w"
-      TRES[zero-git]="$RHOME/zero$w"
-      TRES[zero-http]="$RHOME/zero$w"
-      TRES[oca]="$RHOME/oca$w"
-      TRES[oia]="$RHOME/oia$w"
-      TRES[oia-git]="$RHOME/oia$w"
-      TRES[oia-http]="$RHOME/oia$w"
+      TRES[zero]="/opt/odoo/zero$w"
+      TRES[zero-git]="/opt/odoo/zero$w"
+      TRES[zero-http]="/opt/odoo/zero$w"
+      TRES[oca]="/opt/odoo/oca$w"
+      TRES[oia]="/opt/odoo/oia$w"
+      TRES[oia-git]="/opt/odoo/oia$w"
+      TRES[oia-http]="/opt/odoo/oia$w"
       for w in zero zero-git zero-http oca oia oia-git oia-http; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param HOME $v '' $w)
@@ -724,7 +724,7 @@ test_07() {
     declare -A TRES
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10; do
-        pushd $RHOME/$v >/dev/null
+        pushd $Z0BUG_root/$v >/dev/null
         RES=$(build_odoo_param HOME '.')
         test_result "HOME ./$v" "$PWD" "$RES"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
@@ -758,11 +758,11 @@ test_07() {
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
         popd >/dev/null
         if [ "${v:0:3}" != "oia" ]; then
-          x=$(readlink -f $RHOME/$v)
-          RES=$(build_odoo_param HOME $RHOME/$v)
-          test_result "HOME $RHOME/$v" "$x" "$RES"
-          RES=$(build_odoo_param HOME $RHOME/$v/addons)
-          test_result "HOME $RHOME/$v/addons" "$x" "$RES"
+          x=$(readlink -f $Z0BUG_root/$v)
+          RES=$(build_odoo_param HOME $Z0BUG_root/$v)
+          test_result "HOME $Z0BUG_root/$v" "$x" "$RES"
+          RES=$(build_odoo_param HOME $Z0BUG_root/$v/addons)
+          test_result "HOME $Z0BUG_root/$v/addons" "$x" "$RES"
           RES=$(build_odoo_param HOME "$x")
           test_result "HOME $x" "$x" "$RES"
           RES=$(build_odoo_param HOME "$x/addons")
@@ -933,28 +933,33 @@ Z0BUG_setup() {
 #   \---- addons/web
 # unported/l10n_it_base
 
-    local VERSION=9.0
+    local f v x
     local ODOO_REPO=local/odoo
-    RHOME="/opt/odoo"
+    LCL_VERSION=9.0
     LCL_OO_PRJNAME="Odoo"
     LCL_OO_REPOS=l10n_italy
     LCL_OO_PKGNAME=l10n_it_base
-    LCL_OE_ROOT=$RHOME/dev/odoo/$VERSION
+    Z0BUG_build_os_tree "$LCL_VERSION/openerp $LCL_VERSION/addons/base $LCL_VERSION/addons/account $LCL_VERSION/addons/sale $LCL_VERSION/addons/web $LCL_VERSION/$LCL_OO_REPOS/$LCL_OO_PKGNAME $LCL_VERSION/__unported__/$LCL_OO_PKGNAME"
+    LCL_OE_ROOT=$Z0BUG_root/$LCL_VERSION
+
+    # RHOME="/opt/odoo"
+    # LCL_OE_ROOT=$RHOME/dev/odoo/$LCL_VERSION
+    # LCL_OE_ROOT=$TESTDIR/res/$LCL_VERSION
     LCL_OE_PRJPATH=$LCL_OE_ROOT/$LCL_OO_REPOS
     LCL_OE_PKGPATH=$LCL_OE_PRJPATH/$LCL_OO_PKGNAME
     LCL_OE_PKGPATH2=$LCL_OE_ROOT/__unported__/$LCL_OO_PKGNAME
-    [ -f $LCL_OE_ROOT ] && rm -fR $LCL_OE_ROOT
-    mkdir -p $LCL_OE_ROOT
-    mkdir -p $LCL_OE_ROOT/openerp
+    # [ -f $LCL_OE_ROOT ] && rm -fR $LCL_OE_ROOT
+    # mkdir -p $LCL_OE_ROOT
+    # mkdir -p $LCL_OE_ROOT/openerp
+    # mkdir -p $LCL_OE_ROOT/addons
+    # mkdir -p $LCL_OE_ROOT/addons/base
+    # mkdir -p $LCL_OE_ROOT/addons/account
+    # mkdir -p $LCL_OE_ROOT/addons/sale
+    # mkdir -p $LCL_OE_ROOT/addons/web
+    # mkdir -p $LCL_OE_PRJPATH
+    # mkdir -p $LCL_OE_PKGPATH
+    # mkdir -p $LCL_OE_PKGPATH2
     touch $LCL_OE_ROOT/openerp-server
-    mkdir -p $LCL_OE_ROOT/addons
-    mkdir -p $LCL_OE_ROOT/addons/base
-    mkdir -p $LCL_OE_ROOT/addons/account
-    mkdir -p $LCL_OE_ROOT/addons/sale
-    mkdir -p $LCL_OE_ROOT/addons/web
-    mkdir -p $LCL_OE_PRJPATH
-    mkdir -p $LCL_OE_PKGPATH
-    mkdir -p $LCL_OE_PKGPATH2
     touch $LCL_OE_PKGPATH/__openerp__.py
     touch $LCL_OE_PKGPATH2/__openerp__.py
     LCL_OO_SETUP=__openerp__.py
@@ -963,39 +968,56 @@ Z0BUG_setup() {
       LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
       touch $LCLTEST_ODOO9_SERVER
     fi
-    if [ -d $RHOME/$VERSION/dependencies ]; then rm -fR $RHOME/$VERSION/dependencies; fi
-    if [ -L $RHOME/$VERSION/dependencies ]; then rm -f $RHOME/$VERSION/dependencies; fi
+    if [ -d $Z0BUG_root/$LCL_VERSION/dependencies ]; then rm -fR $Z0BUG_root/$LCL_VERSION/dependencies; fi
+    if [ -L $Z0BUG_root/$LCL_VERSION/dependencies ]; then rm -f $Z0BUG_root/$LCL_VERSION/dependencies; fi
 
-    LCL_VE_ROOT=$RHOME/dev/odoo/VENV-$VERSION/odoo
+    # LCL_VE_ROOT=$RHOME/dev/odoo/VENV-$LCL_VERSION/odoo
+    LCL_VE_ROOT=$TESTDIR/res/VENV-$LCL_VERSION/odoo
     LCL_VE_PRJPATH=$LCL_VE_ROOT/$LCL_OO_REPOS
     LCL_VE_PKGPATH=$LCL_VE_PRJPATH/$LCL_OO_PKGNAME
-    LCL_VE_PKGPATH2=$LCL_VE_PRJPATH/__unported__/$LCL_OO_PKGNAME
-    mkdir -p $RHOME/dev/odoo/VENV-$VERSION
-    mkdir -p $LCL_VE_ROOT
-    mkdir -p $LCL_VE_ROOT/openerp
+    LCL_VE_PKGPATH2=$LCL_VE_ROOT/__unported__/$LCL_OO_PKGNAME
+    # mkdir -p $RHOME/dev/odoo/VENV-$LCL_VERSION
+    # mkdir -p $LCL_VE_ROOT
+    # mkdir -p $LCL_VE_ROOT/openerp
+    # mkdir -p $LCL_VE_ROOT/addons
+    # mkdir -p $LCL_VE_ROOT/addons/base
+    # mkdir -p $LCL_VE_ROOT/addons/account
+    # mkdir -p $LCL_VE_ROOT/addons/sale
+    # mkdir -p $LCL_VE_ROOT/addons/web
+    # mkdir -p $LCL_VE_PRJPATH
+    # mkdir -p $LCL_VE_PKGPATH
+    # mkdir -p $LCL_VE_PKGPATH2
+
+    Z0BUG_build_os_tree "VENV-$LCL_VERSION/odoo/openerp VENV-$LCL_VERSION/odoo/addons/base VENV-$LCL_VERSION/odoo/addons/account VENV-$LCL_VERSION/odoo/addons/sale VENV-$LCL_VERSION/odoo/addons/web VENV-$LCL_VERSION/odoo/$LCL_OO_REPOS/$LCL_OO_PKGNAME VENV-$LCL_VERSION/odoo/__unported__/$LCL_OO_PKGNAME"
+
     touch $LCL_VE_ROOT/openerp-server
-    mkdir -p $LCL_VE_ROOT/addons
-    mkdir -p $LCL_VE_ROOT/addons/base
-    mkdir -p $LCL_VE_ROOT/addons/account
-    mkdir -p $LCL_VE_ROOT/addons/sale
-    mkdir -p $LCL_VE_ROOT/addons/web
-    mkdir -p $LCL_VE_PRJPATH
-    mkdir -p $LCL_VE_PKGPATH
-    mkdir -p $LCL_VE_PKGPATH2
     touch $LCL_VE_PKGPATH/__openerp__.py
     touch $LCL_VE_PKGPATH2/__openerp__.py
+
+    Z0BUG_build_os_tree "6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10"
+    for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10; do
+      f=$(echo $v|grep -Eo [0-9]+|head -n1)
+      [ $f -ge 10 ] && x=odoo-bin || x=openerp-server
+      touch $Z0BUG_root/$v/$x
+      [ $f -ge 10 ] && x=odoo || x=openerp
+      Z0BUG_build_os_tree "$v/addons $v/$x/addons"
+    done
 }
 
 Z0BUG_teardown() {
-    mkdir -p $LCL_VE_PKGPATH2
-    mkdir -p $LCL_VE_PKGPATH
-    mkdir -p $LCL_VE_PRJPATH
-    mkdir -p $LCL_VE_ROOT
-    mkdir -p $RHOME/dev/odoo/VENV-$VERSION
-    rm -fR $LCL_OE_PKGPATH2
-    rm -fR $LCL_OE_PKGPATH
-    rm -fR $LCL_OE_PRJPATH
-    rm -fR $LCL_OE_ROOT
+    # local LCL_VERSION=9.0
+    # mkdir -p $LCL_VE_PKGPATH2
+    # mkdir -p $LCL_VE_PKGPATH
+    # mkdir -p $LCL_VE_PRJPATH
+    # mkdir -p $LCL_VE_ROOT
+    # mkdir -p $RHOME/dev/odoo/VENV-$LCL_VERSION
+    # rm -fR $LCL_OE_PKGPATH2
+    # rm -fR $LCL_OE_PKGPATH
+    # rm -fR $LCL_OE_PRJPATH
+    # rm -fR $LCL_OE_ROOT
+    Z0BUG_remove_os_tree "$LCL_VERSION VENV-$LCL_VERSION"
+    Z0BUG_remove_os_tree "6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10"
+
     if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
       rm -f $LCLTEST_ODOO9_SERVER
     fi

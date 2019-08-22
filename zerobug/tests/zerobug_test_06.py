@@ -13,7 +13,7 @@ import os
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 
 MODULE_ID = 'zerobug'
 TEST_FAILED = 1
@@ -28,10 +28,6 @@ class RegressionTest():
 
     def __init__(self, z0bug):
         self.Z = z0bug
-        self.os_tree = ['10.0',
-                        '10.0/l10n-italy',
-                        '10.0/l10n-italy/l10n_it_base',
-                        '/tmp/zerobug']
 
     def test_01(self, z0ctx):
         sts = TEST_SUCCESS
@@ -62,6 +58,12 @@ class RegressionTest():
                                      RES,
                                      False)
         return sts
+
+    def setup(self, z0ctx):
+        self.os_tree = ['10.0',
+                        '10.0/l10n-italy',
+                        '10.0/l10n-italy/l10n_it_base',
+                        '/tmp/zerobug']
 
 #
 # Run main if executed as a script

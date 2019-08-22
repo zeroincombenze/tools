@@ -62,7 +62,7 @@
 # (C) 2015-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
 #
 
-__version__=0.2.14.8
+__version__=0.2.14.10
 
 export opt_dry_run
 export ctr
@@ -443,6 +443,7 @@ exec_tests_4_count() {
     dbgmsg ".exec_tests_4_count"
     ready_opts
     save_options
+    [ "$(type -t Z0BUG_setup)" == "function" ] && Z0BUG_setup
     sts=0
     testctr=0
     for testname in $1; do
@@ -483,6 +484,7 @@ exec_tests_4_count() {
     fi
     dbgmsg "- c=$ctr, min=$min_test, max=$max_test"
     _prior_msg=
+    [ "$(type -t Z0BUG_teardown)" == "function" ] && Z0BUG_teardown
     return $sts
 }
 export -f exec_tests_4_count
@@ -493,6 +495,7 @@ exec_all_tests () {
     local s c testname dirtn basetn opt4childs
     dbgmsg ".exec_all_tests"
     ready_opts
+    [ "$(type -t Z0BUG_setup)" == "function" ] && Z0BUG_setup
     ctr=${min_test:-0}
     dbgmsg "- c=$ctr; ctr_list=$Z0BUG_ctr_list"
     ix=0
@@ -542,6 +545,7 @@ exec_all_tests () {
       fi
     done
     min_test=$ctr
+    [ "$(type -t Z0BUG_teardown)" == "function" ] && Z0BUG_teardown
     return $sts
 }
 export -f exec_all_tests
@@ -636,4 +640,28 @@ Z0BUG_main_file() {
       sts=0
     fi
     return $sts
+}
+
+
+Z0BUG_build_os_tree() {
+    local p path os_tree
+    os_tree="${1//,/ }"
+    Z0BUG_root=$TESTDIR/res
+    [ ! -d "$Z0BUG_root" ] && mkdir -p $Z0BUG_root
+    for p in $os_tree; do
+      [[ $p =~ ^[./] ]] && path=$p || path=$Z0BUG_root/$p
+      [ ! -d $path ] && mkdir -p $path
+    done
+}
+
+Z0BUG_remove_os_tree() {
+    local p path os_tree
+    os_tree="${1//,/ }"
+    Z0BUG_root=$TESTDIR/res
+    [ ! -d "$Z0BUG_root" ] && return
+    for p in $os_tree; do
+      [[ $p =~ ^[./] ]] && path=$p || path=$Z0BUG_root/$p
+      [ ! -d $path ] && continue
+      rm -fR $path
+    done
 }

@@ -1,6 +1,6 @@
 #! /bin/bash
-# -*- coding: utf-8 -*-
-# Regression tests on zerobug
+# Copyright (C) 2015-2019 SHS-AV s.r.l. (<http://www.zeroincombenze.org>)
+# License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -32,37 +32,41 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.14.8
+__version__=0.2.14.10
+
+OS_TREE="10.0 10.0/l10n-italy 10.0/l10n-italy/l10n_it_base /tmp/zerobug"
 
 
-Z0BUG_setup() {
-    # Just for regression tests
-    coveragerc_file="$RUNDIR/.coveragerc"
-    coveragerc_bak="$RUNDIR/coveragerc.bak"
-    if [ ! -f "$coveragerc_bak" ]; then
-      if [ -f "$coveragerc_file" ]; then
-         mv -f $coveragerc_file $coveragerc_bak
+test_01() {
+    local path sts RES
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      Z0BUG_build_os_tree "$OS_TREE"
+    fi
+    for path in $OS_TREE; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
+        [ -d $path ] && RES=1 || RES=0
+        test_result "mkdir $path" "$RES" "1"
+        sts=$?
       fi
-    fi
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
-    fi
-    # if [ ! -f "$TESTDIR/z0testlib.py" -a ! -L "$TESTDIR/z0testlib.py" ]; then
-    #   cp $RUNDIR/z0testlib.py $TESTDIR/
-    # fi
+    done
 }
 
-Z0BUG_teardown() {
-    if [ -f "$coveragerc_file" ]; then
-      rm -f $coveragerc_file
+test_09() {
+    local path sts RES
+    sts=0
+    if [ ${opt_dry_run:-0} -eq 0 ]; then
+      Z0BUG_remove_os_tree "$OS_TREE"
     fi
-    if [ -f "$coveragerc_bak" ]; then
-      mv -f $coveragerc_bak $coveragerc_file
-    fi
-    if [ -f "$TESTDIR/z0testlib.py" -o -L "$TESTDIR/z0testlib.py" ]; then
-      rm -f $TESTDIR/z0testlib.py
-    fi
-
+    for path in $OS_TREE; do
+      if [ ${opt_dry_run:-0} -eq 0 ]; then
+        [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
+        [ -d $path ] && RES=0 || RES=1
+        test_result "rmdir $path" "$RES" "1"
+        sts=$?
+      fi
+    done
 }
 
 
@@ -73,12 +77,8 @@ if [ $sts -ne 127 ]; then
   exit $sts
 fi
 
-
-
-
-
-UT1_LIST=
-UT_LIST=
+UT1_LIST=""
+UT_LIST=""
 if [ "$(type -t Z0BUG_setup)" == "function" ]; then Z0BUG_setup; fi
 Z0BUG_main_file "$UT1_LIST" "$UT_LIST"
 sts=$?

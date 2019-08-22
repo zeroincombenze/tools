@@ -31,19 +31,20 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.2.2.17
+__version__=0.2.2.18
 
 
 
-OPTOPTS=(h        b          n           p        V           v)
-OPTDEST=(opt_help opt_branch opt_dry_run opt_path opt_version opt_verbose)
-OPTACTI=(1        "="        1           "="      "*>"        "+")
-OPTDEFL=(0        ""         0           ""       ""          -1)
-OPTMETA=("help"   "branch"   ""          "dir"       ""          "")
+OPTOPTS=(h        b          n           p        R           V           v)
+OPTDEST=(opt_help opt_branch opt_dry_run opt_path opt_recurse opt_version opt_verbose)
+OPTACTI=(1        "="        1           "="      1           "*>"        "+")
+OPTDEFL=(0        ""         0           ""       0           ""          -1)
+OPTMETA=("help"   "branch"   ""          "dir"    ""          ""          "")
 OPTHELP=("this help"\
  "branches: may be one or more of 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
  "do nothing (dry-run)"\
  "odoo directory"\
+ "if OCB recurse all repositories"\
  "show version"\
  "verbose mode")
 OPTARGS=(odoo_vid git_org)
@@ -71,7 +72,7 @@ else
 fi
 [ -z "$git_org" ] && git_org=$(build_odoo_param GIT_ORGNM $odoo_vid)
 repo=$(build_odoo_param REPOS "$odoo_vid")
-# if [ "$repo" == "OCB" ]; then
+[ "$repo" == "OCB" ] && OCB_SUBDIRS_RE=$(build_odoo_param OCB_SUBDIRS_RE)
 #   tgtdir=$odoo_dir
 #   [ -d $odoo_dir/odoo/addons ] && tgtdir="$odoo_dir/odoo/addons"
 #   [ -d $odoo_dir/openerp/addons ] && tgtdir="$odoo_dir/openerp/addons"
@@ -87,22 +88,21 @@ for f in $(find $tgtdir -maxdepth 2 -type d -name 'egg-info'); do
   d=$(dirname $f)
   b=$(basename $d)
   [ "$b" == "__to_remove" ] && continue
-  echo "\$ cd $d"
-  cd $d
-  if [[ "$PWD" == "$tgtdir" ]]; then
+  if [[ "$d" == "$tgtdir" ]]; then
     OPTS=-lrepository
   else
+    [ $opt_recurse -eq 0 ] && [[ "$repo" == "OCB" && ! $b =~ $OCB_SUBDIRS_RE ]] && continue
     OPTS=-lmodule
   fi
+  echo "\$ cd $d"
+  cd $d
   [ -f README.md ] && rm -fR README.md
-  echo "\$ gen_readme.py -G$git_org -b$odoo_fver $OPTS"
-  gen_readme.py -qG$git_org -b$odoo_fver $OPTS
+  run_traced "gen_readme.py -qG$git_org -b$odoo_fver $OPTS"
   if [ $odoo_ver -ge 8 ]; then
     if [ -f __openerp__.py -o -f __manifest__.py ]; then
       [ ! -d ./static ] && mkdir -p ./static
       [ ! -d ./static/description ] && mkdir -p ./static/description
-      echo "\$ gen_readme.py -b$odoo_fver -H -G$git_org $OPTS"
-      gen_readme.py -b$odoo_fver -qH -G$git_org $OPTS
+      run_traced "gen_readme.py -b$odoo_fver -qH -G$git_org $OPTS"
     fi
   fi
 done

@@ -4,11 +4,11 @@
 # Common function to manage Odoo
 #
 # Item to process (+ means can be searched):
-# BIN          Name of file to execute Odoo (+)
+# BIN          Pathname + name of file to execute Odoo (+)
 # CONFN        Configuration filename (+)
 # DDIR         Data directory
-# FLOG         Log filename (+)
-# FPID         PID filename (+)
+# FLOG         Log full filename (+)
+# FPID         PID full filename (+)
 # FULLVER      Odoo version, format like 11.0
 # FULL_SVCNAME Pathname + filename to start/stop Odoo service (+)
 # GIT_BRANCH   Git branch

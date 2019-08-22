@@ -151,7 +151,7 @@ from os0 import os0
 
 
 # Z0test library version
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -216,7 +216,7 @@ LX_OPT_ARGS = {'opt_debug': '-b',
                'run4cover': '-1',
                'python3': '-3'}
 
-DEFAULT_COVERARC = r"""
+DEFAULT_COVERARC = r"""# Config file .coveragerc 2019-08-22
 [report]
 include =
 #    ${TRAVIS_BUILD_DIR}/*
@@ -230,7 +230,9 @@ omit =
     *_example/*
     __main__.py
     setup.py
-    */lib*/python*
+    */site-packages/*
+    */lib/python*/*
+    */lib64/python*/*
     */__init__.py
     */__openerp__.py
     */__manifest__.py
@@ -749,6 +751,11 @@ class Z0test(object):
                             action="store_true",
                             dest="opt_debug",
                             default=False)
+        parser.add_argument("-C", "--no-coverage",
+                            help="run tests without coverage",
+                            action="store_false",
+                            dest="run4cover",
+                            default=True)
         parser.add_argument("-e", "--echo",
                             help="enable echoing even if not interactive tty",
                             action="store_true",
@@ -824,10 +831,10 @@ class Z0test(object):
                             dest="opt_noctr",
                             default=False)
         parser.add_argument("-1", "--coverage",
-                            help="run tests for coverage",
+                            help="run tests for coverage (obsolete)",
                             action="store_true",
                             dest="run4cover",
-                            default=False)
+                            default=True)
         parser.add_argument("-3", "--python3",
                             help="use python3",
                             action="store_true",
@@ -876,7 +883,6 @@ class Z0test(object):
                 os.environ["COVERAGE_PROCESS_START"]
             ctx['run4cover'] = True
         if ctx['run4cover']:
-            # ctx['opt_noctr'] = True
             if not ctx.get('COVERAGE_PROCESS_START', ''):   # pragma: no cover
                 ctx['COVERAGE_PROCESS_START'] = os.path.abspath(
                     os.path.join(self.rundir,
@@ -1154,6 +1160,8 @@ class Z0test(object):
         testctr = 0
         if TestCls:
             T = TestCls(self)
+        if TestCls and hasattr(TestCls, 'setup'):
+            getattr(T, 'setup')(ctx)
         for testname in test_list:
             self.dbgmsg(ctx,
                         '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s' %
@@ -1199,6 +1207,8 @@ class Z0test(object):
             testctr += ctx['ctr']
         ctx = self.restore_options(ctx)
         ctx['ctr'] = testctr
+        if TestCls and hasattr(TestCls, 'teardown'):
+            getattr(T, 'teardown')(ctx)
         if ctx.get('max_test', 0) == 0:
             ctx['max_test'] = ctx.get('min_test', 0) + testctr
         self.dbgmsg(ctx, '- c=%d, min=%d, max=%d' % (ctx['ctr'],
@@ -1225,6 +1235,11 @@ class Z0test(object):
         self.dbgmsg(ctx, '- c=%d, ctr_list=%s' % (ctx['ctr'], self.ctr_list))
         if TestCls:
             T = TestCls(self)
+        if (ctx.get('run4cover', False) and
+                not ctx.get('dry_run', False)):
+            subprocess.call(['coverage', 'erase'])
+        if TestCls and hasattr(TestCls, 'setup'):
+            getattr(T, 'setup')(ctx)
         for testname in test_list:
             self.dbgmsg(ctx,
                         '- min=%d, max=%d, ctr=%d, -0=%s, Cover=%s' %
@@ -1256,12 +1271,13 @@ class Z0test(object):
                     # set_mime_python_ver(testname, ctx.get('python3', False))
                     if (ctx.get('run4cover', False) and
                             not ctx.get('dry_run', False)):
-                        test_w_args = ['coverage',
-                                       'run',
-                                       '-a',
-                                       '--rcfile',
-                                       ctx['COVERAGE_PROCESS_START'],
-                                       testname] + opt4childs
+                        test_w_args = [
+                            'coverage',
+                            'run',
+                            '-a',
+                            '--rcfile=%s' % ctx['COVERAGE_PROCESS_START'],
+                            testname
+                        ] + opt4childs
                     else:
                         if ctx.get('python3', False):
                             test_w_args = ['python3'] + [testname] + opt4childs
@@ -1280,6 +1296,8 @@ class Z0test(object):
                 sts = TEST_FAILED
                 break
         ctx['min_test'] = ctx['ctr']
+        if TestCls and hasattr(TestCls, 'teardown'):
+            getattr(T, 'teardown')(ctx)
         return sts
 
     def main_local(self, ctx, Test, UT1=None, UT=None):

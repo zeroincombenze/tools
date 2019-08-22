@@ -13,7 +13,7 @@ import sys
 from zerobug import Z0BUG
 
 
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 
 
 def version():
@@ -24,20 +24,3 @@ if __name__ == "__main__":
         Z0BUG.parseoptest(sys.argv[1:],
                           version=version()))
     )
-
-    # ctx = Z0BUG.parseoptest(sys.argv[1:],
-    #                         version=version())
-    # # Just for regression tests
-    # coveragerc_file = os.path.join(Z0BUG.rundir, '.coveragerc')
-    # coveragerc_bak = os.path.join(Z0BUG.rundir, 'coveragerc.bak')
-    # if not os.path.isfile(coveragerc_bak):
-    #     if os.path.isfile(coveragerc_file):
-    #         os.rename(coveragerc_file, coveragerc_bak)
-    # if os.path.isfile(coveragerc_file):
-    #     os.remove(coveragerc_file)
-    # sts = Z0BUG.main_file(ctx)
-    # if os.path.isfile(coveragerc_file):
-    #     os.remove(coveragerc_file)
-    # if os.path.isfile(coveragerc_bak):
-    #     os.rename(coveragerc_bak, coveragerc_file)
-    # exit(sts)

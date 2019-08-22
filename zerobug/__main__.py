@@ -8,10 +8,9 @@ import os
 import sys
 import subprocess
 from zerobug import Z0BUG
-import pdb
 
 
-__version__ = "0.2.14.8"
+__version__ = "0.2.14.10"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
