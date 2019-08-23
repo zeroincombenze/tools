@@ -31,9 +31,8 @@ except ImportError:
         from z0lib import z0lib
     except ImportError:
         import z0lib
-# from odoo10_score import odoo_score
 import transodoo
-import pdb
+# import pdb
 
 
 __version__ = "0.3.8.49"
@@ -197,7 +196,7 @@ def manage_error():
         if dummy == 'S' or dummy == 's':
             sys.exit(1)
         if dummy == 'D' or dummy == 'd':
-            import pdb
+            import pdb          # pylint: disable=deprecated-module
             pdb.set_trace()
 
 
@@ -879,7 +878,6 @@ def commit_table(tgt_ctx, src_ctx, model):
 def synchro(tgt_ctx, model, vals):
     tgt_ctx['_COMMIT'][model] = False
     cache = get_cache(src_ctx)
-    pdb.set_trace()
     # if 'company_id' in vals and tgt_ctx.get('by_company'):
     #     vals['company_id'] = tgt_ctx['company_id']
     id = search4rec(tgt_ctx, model, vals)
@@ -1741,7 +1739,7 @@ def load_openupgrade(ctx, odoo_fver):
         with pushd(oupath_bindir):
             sys.path.insert(0, '')
             import release
-            x = re.match('[0-9]+\.[0-9]+', release.version)
+            x = re.match(r'[0-9]+\.[0-9]+', release.version)
             if x:
                 ou_ver = release.version[0:x.end()]
             else:
@@ -1816,7 +1814,6 @@ def add_tnl_item(ctx, model, module, new_module, src_fver, tgt_fver,
 
 def translate_ml(ctx, module_list, src_fver, tgt_fver, tgt_module_list):
     sys.path.append(os.path.dirname(__file__))
-    import transodoo
     transodoo.read_stored_dict(ctx)
     tnl_module_list = []
     bad_module_list = []
@@ -1864,7 +1861,6 @@ def add_versioned_tnl(ctx, src_fver, tgt_fver):
     with pushd(ou_ver_path):
         sys.path.append('')
         sys.path.append(os.path.dirname(__file__))
-        import transodoo
         if int(tgt_fver.split('.')[0]) < 10:
             import openerp.addons.openupgrade_records.lib.apriori as apriori
         else:

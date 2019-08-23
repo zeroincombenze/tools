@@ -42,7 +42,6 @@ before_install:
   - mv ${HOME}/tools/maintainer-quality-tools ${HOME}
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - export PATH=${HOME}/maintainer-quality-tools/_travis:${PATH}
-  # - export OPTS="-j"
 
 install:
   - travis_install_env tools

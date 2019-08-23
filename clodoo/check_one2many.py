@@ -3,8 +3,18 @@
 import sys
 import time
 # import oerplib
-import clodoo
-from z0lib import parseoptargs
+from os0 import os0
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
+try:
+    from z0lib.z0lib import z0lib
+except ImportError:
+    try:
+        from z0lib import z0lib
+    except ImportError:
+        import z0lib
 # import pdb
 
 
@@ -20,9 +30,9 @@ def msg_burst(text):
         msg_time = time.time()
 
 
-parser = parseoptargs("Odoo test environment",
-                      "© 2017-2018 by SHS-AV s.r.l.",
-                      version=__version__)
+parser = z0lib.parseoptargs("Odoo test environment",
+                            "© 2017-2018 by SHS-AV s.r.l.",
+                            version=__version__)
 parser.add_argument('-h')
 parser.add_argument("-c", "--config",
                     help="configuration command file",

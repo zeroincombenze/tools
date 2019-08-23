@@ -12,10 +12,7 @@ except ImportError:
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
-    try:
-        from z0lib import z0lib
-    except ImportError:
-        import z0lib
+    import z0lib
 import transodoo
 # import pdb
 
@@ -104,7 +101,7 @@ def manage_error():
         if dummy == 'S' or dummy == 's':
             sys.exit(1)
         if dummy == 'D' or dummy == 'd':
-            import pdb
+            import pdb              # pylint: disable=deprecated-module
             pdb.set_trace()
 
 

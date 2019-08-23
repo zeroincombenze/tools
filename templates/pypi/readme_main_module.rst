@@ -35,9 +35,8 @@ Usage / Utilizzo
 ----------------
 
 {{usage}}
-.. $fi
-.. $if defined oca_diff
 
+.. $fi
 |
 |
 

@@ -4,7 +4,10 @@
 import sys
 # import os
 import time
-import clodoo
+try:
+    from clodoo import clodoo
+except ImportError:
+    import clodoo
 try:
     from z0lib import z0lib
 except ImportError:

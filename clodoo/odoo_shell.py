@@ -19,11 +19,8 @@ except ImportError:
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
-    try:
-        from z0lib import z0lib
-    except ImportError:
-        import z0lib
-import pdb
+    import z0lib
+import pdb      # pylint: disable=deprecated-module
 
 
 __version__ = "0.3.8.49"
@@ -1796,8 +1793,6 @@ def test_synchro_mdb(ctx):
         else:
             raise IOError('!!Syncro %s Failed!' % model)
         if model in ('account.account', ):
-            import pdb
-            pdb.set_trace()
             if src_rec.name != tgt_rec.name:
                 raise IOError('!!Syncro %s Failed!' % model)
 
@@ -2061,7 +2056,7 @@ def rename_coa(ctx):
         '413': ['6103'],
         '412': ['6102'],
         '293': ['4300'],
-        '291': ['4200'],
+        '292': ['4200'],
         '291': ['4100'],
         '281': ['2600'],
         '261': ['2504'],

@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.18"
+__version__ = "0.2.2.19"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1065,7 +1065,7 @@ def read_manifest_file(manifest_path):
 
 def read_setup(ctx):
     if ctx['product_doc'] == 'pypi':
-        MANIFEST_LIST = ('../setup.py', )
+        MANIFEST_LIST = ('../setup.py', './setup.py')
     else:
         MANIFEST_LIST = ('./setup.py', )
     for manifest in MANIFEST_LIST:
@@ -1427,7 +1427,7 @@ if __name__ == "__main__":
     parser.add_argument('-n')
     parser.add_argument('-P', '--product-doc',
                         action='store',
-                        help='name',
+                        help='may be odoo or pypi',
                         dest='product_doc',
                         default='')
     parser.add_argument('-p', '--path-name',
@@ -1505,7 +1505,7 @@ if __name__ == "__main__":
             else:
                 ctx['odoo_layer'] = 'repository'
         if not ctx['suppress_warning']:
-            print('Invalid layer: use -L %s or one of ocb|module|repository ' %
+            print('Invalid layer: use -l %s or one of ocb|module|repository ' %
                   ctx['odoo_layer'])
     sts = generate_readme(ctx)
     sys.exit(sts)
