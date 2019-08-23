@@ -30,13 +30,16 @@
 import os
 import os.path
 import sys
-from os0 import os0
 import glob
 import filecmp
 from sys import platform as _platform
 from datetime import date, timedelta
 import re
-from zarlib import parse_args
+from . import zarlib
+try:
+    from os0 import os0
+except ImportError:
+    import os0
 
 
 __version__ = "2.1.25.15"
@@ -462,9 +465,9 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    ctx = parse_args(sys.argv[1:],
-                     version=version(),
-                     doc=__doc__)
+    ctx = zarlib.parse_args(sys.argv[1:],
+                            version=version(),
+                            doc=__doc__)
     if ctx['do_list']:
         print ctx['saveset_list']
         return sts

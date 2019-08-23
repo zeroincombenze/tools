@@ -46,7 +46,6 @@ import os.path
 import sys
 import argparse
 import ConfigParser
-from os0 import os0
 import glob
 # from sys import platform as _platform
 # import platform
@@ -54,8 +53,12 @@ import glob
 import datetime
 import re
 import string
-# from zarlib import ZarLib
-from zar.zar.zarlib import ZarLib
+try:
+    from os0 import os0
+except ImportError:
+    import os0
+from . import zarlib_new as zarlib
+
 
 __version__ = "0.1.3"
 # Apply for configuration file (True/False)
@@ -247,7 +250,7 @@ def read_config(opt_obj, parser, conf_fn=None):
     return conf_obj, conf_fns
 
 
-class Backup_Mirror(ZarLib):
+class Backup_Mirror(zarlib.Zarlib):
 
     def __init__(self, cfg_obj, s):
         # homedir = os.path.expanduser("~")
@@ -361,7 +364,7 @@ class Backup_Mirror(ZarLib):
         return
 
 
-class Restore_Image(ZarLib):
+class Restore_Image(zarlib.Zarlib):
 
     # def __init__(self, cfg_obj, s):
     def __init__(self):
@@ -418,7 +421,7 @@ def main():
     mute = prm['mute']
     list_mode = prm['list']
     opt_obj = prm['_opt_obj']
-    Z = ZarLib(dbg_mode)
+    Z = zarlib.Zarlib(dbg_mode)
     if dbg_mode:
         print __version__
     if prm['xtall']:

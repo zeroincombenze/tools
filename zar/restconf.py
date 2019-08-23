@@ -30,11 +30,15 @@
 import os
 import os.path
 import sys
-from os0 import os0
 from subprocess import call
 import string
 import re
-from zarlib import parse_args, check_if_running
+from . import zarlib
+try:
+    from os0 import os0
+except ImportError:
+    import os0
+
 
 __version__ = "2.0.29.2"
 
@@ -285,14 +289,14 @@ def main():
     """Tool main"""
     sts = 0
     # pdb.set_trace()
-    ctx = parse_args(sys.argv[1:],
-                     version=version(),
-                     doc=__doc__)
+    ctx = zarlib.parse_args(sys.argv[1:],
+                            version=version(),
+                            doc=__doc__)
     if ctx['do_list']:
         print ctx['saveset_list']
         return sts
     RI = Restore_Image(ctx)
-    f_alrdy_run = check_if_running(ctx, RI.pid)
+    f_alrdy_run = zarlib.check_if_running(ctx, RI.pid)
     if f_alrdy_run:
         os0.wlog("({0}) ***Another instance is running!!!".format(RI.pid))
     try:

@@ -26,8 +26,12 @@ import platform
 import argparse
 import inspect
 import ConfigParser
-from os0 import os0
 import re
+try:
+    from os0 import os0
+except ImportError:
+    import os0
+
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
