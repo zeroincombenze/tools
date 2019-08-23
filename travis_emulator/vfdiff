@@ -41,7 +41,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.15
+__version__=0.2.2.16
 
 
 vf_init() {

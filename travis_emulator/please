@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.15
+__version__=0.2.2.16
 
 
 #
@@ -1260,7 +1260,7 @@ do_publish() {
       echo "   type 'please docs' to generate docs files"
       echo "publish download -> publish tarball to download (require system privileges)"
       echo "   type 'please build' to generate tarball file"
-      echo "publish pypi     -> publish package to pypi website (require system privileges)"
+      echo "publish pypi     -> publish package to pypi website (from odoo user)"
       echo "publish svg      -> publish test result svg file (require system privileges)"
       echo "publish tar      -> write a tarball with package files"
       sts=$STS_FAILED
@@ -1376,18 +1376,25 @@ do_publish_pypi() {
     local rpt=pypi
     local n p s v
     if [ "$PRJNAME" != "Odoo" ]; then
-      run_traced "cd $PKGPATH"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
-      n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
-      v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
-      p=$(find dist -name "$n*$v*tar.gz")
-      if [ -z "$p" -o $opt_force -gt 0 ]; then
-        run_traced "python setup.py build sdist"
+      if twine --version &>/dev/null; then
+        run_traced "cd $PKGPATH"
         s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        [ -f $PRJPATH/README.rst ] && run_traced "cp $PRJPATH/README.rst ./"
+        n=$(cat setup.py|grep "name *="|awk -F= '{print $2}'|grep -Eo [a-zA-Z0-9_-]+|head -n1)
+        v=$(cat setup.py|grep version|grep -Eo [0-9]+[0-9\.]*|head -n1)
+        p=$(find dist -name "$n*$v*tar.gz")
+        if [ -z "$p" -o $opt_force -gt 0 ]; then
+          run_traced "python setup.py build sdist"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        fi
+        p=$(find dist -name "$n*$v*tar.gz")
+        run_traced "twine upload $p -r $rpt"
+        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+      else
+        echo "Command twine not found!"
+        echo "Do pip install twine"
+        sts=1
       fi
-      p=$(find dist -name "$n*$v*tar.gz")
-      run_traced "twine upload $p -r $rpt"
-      s=$?; [ ${s-0} -ne 0 ] && sts=$s
     fi
     return $sts
 }
