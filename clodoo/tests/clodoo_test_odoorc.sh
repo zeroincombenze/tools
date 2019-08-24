@@ -54,7 +54,7 @@ test_01() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         RES=$(build_odoo_param FULLVER $v)
       fi
-      test_result "full version $v" "${TRES[$v]}" "$RES"
+      test_result "full version $v [bash]" "${TRES[$v]}" "$RES"
       s=$?; [ ${s-0} -ne 0 ] && sts=$s
       #
       w="v$v"
@@ -609,18 +609,14 @@ test_06() {
     TRES[zero-git]="git@github.com:zeroincombenze/$z"
     TRES[zero-http]="https://github.com/zeroincombenze/$z"
     TRES[oca]="https://github.com/OCA/$z"
-    TRES[oia-git]="git@github.com:Odoo-Italia-Associazione/$z"
-    TRES[oia-http]="https://github.com/Odoo-Italia-Associazione/$z"
     TRES[librerp]="https://github.com/iw3hxn/server"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
-      TRES[oia]=${TRES[oia-http]}
     else
       TRES[zero]=${TRES[zero-http]}
-      TRES[oia]=${TRES[oia-http]}
     fi
-    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+    for w in zero zero-git zero-http oca librerp; do
+      for v in $VERSIONS_TO_TEST; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param URL $v $z $w)
         fi

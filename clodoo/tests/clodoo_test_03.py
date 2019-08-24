@@ -11,9 +11,9 @@
 """
 
 # import pdb
-# import os
-# import os.path
+import os
 import sys
+import re
 
 from zerobug import Z0test
 try:
@@ -55,7 +55,7 @@ class Test():
         for ver in MAJVERS_TO_TEST:
             res = build_odoo_param('FULLVER', odoo_vid=ver)
             sts = self.Z.test_result(z0ctx,
-                                     'Full version %s' % ver,
+                                     'Full version %s [python]' % ver,
                                      TRES[ver],
                                      res)
             if sts:
@@ -625,6 +625,47 @@ class Test():
             if sts:
                 break
 
+        return sts
+
+    def test_06(self, z0ctx):
+        repos = 'OCB'
+        TRES = {
+            'zero-git': 'git@github.com:zeroincombenze/%s' % repos,
+            'zero-http': 'https://github.com/zeroincombenze/%s' % repos,
+            'oca': 'git@github.com:Odoo-Italia-Associazione/%s' % repos,
+            'librerp': 'https://github.com/iw3hxn/server',
+        }
+        if re.match('shs[a-z0-9]+', os.environ['HOSTNAME']):
+            TRES['zero']=TRES['zero-git']
+        else:
+            TRES['zero']=TRES['zero-http']
+        for org in ('zero', 'zero-git', 'zero-http', 'oca', 'librerp'):
+            for ver in VERSIONS_TO_TEST:
+                RES = build_odoo_param('URL', odoo_vid=ver, multi=False)
+                sts = self.Z.test_result(z0ctx,
+                                         'Root dir %s' % ver,
+                                         TRES[org],
+                                         RES)
+            if sts:
+                break
+
+            RES = build_odoo_param(
+                'GIT_URL', odoo_vid=ver, suppl=repos, git_org=org, multi=False)
+            sts = self.Z.test_result(z0ctx,
+                                     'GIT_URL %s/%s %s' % (org, repos, ver),
+                                     TRES[org],
+                                     RES)
+            if sts:
+                break
+
+            RES = build_odoo_param('URL_BRANCH', odoo_vid=ver, suppl=repos,
+                                   git_org=org, multi=False)
+            sts = self.Z.test_result(z0ctx,
+                                     'URL_BRANCH %s/%s %s' % (org, repos, ver),
+                                     TRES[org],
+                                     RES)
+            if sts:
+                break
         return sts
 
 
