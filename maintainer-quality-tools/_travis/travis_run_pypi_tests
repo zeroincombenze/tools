@@ -388,7 +388,7 @@ if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRAN
 #      done
 #      export PYTHONPATH=
 #   fi
-#   if [[ ! $TRAVIS_DEBUG_MODE =~ ^[012] ]]; then
+#   if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
 #     if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
 #       echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
 #     else
@@ -405,8 +405,16 @@ set_pythonpath "$pth" "" $PIP
 check_pythonpath "$pth" $PYTHON
 
 if [ $opt_verbose -gt 0 ]; then
+  echo -e "\e[${PS_HDR3_COLOR}mPATH=$PATH\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_HDR3_COLOR}mPYTHONPATH=$PYTHONPATH\e[${PS_TXT_COLOR}m"
   echo -e "\e[${PS_HDR3_COLOR}mBASH_CHECK_ENABLED=$BASH_CHECK_ENABLED LINT_CHECK_ENABLED=$LINT_CHECK_ENABLED $0 $__version__\e[${PS_TXT_COLOR}m"
+  if [[ ! $TRAVIS_DEBUG_MODE =~ ^[01] ]]; then
+    if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+      echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
+    else
+      echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
+    fi
+  fi
 fi
 if [ $BASH_CHECK_ENABLED -gt 0 ]; then
   [ "$TRAVIS_DEBUG_MODE" == "9" ] || travis_test_bash
