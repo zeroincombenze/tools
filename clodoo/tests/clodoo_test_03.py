@@ -632,7 +632,7 @@ class Test():
         TRES = {
             'zero-git': 'git@github.com:zeroincombenze/%s' % repos,
             'zero-http': 'https://github.com/zeroincombenze/%s' % repos,
-            'oca': 'git@github.com:Odoo-Italia-Associazione/%s' % repos,
+            'oca': 'https://github.com/OCA/%s' % repos,
             'librerp': 'https://github.com/iw3hxn/server',
         }
         if re.match('shs[a-z0-9]+', os.environ['HOSTNAME']):
@@ -666,6 +666,29 @@ class Test():
                                      RES)
             if sts:
                 break
+
+        TRES = {
+            'zero-git': 'git@github.com:zeroincombenze',
+            'zero-http': 'https://github.com/zeroincombenze',
+            'oca': 'https://github.com/OCA',
+            'librerp': 'https://github.com/iw3hxn',
+        }
+        if re.match('shs[a-z0-9]+', os.environ['HOSTNAME']):
+            TRES['zero']=TRES['zero-git']
+        else:
+            TRES['zero']=TRES['zero-http']
+        for org in ('zero', 'zero-git', 'zero-http', 'oca', 'librerp'):
+            for ver in VERSIONS_TO_TEST:
+                RES = build_odoo_param('GIT_ORG', odoo_vid=ver, suppl=repos,
+                                       git_org=org, multi=False)
+                sts = self.Z.test_result(
+                    z0ctx,
+                    'GIT_ORG %s/%s %s' % (org, repos, ver),
+                    TRES[org],
+                    RES)
+            if sts:
+                break
+
         return sts
 
 

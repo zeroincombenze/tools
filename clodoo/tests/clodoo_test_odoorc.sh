@@ -640,17 +640,13 @@ test_06() {
     TRES[zero-git]="git@github.com:zeroincombenze"
     TRES[zero-http]="https://github.com/zeroincombenze"
     TRES[oca]="https://github.com/OCA"
-    TRES[oia-git]="git@github.com:Odoo-Italia-Associazione"
-    TRES[oia-http]="https://github.com/Odoo-Italia-Associazione"
     TRES[librerp]="https://github.com/iw3hxn"
     if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
       TRES[zero]=${TRES[zero-git]}
-      TRES[oia]=${TRES[oia-http]}
     else
       TRES[zero]=${TRES[zero-http]}
-      TRES[oia]=${TRES[oia-http]}
     fi
-    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
+    for w in zero zero-git zero-http oca librerp; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param GIT_ORG $v $z $w)
@@ -806,8 +802,10 @@ test_08() {
     test_result "Test Odoo PARENTDIR" "$LCL_OE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
-    RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      RES=$(build_odoo_param RORIGIN '.' default)
+      test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    fi
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
@@ -815,8 +813,10 @@ test_08() {
     pushd $LCL_OE_ROOT >/dev/null
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "OCB" "$RES"
-    RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/OCB.git" "$RES"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      RES=$(build_odoo_param RORIGIN '.' default)
+      test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/OCB.git" "$RES"
+    fi
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/OCB.git" "$RES"
     popd >/dev/null
@@ -832,8 +832,10 @@ test_08() {
     test_result "Test Odoo PARENTDIR" "$LCL_VE_ROOT" "$RES"
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
-    RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      RES=$(build_odoo_param RORIGIN '.' default)
+      test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    fi
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
