@@ -269,7 +269,7 @@ set_pythonpath() {
           echo 'import sys' > $PYLIB/sitecustomize.py
         fi
         for pth in $PYPATH; do
-          echo \"if '$pth' not in sys.path:    sys.path.insert(0, '$pth')\" >> $PYLIB/sitecustomize.py
+          echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
         done
       fi
       if [[ -n "$FSITE" && -f $FSITE ]]; then

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""z0bug
-testing & debug library
+"""zar
+Zeroincombenze Archive Replica
 """
 
 from __future__ import print_function,unicode_literals
@@ -16,7 +16,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = '0.2.14.12'
+__version__ = '1.3.33'
 STS_FAILED = 1
 STS_SUCCESS = 0
 

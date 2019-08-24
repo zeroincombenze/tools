@@ -40,7 +40,7 @@ except ImportError:
     import os0
 
 
-__version__ = "2.1.17.3"
+__version__ = "1.3.33"
 
 
 def version():
