@@ -964,9 +964,11 @@ Z0BUG_setup() {
     touch $LCL_OE_PKGPATH2/__openerp__.py
     LCL_OO_SETUP=__openerp__.py
     LCLTEST_MQT_PATH=$HOME/maintainer-quality-tools/travis
-    if [ ! -f /etc/odoo/odoo9-server.conf ]; then
-      LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
-      touch $LCLTEST_ODOO9_SERVER
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      if [ ! -f /etc/odoo/odoo9-server.conf ]; then
+        LCLTEST_ODOO9_SERVER=/etc/odoo/odoo9-server.conf
+        touch $LCLTEST_ODOO9_SERVER
+      fi
     fi
     if [ -d $Z0BUG_root/$LCL_VERSION/dependencies ]; then rm -fR $Z0BUG_root/$LCL_VERSION/dependencies; fi
     if [ -L $Z0BUG_root/$LCL_VERSION/dependencies ]; then rm -f $Z0BUG_root/$LCL_VERSION/dependencies; fi
@@ -1018,8 +1020,10 @@ Z0BUG_teardown() {
     Z0BUG_remove_os_tree "$LCL_VERSION VENV-$LCL_VERSION"
     Z0BUG_remove_os_tree "6.1 7.0 8.0 9.0 10.0 11.0 12.0 librerp6 oca7 oca8 oca10"
 
-    if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
-      rm -f $LCLTEST_ODOO9_SERVER
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      if [ -n "$LCLTEST_ODOO9_SERVER" ]; then
+        rm -f $LCLTEST_ODOO9_SERVER
+      fi
     fi
     if [ -f $FOUT ]; then rm -f $FOUT; fi
     if [ -f $FTEST ]; then rm -f $FTEST; fi

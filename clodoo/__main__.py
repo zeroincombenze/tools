@@ -48,7 +48,7 @@ if __name__ == "__main__":
             setup_file = '../setup.py'
         with open(setup_file, 'r') as fd:
             do_copy = False
-            content = fd.read()
+            content = unicode(fd.read(), 'utf-8')
             for line in content.split('\n'):
                 if line.find('version=') >= 0:
                     version = line.split('=')[1].strip()
