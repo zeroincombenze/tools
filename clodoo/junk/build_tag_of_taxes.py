@@ -12,7 +12,7 @@ except ImportError:
 # import clodoo
 
 
-__version__ = '0.3.8.49'
+__version__ = '0.3.8.50'
 
 
 def read_csv_file(csv_fn):

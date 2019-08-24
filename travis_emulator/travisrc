@@ -423,8 +423,7 @@ venv_mgr_test() {
 
 venv_mgr() {
 # venv_mgr {chk|cp|mv|merge} VENV NEW_VENV
-    # set -x  #debug
-    local d f mime VENV VIRTUAL_ENV V
+    local d f mime VENV VIRTUAL_ENV V sitecustom
     local cmd=$1
     [ -n "$2" ] && VENV=$(readlink -f $2)
     [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
@@ -490,20 +489,21 @@ venv_mgr() {
       sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
       echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
     fi
+    sitecustom=$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+    echo "import sys">$sitecustom
     if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
       if [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-        echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+        echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
       else
-        echo -e "import site\nsite.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nsite.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+        echo -e "import site\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
       fi
     elif [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-      echo -e "import site\nsite.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+      echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
     fi
     popd >/dev/null
     if [[ "$cmd" == "mv" ]]; then
       mv $VENV $VIRTUAL_ENV
     fi
-    set +x  #debug
     venv_mgr_test $VIRTUAL_ENV
 }
 
@@ -595,7 +595,7 @@ create_virtual_env() {
       run_traced "cp -R $TRAVIS_CWD/ $x/"
       if [ ${opt_dbgmnt:-0} -ne 0 -a "$TRAVIS_REPO_SLUG" == "local/tools" ]; then
         for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
-          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/"
+          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $TRAVIS_BUILD_DIR/$p/  # Use no stable version"
         done
         run_traced "cp $TRAVIS_SAVED_HOME/dev/pypi/tools/install_tools.sh $TRAVIS_BUILD_DIR/"
       fi
@@ -686,12 +686,16 @@ git_clone() {
         run_traced "rsync -a $x/ $HOME/tools/clodoo/"
       fi
       if [ $opt_dbgmnt -ne 0 ]; then
+        # x=$(basename $TRAVIS_REPO_SLUG)
+        x=${TRAVIS_REPO_SLUG#*/}
+        for p in clodoo lisa maintainer-quality-tools python_plus travis_emulator z0bug_odoo z0lib zerobug; do
+          [ -d $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ -a "$p" != "$x" ] && run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$p/$p/ $HOME/tools/$p/  # Use no stable version"
+        done
         run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/travis/ $HOME/tools/maintainer-quality-tools/travis/"
         run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/maintainer-quality-tools/maintainer-quality-tools/_travis/ $HOME/tools/maintainer-quality-tools/_travis/"
-        x=${TRAVIS_REPO_SLUG#*/}
-        if [ -n "$x" -a -d $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ ]; then 
-          run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ $HOME/tools/$x/"
-        fi
+        # if [ -n "$x" -a -d $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ ]; then 
+        #   run_traced "rsync -a $TRAVIS_SAVED_HOME/dev/pypi/$x/$x/ $HOME/tools/$x/"
+        # fi
       fi
     fi
 }

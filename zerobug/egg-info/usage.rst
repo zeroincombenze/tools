@@ -10,10 +10,17 @@ Because *zerobug* can show total number of unit test to execute, it run tests
 in 2 passes. In the first pass it counts tests, in second pass executes really
 it.
 
-Every unit test file may be called with follows switches:
 
+usage: zerobug [-h] [-b] [-C] [-e] [-J] [-k] [-l file] [-N] [-n] [-O] [-q]
+               [-r number] [-s number] [-V] [-v] [-x] [-X] [-z number] [-0]
+               [-1] [-3]
+
+Regression test on maintainer-quality-tools
+
+optional arguments:
   -h, --help            show this help message and exit
-  -b, --debug           run tests in debug mode
+  -b, --debug           trace msgs in zerobug.tracehis
+  -C, --no-coverage     run tests without coverage
   -e, --echo            enable echoing even if not interactive tty
   -J                    load travisrc
   -k, --keep            keep current logfile
@@ -26,7 +33,7 @@ Every unit test file may be called with follows switches:
   -r number, --restart number
                         set to counted tests, 1st one next to this
   -s number, --start number
-                        set to counted tests, 1st one next to this
+                        deprecated
   -V, --version         show program's version number and exit
   -v, --verbose         verbose mode
   -x, --qsanity         like -X but run silently
@@ -34,7 +41,7 @@ Every unit test file may be called with follows switches:
   -z number, --end number
                         display total # tests when execute them
   -0, --no-count        no count # unit tests
-  -1, --coverage        run tests for coverage
+  -1, --coverage        run tests for coverage (obsolete)
   -3, --python3         use python3
 
   (w/o switches) do run test and return test result
@@ -68,7 +75,7 @@ Every test can inquire internal context.
 
     this_fqn      parent caller full qualified name (i.e. /opt/odoo/z0bug.pyc)
     this          parent name, w/o extension (i.e. z0bug)
-    ctr;          test counter [both bash and python tests]
+    ctr           test counter [both bash and python tests]
     dry_run       dry-run (do nothing) [opt_dry_run in bash test]          "-n"
     esanity       True if required sanity check with echo                  "-X"
     max_test      # of tests to execute [both bash and python tests]       "-z"
@@ -80,7 +87,7 @@ Every test can inquire internal context.
     opt_verbose   show messages during execution                           "-v"
     logfn         real trace log file name from switch                     "-l"
     qsanity       True if required sanity check w/o echo                   "-x"
-    run4cover     Run tests for coverage (use coverage run rather python)  "-1"
+    run4cover     Run tests for coverage (use coverage run rather python)  "-C"
     python3       Execute test in python3                                  "-3"
     run_daemon    True if execution w/o tty as stdio
     run_on_top    Top test (not parent)

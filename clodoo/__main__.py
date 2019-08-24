@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""MQT
-testing & debug library
+"""clodoo
+Massive operations on Zeroincombenze(R) / Odoo databases
 """
-
 
 from __future__ import print_function,unicode_literals
 import os
@@ -17,7 +16,7 @@ except ImportError:
     from zerobug import Z0BUG
 
 
-__version__ = '0.2.2.35'
+__version__ = "0.3.8.50"
 STS_FAILED = 1
 STS_SUCCESS = 0
 
@@ -49,7 +48,7 @@ if __name__ == "__main__":
             setup_file = '../setup.py'
         with open(setup_file, 'r') as fd:
             do_copy = False
-            content = unicode(fd.read(), 'utf-8')
+            content = fd.read()
             for line in content.split('\n'):
                 if line.find('version=') >= 0:
                     version = line.split('=')[1].strip()

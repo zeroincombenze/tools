@@ -2040,6 +2040,9 @@ do_replace() {
         run_traced "$TDIR/dist_pkg $opts $1 -p$LGITPATH"
         sts=$?
       fi
+    elif [ -f $PRJPATH/replace.sh ]; then
+      run_traced "$PRJPATH/replace.sh"
+      sts=$?
     else
       opts=$(inherits_travis_opts "R" "D")
       opt_dry_run=0
@@ -2217,15 +2220,19 @@ do_version() {
               sed -e "s/$ver_re2/$new_ver/" -i $fn
             fi
           done
-          if [ $opt_dry_run -ne 0 ]; then
-            echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
-          else
-            sed -e "s/version=.$ver_re2./version='$new_ver'/" -i $PKGPATH/setup.py
+          if [ -f $PKGPATH/setup.py ]; then
+            if [ $opt_dry_run -ne 0 ]; then
+              echo "sed -e \"s/version=.$ver_re2./version='$new_ver'/\" -i $PKGPATH/setup.py"
+            else
+              sed -e "s/version=.$ver_re2./version='$new_ver'/" -i $PKGPATH/setup.py
+            fi
           fi
         fi
       fi
-      echo "Project $PRJNAME $prjversion [$PKGNAME] answer:";
-      cd $PKGPATH; PYTHONPATH=$PKGPATH python $PRJNAME;
+      if [ -f $PRJPATH/__main__.py ]; then
+        echo "Project $PRJNAME $prjversion [$PKGNAME] answer:";
+        cd $PKGPATH; PYTHONPATH=$PKGPATH:$HOME/tools python $PRJNAME;
+      fi
     else
       echo "Project $PRJNAME $BRANCH [$PKGNAME $prjversion]";
     fi;

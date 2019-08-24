@@ -1,3 +1,7 @@
+For stable version:
+
+`pip install clodoo`
+
 For current version:
 
 `cd $HOME`

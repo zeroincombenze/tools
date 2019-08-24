@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.49
+__version__=0.3.8.50
 
 
 Z0BUG_setup() {
@@ -68,8 +68,8 @@ fi
 PYPKGDIR=$(readlink -e $RUNDIR/..)
 export PYTHONPATH=$PYPKGDIR:$PYTHONPATH
 UT1_LIST=
-UT_LIST="__version_V_0.3.8.49$RUNDIR/odoo_skin.sh"
-UT_LIST="$UT_LIST __version_V_0.3.8.49$RUNDIR/transodoo.py"
+UT_LIST="__version_V_0.3.8.50$RUNDIR/odoo_skin.sh"
+UT_LIST="$UT_LIST __version_V_0.3.8.50$RUNDIR/transodoo.py"
 # UT_LIST="$UT_LIST clodoo_test_01.py clodoo_test_02.py clodoo_test_03.py  clodoo_test_04.py clodoo_test_list_requirements.sh clodoo_test_odoo_skin.sh clodoo_test_odoorc.sh clodoo_test_transodoo.sh"
 UT_LIST="$UT_LIST clodoo_test_odoorc.sh clodoo_test_transodoo.sh"
 # UT_LIST="clodoo_test_02.p"

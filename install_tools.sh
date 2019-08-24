@@ -17,7 +17,7 @@ RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_read
 RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
-RFLIST__zerobug="z0testrc"
+RFLIST__zerobug="zerobug z0testrc"
 RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.csv templates"
@@ -103,12 +103,12 @@ if [[ $1 =~ -.*S ]]; then
     PYLIB=$(dirname $(pip --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
     if [ -n "$PYLIB" ]; then
       if [ -f $PYLIB/sitecustomize.py ]; then
-        if grep -qv "import sys" $PYLIB/sitecustomize.py; then
-          [[ ! $1 =~ -.*q ]] && echo "\$ cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py"
-          cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py
-        else
+        if grep -q "import sys" $PYLIB/sitecustomize.py; then
           [[ ! $1 =~ -.*q ]] && echo "\$ tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py"
           tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py
+        else
+          [[ ! $1 =~ -.*q ]] && echo "\$ cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py"
+          cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py
         fi
       else
         [[ ! $1 =~ -.*q ]] && echo "\$ cp $HOME/dev/sitecustomize.py $PYLIB"

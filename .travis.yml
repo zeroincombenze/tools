@@ -68,7 +68,7 @@ script:
   - travis_run_pypi_tests ${OPTS}
 
 after_success:
-  - cd PYTHONPATH=${MODULE_PATH}; travis_after_tests_success ${OPTS}
+  - cd ${MODULE_PATH}; travis_after_tests_success ${OPTS}
 
 after_failure:
   - cat ${HOME}/odoo_10-0.log

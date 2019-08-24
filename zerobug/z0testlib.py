@@ -134,7 +134,6 @@ COVERAGE_PROCESS_START
 from __future__ import print_function,unicode_literals
 from past.builtins import basestring
 
-# import pdb
 import os
 import os.path
 import sys
@@ -142,16 +141,13 @@ import subprocess
 from string import Template
 from subprocess import Popen, PIPE
 from shutil import rmtree
-# import logging
 import argparse
 import inspect
 import glob
 from os0 import os0
-# import coverage.plugin
 
 
-# Z0test library version
-__version__ = "0.2.14.10"
+__version__ = "0.2.14.12"
 # Module to test version (if supplied version test is executed)
 # REQ_TEST_VERSION = "0.1.4"
 
@@ -532,7 +528,7 @@ class SanityTest():
         ctx = self.Z.parseoptest(opts)
         ctx['WLOGCMD'] = "wecho-0"
         # sts = self.simulate_main(ctx, '1')
-        sts = self.Z.main_file(ctx, UT=['__test_01'])
+        sts = self.Z.main(ctx, UT=['__test_01'])
         # if os.environ.get("COVERAGE_PROCESS_START", ""):
         #     tres = 0
         # else:                                             # pragma: no cover
@@ -545,7 +541,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '2')
-            sts = self.Z.main_file(ctx, UT=['__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_02'])
             # if os.environ.get("COVERAGE_PROCESS_START", ""):
             #     tres = 0
             # else:                                         # pragma: no cover
@@ -558,7 +554,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             # if os.environ.get("COVERAGE_PROCESS_START", ""):
             #     tres = 0
             # else:                                         # pragma: no cover
@@ -572,7 +568,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -0",
                                      3,
@@ -582,7 +578,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             tres = 3
             sts = self.Z.test_result(z0ctx,
                                      "UT -n",
@@ -598,7 +594,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -n -0",
                                      3,
@@ -608,7 +604,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             tres = 13
             sts = self.Z.test_result(z0ctx,
                                      "UT -z13",
@@ -624,7 +620,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -z13 -0",
                                      13,
@@ -634,7 +630,7 @@ class SanityTest():
             ctx = self.Z.parseoptest(opts)
             ctx['WLOGCMD'] = "wecho-0"
             # sts = self.simulate_main(ctx, '3')
-            sts = self.Z.main_file(ctx, UT=['__test_01', '__test_02'])
+            sts = self.Z.main(ctx, UT=['__test_01', '__test_02'])
             sts = self.Z.test_result(z0ctx,
                                      "UT -z13 -0 -n",
                                      13,
@@ -662,7 +658,10 @@ class Z0test(object):
             self.autorun = True
         this_fqn = os.path.abspath(this_fqn or self.get_this_fqn())
         this = os0.nakedname(os.path.basename(this_fqn))
-        this_dir = os.path.dirname(this_fqn)
+        this_dir = os.getcwd()
+        if (not os.path.basename(this_dir) == 'tests' and 
+                not os.path.isdir('./tests')):
+            this_dir = os.path.dirname(this_fqn)
         self.this_dir = this_dir
         if os.path.basename(this_dir) == 'tests':
             self.testdir = self.this_dir
@@ -693,11 +692,13 @@ class Z0test(object):
             ix = sys.path.index(this_pkg_dir)
             del sys.path[ix]
         sys.path.insert(0, this_pkg_dir)
-        #
+
         if not id:
             if this.startswith('test_'):
                 id = this[5:]
-            elif this.startswith('all_tests') or this == '__main__':
+            elif (this.startswith('all_tests') or
+                    this.startswith('zerobug') or
+                    this == '__main__'):
                 id = os.path.basename(self.rundir)
             else:
                 id = this
@@ -716,7 +717,7 @@ class Z0test(object):
         if self.autorun:
             self.ctx = self.parseoptest(argv,
                                         version=version)
-            sts = self.main_file()
+            sts = self.main()
             sys.exit(sts)
 
     def create_parser(self, version, ctx):
@@ -733,7 +734,7 @@ class Z0test(object):
         -O              load odoorc library (only in bash scripts)
         -q --quiet      run tests without output (quiet mode)
         -r --restart    restart count next to number
-        -s --start      count 1st test next to number (deprecated BECOME -r)
+        -s --start      count 1st test next to number (deprecated, use -r)
         -V --version    show version
         -v --verbose    verbose mode
         -x --qsanity    execute silently test library sanity check and exit
@@ -747,7 +748,7 @@ class Z0test(object):
             epilog="© 2015-2019 by SHS-AV s.r.l."
                    " - http://wiki.zeroincombenze.org/en/Zerobug")
         parser.add_argument("-b", "--debug",
-                            help="run tests in debug mode",
+                            help="trace msgs in zerobug.tracehis",
                             action="store_true",
                             dest="opt_debug",
                             default=False)
@@ -800,7 +801,7 @@ class Z0test(object):
                             dest="min_test",
                             metavar="number")
         parser.add_argument("-s", "--start",
-                            help="set to counted tests, 1st one next to this",
+                            help="deprecated",
                             dest="min_test2",
                             metavar="number")
         parser.add_argument("-V", "--version",
@@ -1325,6 +1326,10 @@ class Z0test(object):
         return sts
 
     def main_file(self, ctx=None, Test=None, UT1=None, UT=None):
+        print('Deprecatede method: use main(..)')
+        self.main(ctx=ctx, Test=Test, UT1=UT1, UT=UT)
+
+    def main(self, ctx=None, Test=None, UT1=None, UT=None):
         """Default main program for test execution
         ctx: context
         Test: test class for internal tests;
@@ -1332,13 +1337,14 @@ class Z0test(object):
         UT1: protected Unit Test list (w/o log)
         UT: Unit Test list (if None, search for files)
         """
+        # main_file is obsolete
         if ctx is None:
             ctx = self.ctx
         if ctx.get('opt_debug', False) and \
                 ctx.get('run_on_top', False) and \
                 not ctx.get('_run_autotest', False):
             self.dbgmsg(ctx, "!Test tree of %s!" % self.module_id)
-        self.dbgmsg(ctx, '.main_file')
+        self.dbgmsg(ctx, '.main')
         self.dbgmsg(ctx,
                     '- min=%s, max=%s, -0=%s, Cover=%s' %
                     (ctx.get('min_test', None),
@@ -1380,12 +1386,10 @@ class Z0test(object):
                     test_list.append(tname)
                 test_num += 1
         self.dbgmsg(ctx, '- test_list=%s' % test_list)
-        # if not ctx.get('opt_noctr', None) or ctx.get('run4cover', False):
         self.exec_tests_4_count(test_list, ctx, Test)
         if ctx.get('dry_run', False):
             if not ctx.get('_run_autotest', False):
                 print(ctx['ctr'])
-                # sys.stderr.write("%d\n" % ctx['max_test'])
             sts = TEST_SUCCESS
         else:
             if not ctx.get('_run_autotest', False):
@@ -1399,14 +1403,6 @@ class Z0test(object):
                     print(success_msg)
                 else:
                     print(fail_msg)
-        return sts
-
-    def main(self, ctx, Test):
-        """Default main program for all tests"""
-        if Test:
-            sts = self.main_file(ctx, Test)
-        else:
-            sts = self.main_file(ctx)
         return sts
 
     def dbgmsg(self, ctx, msg):
@@ -1494,7 +1490,7 @@ class Z0test(object):
         This function run auto validation tests for z0testlib functions
         """
         z0ctx = self.init_test_ctx(opt_echo, full)
-        sts = self.main_file(z0ctx, SanityTest)
+        sts = self.main(z0ctx, SanityTest)
         if full:
             for p in 'min_test', 'max_test', 'ctr':
                     full[p] = z0ctx[p]
