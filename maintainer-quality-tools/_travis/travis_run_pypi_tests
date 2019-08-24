@@ -38,7 +38,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.35
+__version__=0.2.2.36
 
 
 travis_test_bash() {
@@ -250,7 +250,7 @@ set_pythonpath() {
     PYPATH="${PYPATH//:/ }"
     local FSITE=$2
     local PIP=${3:-pip}
-    local pth PYLIB
+    local pth PYLIB x
     if [[ -n "$PYPATH" || -n "$FSITE" ]]; then
       PYLIB=$(dirname $($PIP --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
       if [ -z "$PYLIB" ]; then
@@ -270,7 +270,12 @@ set_pythonpath() {
         fi
         for pth in $PYPATH; do
           echo "if '$pth' not in sys.path:    sys.path.insert(0, '$pth')" >> $PYLIB/sitecustomize.py
+          if echo ":$PYTHONPATH":|grep -q ":$pth:"; then
+            x=${PYTHONPATH//$pth/}
+            export $PYTHONPATH=${x//::/:}
+          fi
         done
+        [ "${PYTHONPATH:0:1}" == ":" ] && export $PYTHONPATH=${PYTHONPATH:1}
       fi
       if [[ -n "$FSITE" && -f $FSITE ]]; then
         if [ -f $PYLIB/sitecustomize.py ]; then
@@ -282,6 +287,7 @@ set_pythonpath() {
         else
           run_traced "cp $FSITE $PYLIB"
         fi
+        export PYTHONPATH=
       fi
     fi
 }
@@ -307,6 +313,20 @@ check_pythonpath() {
     done
 }
 
+install_n_activate_tools() {
+    if [ -d $HOME/tools ]; then
+      [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ cd $HOME/tools\e[${PS_TXT_COLOR}m"
+      pushd $HOME/tools > /dev/null
+      [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && x=-p
+      [ ${TRAVIS_DEBUG_MODE:-0} -le 2 ] && x=-qp
+      run_traced "./install_tools.sh $x"
+      [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
+      . $HOME/dev/activate_tools
+      popd > /dev/null
+      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+      [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+    fi
+}
 
 OPTOPTS=(h        c        j        K         n            p        q           r     T        t         V           v)
 OPTDEST=(opt_help opt_conf opt_dprj opt_check opt_dry_run  opt_pyth opt_verbose opt_r opt_regr test_mode opt_version opt_verbose)
@@ -398,11 +418,20 @@ if [ "${TRANSIFEX_CHECK:-0}" == "1" ]; then TRANSIFEX_CHECK_ENABLED=1; else TRAN
 # else
 #   echo "!! Directory $HOME/dev not found!"
 # fi
+
+install_n_activate_tools
 pth=
 for p in $(readlink -e $TRAVIS_BUILD_DIR/..); do pth=$p:$pth; done
 pth=${pth:0: -1}
 set_pythonpath "$pth" "" $PIP
 check_pythonpath "$pth" $PYTHON
+[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
+[ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
+if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
+  echo -e "import sys\nprint('sys.path=%s' % sys.path)\n"|python3
+else
+  echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
+fi
 
 if [ $opt_verbose -gt 0 ]; then
   echo -e "\e[${PS_HDR3_COLOR}mPATH=$PATH\e[${PS_TXT_COLOR}m"
