@@ -792,7 +792,11 @@ test_08() {
     RES=$(build_odoo_param REPOS '.')
     test_result "Test Odoo REPOS" "$LCL_OO_REPOS" "$RES"
     RES=$(build_odoo_param RORIGIN '.' default)
-    test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+      test_result "Test Odoo RORIGIN" "git@github.com:zeroincombenze/l10n_italy.git" "$RES"
+    else
+      test_result "Test Odoo RORIGIN" "https://github.com/zeroincombenze/l10n_italy.git" "$RES"
+    fi
     RES=$(build_odoo_param RUPSTREAM '.' default)
     test_result "Test Odoo RUPSTREAM" "https://github.com/OCA/l10n_italy.git" "$RES"
     popd >/dev/null
