@@ -1,4 +1,4 @@
- # __version__=0.2.2.19
+# __version__=0.2.2.20
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -23,7 +23,9 @@ RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-serv
 RFLIST__tools="odoo_default_tnl.csv templates"
 RFLIST__python_plus=""
 RFLIST__zerobug_odoo=""
-MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|gen_readme.py|makepo_it.py|odoo_translation.py|set_odoover_confn|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
+RFLIST__odoo_score=odoo_shell.py
+MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|gen_readme.py|makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
+FILES_2_DELETE="addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh set_odoover_confn z0lib.py z0librun.py"
 SRCPATH=
 DSTPATH=
 [ -d $HOME/tools ] && SRCPATH=$HOME/tools
@@ -36,7 +38,7 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
 fi
 find $SRCPATH -name "*.pyc" -delete
 find $DSTPATH -name "*.pyc" -delete
-for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa tools; do
+for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa tools odoo_score; do
   l="RFLIST__$pkg"
   flist=${!l}
   [[ $1 =~ -.*v ]] && echo "[$pkg=$flist]"
@@ -62,13 +64,17 @@ for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa to
     if [ ! -f "$src" -a ! -d "$src" ]; then
       echo "File $src not found!"
     elif [[ ! -L "$tgt" || $1 =~ -.*p || $fn =~ $MOVED_FILES_RE ]]; then
-      if [ -L "$tgt"  -o -f "$tgt" ]; then
-        [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
-        rm -f $tgt
-        [ "${tgt: -3}" == ".py" -a -f ${tgt}c ] && rm -f ${tgt}c
+      if [[ -L "$tgt"  &&  "$(readlink -e $tgt)" == "$src" && ! $1 =~ -.*p ]]; then
+        [[ ! $1 =~ -.*q ]] && echo "ln -s $src $tgt  # (confirmed)"
+      else
+        if [ -L "$tgt"  -o -f "$tgt" ]; then
+          [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
+          rm -f $tgt
+          [ "${tgt: -3}" == ".py" -a -f ${tgt}c ] && rm -f ${tgt}c
+        fi
+        [[ ! $1 =~ -.*q ]] && echo "\$ ln -s $src $tgt"
+        ln -s $src $tgt
       fi
-      [[ ! $1 =~ -.*q ]] && echo "\$ ln -s $src $tgt"
-      ln -s $src $tgt
     fi
   done
 done
@@ -85,14 +91,14 @@ if [ -f $HOME/maintainers-tools/env/bin/oca-autopep8 ]; then
     ln -s $HOME/maintainers-tools/env/bin/oca-autopep8 $tgt
   fi
 fi
-for fn in addsubm.sh clodoocore.py clodoolib.py run_odoo_debug.sh z0lib.py z0lib.pyc z0librun.py z0librun.pyc; do
+for fn in $FILES_2_DELETE; do
   tgt="$DSTPATH/$fn"
   if [ -L "$tgt"  -o -f "$tgt" ]; then
     [[ ! $1 =~ -.*q ]] && echo "\$ rm -f $tgt"
     rm -f $tgt
+    [ "${tgt: -3}" == ".py" -a -f ${tgt}c ] && rm -f ${tgt}c
   fi
 done
-# echo -e "import site\nsite.addsitedir('$SRCPATH')">$DSTPATH/sitecustomize.py
 echo -e "import sys\nif '$SRCPATH' not in sys.path:    sys.path.insert(0,'$SRCPATH')">$DSTPATH/sitecustomize.py
 echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -z "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH">$DSTPATH/activate_tools
 echo "[[ ( ! -d $SRCPATH || :\$PYTHONPATH: =~ :$SRCPATH: ) && -n "\$PYTHONPATH" ]] || export PYTHONPATH=$SRCPATH:$PYTHONPATH">>$DSTPATH/activate_tools

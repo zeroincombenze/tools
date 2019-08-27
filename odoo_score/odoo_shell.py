@@ -19,7 +19,7 @@ except ImportError:
 try:
     from z0lib.z0lib import z0lib
 except ImportError:
-    import z0lib
+    from z0lib import z0lib
 import pdb      # pylint: disable=deprecated-module
 
 

@@ -973,13 +973,11 @@ format_readme() {
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_BEG_install" -o "${ACT[$i]}" == "rstBEG_install" ]; then
-            # echo "> begin install <$line>" #debug
             if [ $Iinstall -eq 0 ]; then
               Iinstall=2
             fi
             line="⌂"
           elif [ "${ACT[$i]}" == "md_END_install" -o "${ACT[$i]}" == "rstEND_install" ]; then
-            # echo "> end install <$line>" #debug
             if [ $Iinstall -eq 2 ]; then
               Iinstall=3
               add_install $fntmp $Irst "$2" "$4"
@@ -1054,13 +1052,11 @@ format_readme() {
         done
         [ $preline -ne 0 ] && [ -n "$line" ] && preline=0 && echo "">>$fntmp
       fi
-      # echo "> if [ \$Icright=$Icright -ne 2 -a  \$Iinstall=$Iinstall -ne 2 -a $line != '⌂' ]; then" #debug
       if [ $Icright -ne 2 -a $Iaddons -ne 2 -a $Iinstall -ne 2 -a "$line" != "⌂" ]; then
         line=$(expand_macro "$line")
         line="$(echo "$line"|sed -e 's:OpenERP:Odoo:' -e 's:openerp\.com:odoo.com:')"
         line="$(echo "$line"|sed -e 's:formerly *Odoo:formerly OpenERP:' -e 's:formerly *odoo:formerly OpenERP:')"
         if [ -n "$line" ]; then
-          # [ $wf -ge 104 ] && echo "> if [ -n \"$line\" ]; then" #debug
           if [ $wf -eq 1 ]; then
             if [ $Ilang_en -eq 0 ]; then
               echo "">>$fntmp
@@ -1072,7 +1068,6 @@ format_readme() {
               wf=2
             fi
           fi
-          # [ $wf -ge 104 ] && echo ">   if [ \$wf=$wf -eq 2 ]; then" #debug
           if [ $wf -eq 2 ]; then
             echo "$line">>$fntmp
             if [ $Ibutton -eq 0 ] && [[ $line =~ ^[A-Za-z] ]]; then
@@ -1114,14 +1109,11 @@ format_readme() {
             done
           else
             if [ $prewf -ge 104 ];then
-              # echo ">  echo ''" #debug
               echo "">>$fntmp
             fi
-            # [ $wf -ge 104 ] && echo ">   else" #debug
             echo "$line">>$fntmp
           fi
         else
-          # [ $wf -ge 104 ] && echo "> else" #debug
           echo "$line">>$fntmp
         fi
         if [ -z "$line" ]; then preline=0; else preline=1; fi
