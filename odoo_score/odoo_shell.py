@@ -482,6 +482,34 @@ def print_tax_codes(ctx):
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
 
 
+def reset_report_config(ctx):
+    print('Reset report and multireport configuration')
+    print('Require module "base_multireport"')
+    ctr = 0
+    vals = {
+        'code_mode': '',
+        'description_mode': '',
+        'payment_term_position': '',
+        'header_mode': '',
+        'footer_mode': '',
+    }
+    model = 'ir.actions.report.xml'
+    for rpt in clodoo.browseL8(
+        ctx, model,
+            clodoo.searchL8(ctx, model, [])):
+        print('Processing report %s' % rpt.name)
+        clodoo.writeL8(ctx, model, rpt.id, vals)
+        ctr += 1
+    model = 'multireport.template'
+    for rpt in clodoo.browseL8(
+        ctx, model,
+            clodoo.searchL8(ctx, model, [])):
+        print('Processing template %s' % rpt.name)
+        clodoo.writeL8(ctx, model, rpt.id, vals)
+        ctr += 1
+    print('%d reports updated' % ctr)
+
+
 def set_payment_data_on_report(ctx):
     print('Set payment data layout on invoice and order reports')
     print('Require module "base_multireport"')
@@ -2158,12 +2186,12 @@ print('  Partners/Users                      Commissions')
 print('  - deduplicate_partner(ctx)          - create_commission_env(ctx)')
 print('  - reset_email_admins(ctx)')
 print('  - simulate_user_profile(ctx)')
-print('  System                              Tables')
+print('  System                              Other tables')
 print('  - show_module_group(ctx)            - print_tax_codes(ctx)')
 print('  - clean_translations(ctx)           - set_payment_data_on_report(ctx)')
 print('  - configure_email_template(ctx)     - rename_coa(ctx)')
 print('  - test_synchro_vg7(ctx)             - display_module(ctx)')
-
+print('                                      - reset_report_config(ctx)')
 
 pdb.set_trace()
 
