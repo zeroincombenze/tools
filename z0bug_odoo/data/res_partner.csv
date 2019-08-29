@@ -1,0 +1,19 @@
+id,name,street,street2,zip,city,customer,is_company,email,phone,fax,supplier,vat,fiscalcode,website
+base.main_partner,Test Company,"Via dei Matti, 0",,20080,Ozzero,False,True,info@latuaazienda.it,+39 025551234,,False,IT10978280013,,www.latuaazienda.it
+z0bug.res_partner_10,Notaio Libero Jackson,"Str. del Dazio, 10",,10121,Torino,False,True,jacksonlibero@pec.notariato.it,,,True,IT10242670015,JCKLBR72M24L736R,
+z0bug.res_partner_7,Università della Svizzera Italiana,"Via dei Sindacatori, 1",,6900,Massagno,False,True,info@uniit.ch,+41 0919876000,,True,CHE-123.456.788,,
+z0bug.res_partner_12,Freie Universität Berlin,Kaiserswerther Straße 16-18,,14195,Berlin,False,True,,,,True,DE123456788,,
+z0bug.res_partner_11,Nebula Caffè S.p.A.,"C. Equador, 17",Palazzo NUVOLA,10151,Torino,False,True,commercial@nebula-caffe.it,,,True,IT01250630504,,www.nebula-caffe.it
+z0bug.res_partner_17,Vexor BV,Hoogoorddreef 66,,1101BE,Amsterdam,False,True,info@vexor.nl,,,True,NL123456782B90,,
+z0bug.res_partner_14,SS Carrefur,"Str. del Dazio, 10",,10121,Torino,False,True,,,,True,IT08652300156,,
+z0bug.res_partner_4,Delta 4 s.r.l.,"C.so IV Marzo, 444",,65122,Pescara,False,True,info@delta4.it,+39 025559876,,True,IT06631580013,,
+z0bug.res_partner_15,Epic Five Technologies,"V.le Reggia, 55",,31055,Quinto di Treviso,False,True,epic5@tech.it,+39 0422886644,,True,IT10242670015,,
+z0bug.res_partner_9,Mario Rossi,"C. Unità d'Italia, 61",,10121,Torino,False,True,mario.rossi@gmail.com,+39 011 2345678,,True,,RSSMRA69C02D612M ,
+z0bug.res_partner_1,Prima Distribuzione S.p.A.,"Via I Maggio, 11",,20022,Castano Primo,True,True,info@prima-distribuzione.it,+39 0255582285,,True,IT00115719999,,www.prima-distribuzione.it
+z0bug.res_partner_13,Axelor GmbH,Carl-Bertelsmann-Straße 23,,33332,Gütersloh,True,True,,,,False,,,
+z0bug.res_partner_5,Five Stars Hotel,"P.za  del porto, 5",,16115,Genova,True,True,genova@hotelchamber.com,+39 0101234567,,False,IT00118439991,,
+z0bug.res_partner_2,Agro Latte Due  s.n.c.,"Via II Giugno, 22",,10060,S. Secondo Pinerolo,True,True,agrolait2@libero.it,+39 0121555123,,False,IT02345670018,,http://www.agrolait2.it/
+z0bug.res_partner_8,Global Solution s.r.l.,"Largo Equinozio, 21",,195,Roma,True,True,info@globalsolutions.com,+39 06 5556666 ,,False,IT00118439991,,
+z0bug.res_partner_16,Viking Office Depot Italia s.r.l.,Centro Direzionale Milanofiori - Palazzo E Scala 3/5,,20090,Assago,True,True,cc@viking-italia.it,+39 0255582285,,True,IT03675290286,,www.viking-italia.it
+z0bug.res_partner_3,Import Export Trifoglio s.r.l.,Centro commerciale 3T,Prima Torre,15010,Terzo,True,True,china3@export.it,+39 0161555999,,True,IT01234560017,,www.export.it
+z0bug.res_partner_6,Esa Electronic S.p.A,"Str. VI Gennaio, 66",,20099,Sesto S. Giovanni,True,True,info@esaspa.it,+39 029876543,,False,IT12345670017,,www.esaspa.it

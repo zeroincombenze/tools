@@ -486,27 +486,79 @@ def reset_report_config(ctx):
     print('Reset report and multireport configuration')
     print('Require module "base_multireport"')
     ctr = 0
+    mr_t_odoo = env_ref(ctx, 'base_multireport.mr_t_odoo')
+    model = 'multireport.style'
+    vals = {
+        'template_sale_order': mr_t_odoo,
+        'template_stock_picking_package_preparation': mr_t_odoo,
+        'template_account_invoice': mr_t_odoo,
+        'template_purchase_order': mr_t_odoo,
+    }
+    for style in clodoo.browseL8(
+        ctx, model,
+            clodoo.searchL8(ctx, model, [('origin', '!=', 'odoo')])):
+        print('Processing style %s' % style.name)
+        clodoo.writeL8(ctx, model, style.id, vals)
+        ctr += 1
     vals = {
         'code_mode': '',
         'description_mode': '',
         'payment_term_position': '',
         'header_mode': '',
         'footer_mode': '',
+        'template': mr_t_odoo,
     }
     model = 'ir.actions.report.xml'
+    where = [('model', 'in', ('sale.order',
+                              'stock.picking.package.preparation',
+                              'account.invoice',
+                              'purchase.order'))]
     for rpt in clodoo.browseL8(
         ctx, model,
             clodoo.searchL8(ctx, model, [])):
         print('Processing report %s' % rpt.name)
         clodoo.writeL8(ctx, model, rpt.id, vals)
         ctr += 1
-    model = 'multireport.template'
+    where = [('model', 'not in', ('sale.order',
+                                  'stock.picking.package.preparation',
+                                  'account.invoice',
+                                  'purchase.order'))]
+    del vals['template']
     for rpt in clodoo.browseL8(
         ctx, model,
             clodoo.searchL8(ctx, model, [])):
-        print('Processing template %s' % rpt.name)
+        print('Processing report %s' % rpt.name)
         clodoo.writeL8(ctx, model, rpt.id, vals)
         ctr += 1
+
+    vals = {}
+    model = 'ir.ui.view'
+    where = [('key', '=', 'base_multireport.external_layout_header')]
+    ids = clodoo.searchL8(ctx, model, where)
+    if len(ids) == 1:
+        vals['header_id'] = ids[0]
+    where = [('key', '=', 'base_multireport.external_layout_footer')]
+    ids = clodoo.searchL8(ctx, model, where)
+    if len(ids) == 1:
+        vals['footer_id'] = ids[0]
+    model = 'multireport.template'
+    if vals:
+        for rpt in clodoo.browseL8(
+            ctx, model,
+                clodoo.searchL8(ctx, model, [])):
+            print('Processing template %s' % rpt.name)
+            clodoo.writeL8(ctx, model, rpt.id, vals)
+            ctr += 1
+
+    model = 'res.company'
+    mr_style_odoo = env_ref(ctx, 'base_multireport.mr_style_odoo')
+    vals = {'report_model_style': mr_style_odoo}
+    for company_id in clodoo.searchL8(ctx, model, []):
+        try:
+            clodoo.writeL8(ctx, model, company_id, vals)
+            ctr += 1
+        except IOError:
+            pass
     print('%d reports updated' % ctr)
 
 

@@ -7,32 +7,47 @@ from past.builtins import basestring
 
 import os
 import sys
-from zerobug import Z0BUG
+import csv
+
 
 __version__ = "0.1.0.1.1"
 
-MODULE_ID = 'z0bug_odoo'
-TEST_FAILED = 1
-TEST_SUCCESS = 0
 
+class Z0bugOdoo(object):
 
-class Z0bugOdoo(Z0BUG):
+    def get_data_file(self, model, csv_fn):
+        # csv.register_dialect('z0bug',
+        #                      delimiter=b',',
+        #                      quotechar=b'"',
+        #                      quoting=csv.QUOTE_MINIMAL)
+        full_fn = os.path.join(os.path.dirname(__file__), 'data', csv_fn)
+        pymodel = model.replace('.', '_')
+        with open(full_fn, 'rb') as fd:
+            hdr = False
+            csv_obj = csv.DictReader(fd,
+                                     fieldnames=[],
+                                     restkey='undef_name',)
+            # dialect='z0bug')
+            for row in csv_obj:
+                if not hdr:
+                    hdr = True
+                    csv_obj.fieldnames = row['undef_name']
+                    setattr(self, pymodel, {})
+                    continue
+                if 'id' not in row:
+                    continue
+                getattr(self, pymodel)[row['id']] = row
 
-    def __init__(self):
-        self.tree_odoo10 = ['10.0',
-                            '10.0/l10n-italy',
-                            '10.0/l10n-italy/l10n_it_base',
-        ]
-
-
-    def build_os_tree_odoo(self, ctx, os_tree):
-        """Create a filesytem tree to test odoo
-        """
-        root = False
-        for path in os_tree:
-            if isinstance(path,basestring):
-                if path == 'odoo10':
-                    pass
-            else:
-                root = Z0BUG.build_os_tree(ctx, os_tree)
-        return root
+    def get_test_values(self, model, xid):
+        '''Return model values for test'''
+        xrefs = xid.split('.')
+        if len(xrefs) == 1:
+            xrefs[0], xrefs[1] = 'z0bug', xrefs[0]
+        if xrefs[0] == 'z0bug':
+            pymodel = model.replace('.', '_')
+            if not hasattr(self, pymodel):
+                self.get_data_file(model, '%s.csv' % pymodel)
+            if xid not in getattr(self, pymodel):
+                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
+            return getattr(self, pymodel)[xid]
+        return {}
