@@ -22,7 +22,7 @@ except BaseException:
     from clodoolib import build_odoo_param
 
 
-__version__ = "0.3.8.50"
+__version__ = "0.3.8.51"
 
 
 MODULE_ID = 'clodoo'
@@ -686,6 +686,31 @@ class Test():
                     'GIT_ORG %s/%s %s' % (org, repos, ver),
                     TRES[org],
                     RES)
+            if sts:
+                break
+
+        TRES = {
+            'zero-git': '"https://github.com/OCA/%s' % repos,
+            'zero-http': '"https://github.com/OCA/%s' % repos,
+            'oca': '"https://github.com/OCA/%s' % repos,
+            'librerp': 'https://github.com/iw3hxn/%s' % repos,
+        }
+        for org in ('zero', 'zero-git', 'zero-http', 'oca', 'librerp'):
+            for ver in VERSIONS_TO_TEST:
+                RES = build_odoo_param('UPSTREAM', odoo_vid=ver, suppl=repos,
+                                       git_org=org, multi=False)
+                if ver == "6.1" or repos == "oca" or repos == "librerp":
+                    sts = self.Z.test_result(
+                        z0ctx,
+                        'UPSTREAM %s/%s %s' % (org, repos, ver),
+                        TRES[org],
+                        '')
+                else:
+                    sts = self.Z.test_result(
+                        z0ctx,
+                        'UPSTREAM %s/%s %s' % (org, repos, ver),
+                        TRES[org],
+                        RES)
             if sts:
                 break
 

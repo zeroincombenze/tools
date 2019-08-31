@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.50'
+__version__ = '0.3.8.51'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #

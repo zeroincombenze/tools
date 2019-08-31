@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.50
+__version__=0.3.8.51
 VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="12 11 10 9 8 7 6"
 
@@ -660,11 +660,8 @@ test_06() {
     TRES[zero-git]="https://github.com/OCA/$z"
     TRES[zero-http]="https://github.com/OCA/$z"
     TRES[oca]="https://github.com/OCA/$z"
-    TRES[oia]="https://github.com/OCA/$z"
-    TRES[oia-git]="https://github.com/OCA/$z"
-    TRES[oia-http]="https://github.com/OCA/$z"
     TRES[librerp]="https://github.com/iw3hxn/$z"
-    for w in zero zero-git zero-http oca oia oia-git oia-http librerp; do
+    for w in zero zero-git zero-http oca librerp; do
       for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
         if [ ${opt_dry_run:-0} -eq 0 ]; then
           RES=$(build_odoo_param UPSTREAM $v $z $w)
@@ -916,10 +913,6 @@ test_09() {
  zeroincombenze"
     local RES=$(module_list "8.0")
     test_result "Module list 8.0" "$TRES" "$RES"
-
-    TRES="bank-payment l10n-italy user_contributes"
-    local RES=$(module_list "7.0" "" "oia")
-    test_result "Module list 7.0" "$TRES" "$RES"
 }
 
 
