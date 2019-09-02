@@ -6,6 +6,7 @@ from __future__ import print_function, unicode_literals
 from python_plus import unicodes
 import os
 import sys
+from datetime import datetime,date
 import time
 import re
 import csv
@@ -23,7 +24,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.3.8.50"
+__version__ = "0.1.0.2"
 
 
 MAX_DEEP = 20
@@ -73,6 +74,15 @@ parser.add_argument("-z", "--src-db_name",
                     help="Source database name",
                     dest="from_dbname",
                     metavar="name")
+parser.add_argument("-1", "--param-1",
+                    help="value to pass to called function",
+                    dest="param_1")
+parser.add_argument("-2", "--param-2",
+                    help="value to pass to called function",
+                    dest="param_2")
+parser.add_argument("-3", "--param-3",
+                    help="value to pass to called function",
+                    dest="param_3")
 
 
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
@@ -147,15 +157,37 @@ def delivery_addr_same_customer(ctx):
 
 
 def order_commission_by_partner(ctx):
-    ctr = 0
     print('If missed, set commission in order lines from customer')
-    mode = ''
+    if ctx['param_1'] == 'help':
+        print('order_commission_by_partner [Add,Recalculate] from_date|ids')
+        return
+    ord_model = 'sale.order'
+    ord_line_model = 'sale.order.line'
+    sale_agent_model = 'sale.order.line.agent'
+    mode = ctx['param_1'] or 'A'
     while not mode.startswith('A') and not mode.startswith('R'):
         mode = raw_input('Mode (Add_missed,Recalculate)? ')
         mode = mode[0].upper() if mode else ''
-    ids = raw_input('IDS to manage (empy means all)?')
+    day = datetime.now().day
+    month = datetime.now().month
+    year = datetime.now().year
+    if day < 15:
+        month -= 1
+        if month < 1:
+            month = 12
+            year -= 1
+    day = 1
+    from_date = '%04d-%02d-%02d' % (year, month, day)
+    date_ids = ctx['param_2'] or from_date
+    if not date_ids:
+        date_ids = raw_input(
+            'IDS to manage or date yyyy-mm-dd (empty means all)? ')
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, ord_model,
+                              [('date_order', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
     if ids:
-        ids = eval(ids)
         if isinstance(ids, int):
             where = [('order_id', '=', ids)]
             where1 = [('id', '=', ids)]
@@ -165,13 +197,11 @@ def order_commission_by_partner(ctx):
     else:
         where = []
         where1 = []
-    ord_model = 'sale.order.line'
-    sale_agent_model = 'sale.order.line.agent'
-    agt_model = 'account.invoice.line.agent'
+    print('Starting mode %s from %s' % (mode, date_ids))
     ctr = 0
     for ord_line in clodoo.browseL8(
-        ctx, ord_model, clodoo.searchL8(
-            ctx, ord_model, where, order='order_id desc')):
+        ctx, ord_line_model, clodoo.searchL8(
+            ctx, ord_line_model, where, order='order_id desc,id')):
         msg_burst('%s ...' % ord_line.order_id.name)
         if ord_line.agents:
             if mode == 'A':
@@ -184,10 +214,10 @@ def order_commission_by_partner(ctx):
                 'commission': ord_line.order_id.partner_id.agents.commission.id,
             })
         if rec:
-            clodoo.writeL8(ctx, ord_model, ord_line.id,
+            clodoo.writeL8(ctx, ord_line_model, ord_line.id,
                            {'agents': [(0, 0, rec[0])]})
             ctr += 1
-    ord_model = 'sale.order'
+    # Force line update
     for order in clodoo.browseL8(
         ctx, ord_model, clodoo.searchL8(
             ctx, ord_model, where1, order='id desc')):
@@ -199,17 +229,37 @@ def order_commission_by_partner(ctx):
 
 def inv_commission_from_order(ctx):
     print('If missed, copy commission in invoice lines from sale order lines')
-    inv_model = 'account.invoice.line'
-    ord_model = 'sale.order.line'
-    agt_model = 'account.invoice.line.agent'
+    if ctx['param_1'] == 'help':
+        print('inv_commission_from_order [Add,Recalculate] from_date|ids')
+        return
+    inv_model = 'account.invoice'
+    inv_line_model = 'account.invoice.line'
+    inv_agent_model = 'account.invoice.line.agent'
     ctr = 0
-    mode = ''
+    mode = ctx['param_1'] or 'A'
     while not mode.startswith('A') and not mode.startswith('R'):
         mode = raw_input('Mode (Add_missed,Recalculate)? ')
         mode = mode[0].upper() if mode else ''
-    ids = raw_input('IDS to manage (empy means all)?')
+    day = datetime.now().day
+    month = datetime.now().month
+    year = datetime.now().year
+    if day < 15:
+        month -= 1
+        if month < 1:
+            month = 12
+            year -= 1
+    day = 1
+    from_date = '%04d-%02d-%02d' % (year, month, day)
+    date_ids = ctx['param_2'] or from_date
+    if not date_ids:
+        date_ids = raw_input(
+            'IDS to manage or date yyyy-mm-dd (empty means all)? ')
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, inv_model,
+                              [('date_invoice', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
     if ids:
-        ids = eval(ids)
         if isinstance(ids, int):
             where = [('invoice_id', '=', ids)]
             where1 = [('id', '=', ids)]
@@ -221,13 +271,14 @@ def inv_commission_from_order(ctx):
         where1 = []
     where.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
     where1.append(('type', 'in', ('out_invoice', 'out_refund')))
-
     for inv_line in clodoo.browseL8(
-        ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, where, order='invoice_id desc')):
-        msg_burst('%s ...' % inv_line.invoice_id.name)
-        if inv_line.agents.amount:
-            continue
+        ctx, inv_line_model, clodoo.searchL8(
+            ctx, inv_line_model, where, order='invoice_id desc,id')):
+        msg_burst('%s ...' % inv_line.invoice_id.number)
+        if inv_line.agents:
+            if mode == 'A':
+                continue
+            clodoo.unlinkL8(ctx, inv_agent_model, inv_line.agents.id)
         for ord_line in inv_line.sale_line_ids:
             if not ord_line.agents.amount:
                 continue
@@ -236,10 +287,9 @@ def inv_commission_from_order(ctx):
                         'commission':
                             x.commission.id}) for x in ord_line.agents]
             clodoo.writeL8(
-                ctx, inv_model, inv_line.id,
+                ctx, inv_line_model, inv_line.id,
                 {'agents': agents})
             ctr += 1
-    inv_model = 'account.invoice'
     for invoice in clodoo.browseL8(
         ctx, inv_model, clodoo.searchL8(
             ctx, inv_model, where1, order='id desc')):
@@ -500,6 +550,7 @@ def reset_report_config(ctx):
         print('Processing style %s' % style.name)
         clodoo.writeL8(ctx, model, style.id, vals)
         ctr += 1
+    model = 'ir.actions.report.xml'
     vals = {
         'code_mode': '',
         'description_mode': '',
@@ -507,8 +558,9 @@ def reset_report_config(ctx):
         'header_mode': '',
         'footer_mode': '',
         'template': mr_t_odoo,
+        'order_ref_text': '',
+        'ddt_ref_text': ''
     }
-    model = 'ir.actions.report.xml'
     where = [('model', 'in', ('sale.order',
                               'stock.picking.package.preparation',
                               'account.invoice',
@@ -531,7 +583,11 @@ def reset_report_config(ctx):
         clodoo.writeL8(ctx, model, rpt.id, vals)
         ctr += 1
 
-    vals = {}
+    vals = {
+        'order_ref_text': 'Vs. Ordine: %(client_order_ref)s / '\
+                          'Ns. Ordine: %(order_name)s del %(date_order)s',
+        'ddt_ref_text': 'DdT %(ddt_number)s - %(date_ddt)s'
+    }
     model = 'ir.ui.view'
     where = [('key', '=', 'base_multireport.external_layout_header')]
     ids = clodoo.searchL8(ctx, model, where)
@@ -2024,6 +2080,21 @@ def check_rec_links(ctx):
     print('%d record read, %d record with wrong links!' % (ctr, err_ctr))
 
 
+def set_comment_on_invoice(ctx):
+    model = 'account.invoice'
+    date = raw_input('Date invoice to update (yyyy-mm-dd): ')
+    comment = raw_input('Text to insert on invoice comment: ')
+    comment = comment.replace('\'', '\\\'')
+    ctr = 0
+    for inv in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx,model,[('date_invoice', '=', date)])):
+        msg_burst('%s ...' % inv.number)
+        clodoo.writeL8(ctx, model, inv.id, {'comment': comment})
+        ctr += 1
+    print('%d record updated' % ctr)
+
+
 def rename_coa(ctx):
     CVT_TBL = {
         'crediti v/clienti ': 'Crediti v/clienti Italia',
@@ -2228,6 +2299,7 @@ print('  - order_commission_by_partner(ctx)  - inv_commission_from_order(ctx)')
 print('  - delivery_addr_same_customer(ctx)  - revaluate_due_date_in_invoces(ctx)')
 print('                                      - update_einvoice_out_attachment(ctx)')
 print('                                      - set_tax_code_on_invoice(ctx)')
+print('                                      - set_comment_on_invoice(ctx)')
 print('  Purchase orders                     Deliveries/Shipping')
 print('  - close_purchase_orders(ctx)        - change_ddt_number(ctx)')
 print('                                      - show_empty_ddt(ctx)')
@@ -2243,7 +2315,7 @@ print('  - show_module_group(ctx)            - print_tax_codes(ctx)')
 print('  - clean_translations(ctx)           - set_payment_data_on_report(ctx)')
 print('  - configure_email_template(ctx)     - rename_coa(ctx)')
 print('  - test_synchro_vg7(ctx)             - display_module(ctx)')
-print('                                      - reset_report_config(ctx)')
+print('  - check_rec_links(ctx)              - reset_report_config(ctx)')
 
 pdb.set_trace()
 
