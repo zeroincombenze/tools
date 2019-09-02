@@ -35,7 +35,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.19"
+__version__ = "0.2.2.20"
 
 
 def run_traced(*args):

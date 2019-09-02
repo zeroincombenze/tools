@@ -425,7 +425,7 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                     ctx[p] = xmlrpc_port
             elif p == 'oe_version' and oe_version and oe_version != '*':
                 ctx[p] = oe_version
-            elif p == 'svc_protocol' and p not in ctx:
+            elif p == 'svc_protocol' and (p not in ctx or not ctx[p]):
                 if ctx['oe_version'] in ('6.1', '7.0', '8.0'):
                     ctx[p] = 'xmlrpc'
                 elif ctx.get('oe_version'):

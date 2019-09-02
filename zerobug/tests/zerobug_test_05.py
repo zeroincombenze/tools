@@ -27,7 +27,9 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    ctx = Z0BUG.parseoptest(sys.argv[1:],
-                        version=version())
     UT_LIST = ["__doctest_${rundir}/egg-info/description.rst"]
-    exit(Z0BUG.main_file(ctx, UT=UT_LIST))
+    exit(Z0BUG.main(
+        Z0BUG.parseoptest(
+            sys.argv[1:],
+            version=version()),
+        UT=UT_LIST))

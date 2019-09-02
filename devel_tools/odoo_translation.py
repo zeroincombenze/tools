@@ -2,8 +2,9 @@
 #  -*- coding: utf-8 -*-
 """
 """
+from __future__ import print_function, unicode_literals
 
-from __future__ import print_function
+
 import os
 import time
 import re
@@ -13,16 +14,16 @@ from subprocess import PIPE, Popen
 from babel.messages import pofile
 from os0 import os0
 try:
-    from z0lib import z0lib
+    from z0lib.z0lib import z0lib
 except ImportError:
-    import z0lib
+    from z0lib import z0lib
 try:
     from clodoo import clodoo
 except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.19"
+__version__ = "0.2.2.20"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -65,8 +66,8 @@ def load_default_dictionary(source):
         if ctx['opt_verbose']:
             print("Reading %s into dictionary" % source)
         csv.register_dialect('dict',
-                             delimiter='\t',
-                             quotechar='\"',
+                             delimiter=os0.b('\t'),
+                             quotechar=os0.b('"'),
                              quoting=csv.QUOTE_MINIMAL)
         csv_fd = open(source, 'rU')
         hdr_read = False
@@ -205,10 +206,10 @@ def rewrite_pofile(ctx, pofn, target, version):
                      stderr=PIPE,
                      shell=False).communicate()
     fd = open(pofn, 'rB')
-    lefts = fd.read().split('\n')
+    lefts = os0.u(fd.read()).split('\n')
     fd.close()
     fd = open(tmpfile, 'rB')
-    rights = fd.read().split('\n')
+    rights = os0.u(fd.read()).split('\n')
     jj = 0
     for ii in range(len(lefts)):
         line = lefts[ii]
@@ -223,7 +224,7 @@ def rewrite_pofile(ctx, pofn, target, version):
                     ii += 1
                 jj += 1
     fd = open(tmpfile, 'w')
-    fd.write('\n'.join(rights))
+    fd.write(os0.b('\n'.join(rights)))
     fd.close()
     if os.path.isfile(bakfile):
         os.remove(bakfile)

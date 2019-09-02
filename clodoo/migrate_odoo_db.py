@@ -398,6 +398,12 @@ def wep_sql_modules(tgt_ctx, bad_module_list):
     exec_sql(tgt_ctx, query)
 
 
+def restore_sql_modules(tgt_ctx, bad_module_list):
+    query = "update ir_module_module set state='installed'" \
+            " where name in (%s);" % str(bad_module_list)[1:-1]
+    exec_sql(tgt_ctx, query)
+
+
 def ren_db(old_dbname, new_dbname, db_user):
     cmd = 'pg_db_active -wa %s|' \
           'psql -U%s -c "ALTER DATABASE %s RENAME TO %s;" template1' % (
@@ -1432,14 +1438,20 @@ def adjust_ctx(src_ctx, tgt_ctx):
             src_config.set('options', item, str(src_ctx[item]))
             tgt_config.set('options', item, str(tgt_ctx[item]))
         elif item == 'login_user':
+            # import pdb
+            # pdb.set_trace()
             if src_config.has_option('options', item):
                 src_ctx[item] = src_config.get('options', item)
+            elif src_ctx.get(item):
+                src_config.set('options', item, src_ctx[item])
             elif src_ctx.get('lgi_user'):
                 src_ctx[item] = src_ctx['lgi_user']
                 src_config.set('options', item, src_ctx[item])
             if tgt_config.has_option('options', item):
                 tgt_ctx[item] = tgt_config.get('options', item)
-            elif tgt_ctx.get('lgi_user') != 'admin':
+            elif tgt_ctx.get(item) and tgt_ctx[item] != 'admin':
+                tgt_config.set('options', item, tgt_ctx[item])
+            elif tgt_ctx.get('lgi_user') and tgt_ctx['lgi_user'] != 'admin':
                 tgt_ctx[item] = tgt_ctx['lgi_user']
                 tgt_config.set('options', item, tgt_ctx[item])
             else:
@@ -1569,8 +1581,8 @@ def migrate_odoo(src_ctx, tgt_ctx, full_lconf, src_config, tgt_config,
                                      paths=tgt_paths)
     if not copy_db(src_ctx, src_ctx['db_name'], tgt_ctx['db_name']):
         exit(1)
-    if bad_module_list:
-        remove_unmigrable_modules(src_ctx, tgt_ctx, bad_module_list)
+    # if bad_module_list:
+    #     remove_unmigrable_modules(src_ctx, tgt_ctx, bad_module_list)
     if src_ctx['db_user'] != tgt_ctx['db_user']:
         run_traced('pg_db_active', '-wa', '%s' % tgt_ctx['db_name'])
         try:
@@ -1596,6 +1608,9 @@ def migrate_odoo(src_ctx, tgt_ctx, full_lconf, src_config, tgt_config,
                 oupath_script = script
                 break
     logfn = os.path.join(ou_ver_path, 'migrate_odoo_db-server.log')
+    # Disable module not avaiable on new version
+    if bad_module_list:
+        wep_sql_modules(tgt_ctx, bad_module_list)
     run_traced(oupath_script,
                '-c', full_lconf,
                '-d', tgt_ctx['db_name'],
@@ -1604,8 +1619,10 @@ def migrate_odoo(src_ctx, tgt_ctx, full_lconf, src_config, tgt_config,
                '--no-xmlrpc',
                '--logfile=%s' % logfn)
     time.sleep(5)
-    if bad_module_list:
-        wep_sql_modules(tgt_ctx, bad_module_list)
+    # Now restore disabled modules, because may be avaiabile on next version
+    # If finale version, module still remain disbled
+    if tgt_ctx['tgt_odoo_ver'] < src_ctx['final_ver'] and bad_module_list:
+        restore_sql_modules(tgt_ctx, bad_module_list)
     return logfn, full_lconf
 
 
@@ -1633,9 +1650,10 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
                    new_dbname(src_ctx['db_name'], tgt_ctx['tgt_odoo_ver'],
                               tgt_ctx['oca_migrate']))
         full_lconf = prepare_config_file(src_ctx, src_config)
-        os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
-        uid, src_ctx = clodoo.oerp_set_env(
-            ctx=src_ctx, confn=full_lconf, db=src_ctx['db_name'])
+        if phase > 1 or src_ctx['src_vid'] == src_ctx['from_branch']:
+            os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
+            uid, src_ctx = clodoo.oerp_set_env(
+                ctx=src_ctx, confn=full_lconf, db=src_ctx['db_name'])
         src_paths = extract_paths(src_config, 'addons_path')
         os0.wlog('addons_path=%s' % src_paths)
         src_module_list = odoo_dependencies(src_ctx, 'dep',
@@ -1647,7 +1665,7 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
             tgt_ctx, 'mod', False, False, tgt_paths,
             tgt_ctx['tgt_odoo_fver'])
         os0.wlog('Avaiable modules on target version=%s' % tgt_module_list)
-        tnl_module_list, bad_module_list = translate_ml(src_ctx,
+        tnl_module_list, bad_module_list = do_tnl_module_list(src_ctx,
             src_module_list,
             src_ctx['src_odoo_fver'],
             tgt_ctx['tgt_odoo_fver'],
@@ -1679,8 +1697,9 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
 
 
 def migrate_database(src_ctx, tgt_ctx):
-    src_ctx = init_ctx(src_ctx, phase=1)
-    migrate_database_pass(src_ctx, tgt_ctx, phase=1)
+    if not src_ctx['phase_2']:
+        src_ctx = init_ctx(src_ctx, phase=1)
+        migrate_database_pass(src_ctx, tgt_ctx, phase=1)
     src_ctx = init_ctx(src_ctx, phase=2)
     migrate_database_pass(src_ctx, tgt_ctx, phase=2)
 
@@ -1812,7 +1831,7 @@ def add_tnl_item(ctx, model, module, new_module, src_fver, tgt_fver,
     return ctx
 
 
-def translate_ml(ctx, module_list, src_fver, tgt_fver, tgt_module_list):
+def do_tnl_module_list(ctx, module_list, src_fver, tgt_fver, tgt_module_list):
     sys.path.append(os.path.dirname(__file__))
     transodoo.read_stored_dict(ctx)
     tnl_module_list = []
@@ -1970,10 +1989,6 @@ if __name__ == "__main__":
                                 "© 2019 by SHS-AV s.r.l.",
                                 version=__version__)
     parser.add_argument('-h')
-    # parser.add_argument('-B', '--debug-statements',
-    #                     action='store_true',
-    #                     dest='opt_debug',
-    #                     default=False)
     parser.add_argument("-B", "--openupgrade-branch-path",
                         help="Openupgrade branch path",
                         dest="opt_oupath",
@@ -2065,6 +2080,9 @@ if __name__ == "__main__":
                         help="Source database name",
                         dest="from_dbname",
                         metavar="name")
+    parser.add_argument("-2", "--pass2",
+                        action='store_true',
+                        dest="phase_2")
 
     src_ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
     src_ctx, tgt_ctx = parse_ctx(src_ctx)

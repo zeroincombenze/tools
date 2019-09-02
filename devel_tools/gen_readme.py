@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.19"
+__version__ = "0.2.2.20"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -1211,7 +1211,42 @@ def read_all_manifests(ctx):
 
 
 def manifest_item(ctx, item):
-    if isinstance(ctx['manifest'][item], basestring):
+    if item == 'website':
+        if ctx['set_website']:
+            text = 'https://www.zeroincombenze.it/servizi-le-imprese/'
+        else:
+            authors = ctx['authors'].split('\n')
+            if len(authors) < 3:
+                for aut in authors:
+                    if aut:
+                        i = aut.find('<')
+                        j = aut.find('>')
+                        if i > 1 and j > 1:
+                            text = aut[i + 1: j].strip()
+                            break
+            else:
+                text = 'https://odoo-community.org/'
+        target = "    '%s': '%s',\n" % (item, text)
+    elif item == 'maintainer':
+        if ctx['set_website'] and item == 'maintainer':
+            text = 'Antonio Maria Vigliotti'
+        else:
+            text = 'Odoo Community Association (OCA)'
+        target = "    '%s': '%s',\n" % (item, text)
+    elif item == 'author':
+        authors = ctx['authors'].split('\n')
+        text = 'Odoo Community Association (OCA)'
+        if len(authors) <= 3:
+            for aut in authors:
+                if aut:
+                    i = aut.find('<')
+                    if i < 1:
+                        i = len(aut)
+                    text += (', %s' % aut[1: i].strip())
+        else:
+            text += ' and other subjects'
+        target = "    '%s': '%s',\n" % (item, text)
+    elif isinstance(ctx['manifest'][item], basestring):
         text = ctx['manifest'][item].replace("'", '"')
         target = "    '%s': '%s',\n" % (item, text)
     elif isinstance(ctx['manifest'][item], list):
@@ -1449,6 +1484,9 @@ if __name__ == "__main__":
                         dest='template_name')
     parser.add_argument('-V')
     parser.add_argument('-v')
+    parser.add_argument('-W', '--set_website',
+                        action='store_true',
+                        dest='set_website')
     parser.add_argument('-w', '--suppress-warning',
                         action='store_true',
                         dest='suppress_warning')

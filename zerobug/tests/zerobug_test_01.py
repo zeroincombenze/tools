@@ -44,5 +44,5 @@ if __name__ == "__main__":
                    "__version_V_0.2.0${testdir}/dummy_01.py",
                    "__version_v_0.2.1${testdir}/dummy_01.py",
                    "__version_P_0.2.2${testdir}/dummy_01.py"]
-    sts = Z0BUG.main_file(ctx, UT=UT_LIST)
+    sts = Z0BUG.main(ctx, UT=UT_LIST)
     exit(sts)
