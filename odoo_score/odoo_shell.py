@@ -83,7 +83,15 @@ parser.add_argument("-2", "--param-2",
 parser.add_argument("-3", "--param-3",
                     help="value to pass to called function",
                     dest="param_3")
-
+parser.add_argument("-4", "--param-4",
+                    help="value to pass to called function",
+                    dest="param_4")
+parser.add_argument("-5", "--param-5",
+                    help="value to pass to called function",
+                    dest="param_5")
+parser.add_argument("-6", "--param-6",
+                    help="value to pass to called function",
+                    dest="param_6")
 
 ctx = parser.parseoptargs(sys.argv[1:], apply_conf=False)
 uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
@@ -532,9 +540,19 @@ def print_tax_codes(ctx):
             print('%-16.16s %-60.60s' % (rec.code, rec.name))
 
 
-def reset_report_config(ctx):
-    print('Reset report and multireport configuration')
+def set_report_config(ctx):
+    print('Set report and multireport configuration')
     print('Require module "base_multireport"')
+    if ctx['param_1'] == 'help':
+        print('reset_report_config header_mode footer_mode payment_term '
+              'ord_ref|False|Default ddt_ref|False|Default print|Default')
+        return
+    header_mode = ctx['param_1']
+    footer_mode = ctx['param_2']
+    payment_term_position = ctx['param_3']
+    order_ref_text = ctx['param_4']
+    ddt_ref_text = ctx['param_5']
+    code_mode = ctx['param_6']
     ctr = 0
     mr_t_odoo = env_ref(ctx, 'base_multireport.mr_t_odoo')
     model = 'multireport.style'
@@ -543,7 +561,21 @@ def reset_report_config(ctx):
         'template_stock_picking_package_preparation': mr_t_odoo,
         'template_account_invoice': mr_t_odoo,
         'template_purchase_order': mr_t_odoo,
+        'address_mode': 'standard',
     }
+    if code_mode:
+        if code_mode == 'code':
+            vals['code_mode'] = 'print'
+            vals['description_mode'] = 'nocode'
+        elif code_mode == 'Default':
+            vals['code_mode'] = 'noprint'
+            vals['description_mode'] = 'as_is'
+    if header_mode:
+        vals['header_mode'] = header_mode
+    if footer_mode:
+        vals['footer_mode'] = footer_mode
+    if payment_term_position:
+        vals['payment_term_position'] = payment_term_position
     for style in clodoo.browseL8(
         ctx, model,
             clodoo.searchL8(ctx, model, [('origin', '!=', 'odoo')])):
@@ -559,7 +591,8 @@ def reset_report_config(ctx):
         'footer_mode': '',
         'template': mr_t_odoo,
         'order_ref_text': '',
-        'ddt_ref_text': ''
+        'ddt_ref_text': '',
+        'address_mode': '',
     }
     where = [('model', 'in', ('sale.order',
                               'stock.picking.package.preparation',
@@ -584,10 +617,23 @@ def reset_report_config(ctx):
         ctr += 1
 
     vals = {
-        'order_ref_text': 'Vs. Ordine: %(client_order_ref)s / '\
-                          'Ns. Ordine: %(order_name)s del %(date_order)s',
-        'ddt_ref_text': 'DdT %(ddt_number)s - %(date_ddt)s'
+        'address_mode': '',
     }
+    if order_ref_text:
+        if order_ref_text == 'False':
+            vals['order_ref_text'] = ''
+        elif order_ref_text == 'Default':
+            vals['order_ref_text'] = 'Vs. Ordine: %(client_order_ref)s / '\
+                'Ns. Ordine: %(order_name)s del %(date_order)s'
+        else:
+            vals['order_ref_text'] = order_ref_text
+    if ddt_ref_text:
+        if ddt_ref_text == 'False':
+            vals['ddt_ref_text'] = ''
+        elif ddt_ref_text == 'Default':
+            vals['ddt_ref_text'] = 'DdT %(ddt_number)s - %(date_ddt)s'
+        else:
+            vals['ddt_ref_text'] = ddt_ref_text
     model = 'ir.ui.view'
     where = [('key', '=', 'base_multireport.external_layout_header')]
     ids = clodoo.searchL8(ctx, model, where)
@@ -615,24 +661,6 @@ def reset_report_config(ctx):
             ctr += 1
         except IOError:
             pass
-    print('%d reports updated' % ctr)
-
-
-def set_payment_data_on_report(ctx):
-    print('Set payment data layout on invoice and order reports')
-    print('Require module "base_multireport"')
-    model = 'ir.actions.report.xml'
-    mode = raw_input('Mode (odoo,auto,footer,header,none): ')
-    ctr = 0
-    if mode:
-        for rpt in clodoo.browseL8(
-            ctx, model,
-                clodoo.searchL8(ctx, model,
-                                [('model', 'in', ('account.invoice',
-                                                  'sale.order'))])):
-            print('Processing report %s' % rpt.name)
-            clodoo.writeL8(ctx, model, rpt.id, {'payment_term_position': mode})
-            ctr += 1
     print('%d reports updated' % ctr)
 
 
@@ -2312,10 +2340,10 @@ print('  - reset_email_admins(ctx)')
 print('  - simulate_user_profile(ctx)')
 print('  System                              Other tables')
 print('  - show_module_group(ctx)            - print_tax_codes(ctx)')
-print('  - clean_translations(ctx)           - set_payment_data_on_report(ctx)')
+print('  - clean_translations(ctx)           - set_report_config(ctx)')
 print('  - configure_email_template(ctx)     - rename_coa(ctx)')
 print('  - test_synchro_vg7(ctx)             - display_module(ctx)')
-print('  - check_rec_links(ctx)              - reset_report_config(ctx)')
+print('  - check_rec_links(ctx)')
 
 pdb.set_trace()
 
