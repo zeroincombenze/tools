@@ -98,7 +98,7 @@ uid, ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                db=ctx['db_name'],
                                ctx=ctx)
 msg_time = time.time()
-os0.set_tlog_file('./test_env.log', echo=True)
+os0.set_tlog_file('./odoo_shell.log', echo=True)
 
 
 def msg_burst(text):
@@ -1278,7 +1278,7 @@ def deduplicate_partner(ctx):
     prior_partner = False
     for partner in clodoo.browseL8(
         ctx, model, clodoo.searchL8(
-            ctx, model, [], order='name')):
+            ctx, model, [('parent_id', '=', False)], order='name')):
         msg_burst('%s ...' % partner.name)
         if partner.name and partner.name == prior_name:
             print('Found duplicate name %s as %d and %d' % (
@@ -1367,6 +1367,7 @@ def print_model_synchro_data(ctx):
     </record>
         ''' % (model_name, model, key_name, key_name) + doc
         print(doc)
+
 
 def test_synchro_vg7(ctx):
 
@@ -1645,6 +1646,8 @@ def test_synchro_vg7(ctx):
                                ('vg7_id', '=', False)])
         if ids:
             vals['name'] = 'SO002'
+            if not state:
+                vals['state'] = 'draft'
         order_id = clodoo.executeL8(ctx,
                                     model,
                                     'synchro',
@@ -1699,7 +1702,7 @@ def test_synchro_vg7(ctx):
         TNL[model]['EXT'][vg7_id] = line_id
         check_sale_order_line(ctx, TNL, line_id, vals)
 
-        if not state:
+        if not state or state == 'draft':
             print('Write %s ..' % model)
             vg7_id = vg7_order_id * 100 + 2
             vals = {
@@ -1734,6 +1737,8 @@ def test_synchro_vg7(ctx):
         else:
             if len(rec['order_line']) != 3:
                 raise IOError('!!Invalid # of details!')
+        if rec.payment_term_id != rec.partner_id.property_payment_term_id:
+            raise IOError('!!Invalid payment term!')
         return vg7_id
 
     def check_invoice(ctx, TNL, invoice_id, vals):
@@ -1763,10 +1768,11 @@ def test_synchro_vg7(ctx):
             vals['state'] = state
         # Search for account invoice if connector uninstalled
         ids = clodoo.searchL8(ctx, model,
-                              [('number', '=', 'FAT/2019/0006'),
-                               ('vg7_id', '=', False)])
+                              [('number', '=', 'FAT/2019/0006')])
         if ids:
             vals['number'] = 'FAT/2019/0006'
+            if not state:
+                vals['state'] = 'draft'
         invoice_id = clodoo.executeL8(ctx,
                                       model,
                                       'synchro',
@@ -1821,7 +1827,7 @@ def test_synchro_vg7(ctx):
         TNL[model]['EXT'][vg7_id] = line_id
         check_invoice_line(ctx, TNL, line_id, vals)
 
-        if not state:
+        if not state or state == 'draft':
             print('Write %s ..' % model)
             vg7_id = vg7_invoice_id * 200 + 2
             vals = {
@@ -1851,11 +1857,16 @@ def test_synchro_vg7(ctx):
         if state:
             if rec['state'] != state:
                 raise IOError('!!Invalid state!')
-            if len(rec['invoice_line_ids']) != 2:
+            if ((rec.payment_term_id.riba and
+                    len(rec['invoice_line_ids']) != 3) or
+                    (not rec.payment_term_id.riba and
+                     len(rec['invoice_line_ids']) != 2)):
                 raise IOError('!!Invalid # of details!')
         else:
             if len(rec['invoice_line_ids']) != 3:
                 raise IOError('!!Invalid # of details!')
+        if rec.payment_term_id != rec.partner_id.property_payment_term_id:
+            raise IOError('!!Invalid payment term!')
         return vg7_id
 
     company_id = env_ref(ctx, 'z0bug.mycompany')
@@ -1866,6 +1877,16 @@ def test_synchro_vg7(ctx):
     TNL['LOC'] = {}
     TNL['EXT'] = {}
 
+    clodoo.executeL8(ctx,
+                     'ir.model.synchro.cache',
+                     'set_loglevel',
+                     0,
+                     'debug')
+    clodoo.executeL8(ctx,
+                     'ir.model.synchro.cache',
+                     'clean_cache',
+                     0,
+                     None, None, 5)
     partner_MR_ids = clodoo.searchL8(ctx, 'res.partner',
                                     [('name','like','Rossi')])
     if partner_MR_ids:
@@ -2321,29 +2342,26 @@ if ctx['function']:
     globals()[function](ctx)
     exit()
 
-print('Function avaiable:')
-print('  Sale orders                         Account invoices')
-print('  - order_commission_by_partner(ctx)  - inv_commission_from_order(ctx)')
-print('  - delivery_addr_same_customer(ctx)  - revaluate_due_date_in_invoces(ctx)')
-print('                                      - update_einvoice_out_attachment(ctx)')
-print('                                      - set_tax_code_on_invoice(ctx)')
-print('                                      - set_comment_on_invoice(ctx)')
-print('  Purchase orders                     Deliveries/Shipping')
-print('  - close_purchase_orders(ctx)        - change_ddt_number(ctx)')
-print('                                      - show_empty_ddt(ctx)')
-print('  Products/Partners                   RiBA')
-print('  - set_products_2_consumable(ctx)    - configure_RiBA(ctx)')
-print('  - products_2_delivery_order(ctx)    - manage_riba(ctx)')
-print('  Partners/Users                      Commissions')
-print('  - deduplicate_partner(ctx)          - create_commission_env(ctx)')
-print('  - reset_email_admins(ctx)')
-print('  - simulate_user_profile(ctx)')
-print('  System                              Other tables')
-print('  - show_module_group(ctx)            - print_tax_codes(ctx)')
-print('  - clean_translations(ctx)           - set_report_config(ctx)')
-print('  - configure_email_template(ctx)     - rename_coa(ctx)')
-print('  - test_synchro_vg7(ctx)             - display_module(ctx)')
-print('  - check_rec_links(ctx)')
+print('Functions avaiable:')
+print(' SALE ORDERS                         ACCOUNT INVOICES')
+print(' - order_commission_by_partner(ctx)  - inv_commission_from_order(ctx)')
+print(' - delivery_addr_same_customer(ctx)  - revaluate_due_date_in_invoces(ctx)')
+print(' PURCHASE ORDERS                     - update_einvoice_out_attachment(ctx)')
+print(' - close_purchase_orders(ctx)        - set_tax_code_on_invoice(ctx)')
+print(' PRODUCTS                            - set_comment_on_invoice(ctx)')
+print(' - set_products_2_consumable(ctx)    DELIVERIES/SHIPPING')
+print(' - products_2_delivery_order(ctx)    - change_ddt_number(ctx)')
+print(' RIBA                                - show_empty_ddt(ctx)')
+print(' - configure_RiBA(ctx)               COMMISSIONS')
+print(' - manage_riba(ctx)                  - create_commission_env(ctx)')
+print(' PARTNERS/USERS                      OTHER TABLES')
+print(' - deduplicate_partner(ctx)          - print_tax_codes(ctx)')
+print(' - reset_email_admins(ctx)           - set_report_config(ctx)')
+print(' - simulate_user_profile(ctx)        - rename_coa(ctx)')
+print(' SYSTEM                              - display_module(ctx)')
+print(' - clean_translations(ctx)           - show_module_group(ctx)')
+print(' - configure_email_template(ctx)     - check_rec_links(ctx)')
+print(' - test_synchro_vg7(ctx)')
 
 pdb.set_trace()
 
