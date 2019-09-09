@@ -42,7 +42,7 @@
 # VCS          If GIT repository return "git" otherwise return ""
 # VENV         Return 1 if path is in virtualenv
 
-#__version__=0.3.8.51
+#__version__=0.3.8.52
 
 
 DEFMLIST="OCB account-analytic account_banking_cscs account-budgeting\
@@ -86,7 +86,7 @@ REPT_ORG_MATRIX="acespritech/openerp_gantt_chart_modification,odoomrp/odoomrp-wi
 "local/zeroincombenze,local/cscs_addons,local/account_banking_cscs,"\
 "zeroincombenze/l10n-italy-supplemental,zeroincombenze/connector,OCA/social,OCA/event,"\
 "OCA/pylint-odoo,OCA/operating-unit,OCA/manufacture,OCA/survey,OCA/rma,OCA/queue,"\
-"OCA/e-commerce,OCA/delivery-carrier,OCA/contract,OCA/vertical-education,"\
+"OCA/e-commerce,OCA/delivery-carrier,OCA/vertical-education,"\
 "OCA/bank-statement-reconcile,OCA/vertical-isp,OCA/geospatial,"\
 "OCA/account-fiscal-rule,OCA/vertical-association,OCA/runbot-addons,"\
 "OCA/stock-logistics-reporting,OCA/project-reporting,OCA/edi,OCA/product-variant,"\

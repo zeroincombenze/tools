@@ -20,11 +20,8 @@
     git clone https://github.com/zeroincombenze/tools.git
     cd ./tools
     ./install_tools.sh -p
-    export PATH=$HOME/dev:$PATH
+    source /opt/odoo/dev/activate_tools
     odoo_install_repository {{repos_name}} -b {{branch}} -O {{GIT_ORGID}}
-    for pkg in os0 z0lib; do
-        pip install $pkg -U
-    done
     sudo manage_odoo requirements -b {{branch}} -vsy -o /opt/odoo/{{branch}}
 
 .. $if odoo_layer == 'module'
