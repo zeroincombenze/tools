@@ -19,7 +19,7 @@ MODULE_ID = 'python_plus'
 TEST_FAILED = 1
 TEST_SUCCESS = 0
 
-__version__ = "0.1.0.2"
+__version__ = "0.1.1"
 
 
 
