@@ -24,7 +24,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.3"
+__version__ = "0.1.0.4"
 
 
 MAX_DEEP = 20
@@ -1170,6 +1170,9 @@ def reset_email_admins(ctx):
 
 def create_commission_env(ctx):
     print('Set commission configuration to test')
+    company_id = env_ref(ctx, 'z0bug.mycompany')
+    if not company_id:
+        raise IOError('!!Internal error: no company to test found!')
     ictr = 0
     uctr = 0
     model = 'sale.commission'
@@ -1216,7 +1219,7 @@ def create_commission_env(ctx):
         }
         if not AGENTS[agent]['id']:
             id = clodoo.createL8(ctx, model, vals)
-            AGENTS[agent.name]['id'] = id
+            AGENTS[agent]['id'] = id
             ictr += 1
         else:
             clodoo.writeL8(ctx, model, AGENTS[agent]['id'], vals)
@@ -1224,30 +1227,19 @@ def create_commission_env(ctx):
 
     model = 'res.partner'
     CUSTOMERS = {
-        'IT12345670017': {'id': False, 'agents': AGENTS['Agente B']['id']},
-        'IT02345670018': {'id': False, 'agents': AGENTS['Agente A']['id']},
-        'IT00118439991': {'id': False, 'agents': AGENTS['Agente A']['id']},
-        'IT03675290286': {'id': False, 'agents': AGENTS['Agente B']['id']},
+        env_ref(ctx, 'z0bug.res_partner_2'):
+            {'agents': AGENTS['Agente A']['id'],},
+        env_ref(ctx, 'z0bug.res_partner_4'):
+            {'agents': AGENTS['Agente B']['id'],},
+        env_ref(ctx, 'z0bug.res_partner_1'):
+            {'agents': AGENTS['Agente A']['id'],},
     }
-    for customer in clodoo.browseL8(
-        ctx, model, clodoo.searchL8(
-            ctx, model, [])):
-        msg_burst('%s ...' % customer.name)
-        if not customer.parent_id and customer.vat in CUSTOMERS:
-            CUSTOMERS[customer.vat]['id'] = customer.id
-        elif customer.parent_id and customer.agents:
-            clodoo.writeL8(ctx, model, customer.id, {'agents': [(6, 0, [])]})
-    for customer in CUSTOMERS:
+    for customer_id in CUSTOMERS:
         vals = {
-            'agents': [(6, 0, [CUSTOMERS[customer]['agents']])],
+            'agents': [(6, 0, [CUSTOMERS[customer_id]['agents']])],
         }
-        if not CUSTOMERS[customer]['id']:
-            id = clodoo.createL8(ctx, model, vals)
-            CUSTOMERS[customer]['id'] = id
-            ictr += 1
-        else:
-            clodoo.writeL8(ctx, model, CUSTOMERS[customer]['id'], vals)
-            uctr += 1
+        clodoo.writeL8(ctx, model, customer_id, vals)
+        uctr += 1
     print('%d records created, %d records updated' % (ictr, uctr))
 
 
@@ -1731,6 +1723,12 @@ def test_synchro_vg7(ctx):
             vals = {
                 'vg7_id': vg7_id,
                 'id': env_ref(ctx, 'z0bug.res_partner_2'),
+                'goods_description_id': env_ref(
+                    ctx, 'l10n_it_ddt.goods_description_CAR'),
+                'carriage_condition_id': env_ref(
+                    ctx, 'l10n_it_ddt.carriage_condition_PA'),
+                'transportation_method_id': env_ref(
+                    ctx, 'l10n_it_ddt.transportation_method_DES'),
             }
         elif vg7_id == 17:
             vals = {
@@ -1762,18 +1760,30 @@ def test_synchro_vg7(ctx):
         check_partner(ctx, TNL, partner_id, vals)
         return vg7_id
 
-    def check_sale_order(ctx, TNL, order_id, vals, state=None):
+    def check_sale_order(ctx, TNL, order_id, vals, state=None, note=None):
         general_check(ctx, TNL, 'sale.order', order_id, vals)
+        order = clodoo.browseL8(ctx, 'sale.order', order_id)
         if state:
-            order = clodoo.browseL8(ctx, 'sale.order', order_id)
             if order.state != state:
-                raise IOError('!!Invalid state od order %d!' % order_id)
+                raise IOError('!!Invalid state of order %d!' % order_id)
+        if order.partner_id.id == env_ref(ctx, 'z0bug.res_partner_2'):
+            if order.goods_description_id.id != env_ref(
+                    ctx, 'l10n_it_ddt.goods_description_CAR'):
+                raise IOError('!!Invalid good des. order %d!' % order_id)
+            if order.carriage_condition_id.id != env_ref(
+                    ctx, 'l10n_it_ddt.carriage_condition_PA'):
+                raise IOError('!!Invalid carriage cond. order %d!' % order_id)
+            if order.transportation_method_id.id != env_ref(
+                    ctx, 'l10n_it_ddt.transportation_method_DES'):
+                raise IOError('!!Invalid trans. meth. order %d!' % order_id)
+        if note and order.note != note:
+            raise IOError('!!Invalid order %d note!' % order_id)
 
     def check_sale_order_line(ctx, TNL, line_id, vals):
         general_check(ctx, TNL, 'sale.order.line', line_id, vals)
 
     def write_sale_order(ctx, TNL, company_id, partner_id=None,
-                         vg7_order_id=None, state=None):
+                         vg7_order_id=None, state=None, note=None):
         model = 'sale.order'
         print('Write %s ..' % model)
         if model not in TNL:
@@ -1781,8 +1791,7 @@ def test_synchro_vg7(ctx):
             TNL[model]['LOC'] = {}
             TNL[model]['EXT'] = {}
 
-        partner_id = partner_id or ctx[
-            'odoo_session'].env.ref('z0bug.res_partner_2').id
+        partner_id = partner_id or env_ref(ctx, 'z0bug.res_partner_2')
         vg7_id = vg7_order_id or 1
         vals = {
             'company_id': company_id,
@@ -1806,7 +1815,7 @@ def test_synchro_vg7(ctx):
                                     vals)
         TNL[model]['LOC'][order_id] = vg7_id
         TNL[model]['EXT'][vg7_id] = order_id
-        check_sale_order(ctx, TNL, order_id, vals, state='draft')
+        check_sale_order(ctx, TNL, order_id, vals, state='draft', note=note)
 
         model = 'sale.order.line'
         print('Write %s ..' % model)
@@ -2025,6 +2034,9 @@ def test_synchro_vg7(ctx):
     if not company_id:
         raise IOError('!!Internal error: no company to test found!')
 
+    company_note = 'Si prega di controllate il documento entro le 24h.'
+    clodoo.writeL8(ctx, 'res.company', company_id,
+                    {'sale_note': company_note})
     TNL = {}
     TNL['LOC'] = {}
     TNL['EXT'] = {}
@@ -2080,8 +2092,8 @@ def test_synchro_vg7(ctx):
     write_partner(ctx, TNL, company_id, vg7_id=2)
 
     # Repeat 2 times with different state
-    write_sale_order(ctx, TNL, company_id)
-    write_sale_order(ctx, TNL, company_id, state='sale')
+    write_sale_order(ctx, TNL, company_id, note=company_note)
+    write_sale_order(ctx, TNL, company_id, state='sale', note=company_note)
 
     # Repeat 2 times with different state
     write_invoice(ctx, TNL, company_id)
