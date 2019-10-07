@@ -41,7 +41,7 @@ try:
 except ImportError:
     from z0lib import z0lib
 
-__version__ = "0.3.8.52"
+__version__ = "0.3.8.54"
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 
 
@@ -236,8 +236,10 @@ def read_stored_dict(ctx):
         p = os.path.dirname(__file__) or '.'
         if os.path.isfile('%s/transodoo.csv' % p):
             ctx['dict_fn'] = '%s/transodoo.csv' % p
-        elif os.path.isfile('~/dev/transodoo.csv'):
-            ctx['dict_fn'] = '~/dev/transodoo.csv'
+        elif os.path.isfile(os.path.join(os.path.expanduser('~'),
+                                         'transodoo.csv')):
+            ctx['dict_fn'] = os.path.join(os.path.expanduser('~'),
+                                         'transodoo.csv')
         else:
             ctx['dict_fn'] = 'transodoo.csv'
     # ctx['dict_fn'] = './__transodoo.csv'        #debug

@@ -53,6 +53,7 @@ LX_CFG_S = ('db_name',
             'login2_password',
             'admin_passwd',
             'db_host',
+            'data_dir',
             'xmlrpc_port',
             'oe_version',
             'zeroadm_mail',
@@ -163,7 +164,7 @@ DEFDCT = {}
 msg_time = time.time()
 
 
-__version__ = "0.3.8.52"
+__version__ = "0.3.8.54"
 
 
 #############################################################################
@@ -304,6 +305,7 @@ def default_conf(ctx):
             'admin_passwd': 'admin',
             'db_user': 'postgres',
             'db_host': 'localhost',
+            'data_dir': '',
             'db_port': 5432,
             'oe_version': '*',
             'svc_protocol': '',

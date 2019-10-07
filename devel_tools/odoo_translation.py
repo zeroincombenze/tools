@@ -23,7 +23,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.20"
+__version__ = "0.2.2.22"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -61,6 +61,33 @@ def change_name(ctx, filename, version):
 
 
 def load_default_dictionary(source):
+
+    def term_with_punct(row, msgid, punct):
+        if msgid[-1] == punct:
+            msg2 = msgid[:-1]
+            if row['msgstr'][-1] == punct:
+                des2 = os0.u(row['msgstr'][:-1])
+            else:
+                des2 = os0.u(row['msgstr'])
+        else:
+            msg2 = msgid + punct
+            if row['msgstr'][-1] == punct:
+                des2 = os0.u(row['msgstr'])
+            else:
+                des2 = os0.u(row['msgstr']) + punct
+        TNL_DICT[msg2] = des2
+        TNL_ACTION[msg2] = 'C'
+
+    def set_terms_n_punct(row, msgid):
+        if msgid == msgid[0].upper() + msgid[1:].lower():
+            msg2 = msgid.lower()
+            TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
+            TNL_ACTION[msg2] = 'C'
+            for punct in (':', '.'):
+                term_with_punct(row, os0.u(row['msgstr']).lower(), punct)
+        for punct in (':', '.'):
+            term_with_punct(row, os0.u(row['msgstr']), punct)
+
     ctr = 0
     if os.path.isfile(source):
         if ctx['opt_verbose']:
@@ -83,38 +110,7 @@ def load_default_dictionary(source):
             msgid = os0.u(row['msgid'].strip())
             TNL_DICT[msgid] = os0.u(row['msgstr'])
             TNL_ACTION[msgid] = 'C'
-            if msgid == msgid[0].upper() + msgid[1:].lower():
-                msg2 = msgid.lower()
-                TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
-                TNL_ACTION[msg2] = 'C'
-            if msgid[-1] == ':':
-                msg2 = msgid[:-1]
-                if row['msgstr'][-1] == ':':
-                    des2 = row['msgstr'][:-1]
-                else:
-                    des2 = row['msgstr']
-            else:
-                msg2 = msgid + ':'
-                if row['msgstr'][-1] == ':':
-                    des2 = row['msgstr']
-                else:
-                    des2 = row['msgstr'][:-1]
-            TNL_DICT[msg2] = des2
-            TNL_ACTION[msg2] = 'C'
-            if msgid[-1] == '.':
-                msg2 = msgid[:-1]
-                if row['msgstr'][-1] == '.':
-                    des2 = row['msgstr'][:-1]
-                else:
-                    des2 = row['msgstr']
-            else:
-                msg2 = msgid + '.'
-                if row['msgstr'][-1] == '.':
-                    des2 = row['msgstr']
-                else:
-                    des2 = row['msgstr'][:-1]
-            TNL_DICT[msg2] = des2
-            TNL_ACTION[msg2] = 'C'
+            set_terms_n_punct(row, msgid)
             ctr += 1
         if ctx['opt_verbose']:
             print(" ... Read %d records" % ctr)
@@ -313,6 +309,21 @@ def parse_file(ctx):
 
 
 def upgrade_db(ctx):
+
+    def write_tnl(ctx, model, ids, msgid, ctr):
+        if ids and len(ids) < MAX_RECS:
+            msg_burst(msgid)
+            for id in ids:
+                try:
+                    clodoo.writeL8(ctx, model, id, {'value': TNL_DICT[msgid]})
+                    ctr += 1
+                except IOError:
+                    print("*** Error writing %s!!!" % TNL_DICT[msgid])
+                except BaseException:
+                    print("*** Fatal error writing %s!!!" % TNL_DICT[msgid])
+                    clodoo.unlinkL8(ctx, model, id)
+        return ctr
+
     for version in ctx['pofiles'].keys():
         ctr = 0
         dbname = ctx['db_prefix']
@@ -352,13 +363,7 @@ def upgrade_db(ctx):
                                    ('type', 'in', ('field', 'model',
                                                    'report', 'help')),
                                    ('src', '=', msgid)])
-            if ids and len(ids) < MAX_RECS:
-                msg_burst(msgid)
-                try:
-                    clodoo.writeL8(ctx, model, ids, {'value': TNL_DICT[msgid]})
-                    ctr += len(ids)
-                except IOError:
-                    print("*** Error writing %s !!!" % TNL_DICT[msgid])
+            ctr = write_tnl(ctx, model, ids, msgid, ctr)
             ids = clodoo.searchL8(
                 ctx, model,
                 [('lang', '=', 'it_IT'),
@@ -371,13 +376,7 @@ def upgrade_db(ctx):
                                  'ir.ui.menu,name',
                                  )),
                  ('src', '=', msgid)])
-            if ids and len(ids) < MAX_RECS:
-                msg_burst(msgid)
-                try:
-                    clodoo.writeL8(ctx, model, ids, {'value': TNL_DICT[msgid]})
-                    ctr += len(ids)
-                except IOError:
-                    print("*** Error writing %s !!!" % TNL_DICT[msgid])
+            ctr = write_tnl(ctx, model, ids, msgid, ctr)
         if ctx['opt_verbose']:
             print(" ... %d record upgraded" % ctr)
         if ctx['load_language']:

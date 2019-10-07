@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.20"
+__version__ = "0.2.2.22"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -369,19 +369,25 @@ def url_by_doc(ctx, url):
     return url
 
 
+def torst(text, state=None):
+    if text:
+        text = text.replace('\a', '<').replace('\b', '>')
+    return state, text
+
+
 def tohtml(text, state=None):
     if not text:
         return state, text
     state = state or {}
     state['html_state'] = state.get('html_state', {})
-    # Convert gt & lt symbols to preserve html tags
-    i = text.find('<http')
-    while i >= 0:
-        j = text.find('>', i + 1)
-        if i >= 0 and j > i:
-            text = text[0:i] + '\a' + text[i + 1:]
-            text = text[0:j] + '\b' + text[j + 1:]
-        i = text.find('<http')
+    ## Convert gt & lt symbols to preserve html tags
+    # i = text.find('<http')
+    # while i >= 0:
+    #     j = text.find('>', i + 1)
+    #     if i >= 0 and j > i:
+    #         text = text[0:i] + '\a' + text[i + 1:]
+    #         text = text[0:j] + '\b' + text[j + 1:]
+    #     i = text.find('<http')
     text = text.replace('<', '&lt;').replace('>', '&gt;')
     text = text.replace('\a', '<').replace('\b', '>')
 
@@ -410,6 +416,10 @@ def tohtml(text, state=None):
             jj = t.find('>')
             if ii >= 0 and jj > ii:
                 url = t[ii + 1: jj]
+                if url.startswith('http') and not url.startswith('https'):
+                    url.replace('http', 'https')
+                if url.startswith('http') and not url.endswith('/'):
+                    url += '/'
                 if (j + 3) < len(text):
                     text = u'%s<a href="%s">%s</a>%s' % (
                         text[0:i],
@@ -423,6 +433,8 @@ def tohtml(text, state=None):
                         url,
                         t[0: ii - 1].strip()
                     )
+            elif j >= 0 and t.find('&lt;') < 0 and t.find('&gt;'):
+                text = text[0:i] + text[i + 1:j] + text[j + 3:]
             else:
                 break
         i = text.find('`')
@@ -903,6 +915,7 @@ def line_of_list(ctx, state, line):
                         text = ''
     if not stop:
         if state.get('srctype') == 'authors':
+            line = line.replace('<','\a').replace('>','\b')
             fmt = '* `%s`__'
         else:
             fmt = '* %s'
@@ -991,6 +1004,8 @@ def parse_source(ctx, source, state=None, in_fmt=None, out_fmt=None):
                 target += text
     if in_fmt == 'rst' and out_fmt == 'html':
         state, target = tohtml(target, state=state)
+    else:
+        state, target = torst(target, state=state)
     return state, target
 
 

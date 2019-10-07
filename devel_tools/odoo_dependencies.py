@@ -85,12 +85,12 @@ SPECIAL FEATURES
 Switch -N returns, for all actions, the reckoning of modules.
 
 Switch -D replaces value of MODULES_TO_MATCH with installed module in DB;
-so, with -D, -m and -E switches and without -M switch, return installed modules
+so, with -A mod, -D and -E switches and without -M switch, return installed modules
 list in DB without python code. List contains module with state 'to*' too.
 
 With -D switch you have to supply configuration files; one of them is ordinary
 odoo configuration file; you must add another configuration file with:
-login_user, login_password parameters to connect DB.
+login_user, login_password parameters to connect to DB.
 """
 from __future__ import print_function, unicode_literals
 
@@ -111,7 +111,7 @@ try:
 except ImportError:
     import clodoo
 
-__version__ = '0.2.2.20'
+__version__ = '0.2.2.22'
 
 
 MANIFEST_FILES = [

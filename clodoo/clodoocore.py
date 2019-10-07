@@ -32,22 +32,24 @@ STS_FAILED = 1
 STS_SUCCESS = 0
 
 
-__version__ = "0.3.8.52"
+__version__ = "0.3.8.54"
 
 
 #############################################################################
 # Low level (driver) functions
 def psql_connect(ctx):
     cr = False
-    if postgres_drive and ctx.get('psycopg2', False):
-        params = ctx['psycopg2'].split(',')
-        for prm in params:
-            pv = prm.split(':')
-            if pv[0] in ('False', 'false', '0'):
-                return cr
-            if pv[0] in ('db_name', 'db_user', 'db_password'):
-                # and \ (pv[0] not in ctx or not ctx[pv[0]]):
-                ctx[pv[0]] = pv[1]
+    if (postgres_drive and
+            ctx.get('psycopg2', False) and
+            ctx.get('db_password', '')):
+        # params = ctx['psycopg2'].split(',')
+        # for prm in params:
+        #     pv = prm.split(':')
+        #     if pv[0] in ('False', 'false', '0'):
+        #         return cr
+        #     if pv[0] in ('db_name', 'db_user', 'db_password'):
+        #         # and \ (pv[0] not in ctx or not ctx[pv[0]]):
+        #         ctx[pv[0]] = pv[1]
         dbname = ctx['db_name']
         dbuser = ctx['db_user']
         pwd = ctx.get('db_password')

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.52"
+__version__ = "0.3.8.54"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -396,12 +396,12 @@ def oerp_set_env(confn=None, db=None, xmlrpc_port=None, oe_version=None,
                  user=None, pwd=None, lang=None, ctx=None):
     D_LIST = ('ena_inquire', 'caller', 'level', 'dry_run', 'multi_user',
               'set_passepartout', 'psycopg2', 'no_login')
-    P_LIST = ('db_host', 'db_name', 'admin_passwd',
+    P_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
               'login_user', 'login_password', 'crypt_password',
               'login2_user', 'login2_password', 'crypt2_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
               'lang')
-    S_LIST = ('db_host', 'db_name', 'admin_passwd',
+    S_LIST = ('db_host', 'db_name', 'db_user', 'db_password', 'admin_passwd',
               'login_user', 'login_password',
               'svc_protocol', 'oe_version', 'xmlrpc_port',
               'lang')
@@ -878,8 +878,8 @@ def ident_company(ctx, c_id):
 
 def ident_user(ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
-    msg = u"DB=%-12.12s  uid=%-3d user=%-12.12s" \
-          u"  email=%-30.30s  company=%-30.30s" % (
+    msg = u"DB=%-20.20s  uid=%-3d user=%-15.15s" \
+          u"  email=%-25.25s  company=%-30.30s" % (
               tounicode(ctx['db_name']),
               u_id,
               tounicode(user.login),
@@ -1935,6 +1935,7 @@ def act_check_xid(ctx):
             except BaseException:
                 print('!! Invalid external reference %s.%s' % (xref.module,
                                                                xref.name))
+                unlinkL8(ctx, model, id)
     return STS_SUCCESS
 
 
@@ -2753,30 +2754,37 @@ def act_set_4_cscs(ctx):
     return sts
 
 
-def act_update_4_next_generation(ctx):
-    msg = u"Upgrade next generation"
+def act_hard_clean_module(ctx):
+    def drop_data_table(ctx, model, module_name):
+        for id in searchL8(ctx, model, [('module', '=', module_name)]):
+            try:
+                unlinkL8(ctx, model, [id])
+                msg_log(
+                    ctx, ctx['level'] + 1,
+                    'Record id %s.%d (%s) removed' % (model, id, module_name))
+            except BaseException:
+                pass
+
+    msg = u"Hard_clean_module"
     msg_log(ctx, ctx['level'], msg)
     model = 'ir.module.module'
-    model2 = 'ir.model.data'
-    for module in browseL8(ctx, model,
-            searchL8(ctx, model, ['|',
-                                  ('state', '=', 'uninstallable'),
-                                  ('state', '=', 'uninstalled')])):
-        module_name = module.name
+    for module_name in ctx['modules_2_manage']:
+        ids = searchL8(ctx, model,
+                       [('name', '=', module_name)])
+        if not ids:
+            continue
+        module = browseL8(ctx, model, ids[0])
+        if module.state == 'installed':
+            continue
         try:
             unlinkL8(ctx, model, [module.id])
             msg = u"Clean module %s" % module_name
             msg_log(ctx, ctx['level'] + 1, msg)
         except BaseException:
             pass
-        for id in searchL8(ctx, model2, [('module', '=', module_name)]):
-            try:
-                unlinkL8(ctx, model2, [id])
-                msg_log(
-                    ctx, ctx['level'] + 1,
-                    'External id %d (%s) removed' % id, module_name)
-            except BaseException:
-                pass
+        drop_data_table(ctx, 'ir.model.data', module_name)
+        drop_data_table(ctx, 'ir.module.module.dependency', module_name)
+        drop_data_table(ctx, 'ir.translation', module_name)
     return STS_SUCCESS
 
 

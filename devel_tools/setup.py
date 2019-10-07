@@ -1,8 +1,24 @@
 from setuptools import setup
 
 setup(name='devel_tools',
-      version='',
-      description='',
+      version='0.2.2.22',
+      description='Python developers tools',
+      long_description="""
+Tool to parse, edit and migrate python source code
+""",
       classifiers=[
-          'Development Status :: 1 - Planning',
-      ])
+          'Development Status :: 3 - Alpha',
+          'License :: OSI Approved :: GNU Affero General Public License v3',
+          'Programming Language :: Python :: 2.7',
+          'Intended Audience :: Developers',
+          'Topic :: Software Development',
+          'Topic :: Software Development :: Build Tools',
+          'Operating System :: OS Independent',
+      ],
+      keywords='linux travis development',
+      url='http://wiki.zeroincombenze.org/',
+      author='Antonio M. Vigliotti',
+      author_email='antoniomaria.vigliotti@gmail.com',
+      license='Affero GPL',
+      packages=['travis_emulator'],
+      zip_safe=False)

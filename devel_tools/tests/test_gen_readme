@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.2.2.20
+__version__=0.2.2.22
 
 
 test_01() {
@@ -269,7 +269,7 @@ consectetur <i>adipiscing</i> elit
 </p>
 
 <ul>
-<li><a href="https://www.shs-av.com">SHS-AV s.r.l.</a></li>
+<li><a href="https://www.shs-av.com/">SHS-AV s.r.l.</a></li>
 </ul>
 </section>
 EOF
