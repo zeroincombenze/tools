@@ -35,7 +35,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.54"
+__version__ = "0.3.8.55"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -1649,11 +1649,10 @@ def adjust_ctx(src_ctx, tgt_ctx):
             tgt_ctx['branch'] = tgt_ctx['tgt_odoo_fver']
             tgt_ctx['oe_version'] = tgt_ctx['tgt_odoo_fver']
             tgt_config.set('options', 'oe_version', tgt_ctx['oe_version'])
-            if not tgt_ctx.get(item):
-                if tgt_ctx['oe_version'] in ('6.1', '7.0', '8.0'):
-                    tgt_ctx['svc_protocol'] = 'xmlrpc'
-                elif tgt_ctx['oe_version']:
-                    tgt_ctx['svc_protocol'] = 'jsonrpc'
+            if tgt_ctx['oe_version'] in ('6.1', '7.0', '8.0'):
+                tgt_ctx['svc_protocol'] = 'xmlrpc'
+            elif tgt_ctx['oe_version']:
+                tgt_ctx['svc_protocol'] = 'jsonrpc'
         elif item == 'db_name':
             if src_ctx['src_vid'] == src_ctx['from_branch']:
                 src_ctx[item] = src_ctx[src_param]
@@ -2086,6 +2085,8 @@ def migrate_database(src_ctx, tgt_ctx):
             del src_ctx[nm]
     src_ctx = init_ctx(src_ctx, phase=2)
     migrate_database_pass(src_ctx, tgt_ctx, phase=2)
+    print('Database %s successfully miograted into %s' % (
+        src_ctx['from_dbname'], tgt_ctx['db_name']))
 
 
 def parse_ctx(src_ctx):
