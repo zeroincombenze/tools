@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.55
+__version__=0.3.8.56
 VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="12 11 10 9 8 7 6"
 

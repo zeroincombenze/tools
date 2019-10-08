@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
-# from __future__ import print_function
 
 from python_plus import _b
 
@@ -35,7 +34,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.55"
+__version__ = "0.3.8.56"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -132,6 +131,9 @@ DET_FIELD = {
 }
 VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 DEF_CONF = {}
+MODULES_2_LEAVE_BEHIND = [
+    'process',
+]
 PRE_MIGRATION = '''
 # -*- coding: utf-8 -*-
 from openerp.openupgrade import openupgrade
@@ -388,17 +390,21 @@ def sed_append(*args):
         fd.write(_b('\n'.join(lines)))
 
 
-def extract_paths(config, item):
+def config_get_list(config, item):
     return config.get('options', item).strip().split(',')
 
 
-def run_odoo_alltest(odoo_vid, confn, db_name, logfile):
+def run_odoo_alltest(odoo_vid, confn, db_name, logfile, modules=None):
+    if modules:
+        modules = ','.join(modules)
+    else:
+        modules = 'all'
     src_odoo_bin = clodoo.build_odoo_param(
             'BIN', odoo_vid=odoo_vid, multi=True)
     run_traced(src_odoo_bin,
                '-c', confn,
                '-d', db_name,
-               '-u', 'all',
+               '-u', modules,
                '--stop-after-init',
                '--no-xmlrpc',
                '--logfile=%s' % logfile)
@@ -1785,15 +1791,16 @@ def prepare_config_file(ctx, src_config, ou_ver_path=None, paths=None):
 
 
 def hard_clean_module(ctx, module_name):
-    def drop_data_table(ctx, model, module_name, name=None):
-        name = name or 'module'
-        query = "select id from %s where %s='%s'" % (model, name, module_name)
-        recs = exec_sql(ctx, query, response=True)
-        for rec in recs:
-            query = "delete from %s where id='%d'" % (model, id)
-            exec_sql(ctx, query)
+    def drop_data_table(ctx, model, module_name, coln=None, id=None):
+        coln = coln or 'module'
+        if id:
+            query = "delete from %s where %s=%d" % (model, coln, id)
+        else:
+            query = "delete from %s where %s='%s'" % (model, coln, module_name)
+        recs = exec_sql(ctx, query)
 
-    query = "select id,name,state from ir_module_module where name='%s'" % module_name
+    query = "select id,name,state from ir_module_module where name='%s'" % \
+            module_name
     recs = exec_sql(ctx, query, response=True)
     if not len(recs):
         return
@@ -1801,12 +1808,11 @@ def hard_clean_module(ctx, module_name):
     id = recs[0][0]
     if state == 'installed':
         return
-    query = "delete from ir_module_module where id='%d'" % id
-    exec_sql(ctx, query)
     drop_data_table(ctx, 'ir_model_data', module_name)
     drop_data_table(ctx, 'ir_module_module_dependency',
-                    module_name, name='name')
+                    module_name, coln='module_id', id=id)
     drop_data_table(ctx, 'ir_translation', module_name)
+    set_uninstalled_by_sql(ctx, [_b(module_name)])
 
 
 def fix_bug_pre(src_ctx, tgt_ctx, src_full_lconf, src_paths):
@@ -1834,7 +1840,7 @@ def fix_bug_post(src_ctx, tgt_ctx, tgt_full_lconf, tgt_paths):
 
 def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
 
-    def get_wrong_modules(bad_module_list):
+    def get_wrong_modules(ctx, bad_module_list=None):
         if bad_module_list:
             if len(bad_module_list) == 1:
                 query = '''select id,name,state from ir_module_module
@@ -1850,12 +1856,12 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
 
         else:
             query = '''select id,name,state from ir_module_module
-                       where state not in 
+                       where state not in
                        ('installed', 'uninstalled', 'uninstallable');'''
-        rows = exec_sql(tgt_ctx, query, response=True)
+        rows = exec_sql(ctx, query, response=True)
         wrong_list = []
         for row in rows:
-            if row[1] not in bad_module_list:
+            if not bad_module_list or row[1] not in bad_module_list:
                 wrong_list.append(row[1])
         return wrong_list
 
@@ -1882,12 +1888,23 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
         if sts:
             os0.wlog('*** Return code %d ***')
         else:
-            time.sleep(10)
+            time.sleep(5)
 
     tgt_saved_fconf = tgt_ctx['conf_fn']
     src_full_lconf = prepare_config_file(src_ctx, src_config)
-    src_paths = extract_paths(src_config, 'addons_path')
-    tgt_paths = extract_paths(tgt_config, 'addons_path')
+    if (src_ctx['src_vid'] == src_ctx['from_branch'] and
+            get_wrong_modules(src_ctx)):
+        os0.wlog('*** Unstable installation: try to correct errors ***')
+        run_odoo_alltest(src_ctx['tgt_vid'], src_full_lconf,
+                         src_ctx['db_name'], src_ctx['logfile'])
+        bad_modules = get_wrong_modules(src_ctx)
+        if bad_modules:
+            os0.wlog('*** Unstable installation due to %s ***' % bad_modules)
+            os0.wlog('*** MIGRATION STOPPED ***')
+            sys.exit(1)
+
+    src_paths = config_get_list(src_config, 'addons_path')
+    tgt_paths = config_get_list(tgt_config, 'addons_path')
     os0.wlog('addons_path=%s' % src_paths)
     os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
     uid, src_ctx = clodoo.oerp_set_env(
@@ -2001,44 +2018,51 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
         drop_session(tgt_ctx, tgt_ctx['db_name'], odoo_vid=tgt_ctx['tgt_vid'])
         run_openupgrade(tgt_ctx, ou_ver_path, tgt_full_lconf)
         fix_bug_post(src_ctx, tgt_ctx, src_full_lconf, src_paths)
-        # Test for not upgraded modules
-        to_uninstall_list = get_wrong_modules(bad_module_list)
-        for module in to_uninstall_list:
-            os0.wlog('*** Wrong state for module %s ***' % module)
-        soft_uninstall_list, hard_uninstall_list = do_tnl_module_list(
-            tgt_ctx,
-            to_uninstall_list,
-            tgt_ctx['tgt_odoo_fver'],
-            src_ctx['from_odoo_fver'],
-            src_ctx['original_module_list'],
-            pure=True)
-        hard_hard_list = []
-        if hard_uninstall_list:
-            os0.wlog('Modules in wrong state to uninstall: %s' %
-                     hard_uninstall_list)
-        for module in hard_uninstall_list:
-            os0.wlog('-- Uninstall: %s' % module)
-            sts = drop_module(tgt_ctx, module)
-            if sts and module not in bad_module_list:
-                os0.wlog(' - Uninstall failed: %s' % module)
-                # hard_clean_module(tgt_ctx, module)
-                hard_hard_list.append(module)
-        if hard_hard_list:
-            set_uninstalled_by_sql(tgt_ctx, hard_hard_list)
 
-    bad_module_list = list(set(bad_module_list) | set(soft_uninstall_list))
-    if bad_module_list:
-        bad_module_list = get_wrong_modules(bad_module_list)
-    if bad_module_list:
-        set_uninstalled_by_sql(tgt_ctx, bad_module_list)
-    time.sleep(5)
+    # Test for not migrated modules
+    tgt_ctx['conf_fn'] = tgt_saved_fconf 
+    to_uninstall_list = get_wrong_modules(tgt_ctx)
+    if to_uninstall_list:
+        os0.wlog('*** Wrong state for modules %s ***' % to_uninstall_list)
+    hard_uninstall_list = list(
+        set(to_uninstall_list) & set(MODULES_2_LEAVE_BEHIND))
+    soft_uninstall_list = list(
+        set(to_uninstall_list) - set(hard_uninstall_list))
+    if soft_uninstall_list:
+        set_uninstalled_by_sql(tgt_ctx, soft_uninstall_list)
+    if hard_uninstall_list:
+        os0.wlog('*** Unstable DB: wrong module state %s ***' %
+                 hard_uninstall_list)
+    for module in hard_uninstall_list:
+        os0.wlog('  ++ Hard uninstall: %s' % module)
+        hard_clean_module(tgt_ctx, module)
+    if soft_uninstall_list or hard_uninstall_list:
+        bad_modules = list(set(soft_uninstall_list) | set(hard_uninstall_list))
+        run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
+                         tgt_ctx['db_name'], tgt_ctx['logfile'],
+                         modules=bad_modules)
+    elif tgt_ctx['opt_safe']:
+        run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
+                         tgt_ctx['db_name'], tgt_ctx['logfile'])
+    bad_modules = get_wrong_modules(tgt_ctx)
+    if bad_modules:
+        os0.wlog('*** Unstable DB after clean: wrong module state %s ***' %
+                 bad_modules)
+        hard_uninstall_list = list(
+            set(bad_modules) & set(MODULES_2_LEAVE_BEHIND))
+        bad_modules = list(
+            set(bad_modules) - set(MODULES_2_LEAVE_BEHIND))
+        if bad_modules:
+            set_uninstalled_by_sql(tgt_ctx, bad_modules)
+        if hard_uninstall_list:
+            for module in hard_uninstall_list:
+                os0.wlog('  ++ Hard uninstall: %s' % module)
+                hard_clean_module(tgt_ctx, module)
+
     os0.wlog('Test connection to target db %s' % tgt_ctx['db_name'])
     uid, tgt_ctx = clodoo.oerp_set_env(
         ctx=tgt_ctx, confn=tgt_full_lconf, db=tgt_ctx['db_name'])
-    if tgt_ctx['opt_safe']:
-        tgt_ctx['conf_fn'] = tgt_saved_fconf 
-        run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
-                         tgt_ctx['db_name'], tgt_ctx['logfile'])
+
     return tgt_full_lconf
 
 

@@ -184,7 +184,7 @@ from transodoo import read_stored_dict, translate_from_to
 from subprocess import PIPE, Popen
 
 
-__version__ = "0.3.8.55"
+__version__ = "0.3.8.56"
 
 # Apply for configuration file (True/False)
 APPLY_CONF = True
@@ -878,8 +878,8 @@ def ident_company(ctx, c_id):
 
 def ident_user(ctx, u_id):
     user = browseL8(ctx, 'res.users', u_id)
-    msg = u"DB=%-20.20s  uid=%-3d user=%-15.15s" \
-          u"  email=%-25.25s  company=%-30.30s" % (
+    msg = u"DB=%-24.24s uid=%-3d user=%-16.16s" \
+          u" email=%-24.24s company=%-24.24s" % (
               tounicode(ctx['db_name']),
               u_id,
               tounicode(user.login),
@@ -1843,6 +1843,8 @@ def act_check_tax(ctx):
             elif re.search('[Aa]rt[^0-9]41[^0-9]?[-./a-zA-Z]*427', tax.name):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6']
+                elif tax.type_tax_use == 'sale':
+                    nature_id = tax_nature['N3']
             elif re.search('[Rr]ev[a-zA-Z]* [Cc]harge', tax.name):
                 if tax.type_tax_use == 'purchase':
                     nature_id = tax_nature['N6']
