@@ -3,7 +3,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 from __future__ import print_function
 
-from z0bug_odoo.z0bug_odoo_lib import Z0bugOdoo as Z0BUG
+import sys
+from z0bug_odoo_lib import Z0bugOdoo
 try:
     import odoo.release as release
 except ImportError:
@@ -14,14 +15,14 @@ except ImportError:
 if release:
     if int(release.major_version.split('.')[0]) < 10:
         import openerp.tests.common as test_common
-        from openerp import workflow
         from openerp.modules.module import get_module_resource
+        from openerp import workflow
     else:
         import odoo.tests.common as test_common
         from odoo.modules.module import get_module_resource
 else:
     print('No Odoo environment found!')
-
+    sys.exit(0)
 
 
 __version__='0.1.0.1.1'
@@ -102,9 +103,9 @@ class TransactionCase(test_common.TransactionCase):
         return self.browse_ref(xid).write(values)
 
     def get_ref_value(self, model, xid):
-        if not hasattr(self, 'Z0BUG'):
-            self.Z0BUG = Z0BUG()
-        return self.Z0BUG.get_test_values(model, xid)
+        if not hasattr(self, 'Z0bugOdoo'):
+            self.Z0bugOdoo = Z0bugOdoo()
+        return self.Z0bugOdoo.get_test_values(model, xid)
 
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):
@@ -197,9 +198,9 @@ class SingleTransactionCase(test_common.SingleTransactionCase):
         return self.browse_ref(xid).write(values)
 
     def get_ref_value(self, model, xid):
-        if not hasattr(self, 'Z0BUG'):
-            self.Z0BUG = Z0BUG()
-        return self.Z0BUG.get_test_values(model, xid)
+        if not hasattr(self, 'Z0bugOdoo'):
+            self.Z0bugOdoo = Z0bugOdoo()
+        return self.Z0bugOdoo.get_test_values(model, xid)
 
     def build_model_data(self, model, xrefs):
         if not isinstance(xrefs, (list, tuple)):

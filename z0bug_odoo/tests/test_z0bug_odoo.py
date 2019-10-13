@@ -27,7 +27,5 @@ def version():
 if __name__ == "__main__":
     ctx = Z0test.parseoptest(sys.argv[1:],
                              version=version())
-    sts = Z0test.main_file(ctx)
+    sts = Z0test.main(ctx)
     exit(sts)
-
-# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

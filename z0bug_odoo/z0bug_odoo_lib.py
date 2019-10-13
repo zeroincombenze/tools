@@ -8,6 +8,7 @@ from past.builtins import basestring
 import os
 import sys
 import csv
+from zerobug import Z0BUG
 
 
 __version__ = "0.1.0.1.1"
