@@ -133,6 +133,7 @@ VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 DEF_CONF = {}
 MODULES_2_LEAVE_BEHIND = [
     'process',
+    'account_report_company',
 ]
 PRE_MIGRATION = '''
 # -*- coding: utf-8 -*-

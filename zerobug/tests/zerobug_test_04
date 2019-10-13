@@ -61,7 +61,7 @@ test_01() {
     else
       ctr=0
     fi
-    test_result "Opt -n" "1" "$res1"
+    test_result "Opt -n" "$res1" "1"
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       if [[ -t 0 || -p /dev/stdin ]]; then
@@ -69,7 +69,7 @@ test_01() {
       else
         res=
       fi
-      test_result "Opt -n (tty)" "$res" "$res2"
+      test_result "Opt -n (tty)" "$res2" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -78,18 +78,18 @@ test_01() {
       else
         res=0
       fi
-      test_result "Opt -n (-e)" "$res" "$res3"
+      test_result "Opt -n (-e)" "$res3" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Opt -n (-k)" "$res" "$res4"
+      test_result "Opt -n (-k)" "$res4" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       x=$TESTDIR/${module_id}_test.log
       res=$(readlink -m $x)
-      test_result "Opt -n (-k)" "$res" "$res5"
+      test_result "Opt -n (-k)" "$res5" "$res"
       sts=$?
     fi
     # if [ $sts -eq $STS_SUCCESS ]; then
@@ -99,12 +99,12 @@ test_01() {
     # fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Opt -n (-s)" "$res" "$res7"
+      test_result "Opt -n (-s)" "$res7" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Opt -n (-z)" "$res" "$res8"
+      test_result "Opt -n (-z)" "$res8" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
@@ -113,17 +113,17 @@ test_01() {
       else
         res=0
       fi
-      test_result "Opt -n (-0)" "$res" "$res9"
+      test_result "Opt -n (-0)"x "$res9" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Opt -b" "$res" "$res10"
+      test_result "Opt -b" "$res10" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=1
-      test_result "Run on top" "$res" "$res11"
+      test_result "Run on top" "$res11" "$res"
       sts=$?
     fi
     return $sts
@@ -147,16 +147,16 @@ test_03() {
     else
       ctr=0
     fi
-    test_result "Opt -n" "1" "$res1"
+    test_result "Opt -n" "$res1" "1"
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Opt -n (-k)" "$res" "$res4"
+      test_result "Opt -n (-k)" "$res4" "$res"
       sts=$?
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=$res10
-      test_result "Opt -n (-k)" "$res" "$res5"
+      test_result "Opt -n (-k)" "$res5" "$res"
       sts=$?
     fi
     return $sts
@@ -179,11 +179,11 @@ test_06() {
       ctr=0
     fi
     res=0
-    test_result "Opt -n (-s)" "$res" "$res7"
+    test_result "Opt -n (-s)" "$res7" "$res"
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       res=0
-      test_result "Run on top" "$res" "$res11"
+      test_result "Run on top" "$res11" "$res"
       sts=$?
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
@@ -195,7 +195,7 @@ test_06() {
     fi
     if [ $sts -eq $STS_SUCCESS ]; then
       res=13
-      test_result "Opt -s 13" "$res" "$res7"
+      test_result "Opt -s 13" "$res7" "$res"
       sts=$?
     fi
     return $sts
@@ -218,11 +218,11 @@ test_07() {
       ctr=0
     fi
     res=0
-    test_result "Opt -s0" "$res" "$res7"
+    test_result "Opt -s0" "$res7" "$res"
     sts=$?
     if [ $sts -eq $STS_SUCCESS ]; then
       res=13
-      test_result "Opt -z13" "$res" "$res8"
+      test_result "Opt -z13" "$res8" "$res"
       sts=$?
     fi
     return $sts

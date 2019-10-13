@@ -11,7 +11,7 @@ import os
 import sys
 from zerobug import Z0BUG
 
-__version__ = "0.1.0.5"
+__version__ = "0.1.0.6"
 
 MODULE_ID = 'odoo_score'
 TEST_FAILED = 1
@@ -35,7 +35,7 @@ class RegressionTest():
 #
 # Run main if executed as a script
 if __name__ == "__main__":
-    exit(Z0BUG.main_local(
+    exit(Z0BUG.main(
         Z0BUG.parseoptest(
             sys.argv[1:],
             version=version()),

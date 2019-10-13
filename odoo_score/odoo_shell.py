@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.5"
+__version__ = "0.1.0.6"
 
 
 MAX_DEEP = 20
@@ -213,6 +213,24 @@ def param_date(param):
     return date_ids
 
 
+def param_mode_commission(param):
+    mode = ctx['param_1'] or 'A'
+    while mode not in ('A', 'R', 'C'):
+        mode = raw_input('Mode (Add_missed,Recalculate,Check)? ')
+        mode = mode[0].upper() if mode else ''
+    return mode
+
+
+def param_product_agent(param):
+    product_id = agent_id = False
+    if param:
+        if param.startswith('P'):
+            product_id = int(param[1:])
+        elif param.startswith('A'):
+            agent_id = int(param[1:])
+    return product_id, agent_id
+
+
 def other_addr_same_customer(ctx):
     print('Set delivery address to the same of customer')
     if ctx['param_1'] == 'help':
@@ -256,16 +274,15 @@ def order_commission_by_partner(ctx):
     print('If missed, set commission in order lines from customer')
     if ctx['param_1'] == 'help':
         print('order_commission_by_partner '
-              '[Add|Recalcucale] [from_date|+days|ids] [Pproduct_id|Aagent_id]')
+              '[Add|Recalc|Check] [from_date|+days|ids]'
+              ' [Pproduct_id|Aagent_id]')
         return
     ord_model = 'sale.order'
     ord_line_model = 'sale.order.line'
     sale_agent_model = 'sale.order.line.agent'
-    mode = ctx['param_1'] or 'A'
-    while not mode.startswith('A') and not mode.startswith('R'):
-        mode = raw_input('Mode (Add_missed,Recalculate)? ')
-        mode = mode[0].upper() if mode else ''
+    mode = param_mode_commission(ctx['param_1'])
     date_ids = param_date(ctx['param_2'])
+    product_id, agent_id = param_product_agent(ctx['param_3'])
     if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
         ids = clodoo.searchL8(ctx, ord_model,
                               [('date_order', '>=', date_ids)])
@@ -281,9 +298,7 @@ def order_commission_by_partner(ctx):
     else:
         where = []
         where1 = []
-    product_id = ctx['param_3'] or False
     if product_id:
-        product_id = int(product_id)
         where.append(('product_id', '=', product_id))
     print('Starting mode %s from %s' % (mode, date_ids))
     ctr = 0
@@ -292,10 +307,17 @@ def order_commission_by_partner(ctx):
             ctx, ord_line_model, where, order='order_id desc,id')):
         msg_burst('%s ...' % ord_line.order_id.name)
         commission_free = ord_line.product_id.commission_free
-        if ord_line.agents or commission_free:
-            if mode == 'A':
+        if ord_line.agents and not commission_free:
+            if mode in ('A', 'C'):
                 continue
             clodoo.unlinkL8(ctx, sale_agent_model, ord_line.agents.id)
+        if mode == 'C':
+            if not commission_free:
+                print('Ord. %s to %-30.30s line %-30.30s w/o commission' % (
+                    ord_line.order_id.number,
+                    ord_line.order_id.partner_id.name,
+                    ord_line.name))
+            continue
         rec = {}
         if not commission_free:
             for agent in ord_line.order_id.partner_id.agents:
@@ -312,42 +334,28 @@ def order_commission_by_partner(ctx):
         if vals:
             clodoo.writeL8(ctx, ord_line_model, ord_line.id, vals)
             ctr += 1
-    # Force line update
-    for order in clodoo.browseL8(
-        ctx, ord_model, clodoo.searchL8(
-            ctx, ord_model, where1, order='id desc')):
-        msg_burst('%s ...' % order.name)
-        clodoo.writeL8(ctx, ord_model, order.id,
-            {'name': order.name})
+    if mode != 'C':
+        # Force line update
+        for order in clodoo.browseL8(
+            ctx, ord_model, clodoo.searchL8(
+                ctx, ord_model, where1, order='id desc')):
+            msg_burst('%s ...' % order.name)
+            clodoo.writeL8(ctx, ord_model, order.id,
+                {'name': order.name})
     print('%d sale order lines updated' % ctr)
 
 
 def inv_commission_by_partner(ctx):
     print('If missed, set commission in invoice lines from customer')
     if ctx['param_1'] == 'help':
-        print('inv_commission_by_partner [Add,Recalculate] from_date|ids')
+        print('inv_commission_by_partner [Add,Recalc|Check] from_date|ids')
         return
     inv_model = 'account.invoice'
     inv_line_model = 'account.invoice.line'
     inv_agent_model = 'account.invoice.line.agent'
-    mode = ctx['param_1'] or 'A'
-    while not mode.startswith('A') and not mode.startswith('R'):
-        mode = raw_input('Mode (Add_missed,Recalculate)? ')
-        mode = mode[0].upper() if mode else ''
-    day = datetime.now().day
-    month = datetime.now().month
-    year = datetime.now().year
-    if day < 15:
-        month -= 1
-        if month < 1:
-            month = 12
-            year -= 1
-    day = 1
-    from_date = '%04d-%02d-%02d' % (year, month, day)
-    date_ids = ctx['param_2'] or from_date
-    if not date_ids:
-        date_ids = raw_input(
-            'IDS to manage or date yyyy-mm-dd (empty means all)? ')
+    mode = param_mode_commission(ctx['param_1'])
+    date_ids = param_date(ctx['param_2'])
+    product_id, agent_id = param_product_agent(ctx['param_3'])
     if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
         ids = clodoo.searchL8(ctx, inv_model,
                               [('date_invoice', '>=', date_ids)])
@@ -363,64 +371,69 @@ def inv_commission_by_partner(ctx):
     else:
         where = []
         where1 = []
+    if product_id:
+        where.append(('product_id', '=', product_id))
+    where.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
+    where1.append(('type', 'in', ('out_invoice', 'out_refund')))
     print('Starting mode %s from %s' % (mode, date_ids))
     ctr = 0
     for inv_line in clodoo.browseL8(
         ctx, inv_line_model, clodoo.searchL8(
             ctx, inv_line_model, where, order='invoice_id desc,id')):
-        msg_burst('%s ...' % inv_line.invoice_id.name)
-        if inv_line.agents:
-            if mode == 'A':
+        msg_burst('%s ...' % inv_line.invoice_id.number)
+        commission_free = False
+        if commission_free == inv_line.product_id:
+            commission_free = inv_line.product_id.commission_free
+        if inv_line.agents and not commission_free:
+            if mode in ('A', 'C'):
                 continue
             clodoo.unlinkL8(ctx, inv_agent_model, inv_line.agents.id)
+        if mode == 'C':
+            if not commission_free:
+                print('Inv. %s to %-30.30s line %-30.30s w/o commission' % (
+                    inv_line.invoice_id.number,
+                    inv_line.invoice_id.partner_id.name,
+                    inv_line.name))
+            continue
         rec = {}
-        for agent in inv_line.invoice_id.partner_id.agents:
-            rec = {
-                'agent': agent.id,
-                'commission': agent.commission.id,
-            }
-            break
+        if not commission_free:
+            for agent in inv_line.invoice_id.partner_id.agents:
+                rec = {
+                    'agent': agent.id,
+                    'commission': agent.commission.id,
+                }
+                break
+        vals = {}
         if rec:
-            clodoo.writeL8(ctx, inv_line_model, inv_line.id,
-                           {'agents': [(0, 0, rec)]})
+            vals['agents'] = [(0, 0, rec)]
+        if commission_free:
+            vals['commission_free'] = commission_free
+        if vals:
+            clodoo.writeL8(ctx, inv_line_model, inv_line.id, vals)
             ctr += 1
-    # Force line update
-    for invoice in clodoo.browseL8(
-        ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, where1, order='id desc')):
-        msg_burst('%s ...' % invoice.name)
-        clodoo.writeL8(ctx, inv_model, invoice.id,
-            {'name': invoice.name})
+    if mode != 'C':
+        # Force line update
+        for invoice in clodoo.browseL8(
+            ctx, inv_model, clodoo.searchL8(
+                ctx, inv_model, where1, order='id desc')):
+            msg_burst('%s ...' % invoice.name)
+            clodoo.writeL8(ctx, inv_model, invoice.id,
+                {'name': invoice.name})
     print('%d account invoice lines updated' % ctr)
 
 
 def inv_commission_from_order(ctx):
     print('If missed, copy commission in invoice lines from sale order lines')
     if ctx['param_1'] == 'help':
-        print('inv_commission_from_order [Add,Recalculate] from_date|ids')
+        print('inv_commission_from_order [Add,Recalc|Check] from_date|ids')
         return
     inv_model = 'account.invoice'
     inv_line_model = 'account.invoice.line'
     inv_agent_model = 'account.invoice.line.agent'
     ctr = 0
-    mode = ctx['param_1'] or 'A'
-    while not mode.startswith('A') and not mode.startswith('R'):
-        mode = raw_input('Mode (Add_missed,Recalculate)? ')
-        mode = mode[0].upper() if mode else ''
-    day = datetime.now().day
-    month = datetime.now().month
-    year = datetime.now().year
-    if day < 15:
-        month -= 1
-        if month < 1:
-            month = 12
-            year -= 1
-    day = 1
-    from_date = '%04d-%02d-%02d' % (year, month, day)
-    date_ids = ctx['param_2'] or from_date
-    if not date_ids:
-        date_ids = raw_input(
-            'IDS to manage or date yyyy-mm-dd (empty means all)? ')
+    mode = param_mode_commission(ctx['param_1'])
+    date_ids = param_date(ctx['param_2'])
+    product_id, agent_id = param_product_agent(ctx['param_3'])
     if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
         ids = clodoo.searchL8(ctx, inv_model,
                               [('date_invoice', '>=', date_ids)])
@@ -436,16 +449,28 @@ def inv_commission_from_order(ctx):
     else:
         where = []
         where1 = []
+    if product_id:
+        where.append(('product_id', '=', product_id))
     where.append(('invoice_id.type', 'in', ('out_invoice', 'out_refund')))
     where1.append(('type', 'in', ('out_invoice', 'out_refund')))
     for inv_line in clodoo.browseL8(
         ctx, inv_line_model, clodoo.searchL8(
             ctx, inv_line_model, where, order='invoice_id desc,id')):
         msg_burst('%s ...' % inv_line.invoice_id.number)
-        if inv_line.agents:
-            if mode == 'A':
+        commission_free = False
+        if commission_free == inv_line.product_id:
+            commission_free = inv_line.product_id.commission_free
+        if inv_line.agents and not commission_free:
+            if mode in ('A', 'C'):
                 continue
             clodoo.unlinkL8(ctx, inv_agent_model, inv_line.agents.id)
+        if mode == 'C':
+            if not commission_free:
+                print('Inv. %s to %-30.30s line %-30.30s w/o commission' % (
+                    inv_line.invoice_id.number,
+                    inv_line.invoice_id.partner_id.name,
+                    inv_line.name))
+            continue
         for ord_line in inv_line.sale_line_ids:
             if not ord_line.agents.amount:
                 continue
@@ -457,34 +482,62 @@ def inv_commission_from_order(ctx):
                 ctx, inv_line_model, inv_line.id,
                 {'agents': agents})
             ctr += 1
-    for invoice in clodoo.browseL8(
-        ctx, inv_model, clodoo.searchL8(
-            ctx, inv_model, where1, order='id desc')):
-        msg_burst('%s ...' % invoice.number)
-        clodoo.writeL8(ctx, inv_model, invoice.id,
-            {'number': invoice.number})
+    if mode != 'C':
+        for invoice in clodoo.browseL8(
+            ctx, inv_model, clodoo.searchL8(
+                ctx, inv_model, where1, order='id desc')):
+            msg_burst('%s ...' % invoice.number)
+            clodoo.writeL8(ctx, inv_model, invoice.id,
+                {'number': invoice.number})
     print('%d invoice lines updated' % ctr)
 
 
 def update_einvoice_out_attachment(ctx):
     print('Update e-attachment of invoice')
     model = 'account.invoice'
-    inv_id = raw_input('Invoice id: ')
+    if ctx['param_1'] == 'help':
+        print('update_einvoice_out_attachment invoice_id [state]')
+        return
+    if ctx['param_1']:
+        inv_id = int(ctx['param_1'])
+    else:
+        inv_id = raw_input('Invoice id: ')
+        inv_id = int(inv_id) if inv_id else 0
     if inv_id:
-        inv_id = eval(inv_id)
         inv = clodoo.browseL8(ctx, model, inv_id)
         att = inv.fatturapa_attachment_out_id
         if not att:
             print('Invoice %s w/o attachment' % inv.number)
             return
         print('Processing invoice %s' % inv.number)
-        model = 'fatturapa.attachment.out'
-        att = clodoo.browseL8(ctx, model, att.id)
+        model_att = 'fatturapa.attachment.out'
+        att = clodoo.browseL8(ctx, model_att, att.id)
         print('Attachment ID = %d, state=%s' % (att.id, att.state))
-        state = raw_input(
-            'State (ready,sent,sender|recipient_error,reject,validated): ')
-        if state:
-            clodoo.writeL8(ctx, model, att.id, {'state': state})
+        state = ctx['param_2']
+        while state not in ('ready', 'sent', 'sender_error',
+                            'recipient_error', 'reject', 'validated'):
+            state = raw_input(
+                'State (ready,sent,sender|recipient_error,reject,validated): ')
+        clodoo.writeL8(ctx, model_att, att.id, {'state': state})
+
+
+def unlink_einvoice_out_attachment(ctx):
+    print('Unlink e-attachment of invoice')
+    model = 'account.invoice'
+    if ctx['param_1'] == 'help':
+        print('unlink_einvoice_out_attachment invoice_id')
+        return
+    if ctx['param_1']:
+        inv_id = int(ctx['param_1'])
+    else:
+        inv_id = raw_input('Invoice id: ')
+        inv_id = int(inv_id) if inv_id else 0
+    if inv_id:
+        inv = clodoo.browseL8(ctx, model, inv_id)
+        print('Processing invoice %s, attachment %d' % (
+            inv.number, inv.fatturapa_attachment_out_id))
+        clodoo.writeL8(ctx, model, inv.id,
+                       {'fatturapa_attachment_out_id': False})
 
 
 def revaluate_due_date_in_invoces(ctx, inv_id=False):
@@ -1398,7 +1451,7 @@ def configure_fiscal_position(ctx):
         'type_type_use': 'sale',
         'amount_type': 'percent',
         'company_id': company_id,
-        'nature_id': env_ref(ctx, 'l10n_it_ade.n3'),
+        'nature_id': env_ref(ctx, 'l10n_it_ade.n2'),
         'law_reference': 'NI art.7ter DPR633 (servizi xUE)'
     }
     vat_a7tv_id = synchro(ctx, model, vals)
@@ -1756,9 +1809,19 @@ def create_commission_env(ctx):
     for customer_id in CUSTOMERS:
         vals = {
             'agents': [(6, 0, [CUSTOMERS[customer_id]['agents']])],
+            'customer': True,
         }
         clodoo.writeL8(ctx, model, customer_id, vals)
         uctr += 1
+
+    model = 'product.product'
+    for id in clodoo.searchL8(ctx, model, [('type', '=', 'service')]):
+        clodoo.writeL8(ctx, model, id, {'commission_free': True})
+        uctr += 1
+    for id in clodoo.searchL8(ctx, model, [('default_code', '=', 'MISC')]):
+        clodoo.writeL8(ctx, model, id, {'commission_free': False})
+        uctr += 1
+
     print('%d records created, %d records updated' % (ictr, uctr))
 
 
@@ -3121,26 +3184,26 @@ if ctx['function']:
     exit()
 
 print('Avaiable functions:')
-print(' SALE ORDERS                     ACCOUNT INVOICES')
+print(' SALE ORDER                      ACCOUNT INVOICE')
 print(' - order_commission_by_partner   - inv_commission_from_order')
 print(' - other_addr_same_customer      - inv_commission_by_partner')
-print(' PURCHASE ORDERS                 - revaluate_due_date_in_invoces')
+print(' PURCHASE ORDER                  - revaluate_due_date_in_invoces')
 print(' - close_purchase_orders         - update_einvoice_out_attachment')
-print(' PRODUCTS                        - set_tax_code_on_invoice')
-print(' - set_products_2_consumable     - set_comment_on_invoice')
-print(' - products_2_delivery_order     DELIVERIES/SHIPPING')
-print(' RIBA                            - change_ddt_number')
-print(' - configure_RiBA                - show_empty_ddt')
-print(' - manage_riba                   COMMISSIONS')
-print(' PARTNERS/USERS                  - create_commission_env')
-print(' - configure_fiscal_position     OTHER TABLES')
-print(' - deduplicate_partner           - print_tax_codes')
+print(' PRODUCT                         - unlink_einvoice_out_attachment')
+print(' - set_products_2_consumable     - set_tax_code_on_invoice')
+print(' - products_2_delivery_order     - set_comment_on_invoice')
+print(' RIBA                            DELIVERY/SHIPPING')
+print(' - configure_RiBA                - change_ddt_number')
+print(' - manage_riba                   - show_empty_ddt')
+print(' PARTNER/USER                    COMMISSION')
+print(' - configure_fiscal_position     - create_commission_env')
+print(' - deduplicate_partner           OTHER TABLES')
 print(' - reset_email_admins            - set_report_config')
 print(' - simulate_user_profile         - rename_coa')
 print(' SYSTEM                          - display_module')
 print(' - clean_translations            - show_module_group')
-print(' - configure_email_template     - check_rec_links')
-print(' - test_synchro_vg7             - configure_fiscal_position')
+print(' - configure_email_template      - check_rec_links')
+print(' - test_synchro_vg7              - print_tax_codes')
 
 pdb.set_trace()
 

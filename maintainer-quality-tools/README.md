@@ -210,6 +210,7 @@ W7909 | :x:     |         |         |        | :white_check_mark: | redundant-mo
 W7910 | :x:     | :white_check_mark: |         |        | :white_check_mark: | wrong-tabs-instead-of-spaces
 W7930 | :x:     |         |         |        | :white_check_mark: | [file-not-used](https://pypi.org/project/pylint-odoo/1.4.0)
 W7935 | :x:     |         |         |        | :white_check_mark: | missing-import-error
+W7940 | :x:     |         |         |        | :white_check_mark: | dangerous-view-replace-wo-priority
 W7950 | :x:     |         |         |        | :white_check_mark: | odoo-addons-relative-import
 E8102 | :x:     |         |         |        | :white_check_mark: | invalid-commit
 C8103 | :x:     |         |         |        | :white_check_mark: | [manifest-deprecated-key](https://pypi.org/project/pylint-odoo/1.4.0)
@@ -258,6 +259,33 @@ Look at follow table to understand which set of tests are enabled or disabled:
    NO-CORE       | :white_check_mark: | :white_check_mark: | :x:                | :white_check_mark:
 
 
+Disable pylint and/or flake8 checks
+-----------------------------------
+
+You can disable some specific test or some file from lint checks.
+
+To disable flake8 checks on specific file you can add following line at the beginning of python file:
+
+`# flake8: noqa`
+
+To disable pylint checks on specific file you can add following line at the beginning of python file:
+
+`# pylint: skip-file`
+
+To disable both flake8 and pylint checks on specific file you can add following line at the beginning of python file:
+
+`# flake8: noqa - pylint: skip-file`
+
+To disable pylint checks on specific XML file you can add following line in XML file after xml declaration:
+
+`<!-- pylint:disable=deprecated-data-xml-node -->`
+
+You can also disable specific pylint check in some source part of python file adding a comment at the same statement to disable check. Here an example to disable sql error (notice comment must be at beginning of the statement):
+
+`self._cr.execute(      # pylint: disable=E8103`
+
+
+
 Disable test
 ------------
 
@@ -285,12 +313,14 @@ You can highly customize you test: look at below table.
  ODOO_TEST_SELECT       | ALL           | Read above
  ODOO_TNLBOT            | 0             | No yet documented
  OPTIONS                |               | Options passed to odoo-bin/openerp-server to execute tests
+ PHANTOMJS_VERSION      |               | Version of PhantomJS
  SERVER_EXPECTED_ERRORS |               | # of expected errors after tests
  TRAVIS_DEBUG_MODE      | 0             | Read above
  UNBUFFER               | True          | Use unbuffer (colors) to log results
  UNIT_TEST              |               | Read above
  TEST                   |               | Read above
  VERSION                |               | Odoo version to test (see above)
+ WEBSITE_REPO           |               | Load package for website tests
  WKHTMLTOPDF_VERSION    | 0.12.4        | Version of wkhtmltopdf (value are 0.12.1 and 0.12.5)
 
 
@@ -308,7 +338,7 @@ where "n" means:
  Inspect internal data  | :x:   | :x:                | :white_check_mark: | :white_check_mark: | :white_check_mark:
  MQT tests              | :x:   | :x:                | :x:                | :white_check_mark: | :white_check_mark:
  Installation log level | ERROR | WARN               | INFO               | INFO               | :x: 
- Execution logo level   | INFO  | TEST               | TEST               | TEST               | :x:
+ Execution log level    | INFO  | TEST               | TEST               | TEST               | :x:
  
 Note this feature does not work with OCA MQT. Local test and TravisCI test have slightly different behavior.
 

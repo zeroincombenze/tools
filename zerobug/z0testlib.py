@@ -140,7 +140,7 @@ import sys
 import subprocess
 from string import Template
 from subprocess import Popen, PIPE
-from shutil import rmtree
+import shutil
 import argparse
 import inspect
 import glob
@@ -1520,4 +1520,72 @@ class Z0test(object):
                 path = os.path.join(root, path)
             if not os.path.isdir(path):
                 continue
-            rmtree(path, ignore_errors=True)
+            shutil.rmtree(path, ignore_errors=True)
+
+class Z0testOdoo(object):
+
+    def build_odoo_env(self, ctx, version):
+        if version in ('10.0', '11.0', '12.0', '13.0'):
+            odoo_home = os.path.join(version, 'odoo')
+        elif version in ('6.1', '7.0', '8.0', '9.0'):
+            odoo_home = os.path.join(version, 'openerp')
+        else:
+            raise KeyError('Invalid Odoo version')
+        os_tree = [version,
+                   os.path.join(version, 'addons'),
+                   odoo_home]
+        root = Z0test().build_os_tree(ctx, os_tree)
+        RELEASE_PY = '''
+RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
+RELEASE_LEVELS_DISPLAY = {ALPHA: ALPHA,
+                          BETA: BETA,
+                          RELEASE_CANDIDATE: 'rc',
+                          FINAL: ''}
+version_info = (%s, %s, 0, ''final, 0, '')
+version = '.'.join(map(str, version_info[:2])) + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
+series = serie = major_version = '.'.join(map(str, version_info[:2]))'''
+        fd = open(os.path.join(root, odoo_home, 'release.py'), 'w')
+        versions = version.split('.')
+        fd.write(RELEASE_PY % (versions[0], versions[1]))
+        fd.close()
+        return root
+
+    def real_git_clone(self, remote, reponame, branch, odoo_path):
+        odoo_url = 'https://github.com/%s/%s.git' % (remote, reponame)
+        os.system('git clone --depth=50 %s -b %s %s' % (
+            odoo_url, branch, odoo_path))
+        os.system(
+            'git --work-tree=%s --git-dir=%s/.git remote rename origin %s' % (
+                odoo_path, odoo_path, remote))
+
+    def git_clone(self, remote, reponame, branch, odoo_path, force=None):
+        if force or os.environ['TRAVIS'] == 'true':
+            self.real_git_clone(remote, reponame, branch, odoo_path)
+        elif not os.path.isdir(odoo_path):
+            majver = branch.split('.')[0]
+            if remote == 'OCA':
+                src_rep_path = os.path.join(
+                    os.environ['TRAVIS_SAVED_HOME'],
+                    '%s%s' % (remote.lower(), majver))
+                if not os.path.isdir(src_rep_path):
+                    self.git_clone(self, remote, reponame, branch, odoo_path)
+                    os.rename(odoo_path, src_rep_path)
+                if not os.path.isdir(src_rep_path):
+                    src_rep_path = None
+            else:
+                src_rep_path = os.path.join(
+                    os.environ['TRAVIS_SAVED_HOME'],
+                    branch)
+            if reponame == 'OCB':
+                for nm in ('addons', 'odoo', 'openerp'):
+                    src_path = os.path.join(src_rep_path, nm)
+                    dst_path = os.path.join(odoo_path, nm)
+                    if os.path.isdir(src_path):
+                        shutil.copytree(src_path, dst_path)
+                for nm in ('.travis.yml', 'odoo-bin', 'openerp-server',
+                           'openerp-wsgi.py', 'requirements.txt'):
+                    src_path = os.path.join(src_rep_path, nm)
+                    if os.path.isfile(src_path):
+                        shutil.copy(src_path, odoo_path)
+            else:
+                shutil.copytree(src_rep_path, odoo_path)

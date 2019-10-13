@@ -12,6 +12,7 @@ from past.builtins import basestring
 import os
 import sys
 from zerobug import Z0BUG
+from zerobug import Z0testOdoo
 
 __version__ = "0.2.14.12"
 
@@ -33,7 +34,7 @@ class RegressionTest():
         sts = TEST_SUCCESS
         RES = False
         if not z0ctx['dry_run']:
-            self.root = self.Z.build_os_tree(z0ctx, self.os_tree)
+            self.root = Z0testOdoo.build_odoo_env(z0ctx, '10.0')
         for path in self.os_tree:
             if not z0ctx['dry_run']:
                 path = os.path.join(self.root, path)
@@ -42,9 +43,15 @@ class RegressionTest():
                                      'mkdir %s' % path,
                                      True,
                                      RES)
+        if not z0ctx['dry_run']:
+            path = os.path.join(self.root, self.os_tree[2], 'release.py')
+        sts = self.Z.test_result(z0ctx,
+                                 path,
+                                 True,
+                                 os.path.isfile(path))
         return sts
 
-    def test_09(self, z0ctx):
+    def test_02(self, z0ctx):
         sts = TEST_SUCCESS
         RES = False
         if not z0ctx['dry_run']:
@@ -59,11 +66,35 @@ class RegressionTest():
                                      RES)
         return sts
 
+    def test_03(self, z0ctx):
+        sts = TEST_SUCCESS
+        RES = False
+        if not z0ctx['dry_run']:
+            remote = 'OCA'
+            reponame = 'OCB'
+            branch = '10.0'
+            odoo_path = os.path.join(self.root, branch)
+            Z0testOdoo.git_clone(remote, reponame, branch, odoo_path)
+        for path in self.os_tree:
+            if not z0ctx['dry_run']:
+                path = os.path.join(self.root, path)
+                RES = os.path.isdir(path)
+            sts = self.Z.test_result(z0ctx,
+                                     'mkdir %s' % path,
+                                     True,
+                                     RES)
+        if not z0ctx['dry_run']:
+            path = os.path.join(self.root, self.os_tree[2], 'release.py')
+        sts = self.Z.test_result(z0ctx,
+                                 path,
+                                 True,
+                                 os.path.isfile(path))
+        return sts
+
     def setup(self, z0ctx):
         self.os_tree = ['10.0',
-                        '10.0/l10n-italy',
-                        '10.0/l10n-italy/l10n_it_base',
-                        '/tmp/zerobug']
+                        '10.0/addons',
+                        '10.0/odoo',]
 
 #
 # Run main if executed as a script

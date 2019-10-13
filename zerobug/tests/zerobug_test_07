@@ -47,7 +47,7 @@ test_01() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
         [ -d $path ] && RES=1 || RES=0
-        test_result "mkdir $path" "$RES" "1"
+        test_result "mkdir $path" "1" "$RES"
         sts=$?
       fi
     done
@@ -63,7 +63,7 @@ test_09() {
       if [ ${opt_dry_run:-0} -eq 0 ]; then
         [ "${path:0:1}" != "/" ] && path=$Z0BUG_root/$path
         [ -d $path ] && RES=0 || RES=1
-        test_result "rmdir $path" "$RES" "1"
+        test_result "rmdir $path" "1" "$RES"
         sts=$?
       fi
     done
