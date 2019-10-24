@@ -496,6 +496,7 @@ status	msgid	msgstr
 	Latest Follow-up Date	Data ultimo sollecito
 	Latest Follow-up Level	Livello ultimo sollecito
 	Law reference	Riferimento legislativo
+	Layout	Impaginazione
 	Leads	Relazioni
 	Leads & Opportunities	Relazioni e opportunità
 	Legal Notice	Dati fiscali e legali
@@ -648,6 +649,7 @@ status	msgid	msgstr
 	Partner cumul aged balance	Cumulo poste ripartite per data
 	Partner ending balance	Saldo finale soggetto
 	Partner Initial balance	Saldo iniziale soggetto
+	Partner name	Nome soggetto
 	Partner VAT and Fiscalcode not set.	Soggetto senza P.IVA e senza codice fiscale
 	Partner VAT number and fiscal code are not set.	Partita IVA e codice fiscale del soggetto non impostati.
 	Partner/Customer	Soggetto/Cliente
@@ -709,6 +711,9 @@ status	msgid	msgstr
 	Profit Account	Conto profitti
 	Profit and Loss	Profitti e Perdite
 	Progress data	Dati stato avanzamento lavori
+	Progressive Credit	Avere progressivo
+	Progressive Debit	Dare progressivo
+	Progressive line	Progressivo riga
 	Protocol Number	Numero protocollo
 	Provider	Trasportatore
 	Province ( %s ) not present in your system	Provincia ( %s ) non presente nel sistema
