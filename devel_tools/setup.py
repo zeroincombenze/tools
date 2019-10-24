@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='devel_tools',
-      version='0.2.2.22',
+      version='0.2.2.23',
       description='Python developers tools',
       long_description="""
 Tool to parse, edit and migrate python source code

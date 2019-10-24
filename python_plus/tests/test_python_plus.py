@@ -27,7 +27,7 @@ def version():
     return __version__
 
 if __name__ == "__main__":
-    exit(Z0BUG.main_file(
+    exit(Z0BUG.main(
         Z0BUG.parseoptest(sys.argv[1:],
                           version=version()))
     )

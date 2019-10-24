@@ -28,5 +28,5 @@ def version():
 if __name__ == "__main__":
     ctx = Z0BUG.parseoptest(sys.argv[1:],
                         version=version())
-    UT_LIST = ["__doctest_${rundir}/egg-info/python_plus.rst"]
-    exit(Z0BUG.main_file(ctx, UT=UT_LIST))
+    UT_LIST = ["__doctest_${rundir}/docs/python_plus.rst"]
+    exit(Z0BUG.main(ctx, UT=UT_LIST))

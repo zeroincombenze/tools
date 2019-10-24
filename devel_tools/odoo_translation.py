@@ -23,7 +23,7 @@ except ImportError:
     import clodoo
 
 
-__version__ = "0.2.2.22"
+__version__ = "0.2.2.23"
 
 MAX_RECS = 100
 TNL_DICT = {}
@@ -317,10 +317,11 @@ def upgrade_db(ctx):
                 try:
                     clodoo.writeL8(ctx, model, id, {'value': TNL_DICT[msgid]})
                     ctr += 1
-                except IOError:
-                    print("*** Error writing %s!!!" % TNL_DICT[msgid])
-                except BaseException:
-                    print("*** Fatal error writing %s!!!" % TNL_DICT[msgid])
+                except IOError as e:
+                    print("*** Error %e writing %s!!!" % (e, TNL_DICT[msgid]))
+                except BaseException as e:
+                    print("*** Fatal error %s writing %s!!!" % (
+                        e, TNL_DICT[msgid]))
                     clodoo.unlinkL8(ctx, model, id)
         return ctr
 

@@ -20,13 +20,13 @@
 # -- Project information -----------------------------------------------------
 
 project = 'python_plus'
-copyright = '2019, Antonio M. Vigliotti'
-author = 'Antonio M. Vigliotti'
+copyright = '2019, Antonio Maria Vigliotti'
+author = 'Antonio Maria Vigliotti'
 
 # The short X.Y version
-version = ''
+version = '0.1.0'
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '0.1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -58,7 +58,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -129,7 +129,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'python_plus.tex', 'python\\_plus Documentation',
-     'Antonio M. Vigliotti', 'manual'),
+     'Antonio Maria Vigliotti', 'manual'),
 ]
 
 

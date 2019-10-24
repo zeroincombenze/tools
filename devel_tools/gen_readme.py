@@ -93,7 +93,7 @@ except ImportError:
 # import pdb
 
 
-__version__ = "0.2.2.22"
+__version__ = "0.2.2.23"
 
 GIT_USER = {
     'zero': 'zeroincombenze',
@@ -196,11 +196,17 @@ def get_full_fn(ctx, src_path, filename):
         full_fn = os.path.join(src_path.replace('${p}',
                                                 ctx['product_doc']),
                                filename)
+    if (os.path.basename(os.path.dirname(full_fn)) == 'docs' and
+            not os.path.isdir(os.path.dirname(full_fn))):
+        full_fn = os.path.join(os.path.dirname(os.path.dirname(full_fn)),
+                               'egg-info',
+                               filename)
     return full_fn
 
 
 def iter_tempate_path(debug_mode=None, body=None):
     for src_path in ('.',
+                     './docs',
                      './egg-info',
                      '/opt/odoo/dev/pypi/tools/templates/${p}',
                      '/opt/odoo/dev/templates/${p}',
@@ -210,7 +216,8 @@ def iter_tempate_path(debug_mode=None, body=None):
             continue
         elif src_path.find('/dev/templates') >= 0 and debug_mode:
             continue
-        if not body and src_path.find('./egg-info') >= 0:
+        if not body and (src_path.find('./docs') >= 0 or
+                         src_path.find('./egg-info') >= 0):
             continue
         yield src_path
 
@@ -268,7 +275,7 @@ def clean_summary(summary):
 
 
 def generate_description_file(ctx):
-    full_fn = get_full_fn(ctx, 'egg-info', 'description.rst')
+    full_fn = get_full_fn(ctx, 'docs', 'description.rst')
     if ctx['opt_verbose']:
         print("Writing %s" % full_fn)
     if not os.path.isdir(os.path.dirname(full_fn)):
@@ -1407,6 +1414,8 @@ def generate_readme(ctx):
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]
+    # import pdb
+    # pdb.set_trace()
     for section in DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.rst' % section,
