@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.16
+__version__=0.2.2.17
 
 
 #
@@ -1880,22 +1880,41 @@ do_distribution() {
 
 do_docs() {
     wlog "do_docs $1"
-    local sts=$STS_SUCCESS
-    local doxygen_conf
-    doxygen_conf=.${1}_doc.conf
-    if [ ! -f $doxygen_conf ]; then
-      doxygen -g $doxygen_conf
-      vim $doxygen_conf
+    # local sts=$STS_SUCCESS
+    # local doxygen_conf
+    # doxygen_conf=.${1}_doc.conf
+    # if [ ! -f $doxygen_conf ]; then
+    #   doxygen -g $doxygen_conf
+    #   vim $doxygen_conf
+    # fi
+    # # sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
+    # cvt_doxygenconf $doxygen_conf
+    # run_traced "doxygen $doxygen_conf"
+    # sts=$?
+    # if [ $opt_verbose -gt 0 ]; then
+    #   echo ""
+    #   echo -e "Use: \e[1m$THIS publish $1 docs\e[0m"
+    #   echo "     to publish this documentation on docs.zeroincombenze.org/$1"
+    # fi
+    local docs_dir=./docs
+    local author version
+    [ ! -d $docs_dir ] && run_traced "mkdir $docs_dir"
+    run_traced "cd $docs_dir"
+    if [ ! -f index.rst -a ! -f conf.py ]; then
+        if [ -f ./setup.y ]; then
+            author=$(grep "^ *author *=.*" ~/dev/pypi/clodoo/clodoo/setup.py|awk -F= '{print $2}')
+            author="${author:1: -2}"
+            version=$(grep "^ *version *=.*" ~/dev/pypi/clodoo/clodoo/setup.py|awk -F= '{print $2}')
+            version="${version:1: -2}"
+        else
+            author="Antonio Maria Vigliotti"
+            version="0.1.0"
+        fi
+        sphinx-quickstart -p "$PRJNAME" -a "$author" -v "$version" -r "$version" -l en --no-batchfile --makefile --master index --suffix .rst
+        vim conf.py
     fi
-    # sed -i 's/^GENERATE_LATEX *=*YES/GENERATE_LATEX         = NO/g' $doxygen_conf
-    cvt_doxygenconf $doxygen_conf
-    run_traced "doxygen $doxygen_conf"
+    run_traced "make html"
     sts=$?
-    if [ $opt_verbose -gt 0 ]; then
-      echo ""
-      echo -e "Use: \e[1m$THIS publish $1 docs\e[0m"
-      echo "     to publish this documentation on docs.zeroincombenze.org/$1"
-    fi
     return $sts
 }
 

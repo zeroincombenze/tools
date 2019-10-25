@@ -1,6 +1,3 @@
-zerobug
-=======
-
 Zeroincombenze® continuous testing framework for python and bash programs
 -------------------------------------------------------------------------
 
