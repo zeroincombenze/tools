@@ -36,6 +36,7 @@ Usage / Utilizzo
 
 {{usage}}
 .. $fi
+.. $if not no_section_oca_diff
 .. $if defined oca_diff
 
 |
@@ -44,6 +45,7 @@ OCA comparation / Confronto con OCA
 -----------------------------------
 
 {{oca_diff}}
+.. $fi
 .. $fi
 
 |

@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.37
+__version__=0.2.2.38
 
 
 conf_default() {
@@ -284,7 +284,6 @@ sts=$STS_SUCCESS
 [ "${MQT_VERBOSE_MODE:-0}" == "1" ] && opt_verbose=1
 [ "${MQT_VERBOSE_MODE:-1}" == "0" ] && opt_verbose=0
 [ ${TRAVIS_DEBUG_MODE:-0} -ne 0 ] && opt_verbose=1
-# [ ${TRAVIS_DEBUG_MODE:-0} -gt 1 ] && PYPI_CACHED=$HOME/.local
 if [ ${opt_regr:-0} -gt 0 ]; then
   LINT_CHECK="0"
   TESTS="1"
@@ -321,23 +320,6 @@ if [ -d $HOME/dev ]; then
   set_pythonpath "" "$HOME/dev/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-#   if [ -f $HOME/dev/sitecustomize.py ]; then
-#     PYLIB=$(dirname $($PIP --version|grep -Eo "from [^ ]+"|awk '{print $2}'))
-#     if [ -z "$PYLIB" ]; then
-#       PYLIB=$(findpkg "" "$HOME/virtualenv $HOME/python${TRAVIS_PYTHON_VERSION}_with_system_site_packages $HOME/local  $HOME/.local $HOME/lib64 $HOME/lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages local lib64 lib" "python${TRAVIS_PYTHON_VERSION} site-packages" "site-packages")
-#     fi
-#     if [ -n "$PYLIB" ]; then
-#       if [ -f $PYLIB/sitecustomize.py ]; then
-#         if grep -q "import sys" $PYLIB/sitecustomize.py; then
-#           run_traced "tail $HOME/dev/sitecustomize.py -n -1 >> $PYLIB/sitecustomize.py"
-#         else
-#           run_traced "cat $HOME/dev/sitecustomize.py >> $PYLIB/sitecustomize.py"
-#         fi
-#       else
-#         run_traced "cp $HOME/dev/sitecustomize.py $PYLIB"
-#       fi
-#     fi
-#   fi
 else
   echo "!! Error! Directory $HOME/dev not found!"
 fi
@@ -347,18 +329,6 @@ if [ "${TRAVIS_PYTHON_VERSION:0:1}" == "3" ]; then
 else
   echo -e "import sys\nprint 'sys.path=%s' % sys.path\n"|python
 fi
-# if echo -e "import sys\nfor x in sys.path:\n  print x,"|python|grep -q " $HOME/tools "; then
-#   :
-# else
-#   echo "Warning: sitecustomize.py without effect! Use PYTHONPATH method"
-#   if [ -f $HOME/dev/activate_tools ]; then
-#     [ $opt_verbose -gt 0 ] && echo -e "\e[${PS_RUN_COLOR}m$pfx$xcmd\$ . $HOME/dev/activate_tools\e[${PS_TXT_COLOR}m"
-#     . $HOME/dev/activate_tools
-#     [ ${TRAVIS_DEBUG_MODE:-0} -gt 2 ] && echo "PYTHONPATH=$PYTHONPATH"
-#   else
-#     echo "Path to tools not active! Tests may fail!"
-#   fi
-# fi
 run_traced "$PIP install -q pip --upgrade" "nolocal"
 run_traced "$PIP install -q future --upgrade" "nolocal"
 MGRODOO=$(which manage_odoo 2>/dev/null)
@@ -585,6 +555,9 @@ else
     if [ "${PHANTOMJS_VERSION}" != "OS" ]; then
       run_traced "npm install --prefix ${TRAVIS_BUILD_DIR} \"phantomjs-prebuilt@${PHANTOMJS_VERSION:=latest}\""
       run_traced "ln -s \"${TRAVIS_BUILD_DIR}/node_modules/phantomjs-prebuilt/lib/phantom/bin/phantomjs\" \"${HOME}/maintainer-quality-tools/travis/phantomjs\""
+    fi
+    if [ "${CHROME_TEST}" == "1" ]; then
+      run_traced "google-chrome --version"
     fi
   fi
   if [[ "$PKGNAME" == "OCB" ]]; then

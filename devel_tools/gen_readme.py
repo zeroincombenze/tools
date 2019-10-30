@@ -588,7 +588,7 @@ def tohtml(text, state=None):
     return state, '\n'.join(lines)
 
 
-def expand_macro(ctx, token):
+def expand_macro(ctx, token, default=None):
     if token[0:12] == 'grymb_image_' and \
             token[12:] in DEFINED_GRYMB_SYMBOLS:
         value = 'https://raw.githubusercontent.com/zeroincombenze/grymb' \
@@ -704,6 +704,8 @@ def expand_macro(ctx, token):
             value = value.lower()
     elif token in ctx:
         value = ctx[token]
+    elif default is not None:
+        value = default
     else:
         value = 'Unknown %s' % token
     return value
@@ -766,12 +768,6 @@ def _init_state():
             'in_fmt': 'rst'}
 
 
-def value_of_term(ctx, term):
-    if term[0] in ('"', "'"):
-        return term[1:-1]
-    return expand_macro(ctx, term)
-
-
 def validate_condition(ctx, *args):
     val = ''
     in_cond = False
@@ -798,7 +794,8 @@ def validate_condition(ctx, *args):
                     in_cond = True
                     val += '('
             else:
-                val += '\'%s\'%s' % (expand_macro(ctx, args[i]), pad)
+                val += '\'%s\'%s' % (expand_macro(ctx, args[i], default='0'),
+                                     pad)
         else:
             val += '%s%s' % (args[i], pad)
         i += 1
@@ -1414,8 +1411,6 @@ def generate_readme(ctx):
         ctx[section] = parse_local_file(ctx, '%s.txt' % section,
                                         ignore_ntf=True,
                                         out_fmt=out_fmt)[1]
-    # import pdb
-    # pdb.set_trace()
     for section in DEFINED_SECTIONS:
         out_fmt = None
         ctx[section] = parse_local_file(ctx, '%s.rst' % section,

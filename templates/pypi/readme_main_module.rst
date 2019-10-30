@@ -1,19 +1,16 @@
 .. $include readme_header.rst
 
-Overview / Panoramica
-=====================
+Overview
+========
 
-|en| {{description}}
+{{description}}
 
-|
-
-|it| {{descrizione}}
 .. $if defined features
 
 |
 
-Features / Caratteristiche
---------------------------
+Features
+--------
 
 {{features}}
 .. $fi
@@ -22,33 +19,21 @@ Features / Caratteristiche
 |
 |
 
-Certifications / Certificazioni
--------------------------------
+Certifications
+--------------
 
 {{certifications}}
 .. $fi
-.. $if defined usage
-
-|
-
-Usage / Utilizzo
-----------------
-
-{{usage}}
-
-.. $fi
 |
 |
 
-Getting started / Come iniziare
-===============================
-
-|Try Me|
+Quick start
+===========
 
 .. $if defined prerequisites
 
-Prerequisites / Prerequisiti
-----------------------------
+Prerequisites
+-------------
 
 {{prerequisites}}
 .. $fi
@@ -56,8 +41,8 @@ Prerequisites / Prerequisiti
 
 |
 
-Installation / Installazione
-----------------------------
+Installation
+------------
 
 {{installation}}
 .. $fi
@@ -65,8 +50,8 @@ Installation / Installazione
 
 |
 
-Configuration / Configurazione
-------------------------------
+Configuration
+-------------
 
 {{configuration}}
 .. $fi
@@ -74,8 +59,8 @@ Configuration / Configurazione
 
 |
 
-Upgrade / Aggiornamento
------------------------
+Upgrade
+-------
 
 {{upgrade}}
 .. $fi
@@ -83,18 +68,27 @@ Upgrade / Aggiornamento
 
 |
 
-Support / Supporto
-------------------
+Support
+-------
 
 {{support}}
 .. $fi
+.. $if defined usage
+
+|
+
+Usage
+=====
+
+{{usage}}
+
+.. $fi
+|
+|
+
+Get involved
+============
 .. $if defined maintenance
-
-|
-|
-
-Get involved / Ci mettiamo in gioco
-===================================
 
 {{maintenance}}
 .. $fi
@@ -102,8 +96,8 @@ Get involved / Ci mettiamo in gioco
 
 |
 
-Troubleshooting / Risoluzione dei problemi
-------------------------------------------
+Troubleshooting
+---------------
 
 {{troubleshooting}}
 .. $fi
@@ -111,8 +105,8 @@ Troubleshooting / Risoluzione dei problemi
 
 |
 
-Known issues / Roadmap
-----------------------
+Known issues
+------------
 
 {{known_issues}}
 .. $fi
@@ -125,15 +119,15 @@ Proposals for enhancement
 .. $fi
 .. $if defined history
 
-ChangeLog History / Cronologia modifiche
-----------------------------------------
+ChangeLog History
+-----------------
 
 {{history}}
 .. $fi
 .. $if defined faq
 
-FAQ / Domande & Risposte
-------------------------
+FAQ
+---
 
 {{faq}}
 .. $fi
@@ -141,41 +135,41 @@ FAQ / Domande & Risposte
 |
 |
 
-Credits / Didascalie
-====================
+Credits
+=======
 
 Copyright
 ---------
 
-SHS-AV s.r.l. - <https://www.shs-av.com/>
+SHS-AV s.r.l. <https://www.shs-av.com/>
 
 .. $if defined authors
 
 |
 
-Authors / Autori
------------------
+Authors
+-------
 
 {{authors}}
 .. $fi
 .. $if defined contributors
 
-Contributors / Collaboratori
-----------------------------
+Contributors
+------------
 
 {{contributors}}
 .. $fi
 .. $if defined acknowledges
 
-Acknowledges / Riconoscimenti
------------------------------
+Acknowledges
+------------
 
 {{acknowledges}}
 .. $fi
 .. $if defined translators
 
-Translations by / Traduzioni a cura di
---------------------------------------
+Translations by
+---------------
 
 {{translators}}
 .. $fi

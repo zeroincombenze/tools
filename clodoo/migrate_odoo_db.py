@@ -34,7 +34,7 @@ import transodoo
 # import pdb
 
 
-__version__ = "0.3.8.56"
+__version__ = "0.3.8.57"
 MAX_DEEP = 20
 SYSTEM_MODEL_ROOT = [
     'base.config.',
@@ -133,7 +133,6 @@ VERSIONS = ('6.1', '7.0', '8.0', '9.0', '10.0', '11.0', '12.0')
 DEF_CONF = {}
 MODULES_2_LEAVE_BEHIND = [
     'process',
-    'account_report_company',
 ]
 PRE_MIGRATION = '''
 # -*- coding: utf-8 -*-
@@ -226,7 +225,9 @@ def copy_db(ctx, old_db, new_db):
               '| pg_restore -U%s --no-password --dbname=%s' % (
                   ctx['db_user'], old_db, ctx['db_user'], new_db)
         os0.wlog('>>> %s' % cmd)
-        sts = os.system(cmd)
+        sts = 0
+        if not src_ctx['dry_run']:
+            sts = os.system(cmd)
         return (sts == 0)
     return True
 
@@ -431,6 +432,9 @@ def wep_logs(ctx):
     tmp_dir = os.path.join(ctx['opt_oupath'], 'openupgrade')
     if os.path.isdir(tmp_dir):
         shutil.rmtree(tmp_dir)
+    flog_dir =  os.path.dirname(ctx['logfn'])
+    if not os.path.isdir(flog_dir):
+        os.mkdir(flog_dir)
     if os.path.isfile(ctx['logfn']):
         os.remove(ctx['logfn'])
     if os.path.isfile(ctx['logfile']):
@@ -524,6 +528,8 @@ def remove_unmigrable_modules(src_ctx, tgt_ctx, bad_module_list):
     }
     odoo_fver = tgt_ctx['tgt_odoo_fver']
     uid, ctx = clodoo.oerp_set_env(ctx=src_ctx, db=tgt_ctx['db_name'])
+    # FIX oerp_set_env change dry_run
+    src_ctx['dry_run'] = tgt_ctx['dry_run']
     for module in bad_module_list:
         if module in MODULES_2_DROP[odoo_fver]:
             drop_module(ctx, module)
@@ -1322,7 +1328,11 @@ def migrate_sel_tables(src_ctx, tgt_ctx):
     src_ctx = init_ctx(src_ctx)
     src_ctx, tgt_ctx, src_config = adjust_ctx(src_ctx, tgt_ctx)
     uid, src_ctx = clodoo.oerp_set_env(ctx=src_ctx)
+    # FIX oerp_set_env change dry_run
+    src_ctx['dry_run'] = tgt_ctx['dry_run']
     uid, tgt_ctx = clodoo.oerp_set_env(ctx=tgt_ctx)
+    # FIX oerp_set_env change dry_run
+    tgt_ctx['dry_run'] = src_ctx['dry_run']
     transodoo.read_stored_dict(src_ctx)
     tgt_ctx['mindroot'] = src_ctx['mindroot']
     if not tgt_ctx['sel_model']:
@@ -1361,8 +1371,7 @@ def migrate_sel_tables(src_ctx, tgt_ctx):
         copy_table(tgt_ctx, src_ctx, model, mode=mode)
 
 
-def init_ctx(src_ctx, phase=None):
-    phase = phase or 1
+def init_ctx(src_ctx):
     src_ctx['src_vid'] = src_ctx['from_branch']
     src_ctx['src_odoo_fver'] = clodoo.build_odoo_param(
             'FULLVER', odoo_vid=src_ctx['from_branch'], multi=True)
@@ -1490,6 +1499,10 @@ def load_openupgrade(ctx, odoo_fver):
             apply_patch(ou_ver_path, ctx['tgt_odoo_fver'])
     else:
         os0.wlog('Found valid directory %s' % ctx['opt_oupath'])
+    if not src_ctx['no_venv'] and not src_ctx['dry_run']:
+        venv_path = os.path.join(tgt_ctx['venv_oupath'], 'openupgrade')
+        if not os.path.isdir(venv_path):
+            os.symlink(ou_ver_path, venv_path)
     return ou_ver_path
 
 
@@ -1753,6 +1766,12 @@ def adjust_ctx(src_ctx, tgt_ctx):
             src_config.set('options', item, src_ctx[item])
             tgt_ctx[item] = 'True'
             tgt_config.set('options', item, tgt_ctx[item])
+    if src_ctx['no_venv']:
+        src_ctx['venv_oupath'] = src_ctx['opt_oupath']
+    else:
+        src_ctx['venv_oupath'] = os.path.join(
+            os.path.expanduser('~'), 'VENV-%s' % tgt_ctx['tgt_odoo_fver'])
+    tgt_ctx['venv_oupath'] = src_ctx['venv_oupath']
     return src_ctx, tgt_ctx, src_config, tgt_config
 
 
@@ -1839,9 +1858,11 @@ def fix_bug_post(src_ctx, tgt_ctx, tgt_full_lconf, tgt_paths):
         pass
 
 
-def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
+def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config, phase=None):
 
     def get_wrong_modules(ctx, bad_module_list=None):
+        if src_ctx['dry_run']:
+            return []
         if bad_module_list:
             if len(bad_module_list) == 1:
                 query = '''select id,name,state from ir_module_module
@@ -1879,45 +1900,72 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
                 if os.path.isfile(script):
                     oupath_script = script
                     break
-        sts= run_traced(oupath_script,
-                        '-c', tgt_full_lconf,
-                        '-d', tgt_ctx['db_name'],
-                        '-u', 'all',
-                        '--stop-after-init',
-                        '--no-xmlrpc',
-                        '--logfile=%s' % tgt_ctx['logfile'])
+        if src_ctx['no_venv']:
+            sts = run_traced(oupath_script,
+                             '-c', tgt_full_lconf,
+                             '-d', tgt_ctx['db_name'],
+                             '-u', 'all',
+                             '--stop-after-init',
+                             '--no-xmlrpc',
+                             '--logfile=%s' % tgt_ctx['logfile'])
+        else:
+            script = os.path.join(ou_ver_path, 'migrate.sh')
+            fd = open(script, 'w')
+            fd.write('cd %s\n' % tgt_ctx['venv_oupath'])
+            fd.write('source ./bin/activate\n')
+            fd.write('%s -c %s -d %s -u all --stop-after-init --no-xmlrpc'
+                     ' --logfile=%s\n' % (
+                         oupath_script, tgt_full_lconf,
+                         tgt_ctx['db_name'],
+                         tgt_ctx['logfile']))
+            fd.write('sts=$?\n')
+            fd.write('deactivate\n')
+            fd.write('exit $sts\n')
+            fd.close()
+            os.chmod(script, 0744)
+            sts = 0
+            if not src_ctx['dry_run']:
+                sts = os.system(script)
         if sts:
             os0.wlog('*** Return code %d ***')
-        else:
+        elif not src_ctx['dry_run']:
             time.sleep(5)
 
+    phase = phase or 2
     tgt_saved_fconf = tgt_ctx['conf_fn']
     src_full_lconf = prepare_config_file(src_ctx, src_config)
     if (src_ctx['src_vid'] == src_ctx['from_branch'] and
             get_wrong_modules(src_ctx)):
-        os0.wlog('*** Unstable installation: try to correct errors ***')
-        run_odoo_alltest(src_ctx['tgt_vid'], src_full_lconf,
-                         src_ctx['db_name'], src_ctx['logfile'])
-        bad_modules = get_wrong_modules(src_ctx)
-        if bad_modules:
-            os0.wlog('*** Unstable installation due to %s ***' % bad_modules)
-            os0.wlog('*** MIGRATION STOPPED ***')
-            sys.exit(1)
+        if phase == 1:
+            os0.wlog('*** Unstable installation ***')
+        else:
+            os0.wlog('*** Unstable installation: try to correct errors ***')
+            run_odoo_alltest(src_ctx['tgt_vid'], src_full_lconf,
+                             src_ctx['db_name'], src_ctx['logfile'])
+            bad_modules = get_wrong_modules(src_ctx)
+            if bad_modules:
+                os0.wlog('*** Unstable installation due to %s ***' % bad_modules)
+                os0.wlog('*** MIGRATION STOPPED ***')
+                sys.exit(1)
 
     src_paths = config_get_list(src_config, 'addons_path')
     tgt_paths = config_get_list(tgt_config, 'addons_path')
     os0.wlog('addons_path=%s' % src_paths)
-    os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
-    uid, src_ctx = clodoo.oerp_set_env(
-        ctx=src_ctx, confn=src_full_lconf, db=src_ctx['db_name'])
-    if (src_ctx['uninstall_modules'] and
-            src_ctx['src_vid'] == src_ctx['from_branch']):
-        for module in src_ctx['uninstall_modules'].split(','):
-            drop_module(src_ctx, module, force=True)
-    src_ctx['src_module_list'] = odoo_dependencies(
-        src_ctx, 'mod', src_ctx['db_name'], src_full_lconf, src_paths,
-        src_ctx['src_odoo_fver'])
-    os0.wlog('Module list to migrate=%s' % src_ctx['src_module_list'])
+    if phase > 1 or src_ctx['src_vid'] == src_ctx['from_branch']:
+        os0.wlog('Test connection to source db %s' % src_ctx['db_name'])
+        uid, src_ctx = clodoo.oerp_set_env(
+            ctx=src_ctx, confn=src_full_lconf, db=src_ctx['db_name'])
+        # FIX oerp_set_env change dry_run
+        src_ctx['dry_run'] = tgt_ctx['dry_run']
+        if phase > 1:
+            if (src_ctx['uninstall_modules'] and
+                    src_ctx['src_vid'] == src_ctx['from_branch']):
+                for module in src_ctx['uninstall_modules'].split(','):
+                    drop_module(src_ctx, module, force=True)
+        src_ctx['src_module_list'] = odoo_dependencies(
+            src_ctx, 'mod', src_ctx['db_name'], src_full_lconf, src_paths,
+            src_ctx['src_odoo_fver'])
+        os0.wlog('Module list to migrate=%s' % src_ctx['src_module_list'])
     if not src_ctx.get('original_module_list'):
         src_ctx['original_module_list'] = src_ctx['src_module_list']
     src_all_module_list = odoo_dependencies(
@@ -1942,7 +1990,9 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
         'Target list with dependencies=%s' % full_tnl_module_list)
     os0.wlog(
         'Not avaiable modules on target=%s' % bad_module_list)
-    if bad_module_list and src_ctx['reducted_module_set']:
+    if (bad_module_list and
+            src_ctx['reducted_module_set'] and
+            not src_ctx['dry_run']):
         for i,module in enumerate(bad_module_list):
             sts = drop_module(src_ctx, module)
             if sts:
@@ -1951,26 +2001,45 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
     if tgt_ctx['oca_migrate'] and tgt_ctx['tgt_odoo_ver'] < 10:
         ou_ver_path = load_openupgrade(tgt_ctx, tgt_ctx['tgt_odoo_fver'])
         cmd = os.path.join(ou_ver_path, 'scripts', 'migrate.py')
-        run_traced(cmd,
-                   '-C', src_full_lconf,
-                   '-D', src_ctx['db_name'],
-                   '-B', src_ctx['opt_oupath'],
-                   '-R', tgt_ctx['tgt_odoo_fver'])
-        time.sleep(5)
+        if src_ctx['no_venv']:
+            run_traced(cmd,
+                       '-C', src_full_lconf,
+                       '-D', src_ctx['db_name'],
+                       '-B', src_ctx['opt_oupath'],
+                       '-R', tgt_ctx['tgt_odoo_fver'])
+        else:
+            script = os.path.join(ou_ver_path, 'migrate.sh')
+            fd = open(script, 'w')
+            fd.write('cd %s\n' % tgt_ctx['venv_oupath'])
+            fd.write('source ./bin/activate\n')
+            fd.write('%s -C %s -D %s -B %s -R %s\n' % (
+                cmd, src_full_lconf,
+                src_ctx['db_name'],
+                src_ctx['opt_oupath'],
+                tgt_ctx['tgt_odoo_fver']))
+            fd.write('deactivate\n')
+            fd.close()
+            os.chmod(script, 0744)
+            if not src_ctx['dry_run']:
+                os.system(script)
+        if not src_ctx['dry_run']:
+            time.sleep(5)
         tmp_dbname = new_dbname(src_ctx['db_name'],
                                 tgt_ctx['tgt_odoo_ver'],
-                                tgt_ctx['oca_migrate']) 
-        if tgt_ctx['db_name'] != tmp_dbname:
-            ren_db(tmp_dbname, tgt_ctx['db_name'], src_ctx['db_user'])
-        if src_ctx['db_user'] != tgt_ctx['db_user']:
-            reassign_db_owner(tgt_ctx,
-                              tgt_ctx['db_name'],
-                              src_ctx['db_user'],
-                              tgt_ctx['db_user'])
+                                tgt_ctx['oca_migrate'])
+        if not src_ctx['dry_run']: 
+            if tgt_ctx['db_name'] != tmp_dbname:
+                ren_db(tmp_dbname, tgt_ctx['db_name'], src_ctx['db_user'])
+            if src_ctx['db_user'] != tgt_ctx['db_user']:
+                reassign_db_owner(tgt_ctx,
+                                  tgt_ctx['db_name'],
+                                  src_ctx['db_user'],
+                                  tgt_ctx['db_user'])
         tgt_full_lconf = tgt_ctx['conf_fn']
     else:
         ou_ver_path = load_openupgrade(tgt_ctx, tgt_ctx['tgt_odoo_fver'])
-        load_openupgradelib(src_ctx, tgt_ctx['tgt_odoo_fver'])
+        if not src_ctx['dry_run']: 
+            load_openupgradelib(src_ctx, tgt_ctx['tgt_odoo_fver'])
         if tgt_ctx['upd_translation']:
             add_versioned_tnl(src_ctx, src_ctx['src_odoo_fver'],
                               tgt_ctx['tgt_odoo_fver'])
@@ -1979,46 +2048,52 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
             root_path = os.path.join(ou_ver_path, 'openerp', 'addons')
         else:
             root_path = os.path.join(ou_ver_path, 'odoo', 'addons')
-        for repo in tgt_paths:
-            for name in os.listdir(repo):
-                if (os.path.isdir(os.path.join(repo, name)) and
-                        not os.path.isdir(os.path.join(addons_path, name)) and
-                        not os.path.isdir(os.path.join(root_path, name))):
-                    os.symlink(os.path.join(repo, name),
-                               os.path.join(addons_path, name))
+        if not src_ctx['dry_run']: 
+            for repo in tgt_paths:
+                for name in os.listdir(repo):
+                    if (os.path.isdir(os.path.join(repo, name)) and
+                            not os.path.isdir(
+                                os.path.join(addons_path, name)) and
+                            not os.path.isdir(os.path.join(root_path, name))):
+                        os.symlink(os.path.join(repo, name),
+                                   os.path.join(addons_path, name))
         tgt_paths = []
         tgt_paths.insert(0, addons_path)
         tgt_paths.insert(0, root_path)
         tgt_full_lconf = prepare_config_file(tgt_ctx, tgt_config,
                                              ou_ver_path=ou_ver_path,
                                              paths=tgt_paths)
-        if not copy_db(src_ctx, src_ctx['db_name'], tgt_ctx['db_name']):
-            exit(1)
-        fix_bug_pre(src_ctx, tgt_ctx, src_full_lconf, src_paths)
-        if src_ctx['db_user'] != tgt_ctx['db_user']:
-            reassign_db_owner(tgt_ctx,
-                              tgt_ctx['db_name'],
-                              src_ctx['db_user'],
-                              tgt_ctx['db_user'])
-        # Some modules not avaiable on intermediate version might be avaiable
-        # on current target odoo version
-        if tgt_ctx['try_reinstall']:
-            modules_to_restore = bad_list = []
-            if src_ctx['original_module_list'] != src_ctx['src_module_list']:
-                modules_to_restore, bad_list = do_tnl_module_list(
-                    tgt_ctx,
-                    src_ctx['original_module_list'],
-                    src_ctx['from_odoo_fver'],
-                    tgt_ctx['tgt_odoo_fver'],
-                    tgt_all_module_list,
-                    pure=True)
-                modules_to_restore = list(set(modules_to_restore) - 
-                                          set(src_ctx['src_module_list']))
-                if modules_to_restore:
-                    set_installed_by_sql(tgt_ctx, modules_to_restore)
-        drop_session(tgt_ctx, tgt_ctx['db_name'], odoo_vid=tgt_ctx['tgt_vid'])
+        if not src_ctx['dry_run']:
+            if not copy_db(src_ctx, src_ctx['db_name'], tgt_ctx['db_name']):
+                exit(1)
+            fix_bug_pre(src_ctx, tgt_ctx, src_full_lconf, src_paths)
+            if src_ctx['db_user'] != tgt_ctx['db_user']:
+                reassign_db_owner(tgt_ctx,
+                                  tgt_ctx['db_name'],
+                                  src_ctx['db_user'],
+                                  tgt_ctx['db_user'])
+            # Some modules not available on intermediate version might be 
+            # available on current target odoo version
+            if tgt_ctx['try_reinstall']:
+                modules_to_restore = bad_list = []
+                if src_ctx['original_module_list'] != src_ctx[
+                        'src_module_list']:
+                    modules_to_restore, bad_list = do_tnl_module_list(
+                        tgt_ctx,
+                        src_ctx['original_module_list'],
+                        src_ctx['from_odoo_fver'],
+                        tgt_ctx['tgt_odoo_fver'],
+                        tgt_all_module_list,
+                        pure=True)
+                    modules_to_restore = list(set(modules_to_restore) - 
+                                              set(src_ctx['src_module_list']))
+                    if modules_to_restore:
+                        set_installed_by_sql(tgt_ctx, modules_to_restore)
+            drop_session(tgt_ctx, tgt_ctx['db_name'],
+                         odoo_vid=tgt_ctx['tgt_vid'])
         run_openupgrade(tgt_ctx, ou_ver_path, tgt_full_lconf)
-        fix_bug_post(src_ctx, tgt_ctx, src_full_lconf, src_paths)
+        if not src_ctx['dry_run']:
+            fix_bug_post(src_ctx, tgt_ctx, src_full_lconf, src_paths)
 
     # Test for not migrated modules
     tgt_ctx['conf_fn'] = tgt_saved_fconf 
@@ -2042,7 +2117,7 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
         run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
                          tgt_ctx['db_name'], tgt_ctx['logfile'],
                          modules=bad_modules)
-    elif tgt_ctx['opt_safe']:
+    elif tgt_ctx['opt_safe'] and not src_ctx['dry_run']:
         run_odoo_alltest(tgt_ctx['tgt_vid'], tgt_ctx['conf_fn'],
                          tgt_ctx['db_name'], tgt_ctx['logfile'])
     bad_modules = get_wrong_modules(tgt_ctx)
@@ -2058,17 +2133,22 @@ def migrate_odoo(src_ctx, tgt_ctx, src_config, tgt_config):
         if hard_uninstall_list:
             for module in hard_uninstall_list:
                 os0.wlog('  ++ Hard uninstall: %s' % module)
-                hard_clean_module(tgt_ctx, module)
+                if not src_ctx['dry_run']:
+                    hard_clean_module(tgt_ctx, module)
 
-    os0.wlog('Test connection to target db %s' % tgt_ctx['db_name'])
-    uid, tgt_ctx = clodoo.oerp_set_env(
-        ctx=tgt_ctx, confn=tgt_full_lconf, db=tgt_ctx['db_name'])
+    if not src_ctx['dry_run']:
+        os0.wlog('Test connection to target db %s' % tgt_ctx['db_name'])
+        uid, tgt_ctx = clodoo.oerp_set_env(
+            ctx=tgt_ctx, confn=tgt_full_lconf, db=tgt_ctx['db_name'])
+        # FIX oerp_set_env change dry_run
+        src_ctx['dry_run'] = tgt_ctx['dry_run']
 
     return tgt_full_lconf
 
 
 def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
-    phase = phase or 1
+    phase = phase or 2
+    disable_venv = False
     if phase == 1:
         saved_dry_run = src_ctx['dry_run']
         src_ctx['dry_run'] = True
@@ -2083,7 +2163,11 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
         for param in ('db_name', 'conf_fn', 'xmlrpc_port', 'db_user'):
             os0.wlog('Pass %d migration: %s from %s to %s ..' %
                  (phase, param, src_ctx[param], tgt_ctx[param]))
-        if phase > 1:
+        if phase == 1:
+            if not os.path.isdir(tgt_ctx['venv_oupath']):
+                os0.wlog('Directory %s not found!' % tgt_ctx['venv_oupath'])
+                disable_venv = True
+        elif not src_ctx['dry_run']:
             if (src_ctx['opt_safe'] and
                     src_ctx['src_vid'] == src_ctx['from_branch']):
                 clodoo.act_check_config(src_ctx)
@@ -2091,10 +2175,18 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
                     new_dbname(src_ctx['db_name'],
                                tgt_ctx['tgt_odoo_ver'],
                                tgt_ctx['oca_migrate']))
-            full_lconf = migrate_odoo(src_ctx, tgt_ctx,
-                                      src_config, tgt_config)
+        full_lconf = migrate_odoo(src_ctx, tgt_ctx,
+                                  src_config, tgt_config, phase=phase)
         if tgt_ctx['tgt_odoo_ver'] >= src_ctx['final_ver']:
+            if disable_venv:
+                src_ctx['venv_oupath'] = src_ctx['opt_oupath']
+                tgt_ctx['venv_oupath'] = src_ctx['venv_oupath']
             break
+        if not src_ctx['no_venv'] and not src_ctx['dry_run']:
+            venv_path = os.path.join(tgt_ctx['venv_oupath'], 'openupgrade')
+            # TODO
+            # if not os.path.isdir(venv_path):
+            #    os.unlink(os.path.join(venv_path, ou_ver_path))
         src_ctx, tgt_ctx = shift_ctx(src_ctx, tgt_ctx, phase=phase)
 
     if phase == 1:
@@ -2104,11 +2196,11 @@ def migrate_database_pass(src_ctx, tgt_ctx, phase=None):
 
 def migrate_database(src_ctx, tgt_ctx):
     if src_ctx['phase_1']:
-        src_ctx = init_ctx(src_ctx, phase=1)
+        src_ctx = init_ctx(src_ctx)
         migrate_database_pass(src_ctx, tgt_ctx, phase=1)
         for nm in ('original_module_list',):
             del src_ctx[nm]
-    src_ctx = init_ctx(src_ctx, phase=2)
+    src_ctx = init_ctx(src_ctx)
     migrate_database_pass(src_ctx, tgt_ctx, phase=2)
     print('Database %s successfully miograted into %s' % (
         src_ctx['from_dbname'], tgt_ctx['db_name']))
@@ -2116,19 +2208,6 @@ def migrate_database(src_ctx, tgt_ctx):
 
 def parse_ctx(src_ctx):
     global DEF_CONF
-    if not src_ctx['opt_oupath']:
-        src_ctx['opt_oupath'] = os.path.join(os.path.expanduser('~'), 'tmp')
-    if not src_ctx['opt_oulpath']:
-        src_ctx['opt_oulpath'] = os.path.join(src_ctx['opt_oupath'],
-                                              'openupgradelib')
-    if src_ctx['final_dbname'] and not src_ctx['from_dbname']:
-        src_ctx['from_dbname'], src_ctx['final_dbname'] = \
-            src_ctx['final_dbname'], '%s_2019' % src_ctx['final_dbname']
-    elif not src_ctx['final_dbname'] and src_ctx['from_dbname']:
-        src_ctx['final_dbname'] = '%s_2019' % src_ctx['from_dbname']
-    elif not src_ctx['final_dbname'] and not src_ctx['from_dbname']:
-        raise KeyError('Missed database to upgrade! Please use -d switch')
-
     if not src_ctx['from_branch'] and not src_ctx['from_confn']:
         raise KeyError('Missed original odoo version! Please use -F switch')
     elif src_ctx['from_branch']:
@@ -2170,6 +2249,21 @@ def parse_ctx(src_ctx):
         (src_ctx['src_odoo_ver'] > src_ctx['tgt_odoo_ver'] and
             src_ctx['sel_model'])):
         raise KeyError('Final version must be greater than original version')
+
+    if not src_ctx['opt_oupath']:
+        src_ctx['opt_oupath'] = os.path.join(os.path.expanduser('~'), 'tmp')
+    if not src_ctx['opt_oulpath']:
+        src_ctx['opt_oulpath'] = os.path.join(src_ctx['opt_oupath'],
+                                              'openupgradelib')
+ 
+    if src_ctx['final_dbname'] and not src_ctx['from_dbname']:
+        src_ctx['from_dbname'], src_ctx['final_dbname'] = \
+            src_ctx['final_dbname'], '%s_2019' % src_ctx['final_dbname']
+    elif not src_ctx['final_dbname'] and src_ctx['from_dbname']:
+        src_ctx['final_dbname'] = '%s_2019' % src_ctx['from_dbname']
+    elif not src_ctx['final_dbname'] and not src_ctx['from_dbname']:
+        raise KeyError('Missed database to upgrade! Please use -d switch')
+
     if not src_ctx['logfn']:
         if src_ctx['oca_migrate']:
             src_ctx['logfn'] = os.path.join(src_ctx['opt_oupath'],
@@ -2191,13 +2285,13 @@ if __name__ == "__main__":
                                 version=__version__)
     parser.add_argument('-h')
     parser.add_argument("-B", "--openupgrade-branch-path",
-                        help="Openupgrade branch path",
+                        help="openupgrade branch path",
                         dest="opt_oupath",
-                        metavar="directory")
+                        metavar="path")
     parser.add_argument('-b', '--branch',
                         action='store',
                         dest='final_branch',
-                        default='')
+                        metavar='version')
     parser.add_argument("-C", "--by-company",
                         action="store_true",
                         help="select only records of main company",
@@ -2210,21 +2304,28 @@ if __name__ == "__main__":
                         action="store_true",
                         dest="opt_del")
     parser.add_argument("-d", "--tgt-db_name",
-                        help="Target database name",
+                        help="target database name",
                         dest="final_dbname",
                         metavar="name")
+    parser.add_argument("-E", "--no-venv",
+                        help="disable virtualenv",
+                        action='store_true',
+                        dest="no_venv")
     parser.add_argument('-F', '--from-odoo-ver',
                         action='store',
-                        dest='from_branch')
+                        dest='from_branch',
+                        metavar="ver")
     parser.add_argument("-I", "--image",
+                        help="image mode",
                         action='store_true',
                         dest="image_mode",
                         default=False)
     parser.add_argument("-i", "--ids",
-                        help="Ids to migrate",
+                        help="ids to migrate",
                         dest="sel_ids",
-                        metavar="ids")
+                        metavar="list")
     parser.add_argument("-J", "--try-reinstall",
+                        help="try to reinstall",
                         action='store_true',
                         dest="try_reinstall",
                         default=False)
@@ -2234,10 +2335,11 @@ if __name__ == "__main__":
                         metavar="file",
                         default='./migrate_odoo.csv')
     parser.add_argument("-k", "--default-behavior",
+                        help="default behavior",
                         action="store_true",
                         dest="default_behavior")
     parser.add_argument("-l", "--file-log",
-                        help="Log file",
+                        help="log file",
                         dest="logfn",
                         metavar="file")
     parser.add_argument("-M", "--oca-migrate",
@@ -2245,14 +2347,14 @@ if __name__ == "__main__":
                         dest="oca_migrate",
                         help="use OCA migrate (final version < 10.0)")
     parser.add_argument("-m", "--sel-model",
-                        help="Model to migrate",
+                        help="model to migrate",
                         dest="sel_model",
                         metavar="name")
     parser.add_argument('-n')
     parser.add_argument("-O", "--openupgradelib-path",
                         help="Openupgradelib path",
                         dest="opt_oulpath",
-                        metavar="directory")
+                        metavar="path")
     parser.add_argument('-q')
     parser.add_argument("-R", "--reducted-module-set",
                         action='store_true',
@@ -2261,8 +2363,9 @@ if __name__ == "__main__":
     parser.add_argument("-S", "--safe-mode",
                         action="store_true",
                         dest="opt_safe",
-                        help="safe mode (do upgrade all before upgrade)")
+                        help="safe mode")
     parser.add_argument("-s", "--use-synchro",
+                        help="use module synchro",
                         action='store_true',
                         dest="use_synchro",
                         default=False)
@@ -2278,25 +2381,29 @@ if __name__ == "__main__":
     parser.add_argument('-V')
     parser.add_argument('-v')
     parser.add_argument("-W", "--wep-log",
+                        help="del logs before migration",
                         action='store_true',
                         dest="wep_logs",
                         default=False)
     parser.add_argument("-w", "--src-config",
-                        help="Source DB configuration file",
+                        help="source DB configuration file",
                         dest="from_confn",
                         metavar="file")
     parser.add_argument("-Y", "--uninstall-modules",
                         help="modules to uninstalla before migration",
-                        dest="uninstall_modules")
+                        dest="uninstall_modules",
+                        metavar="list")
     parser.add_argument("-y", "--assume-yes",
+                        help="assume yes",
                         action='store_true',
                         dest="assume_yes",
                         default=False)
     parser.add_argument("-z", "--src-db_name",
-                        help="Source database name",
+                        help="source database name",
                         dest="from_dbname",
                         metavar="name")
     parser.add_argument("-1", "--do-pass1",
+                        help="exec pass 1",
                         action='store_true',
                         dest="phase_1")
 

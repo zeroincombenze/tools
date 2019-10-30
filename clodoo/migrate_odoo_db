@@ -1,0 +1,274 @@
+#! /bin/bash
+# -*- coding: utf-8 -*-
+#
+# Upgrae Odoo DB - Recall OCA openupgrade with right parameters
+# This free software is released under GNU Affero GPL3
+# author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
+# (C) 2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
+#
+THIS=$(basename "$0")
+TDIR=$(readlink -f $(dirname $0))
+PYPATH=$(echo -e "import sys\nprint(str(sys.path).replace(' ','').replace('\"','').replace(\"'\",\"\").replace(',',':')[1:-1])"|python)
+for d in $TDIR $TDIR/.. $TDIR/../.. $HOME/dev $HOME/tools ${PYPATH//:/ } /etc; do
+  if [ -e $d/z0librc ]; then
+    . $d/z0librc
+    Z0LIBDIR=$d
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  elif [ -d $d/z0lib ] && [ -e $d/z0lib/z0librc ]; then
+    . $d/z0lib/z0librc
+    Z0LIBDIR=$d/z0lib
+    Z0LIBDIR=$(readlink -e $Z0LIBDIR)
+    break
+  fi
+done
+if [ -z "$Z0LIBDIR" ]; then
+  echo "Library file z0librc not found!"
+  exit 2
+fi
+ODOOLIBDIR=$(findpkg odoorc "$TDIR $TDIR/.. $HOME/tools/clodoo $HOME/dev ${PYPATH//:/ } . .." "clodoo")
+if [ -z "$ODOOLIBDIR" ]; then
+  echo "Library file odoorc not found!"
+  exit 2
+fi
+. $ODOOLIBDIR
+TESTDIR=$(findpkg "" "$TDIR . .." "tests")
+RUNDIR=$(readlink -e $TESTDIR/..)
+
+__version__=0.3.8.57
+
+
+venv_mgr_install_pkg() {
+#venv_mgr_install_pkg(VENV PKG)
+    local VENV PKG
+    [ -n "$1" ] && VENV=$(readlink -f $1)
+    PKG=$2
+    if [[ -z "$VENV" || -z "$PKG" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr_install_pkg VENV PKG"
+      exit 1
+    fi
+    if [[ ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    cd $VENV/bin/activate
+    . ./bin/activate
+    pip install $PKG --upgrade --no-warn-conflicts --disable-pip-version-check
+    deactivate
+}
+
+venv_mgr_test() {
+#venv_mgr_test(VENV)
+    local f x VENV
+    [ -n "$1" ] && VENV=$(readlink -f $1)
+    if [[ -z "$VENV" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    cd $VENV
+    . bin/activate
+    for f in python pip coveralls codecov flake8 pylint; do
+      x=$(readlink -e $(which $f))
+      [[ ! $x =~ ^$1 ]] && echo "Corrupted VME ($f)"
+      [ "$f" != "pylint" ] && eval $f --version
+      [ "$f" == "pylint" ] && eval $f --version 2>/dev/null
+    done
+    deactivate
+}
+
+venv_mgr() {
+# venv_mgr {chk|cp|mv|merge} VENV NEW_VENV
+    local d f mime VENV VIRTUAL_ENV V sitecustom
+    local cmd=$1
+    [ -n "$2" ] && VENV=$(readlink -f $2)
+    [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
+    [[ "$cmd" == "chk" ]] && VIRTUAL_ENV=$VENV
+    if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
+      echo "Missed parameters!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ "$VENV" == "$VIRTUAL_ENV" && ! "$cmd" == "chk" ]]; then
+      echo "Source and destination directories are the same!"
+      echo "use: venv_mgr cp|mv|merge VENV NEW_VENV"
+      exit 1
+    fi
+    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!"
+      exit 1
+    fi
+    if [[ "$cmd" == "chk" ]]; then
+      V=$VENV
+    elif [[ "$cmd" == "cp" ]]; then
+      if [[ -d $VIRTUAL_ENV ]]; then
+        echo "Destination virtual env $VIRTUAL_ENV already exists!"
+        exit 1
+      fi
+      cp -r $VENV $VIRTUAL_ENV
+      V=$VIRTUAL_ENV
+    elif [[ "$cmd" == "merge" ]]; then
+      if [[ ! -d $VIRTUAL_ENV  || ! -d $VIRTUAL_ENV/bin || ! -f $VIRTUAL_ENV/bin/activate ]]; then
+        echo "Invalid destination virtual env $VIRTUAL_ENV!"
+        exit 1
+      fi
+      for d in bin include lib lib64 .local; do
+        if [ -d "$VENV/$d" ]; then
+          rsync -a $VENV/$d/ $VIRTUAL_ENV/$d/
+        fi
+      done
+      V=$VIRTUAL_ENV
+    else
+      if [[ -d $VIRTUAL_ENV ]]; then
+        echo "Destination virtual env $VIRTUAL_ENV already exists!"
+        exit 1
+      fi
+      V=$VENV
+    fi
+    for f in $V/bin/*; do
+      mime=$(file --mime-type -b $f)
+      if [ "$mime" == "text/x-python" -o "${f: -3}" == ".py" ]; then
+        # echo "sed -i -e \"s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|\" $f"
+        sed -i -e "s|^#\!.*/bin/python|#\!$VIRTUAL_ENV/bin/python|" $f
+        [[ "$cmd" == "chk" ]] && chmod +x $f 
+      fi
+    done
+    pushd $V >/dev/null
+    if [ -L ./lib64 ]; then
+      rm -f ./lib64
+      ln -s ./lib ./lib64
+    fi
+    sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="'$VIRTUAL_ENV'":g' $PWD/bin/activate
+    if $(grep -q "^export HOME=" $PWD/bin/activate); then
+      sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
+    else
+      sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+      echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+    fi
+    sitecustom=$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+    echo "import sys">$sitecustom
+    if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
+      if [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
+        echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+      else
+        echo -e "import site\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+      fi
+    elif [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
+      echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+    fi
+    popd >/dev/null
+    if [[ "$cmd" == "mv" ]]; then
+      mv $VENV $VIRTUAL_ENV
+    fi
+    venv_mgr_test $VIRTUAL_ENV
+}
+
+
+# main
+OPTOPTS=(h        B          b          C          c        D       d        E       F         I          i       J             K            k                l        M           m         n            O           q           S        s           T               U        V           v           W        w          Y                 y          z           1)
+OPTDEST=(opt_help opt_oupath opt_branch by_company tgt_conf opt_del tgt_db   no_venv opt_from  image_mode opt_ids try_reinstall command_file default_behavior log_file oca_migrate sel_model opt_dry_run  opt_oulpath opt_verbose opt_safe use_synchro upd_translation lgi_user opt_version opt_verbose wep_logs from_confn uninstall_modules assume_yes from_dbname phase_1)
+OPTACTI=(1        "="        "="        1          "="      1       "=>"     1       "="       1          "="     1             "="          1                "="      1           "="       1            "="         0           1        1           1               "="      "*>"        "+"         1        "="        "="               1          "="         1)
+OPTDEFL=(1        ""         ""         0          ""       0       ""       0       ""        0          ""      0             ""           0                ""       0           ""        0            ""          -1          0        0           0               ""       ""          -1          0        ""         ""                0          ""          0)
+OPTMETA=("help"   "path"     "version"  ""         "file"   ""      "dbname" ""      "version" ""         "list"  ""            "file"       ""               "file"   ""          "name"    "do nothing" "path"      "silent"    ""       ""          ""              "user"   "version"    "verbose"  ""       "file"     "list"            ""         "name"      "")
+OPTHELP=("this help"\
+ "openupgrade branch path"\
+ "to odoo branch; may be 6.1 7.0 8.0 9.0 10.0 11.0 or 12.0"\
+ "select only records of main company"\
+ "target DB configuration file"
+ "delete DB if exists"\
+ "disable virtualenv"\
+ "target database name"\
+ "from odoo branch, value like -b switch"\
+ "image mode"\
+ "ids to migrate"\
+ "try to reinstall"\
+ "migration command file"\
+ "default behavior"\
+ "log file"\
+ "use OCA migrate (final version < 10.0)"\
+ "model to migrate"\
+ "do nothing (dry-run)"\
+ "openupgrade initial path"\
+ "silent mode"\
+ "safe mode"\
+ "use module synchro"\
+ ""\
+ "login username"\
+ "show version"\
+ "verbose mode"\
+ "del logs before migration"\
+ "source DB configuration file"\
+ "modules to uninstalla before migration"\
+ "assume yes"\
+ "source database name"\
+ "exec pass 1")
+OPTARGS=()
+
+parseoptargs "$@"
+if [ "$opt_version" ]; then
+  echo "$__version__"
+  exit 0
+fi
+if [ $opt_help -gt 0 ]; then
+  print_help "Upgrade Odoo DB from a version to another"\
+  "(C) 2019 by zeroincombenze(R)\nhttp://www.zeroincombenze.it\nAuthor: antoniomaria.vigliotti@gmail.com"
+  exit 0
+fi
+if [ $no_venv -eq 0 ]; then
+    [ -z $opt_oupath ] && opt_oupath="$HOME/tmp"
+fi
+cmd="$0.py"
+[ -n "$opt_oupath" ] && cmd="$cmd -B $(readlink -e $opt_oupath)"
+[ -n "$opt_branch" ] && cmd="$cmd -b $opt_branch"
+[ $by_company -ne 0 ] && cmd="$cmd -C"
+[ -n "$tgt_conf" ] && cmd="$cmd -c $(readlink -e $tgt_conf)"
+[ $opt_del -ne 0 ] && cmd="$cmd -D"
+[ -n "$tgt_db" ] && cmd="$cmd -d $tgt_db"
+[ $no_env -ne 0 ] && cmd="$cmd -E"
+[ -n "$opt_from" ] && cmd="$cmd -F $opt_from"
+[ $image_mode -ne 0 ] && cmd="$cmd -I"
+[ -n "$opt_ids" ] && cmd="$cmd -i $opt_ids"
+[ $try_reinstall -ne 0 ] && cmd="$cmd -J"
+[ -n "$command_file" ] && cmd="$cmd -K $command_file"
+[ $default_behavior -ne 0 ] && cmd="$cmd -k"
+[ -n "$log_file" ] && cmd="$cmd -l $(readlink -e $log_file)"
+[ $oca_migrate -ne 0 ] && cmd="$cmd -M"
+[ -n "$sel_model" ] && cmd="$cmd -m $sel_model"
+[ $opt_dry_run -ne 0 ] && cmd="$cmd -n"
+[ -n "$opt_oulpath" ] && cmd="$cmd -m $(readlink -e $opt_oulpath)"
+[ $opt_safe -ne 0 ] && cmd="$cmd -S"
+[ $use_synchro -ne 0 ] && cmd="$cmd -s"
+[ $upd_translation -ne 0 ] && cmd="$cmd -T"
+[ -n "$lgi_user" ] && cmd="$cmd -U $lgi_user"
+[ -n "$opt_version" ] && cmd="$cmd -U $lgi_user"
+[ $opt_verbose -ne 0 ] && cmd="$cmd -v"
+[ $wep_logs -ne 0 ] && cmd="$cmd -W"
+[ -n "$from_confn" ] && cmd="$cmd -w $(readlink -e $from_confn)"
+[ -n "$uninstall_modules" ] && cmd="$cmd -Y $uninstall_modules"
+[ $assume_yes -ne 0 ] && cmd="$cmd -y"
+[ -n "$from_dbname" ] && cmd="$cmd -z $from_dbname"
+[ $phase_1 -ne 0 ] && cmd="$cmd -1"
+[ $opt_verbose -ne 0 ] && echo "\$ cd $opt_oupath"
+if [ $no_venv -eq 0 ]; then
+    odoo_ver=$(build_odoo_param MAJVER $opt_from)
+    ((odoo_ver++))
+    [ $odoo_ver -gt 10 ] && TRAVIS_PYTHON_VERSION=3.5 || TRAVIS_PYTHON_VERSION=2.7
+    odoo_fver=$(build_odoo_param FULLVER $odoo_ver)
+    if [ -d ~/VME/VME$odoo_fver ]; then
+        [ -d $opt_oupath ] && run_traced "rm -fR $opt_oupath"
+        [ $opt_verbose -ne 0 ] && echo "Creating virtual env $opt_oupath (python $TRAVIS_PYTHON_VERSION)"
+        venv_mgr cp ~/VME/VME$odoo_fver $opt_oupath
+    fi
+fi
+cd $opt_oupath
+[ $opt_verbose -ne 0 ] && echo "\$ source ./bin/activate"
+source ./bin/activate
+echo $cmd
+eval $cmd
+[ $opt_verbose -ne 0 ] && echo "\$ deactivate"
+deactivate

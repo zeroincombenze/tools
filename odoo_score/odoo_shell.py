@@ -23,7 +23,7 @@ except ImportError:
 import pdb      # pylint: disable=deprecated-module
 
 
-__version__ = "0.1.0.6"
+__version__ = "0.1.0.7"
 
 
 MAX_DEEP = 20
@@ -181,6 +181,11 @@ def _get_tax_record(ctx, code=None, company_id=None):
                              'account.tax',
                              [('description', '=', code),
                               ('company_id', '=', company_id)])
+    if not tax_id and code.startswith('a17c'):
+        tax_id = clodoo.searchL8(ctx,
+                                 'account.tax',
+                                 [('description', '=', 'a%s' % code),
+                                  ('company_id', '=', company_id)])
     if tax_id:
         tax_id = tax_id[0]
     else:
@@ -231,8 +236,8 @@ def param_product_agent(param):
     return product_id, agent_id
 
 
-def other_addr_same_customer(ctx):
-    print('Set delivery address to the same of customer')
+def all_addr_same_customer(ctx):
+    print('Set delivery address to the same of customer on sale order')
     if ctx['param_1'] == 'help':
         print('delivery_addr_same_customer '
               '[from_date|+days|ids] [Inv|Del|Both] [partner_id]')
@@ -668,27 +673,61 @@ def clean_translations(ctx):
 
 def close_purchase_orders(ctx):
     print('Close purchase orders lines that are delivered')
-    model = 'purchase.order.line'
-    ctr = 0
-    for po in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
-        if po.qty_invoiced == 0.0:
-            qty_received = po.product_qty
-        elif po.qty_received == 0.0:
-            qty_received = po.product_qty
+    if ctx['param_1'] == 'help':
+        print('close_purchase_orders '
+              '[byLine|Header] [from_date|+days|ids]')
+        return
+    if ctx['param_1'] not in ('L', 'H'):
+        print('Invalid param #1: use L!H ')
+        return
+    mode = ctx['param_1']
+    model = 'purchase.order'
+    model_line = 'purchase.order.line'
+    date_ids = param_date(ctx['param_2'])
+    if re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', date_ids):
+        ids = clodoo.searchL8(ctx, model,
+                              [('date_order', '>=', date_ids)])
+    else:
+        ids = eval(date_ids)
+    if ids:
+        if isinstance(ids, int):
+            where = [('order_id', '=', ids)]
+            where1 = [('id', '=', ids)]
         else:
-            qty_received = 0.0
-        print(po.product_qty,po.qty_received,qty_received,po.qty_invoiced)
-        if qty_received > 0.0:
-            clodoo.writeL8(ctx,model,po.id,{'qty_received': qty_received})
+            where = [('order_id', 'in', ids)]
+            where1 = [('id', 'in', ids)]
+    else:
+        where = []
+        where1 = []
+    ctr = 0
+    if mode == 'L':
+        for po in clodoo.browseL8(
+            ctx, model_line, clodoo.searchL8(
+                ctx, model_line, where)):
+            if po.qty_invoiced == 0.0:
+                qty_received = po.product_qty
+            elif po.qty_received == 0.0:
+                qty_received = po.product_qty
+            else:
+                qty_received = 0.0
+            print(po.product_qty,po.qty_received,qty_received,po.qty_invoiced)
+            if qty_received > 0.0:
+                clodoo.writeL8(ctx,model_line,po.id,{'qty_received': qty_received})
+                ctr += 1
+    elif mode == 'H':
+        for po in clodoo.browseL8(
+            ctx, model, clodoo.searchL8(
+                ctx, model, where1)):
+            clodoo.writeL8(ctx, model, po.id, {'invoice_status':'invoiced'})
             ctr += 1
-    print('%d purchase order lines updated' % ctr)
+    print('%d purchase order [lines] updated' % ctr)
 
 
-def products_2_delivery_order(ctx):
+def set_products_delivery_policy(ctx):
     print('Set purchase methods to purchase in all products')
     model = 'product.template'
     if ctx['param_1'] == 'help':
-        print('products_2_delivery_order order|delivery')
+        print('set_products_delivery_policy order|delivery')
         return
     invoice_policy = ctx['param_1'] or 'order'
     if invoice_policy == 'order':
@@ -1825,6 +1864,56 @@ def create_commission_env(ctx):
     print('%d records created, %d records updated' % (ictr, uctr))
 
 
+
+def create_delivery_env(ctx):
+    print('Set delivery configuration to test')
+    if ctx['param_1'] == 'help':
+        print('create_delivery_env')
+        return
+    company_id = env_ref(ctx, 'z0bug.mycompany')
+    if not company_id:
+        raise IOError('!!Internal error: no company to test found!')
+    ctr = 0
+    model = 'delivery.carrier'
+    for carrier in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order='id')):
+        vals = {
+            'name': 'Consegna gratuita',
+            'ddt_carrier_id': False,
+            'transportation_method_id': env_ref(
+                ctx,'l10n_it_ddt.transportation_method_DES'),
+            'carriage_condition_id': env_ref(
+                ctx,'l10n_it_ddt.carriage_condition_PF'),
+            'note': 'Trasporto con mezzi propri'
+        }
+        clodoo.writeL8(ctx, model, carrier.id, vals)
+        ctr += 1
+        break
+    model = 'stock.ddt.type'
+    for ddt_type in clodoo.browseL8(
+        ctx, model, clodoo.searchL8(
+            ctx, model, [], order='id')):
+        vals = {
+            'default_transportation_reason_id': env_ref(
+                ctx,'l10n_it_ddt.transportation_reason_VEN'),
+            'default_goods_description_id': env_ref(
+                ctx,'l10n_it_ddt.goods_description_CAR'),
+            'company_id': company_id,
+        }
+        clodoo.writeL8(ctx, model, ddt_type.id, vals)
+        ctr += 1
+        break
+    model = 'res.partner'
+    partner = clodoo.browseL8(ctx, model, env_ref(ctx, 'z0bug.res_partner_2'))
+    vals = {
+        'ddt_show_price': True,
+    }
+    clodoo.writeL8(ctx, model, env_ref(ctx, 'z0bug.res_partner_2'), vals)
+    ctr += 1
+    print('%d record updated' % ctr)
+
+
 def show_empty_ddt(ctx):
     print('Show DdT without lines')
     model = 'stock.picking.package.preparation'
@@ -2125,6 +2214,8 @@ def test_synchro_vg7(ctx):
                     continue
                 elif (model in ('res.country',) and loc_name == 'description'):
                     continue
+                elif loc_name == 'billing_esonerato_fe':
+                    loc_name = 'electronic_invoice_subjected'
             else:
                 if ext_ref.startswith('vg7_'):
                     loc_name = ext_ref[4:]
@@ -2165,6 +2256,8 @@ def test_synchro_vg7(ctx):
                 elif ext_ref == 'state':
                     value = getattr(rec, loc_name)
                     vals[ext_ref] = 'draft'
+                elif ext_ref == 'vg7:billing_esonerato_fe':
+                    value = not getattr(rec, loc_name)
                 else:
                     try:
                         value = getattr(rec, loc_name).id
@@ -2311,6 +2404,7 @@ def test_synchro_vg7(ctx):
                     ctx, 'l10n_it_ddt.carriage_condition_PA'),
                 'transportation_method_id': env_ref(
                     ctx, 'l10n_it_ddt.transportation_method_DES'),
+                'electronic_invoice_subjected': True,
             }
         elif vg7_id == 17:
             vals = {
@@ -2329,7 +2423,8 @@ def test_synchro_vg7(ctx):
                 'vg7:postal_code': '10100',
                 'vg7:city': 'Torino',
                 'vg7:country': 'Italia',
-                'vg7:region': 'TORINO',
+                'vg7:region': '(TO)',
+                'vg7:billing_esonerato_fe': False,
             }
         if vg7_id == 7:
             vals['vg7:piva'] = '00385870480'
@@ -2816,6 +2911,54 @@ def test_synchro_mdb(ctx):
     check_account_account(src_ctx, tgt_ctx, account_id)
 
 
+def test_einvoice_in(ctx):
+
+    def read_xml_content(xml_dir, xml_file):
+        fd = open(os.path.join(xml_dir, xml_file), 'rb')
+        content = fd.read()
+        b64 = content.encode('base64')
+        return b64
+
+    def create_att(xml_dir, xml_file):
+        model = 'fatturapa.attachment.in'
+        att = clodoo.createL8(ctx, model,
+                              {'name': xml_file,
+                               'datas': read_xml_content(xml_dir, xml_file)})
+        return att
+
+    def get_att(xml_dir, xml_file):
+        ids = clodoo.searchL8(ctx,model,[('name','=',xml_file)])
+        if ids:
+            att_id = ids[0]
+        else:
+            att_id = create_att(xml_dir, xml_file)
+        return att_id
+
+    company_id = env_ref(ctx, 'z0bug.mycompany')
+    if not company_id:
+        raise IOError('!!Internal error: no company to test found!')
+    xml_dir = './xml_4_test'
+    if not os.path.isdir(xml_dir):
+        raise IOError('!!XML directory %s not found!' % xml_dir)
+    model = 'fatturapa.attachment.in'
+    wizard_model = 'wizard.import.fatturapa'
+    print('Creating xml record ...')
+    xml_file = 'IT06631580013_00001.xml'
+    if not os.path.isfile(os.path.join(xml_dir, xml_file)):
+        raise IOError('!!XML file %s not found!' % xml_file)
+    att_id =  get_att(xml_dir, xml_file)
+    res = clodoo.executeL8(ctx,
+                           wizard_model,
+                           'importFatturaPA',
+                           [att_id])
+    invoice_id = clodoo.executeL8(ctx, wizard_model,
+                                  'create',
+                                  res)
+    clodoo.executeL8(ctx, wizard_model,
+                     'execute',
+                     [invoice_id])
+
+
 def relinks_order_ddt(ctx):
     print('Link lost DdT line with sale order line')
     model = 'stock.picking.package.preparation.line'
@@ -2895,7 +3038,7 @@ def check_rec_links(ctx):
 
 
 def relink_records(ctx):
-    print('Relink invoice and sale order. Require a 2nd DB')
+    print('Relink fiscal position on partners. Require a 2nd DB')
     if ctx['param_1'] == 'help':
         print('relink_records src_db')
         return
@@ -2907,57 +3050,77 @@ def relink_records(ctx):
     uid, src_ctx = clodoo.oerp_set_env(confn=ctx['conf_fn'],
                                        db=src_db,
                                        ctx=src_ctx)
-    model_inv = 'account.invoice'
-    model_invline = 'account.invoice.line'
+    model = 'res.partner'
     err_ctr = 0
     ctr = 0
-    model_sale = 'sale.order'
-    model_saleline = 'sale.order.line'
-    for order in clodoo.browseL8(
-        ctx, model_sale, clodoo.searchL8(
-            ctx, model_sale,[], order='name desc')):
-        msg_burst('%s ...' % order.name)
-        for order_line in order.order_line:
-            msg_burst('  - %s ...' % order_line.name[0:80])
-            ctr += 1
-            if not order_line.invoice_lines:
-                try:
-                    src_line = clodoo.browseL8(
-                        src_ctx, model_saleline, order_line.id)
-                except:
-                    continue
-                rec = []
-                for inv_line in src_line.invoice_lines:
-                    rec.append(inv_line.id)
-                if rec:
-                    clodoo.writeL8(ctx, model_saleline, order_line.id,
-                                   {'invoice_lines': [(6, 0, rec)]})
-                    err_ctr += 1
-    for invoice in clodoo.browseL8(
-        ctx, model_inv, clodoo.searchL8(
-            ctx, model_inv, [('type', '=', 'out_invoice')],
-            order='number desc')):
-        msg_burst('%s ...' % invoice.number)
-        orders = []
-        for invoice_line in invoice.invoice_line_ids:
-            msg_burst('  - %s ...' % invoice_line.name[0:80])
-            ctr += 1
-            if not invoice_line.sale_line_ids:
-                try:
-                    src_line = clodoo.browseL8(
-                        src_ctx, model_invline, invoice_line.id)
-                except:
-                    continue
-                rec = []
-                for sale_line in src_line.sale_line_ids:
-                    rec.append(sale_line.id)
-                if rec:
-                    clodoo.writeL8(ctx, model_invline, invoice_line.id,
-                                   {'sale_line_ids': [(6, 0, rec)]})
-                    err_ctr += 1
+    TNL = {1: 1, 2: 2, 3: 3, 4: 1, 5: 2, 6: 3, 7: 7}
+    for partner in clodoo.browseL8(
+        src_ctx, model,
+            clodoo.searchL8(src_ctx, model, [])):
+        msg_burst('%s ...' % partner.name)
+        if partner.property_account_position_id:
+            try:
+                cur_partner = clodoo.browseL8(ctx, model, partner.id)
+                if not cur_partner.property_account_position_id:
+                    position_id = TNL[partner.property_account_position_id.id]
+                    clodoo.writeL8(
+                        ctx, model, cur_partner.id,
+                        {'property_account_position_id': position_id})
+                    ctr += 1
+            except BaseException:
+                pass
+    # model_inv = 'account.invoice'
+    # model_invline = 'account.invoice.line'
+    # err_ctr = 0
+    # ctr = 0
+    # model_sale = 'sale.order'
+    # model_saleline = 'sale.order.line'
+    # for order in clodoo.browseL8(
+    #     ctx, model_sale, clodoo.searchL8(
+    #         ctx, model_sale,[], order='name desc')):
+    #     msg_burst('%s ...' % order.name)
+    #     for order_line in order.order_line:
+    #         msg_burst('  - %s ...' % order_line.name[0:80])
+    #         ctr += 1
+    #         if not order_line.invoice_lines:
+    #             try:
+    #                 src_line = clodoo.browseL8(
+    #                     src_ctx, model_saleline, order_line.id)
+    #             except:
+    #                 continue
+    #             rec = []
+    #             for inv_line in src_line.invoice_lines:
+    #                 rec.append(inv_line.id)
+    #             if rec:
+    #                 clodoo.writeL8(ctx, model_saleline, order_line.id,
+    #                                {'invoice_lines': [(6, 0, rec)]})
+    #                 err_ctr += 1
+    # for invoice in clodoo.browseL8(
+    #     ctx, model_inv, clodoo.searchL8(
+    #         ctx, model_inv, [('type', '=', 'out_invoice')],
+    #         order='number desc')):
+    #     msg_burst('%s ...' % invoice.number)
+    #     orders = []
+    #     for invoice_line in invoice.invoice_line_ids:
+    #         msg_burst('  - %s ...' % invoice_line.name[0:80])
+    #         ctr += 1
+    #         if not invoice_line.sale_line_ids:
+    #             try:
+    #                 src_line = clodoo.browseL8(
+    #                     src_ctx, model_invline, invoice_line.id)
+    #             except:
+    #                 continue
+    #             rec = []
+    #             for sale_line in src_line.sale_line_ids:
+    #                 rec.append(sale_line.id)
+    #             if rec:
+    #                 clodoo.writeL8(ctx, model_invline, invoice_line.id,
+    #                                {'sale_line_ids': [(6, 0, rec)]})
+    #                 err_ctr += 1
     print('%d record read, %d record with wrong links!' % (ctr, err_ctr))
 
 def set_comment_on_invoice(ctx):
+    print('Set comment on invoices')
     if ctx['param_1'] == 'help':
         print('set_comment_on_invoice '
               '[from_date|+days|ids] [Ask]')
@@ -2981,6 +3144,32 @@ def set_comment_on_invoice(ctx):
     for inv in clodoo.browseL8(ctx, model, ids):
         msg_burst('%s ...' % inv.number)
         clodoo.writeL8(ctx, model, inv.id, {'comment': comment})
+        ctr += 1
+    print('%d record updated' % ctr)
+
+
+def set_ppf_on_partner(ctx):
+    print('Set/reset print price flag on partners')
+    if ctx['param_1'] == 'help':
+        print('set_ppf_on_partner '
+              '[ids] [True/False]')
+        return
+    model = 'res.partner'
+    if ctx['param_1']: 
+        ids = ctx['param_1']
+        where = [('id', 'in', ids)]
+    else:
+        where = []
+    if ctx['param_2'] == 'F':
+        value = False
+    else:
+        value = True
+    where.append(('ddt_show_price', '!=', value))
+    where.append(('customer', '=', True))
+    ctr = 0
+    for pp in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model, where)):
+        msg_burst('%s ...' % pp.name)
+        clodoo.writeL8(ctx, model, pp.id, {'ddt_show_price': value})
         ctr += 1
     print('%d record updated' % ctr)
 
@@ -3186,17 +3375,18 @@ if ctx['function']:
 print('Avaiable functions:')
 print(' SALE ORDER                      ACCOUNT INVOICE')
 print(' - order_commission_by_partner   - inv_commission_from_order')
-print(' - other_addr_same_customer      - inv_commission_by_partner')
+print(' - all_addr_same_customer        - inv_commission_by_partner')
 print(' PURCHASE ORDER                  - revaluate_due_date_in_invoces')
 print(' - close_purchase_orders         - update_einvoice_out_attachment')
 print(' PRODUCT                         - unlink_einvoice_out_attachment')
 print(' - set_products_2_consumable     - set_tax_code_on_invoice')
-print(' - products_2_delivery_order     - set_comment_on_invoice')
+print(' - set_products_delivery_policy  - set_comment_on_invoice')
 print(' RIBA                            DELIVERY/SHIPPING')
 print(' - configure_RiBA                - change_ddt_number')
 print(' - manage_riba                   - show_empty_ddt')
 print(' PARTNER/USER                    COMMISSION')
 print(' - configure_fiscal_position     - create_commission_env')
+print(' - set_ppf_on_partner')
 print(' - deduplicate_partner           OTHER TABLES')
 print(' - reset_email_admins            - set_report_config')
 print(' - simulate_user_profile         - rename_coa')
@@ -3316,33 +3506,3 @@ def display_modules(ctx):
         print('%3d %-40.40s %s' % (i+1, app.name, app.author))
         mlist.append(app.name)
     print(mlist)
-
-
-model = 'account.account.type'
-for rec in clodoo.browseL8(
-    ctx,model,
-        clodoo.searchL8(ctx, model, []),
-            context={'lang': 'en_US'}):
-    print(rec.name)
-
-models = build_table_tree()
-for level in range(MAX_DEEP):
-    for model in models:
-        if models[model].get('level', -1) == level:
-            print('%2d %s%s' % (level, ' ' * level, model))
-for model in models:
-    if models[model].get('level', -1) >= MAX_DEEP:
-        print('%s %s (%s)' % ('-' * MAX_DEEP,
-                              model,
-                              models[model].get('status', '')))
-
-for rec in clodoo.browseL8(ctx,model,clodoo.searchL8(ctx,model,[])):
-    print(rec.name)
-
-model = 'account.invoice'
-for inv in clodoo.browseL8(ctx, model, clodoo.searchL8(ctx, model,
-        [('type', 'in', ('in_invoice', 'in_refund')),
-         ('payment_term_id', '=', False)],order='number')):
-    if ((not inv.date_due or inv.date_invoice == inv.date_due) and
-            not inv.payment_term_id):
-        revaluate_due_date_in_invoces(inv.id)

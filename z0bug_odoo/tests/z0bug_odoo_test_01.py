@@ -44,8 +44,6 @@ class RegressionTest():
             from z0bug_odoo import z0bug_odoo_lib
             res = z0bug_odoo_lib.Z0bugOdoo().get_test_values(
                 'res.partner','z0bug.res_partner_1')
-            import pdb
-            pdb.set_trace()
         sts = self.Z.test_result(z0ctx,
                                  'get_test_values()',
                                  bool(res),

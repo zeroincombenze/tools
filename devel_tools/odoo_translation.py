@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 """
+Action may be:
+- Dictionary (formerly Current)
+- PO (formerly New)
+- End
+- Ignore
 """
 from __future__ import print_function, unicode_literals
 
@@ -76,13 +81,13 @@ def load_default_dictionary(source):
             else:
                 des2 = os0.u(row['msgstr']) + punct
         TNL_DICT[msg2] = des2
-        TNL_ACTION[msg2] = 'C'
+        TNL_ACTION[msg2] = 'D'
 
     def set_terms_n_punct(row, msgid):
         if msgid == msgid[0].upper() + msgid[1:].lower():
             msg2 = msgid.lower()
             TNL_DICT[msg2] = os0.u(row['msgstr']).lower()
-            TNL_ACTION[msg2] = 'C'
+            TNL_ACTION[msg2] = 'D'
             for punct in (':', '.'):
                 term_with_punct(row, os0.u(row['msgstr']).lower(), punct)
         for punct in (':', '.'):
@@ -109,7 +114,7 @@ def load_default_dictionary(source):
                 continue
             msgid = os0.u(row['msgid'].strip())
             TNL_DICT[msgid] = os0.u(row['msgstr'])
-            TNL_ACTION[msgid] = 'C'
+            TNL_ACTION[msgid] = 'D'
             set_terms_n_punct(row, msgid)
             ctr += 1
         if ctx['opt_verbose']:
@@ -129,17 +134,17 @@ def load_dictionary_from_file(pofn):
             if msgid in TNL_DICT:
                 if msgstr != TNL_DICT[msgid]:
                     print('  Duplicate key "%s"' % msgid)
-                    print('    Current="%s"' % TNL_DICT[msgid])
-                    print('    New="%s"' % msgstr)
+                    print('    Dictionary="%s"' % TNL_DICT[msgid])
+                    print('    Po="%s"' % msgstr)
                     dummy = ''
                     if '*' in TNL_ACTION:
                         dummy = TNL_ACTION['*']
                     elif msgid in TNL_ACTION:
                         dummy = TNL_ACTION[msgid]
-                    while dummy not in ('C', 'N', 'E', 'I') and \
+                    while dummy not in ('D', 'P', 'E', 'I') and \
                             len(dummy) <= 3:
                         dummy = raw_input(
-                            '>>> (Current,New,End,Ignore,<Text>)? ')
+                            '>>> (Dictionary,Po,End,Ignore,<Text>)? ')
                     if dummy == 'E':
                         TNL_ACTION['*'] = dummy
                         return
@@ -149,9 +154,10 @@ def load_dictionary_from_file(pofn):
                     elif len(dummy) >= 3:
                         TNL_DICT[msgid] = dummy
                         ctr += 1
-                    elif dummy == 'N':
+                    elif dummy == 'P':
                         TNL_DICT[msgid] = msgstr
                         ctr += 1
+                        print('       KEY="%s"' % msgstr)
                     else:
                         TNL_ACTION[msgid] = dummy
                 else:
@@ -312,15 +318,14 @@ def upgrade_db(ctx):
 
     def write_tnl(ctx, model, ids, msgid, ctr):
         if ids and len(ids) < MAX_RECS:
-            msg_burst(msgid)
             for id in ids:
                 try:
                     clodoo.writeL8(ctx, model, id, {'value': TNL_DICT[msgid]})
                     ctr += 1
                 except IOError as e:
-                    print("*** Error %e writing %s!!!" % (e, TNL_DICT[msgid]))
+                    print("*** Error %e writing '%s'!!!" % (e, TNL_DICT[msgid]))
                 except BaseException as e:
-                    print("*** Fatal error %s writing %s!!!" % (
+                    print("*** Fatal error %s writing '%s'!!!" % (
                         e, TNL_DICT[msgid]))
                     clodoo.unlinkL8(ctx, model, id)
         return ctr
@@ -339,7 +344,7 @@ def upgrade_db(ctx):
                                            xmlrpc_port=xmlrpc_port,
                                            oe_version=version)
             db_found = True
-        except:
+        except BaseException:
             dbname = '%s%s' % (ctx['db_prefix'], version.split('.')[0])
         if not db_found:
             try:
@@ -348,7 +353,7 @@ def upgrade_db(ctx):
                                                xmlrpc_port=xmlrpc_port,
                                                oe_version=version)
                 db_found = True
-            except:
+            except BaseException:
                 print("No DB %s found" % ctx['db_prefix'])
                 return
         model = 'ir.translation'
@@ -359,11 +364,13 @@ def upgrade_db(ctx):
                                              'ir.module.module,shortdesc',
                                              'ir.module.module,summary'))]))
         for msgid in TNL_DICT:
+            msg_burst(msgid)
             ids = clodoo.searchL8(ctx, model,
                                   [('lang', '=', 'it_IT'),
                                    ('type', 'in', ('field', 'model',
                                                    'report', 'help')),
-                                   ('src', '=', msgid)])
+                                   ('src', '=', msgid),
+                                   ('value', '!=', TNL_DICT[msgid])])
             ctr = write_tnl(ctx, model, ids, msgid, ctr)
             ids = clodoo.searchL8(
                 ctx, model,
@@ -376,7 +383,8 @@ def upgrade_db(ctx):
                                  'ir.module.module,summary',
                                  'ir.ui.menu,name',
                                  )),
-                 ('src', '=', msgid)])
+                 ('src', '=', msgid),
+                 ('value', '!=', TNL_DICT[msgid])])
             ctr = write_tnl(ctx, model, ids, msgid, ctr)
         if ctx['opt_verbose']:
             print(" ... %d record upgraded" % ctr)

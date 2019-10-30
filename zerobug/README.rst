@@ -61,13 +61,8 @@ Quick start
 Installation
 ------------
 
-For stable version:
 
-`pip install zerobug`
-
-|
-
-If you want to install current version:
+To install current version:
 
 ::
 

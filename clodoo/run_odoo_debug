@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.56
+__version__=0.3.8.57
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -286,21 +286,20 @@ if [ $opt_touch -eq 0 ]; then
   if [ $create_db -gt 0 -a $odoo_ver -lt 10 ]; then
     run_traced "createdb -U$opt_dbuser $opt_db"
   fi
-  tty -s
-  if [ $? == 0 ]; then
-    OPT_CONF="--config=$confn --logfile=/dev/stdout"
-  else
-    OPT_CONF="--config=$confn --logfile=$HOME/$$.log"
-  fi
   OPT_LLEV=
+  OPT_CONF="--config=$HOME/$lconfn"
   if [ $opt_dry_run -eq 0 ]; then
     [ -f $HOME/.openerp_serverrc ] && rm -f $HOME/.openerp_serverrc
     [ -f $HOME/.odoorc ] && rm -f $HOME/.odoorc
-    echo "\$ cp $confn $HOME/$lconfn"
-    cp $confn $HOME/$lconfn
-    sed -i -e "s|^logfile *=.*|logfile = False|" $HOME/$lconfn
+    run_traced "cp $confn $HOME/$lconfn"
+    tty -s
+    if [ $? == 0 ]; then
+      sed -i -e "s|^logfile *=.*|logfile = False|" $HOME/$lconfn
+    else
+      sed -i -e "s|^logfile *=.*|logfile = $HOME/$$.log|" $HOME/$lconfn
+    fi
     if [ -n "$opt_xport" ]; then
-    sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $HOME/$lconfn
+      sed -i -e "s|^xmlrpc_port *=.*|xmlrpc_port = $opt_xport|" $HOME/$lconfn
       OPT_CONF="$OPT_CONF --xmlrpc-port=$opt_xport"
     fi
     if [ -n "$opt_dbuser" ]; then
@@ -311,6 +310,7 @@ if [ $opt_touch -eq 0 ]; then
       sed -i -e "s|^log_level *=.*|log_level = $opt_llvl|" $HOME/$lconfn
       OPT_LLEV="--log-level=$opt_llvl"
     fi
+    sed -i -e "s|^workers *=.*|workers = 0|" $HOME/$lconfn
   fi
   if [ $create_db -gt 0 ]; then
     if [ -n "$depmods" -a $opt_test -ne 0 ]; then

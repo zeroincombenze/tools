@@ -17,10 +17,6 @@ __version__ = "0.1.0.1.1"
 class Z0bugOdoo(object):
 
     def get_data_file(self, model, csv_fn):
-        # csv.register_dialect('z0bug',
-        #                      delimiter=b',',
-        #                      quotechar=b'"',
-        #                      quoting=csv.QUOTE_MINIMAL)
         full_fn = os.path.join(os.path.dirname(__file__), 'data', csv_fn)
         pymodel = model.replace('.', '_')
         with open(full_fn, 'rb') as fd:
@@ -28,7 +24,6 @@ class Z0bugOdoo(object):
             csv_obj = csv.DictReader(fd,
                                      fieldnames=[],
                                      restkey='undef_name',)
-            # dialect='z0bug')
             for row in csv_obj:
                 if not hdr:
                     hdr = True

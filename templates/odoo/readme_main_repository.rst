@@ -14,12 +14,15 @@ Features / Caratteristiche
 {{features}}
 .. $fi
 {{avaiable_addons}}
+
+.. $if not no_section_oca_diff
 .. $if defined oca_diff
 
 OCA comparation / Confronto con OCA
 -----------------------------------
 
 {{oca_diff}}
+.. $fi
 .. $fi
 
 

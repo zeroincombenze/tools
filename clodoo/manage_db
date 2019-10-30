@@ -35,7 +35,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.56
+__version__=0.3.8.57
 
 
 up_oemod() {
@@ -370,11 +370,11 @@ for odoo_vid in ${odoo_vids//,/ }; do
         eval $WCMD
       fi
       if [ "$action" == "module" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
+        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
       elif [ "$action" == "upgrade" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk"
+        [ $opt_dry_run -ne 0 ] || nice $TDIR/run_odoo_debug $odoo_vid -um $cmdlist -d $db -sk
         if [ "$cmdlist" != "all" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A upgrade_modules -b$odoo_fver -m $cmdlist -d $db -r$xmlport $opt_with_demo $opts"
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
@@ -388,8 +388,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
           s=$?; [ $s -ne 0 -a $sts -eq 0 ] && sts=$s
           [ $opt_dry_run -ne 0 ] || up_oemod $db $odoo_vid
         elif [ -n "$cmdlist" -a "$cmdlist" == "translation" ]; then
-          echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
-          [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
+          echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db"
+          [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db
         else
           echo "$TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"
@@ -399,8 +399,8 @@ for odoo_vid in ${odoo_vids//,/ }; do
           fi
         fi
       elif [ "$action" == "translate" ]; then
-        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport"
-        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db -x$xmlport
+        echo "$TDIR/run_odoo_debug $odoo_vid -l -d $db"
+        [ $opt_dry_run -ne 0 ] || $TDIR/run_odoo_debug $odoo_vid -l -d $db
       else
         if [ -n "$cmdlist" ]; then
           run_traced "nice $TDIR/clodoo.py $OPTS $opts_cf -A $cmdlist -b$odoo_fver -d $db -r$xmlport $opt_with_demo $opts"

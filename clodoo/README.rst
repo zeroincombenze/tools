@@ -1,6 +1,6 @@
 
 ===============
-clodoo 0.3.8.56
+clodoo 0.3.8.57
 ===============
 
 
@@ -11,11 +11,11 @@ clodoo 0.3.8.56
 .. contents::
 
 
-Overview / Panoramica
-=====================
+Overview
+========
 
-|en| clodoo
-===========
+clodoo
+======
 
 Massive operations on Zeroincombenze(R) / Odoo databases
 --------------------------------------------------------
@@ -163,21 +163,16 @@ oe_versions: select record if matches Odoo version
     i.e  -6.1-7.0 => select record if Odoo is not 6.1 and not 7.0
 
 |
-
-|it| 
-|
 |
 
-Getting started / Come iniziare
-===============================
-
-|Try Me|
+Quick start
+===========
 
 
 |
 
-Installation / Installazione
-----------------------------
+Installation
+------------
 
 For stable version:
 
@@ -190,21 +185,26 @@ For current version:
 `cd $HOME/tools`
 `./install_tools.sh`
 
+|
+|
+
+Get involved
+============
 
 |
 |
 
-Credits / Didascalie
-====================
+Credits
+=======
 
 Copyright
 ---------
 
-SHS-AV s.r.l. - <https://www.shs-av.com/>
+SHS-AV s.r.l. <https://www.shs-av.com/>
 
 
-Contributors / Collaboratori
-----------------------------
+Contributors
+------------
 
 * Antonio M. Vigliotti <info@shs-av.com>
 
@@ -213,7 +213,7 @@ Contributors / Collaboratori
 
 This module is part of tools project.
 
-Last Update / Ultimo aggiornamento: 2019-08-24
+Last Update / Ultimo aggiornamento: 2019-10-30
 
 .. |Maturity| image:: https://img.shields.io/badge/maturity-Alfa-red.png
     :target: https://odoo-community.org/page/development-status

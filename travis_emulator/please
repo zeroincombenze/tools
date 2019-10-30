@@ -43,7 +43,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.17
+__version__=0.2.2.18
 
 
 #
@@ -1897,7 +1897,7 @@ do_docs() {
     #   echo "     to publish this documentation on docs.zeroincombenze.org/$1"
     # fi
     local docs_dir=./docs
-    local author version
+    local author version theme
     [ ! -d $docs_dir ] && run_traced "mkdir $docs_dir"
     run_traced "cd $docs_dir"
     if [ ! -f index.rst -a ! -f conf.py ]; then
@@ -1913,8 +1913,11 @@ do_docs() {
         sphinx-quickstart -p "$PRJNAME" -a "$author" -v "$version" -r "$version" -l en --no-batchfile --makefile --master index --suffix .rst
         vim conf.py
     fi
+    # theme=$(grep "^ *html_theme *=.*" conf.py|awk -F= '{print $2}')
+    # sed -e "s|^ *html_theme *=.*|html_theme = 'default'|" -i conf.py
     run_traced "make html"
     sts=$?
+    # sed -e "s|^ *html_theme *=.*|html_theme = $theme|" -i conf.py
     return $sts
 }
 
