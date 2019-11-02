@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='travis_emulator',
-      version='0.2.2.18',
+      version='0.2.2.19',
       description='Travis CI emulator for local develop environment',
       long_description="""
 Simple emulator to simulate travis-ci operations on local host
@@ -20,7 +20,7 @@ It serves just to test before git push command
       ],
       keywords='linux travis development',
       url='http://wiki.zeroincombenze.org/',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['travis_emulator'],

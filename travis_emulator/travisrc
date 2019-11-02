@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.18
+#__version__=0.2.2.19
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -159,12 +159,27 @@ inherits_travis_opts() {
     echo "$opts"
 }
 
+get_value_from_file() {
+# get_value_from_file(file value)
+    local x=$(basename $1)
+    local n r
+    if [ "$x" == "setup.py" ]; then
+        if [ "$2" == "name" ]; then
+            r=$(grep "[^a-zA-Z0-9_]$2 *=" $1 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+        else
+            r=$(grep "^ *$2 *=" $1 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"'\r\n")
+            [ "${r: -1}" == "," ] && r="${r:0: -1}"
+        fi
+    fi
+    echo $r
+}
+
 build_pypi_param() {
-# build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP vid)
+# build_pypi_param(ALL|MANIFEST|PKGNAME|PKGPATH|PRJNAME|PRJPATH|REPOS|SETUP|VERSION vid)
     local ODOO_SETUPS=$(get_cfg_value "" "ODOO_SETUPS")
     [ -z "$ODOO_SETUPS" ] && ODOO_SETUPS="__openerp__.py,__manifest__.py"
     local ODOO_SETUPS=${ODOO_SETUPS//,/ }
-    local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS ODOO_SETUP INV_MODS
+    local _SETUP _PKGPATH _PKGNAME _PRJPATH _PRJNAME _REPOS _VERSION ODOO_SETUP INV_MODS
     local r w x="$PWD"
     [ -n "$2" -a "$2" != "local" ] && x=$2
     if [[ ! "$x" =~ (^\.$|^\.\.$|(\./|\.\./|~/|/)) ]]; then
@@ -224,16 +239,14 @@ build_pypi_param() {
       [ "$x" != "/" ] && x=$(readlink -e $x/..) || x=
     done
     if [ -n "$_SETUP" -a -f "$_SETUP" ]; then
-      x=$(basename $_SETUP)
-      r=
-      [ "$x" == "setup.py" ] && r=$(grep "[^a-zA-Z0-9_]name *=" $_SETUP 2>/dev/null|awk -F"=" '{print $2}'|tr -d "\"', \r\n")
+      r=$(get_value_from_file "$_SETUP" "name")
       [ -n "$r" ] && _PRJNAME="$r"
     fi
     if [ "$_PRJNAME" == "odoo" -o "$_PRJNAME" == "openerp" ]; then
       _PRJNAME=Odoo
     fi
     if [[ "$_PRJNAME" == "Odoo" ]]; then
-      if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+      if [[ $_PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
         _PKGNAME="OCB"
         _REPOS="OCB"
       fi
@@ -249,8 +262,10 @@ build_pypi_param() {
       PRJPATH=$_PRJPATH
       PRJNAME=$_PRJNAME
       REPOSNAME=$_REPOS
-    elif [ "$1" == "PKGPATH" ]; then
-      echo "$_PKGPATH"
+    else
+      [ "$1" == "VERSION" ] && _VERSION=$(get_value_from_file "$_SETUP" "version")
+      x="_$1"
+      echo "${!x}"
     fi
 }
 
@@ -796,7 +811,7 @@ do_chkconfig() {
     echo "Tools path     = \"$TOOLS_PATH\""
     echo "Branch         = \"$BRANCH\""
     echo "Package name   = \"$PKGNAME\" in \"$REPOSNAME\""
-    echo "Version        = \"$prjversion\""
+    echo "Version        = \"$VERSION\""
     echo "Setup file     = \"$SETUP\""
     echo "Project path   = \"$PRJPATH\""
     echo "Package path   = \"$PKGPATH\""
@@ -886,7 +901,7 @@ set_pkgpath() {
 set_pkgname() {
 #set_pkgname(PKGPATH)
     PKGNAME=$(basename $1)
-    if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|11|10|9|8|7|6) ]]; then
+    if [[ $PKGNAME =~ ^(v|V|odoo|ODOO|ocb|OCB|oca|oia)?-?(13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1|13|12|11|10|9|8|7|6) ]]; then
       PKGNAME=OCB
     fi
 }
@@ -1060,13 +1075,9 @@ robocopy_init() {
     if [ "$1" == "Odoo" ]; then
       a_append "^.*" "/"
     else
-      # a_append "Makefile" "/"
       a_append "setup.py" ""
-      # if [ "$1" != "maintainer-quality-tools" ]; then
-      #   a_append "_travis" ""
-      # fi
       if [ "$2" == "OCB" ]; then
-        local p=$(echo $PWD|grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0)"|head -n1)
+        local p=$(echo $PWD|grep -Eo "(v7|6.1|7.0|8.0|9.0|10.0|11.0|12.0|13.0)"|head -n1)
         if [ -n "$p" ]; then
           a_append "$p" "/"
         fi

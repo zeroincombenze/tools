@@ -59,7 +59,7 @@ class RegressionTest():
                 'vat': 'IT00115719999'}
         for nm in TEST:
             sts = self.Z.test_result(z0ctx,
-                                     'partner.%s',
+                                     'partner.%s' % nm,
                                      res.get(nm),
                                      TEST[nm])
         return sts

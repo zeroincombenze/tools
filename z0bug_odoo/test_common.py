@@ -28,204 +28,200 @@ else:
 __version__='0.1.0.1.1'
 
 
-class BaseCase(test_common.BaseCase):
+class Z0bugBaseCase(test_common.BaseCase):
 
-    def pool(self, model):
-        """Return model pool"""
+    def pool_env(self, model):
+        """Return model pool_environment"""
         if int(release.major_version.split('.')[0]) < 8:
             return self.registry(model)
         return self.env[model]
 
+    def create_id(self, model, values):
+        """Create a new record for test"""
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.registry(model).create(self.cr,
+                                               self.uid,
+                                               values)
+        return self.env[model].create(values).id
 
-class TransactionCase(test_common.TransactionCase):
+    def create_rec(self, model, values):
+        """Create a new record for test"""
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.registry(model).browse(
+                self.cr,
+                self.uid,
+                self.registry(model).create(self.cr,
+                                            self.uid,
+                                            values))
+        return self.env[model].create(values)
+
+    def write_rec(self, model, id, values):
+        """Write existent record"""
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.registry(model).write(self.cr, self.uid, [id], values)
+        return self.env[model].search([('id', '=', id)]).write(values)
+
+    def write_ref(self, xid, values):
+        """Browse and write existent record"""
+        return self.browse_ref(xid).write(values)
+
+    def browse_rec(self, model, id):
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.registry(model).browse(self.cr, self.uid, id)
+        return self.env[model].browse(id)
+
+    def search_rec(self, model, args):
+        """Search records - Syntax search(model, *args)
+        Warning! Do not use with Odoo 7.0: result may fails!"""
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.registry(model).browse(self.cr, self.uid,
+                self.registry(model).search(self.cr, self.uid, args))
+        return self.env[model].search(args)
+
+    def ref_id(self, xid):
+        """Return reference id"""
+        if int(release.major_version.split('.')[0]) < 8:
+            return self.ref(xid)
+        return self.env.ref(xid).id
+
+    def settle_fields(self, model, vals, how_id=None):
+        for name in vals.copy():
+            if name == 'id':
+                if how_id == 'del':
+                    del vals[name]
+                    continue
+                elif how_id == 'keep':
+                    continue
+            field = self.search_rec('ir.model.fields',
+                                    [('model', '=', model),
+                                     ('name', '=', name)])
+            if not field:
+                del vals[name]
+            elif field.ttype == 'many2one' and len(vals[name].split('.')) == 2:
+                vals[name] = self.ref_id(vals[name])
+        return vals
+
+    def get_ref_value(self, model, xid):
+        if not hasattr(self, 'Z0bugOdoo'):
+            self.Z0bugOdoo = Z0bugOdoo()
+        return self.settle_fields(
+            model, self.Z0bugOdoo.get_test_values(model, xid),
+            how_id='keep')
+
+    def build_model_data(self, model, xrefs):
+        if not isinstance(xrefs, (list, tuple)):
+            xrefs = [xrefs]
+        for xid in xrefs:
+            vals = self.get_ref_value(model, xid)
+            if not vals:
+                pass
+            elif 'id' in vals:
+                xids = xid.split('.')
+                if len(xids) == 2:
+                    try:
+                        id = self.ref_id(xid)
+                    except BaseException:
+                        id = None
+                elif vals['id']:
+                    id = vals['id']
+                else:
+                    id = None
+                del vals['id']
+                if id:
+                    self.write_rec(model, id, vals)
+                else:
+                    id = self.create_id(model, vals)
+                    if len(xids) == 2:
+                        vals = {
+                            'module': xids[0],
+                            'model': model,
+                            'name': xids[1],
+                            'res_id': id,
+                        }
+                        self.create_rec('ir.model.data', vals)
+            else:
+                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
+
+    def set_test_company(self, xid=None):
+        '''Set company to test'''
+        if not xid:
+            for xref, model in (('z0bug.partner_mycompany', 'res.partner'),
+                                ('z0bug.mycompany', 'res.company')):
+                self.build_model_data(model, xref)
+            xid = 'z0bug.mycompany'
+        return self.ref_id(xid)
+
+
+class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):
 
     def setUp(self):
-        return super(TransactionCase, self).setUp()
+        Z0bugBaseCase.setUp(self)
 
-
-    def pool(self, model):
-        """Return model pool"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model)
-        return self.env[model]
+    def pool_env(self, model):
+        return Z0bugBaseCase.pool_env(self, model)
 
     def create_id(self, model, values):
-        """Create a new record for test"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).create(self.cr,
-                                               self.uid,
-                                               values)
-        return self.env[model].create(values).id
+        return Z0bugBaseCase.create_id(self, model, values)
 
     def create_rec(self, model, values):
-        """Create a new record for test"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).browse(
-                self.cr,
-                self.uid,
-                self.pool(model).create(self.cr,
-                                        self.uid,
-                                        values))
-        return self.env[model].create(values)
+        return Z0bugBaseCase.create_rec(self, model, values)
 
     def write_rec(self, model, id, values):
-        """Write existent record"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).write(self.cr, self.uid, [id], values)
-        return self.env[model].search([('id', '=', id)]).write(values)
+        return Z0bugBaseCase.write_rec(self, model, id, values)
+
+    def write_ref(self, model, id, values):
+        return Z0bugBaseCase.write_ref(self, model, id, values)
 
     def browse_rec(self, model, id):
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).browse(self.cr, self.uid, id)
-        return self.env[model].browse(id)
+        return Z0bugBaseCase.browse_rec(self, model, id)
 
-    def env612(self, model):
-        """Return model pool"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model)
-        return self.env[model]
+    def search_rec(self, model, args):
+        return Z0bugBaseCase.search_rec(self, model, args)
 
-    def ref612(self, xid):
-        """Return reference id"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.ref(xid)
-        return self.env.ref(xid).id
+    def ref_id(self, xid):
+        return Z0bugBaseCase.ref_id(self, xid)
 
-    def search612(self, model, args):
-        """Search record ids - Syntax search(model, *args)
-        Warning! Do not use with Odoo 7.0: result may fails!"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).search(self.cr, self.uid, args)
-        return self.env[model].search(args)
-
-    def write_ref(self, xid, values):
-        """Browse and write existent record"""
-        return self.browse_ref(xid).write(values)
+    def settle_fields(self, model, vals, how_id=None):
+        return Z0bugBaseCase.settle_fields(self, model, vals, how_id)
 
     def get_ref_value(self, model, xid):
-        if not hasattr(self, 'Z0bugOdoo'):
-            self.Z0bugOdoo = Z0bugOdoo()
-        return self.Z0bugOdoo.get_test_values(model, xid)
+        return Z0bugBaseCase.get_ref_value(self, model, xid)
 
     def build_model_data(self, model, xrefs):
-        if not isinstance(xrefs, (list, tuple)):
-            xrefs = [xrefs]
-        for xid in xrefs:
-            vals = self.get_ref_value(model, xid)
-            if not vals:
-                pass
-            elif 'id' in vals:
-                xids = xid.split('.')
-                ids = self.search612('ir.model.data',
-                                     [('module', '=', xids[0]),
-                                      ('name', '=', xids[1])])
-                del vals['id']
-                if ids:
-                    id = ids[0]
-                    self.write_rec(model, id, vals)
-                else:
-                    id = self.create_id(model, vals)
-                    vals = {
-                        'module': xid[0],
-                        'model': model,
-                        'name': xid[1],
-                        'res_id': id,
-                    }
-                    self.create_rec('ir.model.data', vals)
-            else:
-                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
+        return Z0bugBaseCase.build_model_data(self, model, xrefs)
 
-class SingleTransactionCase(test_common.SingleTransactionCase):
+    def set_test_company(self, xid=None):
+        return Z0bugBaseCase.set_test_company(self, xid)
 
 
-    def pool(self, model):
-        """Return model pool"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model)
-        return self.env[model]
+class SingleTransactionCase(test_common.SingleTransactionCase, Z0bugBaseCase):
+
+    def pool_env(self, model):
+        return Z0bugBaseCase.pool_env(self, model)
 
     def create_id(self, model, values):
-        """Create a new record for test"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).create(self.cr,
-                                               self.uid,
-                                               values)
-        return self.env[model].create(values).id
+        return Z0bugBaseCase.create_id(self, model, values)
 
     def create_rec(self, model, values):
-        """Create a new record for test"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).browse(
-                self.cr,
-                self.uid,
-                self.pool(model).create(self.cr,
-                                        self.uid,
-                                        values))
-        return self.env[model].create(values)
+        return Z0bugBaseCase.create_rec(self, model, values)
 
     def write_rec(self, model, id, values):
-        """Write existent record"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).write(self.cr, self.uid, [id], values)
-        return self.env[model].search([('id', '=', id)]).write(values)
+        return Z0bugBaseCase.write_rec(self, model, id, values)
+
+    def write_ref(self, model, id, values):
+        return Z0bugBaseCase.write_ref(self, model, id, values)
 
     def browse_rec(self, model, id):
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).browse(self.cr, self.uid, id)
-        return self.env[model].browse(id)
+        return Z0bugBaseCase.browse_rec(self, model, id)
 
-    def env612(self, model):
-        """Return model pool"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model)
-        return self.env[model]
-
-    def ref612(self, xid):
-        """Return reference id"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.ref(xid)
-        return self.env.ref(xid).id
-
-    def search612(self, model, args):
-        """Search record ids - Syntax search(model, *args)
-        Warning! Do not use with Odoo 7.0: result may fails!"""
-        if int(release.major_version.split('.')[0]) < 8:
-            return self.registry(model).search(self.cr, self.uid, args)
-        return self.env[model].search(args)
-
-    def write_ref(self, xid, values):
-        """Browse and write existent record"""
-        return self.browse_ref(xid).write(values)
+    def settle_fields(self, model, vals, how_id=None):
+        return Z0bugBaseCase.settle_fields(self, model, vals, how_id)
 
     def get_ref_value(self, model, xid):
-        if not hasattr(self, 'Z0bugOdoo'):
-            self.Z0bugOdoo = Z0bugOdoo()
-        return self.Z0bugOdoo.get_test_values(model, xid)
+        return Z0bugBaseCase.get_ref_value(self, model, xid)
 
     def build_model_data(self, model, xrefs):
-        if not isinstance(xrefs, (list, tuple)):
-            xrefs = [xrefs]
-        for xid in xrefs:
-            vals = self.get_ref_value(model, xid)
-            if not vals:
-                pass
-            elif 'id' in vals:
-                xids = xid.split('.')
-                ids = self.search612('ir.model.data',
-                                     [('module', '=', xids[0]),
-                                      ('name', '=', xids[1])])
-                del vals['id']
-                if ids:
-                    id = ids[0]
-                    self.write_rec(model, id, vals)
-                else:
-                    id = self.create_id(model, vals)
-                    vals = {
-                        'module': xid[0],
-                        'model': model,
-                        'name': xid[1],
-                        'res_id': id,
-                    }
-                    self.create_rec('ir.model.data', vals)
-            else:
-                raise KeyError('Invalid xid %s for model %s!' % (xid, model))
+        return Z0bugBaseCase.build_model_data(self, model, xrefs)
+
+    def set_test_company(self, xid=None):
+        return Z0bugBaseCase.set_test_company(self, xid)

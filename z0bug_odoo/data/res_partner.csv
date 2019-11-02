@@ -1,5 +1,5 @@
 id,name,street,street2,zip,city,customer,is_company,email,phone,fax,supplier,vat,fiscalcode,website
-base.main_partner,Test Company,"Via dei Matti, 0",,20080,Ozzero,False,True,info@latuaazienda.it,+39 025551234,,False,IT10978280013,,www.latuaazienda.it
+z0bug.partner_mycompany,Test Company,"Via dei Matti, 0",,20080,Ozzero,False,True,info@testcompany.org,+39 025551234,,False,IT05111810015,,Www.testcompany.org
 z0bug.res_partner_10,Notaio Libero Jackson,"Str. del Dazio, 10",,10121,Torino,False,True,jacksonlibero@pec.notariato.it,,,True,IT10242670015,JCKLBR72M24L736R,
 z0bug.res_partner_7,Università della Svizzera Italiana,"Via dei Sindacatori, 1",,6900,Massagno,False,True,info@uniit.ch,+41 0919876000,,True,CHE-123.456.788,,
 z0bug.res_partner_12,Freie Universität Berlin,Kaiserswerther Straße 16-18,,14195,Berlin,False,True,,,,True,DE123456788,,
