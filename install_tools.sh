@@ -14,7 +14,7 @@ fi
 
 RFLIST__travis_emulator="dist_pkg gen_addons_table.py please please.man please.py prjdiff replica.sh travis travisrc vfcp vfdiff wok_doc wok_doc.py"
 RFLIST__devel_tools="cvt_csv_2_rst.py cvt_csv_2_xml.py generate_all_tnl gen_readme.py makepo_it.py odoo_dependencies.py odoo_translation.py topep8 topep8.py to_oca.2p8 to_oia.2p8 to_pep8.2p8 to_pep8.py"
-RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh transodoo.py transodoo.csv upd_oemod.py"
+RFLIST__clodoo="awsfw . clodoo.py inv2draft_n_restore.py list_requirements.py manage_db manage_odoo manage_odoo.man odoo_install_repository odoorc oe_watchdog run_odoo_debug odoo_skin.sh set_worker.sh transodoo.py transodoo.csv upd_oemod.py"
 RFLIST__zar="pg_db_active pg_db_reassign_owner"
 RFLIST__z0lib=". z0librc"
 RFLIST__zerobug="zerobug z0testrc"

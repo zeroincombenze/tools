@@ -1,4 +1,3 @@
-
 =================
 zerobug 0.2.14.12
 =================
@@ -61,6 +60,13 @@ Quick start
 Installation
 ------------
 
+
+To install stable version:
+
+::
+    pip install zerobug
+
+|
 
 To install current version:
 

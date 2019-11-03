@@ -33,7 +33,7 @@ total unit test to execute, that is a sort of advancing test progress.
       ],
       keywords='unit test',
       url='http://wiki.zeroincombenze.org/en/Zerobug',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['zerobug'],

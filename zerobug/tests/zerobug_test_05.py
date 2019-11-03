@@ -27,7 +27,7 @@ def version():
 
 # Run main if executed as a script
 if __name__ == "__main__":
-    UT_LIST = ["__doctest_${rundir}/egg-info/description.rst"]
+    UT_LIST = ["__doctest_${rundir}/docs/description.rst"]
     exit(Z0BUG.main(
         Z0BUG.parseoptest(
             sys.argv[1:],

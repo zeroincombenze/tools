@@ -1,5 +1,6 @@
 .. $if not no_pypi
-To install stable version:
+Stable version via Python Package
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
     pip install {{name}}
@@ -7,7 +8,8 @@ To install stable version:
 |
 
 .. $fi
-To install current version:
+Current version via Git
+~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
