@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='clodoo',
-      version='0.3.8.57',
+      version='0.3.8.58',
       description='Do massive operations on Odoo Cloud',
       long_description="""
 Crete consistent DB for test and/or
@@ -16,7 +16,7 @@ do massive operation on multiple Odoo databases.
       ],
       keywords='odoo',
       url='http://wiki.zeroincombenze.org/en/Python/opt/clodoo',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['clodoo'],

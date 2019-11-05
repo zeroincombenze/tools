@@ -32,7 +32,7 @@ fi
 . $Z0TLIBDIR
 Z0TLIBDIR=$(dirname $Z0TLIBDIR)
 
-__version__=0.3.8.57
+__version__=0.3.8.58
 VERSIONS_TO_TEST="12.0 11.0 10.0 9.0 8.0 7.0 6.1"
 MAJVERS_TO_TEST="12 11 10 9 8 7 6"
 
@@ -605,74 +605,82 @@ test_06() {
     export opt_mult=0
     export opt_multi=0
     declare -A TRES
-    z="OCB"
-    TRES[zero-git]="git@github.com:zeroincombenze/$z"
-    TRES[zero-http]="https://github.com/zeroincombenze/$z"
-    TRES[oca]="https://github.com/OCA/$z"
-    TRES[librerp]="https://github.com/iw3hxn/server"
-    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      TRES[zero]=${TRES[zero-git]}
-    else
-      TRES[zero]=${TRES[zero-http]}
-    fi
-    for w in zero zero-git zero-http oca librerp; do
-      for v in $VERSIONS_TO_TEST; do
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param URL $v $z $w)
-        fi
-        test_result "URL $w/$z $v" "${TRES[$w]}" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        #
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param GIT_URL $v $z $w)
-        fi
-        test_result "GIT_URL $w/$z $v" "${TRES[$w]}.git" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        #
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param URL_BRANCH $v $z $w)
-        fi
-        test_result "URL_BRANCH $w/$z $v" "${TRES[$w]}/tree/$v" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    for z in "OCB" "l10n-italy"; do
+      TRES[zero-git]="git@github.com:zeroincombenze/$z"
+      TRES[zero-http]="https://github.com/zeroincombenze/$z"
+      TRES[oca]="https://github.com/OCA/$z"
+      TRES[librerp]="https://github.com/iw3hxn/server"
+      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+        TRES[zero]=${TRES[zero-git]}
+      else
+        TRES[zero]=${TRES[zero-http]}
+      fi
+      for w in zero zero-git zero-http oca librerp; do
+        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
+        for v in $VERSIONS_TO_TEST; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            RES=$(build_odoo_param URL $v $z $w)
+          fi
+          test_result "URL $w/$z $v" "${TRES[$w]}" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          #
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            RES=$(build_odoo_param GIT_URL $v $z $w)
+          fi
+          test_result "GIT_URL $w/$z $v" "${TRES[$w]}.git" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          #
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            RES=$(build_odoo_param URL_BRANCH $v $z $w)
+          fi
+          test_result "URL_BRANCH $w/$z $v" "${TRES[$w]}/tree/$v" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        done
       done
     done
     #
-    TRES[zero-git]="git@github.com:zeroincombenze"
-    TRES[zero-http]="https://github.com/zeroincombenze"
-    TRES[oca]="https://github.com/OCA"
-    TRES[librerp]="https://github.com/iw3hxn"
-    if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
-      TRES[zero]=${TRES[zero-git]}
-    else
-      TRES[zero]=${TRES[zero-http]}
-    fi
-    for w in zero zero-git zero-http oca librerp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param GIT_ORG $v $z $w)
-        fi
-        test_result "GIT_ORG $w/$z $v" "${TRES[$w]}" "$RES"
-        s=$?; [ ${s-0} -ne 0 ] && sts=$s
+    for z in "OCB" "l10n-italy"; do
+      TRES[zero-git]="git@github.com:zeroincombenze"
+      TRES[zero-http]="https://github.com/zeroincombenze"
+      TRES[oca]="https://github.com/OCA"
+      TRES[librerp]="https://github.com/iw3hxn"
+      if [[ $HOSTNAME =~ shs[a-z0-9]+ ]]; then
+        TRES[zero]=${TRES[zero-git]}
+      else
+        TRES[zero]=${TRES[zero-http]}
+      fi
+      for w in zero zero-git zero-http oca librerp; do
+        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
+        for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            RES=$(build_odoo_param GIT_ORG $v $z $w)
+          fi
+          test_result "GIT_ORG $w/$z $v" "${TRES[$w]}" "$RES"
+          s=$?; [ ${s-0} -ne 0 ] && sts=$s
+        done
       done
     done
     #
-    TRES[zero]="https://github.com/OCA/$z"
-    TRES[zero-git]="https://github.com/OCA/$z"
-    TRES[zero-http]="https://github.com/OCA/$z"
-    TRES[oca]="https://github.com/OCA/$z"
-    TRES[librerp]="https://github.com/iw3hxn/$z"
-    for w in zero zero-git zero-http oca librerp; do
-      for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
-        if [ ${opt_dry_run:-0} -eq 0 ]; then
-          RES=$(build_odoo_param UPSTREAM $v $z $w)
-        fi
-        if [ "$v" == "6.1" -o "$w" == "oca" -o "$w" == "librerp" ]; then
-          test_result "UPSTREAM $w/$z $v" "" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        else
-          test_result "UPSTREAM $w/$z $v" "${TRES[$w]}.git" "$RES"
-          s=$?; [ ${s-0} -ne 0 ] && sts=$s
-        fi
+    for z in "OCB" "l10n-italy"; do
+      TRES[zero]="https://github.com/OCA/$z"
+      TRES[zero-git]="https://github.com/OCA/$z"
+      TRES[zero-http]="https://github.com/OCA/$z"
+      TRES[oca]="https://github.com/OCA/$z"
+      TRES[librerp]="https://github.com/iw3hxn/$z"
+      for w in zero zero-git zero-http oca librerp; do
+        [ "$z" == "l10n-italy" -a "$w" == "librerp" ] && continue
+        for v in 6.1 7.0 8.0 9.0 10.0 11.0 12.0; do
+          if [ ${opt_dry_run:-0} -eq 0 ]; then
+            RES=$(build_odoo_param UPSTREAM $v $z $w)
+          fi
+          if [ "$v" == "6.1" -o "$w" == "oca" -o "$w" == "librerp" ]; then
+            test_result "UPSTREAM $w/$z $v" "" "$RES"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          else
+            test_result "UPSTREAM $w/$z $v" "${TRES[$w]}.git" "$RES"
+            s=$?; [ ${s-0} -ne 0 ] && sts=$s
+          fi
+        done
       done
     done
     #

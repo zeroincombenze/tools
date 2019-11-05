@@ -36,7 +36,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.3.8.57
+__version__=0.3.8.58
 
 
 rmdir_if_exists() {
@@ -299,7 +299,7 @@ odoo_rver=$(build_odoo_param GIT_BRANCH "$odoo_vid")
 pkg_URL=$git_repo
 RPTNAME=$(basename $git_repo)
 [ -z "$opt_org" ] && opt_org=$(build_odoo_param GIT_ORGID $odoo_vid)
-if [[ $odoo_vid =~ (12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
+if [[ $odoo_vid =~ (13\.0|12\.0|11\.0|10\.0|9\.0|8\.0|7\.0|6\.1) && "$opt_org" == "zero" ]]; then
   def_opt_org=
 else
   def_opt_org=$opt_org
