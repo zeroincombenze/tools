@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.19
+#__version__=0.2.2.20
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -640,6 +640,7 @@ drop_virtual_env() {
       drop_test_db
       rm -fR $TRAVIS_HOME
     fi
+    TRAVIS_ENVOPTS=$(get_cfg_value "" "virtualenv_opts")
 }
 
 wash_virtual_env() {

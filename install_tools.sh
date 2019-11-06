@@ -1,4 +1,4 @@
-# __version__=0.2.2.20
+# __version__=0.2.2.21
 #
 THIS=$(basename "$0")
 TDIR=$(readlink -f $(dirname $0))
@@ -21,7 +21,7 @@ RFLIST__zerobug="zerobug z0testrc"
 RFLIST__wok_code="cvt_script"
 RFLIST__lisa="lisa lisa.conf.sample lisa.man lisa_bld_ods kbase/*.lish odoo-server_Debian odoo-server_RHEL"
 RFLIST__tools="odoo_default_tnl.csv templates"
-RFLIST__python_plus=""
+RFLIST__python_plus="venv_mgr"
 RFLIST__zerobug_odoo=""
 RFLIST__odoo_score=odoo_shell.py
 MOVED_FILES_RE="(cvt_csv_2_rst.py|cvt_csv_2_xml.py|gen_readme.py|makepo_it.py|odoo_translation.py|topep8|to_pep8.2p8|to_pep8.py|topep8.py)"
@@ -38,7 +38,7 @@ if [ -z "$SRCPATH" -o -z "$DSTPATH" ]; then
 fi
 find $SRCPATH -name "*.pyc" -delete
 find $DSTPATH -name "*.pyc" -delete
-for pkg in travis_emulator clodoo devel_tools zar z0lib zerobug wok_code lisa tools odoo_score; do
+for pkg in clodoo devel_tools lisa odoo_score python_plus tools travis_emulator wok_code z0lib zar zerobug; do
   l="RFLIST__$pkg"
   flist=${!l}
   [[ $1 =~ -.*v ]] && echo "[$pkg=$flist]"

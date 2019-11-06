@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='python_plus',
-      version='0.1.1',
+      version='0.1.1.2',
       description='python useful function',
       long_description="""
 Various functions.
@@ -15,7 +15,7 @@ Various functions.
       ],
       keywords='unit test',
       url='http://wiki.zeroincombenze.org/en/Zerobug',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['python_plus'],

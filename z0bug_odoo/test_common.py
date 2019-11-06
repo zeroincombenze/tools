@@ -25,7 +25,7 @@ else:
     sys.exit(0)
 
 
-__version__='0.1.0.1.1'
+__version__='0.1.0.1.2'
 
 
 class Z0bugBaseCase(test_common.BaseCase):
@@ -149,7 +149,18 @@ class Z0bugBaseCase(test_common.BaseCase):
                                 ('z0bug.mycompany', 'res.company')):
                 self.build_model_data(model, xref)
             xid = 'z0bug.mycompany'
-        return self.ref_id(xid)
+        xid_id = self.ref_id(xid)
+        # There are two separate write because "company_id" assignment fails if
+        # company_id is not in "company_ids" at the time of the write
+        if int(release.major_version.split('.')[0]) < 8:
+            self.registry('res.user').write(
+                self.cr, self.uid, [self.uid], {'company_ids': [(4, xid_id)]})
+            self.registry('res.user').write(
+                self.cr, self.uid, [self.uid], {'company_id': xid_id})
+        else:
+            self.env.user.write({'company_ids': [(4, xid_id)]})
+            self.env.user.write({'company_id': xid_id})
+        return xid_id
 
 
 class TransactionCase(test_common.TransactionCase, Z0bugBaseCase):

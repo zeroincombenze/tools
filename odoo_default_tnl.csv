@@ -192,8 +192,8 @@ status	msgid	msgstr
 	Contributor	Collaboratore
 	Control Policy 	Procedimento di controllo
 	Country Code %s not found in system.	Codice nazione %s non trovato nel sistema.
-	Country code according to the ISO 3166-1 alpha-2 code standard	Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code
 	Country Code %s not found in the system.	Codice nazione %s non trovato nel sistema.
+	Country code according to the ISO 3166-1 alpha-2 code standard	Codice della nazione espresso secondo lo standard ISO 3166-1 alpha-2 code
 	Country encoded by ISO-3166.	Codifica nazione ISO-3166
 	Country is not set for %s.	Nazione non impostata per %s.
 	Country not set.	Nazione non impostata.
@@ -305,6 +305,7 @@ status	msgid	msgstr
 	Display Name	Nome visualizzato
 	District	Distretto/provincia
 	Document {d} has invoice linked	Il documento {d} ha una fattura collegata
+	Document %d has invoice linked	Il documento %d ha una fattura collegata
 	Document ID	ID documento
 	Document report selection rules	Regole selezione impaginazione stampa
 	Document Type	Tipo documento
@@ -392,8 +393,8 @@ status	msgid	msgstr
 	FE emessa	E-fatture emesse
 	Features	Funzionalità
 	Fee Registration	Imposta di registro
-	File %s already present.	File %s già presente.
 	File %s already loaded!	File %s già caricato.
+	File %s already present.	File %s già presente.
 	File %s is linked to bills yet.	Il file %s è già collegato alle fatture.
 	File is linked to bills yet.	Il file è già collegato alle fatture.
 	Filter partners	Filtra soggetti
@@ -465,7 +466,7 @@ status	msgid	msgstr
 	Intermediary	Intermediario
 	Inventory	Magazzino
 	Inventory Adjustments	Rettifiche di inventario
-	Inventory Locations	Locationi d'Inventario
+	Inventory Locations	Locazioni d'Inventario
 	Invoice	Fattura
 	Invoice %s (%d), discarded tax line %s	Fattura %s (%d), scartata riga %s
 	Invoice %s has e-invoice export file yet.	File e-fattura già presente per la fattura %s.
@@ -548,7 +549,9 @@ status	msgid	msgstr
 	Missed company VAT number	Manca partita IVA aziendale
 	Missed company zip code	Manca CAP aziendale
 	Missed supplier invoice number %s, id=%d	Manca numero fattura fornitore %s, id=%d
+	Model template	Specifica di modello
 	Model template with fallback values.	Specifica con valori a cascata
+	Model to apply this rule	Modello a cui applicare questa regola
 	Module	Modulo
 	Monthly	Mensile
 	Multi Report Document Style	Stile documento multi-documenti
@@ -572,6 +575,7 @@ status	msgid	msgstr
 	No 'law reference' field for tax %s.	"Campo ""riferimento legislativo"" non valorizzato per l'imposta %s."
 	No 'nature' field for tax %s	"Campo ""natura"" non valorizzato per l'imposta %s"
 	No 'nature' field for tax %s.	"Campo ""natura"" non valorizzato per l'imposta %s."
+	No code	No codice
 	No code & Only first line	No codice & solo 1° riga
 	No currency found with code %s.	Divisa con codice %s non trovata.
 	No partner allocated	Nessun soggetto allocato
@@ -770,8 +774,8 @@ status	msgid	msgstr
 	Reference	Riferimento
 	Refresh	Riaggiorna
 	Refresh attachment info	Riaggiorna informazioni allegato
-	Refresh registration date	Riaggiorna data registrazione
 	Refresh due date from attachment	Riaggiorna data scadenza da allegato
+	Refresh registration date	Riaggiorna data registrazione
 	Refund	Nota credito
 	Register Code	Numero di iscrizione
 	Register Province	Provincia iscrizione
@@ -911,6 +915,7 @@ status	msgid	msgstr
 	Street not set.	Indirizzo non impostato
 	Subjected to electronic invoice	Soggetto a fattura elettronica
 	Subjected to Electronic Invoice	Soggetto a fattura elettronica
+	Subtotal	Totale Riga
 	Sum Due	Corrispettivo dovuto
 	Summary Data	Dati riepilogo
 	Supplement	Maggiorazione
@@ -970,6 +975,7 @@ status	msgid	msgstr
 	The parent company	L'azienda controllante
 	The record id this is attached to.	L'ID del record a cui questo è collegato.
 	The univocal progressive of the file is represented by an alphanumeric sequence of maximum length 5, its values are included in 'A'-'Z' and '0'-'9'	"Il progressivo univoco del file è rappresentato da una sequenza alfanumerica di lunghezza massima 5, i cui valori sono inclusi in ""A""-""Z"" e ""0""-""9"""
+	There are not picking to create a DdT	Non ci sono prelievi per creare un DdT
 	There is no invoicable line.	Non ci sono righe fatturabili
 	Third Party/Sender	Terzo/Trasmittente
 	Third Person	Soggetto terzo

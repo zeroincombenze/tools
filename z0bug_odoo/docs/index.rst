@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 ==============================================
-Welcome to z0bug_odoo 0.1.0.1.1 documentation!
+Welcome to z0bug_odoo 0.1.0.1.2 documentation!
 ==============================================
 
 |Maturity| |Build Status| |Coverage Status| |license gpl|

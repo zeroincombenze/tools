@@ -29,7 +29,7 @@ Following function are avaiable.
 
 `set_test_company(self)`
 
-Create or update company to test. This function should be put in setUp().
+Create or update company to test and assign it to current user as default company. This function should be put in setUp().
 
 
 `create_id(model, values)`
