@@ -547,24 +547,23 @@ run_traced() {
       pfx="> "
     fi
     if [ ${opt_dry_run:-0} -eq 0 ]; then
-      if [ "${1:0:5}" != "wlog " ];then
+      if [ "${1:0:5}" != "wlog " ]; then
         if [ ${opt_verbose:-0} -gt 0 ]; then
-          [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && elog "\e[${PS_RUN_COLOR}m$pfx$xcmd"
+          [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" -a -n "$PS_TXT_COLOR" ] && elog "\e[${PS_RUN_COLOR}m$pfx$xcmd\e[0m\e[${PS_TXT_COLOR}m"
           [ ${opt_humdrum:-0} -ne 0 -o -z "$PS_RUN_COLOR" ] && elog "$pfx$xcmd"
         else
           wlog "$pfx$xcmd"
         fi
       fi
       if [ "${1:0:1}" != "#" ]; then
-        [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m"
+        [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" -a -n "$PS_TXT_COLOR" ] && echo -en "\e[${PS_RUN_COLOR}m"
         eval "$xcmd"
         sts=$?
-        [ ${opt_verbose:-0} -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -n "$PS_TXT_COLOR" ] && echo -en "\e[0m\e[${PS_TXT_COLOR}m"
-        # [ ${opt_verbose:-0} -gt 0 -a ${opt_humdrum:-0} -eq 0 -a -z "$PS_TXT_COLOR" ] && echo -en "\e7${PS1}\e8\e[K"
+        [ ${opt_humdrum:-0} -eq 0 -a -n "$PS_RUN_COLOR" -a -n "$PS_TXT_COLOR" ] && echo -en "\e[0m\e[${PS_TXT_COLOR}m"
       fi
     elif [ "${1:0:6}" != "sleep " ]; then
       [ ${opt_verbose:-0} -gt 0 ] && echo "$pfx$xcmd"
-      [ "${1:0:3}" == "cd " -o "$1" == "cd" ] && eval "$xcmd" 2>/dev/null
+      [ "${1:0:3}" == "cd " -o "$1" == "cd" -o "${1:0:6}" == "pushd " -o "${1:0:5}" == "popd " ] && eval "$xcmd" 2>/dev/null
     fi
     $SET_X
     return $sts

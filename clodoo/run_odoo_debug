@@ -28,7 +28,7 @@ if [ -z "$ODOOLIBDIR" ]; then
 fi
 . $ODOOLIBDIR
 
-__version__=0.3.8.58
+__version__=0.3.8.59
 
 
 OPTOPTS=(h        b          c        d        e       k        i       I       l        L        m           M         n           o         O      p        s         T        t         U          u       V           v           w       W        x)
@@ -98,11 +98,15 @@ elif [ $opt_ou -ne 0 ]; then
   [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/server/$x ] && script=~/tmp/ou_$odoo_fver/server/$x
   [ -z "$script" -a -f ~/tmp/ou_$odoo_fver/$x ] && script=~/tmp/ou_$odoo_fver/$x
   if [ -z "$script" ]; then
-    echo "Openupgrade script not found"
+    echo "Openupgrade script not found!!"
     exit 1
   fi
 else
   odoo_root=$(build_odoo_param ROOT $odoo_vid search)
+fi
+if [ -z "$script" ]; then
+    echo "No odoo script found!!"
+    exit 1
 fi
 VENV=$(build_odoo_param VENV $odoo_vid)
 [ -f $odoo_root/bin/activate ] && VENV=1

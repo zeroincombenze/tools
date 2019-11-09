@@ -30,7 +30,7 @@ Features:
       ],
       keywords='bash, optargs',
       url='http://wiki.zeroincombenze.org/en/Zerobug',
-      author='Antonio M. Vigliotti',
+      author='Antonio Maria Vigliotti',
       author_email='antoniomaria.vigliotti@gmail.com',
       license='Affero GPL',
       packages=['z0lib'],

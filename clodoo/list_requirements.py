@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.58'
+__version__ = '0.3.8.59'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -27,7 +27,7 @@ REQVERSION = {
     'Babel': {'7.0': '==1.3', '8.0': '==2.3.4'},
     'beautifulsoup': {'7.0': '==3.2.1'},
     'codicefiscale': {'7.0': '==0.9'},
-    'cryptography': {'7.0': '2.2.2'},
+    'cryptography': {'7.0': '>=2.2.2'},
     'decorator': {'7.0': '==3.4.0', '10.0': '==4.0.10'},
     'docutils': {'7.0': '==0.12', '0': '==0.14'},        # Version by test pkgs
     'ebaysdk': {'7.0': '==2.1.4'},
@@ -67,7 +67,8 @@ REQVERSION = {
     'Python-Chart': {'7.0': '==1.39'},
     'python-dateutil': {'7.0': '==2.4.0', '8.0': '==2.5.3'},
     'python-ldap': {'7.0': '==2.4.19',
-                    '10.0': '==2.4.25'},        # warning OCA declare 2.4.27!?
+                    '10.0': '==2.4.25',      # warning OCA declare 2.4.27!?
+                    '11.0': '>=0.9.8.4'},
     'python-openid': {'7.0': '==2.2.5'},
     'python-stdnum': {'7.0': '>=1.8.1'},
     'pytz': {'7.0': '==2014.10', '10.0': '==2016.7'},
@@ -86,7 +87,7 @@ REQVERSION = {
     'suds-jurko': {'7.0': '==0.6'},
     'unicodecsv': {'7.0': '>=0.14.1'},
     'unidecode': {'7.0': '==0.4.17'},
-    'unittest2': {'7.0': '==0.5.1'},
+    'unittest2': {'7.0': '==0.5.1', '11.0': '>=1.0.0'},
     'validate_email': {'7.0': '>=1.3'},
     'vatnumber': {'7.0': '==1.2'},
     'vobject': {'7.0': '==0.9.3'},                      # Tested 0.9.5
@@ -109,10 +110,13 @@ ALIAS = {
     'openid': 'python-openid',
     'pillow': 'Pillow',
     'psycopg2': 'psycopg2-binary',
+    'pychart': 'PyChart',
     'pypdf': 'pyPdf',
+    'pypdf2': 'pyPDF2',
     'pygments': 'Pygments',
     'python-chart': 'Python-Chart',
     'python-docutils': 'docutils',
+    'python-simplejson': 'simplejson',
     'pywebdav': 'PyWebDAV',
     'pyyaml': 'PyYAML',
     'requests': 'requests[security]',
@@ -122,6 +126,11 @@ ALIAS = {
     'usb': 'pyusb',
     'werkzeug': 'Werkzeug',
     'xlsxwriter': 'XlsxWriter',
+}
+ALIAS3 = {
+    'PyWebDAV': 'PyWebDAV3',
+    'python-ldap': 'python3-ldap',
+    'pyPdf': 'pyPDF2',
 }
 PIP_TEST_PACKAGES = ['astroid',
                      'Click',
@@ -202,15 +211,23 @@ PIP_BASE_PACKAGES = ['Babel',
                      'vatnumber',
                      'Werkzeug',
                      ]
+PIP3_BASE_PACKAGES = []
 BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
                      # 'python-psycopg2',
                      # 'python-simplejson',
                      'wkhtmltopdf',
+                     'zlib',
                      ]
 BIN_PACKAGES = ['git',
                 'cups',
+                'pychart',
+                'PyChart',
+                'pyvies',
+                ]
+PIP_WITH_DOT = ['py3o.',
+                'anybox.',
                 ]
 cmd = ['python3', '--version']
 try:
@@ -245,16 +262,19 @@ def name_n_version(full_item, with_version=None, odoo_ver=None):
         full_item = ''
     item = item[0]
     item = os.path.basename(item)
-    if item[0:5] != 'py3o.':
+    if not filter(lambda x: item.startswith(x), PIP_WITH_DOT):
         item = item.split('.')[0].lower()
     if item in ALIAS:
         item = ALIAS[item]
+    if odoo_ver in ('13.0', '12.0', '11.0'):
+        if item in ALIAS3:
+            item = ALIAS3[item]
     defver = False
     if with_version:
         if item in REQVERSION:
             min_v = False
             valid_ver = False
-            for v in ('0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
+            for v in ('0', '13.0', '12.0', '11.0', '10.0', '9.0', '8.0', '7.0', '6.1'):
                 if v in REQVERSION[item]:
                     min_v = v
                     if v == odoo_ver or valid_ver or (not odoo_ver and
@@ -298,7 +318,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
             #                             with_version=with_version,
             #                             odoo_ver=odoo_ver)
             elif item == 'lxml':
-                if odoo_ver in ('11.0', '12.0'):
+                if odoo_ver in ('11.0', '12.0', '13.0'):
                     for itm in (PY3_DEV, 'libxml2-dev',
                                 'libxslt1-dev', 'zlib1g-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
@@ -311,7 +331,7 @@ def add_package(deps_list, kw, item, with_version=None, odoo_ver=None):
                                                 with_version=with_version,
                                                 odoo_ver=odoo_ver)
             elif item in ('lxml', 'python-psycopg2'):
-                if odoo_ver in ('11.0', '12.0'):
+                if odoo_ver in ('11.0', '12.0', '13.0'):
                     for itm in (PY3_DEV, 'libpq-dev'):
                         deps_list = add_package(deps_list, 'bin', itm,
                                                 with_version=with_version,
@@ -456,6 +476,11 @@ def main():
         ctx['test_pkgs'] = False
         ctx['oca_dependencies'] = False
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
+    if (not ctx['odoo_dir'] and
+            os.path.isdir(os.path.join(os.path.expanduser('~'),
+                                       ctx['odoo_ver']))):
+        ctx['odoo_dir'] = os.path.join(os.path.expanduser('~'),
+                                       ctx['odoo_ver'])
     if ctx['odoo_dir']:
         manifests = []
         reqfiles = []
@@ -492,6 +517,11 @@ def main():
         deps_list = package_from_list(deps_list, 'python', PIP_BASE_PACKAGES,
                                       with_version=ctx['with_version'],
                                       odoo_ver=ctx['odoo_ver'])
+        if ctx['odoo_ver'] in ('11.0', '12.0', '13.0'):
+            deps_list = package_from_list(deps_list, 'python',
+                                          PIP3_BASE_PACKAGES,
+                                          with_version=ctx['with_version'],
+                                          odoo_ver=ctx['odoo_ver'])
         deps_list = package_from_list(deps_list, 'bin', BIN_BASE_PACKAGES,
                                       with_version=False,
                                       odoo_ver=ctx['odoo_ver'])

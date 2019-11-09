@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Check for all odoo repositories
+# Manage virtual envinroment
 # This free software is released under GNU Affero GPL3
 # author: Antonio M. Vigliotti - antoniomaria.vigliotti@gmail.com
 # (C) 2018-2019 by SHS-AV s.r.l. - http://www.shs-av.com - info@shs-av.com
@@ -26,33 +26,55 @@ if [ -z "$Z0LIBDIR" ]; then
   exit 2
 fi
 
-__version__=0.1.1.2
+__version__=0.1.1.3
+DEV_PKGS="coveralls codecov flake8==3.4.1 pycodestyle==2.3.1 pylint==1.6.4"
+SUP_PKGS="future"
+SECURE_PKGS="urllib3[secure] cryptography pyOpenSSL idna certifi"
+FLT_PKGS="(jwt|FOO)"
 
+venv_mgr_check_src_path() {
+# venv_mgr_check_src_path(VENV)
+    local f VENV
+    [ -n "$1" ] && VENV=$(readlink -e $1)
+    if [[ -z "$VENV" ]]; then
+      echo "Missed virtual environment path!!"
+      exit 1
+    fi
+    if [[ ! -d $VENV || ! -d $VENV/lib || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
+      echo "Invalid virtual env $VENV!!"
+      exit 1
+    fi
+    cd $VENV
+    . bin/activate
+    for f in ./bin/python[23].*; do PYTHON=$(echo $f|grep -Eo "python[2-3]\.[0-9]"); break; done
+    if [ -z "$PYTHON" ]; then
+      echo "Virtual env $VENV without python!!"
+      exit 1
+    fi
+    deactivate
+    opt_pyver=$(echo $PYTHON|grep -Eo "[2-3]\.[0-9]")
+    [ $opt_verbose -gt 0 ] && echo "Python version $opt_pyver ..."
+}
 
 venv_mgr_test() {
 #venv_mgr_test(VENV)
     local f x VENV
-    [ -n "$1" ] && VENV=$(readlink -f $1)
-    if [[ -z "$VENV" ]]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr cp|mv|merge|reset|test VENV NEW_VENV"
-      exit 1
-    fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
+    [ -n "$1" ] && VENV=$(readlink -e $1)
     [ $opt_verbose -gt 0 ] && echo "Validation test ..."
     [ $opt_dry_run -ne 0 ] && return
+    [ $opt_verbose -gt 0 ] && echo "-------------------"
     run_traced "cd $VENV"
     [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
     [ $opt_dry_run -eq 0 ] && . bin/activate
-    for f in python pip coveralls codecov flake8 pylint; do
-      x=$(readlink -e $(which $f))
-      [[ -z "$x" ]] && echo "Corrupted VME ($f)"
-      [[ -n "$x" && ! $x =~ ^$1 ]] && echo "Incomplete VME ($f)"
-      [ "$f" != "pylint" -a $opt_verbose -gt 0 ] && eval $f --version
-      [ "$f" == "pylint" -a $opt_verbose -gt 0 ] && eval $f --version 2>/dev/null
+    [ $opt_verbose -gt 0 ] && echo "VPATH=$PATH"
+    [ $opt_verbose -gt 0 ] && echo "VPYTHONPATH=$PYTHONPATH"
+    for f in $PYTHON $PIP $DEV_PKGS; do
+        f=$(echo $f|awk -F= '{print $1}')
+        x=$(readlink -e $(which $f))
+        [[ -z "$x" ]] && echo "Corrupted VME ($f) !!"
+        [[ -n "$x" && ! $x =~ ^$1 ]] && echo "Incomplete VME ($x)"
+        [ "$f" != "pylint" -a $opt_verbose -gt 0 ] && eval $f --version
+        [ "$f" == "pylint" -a $opt_verbose -gt 0 ] && eval $f --version 2>/dev/null
     done
     [ $opt_verbose -ne 0 ] && echo "$FLAG . deactivate"
     [ $opt_dry_run -eq 0 ] && deactivate
@@ -60,31 +82,32 @@ venv_mgr_test() {
 
 do_venv_mgr() {
 # do_venv_mgr {cp|mv|merge|reset|test} VENV NEW_VENV
-    local d f mime VENV VIRTUAL_ENV V sitecustom do_pop
+    local d f mime VENV VIRTUAL_ENV V sitecustom do_pop OEPKGS xpkgs
     local cmd=$1
-    [ -n "$2" ] && VENV=$(readlink -f $2)
+    [ -n "$2" ] && VENV=$(readlink -e $2)
     [ -n "$3" ] && VIRTUAL_ENV=$(readlink -f $3)
-    [[ "$cmd" == "reset" || "$cmd" == "test" ]] && VIRTUAL_ENV=$VENV
+    [[ $cmd =~ (reset|test) ]] && VIRTUAL_ENV=$VENV
+    [ -n "$opt_oever" ] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever)
     if [[ -z "$VENV" || -z "$VIRTUAL_ENV" ]]; then
       echo "Missed parameters!"
-      echo "use: venv_mgr cp|mv|merge|reset|test VENV NEW_VENV"
+      echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
       exit 1
     fi
-    if [[ "$VENV" == "$VIRTUAL_ENV" && ! "$cmd" == "reset" && ! "$cmd" == "test" ]]; then
+    if [[ "$VENV" == "$VIRTUAL_ENV" && ! $cmd =~ (reset|test) ]]; then
       echo "Source and destination directories are the same!"
-      echo "use: venv_mgr cp|mv|merge|reset|test VENV NEW_VENV"
+      echo "use: venv_mgr ${CMDS// /|} VENV NEW_VENV"
       exit 1
     fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
-    if [[ "$cmd" == "reset" || "$cmd" == "test" ]]; then
+    if [[ $cmd =~ (reset|test) ]]; then
       V=$VENV
     elif [[ "$cmd" == "cp" ]]; then
       if [[ -d $VIRTUAL_ENV ]]; then
-        echo "Destination virtual env $VIRTUAL_ENV already exists!"
-        exit 1
+        if [ $opt_force -eq 0 ]; then
+            echo "Destintatio v.environment $VIRTUAL_ENV already exists!!"
+            echo "use: venv_mgr cp -f VENV NEW_VENV"
+            exit 1
+        fi
+        run_traced "rm -fR $VIRTUAL_ENV"
       fi
       run_traced "cp -r $VENV $VIRTUAL_ENV"
       V=$VIRTUAL_ENV
@@ -126,37 +149,130 @@ do_venv_mgr() {
                 rm -f ./lib64
                 ln -s ./lib ./lib64
             fi
+            [ "$cmd" == "reset" -a -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile --no-warn-conflicts --disable-pip-version-check"
+            if [ $opt_dev -ne 0 ]; then
+                for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
+                    run_traced "$PIP install $pkg --upgrade --ignore-installed --no-warn-conflicts --disable-pip-version-check"
+                done
+            fi
+            if [ -n "$opt_oever" -a "$cmd" == "reset" ]; then
+                xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|}|${DEV_PKGS// /|})"
+                for pkg in $OEPKGS; do
+                    [[ $pkg =~ $xpkgs ]] || run_traced "$PIP install $pkg --upgrade --no-warn-conflicts --disable-pip-version-check"
+                done
+            fi
         elif [ -d $V ]; then
             do_pop=1
             pushd $V >/dev/null
         fi
         run_traced "sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV=\"'$VIRTUAL_ENV'\":g' $PWD/bin/activate"
         if $(grep -q "^export HOME=" $PWD/bin/activate); then
-          run_traced "sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate"
+          run_traced "sed -i -e 's|^export HOME=.*|export HOME=\"\$VIRTUAL_ENV\"|g' $PWD/bin/activate"
         else
           run_traced "sed -ri \"/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')\" $PWD/bin/activate"
           [ $opt_dry_run -eq 0 ] && echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
         fi
         if [ $opt_dry_run -eq 0 ]; then
-            sitecustom=$PWD/lib/python$TRAVIS_PYTHON_VERSION/site-packages/sitecustomize.py
+            sitecustom=$PWD/lib/python$opt_pyver/site-packages/sitecustomize.py
             echo "import sys">$sitecustom
             if [[ "$SYSTEM_SITE_PACKAGES" == "true" ]]; then
-              if [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-                echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+              if [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
+                echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages')\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:     site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
               else
-                echo -e "import site\nif '/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\nif '/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+                echo -e "import site\nif '/usr/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib/python$opt_pyver/site-packages')\nif '/usr/lib64/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('/usr/lib64/python$opt_pyver/site-packages')\n">>$sitecustom
               fi
-            elif [[ -d $PWD/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages ]]; then
-              echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$TRAVIS_PYTHON_VERSION/site-packages')\n">>$sitecustom
+            elif [[ -d $PWD/.local/lib/python$opt_pyver/site-packages ]]; then
+              echo -e "import site\nif '$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages' not in sys.path:    site.addsitedir('$VIRTUAL_ENV/.local/lib/python$opt_pyver/site-packages')\n">>$sitecustom
             fi
         fi
         [ $opt_verbose -ne 0 ] && echo "$FLAG popd >/dev/null"
         [ $do_pop -ne 0 ] && popd >/dev/null
         if [[ "$cmd" == "mv" ]]; then
-            run_trcaed "mv $VENV $VIRTUAL_ENV"
+            run_traced "mv $VENV $VIRTUAL_ENV"
         fi
     fi
     venv_mgr_test $VIRTUAL_ENV
+}
+
+custom_env() {
+# custom_env(VENV pyver)
+    cd $1
+    sed -i -e 's:VIRTUAL_ENV=.*:VIRTUAL_ENV="\$(readlink -f \$(dirname \$(readlink -f \$BASH_SOURCE))/..)":g' $PWD/bin/activate
+    if $(grep -q "^export HOME=" $PWD/bin/activate); then
+      sed -i -e 's|^export HOME=.*|export HOME="\$VIRTUAL_ENV"|g' $PWD/bin/activate
+    else
+      sed -ri "/deactivate *\(\) *\{/a\    export HOME=\$(grep \$USER /etc/passwd|awk -F: '{print \$6}')" $PWD/bin/activate
+      [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias pip &>/dev/null" $PWD/bin/activate
+      [ $pyver -gt 2 -a $opt_keep -eq 0 ] && sed -ri "/deactivate *\(\) *\{/a\    unalias python &>/dev/null" $PWD/bin/activate
+      [ $opt_spkg -ne 0 -a -n "$2" ] && echo "[ -f /usr/bin/pip$2 -a ! -f \$VIRTUAL_ENV/bin/pip ] && ln -s /usr/bin/pip$2 \$VIRTUAL_ENV/bin/pip">>$PWD/bin/activate
+      echo "for f in \$VIRTUAL_ENV/bin/*;do">>$PWD/bin/activate
+      echo "    [ -x \$f -a ! -d \$f ] && sed -i -e \"s|^#\!.*/bin/python|#\!\$VIRTUAL_ENV/bin/python|\" \$f">>$PWD/bin/activate
+      echo "done">>$PWD/bin/activate
+      echo "export HOME=\"\$VIRTUAL_ENV\"">>$PWD/bin/activate
+      [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias pip=$PIP">>$PWD/bin/activate
+      [ $pyver -gt 2 -a $opt_keep -eq 0 ] && echo "alias python=$PYTHON">>$PWD/bin/activate
+    fi
+    sed -i -e 's|PATH="\$VIRTUAL_ENV/bin:\$PATH"|PATH="\$VIRTUAL_ENV/.local/bin:\$VIRTUAL_ENV/bin:\$PATH"|g' $PWD/bin/activate
+    if [ $opt_spkg -ne 0  ]; then
+      if [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
+        echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+      else
+        echo -e "import site\nsite.addsitedir('/usr/lib/python$2/site-packages')\nsite.addsitedir('/usr/lib64/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+      fi
+    elif [[ -d $PWD/.local/lib/python$2/site-packages ]]; then
+      echo -e "import site\nsite.addsitedir('$PWD/.local/lib/python$2/site-packages')\n">$PWD/lib/python$2/site-packages/sitecustomize.py
+    fi
+}
+
+do_venv_create() {
+# do_venv_create VENV
+    local f p pkg VIRTUAL_ENV VENV OEPKGS xpkgs
+    export VENV__SAVED_HOME=$HOME
+    export VIRTUAL_ENV=$(readlink -f $1)
+    if [ -d $VIRTUAL_ENV ]; then
+        if [ $opt_force -eq 0 ]; then
+            echo "Virtual environment $VIRTUAL_ENV already exists!!"
+            echo "use: venv_mgr create -f $VIRTUAL_ENV"
+            exit 1
+        fi
+        run_traced "rm -fR $VIRTUAL_ENV"
+    fi
+    VENV=$VIRTUAL_ENV
+    hash -r
+    [ -n "$opt_oever" ] && OEPKGS=$(list_requirements.py -s" " -BPRT -t python -q -b $opt_oever)
+    [ $opt_spkg -ne 0 ] && p="--system-site-packages" || p="--no-site-packages"
+    run_traced "virtualenv -q $p -p /usr/bin/python$opt_pyver $VIRTUAL_ENV"
+    sts=$?
+    [ $sts -ne 0 ] && return
+    run_traced "cd $VIRTUAL_ENV"
+    [ $opt_verbose -ne 0 -a $opt_dev -ne 0 ] && echo "$FLAG . bin/activate"
+    [ $opt_dry_run -eq 0 ] && . bin/activate
+    . bin/activate
+    custom_env $VIRTUAL_ENV $opt_pyver
+    if [ $opt_dev -ne 0 ]; then
+        for pkg in $SUP_PKGS $SECURE_PKGS $DEV_PKGS; do
+            run_traced "$PIP install $pkg --no-warn-conflicts --disable-pip-version-check"
+        done
+    else
+        for pkg in $SUP_PKGS $SECURE_PKGS; do
+            run_traced "$PIP install $pkg --no-warn-conflicts --disable-pip-version-check"
+        done
+        DEV_PKGS=
+    fi
+    [ -n "$opt_rfile" ] && run_traced "$PIP install -r $opt_rfile --no-warn-conflicts --disable-pip-version-check"
+    if [ -n "$opt_oever" ]; then
+        xpkgs="(${SUP_PKGS// /|}|${SECURE_PKGS// /|})"
+        for pkg in $OEPKGS; do
+            [[ "$pkg" =~ $xpkgs ]] || run_traced "$PIP install $pkg --no-warn-conflicts --disable-pip-version-check"
+            if [[ "$pkg" =~ $FLT_PKGS ]]; then
+                run_traced "$PIP uninstall cryptography -y"
+                run_traced "$PIP install cryptography --no-warn-conflicts --disable-pip-version-check"
+            fi
+        done
+    fi
+    [ $opt_verbose -ne 0 -a $opt_dev -ne 0 ] && echo "$FLAG deactivate"
+    [ $opt_dry_run -eq 0 ] && deactivate
+    venv_mgr_test $VENV
 }
 
 do_venv_exec() {
@@ -164,15 +280,6 @@ do_venv_exec() {
     local d f mime VENV VIRTUAL_ENV V sitecustom
     local cmd=$2
     [ -n "$1" ] && VENV=$(readlink -f $1)
-    if [[ -z "$VENV" ]]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr exec VENV cmd"
-      exit 1
-    fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
     run_traced "cd $VENV"
     [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
     [ $opt_dry_run -eq 0 ] && . bin/activate
@@ -183,26 +290,15 @@ do_venv_exec() {
 }
 
 do_venv_pip() {
-# do_venv_exec action VENV pkg
-    local d f VENV VIRTUAL_ENV V PIP pyver
-    local cmd=$1
-    [ -n "$2" ] && VENV=$(readlink -f $2)
+# do_venv_exec VENV action pkg
+    local d f VENV VIRTUAL_ENV V
+    local cmd=$2
+    [ -n "$1" ] && VENV=$(readlink -f $1)
     pkg="$3"
-    if [ -z "$VENV" -o -z "$pkg" ]; then
-      echo "Missed parameters!"
-      echo "use: venv_mgr install|update VENV cmd"
-      exit 1
-    fi
-    if [[ ! -d $VENV  || ! -d $VENV/bin || ! -f $VENV/bin/activate ]]; then
-      echo "Invalid virtual env $VENV!"
-      exit 1
-    fi
-    pyver=$(echo $opt_pyver|grep -o [0-9]|head -n1)
-    [ $pyver -gt 10 ] && PIP=pip3
-    [ $pyver -le 10 ] && PIP=pip
     run_traced "cd $VENV"
     [ $opt_verbose -ne 0 ] && echo "$FLAG . bin/activate"
     [ $opt_dry_run -eq 0 ] && . bin/activate
+    [ "$cmd" == "info" ] && run_traced "$PIP show $pkg"
     [ "$cmd" == "install" ] && run_traced "$PIP $cmd $pkg --no-warn-conflicts --disable-pip-version-check"
     [ "$cmd" == "update" ] && run_traced "$PIP install $pkg --upgrade --no-warn-conflicts --disable-pip-version-check"
     [ $opt_verbose -ne 0 ] && echo "$FLAG deactivate"
@@ -210,18 +306,25 @@ do_venv_pip() {
 }
 
 
-OPTOPTS=(h        n           p         q           V           v)
-OPTDEST=(opt_help opt_dry_run opt_pyver opt_verbose opt_version opt_verbose)
-OPTACTI=(1        1           "="       0           "*>"        "+")
-OPTDEFL=(0        0           ""        -1          ""          -1)
-OPTMETA=("help"   ""          "ver"     ""          "version"   "verbose")
+OPTOPTS=(h        D       f         k        i         n           O         p         q           r         s        V           v)
+OPTDEST=(opt_help opt_dev opt_force opt_keep opt_alone opt_dry_run opt_oever opt_pyver opt_verbose opt_rfile opt_spkg opt_version opt_verbose)
+OPTACTI=(1        1       1         1        1         1           "="       "="       0           "="       1        "*>"        "+")
+OPTDEFL=(0        0       0         0        0         0           ""        ""        -1          ""        0        ""          -1)
+OPTMETA=("help"   ""      ""        ""       ""        ""          "ver"     "pyver"   ""          "file"    ""       "version"   "verbose")
 OPTHELP=("this help"\
+ "create v.environment with development packages"\
+ "force v.environment create, even if exists"\
+ "keep python2 executable"\
+ "execute app in isolated environment"\
  "do nothing (dry-run)"\
+ "install pypi for odoo ver (create or reset)"\
  "python version"\
  "silent mode"\
+ "after created v.environment install from the given requirements file"\
+ "create v.environment with access to the global site-packages"\
  "show version"\
  "verbose mode")
-OPTARGS=(action src dst)
+OPTARGS=(action p1 p2 p3)
 
 parseoptargs "$@"
 if [ "$opt_version" ]; then
@@ -232,25 +335,38 @@ if [ -z "$action" ]; then
   opt_help=1
 fi
 [ -z "$opt_pyver" -a -n "$TRAVIS_PYTHON_VERSION" ] && opt_pyver=$TRAVIS_PYTHON_VERSION 
-if [ -z "$opt_pyver" -a "$action" != "test" ]; then
+if [ -z "$opt_pyver" -a "$action" == "create" ]; then
   opt_help=1
 fi
 if [ $opt_verbose -eq -1 ]; then
   opt_verbose=1
 fi
+CMDS="cp create exec info install merge mv update test reset"
 if [ $opt_help -gt 0 ]; then
-  print_help "Manage virtual environment\naction may be: cp exec install merge mv update test reset"\
+  print_help "Manage virtual environment\naction may be: $CMDS"\
   "(C) 2018-2019 by zeroincombenze(R)\nhttp://wiki.zeroincombenze.org/en/Linux/dev\nAuthor: antoniomaria.vigliotti@gmail.com"
   exit $STS_SUCCESS
 fi
+export PYTHONWARNINGS="ignore"
+[ $opt_alone -ne 0 ] && PYTHONPATH=
 FLAG=">"
 [ $opt_dry_run -eq 0 ] && FLAG="\$"
-[ -n "$opt_pyver" ] && export TRAVIS_PYTHON_VERSION=$opt_pyver
-if [ "$action" == "exec" ]; then
-    do_venv_exec "$src" "$dst"
-elif [ "$action" == "install" -o "$action" == "update" ]; then
-    do_venv_pip "$action" "$src" "$dst"
-else
-    do_venv_mgr "$action" "$src" "$dst"
+if [ -z "$opt_pyver" ]; then
+    venv_mgr_check_src_path "$p1"
 fi
-set +x  #debug
+if [ -n "$opt_pyver" ]; then
+    pyver=$(echo $opt_pyver|grep -o [0-9]|head -n1)
+    [ $pyver -gt 2 ] && PIP=pip3
+    [ $pyver -le 2 ] && PIP=pip
+    [ $pyver -gt 2 ] && PYTHON=python3
+    [ $pyver -le 2 ] && PYTHON=python
+fi
+if [ "$action" == "exec" ]; then
+    do_venv_exec "$p1" "$p2" "$p3"
+elif [[ $action =~ (info|install|update) ]]; then
+    do_venv_pip "$p1" "$action" "$p2" "$p3"
+elif [ "$action" == "create" ]; then
+    do_venv_create "$p1" "$p2" "$p3"
+else
+    do_venv_mgr "$action" "$p1" "$p2"
+fi

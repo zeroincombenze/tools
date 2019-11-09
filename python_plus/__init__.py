@@ -2,7 +2,7 @@ from __future__ import print_function, unicode_literals
 from past.builtins import basestring
 import sys
 
-__version__='0.1.1.2'
+__version__='0.1.1.3'
 
 PYCODESET = 'utf-8'
 PY2 = sys.version_info[0] == 2

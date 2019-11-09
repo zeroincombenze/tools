@@ -1,4 +1,4 @@
-__version__=0.3.8.58
+__version__=0.3.8.59
 # set -x
 if [ "$1" == "-h" ]; then
     echo "$0 num_users [confn] [-0|-n|longpolling_port]"

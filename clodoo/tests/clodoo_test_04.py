@@ -28,7 +28,7 @@ except BaseException:
     from clodoolib import crypt
 
 
-__version__ = "0.3.8.58"
+__version__ = "0.3.8.59"
 
 
 MODULE_ID = 'clodoo'
