@@ -45,7 +45,7 @@ import sys
 import shutil
 from zerobug import Z0test
 
-__version__ = "0.2.2.38"
+__version__ = "0.2.2.39"
 
 MODULE_ID = 'maintainer-quality-tools'
 

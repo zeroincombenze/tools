@@ -30,7 +30,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.38
+__version__=0.2.2.39
 
 
 conf_default() {
@@ -317,7 +317,7 @@ else
 fi
 install_n_activate_tools
 if [ -d $HOME/dev ]; then
-  set_pythonpath "" "$HOME/dev/sitecustomize.py" $PIP
+  set_pythonpath "$HOME/tools" "$HOME/dev/sitecustomize.py" $PIP
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PATH=$PATH"
   [ ${TRAVIS_DEBUG_MODE:-0} -ge 2 ] && echo "PYTHONPATH=$PYTHONPATH"
 else
@@ -385,7 +385,7 @@ for p in build-essential libssl-dev libffi-dev; do
   [ $? -ne 0 ] && run_traced "$LISA install $p" "nolocal"
 done
 if [[ ! "$TRAVIS" == "false" ]]; then
-  for p in urllib3[secure] cryptography pyOpenSSL cryptography idna certifi; do
+  for p in urllib3[secure] cryptography pyOpenSSL idna certifi; do
     run_traced "$PIP install $p --upgrade --ignore-installed" "nolocal"
   done
 fi

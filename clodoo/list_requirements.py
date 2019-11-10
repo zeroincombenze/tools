@@ -12,7 +12,7 @@ except ImportError:
     import z0lib
 
 
-__version__ = '0.3.8.59'
+__version__ = '0.3.8.60'
 python_version = '%s.%s' % (sys.version_info[0], sys.version_info[1])
 
 #
@@ -152,6 +152,7 @@ PIP_TEST_PACKAGES = ['astroid',
                      'pylint-mccabe',
                      'pylint_odoo',
                      'pylint-plugin-utils',
+                     'python_plus',
                      'PyWebDAV',
                      'PyYAML',
                      'QUnitSuite',
@@ -163,13 +164,13 @@ PIP_TEST_PACKAGES = ['astroid',
                      'whichcraft',
                      'wrapt',
                      'zerobug',
+                     'zerobug_odoo',
                      ]
 BIN_TEST_PACKAGES = ['build-essential',
                      'expect-dev',
                      'libffi-dev',
                      'libssl-dev',
                      'python-dev',
-                     # 'python-setuptools',
                      ]
 RPC_PACKAGES = ['clodoo',
                 'odoorpc',
@@ -192,7 +193,6 @@ PIP_BASE_PACKAGES = ['Babel',
                      'Pillow',
                      'psutil',
                      'psycogreen',
-                     # 'psycopg2',
                      'psycopg2-binary',
                      'Python-Chart',
                      'python-ldap',
@@ -215,8 +215,6 @@ PIP3_BASE_PACKAGES = []
 BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
-                     # 'python-psycopg2',
-                     # 'python-simplejson',
                      'wkhtmltopdf',
                      'zlib',
                      ]
@@ -476,7 +474,7 @@ def main():
         ctx['test_pkgs'] = False
         ctx['oca_dependencies'] = False
         ctx['opt_fn'] = '/'.join([ctx['odoo_dir'], 'requirements.txt'])
-    if (not ctx['odoo_dir'] and
+    if (not ctx['odoo_dir'] and ctx['odoo_ver'] and
             os.path.isdir(os.path.join(os.path.expanduser('~'),
                                        ctx['odoo_ver']))):
         ctx['odoo_dir'] = os.path.join(os.path.expanduser('~'),

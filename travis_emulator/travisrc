@@ -1,7 +1,7 @@
 #
 # Common file for travis emulator scripts
 # 
-#__version__=0.2.2.20
+#__version__=0.2.2.21
 
 
 MAKEF=/opt/odoo/dev/Makefile
@@ -591,7 +591,7 @@ create_virtual_env() {
       echo -en "\e[${PS_RUN_COLOR}m"
       if [ ${opt_cache:-0} -ne 0 -a -n "${VER}" -a -d "$TRAVIS_SAVED_HOME/VME/VME${VER}" ]; then
         echo "# .. loading stored packages from VME${VER} ..."
-        run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME${VER} $TRAVIS_HOME"
+        run_traced "venv_mgr merge $TRAVIS_SAVED_HOME/VME/VME${VER} $TRAVIS_HOME -q"
       fi
       source bin/activate
       if [ $opt_py3 -eq 0 -a -d $HOME/lib/python2.7/site-packages/ ]; then

@@ -160,6 +160,9 @@
 # wget_xname
 #
 
+# out-of-date packages:
+# pyvies: https://files.pythonhosted.org/packages/f1/28/79b78b2c531e5f9dac52c45ec41715567eabd3f9a05e86db4dc3e8ac3142/pyvies-0.1.tar.gz
+
 
 [_Linux_]
 # lisa itself needs wget o git
@@ -393,6 +396,7 @@ YUM_PKGS=httpd,mariadb,mariadb-server,php,libxml2-python,libffi-devel,build-esse
          redhat-rpm-config
 NA_PKGS=antiword
 # [antoniov: 2017-11-03] PYPI pychart is not dowlodabale
+# Another siet is https://fossies.org/linux/privat/old/PyChart-1.39.tar.gz
 pychart_xtlcmd_install=yum
 pychart_yum_URL=ftp://195.220.108.108/linux/epel/7/x86_64/Packages/p/pychart-1.39-17.el7.noarch.rpm
 PYTHON_LIB_XML_BOP=libxslt-python,libxml2,libxml2-python,lxml

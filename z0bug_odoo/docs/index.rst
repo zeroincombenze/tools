@@ -7,13 +7,15 @@
 Welcome to z0bug_odoo 0.1.0.1.2 documentation!
 ==============================================
 
-|Maturity| |Build Status| |Coverage Status| |license gpl|
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-.. include:: ../README.rst
+   rtd_description
+   rtd_installation
+   rtd_usage
+
+.. include: readme_footer
 
 
 Indices and tables

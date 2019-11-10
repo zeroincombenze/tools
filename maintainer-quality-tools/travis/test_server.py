@@ -16,7 +16,7 @@ from getaddons import (
 from travis_helpers import success_msg, fail_msg
 from configparser import ConfigParser
 
-__version__ = '0.2.2.38'
+__version__ = '0.2.2.39'
 
 
 def has_test_errors(fname, dbname, odoo_version, check_loaded=True):
@@ -179,10 +179,10 @@ def get_build_dir():
 
 # Return server script for all Odoo versions
 def get_server_script(server_path):
-    if os.path.isfile(os.path.join(server_path, 'odoo-bin')):
-        return 'odoo-bin'
-    elif os.path.isfile(os.path.join(server_path, 'openerp-server')):
-        return 'openerp-server'
+    if os.path.isfile(get_script_path(server_path, 'odoo-bin')):
+        return get_script_path(server_path, 'odoo-bin')
+    elif os.path.isfile(get_script_path(server_path, 'openerp-server')):
+        return get_script_path(server_path, 'openerp-server')
     return 'Script not found!'
 
 

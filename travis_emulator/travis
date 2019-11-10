@@ -90,7 +90,7 @@ fi
 TESTDIR=$(findpkg "" "$TDIR . .." "tests")
 RUNDIR=$(readlink -e $TESTDIR/..)
 
-__version__=0.2.2.20
+__version__=0.2.2.21
 
 
 store_cfg_param_value() {
@@ -1108,7 +1108,7 @@ if [ "$action" == "new_vm" ]; then
   [ -d $VENV_DIR ] && run_traced "rm -fR $VENV_DIR"
   run_traced "venv_mgr mv $VENV_TMP $VENV_DIR"
   exit $sts
-elif [[ $action =~ (chk_vm|cp_vm|mv_vm|merge_vm) ]]; then
+elif [[ $action =~ (reset_vm|cp_vm|mv_vm|merge_vm) ]]; then
   run_traced "venv_mgr ${action:0: -3} $sub $sub2"
   sts=$?
   exit $sts
