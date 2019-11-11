@@ -222,7 +222,7 @@ BIN_BASE_PACKAGES = ['curl',
                      'nodejs',
                      'npm',
                      'wkhtmltopdf',
-                     'zlib',
+                     'zlib1g',
                      ]
 BIN_PACKAGES = ['git',
                 'cups',
